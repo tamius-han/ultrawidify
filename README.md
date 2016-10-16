@@ -20,11 +20,11 @@ This extension also allows you to zoom in or out of video (similar to how SMPlay
 
 Here's the list of keybinds:
 
-`w` : fit to width (will crop top and bottom if video is taller than the display)
-`e` : fit to height (will crop left and right if video is wider than the display)
-`z` : zoom
-`u` : unzoom
-`r` : reset to default
+* `w` : fit to width (will crop top and bottom if video is taller than the display)
+* `e` : fit to height (will crop left and right if video is wider than the display)
+* `z` : zoom
+* `u` : unzoom
+* `r` : reset to default
 
 ## What works
 
