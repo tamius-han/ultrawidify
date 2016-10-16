@@ -6,9 +6,9 @@ The technology has been here for a while, but plenty of people don't know how to
 
 ### TL;DR: it does this:
 
-![Should these black bars be here? No ... but an ultrawide user never forgets.](img-demo/example-httyd2.png)
+![Should these black bars be here? No \[...\] but an ultrawide user never forgets.](img-demo/example-httyd2.png)
 
-I'd demo with Sintel but it's properly encoded.
+I'd demo with [Sintel](https://www.youtube.com/watch?v=eRsGyueVLvQ) but they encoded the video without the black bars. Thanks, Blender Foundation. 
 
 This extension also allows you to zoom in or out of video (similar to how SMPlayer does it).
 
