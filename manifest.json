@@ -10,12 +10,7 @@
   "content_scripts": [
   {
     "matches": ["<all_urls>"],
-    "js": [ "jquery.js", "uw.js" ],
-    "all_frames": true
-  },
-  {
-    "matches": ["*://*.youtube.com/*", "*://youtube.com/*"],
-    "js": [ "jquery.js", "uw.js" ],
+    "js": [ "js/jquery.js", "js/uw.js" ],
     "all_frames": true
   }
   ],
