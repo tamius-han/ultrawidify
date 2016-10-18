@@ -26,7 +26,7 @@ This extension also allows you to zoom in or out of video (similar to how SMPlay
 
 Download the extension from Mozilla's addon page.
 
-[Experimental version](https://addons.mozilla.org/sl/developers/addon/ultrawidify-git) — If 30 minutes old is stable enough for you, this is it. This version is pretty much code from this repo. It's also unlisted so I don't have to go through AMO for every minor change.
+[Experimental version](https://addons.mozilla.org/addon/ultrawidify-git) — If 30 minutes old is stable enough for you, this is it. This version is pretty much code from this repo. It's also unlisted so I don't have to go through AMO for every minor change.
 
 [Regular version](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) — more stable and with AMO's approval. No experimental features either. **NOTE: AMO still hasn't approved this version. You won't be able to install it until they do.**
 
