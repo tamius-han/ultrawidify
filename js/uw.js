@@ -4,7 +4,10 @@ var inFullScreen = false;
 var cssmod = "";
 var zoomStep = 0.05;
 
-var originalcss;
+var whatdo_persistence = true;
+var last_whatdo = "reset";
+
+var debugmsg = false;
 
 $(document).ready(function() {
   //   console.log("uw::document.ready | document is ready");
@@ -29,6 +32,18 @@ $(document).ready(function() {
         break;
       case 'u':
         changeCSS("unzoom");
+        break;
+      case 'd':
+        changeCSS(0);
+        break;
+      case 's':
+        changeCSS(1);
+        break;
+      case 'a':
+        changeCSS(2);
+        break;
+      case 'x':
+        changeCSS(3);
     }
   });
   //   console.log("uw::document.ready | loaded shortcuts");
@@ -74,19 +89,48 @@ function onFullscreenOff(){
 }
 
 function changeCSS(what_do){
-  
-  // Če nismo na Youtube, bodo youtube videi v <iframe> elementu — zato najprej pogledamo, če
-  // je element s fokusom iframe
-  
-  if(inIframe()){
     
-    var player = document.getElementById("player");
-    changeCSS_nofs(what_do, player);
+  var e_video = document.getElementsByClassName("video-stream")[0];
+  var video = { "width": e_video.scrollWidth, "height": e_video.scrollHeight }
+  var e_player;
+  
+  if(inIframe())
+    e_player = document.getElementById("player")
+  else
+    e_player = document.getElementById("movie_player");
+  
+  var player = { "width": e_player.clientWidth, "height": e_player.clientHeight }
+  
+  // Youtube predvajalnik privzeto resetira CSS ob prehodu v/iz fullscreen. Tukaj shranimo zadnje dejanje,
+  // da ga lahko onFullscreenOff/onFullscreenOn uveljavita.
+  // 
+  // Youtube player resets CSS on fullscreen state change. Here we save the last action taken, so 
+  // onFullscreenOff/onFullscreenOn are able to preserve it (if we want).
+  last_whatdo = what_do;
+  
+  // -----------------------------------------------------------------------------------------
+  //  Handlanje dejanj se zgodi pod to črto
+  //  
+  //  Handling actions happens below this line
+  // -----------------------------------------------------------------------------------------
+  
+  if (what_do >= 0 && what_do < 5){   
+    if( what_do == 0)
+      set_video_ar((2560/1080), video, player);
+    if(what_do == 1)
+      set_video_ar((1920/1080), video, player);
+    if(what_do == 2)
+      set_video_ar((16/10), video, player);
+    if(what_do == 3)
+      set_video_ar((4/3), video, player);
+    return;
+  }
+  
+  if (what_do == "reset"){
+    if(debugmsg)
+      console.log("uw::changeCSS | issuing reset.");
     
-    // to verjetno pomeni, da nismo na Youtube, zato zaključimo kar tukaj.
-    // 
-    // if we're controlling video in an iframe, that probably means we aren't on youtube
-    // so we finish here.
+    resetCSS(video, player); 
     return;
   }
   
@@ -96,109 +140,212 @@ function changeCSS(what_do){
   // We only change video size when we're in full screen OR if we are NOT writing a comment.
   // We also leave video alone if we're using the search bar
   
-  var player = document.getElementById("movie_player");  
   if(inFullScreen || (
     (document.activeElement.getAttribute("role") != "textbox") &&
     (document.activeElement.getAttribute("type") != "text")
     ))
-    changeCSS_nofs(what_do, player);
+    changeCSS_nofs(what_do, video, player);
   
   
   
 }
 
-function changeCSS_nofs(what_do, player){
+/* Tukaj povemo, kakšno razmerje stranic ima video.
+// Kaj to pomeni: 
+//    Mi rečemo, da ima video razmerje stranic 16:9. Dejanski video
+//    ima razmerje 4:3. To pomeni, da ima video zgoraj in spodaj črno
+//    obrobo, ki je nočemo, zato video povečamo toliko, da se ta obroba odreže.
+// 
+// With this function, we specify the aspect ratio of the video. 
+// What does this mean?
+//    If we specify that the aspect ratio of a video is 16:9 when video is
+//    actually 4:3, that means the video has black bars above and below.
+//    We zoom the video just enough for the black lines to disappear.
+*/
+function set_video_ar(aspect_ratio, video, player){
+  var video_ar = video.width / video.height;
+  var display_ar = player.width / player.height;
+  
+  if(debugmsg)
+    console.log("uw::set_video_ar | aspect ratio: " + aspect_ratio + "; video_ar: " + video_ar + "; display_ar: " + display_ar);
+  
+  if( aspect_ratio*1.1 > video_ar && video_ar > aspect_ratio*0.9 ){
+    // Ta hack nas reši problema, ki ga predstavlja spodnji if stavek — če se legit 21:9 videu na 16:9 monitorju
+    // obreže na 16:9, potem ga s klicem te funkcije ne moremo spremeniti nazaj na 21:9. Vendar pa bi za tak primer
+    // radi imeli izjemo.
+    // 
+    // This hack solves the problem that the bottom if statement presents. If we crop a 21:9 video on a 16:9 monitor,
+    // we can't change it back to 21:9 in this function, even though we kinda want that to happen — so we add an
+    // exception.
+    if( debugmsg)
+      console.log("uw::set_video_ar | ar matches our display ar. resetting");
+    
+    resetCSS(video, player);
+    return;
+  }
+  
+  if( display_ar*1.1 < aspect_ratio && aspect_ratio > 1){
+    /* Ker tukaj video obrežemo tako, da ga povečamo, dokler neželjen del videa gleda čez rob prikazovalnika,
+    // tako obrezovanje ne bo delovalo, če hočemo nastaviti razmerje stranic na nekaj širšega, kot je naš zaslon.
+    // Če je temu tako, ne naredimo ničesar. 
+    // 
+    // display_ar*1.1 — zato, da imamo nekaj meje, če se razmerje stranic zaslona ne ujema popolnoma natančno z
+    // razmerjem stranic, ki smo ga dobili kot argument.
+    // 
+    // && aspect_ratio > 1 zato, če se zgodi, da se kdaj odločimo podpirati ultraozke zaslone (9/16, itd).
+    // 
+    // -----------------------------------------------------------------------------------------------------------
+    // 
+    // Because we crop the video by enlarging it until the unwanted parts of it are over the edges of the display,
+    // this function obviously won't work if we want to set our aspect ratio to something that's wider than the
+    // aspect ratio of our display. In such cases we do nothing at all. 
+    // 
+    // display_ar*1.1 — some tolerance for cases where display aspect ratio and the aspect ratio we get as an
+    // argument differ by a slim margin. (see: 1920x1080 isn't exactly 16:9. 2560x1080 is slightly wider than
+    // 21:9)
+    // 
+    // && aspect_ratio > 1 is here in case we decide to support ultrathin monitors (9/16, etc).
+    */
+    if( debugmsg)
+      console.log("uw::set_video_ar | ar is wider than our monitor. not doing a thing");
+    return;
+  }
+  
+  
+  //Širina, višina, top, left za nov video
+  //Width, height, top and left for the new video
+  var nv = { "w":0, "h":0, "top":0, "left":0 }; 
+  
+  /*
+  // Video hočemo pretvoriti v video z drugačnim razmerjem stranic.
+  // To storimo tako, da širino videa nastavimo relativno na višino prikazovalnika, torej:
+  // 
+  //     širina = višina_prikazovalnika * razmerje_stranic
+  //     višina = širina / video_ar
+  //     
+  // 
+  // 
+  // ----------------------------------------------------------------------------------------------
+  // 
+  // In this case, the video is narrower than we want (think 4:3, which we want to make into 16:9)
+  // We achieve this by setting video width relative to the display width, so:
+  // 
+  //     width = display_height * aspect_ratio
+  //    height = width / video_ar
+  //     
+  */
+  
+  if( video_ar <= aspect_ratio ){
+    if(debugmsg){
+      console.log("uw::set_video_ar | reached pre-calc. Video is taller than ar. target ar: " + aspect_ratio );
+    }    
+    
+    nv.w = player.height * aspect_ratio;
+    nv.h = nv.w / video_ar;
+    
+    nv.top = (player.height - nv.h)/2;
+    nv.left = (player.width - nv.w)/2;
+  }
+  else{
+    if(debugmsg){
+      console.log("uw::set_video_ar | reached pre-calc. Video is wider than ar. target ar: " + aspect_ratio );
+    }  
+    nv.h = player.width / aspect_ratio;
+    nv.w = nv.h * video_ar;
+    
+    nv.top = (player.height - nv.h)/2;
+    nv.left = (player.width - nv.w)/2;
+  }
+  
+  applyCSS(nv);
+}
+
+function resetCSS(video, player){
+  if(debugmsg)
+    console.log("uw::resetCSS | resetting video size");
+  
+  
+  var nv = {"w": 0, "h": 0, "top": 0, "left": 0};
+  
+  var vidaspect = video.width / video.height;
+  var scraspect = player.width / player.height;
+  
+  if( vidaspect > scraspect ){  // Video je širši od okna | video is wider than window
+    nv.w = player.width;
+    nv.h = player.width / video.width * video.height;
+    
+    // Lahko se zgodi, da je prišlo do zaokroževalne napake ter da je dejanska višina videa le nekaj pikslov drugačna,
+    // kot višina predvajalnika. V tem primeru zavržemo prej dobljeni rezultat in namesto tega privzamemo, da je višina
+    // videa enaka višini predvajalnika.
+    // 
+    // It's possible to have a rounding error where calculated height of the video is only a few pixels different from
+    // the player height. In such cases, we discard the calculated video height and use player height instead.
+    
+    if( player.height - 4 < nv.h && nv.h < player.height + 4 )
+      nv.h = player.height;
+    
+    nv.top = (player.height - nv.h) / 2;
+    nv.left = 0;
+  }
+  else{
+    nv.h = player.height;
+    nv.w = player.height / video.height * video.width;
+    
+    if( player.width - 4 < nv.w && nv.w < player.width + 4)
+      nv.w = player.width;
+    
+    nv.top = 0;   //itak zasedemo 100% višine
+    nv.left = (player.width - nv.w) / 2;
+  }
+  
+  applyCSS(nv);
+}
+
+function changeCSS_nofs(what_do, video, player){
   
   var w;
   var h;
   var top;
   var left;
   
-//     var player = $('[id*="player"]');
-//   var player = document.getElementById("movie_player");
-  /*
-  if (player = null){
-    console.log("uw::Player is null. retrying...");
-    player = $('[id*="player"]');
-  }*/
-  
-  var vs = document.getElementsByClassName("video-stream")[0];
-  var vidwid = vs.scrollWidth;
-  var vidhei = vs.scrollHeight;
-  var ar = vidwid/vidhei;
-    
-  if(what_do == "reset"){
-//     $(".video-stream").removeClass("neueVideo");    
-    extraClassAdded = false;
-    
-    // popraviti je treba še širino, višino in top
-    // we need to fix width, height and top
-    
-    var vidwid = document.getElementsByClassName("video-stream")[0].scrollWidth;
-    var vidhei = document.getElementsByClassName("video-stream")[0].scrollHeight;
-    var vidaspect = vidwid / vidhei;
-    var scraspect = player.clientWidth / player.clientHeight;
-    
-    if( vidaspect > scraspect ){  // Video je širši od okna | video is wider than window
-      w = player.clientWidth;
-      h = player.clientWidth / vidwid * vidhei;
-      
-      top = (player.clientHeight - h) / 2;
-      left = 0;
-    }
-    else{
-      h = player.clientHeight;
-      w = player.clientHeight / vidhei * vidwid;
-      
-      top = 0;   //itak zasedemo 100% višine
-      left = (player.clientWidth - w) / 2;
-    }
-    
-    top = top + "px";
-    left = left + "px";
-    w = w + "px";
-    h = h + "px";
-    
-    $("video").css({"width": w,"height": h,"top": top, "left":left});
-    return;
-  }
+  var ar = video.width/video.height;
   
   if(what_do == "fitw"){
     // Ker bi bilo lepo, da atribut 'top' spremenimo hkrati z width in height, moramo najprej naračunati,
     // za kakšen faktor se poviša višina. To potrebujemo, da se pravilno izračuna offset.
     // 
     //        100vw = window.innerWidth
-    //    [1] window.innerWidth / videoWidth = x
+    //        window.innerWidth / videoWidth = x
     // 
     // Če pomnožimo videoHeight z x, dobimo novo višino videa. Nova višina videa je lahko večja ali manjša
     // kot višina ekrana. Če je višina videa manjša kot višina ekrana, bo top pozitiven, drugače negativen:
     // 
-    //    [2] nvideoh = x * videoWidth
-    //    [3] top = (window.innerHeight - nvideoh) / 2
+    //        nvideoh = x * videoWidth
+    //        top = (window.innerHeight - nvideoh) / 2
     //
     // Z 2 delimo, ker hočemo video vertikalno poravnati.
     
-    w = player.clientWidth;
-    h = player.clientWidth / vidwid * vidhei;
+    w = player.width;
+    h = player.width / video.width * video.height;
     
-    top = (player.clientHeight - h) / 2;
+    top = (player.height - h) / 2;
     left = 0;            // Ker zavzamemo vso širino | cos we take up all the width
   }
   
   if(what_do == "fith"){
-    h = player.clientHeight;
-    w = player.clientHeight / vidhei * vidwid;
+    h = player.height;
+    w = player.height / video.height * video.width;
     
     top = 0;   //itak zasedemo 100% višine
-    left = (player.clientWidth - w) / 2;
+    left = (player.width - w) / 2;
   }
   
   if(what_do == "zoom"){    
     // Video povečujemo na tak način, da sta zoom in unzoom povečata oz. zmanjšata video za enak korak
     // We do this so zoom and unzoom steps change video sizes for the same amount
     
-    h = vidhei + (player.clientHeight * zoomStep);
-    w = vidwid + (player.clientHeight * zoomStep * ar);
+    h = video.height + (player.height * zoomStep);
+    w = video.width + (player.height * zoomStep * ar);
     /* Zakaj računamo širino na tak način?
     // 
     // Predstavljajte si, da imamo 2100:900 video v 1600:900 škatli, zoomStep = 0.1. Če bi širino računali po formuli:
@@ -231,10 +378,10 @@ function changeCSS_nofs(what_do, player){
     // This gives us the correct aspect ratio and prevents video deformations.
     */
     
-    top = (player.clientHeight - h)/2
-    left = (player.clientWidth - w) / 2;
+    top = (player.height - h)/2
+    left = (player.width - w) / 2;
     
-    if (h > player.clientHeight * 4){
+    if (h > player.height * 4){
       console.log("okay mate you took this shit way too far now. I'm not doing shit");
       return;
     }
@@ -243,192 +390,38 @@ function changeCSS_nofs(what_do, player){
   if(what_do == "unzoom"){
     // Video povečujemo na tak način, da sta zoom in unzoom povečata oz. zmanjšata video za enak korak
     // We do this so zoom and unzoom steps change video sizes for the same amount
-    h = vidhei - (player.clientHeight * zoomStep);
-    w = vidwid - (player.clientHeight * zoomStep * ar);
+    h = video.height - (player.height * zoomStep);
+    w = video.width - (player.height * zoomStep * ar);
     
-    top = (player.clientHeight - h)/2
-    left = (player.clientWidth - w) / 2;
+    top = (player.height - h)/2
+    left = (player.width - w) / 2;
     
-    if (h < player.clientHeight * 0.25){
+    if (h < player.height * 0.25){
       console.log("don't you think this is small enough already? You don't need to resize the video all the way down to the size smaller than your penis.");
       console.log("(if you're a woman, substitute 'penis' with whatever the female equivalent is.)");
       return;
     }
   }
-    
-  top = top + "px";
-  left = left + "px";
-  w = w + "px";
-  h = h + "px";
-  
-  $("video").css({"width": w,"height": h,"top": top, "left": left});
+  var dimensions = { h: h, w: w, top: top, left: left };
+  applyCSS(dimensions);
 }
 
-function inIframe () {
+function applyCSS(dimensions){
+  dimensions.top += "px";
+  dimensions.left += "px";
+  dimensions.w += "px";
+  dimensions.h += "px";
+  
+  $("video").css({"width": dimensions.w,"height": dimensions.h,"top": dimensions.top, "left": dimensions.left});
+  
+  if(debugmsg)
+    console.log("uw::applycss | css applied");
+}
+
+function inIframe(){
   try {
     return window.self !== window.top;
   } catch (e) {
     return true;
   }
 }
-
-// // Ta funkcija spreminja CSS v 'full screen' načinu. Is youtube-specific.
-// // Včasih smo v fullscreen uporabljali to, zdaj uporabljamo changeCSS_nofs
-// // ker je ta napisana za bolj splošen primer (in dela tudi na fullscreen).
-// // 
-// // This function modifies CSS in full screen. So far works on youtube.
-// // We don't use it anymore because changeCSS_nofs also works on fullscreen.
-// function changeCSS_fs(what_do){
-//   
-//   var w;
-//   var h;
-//   var top;
-//   
-//   // Če hočemo povrniti nastavitve na privzeto, samo pobrišemo naš css
-//   // if we want to restore the default player we just clear our css
-//   if(what_do == "reset"){
-//     $(".video-stream").removeClass("neueVideo");    
-//     extraClassAdded = false;
-//     
-//     // popraviti je treba še širino, višino in top
-//     // we need to fix width, height and top
-//     
-//     var vidwid = document.getElementsByClassName("video-stream")[0].scrollWidth;
-//     var vidhei = document.getElementsByClassName("video-stream")[0].scrollHeight;
-//     var vidaspect = vidwid / vidhei;
-//     var scraspect = window.innerWidth / window.innerHeight;
-//     
-//     if( vidaspect > scraspect ){  // Video je širši od okna | video is wider than window
-//       w = "100vw";
-//       h = "auto";
-//       // Razlaga tegale je spodaj | this line of code is explained below
-//       top = (window.innerHeight - ((window.innerWidth / vidwid) * vidhei)) / 2;
-//       top = top + "px";
-//       $("video").css({"width": w,"height": h,"top": top});
-//     }
-//     else{
-//       w = "auto";
-//       h = "100vh";
-//       top = "0px";
-//       $("video").css({"width": w,"height": h,"top": top});
-//     }
-//     
-//     console.log("uw::changeCSS | reseting to default view");
-//     return;
-//   }
-//   
-//   if (!extraClassAdded){
-//     $(".video-stream").addClass("neueVideo");
-//     extraClassAdded = true;
-//   }
-//   
-//   
-//   
-//   if(what_do == "fitw"){
-//     // Ker bi bilo lepo, da atribut 'top' spremenimo hkrati z width in height, moramo najprej naračunati,
-//     // za kakšen faktor se poviša višina. To potrebujemo, da se pravilno izračuna offset.
-//     // 
-//     //        100vw = window.innerWidth
-//     //    [1] window.innerWidth / videoWidth = x
-//     // 
-//     // Če pomnožimo videoHeight z x, dobimo novo višino videa. Nova višina videa je lahko večja ali manjša
-//     // kot višina ekrana. Če je višina videa manjša kot višina ekrana, bo top pozitiven, drugače negativen:
-//     // 
-//     //    [2] nvideoh = x * videoWidth
-//     //    [3] top = (window.innerHeight - nvideoh) / 2
-//     //
-//     // Z 2 delimo, ker hočemo video vertikalno poravnati.
-//     
-//     w = "100vw";
-//     h = "auto";
-//     
-//     var vidwid = document.getElementsByClassName("video-stream")[0].scrollWidth;
-//     var vidhei = document.getElementsByClassName("video-stream")[0].scrollHeight;
-//     
-//     //    Glej zgornji komentar za pomen [1][2][3] | see above comment for meaning of [1][2][3]
-//     //
-//     //    ___________________________[3]____________________________________
-//     //    |                     __________________[2]__________________    |
-//     //    |                     |____________[1]_____________         |    |
-//     top = (window.innerHeight - ((window.innerWidth / vidwid) * vidhei)) / 2;
-//     
-//     top = top + "px";
-//     console.log("uw::changeCSS | will try fit to width and center");
-//   }
-//   
-//   if(what_do == "fith"){
-//     top = "0";   //itak zasedemo 100% višine
-//     w = "auto";
-//     h = "100vh";
-//     
-//     console.log("uw::changeCSS | will try fit to height");
-//   }
-//   
-//   if(what_do == "zoom"){    
-//     var vidhei = document.getElementsByClassName("video-stream")[0].scrollHeight;
-//     
-//     w = "auto";
-//     
-//     // Video povečujemo na tak način, da sta zoom in unzoom povečata oz. zmanjšata video za enak korak
-//     // We do this so zoom and unzoom steps change video sizes for the same amount
-//     h = vidhei + (window.innerHeight * zoomStep);
-//     
-//     top = (window.innerHeight - h)/2
-//     
-//     if (h > window.innerHeight * 4){
-//       console.log("okay mate you took this shit way too far now. I'm not doing shit");
-//       return;
-//     }
-//     console.log("uw::changeCSS | zooming in");
-//     
-//     h = h + "px";
-//     top = top + "px";
-//   }
-//   
-//   if(what_do == "unzoom"){
-//     var vidhei = document.getElementsByClassName("video-stream")[0].scrollHeight;
-//     
-//     w = "auto";
-//     
-//     // Video povečujemo na tak način, da sta zoom in unzoom povečata oz. zmanjšata video za enak korak
-//     // We do this so zoom and unzoom steps change video sizes for the same amount
-//     h = vidhei - (window.innerHeight * zoomStep);
-//     
-//     top = (window.innerHeight - h)/2
-//     
-//     if (h < window.innerHeight * 0.25){
-//       console.log("don't you think this is small enough already? You don't need to resize the video to the size smaller than your penis.");
-//       console.log("(if you're a woman, just substitute 'penis' with whatever the female equivalent is)");
-//       return;
-//     }
-//     console.log("uw::changeCSS | unzooming");
-//     
-//     h = h + "px";
-//     top = top + "px";
-//   }
-//   
-//   $("video").css({"width": w,"height": h,"top": top});
-//   
-//   console.log("uw::changeCSS | applying css");
-// }
-
-
-
-
-// console.log("uw | finished loading");
-
-
-
-
-
-
-// var fitwbutton = document.createElement('button');
-// 
-// fitwbutton.appendChild(t);
-// fitwbutton.onclick = function(){ changeCSS("fitw"); };
-// console.log("testing!3");
-// document.getElementsByClassName("ytp-right-controls")[0].appendChild(fitwbutton);
-/*
-console.log("testing4!");
-document.body.appendChild('cssmod');
-console.log("testing 4.1");*/
