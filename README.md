@@ -22,7 +22,9 @@ This extension also allows you to zoom in or out of video (similar to how SMPlay
 4. Add temporary addon
 5. Browse to wherever you saved it and select manifest.json
 
-### Permanent
+### Permanent install
+
+Download the extension from Mozilla's addon page:
 
 [Experimental version](https://addons.mozilla.org/sl/developers/addon/ultrawidify-git) — If 30 minutes old is stable enough for you, this is it. This version is pretty much code from this repo. It's also unlisted so I don't have to go through AMO for every minor change.
 
