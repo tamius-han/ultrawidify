@@ -7,11 +7,15 @@ var zoomStep = 0.05;
 var whatdo_persistence = true;
 var last_whatdo = "reset";
 
-var debugmsg = false;
+var debugmsg = true;
+
+var ctlbar_classnames = ["ytp-chrome-controls"];
+var serviceArray = [".video-stream" ]; //Youtube 
 
 $(document).ready(function() {
+  console.log("==========================================================================================");
   //   console.log("uw::document.ready | document is ready");
-  var serviceArray = [".video-stream" ]; //Youtube 
+ 
   
   // To bo naš dinamičen css
   // this will be our dynamic css sheet
@@ -46,19 +50,47 @@ $(document).ready(function() {
         changeCSS(3);
     }
   });
-  //   console.log("uw::document.ready | loaded shortcuts");
   
   document.addEventListener("mozfullscreenchange", function( event ) {
     inFullScreen = ( window.innerHeight == window.screen.height && window.innerWidth == window.screen.width);
     inFullScreen ? onFullscreenOn() : onFullscreenOff();
   });
   
-//   $("<style>")
-//   .prop("type", "text/css")
-//   .html(".neueVideo{ display: block !important; margin: 0px auto !important; position: relative !important; transform: none !important; left: 0px !important; }").appendTo("head");
-//   
-  //   console.log("uw::document.ready | created new CSS class");
+  // Dodajmo gumbe na video
+  // let's add buttons to the video
+  
+  addCtlButtons(0);
+
 });
+
+function addCtlButtons(provider_id){
+  
+  return;
+  
+  if(debugmsg)
+    console.log("uw::addCtlButtons | trying to add buttons");
+  
+  var ctl_class;
+  var button_panel;
+  var buttons = [];
+  if(provider_id == 0){
+    ctl_class = document.getElementsByClassName("ytp-chrome-controls")[0];
+    
+    button_panel = document.createElement('div');
+    ctl_class.appendChild(button_panel);
+    
+    for( var i = 0; i <  5; i++){
+      buttons[i] = document.createElement('div');
+      buttons[i].innerHTML = "test button " + i;
+      buttons[i].addEventListener("click", function(){ changeCSS("fitw") }, false);
+      button_panel.appendChild(buttons[i]);
+    }
+    
+  }
+  
+  if(debugmsg)
+    console.log("uw::addCtlButtons | buttons added");
+}
 
 function onFullscreenOn(){
   
@@ -89,7 +121,8 @@ function onFullscreenOff(){
 }
 
 function changeCSS(what_do){
-    
+  
+  
   var e_video = document.getElementsByClassName("video-stream")[0];
   var video = { "width": e_video.scrollWidth, "height": e_video.scrollHeight }
   var e_player;
