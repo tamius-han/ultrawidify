@@ -25,5 +25,10 @@
     "img/fitw.png",
     "img/fith.png",
     "img/reset.png"
-  ]
+  ],
+  "applications": {
+    "gecko": {
+      "update_url": "http://tamius.net/ultrawidify/updates/updates.json"
+    }
+  }
 }
