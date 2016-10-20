@@ -28,7 +28,7 @@
   ],
   "applications": {
     "gecko": {
-      "update_url": "http://tamius.net/ultrawidify/updates/updates.json"
+      "update_url": "https://tamius.net/ultrawidify/updates/updates.json"
     }
   }
 }
