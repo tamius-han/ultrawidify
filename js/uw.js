@@ -12,13 +12,23 @@ var debugmsg = true;
 var ctlbar_classnames = ["ytp-chrome-controls"];
 var serviceArray = [".video-stream" ]; //Youtube 
 
+var buttons = [];
+
+$("<style>")
+  .prop("type", "text/css")
+  .html("\
+    .uw-button{\
+      display: inline-block;\
+      height: 100% !important; \
+      background-size: contain; \
+      background-repeat: no-repeat;\
+      background-position: center center;\
+    }")
+  .appendTo("head");
+    
 $(document).ready(function() {
-  console.log("==========================================================================================");
-  //   console.log("uw::document.ready | document is ready");
- 
-  
-  // To bo naš dinamičen css
-  // this will be our dynamic css sheet
+  if(debugmsg)
+    console.log("==========================================================================================");
   
   $(document).keypress(function (event) {          // Tukaj ugotovimo, katero tipko smo pritisnili
     switch (event.key){
@@ -52,6 +62,7 @@ $(document).ready(function() {
   });
   
   document.addEventListener("mozfullscreenchange", function( event ) {
+    onFullScreenChange();
     inFullScreen = ( window.innerHeight == window.screen.height && window.innerWidth == window.screen.width);
     inFullScreen ? onFullscreenOn() : onFullscreenOff();
   });
@@ -65,31 +76,58 @@ $(document).ready(function() {
 
 function addCtlButtons(provider_id){
   
-  return;
+  // Gumb za nastavitve je bolj kot ne vselej prisoten, zato širino tega gumba uporabimo kot širino naših gumbov
+  // Settings button is more or less always there, so we use its width as width of our buttons
+  var button_width = document.getElementsByClassName("ytp-button ytp-settings-button")[0].scrollWidth;
+  //NOTE: jQuery tu serje da je tole zgoraj nekaj undefined, ampak skript dela pravilno. Zaenkrat nas jQuery problemi
+  //zato ne bojo brigal pol kurca
+  //
+  //NOTE: jQuery sometimes shits a word salat in the console and the above line seems to be the problem. Since
+  //everything works just fine, we pretty much ignore that
+  
+  var button_def = [ "fitw", "fith", "reset", "zoom", "uzoom" ];
   
   if(debugmsg)
     console.log("uw::addCtlButtons | trying to add buttons");
   
-  var ctl_class;
   var button_panel;
-  var buttons = [];
+  
+  // If we're on youtube:
   if(provider_id == 0){
-    ctl_class = document.getElementsByClassName("ytp-chrome-controls")[0];
     
-    button_panel = document.createElement('div');
-    ctl_class.appendChild(button_panel);
-    
-    for( var i = 0; i <  5; i++){
+    var rctl = document.getElementsByClassName("ytp-right-controls")[0];
+
+    for( var i = 4; i >= 0; i--){
       buttons[i] = document.createElement('div');
-      buttons[i].innerHTML = "test button " + i;
-      buttons[i].addEventListener("click", function(){ changeCSS("fitw") }, false);
-      button_panel.appendChild(buttons[i]);
+      buttons[i].style.backgroundImage = 'url(' + imageToUrl("/img/ytplayer-icons/" + button_def[i] + ".png") + ')';
+      buttons[i].style.width = (button_width * 0.75) + "px";
+      buttons[i].style.marginLeft = (button_width * 0.3) + "px";
+      buttons[i].className += " uw-button";
+      $(rctl).prepend(buttons[i]);
     }
     
   }
+
+  buttons[0].onclick = function() { changeCSS("fitw")   };
+  buttons[1].onclick = function() { changeCSS("fith")   };
+  buttons[2].onclick = function() { changeCSS("reset")  };
+  buttons[3].onclick = function() { changeCSS("zoom")   };
+  buttons[4].onclick = function() { changeCSS("unzoom") };
   
   if(debugmsg)
     console.log("uw::addCtlButtons | buttons added");
+}
+
+function onFullScreenChange(){
+  // Popravimo velikost gumbov
+  // Let's fix the button size:
+  var button_width = document.getElementsByClassName("ytp-button ytp-settings-button")[0].scrollWidth;
+  for( var i = 4; i >= 0; i--){
+    buttons[i].style.width = (button_width * 0.75) + "px";
+    buttons[i].style.marginLeft = (button_width * 0.3) + "px";
+  }
+  
+  
 }
 
 function onFullscreenOn(){
@@ -457,4 +495,8 @@ function inIframe(){
   } catch (e) {
     return true;
   }
+}
+
+function imageToUrl(img){
+  return chrome.extension.getURL(img);
 }
