@@ -24,15 +24,17 @@ This extension also allows you to zoom in or out of video (similar to how SMPlay
 
 ### Permanent install
 
-Download the extension from Mozilla's addon page.
+[v0.9.7 — Experimental version — download from here](http://tamius.net/ultrawidify) — If 30 minutes old is stable enough for you, this is it. This version is pretty much code from this repo. It's also unlisted so I don't have to go through AMO for every minor change.
 
-[Experimental version](http://tamius.net/ultrawidify) — If 30 minutes old is stable enough for you, this is it. This version is pretty much code from this repo. It's also unlisted so I don't have to go through AMO for every minor change. **NOTE: AUTOUPDATING ISN'T IMPLEMENTED YET. You will have to update manually.** (tfw no https)
-
-[Regular version](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) — more stable and with AMO's approval. No experimental features either. **NOTE: AMO still hasn't approved this version. You won't be able to install it until they do.**
+[v0.9.1 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) — more stable and with AMO's approval. No experimental features either.
 
 ## How do I use it?
 
-Here's the list of keybinds:
+This is the interface (**NOTE: AMO version doesn't have buttons yet!**):
+
+![If you know me and came looking for the obligatory "it's a wyvern, not a dragon" comment ... well, you just found it.](img-demo/interface-explained.jpg)
+
+And that's the keybinds for the actions displayed:
 
 * `w` : fit to width (will crop top and bottom if video is taller than the display)
 * `e` : fit to height (will crop left and right if video is wider than the display)
@@ -67,5 +69,20 @@ Keybind `a` just doesn't work at all, so no 16:10.
 
 * Adding custom keybinds
 * Adding a proper settings page
-* Adding buttons for actions in youtube's player
+* ~~Adding buttons for actions in youtube's player~~ (kinda done, forcing aspect ratio still not in GUI)
 * ~~Adding an option to force specific aspect ratio~~ (now it's "experimental")
+
+## Changelog
+
+###v0.9.1
+
+* First version on GitHub (and on AMO) with basic features (zoom, fit to width, fit to height)
+
+###v0.9.6
+
+* Added experimental feature that tries to force an aspect ratio
+
+###v0.9.7
+
+* Added GUI/buttons on the player.
+* Script now only loads on youtube pages (iframes included) (before, this script would run on any page)
