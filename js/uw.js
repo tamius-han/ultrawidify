@@ -118,6 +118,8 @@ function addCtlButtons(provider_id){
     console.log("uw::addCtlButtons | buttons added");
 }
 
+// Ta funkcija se proži, ko vstopimo ali izstopimo iz celozaslonskega načina
+// This function gets triggered by full screen state change
 function onFullScreenChange(){
   // Popravimo velikost gumbov
   // Let's fix the button size:
@@ -130,32 +132,17 @@ function onFullScreenChange(){
   
 }
 
+
+// Ta funkcija se proži, ko gremo v celozaslonski način
+// This function triggers when we enter fullscreen mode
 function onFullscreenOn(){
   
-// TODO: show buttons
-//   var button_row = document.getElementsByClassName("ytp-right-controls")[0];
-//   
-//   console.log("uw:: Full screen is now on");
-//   var t = document.createTextNode("but");
-//   
-//   var b_fitw = document.createElement('button');
-//   
-//   b_fitw.appendChild(t);
-//   
-//   
-// //   b_fitw.id = "uw_b_fitw";
-//   b_fitw.className = "ytp_button";
-//   b_fitw.onclick = function() { changeCSS("fitw"); };
-// //   b_fitw.appendChild("<img src='img/fitw.png' height='100%' />");
-//   
-//   button_row.appendChild(b_fitw);
-//   
-//   //   var b_fith = document.createElement('button');
-//   
-//   console.log("uw:: added buttons");
 }
+
+// Ta funkcija se proži, ko gremo ven iz celozaslonskega načina
+// This function triggers when we leave fullscreen mode
 function onFullscreenOff(){
-  //TODO: hide buttons
+
 }
 
 function changeCSS(what_do){
@@ -453,7 +440,9 @@ function changeCSS_nofs(what_do, video, player){
     left = (player.width - w) / 2;
     
     if (h > player.height * 4){
-      console.log("okay mate you took this shit way too far now. I'm not doing shit");
+      console.log("But this is bigger than some rooms, this is bigger than some people's flats!");
+      // Insert obligatory omnishambles & coffee machine quote here
+      console.log("(No really, mate, you took this way too far already)");
       return;
     }
   }
