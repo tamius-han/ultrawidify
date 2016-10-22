@@ -6,7 +6,7 @@ The technology has been here for a while, but plenty of people don't know how to
 
 ### TL;DR: it does this:
 
-![Should these black bars be here? No [...] But an ultrawide user never forgets.](img-demo/example-httyd2.png)
+![Demo](img-demo/example-httyd2.png "Should these black bars be here? No [...] But an ultrawide user never forgets.")
 
 I'd demo with [Sintel](https://www.youtube.com/watch?v=eRsGyueVLvQ) but they encoded the video without the black bars. Thanks, Blender Foundation. 
 
@@ -32,7 +32,7 @@ This extension also allows you to zoom in or out of video (similar to how SMPlay
 
 This is the interface (**NOTE: AMO version doesn't have buttons yet!**):
 
-![If you know me and came looking for the obligatory "it's a wyvern, not a dragon" comment ... well, you just found it.](img-demo/interface-explained.jpg)
+![GUI buttons - ELI5](img-demo/interface-explained.jpg "If you know me and came looking for the obligatory »it's a wyvern, not a dragon« comment ... well, you just found it.")
 
 And that's the keybinds for the actions displayed:
 
