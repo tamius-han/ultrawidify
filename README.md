@@ -8,7 +8,7 @@ The technology has been here for a while, but plenty of people don't know how to
 
 ![Demo](img-demo/example-httyd2.png "Should these black bars be here? No [...] But an ultrawide user never forgets.")
 
-I'd demo with [Sintel](https://www.youtube.com/watch?v=eRsGyueVLvQ) but they encoded the video without the black bars. Thanks, Blender Foundation. 
+I'd demo with [Sintel](https://www.youtube.com/watch?v=eRsGyueVLvQ) but they encoded the video without the black bars. ~~Thanks, Blender Foundation.~~ Actually they're not off the hook.
 
 This extension also allows you to zoom in or out of video (similar to how SMPlayer does it).
 
@@ -24,7 +24,7 @@ This extension also allows you to zoom in or out of video (similar to how SMPlay
 
 ### Permanent install
 
-[v0.9.8 — Experimental version — download from here](http://tamius.net/ultrawidify) — If 30 minutes old is stable enough for you, this is it. This version is pretty much code from this repo. It's also unlisted so I don't have to go through AMO for every minor change.
+[v0.9.9 — Experimental version — download from here](http://tamius.net/ultrawidify) — If 30 minutes old is stable enough for you, this is it. This version is pretty much code from this repo. It's also unlisted so I don't have to go through AMO for every minor change.
 
 [v0.9.1 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) — more stable and with AMO's approval. No experimental features either.
 
@@ -90,3 +90,7 @@ Keybind `a` just doesn't work at all, so no 16:10.
 
 * Added GUI/buttons on the player.
 * Script now only loads on youtube pages (iframes included) (before, this script would run on any page)
+
+###v0.9.9
+
+* The aspect ratio thingy is now also in GUI

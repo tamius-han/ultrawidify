@@ -20,9 +20,30 @@ $("<style>")
     .uw-button{\
       display: inline-block;\
       height: 100% !important; \
-      background-size: contain; \
+      background-size: 75% 75%; \
       background-repeat: no-repeat;\
       background-position: center center;\
+    }\
+    .uw-button:hover{\
+      background-color: rgba(192,0,0,0.66);\
+    }\
+    .uw-setmenu{\
+      display: none;\
+      position: absolute;\
+      background-color: rgba(0,0,0,0.66);\
+      right: 0px;\
+    }\
+    .uw-setmenu-item{\
+      font-family: \"Oxygen\";\
+      color: #ffffff !important;\
+      width: 90%;\
+      padding-left: 10%;\
+    }\
+    .uw-setmenu-item:hover{\
+      background-color: rgba(192,0,0,0.66);\
+    }\
+    .show{\
+      display: block;\
     }")
   .appendTo("head");
     
@@ -33,31 +54,31 @@ $(document).ready(function() {
   $(document).keypress(function (event) {          // Tukaj ugotovimo, katero tipko smo pritisnili
     switch (event.key){
       case 'w':
-        changeCSS("fitw");
+        changeCSS("fit","fitw");
         break;
       case 'e':
-        changeCSS("fith");
+        changeCSS("fit","fith");
         break;
       case 'r':
-        changeCSS("reset");
+        changeCSS("reset","reset");
         break;
       case 'z':
-        changeCSS("zoom");
+        changeCSS("fit","zoom");
         break;
       case 'u':
-        changeCSS("unzoom");
+        changeCSS("fit","unzoom");
         break;
       case 'd':
-        changeCSS(0);
+        changeCSS("char", (21/9));
         break;
       case 's':
-        changeCSS(1);
+        changeCSS("char", (16/9));
         break;
       case 'a':
-        changeCSS(2);
+        changeCSS("char", (16/10));
         break;
       case 'x':
-        changeCSS(3);
+        changeCSS("char", (4/3));
     }
   });
   
@@ -79,13 +100,8 @@ function addCtlButtons(provider_id){
   // Gumb za nastavitve je bolj kot ne vselej prisoten, zato širino tega gumba uporabimo kot širino naših gumbov
   // Settings button is more or less always there, so we use its width as width of our buttons
   var button_width = document.getElementsByClassName("ytp-button ytp-settings-button")[0].scrollWidth;
-  //NOTE: jQuery tu serje da je tole zgoraj nekaj undefined, ampak skript dela pravilno. Zaenkrat nas jQuery problemi
-  //zato ne bojo brigal pol kurca
-  //
-  //NOTE: jQuery sometimes shits a word salat in the console and the above line seems to be the problem. Since
-  //everything works just fine, we pretty much ignore that
-  
-  var button_def = [ "fitw", "fith", "reset", "zoom", "uzoom" ];
+    
+  var button_def = [ "fitw", "fith", "reset", "zoom", "uzoom", "settings" ];
   
   if(debugmsg)
     console.log("uw::addCtlButtons | trying to add buttons");
@@ -97,22 +113,100 @@ function addCtlButtons(provider_id){
     
     var rctl = document.getElementsByClassName("ytp-right-controls")[0];
 
-    for( var i = 4; i >= 0; i--){
+    for( var i = 5; i >= 0; i--){
       buttons[i] = document.createElement('div');
       buttons[i].style.backgroundImage = 'url(' + imageToUrl("/img/ytplayer-icons/" + button_def[i] + ".png") + ')';
       buttons[i].style.width = (button_width * 0.75) + "px";
-      buttons[i].style.marginLeft = (button_width * 0.3) + "px";
+//       buttons[i].style.marginLeft = (button_width * 0.3) + "px";
+      buttons[i].style.paddingLeft = (button_width *0.15 ) + "px";
+      buttons[i].style.paddingRight = (button_width * 0.15) + "px";
       buttons[i].className += " uw-button";
       $(rctl).prepend(buttons[i]);
     }
     
+    buttons[0].onclick = function() { changeCSS("fit",   "fitw")   };
+    buttons[1].onclick = function() { changeCSS("fit",   "fith")   };
+    buttons[2].onclick = function() { changeCSS("reset", "reset")  };
+    buttons[3].onclick = function() { changeCSS("fit",   "zoom")   };
+    buttons[4].onclick = function() { changeCSS("fit",   "unzoom") };
+    
+    // Knof za nastavitve ima še vgnezden meni, ki ga dodamo tu (privzeto je ta meni skrit)
+    // Settings button contains a menu that's nested in the element. By default, that menu is
+    // hidden.
+    buttons[5].onclick = function() { showMenu("uw-smenu") };
+    buttons[5].id = "uw-settings-button";
+    
+    var settings_menu = document.createElement("div");
+    var smenu_settings = document.createElement("div");
+    var smenu_ar = document.createElement("div");
+    var smenu_ar_menu = document.createElement("div");
+    var smenu_reset = document.createElement("div");
+    
+    var smenu_ar_options = [];
+
+    buttons[5].appendChild(settings_menu);
+    settings_menu.appendChild(smenu_settings);
+    settings_menu.appendChild(smenu_ar);
+    settings_menu.appendChild(smenu_reset);
+    
+    for(var i = 0; i < 4; i++){
+      smenu_ar_options[i] = document.createElement("div");
+      smenu_ar_options[i].className = "uw-setmenu-item";
+      smenu_ar_menu.appendChild(smenu_ar_options[i]);
+    }
+    
+    settings_menu.id = "uw-smenu";
+    settings_menu.className = "uw-setmenu";
+    smenu_settings.id = "uw-smenu_settings";
+    smenu_settings.className = "uw-setmenu-item";
+    smenu_ar.id = "uw-smenu_ar";
+    smenu_ar.className = "uw-setmenu-item";
+//     smenu_reset.id = "uw-smenu_reset;
+//     smenu_reset.className = "uw-setmenu-item";
+    
+    
+    smenu_ar_menu.id = "uw-armenu";
+    smenu_ar_menu.className = "uw-setmenu";
+    
+    // Stvari, ki se spreminjajo, se določijo tukaj
+    // Things that can change are defined here
+    
+    settings_menu.style.bottom = (button_width * 1.5) + "px";
+    settings_menu.style.width = (button_width * 7.5) + "px";
+    settings_menu.style.fontSize = (button_width * 0.50) + "px";
+    smenu_ar_menu.style.right = (button_width * 7.5) + "px";
+    smenu_ar_menu.style.width = (button_width * 2.5) + "px";
+    smenu_ar_menu.style.bottom = "0px";
+    
+    // Tukaj se določa notranji HTML knofov
+    // Inner HTML of elements is defined here
+    smenu_ar.innerHTML = "Force aspect ratio";
+    smenu_ar.appendChild(smenu_ar_menu);
+    
+    smenu_ar_options[0].innerHTML = "4:3";
+    smenu_ar_options[1].innerHTML = "16:10";    
+    smenu_ar_options[2].innerHTML = "16:9";
+    smenu_ar_options[3].innerHTML = "21:9";
+    
+    // Pritisneš gumb, nekej zakon se more narest.
+    //                              — Bioware
+    //                                ( https://www.youtube.com/watch?v=hMcVZQI6ybw | [NVZD] )
+    //                        
+    // Press the button, something awesome has to happen.
+    //                              — Bioware
+    //                                ( https://www.youtube.com/watch?v=hMcVZQI6ybw | [NSFW] )
+    
+    $(smenu_ar).on("mouseenter", function(){showMenu("uw-armenu")});
+    $(smenu_ar).on("mouseleave", function(){showMenu("uw-armenu")});
+    
+    smenu_ar_options[0].onclick = function() { changeCSS("char", ( 4/3 )) };
+    smenu_ar_options[1].onclick = function() { changeCSS("char", (16/10)) };
+    smenu_ar_options[2].onclick = function() { changeCSS("char", (16/9 )) };
+    smenu_ar_options[3].onclick = function() { changeCSS("char", (21/9 )) };
+    
   }
 
-  buttons[0].onclick = function() { changeCSS("fitw")   };
-  buttons[1].onclick = function() { changeCSS("fith")   };
-  buttons[2].onclick = function() { changeCSS("reset")  };
-  buttons[3].onclick = function() { changeCSS("zoom")   };
-  buttons[4].onclick = function() { changeCSS("unzoom") };
+  
   
   if(debugmsg)
     console.log("uw::addCtlButtons | buttons added");
@@ -124,10 +218,13 @@ function onFullScreenChange(){
   // Popravimo velikost gumbov
   // Let's fix the button size:
   var button_width = document.getElementsByClassName("ytp-button ytp-settings-button")[0].scrollWidth;
-  for( var i = 4; i >= 0; i--){
+  for( var i = 5; i >= 0; i--){
     buttons[i].style.width = (button_width * 0.75) + "px";
-    buttons[i].style.marginLeft = (button_width * 0.3) + "px";
+    buttons[i].style.paddingLeft = (button_width *0.15 ) + "px";
+    buttons[i].style.paddingRight = (button_width * 0.15) + "px";
   }
+  
+  document.getElementById("uw-smenu").style.bottom = (button_width * 1.5) + "px";
   
   
 }
@@ -145,8 +242,9 @@ function onFullscreenOff(){
 
 }
 
-function changeCSS(what_do){
-  
+function changeCSS(type, what_do){
+  hideMenu("uw-armenu");
+  hideMenu("uw-smenu");
   
   var e_video = document.getElementsByClassName("video-stream")[0];
   var video = { "width": e_video.scrollWidth, "height": e_video.scrollHeight }
@@ -172,15 +270,9 @@ function changeCSS(what_do){
   //  Handling actions happens below this line
   // -----------------------------------------------------------------------------------------
   
-  if (what_do >= 0 && what_do < 5){   
-    if( what_do == 0)
-      set_video_ar((2560/1080), video, player);
-    if(what_do == 1)
-      set_video_ar((1920/1080), video, player);
-    if(what_do == 2)
-      set_video_ar((16/10), video, player);
-    if(what_do == 3)
-      set_video_ar((4/3), video, player);
+  if (type == "char"){
+    // char = CHange Aspect Ratio
+    char(what_do, video, player);
     return;
   }
   
@@ -208,17 +300,61 @@ function changeCSS(what_do){
   
 }
 
+
+function char(new_ar, video, player){
+  
+  // Kot vhodni argument dobimo razmerje stranic. Problem je, ker pri nekaterih ločljivostih lahko razmerje stranic
+  // videa/našega zaslona minimalno odstopa od idealnega razmerja — npr 2560x1080 ni natanko 21:9, 1920x1080 ni 
+  // natanko 16:9. Zato ob podanem razmerju stranic izračunamo dejansko razmerje stranic.
+  // 
+  // The aspect ratio we get as an argument is an ideal aspect ratio. Some (most) resolutions' aspect ratios differ
+  // from that ideal aspect ratio (by a minimal amount) — e.g. 2560x1080 isn't exactly 21:9, 1920x1080 isn't exactly
+  // 16:9. What is more, both 3440x1440 and 2560x1080 are considered "21:9", but their aspect ratios are slightly 
+  // different. This has the potential to result in annoying black bars, so we correct the aspect ratio we're given
+  // to something that's slightly more correct.
+  
+  var ar;
+  var res_219 = [ [2560,1080], [3440,1440] ];
+  var res_169 = [ [1920,1080], [1280,720], [1366,768] ];
+  
+  if(new_ar == (21/9)){
+    for (var i = 0; i < res_219.length; i++){
+      if( player.height == res_219[i][1]){
+        ar = res_219[i][0]/res_219[i][1];
+        set_video_ar( ar, video, player);
+        return;
+      }
+    }
+  }
+  else if(new_ar == (16/9)){
+    for (var i = 0; i < res_169.length; i++){
+      if( player.height == res_169[i][1]){
+        ar = res_169[i][0]/res_169[i][1];
+        set_video_ar( ar, video, player);
+        return;
+      }
+    }
+  }
+  
+  set_video_ar(new_ar, video, player);
+}
+
 /* Tukaj povemo, kakšno razmerje stranic ima video.
 // Kaj to pomeni: 
 //    Mi rečemo, da ima video razmerje stranic 16:9. Dejanski video
 //    ima razmerje 4:3. To pomeni, da ima video zgoraj in spodaj črno
 //    obrobo, ki je nočemo, zato video povečamo toliko, da se ta obroba odreže.
+//    
+//    OBROB TUKAJ NE DODAJAMO.
 // 
 // With this function, we specify the aspect ratio of the video. 
 // What does this mean?
 //    If we specify that the aspect ratio of a video is 16:9 when video is
 //    actually 4:3, that means the video has black bars above and below.
 //    We zoom the video just enough for the black lines to disappear.
+//    
+//    WE DO NOT ADD ANY BLACK BORDERS. If we get to a scenario when we'd have to add 
+//    black borders, we do nothing instead.
 */
 function set_video_ar(aspect_ratio, video, player){
   var video_ar = video.width / video.height;
@@ -226,6 +362,7 @@ function set_video_ar(aspect_ratio, video, player){
   
   if(debugmsg)
     console.log("uw::set_video_ar | aspect ratio: " + aspect_ratio + "; video_ar: " + video_ar + "; display_ar: " + display_ar);
+    console.log("uw::set_video_ar | player dimensions: " + player.width + "x" + player.height + "; video dimensions: " + video.width + "x" + video.height);
   
   if( aspect_ratio*1.1 > video_ar && video_ar > aspect_ratio*0.9 ){
     // Ta hack nas reši problema, ki ga predstavlja spodnji if stavek — če se legit 21:9 videu na 16:9 monitorju
@@ -241,34 +378,6 @@ function set_video_ar(aspect_ratio, video, player){
     resetCSS(video, player);
     return;
   }
-  
-  if( display_ar*1.1 < aspect_ratio && aspect_ratio > 1){
-    /* Ker tukaj video obrežemo tako, da ga povečamo, dokler neželjen del videa gleda čez rob prikazovalnika,
-    // tako obrezovanje ne bo delovalo, če hočemo nastaviti razmerje stranic na nekaj širšega, kot je naš zaslon.
-    // Če je temu tako, ne naredimo ničesar. 
-    // 
-    // display_ar*1.1 — zato, da imamo nekaj meje, če se razmerje stranic zaslona ne ujema popolnoma natančno z
-    // razmerjem stranic, ki smo ga dobili kot argument.
-    // 
-    // && aspect_ratio > 1 zato, če se zgodi, da se kdaj odločimo podpirati ultraozke zaslone (9/16, itd).
-    // 
-    // -----------------------------------------------------------------------------------------------------------
-    // 
-    // Because we crop the video by enlarging it until the unwanted parts of it are over the edges of the display,
-    // this function obviously won't work if we want to set our aspect ratio to something that's wider than the
-    // aspect ratio of our display. In such cases we do nothing at all. 
-    // 
-    // display_ar*1.1 — some tolerance for cases where display aspect ratio and the aspect ratio we get as an
-    // argument differ by a slim margin. (see: 1920x1080 isn't exactly 16:9. 2560x1080 is slightly wider than
-    // 21:9)
-    // 
-    // && aspect_ratio > 1 is here in case we decide to support ultrathin monitors (9/16, etc).
-    */
-    if( debugmsg)
-      console.log("uw::set_video_ar | ar is wider than our monitor. not doing a thing");
-    return;
-  }
-  
   
   //Širina, višina, top, left za nov video
   //Width, height, top and left for the new video
@@ -314,6 +423,9 @@ function set_video_ar(aspect_ratio, video, player){
     nv.top = (player.height - nv.h)/2;
     nv.left = (player.width - nv.w)/2;
   }
+  
+  if(nv.w > (player.width * 1.1) && nv.h > (player.height * 1.1))
+    return;
   
   applyCSS(nv);
 }
@@ -440,9 +552,9 @@ function changeCSS_nofs(what_do, video, player){
     left = (player.width - w) / 2;
     
     if (h > player.height * 4){
-      console.log("But this is bigger than some rooms, this is bigger than some people's flats!");
+      console.log("But this video is ... I mean, it's fucking huge. This is bigger than some rooms, this is bigger than some people's flats!");
       // Insert obligatory omnishambles & coffee machine quote here
-      console.log("(No really, mate, you took this way too far already)");
+      console.log("(No really, mate, you took this way too far already. Can't let you do that, Dave.)");
       return;
     }
   }
@@ -488,4 +600,14 @@ function inIframe(){
 
 function imageToUrl(img){
   return chrome.extension.getURL(img);
+}
+
+function showMenu(id){
+  if(debugmsg)
+    console.log("uw::showMenu | toggling menu with id " + id);
+  document.getElementById(id).classList.toggle("show");
+}
+
+function hideMenu(id){
+  document.getElementById(id).classList.remove("show");
 }

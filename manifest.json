@@ -1,8 +1,8 @@
 {
   
   "manifest_version": 2,
-  "name": "Ultrawidify",
-  "version": "0.9.8",
+  "name": "Ultrawidify-git",
+  "version": "0.9.9",
   
   "icons": {
     "32":"icons/uw-32.png",
@@ -29,7 +29,8 @@
     "img/ytplayer-icons/uzoom.png",
     "img/ytplayer-icons/fitw.png",
     "img/ytplayer-icons/fith.png",
-    "img/ytplayer-icons/reset.png"
+    "img/ytplayer-icons/reset.png",
+    "img/ytplayer-icons/settings.png"
   ],
   "applications": {
     "gecko": {
