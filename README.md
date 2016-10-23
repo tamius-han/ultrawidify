@@ -24,9 +24,11 @@ This extension also allows you to zoom in or out of video (similar to how SMPlay
 
 ### Permanent install
 
-[v0.9.9 — Experimental version — download from here](http://tamius.net/ultrawidify) — If 30 minutes old is stable enough for you, this is it. This version is pretty much code from this repo. It's also unlisted so I don't have to go through AMO for every minor change.
+[v0.9.9 — Experimental version — download from here](http://tamius.net/ultrawidify) — If 30 minutes old is stable enough for you, this is it. This version is pretty much code from this repo. It's also unlisted so I don't have to go through AMO for every minor change. It hasn't been tested whether autoupdating works.
 
 [v0.9.1 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) — more stable and with AMO's approval. No experimental features either.
+
+**NOTE:** Have only one version of the extension running at a time. Don't run both at the same time.
 
 ## How do I use it?
 
@@ -42,14 +44,13 @@ And that's the keybinds for the actions displayed:
 * `u` : unzoom
 * `r` : reset to default
 
-As of version 0.9.6, there's also experimental feature that will try to force an aspect ratio for the video. You specify the aspect ratio of the video you're watching. Extension then looks at the actual aspect ratio of the video. If aspect ratios are different, extension assumes that video contains black borders and zooms in on the video, so the black bars are removed. For example: if the video you're watching is 4:3, but you specify it's actually 16:9, then the extension will zoom on 16:9 section inside that video. (Visual example is going to land soon, because I'm bad at explaining this).
+As of version 0.9.6, there's also experimental feature that will try to force an aspect ratio for the video. You specify the aspect ratio of the video you're watching. Extension then looks at the actual aspect ratio of the video. If aspect ratios are different, extension assumes that video contains black borders and zooms in on the video, so the black bars are removed. For example: if the video you're watching is 4:3, but you specify it's actually 16:9, then the extension will zoom on 16:9 section inside that video. 
 
-Here's the list of keybinds:
+As of 0.9.9, option to force aspect ratio is available from settings. That's this button:
 
-* `s` : force 16:9¹ (1920/1080)
-* `a` : force 16:10
-* `d` : force 21:9¹ (2560/1080)
-* `x` : force 4:3
+![Settings](img-demo/interface-settings.jpg "If I ever found out that the video I'm in is 21:9, but encoded as 16:9 + black bars, I'd probably consider killing myself as well.")
+
+If you can read this, you'll probably figure out the rest of the way.
 
 ¹These ratios are calculated using the number in the brackets, as 1920/1080 does not strictly equal to 16/9 (same goes for 21:9).
 
@@ -69,8 +70,8 @@ Keybind `a` just doesn't work at all, so no 16:10.
 
 * Adding custom keybinds
 * Adding a proper settings page
-* ~~Adding buttons for actions in youtube's player~~ (kinda done, forcing aspect ratio still not in GUI)
-* ~~Adding an option to force specific aspect ratio~~ (now it's "experimental")
+* ~~Adding buttons for actions in youtube's player~~ (kinda done)
+* ~~Adding an option to force specific aspect ratio~~ (now it's "good enough")
 
 ## Changelog
 
@@ -94,3 +95,4 @@ Keybind `a` just doesn't work at all, so no 16:10.
 ###v0.9.9
 
 * The aspect ratio thingy is now also in GUI
+* Fixed code for forcing aspect ratio. At least I think it's fixed now.
