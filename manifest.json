@@ -2,7 +2,7 @@
   
   "manifest_version": 2,
   "name": "Ultrawidify-git",
-  "version": "0.9.9",
+  "version": "0.9.9.1",
   
   "icons": {
     "32":"icons/uw-32.png",
@@ -15,7 +15,7 @@
   "content_scripts": [
   {
     "matches": ["*://*.youtube.com/*", "*://youtube.com/*", "*://youtu.be/*"],
-    "js": [ "js/jquery.js", "js/uw.js" ],
+    "js": [ "js/jquery-3.1.1.js", "js/uw.js" ],
     "all_frames": true
   }
   ],
@@ -31,10 +31,5 @@
     "img/ytplayer-icons/fith.png",
     "img/ytplayer-icons/reset.png",
     "img/ytplayer-icons/settings.png"
-  ],
-  "applications": {
-    "gecko": {
-      "update_url": "https://tamius.net/ultrawidify/updates/updates.json"
-    }
-  }
+  ]
 }

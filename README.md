@@ -96,3 +96,9 @@ Keybind `a` just doesn't work at all, so no 16:10.
 
 * The aspect ratio thingy is now also in GUI
 * Fixed code for forcing aspect ratio. At least I think it's fixed now.
+
+###v0.9.9.1
+
+* Keybinds `a` and `w` now work. 
+* Some changes under the bonnet, mostly regarding the way keypresses are handled.
+* 'Settings' page is ~15% done.
