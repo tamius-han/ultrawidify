@@ -7,7 +7,7 @@ var zoomStep = 0.05;
 var whatdo_persistence = true;
 var last_whatdo = "reset";
 
-var debugmsg = true;
+var debugmsg = false;
 
 var ctlbar_classnames = ["ytp-chrome-controls"];
 var serviceArray = [".video-stream" ]; //Youtube 
@@ -44,41 +44,146 @@ $("<style>")
     }\
     .show{\
       display: block;\
-    }")
+    }\
+    .uw-ext-settings-bg{\
+      display: none;\
+      position: absolute !important;\
+      width: 100% !important;\
+      height: 100% !important;\
+      z-index: 1000 !important;\
+      \
+      background-color: rgba(0,0,0,0.69) !important;\
+      color: #fff !important; \
+      font-family: 'Oxygen' !important;\
+      text-align: center;\
+      \
+    }\
+    .uw-ext-settings-content{\
+      display: inline-block;\
+      min-width: 75%;\
+      max-width: 90%;\
+      text-align: left;\
+      padding: 2em !important;\
+      font-size: 1.4em;\
+      font-family: 'Oxygen' !important;\
+    }\
+    .uw_top{\
+      z-index: 1337;\
+    }\
+    .uw-h1{\
+      font-size: 4em !important;\
+      color: #f46007 !important;\
+      font-family: 'Oxygen' !important;\
+    }\
+    .uw_settings_tab{\
+      font-size: 1.4em !important;\
+      padding-left: 1em;\
+      color: #ddd !important;\
+    }\
+    .uw_settings_tab:hover{\
+      font-size: 1.6em;\
+      padding-left: 1.6em;\
+      color: #ffdb6e !important;\
+    }\
+    \
+    ")
   .appendTo("head");
-    
+
+var DEFAULT_KEYBINDINGS = [
+  { action: "fit-width",
+    key: 'w',
+    modifiers: []
+  },
+  {
+    action: "fit-height", 
+    key: 'e',
+    modifiers: []
+  },
+  {
+    action: "reset",
+    key: 'r',
+    modifiers: []
+  },
+  {
+    action: "zoom",
+    key: "z",
+    modifiers: []
+  },
+  {
+    action: "unzoom",
+    key: "u",
+    modifiers: []
+  },
+  {
+    action: "char",
+    targetAR: (21/9),
+    key: "d",
+    modifiers: []
+  },
+  {
+    action: "char",
+    targetAR: (16/9),
+    key: "s",
+    modifiers: []
+  },
+  {
+    action: "char",
+    targetAR: (16/10),
+    key: "x",
+    modifiers: []
+  },
+  {
+    action: "char",
+    targetAR: (4/3),
+    key: "a",
+    modifiers: []
+  }
+];
+
 $(document).ready(function() {
   if(debugmsg)
     console.log("==========================================================================================");
   
-  $(document).keypress(function (event) {          // Tukaj ugotovimo, katero tipko smo pritisnili
-    switch (event.key){
-      case 'w':
-        changeCSS("fit","fitw");
-        break;
-      case 'e':
-        changeCSS("fit","fith");
-        break;
-      case 'r':
-        changeCSS("reset","reset");
-        break;
-      case 'z':
-        changeCSS("fit","zoom");
-        break;
-      case 'u':
-        changeCSS("fit","unzoom");
-        break;
-      case 'd':
-        changeCSS("char", (21/9));
-        break;
-      case 's':
-        changeCSS("char", (16/9));
-        break;
-      case 'a':
-        changeCSS("char", (16/10));
-        break;
-      case 'x':
-        changeCSS("char", (4/3));
+  $(document).keydown(function (event) {          // Tukaj ugotovimo, katero tipko smo pritisnili
+    
+    // Tipke upoštevamo samo, če smo v celozaslonskem načinu oz. če ne pišemo komentarja
+    // v nasprotnem primeru ne naredimo nič.
+    // We only take actions if we're in full screen or not writing a comment
+    if( !(inFullScreen || (
+         (document.activeElement.getAttribute("role") != "textbox") &&
+         (document.activeElement.getAttribute("type") != "text")
+    ))){
+      if(debugmsg)
+        console.log("We're writing a comment or something. Doing nothing");
+      return;
+    }
+    
+    console.log("we pressed a key: ", event.key , " | keydown: ", event.keydown);
+    
+    for(var i = 0; i < DEFAULT_KEYBINDINGS.length; i++){
+      if(event.key == DEFAULT_KEYBINDINGS[i].key){
+        console.log("Key matches!");
+        //Tipka se ujema. Preverimo še modifierje:
+        //Key matches. Let's check if modifiers match, too:
+        var mods = true;
+        for(var j = 0; j < DEFAULT_KEYBINDINGS[i].modifiers.length; j++){
+          if(DEFAULT_KEYBINDINGS[i].modifiers[j] == "ctrl")
+            mods &= event.ctrlKey ;
+          else if(DEFAULT_KEYBINDINGS[i].modifiers[j] == "alt")
+            mods &= event.altKey ;
+          else if(DEFAULT_KEYBINDINGS[i].modifiers[j] == "shift")
+            mods &= event.shiftKey ;
+        }
+        console.log("we pressed a key: ", event.key , " | mods match?", mods, "keybinding: ", DEFAULT_KEYBINDINGS[i]);
+        if(mods){
+          if(DEFAULT_KEYBINDINGS[i].action == "char"){
+            changeCSS("char", DEFAULT_KEYBINDINGS[i].targetAR);
+            return;
+          }
+          changeCSS("anything goes", DEFAULT_KEYBINDINGS[i].action);
+          return;
+        }
+      }
     }
   });
   
@@ -145,7 +250,7 @@ function addCtlButtons(provider_id){
     var smenu_ar_options = [];
 
     buttons[5].appendChild(settings_menu);
-    settings_menu.appendChild(smenu_settings);
+//     settings_menu.appendChild(smenu_settings);  //TODO: uncomment that to re-enable settings screen. This line should only be disabled for builds and commits until the settings screen is finalized
     settings_menu.appendChild(smenu_ar);
     settings_menu.appendChild(smenu_reset);
     
@@ -183,6 +288,8 @@ function addCtlButtons(provider_id){
     smenu_ar.innerHTML = "Force aspect ratio";
     smenu_ar.appendChild(smenu_ar_menu);
     
+    smenu_settings.innerHTML = "Settings";
+    
     smenu_ar_options[0].innerHTML = "4:3";
     smenu_ar_options[1].innerHTML = "16:10";    
     smenu_ar_options[2].innerHTML = "16:9";
@@ -204,12 +311,55 @@ function addCtlButtons(provider_id){
     smenu_ar_options[2].onclick = function() { changeCSS("char", (16/9 )) };
     smenu_ar_options[3].onclick = function() { changeCSS("char", (21/9 )) };
     
+    console.log(smenu_settings);
+    smenu_settings.onclick = function() { showSettings() };
+    
+    
+    
+    //BEGIN SETTINGS WINDOW
+    var e_player;
+    
+    if(inIframe())
+      e_player = document.getElementById("player");
+    else
+      e_player = document.getElementById("movie_player");
+      
+      
+    var menu_panel = document.createElement('div');
+    menu_panel.id = "uw_settings_panel";
+    menu_panel.className = "uw-ext-settings-bg";
+
+    var settings_content = document.createElement('div');
+    settings_content.className = "uw-ext-settings-content";
+    settings_content.innerHTML = "<h1 class='uw_top uw-h1'>SETTINGS</h1>\
+    <div class='uw_top uw_settings_tabbar'>\
+      <div class='uw_top uw_settings_tab'>Shortcuts</div>\
+      <!---<div class='uw_top uw_settings_tab'>Customize UI</div>--->\
+      <div class='uw_top uw_settings_tab'>About</div>\
+      <div class='uw_top uw_settings_tab' id='uw_close_settings_view'>Close settings</div>\
+    </div>"
+    
+    
+    
+    
+    e_player.appendChild(menu_panel);
+    menu_panel.appendChild(settings_content);
+    
+    document.getElementById('uw_close_settings_view').onclick = function() { hideSettings() };
+    //END SETTINGS WINDOW
   }
 
   
   
   if(debugmsg)
     console.log("uw::addCtlButtons | buttons added");
+}
+
+function showSettings(){
+  document.getElementById("uw_settings_panel").style.display = "block";
+}
+function hideSettings(){
+  document.getElementById("uw_settings_panel").style.display = "none";
 }
 
 // Ta funkcija se proži, ko vstopimo ali izstopimo iz celozaslonskega načina
@@ -480,7 +630,7 @@ function changeCSS_nofs(what_do, video, player){
   
   var ar = video.width/video.height;
   
-  if(what_do == "fitw"){
+  if(what_do == "fitw" || what_do == "fit-width"){
     // Ker bi bilo lepo, da atribut 'top' spremenimo hkrati z width in height, moramo najprej naračunati,
     // za kakšen faktor se poviša višina. To potrebujemo, da se pravilno izračuna offset.
     // 
@@ -502,7 +652,7 @@ function changeCSS_nofs(what_do, video, player){
     left = 0;            // Ker zavzamemo vso širino | cos we take up all the width
   }
   
-  if(what_do == "fith"){
+  if(what_do == "fith" || what_do == "fit-height"){
     h = player.height;
     w = player.height / video.height * video.width;
     
@@ -552,9 +702,11 @@ function changeCSS_nofs(what_do, video, player){
     left = (player.width - w) / 2;
     
     if (h > player.height * 4){
-      console.log("But this video is ... I mean, it's fucking huge. This is bigger than some rooms, this is bigger than some people's flats!");
-      // Insert obligatory omnishambles & coffee machine quote here
-      console.log("(No really, mate, you took this way too far already. Can't let you do that, Dave.)");
+      if(debugmsg){
+        console.log("But this video is ... I mean, it's fucking huge. This is bigger than some rooms, this is bigger than some people's flats!");
+        // Insert obligatory omnishambles & coffee machine quote here
+        console.log("(No really, mate, you took this way too far already. Can't let you do that, Dave.)");
+      }
       return;
     }
   }
@@ -569,8 +721,10 @@ function changeCSS_nofs(what_do, video, player){
     left = (player.width - w) / 2;
     
     if (h < player.height * 0.25){
-      console.log("don't you think this is small enough already? You don't need to resize the video all the way down to the size smaller than your penis.");
-      console.log("(if you're a woman, substitute 'penis' with whatever the female equivalent is.)");
+      if(debugmsg){
+        console.log("don't you think this is small enough already? You don't need to resize the video all the way down to the size smaller than your penis.");
+        console.log("(if you're a woman, substitute 'penis' with whatever the female equivalent is.)");
+      }
       return;
     }
   }
