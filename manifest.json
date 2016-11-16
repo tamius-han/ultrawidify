@@ -2,7 +2,7 @@
   
   "manifest_version": 2,
   "name": "Ultrawidify-git",
-  "version": "0.9.9.1",
+  "version": "0.9.9.2",
   
   "icons": {
     "32":"icons/uw-32.png",
@@ -21,7 +21,7 @@
   ],
   
   "permissions": [
-    "tabs", "activeTab", "*://*.youtube.com/*", "*://youtube.com/*"
+    "storage", "tabs", "activeTab", "*://*.youtube.com/*", "*://youtube.com/*"
   ],
   
   "web_accessible_resources": [
