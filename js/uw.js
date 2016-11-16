@@ -7,7 +7,7 @@ var zoomStep = 0.05;
 var whatdo_persistence = true;
 var last_whatdo = "reset";
 
-var debugmsg = false;
+var debugmsg = true;
 
 var ctlbar_classnames = ["ytp-chrome-controls"];
 var serviceArray = [".video-stream" ]; //Youtube 
@@ -89,56 +89,82 @@ $("<style>")
     ")
   .appendTo("head");
 
-var DEFAULT_KEYBINDINGS = [
-  { action: "fit-width",
+
+// Yeah hi /r/badcode.
+// Anyway, because nazi localstorage flat out refuses to store arrays:
+var DEFAULT_KEYBINDINGS = { 
+  1:{ action: "fitw",
     key: 'w',
     modifiers: []
   },
-  {
-    action: "fit-height", 
+  2:{
+    action: "fith", 
     key: 'e',
     modifiers: []
   },
-  {
+  3: {
     action: "reset",
     key: 'r',
     modifiers: []
   },
-  {
+  4: {
     action: "zoom",
     key: "z",
     modifiers: []
   },
-  {
+  5: {
     action: "unzoom",
     key: "u",
     modifiers: []
   },
-  {
+  6: {
     action: "char",
     targetAR: (21/9),
     key: "d",
     modifiers: []
   },
-  {
+  7: {
     action: "char",
     targetAR: (16/9),
     key: "s",
     modifiers: []
   },
-  {
+  8: {
     action: "char",
     targetAR: (16/10),
     key: "x",
     modifiers: []
   },
-  {
+  9: {
     action: "char",
     targetAR: (4/3),
     key: "a",
     modifiers: []
   }
-];
+};
+
+var KEYBINDS = {};
+var ask4keybinds = browser.storage.local.get("ultrawidify_keybinds");
+ask4keybinds.then( (res) => {
+  if(res.length == 1 && jQuery.isEmptyObject(res[0])){
+    if(debugmsg)
+      console.log("uw::<init keybinds> | No keybindings found. Loading default keybinds as keybinds");
+    
+    browser.storage.local.set({ultrawidify_keybinds:DEFAULT_KEYBINDINGS});
+    KEYBINDS = DEFAULT_KEYBINDINGS;
+  }
+  else{
+    KEYBINDS = res[0].ultrawidify_keybinds;
+  }
+  console.log("res. ", res[0].ultrawidify_keybinds);
+});
+
+
+
+
+
+
+
 
 $(document).ready(function() {
   if(debugmsg)
@@ -157,30 +183,31 @@ $(document).ready(function() {
         console.log("We're writing a comment or something. Doing nothing");
       return;
     }
-    
+    console.log(KEYBINDS);
     console.log("we pressed a key: ", event.key , " | keydown: ", event.keydown);
     
-    for(var i = 0; i < DEFAULT_KEYBINDINGS.length; i++){
-      if(event.key == DEFAULT_KEYBINDINGS[i].key){
+    for(i in KEYBINDS){
+      console.log("i: ", i, "keybinds[i]:", KEYBINDS[i]);
+      if(event.key == KEYBINDS[i].key){
         console.log("Key matches!");
         //Tipka se ujema. Preverimo še modifierje:
         //Key matches. Let's check if modifiers match, too:
         var mods = true;
-        for(var j = 0; j < DEFAULT_KEYBINDINGS[i].modifiers.length; j++){
-          if(DEFAULT_KEYBINDINGS[i].modifiers[j] == "ctrl")
+        for(var j = 0; j < KEYBINDS[i].modifiers.length; j++){
+          if(KEYBINDS[i].modifiers[j] == "ctrl")
             mods &= event.ctrlKey ;
-          else if(DEFAULT_KEYBINDINGS[i].modifiers[j] == "alt")
+          else if(KEYBINDS[i].modifiers[j] == "alt")
             mods &= event.altKey ;
-          else if(DEFAULT_KEYBINDINGS[i].modifiers[j] == "shift")
+          else if(KEYBINDS[i].modifiers[j] == "shift")
             mods &= event.shiftKey ;
         }
-        console.log("we pressed a key: ", event.key , " | mods match?", mods, "keybinding: ", DEFAULT_KEYBINDINGS[i]);
+        console.log("we pressed a key: ", event.key , " | mods match?", mods, "keybinding: ", KEYBINDS[i]);
         if(mods){
-          if(DEFAULT_KEYBINDINGS[i].action == "char"){
-            changeCSS("char", DEFAULT_KEYBINDINGS[i].targetAR);
+          if(KEYBINDS[i].action == "char"){
+            changeCSS("char", KEYBINDS[i].targetAR);
             return;
           }
-          changeCSS("anything goes", DEFAULT_KEYBINDINGS[i].action);
+          changeCSS("anything goes", KEYBINDS[i].action);
           return;
         }
       }
