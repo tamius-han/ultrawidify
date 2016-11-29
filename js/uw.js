@@ -14,6 +14,10 @@ var serviceArray = [".video-stream" ]; //Youtube
 
 var buttons = [];
 
+
+console.log("????");
+
+
 $("<style>")
   .prop("type", "text/css")
   .html("\
@@ -85,7 +89,23 @@ $("<style>")
       padding-left: 1.6em;\
       color: #ffdb6e !important;\
     }\
-    \
+    .uw_settings_tabbar{\
+      display: inline-block;\
+      float: left;\
+      width: 15em;\
+    }\
+    .uw_settings_container{\
+      display: inline-block;\
+      float: right;\
+      width: calc(99% - 15em);\
+    }\
+    .uw_settings_kbshortcuts_label{\
+      display: inline-block;\
+      width: 15em;\
+    }\
+    .uw_settings_kbshortcuts_input{\
+      width: 1.5em;\
+    }\
     ")
   .appendTo("head");
 
@@ -227,6 +247,14 @@ $(document).ready(function() {
 
 });
 
+  //UI helpers
+function saveKeybinds(){
+  console.log($('uw_kbshortcuts_form').serializeArray());
+}
+
+
+  //BEGIN UI
+
 function addCtlButtons(provider_id){
   
   // Gumb za nastavitve je bolj kot ne vselej prisoten, zato širino tega gumba uporabimo kot širino naših gumbov
@@ -240,6 +268,18 @@ function addCtlButtons(provider_id){
   
   var button_panel;
   
+  // Če je ta dodatek že nameščen, potem odstranimo vse elemente. Vsi top-level elementi imajo definiran prazen razred
+  // uw_element, prek katerega jih naberemo na kup. Ta del kode je tu bolj ali manj zaradi debugiranja.
+  // 
+  // If this addon is already installed, we have to remove all prevously added elements (to avoid duplicating).
+  // The easiest way to gather all of them is to tack an empty class, 'uw_element,' to each top-level element we add.
+  // This is here mostly because debugging, but could also be useful in case of unforseen happenings.
+  
+  var previousElements = document.getElementsByClassName("uw_element");
+  if(previousElements && previousElements.length > 0)
+    for( var i = 0; i < previousElements.length; i++)
+      previousElements[i].parentNode.removeChild(previousElements[i]);
+  
   // If we're on youtube:
   if(provider_id == 0){
     
@@ -252,7 +292,7 @@ function addCtlButtons(provider_id){
 //       buttons[i].style.marginLeft = (button_width * 0.3) + "px";
       buttons[i].style.paddingLeft = (button_width *0.15 ) + "px";
       buttons[i].style.paddingRight = (button_width * 0.15) + "px";
-      buttons[i].className += " uw-button";
+      buttons[i].className += " uw-button uw_element";
       $(rctl).prepend(buttons[i]);
     }
     
@@ -273,32 +313,44 @@ function addCtlButtons(provider_id){
     var smenu_ar = document.createElement("div");
     var smenu_ar_menu = document.createElement("div");
     var smenu_reset = document.createElement("div");
+    var smenu_fitw = document.createElement("div");
+    var smenu_fith = document.createElement("div");
+    var smenu_zoom = document.createElement("div");
+    var smenu_unzoom = document.createElement("div");
     
     var smenu_ar_options = [];
 
     buttons[5].appendChild(settings_menu);
-//     settings_menu.appendChild(smenu_settings);  //TODO: uncomment that to re-enable settings screen. This line should only be disabled for builds and commits until the settings screen is finalized
-    settings_menu.appendChild(smenu_ar);
+    settings_menu.appendChild(smenu_settings);  //TODO: uncomment that to re-enable settings screen. This line should only be disabled for builds and commits until the settings screen is finalized
+    settings_menu.appendChild(smenu_zoom);
+    settings_menu.appendChild(smenu_unzoom);
     settings_menu.appendChild(smenu_reset);
+    settings_menu.appendChild(smenu_fith);
+    settings_menu.appendChild(smenu_fitw);
+    settings_menu.appendChild(smenu_ar);
     
     for(var i = 0; i < 4; i++){
       smenu_ar_options[i] = document.createElement("div");
-      smenu_ar_options[i].className = "uw-setmenu-item";
+      smenu_ar_options[i].className = "uw-setmenu-item uw_element";
       smenu_ar_menu.appendChild(smenu_ar_options[i]);
     }
     
     settings_menu.id = "uw-smenu";
-    settings_menu.className = "uw-setmenu";
+    settings_menu.className = "uw-setmenu uw_element";
     smenu_settings.id = "uw-smenu_settings";
-    smenu_settings.className = "uw-setmenu-item";
+    smenu_settings.className = "uw-setmenu-item uw_element";
     smenu_ar.id = "uw-smenu_ar";
-    smenu_ar.className = "uw-setmenu-item";
-//     smenu_reset.id = "uw-smenu_reset;
-//     smenu_reset.className = "uw-setmenu-item";
+    smenu_ar.className = "uw-setmenu-item uw_element";
+    smenu_fitw.className += "uw-setmenu-item";
+    smenu_fith.className += "uw-setmenu-item";
+    smenu_reset.className += "uw-setmenu-item";
+    smenu_zoom.className += "uw-setmenu-item";
+    smenu_unzoom.className += "uw-setmenu-item";
+    
     
     
     smenu_ar_menu.id = "uw-armenu";
-    smenu_ar_menu.className = "uw-setmenu";
+    smenu_ar_menu.className = "uw-setmenu uw_element";
     
     // Stvari, ki se spreminjajo, se določijo tukaj
     // Things that can change are defined here
@@ -309,6 +361,27 @@ function addCtlButtons(provider_id){
     smenu_ar_menu.style.right = (button_width * 7.5) + "px";
     smenu_ar_menu.style.width = (button_width * 2.5) + "px";
     smenu_ar_menu.style.bottom = "0px";
+    
+    smenu_fitw.style.width = (button_width * 7.5) + "px";
+    smenu_fitw.style.fontSize = (button_width * 0.50) + "px";
+//     smenu_fitw.style = (button_width * ) + "px";
+    
+    smenu_fith.style.width = (button_width * 7.5) + "px";
+    smenu_fith.style.fontSize = (button_width * 0.5) + "px";
+//     smenu_fith.style = (button_width * ) + "px";
+    
+    smenu_reset.style.width = (button_width * 7.5) + "px";
+    smenu_reset.style.fontSize = (button_width * 0.5) + "px";
+//     smenu_reset.style = (button_width * ) + "px";
+    
+    smenu_zoom.style.width = (button_width * 7.5) + "px";
+    smenu_zoom.style.fontSize = (button_width * 0.5) + "px";
+//     smenu_zoom.style = (button_width * ) + "px";
+    
+    smenu_unzoom.style.width = (button_width * 7.5) + "px";
+    smenu_unzoom.style.fontSize = (button_width * 0.5) + "px";
+//     smenu_unzoom.style = (button_width * ) + "px";
+    
     
     // Tukaj se določa notranji HTML knofov
     // Inner HTML of elements is defined here
@@ -321,6 +394,12 @@ function addCtlButtons(provider_id){
     smenu_ar_options[1].innerHTML = "16:10";    
     smenu_ar_options[2].innerHTML = "16:9";
     smenu_ar_options[3].innerHTML = "21:9";
+                            
+    smenu_fitw.innerHTML = "Fit width";
+    smenu_fith.innerHTML = "Fit height";
+    smenu_reset.innerHTML = "Reset";
+    smenu_zoom.innerHTML = "Zoom in";
+    smenu_unzoom.innerHTML = "Zoom out";
     
     // Pritisneš gumb, nekej zakon se more narest.
     //                              — Bioware
@@ -341,6 +420,11 @@ function addCtlButtons(provider_id){
     console.log(smenu_settings);
     smenu_settings.onclick = function() { showSettings() };
     
+    smenu_fitw.onclick   = function () { changeCSS("fit","fitw") };
+    smenu_fith.onclick   = function () { changeCSS("fit","fith") };
+    smenu_reset.onclick  = function () { changeCSS("reset","reset") };
+    smenu_zoom.onclick   = function () { changeCSS("fit","zoom") };
+    smenu_unzoom.onclick = function () { changeCSS("fit","unzoom") };
     
     
     //BEGIN SETTINGS WINDOW
@@ -354,9 +438,37 @@ function addCtlButtons(provider_id){
       
     var menu_panel = document.createElement('div');
     menu_panel.id = "uw_settings_panel";
-    menu_panel.className = "uw-ext-settings-bg";
-
+    menu_panel.className = "uw-ext-settings-bg uw_element";
+    
+    console.log("boo");
+    
+    var kbs_actions = [
+      {action:"fitw", label:"Fit width:"},
+      {action:"fith",label:"Fit height:"},
+      {action:"reset",label:"Reset:"},
+      {action:"zoom",label:"Zoom in:"},
+      {action:"unzoom",label:"Zoom out:"},
+      {action:"ar219",label:"Force 21:9"},
+      {action:"ar169",label:"Force 16:9"},
+      {action:"ar1610",label:"Force 16:10"},
+      {action:"ar43",label:"Force 4:3"}
+    ];
+    
+    var form = "";
+    for( var i = 0; i < kbs_actions.length; i++){
+      form += "<div class='uw_top uw_settings_kbshortcuts_line'>\
+               <div class='uw_top uw_settings_kbshortcuts_label'>" + kbs_actions[i].label + "</div>\
+               <input type='checkbox' value='" + kbs_actions[i].action + "_ctrl'> Ctrl + \
+               <input type='checkbox' value='" + kbs_actions[i].action + "_shift'> Shift + \
+               <input type='checkbox' value='" + kbs_actions[i].action + "_alt'> Alt + \
+               <input type='text' name='" + kbs_actions[i].action + "_letter' maxlength='1' class='uw_settings_kbshortcuts_input'></div>";
+    }
+    
     var settings_content = document.createElement('div');
+    var savekb = document.createElement('div');
+    savekb.className = 'uw_kbshortcuts_button';
+    savekb.onclick = function() { saveKeybinds() };
+    savekb.innerHTML = "Save";
     settings_content.className = "uw-ext-settings-content";
     settings_content.innerHTML = "<h1 class='uw_top uw-h1'>SETTINGS</h1>\
     <div class='uw_top uw_settings_tabbar'>\
@@ -364,15 +476,22 @@ function addCtlButtons(provider_id){
       <!---<div class='uw_top uw_settings_tab'>Customize UI</div>--->\
       <div class='uw_top uw_settings_tab'>About</div>\
       <div class='uw_top uw_settings_tab' id='uw_close_settings_view'>Close settings</div>\
+    </div>\
+    <div class='uw_top uw_settings_container' id='uw_settings_container'>\
+      <div class='uw_top uw_settings_panel' id='uw_settings_kbshortcuts'>\
+        <div>NOTE: some keys can't be rebound here (namely: keys in use by the player and some other quirky keys). Use the settings page instead.</div>\
+        <form id='uw_kbshortcuts_form'>" + form + "</form>\
+        <div id='uw_kbshortcuts_buttonrow'><div class='uw_settings_button'>Back</div>\
+      </div>\
     </div>"
-    
-    
-    
     
     e_player.appendChild(menu_panel);
     menu_panel.appendChild(settings_content);
     
+
+    
     document.getElementById('uw_close_settings_view').onclick = function() { hideSettings() };
+    
     //END SETTINGS WINDOW
   }
 
@@ -382,12 +501,18 @@ function addCtlButtons(provider_id){
     console.log("uw::addCtlButtons | buttons added");
 }
 
+//END UI
+
 function showSettings(){
   document.getElementById("uw_settings_panel").style.display = "block";
 }
 function hideSettings(){
   document.getElementById("uw_settings_panel").style.display = "none";
 }
+// function saveKeybinds(){
+//   console.log($('uw_kbshortcuts_form').serializeArray());
+// }
+
 
 // Ta funkcija se proži, ko vstopimo ali izstopimo iz celozaslonskega načina
 // This function gets triggered by full screen state change
