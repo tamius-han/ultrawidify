@@ -92,7 +92,7 @@ Keybind `a` just doesn't work at all, so no 16:10.
 * Added GUI/buttons on the player.
 * Script now only loads on youtube pages (iframes included) (before, this script would run on any page)
 
-###v0.9.9
+###v0.9.9         <--- AMO version is here
 
 * The aspect ratio thingy is now also in GUI
 * Fixed code for forcing aspect ratio. At least I think it's fixed now.
