@@ -305,7 +305,7 @@ function addCtlButtons(provider_id){
     // Knof za nastavitve ima še vgnezden meni, ki ga dodamo tu (privzeto je ta meni skrit)
     // Settings button contains a menu that's nested in the element. By default, that menu is
     // hidden.
-    buttons[5].onclick = function() { showMenu("uw-smenu") };
+    buttons[5].onclick = function() { toggleMenu("uw-smenu") };
     buttons[5].id = "uw-settings-button";
     
     var settings_menu = document.createElement("div");
@@ -410,21 +410,25 @@ function addCtlButtons(provider_id){
     //                                ( https://www.youtube.com/watch?v=hMcVZQI6ybw | [NSFW] )
     
     $(smenu_ar).on("mouseenter", function(){showMenu("uw-armenu")});
-    $(smenu_ar).on("mouseleave", function(){showMenu("uw-armenu")});
+    $(smenu_ar).on("mouseleave", function(){hideMenu("uw-armenu")});
     
-    smenu_ar_options[0].onclick = function() { changeCSS("char", ( 4/3 )) };
-    smenu_ar_options[1].onclick = function() { changeCSS("char", (16/10)) };
-    smenu_ar_options[2].onclick = function() { changeCSS("char", (16/9 )) };
-    smenu_ar_options[3].onclick = function() { changeCSS("char", (21/9 )) };
+    // event.stopPropagation, ker nočemo togglati še funkcij od knofa za popup z nastavitvami
+    // event.stopPropagation, because we don't want to trigger onclick functions of the settings popup button in 
+    // the player bar
     
-    console.log(smenu_settings);
-    smenu_settings.onclick = function() { showSettings() };
+    smenu_ar_options[0].onclick = function(event) {event.stopPropagation(); changeCSS("char", ( 4/3 )); };
+    smenu_ar_options[1].onclick = function(event) {event.stopPropagation(); changeCSS("char", (16/10)); };
+    smenu_ar_options[2].onclick = function(event) {event.stopPropagation(); changeCSS("char", (16/9 )); };
+    smenu_ar_options[3].onclick = function(event) {event.stopPropagation(); changeCSS("char", (21/9 )); };
     
-    smenu_fitw.onclick   = function () { changeCSS("fit","fitw") };
-    smenu_fith.onclick   = function () { changeCSS("fit","fith") };
-    smenu_reset.onclick  = function () { changeCSS("reset","reset") };
-    smenu_zoom.onclick   = function () { changeCSS("fit","zoom") };
-    smenu_unzoom.onclick = function () { changeCSS("fit","unzoom") };
+//     console.log(smenu_settings);
+//     smenu_settings.onclick = function() { showSettings() };
+    
+    smenu_fitw.onclick   = function (event) {event.stopPropagation(); changeCSS("fit","fitw") };
+    smenu_fith.onclick   = function (event) {event.stopPropagation(); changeCSS("fit","fith") };
+    smenu_reset.onclick  = function (event) {event.stopPropagation(); changeCSS("reset","reset") };
+    smenu_zoom.onclick   = function (event) {event.stopPropagation(); changeCSS("fit","zoom") };
+    smenu_unzoom.onclick = function (event) {event.stopPropagation(); changeCSS("fit","unzoom") };
     
     
     //BEGIN SETTINGS WINDOW
@@ -439,8 +443,6 @@ function addCtlButtons(provider_id){
     var menu_panel = document.createElement('div');
     menu_panel.id = "uw_settings_panel";
     menu_panel.className = "uw-ext-settings-bg uw_element";
-    
-    console.log("boo");
     
     var kbs_actions = [
       {action:"fitw", label:"Fit width:"},
@@ -910,10 +912,17 @@ function imageToUrl(img){
 
 function showMenu(id){
   if(debugmsg)
-    console.log("uw::showMenu | toggling menu with id " + id);
+    console.log("uw::showMenu | showing menu with id " + id);
+  document.getElementById(id).classList.add("show");
+}
+function toggleMenu(id){
+  if(debugmsg)
+    console.log("uw::toggleMenu | toggling menu with id " + id);
   document.getElementById(id).classList.toggle("show");
 }
 
 function hideMenu(id){
+  if(debugmsg)
+    console.log("uw::hideMenu | hiding menu with id " + id);
   document.getElementById(id).classList.remove("show");
 }
