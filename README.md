@@ -24,9 +24,9 @@ This extension also allows you to zoom in or out of video (similar to how SMPlay
 
 ### Permanent install
 
-[v0.9.9 — Experimental version — download from here](http://tamius.net/ultrawidify) — If 30 minutes old is stable enough for you, this is it. This version is pretty much code from this repo. It's also unlisted so I don't have to go through AMO for every minor change. It hasn't been tested whether autoupdating works.
+~~[v0.9.9.5 — Experimental version — download from here](http://tamius.net/ultrawidify) — If 30 minutes old is stable enough for you, this is it. This version is pretty much code from this repo. It's also unlisted so I don't have to go through AMO for every minor change. It hasn't been tested whether autoupdating works, and it probably doesn't.~~
 
-[v0.9.1 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) — more stable and with AMO's approval. No experimental features either.
+[v0.9.9 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) — more stable and with AMO's approval. No experimental features either. (NOTE: there's a version number hiccup going on with AMO version. Stuff here on Github is the freshest, regardless of what manifest says)
 
 **NOTE:** Have only one version of the extension running at a time. Don't run both at the same time.
 
@@ -102,3 +102,11 @@ Keybind `a` just doesn't work at all, so no 16:10.
 * Keybinds `a` and `w` now work. 
 * Some changes under the bonnet, mostly regarding the way keypresses are handled.
 * 'Settings' page is ~15% done.
+
+###v0.9.9.5
+
+* Played with settings and localstorage a bit, but no clear implementation yet.
+* Fixed some bugs caused by event propagation.
+* All buttons in the player's control bar are now also in the settings popup.
+* Had to scrap settings page in its current form
+* TODO: sometimes not all buttons can fit in the control bar. Such occurences should be detected.
