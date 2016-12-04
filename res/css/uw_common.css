@@ -1,7 +1,4 @@
-@font-face{
-  font-family: 'Oxygen-regular';
-  src: 
-}
+@import url('https://fonts.googleapis.com/css?family=Oxygen:300,400&subset=latin-ext');
 
 .show{
   display: block !important;
