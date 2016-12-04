@@ -5,8 +5,8 @@
   "version": "0.9.9.5",
   
   "icons": {
-    "32":"icons/uw-32.png",
-    "64":"icons/uw-64.png"
+    "32":"res/icons/uw-32.png",
+    "64":"res/icons/uw-64.png"
   },
   
   "description": "Aspect ratio fixer for youtube that works around some people's disability to properly encode 21:9 (and sometimes, 16:9) videos.",
@@ -25,11 +25,20 @@
   ],
   
   "web_accessible_resources": [
-    "img/ytplayer-icons/zoom.png",
-    "img/ytplayer-icons/uzoom.png",
-    "img/ytplayer-icons/fitw.png",
-    "img/ytplayer-icons/fith.png",
-    "img/ytplayer-icons/reset.png",
-    "img/ytplayer-icons/settings.png"
+    "res/img/ytplayer-icons/zoom.png",
+    "res/img/ytplayer-icons/uzoom.png",
+    "res/img/ytplayer-icons/fitw.png",
+    "res/img/ytplayer-icons/fith.png",
+    "res/img/ytplayer-icons/reset.png",
+    "res/img/ytplayer-icons/settings.png",
+    
+    "res/fonts/Oxygen-Bold.tff",
+    "res/fonts/Oxygen-Light.tff",
+    "res/fonts/Oxygen-Regular.tff",
+    
+    "res/css/uw_common.css",
+    "res/css/uw_yt.css",
+    "res/css/uw_netflix.css",
+    "res/css/uw_settings.css",
   ]
 }
