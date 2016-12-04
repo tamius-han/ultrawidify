@@ -15,106 +15,6 @@ var serviceArray = [".video-stream" ]; //Youtube
 var buttons = [];
 
 
-console.log("????");
-
-
-$("<style>")
-  .prop("type", "text/css")
-  .html("\
-    .uw-button{\
-      display: inline-block;\
-      height: 100% !important; \
-      background-size: 75% 75%; \
-      background-repeat: no-repeat;\
-      background-position: center center;\
-    }\
-    .uw-button:hover{\
-      background-color: rgba(192,0,0,0.66);\
-    }\
-    .uw-setmenu{\
-      display: none;\
-      position: absolute;\
-      background-color: rgba(0,0,0,0.66);\
-      right: 0px;\
-    }\
-    .uw-setmenu-item{\
-      display: flex;\
-      align-items: center;\
-      font-family: \"Oxygen\";\
-      color: #ffffff !important;\
-      width: 90%;\
-      padding-left: 10%;\
-    }\
-    .uw-setmenu-item:hover{\
-      background-color: rgba(192,0,0,0.66);\
-    }\
-    .show{\
-      display: block;\
-    }\
-    .uw_hide{\
-      display: none !important;\
-    }\
-    .uw-ext-settings-bg{\
-      display: none;\
-      position: absolute !important;\
-      width: 100% !important;\
-      height: 100% !important;\
-      z-index: 1000 !important;\
-      \
-      background-color: rgba(0,0,0,0.69) !important;\
-      color: #fff !important; \
-      font-family: 'Oxygen' !important;\
-      text-align: center;\
-      \
-    }\
-    .uw-ext-settings-content{\
-      display: inline-block;\
-      min-width: 75%;\
-      max-width: 90%;\
-      text-align: left;\
-      padding: 2em !important;\
-      font-size: 1.4em;\
-      font-family: 'Oxygen' !important;\
-    }\
-    .uw_top{\
-      z-index: 1337;\
-    }\
-    .uw-h1{\
-      font-size: 4em !important;\
-      color: #f46007 !important;\
-      font-family: 'Oxygen' !important;\
-    }\
-    .uw_settings_tab{\
-      font-size: 1.4em !important;\
-      padding-left: 1em;\
-      color: #ddd !important;\
-    }\
-    .uw_settings_tab:hover{\
-      font-size: 1.6em;\
-      padding-left: 1.6em;\
-      color: #ffdb6e !important;\
-    }\
-    .uw_settings_tabbar{\
-      display: inline-block;\
-      float: left;\
-      width: 15em;\
-    }\
-    .uw_settings_container{\
-      display: inline-block;\
-      float: right;\
-      width: calc(99% - 15em);\
-    }\
-    .uw_settings_kbshortcuts_label{\
-      display: inline-block;\
-      width: 15em;\
-    }\
-    .uw_settings_kbshortcuts_input{\
-      width: 1.5em;\
-    }\
-    ")
-  .appendTo("head");
-
-
 // Yeah hi /r/badcode.
 // Anyway, because nazi localstorage flat out refuses to store arrays:
 var DEFAULT_KEYBINDINGS = { 
@@ -262,9 +162,11 @@ function saveKeybinds(){
 
 function addCtlButtons(provider_id){
   
+  var buttonClass = "ytp-button ytp-settings-button";
+  
   // Gumb za nastavitve je bolj kot ne vselej prisoten, zato širino tega gumba uporabimo kot širino naših gumbov
   // Settings button is more or less always there, so we use its width as width of our buttons
-  var button_width = document.getElementsByClassName("ytp-button ytp-settings-button")[0].scrollWidth;
+  var button_width = document.getElementsByClassName(buttonClass)[0].scrollWidth;
     
   var button_def = [ "fitw", "fith", "reset", "zoom", "uzoom", "settings" ];
   
@@ -607,6 +509,9 @@ function onFullScreenChange(){
   
   document.getElementById("uw-smenu").style.bottom = (button_width * 1.5) + "px";
   
+  //Sedaj poglejmo še, če lahko v nadzorno vrstico spravimo vse gumbe
+  //Let's see if we can get all the buttons in the control bar
+  var rctl = document.getElementsByClassName("ytp-right-controls")[0];
   
 }
 
