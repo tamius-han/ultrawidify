@@ -2,7 +2,7 @@
   
   "manifest_version": 2,
   "name": "Ultrawidify-git",
-  "version": "0.9.9.5",
+  "version": "0.9.9.6",
   
   "icons": {
     "32":"res/icons/uw-32.png",
@@ -32,13 +32,9 @@
     "res/img/ytplayer-icons/reset.png",
     "res/img/ytplayer-icons/settings.png",
     
-    "res/fonts/Oxygen-Bold.tff",
-    "res/fonts/Oxygen-Light.tff",
-    "res/fonts/Oxygen-Regular.tff",
-    
     "res/css/uw_common.css",
     "res/css/uw_yt.css",
     "res/css/uw_netflix.css",
-    "res/css/uw_settings.css",
+    "res/css/uw_settings.css"
   ]
 }

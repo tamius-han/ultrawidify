@@ -1,3 +1,11 @@
+var debugmsg = true;
+if(debugmsg){
+  console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
+  console.log("\nLoading ultrawidify (uw)\nIf you can see this, extension at least tried to load\n\nRandom number: ",Math.floor(Math.random() * 20) + 1,"\n");
+  console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
+}
+
+
 var extraClassAdded = false;
 var inFullScreen = false;
 
@@ -6,14 +14,54 @@ var zoomStep = 0.05;
 
 var whatdo_persistence = true;
 var last_whatdo = "reset";
+var page_url = window.location.toString();
 
-var debugmsg = true;
 
 var ctlbar_classnames = ["ytp-chrome-controls"];
 var serviceArray = [".video-stream" ]; //Youtube 
 
 var buttons = [];
 
+
+//BEGIN ADDING CSS
+
+// Če ponovno naložimo dodatek, potem odstranimo star CSS. Lahko se zgodi, da je Tam spremenil CSS in hoče
+// preveriti, če stvari zgledajo tako kot morajo. Če ima en razred/id več nasprotujoćih si definicij, potem
+// nam to lahko povzroča težave. Za uporabnike je načeloma odstranjevanje obstoječega CSS brezpredmetno, ker
+// uporabnik ponavadi ne bo reloadal razširitve.
+// 
+// If we reload the extension, then we also remove our old CSS. It can easily happen that Tam changed CSS a bit
+// and wants to see if things look roughly the way they should. We do this because if a class/id has multiple
+// mutually exclusive definitions, we can get some problems with CSS not working the way it should. People who
+// aren't Tam generally don't see the benefit as they won't reload the extension — let alone reload the extension
+// after messing with CSS.
+var uwcss = document.getElementsByClassName("uw_css");
+while(uwcss && uwcss.length > 0)
+  uwcss[0].parentNode.removeChild(uwcss[0]);
+
+// funkcija pomagač za ustvarjanje css linkov
+// helper function for creating css links
+function addLink(css_url){
+  var link = document.createElement("link");
+  link.className = "uw_css";
+  link.setAttribute("rel","stylesheet");
+  link.setAttribute("type","text/css");
+  link.setAttribute("href", resourceToUrl(css_url));
+  $("head").append(link);
+}
+
+// Vsaka stran dobi uw_common.css
+// We add uw_common.css on every page
+
+addLink("res/css/uw_common.css");
+
+// Če smo na Youtube/youtube popupu, dodamo css za youtube elemente
+// If we're on youtube/youtube popup, we add css for youtube elements
+if(page_url.indexOf("youtu") != -1){
+  addLink("res/css/uw_yt.css");
+}
+
+//END ADDING CSS
 
 // Yeah hi /r/badcode.
 // Anyway, because nazi localstorage flat out refuses to store arrays:
@@ -81,19 +129,15 @@ ask4keybinds.then( (res) => {
   else{
     KEYBINDS = res[0].ultrawidify_keybinds;
   }
-  console.log("res. ", res[0].ultrawidify_keybinds);
+//   console.log("res. ", res[0].ultrawidify_keybinds);
 });
-
-
-
-
 
 
 
 
 $(document).ready(function() {
   if(debugmsg)
-    console.log("==========================================================================================");
+    console.log("=============================================================================================");
   
   $(document).keydown(function (event) {          // Tukaj ugotovimo, katero tipko smo pritisnili
     
@@ -217,7 +261,7 @@ function addCtlButtons(provider_id){
     
     for( var i = 5; i >= 0; i--){
       buttons[i] = document.createElement('div');
-      buttons[i].style.backgroundImage = 'url(' + imageToUrl("/img/ytplayer-icons/" + button_def[i] + ".png") + ')';
+      buttons[i].style.backgroundImage = 'url(' + resourceToUrl("/res/img/ytplayer-icons/" + button_def[i] + ".png") + ')';
       buttons[i].style.width = (button_width * 0.75) + "px";
 //       buttons[i].style.marginLeft = (button_width * 0.3) + "px";
       buttons[i].style.paddingLeft = (button_width *0.15 ) + "px";
@@ -286,8 +330,6 @@ function addCtlButtons(provider_id){
     
     smenu_el[0].id = "uw-smenu_settings";
     smenu_el[6].id = "uw-smenu_ar";
-
-    
     
     
     smenu_ar_menu.id = "uw-armenu";
@@ -341,26 +383,7 @@ function addCtlButtons(provider_id){
     for(var i = 0; i < smenu_ar_options.length; i++){
       smenu_ar_options[0].height = smenu_item_height + "px";
     }
-//     smenu_el[5].style.width = (button_width * 7.5) + "px";
-//     smenu_el[5].style.fontSize = (button_width * 0.50) + "px";
-// //     smenu_el[5].style = (button_width * ) + "px";
-//     
-//     smenu_el[4].style.width = (button_width * 7.5) + "px";
-//     smenu_el[4].style.fontSize = (button_width * 0.5) + "px";
-// //     smenu_el[4].style = (button_width * ) + "px";
-//     
-//     smenu_el[3].style.width = (button_width * 7.5) + "px";
-//     smenu_el[3].style.fontSize = (button_width * 0.5) + "px";
-// //     smenu_el[3].style = (button_width * ) + "px";
-//     
-//     smenu_el[1].style.width = (button_width * 7.5) + "px";
-//     smenu_el[1].style.fontSize = (button_width * 0.5) + "px";
-// //     smenu_el[1].style = (button_width * ) + "px";
-//     
-//     smenu_el[2].style.width = (button_width * 7.5) + "px";
-//     smenu_el[2].style.fontSize = (button_width * 0.5) + "px";
-// //     smenu_el[2].style = (button_width * ) + "px";
-    
+  
     
     // Tukaj se določa notranji HTML knofov
     // Inner HTML of elements is defined here
@@ -400,7 +423,6 @@ function addCtlButtons(provider_id){
     smenu_ar_options[2].onclick = function(event) {event.stopPropagation(); changeCSS("char", (16/9 )); };
     smenu_ar_options[3].onclick = function(event) {event.stopPropagation(); changeCSS("char", (21/9 )); };
     
-//     console.log(smenu_el[0]);
 //     smenu_el[0].onclick = function() { showSettings() };
     
     smenu_el[5].onclick = function (event) {event.stopPropagation(); changeCSS("fit"  ,"fitw"  ) };
@@ -467,7 +489,7 @@ function addCtlButtons(provider_id){
     </div>"
     
     e_player.appendChild(menu_panel);
-    menu_panel.appendChild(settings_content);
+//     menu_panel.appendChild(settings_content);
     
 
     
@@ -665,8 +687,8 @@ function set_video_ar(aspect_ratio, video, player){
     return;
   }
   
-  //Širina, višina, top, left za nov video
-  //Width, height, top and left for the new video
+  // Širina, višina, top, left za nov video
+  // Width, height, top and left for the new video
   var nv = { "w":0, "h":0, "top":0, "left":0 }; 
   
   /*
@@ -888,7 +910,7 @@ function inIframe(){
   }
 }
 
-function imageToUrl(img){
+function resourceToUrl(img){
   return chrome.extension.getURL(img);
 }
 
