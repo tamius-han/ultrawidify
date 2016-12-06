@@ -473,20 +473,7 @@ function addCtlButtons(provider_id){
     savekb.onclick = function() { saveKeybinds() };
     savekb.innerHTML = "Save";
     settings_content.className = "uw-ext-settings-content";
-    settings_content.innerHTML = "<h1 class='uw_top uw-h1'>SETTINGS</h1>\
-    <div class='uw_top uw_settings_tabbar'>\
-      <div class='uw_top uw_settings_tab'>Shortcuts</div>\
-      <!---<div class='uw_top uw_settings_tab'>Customize UI</div>--->\
-      <div class='uw_top uw_settings_tab'>About</div>\
-      <div class='uw_top uw_settings_tab' id='uw_close_settings_view'>Close settings</div>\
-    </div>\
-    <div class='uw_top uw_settings_container' id='uw_settings_container'>\
-      <div class='uw_top uw_settings_panel' id='uw_settings_kbshortcuts'>\
-        <div>NOTE: some keys can't be rebound here (namely: keys in use by the player and some other quirky keys). Use the settings page instead.</div>\
-        <form id='uw_kbshortcuts_form'>" + form + "</form>\
-        <div id='uw_kbshortcuts_buttonrow'><div class='uw_settings_button'>Back</div>\
-      </div>\
-    </div>"
+    settings_content.innerHTML = "";
     
     e_player.appendChild(menu_panel);
 //     menu_panel.appendChild(settings_content);
