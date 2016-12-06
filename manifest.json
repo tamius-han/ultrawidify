@@ -32,9 +32,15 @@
     "res/img/ytplayer-icons/reset.png",
     "res/img/ytplayer-icons/settings.png",
     
+    "res/img/settings/about-bg.png",
+    
     "res/css/uw_common.css",
     "res/css/uw_yt.css",
     "res/css/uw_netflix.css",
     "res/css/uw_settings.css"
-  ]
+  ],
+  
+  "options_ui" : {
+    "page": "res/settings.html"
+  }
 }
