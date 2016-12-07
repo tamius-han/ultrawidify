@@ -76,50 +76,63 @@
     .tab{
       color: #fa6607;
     }
-    .tab-selected{
+    .tab:hover{
+      text-shadow: #aa5 0px 0px 0.02em,#aa5 0px 0px 0.02em;
+    }
+    .tab-selected {
       color: #ff9 !important;
     }
     #all{
       min-width: 100%;
       min-height: 100vh;
-      background-image: url('res/img/settings/about-bg.png');
+      background-image: url('img/settings/about-bg.png');
       background-position: calc(50vw + 20em) 10vh;
       background-attachment: fixed;
       background-size: auto 100%;
       background-repeat: no-repeat;
     }
-    
+    .dup_keybinds{
+      background-color: #720 !important;
+    }
+    input[type=text]{
+      font-size: 1em;
+      padding-left: 0.6em;
+      margin-left: 1em;
+      width: 2em;
+      background-color: #000;
+      border: 1px #442 solid;
+    }
+    .uw_shortcuts_line{
+      padding-top: 0.25em;
+      padding-left: 10em;
+    }
+    .uw_shortcuts_label{
+      display: inline-block;
+      color: #fff;
+      width: 7.5em;
+    }
+    .buttonbar{
+      width: 100%;
+      padding-left: 20em;
+      margin-bottom: 2em;
+    }
+    .button{
+      display: inline-block;
+      margin-left: 1em;
+      margin-right: 1em;
+      padding-left: 1em;
+      padding-right: 1em;
+      padding-top: 0.4em;
+      width: 4em;
+      text-align: center;
+      background-color: rgba(0,0,0,0.66);
+      color: #ffc;
+      height: 1.7em;
+    }
     </style>
-    <script>
-      function showAbout(){
-        document.getElementById("uw_shortcuts").classList.add("hide");
-        document.getElementById("about").classList.remove("hide");
-
-        document.getElementById("tab_shortcuts").classList.remove("tab-selected");
-        document.getElementById("tab_about").classList.add("tab-selected");
-      }
-      function showShortcuts(){
-        document.getElementById("uw_shortcuts").classList.remove("hide");
-        document.getElementById("about").classList.add("hide");
-
-        document.getElementById("tab_shortcuts").classList.add("tab-selected");
-        document.getElementById("tab_about").classList.remove("tab-selected");
-        
-      }
     
-    //TODO TODO TODO correct resourceToUrl so it'll work properly. (uncomment the return statement)
-      function resourceToUrl(img){
-        return "../" + img;
-//         return chrome.extension.getURL(img);    
-      }
-      
-      function onload(){
-        //Adding background to 'about' page:
-        document.getElementById("all").style.backgroundImage = "url('" + resourceToUrl("res/img/settings/about-bg.png") + "')";
-      }
-    </script>
   </head>
-  <body onload="onload()">
+  <body>
     <div id="all">
     <header>
       <div class="content center">
@@ -129,98 +142,100 @@
       </div>
       <div class="tabline center">
         <div class="content left">
-          <div id="tab_shortcuts" onclick="showShortcuts()" class="block tab tab-selected">Shortcuts</div>
-          <div id="tab_about" onclick="showAbout()" class="block tab">About</div>
+          <div id="tab_shortcuts" class="block tab tab-selected">Shortcuts</div>
+          <div id="tab_about" class="block tab">About</div>
         </div>
       </div>
     </header>
     <div id="uw_shortcuts">
       <div class="content left"> 
         <form>
+        <!-- BEGIN FORM -->
           <!-- fit width -->
           <div class="uw_shortcuts_line">
             <div class="uw_shortcuts_label">Fit to width</div>
-            <input type='checkbox' value='fitw_ctrl'  > Ctrl + 
-            <input type='checkbox' value='fitw_shift' > Shift + 
-            <input type='checkbox' value='fitw_alt'   > Alt +
-            <input type='text'      name='fitw_letter' maxlength='1' class='shortcut_input'>
+            <input type='checkbox' id='fitw_ctrl'  > Ctrl + 
+            <input type='checkbox' id='fitw_shift' > Shift + 
+            <input type='checkbox' id='fitw_alt'   > Alt +
+            <input type='text'     id='fitw_letter' maxlength='1' class='shortcut_input'>
           </div>
           
           <!-- fit height -->
           <div class="uw_shortcuts_line">
             <div class="uw_shortcuts_label">Fit to height</div>
-            <input type='checkbox' value='fith_ctrl'  > Ctrl + 
-            <input type='checkbox' value='fith_shift' > Shift + 
-            <input type='checkbox' value='fith_alt'   > Alt +
-            <input type='text'      name='fith_letter' maxlength='1' class='shortcut_input'>
+            <input type='checkbox' id='fith_ctrl'  > Ctrl + 
+            <input type='checkbox' id='fith_shift' > Shift + 
+            <input type='checkbox' id='fith_alt'   > Alt +
+            <input type='text'     id='fith_letter' maxlength='1' class='shortcut_input'>
           </div>
           
           <!-- reset -->
           <div class="uw_shortcuts_line">
             <div class="uw_shortcuts_label">Reset</div>
-            <input type='checkbox' value='reset_ctrl'  > Ctrl + 
-            <input type='checkbox' value='reset_shift' > Shift + 
-            <input type='checkbox' value='reset_alt'   > Alt +
-            <input type='text'      name='reset_letter' maxlength='1' class='shortcut_input'>
+            <input type='checkbox' id='reset_ctrl'  > Ctrl + 
+            <input type='checkbox' id='reset_shift' > Shift + 
+            <input type='checkbox' id='reset_alt'   > Alt +
+            <input type='text'     id='reset_letter' maxlength='1' class='shortcut_input'>
           </div>
           
           <!-- zoom -->
           <div class="uw_shortcuts_line">
             <div class="uw_shortcuts_label">Zoom</div>
-            <input type='checkbox' value='zoom_ctrl'  > Ctrl + 
-            <input type='checkbox' value='zoom_shift' > Shift + 
-            <input type='checkbox' value='zoom_alt'   > Alt +
-            <input type='text'      name='zoom_letter' maxlength='1' class='shortcut_input'>
+            <input type='checkbox' id='zoom_ctrl'  > Ctrl + 
+            <input type='checkbox' id='zoom_shift' > Shift + 
+            <input type='checkbox' id='zoom_alt'   > Alt +
+            <input type='text'     id='zoom_letter' maxlength='1' class='shortcut_input'>
           </div>
           
           <!-- unzoom -->
           <div class="uw_shortcuts_line">
             <div class="uw_shortcuts_label">Unzoom</div>
-            <input type='checkbox' value='unzoom_ctrl'  > Ctrl + 
-            <input type='checkbox' value='unzoom_shift' > Shift + 
-            <input type='checkbox' value='unzoom_alt'   > Alt +
-            <input type='text'      name='unzoom_letter' maxlength='1' class='shortcut_input'>
+            <input type='checkbox' id='unzoom_ctrl'  > Ctrl + 
+            <input type='checkbox' id='unzoom_shift' > Shift + 
+            <input type='checkbox' id='unzoom_alt'   > Alt +
+            <input type='text'     id='unzoom_letter' maxlength='1' class='shortcut_input'>
           </div>
           
           <!-- force 21:9 -->
           <div class="uw_shortcuts_line">
             <div class="uw_shortcuts_label">Fit to height</div>
-            <input type='checkbox' value='ar219_ctrl'  > Ctrl + 
-            <input type='checkbox' value='ar219_shift' > Shift + 
-            <input type='checkbox' value='ar219_alt'   > Alt +
-            <input type='text'      name='ar219_letter' maxlength='1' class='shortcut_input'>
+            <input type='checkbox' id='ar219_ctrl'  > Ctrl + 
+            <input type='checkbox' id='ar219_shift' > Shift + 
+            <input type='checkbox' id='ar219_alt'   > Alt +
+            <input type='text'     id='ar219_letter' maxlength='1' class='shortcut_input'>
           </div>
           
           <!-- force 16:9 -->
           <div class="uw_shortcuts_line">
             <div class="uw_shortcuts_label">Fit to height</div>
-            <input type='checkbox' value='ar169_ctrl'  > Ctrl + 
-            <input type='checkbox' value='ar169_shift' > Shift + 
-            <input type='checkbox' value='ar169_alt'   > Alt +
-            <input type='text'      name='ar169_letter' maxlength='1' class='shortcut_input'>
+            <input type='checkbox' id='ar169_ctrl'  > Ctrl + 
+            <input type='checkbox' id='ar169_shift' > Shift + 
+            <input type='checkbox' id='ar169_alt'   > Alt +
+            <input type='text'     id='ar169_letter' maxlength='1' class='shortcut_input'>
           </div>
           
           <!-- force 16:10 -->
           <div class="uw_shortcuts_line">
             <div class="uw_shortcuts_label">Fit to height</div>
-            <input type='checkbox' value='ar1610_ctrl'  > Ctrl + 
-            <input type='checkbox' value='ar1610_shift' > Shift + 
-            <input type='checkbox' value='ar1610_alt'   > Alt +
-            <input type='text'      name='ar1610_letter' maxlength='1' class='shortcut_input'>
+            <input type='checkbox' id='ar1610_ctrl'  > Ctrl + 
+            <input type='checkbox' id='ar1610_shift' > Shift + 
+            <input type='checkbox' id='ar1610_alt'   > Alt +
+            <input type='text'     id='ar1610_letter' maxlength='1' class='shortcut_input'>
           </div>
           
           <!-- force 4:3 -->
           <div class="uw_shortcuts_line">
             <div class="uw_shortcuts_label">Fit to height</div>
-            <input type='checkbox' value='ar43_ctrl'  > Ctrl + 
-            <input type='checkbox' value='ar43_shift' > Shift + 
-            <input type='checkbox' value='ar43_alt'   > Alt +
-            <input type='text'      name='ar43_letter' maxlength='1' class='shortcut_input'>
+            <input type='checkbox' id='ar43_ctrl'  > Ctrl + 
+            <input type='checkbox' id='ar43_shift' > Shift + 
+            <input type='checkbox' id='ar43_alt'   > Alt +
+            <input type='text'     id='ar43_letter' maxlength='1' class='shortcut_input'>
           </div>
+        <!-- END FORM -->
         </form>
-        <div class="buttonbar">Cancel | Close</div>
+        <div class="buttonbar"><div class="button" id="kb_cancel">Cancel</div><div class="button" id="kb_save">Save</div></div>
         <div id="errbox"></div>
-        <div><b>Note:</b> keyboard shortcut conflicts aren't handled by this extension. You must know your shortcuts.<br/><b>Pro tip:</b> If you don't want to have a keybind for a shortcut, just uncheck all boxes for the action and remove the letter</div>
+        <div><small><b>Note:</b> keyboard shortcut conflicts aren't handled by this extension. You must know your shortcuts.<br/><b>Pro tip:</b> If you don't want to have a keybind for a shortcut, just uncheck all boxes for the action and remove the letter</small></div>
       </div>
     </div> 
   
@@ -239,6 +254,9 @@
         <p>Special thanks to me for making this extension. You're welcome.</p>
       </div>
     </div>
-    </all>
+    </div>
+    
+    
+    <script src="./settings.js"></script>
   </body>
 </html>

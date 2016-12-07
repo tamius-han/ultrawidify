@@ -66,49 +66,49 @@ if(page_url.indexOf("youtu") != -1){
 // Yeah hi /r/badcode.
 // Anyway, because nazi localstorage flat out refuses to store arrays:
 var DEFAULT_KEYBINDINGS = { 
-  1:{ action: "fitw",
+  0:{ action: "fitw",
     key: 'w',
     modifiers: []
   },
-  2:{
+  1:{
     action: "fith", 
     key: 'e',
     modifiers: []
   },
-  3: {
+  2: {
     action: "reset",
     key: 'r',
     modifiers: []
   },
-  4: {
+  3: {
     action: "zoom",
     key: "z",
     modifiers: []
   },
-  5: {
+  4: {
     action: "unzoom",
     key: "u",
     modifiers: []
   },
-  6: {
+  5: {
     action: "char",
     targetAR: (21/9),
     key: "d",
     modifiers: []
   },
-  7: {
+  6: {
     action: "char",
     targetAR: (16/9),
     key: "s",
     modifiers: []
   },
-  8: {
+  7: {
     action: "char",
     targetAR: (16/10),
     key: "x",
     modifiers: []
   },
-  9: {
+  8: {
     action: "char",
     targetAR: (4/3),
     key: "a",
@@ -423,7 +423,7 @@ function addCtlButtons(provider_id){
     smenu_ar_options[2].onclick = function(event) {event.stopPropagation(); changeCSS("char", (16/9 )); };
     smenu_ar_options[3].onclick = function(event) {event.stopPropagation(); changeCSS("char", (21/9 )); };
     
-//     smenu_el[0].onclick = function() { showSettings() };
+    smenu_el[0].onclick = function (event) {event.stopPropagation(); showSettings() };
     
     smenu_el[5].onclick = function (event) {event.stopPropagation(); changeCSS("fit"  ,"fitw"  ) };
     smenu_el[4].onclick = function (event) {event.stopPropagation(); changeCSS("fit"  ,"fith"  ) };
@@ -431,58 +431,6 @@ function addCtlButtons(provider_id){
     smenu_el[1].onclick = function (event) {event.stopPropagation(); changeCSS("fit"  ,"zoom"  ) };
     smenu_el[2].onclick = function (event) {event.stopPropagation(); changeCSS("fit"  ,"unzoom") };
     
-    
-    //BEGIN SETTINGS WINDOW
-//     var e_player;
-//     
-//     if(inIframe())
-//       e_player = document.getElementById("player");
-//     else
-//       e_player = document.getElementById("movie_player");
-//       
-      
-    var menu_panel = document.createElement('div');
-    menu_panel.id = "uw_settings_panel";
-    menu_panel.className = "uw-ext-settings-bg uw_element";
-    
-    var kbs_actions = [
-      {action:"fitw", label:"Fit width:"},
-      {action:"fith",label:"Fit height:"},
-      {action:"reset",label:"Reset:"},
-      {action:"zoom",label:"Zoom in:"},
-      {action:"unzoom",label:"Zoom out:"},
-      {action:"ar219",label:"Force 21:9"},
-      {action:"ar169",label:"Force 16:9"},
-      {action:"ar1610",label:"Force 16:10"},
-      {action:"ar43",label:"Force 4:3"}
-    ];
-    
-    var form = "";
-    for( var i = 0; i < kbs_actions.length; i++){
-      form += "<div class='uw_top uw_settings_kbshortcuts_line'>\
-               <div class='uw_top uw_settings_kbshortcuts_label'>" + kbs_actions[i].label + "</div>\
-               <input type='checkbox' value='" + kbs_actions[i].action + "_ctrl'> Ctrl + \
-               <input type='checkbox' value='" + kbs_actions[i].action + "_shift'> Shift + \
-               <input type='checkbox' value='" + kbs_actions[i].action + "_alt'> Alt + \
-               <input type='text' name='" + kbs_actions[i].action + "_letter' maxlength='1' class='uw_settings_kbshortcuts_input'></div>";
-    }
-    
-    var settings_content = document.createElement('div');
-    var savekb = document.createElement('div');
-    savekb.className = 'uw_kbshortcuts_button';
-    savekb.onclick = function() { saveKeybinds() };
-    savekb.innerHTML = "Save";
-    settings_content.className = "uw-ext-settings-content";
-    settings_content.innerHTML = "";
-    
-    e_player.appendChild(menu_panel);
-//     menu_panel.appendChild(settings_content);
-    
-
-    
-    document.getElementById('uw_close_settings_view').onclick = function() { hideSettings() };
-    
-    //END SETTINGS WINDOW
   }
 
   
@@ -493,16 +441,25 @@ function addCtlButtons(provider_id){
 
 //END UI
 
-function showSettings(){
-  document.getElementById("uw_settings_panel").style.display = "block";
+function onOpen(){
+  if(debugmsg)
+    console.log("uw | Options page opened");
 }
-function hideSettings(){
-  document.getElementById("uw_settings_panel").style.display = "none";
-}
-// function saveKeybinds(){
-//   console.log($('uw_kbshortcuts_form').serializeArray());
-// }
 
+function onError(err){
+  if(debug){
+    console.log(`Error: ${error}`);
+    console.log("uw | Error opening the page", err);
+  }
+}
+
+function showSettings(){
+  var prettypls = browser.runtime.openOptionsPage();
+  prettypls.then(onOpen, onError);
+  
+  console.log(prettypls);
+  
+}
 
 // Ta funkcija se proži, ko vstopimo ali izstopimo iz celozaslonskega načina
 // This function gets triggered by full screen state change

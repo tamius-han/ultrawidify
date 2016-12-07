@@ -24,7 +24,7 @@ This extension also allows you to zoom in or out of video (similar to how SMPlay
 
 ### Permanent install
 
-~~[v0.9.9.5 — Experimental version — download from here](http://tamius.net/ultrawidify) — If 30 minutes old is stable enough for you, this is it. This version is pretty much code from this repo. It's also unlisted so I don't have to go through AMO for every minor change. It hasn't been tested whether autoupdating works, and it probably doesn't.~~
+[v1.0-rc1 — Experimental version — download from here](http://tamius.net/ultrawidify) — If 30 minutes old is stable enough for you, this is it. This version is pretty much code from this repo. It's also unlisted so I don't have to go through AMO for every minor change. It hasn't been tested whether autoupdating works, and it probably doesn't.
 
 [v0.9.9 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) — more stable and with AMO's approval. No experimental features either. (NOTE: there's a version number hiccup going on with AMO version. Stuff here on Github is the freshest, regardless of what manifest says)
 
@@ -32,7 +32,7 @@ This extension also allows you to zoom in or out of video (similar to how SMPlay
 
 ## How do I use it?
 
-This is the interface (**NOTE: AMO version doesn't have buttons yet!**):
+This is the interface:
 
 ![GUI buttons - ELI5](img-demo/interface-explained.jpg "If you know me and came looking for the obligatory »it's a wyvern, not a dragon« comment ... well, you just found it.")
 
@@ -54,7 +54,7 @@ If you can read this, you'll probably figure out the rest of the way.
 
 ¹These ratios are calculated using the number in the brackets, as 1920/1080 does not strictly equal to 16/9 (same goes for 21:9).
 
-**Please note that these keybindings could change at any time, and some definitely will** (apparently some of them conflict with youtube player)**.** I'll try to get them sorted out by the end of october.
+![Jesus Christ.](img-demo/example-jasonbourne.png "This is indeed worse than Snowden.")
 
 ## What works
 
@@ -110,3 +110,7 @@ Keybind `a` just doesn't work at all, so no 16:10.
 * All buttons in the player's control bar are now also in the settings popup.
 * Had to scrap settings page in its current form
 * TODO: sometimes not all buttons can fit in the control bar. Such occurences should be detected.
+
+###v1.0-rc1
+
+* Settings page is added and mostly working. 

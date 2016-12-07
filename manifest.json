@@ -2,7 +2,7 @@
   
   "manifest_version": 2,
   "name": "Ultrawidify-git",
-  "version": "0.9.9.6",
+  "version": "1.0rc1",
   
   "icons": {
     "32":"res/icons/uw-32.png",
@@ -41,6 +41,7 @@
   ],
   
   "options_ui" : {
-    "page": "res/settings.html"
+    "page": "res/settings.html",
+    "open_in_tab": true
   }
 }
