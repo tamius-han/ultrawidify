@@ -111,6 +111,10 @@ Keybind `a` just doesn't work at all, so no 16:10.
 * Had to scrap settings page in its current form
 * TODO: sometimes not all buttons can fit in the control bar. Such occurences should be detected.
 
+###v0.9.9.6
+
+* The issue with buttons not fitting in the control bar was resolved.
+
 ###v1.0-rc1
 
 * Settings page is added and mostly working. 
