@@ -1,4 +1,4 @@
-var debugmsg = true;
+var debugmsg = false;
 if(debugmsg){
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
   console.log("\nLoading ultrawidify (uw)\nIf you can see this, extension at least tried to load\n\nRandom number: ",Math.floor(Math.random() * 20) + 1,"\n");
@@ -152,13 +152,16 @@ $(document).ready(function() {
         console.log("We're writing a comment or something. Doing nothing");
       return;
     }
-    console.log(KEYBINDS);
-    console.log("we pressed a key: ", event.key , " | keydown: ", event.keydown);
-    
+    if(debugmsg){
+      console.log(KEYBINDS);
+      console.log("we pressed a key: ", event.key , " | keydown: ", event.keydown);
+    }
     for(i in KEYBINDS){
-      console.log("i: ", i, "keybinds[i]:", KEYBINDS[i]);
+      if(debugmsg)
+        console.log("i: ", i, "keybinds[i]:", KEYBINDS[i]);
       if(event.key == KEYBINDS[i].key){
-        console.log("Key matches!");
+        if(debugmsg)
+          console.log("Key matches!");
         //Tipka se ujema. Preverimo še modifierje:
         //Key matches. Let's check if modifiers match, too:
         var mods = true;
@@ -170,7 +173,8 @@ $(document).ready(function() {
           else if(KEYBINDS[i].modifiers[j] == "shift")
             mods &= event.shiftKey ;
         }
-        console.log("we pressed a key: ", event.key , " | mods match?", mods, "keybinding: ", KEYBINDS[i]);
+        if(debugmsg)
+          console.log("we pressed a key: ", event.key , " | mods match?", mods, "keybinding: ", KEYBINDS[i]);
         if(mods){
           if(KEYBINDS[i].action == "char"){
             changeCSS("char", KEYBINDS[i].targetAR);
@@ -197,9 +201,9 @@ $(document).ready(function() {
 });
 
   //UI helpers
-function saveKeybinds(){
-  console.log($('uw_kbshortcuts_form').serializeArray());
-}
+// function saveKeybinds(){
+//   console.log($('uw_kbshortcuts_form').serializeArray());
+// }
 
 
   //BEGIN UI
@@ -312,7 +316,11 @@ function addCtlButtons(provider_id){
 
     //Če rabimo skriti gumb za nastavitve, potem mora biti i=1
     //If we need to hide settings button, then we should make i=1
-    for(var i = 0; i < smenu_el.length; i++){
+    
+    //FIXME: knof za nastavitve ne radi (nastavitve se ne odprejo)
+    //FIXME: 'settings' button on the player doesn't work
+    
+    for(var i = 1; i < smenu_el.length; i++){
       settings_menu.appendChild(smenu_el[i]);
       smenu_el[i].className += "uw-setmenu-item";
     }
@@ -423,7 +431,8 @@ function addCtlButtons(provider_id){
     smenu_ar_options[2].onclick = function(event) {event.stopPropagation(); changeCSS("char", (16/9 )); };
     smenu_ar_options[3].onclick = function(event) {event.stopPropagation(); changeCSS("char", (21/9 )); };
     
-    smenu_el[0].onclick = function (event) {event.stopPropagation(); showSettings() };
+
+//     smenu_el[0].onclick = function (event) {event.stopPropagation(); showSettings() };
     
     smenu_el[5].onclick = function (event) {event.stopPropagation(); changeCSS("fit"  ,"fitw"  ) };
     smenu_el[4].onclick = function (event) {event.stopPropagation(); changeCSS("fit"  ,"fith"  ) };
@@ -456,9 +465,6 @@ function onError(err){
 function showSettings(){
   var prettypls = browser.runtime.openOptionsPage();
   prettypls.then(onOpen, onError);
-  
-  console.log(prettypls);
-  
 }
 
 // Ta funkcija se proži, ko vstopimo ali izstopimo iz celozaslonskega načina
@@ -612,9 +618,10 @@ function set_video_ar(aspect_ratio, video, player){
   var video_ar = video.width / video.height;
   var display_ar = player.width / player.height;
   
-  if(debugmsg)
+  if(debugmsg){
     console.log("uw::set_video_ar | aspect ratio: " + aspect_ratio + "; video_ar: " + video_ar + "; display_ar: " + display_ar);
     console.log("uw::set_video_ar | player dimensions: " + player.width + "x" + player.height + "; video dimensions: " + video.width + "x" + video.height);
+  }
   
   if( aspect_ratio*1.1 > video_ar && video_ar > aspect_ratio*0.9 ){
     // Ta hack nas reši problema, ki ga predstavlja spodnji if stavek — če se legit 21:9 videu na 16:9 monitorju
