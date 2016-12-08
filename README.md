@@ -62,16 +62,18 @@ More or less everything. Works regardless of whether the video is in fullscreen 
 
 ## What doesn't
 
-On a very rare occasion, `w` button won't work. So far this behaviour was seen in [two](https://www.youtube.com/watch?v=eRsGyueVLvQ) [videos](https://www.youtube.com/watch?v=RYsPEl-xOv0) out of countless I've tried. In cases like this, use `z` to zoom instead.
-
-Keybind `a` just doesn't work at all, so no 16:10.
+At the moment, I'm not aware of anything that this extension advertises not working.
 
 ## Plans for the future
 
-* Adding custom keybinds
-* Adding a proper settings page
+* ~~Adding custom keybinds~~ (done at lastest)
+* ~~Adding a proper settings page~~ (done at last)
 * ~~Adding buttons for actions in youtube's player~~ (kinda done)
 * ~~Adding an option to force specific aspect ratio~~ (now it's "good enough")
+* Port to Chrome
+* Have extension remember the last setting when switching between fullscreen and not fullscreen. Have an option to remember last selected aspect ratio.
+* Netflix support
+
 
 ## Changelog
 
@@ -118,3 +120,7 @@ Keybind `a` just doesn't work at all, so no 16:10.
 ###v1.0-rc1
 
 * Settings page is added and mostly working. 
+
+###v1.0.0 
+
+* Is pretty much rc1, except slightly different background image.
