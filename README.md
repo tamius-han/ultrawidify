@@ -26,7 +26,7 @@ This extension also allows you to zoom in or out of video (similar to how SMPlay
 
 [v1.0-rc1 — Experimental version — download from here](http://tamius.net/ultrawidify) — If 30 minutes old is stable enough for you, this is it. This version is pretty much code from this repo. It's also unlisted so I don't have to go through AMO for every minor change. It hasn't been tested whether autoupdating works, and it probably doesn't.
 
-[v0.9.9 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) — more stable and with AMO's approval. No experimental features either. (NOTE: there's a version number hiccup going on with AMO version. Stuff here on Github is the freshest, regardless of what manifest says)
+[v1.0.0 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) — more stable and with AMO's approval. No experimental features either.
 
 **NOTE:** Have only one version of the extension running at a time. Don't run both at the same time.
 
@@ -94,7 +94,7 @@ At the moment, I'm not aware of anything that this extension advertises not work
 * Added GUI/buttons on the player.
 * Script now only loads on youtube pages (iframes included) (before, this script would run on any page)
 
-###v0.9.9         <--- AMO version is here
+###v0.9.9
 
 * The aspect ratio thingy is now also in GUI
 * Fixed code for forcing aspect ratio. At least I think it's fixed now.
