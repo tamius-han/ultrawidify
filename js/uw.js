@@ -1,4 +1,4 @@
-var debugmsg = false;
+var debugmsg = true;
 if(debugmsg){
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
   console.log("\nLoading ultrawidify (uw)\nIf you can see this, extension at least tried to load\n\nRandom number: ",Math.floor(Math.random() * 20) + 1,"\n");
@@ -116,6 +116,7 @@ var DEFAULT_KEYBINDINGS = {
   }
 };
 
+var last_location = "";
 var KEYBINDS = {};
 var ask4keybinds = browser.storage.local.get("ultrawidify_keybinds");
 ask4keybinds.then( (res) => {
@@ -132,33 +133,87 @@ ask4keybinds.then( (res) => {
 //   console.log("res. ", res[0].ultrawidify_keybinds);
 });
 
+if(debugmsg)
+  console.log("uw | Setting up comms with background scripts");
 
+browser.runtime.onMessage.addListener(function (message, sender, stuff ) {
+  if(debugmsg)
+    console.log("uw::onMessage | message:", message.message, "sender:", sender);
+  
+  if(message.message == "page-change"){
+    addCtlButtons(0);
+  }
+});
+
+// browser.runtime.onMessage.addListener(request => {
+//   console.log("Message from the background script:");
+//   console.log(request.greeting);
+//   return Promise.resolve({response: "Hi from content script"});
+// });
+
+if(debugmsg)
+  console.log("uw | Comms with background scripts: done");
 
 
 $(document).ready(function() {
   if(debugmsg)
-    console.log("=============================================================================================");
+    console.log("uw::document.ready | document is ready. Starting extension setup ...");
+  extSetup();
+});
+
+//BEGIN EXTENSION SETUP
+
+function extSetup(){
+  if(debugmsg)
+    console.log("==============================================================================================");
   
+  last_location = window.location;
+  if(debugmsg){
+    console.log("uw::extSetup | our current location is:", last_location);
+    console.log("uw::extSetup | removing existing keydown event from document (useful if extension was previously loaded and we navigated to a different video)");
+  }
+  $(document).off("keydown");
+  
+  if(debugmsg)
+    console.log("uw::extSetup | setting up keyboard shortcuts");
+  keydownSetup();
+  addCtlButtons(0);
+  if(debugmsg)
+    console.log("======================================[ setup finished ]======================================");
+}
+
+function keydownSetup(){
   $(document).keydown(function (event) {          // Tukaj ugotovimo, katero tipko smo pritisnili
     
     // Tipke upoštevamo samo, če smo v celozaslonskem načinu oz. če ne pišemo komentarja
     // v nasprotnem primeru ne naredimo nič.
     // We only take actions if we're in full screen or not writing a comment
     if( !(inFullScreen || (
-         (document.activeElement.getAttribute("role") != "textbox") &&
-         (document.activeElement.getAttribute("type") != "text")
+      (document.activeElement.getAttribute("role") != "textbox") &&
+      (document.activeElement.getAttribute("type") != "text")
     ))){
       if(debugmsg)
         console.log("We're writing a comment or something. Doing nothing");
       return;
     }
     if(debugmsg){
-      console.log(KEYBINDS);
+//       console.log(KEYBINDS);
       console.log("we pressed a key: ", event.key , " | keydown: ", event.keydown);
+      if(event.key == 'p'){
+        console.log("uw/keydown: attempting to send message")
+        var sending = browser.runtime.sendMessage({
+          test: "test message pls dont ignore"
+        });
+        sending.then( function(){}, function(){console.log("uw/keydown: there was an error while sending a message")} );
+        console.log("uw/keydown: test message sent! (probably)");
+        return;
+      }
     }
+    
     for(i in KEYBINDS){
       if(debugmsg)
         console.log("i: ", i, "keybinds[i]:", KEYBINDS[i]);
+      
       if(event.key == KEYBINDS[i].key){
         if(debugmsg)
           console.log("Key matches!");
@@ -176,6 +231,7 @@ $(document).ready(function() {
         if(debugmsg)
           console.log("we pressed a key: ", event.key , " | mods match?", mods, "keybinding: ", KEYBINDS[i]);
         if(mods){
+          console.log("uw::keydown | keys match. calling changeCSS()");
           if(KEYBINDS[i].action == "char"){
             changeCSS("char", KEYBINDS[i].targetAR);
             return;
@@ -186,36 +242,58 @@ $(document).ready(function() {
       }
     }
   });
-  
+
   document.addEventListener("mozfullscreenchange", function( event ) {
     onFullScreenChange();
     inFullScreen = ( window.innerHeight == window.screen.height && window.innerWidth == window.screen.width);
     inFullScreen ? onFullscreenOn() : onFullscreenOff();
   });
-  
-  // Dodajmo gumbe na video
-  // let's add buttons to the video
-  
-  addCtlButtons(0);
-
-});
-
-  //UI helpers
-// function saveKeybinds(){
-//   console.log($('uw_kbshortcuts_form').serializeArray());
-// }
-
+}
 
   //BEGIN UI
 
+function check4player(provider_id){
+  try{
+    var button_width = document.getElementsByClassName(buttonClass)[0].scrollWidth;
+    return true;
+  }
+  catch(e){
+    // Zato, ker predvajalnik ni vselej prisoten. Če predvajalnik ni prisoten,
+    // potem tudi knofov ni. Kar pomeni problem.
+    // 
+    // Because the player isn't always there, and when the player isn't there the buttons aren't, either.
+    // In that case, the above statement craps out, throws an exception and trashes the extension.
+    if(debugmsg)
+      console.log("uw::addCtlButtons | seems there was a fuckup and no buttons were found on this page. No player (and therefore no buttons) found.");
+    return false;
+  }
+  return false;
+}
+  
 function addCtlButtons(provider_id){
   
   var buttonClass = "ytp-button ytp-settings-button";
   
+  console.log("\n\n\n\n\n\n1");
   // Gumb za nastavitve je bolj kot ne vselej prisoten, zato širino tega gumba uporabimo kot širino naših gumbov
   // Settings button is more or less always there, so we use its width as width of our buttons
-  var button_width = document.getElementsByClassName(buttonClass)[0].scrollWidth;
-    
+  try{
+    console.log(2);
+    var button_width = document.getElementsByClassName(buttonClass)[0].scrollWidth;
+    console.log(3);
+  }
+  catch(e){
+    // Zato, ker predvajalnik ni vselej prisoten. Če predvajalnik ni prisoten,
+    // potem tudi knofov ni. Kar pomeni problem.
+    // 
+    // Because the player isn't always there, and when the player isn't there the buttons aren't, either.
+    // In that case, the above statement craps out, throws an exception and trashes the extension.
+    if(debugmsg)
+      console.log("uw::addCtlButtons | seems there was a fuckup and no buttons were found on this page. No player (and therefore no buttons) found.");
+    return false;
+  }
+  console.log(4);
+  
   var button_def = [ "fitw", "fith", "reset", "zoom", "uzoom", "settings" ];
   
   if(debugmsg)
@@ -446,9 +524,11 @@ function addCtlButtons(provider_id){
   
   if(debugmsg)
     console.log("uw::addCtlButtons | buttons added");
+  
+  return true;
 }
-
 //END UI
+//END EXTENSION SETUP
 
 function onOpen(){
   if(debugmsg)
