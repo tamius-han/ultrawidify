@@ -1,4 +1,4 @@
-var debugmsg = true;
+var debugmsg = false;
 if(debugmsg){
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
   console.log("\nLoading ultrawidify (uw)\nIf you can see this, extension at least tried to load\n\nRandom number: ",Math.floor(Math.random() * 20) + 1,"\n");
@@ -168,6 +168,8 @@ function extSetup(){
     console.log("==============================================================================================");
   
   last_location = window.location;
+  
+  
   if(debugmsg){
     console.log("uw::extSetup | our current location is:", last_location);
     console.log("uw::extSetup | removing existing keydown event from document (useful if extension was previously loaded and we navigated to a different video)");
@@ -321,6 +323,17 @@ function addCtlButtons(provider_id){
   // for as long as the array contains elements. 
   // 
   // Yes, that used to be a bug.
+  if(debugmsg){
+    // Če je debugmsg false, potem verjetno ne dodajamo nobenih novih funkcionalnosti, zaradi katerih bi bilo potrebno
+    // ponovno naložiti vmesnik. Zato tega ne storimo, temveč ohranimo stare gumbe. Ker so ok.
+    // 
+    // If debugging is false, then we aren't adding any new features that would require us to reload UI. So we leave
+    // the old UI in place, because it should be good enough.
+    
+    if(previousElements && previousElements.length > 0){
+      return;
+    }
+  }
   
   while (previousElements && previousElements.length > 0){
     previousElements[0].parentNode.removeChild(previousElements[0]);
