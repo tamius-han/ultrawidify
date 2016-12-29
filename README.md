@@ -77,33 +77,27 @@ At the moment, I'm not aware of anything that this extension advertises not work
 
 ## Changelog
 
-###v0.9.1
+###v1.0.2 (waiting for approval on AMO)
 
-* First version on GitHub (and on AMO) with basic features (zoom, fit to width, fit to height)
+The 'extension sometimes not working' bug was fixed (by having extension try to setup every time a page got updated), but the fix had some problems. Namely, the extension would re-initiate (complete with re-adding the entire UI) itself very _very_ often. 
 
-###v0.9.6
+This could be a problem, so it was fixed. Extension is notified of updates only every ~2 seconds (which absorbs most of the "page was updated" events on page load) and doesn't attempt to reload the UI if the UI was already loaded. (Unless `debugmsg` is set to true. It's generally not, but any commits to this repo could potentially still have it enabled).
 
-* Added experimental feature that tries to force an aspect ratio
+###v1.0.1
 
-###v0.9.7
+Fixed the bug where sometimes the extension would fail to work. (example: you opened youtube's search page in a brand new tab. You then opened a video from the search results (_not_ in a new tab). Extension wouldn't work at all in videos opened in that manner).
 
-* No new features added. Version number got incremented due to an attempt at autoupdating (which got foiled due to lack of HTTPS)
+###v1.0.0 (latest version on AMO)
 
-###v0.9.8
+* Is pretty much rc1, except slightly different background image.
 
-* Added GUI/buttons on the player.
-* Script now only loads on youtube pages (iframes included) (before, this script would run on any page)
+###v1.0-rc1
 
-###v0.9.9
+* Settings page is added and mostly working. 
 
-* The aspect ratio thingy is now also in GUI
-* Fixed code for forcing aspect ratio. At least I think it's fixed now.
+###v0.9.9.6
 
-###v0.9.9.1
-
-* Keybinds `a` and `w` now work. 
-* Some changes under the bonnet, mostly regarding the way keypresses are handled.
-* 'Settings' page is ~15% done.
+* The issue with buttons not fitting in the control bar was resolved.
 
 ###v0.9.9.5
 
@@ -113,14 +107,30 @@ At the moment, I'm not aware of anything that this extension advertises not work
 * Had to scrap settings page in its current form
 * TODO: sometimes not all buttons can fit in the control bar. Such occurences should be detected.
 
-###v0.9.9.6
+###v0.9.9.1
 
-* The issue with buttons not fitting in the control bar was resolved.
+* Keybinds `a` and `w` now work. 
+* Some changes under the bonnet, mostly regarding the way keypresses are handled.
+* 'Settings' page is ~15% done.
 
-###v1.0-rc1
+###v0.9.9
 
-* Settings page is added and mostly working. 
+* The aspect ratio thingy is now also in GUI
+* Fixed code for forcing aspect ratio. At least I think it's fixed now.
 
-###v1.0.0 
+###v0.9.8
 
-* Is pretty much rc1, except slightly different background image.
+* Added GUI/buttons on the player.
+* Script now only loads on youtube pages (iframes included) (before, this script would run on any page)
+
+###v0.9.7
+
+* No new features added. Version number got incremented due to an attempt at autoupdating (which got foiled due to lack of HTTPS)
+
+###v0.9.6
+
+* Added experimental feature that tries to force an aspect ratio
+
+###v0.9.1
+
+* First version on GitHub (and on AMO) with basic features (zoom, fit to width, fit to height)

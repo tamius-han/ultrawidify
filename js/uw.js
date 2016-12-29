@@ -323,7 +323,7 @@ function addCtlButtons(provider_id){
   // for as long as the array contains elements. 
   // 
   // Yes, that used to be a bug.
-  if(debugmsg){
+  if(!debugmsg){
     // Če je debugmsg false, potem verjetno ne dodajamo nobenih novih funkcionalnosti, zaradi katerih bi bilo potrebno
     // ponovno naložiti vmesnik. Zato tega ne storimo, temveč ohranimo stare gumbe. Ker so ok.
     // 
