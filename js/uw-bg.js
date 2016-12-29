@@ -25,7 +25,7 @@ function notifyChange(){
     browser.tabs.query({active: true, currentWindow: true}, function(tabs){
       browser.tabs.sendMessage(tabs[0].id, {message: "page-change"});
     });
-    setTimeout(function(){url_changed = false;}, 1000);
+    setTimeout(function(){url_changed = false;}, 100);
   }, 3000);
 }
 
