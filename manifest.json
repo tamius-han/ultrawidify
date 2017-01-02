@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Ultrawidify-git",
-  "version": "1.0.2",
+  "version": "1.0.3",
   
   "icons": {
     "32":"res/icons/uw-32.png",
@@ -13,7 +13,7 @@
   
   "content_scripts": [
   {
-    "matches": ["*://*.youtube.com/*", "*://youtube.com/*", "*://youtu.be/*"],
+    "matches": ["*://*.youtube.com/*", "*://youtube.com/*", "*://youtu.be/*","*://www.netflix.com/watch/*"],
     "js": [ "js/jquery-3.1.1.js", "js/uw.js" ],
     "all_frames": true
   }
