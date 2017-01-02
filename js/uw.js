@@ -54,7 +54,7 @@ function init(){
       player = document.getElementById("movie_player");
     
     video_wrap = "video-stream";
-    return; 
+    return true; 
   }
   
   //Netflix:
@@ -84,7 +84,11 @@ function init(){
     sample_button_class = "player-control-button player-fill-screen";
     video_wrap = "player-video-wrapper";
     button_size_base = "y";
+    
+    return true;
   }
+  
+  return false;
 }
 
 
@@ -210,9 +214,10 @@ ask4keybinds.then( (res) => {
 if(debugmsg)
   console.log("uw | Setting up comms with background scripts");
 
+var num_of_msg = 0;
 browser.runtime.onMessage.addListener(function (message, sender, stuff ) {
   if(debugmsg)
-    console.log("uw::onMessage | message:", message.message, "sender:", sender);
+    console.log("uw::onMessage | message number: ", num_of_msg++  , "; message:", message.message, "player-status elements:", document.getElementsByClassName("player-status").length, document.getElementsByClassName("player-status"));
   
   if(message.message == "page-change"){
     addCtlButtons(0);
@@ -247,20 +252,28 @@ function extSetup(){
   
   if(debugmsg){
     console.log("uw::extSetup | our current location is:", last_location);
+    console.log("uw::extSetup | initiating extension");
+  }
+  var ini = init();
+  
+  if(debugmsg){
+    console.log("uw::extSetup | init exited with", ini);
     console.log("uw::extSetup | removing existing keydown event from document (useful if extension was previously loaded and we navigated to a different video)");
   }
   $(document).off("keydown");
   
   if(debugmsg)
     console.log("uw::extSetup | setting up keyboard shortcuts");
-  if(init())
-    keydownSetup();
+  
+  keydownSetup();  
   addCtlButtons(0);
   if(debugmsg)
     console.log("======================================[ setup finished ]======================================");
 }
 
 function keydownSetup(){
+  if(debugmsg)
+    console.log("uw::keydownSetup | starting keybord shortcut setup");
   $(document).keydown(function (event) {          // Tukaj ugotovimo, katero tipko smo pritisnili
     
     // Tipke upoštevamo samo, če smo v celozaslonskem načinu oz. če ne pišemo komentarja
@@ -665,8 +678,7 @@ function onError(err){
 }
 
 function showSettings(){
-  var prettypls = browser.runtime.openOptionsPage();
-  prettypls.then(onOpen, onError);
+  
 }
 
 // Ta funkcija se proži, ko vstopimo ali izstopimo iz celozaslonskega načina
