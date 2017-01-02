@@ -1,10 +1,10 @@
-var debugmsg = false;
+var debugmsg = true;
 if(debugmsg){
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
   console.log("\nLoading ultrawidify (uw)\nIf you can see this, extension at least tried to load\n\nRandom number: ",Math.floor(Math.random() * 20) + 1,"\n");
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
 }
-
+const playercheck_recursion_depth_limit = 3;
 
 var extraClassAdded = false;
 var inFullScreen = false;
@@ -22,6 +22,73 @@ var serviceArray = [".video-stream" ]; //Youtube
 
 var buttons = [];
 
+//BEGIN determining which site we're on and the associated names
+
+var control_bar;
+var ui_anchor;
+var player;
+var vid_el;
+var sample_button_class;        // Class of a sample button
+var sample_button_index = 0;    // index of a sample button
+var button_size_base = "x";     // Determines if size of extension buttons is defined by width or height of sample button
+
+var video_wrap;
+
+function init(){
+  
+  if(debugmsg)
+    console.log("uw::init | starting init");
+  
+  //Youtube:
+  if(page_url.indexOf("youtu") != -1){
+    if(debugmsg)
+      console.log("uw::init | we're on youtube. Page url:", page_url);
+    
+    control_bar = "ytp-chrome-controls";
+//     ui_anchor = 
+    sample_button_class = "ytp-button ytp-settings-button";
+    
+    if(inIframe())
+      player = document.getElementById("player")
+    else
+      player = document.getElementById("movie_player");
+    
+    video_wrap = "video-stream";
+    return; 
+  }
+  
+  //Netflix:
+  if(page_url.indexOf("netflix.com") != -1){
+    if(debugmsg)
+      console.log("uw::init | we're on netflix. Page url:", page_url);
+    
+    player = document.getElementById("playerContainer");
+    var tmp = document.getElementsByClassName("player-status")[0];
+    if(!tmp)
+      return false;
+    
+    ui_anchor = document.getElementsByClassName("uw-button-row")[0];
+    
+    console.log(ui_anchor);
+    if(!ui_anchor){
+      ui_anchor = document.createElement("div");
+      ui_anchor.className = "uw-button-row";
+    }
+    
+    if(debugmsg)
+      console.log("uw::init | we're on netflix. ui anchor: ",ui_anchor, "; ui anchor parent:", tmp);
+    tmp.appendChild(ui_anchor);
+    
+    vid_el = document.getElementsByTagName("video")[0];
+    
+    sample_button_class = "player-control-button player-fill-screen";
+    video_wrap = "player-video-wrapper";
+    button_size_base = "y";
+  }
+}
+
+
+//END 
 
 //BEGIN ADDING CSS
 
@@ -60,9 +127,13 @@ addLink("res/css/uw_common.css");
 if(page_url.indexOf("youtu") != -1){
   addLink("res/css/uw_yt.css");
 }
+if(page_url.indexOf("netflix.com") != -1){
+  addLink("res/css/uw_netflix.css");
+}
 
 //END ADDING CSS
 
+//BEGIN keybind-related stuff
 // Yeah hi /r/badcode.
 // Anyway, because nazi localstorage flat out refuses to store arrays:
 var DEFAULT_KEYBINDINGS = { 
@@ -133,6 +204,9 @@ ask4keybinds.then( (res) => {
 //   console.log("res. ", res[0].ultrawidify_keybinds);
 });
 
+//END keybind-related stuff
+
+//BEGIN comms with uw-bg
 if(debugmsg)
   console.log("uw | Setting up comms with background scripts");
 
@@ -153,6 +227,7 @@ browser.runtime.onMessage.addListener(function (message, sender, stuff ) {
 
 if(debugmsg)
   console.log("uw | Comms with background scripts: done");
+//END comms with uw-bg
 
 
 $(document).ready(function() {
@@ -178,7 +253,8 @@ function extSetup(){
   
   if(debugmsg)
     console.log("uw::extSetup | setting up keyboard shortcuts");
-  keydownSetup();
+  if(init())
+    keydownSetup();
   addCtlButtons(0);
   if(debugmsg)
     console.log("======================================[ setup finished ]======================================");
@@ -254,9 +330,9 @@ function keydownSetup(){
 
   //BEGIN UI
 
-function check4player(provider_id){
+function check4player(recursion_depth){
   try{
-    var button_width = document.getElementsByClassName(buttonClass)[0].scrollWidth;
+    var button_width = document.getElementsByClassName(sample_button_class)[sample_button_index].scrollWidth;
     return true;
   }
   catch(e){
@@ -267,22 +343,28 @@ function check4player(provider_id){
     // In that case, the above statement craps out, throws an exception and trashes the extension.
     if(debugmsg)
       console.log("uw::addCtlButtons | seems there was a fuckup and no buttons were found on this page. No player (and therefore no buttons) found.");
-    return false;
+    
+    if(!recursion_depth)
+      recursion_depth = 0;
+    
+    // If buttons weren't found, we relaunch init() just
+    init();
+    return recursion_depth < playercheck_recursion_depth_limit ? check4player(++recursion_depth) : false;
   }
   return false;
 }
   
-function addCtlButtons(provider_id){
+function addCtlButtons(recursion_depth){
   
-  var buttonClass = "ytp-button ytp-settings-button";
   
-  console.log("\n\n\n\n\n\n1");
   // Gumb za nastavitve je bolj kot ne vselej prisoten, zato širino tega gumba uporabimo kot širino naših gumbov
   // Settings button is more or less always there, so we use its width as width of our buttons
   try{
-    console.log(2);
-    var button_width = document.getElementsByClassName(buttonClass)[0].scrollWidth;
-    console.log(3);
+    // Na različnih straneh širino gumba poberemo na različne načine.
+    if(button_size_base == "y")
+      var button_width = document.getElementsByClassName(sample_button_class)[sample_button_index].scrollHeight;
+    else
+      var button_width = document.getElementsByClassName(sample_button_class)[sample_button_index].scrollWidth;
   }
   catch(e){
     // Zato, ker predvajalnik ni vselej prisoten. Če predvajalnik ni prisoten,
@@ -292,16 +374,21 @@ function addCtlButtons(provider_id){
     // In that case, the above statement craps out, throws an exception and trashes the extension.
     if(debugmsg)
       console.log("uw::addCtlButtons | seems there was a fuckup and no buttons were found on this page. No player (and therefore no buttons) found.");
+    
+    if(!recursion_depth)
+      recursion_depth = 0;
+    
+    // If buttons weren't found, we relaunch init() just
+    init();
+    return recursion_depth < playercheck_recursion_depth_limit ? check4player(++recursion_depth) : false;
+    
     return false;
   }
-  console.log(4);
   
   var button_def = [ "fitw", "fith", "reset", "zoom", "uzoom", "settings" ];
   
   if(debugmsg)
     console.log("uw::addCtlButtons | trying to add buttons");
-  
-  var button_panel;
   
   // Če je ta dodatek že nameščen, potem odstranimo vse elemente. Vsi top-level elementi imajo definiran prazen razred
   // uw_element, prek katerega jih naberemo na kup. Ta del kode je tu bolj ali manj zaradi debugiranja.
@@ -339,199 +426,221 @@ function addCtlButtons(provider_id){
     previousElements[0].parentNode.removeChild(previousElements[0]);
   }
   
+  var check_width = false;
+  
   // If we're on youtube:
-  if(provider_id == 0){
+  if(page_url.indexOf("youtu") != -1){
+    check_width = true;
     
-    var e_player;
+    var rctl;
+    var rctl_width;
+    var lctl_width;
+    var ctlbar_width;
     
     if(inIframe())
-      e_player = document.getElementById("player");
+      player = document.getElementById("player");
     else
-      e_player = document.getElementById("movie_player");
+      player = document.getElementById("movie_player");
      
-    var rctl = document.getElementsByClassName("ytp-right-controls")[0];
-
-    // Tukaj dodamo gumbe na stran
-    // Here we add the buttons
-    
-    for( var i = 5; i >= 0; i--){
-      buttons[i] = document.createElement('div');
-      buttons[i].style.backgroundImage = 'url(' + resourceToUrl("/res/img/ytplayer-icons/" + button_def[i] + ".png") + ')';
-      buttons[i].style.width = (button_width * 0.75) + "px";
-//       buttons[i].style.marginLeft = (button_width * 0.3) + "px";
-      buttons[i].style.paddingLeft = (button_width *0.15 ) + "px";
-      buttons[i].style.paddingRight = (button_width * 0.15) + "px";
-      buttons[i].className += " uw-button uw_element";
-      $(rctl).prepend(buttons[i]);
-    }
-    
-    // Let's check if we're too wide.
-    var rctl_width = rctl.offsetWidth;
-    var lctl_width = document.getElementsByClassName("ytp-left-controls")[0].offsetWidth;
-    var ctlbar_width = document.getElementsByClassName("ytp-chrome-controls")[0].offsetWidth;
-    
-    // Če na ctlbar ni prostora za vse knofe, potem skrijemo vse knofe razen tistega, ki ima popup z vsemi možnostmi
-    // 
-    // If ctlbar doesn't have the space for all the buttons, we hide all except the one that contains the popup
-    // with all the options
-    
-    if( (rctl_width + lctl_width) * 1.1 > ctlbar_width){
-      for( var i = 4; i >= 0; i--){
-        buttons[i].classList.add("uw_hide");
-      }
-    }
-    
-    buttons[0].onclick = function() { changeCSS("fit",   "fitw")   };
-    buttons[1].onclick = function() { changeCSS("fit",   "fith")   };
-    buttons[2].onclick = function() { changeCSS("reset", "reset")  };
-    buttons[3].onclick = function() { changeCSS("fit",   "zoom")   };
-    buttons[4].onclick = function() { changeCSS("fit",   "unzoom") };
-    
-    // Knof za nastavitve ima še vgnezden meni, ki ga dodamo tu (privzeto je ta meni skrit)
-    // Settings button contains a menu that's nested in the element. By default, that menu is
-    // hidden.
-    buttons[5].onclick = function() { toggleMenu("uw-smenu") };
-    buttons[5].id = "uw-settings-button";
-    
-    var settings_menu = document.createElement("div");
-    var smenu_ar_menu = document.createElement("div");
-
-    var smenu_el = [];
-    for(var i = 0; i < 7; i++){
-      smenu_el[i] = document.createElement("div");
-    }
-    
-    var smenu_ar_options = [];
-    
-    buttons[5].appendChild(settings_menu);
-
-    //Če rabimo skriti gumb za nastavitve, potem mora biti i=1
-    //If we need to hide settings button, then we should make i=1
-    
-    //FIXME: knof za nastavitve ne radi (nastavitve se ne odprejo)
-    //FIXME: 'settings' button on the player doesn't work
-    
-    for(var i = 1; i < smenu_el.length; i++){
-      settings_menu.appendChild(smenu_el[i]);
-      smenu_el[i].className += "uw-setmenu-item";
-    }
-    
-    
-    for(var i = 0; i < 4; i++){
-      smenu_ar_options[i] = document.createElement("div");
-      smenu_ar_options[i].className = "uw-setmenu-item uw_element";
-      smenu_ar_menu.appendChild(smenu_ar_options[i]);
-    }
-    
-    settings_menu.id = "uw-smenu";
-    settings_menu.className = "uw-setmenu uw_element";
-    
-    
-    smenu_el[0].id = "uw-smenu_settings";
-    smenu_el[6].id = "uw-smenu_ar";
-    
-    
-    smenu_ar_menu.id = "uw-armenu";
-    smenu_ar_menu.className = "uw-setmenu uw_element";
-    
-    // Stvari, ki se spreminjajo, se določijo tukaj
-    // 
-    // Things that can change are defined here.
-    
-    var smenu_item_width = (button_width * 7.5);
-    var smenu_item_fontSize = (button_width * 0.5);
-    var smenu_ar_item_width = (smenu_item_width / 3);
-    var smenu_item_height = button_width;
-    
-    // Popup meni je lahko visok največ 75% višine predvajalnika
-    // Popup menu can be at most 75% of the video player tall
-    var smenu_max_h = e_player.clientHeight * 0.75;
-    
-    // Če je popup večji, kot 80% predvajalnika, potem ga pomanjšamo. Višina elementa na popupu je približno enaka
-    // višini knofa. Gumbi so načeloma kvadratni, zato je višina enaka širini.
-    // If the popup menu is taller than 80% of the player, we resize it. height of an element in the popup is roughly
-    // equal to the height of a button. Buttons are generally squares, so width is equal to heigth. (And if it's not,
-    // that's still close enough for us!)
-    
-    var smenu_default_h = button_width * smenu_el.length;
-    
-    
-    if(smenu_max_h < smenu_default_h){
-      var scale_factor = smenu_max_h / smenu_default_h;
-      
-      smenu_item_width *= scale_factor;
-      smenu_item_fontSize *= scale_factor;
-      smenu_item_height = button_width * scale_factor;
-      smenu_ar_item_width *= scale_factor;
-      
-    }
-    
-    settings_menu.style.bottom = (button_width * 1.5) + "px";
-    settings_menu.style.width = smenu_item_width + "px";
-    settings_menu.style.fontSize = smenu_item_fontSize + "px";
-    
-    smenu_ar_menu.style.right = smenu_item_width + "px";
-    smenu_ar_menu.style.width = smenu_ar_item_width + "px";
-    smenu_ar_menu.style.bottom = "0px";
-    
-    for(var i = 0; i < smenu_el.length; i++){
-      smenu_el[i].style.width = smenu_item_width + "px";
-      smenu_el[i].style.height = smenu_item_height + "px";
-      smenu_el[i].style.fontSize = smenu_item_fontSize + "px";
-    }
-    for(var i = 0; i < smenu_ar_options.length; i++){
-      smenu_ar_options[0].height = smenu_item_height + "px";
-    }
-  
-    
-    // Tukaj se določa notranji HTML knofov
-    // Inner HTML of elements is defined here
-    smenu_el[6].innerHTML = "Force aspect ratio";
-    smenu_el[6].appendChild(smenu_ar_menu);
-    
-    smenu_el[0].innerHTML = "Settings";
-    
-    smenu_ar_options[0].innerHTML = "4:3";
-    smenu_ar_options[1].innerHTML = "16:10";    
-    smenu_ar_options[2].innerHTML = "16:9";
-    smenu_ar_options[3].innerHTML = "21:9";
-                            
-    smenu_el[5].innerHTML = "Fit width";
-    smenu_el[4].innerHTML = "Fit height";
-    smenu_el[3].innerHTML = "Reset";
-    smenu_el[1].innerHTML = "Zoom in";
-    smenu_el[2].innerHTML = "Zoom out";
-    
-    // Pritisneš gumb, nekej zakon se more narest.
-    //                              — Bioware
-    //                                ( https://www.youtube.com/watch?v=hMcVZQI6ybw | [NVZD] )
-    //                        
-    // Press the button, something awesome has to happen.
-    //                              — Bioware
-    //                                ( https://www.youtube.com/watch?v=hMcVZQI6ybw | [NSFW] )
-    
-    $(smenu_el[6]).on("mouseenter", function(){showMenu("uw-armenu")});
-    $(smenu_el[6]).on("mouseleave", function(){hideMenu("uw-armenu")});
-    
-    // event.stopPropagation, ker nočemo togglati še funkcij od knofa za popup z nastavitvami
-    // event.stopPropagation, because we don't want to trigger onclick functions of the settings popup button in 
-    // the player bar
-    
-    smenu_ar_options[0].onclick = function(event) {event.stopPropagation(); changeCSS("char", ( 4/3 )); };
-    smenu_ar_options[1].onclick = function(event) {event.stopPropagation(); changeCSS("char", (16/10)); };
-    smenu_ar_options[2].onclick = function(event) {event.stopPropagation(); changeCSS("char", (16/9 )); };
-    smenu_ar_options[3].onclick = function(event) {event.stopPropagation(); changeCSS("char", (21/9 )); };
-    
-
-//     smenu_el[0].onclick = function (event) {event.stopPropagation(); showSettings() };
-    
-    smenu_el[5].onclick = function (event) {event.stopPropagation(); changeCSS("fit"  ,"fitw"  ) };
-    smenu_el[4].onclick = function (event) {event.stopPropagation(); changeCSS("fit"  ,"fith"  ) };
-    smenu_el[3].onclick = function (event) {event.stopPropagation(); changeCSS("reset","reset" ) };
-    smenu_el[1].onclick = function (event) {event.stopPropagation(); changeCSS("fit"  ,"zoom"  ) };
-    smenu_el[2].onclick = function (event) {event.stopPropagation(); changeCSS("fit"  ,"unzoom") };
+    rctl = document.getElementsByClassName("ytp-right-controls")[0];
+    rctl_width = rctl.offsetWidth;
+    lctl_width = document.getElementsByClassName("ytp-left-controls")[0].offsetWidth;
+    ctlbar_width = document.getElementsByClassName("ytp-chrome-controls")[0].offsetWidth;
     
   }
+  
+  // Ker na različne strani knofe dodajamo na različne načine, določanje lastnosti in dodajanje gumbov na
+  // vmesnik izvedemo posebej
+  // Because different pages require adding buttons to the UI in a different order, we handle defining button
+  // properties and adding buttons to the UI in different loops.
+    
+  for(var i = 0; i < 6; i++){
+    buttons[i] = document.createElement('div');
+    buttons[i].style.backgroundImage = 'url(' + resourceToUrl("/res/img/ytplayer-icons/" + button_def[i] + ".png") + ')';
+    buttons[i].style.width = (button_width * 0.75) + "px";
+    buttons[i].style.height = (button_width) + "px";
+    //       buttons[i].style.marginLeft = (button_width * 0.3) + "px";
+    buttons[i].style.paddingLeft = (button_width *0.15 ) + "px";
+    buttons[i].style.paddingRight = (button_width * 0.15) + "px";
+    buttons[i].className += " uw-button uw_element";
+  }
+    
+  // Tukaj dodamo gumbe na stran
+  // Here we add the buttons
+    
+  if(page_url.indexOf("netflix.com") != -1){
+    for( var i = 0; i < 6; i++){
+      ui_anchor.appendChild(buttons[i]);
+    }
+  }
+  else{  
+    for( var i = 5; i >= 0; i--){
+      $(rctl).prepend(buttons[i]);
+    }
+  }
+  
+  // Če na ctlbar ni prostora za vse knofe, potem skrijemo vse knofe razen tistega, ki ima popup z vsemi možnostmi
+  // 
+  // If ctlbar doesn't have the space for all the buttons, we hide all except the one that contains the popup
+  // with all the options
+  
+  if(check_width && (rctl_width + lctl_width) * 1.1 > ctlbar_width){
+    for( var i = 4; i >= 0; i--){
+      buttons[i].classList.add("uw_hide");
+    }
+  }
+  
+  buttons[0].onclick = function() { changeCSS("fit",   "fitw")   };
+  buttons[1].onclick = function() { changeCSS("fit",   "fith")   };
+  buttons[2].onclick = function() { changeCSS("reset", "reset")  };
+  buttons[3].onclick = function() { changeCSS("fit",   "zoom")   };
+  buttons[4].onclick = function() { changeCSS("fit",   "unzoom") };
+  
+  // Knof za nastavitve ima še vgnezden meni, ki ga dodamo tu (privzeto je ta meni skrit)
+  // Settings button contains a menu that's nested in the element. By default, that menu is
+  // hidden.
+  buttons[5].onclick = function() { toggleMenu("uw-smenu") };
+  buttons[5].id = "uw-settings-button";
+  
+  var settings_menu = document.createElement("div");
+  var smenu_ar_menu = document.createElement("div");
+
+  var smenu_el = [];
+  for(var i = 0; i < 7; i++){
+    smenu_el[i] = document.createElement("div");
+  }
+  
+  var smenu_ar_options = [];
+  
+  buttons[5].appendChild(settings_menu);
+
+  //Če rabimo skriti gumb za nastavitve, potem mora biti i=1
+  //If we need to hide settings button, then we should make i=1
+  
+  //FIXME: knof za nastavitve ne radi (nastavitve se ne odprejo)
+  //FIXME: 'settings' button on the player doesn't work
+  
+  for(var i = 1; i < smenu_el.length; i++){
+    settings_menu.appendChild(smenu_el[i]);
+    smenu_el[i].className += "uw-setmenu-item";
+  }
+  
+  
+  for(var i = 0; i < 4; i++){
+    smenu_ar_options[i] = document.createElement("div");
+    smenu_ar_options[i].className = "uw-setmenu-item uw_element";
+    smenu_ar_menu.appendChild(smenu_ar_options[i]);
+  }
+  
+  settings_menu.id = "uw-smenu";
+  settings_menu.className = "uw-setmenu uw_element";
+  
+  
+  smenu_el[0].id = "uw-smenu_settings";
+  smenu_el[6].id = "uw-smenu_ar";
+  
+  
+  smenu_ar_menu.id = "uw-armenu";
+  smenu_ar_menu.className = "uw-setmenu uw_element";
+  
+  // Stvari, ki se spreminjajo, se določijo tukaj
+  // 
+  // Things that can change are defined here.
+  
+  var smenu_item_width = (button_width * 7.5);
+  var smenu_item_fontSize = (button_width * 0.5);
+  var smenu_ar_item_width = (smenu_item_width / 3);
+  var smenu_item_height = button_width;
+  
+  // Popup meni je lahko visok največ 75% višine predvajalnika
+  // Popup menu can be at most 75% of the video player tall
+  var smenu_max_h = player.clientHeight * 0.75;
+  
+  // Če je popup večji, kot 80% predvajalnika, potem ga pomanjšamo. Višina elementa na popupu je približno enaka
+  // višini knofa. Gumbi so načeloma kvadratni, zato je višina enaka širini.
+  // If the popup menu is taller than 80% of the player, we resize it. height of an element in the popup is roughly
+  // equal to the height of a button. Buttons are generally squares, so width is equal to heigth. (And if it's not,
+  // that's still close enough for us!)
+  
+  var smenu_default_h = button_width * smenu_el.length;
+  
+  
+  if(smenu_max_h < smenu_default_h){
+    var scale_factor = smenu_max_h / smenu_default_h;
+    
+    smenu_item_width *= scale_factor;
+    smenu_item_fontSize *= scale_factor;
+    smenu_item_height = button_width * scale_factor;
+    smenu_ar_item_width *= scale_factor;
+    
+  }
+  
+  settings_menu.style.bottom = (button_width * 1.5) + "px";
+  settings_menu.style.width = smenu_item_width + "px";
+  settings_menu.style.fontSize = smenu_item_fontSize + "px";
+  
+  smenu_ar_menu.style.right = smenu_item_width + "px";
+  smenu_ar_menu.style.width = smenu_ar_item_width + "px";
+  smenu_ar_menu.style.bottom = "0px";
+  
+  for(var i = 0; i < smenu_el.length; i++){
+    smenu_el[i].style.width = smenu_item_width + "px";
+    smenu_el[i].style.height = smenu_item_height + "px";
+    smenu_el[i].style.fontSize = smenu_item_fontSize + "px";
+  }
+  for(var i = 0; i < smenu_ar_options.length; i++){
+    smenu_ar_options[0].height = smenu_item_height + "px";
+  }
+
+  
+  // Tukaj se določa notranji HTML knofov
+  // Inner HTML of elements is defined here
+  smenu_el[6].innerHTML = "Force aspect ratio";
+  smenu_el[6].appendChild(smenu_ar_menu);
+  
+  smenu_el[0].innerHTML = "Settings";
+  
+  smenu_ar_options[0].innerHTML = "4:3";
+  smenu_ar_options[1].innerHTML = "16:10";    
+  smenu_ar_options[2].innerHTML = "16:9";
+  smenu_ar_options[3].innerHTML = "21:9";
+                          
+  smenu_el[5].innerHTML = "Fit width";
+  smenu_el[4].innerHTML = "Fit height";
+  smenu_el[3].innerHTML = "Reset";
+  smenu_el[1].innerHTML = "Zoom in";
+  smenu_el[2].innerHTML = "Zoom out";
+  
+  // Pritisneš gumb, nekej zakon se more narest.
+  //                              — Bioware
+  //                                ( https://www.youtube.com/watch?v=hMcVZQI6ybw | [NVZD] )
+  //                        
+  // Press the button, something awesome has to happen.
+  //                              — Bioware
+  //                                ( https://www.youtube.com/watch?v=hMcVZQI6ybw | [NSFW] )
+  
+  $(smenu_el[6]).on("mouseenter", function(){showMenu("uw-armenu")});
+  $(smenu_el[6]).on("mouseleave", function(){hideMenu("uw-armenu")});
+  
+  // event.stopPropagation, ker nočemo togglati še funkcij od knofa za popup z nastavitvami
+  // event.stopPropagation, because we don't want to trigger onclick functions of the settings popup button in 
+  // the player bar
+  
+  smenu_ar_options[0].onclick = function(event) {event.stopPropagation(); changeCSS("char", ( 4/3 )); };
+  smenu_ar_options[1].onclick = function(event) {event.stopPropagation(); changeCSS("char", (16/10)); };
+  smenu_ar_options[2].onclick = function(event) {event.stopPropagation(); changeCSS("char", (16/9 )); };
+  smenu_ar_options[3].onclick = function(event) {event.stopPropagation(); changeCSS("char", (21/9 )); };
+  
+
+//     smenu_el[0].onclick = function (event) {event.stopPropagation(); showSettings() };
+  
+  smenu_el[5].onclick = function (event) {event.stopPropagation(); changeCSS("fit"  ,"fitw"  ) };
+  smenu_el[4].onclick = function (event) {event.stopPropagation(); changeCSS("fit"  ,"fith"  ) };
+  smenu_el[3].onclick = function (event) {event.stopPropagation(); changeCSS("reset","reset" ) };
+  smenu_el[1].onclick = function (event) {event.stopPropagation(); changeCSS("fit"  ,"zoom"  ) };
+  smenu_el[2].onclick = function (event) {event.stopPropagation(); changeCSS("fit"  ,"unzoom") };
+  
+
 
   
   
@@ -565,7 +674,7 @@ function showSettings(){
 function onFullScreenChange(){
   // Popravimo velikost gumbov
   // Let's fix the button size:
-  var button_width = document.getElementsByClassName("ytp-button ytp-settings-button")[0].scrollWidth;
+  var button_width = document.getElementsByClassName(sample_button_class)[sample_button_index].scrollWidth;
   for( var i = 5; i >= 0; i--){
     buttons[i].style.width = (button_width * 0.75) + "px";
     buttons[i].style.paddingLeft = (button_width *0.15 ) + "px";
@@ -576,7 +685,7 @@ function onFullScreenChange(){
   
   //Sedaj poglejmo še, če lahko v nadzorno vrstico spravimo vse gumbe
   //Let's see if we can get all the buttons in the control bar
-  var rctl = document.getElementsByClassName("ytp-right-controls")[0];
+//   var rctl = document.getElementsByClassName("ytp-right-controls")[0];
   
 }
 
@@ -597,16 +706,10 @@ function changeCSS(type, what_do){
   hideMenu("uw-armenu");
   hideMenu("uw-smenu");
   
-  var e_video = document.getElementsByClassName("video-stream")[0];
-  var video = { "width": e_video.scrollWidth, "height": e_video.scrollHeight }
-  var e_player;
   
-  if(inIframe())
-    e_player = document.getElementById("player")
-  else
-    e_player = document.getElementById("movie_player");
+  var video = { "width": $("video")[0].scrollWidth, "height": $("video")[0].scrollHeight };
   
-  var player = { "width": e_player.clientWidth, "height": e_player.clientHeight }
+  var nplayer = { "width": player.clientWidth, "height": player.clientHeight }
   
   // Youtube predvajalnik privzeto resetira CSS ob prehodu v/iz fullscreen. Tukaj shranimo zadnje dejanje,
   // da ga lahko onFullscreenOff/onFullscreenOn uveljavita.
@@ -622,8 +725,10 @@ function changeCSS(type, what_do){
   // -----------------------------------------------------------------------------------------
   
   if (type == "char"){
+    if(debugmsg)
+      console.log("uw::changeCSS | trying to change aspect ratio.");
     // char = CHange Aspect Ratio
-    char(what_do, video, player);
+    char(what_do, video, nplayer);
     return;
   }
   
@@ -631,7 +736,7 @@ function changeCSS(type, what_do){
     if(debugmsg)
       console.log("uw::changeCSS | issuing reset.");
     
-    resetCSS(video, player); 
+    resetCSS(video, nplayer); 
     return;
   }
   
@@ -644,9 +749,11 @@ function changeCSS(type, what_do){
   if(inFullScreen || (
     (document.activeElement.getAttribute("role") != "textbox") &&
     (document.activeElement.getAttribute("type") != "text")
-    ))
-    changeCSS_nofs(what_do, video, player);
-  
+    )){
+    if(debugmsg)
+      console.log("uw::changeCSS | trying to fit width or height");
+    changeCSS_nofs(what_do, video, nplayer);
+  }
   
   
 }
@@ -824,13 +931,23 @@ function resetCSS(video, player){
 }
 
 function changeCSS_nofs(what_do, video, player){
+  if(debugmsg){
+    console.log("uw::changeCSS_nofs | arguments: what_do:",what_do,"; video:", video,"; player:", player);
+  }
   
   var w;
   var h;
   var top;
   var left;
   
-  var ar = video.width/video.height;
+  var evideo = $("video")[0];
+  var video = {width: evideo.videoWidth, height: evideo.videoHeight};
+  
+  var ar = video.width / video.height;
+  
+  if(debugmsg){
+    console.log("uw::changeCSS_nofs | video dimensions:", video.width, "x", video.height, "; ar:",ar);
+  }
   
   if(what_do == "fitw" || what_do == "fit-width"){
     // Ker bi bilo lepo, da atribut 'top' spremenimo hkrati z width in height, moramo najprej naračunati,
@@ -943,7 +1060,7 @@ function applyCSS(dimensions){
   $("video").css({"width": dimensions.w,"height": dimensions.h,"top": dimensions.top, "left": dimensions.left});
   
   if(debugmsg)
-    console.log("uw::applycss | css applied");
+    console.log("uw::applycss | css applied. Dimensions/pos: w:",dimensions.w,"; h:",dimensions.h,"; top:",dimensions.top,"; left:",dimensions.left);
 }
 
 function inIframe(){
