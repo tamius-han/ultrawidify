@@ -18,15 +18,11 @@ function notifyChange(){
   if(url_changed)   //we've already set the proverbial fuse, no need to trigger the function multiple times
     return;
   
-  url_changed = true;  // We mark that the page was changed. We wait for a while before triggering changes.
+//   url_changed = true;  // We mark that the page was changed. We wait for a while before triggering changes.
   
-  setTimeout(function() { 
-    console.log("uw-bg::sending a message");
-    browser.tabs.query({active: true, currentWindow: true}, function(tabs){
-      browser.tabs.sendMessage(tabs[0].id, {message: "page-change"});
-    });
-    setTimeout(function(){url_changed = false;}, 100);
-  }, 3000);
+  browser.tabs.query({active: true, currentWindow: true}, function(tabs){
+    browser.tabs.sendMessage(tabs[0].id, {message: "page-change"});
+  });
 }
 
 
