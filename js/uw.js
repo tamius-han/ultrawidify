@@ -13,12 +13,12 @@ var cssmod = "";
 var zoomStep = 0.05;
 
 var whatdo_persistence = true;
-var last_whatdo = "reset";
+var last_whatdo = {type: "reset", what_do:"reset"};
 var page_url = window.location.toString();
 
 
 var ctlbar_classnames = ["ytp-chrome-controls"];
-var serviceArray = [".video-stream" ]; //Youtube 
+var serviceArray = [".video-stream"]; //Youtube 
 
 var buttons = [];
 
@@ -229,10 +229,14 @@ browser.runtime.onMessage.addListener(function (message, sender, stuff ) {
       
       init();
       addCtlButtons(0);
+      console.log(last_whatdo);
+      
     }
     
     // Velikost gumbov posodobimo v vsakem primeru
     // We update the button size in any case
+//     console.log(
+    changeCSS(last_whatdo.type, last_whatdo.what_do);
     updateCtlButtonSize();
   }
 });
@@ -400,20 +404,24 @@ function addCtlButtons(recursion_depth){
     // 
     // Because the player isn't always there, and when the player isn't there the buttons aren't, either.
     // In that case, the above statement craps out, throws an exception and trashes the extension.
-    if(debugmsg)
-      console.log("uw::addCtlButtons | seems there was a fuckup and no buttons were found on this page. No player (and therefore no buttons) found.");
     
-    if(!recursion_depth)
+    if(recursion_depth === undefined)
       recursion_depth = 0;
     
-    // If buttons weren't found, we relaunch init() just
+    if(debugmsg)
+      console.log("uw::addCtlButtons | seems there was a fuckup and no buttons were found on this page. No player (and therefore no buttons) found. Recursion depth:",recursion_depth);
+    
+    // If buttons weren't found, we relaunch init() just in case
     init();
-    return recursion_depth < playercheck_recursion_depth_limit ? check4player(++recursion_depth) : false;
+    return recursion_depth < playercheck_recursion_depth_limit ? addCtlButtons(++recursion_depth) : false;
     
     return false;
   }
-  
-  var button_def = [ "fitw", "fith", "reset", "zoom", "uzoom", "settings" ];
+  var button_def = [];
+  if(page_url.indexOf("netflix.com") != -1)
+    button_def = [ "fitw", "fith", "reset", "zoom", "uzoom" ];  // No settings button on netflix until further notice
+  else
+    button_def = [ "fitw", "fith", "reset", "zoom", "uzoom", "settings" ];
   
   if(debugmsg)
     console.log("uw::addCtlButtons | trying to add buttons");
@@ -481,8 +489,10 @@ function addCtlButtons(recursion_depth){
   // vmesnik izvedemo posebej
   // Because different pages require adding buttons to the UI in a different order, we handle defining button
   // properties and adding buttons to the UI in different loops.
-    
-  for(var i = 0; i < 6; i++){
+  
+  var btns = button_def.length;
+  
+  for(var i = 0; i < btns; i++){
     buttons[i] = document.createElement('div');
     buttons[i].style.backgroundImage = 'url(' + resourceToUrl("/res/img/ytplayer-icons/" + button_def[i] + ".png") + ')';
     buttons[i].style.width = (button_width * 0.75) + "px";
@@ -497,12 +507,12 @@ function addCtlButtons(recursion_depth){
   // Here we add the buttons
     
   if(page_url.indexOf("netflix.com") != -1){
-    for( var i = 0; i < 6; i++){
+    for( var i = 0; i < btns; i++){
       ui_anchor.appendChild(buttons[i]);
     }
   }
   else{  
-    for( var i = 5; i >= 0; i--){
+    for( var i = (btns - 1); i >= 0; i--){
       $(rctl).prepend(buttons[i]);
     }
   }
@@ -512,7 +522,7 @@ function addCtlButtons(recursion_depth){
   // If ctlbar doesn't have the space for all the buttons, we hide all except the one that contains the popup
   // with all the options
   
-  if(check_width && (rctl_width + lctl_width) * 1.1 > ctlbar_width){
+  if(check_width && (rctl_width + lctl_width) * 1.1 > ctlbar_width){  //TODO: don't hardcode that 4
     for( var i = 4; i >= 0; i--){
       buttons[i].classList.add("uw_hide");
     }
@@ -527,9 +537,10 @@ function addCtlButtons(recursion_depth){
   // Knof za nastavitve ima še vgnezden meni, ki ga dodamo tu (privzeto je ta meni skrit)
   // Settings button contains a menu that's nested in the element. By default, that menu is
   // hidden.
-  buttons[5].onclick = function() { toggleMenu("uw-smenu") };
-  buttons[5].id = "uw-settings-button";
-  
+  if(btns.length > 5){
+    buttons[5].onclick = function() { toggleMenu("uw-smenu") };
+    buttons[5].id = "uw-settings-button";
+  }
   var settings_menu = document.createElement("div");
   var smenu_ar_menu = document.createElement("div");
 
@@ -540,7 +551,8 @@ function addCtlButtons(recursion_depth){
   
   var smenu_ar_options = [];
   
-  buttons[5].appendChild(settings_menu);
+  if(buttons[5])
+    buttons[5].appendChild(settings_menu);
 
   //Če rabimo skriti gumb za nastavitve, potem mora biti i=1
   //If we need to hide settings button, then we should make i=1
@@ -761,20 +773,26 @@ function onFullscreenOff(){
 }
 
 function changeCSS(type, what_do){
+  console.log("uw::changeCSS | starting function");
   hideMenu("uw-armenu");
   hideMenu("uw-smenu");
+  
+  
   
   
   var video = { "width": $("video")[0].scrollWidth, "height": $("video")[0].scrollHeight };
   
   var nplayer = { "width": player.clientWidth, "height": player.clientHeight }
   
+  if(debugmsg)
+    console.log("uw::changeCSS | video dimensions:",video.width,"x",video.height,"; player:",nplayer.width,"x",nplayer.height);
+  
   // Youtube predvajalnik privzeto resetira CSS ob prehodu v/iz fullscreen. Tukaj shranimo zadnje dejanje,
   // da ga lahko onFullscreenOff/onFullscreenOn uveljavita.
   // 
   // Youtube player resets CSS on fullscreen state change. Here we save the last action taken, so 
   // onFullscreenOff/onFullscreenOn are able to preserve it (if we want).
-  last_whatdo = what_do;
+  last_whatdo = {type:type, what_do:what_do};
   
   // -----------------------------------------------------------------------------------------
   //  Handlanje dejanj se zgodi pod to črto
@@ -783,14 +801,17 @@ function changeCSS(type, what_do){
   // -----------------------------------------------------------------------------------------
   
   if (type == "char"){
+    
     if(debugmsg)
       console.log("uw::changeCSS | trying to change aspect ratio.");
+    
     // char = CHange Aspect Ratio
     char(what_do, video, nplayer);
     return;
   }
   
   if (what_do == "reset"){
+    
     if(debugmsg)
       console.log("uw::changeCSS | issuing reset.");
     
@@ -810,6 +831,7 @@ function changeCSS(type, what_do){
     )){
     if(debugmsg)
       console.log("uw::changeCSS | trying to fit width or height");
+    
     changeCSS_nofs(what_do, video, nplayer);
   }
   
@@ -1025,6 +1047,9 @@ function changeCSS_nofs(what_do, video, player){
     w = player.width;
     h = player.width / video.width * video.height;
     
+    if(debugmsg)
+      console.log("uw::changeCSS_nofs | w:",w,"; h:",h);
+    
     top = (player.height - h) / 2;
     left = 0;            // Ker zavzamemo vso širino | cos we take up all the width
   }
@@ -1147,5 +1172,6 @@ function toggleMenu(id){
 function hideMenu(id){
   if(debugmsg)
     console.log("uw::hideMenu | hiding menu with id " + id);
-  document.getElementById(id).classList.remove("show");
+  if(document.getElementById(id)) //Safety check in case there's no element with such id
+    document.getElementById(id).classList.remove("show");
 }
