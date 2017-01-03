@@ -34,7 +34,7 @@ var button_size_base = "x";     // Determines if size of extension buttons is de
 
 var video_wrap;
 
-function init(){
+function init(force_reload){
   
   if(debugmsg)
     console.log("uw::init | starting init");
@@ -45,7 +45,6 @@ function init(){
       console.log("uw::init | we're on youtube. Page url:", page_url);
     
     control_bar = "ytp-chrome-controls";
-//     ui_anchor = 
     sample_button_class = "ytp-button ytp-settings-button";
     
     if(inIframe())
@@ -67,9 +66,13 @@ function init(){
     if(!tmp)
       return false;
     
+    
+    if(force_reload)
+      ui_anchor.parentNode().remove(ui_anchor);
+    
     ui_anchor = document.getElementsByClassName("uw-button-row")[0];
     
-    console.log(ui_anchor);
+    
     if(!ui_anchor){
       ui_anchor = document.createElement("div");
       ui_anchor.className = "uw-button-row";
@@ -217,10 +220,20 @@ if(debugmsg)
 var num_of_msg = 0;
 browser.runtime.onMessage.addListener(function (message, sender, stuff ) {
   if(debugmsg)
-    console.log("uw::onMessage | message number: ", num_of_msg++  , "; message:", message.message, "player-status elements:", document.getElementsByClassName("player-status").length, document.getElementsByClassName("player-status"));
+    console.log("uw::onMessage | message number: ", num_of_msg++  , "; message:", message.message, "player-status elements:", document.getElementsByClassName("player-status").length, document.getElementsByClassName("player-status"), "uw_elements:", document.getElementsByClassName("uw_element").length, document.getElementsByClassName("uw_element") );
   
   if(message.message == "page-change"){
-    addCtlButtons(0);
+    if(document.getElementsByClassName("uw_element").length === 0){
+      if(debugmsg)
+        console.log("uw::onMessage | page was updated but control buttons aren't there. Trying to readd.")
+      
+      init();
+      addCtlButtons(0);
+    }
+    
+    // Velikost gumbov posodobimo v vsakem primeru
+    // We update the button size in any case
+    updateCtlButtonSize();
   }
 });
 
@@ -369,6 +382,8 @@ function check4player(recursion_depth){
   
 function addCtlButtons(recursion_depth){
   
+  if(debugmsg)
+    console.log("uw::addCtlButtons | function started");
   
   // Gumb za nastavitve je bolj kot ne vselej prisoten, zato širino tega gumba uporabimo kot širino naših gumbov
   // Settings button is more or less always there, so we use its width as width of our buttons
@@ -662,6 +677,37 @@ function addCtlButtons(recursion_depth){
   
   return true;
 }
+
+function updateCtlButtonSize(){
+  // Gumb za nastavitve je bolj kot ne vselej prisoten, zato širino tega gumba uporabimo kot širino naših gumbov
+  // Settings button is more or less always there, so we use its width as width of our buttons
+  try{
+    // Na različnih straneh širino gumba poberemo na različne načine.
+    if(button_size_base == "y")
+      var button_width = document.getElementsByClassName(sample_button_class)[sample_button_index].scrollHeight;
+    else
+      var button_width = document.getElementsByClassName(sample_button_class)[sample_button_index].scrollWidth;
+  }
+  catch(e){
+    // Zato, ker predvajalnik ni vselej prisoten. Če predvajalnik ni prisoten,
+    // potem tudi knofov ni. Kar pomeni problem.
+    // 
+    // Because the player isn't always there, and when the player isn't there the buttons aren't, either.
+    // In that case, the above statement craps out, throws an exception and trashes the extension.
+    if(debugmsg)
+      console.log("uw::updateCtlButtonSize | seems there was a fuckup and no buttons were found on this page. No player (and therefore no buttons) found.");
+    return;
+  }
+  var buttons = document.getElementsByClassName("uw-button");
+  
+  for(var i = 0; i < buttons.length; i++){
+    buttons[i].style.width = (button_width * 0.75) + "px";
+    buttons[i].style.height = (button_width) + "px";
+    buttons[i].style.paddingLeft = (button_width *0.15 ) + "px";
+    buttons[i].style.paddingRight = (button_width * 0.15) + "px";
+  }
+}
+
 //END UI
 //END EXTENSION SETUP
 
