@@ -1,4 +1,5 @@
 var debugmsg = true;
+var debugmsg_periodic = false;
 if(debugmsg){
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
   console.log("\nLoading ultrawidify (uw)\nIf you can see this, extension at least tried to load\n\nRandom number: ",Math.floor(Math.random() * 20) + 1,"\n");
@@ -33,6 +34,14 @@ var sample_button_index = 0;    // index of a sample button
 var button_size_base = "x";     // Determines if size of extension buttons is defined by width or height of sample button
 
 var video_wrap;
+
+// Here we store the window size, so we know when to trigger css change.
+var winsize = {w: window.innerWidth, h: window.innerHeight};
+
+// provider-specific variables
+
+var netflix_cltbar_visibility = -1;  // -1 for invisible, anything non-negative for visible
+var netflix_periodic_timer;
 
 function init(force_reload){
   
@@ -140,6 +149,7 @@ if(page_url.indexOf("netflix.com") != -1){
 
 //END ADDING CSS
 
+
 //BEGIN keybind-related stuff
 // Yeah hi /r/badcode.
 // Anyway, because nazi localstorage flat out refuses to store arrays:
@@ -238,8 +248,52 @@ browser.runtime.onMessage.addListener(function (message, sender, stuff ) {
 //     console.log(
     changeCSS(last_whatdo.type, last_whatdo.what_do);
     updateCtlButtonSize();
+    
+    if(debugmsg)
+      console.log("uw::onMessage | message number:",num_of_msg," »» everything is done. Buttons: ", document.getElementsByClassName("uw-button"));
   }
 });
+
+//Because onUpdated event isn't reliable enough for what we're doing on netflix.
+function periodic() {
+  if(debugmsg_periodic)
+    console.log("uw::periodic started!");
+  
+  if(document.getElementsByClassName("uw_element").length === 0){
+    if(debugmsg)
+      console.log("uw::periodic | no buttons detected. Readding.");
+    
+    init();
+    addCtlButtons(0);
+  }
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  if(winsize.w != w && winsize.h != h){
+    console.log("uw::periodic | detected change in window size. Triggering css change");
+    winsize.w = w;
+    winsize.h = h;
+    changeCSS(last_whatdo.type, last_whatdo.what_do);
+    updateCtlButtonSize();
+  }
+  var controls = document.getElementsByClassName("player-controls-wrapper")[0];
+  if(controls){
+    if(debugmsg_periodic)
+      console.log("uw::periodic | we found controls!");
+      
+    var ind = controls.className.indexOf("display-none");
+    if(debugmsg_periodic)
+      console.log("uw::periodic | ind:",ind,"last ind:",netflix_cltbar_visibility);
+    // controls must be visible. We must have not called updateCtlButtonSize before.   
+    if( ind != netflix_cltbar_visibility ){
+      if(debugmsg)
+        console.log("uw::periodic | toggled visibility");
+      netflix_cltbar_visibility = ind;
+      if(ind == -1)
+        updateCtlButtonSize();
+    }
+  }
+  
+}
 
 // browser.runtime.onMessage.addListener(request => {
 //   console.log("Message from the background script:");
@@ -284,6 +338,14 @@ function extSetup(){
   
   keydownSetup();  
   addCtlButtons(0);
+  
+  if(page_url.indexOf("netflix.com") != -1){
+    console.log("uw::extSetup | starting netflix-specific setup steps");
+    if(netflix_periodic_timer)
+      clearInterval(netflix_periodic_timer);
+    netflix_periodic_timer = setInterval(function(){ periodic(); }, 100);
+  }
+  
   if(debugmsg)
     console.log("======================================[ setup finished ]======================================");
 }
@@ -397,6 +459,9 @@ function addCtlButtons(recursion_depth){
       var button_width = document.getElementsByClassName(sample_button_class)[sample_button_index].scrollHeight;
     else
       var button_width = document.getElementsByClassName(sample_button_class)[sample_button_index].scrollWidth;
+    
+    if(debugmsg)
+      console.log("uw::addCtlButtons | width of the element is ", button_width , "and is based on the height of this element:", document.getElementsByClassName(sample_button_class)[sample_button_index], " <extra tags: onMessage>")
   }
   catch(e){
     // Zato, ker predvajalnik ni vselej prisoten. Če predvajalnik ni prisoten,
@@ -497,6 +562,7 @@ function addCtlButtons(recursion_depth){
     buttons[i].style.backgroundImage = 'url(' + resourceToUrl("/res/img/ytplayer-icons/" + button_def[i] + ".png") + ')';
     buttons[i].style.width = (button_width * 0.75) + "px";
     buttons[i].style.height = (button_width) + "px";
+    buttons[i].style.width = 0;
     //       buttons[i].style.marginLeft = (button_width * 0.3) + "px";
     buttons[i].style.paddingLeft = (button_width *0.15 ) + "px";
     buttons[i].style.paddingRight = (button_width * 0.15) + "px";
@@ -778,9 +844,15 @@ function changeCSS(type, what_do){
   hideMenu("uw-smenu");
   
   
+  var evideo = $("video")[0];
   
-  
-  var video = { "width": $("video")[0].scrollWidth, "height": $("video")[0].scrollHeight };
+  if(!evideo){
+    if(debugmsg)
+      console.log("uw::changeCSS | no video element found. Doing nothing.");
+    
+    return;
+  }
+  var video = { "width": evideo.scrollWidth, "height": evideo.scrollHeight };
   
   var nplayer = { "width": player.clientWidth, "height": player.clientHeight }
   
