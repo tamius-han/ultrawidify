@@ -77,7 +77,17 @@ At the moment, I'm not aware of anything that this extension advertises not work
 
 ## Changelog
 
-###v1.0.2 (waiting for approval on AMO)
+###v1.1.0  (waiting for approval on AMO)
+
+ * Introduced Netflix support.
+ 
+As Netflix relies on extension re-initializing at least the UI ***a lot***, the optimization introduced in 1.0.2 was reversed (as waiting 2 seconds for the UI to appear is just too much). 
+
+Furthermore, triggering UI re-initialisation on onUpdated events turned out to not be the proper way to go: immediately after the extension is initialized, onUpdated gets triggered even more often than your average Buzzfeed writer/reader. But change the episode on Netflix and suddenly, onUpdated gets barely triggered at all — which means that more often than not, the UI extension injects into the page wasn't visible. (the fuck, really)
+
+This is why Netflix uses another function that manually checks whether the player bar is present. Ideally that check happens every tenth of a second, but Firefox may be limiting that to one per second.
+
+###v1.0.2  (latest version on AMO)
 
 The 'extension sometimes not working' bug was fixed (by having extension try to setup every time a page got updated), but the fix had some problems. Namely, the extension would re-initiate (complete with re-adding the entire UI) itself very _very_ often. 
 
@@ -87,7 +97,7 @@ This could be a problem, so it was fixed. Extension is notified of updates only 
 
 Fixed the bug where sometimes the extension would fail to work. (example: you opened youtube's search page in a brand new tab. You then opened a video from the search results (_not_ in a new tab). Extension wouldn't work at all in videos opened in that manner).
 
-###v1.0.0 (latest version on AMO)
+###v1.0.0
 
 * Is pretty much rc1, except slightly different background image.
 
