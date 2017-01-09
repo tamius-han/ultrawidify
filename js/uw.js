@@ -401,6 +401,8 @@ function keydownSetup(){
         if(debugmsg)
           console.log("we pressed a key: ", event.key , " | mods match?", mods, "keybinding: ", KEYBINDS[i]);
         if(mods){
+          event.stopPropagation();
+          
           console.log("uw::keydown | keys match. calling changeCSS()");
           if(KEYBINDS[i].action == "char"){
             changeCSS("char", KEYBINDS[i].targetAR);
