@@ -243,10 +243,13 @@ browser.runtime.onMessage.addListener(function (message, sender, stuff ) {
       
     }
     
+    
+    // We don't do that if we zoomed or unzoomed
+    if(last_whatdo.what_do != "zoom" && last_whatdo.what_do != "unzoom")
+      changeCSS(last_whatdo.type, last_whatdo.what_do);
+    
     // Velikost gumbov posodobimo v vsakem primeru
     // We update the button size in any case
-//     console.log(
-    changeCSS(last_whatdo.type, last_whatdo.what_do);
     updateCtlButtonSize();
     
     if(debugmsg)
@@ -272,7 +275,12 @@ function periodic() {
     console.log("uw::periodic | detected change in window size. Triggering css change");
     winsize.w = w;
     winsize.h = h;
-    changeCSS(last_whatdo.type, last_whatdo.what_do);
+    
+    // We don't do that if we zoomed or unzoomed
+    if(last_whatdo.what_do != "zoom" && last_whatdo.what_do != "unzoom"){
+      changeCSS(last_whatdo.type, last_whatdo.what_do);
+    }
+      
     updateCtlButtonSize();
   }
   var controls = document.getElementsByClassName("player-controls-wrapper")[0];
@@ -1140,8 +1148,8 @@ function changeCSS_nofs(what_do, video, player){
     // Video povečujemo na tak način, da sta zoom in unzoom povečata oz. zmanjšata video za enak korak
     // We do this so zoom and unzoom steps change video sizes for the same amount
     
-    h = video.scrollw + (player.height * zoomStep);
-    w = video.scrollh + (player.height * zoomStep * ar);
+    h = video.scrollh + (player.height * zoomStep);
+    w = video.scrollw + (player.height * zoomStep * ar);
     /* Zakaj računamo širino na tak način?
     // 
     // Predstavljajte si, da imamo 2100:900 video v 1600:900 škatli, zoomStep = 0.1. Če bi širino računali po formuli:
