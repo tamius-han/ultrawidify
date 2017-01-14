@@ -862,9 +862,10 @@ function changeCSS(type, what_do){
     
     return;
   }
-  var video = { "width": evideo.scrollWidth, "height": evideo.scrollHeight };
   
-  var nplayer = { "width": player.clientWidth, "height": player.clientHeight }
+  var video = { width: evideo.videoWidth, height: evideo.videoHeight };
+  
+  var nplayer = { width: player.clientWidth, height: player.clientHeight };
   
   if(debugmsg)
     console.log("uw::changeCSS | video dimensions:",video.width,"x",video.height,"; player:",nplayer.width,"x",nplayer.height);
