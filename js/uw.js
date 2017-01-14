@@ -1095,7 +1095,7 @@ function changeCSS_nofs(what_do, video, player){
   var left;
   
   var evideo = $("video")[0];
-  var video = {width: evideo.videoWidth, height: evideo.videoHeight};
+  var video = {width: evideo.videoWidth, height: evideo.videoHeight, scrollw: evideo.scrollWidth, scrollh: evideo.scrollWidth};
   
   var ar = video.width / video.height;
   
@@ -1140,8 +1140,8 @@ function changeCSS_nofs(what_do, video, player){
     // Video povečujemo na tak način, da sta zoom in unzoom povečata oz. zmanjšata video za enak korak
     // We do this so zoom and unzoom steps change video sizes for the same amount
     
-    h = video.height + (player.height * zoomStep);
-    w = video.width + (player.height * zoomStep * ar);
+    h = video.scrollw + (player.height * zoomStep);
+    w = video.scrollh + (player.height * zoomStep * ar);
     /* Zakaj računamo širino na tak način?
     // 
     // Predstavljajte si, da imamo 2100:900 video v 1600:900 škatli, zoomStep = 0.1. Če bi širino računali po formuli:
@@ -1190,8 +1190,8 @@ function changeCSS_nofs(what_do, video, player){
   if(what_do == "unzoom"){
     // Video povečujemo na tak način, da sta zoom in unzoom povečata oz. zmanjšata video za enak korak
     // We do this so zoom and unzoom steps change video sizes for the same amount
-    h = video.height - (player.height * zoomStep);
-    w = video.width - (player.height * zoomStep * ar);
+    h = video.scrollh - (player.height * zoomStep);
+    w = video.scrollw - (player.height * zoomStep * ar);
     
     top = (player.height - h)/2
     left = (player.width - w) / 2;
