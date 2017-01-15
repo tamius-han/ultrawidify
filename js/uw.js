@@ -1,9 +1,13 @@
 var debugmsg = false;
-var debugmsg_click = true;
+var debugmsg_click = false;
 var debugmsg_periodic = false;
-if(debugmsg){
+if(debugmsg || debugmsg_click){
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
   console.log("\nLoading ultrawidify (uw)\nIf you can see this, extension at least tried to load\n\nRandom number: ",Math.floor(Math.random() * 20) + 1,"\n");
+  
+  if(debugmsg_click)
+    console.log("Logging debugmsg_click only");
+  
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
 }
 const playercheck_recursion_depth_limit = 3;
@@ -76,21 +80,47 @@ function init(force_reload){
     if(!tmp)
       return false;
     
+//     tmp.id = "uw_buttons_go_after_this";
     
     if(force_reload)
-      ui_anchor.parentNode().remove(ui_anchor);
+      ui_anchor.parentNode.remove(ui_anchor);
     
     ui_anchor = document.getElementsByClassName("uw-button-row")[0];
     
+//     var container = document.getElementsByClassName("player-control-bar")[0];
+//     if(! container || ! container.childNodes)
+//       return false;
+    
+//     for(var i = 1; i < container.childNodes.length; i++){
+//       if(debugmsg || debugmsg_click){
+//         console.log("child node",i,"has next sibling",container.childNodes[i].nextSibling);
+//       }
+//       if(container.childNodes[i].className == "player-status"){
+//         console.log("a");
+//         var nnode = container.childNodes[i].parentNode.insertBefore(ui_anchor, container.childNodes[i].nextSibling);
+//         console.log("b", nnode, container.childNodes[i].nextSibling.nodeValue);
+//         break;
+//       }
+//         
+//     }
     
     if(!ui_anchor){
       ui_anchor = document.createElement("div");
       ui_anchor.className = "uw-button-row";
+      ui_anchor.id = "uw_anchor";
     }
+    
     
     if(debugmsg)
       console.log("uw::init | we're on netflix. ui anchor: ",ui_anchor, "; ui anchor parent:", tmp);
+    
     tmp.appendChild(ui_anchor);
+    
+//     document.querySelector(".player-control-bar").appendChild(ui_anchor);
+//     console.log(document.querySelector(".player-control-bar"))
+//     console.log("trying insert-after trick", $("#uw_anchor"), $("uw_buttons_go_after_this"), tmp);
+//     $("#ui_anchor").insertAfter(".player-control-bar");
+//     console.log(
     
     vid_el = document.getElementsByTagName("video")[0];
     
@@ -240,8 +270,6 @@ browser.runtime.onMessage.addListener(function (message, sender, stuff ) {
       
       init();
       addCtlButtons(0);
-      console.log(last_whatdo);
-      
     }
     
     
@@ -522,7 +550,7 @@ function addCtlButtons(recursion_depth){
   // for as long as the array contains elements. 
   // 
   // Yes, that used to be a bug.
-  if(!debugmsg){
+  if(!debugmsg && !debugmsg_click){
     // Če je debugmsg false, potem verjetno ne dodajamo nobenih novih funkcionalnosti, zaradi katerih bi bilo potrebno
     // ponovno naložiti vmesnik. Zato tega ne storimo, temveč ohranimo stare gumbe. Ker so ok.
     // 
@@ -567,6 +595,7 @@ function addCtlButtons(recursion_depth){
   // properties and adding buttons to the UI in different loops.
   
   var btns = button_def.length;
+  var settings_menu_mid = document.createElement("div");
   
   for(var i = 0; i < btns; i++){
     buttons[i] = document.createElement('div');
@@ -617,14 +646,15 @@ function addCtlButtons(recursion_depth){
   if(btns > 5){
     buttons[5].onclick = function() { 
       if(debugmsg || debugmsg_click)
-        console.log("uw::kbm | we clicked the button 5 with id ‘uw-smenu’. Button:",document.getElementById("uw-smenu"));
-      toggleMenu("uw-smenu")
+        console.log("uw::kbm <button[5] onclick> | we clicked the button 5 with id ‘uw-smenu’. Button:",document.getElementById("uw-smenu"));
+      toggleMenu("uw-smenu");
     };
     buttons[5].id = "uw-settings-button";
   }
   var settings_menu = document.createElement("div");
+  settings_menu_mid.appendChild(settings_menu);
   var smenu_ar_menu = document.createElement("div");
-
+  
   var smenu_el = [];
   for(var i = 0; i < 7; i++){
     smenu_el[i] = document.createElement("div");
@@ -633,7 +663,7 @@ function addCtlButtons(recursion_depth){
   var smenu_ar_options = [];
   
   if(buttons[5])
-    buttons[5].appendChild(settings_menu);
+    buttons[5].appendChild(settings_menu_mid);
 
   //Če rabimo skriti gumb za nastavitve, potem mora biti i=1
   //If we need to hide settings button, then we should make i=1
@@ -643,7 +673,7 @@ function addCtlButtons(recursion_depth){
   
   for(var i = 1; i < smenu_el.length; i++){
     settings_menu.appendChild(smenu_el[i]);
-    smenu_el[i].className += "uw-setmenu-item";
+    smenu_el[i].className += "uw-setmenu-item uw_element";
   }
   
   
@@ -654,7 +684,9 @@ function addCtlButtons(recursion_depth){
   }
   
   settings_menu.id = "uw-smenu";
-  settings_menu.className = "uw-setmenu uw_element";
+  settings_menu_mid.className = "uw-setmenu uw_element";
+//   settings_menu.className = "uw-setmenu uw_element";
+  settings_menu.className = "uw_element";
   
   
   smenu_el[0].id = "uw-smenu_settings";
@@ -799,6 +831,31 @@ function updateCtlButtonSize(){
     buttons[i].style.paddingLeft = (button_width *0.15 ) + "px";
     buttons[i].style.paddingRight = (button_width * 0.15) + "px";
   }
+  
+  var smenu_item_width = (button_width * 7.5);
+  var smenu_item_fontSize = (button_width * 0.5);
+//   var smenu_ar_item_width = (smenu_item_width / 3);
+  var smenu_item_height = button_width;
+  
+  if(debugmsg || debugmsg_click)
+    console.log("uw::updateCtlButtonSize | changing css of menu items");
+  
+  var settings_menu = document.getElementById("uw-smenu");
+  settings_menu.style.bottom = (button_width * 1.5) + "px";
+  settings_menu.style.width = smenu_item_width + "px";
+  settings_menu.style.fontSize = smenu_item_fontSize + "px";
+  
+//   smenu_ar_menu.style.right = smenu_item_width + "px";
+//   smenu_ar_menu.style.width = smenu_ar_item_width + "px";
+//   smenu_ar_menu.style.bottom = "0px";
+//   smenu_ar_men
+  
+  buttons = document.getElementsByClassName("uw-setmenu-item");
+  for(var i = 0; i < buttons.length; i++){
+    buttons[i].style.width = smenu_item_width + "px";
+    buttons[i].style.height = smenu_item_height + "px";
+    buttons[i].style.fontSize = smenu_item_fontSize + "px";
+  }
 }
 
 //END UI
@@ -854,7 +911,8 @@ function onFullscreenOff(){
 }
 
 function changeCSS(type, what_do){
-  console.log("uw::changeCSS | starting function");
+  if(debugmsg)
+    console.log("uw::changeCSS | starting function");
   hideMenu("uw-armenu");
   hideMenu("uw-smenu");
   
@@ -1252,7 +1310,7 @@ function showMenu(id){
   document.getElementById(id).classList.add("show");
 }
 function toggleMenu(id){
-  if(debugmsg)
+  if(debugmsg || debugmsg_click)
     console.log("uw::toggleMenu | toggling menu with id", id, "\n\n", document.getElementById(id));
   document.getElementById(id).classList.toggle("show");
 }
