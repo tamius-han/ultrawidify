@@ -522,9 +522,9 @@ function addCtlButtons(recursion_depth){
     return false;
   }
   var button_def = [];
-//   if(page_url.indexOf("netflix.com") != -1)
-//     button_def = [ "fitw", "fith", "reset", "zoom", "uzoom", "settings" ];  // No settings button on netflix until further notice
-//   else
+  if(page_url.indexOf("netflix.com") != -1)
+    button_def = [ "fitw", "fith", "reset", "zoom", "uzoom", "settings" ];  // No settings button on netflix until further notice
+  else
     button_def = [ "fitw", "fith", "reset", "zoom", "uzoom", "settings" ];
   
   if(debugmsg)
