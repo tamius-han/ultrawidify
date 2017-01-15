@@ -1,4 +1,5 @@
-var debugmsg = true;
+var debugmsg = false;
+var debugmsg_click = true;
 var debugmsg_periodic = false;
 if(debugmsg){
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
@@ -493,9 +494,9 @@ function addCtlButtons(recursion_depth){
     return false;
   }
   var button_def = [];
-  if(page_url.indexOf("netflix.com") != -1)
-    button_def = [ "fitw", "fith", "reset", "zoom", "uzoom" ];  // No settings button on netflix until further notice
-  else
+//   if(page_url.indexOf("netflix.com") != -1)
+//     button_def = [ "fitw", "fith", "reset", "zoom", "uzoom", "settings" ];  // No settings button on netflix until further notice
+//   else
     button_def = [ "fitw", "fith", "reset", "zoom", "uzoom", "settings" ];
   
   if(debugmsg)
@@ -613,8 +614,12 @@ function addCtlButtons(recursion_depth){
   // Knof za nastavitve ima še vgnezden meni, ki ga dodamo tu (privzeto je ta meni skrit)
   // Settings button contains a menu that's nested in the element. By default, that menu is
   // hidden.
-  if(btns.length > 5){
-    buttons[5].onclick = function() { toggleMenu("uw-smenu") };
+  if(btns > 5){
+    buttons[5].onclick = function() { 
+      if(debugmsg || debugmsg_click)
+        console.log("uw::kbm | we clicked the button 5 with id ‘uw-smenu’. Button:",document.getElementById("uw-smenu"));
+      toggleMenu("uw-smenu")
+    };
     buttons[5].id = "uw-settings-button";
   }
   var settings_menu = document.createElement("div");
@@ -711,21 +716,21 @@ function addCtlButtons(recursion_depth){
   
   // Tukaj se določa notranji HTML knofov
   // Inner HTML of elements is defined here
-  smenu_el[6].innerHTML = "Force aspect ratio";
+  smenu_el[6].textContent = "Force aspect ratio";
   smenu_el[6].appendChild(smenu_ar_menu);
   
-  smenu_el[0].innerHTML = "Settings";
+  smenu_el[0].textContent = "Settings";
   
-  smenu_ar_options[0].innerHTML = "4:3";
-  smenu_ar_options[1].innerHTML = "16:10";    
-  smenu_ar_options[2].innerHTML = "16:9";
-  smenu_ar_options[3].innerHTML = "21:9";
+  smenu_ar_options[0].textContent = "4:3";
+  smenu_ar_options[1].textContent = "16:10";    
+  smenu_ar_options[2].textContent = "16:9";
+  smenu_ar_options[3].textContent = "21:9";
                           
-  smenu_el[5].innerHTML = "Fit width";
-  smenu_el[4].innerHTML = "Fit height";
-  smenu_el[3].innerHTML = "Reset";
-  smenu_el[1].innerHTML = "Zoom in";
-  smenu_el[2].innerHTML = "Zoom out";
+  smenu_el[5].textContent = "Fit width";
+  smenu_el[4].textContent = "Fit height";
+  smenu_el[3].textContent = "Reset";
+  smenu_el[1].textContent = "Zoom in";
+  smenu_el[2].textContent = "Zoom out";
   
   // Pritisneš gumb, nekej zakon se more narest.
   //                              — Bioware
@@ -1243,12 +1248,12 @@ function resourceToUrl(img){
 
 function showMenu(id){
   if(debugmsg)
-    console.log("uw::showMenu | showing menu with id " + id);
+    console.log("uw::showMenu | showing menu with id ", id, "\n\n", document.getElementById(id));
   document.getElementById(id).classList.add("show");
 }
 function toggleMenu(id){
   if(debugmsg)
-    console.log("uw::toggleMenu | toggling menu with id " + id);
+    console.log("uw::toggleMenu | toggling menu with id", id, "\n\n", document.getElementById(id));
   document.getElementById(id).classList.toggle("show");
 }
 
