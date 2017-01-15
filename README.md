@@ -77,7 +77,14 @@ At the moment, I'm not aware of anything that this extension advertises not work
 
 ## Changelog
 
-###v1.1.0  (waiting for approval on AMO)
+###v1.1.1  (waiting for approval)
+
+* Fixed zooming issue on netflix
+* Ultrawidify shortcuts > youtube/netflix shortcuts
+* Fixed 'settings' page
+* Fixed 'settings' (wrench button) popup on youtube (it was broken by one of the previous updates)
+
+###v1.1.0  (latest version on AMO)
 
  * Introduced Netflix support.
  
@@ -87,7 +94,7 @@ Furthermore, triggering UI re-initialisation on onUpdated events turned out to n
 
 This is why Netflix uses another function that manually checks whether the player bar is present. Ideally that check happens every tenth of a second, but Firefox may be limiting that to one per second.
 
-###v1.0.2  (latest version on AMO)
+###v1.0.2  
 
 The 'extension sometimes not working' bug was fixed (by having extension try to setup every time a page got updated), but the fix had some problems. Namely, the extension would re-initiate (complete with re-adding the entire UI) itself very _very_ often. 
 
