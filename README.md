@@ -77,6 +77,10 @@ At the moment, I'm not aware of anything that this extension advertises not work
 
 ## Changelog
 
+###v1.2.0  (this repo, unstable as fuck)
+
+* After an afternoon's worth of work, I managed to get the Rube Goldberg machine (that automagically removes unnecessary black borders on ultrawide videos — on netflix only) working for a few moments before the background script crashed. Now that feature only needs a bit of a polish (and by 'a bit', I mean a metric ton of it). gg
+
 ###v1.1.1  (waiting for approval)
 
 * Fixed zooming issue on netflix

@@ -1,12 +1,16 @@
 var debugmsg = false;
 var debugmsg_click = false;
+var debugmsg_message = true;
 var debugmsg_periodic = false;
-if(debugmsg || debugmsg_click){
+if(debugmsg || debugmsg_click || debugmsg_message){
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
   console.log("\nLoading ultrawidify (uw)\nIf you can see this, extension at least tried to load\n\nRandom number: ",Math.floor(Math.random() * 20) + 1,"\n");
   
   if(debugmsg_click)
     console.log("Logging debugmsg_click only");
+  
+  if(debugmsg_message)
+    console.log("Logging debugmsg_message only");
   
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
 }
@@ -34,14 +38,19 @@ var control_bar;
 var ui_anchor;
 var player;
 var vid_el;
-var sample_button_class;        // Class of a sample button
-var sample_button_index = 0;    // index of a sample button
-var button_size_base = "x";     // Determines if size of extension buttons is defined by width or height of sample button
+var sample_button_class;     // Class of a sample button
+var sample_button_index = 0; // index of a sample button
+var button_size_base = "x";  // Determines if size of extension buttons is defined by width or height of sample button
+
+var char_strat = "contain";
 
 var video_wrap;
 
 // Here we store the window size, so we know when to trigger css change.
 var winsize = {w: window.innerWidth, h: window.innerHeight};
+
+// Video title for third party 
+var title = "";
 
 // provider-specific variables
 
@@ -260,10 +269,10 @@ if(debugmsg)
 
 var num_of_msg = 0;
 browser.runtime.onMessage.addListener(function (message, sender, stuff ) {
-  if(debugmsg)
-    console.log("uw::onMessage | message number: ", num_of_msg++  , "; message:", message.message, "player-status elements:", document.getElementsByClassName("player-status").length, document.getElementsByClassName("player-status"), "uw_elements:", document.getElementsByClassName("uw_element").length, document.getElementsByClassName("uw_element") );
+  if(debugmsg || debugmsg_message)
+    console.log("uw::onMessage | message number: ", num_of_msg++  , "; message:", message );
   
-  if(message.message == "page-change"){
+  if(message.message && message.message == "page-change"){
     if(document.getElementsByClassName("uw_element").length === 0){
       if(debugmsg)
         console.log("uw::onMessage | page was updated but control buttons aren't there. Trying to readd.")
@@ -284,8 +293,24 @@ browser.runtime.onMessage.addListener(function (message, sender, stuff ) {
     if(debugmsg)
       console.log("uw::onMessage | message number:",num_of_msg," »» everything is done. Buttons: ", document.getElementsByClassName("uw-button"));
   }
+  
+  if(message.type && message.type == "arInfo"){
+    char_imdb(message.arx, message.ary);
+  }
+  
 });
 
+// browser.runtime.onMessage.addListener(request => {
+//   console.log("Message from the background script:");
+//   console.log(request.greeting);
+//   return Promise.resolve({response: "Hi from content script"});
+// });
+
+if(debugmsg)
+  console.log("uw | Comms with background scripts: done");
+//END comms with uw-bg
+
+//BEGIN periodic functions
 //Because onUpdated event isn't reliable enough for what we're doing on netflix.
 function periodic() {
   if(debugmsg_periodic)
@@ -329,18 +354,32 @@ function periodic() {
         updateCtlButtonSize();
     }
   }
+
+  if(page_url.indexOf("netflix.com") != -1){
+    //Netflix-specific stuff
+    var qntitle = document.querySelector(".player-status-main-title");
+    var ntitle = "";
+    
+    //querySelector lahko vrne null, zato moramo preveriti, kaj smo dobili — drugače se .textContent pritožuje.
+    //querySelector can return null, in which case .textContent will complain.
+    if(qntitle)
+      ntitle = qntitle.textContent;
+    
+    if(ntitle && ntitle != title){
+      if(debugmsg || debugmsg_message)
+        console.log("uw::periodic | title changed. New title:",ntitle,"Old title:",title);
+      title = ntitle;
+      var sending = browser.runtime.sendMessage({
+        type: "gibAspectRatio",
+        title: title
+      });
+      sending.then( function(){}, function(err1, err2){console.log("uw::periodic: there was an error while sending a message", err1, err2)} );
+    }
+  }
   
 }
+//END periodic functions
 
-// browser.runtime.onMessage.addListener(request => {
-//   console.log("Message from the background script:");
-//   console.log(request.greeting);
-//   return Promise.resolve({response: "Hi from content script"});
-// });
-
-if(debugmsg)
-  console.log("uw | Comms with background scripts: done");
-//END comms with uw-bg
 
 
 $(document).ready(function() {
@@ -403,13 +442,14 @@ function keydownSetup(){
         console.log("We're writing a comment or something. Doing nothing");
       return;
     }
-    if(debugmsg){
+    if(debugmsg || debugmsg_message){
 //       console.log(KEYBINDS);
       console.log("we pressed a key: ", event.key , " | keydown: ", event.keydown);
       if(event.key == 'p'){
         console.log("uw/keydown: attempting to send message")
         var sending = browser.runtime.sendMessage({
-          test: "test message pls dont ignore"
+          type: "debug",
+          message: "Test message, please ignore"
         });
         sending.then( function(){}, function(){console.log("uw/keydown: there was an error while sending a message")} );
         console.log("uw/keydown: test message sent! (probably)");
@@ -771,10 +811,10 @@ function addCtlButtons(recursion_depth){
   // Press the button, something awesome has to happen.
   //                              — Bioware
   //                                ( https://www.youtube.com/watch?v=hMcVZQI6ybw | [NSFW] )
-  
-  $(smenu_el[6]).on("mouseenter", function(){showMenu("uw-armenu")});
-  $(smenu_el[6]).on("mouseleave", function(){hideMenu("uw-armenu")});
-  
+  if(smenu_el[6]){
+    $(smenu_el[6]).on("mouseenter", function(){showMenu("uw-armenu")});
+    $(smenu_el[6]).on("mouseleave", function(){hideMenu("uw-armenu")});
+  }
   // event.stopPropagation, ker nočemo togglati še funkcij od knofa za popup z nastavitvami
   // event.stopPropagation, because we don't want to trigger onclick functions of the settings popup button in 
   // the player bar
@@ -1021,6 +1061,41 @@ function char(new_ar, video, player){
   }
   
   set_video_ar(new_ar, video, player);
+}
+
+function char_imdb(arx, ary){
+  var ar = arx / ary;
+  
+  var nplayer = { width: player.clientWidth, height: player.clientHeight };
+  
+  var calc_width = nplayer.height * ar;
+  var calc_height = nplayer.width / ar;
+  
+  var nv = {w: "", h: ""};
+  
+  var evideo = $("video")[0];
+  var video = {width: evideo.videoWidth, height: evideo.videoHeight};
+  var vidar = video.width / video.height;
+  
+  // V tem primeru zapolnimo po višini
+  // In this case, we calculate new dimension based on player height
+  
+  // NOTE: Everything below this line (in this function) is TODO/FIXME
+//   if(calc_width > player.width){
+    nv.w = nplayer.width;
+    nv.h = nplayer.height * (ar / vidar);
+//   }
+//   else{
+//     nv.h = player.width * (vidar / a
+//   }
+  
+  nv.top = (nplayer.height - nv.h)/2;
+  nv.left = (nplayer.width - nv.w)/2;
+  
+  if(debugmsg || debugmsg_message)
+    console.log("uw::char_imdb | nv:",nv);
+  
+  applyCSS(nv);
 }
 
 /* Tukaj povemo, kakšno razmerje stranic ima video.
