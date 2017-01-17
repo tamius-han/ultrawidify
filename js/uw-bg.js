@@ -43,11 +43,17 @@ function getAspectRatio(title, sender_tab){
               console.log("uw-bg::getAspectRatio | omdbapi gave us this: ", response);
             
             var info = JSON.parse(response);
+            
+            if(!info || !info.Title)
+              return;
+            
             if(debugmsg || debugmsg_imdb){
               console.log("uw-bg::getAspectRatio | movie title: »»", info.Title, "«« | imdb ID:", info.imdbID,"\nTrying to get technical specs off IMDB");
             }
             httpGET("https://www.imdb.com/title/" + info.imdbID + "/technical",
                     function(response, sender_tab){
+                      if(!response)
+                        return;
                       var lines = response.split('\n');
                       if(debugmsg || debugmsg_imdb){
                         console.log("uw-bg::getAspectRatio | we just got something off IMDB, it's",lines.length,"long. Here's what we got:\n",response);

@@ -1,6 +1,7 @@
 var debugmsg = false;
 var debugmsg_click = false;
 var debugmsg_message = true;
+debugmsg_autoar = true;
 var debugmsg_periodic = false;
 if(debugmsg || debugmsg_click || debugmsg_message){
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
@@ -23,7 +24,7 @@ var cssmod = "";
 var zoomStep = 0.05;
 
 var whatdo_persistence = true;
-var last_whatdo = {type: "reset", what_do:"reset"};
+var last_whatdo = {type: "autoar", what_do:"reset"};
 var page_url = window.location.toString();
 
 
@@ -43,6 +44,9 @@ var sample_button_index = 0; // index of a sample button
 var button_size_base = "x";  // Determines if size of extension buttons is defined by width or height of sample button
 
 var char_strat = "contain";
+var char_got_ar = false;
+var char_arx;
+var char_ary;
 
 var video_wrap;
 
@@ -295,7 +299,12 @@ browser.runtime.onMessage.addListener(function (message, sender, stuff ) {
   }
   
   if(message.type && message.type == "arInfo"){
-    char_imdb(message.arx, message.ary);
+    char_got_ar = true;
+    char_arx = message.arx;
+    char_ary = message.ary;
+    if(debugmsg || debugmsg_message || debugmsg_autoar)
+      console.log("uw::onMessage | got aspect ratio (",char_arx,"/",char_ary,"), launching autochar");
+    autochar();
   }
   
 });
@@ -331,7 +340,7 @@ function periodic() {
     winsize.h = h;
     
     // We don't do that if we zoomed or unzoomed
-    if(last_whatdo.what_do != "zoom" && last_whatdo.what_do != "unzoom"){
+    if(last_whatdo.what_do != "zoom" && last_whatdo.what_do != "unzoom" && last_whatdo.type != "autoar"){
       changeCSS(last_whatdo.type, last_whatdo.what_do);
     }
       
@@ -364,10 +373,15 @@ function periodic() {
     //querySelector can return null, in which case .textContent will complain.
     if(qntitle)
       ntitle = qntitle.textContent;
+    else
+      char_got_ar = false;
     
-    if(ntitle && ntitle != title){
+    if(qntitle && ntitle && ntitle != title){
       if(debugmsg || debugmsg_message)
         console.log("uw::periodic | title changed. New title:",ntitle,"Old title:",title);
+      
+      char_got_ar = false;
+      
       title = ntitle;
       var sending = browser.runtime.sendMessage({
         type: "gibAspectRatio",
@@ -986,6 +1000,11 @@ function changeCSS(type, what_do){
   //  Handling actions happens below this line
   // -----------------------------------------------------------------------------------------
   
+  if (type == "autoar"){
+    autochar();
+    return;
+  }
+  
   if (type == "char"){
     
     if(debugmsg)
@@ -1063,39 +1082,20 @@ function char(new_ar, video, player){
   set_video_ar(new_ar, video, player);
 }
 
-function char_imdb(arx, ary){
-  var ar = arx / ary;
+function autochar(){
   
-  var nplayer = { width: player.clientWidth, height: player.clientHeight };
+  if(debugmsg || debugmsg_autoar)
+    console.log("uw::autochar | starting. Did we get ar?",char_got_ar,"What about arx and ary?",char_arx,char_ary);
   
-  var calc_width = nplayer.height * ar;
-  var calc_height = nplayer.width / ar;
+  if(!char_got_ar)
+    return;
   
-  var nv = {w: "", h: ""};
+  if(!char_arx || !char_ary)
+    return;
   
-  var evideo = $("video")[0];
-  var video = {width: evideo.videoWidth, height: evideo.videoHeight};
-  var vidar = video.width / video.height;
-  
-  // V tem primeru zapolnimo po višini
-  // In this case, we calculate new dimension based on player height
-  
-  // NOTE: Everything below this line (in this function) is TODO/FIXME
-//   if(calc_width > player.width){
-    nv.w = nplayer.width;
-    nv.h = nplayer.height * (ar / vidar);
-//   }
-//   else{
-//     nv.h = player.width * (vidar / a
-//   }
-  
-  nv.top = (nplayer.height - nv.h)/2;
-  nv.left = (nplayer.width - nv.w)/2;
-  
-  if(debugmsg || debugmsg_message)
-    console.log("uw::char_imdb | nv:",nv);
-  
-  applyCSS(nv);
+  var ar = char_arx / char_ary;
+  if(ar)
+    set_best_fit(ar);
 }
 
 /* Tukaj povemo, kakšno razmerje stranic ima video.
@@ -1188,6 +1188,54 @@ function set_video_ar(aspect_ratio, video, player){
     return;
   
   applyCSS(nv);
+}
+
+// Ta funkcija ugotovi, kako se kvadrat s podanim razmerjem stranic najbolj prilega ekranu
+// Predpostavimo, da so ćrne obrobe vselej zgoraj in spodaj, nikoli levo in desno.
+// 
+// This function determines how a rectangle with a given aspect ratio best fits the monitor
+// We assume letterbox is always letterbox, never pillarbox.
+function set_best_fit(ar){
+  if(debugmsg || debugmsg_autoar)
+    console.log("uw::set_best_fit | got ar:",ar);
+  
+  var player = {width: this.player.clientWidth, height: this.player.clientHeight};
+  
+  var evideo =  $("video")[0];
+  var video = {width: evideo.videoWidth, height: evideo.videoHeight};
+  var video_ar = video.width / video.height;
+  
+  // Ob predpostavki, da je argument 'ar' pravilen, naračunamo dimenzije videa glede na širino in višino predvajalnika
+  // Kot rezultat laho dobimo dve možnosti:
+  //     A: naračunana širina je širša, kot naš zaslon —> za računanje uporabimo širino (letterbox zgoraj/spodaj,
+  //        levo/desno pa ne)
+  //     B: naračunana širina je ožja, kot naš zaslon —> za računanje uporabimo višino (letterbox levo/desno,
+  //        zgoraj/spodaj pa ne)
+  
+  if(debugmsg || debugmsg_autoar)
+    console.log("uw::set_best_fit | here's all we got. ar:",ar,"player:",player,"video:",video);
+  
+  var tru_width = player.height * ar;
+  var tru_height = player.width / ar;
+  
+  var nv = {w: "", h: "", top: "", left: ""};
+  
+  if(tru_width <= player.width){
+    nv.w = player.width;
+    nv.h = player.height * (ar / video_ar);
+  }
+  else{
+    nv.w = player.width * (video_ar / ar);
+    nv.h = player.height;
+  }
+  nv.top = (player.height - nv.h)/2;
+  nv.left = (player.width - nv.w)/2;
+  
+  if(debugmsg || debugmsg_autoar)
+    console.log("uw::set_best_fit | tru width:",tru_width,"(player width:",player.width,"); new video size:",nv);
+  
+  applyCSS(nv);
+  console.log("css applied");
 }
 
 function resetCSS(video, player){
@@ -1355,11 +1403,11 @@ function changeCSS_nofs(what_do, video, player){
   applyCSS(dimensions);
 }
 
-function applyCSS(dimensions){
-  dimensions.top += "px";
-  dimensions.left += "px";
-  dimensions.w += "px";
-  dimensions.h += "px";
+function applyCSS(dimensions){  
+  dimensions.top = Math.round(dimensions.top) + "px";
+  dimensions.left = Math.round(dimensions.left) + "px";
+  dimensions.w = Math.round(dimensions.w) + "px";
+  dimensions.h = Math.round(dimensions.h) + "px";
   
   $("video").css({"width": dimensions.w,"height": dimensions.h,"top": dimensions.top, "left": dimensions.left});
   
