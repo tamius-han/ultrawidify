@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Ultrawidify-git",
-  "version": "1.2.0dev",
+  "version": "1.2.0",
   
   "icons": {
     "32":"res/icons/uw-32.png",
@@ -24,7 +24,7 @@
   },
   
   "permissions": [
-    "tabs", "storage",  "activeTab", "webrequest", "*://*.youtube.com/*", "*://youtube.com/*", "*://imdb.com/*", "*://*.imdb.com/*"
+    "tabs", "storage",  "activeTab", "*://*.youtube.com/*", "*://youtube.com/*", "*://imdb.com/*", "*://*.imdb.com/*"
   ],
   
   "web_accessible_resources": [
