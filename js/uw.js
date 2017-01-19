@@ -1,7 +1,7 @@
 var debugmsg = false;
 var debugmsg_click = false;
-var debugmsg_message = true;
-debugmsg_autoar = true;
+var debugmsg_message = false;
+debugmsg_autoar = false;
 var debugmsg_periodic = false;
 if(debugmsg || debugmsg_click || debugmsg_message){
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
@@ -243,16 +243,34 @@ var DEFAULT_KEYBINDINGS = {
   8: {
     action: "char",
     targetAR: (4/3),
+    key: "c",
+    modifiers: []
+  },
+  9: {
+    action: "autoar",
     key: "a",
     modifiers: []
   }
 };
 
 var last_location = "";
+
+var autoar_enabled = true;
+
+browser.storage.local.get("ultrawidify_autoar").then(function(opt){
+  if(!opt.ultrawidify_autoar){
+    browser.storage.local.set({ultrawidify_autoar: true});
+  }
+  else 
+    this.autoar_enabled = opt.ultrawidify_autoar;
+  if(!this.autoar_enabled)
+    var last_whatdo = {type: "reset", what_do:"reset"};
+});
+
 var KEYBINDS = {};
 var ask4keybinds = browser.storage.local.get("ultrawidify_keybinds");
 ask4keybinds.then( (res) => {
-  if(res.length == 1 && jQuery.isEmptyObject(res[0])){
+  if(/*res.length == 1 &&*/ (jQuery.isEmptyObject(res[0]) || jQuery.isEmptyObject(res[0].ultrawidify_keybinds)) ){
     if(debugmsg)
       console.log("uw::<init keybinds> | No keybindings found. Loading default keybinds as keybinds");
     
@@ -260,7 +278,18 @@ ask4keybinds.then( (res) => {
     KEYBINDS = DEFAULT_KEYBINDINGS;
   }
   else{
-    KEYBINDS = res[0].ultrawidify_keybinds;
+    if(Object.keys(res[0].ultrawidify_keybinds).length == Object.keys(DEFAULT_KEYBINDINGS).length)
+      KEYBINDS = res[0].ultrawidify_keybinds;
+    else{
+      KEYBINDS = res[0].ultrawidify_keybinds;
+      
+      // remap 4:3 keybind from 'a' to 'c', but only if the keybind wasn't changed
+      var old_keybinds = Object.keys(res[0].ultrawidify_keybinds);
+      if(KEYBINDS[old_keybinds-1].key == "a" && KEYBINDS[old_keybinds-1].modifiers == []){
+        KEYBINDS[old_keybinds-1].key == "c";
+      }
+      KEYBINDS[old_keybinds] = {action: "autoar", key: "a", modifiers: []};
+    }
   }
 //   console.log("res. ", res[0].ultrawidify_keybinds);
 });
@@ -364,7 +393,7 @@ function periodic() {
     }
   }
 
-  if(page_url.indexOf("netflix.com") != -1){
+  if(page_url.indexOf("netflix.com") != -1 && autoar_enabled){
     //Netflix-specific stuff
     var qntitle = document.querySelector(".player-status-main-title");
     var ntitle = "";
@@ -497,6 +526,10 @@ function keydownSetup(){
           console.log("uw::keydown | keys match. calling changeCSS()");
           if(KEYBINDS[i].action == "char"){
             changeCSS("char", KEYBINDS[i].targetAR);
+            return;
+          }
+          if(KEYBINDS[i].action == "autoar"){
+            manual_autoar();
             return;
           }
           changeCSS("anything goes", KEYBINDS[i].action);
@@ -962,6 +995,29 @@ function onFullscreenOn(){
 // This function triggers when we leave fullscreen mode
 function onFullscreenOff(){
 
+}
+
+function manual_autoar(){
+  if(page_url.indexOf("netflix.com") != -1){
+    var ntitle = document.querySelector(".player-status-main-title");
+    
+    //querySelector lahko vrne null, zato moramo preveriti, kaj smo dobili — drugače se .textContent pritožuje.
+    //querySelector can return null, in which case .textContent will complain.
+    if(!ntitle)
+      return;
+    
+    var title = ntitle.textContent;
+    
+    char_got_ar = false;
+    last_whatdo = {type: "autoar", what_do:"autoar"};
+    
+    var sending = browser.runtime.sendMessage({
+      type: "gibAspectRatio",
+      title: title
+    });
+    sending.then( function(){}, function(err1, err2){console.log("uw::periodic: there was an error while sending a message", err1, err2)} );
+  }
+  
 }
 
 function changeCSS(type, what_do){

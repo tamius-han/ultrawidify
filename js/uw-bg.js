@@ -1,5 +1,5 @@
 debugmsg = false;
-debugmsg_imdb = true;
+debugmsg_imdb = false;
 url_changed = false;
 if(debugmsg){
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
