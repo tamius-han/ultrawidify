@@ -72,23 +72,23 @@ At the moment, I'm not aware of anything that this extension advertises not work
 * ~~Adding an option to force specific aspect ratio~~ (now it's "good enough")
 * Port to Chrome
 * Have extension remember the last setting when switching between fullscreen and not fullscreen. Have an option to remember last selected aspect ratio.
-* Netflix support
+* ~~Netflix support~~ (done)
 
 
 ## Changelog
 
-###v1.2.0  (this repo, unstable as fuck)
+###v1.2.0  (waiting for approval)
 
-* After an afternoon's worth of work, I managed to get the Rube Goldberg machine (that automagically removes unnecessary black borders on ultrawide videos — on netflix only) working for a few moments before the background script crashed. Now that feature only needs a bit of a polish (and by 'a bit', I mean a metric ton of it). gg
+* Auto-aspect ratio detection on netflix
 
-###v1.1.1  (waiting for approval)
+###v1.1.1  (latest version on AMO)
 
 * Fixed zooming issue on netflix
 * Ultrawidify shortcuts > youtube/netflix shortcuts
 * Fixed 'settings' page
 * Fixed 'settings' (wrench button) popup on youtube (it was broken by one of the previous updates)
 
-###v1.1.0  (latest version on AMO)
+###v1.1.0
 
  * Introduced Netflix support.
  
