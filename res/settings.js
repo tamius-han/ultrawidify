@@ -1,22 +1,38 @@
 function showAbout(){
-  document.getElementById("uw_shortcuts").classList.add("hide");
-  document.getElementById("about").classList.remove("hide");
+  clearPage();
   
-  document.getElementById("tab_shortcuts").classList.remove("tab-selected");
+  document.getElementById("about").classList.remove("hide");
   document.getElementById("tab_about").classList.add("tab-selected");
 }
 function showShortcuts(){
-  document.getElementById("uw_shortcuts").classList.remove("hide");
-  document.getElementById("about").classList.add("hide");
+  clearPage();
   
+  document.getElementById("uw_shortcuts").classList.remove("hide");
   document.getElementById("tab_shortcuts").classList.add("tab-selected");
+}
+function showGeneralSettings(){
+  clearPage();
+  
+  document.getElementById("general_settings").classList.remove("hide");
+  document.getElementById("tab_general_settings").classList.add("tab-selected");
+}
+
+function clearPage(){
+  // Hide you sections
+  document.getElementById("uw_shortcuts").classList.add("hide");
+  document.getElementById("about").classList.add("hide");
+  document.getElementById("general_settings").classList.add("hide");
+  
+  // Hide you tabs
+  document.getElementById("tab_shortcuts").classList.remove("tab-selected");
   document.getElementById("tab_about").classList.remove("tab-selected");
+  document.getElementById("tab_general_settings").classList.remove("tab-selected");
   
 }
 
 function saveopts(){
   
-  var actions = ["fitw", "fith", "reset", "zoom", "unzoom", "ar219", "ar169", "ar1610", "ar43"];
+  var actions = ["fitw", "fith", "reset", "zoom", "unzoom", "ar219", "ar169", "ar1610", "ar43", "autoar"];
   var new_keybinds = {};
 
   // Preberemo naš obrazec in iz njega naredimo nov objekt z bližnjicami.
@@ -98,6 +114,21 @@ function saveopts(){
   
 }
 
+function saveAutoar(){
+  console.log("saving autoar. is checked?", document.querySelector("#enable_autoar").checked)
+  setopt({ultrawidify_autoar: document.querySelector("#enable_autoar").checked});
+}
+
+// setopt in getopt. Shranita oz. dobita stvari iz skladišča
+// setopt, getopt. They set/get stuff from the storage
+
+function setopt(item){
+  browser.storage.local.set(item);
+}
+function getopt(prop, callback){
+  browser.storage.local.get(prop).then(callback);
+}
+
 function compareModifiers(a,b){
   //NOTE: to je precej slab in neprenoslijv način primerjanja dveh tabel, ampak za naš primer deluje dovolj
   //      dobro, saj 'ctrl' vedno pride pred 'alt' in 'alt' vedno pride pred 'shift' (če se sploh pojavijo).
@@ -121,7 +152,7 @@ function printerr(err){
 function gotopts(opts){
   var KEYBINDS = Object.keys(opts.ultrawidify_keybinds).map(function (key) { return opts.ultrawidify_keybinds[key];});
 
-  var actions = ["fitw", "fith", "reset", "zoom", "unzoom", "ar219", "ar169", "ar1610", "ar43"];
+  var actions = ["fitw", "fith", "reset", "zoom", "unzoom", "ar219", "ar169", "ar1610", "ar43", "autoar"];
   for(var i = 0; i < actions.length; i++){
     document.querySelector("#" + actions[i] + "_letter").classList.remove("dup_keybinds");
     document.querySelector("#" + actions[i] + "_letter").value = KEYBINDS[i].key;
@@ -141,10 +172,17 @@ function loadopts(){
   ask4keybinds.then(gotopts, printerr);
 }
 
+
+// page init
+
 document.addEventListener("DOMContentLoaded", loadopts);
 
 document.querySelector("#tab_shortcuts").addEventListener("click", showShortcuts);
 document.querySelector("#tab_about").addEventListener("click", showAbout);
+document.querySelector("#tab_general_settings").addEventListener("click",showGeneralSettings);
 
 document.querySelector("#kb_save").addEventListener("click", saveopts);
 document.querySelector("#kb_cancel").addEventListener("click",loadopts);
+
+document.querySelector("#enable_autoar").addEventListener("click",saveAutoar);
+getopt("ultrawidify_autoar",function(obj){console.log("obj:",obj);document.querySelector("#enable_autoar").checked = obj.ultrawidify_autoar});

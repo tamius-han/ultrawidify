@@ -59,6 +59,9 @@
     .center{
       margin: 0 auto;
     }
+    .red{
+      color: #ff3a00;
+    }
     .left{
       text-align: left;
     }
@@ -106,12 +109,26 @@
     }
     .uw_shortcuts_line{
       padding-top: 0.25em;
-      padding-left: 10em;
+      padding-left: 5em;
     }
     .uw_shortcuts_label{
       display: inline-block;
       color: #fff;
-      width: 7.5em;
+      width: 17.5em;
+    }
+    .uw_options_line{
+      margin-top: 0.25em;
+      font-size: 1.1em;
+      width: 80%;
+      margin-left: 5%;
+    }
+    .uw_options_option{
+      margin-left: 5%;
+    }
+    .uw_options_desc{
+      margin-top: 0.33em;
+      font-size: 0.69em;
+      color: #aaa;
     }
     .buttonbar{
 /*       width: 100%; */
@@ -144,12 +161,22 @@
       </div>
       <div class="tabline center">
         <div class="content left">
-          <div id="tab_shortcuts" class="block tab tab-selected">Shortcuts</div>
+          <div id="tab_general_settings" class="block tab tab-selected">General settings</div>
+          <div id="tab_shortcuts" class="block tab">Shortcuts</div>
           <div id="tab_about" class="block tab">About</div>
         </div>
       </div>
     </header>
-    <div id="uw_shortcuts">
+    <div id="general_settings">
+       <div class="content left">
+         <div class="uw_options_line">
+          <div class="uw_options_option"><input type="checkbox" id='enable_autoar'> Enable automatic aspect ratio detection</div>
+          <div class="uw_options_desc">This option uses 3rd party websites to determine aspect ratio. It may not work all the time or even properly. It only works with Netflix. <span class="red">This option is <b>NOT</b> available on Youtube.</span></div>
+         </div>
+       </div>
+    </div>
+    
+    <div id="uw_shortcuts" class="hide">
       <div class="content left"> 
         <form>
         <!-- BEGIN FORM -->
@@ -233,6 +260,15 @@
             <input type='checkbox' id='ar43_alt'   > Alt +
             <input type='text'     id='ar43_letter' maxlength='1' class='shortcut_input'>
           </div>
+          
+          <!-- try autoar -->
+          <div class="uw_shortcuts_line">
+            <div class="uw_shortcuts_label">Autodetect aspect ratio (Netflix only)</div>
+            <input type='checkbox' id='autoar_ctrl'  > Ctrl + 
+            <input type='checkbox' id='autoar_shift' > Shift + 
+            <input type='checkbox' id='autoar_alt'   > Alt +
+            <input type='text'     id='autoar_letter' maxlength='1' class='shortcut_input'>
+          </div>
         <!-- END FORM -->
         </form>
         <div class="buttonbar"><div class="button" id="kb_cancel">Cancel</div><div class="button" id="kb_save">Save</div></div>
@@ -243,10 +279,10 @@
   
     <div id="about" class="hide">
       <div class="content left">
-        <h2>Ultrawidify - an aspect ratio fixer for youtube</h2>
+        <h2>Ultrawidify - an aspect ratio fixer for youtube <small>(and netflix)</small></h2>
         <p>Created by Tamius Han (me). If something is broken, you can shout at me on <a href="https://github.com/xternal7/ultrawidify">github</a> (shout nicely, though. Open an issue or bug report or something). If you're curious to see the source code, <a href="https://github.com/xternal7/ultrawidify">github's here</a>. If you're looking at this page because you're bored and want to be bored some more, <a href="http://tamius.net">my website's here</a>.</p>
         <h2>Plans for the future</h2>
-        <p>Netflix support, probably.</p>
+        <p><strike>Netflix support, probably.</strike> we did it lol</p>
         <h2>Acknowledgements</h2>
         <p>This extension uses font <a href="https://fonts.google.com/specimen/Oxygen">Oxygen</a>.</p>
         <p>Special thanks to CD Project Red (The Witcher 2), Anet (Guild Wars 2), and Valve (CS:GO), which made it possible for me to untrigger myself after seeing so many improperly encoded videos.</p>
