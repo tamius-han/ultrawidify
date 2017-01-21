@@ -2,10 +2,10 @@ var browser_autodetect = true;
 var usebrowser = "chrome";
 
 if(browser_autodetect){
-  if(!browser){ // This means we're probably not on Firefox.
-    if(chrome){
-      browser = chrome;
-      usebrowser = "chrome";
+  if(typeof browser === "undefined"){ // This means we're probably not on Firefox, but on nazi chrome
+    if(chrome){                      // in glorious Firefox, 'typeof browser === "undefined"' spaghetti would
+      browser = chrome;             // only be if (!browser) gg
+      usebrowser = "chrome";       // google chrome is really the untermensch browser
     }
   }
   else

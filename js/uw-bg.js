@@ -11,7 +11,7 @@ if(debugmsg){
 }
 
 if(browser_autodetect){
-  if(!browser){ // This means we're probably not on Firefox.
+  if(typeof browser === "undefined"){ // This means we're probably not on Firefox, but on nazi chrome
     if(chrome){
       browser = chrome;
       usebrowser = "chrome";
