@@ -1,4 +1,7 @@
-var debugmsg = false;
+var usebrowser = "chrome";
+var browser_autodetect = true;
+
+var debugmsg = true;
 var debugmsg_click = false;
 var debugmsg_message = false;
 debugmsg_autoar = false;
@@ -15,6 +18,19 @@ if(debugmsg || debugmsg_click || debugmsg_message){
   
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
 }
+
+if(browser_autodetect){
+  if(!browser){ // This means we're probably not on Firefox.
+    if(chrome){
+      browser = chrome;
+      usebrowser = "chrome";
+    }
+  }
+  else
+    usebrowser = "firefox";
+}
+
+
 const playercheck_recursion_depth_limit = 3;
 
 var extraClassAdded = false;
@@ -60,6 +76,11 @@ var title = "";
 
 var netflix_cltbar_visibility = -1;  // -1 for invisible, anything non-negative for visible
 var netflix_periodic_timer;
+
+// Stuff for other browsers
+if(usebrowser == "chrome"){
+  browser = chrome;
+}
 
 function init(force_reload){
   
@@ -255,44 +276,22 @@ var DEFAULT_KEYBINDINGS = {
 
 var last_location = "";
 
-var autoar_enabled = true;
-
-browser.storage.local.get("ultrawidify_autoar").then(function(opt){
-  if(!opt.ultrawidify_autoar){
-    browser.storage.local.set({ultrawidify_autoar: true});
-  }
-  else 
-    this.autoar_enabled = opt.ultrawidify_autoar;
-  if(!this.autoar_enabled)
-    var last_whatdo = {type: "reset", what_do:"reset"};
-});
-
+var autoar_enabled = false;
 var KEYBINDS = {};
-var ask4keybinds = browser.storage.local.get("ultrawidify_keybinds");
-ask4keybinds.then( (res) => {
-  if(/*res.length == 1 &&*/ (jQuery.isEmptyObject(res[0]) || jQuery.isEmptyObject(res[0].ultrawidify_keybinds)) ){
-    if(debugmsg)
-      console.log("uw::<init keybinds> | No keybindings found. Loading default keybinds as keybinds");
-    
-    browser.storage.local.set({ultrawidify_keybinds:DEFAULT_KEYBINDINGS});
-    KEYBINDS = DEFAULT_KEYBINDINGS;
-  }
-  else{
-    if(Object.keys(res[0].ultrawidify_keybinds).length == Object.keys(DEFAULT_KEYBINDINGS).length)
-      KEYBINDS = res[0].ultrawidify_keybinds;
-    else{
-      KEYBINDS = res[0].ultrawidify_keybinds;
-      
-      // remap 4:3 keybind from 'a' to 'c', but only if the keybind wasn't changed
-      var old_keybinds = Object.keys(res[0].ultrawidify_keybinds);
-      if(KEYBINDS[old_keybinds-1].key == "a" && KEYBINDS[old_keybinds-1].modifiers == []){
-        KEYBINDS[old_keybinds-1].key == "c";
-      }
-      KEYBINDS[old_keybinds] = {action: "autoar", key: "a", modifiers: []};
-    }
-  }
-//   console.log("res. ", res[0].ultrawidify_keybinds);
-});
+
+if(usebrowser == "chrome"){
+  browser.storage.local.get("ultrawidify_autoar", function(data){extsetup_autoar(data)});
+  browser.storage.local.get("ultrawidify_keybinds", extsetup_keybinds);
+}
+else{
+  browser.storage.local.get("ultrawidify_autoar").then(function(opt){
+    extsetup_autoar(opt);
+  });
+  var ask4keybinds = browser.storage.local.get("ultrawidify_keybinds").then(extsetup_keybinds);
+}
+
+
+
 
 //END keybind-related stuff
 
@@ -369,7 +368,7 @@ function periodic() {
     winsize.h = h;
     
     // We don't do that if we zoomed or unzoomed
-    if(last_whatdo.what_do != "zoom" && last_whatdo.what_do != "unzoom" && last_whatdo.type != "autoar"){
+    if(last_whatdo.what_do != "zoom" && last_whatdo.what_do != "unzoom"/* && last_whatdo.type != "autoar"*/){
       changeCSS(last_whatdo.type, last_whatdo.what_do);
     }
       
@@ -416,7 +415,7 @@ function periodic() {
         type: "gibAspectRatio",
         title: title
       });
-      sending.then( function(){}, function(err1, err2){console.log("uw::periodic: there was an error while sending a message", err1, err2)} );
+//       sending.then( function(){}, function(err1, err2){console.log("uw::periodic: there was an error while sending a message", err1, err2)} );
     }
   }
   
@@ -523,7 +522,7 @@ function keydownSetup(){
         if(mods){
           event.stopPropagation();
           
-          console.log("uw::keydown | keys match. calling changeCSS()");
+          console.log("uw::keydown | keys match. Taking action.");
           if(KEYBINDS[i].action == "char"){
             changeCSS("char", KEYBINDS[i].targetAR);
             return;
@@ -544,6 +543,41 @@ function keydownSetup(){
     inFullScreen = ( window.innerHeight == window.screen.height && window.innerWidth == window.screen.width);
     inFullScreen ? onFullscreenOn() : onFullscreenOff();
   });
+}
+
+function extsetup_autoar(opt){
+  if(!opt.ultrawidify_autoar){
+    browser.storage.local.set({ultrawidify_autoar: true});
+  }
+  else 
+    this.autoar_enabled = opt.ultrawidify_autoar;
+  if(!this.autoar_enabled)
+    var last_whatdo = {type: "reset", what_do:"reset"};
+}
+
+function extsetup_keybinds(res){
+  if(/*res.length == 1 &&*/ (jQuery.isEmptyObject(res[0]) || jQuery.isEmptyObject(res[0].ultrawidify_keybinds)) ){
+    if(debugmsg)
+      console.log("uw::<init keybinds> | No keybindings found. Loading default keybinds as keybinds");
+    
+    browser.storage.local.set({ultrawidify_keybinds:DEFAULT_KEYBINDINGS});
+    KEYBINDS = DEFAULT_KEYBINDINGS;
+  }
+  else{
+    if(Object.keys(res[0].ultrawidify_keybinds).length == Object.keys(DEFAULT_KEYBINDINGS).length)
+      KEYBINDS = res[0].ultrawidify_keybinds;
+    else{
+      KEYBINDS = res[0].ultrawidify_keybinds;
+      
+      // remap 4:3 keybind from 'a' to 'c', but only if the keybind wasn't changed
+      var old_keybinds = Object.keys(res[0].ultrawidify_keybinds);
+      if(KEYBINDS[old_keybinds-1].key == "a" && KEYBINDS[old_keybinds-1].modifiers == []){
+        KEYBINDS[old_keybinds-1].key == "c";
+      }
+      KEYBINDS[old_keybinds] = {action: "autoar", key: "a", modifiers: []};
+    }
+  }
+  //   console.log("res. ", res[0].ultrawidify_keybinds);
 }
 
   //BEGIN UI
@@ -610,7 +644,7 @@ function addCtlButtons(recursion_depth){
   }
   var button_def = [];
   if(page_url.indexOf("netflix.com") != -1)
-    button_def = [ "fitw", "fith", "reset", "zoom", "uzoom", "settings" ];  // No settings button on netflix until further notice
+    button_def = [ "fitw", "fith", "reset", "zoom", "uzoom"/*, "settings" */];  // No settings button on netflix until further notice
   else
     button_def = [ "fitw", "fith", "reset", "zoom", "uzoom", "settings" ];
   
@@ -1015,14 +1049,14 @@ function manual_autoar(){
       type: "gibAspectRatio",
       title: title
     });
-    sending.then( function(){}, function(err1, err2){console.log("uw::periodic: there was an error while sending a message", err1, err2)} );
+//     sending.then( function(){}, function(err1, err2){console.log("uw::periodic: there was an error while sending a message", err1, err2)} );
   }
   
 }
 
 function changeCSS(type, what_do){
   if(debugmsg)
-    console.log("uw::changeCSS | starting function");
+    console.log("uw::changeCSS | starting function. type:", type, "; what_do:",what_do);
   hideMenu("uw-armenu");
   hideMenu("uw-smenu");
   
@@ -1256,6 +1290,7 @@ function set_best_fit(ar){
     console.log("uw::set_best_fit | got ar:",ar);
   
   var player = {width: this.player.clientWidth, height: this.player.clientHeight};
+  var player_ar = player.width / player.height;
   
   var evideo =  $("video")[0];
   var video = {width: evideo.videoWidth, height: evideo.videoHeight};
@@ -1276,12 +1311,15 @@ function set_best_fit(ar){
   
   var nv = {w: "", h: "", top: "", left: ""};
   
-  if(tru_width <= player.width){
+  if(ar >= player_ar){
+    //Če rečemo, da je video širši kot naš kontejner, potem vzamemo širino, višino pa izračunamo
+    if(debugmsg)
+      console.log("uw::set_best_fit | aspect ratio is wider than player ar.")
     nv.w = player.width;
-    nv.h = player.height * (ar / video_ar);
+    nv.h = player.width / video_ar;
   }
   else{
-    nv.w = player.width * (video_ar / ar);
+    nv.w = player.height * video_ar;
     nv.h = player.height;
   }
   nv.top = (player.height - nv.h)/2;
@@ -1459,7 +1497,7 @@ function changeCSS_nofs(what_do, video, player){
   applyCSS(dimensions);
 }
 
-function applyCSS(dimensions){  
+function applyCSS(dimensions){
   dimensions.top = Math.round(dimensions.top) + "px";
   dimensions.left = Math.round(dimensions.left) + "px";
   dimensions.w = Math.round(dimensions.w) + "px";

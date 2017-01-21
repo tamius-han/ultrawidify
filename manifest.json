@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Ultrawidify-git",
-  "version": "1.2.0",
+  "version": "1.2.1dev",
   
   "icons": {
     "32":"res/icons/uw-32.png",

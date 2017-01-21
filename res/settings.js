@@ -1,3 +1,23 @@
+var browser_autodetect = true;
+var usebrowser = "chrome";
+
+if(browser_autodetect){
+  if(!browser){ // This means we're probably not on Firefox.
+    if(chrome){
+      browser = chrome;
+      usebrowser = "chrome";
+    }
+  }
+  else
+    usebrowser = "firefox";
+}
+else{
+  if(usebrowser == "chrome")
+    browser = chrome;
+}
+
+
+
 function showAbout(){
   clearPage();
   
@@ -115,7 +135,6 @@ function saveopts(){
 }
 
 function saveAutoar(){
-  console.log("saving autoar. is checked?", document.querySelector("#enable_autoar").checked)
   setopt({ultrawidify_autoar: document.querySelector("#enable_autoar").checked});
 }
 
@@ -126,7 +145,11 @@ function setopt(item){
   browser.storage.local.set(item);
 }
 function getopt(prop, callback){
-  browser.storage.local.get(prop).then(callback);
+  if(usebrowser == "chrome")
+    browser.storage.local.get(prop, callback);
+  else
+    browser.storage.local.get(prop).then(callback);
+  
 }
 
 function compareModifiers(a,b){
@@ -168,8 +191,10 @@ function gotopts(opts){
 }
 
 function loadopts(){
-  var ask4keybinds = browser.storage.local.get("ultrawidify_keybinds");
-  ask4keybinds.then(gotopts, printerr);
+  if(usebrowser == "chrome")
+    getopt("ultrawidify_keybinds", gotopts);
+  else
+    browser.storage.local.get("ultrawidify_keybinds").then(gotopts, printerr);
 }
 
 
@@ -185,4 +210,4 @@ document.querySelector("#kb_save").addEventListener("click", saveopts);
 document.querySelector("#kb_cancel").addEventListener("click",loadopts);
 
 document.querySelector("#enable_autoar").addEventListener("click",saveAutoar);
-getopt("ultrawidify_autoar",function(obj){console.log("obj:",obj);document.querySelector("#enable_autoar").checked = obj.ultrawidify_autoar});
+getopt("ultrawidify_autoar",function(obj){document.querySelector("#enable_autoar").checked = obj.ultrawidify_autoar});

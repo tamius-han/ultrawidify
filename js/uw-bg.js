@@ -1,4 +1,7 @@
-debugmsg = false;
+var browser_autodetect = true;
+var usebrowser = "chrome";
+
+debugmsg = true;
 debugmsg_imdb = false;
 url_changed = false;
 if(debugmsg){
@@ -6,6 +9,25 @@ if(debugmsg){
   console.log("\nLoading ultrawidify background script (uw-bg)\nIf you can see this, extension at least tried to load\n\nRandom number: ",Math.floor(Math.random() * 20) + 1,"\n");
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
 }
+
+if(browser_autodetect){
+  if(!browser){ // This means we're probably not on Firefox.
+    if(chrome){
+      browser = chrome;
+      usebrowser = "chrome";
+    }
+  }
+  else
+    usebrowser = "firefox";
+}
+else{
+  if(usebrowser == "chrome")
+    browser = chrome;
+}
+
+
+
+
 /********************************************
  ****  script-related stuff starts here  ****
  ********************************************/
