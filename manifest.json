@@ -13,7 +13,7 @@
   
   "content_scripts": [
   {
-    "matches": ["*://*.youtube.com/*", "*://youtube.com/*", "*://youtu.be/*","*://www.netflix.com/watch/*"],
+    "matches": ["*://*.youtube.com/*", "*://youtube.com/*", "*://youtu.be/*","*://www.netflix.com/*"],
     "js": [ "js/jquery-3.1.1.js", "js/uw.js" ],
     "all_frames": true
   }
