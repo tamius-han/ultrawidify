@@ -26,7 +26,7 @@ if(debugmsg || debugmsg_click || debugmsg_message || debugmsg_autoar){
 }
 
 if(browser_autodetect){
-  if(!browser){ // This means we're probably not on Firefox.
+  if(typeof browser === "undefined"){ // This means we're probably not on Firefox.
     if(chrome){
       browser = chrome;
       usebrowser = "chrome";
@@ -71,6 +71,7 @@ var char_strat = "contain";
 var char_got_ar = false;
 var char_arx;
 var char_ary;
+var autoar_enabled;
 
 var video_wrap;
 
@@ -472,8 +473,8 @@ function loadFromStorage(){
     console.log("uw::loadFromStorage | loading stuff from storage.");
   
   if(usebrowser == "chrome"){
-    browser.storage.local.get("ultrawidify_autoar", function(data){extsetup_autoar(data)});
-    browser.storage.local.get("ultrawidify_keybinds", extsetup_keybinds);
+    browser.storage.local.get("ultrawidify_autoar", function(data){console.log("storage.get answered with data:",data); extsetup_autoar(data)});
+    browser.storage.local.get("ultrawidify_keybinds", function(data){console.log("storage.get answered with data:",data); extsetup_keybinds(data)});
   }
   else{
     browser.storage.local.get("ultrawidify_autoar").then(function(opt){
@@ -565,17 +566,24 @@ function keydownSetup(){
 
 
 function extsetup_autoar(opt){
+  if(usebrowser == "chrome")
+    obj = opt;
+  else
+    obj = opt[0];
+  
   //Naslov resetiramo v vsakem primeru
   //We always reset the title
   title = "";
-  if(opt[0].ultrawidify_autoar === undefined){
+  if(obj === undefined)
+    return;
+  if(obj.ultrawidify_autoar === undefined){
     if(debugmsg || debugmsg_autoar)
       console.log("uw::extsetup_autoar | autoar setting unavailavle in storage. Setting defaults.");
       browser.storage.local.set({ultrawidify_autoar: uw_autoar_default});
     autoar_enabled = uw_autoar_default;
   }
   else 
-    autoar_enabled = opt[0].ultrawidify_autoar;
+    autoar_enabled = obj.ultrawidify_autoar;
   
   if(debugmsg || debugmsg_autoar)
     console.log("uw::extsetup_autoar | autoar",(autoar_enabled ? "enabled":"disabled"),"opt: ",opt);
@@ -585,7 +593,12 @@ function extsetup_autoar(opt){
 }
 
 function extsetup_keybinds(res){
-  if(!uw_keybinds_storage_set && (jQuery.isEmptyObject(res[0]) || jQuery.isEmptyObject(res[0].ultrawidify_keybinds)) ){
+  if(usebrowser == "chrome")
+    obj = res;
+  else
+    obj = res[0];
+  
+  if(typeof uw_keybinds_storage_set === "undefined" && (jQuery.isEmptyObject(obj) || jQuery.isEmptyObject(obj.ultrawidify_keybinds)) ){
     if(debugmsg)
       console.log("uw::<init keybinds> | No keybindings found. Loading default keybinds as keybinds");
     
@@ -594,20 +607,20 @@ function extsetup_keybinds(res){
     uw_keybinds_storage_set = true;
   }
   else{
-    if(Object.keys(res[0].ultrawidify_keybinds).length == Object.keys(DEFAULT_KEYBINDINGS).length)
-      KEYBINDS = res[0].ultrawidify_keybinds;
+    if(Object.keys(obj.ultrawidify_keybinds).length == Object.keys(DEFAULT_KEYBINDINGS).length)
+      KEYBINDS = obj.ultrawidify_keybinds;
     else{
-      KEYBINDS = res[0].ultrawidify_keybinds;
+      KEYBINDS = obj.ultrawidify_keybinds;
       
       // remap 4:3 keybind from 'a' to 'c', but only if the keybind wasn't changed
-      var old_keybinds = Object.keys(res[0].ultrawidify_keybinds);
+      var old_keybinds = Object.keys(obj.ultrawidify_keybinds);
       if(KEYBINDS[old_keybinds-1].key == "a" && KEYBINDS[old_keybinds-1].modifiers == []){
         KEYBINDS[old_keybinds-1].key == "c";
       }
       KEYBINDS[old_keybinds] = {action: "autoar", key: "a", modifiers: []};
     }
   }
-  //   console.log("res. ", res[0].ultrawidify_keybinds);
+  //   console.log("res. ", obj.ultrawidify_keybinds);
 }
 
   //BEGIN UI
@@ -992,10 +1005,11 @@ function updateCtlButtonSize(){
     console.log("uw::updateCtlButtonSize | changing css of menu items");
   
   var settings_menu = document.getElementById("uw-smenu");
-  settings_menu.style.bottom = (button_width * 1.5) + "px";
-  settings_menu.style.width = smenu_item_width + "px";
-  settings_menu.style.fontSize = smenu_item_fontSize + "px";
-  
+  if(settings_menu != null){
+    settings_menu.style.bottom = (button_width * 1.5) + "px";
+    settings_menu.style.width = smenu_item_width + "px";
+    settings_menu.style.fontSize = smenu_item_fontSize + "px";
+  }
 //   smenu_ar_menu.style.right = smenu_item_width + "px";
 //   smenu_ar_menu.style.width = smenu_ar_item_width + "px";
 //   smenu_ar_menu.style.bottom = "0px";
