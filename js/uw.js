@@ -4,17 +4,23 @@ var browser_autodetect = true;
 var debugmsg = true;
 var debugmsg_click = false;
 var debugmsg_message = false;
-debugmsg_autoar = false;
+var debugmsg_autoar = true;
 var debugmsg_periodic = false;
-if(debugmsg || debugmsg_click || debugmsg_message){
+if(debugmsg || debugmsg_click || debugmsg_message || debugmsg_autoar){
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
   console.log("\nLoading ultrawidify (uw)\nIf you can see this, extension at least tried to load\n\nRandom number: ",Math.floor(Math.random() * 20) + 1,"\n");
   
+  if(debugmsg)
+    console.log("Logging all");
+  
   if(debugmsg_click)
-    console.log("Logging debugmsg_click only");
+    console.log("Logging debugmsg_click");
   
   if(debugmsg_message)
-    console.log("Logging debugmsg_message only");
+    console.log("Logging debugmsg_message");
+  
+  if(debugmsg_autoar)
+    console.log("Logging autoar");
   
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
 }
@@ -32,6 +38,8 @@ if(browser_autodetect){
 
 
 const playercheck_recursion_depth_limit = 3;
+
+var uw_autoar_default = true; // true - autoar enabled. False - autoar disabled
 
 var extraClassAdded = false;
 var inFullScreen = false;
@@ -276,22 +284,9 @@ var DEFAULT_KEYBINDINGS = {
 
 var last_location = "";
 
-var autoar_enabled = false;
 var KEYBINDS = {};
 
-if(usebrowser == "chrome"){
-  browser.storage.local.get("ultrawidify_autoar", function(data){extsetup_autoar(data)});
-  browser.storage.local.get("ultrawidify_keybinds", extsetup_keybinds);
-}
-else{
-  browser.storage.local.get("ultrawidify_autoar").then(function(opt){
-    extsetup_autoar(opt);
-  });
-  var ask4keybinds = browser.storage.local.get("ultrawidify_keybinds").then(extsetup_keybinds);
-}
-
-
-
+browser.storage.onChanged.addListener(function(){console.log("storage has been updated!"); extSetup() } );
 
 //END keybind-related stuff
 
@@ -359,6 +354,7 @@ function periodic() {
     
     init();
     addCtlButtons(0);
+    updateCtlButtonSize();
   }
   var w = window.innerWidth;
   var h = window.innerHeight;
@@ -391,7 +387,7 @@ function periodic() {
         updateCtlButtonSize();
     }
   }
-
+    
   if(page_url.indexOf("netflix.com") != -1 && autoar_enabled){
     //Netflix-specific stuff
     var qntitle = document.querySelector(".player-status-main-title");
@@ -401,11 +397,12 @@ function periodic() {
     //querySelector can return null, in which case .textContent will complain.
     if(qntitle)
       ntitle = qntitle.textContent;
-    else
+    else{
       char_got_ar = false;
-    
+      return;
+    }
     if(qntitle && ntitle && ntitle != title){
-      if(debugmsg || debugmsg_message)
+      if(debugmsg || debugmsg_message || debugmsg_autoar)
         console.log("uw::periodic | title changed. New title:",ntitle,"Old title:",title);
       
       char_got_ar = false;
@@ -454,8 +451,10 @@ function extSetup(){
   if(debugmsg)
     console.log("uw::extSetup | setting up keyboard shortcuts");
   
+  loadFromStorage();
   keydownSetup();  
   addCtlButtons(0);
+  updateCtlButtonSize();
   
   if(page_url.indexOf("netflix.com") != -1){
     console.log("uw::extSetup | starting netflix-specific setup steps");
@@ -466,6 +465,25 @@ function extSetup(){
   
   if(debugmsg)
     console.log("======================================[ setup finished ]======================================");
+}
+
+function loadFromStorage(){
+  if(debugmsg || debugmsg_autoar)
+    console.log("uw::loadFromStorage | loading stuff from storage.");
+  
+  if(usebrowser == "chrome"){
+    browser.storage.local.get("ultrawidify_autoar", function(data){extsetup_autoar(data)});
+    browser.storage.local.get("ultrawidify_keybinds", extsetup_keybinds);
+  }
+  else{
+    browser.storage.local.get("ultrawidify_autoar").then(function(opt){
+      if(debugmsg || debugmsg_autoar)
+        console.log("uw::loadFromStorage | setting up autoar. opt:",opt)
+      extsetup_autoar(opt);
+      console.log("autoar_enabled:",autoar_enabled);
+    });
+    var ask4keybinds = browser.storage.local.get("ultrawidify_keybinds").then(extsetup_keybinds);
+  }
 }
 
 function keydownSetup(){
@@ -545,23 +563,35 @@ function keydownSetup(){
   });
 }
 
+
 function extsetup_autoar(opt){
-  if(!opt.ultrawidify_autoar){
-    browser.storage.local.set({ultrawidify_autoar: true});
+  //Naslov resetiramo v vsakem primeru
+  //We always reset the title
+  title = "";
+  if(opt[0].ultrawidify_autoar === undefined){
+    if(debugmsg || debugmsg_autoar)
+      console.log("uw::extsetup_autoar | autoar setting unavailavle in storage. Setting defaults.");
+      browser.storage.local.set({ultrawidify_autoar: uw_autoar_default});
+    autoar_enabled = uw_autoar_default;
   }
   else 
-    this.autoar_enabled = opt.ultrawidify_autoar;
-  if(!this.autoar_enabled)
-    var last_whatdo = {type: "reset", what_do:"reset"};
+    autoar_enabled = opt[0].ultrawidify_autoar;
+  
+  if(debugmsg || debugmsg_autoar)
+    console.log("uw::extsetup_autoar | autoar",(autoar_enabled ? "enabled":"disabled"),"opt: ",opt);
+  
+  if(!autoar_enabled)
+    last_whatdo = {type: "reset", what_do:"reset"};
 }
 
 function extsetup_keybinds(res){
-  if(/*res.length == 1 &&*/ (jQuery.isEmptyObject(res[0]) || jQuery.isEmptyObject(res[0].ultrawidify_keybinds)) ){
+  if(!uw_keybinds_storage_set && (jQuery.isEmptyObject(res[0]) || jQuery.isEmptyObject(res[0].ultrawidify_keybinds)) ){
     if(debugmsg)
       console.log("uw::<init keybinds> | No keybindings found. Loading default keybinds as keybinds");
     
     browser.storage.local.set({ultrawidify_keybinds:DEFAULT_KEYBINDINGS});
     KEYBINDS = DEFAULT_KEYBINDINGS;
+    uw_keybinds_storage_set = true;
   }
   else{
     if(Object.keys(res[0].ultrawidify_keybinds).length == Object.keys(DEFAULT_KEYBINDINGS).length)
@@ -1184,8 +1214,10 @@ function autochar(){
     return;
   
   var ar = char_arx / char_ary;
-  if(ar)
+  if(ar){
     set_best_fit(ar);
+    last_whatdo = {type: "autoar", what_do: "autoar"};
+  }
 }
 
 /* Tukaj povemo, kakšno razmerje stranic ima video.
@@ -1311,17 +1343,37 @@ function set_best_fit(ar){
   
   var nv = {w: "", h: "", top: "", left: ""};
   
-  if(ar >= player_ar){
-    //Če rečemo, da je video širši kot naš kontejner, potem vzamemo širino, višino pa izračunamo
-    if(debugmsg)
-      console.log("uw::set_best_fit | aspect ratio is wider than player ar.")
-    nv.w = player.width;
-    nv.h = player.width / video_ar;
+  if(ar >= video_ar){
+    if(ar >= player_ar){
+      if(debugmsg || debugmsg_autoar)
+        console.log("uw::set_best_fit | aspect ratio is wider than player ar.")
+      nv.h = player.width / video_ar;
+      nv.w = nv.h * ar;
+    }
+    else{
+      if(debugmsg || debugmsg_autoar)
+        console.log("uw::set_best_fit | aspect ratio is narrower than player ar.", (player.height * ar), nv)
+      nv.w = player.height * ar;
+      nv.h = nv.w / video_ar;
+    }
   }
   else{
-    nv.w = player.height * video_ar;
-    nv.h = player.height;
+    if(ar >= player_ar){
+      if(debugmsg || debugmsg_autoar)
+        console.log("uw::set_best_fit | aspect ratio is wider than player ar.")
+      nv.h = player.width / ar;
+      nv.w = nv.h * video_ar;
+    }
+    else{
+      if(debugmsg || debugmsg_autoar)
+        console.log("uw::set_best_fit | aspect ratio is narrower than player ar.", (player.height * ar), nv)
+        nv.w = player.height * video_ar;
+      nv.h = nv.w / ar;
+    }
   }
+  if(debugmsg || debugmsg_autoar)
+    console.log("uw::set_best_fit | new video width and height processed. nv so far:", nv)
+  
   nv.top = (player.height - nv.h)/2;
   nv.left = (player.width - nv.w)/2;
   
@@ -1329,7 +1381,7 @@ function set_best_fit(ar){
     console.log("uw::set_best_fit | tru width:",tru_width,"(player width:",player.width,"); new video size:",nv);
   
   applyCSS(nv);
-  console.log("css applied");
+  console.log("uw::set_best_fit | css applied");
 }
 
 function resetCSS(video, player){
