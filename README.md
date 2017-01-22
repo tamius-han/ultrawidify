@@ -1,16 +1,66 @@
-# Ultrawidify — youtube aspect ratio fixer for firefox
+# Ultrawidify — aspect ratio fixer for youtube and netflix
 
-## What does it do?
+## TL;DR
 
-The technology has been here for a while, but plenty of people don't know how to properly encode a video (despite the fact [youtube has an article that explains aspect ratios](https://support.google.com/youtube/answer/6375112)). Plenty of people surprisingly includes major Holywood studios, such as [Marvel](https://www.youtube.com/watch?v=Ke1Y3P9D0Bc), [Disney](https://www.youtube.com/watch?v=yCOPJi0Urq4), [Dreamworks](https://www.youtube.com/watch?v=oKiYuIsPxYk), [Warner Brothers](https://www.youtube.com/watch?v=VYZ3U1inHA4), [Sony](https://www.youtube.com/watch?v=7BWWWQzTpNU), et cetera. You'd think that this is the one thing Holywood studios and people who make [music videos for a living](https://www.youtube.com/watch?v=c6Mx2mxpaCY) would know how to do right, but they don't. This extension is here to fix that.
-
-### TL;DR: it does this:
+If you own an ultrawide monitor, you have probably noticed that sometimes videos aren't encoded properly — they feature black bars on all four sides. This could happen because someone was incompetent (note: as far as youtube is concerned, improperly rendered videos might be due to youtube's implementation of certain new features). The extension kinda fixes that by doing this:
 
 ![Demo](img-demo/example-httyd2.png "Should these black bars be here? No [...] But an ultrawide user never forgets.")
 
-I'd demo with [Sintel](https://www.youtube.com/watch?v=eRsGyueVLvQ) but they encoded the video without the black bars. Thanks, Blender Foundation.
+Works on Youtube and Netflix. Available for Firefox and Chrome.
 
-This extension also allows you to zoom in or out of video (similar to how SMPlayer does it).
+## The long version
+
+The technology has been here for a while, but plenty of people don't know how to properly encode a video (despite the fact [youtube has an article that explains aspect ratios](https://support.google.com/youtube/answer/6375112)). Plenty of people surprisingly includes major Holywood studios, such as [Marvel](https://www.youtube.com/watch?v=Ke1Y3P9D0Bc), [Disney](https://www.youtube.com/watch?v=yCOPJi0Urq4), [Dreamworks](https://www.youtube.com/watch?v=oKiYuIsPxYk), [Warner Brothers](https://www.youtube.com/watch?v=VYZ3U1inHA4), [Sony](https://www.youtube.com/watch?v=7BWWWQzTpNU), et cetera. You'd think that this is the one thing Holywood studios and people who make [music videos for a living](https://www.youtube.com/watch?v=c6Mx2mxpaCY) would know how to do right, but they don't. This extension is here to fix that.
+
+![Jesus Christ.](img-demo/example-jasonbourne.png "This is indeed worse than Snowden.")
+
+## Features
+
+* **Adds UI to the player's controls**
+* **Fit video to width/height**
+* **Zoom/unzoom video**
+* **Force specific aspect ratio**
+* **(Attempt to) autodetect aspect ratio** (Netflix only)
+* **Rebindable shortcuts**
+
+### User interface
+
+![UI](img-demo/example-ui-general.png "If I ever found out that the video I'm in is 21:9, but encoded as 16:9 + black bars, I'd probably consider killing myself as well. To be completely fair, Blender institute did good job encoding the video properly. But of course there's some repost channels to fuck it up.")
+
+To be entirely fair to the blender foundation, the video featured above is properly encoded. (However, few accounts that reposted it didn't sport the same levels of competence).
+
+The 'more settings' menu contains all the buttons on the control bar, plus an option to force a specific aspect ratio — in case you're trying to watch a 16:9 video, that's encoded as 4:3 video, on a 21:9 monitor.
+
+![UI](img-demo/example-ui-more-settings.png "If you know me and came looking for the obligatory »it's a wyvern, not a dragon« comment ... well, you just found it.")
+
+These options might show some benefit for people not using 21:9 monitors, as they would allow you to crop a (proper) 21:9 to 16:9 (remove black bars at the cost of some video). 'Fit to height' would often do the same job, though.
+
+### Default keyboard shortcuts
+
+    w   - fit to width
+    e   - fit to height
+    r   - reset
+    z   - zoom
+    u   - unzoom
+    
+    a   - attempt to automatically determine the aspect ratio (netflix only)
+    
+    s   - force 21:9
+    d   - force 16:9
+    x   - force 16:10
+    c   - force 4:3
+
+### About Netflix aspect ratio autodetection
+
+Automatic aspect ratio detection on Netflix works by grabbing the title of the video off Netflix' control bar and throws it at some third party services. First, it takes the title and throws it at OMDB. OMDB replies with IMDB id. We then throw that id at IMDB, which replies with 1700+ lines (and aspect ratio information is hopefully somewhere among them). If OMDB doesn't find the movie — or if the IMDB doesn't have information about aspect ratio for that particular title — automatic detection fails. There's also a posibility that this method returns the wrong data, as there's a possibility that multiple movies share the same title.
+
+For best results with autodetection, please make sure the following requirements are met:
+
+* Netflix, not youtube
+* Netflix must be in English
+* Movie title must be in English/the original title
+* Movie must be known by OMDB
+* Movie must have aspect ratio info on IMDB
 
 ## Installing
 
@@ -28,39 +78,10 @@ This extension also allows you to zoom in or out of video (similar to how SMPlay
 
 [v1.2.1 — Regular version — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
 
-## How do I use it?
 
-This is the interface:
+## Known issues
 
-![GUI buttons - ELI5](img-demo/interface-explained.jpg "If you know me and came looking for the obligatory »it's a wyvern, not a dragon« comment ... well, you just found it.")
-
-And that's the keybinds for the actions displayed:
-
-* `w` : fit to width (will crop top and bottom if video is taller than the display)
-* `e` : fit to height (will crop left and right if video is wider than the display)
-* `z` : zoom
-* `u` : unzoom
-* `r` : reset to default
-
-As of version 0.9.6, there's also experimental feature that will try to force an aspect ratio for the video. You specify the aspect ratio of the video you're watching. Extension then looks at the actual aspect ratio of the video. If aspect ratios are different, extension assumes that video contains black borders and zooms in on the video, so the black bars are removed. For example: if the video you're watching is 4:3, but you specify it's actually 16:9, then the extension will zoom on 16:9 section inside that video. 
-
-As of 0.9.9, option to force aspect ratio is available from settings. That's this button:
-
-![Settings](img-demo/interface-settings.jpg "If I ever found out that the video I'm in is 21:9, but encoded as 16:9 + black bars, I'd probably consider killing myself as well. To be completely fair, Blender institute did good job encoding the video properly. But of course there's some repost channels to fuck it up.")
-
-If you can read this, you'll probably figure out the rest of the way.
-
-¹These ratios are calculated using the number in the brackets, as 1920/1080 does not strictly equal to 16/9 (same goes for 21:9).
-
-![Jesus Christ.](img-demo/example-jasonbourne.png "This is indeed worse than Snowden.")
-
-## What works
-
-More or less everything. Works regardless of whether the video is in fullscreen or not. Works regardless if the youtube video you're watching is embedded on some other page.
-
-## What doesn't
-
-At the moment, I'm not aware of anything that this extension advertises not working.
+'More settings' button actually doesn't work at the moment.
 
 ## Plans for the future
 
@@ -69,7 +90,9 @@ At the moment, I'm not aware of anything that this extension advertises not work
 * ~~Adding buttons for actions in youtube's player~~ (kinda done)
 * ~~Adding an option to force specific aspect ratio~~ (now it's "good enough")
 * ~~Port to Chrome~~
-* Have extension remember the last setting when switching between fullscreen and not fullscreen. Have an option to remember last selected aspect ratio.
+* ~~Have extension remember the last setting when switching between fullscreen and not fullscreen.~~ (kinda done)
+* Have an option to remember last selected aspect ratio.
+* Option to hide UI
 * ~~Netflix support~~ (done)
 
 
