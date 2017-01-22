@@ -8,7 +8,7 @@ The technology has been here for a while, but plenty of people don't know how to
 
 ![Demo](img-demo/example-httyd2.png "Should these black bars be here? No [...] But an ultrawide user never forgets.")
 
-I'd demo with [Sintel](https://www.youtube.com/watch?v=eRsGyueVLvQ) but they encoded the video without the black bars. ~~Thanks, Blender Foundation.~~ Actually they're not off the hook.
+I'd demo with [Sintel](https://www.youtube.com/watch?v=eRsGyueVLvQ) but they encoded the video without the black bars. Thanks, Blender Foundation.
 
 This extension also allows you to zoom in or out of video (similar to how SMPlayer does it).
 
@@ -24,11 +24,9 @@ This extension also allows you to zoom in or out of video (similar to how SMPlay
 
 ### Permanent install
 
-[v1.0-rc1 — Experimental version — download from here](http://tamius.net/ultrawidify) — If 30 minutes old is stable enough for you, this is it. This version is pretty much code from this repo. It's also unlisted so I don't have to go through AMO for every minor change. It hasn't been tested whether autoupdating works, and it probably doesn't.
+[v1.1.1 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
 
-[v1.0.0 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) — more stable and with AMO's approval. No experimental features either.
-
-**NOTE:** Have only one version of the extension running at a time. Don't run both at the same time.
+[v1.2.1 — Regular version — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
 
 ## How do I use it?
 
@@ -48,7 +46,7 @@ As of version 0.9.6, there's also experimental feature that will try to force an
 
 As of 0.9.9, option to force aspect ratio is available from settings. That's this button:
 
-![Settings](img-demo/interface-settings.jpg "If I ever found out that the video I'm in is 21:9, but encoded as 16:9 + black bars, I'd probably consider killing myself as well.")
+![Settings](img-demo/interface-settings.jpg "If I ever found out that the video I'm in is 21:9, but encoded as 16:9 + black bars, I'd probably consider killing myself as well. To be completely fair, Blender institute did good job encoding the video properly. But of course there's some repost channels to fuck it up.")
 
 If you can read this, you'll probably figure out the rest of the way.
 
@@ -70,16 +68,22 @@ At the moment, I'm not aware of anything that this extension advertises not work
 * ~~Adding a proper settings page~~ (done at last)
 * ~~Adding buttons for actions in youtube's player~~ (kinda done)
 * ~~Adding an option to force specific aspect ratio~~ (now it's "good enough")
-* Port to Chrome
+* ~~Port to Chrome~~
 * Have extension remember the last setting when switching between fullscreen and not fullscreen. Have an option to remember last selected aspect ratio.
 * ~~Netflix support~~ (done)
 
 
 ## Changelog
 
-###v1.2.0  (waiting for approval)
+###v1.2.1  (vaiting for approval / Chrome version)
+
+* Fixed the bugs which caused aspect ratio to not be calculated properly.
+* Introduced further changes that allow me to not keep two separate version for Firefox and Chrome.
+
+###v1.2.0
 
 * Auto-aspect ratio detection on netflix
+* initial port to Chrome
 
 ###v1.1.1  (latest version on AMO)
 

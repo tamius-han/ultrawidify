@@ -1,10 +1,10 @@
 var usebrowser = "chrome";
 var browser_autodetect = true;
 
-var debugmsg = true;
+var debugmsg = false;
 var debugmsg_click = false;
 var debugmsg_message = false;
-var debugmsg_autoar = true;
+var debugmsg_autoar = false;
 var debugmsg_periodic = false;
 if(debugmsg || debugmsg_click || debugmsg_message || debugmsg_autoar){
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");

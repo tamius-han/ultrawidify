@@ -1,7 +1,7 @@
 var browser_autodetect = true;
 var usebrowser = "chrome";
 
-debugmsg = true;
+debugmsg = false;
 debugmsg_imdb = false;
 url_changed = false;
 if(debugmsg){
