@@ -816,7 +816,7 @@ function addCtlButtons(recursion_depth){
     buttons[5].id = "uw-settings-button";
   }
   var settings_menu = document.createElement("div");
-  settings_menu_mid.appendChild(settings_menu);
+//   settings_menu_mid.appendChild(settings_menu);
   var smenu_ar_menu = document.createElement("div");
   
   var smenu_el = [];
@@ -827,7 +827,7 @@ function addCtlButtons(recursion_depth){
   var smenu_ar_options = [];
   
   if(buttons[5])
-    buttons[5].appendChild(settings_menu_mid);
+    buttons[5].appendChild(settings_menu);
 
   //Če rabimo skriti gumb za nastavitve, potem mora biti i=1
   //If we need to hide settings button, then we should make i=1
@@ -837,20 +837,20 @@ function addCtlButtons(recursion_depth){
   
   for(var i = 1; i < smenu_el.length; i++){
     settings_menu.appendChild(smenu_el[i]);
-    smenu_el[i].className += "uw-setmenu-item uw_element";
+    smenu_el[i].className += "uw-setmenu-item uw_setmenu_main uw_element";
   }
   
   
   for(var i = 0; i < 4; i++){
     smenu_ar_options[i] = document.createElement("div");
-    smenu_ar_options[i].className = "uw-setmenu-item uw_element";
+    smenu_ar_options[i].className = "uw-setmenu-item uw_setmenu_ar uw_element";
     smenu_ar_menu.appendChild(smenu_ar_options[i]);
   }
   
   settings_menu.id = "uw-smenu";
-  settings_menu_mid.className = "uw-setmenu uw_element";
-//   settings_menu.className = "uw-setmenu uw_element";
-  settings_menu.className = "uw_element";
+//   settings_menu_mid.className = "uw-setmenu uw_element";
+  settings_menu.className = "uw-setmenu uw_element";
+//   settings_menu.className = "uw_element";
   
   
   smenu_el[0].id = "uw-smenu_settings";
@@ -906,7 +906,8 @@ function addCtlButtons(recursion_depth){
     smenu_el[i].style.fontSize = smenu_item_fontSize + "px";
   }
   for(var i = 0; i < smenu_ar_options.length; i++){
-    smenu_ar_options[0].height = smenu_item_height + "px";
+    smenu_ar_options[i].height = smenu_item_height + "px";
+    smenu_ar_options[i].width = smenu_ar_item_width + "px";
   }
 
   
@@ -938,6 +939,7 @@ function addCtlButtons(recursion_depth){
   if(smenu_el[6]){
     $(smenu_el[6]).on("mouseenter", function(){showMenu("uw-armenu")});
     $(smenu_el[6]).on("mouseleave", function(){hideMenu("uw-armenu")});
+    smenu_el[6].onclick = function(event){event.stopPropagation(); showMenu("uw-armenu")};
   }
   // event.stopPropagation, ker nočemo togglati še funkcij od knofa za popup z nastavitvami
   // event.stopPropagation, because we don't want to trigger onclick functions of the settings popup button in 
@@ -998,7 +1000,7 @@ function updateCtlButtonSize(){
   
   var smenu_item_width = (button_width * 7.5);
   var smenu_item_fontSize = (button_width * 0.5);
-//   var smenu_ar_item_width = (smenu_item_width / 3);
+  var smenu_ar_item_width = (smenu_item_width / 3);
   var smenu_item_height = button_width;
   
   if(debugmsg || debugmsg_click)
@@ -1015,11 +1017,20 @@ function updateCtlButtonSize(){
 //   smenu_ar_menu.style.bottom = "0px";
 //   smenu_ar_men
   
-  buttons = document.getElementsByClassName("uw-setmenu-item");
+  document.getElementById("uw-smenu_ar").right = smenu_item_width;
+  
+  buttons = document.getElementsByClassName("uw_setmenu_main");
   for(var i = 0; i < buttons.length; i++){
     buttons[i].style.width = smenu_item_width + "px";
     buttons[i].style.height = smenu_item_height + "px";
     buttons[i].style.fontSize = smenu_item_fontSize + "px";
+  }
+  buttons = document.getElementsByClassName("uw_setmenu_ar");
+  for(var i = 0; i < buttons.length; i++){
+    buttons[i].style.width = smenu_ar_item_width + "px";
+    buttons[i].style.height = smenu_item_height + "px";
+    buttons[i].style.fontSize = smenu_item_fontSize + "px";
+    buttons[i].style.right = smenu_item_width + "px";
   }
 }
 
@@ -1101,8 +1112,8 @@ function manual_autoar(){
 function changeCSS(type, what_do){
   if(debugmsg)
     console.log("uw::changeCSS | starting function. type:", type, "; what_do:",what_do);
-  hideMenu("uw-armenu");
-  hideMenu("uw-smenu");
+//   hideMenu("uw-armenu");
+//   hideMenu("uw-smenu");
   
   
   var evideo = $("video")[0];
@@ -1588,8 +1599,9 @@ function resourceToUrl(img){
 }
 
 function showMenu(id){
-  if(debugmsg)
+  if(debugmsg){
     console.log("uw::showMenu | showing menu with id ", id, "\n\n", document.getElementById(id));
+  }
   document.getElementById(id).classList.add("show");
 }
 function toggleMenu(id){
