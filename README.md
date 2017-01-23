@@ -74,7 +74,7 @@ For best results with autodetection, please make sure the following requirements
 
 ### Permanent install
 
-[v1.1.1 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
+[v1.2.1 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
 
 [v1.2.1 — Regular version — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
 
@@ -98,7 +98,7 @@ For best results with autodetection, please make sure the following requirements
 
 ## Changelog
 
-###v1.2.1  (vaiting for approval / Chrome version)
+###v1.2.1  (AMO + Chrome)
 
 * Fixed the bugs which caused aspect ratio to not be calculated properly.
 * Introduced further changes that allow me to not keep two separate version for Firefox and Chrome.
@@ -108,7 +108,7 @@ For best results with autodetection, please make sure the following requirements
 * Auto-aspect ratio detection on netflix
 * initial port to Chrome
 
-###v1.1.1  (latest version on AMO)
+###v1.1.1
 
 * Fixed zooming issue on netflix
 * Ultrawidify shortcuts > youtube/netflix shortcuts
