@@ -1,11 +1,12 @@
 var usebrowser = "chrome";
 var browser_autodetect = true;
 
-var debugmsg = false;
+var debugmsg = true;
 var debugmsg_click = false;
 var debugmsg_message = false;
 var debugmsg_autoar = false;
 var debugmsg_periodic = false;
+var debugmsg_ui = true;
 if(debugmsg || debugmsg_click || debugmsg_message || debugmsg_autoar){
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
   console.log("\nLoading ultrawidify (uw)\nIf you can see this, extension at least tried to load\n\nRandom number: ",Math.floor(Math.random() * 20) + 1,"\n");
@@ -23,6 +24,111 @@ if(debugmsg || debugmsg_click || debugmsg_message || debugmsg_autoar){
     console.log("Logging autoar");
   
   console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
+}
+
+var UW_UI_BUTTONS = {
+  fitw: {
+    native_bar: true,
+    has_submenu: false,
+    button: true,
+    icon: "/res/img/ytplayer-icons/fitw.png",
+    text: "Fit to width",
+    onclick: function(){ changeCSS("fit",   "fitw") }
+  },
+  fith: {
+    native_bar: true,
+    has_submenu: false,
+    button: true,
+    icon: "/res/img/ytplayer-icons/fith.png",
+    text: "Fit to height",
+    onclick: function(){ changeCSS("fit",   "fith") }
+  },
+  reset: {
+    native_bar: true,
+    has_submenu: false,
+    button: true,
+    icon: "/res/img/ytplayer-icons/reset.png",
+    text: "Reset",
+    onclick: function(){ changeCSS("reset", "reset") }
+  },
+  zoom: {
+    native_bar: true,
+    has_submenu: false,
+    button: true,
+    icon: "/res/img/ytplayer-icons/zoom.png",
+    text: "Reset",
+    onclick: function(){ changeCSS("fit", "zoom") }
+  },
+  unzoom: {
+    native_bar: true,
+    has_submenu: false,
+    button: true,
+    icon: "/res/img/ytplayer-icons/unzoom.png",
+    text: "Reset",
+    onclick: function(){ changeCSS("fit", "unzoom")  }
+  },
+  zoom: {
+    native_bar: true,
+    has_submenu: false,
+    button: true,
+    icon: "/res/img/ytplayer-icons/zoom.png",
+    text: "Reset",
+    onclick: function(){ changeCSS("fit", "zoom")  }
+  },
+  autoar: {
+    native_bar: false,
+    has_submenu: false,
+    button: false,
+    text: "Detect aspect ratio via 3rd party",
+    onclick: function(){ manual_autoar()}
+  },
+  settings: {
+    native_bar: true,
+    button: true,
+    icon: "/res/img/ytplayer-icons/settings.png",
+    text: "Settings",
+    has_submenu: true,
+    submenu: [ "fitw","fith","reset","zoom","unzoom","autoar","ar" ],
+    submenu_id: "uw_settings_menu",
+    onclick: function(){ showMenu("uw_settings_menu"); }
+  },
+  ar: {
+    native_bar: false,
+    button: false,
+    text: "Force aspect ratio",
+    has_submenu: true,
+    submenu: [ "ar219", "ar169", "ar1610", "ar43" ],
+    submenu_id: "uw_force_ar_menu",
+    onclick: function(){ showMenu("uw_force_ar_menu") }
+  },
+  ar219: {
+    native_bar: false,
+    button: false,
+    text: "21:9",
+    has_submenu: false,
+    onclick: function(){ changeCSS("char", ( 21/9 )); }
+  },
+  ar169: {
+    native_bar: false,
+    button: false,
+    text: "16:9",
+    has_submenu: false,
+    onclick: function(){ changeCSS("char", ( 16/9 )); }
+  },
+  ar1610: {
+    native_bar: false,
+    button: false,
+    text: "16:10",
+    has_submenu: false,
+    onclick: function(){ changeCSS("char", ( 1.6 )); }
+  },
+  ar43: {
+    native_bar: false,
+    button: false,
+    text: "4:3",
+    has_submenu: false,
+    onclick: function(){ changeCSS("char", ( 4/3 )); }
+  }
 }
 
 if(browser_autodetect){
@@ -128,7 +234,7 @@ function init(force_reload){
     if(force_reload)
       ui_anchor.parentNode.remove(ui_anchor);
     
-    ui_anchor = document.getElementsByClassName("uw-button-row")[0];
+//     ui_anchor = document.getElementsByClassName("uw-button-row")[0];
     
 //     var container = document.getElementsByClassName("player-control-bar")[0];
 //     if(! container || ! container.childNodes)
@@ -147,17 +253,17 @@ function init(force_reload){
 //         
 //     }
     
-    if(!ui_anchor){
-      ui_anchor = document.createElement("div");
-      ui_anchor.className = "uw-button-row";
-      ui_anchor.id = "uw_anchor";
-    }
-    
-    
-    if(debugmsg)
-      console.log("uw::init | we're on netflix. ui anchor: ",ui_anchor, "; ui anchor parent:", tmp);
-    
-    tmp.appendChild(ui_anchor);
+//     if(!ui_anchor){
+//       ui_anchor = document.createElement("div");
+//       ui_anchor.className = "uw-button-row";
+//       ui_anchor.id = "uw_anchor";
+//     }
+//     
+//     
+//     if(debugmsg)
+//       console.log("uw::init | we're on netflix. ui anchor: ",ui_anchor, "; ui anchor parent:", tmp);
+//     
+//     tmp.appendChild(ui_anchor);
     
 //     document.querySelector(".player-control-bar").appendChild(ui_anchor);
 //     console.log(document.querySelector(".player-control-bar"))
@@ -454,8 +560,10 @@ function extSetup(){
   
   loadFromStorage();
   keydownSetup();  
-  addCtlButtons(0);
-  updateCtlButtonSize();
+//   addCtlButtons(0);
+  buildUInative();
+//   updateCtlButtonSize();
+  updateUICSS();
   
   if(page_url.indexOf("netflix.com") != -1){
     console.log("uw::extSetup | starting netflix-specific setup steps");
@@ -473,15 +581,16 @@ function loadFromStorage(){
     console.log("uw::loadFromStorage | loading stuff from storage.");
   
   if(usebrowser == "chrome"){
-    browser.storage.local.get("ultrawidify_autoar", function(data){console.log("storage.get answered with data:",data); extsetup_autoar(data)});
-    browser.storage.local.get("ultrawidify_keybinds", function(data){console.log("storage.get answered with data:",data); extsetup_keybinds(data)});
+    browser.storage.local.get("ultrawidify_autoar", function(data){ extsetup_autoar(data)});
+    browser.storage.local.get("ultrawidify_keybinds", function(data){ extsetup_keybinds(data)});
   }
   else{
     browser.storage.local.get("ultrawidify_autoar").then(function(opt){
       if(debugmsg || debugmsg_autoar)
         console.log("uw::loadFromStorage | setting up autoar. opt:",opt)
       extsetup_autoar(opt);
-      console.log("autoar_enabled:",autoar_enabled);
+      if(debugmsg || debugmsg_autoar)
+        console.log("autoar_enabled:",autoar_enabled);
     });
     var ask4keybinds = browser.storage.local.get("ultrawidify_keybinds").then(extsetup_keybinds);
   }
@@ -563,7 +672,6 @@ function keydownSetup(){
     inFullScreen ? onFullscreenOn() : onFullscreenOff();
   });
 }
-
 
 function extsetup_autoar(opt){
   if(usebrowser == "chrome")
@@ -648,9 +756,165 @@ function check4player(recursion_depth){
   }
   return false;
 }
+
+function mkanchor(){
+  // Youtube
+  if(page_url.indexOf("youtube") != -1 || page_url.indexOf("youtu.be") != 1){
+    ui_anchor = document.createElement("div");
+    ui_anchor.className = "uw_ui_anchor";
+    ui_anchor.id = "uw_ui_anchor";
+    $(document.getElementsByClassName("ytp-right-controls")[0]).prepend(ui_anchor);
+  }
   
+}
+ 
+function buildUInative(){
+  /** This function builds UI in the native bar.
+   * 
+   */
+  
+  if(!ui_anchor)
+    mkanchor();
+  
+  if(debugmsg || debugmsg_ui )
+    console.log("uw::buildUInative | starting to build UI");
+  
+  var el;
+  for(key in UW_UI_BUTTONS){
+    el = UW_UI_BUTTONS[key];
+    
+    if(!el.native_bar)
+      continue;
+    
+    var uiel; //ui element
+    
+    if(el.button){
+      uiel = mkbutton(el);
+    }
+    
+    if(!uiel)
+      continue;
+    
+    ui_anchor.appendChild(uiel);
+    
+    if(el.has_submenu){
+      uiel.appendChild(mksubmenu(el));
+    }
+  }
+  
+  if(debugmsg || debugmsg_ui )
+    console.log("uw::buildUInative | ui finished");
+}
+
+function mksubmenu(el){
+  var submenu = document.createElement("div");
+  submenu.id = el.submenu_id;
+  submenu.className = "uw_element uw_submenu";
+  
+  for(var i = 0; i < el.submenu.length; i++){
+    submenu.appendChild(mkmenuitem(el.submenu[i]));
+  }
+  
+  return submenu;
+}
+
+function mkmenuitem(key){
+  var el = UW_UI_BUTTONS[key];
+  var item = document.createElement("div");
+  item.textContent = el.text;
+  item.className = "uw-setmenu-item uw_element";
+  item.onclick = function(event){ event.stopPropagation(); el.onclick(); hideAllMenus(); };
+  
+  if(el.has_submenu){
+    item.appendChild(mksubmenu(el)); 
+    $(item).on("mouseenter", function(){showMenu(el.submenu_id)});
+    $(item).on("mouseleave", function(){hideMenu(el.submenu_id)});
+  }
+  
+  return item;
+}
+
+function mkbutton(el){
+  if(debugmsg | debugmsg_ui)
+    console.log("uw::mkbutton | trying to make a button", el.text);
+  
+  var button = document.createElement("div");
+  button.style.backgroundImage = 'url(' + resourceToUrl(el.icon) + ')';
+//   button.style.width = (button_width * 0.75) + "px";
+//   button.style.height = (button_width) + "px";
+//   button.style.width = 0;
+//   button.style.marginLeft = (button_width * 0.3) + "px";
+//   button.style.paddingLeft = (button_width *0.15 ) + "px";
+//   button.style.paddingRight = (button_width * 0.15) + "px";
+  button.className += " uw_button uw_element";
+  button.onclick = function(event) { event.stopPropagation(); el.onclick };
+  
+  if(debugmsg | debugmsg_ui)
+    console.log("uw::mkbutton | button completed");
+  
+  return button;
+}
+
+function updateUICSS(){
+  //BEGIN update buttons
+  var buttons = document.getElementsByClassName("uw_button");
+  
+  var button_width = getBaseButtonWidth();
+  
+  if(debugmsg)
+    console.log("uw::updateUICSS | resizing buttons. This are our buttons:",buttons," | a button is this wide:", button_width);
+  
+  if(button_width == -1 || buttons.length == 0){ //this means there's no ui
+    if(debugmsg)
+      console.log("uw::updateUICSS | UI wasn't detected, stopping");
+    return;
+  }
+  
+  if(debugmsg){
+    console.log("uw::updateUICSS | checks passed. Starting to resize ...");
+    console.log("uw::updateUICSS | we have this many elements:",buttons.length, buttons);
+  }
+  for (var i = 0; i < buttons.length; i++){
+    buttons[i].style.width = (button_width * 0.75) + "px";
+    buttons[i].style.height = (button_width) + "px";
+//     buttons[i].style.width = 0;
+    buttons[i].style.marginLeft = (button_width * 0.3) + "px";
+    buttons[i].style.paddingLeft = (button_width *0.15 ) + "px";
+    buttons[i].style.paddingRight = (button_width * 0.15) + "px";
+  }
+  
+  
+  //END update buttons
+  
+}
+
+function getBaseButtonWidth(){
+  try{
+    // Na različnih straneh širino gumba poberemo na različne načine.
+    if(button_size_base == "y")
+      return document.getElementsByClassName(sample_button_class)[sample_button_index].scrollHeight;
+    else
+      return document.getElementsByClassName(sample_button_class)[sample_button_index].scrollWidth;
+  }
+  catch(e){
+    // Zato, ker predvajalnik ni vselej prisoten. Če predvajalnik ni prisoten,
+    // potem tudi knofov ni. Kar pomeni problem.
+    // 
+    // Because the player isn't always there, and when the player isn't there the buttons aren't, either.
+    // In that case, the above statement craps out, throws an exception and trashes the extension.
+    if(debugmsg)
+      console.log("uw::getBaseButtonWidth | seems there was a fuckup and no buttons were found on this page. No player (and therefore no buttons) found.");
+    return -1;
+  }
+}
+
+var align_to = "bottom"; //TODO — unhardcode
+function alignToBottom(){
+  return align_to == "bottom";
+}
+
 function addCtlButtons(recursion_depth){
-  
+  return;
   if(debugmsg)
     console.log("uw::addCtlButtons | function started");
   
@@ -694,16 +958,16 @@ function addCtlButtons(recursion_depth){
   if(debugmsg)
     console.log("uw::addCtlButtons | trying to add buttons");
   
-  // Če je ta dodatek že nameščen, potem odstranimo vse elemente. Vsi top-level elementi imajo definiran prazen razred
+  /* Če je ta dodatek že nameščen, potem odstranimo vse elemente. Vsi top-level elementi imajo definiran prazen razred
   // uw_element, prek katerega jih naberemo na kup. Ta del kode je tu bolj ali manj zaradi debugiranja.
   // 
   // If this addon is already installed, we have to remove all prevously added elements (to avoid duplicating).
   // The easiest way to gather all of them is to tack an empty class, 'uw_element,' to each top-level element we add.
   // This is here mostly because debugging, but could also be useful in case of unforseen happenings.
-  
+  */
   var previousElements = document.getElementsByClassName("uw_element");
 
-  // Uporabimo while loop in vselej odstranimo prvi element. Tabela previousElements se z odstranjevanjem elementov
+  /* Uporabimo while loop in vselej odstranimo prvi element. Tabela previousElements se z odstranjevanjem elementov
   // krajša. 
   //
   // Da, to je bil bug.
@@ -714,12 +978,14 @@ function addCtlButtons(recursion_depth){
   // for as long as the array contains elements. 
   // 
   // Yes, that used to be a bug.
+  */
   if(!debugmsg && !debugmsg_click){
-    // Če je debugmsg false, potem verjetno ne dodajamo nobenih novih funkcionalnosti, zaradi katerih bi bilo potrebno
+    /* Če je debugmsg false, potem verjetno ne dodajamo nobenih novih funkcionalnosti, zaradi katerih bi bilo potrebno
     // ponovno naložiti vmesnik. Zato tega ne storimo, temveč ohranimo stare gumbe. Ker so ok.
     // 
     // If debugging is false, then we aren't adding any new features that would require us to reload UI. So we leave
     // the old UI in place, because it should be good enough.
+    */
     
     if(previousElements && previousElements.length > 0){
       return;
@@ -1043,7 +1309,7 @@ function onOpen(){
 }
 
 function onError(err){
-  if(debug){
+  if(debugmsg){
     console.log(`Error: ${error}`);
     console.log("uw | Error opening the page", err);
   }

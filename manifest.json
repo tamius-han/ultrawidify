@@ -14,7 +14,7 @@
   "content_scripts": [
   {
     "matches": ["*://*.youtube.com/*", "*://youtube.com/*", "*://youtu.be/*","*://www.netflix.com/*"],
-    "js": [ "js/jquery-3.1.1.js", "js/uw.js" ],
+    "js": [ "js/jquery-3.1.1.js", "js/uw_libbuttons.js", "js/uw.js" ],
     "all_frames": true
   }
   ],
@@ -29,7 +29,7 @@
   
   "web_accessible_resources": [
     "res/img/ytplayer-icons/zoom.png",
-    "res/img/ytplayer-icons/uzoom.png",
+    "res/img/ytplayer-icons/unzoom.png",
     "res/img/ytplayer-icons/fitw.png",
     "res/img/ytplayer-icons/fith.png",
     "res/img/ytplayer-icons/reset.png",
