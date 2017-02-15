@@ -89,6 +89,7 @@ var UW_UI_BUTTONS = {
     text: "Settings",
     has_submenu: true,
     submenu: [ "fitw","fith","reset","zoom","unzoom","autoar","ar" ],
+    top_level: true,
     submenu_id: "uw_settings_menu",
     onclick: function(){ showMenu("uw_settings_menu"); }
   },
@@ -201,6 +202,17 @@ function init(force_reload){
   
   if(debugmsg)
     console.log("uw::init | starting init");
+  
+  var el;
+  for (key in UW_UI_BUTTONS){
+    el = UW_UI_BUTTONS[key];
+    if(el.submenu_id){
+      // We defined submenus. Now let's add parent info to each submenu.
+      for(var i = 0; i < el.submenu.length; i++){
+        UW_UI_BUTTONS[el.submenu[i]].parent = key;
+      }
+    }
+  }
   
   //Youtube:
   if(page_url.indexOf("youtu") != -1){
@@ -773,8 +785,13 @@ function buildUInative(){
    * 
    */
   
+  if(ui_anchor)
+    return;
+  
   if(!ui_anchor)
     mkanchor();
+  
+  
   
   if(debugmsg || debugmsg_ui )
     console.log("uw::buildUInative | starting to build UI");
@@ -827,12 +844,21 @@ function mkmenuitem(key){
   
   if(el.has_submenu){
     item.appendChild(mksubmenu(el)); 
-    $(item).on("mouseenter", function(){showMenu(el.submenu_id)});
+
+//     if(debugmsg){
+//       console.log("uw::mkmenuitem | do we have parent?",el.parent,"parent id:",UI_UW_BUTTONS[el.parent].submenu_id);
+//     }
+//     if(el.parent)
+//       $(item).on("mouseenter", function(){showMenu(el.submenu_id)});
+//     else
+      $(item).on("mouseenter", function(){showMenu(el.submenu_id)});
+    
     $(item).on("mouseleave", function(){hideMenu(el.submenu_id)});
   }
   
   return item;
 }
+
 
 function mkbutton(el){
   if(debugmsg | debugmsg_ui)
@@ -840,14 +866,8 @@ function mkbutton(el){
   
   var button = document.createElement("div");
   button.style.backgroundImage = 'url(' + resourceToUrl(el.icon) + ')';
-//   button.style.width = (button_width * 0.75) + "px";
-//   button.style.height = (button_width) + "px";
-//   button.style.width = 0;
-//   button.style.marginLeft = (button_width * 0.3) + "px";
-//   button.style.paddingLeft = (button_width *0.15 ) + "px";
-//   button.style.paddingRight = (button_width * 0.15) + "px";
   button.className += " uw_button uw_element";
-  button.onclick = function(event) { event.stopPropagation(); el.onclick };
+  button.onclick = function(event) {event.stopPropagation(); el.onclick() };
   
   if(debugmsg | debugmsg_ui)
     console.log("uw::mkbutton | button completed");
@@ -855,8 +875,18 @@ function mkbutton(el){
   return button;
 }
 
+function hideAllMenus(){
+  var el;
+  for(key in UW_UI_BUTTONS){
+    el = UW_UI_BUTTONS[key];
+    if( el.submenu_id )
+      hideMenu(el.submenu_id);
+  }
+}
+
 function updateUICSS(){
-  //BEGIN update buttons
+  
+  //BEGIN INIT
   var buttons = document.getElementsByClassName("uw_button");
   
   var button_width = getBaseButtonWidth();
@@ -874,10 +904,12 @@ function updateUICSS(){
     console.log("uw::updateUICSS | checks passed. Starting to resize ...");
     console.log("uw::updateUICSS | we have this many elements:",buttons.length, buttons);
   }
+  //END INIT
+  //BEGIN update buttons
+  
   for (var i = 0; i < buttons.length; i++){
     buttons[i].style.width = (button_width * 0.75) + "px";
     buttons[i].style.height = (button_width) + "px";
-//     buttons[i].style.width = 0;
     buttons[i].style.marginLeft = (button_width * 0.3) + "px";
     buttons[i].style.paddingLeft = (button_width *0.15 ) + "px";
     buttons[i].style.paddingRight = (button_width * 0.15) + "px";
@@ -885,7 +917,32 @@ function updateUICSS(){
   
   
   //END update buttons
+  //BEGIN update menus 
   
+  var el;
+  var div;
+  for(key in UW_UI_BUTTONS){
+    el = UW_UI_BUTTONS[key];
+    if( el.submenu_id ){
+      div = document.getElementById(el.submenu_id);
+      if( el.top_level) {
+        if( alignToBottom() ){
+          div.style.bottom = button_width * 1.2 + "px";
+        }
+        
+        
+      }
+      else{
+        if( alignToBottom() ) {
+          div.style.bottom = "0px";
+        }
+        
+        // this is tricky. We need to find the best place to put the (sub)menu.
+      }
+    }
+  }
+  
+  //END menus
 }
 
 function getBaseButtonWidth(){
@@ -907,6 +964,8 @@ function getBaseButtonWidth(){
     return -1;
   }
 }
+
+
 
 var align_to = "bottom"; //TODO — unhardcode
 function alignToBottom(){
@@ -1864,12 +1923,18 @@ function resourceToUrl(img){
   return chrome.extension.getURL(img);
 }
 
-function showMenu(id){
+function showMenu(id, parent){
   if(debugmsg){
     console.log("uw::showMenu | showing menu with id ", id, "\n\n", document.getElementById(id));
   }
   document.getElementById(id).classList.add("show");
+  if(parent){
+    if(debugmsg)
+      console.log("uw::showMenu | this menu has a parent:", parent, document.getElementById(parent));
+  }
 }
+
+
 function toggleMenu(id){
   if(debugmsg || debugmsg_click)
     console.log("uw::toggleMenu | toggling menu with id", id, "\n\n", document.getElementById(id));
