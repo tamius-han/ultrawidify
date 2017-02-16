@@ -132,6 +132,10 @@ var UW_UI_BUTTONS = {
   }
 }
 
+var UW_UI_BANLIST = {
+  youtube: ["autoar"]
+}
+
 if(browser_autodetect){
   if(typeof browser === "undefined"){ // This means we're probably not on Firefox.
     if(chrome){
@@ -572,9 +576,7 @@ function extSetup(){
   
   loadFromStorage();
   keydownSetup();  
-//   addCtlButtons(0);
   buildUInative();
-//   updateCtlButtonSize();
   updateUICSS();
   
   if(page_url.indexOf("netflix.com") != -1){
@@ -845,12 +847,26 @@ function mkmenuitem(key){
   if(el.has_submenu){
     item.appendChild(mksubmenu(el)); 
 
-//     if(debugmsg){
-//       console.log("uw::mkmenuitem | do we have parent?",el.parent,"parent id:",UI_UW_BUTTONS[el.parent].submenu_id);
-//     }
-//     if(el.parent)
-//       $(item).on("mouseenter", function(){showMenu(el.submenu_id)});
-//     else
+    if(debugmsg){
+      console.log("uw::mkmenuitem | we are:", el, "; do we have parent?",el.parent,"parent id:",UW_UI_BUTTONS[el.parent].submenu_id, UW_UI_BUTTONS[el.parent].submenu_id === "uw_settings_menu");
+    }
+    
+    if(el.parent)
+      $(item).on("mouseenter", function(){
+        // We determine where the submenu goes - to the left or to the right. showMenu handles position,
+        // this function gets sizes of all objects
+        var div = document.getElementById(UW_UI_BUTTONS[el.parent].submenu_id);
+        var supmenusize = div.getBoundingClientRect();
+        div = document.getElementById(el.submenu_id);
+        var submenusize = div.getBoundingClientRect();
+        var playersize = player.getBoundingClientRect();
+        
+        if(debugmsg)
+          console.log("uw::mouseenter | parent menu size:",supmenusize,"submenu size:",submenusize,"player size:",playersize);
+        
+        showMenu(el.submenu_id, {parent:supmenusize, submenu:submenusize, player:playersize});
+      });
+    else
       $(item).on("mouseenter", function(){showMenu(el.submenu_id)});
     
     $(item).on("mouseleave", function(){hideMenu(el.submenu_id)});
@@ -1923,14 +1939,13 @@ function resourceToUrl(img){
   return chrome.extension.getURL(img);
 }
 
-function showMenu(id, parent){
+function showMenu(id, sizes){
   if(debugmsg){
     console.log("uw::showMenu | showing menu with id ", id, "\n\n", document.getElementById(id));
   }
   document.getElementById(id).classList.add("show");
-  if(parent){
-    if(debugmsg)
-      console.log("uw::showMenu | this menu has a parent:", parent, document.getElementById(parent));
+  if(sizes){
+    //TODO: determine where to put submenu
   }
 }
 
