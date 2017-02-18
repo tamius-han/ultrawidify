@@ -1943,9 +1943,40 @@ function showMenu(id, sizes){
   if(debugmsg){
     console.log("uw::showMenu | showing menu with id ", id, "\n\n", document.getElementById(id));
   }
-  document.getElementById(id).classList.add("show");
+  
+  var div = document.getElementById(id);
+  
+  console.log("showMenu | asasdas", sizes);
+  
+  div.classList.add("show");
+  console.log("showMenu | asasdas");
   if(sizes){
-    //TODO: determine where to put submenu
+    console.log("uw::showMenu",sizes);
+    var player_leftmost = sizes.player.left;
+    console.log("showMenu | asasdassssssssssssssssssssssssssssssss");
+    
+    var parent_leftmost = sizes.parent.left;
+    var player_rightmost = sizes.player.left + sizes.player.width;
+    console.log("showMenu | asas421das");
+    var parent_rightmost = sizes.parent.left + sizes.parent.width;
+    
+    if(debugmsg){
+      console.log("uw::showMenu | space on left:", parent_leftmost - player_leftmost, "| space on right:", player_rightmost - parent_rightmost);
+    }
+    
+    // if:
+    //  space left of the parent      is bigger than       space right of the parent
+    if( (parent_leftmost - player_leftmost)   >   (player_rightmost - parent_rightmost) ){
+      //player goes to the left side
+      if(debugmsg){
+        console.log("uw::showMenu | setting position on the submenu relative to the parent. left:", -div.getBoundingClientRect().width )
+      }
+      div.style.left = (- div.getBoundingClientRect().width ) + "px";
+    }
+    else{
+      alert("this wasn't defined yet. pls do this. ctrl+f rivianpoint");
+      div.style.left = sizes.parent.width + "px";
+    }
   }
 }
 
