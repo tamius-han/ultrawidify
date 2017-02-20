@@ -8,7 +8,7 @@ var debugmsg_autoar = false;
 var debugmsg_periodic = false;
 var debugmsg_ui = true;
 if(debugmsg || debugmsg_click || debugmsg_message || debugmsg_autoar){
-  console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
+  console.log("\n\n\n\n\n\n\n\n\n\n\n\n\n\n. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
   console.log("\nLoading ultrawidify (uw)\nIf you can see this, extension at least tried to load\n\nRandom number: ",Math.floor(Math.random() * 20) + 1,"\n");
   
   if(debugmsg)
@@ -56,7 +56,7 @@ var UW_UI_BUTTONS = {
     has_submenu: false,
     button: true,
     icon: "/res/img/ytplayer-icons/zoom.png",
-    text: "Reset",
+    text: "Zoom",
     onclick: function(){ changeCSS("fit", "zoom") }
   },
   unzoom: {
@@ -64,7 +64,7 @@ var UW_UI_BUTTONS = {
     has_submenu: false,
     button: true,
     icon: "/res/img/ytplayer-icons/unzoom.png",
-    text: "Reset",
+    text: "Unzoom",
     onclick: function(){ changeCSS("fit", "unzoom")  }
   },
   zoom: {
@@ -91,7 +91,7 @@ var UW_UI_BUTTONS = {
     submenu: [ "fitw","fith","reset","zoom","unzoom","autoar","ar" ],
     top_level: true,
     submenu_id: "uw_settings_menu",
-    onclick: function(){ showMenu("uw_settings_menu"); }
+    onclick: function(){ toggleMenu("uw_settings_menu") }
   },
   ar: {
     native_bar: false,
@@ -133,7 +133,12 @@ var UW_UI_BUTTONS = {
 }
 
 var UW_UI_BANLIST = {
-  youtube: ["autoar"]
+  youtube: {
+    autoar: true
+  },
+  netflix: {
+    settings: true
+  }
 }
 
 if(browser_autodetect){
@@ -160,8 +165,8 @@ var zoomStep = 0.05;
 
 var whatdo_persistence = true;
 var last_whatdo = {type: "autoar", what_do:"reset"};
-var page_url = window.location.toString();
-
+var page_url = window.location.toString();            // S pomočjo page_url določimo, na kateri spletni strani smo.
+var SITE;
 
 var ctlbar_classnames = ["ytp-chrome-controls"];
 var serviceArray = [".video-stream"]; //Youtube 
@@ -202,6 +207,26 @@ if(usebrowser == "chrome"){
   browser = chrome;
 }
 
+var UW_SITES = {
+  youtube: {
+    urlRules: ["youtu"]
+  },
+  netflix: {
+    urlRules: ["netflix"]
+  }
+}
+ 
+
+//Na reloadu vselej odstrani vmesnik od prej
+//Always remove previous UI on extension reload
+var previousElements = document.getElementsByClassName("uw_element");
+if(previousElements){
+  while (previousElements.length > 0){
+    previousElements[0].parentNode.removeChild(previousElements[0]);
+  }
+}
+
+
 function init(force_reload){
   
   if(debugmsg)
@@ -217,6 +242,40 @@ function init(force_reload){
       }
     }
   }
+  
+  var marker = document.getElementById("uw_save_site");
+  
+  if(debugmsg)
+    console.log("uw | %cpage_url: "+page_url,"color: #99F");
+  
+  
+  /* Fun fact — če reloadamo razširitev v about:debugging, window.location vrne "javascript:". Fak
+  // Fun fact — if we reload the extension from about:debugging, window.location returns "javascript:" (which
+  // obviously isn't the page we're on. Fak.
+  */
+  if(page_url.indexOf("javascript:") != -1){
+    if(marker){
+      if(debugmsg){
+        console.log("uw::init | %csomething went wrong, page_url is not properly defined. Trying to get URL from a marker","color: #000; background-color: #F00", "marker value:",marker.textContent);
+      }
+      page_url = marker.textContent;
+    }
+    else
+      console.log("uw::init | %csomething went wrong, page_url is not properly defined. Marker wasn't found either.r","color: #000; background-color: #F00");
+  }
+  else{
+    if(!marker && page_url.indexOf("javascript:") == -1){
+      var marker = document.createElement('div');
+      marker.id = "uw_save_site";
+      marker.textContent = page_url;
+    }
+    else{
+      if(page_url.indexOf("javascript:") == -1)
+        marker.textContent = page_url;
+    }
+  }
+  
+  
   
   //Youtube:
   if(page_url.indexOf("youtu") != -1){
@@ -405,64 +464,73 @@ var DEFAULT_KEYBINDINGS = {
   }
 };
 
+
+
 var last_location = "";
 
 var KEYBINDS = {};
 
-browser.storage.onChanged.addListener(function(){console.log("storage has been updated!"); extSetup() } );
+browser.storage.onChanged.addListener(function(){
+  if(debugmsg){
+    console.log("uw::<storage change> |%c calling extSetup from storage.onChanged","color:#99f");
+  }
+  extSetup();
+});
 
 //END keybind-related stuff
 
 //BEGIN comms with uw-bg
-if(debugmsg)
-  console.log("uw | Setting up comms with background scripts");
+function extsetup_comms(){
+  if(debugmsg)
+    console.log("uw | Setting up comms with background scripts");
 
-var num_of_msg = 0;
-browser.runtime.onMessage.addListener(function (message, sender, stuff ) {
-  if(debugmsg || debugmsg_message)
-    console.log("uw::onMessage | message number: ", num_of_msg++  , "; message:", message );
-  
-  if(message.message && message.message == "page-change"){
-    if(document.getElementsByClassName("uw_element").length === 0){
-      if(debugmsg)
-        console.log("uw::onMessage | page was updated but control buttons aren't there. Trying to readd.")
+  var num_of_msg = 0;
+  browser.runtime.onMessage.addListener(function (message, sender, stuff ) {
+    if(debugmsg || debugmsg_message)
+      console.log("uw::onMessage | message number: ", num_of_msg++  , "; message:", message );
+    
+    if(message.message && message.message == "page-change"){
+      if(document.getElementsByClassName("uw_element").length === 0){
+        if(debugmsg)
+          console.log("uw::onMessage | page was updated but control buttons aren't there. Trying to readd.")
+        
+        init();
+        addCtlButtons(0);
+      }
       
-      init();
-      addCtlButtons(0);
+      
+      // We don't do that if we zoomed or unzoomed
+      if(last_whatdo.what_do != "zoom" && last_whatdo.what_do != "unzoom")
+        changeCSS(last_whatdo.type, last_whatdo.what_do);
+      
+      // Velikost gumbov posodobimo v vsakem primeru
+      // We update the button size in any case
+      updateCtlButtonSize();
+      
+      if(debugmsg)
+        console.log("uw::onMessage | message number:",num_of_msg," »» everything is done. Buttons: ", document.getElementsByClassName("uw-button"));
     }
     
+    if(message.type && message.type == "arInfo"){
+      char_got_ar = true;
+      char_arx = message.arx;
+      char_ary = message.ary;
+      if(debugmsg || debugmsg_message || debugmsg_autoar)
+        console.log("uw::onMessage | got aspect ratio (",char_arx,"/",char_ary,"), launching autochar");
+      autochar();
+    }
     
-    // We don't do that if we zoomed or unzoomed
-    if(last_whatdo.what_do != "zoom" && last_whatdo.what_do != "unzoom")
-      changeCSS(last_whatdo.type, last_whatdo.what_do);
-    
-    // Velikost gumbov posodobimo v vsakem primeru
-    // We update the button size in any case
-    updateCtlButtonSize();
-    
-    if(debugmsg)
-      console.log("uw::onMessage | message number:",num_of_msg," »» everything is done. Buttons: ", document.getElementsByClassName("uw-button"));
-  }
-  
-  if(message.type && message.type == "arInfo"){
-    char_got_ar = true;
-    char_arx = message.arx;
-    char_ary = message.ary;
-    if(debugmsg || debugmsg_message || debugmsg_autoar)
-      console.log("uw::onMessage | got aspect ratio (",char_arx,"/",char_ary,"), launching autochar");
-    autochar();
-  }
-  
-});
+  });
 
-// browser.runtime.onMessage.addListener(request => {
-//   console.log("Message from the background script:");
-//   console.log(request.greeting);
-//   return Promise.resolve({response: "Hi from content script"});
-// });
+  // browser.runtime.onMessage.addListener(request => {
+  //   console.log("Message from the background script:");
+  //   console.log(request.greeting);
+  //   return Promise.resolve({response: "Hi from content script"});
+  // });
 
-if(debugmsg)
-  console.log("uw | Comms with background scripts: done");
+  if(debugmsg)
+    console.log("uw | Comms with background scripts: done");
+}
 //END comms with uw-bg
 
 //BEGIN periodic functions
@@ -558,9 +626,10 @@ function extSetup(){
   
   last_location = window.location;
   
+//   SITE = "";
   
   if(debugmsg){
-    console.log("uw::extSetup | our current location is:", last_location);
+    console.log("uw::extSetup | our current location is:", last_location, "(page_url says",page_url,")");
     console.log("uw::extSetup | initiating extension");
   }
   var ini = init();
@@ -575,30 +644,95 @@ function extSetup(){
     console.log("uw::extSetup | setting up keyboard shortcuts");
   
   loadFromStorage();
-  keydownSetup();  
-  buildUInative();
-  updateUICSS();
   
-  if(page_url.indexOf("netflix.com") != -1){
-    console.log("uw::extSetup | starting netflix-specific setup steps");
-    if(netflix_periodic_timer)
-      clearInterval(netflix_periodic_timer);
-    netflix_periodic_timer = setInterval(function(){ periodic(); }, 100);
+  //extsetup_stage2 gets called in loadFromStorage, on siterules
+}
+
+var extsetup_stage2_state = 0;
+var EXTSETUP_STAGE2_REQUIRED_STATE = 3;
+function extsetup_stage2(op){
+  
+  if(op == "clear"){
+    if(debugmsg)
+      console.log("uw::extsetup (stage 2) | %cclearing progress (state)","color: #fff");
+    extsetup_stage2_state = 0;
+    return;
+  }
+  if(op == "site"){
+    if(debugmsg)
+      console.log("uw::extsetup (stage 2) | %cSITE stage complete","color: #fff");
+    extsetup_stage2_state |= 1;
+  }
+  if(op == "uiban"){
+    if(debugmsg)
+      console.log("uw::extsetup (stage 2) | %cuiban stage completed. Setting progress","color: #fff");
+    extsetup_stage2_state |= 2;
   }
   
+  if(extsetup_stage2_state != EXTSETUP_STAGE2_REQUIRED_STATE){
+    if(debugmsg)
+      console.log("uw::extsetup (stage 2) | %cSome stages are still uncompleted, doing nothing.","color: #fff");
+    return;
+  }
+  
+  // SITE se nastavi v funkciji loadFromStorage. Če ni nastavljen, potem nismo na znani/podprti strani
+  // SITE is set in loadFromStorage. If SITE is still undefined at this point, then we aren't on a known page.
+  
+  if(debugmsg){
+    console.log("uw::extSetup (stage 2) | --------- ENTERING STAGE 2 OF SETUP -----------");
+  }
+  
+  if(SITE){
+    keydownSetup();
+    extsetup_comms();
+    buildUInative();
+    updateUICSS();
+    
+    if(page_url.indexOf("netflix.com") != -1){
+      console.log("uw::extSetup (stage 2) | starting netflix-specific setup steps");
+      if(netflix_periodic_timer)
+        clearInterval(netflix_periodic_timer);
+      netflix_periodic_timer = setInterval(function(){ periodic(); }, 100);
+    }
+  }
+  else{
+    if(debugmsg){
+      console.log("uw::extSetup (stage 2) |%c SITE appears to be undefined. This means we aren't on a known/supported site. Ultrawidify shouldn't be loaded.",'background-color: #fa6607; color: #000;',"\n(note: this usually happens once after reloading this extension. If that's the case, chances are everything is fine, since this function runs twice — once with correct page_url and once with wrong one");
+      debugger;
+    }
+  }
   if(debugmsg)
-    console.log("======================================[ setup finished ]======================================");
+    console.log("======================================[ setup finished ]======================================\n\n\n\n\n");
 }
 
 function loadFromStorage(){
   if(debugmsg || debugmsg_autoar)
     console.log("uw::loadFromStorage | loading stuff from storage.");
   
+  extsetup_stage2("clear");
+  
   if(usebrowser == "chrome"){
-    browser.storage.local.get("ultrawidify_autoar", function(data){ extsetup_autoar(data)});
-    browser.storage.local.get("ultrawidify_keybinds", function(data){ extsetup_keybinds(data)});
+    browser.storage.local.get("ultrawidify_uiban", function(data){
+      extsetup_uiban(data);
+      extsetup_stage2("uiban");
+    });
+    browser.storage.local.get("ultrawidify_siterules", function(data){ 
+      extsetup_siterules(data); 
+      extsetup_stage2("site") 
+    });
+    browser.storage.local.get("ultrawidify_autoar", function(data){ extsetup_autoar(data) });
+    browser.storage.local.get("ultrawidify_keybinds", function(data){ extsetup_keybinds(data) });
   }
   else{
+    var ask4uiban = browser.storage.local.get("ultrawidify_uiban").then(function(obj){
+      extsetup_uiban(obj);
+      console.log("uiban finished");
+      extsetup_stage2("uiban");
+    });
+    browser.storage.local.get("ultrawidify_siterules").then(function(obj){
+      if(extsetup_siterules(obj))
+        extsetup_stage2("site"); 
+    });
     browser.storage.local.get("ultrawidify_autoar").then(function(opt){
       if(debugmsg || debugmsg_autoar)
         console.log("uw::loadFromStorage | setting up autoar. opt:",opt)
@@ -607,6 +741,7 @@ function loadFromStorage(){
         console.log("autoar_enabled:",autoar_enabled);
     });
     var ask4keybinds = browser.storage.local.get("ultrawidify_keybinds").then(extsetup_keybinds);
+
   }
 }
 
@@ -687,11 +822,62 @@ function keydownSetup(){
   });
 }
 
-function extsetup_autoar(opt){
+function extsetup_siterules(opt){
+  if(debugmsg)
+    console.log("%cuw::extsetup_siterules | setting up site rules settings","color: #88f;");
+  
   if(usebrowser == "chrome")
-    obj = opt;
+    var obj = opt;
   else
-    obj = opt[0];
+    var obj = opt[0];
+  
+  if(obj.ultrawidify_siterules === undefined){
+    if(debugmsg)
+      console.log("uw::extsetup_siterules | site url rules missing from storage. Setting defaults.");
+    browser.storage.local.set({ultrawidify_siterules: UW_SITES});
+  }
+  else{
+    UW_SITES = obj.ultrawidify_siterules;
+  }
+  
+  if(debugmsg)
+    console.log("uw::extsetup_siterules | UW_SITES:",UW_SITES,"current site:",SITE);
+  
+  var match;
+  for(key in UW_SITES){    
+    var el = UW_SITES[key];
+    if(debugmsg){
+      console.log("uw::extsetup_siterules | key:",key,"; el:",el, location);
+    }
+    match = false;
+    
+    for (var i = 0; i < el.urlRules.length; i++){
+      if(debugmsg)
+        console.log("uw::extsetup_siterules | page_url:",page_url,"; el.urlRules["+i+"]:",el.urlRules[i],"; last_location.indexOf(el.urlRules["+i+"]):",page_url.indexOf(el.urlRules[i]));
+      match |= page_url.indexOf(el.urlRules[i]) != -1;
+    }
+    if(match){
+      if(debugmsg)
+        console.log("uw::extsetup_siterules | we are on site", key);
+      
+      SITE = key;
+      return true;
+    }
+  }
+  if(debugmsg)
+    console.log("%cuw::extsetup_siterules | page_url is unknown or incorrect. Stalling extension setup","color:#fa6607","\n(NOTE: In some cases, stalling like that could be result of this extension script running twice)");
+  debugging
+  return false;
+}
+
+function extsetup_autoar(opt){
+  if(debugmsg)
+    console.log("%cuw::extsetup_autoar | setting up autoar settings","color: #88f;");
+  
+  if(usebrowser == "chrome")
+    var obj = opt;
+  else
+    var obj = opt[0];
   
   //Naslov resetiramo v vsakem primeru
   //We always reset the title
@@ -714,11 +900,34 @@ function extsetup_autoar(opt){
     last_whatdo = {type: "reset", what_do:"reset"};
 }
 
-function extsetup_keybinds(res){
+function extsetup_uiban(opt){
+  if(debugmsg)
+    console.log("%cuw::extsetup_uiban | setting uiban","color: #88f;");
+  
   if(usebrowser == "chrome")
-    obj = res;
+    var obj = opt;
   else
-    obj = res[0];
+    var obj = opt[0];
+  
+  console.log("uiban is here");
+  
+  if(obj.ultrawidify_uiban === undefined){
+    if(debugmsg)
+      console.log("uw::extsetup_uiban | ui ban missing from storage. Setting defaults.");
+    browser.storage.local.set({ultrawidify_uiban: UW_UI_BANLIST});
+  }
+  else
+    UW_UI_BANLIST = obj.ultrawidify_uiban;
+}
+
+function extsetup_keybinds(res){
+  if(debugmsg)
+    console.log("%cuw::extsetup_keybinds | setting up autoar settings","color: #88f;");
+  
+  if(usebrowser == "chrome")
+    var obj = res;
+  else
+    var obj = res[0];
   
   if(typeof uw_keybinds_storage_set === "undefined" && (jQuery.isEmptyObject(obj) || jQuery.isEmptyObject(obj.ultrawidify_keybinds)) ){
     if(debugmsg)
@@ -802,6 +1011,13 @@ function buildUInative(){
   for(key in UW_UI_BUTTONS){
     el = UW_UI_BUTTONS[key];
     
+    if(UW_UI_BANLIST[SITE][key]){
+      if(debugmsg)
+        console.log("uw::buildUInative | we don't show", key, "on site", SITE, ". Doing nothing.");
+      
+      continue;
+    }
+    
     if(!el.native_bar)
       continue;
     
@@ -831,6 +1047,12 @@ function mksubmenu(el){
   submenu.className = "uw_element uw_submenu";
   
   for(var i = 0; i < el.submenu.length; i++){
+    if(UW_UI_BANLIST[SITE][el.submenu[i]]){
+      if(debugmsg)
+        console.log("uw::mksubmenu | we don't show", el.submenu[i], "on site", SITE, ". Doing nothing.");
+      
+      continue;
+    }
     submenu.appendChild(mkmenuitem(el.submenu[i]));
   }
   
