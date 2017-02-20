@@ -19,8 +19,6 @@
   align-items: center;
   font-family: "Oxygen";
   color: #ffffff !important;
-  width: 90%;
-  padding-left: 10%;
 }
 .uw-setmenu-item:hover{
   background-color: rgba(192,0,0,0.66);
