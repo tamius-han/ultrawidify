@@ -138,6 +138,23 @@ function saveAutoar(){
   setopt({ultrawidify_autoar: document.querySelector("#enable_autoar").checked});
 }
 
+function saveUI(){
+  var show_ui = document.querySelector("#enable_ui");
+  var ui_compact = document.querySelector("#enable_ui_compact");
+  var optionLine = document.getElementById("compact_ui_suboption");
+  
+  if(show_ui.checked){
+    ui_compact.disabled = false;
+    optionLine.classList.remove("hide");
+    setopt({ultrawidify_ui: ui_compact.checked ? "compact" : "all" });
+  }
+  else{
+    ui_compact.disabled = true;
+    optionLine.classList.add("hide");
+    setopt({ultrawidify_ui: "none"});
+  }
+}
+
 // setopt in getopt. Shranita oz. dobita stvari iz skladišča
 // setopt, getopt. They set/get stuff from the storage
 
@@ -190,11 +207,37 @@ function gotopts(opts){
   }
 }
 
+function gotar(opts){
+  
+}
+
+function gotui(opts){
+  var show_ui = document.querySelector("#enable_ui");
+  var ui_compact = document.querySelector("#enable_ui_compact");
+  var optionLine = document.getElementById("compact_ui_suboption");
+  
+  if(opts.ultrawidify_ui == "all"){
+    show_ui.checked = true;
+    ui_compact.checked = false;
+    optionLine.classList.remove("hide");
+  }
+  else if(opts.ultrawidify_ui == "compact"){
+    show_ui.checked = true;
+    ui_compact.checked = true;
+    optionLine.classList.remove("hide");
+  }
+  else if(opts.ultrawidify_ui == "none"){
+    show_ui.checked = false;
+    ui_compact.checked = false;
+    optionLine.classList.add("hide");
+  }
+}
+
 function loadopts(){
-  if(usebrowser == "chrome")
-    getopt("ultrawidify_keybinds", gotopts);
-  else
-    browser.storage.local.get("ultrawidify_keybinds").then(gotopts, printerr);
+  
+  getopt("ultrawidify_keybinds", gotopts);
+//   getopt("ultrawidify_autoar", gotar)
+  getopt("ultrawidify_ui", gotui);
 }
 
 
@@ -210,4 +253,6 @@ document.querySelector("#kb_save").addEventListener("click", saveopts);
 document.querySelector("#kb_cancel").addEventListener("click",loadopts);
 
 document.querySelector("#enable_autoar").addEventListener("click",saveAutoar);
+document.querySelector("#enable_ui").addEventListener("click", saveUI);
+document.querySelector("#enable_ui_compact").addEventListener("click", saveUI);
 getopt("ultrawidify_autoar",function(obj){document.querySelector("#enable_autoar").checked = obj.ultrawidify_autoar});

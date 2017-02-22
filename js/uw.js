@@ -134,10 +134,10 @@ var UW_UI_BUTTONS = {
 
 var UW_UI_BANLIST = {
   youtube: {
-    autoar: true
+    autoar: "all"
   },
   netflix: {
-    settings: true
+    settings: "all"
   }
 }
 
@@ -232,6 +232,7 @@ function init(force_reload){
   if(debugmsg)
     console.log("uw::init | starting init");
   
+  
   var el;
   for (key in UW_UI_BUTTONS){
     el = UW_UI_BUTTONS[key];
@@ -243,37 +244,43 @@ function init(force_reload){
     }
   }
   
-  var marker = document.getElementById("uw_save_site");
+//   var marker = document.getElementById("uw_save_site");
   
   if(debugmsg)
     console.log("uw | %cpage_url: "+page_url,"color: #99F");
   
   
   /* Fun fact — če reloadamo razširitev v about:debugging, window.location vrne "javascript:". Fak
-  // Fun fact — if we reload the extension from about:debugging, window.location returns "javascript:" (which
+   * // Fun fact — ivar previousElements = document.getElementsByClassName("uw_element");
+   i *f(previousElements){
+   while (previousElements.length > 0){
+     previousElements[0].parentNode.removeChild(previousElements[0]);
+}
+}f we reload the extension from about:debugging, window.location returns "javascript:" (which
   // obviously isn't the page we're on. Fak.
   */
-  if(page_url.indexOf("javascript:") != -1){
-    if(marker){
-      if(debugmsg){
-        console.log("uw::init | %csomething went wrong, page_url is not properly defined. Trying to get URL from a marker","color: #000; background-color: #F00", "marker value:",marker.textContent);
-      }
-      page_url = marker.textContent;
-    }
-    else
-      console.log("uw::init | %csomething went wrong, page_url is not properly defined. Marker wasn't found either.r","color: #000; background-color: #F00");
-  }
-  else{
-    if(!marker && page_url.indexOf("javascript:") == -1){
-      var marker = document.createElement('div');
-      marker.id = "uw_save_site";
-      marker.textContent = page_url;
-    }
-    else{
-      if(page_url.indexOf("javascript:") == -1)
-        marker.textContent = page_url;
-    }
-  }
+//   if(page_url.indexOf("javascript:") != -1){
+//     if(marker){
+//       if(debugmsg){
+//         console.log("uw::init | %csomething went wrong, page_url is not properly defined. Trying to get URL from a marker","color: #000; background-color: #F00", "marker value:",marker.textContent);
+//       }
+//       page_url = marker.textContent;
+//     }
+//     else
+//       console.log("uw::init | %csomething went wrong, page_url is not properly defined. Marker wasn't found either.r","color: #000; background-color: #F00");
+//   }
+//   else{
+//     if(!marker && page_url.indexOf("javascript:") == -1){
+//       var marker = document.createElement('div');
+//       marker.id = "uw_save_site";
+//       marker.textContent = page_url;
+//     }
+//     else{
+//       if(page_url.indexOf("javascript:") == -1)
+//         marker.textContent = page_url;
+//     }
+//   }
+  
   
   
   
@@ -306,8 +313,7 @@ function init(force_reload){
     
 //     tmp.id = "uw_buttons_go_after_this";
     
-    if(force_reload)
-      ui_anchor.parentNode.remove(ui_anchor);
+    
     
 //     ui_anchor = document.getElementsByClassName("uw-button-row")[0];
     
@@ -373,6 +379,9 @@ function init(force_reload){
 // mutually exclusive definitions, we can get some problems with CSS not working the way it should. People who
 // aren't Tam generally don't see the benefit as they won't reload the extension — let alone reload the extension
 // after messing with CSS.
+var ui_anchor = document.getElementById("uw_ui_anchor");
+//   if(force_reload && ui_anchor)
+//     ui_anchor.parentNode.remove(ui_anchor);uf
 var uwcss = document.getElementsByClassName("uw_css");
 while(uwcss && uwcss.length > 0)
   uwcss[0].parentNode.removeChild(uwcss[0]);
@@ -474,7 +483,7 @@ browser.storage.onChanged.addListener(function(){
   if(debugmsg){
     console.log("uw::<storage change> |%c calling extSetup from storage.onChanged","color:#99f");
   }
-  extSetup();
+  extSetup(true);
 });
 
 //END keybind-related stuff
@@ -505,7 +514,7 @@ function extsetup_comms(){
       
       // Velikost gumbov posodobimo v vsakem primeru
       // We update the button size in any case
-      updateCtlButtonSize();
+      updateUICSS();
       
       if(debugmsg)
         console.log("uw::onMessage | message number:",num_of_msg," »» everything is done. Buttons: ", document.getElementsByClassName("uw-button"));
@@ -544,8 +553,8 @@ function periodic() {
       console.log("uw::periodic | no buttons detected. Readding.");
     
     init();
-    addCtlButtons(0);
-    updateCtlButtonSize();
+    buildUInative();
+    updateUICSS();
   }
   var w = window.innerWidth;
   var h = window.innerHeight;
@@ -559,7 +568,7 @@ function periodic() {
       changeCSS(last_whatdo.type, last_whatdo.what_do);
     }
       
-    updateCtlButtonSize();
+    updateUICSS();
   }
   var controls = document.getElementsByClassName("player-controls-wrapper")[0];
   if(controls){
@@ -575,7 +584,7 @@ function periodic() {
         console.log("uw::periodic | toggled visibility");
       netflix_cltbar_visibility = ind;
       if(ind == -1)
-        updateCtlButtonSize();
+        updateUICSS();
     }
   }
     
@@ -620,13 +629,18 @@ $(document).ready(function() {
 
 //BEGIN EXTENSION SETUP
 
-function extSetup(){
+function extSetup(force_reload){
   if(debugmsg)
     console.log("==============================================================================================");
   
   last_location = window.location;
   
 //   SITE = "";
+  
+  if(force_reload){
+    ui_anchor.parentNode.removeChild(ui_anchor);
+    ui_anchor = null;
+  }
   
   if(debugmsg){
     console.log("uw::extSetup | our current location is:", last_location, "(page_url says",page_url,")");
@@ -648,31 +662,45 @@ function extSetup(){
   //extsetup_stage2 gets called in loadFromStorage, on siterules
 }
 
-var extsetup_stage2_state = 0;
-var EXTSETUP_STAGE2_REQUIRED_STATE = 3;
-function extsetup_stage2(op){
-  
+
+var EXTSETUP_STAGES = {
+  site: false,
+  uiban: false,
+  uimode: false,
+}
+
+function stagetracker(op){
   if(op == "clear"){
     if(debugmsg)
-      console.log("uw::extsetup (stage 2) | %cclearing progress (state)","color: #fff");
-    extsetup_stage2_state = 0;
+      console.log("uw::stagetracker | %cclearing progress (state)","color: #fff");
+    for(key in EXTSETUP_STAGES)
+      EXTSETUP_STAGES[key] = false;
     return;
   }
-  if(op == "site"){
-    if(debugmsg)
-      console.log("uw::extsetup (stage 2) | %cSITE stage complete","color: #fff");
-    extsetup_stage2_state |= 1;
-  }
-  if(op == "uiban"){
-    if(debugmsg)
-      console.log("uw::extsetup (stage 2) | %cuiban stage completed. Setting progress","color: #fff");
-    extsetup_stage2_state |= 2;
+  EXTSETUP_STAGES[op] = true;
+
+  var all_done = true;  
+  var unfinished_stages = "";
+    
+  for(key in EXTSETUP_STAGES){
+    all_done &= EXTSETUP_STAGES[key];
+    if(debugmsg && ! EXTSETUP_STAGES[key]){
+      unfinished_stages += "<" + key + "> ";
+    }
   }
   
-  if(extsetup_stage2_state != EXTSETUP_STAGE2_REQUIRED_STATE){
+  if(debugmsg)
+    console.log("uw::stagetracker | added stage",op, all_done ? " | all stages finished" : (" | missing stages: " + unfinished_stages));
+
+  return all_done;  
+}
+
+function extsetup_stage2(op){
+  
+  if(! stagetracker(op) ){
     if(debugmsg)
-      console.log("uw::extsetup (stage 2) | %cSome stages are still uncompleted, doing nothing.","color: #fff");
-    return;
+      console.log("uw::extSetup (stage 2) | %cSome stages are still uncompleted, doing nothing.","color: #fff");
+    return false;
   }
   
   // SITE se nastavi v funkciji loadFromStorage. Če ni nastavljen, potem nismo na znani/podprti strani
@@ -705,44 +733,35 @@ function extsetup_stage2(op){
     console.log("======================================[ setup finished ]======================================\n\n\n\n\n");
 }
 
+
+function getopt(prop, callback){
+  if(usebrowser == "chrome")
+    browser.storage.local.get(prop, callback);
+  else
+    browser.storage.local.get(prop).then(function(prop){callback(prop[0])});
+}
+
 function loadFromStorage(){
   if(debugmsg || debugmsg_autoar)
     console.log("uw::loadFromStorage | loading stuff from storage.");
   
   extsetup_stage2("clear");
   
-  if(usebrowser == "chrome"){
-    browser.storage.local.get("ultrawidify_uiban", function(data){
-      extsetup_uiban(data);
-      extsetup_stage2("uiban");
-    });
-    browser.storage.local.get("ultrawidify_siterules", function(data){ 
-      extsetup_siterules(data); 
-      extsetup_stage2("site") 
-    });
-    browser.storage.local.get("ultrawidify_autoar", function(data){ extsetup_autoar(data) });
-    browser.storage.local.get("ultrawidify_keybinds", function(data){ extsetup_keybinds(data) });
-  }
-  else{
-    var ask4uiban = browser.storage.local.get("ultrawidify_uiban").then(function(obj){
-      extsetup_uiban(obj);
-      console.log("uiban finished");
-      extsetup_stage2("uiban");
-    });
-    browser.storage.local.get("ultrawidify_siterules").then(function(obj){
-      if(extsetup_siterules(obj))
-        extsetup_stage2("site"); 
-    });
-    browser.storage.local.get("ultrawidify_autoar").then(function(opt){
-      if(debugmsg || debugmsg_autoar)
-        console.log("uw::loadFromStorage | setting up autoar. opt:",opt)
-      extsetup_autoar(opt);
-      if(debugmsg || debugmsg_autoar)
-        console.log("autoar_enabled:",autoar_enabled);
-    });
-    var ask4keybinds = browser.storage.local.get("ultrawidify_keybinds").then(extsetup_keybinds);
-
-  }
+  getopt("ultrawidify_uiban", function(data){
+    extsetup_uiban(data);
+    extsetup_stage2("uiban");
+  });
+  getopt("ultrawidify_siterules", function(data){ 
+    extsetup_siterules(data); 
+    extsetup_stage2("site");
+  });
+  getopt("ultrawidify_ui", function(data){
+    extsetup_ui_mode(data);
+    extsetup_stage2("uimode"); 
+  });
+  getopt("ultrawidify_autoar", function(data){ extsetup_autoar(data) });
+  getopt("ultrawidify_keybinds", function(data){ extsetup_keybinds(data) });
+  
 }
 
 function keydownSetup(){
@@ -826,10 +845,10 @@ function extsetup_siterules(opt){
   if(debugmsg)
     console.log("%cuw::extsetup_siterules | setting up site rules settings","color: #88f;");
   
-  if(usebrowser == "chrome")
+//   if(usebrowser == "chrome")
     var obj = opt;
-  else
-    var obj = opt[0];
+//   else
+//     var obj = opt[0];
   
   if(obj.ultrawidify_siterules === undefined){
     if(debugmsg)
@@ -874,10 +893,10 @@ function extsetup_autoar(opt){
   if(debugmsg)
     console.log("%cuw::extsetup_autoar | setting up autoar settings","color: #88f;");
   
-  if(usebrowser == "chrome")
+//   if(usebrowser == "chrome")
     var obj = opt;
-  else
-    var obj = opt[0];
+//   else
+//     var obj = opt[0];
   
   //Naslov resetiramo v vsakem primeru
   //We always reset the title
@@ -904,10 +923,10 @@ function extsetup_uiban(opt){
   if(debugmsg)
     console.log("%cuw::extsetup_uiban | setting uiban","color: #88f;");
   
-  if(usebrowser == "chrome")
+//   if(usebrowser == "chrome")
     var obj = opt;
-  else
-    var obj = opt[0];
+//   else
+//     var obj = opt[0];
   
   console.log("uiban is here");
   
@@ -920,14 +939,23 @@ function extsetup_uiban(opt){
     UW_UI_BANLIST = obj.ultrawidify_uiban;
 }
 
+function extsetup_ui_mode(opt){  
+  if(opt.ultrawidify_ui === undefined)
+    UW_UI_MODE = "all";
+  else
+    UW_UI_MODE = opt.ultrawidify_ui;
+  
+  console.log("uw::extsetup_ui_mode | ui mode:",UW_UI_MODE);
+}
+
 function extsetup_keybinds(res){
   if(debugmsg)
     console.log("%cuw::extsetup_keybinds | setting up autoar settings","color: #88f;");
   
-  if(usebrowser == "chrome")
+//   if(usebrowser == "chrome")
     var obj = res;
-  else
-    var obj = res[0];
+//   else
+//     var obj = res[0];
   
   if(typeof uw_keybinds_storage_set === "undefined" && (jQuery.isEmptyObject(obj) || jQuery.isEmptyObject(obj.ultrawidify_keybinds)) ){
     if(debugmsg)
@@ -981,11 +1009,12 @@ function check4player(recursion_depth){
 }
 
 function mkanchor(){
+  ui_anchor = document.createElement("div");
+  ui_anchor.className = "uw_ui_anchor";
+  ui_anchor.id = "uw_ui_anchor";
+  
   // Youtube
-  if(page_url.indexOf("youtube") != -1 || page_url.indexOf("youtu.be") != 1){
-    ui_anchor = document.createElement("div");
-    ui_anchor.className = "uw_ui_anchor";
-    ui_anchor.id = "uw_ui_anchor";
+  if(SITE == "youtube"){
     $(document.getElementsByClassName("ytp-right-controls")[0]).prepend(ui_anchor);
   }
   
@@ -996,44 +1025,69 @@ function buildUInative(){
    * 
    */
   
+  
   if(ui_anchor)
     return;
   
   if(!ui_anchor)
     mkanchor();
   
-  
+  if(UW_UI_MODE == "none"){
+    if(debugmsg || debugmsg_ui)
+      console.log("uw::buildUInative | usersettings say UI shouldn't be displayed. UI will not be built.");
+    return;
+  }
+  if(UW_UI_MODE == "compact"){
+    if(debugmsg || debugmsg_ui)
+      console.log("uw::buildUInative | usersettings say UI should be compact if possible. Checking if possible.");
+    
+    if(UW_UI_BANLIST[SITE].settings !== undefined && UW_UI_BANLIST[SITE].settings != "noban"){
+      if(debugmsg || debugmsg_ui)
+        console.log("uw::buildUInative | compact ui is not possible on this site. Reverting to full.");
+      UW_UI_MODE == "all";
+    }
+  }
   
   if(debugmsg || debugmsg_ui )
     console.log("uw::buildUInative | starting to build UI");
   
   var el;
-  for(key in UW_UI_BUTTONS){
-    el = UW_UI_BUTTONS[key];
-    
-    if(UW_UI_BANLIST[SITE][key]){
-      if(debugmsg)
-        console.log("uw::buildUInative | we don't show", key, "on site", SITE, ". Doing nothing.");
-      
-      continue;
-    }
-    
-    if(!el.native_bar)
-      continue;
-    
-    var uiel; //ui element
-    
-    if(el.button){
-      uiel = mkbutton(el);
-    }
-    
-    if(!uiel)
-      continue;
-    
+  
+  if(UW_UI_MODE == "compact"){       // no need for loop if all we add is the 'settings' buton
+    el = UW_UI_BUTTONS.settings;
+    uiel = mkbutton(el);
+    uiel.appendChild(mksubmenu(el));
     ui_anchor.appendChild(uiel);
-    
-    if(el.has_submenu){
-      uiel.appendChild(mksubmenu(el));
+  }
+  else{
+    for(key in UW_UI_BUTTONS){
+      
+      el = UW_UI_BUTTONS[key];
+      
+      if(UW_UI_BANLIST[SITE][key]){
+        if(debugmsg)
+          console.log("uw::buildUInative | we don't show", key, "on site", SITE, ". Doing nothing.");
+        
+        continue;
+      }
+      
+      if(!el.native_bar)
+        continue;
+      
+      var uiel; //ui element
+      
+      if(el.button){
+        uiel = mkbutton(el);
+      }
+      
+      if(!uiel)
+        continue;
+      
+      ui_anchor.appendChild(uiel);
+      
+      if(el.has_submenu){
+        uiel.appendChild(mksubmenu(el));
+      }
     }
   }
   
@@ -2175,11 +2229,8 @@ function showMenu(id, sizes){
   if(sizes){
     console.log("uw::showMenu",sizes);
     var player_leftmost = sizes.player.left;
-    console.log("showMenu | asasdassssssssssssssssssssssssssssssss");
-    
     var parent_leftmost = sizes.parent.left;
     var player_rightmost = sizes.player.left + sizes.player.width;
-    console.log("showMenu | asas421das");
     var parent_rightmost = sizes.parent.left + sizes.parent.width;
     
     if(debugmsg){
@@ -2196,7 +2247,8 @@ function showMenu(id, sizes){
       div.style.left = (- div.getBoundingClientRect().width ) + "px";
     }
     else{
-      alert("this wasn't defined yet. pls do this. ctrl+f rivianpoint");
+      if(debugmsg)
+        alert("this wasn't defined yet. pls do this. ctrl+f rivianpoint");
       div.style.left = sizes.parent.width + "px";
     }
   }

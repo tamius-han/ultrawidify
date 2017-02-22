@@ -59,8 +59,14 @@
     .center{
       margin: 0 auto;
     }
+    .basecolor: {
+      color: #ddd !important;
+    }
     .red{
       color: #ff3a00;
+    }
+    .disabled: {
+      opacity: 0.69;
     }
     .left{
       text-align: left;
@@ -117,7 +123,7 @@
       width: 17.5em;
     }
     .uw_options_line{
-      margin-top: 0.25em;
+      margin-top: 0.75em;
       font-size: 1.1em;
       width: 80%;
       margin-left: 5%;
@@ -125,11 +131,20 @@
     .uw_options_option{
       margin-left: 5%;
     }
-    .uw_options_desc{
+    .uw_suboption{
+      margin-left: 5em;
+      margin-top: 0.75em;
+      font-size: 0.85em;
+    }
+    .uw_options_desc, .uw_suboption_desc{
       margin-top: 0.33em;
       font-size: 0.69em;
       color: #aaa;
     }
+    .uw_suboption_desc{
+      margin-left: 5em;
+    }
+    
     .buttonbar{
 /*       width: 100%; */
       padding-left: 20em;
@@ -172,7 +187,16 @@
          <div class="uw_options_line">
           <div class="uw_options_option"><input type="checkbox" id='enable_autoar'> Enable automatic aspect ratio detection</div>
           <div class="uw_options_desc">This option uses 3rd party websites to determine aspect ratio. It may not work all the time or even properly. It only works with Netflix. <span class="red">This option is <b>NOT</b> available on Youtube.</span></div>
+         </div>         
+         <div class="uw_options_line">
+          <div class="uw_options_option"><input type="checkbox" id="enable_ui"> Show UI in the player bar</div>
+          <div class="uw_options_desc">If this option is enabled, the extension will add some extra buttons to the player bar. If this option is disabled, setting video fit and aspect ratio is only possible via keyboard shortcuts.</div>
+          <div class="uw_suboption_line" id="compact_ui_suboption">
+            <div class="uw_suboption"><input type="checkbox" id="enable_ui_compact"> If possible, use compact UI</div>
+            <div class="uw_suboption_desc">With this option enabled, only 'more settings' button is enabled. Note that this option doesn't work on every site.</div>
+          </div>
          </div>
+         
        </div>
     </div>
     
@@ -281,8 +305,13 @@
       <div class="content left">
         <h2>Ultrawidify - an aspect ratio fixer for youtube <small>(and netflix)</small></h2>
         <p>Created by Tamius Han (me). If something is broken, you can shout at me on <a href="https://github.com/xternal7/ultrawidify">github</a> (shout nicely, though. Open an issue or bug report or something). If you're curious to see the source code, <a href="https://github.com/xternal7/ultrawidify">github's here</a>. If you're looking at this page because you're bored and want to be bored some more, <a href="http://tamius.net">my website's here</a>.</p>
+        <h2>So you want to help?</h2>
+        <p>There's a lot of sites where you can stream videos. A lot of these sites keep failing to handle aspect ratios correctly, which means it would be great if this extension worked elsewhere. Unfortunately, a lot of these sites require me to pony up some money (ayy lmao) OR just flat out block anyone who's not from the US (or their small selection of approved regions). Some sites even do both.</p>
+        <p>This means I'd need some help. There's two ways. One of them is to use 'inspect element' option of your browser to pick up IDs (or classnames) of certain elements. More detail here(TODO: add a link to quick tutorial).</p>
+        <p>The second one is, well. I won't shy away from donations either. <small>Bonus respect for dank amounts!</small></p>
+        <p>Needless to say, I'll be happy and thankful regardless of the way you contribute.</p>
         <h2>Plans for the future</h2>
-        <p><strike>Netflix support, probably.</strike> we did it lol</p>
+        <p>Support for more sizes. More flexible/customizable UI. Maybe (but absolutely no promises here) a bit more advanced autodetection.</p>
         <h2>Acknowledgements</h2>
         <p>This extension uses font <a href="https://fonts.google.com/specimen/Oxygen">Oxygen</a>.</p>
         <p>Special thanks to CD Project Red (The Witcher 2), Anet (Guild Wars 2), and Valve (CS:GO), which made it possible for me to untrigger myself after seeing so many improperly encoded videos.</p>
