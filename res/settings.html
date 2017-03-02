@@ -52,6 +52,10 @@
     h2{
       font-size: 2.2em;
     }
+    .sites_header{
+      font-size: 1.6em;
+      color: #ff9;
+    }
     .content{
       display: inline-block;
       width: 52em;
@@ -162,6 +166,50 @@
       background-color: rgba(0,0,0,0.66);
       color: #ffc;
       height: 1.7em;
+    }optionsoptions
+    Shortcuts
+    About
+    Official
+    Shortcuts
+    About
+    Official
+    
+    /** site options css **/
+    .site_name {
+      padding-left: 1em;
+      padding-bottom: 0.3em;
+      color: #fff;
+      font-size: 1.1em;
+      height: 13em !important;
+      
+    }
+    .site_details {
+      font-size: 0.8em;
+    }
+    .site_title_ebox {
+      width: 10em !important;
+      font-size: 1.5em !important;
+      background-color: rgba(0,0,0,0) !important;
+      margin-left: 0px !important;
+      border: 0px !important;
+      color: #ffc !important;
+    }
+    .details_ebox {
+      width: 12em !important;
+      background-color: rgba(0,0,0,0) !important;
+      border: 0px !important;      
+      color: #ffc !important;
+      margin-left: 0em !important;
+    }
+    .details_ebox:disabled {
+      color: #aaa !important;
+    }
+    .inline_button {
+      display: inline-block;
+      margin-top: -1.42em;
+    }
+    .inline_button:hover {
+      color: #fff;
     }
     </style>
     
@@ -177,11 +225,15 @@
       <div class="tabline center">
         <div class="content left">
           <div id="tab_general_settings" class="block tab tab-selected">General settings</div>
+          <div id="tab_sites" class="block tab">Site options</div>
           <div id="tab_shortcuts" class="block tab">Shortcuts</div>
           <div id="tab_about" class="block tab">About</div>
         </div>
       </div>
     </header>
+    
+    
+    
     <div id="general_settings">
        <div class="content left">
          <div class="uw_options_line">
@@ -198,6 +250,12 @@
          </div>
          
        </div>
+    </div>
+    
+    <div id="uw_sites" class="hide">
+      <div id="uw_sites_body" class="content left">
+        
+      </div>
     </div>
     
     <div id="uw_shortcuts" class="hide">

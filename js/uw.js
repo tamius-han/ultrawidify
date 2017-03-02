@@ -208,6 +208,8 @@ if(usebrowser == "chrome"){
 
 var UW_SITES = {
   youtube: {
+    enabled: true,
+    type: "official",
     urlRules: ["youtu"],
     player: {
       name: "movie_player",
@@ -219,10 +221,23 @@ var UW_SITES = {
       name: "ytp-right-controls",
       isClass: true,
       insertStrat: "prepend",
-    }
+    },
+    autoar_imdb: false
   },
   netflix: {
-    urlRules: ["netflix"]
+    enabled: true,
+    type: "official",
+    urlRules: ["netflix"],
+    player: {
+      name: "placeholder",
+      isClass: true,
+    },
+    uiParent: {
+      name: "placeholder",
+      isClass: true,
+      insertStrat: "append"
+    },
+    autoar_imdb: true
   }
 }
  
@@ -390,7 +405,7 @@ function init(force_reload){
 // after messing with CSS.
 var ui_anchor = document.getElementById("uw_ui_anchor");
 //   if(force_reload && ui_anchor)
-//     ui_anchor.parentNode.remove(ui_anchor);uf
+//     ui_anchor.parentNode.remove(ui_anchor);
 var uwcss = document.getElementsByClassName("uw_css");
 while(uwcss && uwcss.length > 0)
   uwcss[0].parentNode.removeChild(uwcss[0]);
@@ -883,14 +898,14 @@ function extsetup_siterules(opt){
 //   else
 //     var obj = opt[0];
   
-//   if(obj.ultrawidify_siterules === undefined){
-//     if(debugmsg)
-//       console.log("uw::extsetup_siterules | site url rules missing from storage. Setting defaults.");
-//     browser.storage.local.set({ultrawidify_siterules: UW_SITES});
-//   }
-//   else{
-//     UW_SITES = obj.ultrawidify_siterules;
-//   }
+  if(obj.ultrawidify_siterules === undefined){
+    if(debugmsg)
+      console.log("uw::extsetup_siterules | site url rules missing from storage. Setting defaults.");
+    browser.storage.local.set({ultrawidify_siterules: UW_SITES});
+  }
+  else{
+    UW_SITES = obj.ultrawidify_siterules;
+  }
   
   if(debugmsg)
     console.log("uw::extsetup_siterules | UW_SITES:",UW_SITES,"current site:",SITE);
