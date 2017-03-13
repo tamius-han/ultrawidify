@@ -238,9 +238,25 @@ var UW_SITES = {
       insertStrat: "append"
     },
     autoar_imdb: true
+  },
+  dummy: {
+    type: "add new site",
+    urlRules: [""],
+    player: {
+      name: "",
+      isClass: false,
+    },
+    sampleButtonClass: "",
+    sampleButtonIndex: 0,
+    uiParent: {
+      name: "",
+      isClass: false,
+      insertStrat: "prepend",
+    },
+    autoar_imdb: false
   }
 }
- 
+browser.storage.local.set({ultrawidify_siterules: UW_SITES});
 
 //Na reloadu vselej odstrani vmesnik od prej
 //Always remove previous UI on extension reload
@@ -976,7 +992,6 @@ function extsetup_uiban(opt){
 //   else
 //     var obj = opt[0];
   
-  console.log("uiban is here");
   
   if(obj.ultrawidify_uiban === undefined){
     if(debugmsg)
