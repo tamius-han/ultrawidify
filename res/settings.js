@@ -1,5 +1,6 @@
 var browser_autodetect = true;
 var usebrowser = "chrome";
+var debugmsg = true;
 
 if(browser_autodetect){
   if(typeof browser === "undefined"){ 
@@ -262,7 +263,7 @@ function gotsites(opts){
   uw_sites = opts.ultrawidify_siterules;
   console.log("opts",opts);
   
-  for (type in {"official":1,"non-official":1,"custom":1} ) {  // unparalleled laziness!
+  for (type in {"official":1,"non-official":1,"custom":1, "add new site":1} ) {  // unparalleled laziness!
     var head = document.createElement("div");
     head.className = "sites_header";
     head.textContent = type.charAt(0).toUpperCase() + type.slice(1);
@@ -277,14 +278,15 @@ function gotsites(opts){
     else if(type == "custom"){
       category_desc.textContent = "In this section, you can define rules for sites that aren't supported either officially or non-officially. See [todo: link] contributing for details. If you define a custom site, please consider sharing configuration on github (see contributing for details).";
     }
+    else if(type == "add new site"){
+      category_desc.textContent = "Add a custom site by filling the form below.";
+    }
     
     list.append(head);
     list.append(category_desc);
     
-    var category_counter;
+    var category_counter = 0;
     for (site in uw_sites){
-      category_counter = 0;
-      
       if(uw_sites[site].type == type){
         
         var entry = document.createElement("div");
@@ -305,9 +307,24 @@ function gotsites(opts){
           var editBtn = document.createElement("div");
           editBtn.textContent = "« edit »";
           editBtn.className = "inline_button";
+          editBtn.id = site + "_edit_button";
+          editBtn.addEventListener("click", function(){ var site = this.id; site = site.replace("_edit_button", ""); enableEditing(site)});
           
+          var saveBtn = document.createElement("div");
+          saveBtn.textContent = "« save »";
+          saveBtn.className = "inline_button hide";
+          saveBtn.id = site + "_save_button";
+          saveBtn.addEventListener("click", function(){ var site = this.id; site = site.replace("_save_button", ""); enableEditing(site)});
+          
+          var cancelBtn = document.createElement("div");
+          cancelBtn.textContent = "« cancel »";
+          cancelBtn.className = "inline_button hide";
+          cancelBtn.id = site + "_cancel_button";
+          cancelBtn.addEventListener("click", function(){ var site = this.id; site = site.replace("_cancel_button", ""); enableEditing(site)});
           
           siteTitle.append(editBtn);
+          siteTitle.append(saveBtn);
+          siteTitle.append(cancelBtn);
         }
         var urlRules = document.createElement("div");
         {
@@ -336,6 +353,7 @@ function gotsites(opts){
           
           var playerClass = document.createElement("div");
           var pcb = document.createElement("input");
+          pcb.className = site + "_ebox";
           pcb.type = "checkbox";
           pcb.name = site + "_pccb_name";
           pcb.id = site + "_pccb_id";
@@ -418,6 +436,9 @@ function gotsites(opts){
       noEntriesMsg.classList = "red";
       list.append(noEntriesMsg);
     }
+    if(site == "dummy"){
+      enableEditing("dummy");
+    }
   }
   
 }
@@ -434,6 +455,7 @@ function mkebox(site, value){
 
 function mkcb(site, checked, forceEnable){
   var cb = document.createElement("input");
+  cb.className = site + "_ebox",
   cb.type = "checkbox";
   cb.name = site + "_cb_name";
   cb.id = site + "_cb_id";
@@ -445,6 +467,56 @@ function mkcb(site, checked, forceEnable){
   return cb;
 }
 
+function enableEditing(site){
+  if(debugmsg)
+    console.log("uw settings :: enableEditing | enabling editing for",site);
+  
+  var formElements = document.getElementsByClassName(site + "_ebox");
+  
+  if(!formElements)
+    return;
+  
+  if(debugmsg)
+    console.log("form elements: ", formElements);
+  
+  for(var i = 0; i < formElements.length; i++){
+    formElements[i].disabled = false;
+  }
+  
+  var editButton = document.getElementById(site + "_edit_button");
+  if( editButton )
+    editButton.classList.add("hide");
+  else
+    return;
+  
+  try{
+    document.getElementById(site + "_save_button").classList.remove("hide");
+    document.getElementById(site + "_cancel_button").classList.remove("hide");
+  } catch (e){};
+}
+
+function disableEditing(site){
+  var formElements = document.getElementsByClassName(site + "_ebox");
+  
+  if(!formElements)
+    return;
+  
+  for(var i = 0; i < formElements.length; i++){
+    formElements[i].disabled = true;
+  }
+  
+  var editButton = document.getElementById(site + "_edit_button");
+  if( editButton )
+    editButton.classList.remove("hide");
+  else
+    return;
+  
+  try{
+    document.getElementById(site + "_save_button").classList.add("hide");
+    document.getElementById(site + "_cancel_button").classList.add("hide");
+  } catch (e){};
+}
+
 function loadopts(){
   
   getopt("ultrawidify_keybinds", gotopts);
@@ -454,11 +526,11 @@ function loadopts(){
   
   // We build ui for 'site options' here
 //   buildSites();
+  
 }
 
 
 // page init
-
 document.addEventListener("DOMContentLoaded", loadopts);
 
 document.querySelector("#tab_shortcuts").addEventListener("click", showShortcuts);
