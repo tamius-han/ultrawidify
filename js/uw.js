@@ -222,7 +222,9 @@ var UW_SITES = {
       isClass: true,
       insertStrat: "prepend",
     },
-    autoar_imdb: false
+    autoar_imdb:{
+      enabled: false
+    }
   },
   netflix: {
     enabled: true,
@@ -237,7 +239,11 @@ var UW_SITES = {
       isClass: true,
       insertStrat: "append"
     },
-    autoar_imdb: true
+    autoar_imdb:{
+      enabled: true,
+      title: "dummy please replace",
+      isClass: false
+    }
   },
   dummy: {
     type: "add new site",
@@ -253,7 +259,9 @@ var UW_SITES = {
       isClass: false,
       insertStrat: "prepend",
     },
-    autoar_imdb: false
+    autoar_imdb:{
+      enabled: false
+    }
   }
 }
 browser.storage.local.set({ultrawidify_siterules: UW_SITES});
