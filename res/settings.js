@@ -270,7 +270,7 @@ function gotsites(opts){
     
     var category_desc = document.createElement("div");
     if(type == "official"){
-      category_desc.textContent = "These sites are officially supported by the extension developer. These sites should always work.";
+      category_desc.innerHTML = "These sites are officially supported by the extension developer. These sites should always work. <small>(Pro tip: if you don't want extension to run on some of the following sites, uncheck the checkbox for that site)</small>";
     }
     else if(type == "non-official"){
       category_desc.textContent = "Sites in this category have been contribued by third parties. These sites will probably work, but the developer couldn't test whether they work or not.";
@@ -314,7 +314,7 @@ function gotsites(opts){
           saveBtn.textContent = "« save »";
           saveBtn.className = "inline_button hide";
           saveBtn.id = site + "_save_button";
-          saveBtn.addEventListener("click", function(){ var site = this.id; site = site.replace("_save_button", ""); enableEditing(site)});
+          saveBtn.addEventListener("click", function(){ var site = this.id; site = site.replace("_save_button", ""); getSiteOpts(site)});
           
           var cancelBtn = document.createElement("div");
           cancelBtn.textContent = "« cancel »";
@@ -326,12 +326,17 @@ function gotsites(opts){
           siteTitle.append(saveBtn);
           siteTitle.append(cancelBtn);
         }
+        
+        var siteDetails = document.createElement("div");
+        siteDetails.id = site + "_conf_details";
+        siteDetails.classList = "hide";
+        
         var urlRules = document.createElement("div");
         {
           var urlRulesLabel = document.createElement("span");
           urlRulesLabel.textContent = "URL rule: ";
           
-          urlRulesEbox = mkebox(site, uw_sites[site].urlRules[0]);
+          urlRulesEbox = mkebox(site, uw_sites[site].urlRules[0], "url_rules");
           
           urlRules.append(urlRulesLabel);
           urlRules.append(urlRulesEbox);
@@ -343,10 +348,9 @@ function gotsites(opts){
           var playerName = document.createElement("div");
           
           var playerNameLabel = document.createElement("span");
-          var playerNameEbox = mkebox(site);
           
           playerNameLabel.textContent = "id of the player container:";
-          playerNameEbox = mkebox(site, uw_sites[site].player.name);
+          var playerNameEbox = mkebox(site, uw_sites[site].player.name, "player_name");
           
           playerName.append(playerNameLabel);
           playerName.append(playerNameEbox);
@@ -372,21 +376,21 @@ function gotsites(opts){
         var iframe_playerName = document.createElement("div");
         var ipn_label = document.createElement("span");
         ipn_label.textContent = "id of the player container when in an iframe:";
-        ipn_ebox = mkebox(site, uw_sites[site].iframe ? uw_sites[site].iframe.name : "");
+        ipn_ebox = mkebox(site, uw_sites[site].iframe ? uw_sites[site].iframe.name : "", "iframe_name");
         iframe_playerName.append(ipn_label);
         iframe_playerName.append(ipn_ebox);
         
         var iframe_playerClass = document.createElement("div");
         var ipc_label = document.createElement("span");
         ipc_label.textContent = " Name of the player container is a class";
-        var ipc_cb = mkcb(site, uw_sites[site].iframe ? uw_sites[site].iframe.isClass : false);
+        var ipc_cb = mkcb(site, uw_sites[site].iframe ? uw_sites[site].iframe.isClass : false, "iframe_class");
         iframe_playerClass.append(ipc_cb);
         iframe_playerClass.append(ipc_label);
         
         
         
         var imdbar = document.createElement("div");
-        var imdbar_cb = mkcb(site, uw_sites[site].autoar_imdb);
+        var imdbar_cb = mkcb(site, uw_sites[site].autoar_imdb, "imdbar");
         var imdbar_label = document.createElement("span");
         imdbar_label.textContent = " This site supports automatic aspect ratio detection";
         imdbar.append(imdbar_cb);
@@ -395,14 +399,14 @@ function gotsites(opts){
         var imdbar_title = document.createElement("div");
         var it_label = document.createElement("span");
         it_label.textContent = "id of the element containing video title:";
-        it_ebox = mkebox(site, uw_sites[site].iframe ? uw_sites[site].iframe.name : "");
+        it_ebox = mkebox(site, uw_sites[site].iframe ? uw_sites[site].iframe.name : "", "imdbar_title");
         imdbar_title.append(it_label);
         imdbar_title.append(it_ebox);
         
         var imdbar_class = document.createElement("div");
         var ic_label = document.createElement("span");
         ic_label.textContent = " Name of the title container is a class";
-        var ic_cb = mkcb(site, uw_sites[site].iframe ? uw_sites[site].iframe.isClass : false);
+        var ic_cb = mkcb(site, uw_sites[site].iframe ? uw_sites[site].iframe.isClass : false, "imdbar_class");
         imdbar_class.append(ic_cb);
         imdbar_class.append(ic_label);
         
@@ -411,17 +415,21 @@ function gotsites(opts){
         
         
         
+        
+        siteDetails.append(urlRules);
+        siteDetails.append(playerElement);
+        siteDetails.append(iframe_playerName);
+        siteDetails.append(iframe_playerClass);
+        
+        
+        
+        siteDetails.append(imdbar);
+        siteDetails.append(imdbar_title);
+        siteDetails.append(imdbar_class);
+        
+        
         displayedInfo.append(siteTitle);
-        displayedInfo.append(urlRules);
-        displayedInfo.append(playerElement);
-        displayedInfo.append(iframe_playerName);
-        displayedInfo.append(iframe_playerClass);
-        
-        
-        
-        displayedInfo.append(imdbar);
-        displayedInfo.append(imdbar_title);
-        displayedInfo.append(imdbar_class);
+        displayedInfo.append(siteDetails);
         
         entry.append(displayedInfo);
         
@@ -443,9 +451,10 @@ function gotsites(opts){
   
 }
 
-function mkebox(site, value){
+function mkebox(site, value, id){
   var ebox = document.createElement("input");
   ebox.className = "site_details details_ebox " + site + "_ebox",
+  ebox.id = site + "_" + id + "_ebox";
   ebox.type = "text";
   ebox.value = value;
   ebox.disabled = true;
@@ -453,12 +462,12 @@ function mkebox(site, value){
   return ebox;
 }
 
-function mkcb(site, checked, forceEnable){
+function mkcb(site, checked, id, forceEnable){
   var cb = document.createElement("input");
   cb.className = site + "_ebox",
   cb.type = "checkbox";
   cb.name = site + "_cb_name";
-  cb.id = site + "_cb_id";
+  cb.id = site + "_" + id + "_cb";
   cb.checked = checked;
   
   if(!forceEnable)
@@ -468,6 +477,7 @@ function mkcb(site, checked, forceEnable){
 }
 
 function enableEditing(site){
+  showSiteDetails(site);
   if(debugmsg)
     console.log("uw settings :: enableEditing | enabling editing for",site);
   
@@ -516,6 +526,55 @@ function disableEditing(site){
     document.getElementById(site + "_cancel_button").classList.add("hide");
   } catch (e){};
 }
+
+function showSiteDetails(site){
+  try{
+    document.getElementById(site + "_conf_details").classList.remove("hide");
+  }catch(me_outside_how_about_that){}
+}
+
+function hideSiteDetails(site){
+  try{
+    document.getElementById(site + "_conf_details").classList.add("hide");
+  }catch(me_outside_how_about_that){}
+}
+
+function getSiteOpts(site){
+  var newOptions = {};
+  
+  newOptions.urlRules = [ document.getElementById(site + "_url_rules_ebox").value ];
+  newOptions.player = {};
+  newOptions.player.name = document.getElementById(site + "_player_name_ebox").value;
+  newOptions.player.isClass = document.getElementById(site + "_pccb_id").checked;
+  newOptions.iframe = {};
+  newOptions.iframe.name = document.getElementById(site + "_iframe_name_ebox").value;
+  newOptions.iframe.isClass = document.getElementById(site + "_iframe_class_cb").checked;
+  newOptions.autoar_imdb = {};
+  newOptions.autoar_imdb.enabled = document.getElementById(site + "_imdbar_cb").value;
+  newOptions.autoar_imdb.title = document.getElementById(site + "_imdbar_title_ebox").value;
+  newOptions.autoar_imdb.isClass = document.getElementById(site + "_imdbar_class_cb").checked;
+  
+  console.log(newOptions); //TODO: delete this logline
+  return newOptions;
+}
+
+function setSiteOpts(site, opts){
+  document.getElementById(site + "_url_rules_ebox").value = opts.urlRules[0];
+  document.getElementById(site + "_player_name_ebox").value = opts.player.name;
+  document.getElementById(site + "_pccb_id").checked = opts.player.isClass;
+  if(opts.iframe){
+    document.getElementById(site + "_iframe_name_ebox").value = opts.iframe.name;
+    document.getElementById(site + "_iframe_class_cb").checked = opts.iframe.isClass;
+  }
+  if(opts.autoar_imdb){
+    document.getElementById(site + "_imdbar_cb").checked = opts.autoar_imdb.enabled;
+    if(opts.autoar_imdb.enabled){
+      document.getElementById(site + "_imdbar_title_ebox").value = opts.autoar_imdb.title;
+      document.getElementById(site + "_imdbar_class_cb").value = opts.autoar_imdb.isClass
+    }
+  }
+}
+
 
 function loadopts(){
   
