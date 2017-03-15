@@ -17,7 +17,7 @@ else{
     browser = chrome;
 }
 
-
+var UW_SITES = {};
 
 function showAbout(){
   clearPage();
@@ -261,6 +261,7 @@ function gotsites(opts){
   anchor.appendChild(list);
   
   uw_sites = opts.ultrawidify_siterules;
+  UW_SITES = uw_sites;
   console.log("opts",opts);
   
   for (type in {"official":1,"non-official":1,"custom":1, "add new site":1} ) {  // unparalleled laziness!
@@ -298,8 +299,8 @@ function gotsites(opts){
         siteTitle.className = "site_name";
         
         {
-          var sitecb = mkcb(site, uw_sites[site].enabled, true);
-          var editTitle = mkebox(site, site)
+          var sitecb = mkcb(site, uw_sites[site].enabled, "siteEnabled", true);
+          var editTitle = mkebox(site, site, "title");
           editTitle.className = "site_title_ebox";
           siteTitle.append(sitecb);
           siteTitle.append(editTitle);
@@ -314,13 +315,13 @@ function gotsites(opts){
           saveBtn.textContent = "« save »";
           saveBtn.className = "inline_button hide";
           saveBtn.id = site + "_save_button";
-          saveBtn.addEventListener("click", function(){ var site = this.id; site = site.replace("_save_button", ""); getSiteOpts(site)});
+          saveBtn.addEventListener("click", function(){ var site = this.id; site = site.replace("_save_button", ""); saveEdited(site)});
           
           var cancelBtn = document.createElement("div");
           cancelBtn.textContent = "« cancel »";
           cancelBtn.className = "inline_button hide";
           cancelBtn.id = site + "_cancel_button";
-          cancelBtn.addEventListener("click", function(){ var site = this.id; site = site.replace("_cancel_button", ""); enableEditing(site)});
+          cancelBtn.addEventListener("click", function(){ var site = this.id; site = site.replace("_cancel_button", ""); cancelEditing(site)});
           
           siteTitle.append(editBtn);
           siteTitle.append(saveBtn);
@@ -444,8 +445,9 @@ function gotsites(opts){
       noEntriesMsg.classList = "red";
       list.append(noEntriesMsg);
     }
-    if(site == "dummy"){
+    if(site == "dummy" && type == "add new site"){
       enableEditing("dummy");
+      document.getElementById("dummy_title_ebox").disabled = false;
     }
   }
   
@@ -464,15 +466,15 @@ function mkebox(site, value, id){
 
 function mkcb(site, checked, id, forceEnable){
   var cb = document.createElement("input");
-  cb.className = site + "_ebox",
   cb.type = "checkbox";
   cb.name = site + "_cb_name";
   cb.id = site + "_" + id + "_cb";
   cb.checked = checked;
   
-  if(!forceEnable)
+  if(!forceEnable){
     cb.disabled = true;
-  
+    cb.className = site + "_ebox";
+  }
   return cb;
 }
 
@@ -527,6 +529,32 @@ function disableEditing(site){
   } catch (e){};
 }
 
+function cancelEditing(site){
+  disableEditing(site);
+  hideSiteDetails(site);
+  setSiteOpts(site, UW_SITES[site]);
+}
+
+function saveEdited(site){
+  
+  if(site == "dummy"){
+    var newsite = getSiteOpts(site);
+    newsite.type = "custom";
+    newsite.enabled = true;
+    UW_SITES[document.getElementById("dummy_title_ebox").value] = newsite;
+  }
+  else{
+    UW_SITES[site] = getSiteOpts(site);
+    disableEditing(site);
+    hideSiteDetails(site);
+  }
+  setopt({ultrawidify_siterules: UW_SITES});
+  
+  if(site == "dummy")
+    gotsites({ultrawidify_siterules: UW_SITES});
+  
+}
+
 function showSiteDetails(site){
   try{
     document.getElementById(site + "_conf_details").classList.remove("hide");
@@ -538,6 +566,7 @@ function hideSiteDetails(site){
     document.getElementById(site + "_conf_details").classList.add("hide");
   }catch(me_outside_how_about_that){}
 }
+
 
 function getSiteOpts(site){
   var newOptions = {};
@@ -554,7 +583,6 @@ function getSiteOpts(site){
   newOptions.autoar_imdb.title = document.getElementById(site + "_imdbar_title_ebox").value;
   newOptions.autoar_imdb.isClass = document.getElementById(site + "_imdbar_class_cb").checked;
   
-  console.log(newOptions); //TODO: delete this logline
   return newOptions;
 }
 
