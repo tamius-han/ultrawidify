@@ -7,6 +7,7 @@ var debugmsg_message = false;
 var debugmsg_autoar = false;
 var debugmsg_periodic = false;
 var debugmsg_ui = true;
+var force_conf_reload = true;
 if(debugmsg || debugmsg_click || debugmsg_message || debugmsg_autoar){
   console.log("\n\n\n\n\n\n\n\n\n\n\n\n\n\n. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
   console.log("\nLoading ultrawidify (uw)\nIf you can see this, extension at least tried to load\n\nRandom number: ",Math.floor(Math.random() * 20) + 1,"\n");
@@ -215,8 +216,15 @@ var UW_SITES = {
       name: "movie_player",
       isClass: false,
     },
-    sampleButtonClass: "ytp-button ytp-settings-button",
-    sampleButtonIndex: 0,
+    iframe: {
+      name: "player",
+      isClass: false
+    },
+    sampleButton: {
+      class: "ytp-button ytp-settings-button",
+      index: 0,
+      buttonSizeBase: "x",
+    },
     uiParent: {
       name: "ytp-right-controls",
       isClass: true,
@@ -233,6 +241,11 @@ var UW_SITES = {
     player: {
       name: "placeholder",
       isClass: true,
+    },
+    sampleButton: {
+      class: "ytp-button ytp-settings-button",
+      index: 0,
+      buttonSizeBase: "x",
     },
     uiParent: {
       name: "placeholder",
@@ -252,8 +265,11 @@ var UW_SITES = {
       name: "",
       isClass: false,
     },
-    sampleButtonClass: "",
-    sampleButtonIndex: 0,
+    sampleButton: {
+      class: "ytp-button ytp-settings-button",
+      index: 0,
+      buttonSizeBase: "x",
+    },
     uiParent: {
       name: "",
       isClass: false,
@@ -340,11 +356,11 @@ function init(force_reload){
     
 //     SAMPLE_BUTTON_CLASS = "ytp-button ytp-settings-button";
     
-    if(inIframe())
-      player = document.getElementById("player")
-    else
-      player = document.getElementById("movie_player");
-    
+//     if(inIframe())
+//       player = document.getElementById("player")
+//     else
+//       player = document.getElementById("movie_player");
+//     
     video_wrap = "video-stream";
     return true; 
   }
@@ -797,11 +813,29 @@ function uinit(){
 //     
 //   }
 //   else{
-  PLAYER = (site.player.isClass ? document.getElementsByClassName(site.player.name)[0] : document.getElementById(site.player.name));
-  SAMPLE_BUTTON_CLASS = site.sampleButtonClass;
-  SAMPLE_BUTTON_INDEX = site.sampleButtonIndex;
+  SITE_ENABLED = site.enabled;
+  SITE_TYPE = site.type;
+  SITE_URL_RULES = site.urlRules;
+  
+  
+  if(debugmsg)
+    console.log("uw::uinit | are we in iframe?", inIframe(), "does the site have a separate config for iframe?", site.iframe ? true : false );
+
+  if(inIframe() && site.iframe){
+    console.log("uw::uinit | we're in iframe.");
+    PLAYER = site.iframe.isClass ? document.getElementsByClassName(site.iframe.name)[0] : document.getElementById(site.iframe.name);
+  }
+  else{
+    PLAYER = site.player.isClass ? document.getElementsByClassName(site.player.name)[0] : document.getElementById(site.player.name);
+  }
+  
+  SAMPLE_BUTTON_CLASS = site.sampleButton.class;
+  SAMPLE_BUTTON_INDEX = site.sampleButton.index;
+  BUTTON_SIZE_BASE = site.sampleButton.buttonSizeBase;
 //   }
-    
+  
+  IMDB_AUTOAR_ALLOWED = site.autoar_imdb.enabled;
+  
   if(debugmsg)
     console.log("uw::uinit | initializing elements from the webpage");
 }
@@ -1010,7 +1044,7 @@ function extsetup_uiban(opt){
     UW_UI_BANLIST = obj.ultrawidify_uiban;
 }
 
-function extsetup_ui_mode(opt){  
+function extsetup_ui_mode(opt){ 
   if(opt.ultrawidify_ui === undefined)
     UW_UI_MODE = "all";
   else
@@ -1804,7 +1838,7 @@ function manual_autoar(){
 
 function changeCSS(type, what_do){
   if(debugmsg)
-    console.log("uw::changeCSS | starting function. type:", type, "; what_do:",what_do);
+    console.log("uw::changeCSS | starting function. type:", type, "; what_do:",what_do,"\nPlayer element is this:",PLAYER);
 //   hideMenu("uw-armenu");
 //   hideMenu("uw-smenu");
   
@@ -2282,6 +2316,8 @@ function applyCSS(dimensions){
 }
 
 function inIframe(){
+  if(debugmsg)
+    console.log("uw::inIframe | checking if we're in an iframe");
   try {
     return window.self !== window.top;
   } catch (e) {
