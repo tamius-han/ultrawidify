@@ -262,9 +262,13 @@ function gotsites(opts){
   
   uw_sites = opts.ultrawidify_siterules;
   UW_SITES = uw_sites;
-  console.log("opts",opts);
+  if(debugmsg)
+    console.log("uw settings::gotopts | site opts:",opts);
   
   for (type in {"official":1,"non-official":1,"custom":1, "add new site":1} ) {  // unparalleled laziness!
+    if(debugmsg){
+      console.log("uw settings::gotopts | adding sites of type" , type);
+    }
     var head = document.createElement("div");
     head.className = "sites_header";
     head.textContent = type.charAt(0).toUpperCase() + type.slice(1);
@@ -288,6 +292,9 @@ function gotsites(opts){
     
     var category_counter = 0;
     for (site in uw_sites){
+      if(debugmsg)
+        console.log("we're at site %s of type %s. We're %s this site.",site, uw_sites[site].type, uw_sites[site].type == type ? "processing" : "ignoring");
+      
       if(uw_sites[site].type == type){
         
         var entry = document.createElement("div");
@@ -389,6 +396,31 @@ function gotsites(opts){
         iframe_playerClass.append(ipc_label);
         
         
+        var sampleButton = document.createElement("div");
+        var sbc = document.createElement("div");
+        var sbi = document.createElement("div");
+        var sbo = document.createElement("div");
+        var sbc_label = document.createElement("span");
+        var sbi_label = document.createElement("span");
+        var sbo_label = document.createElement("span");
+        sbc_label.textContent = "Sample button class:";
+        sbi_label.textContent = "Sample button index:";
+        sbo_label.textContent = "Use height for UI scaling";
+        var sampleButtonClass = mkebox(site, uw_sites[site].sampleButton.class, "sample_button_class");
+        var sampleButtonIndex = mkebox(site, uw_sites[site].sampleButton.Index, "sample_button_index");
+        var buttonSizeBase = mkcb(site, uw_sites[site].sampleButton.buttonSizeBase == "y", "sample_button_size_base");
+        
+        sbc.append(sbc_label);
+        sbc.append(sampleButtonClass);
+        sampleButton.append(sbc);
+        
+        sbi.append(sbi_label);
+        sbi.append(sampleButtonIndex);
+        sampleButton.append(sbi);
+        
+        sbo.append(buttonSizeBase);
+        sbo.append(sbo_label);
+        sampleButton.append(sbo);
         
         var imdbar = document.createElement("div");
         var imdbar_cb = mkcb(site, uw_sites[site].autoar_imdb, "imdbar");
@@ -415,18 +447,23 @@ function gotsites(opts){
         
         
         
+        var optionspad = document.createElement("div");
+        optionspad.textContent = "-------------";
         
         
         siteDetails.append(urlRules);
         siteDetails.append(playerElement);
+        siteDetails.append(optionspad);
         siteDetails.append(iframe_playerName);
         siteDetails.append(iframe_playerClass);
+        siteDetails.append(optionspad);
         
-        
+        siteDetails.append(sampleButton);
         
         siteDetails.append(imdbar);
         siteDetails.append(imdbar_title);
         siteDetails.append(imdbar_class);
+//         siteDetails.append(optionspad);
         
         
         displayedInfo.append(siteTitle);
@@ -437,6 +474,13 @@ function gotsites(opts){
         list.append(entry);
         
         category_counter++;
+        
+        if(site == "dummy" && type == "add new site"){
+          if(debugmsg)
+            console.log("uw settings::gotsites | we are adding dummy site");
+          enableEditing("dummy");
+          document.getElementById("dummy_title_ebox").disabled = false;
+        }
       }
     }
     if(! category_counter){
@@ -444,10 +488,6 @@ function gotsites(opts){
       noEntriesMsg.textContent = "There's no entries in this category yet";
       noEntriesMsg.classList = "red";
       list.append(noEntriesMsg);
-    }
-    if(site == "dummy" && type == "add new site"){
-      enableEditing("dummy");
-      document.getElementById("dummy_title_ebox").disabled = false;
     }
   }
   
@@ -530,12 +570,16 @@ function disableEditing(site){
 }
 
 function cancelEditing(site){
-  disableEditing(site);
-  hideSiteDetails(site);
+  if(site != "dummy"){
+    disableEditing(site);
+    hideSiteDetails(site);
+  }
   setSiteOpts(site, UW_SITES[site]);
 }
 
 function saveEdited(site){
+  
+  console.log("uw settings::saveEdited | this is our site:",site,"is this 'dummy'?", site == "dummy");
   
   if(site == "dummy"){
     var newsite = getSiteOpts(site);
@@ -545,8 +589,8 @@ function saveEdited(site){
   }
   else{
     UW_SITES[site] = getSiteOpts(site);
-    disableEditing(site);
-    hideSiteDetails(site);
+//     disableEditing(site);
+//     hideSiteDetails(site);
   }
   setopt({ultrawidify_siterules: UW_SITES});
   
