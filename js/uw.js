@@ -248,14 +248,14 @@ var UW_SITES = {
       buttonSizeBase: "x",
     },
     uiParent: {
-      name: "placeholder",
+      name: "player-controls-wrapper",
       isClass: true,
       insertStrat: "append"
     },
     autoar_imdb:{
       enabled: true,
-      title: "dummy please replace",
-      isClass: false
+      title: "player-status-main-title",
+      isClass: true
     }
   },
   dummy: {
@@ -609,6 +609,9 @@ function extsetup_comms(){
 //BEGIN periodic functions
 //Because onUpdated event isn't reliable enough for what we're doing on netflix.
 function periodic() {
+  
+  //NOTE: this entire function needs to be tested if it still works
+  
   if(debugmsg_periodic)
     console.log("uw::periodic started!");
   
@@ -623,7 +626,9 @@ function periodic() {
   var w = window.innerWidth;
   var h = window.innerHeight;
   if(winsize.w != w && winsize.h != h){
-    console.log("uw::periodic | detected change in window size. Triggering css change");
+    if(debugmsg)
+      console.log("uw::periodic | detected change in window size. Triggering css change");
+    
     winsize.w = w;
     winsize.h = h;
     
@@ -631,41 +636,49 @@ function periodic() {
     if(last_whatdo.what_do != "zoom" && last_whatdo.what_do != "unzoom"/* && last_whatdo.type != "autoar"*/){
       changeCSS(last_whatdo.type, last_whatdo.what_do);
     }
-      
+    
     updateUICSS();
   }
-  var controls = document.getElementsByClassName("player-controls-wrapper")[0];
+  if(SITE_PROPS.uiParent.isClass)
+    var controls = document.getElementsByClassName(SITE_PROPS.uiParent.name)[0];
+  else
+    var controls = document.getElementById(SITE_PROPS.uiParent.name);
   if(controls){
     if(debugmsg_periodic)
       console.log("uw::periodic | we found controls!");
       
-    var ind = controls.className.indexOf("display-none");
-    if(debugmsg_periodic)
-      console.log("uw::periodic | ind:",ind,"last ind:",netflix_cltbar_visibility);
+//     var ind = controls.className.indexOf("display-none");
+//     if(debugmsg_periodic)
+//       console.log("uw::periodic | ind:",ind,"last ind:",netflix_cltbar_visibility);
     // controls must be visible. We must have not called updateCtlButtonSize before.   
-    if( ind != netflix_cltbar_visibility ){
-      if(debugmsg)
-        console.log("uw::periodic | toggled visibility");
-      netflix_cltbar_visibility = ind;
-      if(ind == -1)
-        updateUICSS();
-    }
+//     if( ind != netflix_cltbar_visibility ){
+//       if(debugmsg)
+//         console.log("uw::periodic | toggled visibility");
+//       netflix_cltbar_visibility = ind;
+//       if(ind == -1)
+//         updateUICSS();
+//     }
   }
     
-  if(page_url.indexOf("netflix.com") != -1 && autoar_enabled){
-    //Netflix-specific stuff
-    var qntitle = document.querySelector(".player-status-main-title");
+  if( autoar_enabled ){
+    
+    var titleElement;
+    
+    if(SITE_PROPS.autoar_imdb.isClass)
+      titleElement = document.querySelector("." + SITE_PROPS.autoar_imdb.title);
+    else
+      titleElement = document.querySelector("#" + SITE_PROPS.autoar_imdb.title);
     var ntitle = "";
     
     //querySelector lahko vrne null, zato moramo preveriti, kaj smo dobili — drugače se .textContent pritožuje.
     //querySelector can return null, in which case .textContent will complain.
     if(qntitle)
-      ntitle = qntitle.textContent;
+      ntitle = titleElement.textContent;
     else{
       char_got_ar = false;
       return;
     }
-    if(qntitle && ntitle && ntitle != title){
+    if(titleElement && ntitle && ntitle != title){
       if(debugmsg || debugmsg_message || debugmsg_autoar)
         console.log("uw::periodic | title changed. New title:",ntitle,"Old title:",title);
       
@@ -816,7 +829,7 @@ function uinit(){
   SITE_ENABLED = site.enabled;
   SITE_TYPE = site.type;
   SITE_URL_RULES = site.urlRules;
-  
+  SITE_PROPS = site;
   
   if(debugmsg)
     console.log("uw::uinit | are we in iframe?", inIframe(), "does the site have a separate config for iframe?", site.iframe ? true : false );
@@ -1346,7 +1359,7 @@ function updateUICSS(){
 function getBaseButtonWidth(){
   try{
     // Na različnih straneh širino gumba poberemo na različne načine.
-    if(button_size_base == "y")
+    if(BUTTON_SIZE_BASE == "y")
       return document.getElementsByClassName(SAMPLE_BUTTON_CLASS)[SAMPLE_BUTTON_INDEX].scrollHeight;
     else
       return document.getElementsByClassName(SAMPLE_BUTTON_CLASS)[SAMPLE_BUTTON_INDEX].scrollWidth;
@@ -1814,25 +1827,29 @@ function onFullscreenOff(){
 }
 
 function manual_autoar(){
-  if(page_url.indexOf("netflix.com") != -1){
-    var ntitle = document.querySelector(".player-status-main-title");
-    
-    //querySelector lahko vrne null, zato moramo preveriti, kaj smo dobili — drugače se .textContent pritožuje.
-    //querySelector can return null, in which case .textContent will complain.
-    if(!ntitle)
-      return;
-    
-    var title = ntitle.textContent;
-    
-    char_got_ar = false;
-    last_whatdo = {type: "autoar", what_do:"autoar"};
-    
-    var sending = browser.runtime.sendMessage({
-      type: "gibAspectRatio",
-      title: title
-    });
+  if(! SITE_PROPS.autoar_imdb.enabled)
+    return;
+  
+  if(SITE_PROPS.autoar_imdb.isClass)
+    var ntitle = document.querySelector("."+ SITE_PROPS.autoar_imdb.title); // NOTE: needs to be tested
+  else
+    var ntitle = document.querySelector("#"+ SITE_PROPS.autoar_imdb.title); // NOTE: needs to be tested
+  
+  //querySelector lahko vrne null, zato moramo preveriti, kaj smo dobili — drugače se .textContent pritožuje.
+  //querySelector can return null, in which case .textContent will complain.
+  if(!ntitle)
+    return;
+  
+  var title = ntitle.textContent;
+  
+  char_got_ar = false;
+  last_whatdo = {type: "autoar", what_do:"autoar"};
+  
+  var sending = browser.runtime.sendMessage({
+    type: "gibAspectRatio",
+    title: title
+  });
 //     sending.then( function(){}, function(err1, err2){console.log("uw::periodic: there was an error while sending a message", err1, err2)} );
-  }
   
 }
 
@@ -1855,8 +1872,6 @@ function changeCSS(type, what_do){
   var video = { width: evideo.videoWidth, height: evideo.videoHeight };
   
   var nplayer = { width: PLAYER.clientWidth, height: PLAYER.clientHeight };
-  console.log("uw::changeCSS | video:", video, "nplayer: (player)", nplayer);
-  
   
   if(debugmsg)
     console.log("uw::changeCSS | video dimensions:",video.width,"x",video.height,"; player:",nplayer.width,"x",nplayer.height);
