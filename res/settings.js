@@ -407,7 +407,7 @@ function gotsites(opts){
         sbi_label.textContent = "Sample button index:";
         sbo_label.textContent = "Use height for UI scaling";
         var sampleButtonClass = mkebox(site, uw_sites[site].sampleButton.class, "sample_button_class");
-        var sampleButtonIndex = mkebox(site, uw_sites[site].sampleButton.Index, "sample_button_index");
+        var sampleButtonIndex = mkebox(site, uw_sites[site].sampleButton.index, "sample_button_index");
         var buttonSizeBase = mkcb(site, uw_sites[site].sampleButton.buttonSizeBase == "y", "sample_button_size_base");
         
         sbc.append(sbc_label);
