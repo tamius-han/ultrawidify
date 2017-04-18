@@ -174,6 +174,8 @@ var serviceArray = [".video-stream"]; //Youtube
 
 var buttons = [];
 
+var IGNORE_STORAGE_CHANGES = false;
+
 //BEGIN determining which site we're on and the associated names
 
 var ui_anchor;
@@ -190,6 +192,7 @@ var char_ary;
 var autoar_enabled;
 
 var video_wrap;
+
 
 // Here we store the window size, so we know when to trigger css change.
 var winsize = {w: window.innerWidth, h: window.innerHeight};
@@ -543,12 +546,7 @@ var last_location = "";
 
 var KEYBINDS = {};
 
-browser.storage.onChanged.addListener(function(){
-  if(debugmsg){
-    console.log("uw::<storage change> |%c calling extSetup from storage.onChanged","color:#99f");
-  }
-  extSetup(true);
-});
+
 
 //END keybind-related stuff
 
@@ -774,11 +772,16 @@ function stagetracker(op){
 
 function extsetup_stage2(op){
   
+  if(debugmsg)
+    console.log("uw::extSetup (stage 2) | %cStarting the function. op=","color: #fff", op);
+  
   if(! stagetracker(op) ){
     if(debugmsg)
       console.log("uw::extSetup (stage 2) | %cSome stages are still uncompleted, doing nothing.","color: #fff");
     return false;
   }
+  
+  extsetup_listener();
   
   // SITE se nastavi v funkciji loadFromStorage. Če ni nastavljen, potem nismo na znani/podprti strani
   // SITE is set in loadFromStorage. If SITE is still undefined at this point, then we aren't on a known page.
@@ -857,7 +860,11 @@ function getopt(prop, callback){
   if(usebrowser == "chrome")
     browser.storage.local.get(prop, callback);
   else
-    browser.storage.local.get(prop).then(function(prop){callback(prop[0])});
+    browser.storage.local.get(prop).then(function(prop){
+      if(debugmsg)
+        console.log("uw::getopt [ff] | we received this from storage:", prop);
+      callback(prop[0])
+    });
 }
 
 function loadFromStorage(){
@@ -867,19 +874,35 @@ function loadFromStorage(){
   extsetup_stage2("clear");
   
   getopt("ultrawidify_uiban", function(data){
+    IGNORE_STORAGE_CHANGES = true;
     extsetup_uiban(data);
     extsetup_stage2("uiban");
+    IGNORE_STORAGE_CHANGES = false;
   });
   getopt("ultrawidify_siterules", function(data){ 
+    IGNORE_STORAGE_CHANGES = true;
     extsetup_siterules(data); 
+    console.log("sss");
     extsetup_stage2("site");
+    IGNORE_STORAGE_CHANGES = false;
   });
   getopt("ultrawidify_ui", function(data){
+    IGNORE_STORAGE_CHANGES = true;
     extsetup_ui_mode(data);
+    console.log("sasa");
     extsetup_stage2("uimode"); 
+    IGNORE_STORAGE_CHANGES = false;
   });
-  getopt("ultrawidify_autoar", function(data){ extsetup_autoar(data) });
-  getopt("ultrawidify_keybinds", function(data){ extsetup_keybinds(data) });
+  getopt("ultrawidify_autoar", function(data){
+    IGNORE_STORAGE_CHANGES = true;
+    extsetup_autoar(data) 
+    IGNORE_STORAGE_CHANGES = false;
+  });
+  getopt("ultrawidify_keybinds", function(data){ 
+    IGNORE_STORAGE_CHANGES = true;
+    extsetup_keybinds(data);
+    IGNORE_STORAGE_CHANGES = false;
+  });
   
 }
 
@@ -969,7 +992,7 @@ function extsetup_siterules(opt){
 //   else
 //     var obj = opt[0];
   
-  if(obj.ultrawidify_siterules === undefined){
+  if(!opt || obj.ultrawidify_siterules === undefined){
     if(debugmsg)
       console.log("uw::extsetup_siterules | site url rules missing from storage. Setting defaults.");
     browser.storage.local.set({ultrawidify_siterules: UW_SITES});
@@ -1022,6 +1045,8 @@ function extsetup_autoar(opt){
   title = "";
   if(obj === undefined)
     return;
+  
+  
   if(obj.ultrawidify_autoar === undefined){
     if(debugmsg || debugmsg_autoar)
       console.log("uw::extsetup_autoar | autoar setting unavailavle in storage. Setting defaults.");
@@ -1030,6 +1055,7 @@ function extsetup_autoar(opt){
   }
   else 
     autoar_enabled = obj.ultrawidify_autoar;
+  
   
   if(debugmsg || debugmsg_autoar)
     console.log("uw::extsetup_autoar | autoar",(autoar_enabled ? "enabled":"disabled"),"opt: ",opt);
@@ -1046,19 +1072,36 @@ function extsetup_uiban(opt){
     var obj = opt;
 //   else
 //     var obj = opt[0];
-  
-  
-  if(obj.ultrawidify_uiban === undefined){
+    
+  if(! opt || obj.ultrawidify_uiban === undefined){
     if(debugmsg)
       console.log("uw::extsetup_uiban | ui ban missing from storage. Setting defaults.");
     browser.storage.local.set({ultrawidify_uiban: UW_UI_BANLIST});
   }
   else
     UW_UI_BANLIST = obj.ultrawidify_uiban;
+  
+}
+
+function extsetup_listener(){
+  if(debugmsg)
+    console.log("uw::extsetup_listener | setting up listeners");
+  
+  browser.storage.onChanged.addListener(function(){
+    if(IGNORE_STORAGE_CHANGES){
+      if(debugmsg)
+        console.log("uw::<storage change> | %c We are ignoring storage changes at the moment. Doing nothing.", "color: #fa6607")
+        return;
+    }
+    if(debugmsg){
+      console.log("uw::<storage change> |%c calling extSetup from storage.onChanged","color:#99f");
+    }
+    extSetup(true);
+  });
 }
 
 function extsetup_ui_mode(opt){ 
-  if(opt.ultrawidify_ui === undefined)
+  if(!opt || opt.ultrawidify_ui === undefined)
     UW_UI_MODE = "all";
   else
     UW_UI_MODE = opt.ultrawidify_ui;
