@@ -64,7 +64,13 @@ For best results with autodetection, please make sure the following requirements
 
 ## Installing
 
-### Temporary install
+### Permanent install / stable
+
+[v1.2.1 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
+
+[v1.2.1 — Regular version — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
+
+### Installing the current, github version
 
 1. Clone this repo
 2. Open up Firefox
@@ -72,14 +78,7 @@ For best results with autodetection, please make sure the following requirements
 4. Add temporary addon
 5. Browse to wherever you saved it and select manifest.json
 
-### Permanent install
-
-[v1.2.1 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
-
-[v1.2.1 — Regular version — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
-
-
-## Known issues
+## Known issues (in stable versions)
 
 'More settings' button actually doesn't work at the moment.
 
@@ -97,6 +96,12 @@ For best results with autodetection, please make sure the following requirements
 
 
 ## Changelog
+
+###v1.3a1  (git/current version)
+
+* Adding ability to add custom sites (in progress)
+* Most of the extension is being completely rewritten to accomodate that feature, which means there's a serious regression with Netflix support (no netflix at the moment)
+* I'm also trying to break the 1500 line behemoth into smaller files.
 
 ###v1.2.1  (AMO + Chrome)
 
