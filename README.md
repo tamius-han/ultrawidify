@@ -6,7 +6,7 @@ If you own an ultrawide monitor, you have probably noticed that sometimes videos
 
 ![Demo](img-demo/example-httyd2.png "Should these black bars be here? No [...] But an ultrawide user never forgets.")
 
-Works on Youtube and Netflix. Available for Firefox and Chrome.
+Works on Youtube and Netflix. Available for [Firefox (v1.2.1)](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) and [Chrome (v1.2.1)](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi).
 
 ## The long version
 
