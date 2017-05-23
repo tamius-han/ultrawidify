@@ -1,3 +1,4 @@
+var browser_autodetect = true;
 usebrowser = "firefox";
 
 if(typeof browser === "undefined"){ // This means we're probably not on Firefox.

@@ -11,15 +11,24 @@ var UW_SITES = {
       name: "player",
       isClass: false
     },
-    sampleButton: {
-      class: "ytp-button ytp-settings-button",
-      index: 0,
-      buttonSizeBase: "x",
-    },
-    uiParent: {
-      name: "ytp-right-controls",
-      isClass: true,
-      insertStrat: "prepend",
+    ui: {
+      uiMode: "native",
+      uiconf: {
+        sampleButton: {
+          class: "ytp-button ytp-settings-button",
+          index: 0,
+          buttonSizeBase: "x",
+        },
+        uiParent: {
+          name: "ytp-right-controls",
+          isClass: true,
+          insertStrat: "prepend",
+        },
+        uiOffset: {
+          offsetBy: "10vh",
+          offsetType: "css"
+        }
+      }
     },
     autoar_imdb:{
       enabled: false
@@ -33,15 +42,24 @@ var UW_SITES = {
       name: "placeholder",
       isClass: true,
     },
-    sampleButton: {
-      class: "ytp-button ytp-settings-button",
-      index: 0,
-      buttonSizeBase: "x",
-    },
-    uiParent: {
-      name: "player-controls-wrapper",
-      isClass: true,
-      insertStrat: "append"
+    ui: {
+      uiMode: "native",
+      uiconf: {
+        sampleButton: {
+          class: "ytp-button ytp-settings-button",
+          index: 0,
+          buttonSizeBase: "x",
+        },
+        uiParent: {
+          name: "player-controls-wrapper",
+          isClass: true,
+          insertStrat: "append"
+        },
+        uiOffset: {
+          offsetBy: "0px",
+          offsetType: "css"
+        }
+      }
     },
     autoar_imdb:{
       enabled: true,

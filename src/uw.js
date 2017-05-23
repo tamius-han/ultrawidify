@@ -1,45 +1,13 @@
 #location js
+#include lib/debuginit.js
 #include conf/uiconf.js
 #include conf/sitesconf.js
 #include conf/keybinds.js
 #include lib/libopts.js
 #include lib/browser_autodetect.js
 #include lib/optinit.js
-
-var usebrowser = "chrome";
-var browser_autodetect = true;
-
-var debugmsg = true;
-var debugmsg_click = false;
-var debugmsg_message = false;
-var debugmsg_autoar = false;
-var debugmsg_periodic = false;
-var debugmsg_ui = true;
-var force_conf_reload = true;
-if(debugmsg || debugmsg_click || debugmsg_message || debugmsg_autoar){
-  console.log("\n\n\n\n\n\n\n\n\n\n\n\n\n\n. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
-  console.log("\nLoading ultrawidify (uw)\nIf you can see this, extension at least tried to load\n\nRandom number: ",Math.floor(Math.random() * 20) + 1,"\n");
-  
-  if(debugmsg)
-    console.log("Logging all");
-  
-  if(debugmsg_click)
-    console.log("Logging debugmsg_click");
-  
-  if(debugmsg_message)
-    console.log("Logging debugmsg_message");
-  
-  if(debugmsg_autoar)
-    console.log("Logging autoar");
-  
-  console.log(". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ");
-}
-
-
-
-
-
-
+#include conf/uwvars.js
+#include lib/player_ui.js
 
 const playercheck_recursion_depth_limit = 3;
 
@@ -427,6 +395,8 @@ function stagetracker(op){
   return all_done;  
 }
 
+
+
 function extsetup_stage2(op){
   
   if(debugmsg)
@@ -444,15 +414,36 @@ function extsetup_stage2(op){
   // SITE is set in loadFromStorage. If SITE is still undefined at this point, then we aren't on a known page.
   
   if(debugmsg){
-    console.log("uw::extSetup (stage 2) | --------- ENTERING STAGE 2 OF SETUP -----------");
+    console.log("\n\n\n\nuw::extSetup (stage 2) | --------- ENTERING STAGE 2 OF SETUP -----------");
   }
   
   if(SITE){
+    
+    if(debugmsg){
+      console.log("uw::extSetup (stage 2) | site found, starting config");
+      console.log("starting uinit ...");
+      console.log("progress: %c |                                           |", "background-color: #161211; color: #f51;")
+    }
     uinit();
+    if(debugmsg){
+      console.log("uw::extSetup (stage 2)\nprogress: %c |===>                    |\nuinit complete\n\n", "background-color: #161211; color: #f51;");
+    }
+    
     keydownSetup();
+    if(debugmsg)
+      console.log("uw::extSetup (stage 2)\nprogress: %c |=======>                |\nkeydownSetup complete\n\n", "background-color: #161211;color: #f51;");
+    
     extsetup_comms();
+    if(debugmsg)
+      console.log("uw::extSetup (stage 2)\nprogress: %c |============>           |\nextSetup complete; starting buildUInative\n\n", "background-color: #161211; color: #f51;");
+    
     buildUInative();
+    if(debugmsg)
+      console.log("uw::extSetup (stage 2)\nprogress: %c |=================>      |\nbuildUInative complete\n\n", "background-color: #161211; color: #f51;");
+    
     updateUICSS();
+    if(debugmsg)
+      console.log("uw::extSetup (stage 2)\nprogress: %c |========================|\nupdateUICSS complete\n\n", "background-color: #161211; color: #f51;");
     
     if(page_url.indexOf("netflix.com") != -1){
       console.log("uw::extSetup (stage 2) | starting netflix-specific setup steps");
@@ -471,47 +462,6 @@ function extsetup_stage2(op){
     console.log("======================================[ setup finished ]======================================\n\n\n\n\n");
 }
 
-
-function uinit(){
-  if(debugmsg)
-    console.log("uw::uinit | initializing elements from the webpage");
-  
-  var site = UW_SITES[SITE];
-//   var inIframe = inIframe();
-  
-  if(debugmsg)
-    console.log("uw::uinit | site data:",site,"\n\n\nsite.player.name:", site.player.name,"\nsite.player.isClass:", site.player.isClass);
-  
-//   if(inIframe){
-//     
-//   }
-//   else{
-  SITE_ENABLED = site.enabled;
-  SITE_TYPE = site.type;
-  SITE_URL_RULES = site.urlRules;
-  SITE_PROPS = site;
-  
-  if(debugmsg)
-    console.log("uw::uinit | are we in iframe?", inIframe(), "does the site have a separate config for iframe?", site.iframe ? true : false );
-
-  if(inIframe() && site.iframe){
-    console.log("uw::uinit | we're in iframe.");
-    PLAYER = site.iframe.isClass ? document.getElementsByClassName(site.iframe.name)[0] : document.getElementById(site.iframe.name);
-  }
-  else{
-    PLAYER = site.player.isClass ? document.getElementsByClassName(site.player.name)[0] : document.getElementById(site.player.name);
-  }
-  
-  SAMPLE_BUTTON_CLASS = site.sampleButton.class;
-  SAMPLE_BUTTON_INDEX = site.sampleButton.index;
-  BUTTON_SIZE_BASE = site.sampleButton.buttonSizeBase;
-//   }
-  
-  IMDB_AUTOAR_ALLOWED = site.autoar_imdb.enabled;
-  
-  if(debugmsg)
-    console.log("uw::uinit | initializing elements from the webpage");
-}
 
 function loadFromStorage(){
   if(debugmsg || debugmsg_autoar)
@@ -808,166 +758,6 @@ function check4player(recursion_depth){
     return recursion_depth < playercheck_recursion_depth_limit ? check4player(++recursion_depth) : false;
   }
   return false;
-}
-
-function mkanchor(){
-  ui_anchor = document.createElement("div");
-  ui_anchor.className = "uw_ui_anchor";
-  ui_anchor.id = "uw_ui_anchor";
-    
-  var site = UW_SITES[SITE];
-  
-  if(site.uiParent.insertStrat == "prepend"){
-    $(document.getElementsByClassName(site.uiParent.name)[0]).prepend(ui_anchor);
-  }
-  
-}
- 
-function buildUInative(){
-  /** This function builds UI in the native bar.
-   * 
-   */
-  
-  
-  if(ui_anchor)
-    return;
-  
-  if(!ui_anchor)
-    mkanchor();
-  
-  if(UW_UI_MODE == "none"){
-    if(debugmsg || debugmsg_ui)
-      console.log("uw::buildUInative | usersettings say UI shouldn't be displayed. UI will not be built.");
-    return;
-  }
-  if(UW_UI_MODE == "compact"){
-    if(debugmsg || debugmsg_ui)
-      console.log("uw::buildUInative | usersettings say UI should be compact if possible. Checking if possible.");
-    
-    if(UW_UI_BANLIST[SITE].settings !== undefined && UW_UI_BANLIST[SITE].settings != "noban"){
-      if(debugmsg || debugmsg_ui)
-        console.log("uw::buildUInative | compact ui is not possible on this site. Reverting to full.");
-      UW_UI_MODE == "all";
-    }
-  }
-  
-  if(debugmsg || debugmsg_ui )
-    console.log("uw::buildUInative | starting to build UI");
-  
-  var el;
-  
-  if(UW_UI_MODE == "compact"){       // no need for loop if all we add is the 'settings' buton
-    el = UW_UI_BUTTONS.settings;
-    uiel = mkbutton(el);
-    uiel.appendChild(mksubmenu(el));
-    ui_anchor.appendChild(uiel);
-  }
-  else{
-    for(key in UW_UI_BUTTONS){
-      
-      el = UW_UI_BUTTONS[key];
-      
-      if(UW_UI_BANLIST[SITE][key]){
-        if(debugmsg)
-          console.log("uw::buildUInative | we don't show", key, "on site", SITE, ". Doing nothing.");
-        
-        continue;
-      }
-      
-      if(!el.native_bar)
-        continue;
-      
-      var uiel; //ui element
-      
-      if(el.button){
-        uiel = mkbutton(el);
-      }
-      
-      if(!uiel)
-        continue;
-      
-      ui_anchor.appendChild(uiel);
-      
-      if(el.has_submenu){
-        uiel.appendChild(mksubmenu(el));
-      }
-    }
-  }
-  
-  if(debugmsg || debugmsg_ui )
-    console.log("uw::buildUInative | ui finished");
-}
-
-function mksubmenu(el){
-  var submenu = document.createElement("div");
-  submenu.id = el.submenu_id;
-  submenu.className = "uw_element uw_submenu";
-  
-  for(var i = 0; i < el.submenu.length; i++){
-    if(UW_UI_BANLIST[SITE][el.submenu[i]]){
-      if(debugmsg)
-        console.log("uw::mksubmenu | we don't show", el.submenu[i], "on site", SITE, ". Doing nothing.");
-      
-      continue;
-    }
-    submenu.appendChild(mkmenuitem(el.submenu[i]));
-  }
-  
-  return submenu;
-}
-
-function mkmenuitem(key){
-  var el = UW_UI_BUTTONS[key];
-  var item = document.createElement("div");
-  item.textContent = el.text;
-  item.className = "uw-setmenu-item uw_element";
-  item.onclick = function(event){ event.stopPropagation(); el.onclick(); hideAllMenus(); };
-  
-  if(el.has_submenu){
-    item.appendChild(mksubmenu(el)); 
-
-    if(debugmsg){
-      console.log("uw::mkmenuitem | we are:", el, "; do we have parent?",el.parent,"parent id:",UW_UI_BUTTONS[el.parent].submenu_id, UW_UI_BUTTONS[el.parent].submenu_id === "uw_settings_menu");
-    }
-    
-    if(el.parent)
-      $(item).on("mouseenter", function(){
-        // We determine where the submenu goes - to the left or to the right. showMenu handles position,
-        // this function gets sizes of all objects
-        var div = document.getElementById(UW_UI_BUTTONS[el.parent].submenu_id);
-        var supmenusize = div.getBoundingClientRect();
-        div = document.getElementById(el.submenu_id);
-        var submenusize = div.getBoundingClientRect();
-        var playersize = player.getBoundingClientRect();
-        
-        if(debugmsg)
-          console.log("uw::mouseenter | parent menu size:",supmenusize,"submenu size:",submenusize,"player size:",playersize);
-        
-        showMenu(el.submenu_id, {parent:supmenusize, submenu:submenusize, player:playersize});
-      });
-    else
-      $(item).on("mouseenter", function(){showMenu(el.submenu_id)});
-    
-    $(item).on("mouseleave", function(){hideMenu(el.submenu_id)});
-  }
-  
-  return item;
-}
-
-
-function mkbutton(el){
-  if(debugmsg | debugmsg_ui)
-    console.log("uw::mkbutton | trying to make a button", el.text);
-  
-  var button = document.createElement("div");
-  button.style.backgroundImage = 'url(' + resourceToUrl(el.icon) + ')';
-  button.className += " uw_button uw_element";
-  button.onclick = function(event) {event.stopPropagation(); el.onclick() };
-  
-  if(debugmsg | debugmsg_ui)
-    console.log("uw::mkbutton | button completed");
-  
-  return button;
 }
 
 function hideAllMenus(){
