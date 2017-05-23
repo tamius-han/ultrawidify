@@ -31,6 +31,15 @@
   padding-left: 2em !important;
 }
 
+.common_anchor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
 .uw_button{
   display: inline-block;
 /*   height: 100% !important;  */
