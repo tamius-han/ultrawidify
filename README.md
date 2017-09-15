@@ -1,3 +1,5 @@
+This is the v1 of the project. This branch is the original source for the extension, which is now obsolete (due to the code rewrite started in october 2017). See main (stable) and v2 (current) branches for something that's still getting maintained.
+
 # Ultrawidify — aspect ratio fixer for youtube and netflix
 
 ## TL;DR
