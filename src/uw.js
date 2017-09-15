@@ -458,9 +458,18 @@ function extsetup_stage2(op){
       debugger;
     }
   }
+  
+  if(debugmsg)
+    console.log("uw::extSetup (stage 2)\nprogress: %c |========================|\nadded canvas\n\n", "background-color: #161211; color: #f51;")
+  
+
+  
+  
+  
   if(debugmsg)
     console.log("======================================[ setup finished ]======================================\n\n\n\n\n");
 }
+
 
 
 function loadFromStorage(){
