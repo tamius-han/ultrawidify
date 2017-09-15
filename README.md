@@ -1,4 +1,4 @@
-Note: yeah I know this project didn't see any commits for the past 4-5 months due to personal issues. I was gone due to some personal issues. I'll resume this project come october, starting with getting it to use requireJS and ability for users to add their own sites.
+Note: this is v2 branch, which could be utterly broken at any time of the day. If you want something stable, go and look at master.
 
 # Ultrawidify — aspect ratio fixer for youtube and netflix
 
