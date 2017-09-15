@@ -1,3 +1,5 @@
+Note: yeah I know this project didn't see any commits for the past 4-5 months due to personal issues. I was gone due to some personal issues. I'll resume this project come october, starting with getting it to use requireJS and ability for users to add their own sites.
+
 # Ultrawidify — aspect ratio fixer for youtube and netflix
 
 ## TL;DR
