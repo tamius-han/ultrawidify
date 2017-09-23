@@ -11,23 +11,36 @@
   "description": "Aspect ratio fixer for youtube that works around some people's disability to properly encode 21:9 (and sometimes, 16:9) videos.",
   
   
-  "content_scripts": [
-  {
+  
+  "content_scripts": [{
     "matches": ["*://*/*"],
-    "js": [ "js/jquery-3.1.1.js", "js/uw_libbuttons.js", "js/uw.js" ],
+    "js": [ 
+      "js/dep/jquery-3.1.1.js",
+      
+      "js/conf/Debug.js",
+      "js/conf/Settings.js",
+      
+      "js/lib/FullScreenDetect.js",
+      
+      "js/modules/ArDetect.js", 
+      "js/modules/Resizer.js",
+      
+      
+      "js/uw.js" ], 
     "all_frames": true
-  }
-  ],
+  }],
   
   "background": {
     "scripts": ["js/jquery-3.1.1.js", "js/uw-bg.js"]
   },
   
   "permissions": [
-    "tabs", "storage",  "activeTab", "*://*.youtube.com/*", "*://youtube.com/*", "*://imdb.com/*", "*://*.imdb.com/*"
+    "tabs", "storage",  "activeTab", "all_urls", "*://*.youtube.com/*", "*://youtube.com/*", "*://imdb.com/*", "*://*.imdb.com/*"
   ],
   
   "web_accessible_resources": [
+    "js/*",
+  
     "res/img/ytplayer-icons/zoom.png",
     "res/img/ytplayer-icons/unzoom.png",
     "res/img/ytplayer-icons/fitw.png",
