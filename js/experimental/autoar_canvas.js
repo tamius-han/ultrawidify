@@ -98,7 +98,6 @@ function vdraw(vid, context, w, h){
   var endPixelBottom = [];
   
   var bottomLimit = 0;
-  console.log("6");
   
   
   for(var i in cols){
