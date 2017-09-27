@@ -337,15 +337,6 @@ var _res_setArFs = function(ar){
   // Actual aspect ratio of the file/<video> tag
   var fileAr = vid.videoWidth / vid.videoHeight;
   
-  // Če sta razmerja stranic preveč podobna, ne spreminjaj velikosti
-  // we don't change ar if the target AR and actual AR are too similar
-  var arDiff = ar - fileAr;
-  if (arDiff < 0 )
-    arDiff = -arDiff;
-  
-  if( arDiff < ar * Settings.arChange.samenessTreshold )
-    return;
-  
   // Zabavno dejstvo: ta funkcija se kliče samo v fullscreen. Za ne-fs verzijo bo posebna funkcija, ker bo včasih verjetno treba 
   // spremeniti velikost predvajalnika
   // 
@@ -367,11 +358,19 @@ var _res_setArFs = function(ar){
     videoDimensions.height = videoDimensions.width * (1/fileAr);
   }
   else{
-    // TODO: implement for pillarbox
-    return;
+    videoDimensions.height = Math.min(screen.width * (1/ar), screen.height);
+    videoDimensions.width = videoDimensions.height * fileAr;
+  }
+  
+  if(Debug.debug){
+    console.log("[Resizer::_res_setArFs] Video dimensions: ",videoDimensions);
   }
   
   var cssValues = _res_computeOffsets(videoDimensions, playerDimensions);
+  
+  if(Debug.debug){
+    console.log("[Resizer::_res_setArFs] Offsets for css are: ",cssValues);
+  }
   
   _res_applyCss(cssValues);
 }
