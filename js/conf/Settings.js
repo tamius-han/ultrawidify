@@ -7,6 +7,7 @@ if(Debug.debug)
 Settings = {
   arDetect: {
     enabled: "global",
+    allowedMisaligned: 0.01,  // top and bottom letterbox thickness can differ by this much. Any more and we don't adjust ar.
     allowedArVariance: 0.025, // % by which old ar can differ from the new
     blacklist: [],            // banned on enabled: "global" 
     whitelist: []             // enabled on enabled: "whitelist-only", disabled on "disabled"
