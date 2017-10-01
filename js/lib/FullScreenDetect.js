@@ -6,6 +6,5 @@ var _fsd_isFullScreen = function(){
 }
 
 var FullScreenDetect = {
-  isFullScreen: _fsd_isFullScreen,
-  inFullScreen: _fsd_isFullScreen
+  isFullScreen: _fsd_isFullScreen
 }
