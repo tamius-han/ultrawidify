@@ -330,7 +330,7 @@ var _res_setBestFit = function(ar){
   console.log("uw::setBestFit | css applied");
 }
 
-var _res_setArFs = function(ar){
+var _res_setAr = function(ar, playerDimensions){
   var vid = $("video")[0];
   
   // Dejansko razmerje stranic datoteke/<video> značke
@@ -346,24 +346,30 @@ var _res_setArFs = function(ar){
     height: 0
   }
   
-  var playerDimensions = {
-    width: screen.width,
-    height: screen.height
+  if(Debug.debug){
+    console.log("[Resizer::_res_setArFs] Player dimensions?",playerDimensions);
+  }
+  
+  if(playerDimensions === undefined){
+    playerDimensions = {
+      width: screen.width,
+      height: screen.height
+    }
   }
   
   if( fileAr < ar ){
     // imamo letterbox zgoraj in spodaj -> spremenimo velikost videa (ampak nikoli na več, kot je širina zaslona)
     // letterbox -> change video size (but never to wider than monitor width)
-    videoDimensions.width = Math.min(screen.height * ar, screen.width);
+    videoDimensions.width = Math.min(playerDimensions.height * ar, playerDimensions.width);
     videoDimensions.height = videoDimensions.width * (1/fileAr);
   }
   else{
-    videoDimensions.height = Math.min(screen.width * (1/ar), screen.height);
+    videoDimensions.height = Math.min(playerDimensions.width * (1/ar), playerDimensions.height);
     videoDimensions.width = videoDimensions.height * fileAr;
   }
   
   if(Debug.debug){
-    console.log("[Resizer::_res_setArFs] Video dimensions: ",videoDimensions);
+    console.log("[Resizer::_res_setArFs] Video dimensions: ",videoDimensions, "playerDimensions:",playerDimensions);
   }
   
   var cssValues = _res_computeOffsets(videoDimensions, playerDimensions);
@@ -392,6 +398,22 @@ var _res_computeOffsets = function(vidDim, playerDim){
   }
   
   return offsets;
+}
+
+var _res_setAr_nonfs = function(ar){
+  var player = SitesConf.getPlayerTag();
+  
+  SitesConf.prepareNonfsPlayer();
+  
+  if(! player)
+    player = $("video")[0].parentNode;
+  
+  var playerDimensions = {
+    width: player.offsetWidth,
+    height: player.offsetHeight
+  }
+  
+  _res_setAr(ar, playerDimensions);
 }
 
 
@@ -573,5 +595,6 @@ function _res_applyCss(dimensions){
 }
 
 var Resizer = {
-  setAr_fs: _res_setArFs  
+  setAr_fs: _res_setAr,
+  setAr_nonfs: _res_setAr_nonfs
 }

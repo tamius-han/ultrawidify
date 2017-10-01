@@ -1,6 +1,10 @@
 if(Debug.debug)
   console.log("Loading: ArDetect");
 
+
+
+
+
 // global-ish variables
 var _ard_oldAr;
 var _ard_currentAr;
@@ -24,24 +28,36 @@ var _arSetup = function(){
     return;
   }
   
+  // imamo video, pa tudi problem. Ta problem bo verjetno kmalu popravljen, zato setup začnemo hitreje kot prej
+  // we have a video, but also a problem. This problem will prolly be fixed very soon, so setup is called with
+  // less delay than before
+  if(vid.videoWidth == 0){
+    setTimeout(_arSetup, 100);
+    return;
+  }
+  
   var canvas = document.createElement("canvas");
   canvas.style.position = "absolute";
   
   //todo: change those values to push canvas off-screen
   
-   
-  canvas.style.top = "1080px";
-  canvas.style.zIndex = 10000;
   
-//   var test = document.getElementsByClassName("content style-scope ytd-video-secondary-info-renderer")[0]
+  if(Debug.debug){
+    canvas.style.left = "200px";
+    canvas.style.top = "780px";
+    canvas.style.zIndex = 10000;
+  }
+  else{
+    canvas.style.left = "-20000px";
+    canvas.style.top = "-1080px";
+    canvas.style.zIndex = -10000;
+  }
+  canvas.id = "uw_ArDetect_canvas";
+  
   var test = document.getElementsByTagName("body")[0];
   test.appendChild(canvas);
   
-  console.log("test: ", test, "vid: ", vid, "canvas: ", canvas);
-  
-//       vid.append(canvas);
   var context = canvas.getContext("2d");
-  
   
   // do setup once
   // tho we could do it for every frame
@@ -49,6 +65,7 @@ var _arSetup = function(){
   var canvasWidth = vid.videoWidth * canvasScaleFactor;
   var canvasHeight = vid.videoHeight * canvasScaleFactor;
   
+  console.log("canvasScaleFactor, vid.videoWidth: ", canvasScaleFactor, vid.videoWidth);
   
   canvas.width = canvasWidth;
   canvas.height = canvasHeight;
@@ -82,7 +99,7 @@ var _ard_processAr = function(video, width, height, edge_h, edge_w){
   
   
   var trueAr = width / trueHeight;
-  
+  ArDetect.detectedAr = trueAr;
   
   // poglejmo, če se je razmerje stranic spremenilo
   // check if aspect ratio is changed:
@@ -104,6 +121,15 @@ var _ard_processAr = function(video, width, height, edge_h, edge_w){
     _ard_oldAr = trueAr;
     Resizer.setAr_fs(trueAr);
   }
+  else{
+    // če nismo v fullscreen, potem preverimo, ali naša stran dovoljuje ne-fs?
+    // first, we'll check if our site allows for non-fs autoar detection
+    if( SitesConf.nonfsArDetectEnabled() ){
+      _ard_oldAr = trueAr;
+      Resizer.setAr_nonfs(trueAr);
+    }
+  }
+  
   
 }
 
@@ -142,8 +168,6 @@ var _ard_vdraw = function (vid, context, w, h, conf){
     // should also check bottom
   }
 
-  console.log("11");
-  
   if(!isLetter){
     // tudi če ne zaznamo letterboxa, še vedno poženemo processAr. Lahko, da smo v preteklosti popravili letterbox, to pa moramo
     // sedaj razveljaviti
@@ -171,8 +195,6 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   // columns, in which the values above were found
   var cl_col = [];
   var cu_col = [];
-  
-  console.log("22");
   
   // if (pixel is black) 
   for(var i in cols){
@@ -285,7 +307,6 @@ var _ard_vdraw = function (vid, context, w, h, conf){
     
   }
 
-  console.log("33");
   
   
   if(blackPoints > (blackPointsMax >> 1)){
@@ -295,8 +316,6 @@ var _ard_vdraw = function (vid, context, w, h, conf){
     return;
   }
 
-  console.log("color_uppermost:",color_uppermost,"color_lowermost:",color_lowermost);
-  
   if( color_lowermost == 8 || color_uppermost == 0){
     // zakaj smo potem sploh tukaj?
     // why exactly are we here again?
@@ -306,7 +325,6 @@ var _ard_vdraw = function (vid, context, w, h, conf){
     return;
   }
   
-  console.log("44");
   
   
   // pa poglejmo, kje se končajo črne letvice na vrhu in na dnu videa.
@@ -336,8 +354,6 @@ var _ard_vdraw = function (vid, context, w, h, conf){
     endPixelTop.push(tmpEndPixel);
   }
   
-  console.log("777");
-  
   for(var i in cl_col){
     var tmpEndPixel = _ard_sampleLines[color_lowermost] >> 2;
     var j = _ard_sampleLines[color_lowermost];
@@ -355,8 +371,6 @@ var _ard_vdraw = function (vid, context, w, h, conf){
     
     endPixelBottom.push(tmpEndPixel);
   }
-  
-  console.log("888");
   
   // dobi najvišji in najnižji piksel
   var bottomPixel = 0;
@@ -382,8 +396,6 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   
   isLetter = (letterDiff < h * Settings.arDetect.allowedMisaligned);
   
-  console.log("pixels top: ", topPixel, "pixels bottom:", (h-bottomPixel), " (", bottomPixel,") — difference: ",letterDiff,"max allowed difference:", (h * Settings.arDetect.allowedMisaligned), "(",h,Settings.arDetect.allowedMisaligned,"), isLetter:",isLetter, "\n\n all candidates (top):", endPixelTop, "(bottom):",endPixelBottom);
-  
   if(isLetter)
     _ard_processAr(vid, w, h, topPixel);
   
@@ -391,11 +403,9 @@ var _ard_vdraw = function (vid, context, w, h, conf){
 }
 
 
-
-
-
 var ArDetect = {
   arSetup: _arSetup,
   vdraw: _ard_vdraw,
+  detectedAr: 1,
   arChangedCallback: function() {}
 }

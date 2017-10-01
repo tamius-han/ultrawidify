@@ -19,6 +19,7 @@
       
       "js/conf/Debug.js",
       "js/conf/Settings.js",
+      "js/conf/SitesConf.js",
       
       "js/lib/FullScreenDetect.js",
       
