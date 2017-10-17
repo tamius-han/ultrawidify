@@ -42,7 +42,7 @@ var _arSetup = function(){
   //todo: change those values to push canvas off-screen
   
   
-  if(Debug.debug){
+  if(Debug.showArDetectCanvas){
     canvas.style.left = "200px";
     canvas.style.top = "780px";
     canvas.style.zIndex = 10000;
@@ -136,9 +136,9 @@ var _ard_processAr = function(video, width, height, edge_h, edge_w){
 var _ard_vdraw = function (vid, context, w, h, conf){
   var blackbar_tresh = 10;  // how non-black can the bar be
   var how_far_treshold = 8; // how much can the edge pixel vary (*4)
-  var msec_pause = 333;     // how long is the pause between two executions — 33ms ~ 30fps
+  var msec_pause = 33;     // how long is the pause between two executions — 33ms ~ 30fps
   
-  if(vid === undefined || vid.paused || vid.ended){
+  if(vid === undefined || vid.paused || vid.ended || Status.arStrat != "auto"){
     // we slow down if paused, no detection
     setTimeout(_ard_vdraw, 3000, vid, context, w, h);
     return false;

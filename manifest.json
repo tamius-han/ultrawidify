@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Ultrawidify-git",
-  "version": "2a1",
+  "version": "2.0a1",
   
   "icons": {
     "32":"res/icons/uw-32.png",
@@ -20,20 +20,17 @@
       "js/conf/Debug.js",
       "js/conf/Settings.js",
       "js/conf/SitesConf.js",
+      "js/conf/Status.js",
       
       "js/lib/FullScreenDetect.js",
       
       "js/modules/ArDetect.js", 
       "js/modules/Resizer.js",
-      
+      "js/conf/Keybinds.js",
       
       "js/uw.js" ], 
     "all_frames": true
   }],
-  
-  "background": {
-    "scripts": ["js/jquery-3.1.1.js", "js/uw-bg.js"]
-  },
   
   "permissions": [
     "tabs", "storage",  "activeTab", "all_urls", "*://*.youtube.com/*", "*://youtube.com/*", "*://imdb.com/*", "*://*.imdb.com/*"

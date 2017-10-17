@@ -1,6 +1,7 @@
 Debug = {
   debug: true,
-  debugArDetect: true
+  debugArDetect: true,
+  showArDetectCanvas: false
 }
 
 if(Debug.debug)

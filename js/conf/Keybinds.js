@@ -62,12 +62,14 @@ var DEFAULT_KEYBINDINGS = {
 
 var _kbd_setup = function() {
   StorageManager.getopt("keybinds");
-  
 }
 
 
 
 var _kbd_setup_stage2 = function(){
+  // todo: dont do that
+  var KEYBINDS = DEFAULT_KEYBINDINGS;
+  
   if(Debug.debug  || Debug.keyboard)
     console.log("uw::keydownSetup | starting keybord shortcut setup");
   $(document).keydown(function (event) {          // Tukaj ugotovimo, katero tipko smo pritisnili
@@ -75,7 +77,7 @@ var _kbd_setup_stage2 = function(){
     // Tipke upoštevamo samo, če smo v celozaslonskem načinu oz. če ne pišemo komentarja
     // v nasprotnem primeru ne naredimo nič.
     // We only take actions if we're in full screen or not writing a comment
-    if( !(inFullScreen || (
+    if( !(FullScreenDetect.isFullScreen() || (
       (document.activeElement.getAttribute("role") != "textbox") &&
       (document.activeElement.getAttribute("type") != "text")
     ))){
@@ -95,7 +97,7 @@ var _kbd_setup_stage2 = function(){
         });
         sending.then( function(){}, function(){console.log("uw/keydown: there was an error while sending a message")} );
         console.log("uw/keydown: test message sent! (probably)");
-        return;
+//         return;
       }
     }
     
@@ -124,23 +126,28 @@ var _kbd_setup_stage2 = function(){
           
           console.log("uw::keydown | keys match. Taking action.");
           if(KEYBINDS[i].action == "char"){
-            changeCSS("char", KEYBINDS[i].targetAR);
+            Status.arStrat = "fixed";
+            Status["lastAr"] = KEYBINDS[i].targetAR;
+            Resizer.setAr(KEYBINDS[i].targetAR);
             return;
           }
           if(KEYBINDS[i].action == "autoar"){
-            manual_autoar();
+            Status.arStrat = "auto";
             return;
           }
-          changeCSS("anything goes", KEYBINDS[i].action);
+//           changeCSS("anything goes", KEYBINDS[i].action);
+          Status.arStrat = KEYBINDS[i].action;
+          Resizer.legacyAr(KEYBINDS[i].action);
           return;
         }
       }
     }
   });
   
-  document.addEventListener("mozfullscreenchange", function( event ) {
-    onFullScreenChange();
-    inFullScreen = ( window.innerHeight == window.screen.height && window.innerWidth == window.screen.width);
-    inFullScreen ? onFullscreenOn() : onFullscreenOff();
-  });
+//   document.addEventListener("mozfullscreenchange", function( event ) {
+//     onFullScreenChange();
+//     inFullScreen = ( window.innerHeight == window.screen.height && window.innerWidth == window.screen.width);
+//     inFullScreen ? onFullscreenOn() : onFullscreenOff();
+//   });
 }
+_kbd_setup_stage2();

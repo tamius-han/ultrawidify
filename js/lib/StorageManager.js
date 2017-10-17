@@ -15,7 +15,7 @@ var _sm_delopt = function(item){
 }
 
 var StorageManager = {
-  setopt = _sm_setopt,
-  getopt = _sm_getopt,
-  delopt = _sm_delopt
+  setopt: _sm_setopt,
+  getopt: _sm_getopt,
+  delopt: _sm_delopt
 }
