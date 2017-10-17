@@ -8,5 +8,5 @@ if(typeof browser === "undefined"){ // This means we're probably not on Firefox.
 }
 
 var BrowserDetect = {
-  usebrowser = _bd_usebrowser;
+  usebrowser: _bd_usebrowser
 }

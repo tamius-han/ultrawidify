@@ -1,0 +1,3 @@
+var Status = {
+  arStrat: "auto"
+}

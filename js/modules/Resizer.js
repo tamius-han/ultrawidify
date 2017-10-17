@@ -258,76 +258,106 @@ var setVideoAr = function(aspect_ratio, video, player){
 
 
 
-// Ta funkcija ugotovi, kako se kvadrat s podanim razmerjem stranic najbolj prilega ekranu
-// Predpostavimo, da so ćrne obrobe vselej zgoraj in spodaj, nikoli levo in desno.
-// 
-// This function determines how a rectangle with a given aspect ratio best fits the monitor
-// We assume letterbox is always letterbox, never pillarbox.
-var _res_setBestFit = function(ar){
-  if(debugmsg || debugmsg_autoar)
-    console.log("uw::setBestFit | got ar:",ar);
+// // Ta funkcija ugotovi, kako se kvadrat s podanim razmerjem stranic najbolj prilega ekranu
+// // Predpostavimo, da so ćrne obrobe vselej zgoraj in spodaj, nikoli levo in desno.
+// // 
+// // This function determines how a rectangle with a given aspect ratio best fits the monitor
+// // We assume letterbox is always letterbox, never pillarbox.
+// var _res_setBestFit = function(ar){
+//   if(debugmsg || debugmsg_autoar)
+//     console.log("uw::setBestFit | got ar:",ar);
+//   
+//   var player = {width: PLAYER.clientWidth, height: PLAYER.clientHeight};
+//   var player_ar = player.width / player.height;
+//   
+//   var evideo =  $("video")[0];
+//   var video = {width: evideo.videoWidth, height: evideo.videoHeight};
+//   var video_ar = video.width / video.height;
+//   
+//   // Ob predpostavki, da je argument 'ar' pravilen, naračunamo dimenzije videa glede na širino in višino predvajalnika
+//   // Kot rezultat laho dobimo dve možnosti:
+//   //     A: naračunana širina je širša, kot naš zaslon —> za računanje uporabimo širino (letterbox zgoraj/spodaj,
+//   //        levo/desno pa ne)
+//   //     B: naračunana širina je ožja, kot naš zaslon —> za računanje uporabimo višino (letterbox levo/desno,
+//   //        zgoraj/spodaj pa ne)
+//   
+//   if(debugmsg || debugmsg_autoar)
+//     console.log("uw::setBestFit | here's all we got. ar:",ar,"player:",player,"video:",video);
+//   
+//   var tru_width = player.height * ar;
+//   var tru_height = player.width / ar;
+//   
+//   var nv = {w: "", h: "", top: "", left: ""};
+//   
+//   if(ar >= video_ar){
+//     if(ar >= player_ar){
+//       if(debugmsg || debugmsg_autoar)
+//         console.log("uw::setBestFit | aspect ratio is wider than player ar.")
+//         nv.h = player.width / video_ar;
+//       nv.w = nv.h * ar;
+//     }
+//     else{
+//       if(debugmsg || debugmsg_autoar)
+//         console.log("uw::setBestFit | aspect ratio is narrower than player ar.", (player.height * ar), nv)
+//         nv.w = player.height * ar;
+//       nv.h = nv.w / video_ar;
+//     }
+//   }
+//   else{
+//     if(ar >= player_ar){
+//       if(debugmsg || debugmsg_autoar)
+//         console.log("uw::setBestFit | aspect ratio is wider than player ar.")
+//         nv.h = player.width / ar;
+//       nv.w = nv.h * video_ar;
+//     }
+//     else{
+//       if(debugmsg || debugmsg_autoar)
+//         console.log("uw::setBestFit | aspect ratio is narrower than player ar.", (player.height * ar), nv)
+//         nv.w = player.height * video_ar;
+//       nv.h = nv.w / ar;
+//     }
+//   }
+//   if(debugmsg || debugmsg_autoar)
+//     console.log("uw::setBestFit | new video width and height processed. nv so far:", nv)
+//     
+//     nv.top = (player.height - nv.h)/2;
+//   nv.left = (player.width - nv.w)/2;
+//   
+//   if(debugmsg || debugmsg_autoar)
+//     console.log("uw::setBestFit | tru width:",tru_width,"(player width:",player.width,"); new video size:",nv);
+//   
+//   _res_applyCss(nv);
+//   console.log("uw::setBestFit | css applied");
+// }
+
+// Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". Približevanje opuščeno.
+// handles "legacy" options, such as 'fit to widht', 'fit to height' and 'reset'. No zoom tho
+var _res_legacyAr = function(action){
+  var vid = $("video")[0];
+  var ar = screen.width / screen.height;
+  var fileAr = vid.videoWidth / vid.videoHeight;
   
-  var player = {width: PLAYER.clientWidth, height: PLAYER.clientHeight};
-  var player_ar = player.width / player.height;
-  
-  var evideo =  $("video")[0];
-  var video = {width: evideo.videoWidth, height: evideo.videoHeight};
-  var video_ar = video.width / video.height;
-  
-  // Ob predpostavki, da je argument 'ar' pravilen, naračunamo dimenzije videa glede na širino in višino predvajalnika
-  // Kot rezultat laho dobimo dve možnosti:
-  //     A: naračunana širina je širša, kot naš zaslon —> za računanje uporabimo širino (letterbox zgoraj/spodaj,
-  //        levo/desno pa ne)
-  //     B: naračunana širina je ožja, kot naš zaslon —> za računanje uporabimo višino (letterbox levo/desno,
-  //        zgoraj/spodaj pa ne)
-  
-  if(debugmsg || debugmsg_autoar)
-    console.log("uw::setBestFit | here's all we got. ar:",ar,"player:",player,"video:",video);
-  
-  var tru_width = player.height * ar;
-  var tru_height = player.width / ar;
-  
-  var nv = {w: "", h: "", top: "", left: ""};
-  
-  if(ar >= video_ar){
-    if(ar >= player_ar){
-      if(debugmsg || debugmsg_autoar)
-        console.log("uw::setBestFit | aspect ratio is wider than player ar.")
-        nv.h = player.width / video_ar;
-      nv.w = nv.h * ar;
-    }
-    else{
-      if(debugmsg || debugmsg_autoar)
-        console.log("uw::setBestFit | aspect ratio is narrower than player ar.", (player.height * ar), nv)
-        nv.w = player.height * ar;
-      nv.h = nv.w / video_ar;
-    }
+  if(action == "fitw"){
+    _res_setAr_kbd( ar > fileAr ? ar : fileAr);
+    return;
   }
-  else{
-    if(ar >= player_ar){
-      if(debugmsg || debugmsg_autoar)
-        console.log("uw::setBestFit | aspect ratio is wider than player ar.")
-        nv.h = player.width / ar;
-      nv.w = nv.h * video_ar;
-    }
-    else{
-      if(debugmsg || debugmsg_autoar)
-        console.log("uw::setBestFit | aspect ratio is narrower than player ar.", (player.height * ar), nv)
-        nv.w = player.height * video_ar;
-      nv.h = nv.w / ar;
-    }
+  if(action == "fith"){
+    _res_setAr_kbd( ar < fileAr ? ar : fileAr);
+    return;
   }
-  if(debugmsg || debugmsg_autoar)
-    console.log("uw::setBestFit | new video width and height processed. nv so far:", nv)
-    
-    nv.top = (player.height - nv.h)/2;
-  nv.left = (player.width - nv.w)/2;
+  if(action == "reset"){
+    _res_setAr_kbd(fileAr);
+    return;
+  }
   
-  if(debugmsg || debugmsg_autoar)
-    console.log("uw::setBestFit | tru width:",tru_width,"(player width:",player.width,"); new video size:",nv);
-  
-  _res_applyCss(nv);
-  console.log("uw::setBestFit | css applied");
+}
+
+var _res_setAr_kbd = function(ar){
+  if(FullScreenDetect.isFullScreen())
+    _res_setAr(ar, {width: screen.width, height: screen.height} );
+//   else
+//     _res_setAr_nonfs(ar);
+// TODO: check if site supports non-fs ar
 }
 
 var _res_setAr = function(ar, playerDimensions){
@@ -340,6 +370,9 @@ var _res_setAr = function(ar, playerDimensions){
   // Zabavno dejstvo: ta funkcija se kliče samo v fullscreen. Za ne-fs verzijo bo posebna funkcija, ker bo včasih verjetno treba 
   // spremeniti velikost predvajalnika
   // 
+  
+  if(Debug.debug)
+    console.log("[Resizer::_res_setArFs] ar is " ,ar, ", playerDimensions are ", playerDimensions);
   
   var videoDimensions = {
     width: 0,
@@ -595,6 +628,8 @@ function _res_applyCss(dimensions){
 }
 
 var Resizer = {
+  setAr: _res_setAr_kbd,
   setAr_fs: _res_setAr,
-  setAr_nonfs: _res_setAr_nonfs
+  setAr_nonfs: _res_setAr_nonfs,
+  legacyAr: _res_legacyAr
 }
