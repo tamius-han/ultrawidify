@@ -1,5 +1,3 @@
-Note: this is v2 branch, which could be utterly broken at any time of the day. If you want something stable, go and look at master.
-
 # Ultrawidify — aspect ratio fixer for youtube and netflix
 
 ## TL;DR
@@ -18,51 +16,35 @@ The technology has been here for a while, but plenty of people don't know how to
 
 ## Features
 
-* **Adds UI to the player's controls**
 * **Fit video to width/height**
-* **Zoom/unzoom video**
 * **Force specific aspect ratio**
-* **(Attempt to) autodetect aspect ratio** (Netflix only)
-* **Rebindable shortcuts**
+* **Attempts to automatically detect aspect ratio**
+* ~~**Rebindable shortcuts**~~
 
 ### User interface
 
-![UI](img-demo/example-ui-general.png "If I ever found out that the video I'm in is 21:9, but encoded as 16:9 + black bars, I'd probably consider killing myself as well. To be completely fair, Blender institute did good job encoding the video properly. But of course there's some repost channels to fuck it up.")
-
-To be entirely fair to the blender foundation, the video featured above is properly encoded. (However, few accounts that reposted it didn't sport the same levels of competence).
-
-The 'more settings' menu contains all the buttons on the control bar, plus an option to force a specific aspect ratio — in case you're trying to watch a 16:9 video, that's encoded as 4:3 video, on a 21:9 monitor.
-
-![UI](img-demo/example-ui-more-settings.png "If you know me and came looking for the obligatory »it's a wyvern, not a dragon« comment ... well, you just found it.")
-
-These options might show some benefit for people not using 21:9 monitors, as they would allow you to crop a (proper) 21:9 to 16:9 (remove black bars at the cost of some video). 'Fit to height' would often do the same job, though.
+There's no longer any user interface lol. Only keybinds.
 
 ### Default keyboard shortcuts
 
-    w   - fit to width
-    e   - fit to height
-    r   - reset
-    z   - zoom
-    u   - unzoom
-    
-    a   - attempt to automatically determine the aspect ratio (netflix only)
-    
-    s   - force 21:9
-    d   - force 16:9
-    x   - force 16:10
-    c   - force 4:3
+w   - fit to width
+e   - fit to height
+r   - reset
 
-### About Netflix aspect ratio autodetection
+a   - attempt to automatically determine the aspect ratio (netflix only)
 
-Automatic aspect ratio detection on Netflix works by grabbing the title of the video off Netflix' control bar and throws it at some third party services. First, it takes the title and throws it at OMDB. OMDB replies with IMDB id. We then throw that id at IMDB, which replies with 1700+ lines (and aspect ratio information is hopefully somewhere among them). If OMDB doesn't find the movie — or if the IMDB doesn't have information about aspect ratio for that particular title — automatic detection fails. There's also a posibility that this method returns the wrong data, as there's a possibility that multiple movies share the same title.
+s   - force 21:9
+d   - force 16:9
+x   - force 16:10
+c   - force 4:3
 
-For best results with autodetection, please make sure the following requirements are met:
+### About aspect ratio autodetection
 
-* Netflix, not youtube
-* Netflix must be in English
-* Movie title must be in English/the original title
-* Movie must be known by OMDB
-* Movie must have aspect ratio info on IMDB
+This is not available in AMO/Chrome version.
+
+Aspect ratio autodetection is achieved by performing some black magic every 30-something milliseconds. This currently can't be turned off by default. If this extension makes video sites lag too much, open an issue and include your hardware and OS — **this is important for me to know in order to better optimize autodetection.**.
+
+Manually triggering aspect ratio change will suspend automatic aspect ratio detection for until the page is refreshed, although it'll maybe unsuspend itself when video is changed. I don't know for certain.
 
 ## Installing
 
@@ -83,8 +65,11 @@ For best results with autodetection, please make sure the following requirements
 ## Known issues (in stable versions)
 
 'More settings' button actually doesn't work at the moment.
+Netflix doesnt work either.
 
 ## Plans for the future
+
+TODO: add stuff for 2.0
 
 * ~~Adding custom keybinds~~ (done at lastest)
 * ~~Adding a proper settings page~~ (done at last)
@@ -92,12 +77,23 @@ For best results with autodetection, please make sure the following requirements
 * ~~Adding an option to force specific aspect ratio~~ (now it's "good enough")
 * ~~Port to Chrome~~
 * ~~Have extension remember the last setting when switching between fullscreen and not fullscreen.~~ (kinda done)
-* Have an option to remember last selected aspect ratio.
-* Option to hide UI
+* ~~Have an option to remember last selected aspect ratio.~~
+* ~~Option to hide UI~~
 * ~~Netflix support~~ (done)
 
 
 ## Changelog
+
+###v2.0a1 (git/current version)
+
+The extension is being rewritten almost ground-up, around automatic aspect ratio detection. By default, this extension now only works in fullscreen, but due to some simplification it should work on most sites. As direct result of this simplification:
+
+* The UI is completely gone
+* Ability to add custom sites has been scrapped (might get implemented later on if some sites are a bit more problematic
+* Extension broken up between smaller files, this time the proper way
+* Added "the impossible aspect ratio autodetection"
+* Zoom/unzoom options are gone
+* Can't customize keybinds yet
 
 ###v1.3a1  (git/current version)
 
@@ -124,8 +120,8 @@ For best results with autodetection, please make sure the following requirements
 
 ###v1.1.0
 
- * Introduced Netflix support.
- 
+* Introduced Netflix support.
+
 As Netflix relies on extension re-initializing at least the UI ***a lot***, the optimization introduced in 1.0.2 was reversed (as waiting 2 seconds for the UI to appear is just too much). 
 
 Furthermore, triggering UI re-initialisation on onUpdated events turned out to not be the proper way to go: immediately after the extension is initialized, onUpdated gets triggered even more often than your average Buzzfeed writer/reader. But change the episode on Netflix and suddenly, onUpdated gets barely triggered at all — which means that more often than not, the UI extension injects into the page wasn't visible. (the fuck, really)
