@@ -37,7 +37,7 @@
   ],
   
   "browser_action": {
-    "default_icon": "res/icons-32.png",
+    "default_icon": "res/icons/uw-32.png",
     "default_popup": "res/popup/popup.html",
     "default_title": "Uʟᴛʀᴀᴡɪᴅɪꜰʏ"
   },
