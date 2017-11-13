@@ -1,0 +1,61 @@
+<html>
+  <head>
+    <title></title>
+    <meta charset="utf-8">
+    <style>
+    html, body {
+      width: 100%;
+      color: #f1f1f1;
+      background-color: #1f1f1f;
+      font-family: "Overpass";
+    }
+    
+    .hidden: {
+      display: none;
+    }
+    
+    small{
+      font-size: 0.75em;
+      font-weight: 200;
+    }
+    
+    .smallcaps{
+      font-variant: small-caps;
+    }
+    
+    </style>
+  </head>
+  <body>
+    <h1>U<span class="smallcaps">ltrawidify</span>: <small>Quick settings</small></h1>
+    <div class="left—side">
+      <h2>Extension mode:</h1>
+      <form action="">
+        <input type="radio" name="mode" value="white"> Enable everywhere except blacklist<br/>
+        <input type="radio" name="mode" value="black"> Enable only on whitelisted sites<br/>
+        <input type="radio" name="mode" value="block"> Disable extension on all sites
+      </form>
+      <h2>Settings for this site</h1>
+      <form action="">
+        <input type="radio" name="mode" value="default"> Follow global rules<br/>
+        <input type="radio" name="mode" value="black"> Always block<br/>
+        <input type="radio" name="mode" value="white"> Always allow
+      </form>
+    </div>
+    <div>
+      <h2>Autodetection</h1>
+        <input type="checkbox" id="arDetectEnabled"><label for="arDetectEnabled">Enable active aspect ratio autodetection</label>
+        <div>TODO: add controls for how aggressive autodetection is</div>
+    </div>
+    <div>
+      <h2>Force aspect ratio:</h2>
+      Todo:
+      Options: default, auto, fit width, fit height, 16:9, 16:10, 21:9
+    </div>
+    <div>
+      <h2>Video alignment</h2>
+      Todo: Left, center, right
+    </div>
+  
+  
+  </body>
+</html>

@@ -36,6 +36,12 @@
     "tabs", "storage",  "activeTab", "<all_urls>", "*://*.youtube.com/*", "*://youtube.com/*", "*://imdb.com/*", "*://*.imdb.com/*"
   ],
   
+  "browser_action": {
+    "default_icon": "res/icons-32.png",
+    "default_popup": "res/popup/popup.html",
+    "default_title": "Uʟᴛʀᴀᴡɪᴅɪꜰʏ"
+  },
+  
   "web_accessible_resources": [
     "js/*",
   
