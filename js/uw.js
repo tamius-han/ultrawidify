@@ -11,4 +11,14 @@ $(document).ready(function() {
 //  
   ArDetect.arSetup();
   
+  
+  document.addEventListener("mozfullscreenchange", function( event ) {
+    if(FullScreenDetect.isFullScreen()){
+      // full screen is on
+    }
+    else{
+      Resizer.reset();
+    }
+  });
+  
 });

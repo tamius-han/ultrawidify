@@ -27,16 +27,16 @@ There's no longer any user interface lol. Only keybinds.
 
 ### Default keyboard shortcuts
 
-w   - fit to width
-e   - fit to height
-r   - reset
+`w`   - fit to width  
+`e`   - fit to height  
+`r`   - reset
 
-a   - attempt to automatically determine the aspect ratio (netflix only)
+`a`   - attempt to automatically determine the aspect ratio (netflix only)  
 
-s   - force 21:9
-d   - force 16:9
-x   - force 16:10
-c   - force 4:3
+`s`   - force 21:9  
+`d`   - force 16:9  
+`x`   - force 16:10  
+`c`   - force 4:3  
 
 ### About aspect ratio autodetection
 

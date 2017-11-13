@@ -352,6 +352,15 @@ var _res_legacyAr = function(action){
   
 }
 
+var _res_reset = function(){
+  dimensions = {top: "", left: "", width: "100%", height: "100%"};
+  
+  $("video").css({"position": "relative", "width": dimensions.width,"height": dimensions.height,"top": dimensions.top, "left": dimensions.left});
+  
+  if(Debug.debug)
+    console.log("[Resizer::_res_applyCss] css applied. Dimensions/pos: w:",dimensions.width,"; h:",dimensions.height,"; top:",dimensions.top,"; left:",dimensions.left);
+}
+
 var _res_setAr_kbd = function(ar){
   if(FullScreenDetect.isFullScreen())
     _res_setAr(ar, {width: screen.width, height: screen.height} );
@@ -600,7 +609,7 @@ function changeCSS_nofs(what_do, video, player){
     h = video.scrollh - (player.height * zoomStep);
     w = video.scrollw - (player.height * zoomStep * ar);
     
-    top = (player.height - h)/2
+    top = (player.height - h) / 2;
     left = (player.width - w) / 2;
     
     if (h < player.height * 0.25){
@@ -616,20 +625,62 @@ function changeCSS_nofs(what_do, video, player){
 }
 
 function _res_applyCss(dimensions){
-  dimensions.top = Math.round(dimensions.top) + "px";
-  dimensions.left = Math.round(dimensions.left) + "px";
-  dimensions.width = Math.round(dimensions.width) + "px";
-  dimensions.height = Math.round(dimensions.height) + "px";
+  dimensions.top = "top: " + Math.round(dimensions.top) + "px !important";
+  dimensions.left = "left: " + Math.round(dimensions.left) + "px !important";
+  dimensions.width = "width: " + Math.round(dimensions.width) + "px !important";
+  dimensions.height = "height: " + Math.round(dimensions.height) + "px !important";
   
-  $("video").css({"position": "absolute", "width": dimensions.width,"height": dimensions.height,"top": dimensions.top, "left": dimensions.left});
+  console.log("trying to apply css. dimensions: ", dimensions);
+  
+  var vid = $("video")[0];
+  
+  var styleArray = vid.getAttribute('style').split("; ");
+
+  for(var i in styleArray){
+    
+    styleArray[i] = styleArray[i].trim();
+    
+    if     (styleArray[i].startsWith("top:")){
+      styleArray[i] = dimensions.top;
+      delete dimensions.top;
+    }
+    else if(styleArray[i].startsWith("left:")){
+      styleArray[i] = dimensions.left;
+      delete dimensions.left;
+    }
+    else if(styleArray[i].startsWith("width:")){
+      styleArray[i] = dimensions.width;
+      delete dimensions.width;
+    }
+    else if(styleArray[i].startsWith("height:")){
+      styleArray[i] = dimensions.height;
+      delete dimensions.height;
+    }
+    else if(styleArray[i].startsWith("position:")){
+      styleArray[i] = "position: absolute";
+    }
+  }
+  
+  // add remaining elements
+  for(var key in dimensions)
+    styleArray.push( dimensions[key] );
+  
+  // build style string back
+  var styleString = "";
+  for(var i in styleArray)
+    if(styleArray[i] !== undefined && styleArray[i] !== "")
+      styleString += styleArray[i] + "; ";
+  
+  vid.setAttribute("style", styleString);
   
   if(Debug.debug)
-    console.log("[Resizer::_res_applyCss] css applied. Dimensions/pos: w:",dimensions.width,"; h:",dimensions.height,"; top:",dimensions.top,"; left:",dimensions.left);
+    console.log("[Resizer::_res_applyCss] css applied. Dimensions: ", styleString);
 }
 
 var Resizer = {
   setAr: _res_setAr_kbd,
   setAr_fs: _res_setAr,
   setAr_nonfs: _res_setAr_nonfs,
-  legacyAr: _res_legacyAr
+  legacyAr: _res_legacyAr,
+  reset: _res_reset
 }
