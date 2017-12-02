@@ -630,35 +630,48 @@ function _res_applyCss(dimensions){
   dimensions.width = "width: " + Math.round(dimensions.width) + "px !important";
   dimensions.height = "height: " + Math.round(dimensions.height) + "px !important";
   
+  // misc.
+  dimensions.position = "position: absolute !important";
+  dimensions.objectFit = "object-fit: cover !important";
+  
   console.log("trying to apply css. dimensions: ", dimensions);
   
   var vid = $("video")[0];
+  var styleArrayStr = vid.getAttribute('style');
   
-  var styleArray = vid.getAttribute('style').split("; ");
-
-  for(var i in styleArray){
+  if (styleArrayStr !== null && styleArrayStr !== undefined){
     
-    styleArray[i] = styleArray[i].trim();
-    
-    if     (styleArray[i].startsWith("top:")){
-      styleArray[i] = dimensions.top;
-      delete dimensions.top;
+    var styleArray = styleArrayStr.split("; ");
+    for(var i in styleArray){
+      
+      styleArray[i] = styleArray[i].trim();
+      
+      if     (styleArray[i].startsWith("top:")){
+        styleArray[i] = dimensions.top;
+        delete dimensions.top;
+      }
+      else if(styleArray[i].startsWith("left:")){
+        styleArray[i] = dimensions.left;
+        delete dimensions.left;
+      }
+      else if(styleArray[i].startsWith("width:")){
+        styleArray[i] = dimensions.width;
+        delete dimensions.width;
+      }
+      else if(styleArray[i].startsWith("height:")){
+        styleArray[i] = dimensions.height;
+        delete dimensions.height;
+      }
+      else if(styleArray[i].startsWith("position:")){
+        styleArray[i] = dimensions.position;
+      }
+      else if(styleArray[i].startsWith("object-fit:")){
+        styleArray[i] = dimensions.objectFit;
+      }
     }
-    else if(styleArray[i].startsWith("left:")){
-      styleArray[i] = dimensions.left;
-      delete dimensions.left;
-    }
-    else if(styleArray[i].startsWith("width:")){
-      styleArray[i] = dimensions.width;
-      delete dimensions.width;
-    }
-    else if(styleArray[i].startsWith("height:")){
-      styleArray[i] = dimensions.height;
-      delete dimensions.height;
-    }
-    else if(styleArray[i].startsWith("position:")){
-      styleArray[i] = "position: absolute";
-    }
+  }
+  else{
+    var styleArray = [];
   }
   
   // add remaining elements

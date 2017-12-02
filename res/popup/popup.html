@@ -4,14 +4,17 @@
     <meta charset="utf-8">
     <style>
     html, body {
-      width: 100%;
+      width: 780px !important;
+      padding: 0px;
+      margin: 0px;
+/*       width: 100%; */
       color: #f1f1f1;
       background-color: #1f1f1f;
       font-family: "Overpass";
     }
     
-    .hidden: {
-      display: none;
+    .hidden {
+      display: none !important;
     }
     
     small{
@@ -23,39 +26,104 @@
       font-variant: small-caps;
     }
     
+    .selected{
+      color: #090909;
+      background-color: #fa6607;
+    }
+    
+    .header {
+      background-color: #7f1416;
+      color: #fff;
+      margin: 0px;
+      margin-top: 0px;
+      padding-top: 8px;
+      padding-left: 15px;
+      padding-bottom: 1px;
+      font-size: 2.7em;
+    }
+    
+    .left-side {
+      display: inline-block;
+      width: 39%;
+      float: left;
+      font-size: 1.6em;
+    }
+    
+    .right-side {
+      display: inline-block;
+      width: 60%;
+      float: right;
+    }
+    
+    .menu-item {
+      padding-left: 15px;
+      padding-top: 5px;
+      padding-bottom: 5px;
+    }
+    
+    .suboption {
+      padding-left: 15px;
+      padding-top: 5px;
+    }
+    
     </style>
   </head>
   <body>
-    <h1>U<span class="smallcaps">ltrawidify</span>: <small>Quick settings</small></h1>
-    <div class="left—side">
-      <h2>Extension mode:</h1>
-      <form action="">
-        <input type="radio" name="mode" value="white"> Enable everywhere except blacklist<br/>
-        <input type="radio" name="mode" value="black"> Enable only on whitelisted sites<br/>
-        <input type="radio" name="mode" value="block"> Disable extension on all sites
-      </form>
-      <h2>Settings for this site</h1>
-      <form action="">
-        <input type="radio" name="mode" value="default"> Follow global rules<br/>
-        <input type="radio" name="mode" value="black"> Always block<br/>
-        <input type="radio" name="mode" value="white"> Always allow
-      </form>
+    <div class="header">
+      U<span class="smallcaps">ltrawidify</span>: <small>Quick settings</small>
     </div>
-    <div>
-      <h2>Autodetection</h1>
+    <div class="left-side">
+      <div class="menu-item selected">
+        General settings
+      </div>
+      <div class="menu-item">
+        Aspect ratio and alignment
+      </div>
+      <div class="menu-item">
+        CSS hacks for this site
+      </div>
+    </div>
+    <div class="right-side">
+      <div id="extension-mode" class="suboption">
+        <p>How should extension work in general?<br/><small>NOTE: settings will be applied when page is reloaded.</small></p>
+      
+        <form action="">
+          <input type="radio" name="mode" value="white"> Enable everywhere except blacklist<br/>
+          <input type="radio" name="mode" value="black"> Enable only on whitelisted sites<br/>
+          <input type="radio" name="mode" value="block"> Disable extension on all sites
+        </form>
+        
+        <p>How should extension work on this site?<br><small class="important">NOTE: this doesn't apply to embedded videos!<br/>NOTE: settings will be applied when page is reloaded.</small></p>
+        <form action="">
+          <input type="radio" name="mode" value="default"> Follow global rules<br/>
+          <input type="radio" name="mode" value="black"> Always block (blacklist)<br/>
+          <input type="radio" name="mode" value="white"> Always allow (whitelist)
+        </form>
+      </div>
+      
+      <div id="aspect-ratio-settings" class="suboption hidden">
         <input type="checkbox" id="arDetectEnabled"><label for="arDetectEnabled">Enable active aspect ratio autodetection</label>
-        <div>TODO: add controls for how aggressive autodetection is</div>
+      </div>
+      
+      
+      <div id="css-hacks-settings" class="suboption hidden">
+        <p>If zoomed in video doesn't align properly, try enabling or disabling certain CSS rules below:</p>
+      </div>
     </div>
-    <div>
-      <h2>Force aspect ratio:</h2>
-      Todo:
-      Options: default, auto, fit width, fit height, 16:9, 16:10, 21:9
-    </div>
-    <div>
-      <h2>Video alignment</h2>
-      Todo: Left, center, right
-    </div>
-  
-  
+    
+    <!-- load all scripts. ordering is important!  -->
+    
+    <script src="../../js/dep/jquery-3.1.1.js" ></script>
+    
+<!--     the following scripts aren't included yet. if they're needed, they need to be added in this order -->
+<!--    "js/conf/Debug.js",
+    "js/conf/Settings.js",
+    "js/conf/SitesConf.js",
+    "js/conf/Status.js",-->
+    
+    <script src="../../js/lib/StorageManager.js"></script>
+    <script src="./settings.js"></script>
   </body>
 </html>
+
+

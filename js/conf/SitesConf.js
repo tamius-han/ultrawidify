@@ -32,13 +32,35 @@ var _sc_getPlayerTag = function(){
 var _sc_prepareNonfsPlayer = function(){
   var hostname = window.location.hostname;
   
-  if( _sc_SITES[hostname] === undefined)
+  if( SITES[hostname] === undefined)
     return;
   
-  if( _sc_SITES[hostname].autoAr.nonfsPlayerMod === undefined )
+  if( SITES[hostname].autoAr.nonfsPlayerMod === undefined )
     return;
   
-  _sc_SITES[hostname].autoAr.nonfsPlayerMod();
+  SITES[hostname].autoAr.nonfsPlayerMod();
+}
+
+var _sc_getMode = function(site){
+  if(! SITES[site] )
+    return "global";
+  
+  return SITES[site].enabled;
+}
+
+
+
+var _sc_callback = function(conf) {
+  if (conf === null || conf === {} || conf === [] || conf == ""){
+    StorageManager.setopt( {"sitesconf": _sc_SITES} );
+    SITES = _sc_SITES;
+  }
+  
+  SITES = conf;
+}
+
+var _sc_init = function() {
+  StorageManager.getopt("sitesconf", _kbd_callback);
 }
 
 
@@ -49,7 +71,7 @@ var _sc_prepareNonfsPlayer = function(){
  * Config for a given page
  * 
  * <location.hostname>: {
- *    enabled: bool,        // ali to stran omogočimo? Legacy, se bo odstranilo | do we do stuff on this page?
+ *    enabled: string,        // whitelist, blacklist, global
  *    type: string,
  *    autoAr: {             // konfiguracija za samodejno zaznavanje razmerja stranic | conf for aspect ratio autodetection
  *      active: bool           // aktivno zaznavanje — zaznavamo letterbox na sliki | active detection: scan the image
@@ -66,7 +88,7 @@ var _sc_prepareNonfsPlayer = function(){
 
 var _sc_SITES = {
   "DEFAULT": {
-    enabled: true,
+    enabled: "global",
     type: "nonofficial",
     autoAr: {
       active: true,
@@ -75,7 +97,7 @@ var _sc_SITES = {
     }
   },
   "www.youtube.com" : {
-    enabled: true,
+    enabled: "global",
     type: "official",
     autoAr: {
       active: true,
@@ -84,7 +106,7 @@ var _sc_SITES = {
     }
   },
   "vimeo.com" : {
-    enabled: true,
+    enabled: "global",
     type: "official",
     autoAr: {
       active: true,
@@ -107,103 +129,22 @@ var _sc_SITES = {
       }
     }
   }
-}
-
-var UW_SITES = {
-  youtube: {
-    enabled: true,
+  "vid.me": {
+    enabled: "global",
     type: "official",
-    urlRules: ["youtu"],
-    player: {
-      name: "movie_player",
-      isClass: false,
-    },
-    iframe: {
-      name: "player",
-      isClass: false
-    },
-    ui: {
-      uiMode: "native",
-      uiconf: {
-        sampleButton: {
-          class: "ytp-button ytp-settings-button",
-          index: 0,
-          buttonSizeBase: "x",
-        },
-        uiParent: {
-          name: "ytp-right-controls",
-          isClass: true,
-          insertStrat: "prepend",
-        },
-        uiOffset: {
-          offsetBy: "10vh",
-          offsetType: "css"
-        }
-      }
-    },
-    autoar_imdb:{
-      enabled: false
-    }
-  },
-  netflix: {
-    enabled: true,
-    type: "official",
-    urlRules: ["netflix"],
-    player: {
-      name: "placeholder",
-      isClass: true,
-    },
-    ui: {
-      uiMode: "native",
-      uiconf: {
-        sampleButton: {
-          class: "ytp-button ytp-settings-button",
-          index: 0,
-          buttonSizeBase: "x",
-        },
-        uiParent: {
-          name: "player-controls-wrapper",
-          isClass: true,
-          insertStrat: "append"
-        },
-        uiOffset: {
-          offsetBy: "0px",
-          offsetType: "css"
-        }
-      }
-    },
-    autoar_imdb:{
-      enabled: true,
-      title: "player-status-main-title",
-      isClass: true
-    }
-  },
-  dummy: {
-    type: "add new site",
-    urlRules: [""],
-    player: {
-      name: "",
-      isClass: false,
-    },
-    sampleButton: {
-      class: "ytp-button ytp-settings-button",
-      index: 0,
-      buttonSizeBase: "x",
-    },
-    uiParent: {
-      name: "",
-      isClass: false,
-      insertStrat: "prepend",
-    },
-    autoar_imdb:{
-      enabled: false
+    autoAr: {
+      passive: false;
+      active: true;
+      nonfs: true;
     }
   }
-} 
+}
 
+_sc_init();
 
 var SitesConf = {
   nonfsArDetectEnabled: _sc_nonfsAutoar,
   getPlayerTag: _sc_getPlayerTag,
-  prepareNonfsPlayer: _sc_prepareNonfsPlayer
+  prepareNonfsPlayer: _sc_prepareNonfsPlayer,
+  getMode: _sc_getMode
 }
