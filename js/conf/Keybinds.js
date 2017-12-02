@@ -1,56 +1,56 @@
 // Yeah hi /r/badcode.
 // Anyway, because nazi localstorage flat out refuses to store arrays:
 
-var DEFAULT_KEYBINDINGS = { 
-  0:{ action: "fitw",
+var DEFAULT_KEYBINDINGS = [
+  { action: "fitw",
     key: 'w',
     modifiers: []
   },
-  1:{
+  {
     action: "fith", 
     key: 'e',
     modifiers: []
   },
-  2: {
+  {
     action: "reset",
     key: 'r',
     modifiers: []
   },
-  3: {
+  {
     action: "zoom",
     key: "z",
     modifiers: []
   },
-  4: {
+  {
     action: "unzoom",
     key: "u",
     modifiers: []
   },
-  5: {
+  {
     action: "char",
     targetAR: (21/9),
     key: "d",
     modifiers: []
   },
-  6: {
+  {
     action: "char",
     targetAR: (16/9),
     key: "s",
     modifiers: []
   },
-  7: {
+  {
     action: "char",
     targetAR: (16/10),
     key: "x",
     modifiers: []
   },
-  8: {
+  {
     action: "char",
     targetAR: (4/3),
     key: "c",
     modifiers: []
   },
-  9: {
+  {
     action: "autoar",
     key: "a",
     modifiers: []
@@ -60,15 +60,22 @@ var DEFAULT_KEYBINDINGS = {
 
 // functions
 
-var _kbd_setup = function() {
-  StorageManager.getopt("keybinds");
+var _kbd_callback = function(keys) {
+  if (keys === null || keys === {} || keys === [] || keys == ""){
+    StorageManager.setopt( {"keybinds": DEFAULT_KEYBINDINGS} );
+    keys = DEFAULT_KEYBINDINGS;
+  }
+  
+  _kbd_setup_apply(keys);
+}
+
+var _kbd_setup_init = function() {
+  StorageManager.getopt("keybinds", _kbd_callback);
 }
 
 
 
-var _kbd_setup_stage2 = function(){
-  // todo: dont do that
-  var KEYBINDS = DEFAULT_KEYBINDINGS;
+var _kbd_setup_apply = function(var keybinds){
   
   if(Debug.debug  || Debug.keyboard)
     console.log("uw::keydownSetup | starting keybord shortcut setup");
@@ -87,7 +94,7 @@ var _kbd_setup_stage2 = function(){
     }
     
     if(Debug.debug  || Debug.keyboard ){
-      //       console.log(KEYBINDS);
+      //       console.log(keybinds);
       console.log("we pressed a key: ", event.key , " | keydown: ", event.keydown);
       if(event.key == 'p'){
         console.log("uw/keydown: attempting to send message")
@@ -101,43 +108,43 @@ var _kbd_setup_stage2 = function(){
       }
     }
     
-    for(i in KEYBINDS){
+    for(i in keybinds){
       if(Debug.debug  || Debug.keyboard)
-        console.log("i: ", i, "keybinds[i]:", KEYBINDS[i]);
+        console.log("i: ", i, "keybinds[i]:", keybinds[i]);
       
-      if(event.key == KEYBINDS[i].key){
+      if(event.key == keybinds[i].key){
         if(Debug.debug  || Debug.keyboard)
           console.log("Key matches!");
         //Tipka se ujema. Preverimo še modifierje:
         //Key matches. Let's check if modifiers match, too:
         var mods = true;
-        for(var j = 0; j < KEYBINDS[i].modifiers.length; j++){
-          if(KEYBINDS[i].modifiers[j] == "ctrl")
+        for(var j = 0; j < keybinds[i].modifiers.length; j++){
+          if(keybinds[i].modifiers[j] == "ctrl")
             mods &= event.ctrlKey ;
-          else if(KEYBINDS[i].modifiers[j] == "alt")
+          else if(keybinds[i].modifiers[j] == "alt")
             mods &= event.altKey ;
-          else if(KEYBINDS[i].modifiers[j] == "shift")
+          else if(keybinds[i].modifiers[j] == "shift")
             mods &= event.shiftKey ;
         }
         if(Debug.debug  || Debug.keyboard)
-          console.log("we pressed a key: ", event.key , " | mods match?", mods, "keybinding: ", KEYBINDS[i]);
+          console.log("we pressed a key: ", event.key , " | mods match?", mods, "keybinding: ", keybinds[i]);
         if(mods){
           event.stopPropagation();
           
           console.log("uw::keydown | keys match. Taking action.");
-          if(KEYBINDS[i].action == "char"){
+          if(keybinds[i].action == "char"){
             Status.arStrat = "fixed";
-            Status["lastAr"] = KEYBINDS[i].targetAR;
-            Resizer.setAr(KEYBINDS[i].targetAR);
+            Status["lastAr"] = keybinds[i].targetAR;
+            Resizer.setAr(keybinds[i].targetAR);
             return;
           }
-          if(KEYBINDS[i].action == "autoar"){
+          if(keybinds[i].action == "autoar"){
             Status.arStrat = "auto";
             return;
           }
-//           changeCSS("anything goes", KEYBINDS[i].action);
-          Status.arStrat = KEYBINDS[i].action;
-          Resizer.legacyAr(KEYBINDS[i].action);
+//           changeCSS("anything goes", keybinds[i].action);
+          Status.arStrat = keybinds[i].action;
+          Resizer.legacyAr(keybinds[i].action);
           return;
         }
       }
@@ -150,4 +157,10 @@ var _kbd_setup_stage2 = function(){
 //     inFullScreen ? onFullscreenOn() : onFullscreenOff();
 //   });
 }
-_kbd_setup_stage2();
+// _kbd_setup_stage2();
+// _kbd_setup_init();
+
+var Keybinds = {
+  init: _kbd_setup_init(),
+  apply: _kbd_setup_apply()
+}
