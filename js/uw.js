@@ -3,15 +3,33 @@ if(Debug.debug)
 
 // load all settings from localStorage:
 
+async function main(){
+  if(Debug.debug)
+    console.log("loading configuration ...");
 
-// start autoar and setup everything
+  // load settings
+  Settings.init();
+  var scpromise = SitesConf.init();
+  var kbpromise = Keybinds.init();
+
+  ExtensionConf.init();
+  console.log(scpromise);
+
+  // počakamo, da so nastavitve naložene
+  // wait for settings to load
+  await scpromise;
+  await kbpromise;
 
 
-$(document).ready(function() {
+  if(Debug.debug)
+    console.log("configuration should be loaded now");
+  // start autoar and setup everything
+
+
+// $(document).ready(function() {
   if(Debug.debug)
     console.log("uw::document.ready | document is ready. Starting ar script ...");
-//  
-  
+
   if(SitesConf.getMode(window.location.hostname) == "blacklist" ){
     if(Debug.debug)
       console.log("uw::document.ready | site", window.location.hostname, "is blacklisted.");
@@ -19,13 +37,13 @@ $(document).ready(function() {
     return;
   }
   
-  if( ExtensionConf.getMode() == "none" ){
+  if( ExtensionConf.mode == "none" ){
     if(Debug.debug)
       console.log("uw::document.ready | Extension is soft-disabled via popup");
     
     return;
   }
-  if( ExtensionConf.getMode() == "whitelist" && SitesConf.getMode(window.location.hostname) != "whitelist"){
+  if( ExtensionConf.mode == "whitelist" && SitesConf.getMode(window.location.hostname) != "whitelist"){
     if(Debug.debug)
       console.log("uw::document.ready | extension is set to run on whitelisted sites only, but site ", window.location.hostname, "is not on whitelist.");
     
@@ -33,7 +51,6 @@ $(document).ready(function() {
   }
   
   ArDetect.arSetup();
-  
   
   document.addEventListener("mozfullscreenchange", function( event ) {
     if(FullScreenDetect.isFullScreen()){
@@ -44,4 +61,7 @@ $(document).ready(function() {
     }
   });
   
-});
+// });
+}
+
+main();
