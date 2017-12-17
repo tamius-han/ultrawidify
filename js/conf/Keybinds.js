@@ -55,7 +55,7 @@ var DEFAULT_KEYBINDINGS = [
     key: "a",
     modifiers: []
   }
-};
+];
 
 
 // functions
@@ -70,12 +70,12 @@ var _kbd_callback = function(keys) {
 }
 
 var _kbd_setup_init = function() {
-  StorageManager.getopt("keybinds", _kbd_callback);
+  return StorageManager.getopt("keybinds", _kbd_callback);
 }
 
 
 
-var _kbd_setup_apply = function(var keybinds){
+var _kbd_setup_apply = function(keybinds){
   
   if(Debug.debug  || Debug.keyboard)
     console.log("uw::keydownSetup | starting keybord shortcut setup");
@@ -161,6 +161,6 @@ var _kbd_setup_apply = function(var keybinds){
 // _kbd_setup_init();
 
 var Keybinds = {
-  init: _kbd_setup_init(),
-  apply: _kbd_setup_apply()
+  init: _kbd_setup_init,
+  apply: _kbd_setup_apply
 }

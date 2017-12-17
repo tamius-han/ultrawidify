@@ -42,10 +42,10 @@ var _sc_prepareNonfsPlayer = function(){
 }
 
 var _sc_getMode = function(site){
-  if(! SITES[site] )
+  if(! this.sites[site] )
     return "global";
   
-  return SITES[site].enabled;
+  return this.sites[site].enabled;
 }
 
 
@@ -53,14 +53,14 @@ var _sc_getMode = function(site){
 var _sc_callback = function(conf) {
   if (conf === null || conf === {} || conf === [] || conf == ""){
     StorageManager.setopt( {"sitesconf": _sc_SITES} );
-    SITES = _sc_SITES;
+    this.sites = _sc_SITES;
   }
   
-  SITES = conf;
+  this.sites = conf;
 }
 
 var _sc_init = function() {
-  StorageManager.getopt("sitesconf", _kbd_callback);
+  return StorageManager.getopt("sitesconf", _sc_callback);
 }
 
 
@@ -129,22 +129,13 @@ var _sc_SITES = {
       }
     }
   }
-  "vid.me": {
-    enabled: "global",
-    type: "official",
-    autoAr: {
-      passive: false;
-      active: true;
-      nonfs: true;
-    }
-  }
 }
-
-_sc_init();
 
 var SitesConf = {
   nonfsArDetectEnabled: _sc_nonfsAutoar,
   getPlayerTag: _sc_getPlayerTag,
   prepareNonfsPlayer: _sc_prepareNonfsPlayer,
-  getMode: _sc_getMode
+  getMode: _sc_getMode,
+  init: _sc_init,
+  sites: null
 }

@@ -4,6 +4,10 @@
 if(Debug.debug)
   console.log("Loading: Settings.js");
 
+var _se_init = function(){
+  console.log("pls load settings from localstorage here");
+}
+
 Settings = {
   arDetect: {
     enabled: "global",
@@ -17,5 +21,6 @@ Settings = {
   },
   miscFullscreenSettings: {
     videoFloat: "center",
-  }
+  },
+  init: _se_init
 }

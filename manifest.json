@@ -17,10 +17,14 @@
     "js": [ 
       "js/dep/jquery-3.1.1.js",
       
+      "js/lib/BrowserDetect.js",
+      "js/lib/StorageManager.js",
+      
       "js/conf/Debug.js",
       "js/conf/Settings.js",
       "js/conf/SitesConf.js",
       "js/conf/Status.js",
+      "js/conf/ExtensionConf.js",
       
       "js/lib/FullScreenDetect.js",
       
