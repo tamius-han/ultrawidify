@@ -10,7 +10,17 @@
   
   "description": "Aspect ratio fixer for youtube that works around some people's disability to properly encode 21:9 (and sometimes, 16:9) videos.",
   
-  
+  "background": {
+    "scripts": [
+      "js/lib/BrowserDetect.js",
+      "js/lib/StorageManager.js",
+      
+      "js/conf/Debug.js",
+      "js/conf/Settings.js",
+      
+      "js/uw-bg.js"
+    ]
+  },
   
   "content_scripts": [{
     "matches": ["*://*/*"],

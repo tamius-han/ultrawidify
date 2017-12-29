@@ -1,13 +1,17 @@
 if(Debug.debug)
   console.log("Loading: ArDetect");
 
-
-
+var _ard_console_stop = "background: #000; color: #f41";
+var _ard_console_start = "background: #000; color: #00c399";
 
 
 // global-ish variables
 var _ard_oldAr;
 var _ard_currentAr;
+
+
+var _ard_setup_timer;
+var _ard_timer
 
 // kjer vzemamo vzorce za blackbox/stuff. 9 vzorcev. Če spremenimo velikost vzorca, moramo spremeniti tudi vrednosti v tej tabeli
 // vrednosti v tabeli so na osminskih intervalih od [0, <sample height * 4> - 4].
@@ -21,10 +25,13 @@ var _ard_sampleLines = [ 0, 360, 720, 1080, 1440, 1800, 2160, 2520, 2876]
 // **** FUNCTIONS **** //
 
 var _arSetup = function(){
+  if(Debug.debug)
+    console.log("%c[ArDetect::_ard_setup] Starting automatic aspect ratio detection", _ard_console_start);
+  
   var vid = document.getElementsByTagName("video")[0];
   
   if(vid === undefined){
-    setTimeout(_arSetup, 1000);
+    _ard_setup_timer = setTimeout(_arSetup, 1000);
     return;
   }
   
@@ -32,7 +39,7 @@ var _arSetup = function(){
   // we have a video, but also a problem. This problem will prolly be fixed very soon, so setup is called with
   // less delay than before
   if(vid.videoWidth == 0){
-    setTimeout(_arSetup, 100);
+    _ard_setup_timer = setTimeout(_arSetup, 100);
     return;
   }
   
@@ -75,6 +82,7 @@ var _arSetup = function(){
   _ard_oldAr = vid.videoWidth / vid.videoHeight;
   _ard_currentAr = _ard_oldAr;
   
+  this._forcehalt = false;
   _ard_vdraw(vid, context, canvasWidth, canvasHeight, false);
 };
 
@@ -134,13 +142,18 @@ var _ard_processAr = function(video, width, height, edge_h, edge_w){
 }
 
 var _ard_vdraw = function (vid, context, w, h, conf){
+  if(this._forcehalt)
+    return;
+  
   var blackbar_tresh = 10;  // how non-black can the bar be
   var how_far_treshold = 8; // how much can the edge pixel vary (*4)
-  var msec_pause = 33;     // how long is the pause between two executions — 33ms ~ 30fps
+  
+  if(Debug.debug)
+    Settings.arDetect.timer_playing = 1000;     // how long is the pause between two executions — 33ms ~ 30fps
   
   if(vid === undefined || vid.paused || vid.ended || Status.arStrat != "auto"){
     // we slow down if paused, no detection
-    setTimeout(_ard_vdraw, 3000, vid, context, w, h);
+    _ard_timer = setTimeout(_ard_vdraw, 3000, vid, context, w, h);
     return false;
   }
   
@@ -175,7 +188,7 @@ var _ard_vdraw = function (vid, context, w, h, conf){
     // corrected mode.
     _ard_processAr(vid, w, h);
     
-    setTimeout(_ard_vdraw, msec_pause, vid, context, w, h); //no letterbox, no problem
+    _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_playing, vid, context, w, h); //no letterbox, no problem
     return;
   }
 
@@ -312,7 +325,7 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   if(blackPoints > (blackPointsMax >> 1)){
     // if more than half of those points are black, we consider the entire frame black (or too dark to get anything useful
     // out of it, anyway)
-    setTimeout(_ard_vdraw, msec_pause, vid, context, w, h); //no letterbox, no problem
+    _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_playing, vid, context, w, h); //no letterbox, no problem
     return;
   }
 
@@ -321,7 +334,7 @@ var _ard_vdraw = function (vid, context, w, h, conf){
     // why exactly are we here again?
     
     _ard_processAr(vid, w, h);
-    setTimeout(_ard_vdraw, msec_pause, vid, context, w, h); //no letterbox, no problem
+    _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_playing, vid, context, w, h); //no letterbox, no problem
     return;
   }
   
@@ -399,13 +412,24 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   if(isLetter)
     _ard_processAr(vid, w, h, topPixel);
   
-  setTimeout(_ard_vdraw, msec_pause, vid, context, w, h);
+  _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_playing, vid, context, w, h);
 }
 
+var _ard_stop = function(){
+  if(Debug.debug){
+    console.log("%c[ArDetect::_ard_stop] Stopping automatic aspect ratio detection", _ard_console_stop);    
+  }
+  this._forcehalt = true;
+  clearTimeout(_ard_timer);
+  clearTimeout(_ard_setup_timer);
+}
 
 var ArDetect = {
+  _forcehalt: false,
+
   arSetup: _arSetup,
   vdraw: _ard_vdraw,
   detectedAr: 1,
-  arChangedCallback: function() {}
+  arChangedCallback: function() {},
+  stop: _ard_stop,
 }

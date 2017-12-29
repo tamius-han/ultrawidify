@@ -1,3 +1,6 @@
+if(Debug.debug)
+  console.log("Loading: Keybinds.js");
+
 // Yeah hi /r/badcode.
 // Anyway, because nazi localstorage flat out refuses to store arrays:
 
