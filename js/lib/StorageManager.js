@@ -9,7 +9,16 @@ var _sm_getopt = function(prop, callback){
     return browser.storage.local.get(prop, callback);
   else
     return browser.storage.local.get(prop).then(callback);
-} 
+}
+
+
+var _sm_getopt_async = async function(prop){
+  if(BrowserDetect.usebrowser == "chrome")
+    return await browser.storage.local.get(prop);
+  else
+    return await browser.storage.local.get(prop);
+}
+
 var _sm_delopt = function(item){
   return browser.storage.local.remove(item);
 }
@@ -17,5 +26,6 @@ var _sm_delopt = function(item){
 var StorageManager = {
   setopt: _sm_setopt,
   getopt: _sm_getopt,
-  delopt: _sm_delopt
+  delopt: _sm_delopt,
+  getopt_async: _sm_getopt_async
 }

@@ -1,7 +1,9 @@
 Debug = {
   debug: true,
+  debugResizer: true,
   debugArDetect: true,
-  showArDetectCanvas: false
+  showArDetectCanvas: false,
+  flushStoredSettings: true
 }
 
 if(Debug.debug)

@@ -337,6 +337,8 @@ var _res_legacyAr = function(action){
   var ar = screen.width / screen.height;
   var fileAr = vid.videoWidth / vid.videoHeight;
   
+  
+  
   if(action == "fitw"){
     _res_setAr_kbd( ar > fileAr ? ar : fileAr);
     return;
@@ -346,24 +348,32 @@ var _res_legacyAr = function(action){
     return;
   }
   if(action == "reset"){
-    _res_setAr_kbd(fileAr);
+//     _res_setAr_kbd(fileAr);
+    this.reset(true);
     return;
   }
   
 }
 
-var _res_reset = function(){
+var _res_reset = function(force){
   dimensions = {top: "", left: "", width: "100%", height: "100%"};
   
   $("video").css({"position": "relative", "width": dimensions.width,"height": dimensions.height,"top": dimensions.top, "left": dimensions.left});
   
   if(Debug.debug)
-    console.log("[Resizer::_res_applyCss] css applied. Dimensions/pos: w:",dimensions.width,"; h:",dimensions.height,"; top:",dimensions.top,"; left:",dimensions.left);
+    console.log("[Resizer::_res_reset] css applied. Dimensions/pos: w:",dimensions.width,"; h:",dimensions.height,"; top:",dimensions.top,"; left:",dimensions.left);
+  
+  if(force)
+    this._currentAr = -1;
 }
 
 var _res_setAr_kbd = function(ar){
-  if(FullScreenDetect.isFullScreen())
+  if(FullScreenDetect.isFullScreen()){
+    if(Debug.debug)
+      console.log("[Resizer::_res_setAr_kbd] We're in full screen. Setting ar to ", ar);
+    
     _res_setAr(ar, {width: screen.width, height: screen.height} );
+  }
 //   else
 //     _res_setAr_nonfs(ar);
 // TODO: check if site supports non-fs ar
@@ -375,6 +385,9 @@ var _res_setAr = function(ar, playerDimensions){
   // Dejansko razmerje stranic datoteke/<video> značke
   // Actual aspect ratio of the file/<video> tag
   var fileAr = vid.videoWidth / vid.videoHeight;
+  
+  if(ar == "default")
+    ar = fileAr;
   
   // Zabavno dejstvo: ta funkcija se kliče samo v fullscreen. Za ne-fs verzijo bo posebna funkcija, ker bo včasih verjetno treba 
   // spremeniti velikost predvajalnika
@@ -424,6 +437,10 @@ var _res_setAr = function(ar, playerDimensions){
 }
 
 var _res_computeOffsets = function(vidDim, playerDim){
+  
+  if(Debug.debug)
+    console.log("[Resizer::_res_computeOffsets] video will be aligned to ", Settings.miscFullscreenSettings.videoFloat);
+  
   var offsets = {
     width: vidDim.width,
     height: vidDim.height,
@@ -458,195 +475,59 @@ var _res_setAr_nonfs = function(ar){
   _res_setAr(ar, playerDimensions);
 }
 
-
-function resetCSS(video, player){
-  if(debugmsg)
-    console.log("uw::resetCSS | resetting video size");
+var _res_align = function(float){
+  if(! float)
+    float = Settings.miscFullscreenSettings.videoFloat;
   
+  var dimensions = {left: 0};
   
-  var nv = {"w": 0, "h": 0, "top": 0, "left": 0};
-  
-  var vidaspect = video.width / video.height;
-  var scraspect = player.width / player.height;
-  
-  if( vidaspect > scraspect ){  // Video je širši od okna | video is wider than window
-    nv.w = player.width;
-    nv.h = player.width / video.width * video.height;
-    
-    // Lahko se zgodi, da je prišlo do zaokroževalne napake ter da je dejanska višina videa le nekaj pikslov drugačna,
-    // kot višina predvajalnika. V tem primeru zavržemo prej dobljeni rezultat in namesto tega privzamemo, da je višina
-    // videa enaka višini predvajalnika.
-    // 
-    // It's possible to have a rounding error where calculated height of the video is only a few pixels different from
-    // the player height. In such cases, we discard the calculated video height and use player height instead.
-    
-    if( player.height - 4 < nv.h && nv.h < player.height + 4 )
-      nv.h = player.height;
-    
-    nv.top = (player.height - nv.h) / 2;
-    nv.left = 0;
+  if(float == "left"){
+    _res_applyCss(dimensions);
+    return;
   }
-  else{
-    nv.h = player.height;
-    nv.w = player.height / video.height * video.width;
-    
-    if( player.width - 4 < nv.w && nv.w < player.width + 4)
-      nv.w = player.width;
-    
-    nv.top = 0;   //itak zasedemo 100% višine
-    nv.left = (player.width - nv.w) / 2;
+  if(float == "center"){
+//     dimensions.left = 
+//     _res_applyCss(
   }
-  
-  _res_applyCss(nv);
-}
-
-function changeCSS_nofs(what_do, video, player){
-  if(debugmsg){
-    console.log("uw::changeCSS_nofs | arguments: what_do:",what_do,"; video:", video,"; player:", player);
-  }
-  
-  var w;
-  var h;
-  var top;
-  var left;
-  
-  var evideo = $("video")[0];
-  var video = {width: evideo.videoWidth, height: evideo.videoHeight, scrollw: evideo.scrollWidth, scrollh: evideo.scrollWidth};
-  
-  var ar = video.width / video.height;
-  
-  if(debugmsg){
-    console.log("uw::changeCSS_nofs | video dimensions:", video.width, "x", video.height, "; ar:",ar);
-  }
-  
-  if(what_do == "fitw" || what_do == "fit-width"){
-    // Ker bi bilo lepo, da atribut 'top' spremenimo hkrati z width in height, moramo najprej naračunati,
-    // za kakšen faktor se poviša višina. To potrebujemo, da se pravilno izračuna offset.
-    // 
-    //        100vw = window.innerWidth
-    //        window.innerWidth / videoWidth = x
-    // 
-    // Če pomnožimo videoHeight z x, dobimo novo višino videa. Nova višina videa je lahko večja ali manjša
-    // kot višina ekrana. Če je višina videa manjša kot višina ekrana, bo top pozitiven, drugače negativen:
-    // 
-    //        nvideoh = x * videoWidth
-    //        top = (window.innerHeight - nvideoh) / 2
-    //
-    // Z 2 delimo, ker hočemo video vertikalno poravnati.
-    
-    w = player.width;
-    h = player.width / video.width * video.height;
-    
-    if(debugmsg)
-      console.log("uw::changeCSS_nofs | w:",w,"; h:",h);
-    
-    top = (player.height - h) / 2;
-    left = 0;            // Ker zavzamemo vso širino | cos we take up all the width
-  }
-  
-  if(what_do == "fith" || what_do == "fit-height"){
-    h = player.height;
-    w = player.height / video.height * video.width;
-    
-    top = 0;   //itak zasedemo 100% višine
-    left = (player.width - w) / 2;
-  }
-  
-  if(what_do == "zoom"){    
-    // Video povečujemo na tak način, da sta zoom in unzoom povečata oz. zmanjšata video za enak korak
-    // We do this so zoom and unzoom steps change video sizes for the same amount
-    
-    h = video.scrollh + (player.height * zoomStep);
-    w = video.scrollw + (player.height * zoomStep * ar);
-    /* Zakaj računamo širino na tak način?
-    *   // 
-    *   // Predstavljajte si, da imamo 2100:900 video v 1600:900 škatli, zoomStep = 0.1. Če bi širino računali po formuli:
-    *   // 
-    *   //     širina = širina_videa + (širina zaslona * zoomStep)
-    *   //     
-    *   // Potem bi bila nova velikost videa 2260 x 990. Razmerje stranic: 2.28 (moglo bi biti 2.33 — video je popačen).
-    *   // Zaradi tega novo širino rajši povečamo za razliko_v_višini * razmerje_stranic
-    *   // 
-    *   //     2100 + (900 * 0.1 * (2100/900)) =
-    *   //                 2100 + (90 * 2.333) = 2310
-    *   //
-    *   // Razmerje stranic (2310x990) je tako 2.333 — tako, kot bi moglo biti.
-    *   // 
-    *   // 
-    *   // ============================================================================================================
-    *   // 
-    *   // Why did we calculate width this way?
-    *   // 
-    *   // Imagine we have a 2100x900 video in a 1600:900 container, zoomStep = 0.1. If we calculated width using this:
-    *   //
-    *   //     width = video_width + (container_width * zoomStep)
-    *   //     
-    *   // then the new size would be 2260 x 990. This gives us an aspect ratio of 2.28 instead of 2.33 (which is what it
-    *   // should be). Because of that we rather increase the width by delta_height * aspect_ratio:
-    *   //
-    *   //     2100 + (900 * 0.1 * (2100/900)) =
-    *   //                 2100 + (90 * 2.333) = 2310 
-    *   //
-    *   // This gives us the correct aspect ratio and prevents video deformations.
-    */
-    
-    top = (player.height - h)/2
-    left = (player.width - w) / 2;
-    
-    if (h > player.height * 4){
-      if(debugmsg){
-        console.log("But this video is ... I mean, it's fucking huge. This is bigger than some rooms, this is bigger than some people's flats!");
-        // Insert obligatory omnishambles & coffee machine quote here
-        console.log("(No really, mate, you took this way too far already. Can't let you do that, Dave.)");
-      }
-      return;
-    }
-  }
-  
-  if(what_do == "unzoom"){
-    // Video povečujemo na tak način, da sta zoom in unzoom povečata oz. zmanjšata video za enak korak
-    // We do this so zoom and unzoom steps change video sizes for the same amount
-    h = video.scrollh - (player.height * zoomStep);
-    w = video.scrollw - (player.height * zoomStep * ar);
-    
-    top = (player.height - h) / 2;
-    left = (player.width - w) / 2;
-    
-    if (h < player.height * 0.25){
-      if(debugmsg){
-        console.log("don't you think this is small enough already? You don't need to resize the video all the way down to the size smaller than your penis.");
-        console.log("(if you're a woman, substitute 'penis' with whatever the female equivalent is.)");
-      }
-      return;
-    }
-  }
-  var dimensions = { h: h, w: w, top: top, left: left };
-  _res_applyCss(dimensions);
 }
 
 function _res_applyCss(dimensions){
-  dimensions.top = "top: " + Math.round(dimensions.top) + "px !important";
-  dimensions.left = "left: " + Math.round(dimensions.left) + "px !important";
-  dimensions.width = "width: " + Math.round(dimensions.width) + "px !important";
-  dimensions.height = "height: " + Math.round(dimensions.height) + "px !important";
   
+  if(Debug.debug)
+    console.log("[Resizer::_res_applyCss] Starting to apply css. this is what we're getting in:", dimensions);
+  
+  if(dimensions.top !== undefined)
+    dimensions.top = "top: " + Math.round(dimensions.top) + "px !important";
+  
+  if(dimensions.left !== undefined)
+    dimensions.left = "left: " + Math.round(dimensions.left) + "px !important";
+  
+  if(dimensions.width !== undefined)
+    dimensions.width = "width: " + Math.round(dimensions.width) + "px !important";
+  
+  if(dimensions.height !== undefined)
+    dimensions.height = "height: " + Math.round(dimensions.height) + "px !important";
+ 
   // misc.
   dimensions.position = "position: absolute !important";
-  dimensions.objectFit = "object-fit: cover !important";
-  
-  console.log("trying to apply css. dimensions: ", dimensions);
+//   dimensions.objectFit = "object-fit: cover !important";
   
   var vid = $("video")[0];
+  
+  if(Debug.debug)
+    console.log("[Resizer::_res_applyCss] trying to apply css. Css strings: ", dimensions, "video tag: ", vid);
+  
+  
   var styleArrayStr = vid.getAttribute('style');
   
   if (styleArrayStr !== null && styleArrayStr !== undefined){
     
-    var styleArray = styleArrayStr.split("; ");
+    var styleArray = styleArrayStr.split(";");
     for(var i in styleArray){
       
       styleArray[i] = styleArray[i].trim();
       
-      if     (styleArray[i].startsWith("top:")){
+      if (styleArray[i].startsWith("top:")){
         styleArray[i] = dimensions.top;
         delete dimensions.top;
       }
@@ -678,6 +559,29 @@ function _res_applyCss(dimensions){
   for(var key in dimensions)
     styleArray.push( dimensions[key] );
   
+  // problem: last element can get duplicated a lot.
+  // solution: check if last element is a duplicate. if it is, remove first occurence (keep last)
+  // repeat until no element is removed
+  var dups = false;
+  
+//   debugger;
+  
+  
+  do{
+    dups = false;
+    var last = styleArray.length - 1;
+    var i = last;
+    while(i --> 0){
+      if(styleArray[i] === styleArray[last]){
+        dups = true;
+        styleArray.splice(i, 1);
+        
+        --last; // correct the index
+      }
+    }
+  } while(dups);
+  
+  
   // build style string back
   var styleString = "";
   for(var i in styleArray)
@@ -687,13 +591,32 @@ function _res_applyCss(dimensions){
   vid.setAttribute("style", styleString);
   
   if(Debug.debug)
-    console.log("[Resizer::_res_applyCss] css applied. Dimensions: ", styleString);
+    console.log("[Resizer::_res_applyCss] css applied. Style string:", styleString);
+}
+
+var _res_setFsAr = function(ar){
+  this._currentAr = ar;
+}
+
+var _res_restore = function(){
+  if(Debug.debug){
+    console.log("[Resizer::_res_restore] attempting to restore aspect ratio. this & settings:", {'this': this, "settings": Settings} );
+  }
+  
+  if(this._currentAr > 0)
+    _res_setAr_kbd(this._currentAr);
+  else
+    _res_setAr_kbd("default");
 }
 
 var Resizer = {
+  _currentAr: -1,
+  align: _res_align,
   setAr: _res_setAr_kbd,
   setAr_fs: _res_setAr,
   setAr_nonfs: _res_setAr_nonfs,
   legacyAr: _res_legacyAr,
-  reset: _res_reset
+  reset: _res_reset,
+  restore: _res_restore,
+  setFsAr: _res_setFsAr
 }

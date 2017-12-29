@@ -66,6 +66,28 @@
       padding-top: 5px;
     }
     
+    .button {
+      display: inline-block;
+      padding-top: 8px;
+      padding-bottom: 3px;
+      padding-left: 20px;
+      padding-right: 20px;
+      border: 1px solid #444;
+      margin-top: 3px;
+      margin-bottom: 3px;
+    }
+    
+    .row {
+      display: block;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+    .button-row {
+      display: block;
+      margin-top: 5px;
+      margin-bottom: 10px;
+    }
+    
     </style>
   </head>
   <body>
@@ -84,7 +106,7 @@
       </div>
     </div>
     <div class="right-side">
-      <div id="extension-mode" class="suboption">
+      <div id="extension-mode" class="suboption hidden">
         <p>How should extension work in general?<br/><small>NOTE: settings will be applied when page is reloaded.</small></p>
       
         <form action="">
@@ -101,8 +123,33 @@
         </form>
       </div>
       
-      <div id="aspect-ratio-settings" class="suboption hidden">
-        <input type="checkbox" id="arDetectEnabled"><label for="arDetectEnabled">Enable active aspect ratio autodetection</label>
+      <div id="aspect-ratio-settings" class="suboption">
+        <div class="row">
+          Force aspect ratio:<br/>
+          <div class="button-row">
+            <a class="button _changeAr _ar_auto">Auto-detect</a>
+            <a class="button _changeAr _ar_reset">Reset</a>
+            <a class="button _changeAr _ar_219">21:9</a>
+            <a class="button _changeAr _ar_189">2:1 (18:9)</a>
+            <a class="button _changeAr _ar_169">16:9</a>
+          </div>
+        </div>
+        <div class="row">
+          Automatic aspect ratio autodetection:
+          <div class="button-row">
+            <a id="ard_temporary_disable" class="button _autoar _autoar_temp-disable">Temporarily disable</a><br/>
+            <a id="ard_disable"           class="button _autoar _autoar_disable">Disable</a>
+            <a id="ard_enable"            class="button _autoar _autoar_enable hidden">Enable</a>
+          </div>
+        </div>
+        <div class="row">
+        Video alignment:
+        <div class="button-row">
+          <a class="button _align _align_left">left</a>
+          <a class="button _align _align_center">center</a>
+          <a class="button _align _align_right">right</a>
+        </div>
+        <div>
       </div>
       
       
@@ -114,6 +161,10 @@
     <!-- load all scripts. ordering is important!  -->
     
     <script src="../../js/dep/jquery-3.1.1.js" ></script>
+    <script src="../../js/conf/Debug.js"></script>
+    
+    <script src="../../js/lib/BrowserDetect.js"></script>
+    <script src="../../js/lib/StorageManager.js"></script>
     
 <!--     the following scripts aren't included yet. if they're needed, they need to be added in this order -->
 <!--    "js/conf/Debug.js",
@@ -121,8 +172,9 @@
     "js/conf/SitesConf.js",
     "js/conf/Status.js",-->
     
-    <script src="../../js/lib/StorageManager.js"></script>
-    <script src="./settings.js"></script>
+    <script src="../../js/conf/Settings.js"></script>
+    
+    <script src="./js/popup.js"></script>
   </body>
 </html>
 

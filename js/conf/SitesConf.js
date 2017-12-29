@@ -42,7 +42,7 @@ var _sc_prepareNonfsPlayer = function(){
 }
 
 var _sc_getMode = function(site){
-  if(! this.sites[site] )
+  if(! this || !this.sites || ! this.sites[site] )
     return "global";
   
   return this.sites[site].enabled;
