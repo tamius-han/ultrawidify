@@ -330,30 +330,7 @@ var setVideoAr = function(aspect_ratio, video, player){
 //   console.log("uw::setBestFit | css applied");
 // }
 
-// Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". Približevanje opuščeno.
-// handles "legacy" options, such as 'fit to widht', 'fit to height' and 'reset'. No zoom tho
-var _res_legacyAr = function(action){
-  var vid = $("video")[0];
-  var ar = screen.width / screen.height;
-  var fileAr = vid.videoWidth / vid.videoHeight;
-  
-  
-  
-  if(action == "fitw"){
-    _res_setAr_kbd( ar > fileAr ? ar : fileAr);
-    return;
-  }
-  if(action == "fith"){
-    _res_setAr_kbd( ar < fileAr ? ar : fileAr);
-    return;
-  }
-  if(action == "reset"){
-//     _res_setAr_kbd(fileAr);
-    this.reset(true);
-    return;
-  }
-  
-}
+
 
 var _res_reset = function(force){
   dimensions = {top: "", left: "", width: "100%", height: "100%"};
@@ -365,6 +342,31 @@ var _res_reset = function(force){
   
   if(force)
     this._currentAr = -1;
+}
+
+// Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". Približevanje opuščeno.
+// handles "legacy" options, such as 'fit to widht', 'fit to height' and 'reset'. No zoom tho
+var _res_legacyAr = function(action){
+  var vid = $("video")[0];
+  var ar = screen.width / screen.height;
+  var fileAr = vid.videoWidth / vid.videoHeight;
+  
+  if(action == "fitw"){
+    _res_setAr_kbd( ar > fileAr ? ar : fileAr);
+    return;
+  }
+  if(action == "fith"){
+    _res_setAr_kbd( ar < fileAr ? ar : fileAr);
+    return;
+  }
+  if(action == "reset"){
+    //     _res_setAr_kbd(fileAr);
+    this.reset(true);
+    return;
+  }
+  if(action == "autoar"){
+    ArDetect.init();
+  }
 }
 
 var _res_setAr_kbd = function(ar){

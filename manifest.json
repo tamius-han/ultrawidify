@@ -41,6 +41,7 @@
       "js/modules/PageInfo.js",
       "js/modules/ArDetect.js", 
       "js/modules/Resizer.js",
+      
       "js/conf/Keybinds.js",
       
       "js/uw.js" ], 

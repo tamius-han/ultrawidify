@@ -13,10 +13,18 @@ var _sm_getopt = function(prop, callback){
 
 
 var _sm_getopt_async = async function(prop){
+  if(Debug.debug && Debug.debugStorage)
+    console.log("[StorageManager::_sm_getopt_async] requesting prop",prop,"from localStorage.");
   if(BrowserDetect.usebrowser == "chrome")
     return await browser.storage.local.get(prop);
-  else
-    return await browser.storage.local.get(prop);
+  else{
+    var ret = await browser.storage.local.get(prop);
+    
+    if(Debug.debug && Debug.debugStorage)
+      console.log("[StorageManager::_sm_getopt_async] got prop", prop, "; value: ", ret);
+    
+    return ret;
+  }
 }
 
 var _sm_delopt = function(item){
