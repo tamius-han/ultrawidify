@@ -137,16 +137,14 @@ var _kbd_process = function (event) {          // Tukaj ugotovimo, katero tipko 
   }
 }
 
-
-var _kbd_setup = async function() {
-  
+var _kbd_load = async function() {
   if(Debug.debug)
     console.log("[Keybinds::_kbd_setup_init] Setting up keybinds");
   
   var ret = await StorageManager.getopt_async("keybinds");
   
   var keybinds = ret.keybinds;
-
+  
   if(Array.isArray(keybinds)){
     StorageManager.delopt("keybinds");
     keybinds = DEFAULT_KEYBINDINGS;
@@ -165,11 +163,24 @@ var _kbd_setup = async function() {
   }
   
   _kbd_keybinds = keybinds; 
+}
 
+var _kbd_setup = async function() {
+  await _kbd_load();
+  
   $(document).keydown(_kbd_process);
 }
 
+var _kbd_fetch = async function(){
+  if($.isEmptyObject(_kbd_keybinds)){
+    await _kbd_load();
+  }
+  
+  return _kbd_keybinds;
+}
 
 var Keybinds = {
-  init: _kbd_setup
+  init: _kbd_setup,
+  fetch: _kbd_fetch,
+  mods: _kbd_ModKeys
 }
