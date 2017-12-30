@@ -37,6 +37,34 @@ async function _uwbg_rcvmsg(message){
     }
     return Promise.resolve(response);
   }
+  if(message.cmd == "get-config"){
+    
+    var config = {};
+    config.videoAlignment = Settings.miscFullscreenSettings.videoFloat;
+    config.arConf = {};
+    config.arConf.enabled_global = Settings.arDetect.enabled == "global";
+    
+    
+    
+    // predvidevajmo, da je enako. Če je drugače, bomo popravili ko dobimo odgovor
+    // assume current is same as global & change that when you get response from content script
+    config.arConf.enabled_current = Settings.arDetect.enabled == "global";
+    
+    try{
+      message.cmd = "get-ardetect-active";
+      var response = await sendMessage(message);
+      if(Debug.debug){
+        console.log("[uw-bg::_uwbg_rcvmsg] received response to get-ardetect-active!", {message: message, response: response});
+      }
+      config.arConf.enabled_current = response.response.arDetect_active;
+      
+    }
+    catch(ex){
+      console.log("%c[uw-bg::_uwbg_rcvmsg] there was something wrong with request for get-ardetect-active.", "color: #f00", ex);
+    }
+    
+    return Promise.resolve({response: config});
+  }
   else if(message.cmd == "force-ar"){
     sendMessage(message);  // args: {cmd: string, newAr: number/"auto"}
   }

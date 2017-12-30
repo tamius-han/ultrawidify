@@ -79,7 +79,16 @@ function receiveMessage(message) {
   if(Debug.debug)
     console.log("[uw::receiveMessage] we received a message.", message);
   
-  if(message.cmd == "force-ar"){
+  
+  if(message.cmd == "has-videos"){
+    var anyVideos = PageInfo.hasVideos();
+    return Promise.resolve({response: {"hasVideos": anyVideos }});
+  }
+  else if(message.cmd == "get-ardetect-active"){
+    var arDetect_active = ArDetect.isRunning();
+    return Promise.resolve({response: {"arDetect_active": arDetect_active }});
+  }
+  else if(message.cmd == "force-ar"){
     if(Debug.debug)
       console.log("[uw::receiveMessage] we're being commanded to change aspect ratio to", message.newAr);
     
@@ -93,23 +102,19 @@ function receiveMessage(message) {
       // we aren't in full screen, but we will want aspect ratio to be fixed when we go to 
       Resizer.setFsAr(message.newAr);
     }
-  }  
-  if(message.cmd == "force-video-float"){
+  }
+  else if(message.cmd == "force-video-float"){
     if(Debug.debug)
       console.log("[uw::receiveMessage] we're aligning video to", message.newFloat);
     
     Settings.miscFullscreenSettings.videoFloat = message.newFloat;
     Settings.save();
   }
-  if(message.cmd == "stop-autoar"){
+  else if(message.cmd == "stop-autoar"){
     ArDetect.stop();
   }
-  if(message.cmd == "reload-settings"){
+  else if(message.cmd == "reload-settings"){
     Settings.reload();
-  }
-  if(message.cmd == "has-videos"){
-    var anyVideos = PageInfo.hasVideos();
-    return Promise.resolve({response: {"hasVideos": anyVideos }});
   }
 }
 
