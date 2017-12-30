@@ -51,8 +51,8 @@ async function main(){
   
   
   
-  
-  ArDetect.arSetup();
+  if(Settings.arDetect.enable == "global")
+    ArDetect.arSetup();
   
   document.addEventListener("mozfullscreenchange", function( event ) {
     if(Debug.debug){

@@ -77,7 +77,7 @@
   ],
   
   "options_ui" : {
-    "page": "res/settings.html",
+    "page": "res/settings/settings.html",
     "open_in_tab": true
   }
 }

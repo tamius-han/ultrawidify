@@ -224,9 +224,9 @@
       </div>
       <div class="tabline center">
         <div class="content left">
-          <div id="tab_general_settings" class="block tab tab-selected">General settings</div>
-          <div id="tab_sites" class="block tab">Site options</div>
-          <div id="tab_shortcuts" class="block tab">Shortcuts</div>
+<!--           <div id="tab_general_settings" class="block tab tab-selected">General settings</div> -->
+<!--           <div id="tab_sites" class="block tab">Site options</div> -->
+          <div id="tab_shortcuts" class="block tab tab-selected">Shortcuts</div>
           <div id="tab_about" class="block tab">About</div>
         </div>
       </div>
@@ -234,7 +234,7 @@
     
     
     
-    <div id="general_settings">
+    <div id="general_settings" class="hide">
        <div class="content left">
          <div class="uw_options_line">
           <div class="uw_options_option"><input type="checkbox" id='enable_autoar'> <strike>Enable automatic aspect ratio detection</strike></div>
@@ -265,101 +265,76 @@
       </div>
     </div>
     
-    <div id="uw_shortcuts" class="hide">
-      <h1>Guess which thing doesn't do shit at the moment either?</h1>
-      <h2>If you guessed this page ... well.</h2>
+    <div id="uw_shortcuts">
       <div class="content left"> 
+      <h2>Keyboard shortcuts</h2>
+      
         <form>
         <!-- BEGIN FORM -->
+        
+        <!-- try autoar -->
+          <div class="uw_shortcuts_line">
+            <div class="uw_shortcuts_label">Autodetect aspect ratio</div>
+            <input type='checkbox' id="_kbd_autoar_ctrlKey"  > Ctrl + 
+            <input type='checkbox' id="_kbd_autoar_shiftKey" > Shift + 
+            <input type='checkbox' id="_kbd_autoar_altKey"   > Alt +
+            <input type='text'     id="_kbd_autoar_lettr" maxlength='1' class='shortcut_input'>
+          </div>
+        
           <!-- fit width -->
           <div class="uw_shortcuts_line">
             <div class="uw_shortcuts_label">Fit to width</div>
-            <input type='checkbox' id='fitw_ctrl'  > Ctrl + 
-            <input type='checkbox' id='fitw_shift' > Shift + 
-            <input type='checkbox' id='fitw_alt'   > Alt +
-            <input type='text'     id='fitw_letter' maxlength='1' class='shortcut_input'>
+            <input type='checkbox' id="_kbd_fitw_ctrlKey"  > Ctrl + 
+            <input type='checkbox' id="_kbd_fitw_shiftKey" > Shift + 
+            <input type='checkbox' id="_kbd_fitw_altKey"   > Alt +
+            <input type='text'     id="_kbd_fitw_lettr" maxlength='1' class='shortcut_input'>
           </div>
           
           <!-- fit height -->
           <div class="uw_shortcuts_line">
             <div class="uw_shortcuts_label">Fit to height</div>
-            <input type='checkbox' id='fith_ctrl'  > Ctrl + 
-            <input type='checkbox' id='fith_shift' > Shift + 
-            <input type='checkbox' id='fith_alt'   > Alt +
-            <input type='text'     id='fith_letter' maxlength='1' class='shortcut_input'>
+            <input type='checkbox' id="_kbd_fith_ctrlKey"  > Ctrl + 
+            <input type='checkbox' id="_kbd_fith_shiftKey" > Shift + 
+            <input type='checkbox' id="_kbd_fith_altKey"   > Alt +
+            <input type='text'     id="_kbd_fith_lettr" maxlength='1' class='shortcut_input'>
           </div>
           
           <!-- reset -->
           <div class="uw_shortcuts_line">
             <div class="uw_shortcuts_label">Reset</div>
-            <input type='checkbox' id='reset_ctrl'  > Ctrl + 
-            <input type='checkbox' id='reset_shift' > Shift + 
-            <input type='checkbox' id='reset_alt'   > Alt +
-            <input type='text'     id='reset_letter' maxlength='1' class='shortcut_input'>
-          </div>
-          
-          <!-- zoom -->
-          <div class="uw_shortcuts_line">
-            <div class="uw_shortcuts_label">Zoom</div>
-            <input type='checkbox' id='zoom_ctrl'  > Ctrl + 
-            <input type='checkbox' id='zoom_shift' > Shift + 
-            <input type='checkbox' id='zoom_alt'   > Alt +
-            <input type='text'     id='zoom_letter' maxlength='1' class='shortcut_input'>
-          </div>
-          
-          <!-- unzoom -->
-          <div class="uw_shortcuts_line">
-            <div class="uw_shortcuts_label">Unzoom</div>
-            <input type='checkbox' id='unzoom_ctrl'  > Ctrl + 
-            <input type='checkbox' id='unzoom_shift' > Shift + 
-            <input type='checkbox' id='unzoom_alt'   > Alt +
-            <input type='text'     id='unzoom_letter' maxlength='1' class='shortcut_input'>
+            <input type='checkbox' id="_kbd_reset_ctrlKey"  > Ctrl + 
+            <input type='checkbox' id="_kbd_reset_shiftKey" > Shift + 
+            <input type='checkbox' id="_kbd_reset_altKey"   > Alt +
+            <input type='text'     id="_kbd_reset_lettr" maxlength='1' class='shortcut_input'>
           </div>
           
           <!-- force 21:9 -->
           <div class="uw_shortcuts_line">
             <div class="uw_shortcuts_label">Force 21:9</div>
-            <input type='checkbox' id='ar219_ctrl'  > Ctrl + 
-            <input type='checkbox' id='ar219_shift' > Shift + 
-            <input type='checkbox' id='ar219_alt'   > Alt +
-            <input type='text'     id='ar219_letter' maxlength='1' class='shortcut_input'>
+            <input type='checkbox' id="_kbd_char_219_ctrlKey"  > Ctrl + 
+            <input type='checkbox' id="_kbd_char_219_shiftKey" > Shift + 
+            <input type='checkbox' id="_kbd_char_219_altKey"   > Alt +
+            <input type='text'     id="_kbd_char_219_lettr" maxlength='1' class='shortcut_input'>
+          </div>
+          
+          <!-- force 2:1 -->
+          <div class="uw_shortcuts_line">
+            <div class="uw_shortcuts_label">Force 2:1 (18:9)</div>
+            <input type='checkbox' id="_kbd_char_189_ctrlKey"  > Ctrl + 
+            <input type='checkbox' id="_kbd_char_189_shiftKey" > Shift + 
+            <input type='checkbox' id="_kbd_char_189_altKey"   > Alt +
+            <input type='text'     id="_kbd_char_189_lettr" maxlength='1' class='shortcut_input'>
           </div>
           
           <!-- force 16:9 -->
           <div class="uw_shortcuts_line">
             <div class="uw_shortcuts_label">Force 16:9</div>
-            <input type='checkbox' id='ar169_ctrl'  > Ctrl + 
-            <input type='checkbox' id='ar169_shift' > Shift + 
-            <input type='checkbox' id='ar169_alt'   > Alt +
-            <input type='text'     id='ar169_letter' maxlength='1' class='shortcut_input'>
+            <input type='checkbox' id="_kbd_char_169_ctrlKey"  > Ctrl + 
+            <input type='checkbox' id="_kbd_char_169_shiftKey" > Shift + 
+            <input type='checkbox' id="_kbd_char_169_altKey"   > Alt +
+            <input type='text'     id="_kbd_char_169_lettr" maxlength='1' class='shortcut_input'>
           </div>
           
-          <!-- force 16:10 -->
-          <div class="uw_shortcuts_line">
-            <div class="uw_shortcuts_label">Force 16:10</div>
-            <input type='checkbox' id='ar1610_ctrl'  > Ctrl + 
-            <input type='checkbox' id='ar1610_shift' > Shift + 
-            <input type='checkbox' id='ar1610_alt'   > Alt +
-            <input type='text'     id='ar1610_letter' maxlength='1' class='shortcut_input'>
-          </div>
-          
-          <!-- force 4:3 -->
-          <div class="uw_shortcuts_line">
-            <div class="uw_shortcuts_label">Force 4:3</div>
-            <input type='checkbox' id='ar43_ctrl'  > Ctrl + 
-            <input type='checkbox' id='ar43_shift' > Shift + 
-            <input type='checkbox' id='ar43_alt'   > Alt +
-            <input type='text'     id='ar43_letter' maxlength='1' class='shortcut_input'>
-          </div>
-          
-          <!-- try autoar -->
-          <div class="uw_shortcuts_line">
-            <div class="uw_shortcuts_label">Autodetect aspect ratio (Netflix only)</div>
-            <input type='checkbox' id='autoar_ctrl'  > Ctrl + 
-            <input type='checkbox' id='autoar_shift' > Shift + 
-            <input type='checkbox' id='autoar_alt'   > Alt +
-            <input type='text'     id='autoar_letter' maxlength='1' class='shortcut_input'>
-          </div>
         <!-- END FORM -->
         </form>
         <div class="buttonbar"><div class="button" id="kb_cancel">Cancel</div><div class="button" id="kb_save">Save</div></div>
@@ -382,7 +357,7 @@
         <p>this is the future lol. (at least as far as autodetection goes, keybinds need to make a comeback)</p>
         <h2>Acknowledgements</h2>
         <p>This extension uses font <a href="https://fonts.google.com/specimen/Oxygen">Oxygen</a>.</p>
-        <p>Special thanks to CD Project Red (The Witcher 2), Anet (Guild Wars 2), and Valve (CS:GO), which made it possible for me to untrigger myself after seeing so many improperly encoded videos.</p>
+        <p>Special thanks to CD Project Red (The Witcher 2), Cyanide Studios (Styx, Of Orcs and Men), and Valve (CS:GO), which made it possible for me to untrigger myself after seeing so many improperly encoded videos.</p>
         <small><p>More or less.</p>
         <!--         <p>GW2 is also roughly how the avatar was obtained. Noone tell Anet, though.</p> --></small>
         <p>Special one-finger salute to all incompetent people who don't know how to properly encode videos and upload them to youtube (to word it most nicely).</p>
@@ -391,6 +366,14 @@
     </div>
     </div>
     
+    <script src="../../js/dep/jquery-3.1.1.js" ></script>
+    <script src="../../js/conf/Debug.js"></script>
+    
+    <script src="../../js/lib/BrowserDetect.js"></script>
+    <script src="../../js/lib/StorageManager.js"></script>
+    
+    <script src="../../js/conf/Keybinds.js"></script>
+    <script src="../../js/conf/Settings.js"></script>
     
     <script src="./settings.js"></script>
   </body>

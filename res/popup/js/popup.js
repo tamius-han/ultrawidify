@@ -33,7 +33,7 @@ var hasVideos = false;
 
 var _config; 
 
-function check4videos(){
+async function check4videos(){
   var command = {};
   command.cmd = "has-videos";
   command.sender = "popup";
@@ -57,7 +57,7 @@ function check4videos(){
   });
 }
 
-function check4conf(){
+async function check4conf(){
   var command = {};
   command.cmd = "get-config";
   command.sender = "popup";

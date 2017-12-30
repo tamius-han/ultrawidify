@@ -80,7 +80,9 @@
     .suboption {
       display: block;
       padding-left: 15px;
+      padding-right: 15px;
       padding-top: 5px;
+      padding-bottom: 20px;
       min-height: 250px;
     }
     
@@ -112,8 +114,12 @@
     }
     #no-videos-display {
       height: 100%;
-      padding-top: 120px;
+      padding-top: 50px;
+/*       text-align: center; */
+    }
+    .center{
       text-align: center;
+      width: 100%;
     }
     </style>
   </head>
@@ -137,7 +143,10 @@
     </div>
     <div class="right-side">
       <div id="no-videos-display" class="suboption">
-        No videos have been found on this page.<br/><small>NOTE: iframes are <b>not</b> detected by this popup. You need a keyboard / to enable automatic aspect ratio detection to fix aspect ratio in embedded players.<br/>Embedded players must also be in full screen.</small>
+        <p class="label center">No videos have been found on this page.</p><p>If there <i>is</i> a video on this page, then you're seeing this message for one of these reasons:</p>
+        <ul><li>Page hasn't finished loading<small><br/><span class="smallcaps">Note</span>: webextensions only start working when page is fully loaded.</small></li>
+        <li>The video is embedded / in an iframe.<small><br/>This is a known issue/limitation. Use keyboard shortcuts to correct aspect ratio.</small></li>
+        <li>Hamster Rajko is on strike.<small><br/>(Close this popup and reopen in a few seconds)</small></li></ul>
       </div>
     
       <div id="extension-mode" class="suboption hidden">
