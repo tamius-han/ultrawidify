@@ -16,21 +16,26 @@ async function sendMessage(message){
   if(Debug.debug)
     console.log("[uw-bg::sendMessage] trying to send message", message, " to tab ", tabs[0], ". (all tabs:", tabs,")");
 
-    browser.tabs.sendMessage(tabs[0].id, message);
+  var response = await browser.tabs.sendMessage(tabs[0].id, message);
+  return response;
 }
 
 async function _uwbg_rcvmsg(message){
   
   if(Debug.debug){
-    console.log("received message", message);
+    console.log("[uw-bg::_uwbg_rcvmsg] received message", message);
     
   }
-  /*
-  message.sender = "uwbg";
-  message.receiver = "uw";*/
   
-  if(message.cmd == "debug-ping"){
-    
+  message.sender = "uwbg";
+  message.receiver = "uw";
+  
+  if(message.cmd == "has-videos"){
+    var response = await sendMessage(message);
+    if(Debug.debug){
+      console.log("[uw-bg::_uwbg_rcvmsg] received response!", message);
+    }
+    return Promise.resolve(response);
   }
   else if(message.cmd == "force-ar"){
     sendMessage(message);  // args: {cmd: string, newAr: number/"auto"}

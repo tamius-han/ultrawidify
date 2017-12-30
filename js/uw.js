@@ -108,6 +108,12 @@ function receiveMessage(message) {
   if(message.cmd == "reload-settings"){
     Settings.reload();
   }
+  if(message.cmd == "has-videos"){
+    var anyVideos = PageInfo.hasVideos();
+    return Promise.resolve({response: {"hasVideos": anyVideos }});
+  }
 }
+
+
 
 main();

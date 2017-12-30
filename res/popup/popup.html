@@ -5,10 +5,11 @@
     <style>
     html, body {
       width: 780px !important;
+      max-width: 800px !important;
       padding: 0px;
       margin: 0px;
 /*       width: 100%; */
-      color: #f1f1f1;
+      color: #f8f8f8;
       background-color: #1f1f1f;
       font-family: "Overpass";
     }
@@ -27,10 +28,12 @@
     }
     
     .selected{
-      color: #090909;
-      background-color: #fa6607;
+      color: #ffddaa;
+      background-color: #433221;
     }
-    
+    .disabled {
+      color: #666;
+    }
     .header {
       background-color: #7f1416;
       color: #fff;
@@ -40,6 +43,12 @@
       padding-left: 15px;
       padding-bottom: 1px;
       font-size: 2.7em;
+    }
+    
+    .menu-item-inline-desc{
+      font-size: 0.60em;
+      font-weight: 300;
+      font-variant: normal;
     }
     
     .left-side {
@@ -59,11 +68,14 @@
       padding-left: 15px;
       padding-top: 5px;
       padding-bottom: 5px;
+      font-variant: small-caps;
     }
     
     .suboption {
+      display: block;
       padding-left: 15px;
       padding-top: 5px;
+      min-height: 250px;
     }
     
     .button {
@@ -87,7 +99,11 @@
       margin-top: 5px;
       margin-bottom: 10px;
     }
-    
+    #no-videos-display {
+      height: 100%;
+      padding-top: 120px;
+      text-align: center;
+    }
     </style>
   </head>
   <body>
@@ -95,17 +111,24 @@
       U<span class="smallcaps">ltrawidify</span>: <small>Quick settings</small>
     </div>
     <div class="left-side">
-      <div class="menu-item selected">
+      <div id="_menu_general" class="menu-item disabled _menu_general">
         General settings
       </div>
-      <div class="menu-item">
+      <div id="_menu_aspectratio" class="menu-item selected _menu_aspectratio">
         Aspect ratio and alignment
       </div>
-      <div class="menu-item">
+      <div id="_menu_csshacks" class="menu-item disabled hidden _menu_hacks">
         CSS hacks for this site
+      </div>
+      <div id="_menu_about" class="menu-item _menu_about">
+        About Ultrawidify<span class="menu-item-inline-desc"><br/>See for bug reports</span>
       </div>
     </div>
     <div class="right-side">
+      <div id="no-videos-display" class="suboption">
+        No videos have been found on this page.<br/><small>NOTE: iframes are <b>not</b> detected by this popup. You need a keyboard / to enable automatic aspect ratio detection to fix aspect ratio in embedded players.<br/>Embedded players must also be in full screen.</small>
+      </div>
+    
       <div id="extension-mode" class="suboption hidden">
         <p>How should extension work in general?<br/><small>NOTE: settings will be applied when page is reloaded.</small></p>
       
@@ -123,7 +146,7 @@
         </form>
       </div>
       
-      <div id="aspect-ratio-settings" class="suboption">
+      <div id="aspect-ratio-settings" class="suboption hidden">
         <div class="row">
           Force aspect ratio:<br/>
           <div class="button-row">
@@ -143,18 +166,26 @@
           </div>
         </div>
         <div class="row">
-        Video alignment:
-        <div class="button-row">
-          <a class="button _align _align_left">left</a>
-          <a class="button _align _align_center">center</a>
-          <a class="button _align _align_right">right</a>
+          Video alignment:
+          <div class="button-row">
+            <a class="button _align _align_left">left</a>
+            <a class="button _align _align_center">center</a>
+            <a class="button _align _align_right">right</a>
+          </div>
         </div>
-        <div>
       </div>
-      
       
       <div id="css-hacks-settings" class="suboption hidden">
         <p>If zoomed in video doesn't align properly, try enabling or disabling certain CSS rules below:</p>
+      </div>
+      
+      <div id="panel-about" class="suboption hidden">
+        <div class="row">
+          Ultrawidify version: <span id="uw-version"></span>
+        </div>
+        <div class="row">
+          Having an issue? Report <strike>undocumented features</strike>bugs <a href="https://github.com/xternal7/ultrawidify/issues">here</a>.
+        </div>
       </div>
     </div>
     
