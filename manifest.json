@@ -38,6 +38,7 @@
       
       "js/lib/FullScreenDetect.js",
       
+      "js/modules/PageInfo.js",
       "js/modules/ArDetect.js", 
       "js/modules/Resizer.js",
       "js/conf/Keybinds.js",
