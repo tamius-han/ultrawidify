@@ -428,6 +428,7 @@ var ArDetect = {
   _forcehalt: false,
 
   arSetup: _arSetup,
+  init: _arSetup,
   vdraw: _ard_vdraw,
   detectedAr: 1,
   arChangedCallback: function() {},

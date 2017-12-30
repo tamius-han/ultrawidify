@@ -1,7 +1,9 @@
 Debug = {
   debug: true,
+  keyboard: true,
   debugResizer: true,
-  debugArDetect: true,
+  debugArDetect: false,
+  debugStorage: true,
   showArDetectCanvas: false,
   flushStoredSettings: true
 }

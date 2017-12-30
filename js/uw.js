@@ -13,7 +13,6 @@ async function main(){
   var kbpromise = Keybinds.init();
   
   ExtensionConf.init();
-  console.log(scpromise);
 
   // počakamo, da so nastavitve naložene
   // wait for settings to load
