@@ -27,6 +27,7 @@ var _ard_sampleLines = [ 0, 360, 720, 1080, 1440, 1800, 2160, 2520, 2876]
 var _arSetup = function(){
   if(Debug.debug)
     console.log("%c[ArDetect::_ard_setup] Starting automatic aspect ratio detection", _ard_console_start);
+  this._halted = false;
   
   var vid = document.getElementsByTagName("video")[0];
   
@@ -420,17 +421,23 @@ var _ard_stop = function(){
     console.log("%c[ArDetect::_ard_stop] Stopping automatic aspect ratio detection", _ard_console_stop);    
   }
   this._forcehalt = true;
+  this._halted = true;
   clearTimeout(_ard_timer);
   clearTimeout(_ard_setup_timer);
 }
 
+var _ard_isRunning = function(){
+  return ! this._halted;
+}
+
 var ArDetect = {
   _forcehalt: false,
-
+  _halted: false,
   arSetup: _arSetup,
   init: _arSetup,
   vdraw: _ard_vdraw,
   detectedAr: 1,
   arChangedCallback: function() {},
   stop: _ard_stop,
+  isRunning: _ard_isRunning
 }

@@ -23,6 +23,12 @@
       font-weight: 200;
     }
     
+    .label{
+      font-size: 1.1em;
+      font-weight: 600;
+      color: #ffe;
+    }
+    
     .smallcaps{
       font-variant: small-caps;
     }
@@ -87,6 +93,11 @@
       border: 1px solid #444;
       margin-top: 3px;
       margin-bottom: 3px;
+      color: #dbb;
+    }
+    .button:hover {
+      color: #fff;
+      background-color: #433221;
     }
     
     .row {
@@ -148,7 +159,7 @@
       
       <div id="aspect-ratio-settings" class="suboption hidden">
         <div class="row">
-          Force aspect ratio:<br/>
+          <span class="label">Force aspect ratio:</span>
           <div class="button-row">
             <a class="button _changeAr _ar_auto">Auto-detect</a>
             <a class="button _changeAr _ar_reset">Reset</a>
@@ -158,19 +169,20 @@
           </div>
         </div>
         <div class="row">
-          Automatic aspect ratio autodetection:
+          <span class="label">Automatic aspect ratio autodetection:</span>
           <div class="button-row">
-            <a id="ard_temporary_disable" class="button _autoar _autoar_temp-disable">Temporarily disable</a><br/>
-            <a id="ard_disable"           class="button _autoar _autoar_disable">Disable</a>
-            <a id="ard_enable"            class="button _autoar _autoar_enable hidden">Enable</a>
+            <a id="_autoar_disable_tmp" class="button _autoar _autoar_temp-disable">Temporarily disable</a>
+            <a id="_autoar_enable_tmp"          class="button _autoar _ar_auto hidden">Re-enable</a>
+            <a id="_autoar_disable"           class="button _autoar _autoar_disable">Disable</a>
+            <a id="_autoar_enable"            class="button _autoar _autoar_enable hidden">Enable</a>
           </div>
         </div>
         <div class="row">
-          Video alignment:
+          <span class="label">Video alignment:</span>
           <div class="button-row">
-            <a class="button _align _align_left">left</a>
-            <a class="button _align _align_center">center</a>
-            <a class="button _align _align_right">right</a>
+            <a id="_align_left"   class="button _align _align_left">left</a>
+            <a id="_align_center" class="button _align _align_center">center</a>
+            <a id="_align_right"  class="button _align _align_right">right</a>
           </div>
         </div>
       </div>
@@ -181,10 +193,10 @@
       
       <div id="panel-about" class="suboption hidden">
         <div class="row">
-          Ultrawidify version: <span id="uw-version"></span>
+          <span class="label">Ultrawidify version:</span><br/> <span id="uw-version"></span>
         </div>
         <div class="row">
-          Having an issue? Report <strike>undocumented features</strike>bugs <a href="https://github.com/xternal7/ultrawidify/issues">here</a>.
+          <span class="label">Having an issue?</span><br/> Report <strike>undocumented features</strike> bugs <a href="https://github.com/xternal7/ultrawidify/issues">here</a>.
         </div>
       </div>
     </div>

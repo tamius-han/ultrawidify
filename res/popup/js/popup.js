@@ -16,8 +16,22 @@ MenuTab.arSettings = document.getElementById("_menu_aspectratio");
 MenuTab.cssHacks   = document.getElementById("_menu_hacks");
 MenuTab.about      = document.getElementById("_menu_about");
 
+var ArPanel = {}
+ArPanel.alignment = {};
+ArPanel.alignment.left   = document.getElementById("_align_left");
+ArPanel.alignment.center = document.getElementById("_align_center");
+ArPanel.alignment.right  = document.getElementById("_align_right");
+ArPanel.autoar = {};
+ArPanel.autoar.enable      = document.getElementById("_autoar_enable");
+ArPanel.autoar.disable     = document.getElementById("_autoar_disable");
+ArPanel.autoar.enable_tmp  = document.getElementById("_autoar_enable_tmp");
+ArPanel.autoar.disable_tmp = document.getElementById("_autoar_disable_tmp");
+
+
 var selectedMenu = "arSettings";
 var hasVideos = false;
+
+var _config; 
 
 function check4videos(){
   var command = {};
@@ -42,6 +56,46 @@ function check4videos(){
     setTimeout(check4videos, 1000);
   });
 }
+
+function check4conf(){
+  var command = {};
+  command.cmd = "get-config";
+  command.sender = "popup";
+  command.receiver = "uwbg";
+  
+  browser.runtime.sendMessage(command)
+  .then(response => {
+    if(Debug.debug)
+      console.log("[popup.js::check4conf] received response:",response);
+    
+    loadConfig(response.response);
+  })
+  .catch(error => {
+    if(Debug.debug)
+      console.log("%c[popup.js::check4conf] sending message failed with error", "color: #f00", error, "%c retrying in 1s ...", "color: #f00");
+    
+    setTimeout(check4conf, 1000);
+  });
+}
+
+function loadConfig(config){
+  if(Debug.debug)
+    console.log("[popup.js::loadConfig] loading config. conf object:",config);
+    
+  _config = config;
+  
+  // process video alignment:
+  if(config.videoAlignment){
+    for(var button in ArPanel.alignment)
+      ArPanel.alignment[button].classList.remove("selected");
+    
+    ArPanel.alignment[config.videoAlignment].classList.add("selected");
+  }
+  
+  // process aspect ratio settings
+  showArctlButtons();
+}
+
 
 function openMenu(menu){
   if(Debug.debug){
@@ -79,6 +133,51 @@ function openMenu(menu){
   }
 }
 
+function _arctl_onclick(command){
+  if(! _config)
+    return;
+  
+  if(command.cmd == "stop-autoar")
+    _config.arConf.enabled_current = false;
+  else if(command.cmd == "force-ar")
+    _config.arConf.enabled_current = true;
+  else if(command.cmd == "disable-autoar")
+    _config.arConf.enabled_global = false;
+  else if(command.cmd == "enable-autoar")
+    _config.arConf.enabled_global = true;
+  
+  showArctlButtons();
+}
+
+function showArctlButtons(){
+  if(! _config)
+    return;
+  
+  if(_config.arConf){
+    if(! _config.arConf.enabled_global){
+      ArPanel.autoar.disable.classList.add("hidden");
+      ArPanel.autoar.enable.classList.remove("hidden");
+      
+      ArPanel.autoar.enable_tmp.textContent = "Temporarily enable";
+      ArPanel.autoar.disable_tmp.textContent = "Temporarily disable";
+    }
+    else{
+      ArPanel.autoar.disable.classList.remove("hidden");
+      ArPanel.autoar.enable.classList.add("hidden");
+      
+      ArPanel.autoar.enable_tmp.textContent = "Re-enable";
+      ArPanel.autoar.disable_tmp.textContent = "Temporarily disable";
+    }
+    if(! _config.arConf.enabled_current){
+      ArPanel.autoar.disable_tmp.classList.add("hidden");
+      ArPanel.autoar.enable_tmp.classList.remove("hidden");
+    }
+    else{
+      ArPanel.autoar.disable_tmp.classList.remove("hidden");
+      ArPanel.autoar.enable_tmp.classList.add("hidden");
+    }
+  }
+}
 
 document.addEventListener("click", (e) => {
   
@@ -146,15 +245,21 @@ document.addEventListener("click", (e) => {
     }
     
     if(e.target.classList.contains("_autoar")){
+      var command = {};
       if(e.target.classList.contains("_autoar_temp-disable")){
-        return {cmd: "stop-autoar", sender: "popup", receiver: "uwbg"};
+        command = {cmd: "stop-autoar", sender: "popup", receiver: "uwbg"};
       }
-      if(e.target.classList.contains("_autoar_disable")){
-        return {cmd: "disable-autoar", sender: "popup", receiver: "uwbg"};
+      else if(e.target.classList.contains("_autoar_disable")){
+        command = {cmd: "disable-autoar", sender: "popup", receiver: "uwbg"};
       }
-      if(e.target.classList.contains("_autoar_enable")){
-        return {cmd: "enable-autoar", sender: "popup", receiver: "uwbg"};
+      else if(e.target.classList.contains("_autoar_enable")){
+        command = {cmd: "enable-autoar", sender: "popup", receiver: "uwbg"};
       }
+      else{
+        command = {cmd: "force-ar", newAr: "auto", sender: "popup", receiver: "uwbg"};
+      }
+      _arctl_onclick(command);
+      return command;
     }
     
     if(e.target.classList.contains("_align")){
@@ -190,3 +295,4 @@ document.addEventListener("click", (e) => {
 
 
 check4videos();
+check4conf();
