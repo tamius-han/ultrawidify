@@ -1,11 +1,21 @@
+// Set prod to true when releasing
+_prod = true; 
+// _prod = false;
+
 Debug = {
   debug: true,
   keyboard: true,
   debugResizer: true,
-  debugArDetect: false,
+  debugArDetect: true,
   debugStorage: true,
   showArDetectCanvas: false,
   flushStoredSettings: true
+}
+
+if(_prod){
+  for(var key in Debug){
+    Debug[key] = false;
+  }
 }
 
 if(Debug.debug)

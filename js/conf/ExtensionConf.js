@@ -5,8 +5,11 @@ var _ec_mode = "blacklist"
 
 
 var _ec_init = function() {
-  console.log("pls implement");
-  console.log("this: ", this);
+  
+  if(Debug.debug){
+    console.log("pls implement");
+    console.log("this: ", this);
+  }
 }
 
 ExtensionConf = {

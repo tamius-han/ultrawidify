@@ -46,6 +46,12 @@ var Settings = {
     allowedArVariance: 0.025, // % by which old ar can differ from the new
     timer_playing: 30,
     timer_paused: 3000,
+    timer_error: 3000,
+    hSamples: 1280,
+    vSamples: 720,
+    staticSampleCols: 9,      // we take a column at [0-n]/n-th parts along the width and sample it
+    randomSampleCols: 0,      // we add this many randomly selected columns to the static columns
+    staticSampleRows: 9,      // forms grid with staticSampleCols. Determined in the same way. For black frame checks
     blacklist: [],            // banned on enabled: "global" 
     whitelist: []             // enabled on enabled: "whitelist-only", disabled on "disabled"
   },
@@ -54,6 +60,9 @@ var Settings = {
   },
   miscFullscreenSettings: {
     videoFloat: "center"
+  },
+  colors:{
+//     criticalFail: "background: #fa2; color: #000"
   },
   init: _se_init,
   save: _se_save,
