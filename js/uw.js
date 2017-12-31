@@ -51,8 +51,15 @@ async function main(){
   
   
   
-  if(Settings.arDetect.enable == "global")
+  if(Settings.arDetect.enabled == "global"){
+    if(Debug.debug)
+      console.log("[uw::main] Aspect ratio detection is enabled. Starting ArDetect");
     ArDetect.arSetup();
+  }
+  else{
+    if(Debug.debug)
+      console.log("[uw::main] Aspect ratio detection is disabled. This is in settings:", Settings.arDetect.enabled);
+  }
   
   document.addEventListener("mozfullscreenchange", function( event ) {
     if(Debug.debug){

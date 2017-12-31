@@ -4,56 +4,6 @@ if(Debug.debug)
 var _kbd_ModKeys = ["ctrlKey", "shiftKey", "altKey"];
 var _kbd_keybinds = {};
 
-var DEFAULT_KEYBINDINGS_OLD = [
-  { action: "fitw",
-    key: 'w',
-    modifiers: []
-  },
-  {
-    action: "fith", 
-    key: 'e',
-    modifiers: []
-  },
-  {
-    action: "reset",
-    key: 'r',
-    modifiers: []
-  },
-  {
-    action: "zoom",
-    key: "z",
-    modifiers: []
-  },
-  {
-    action: "unzoom",
-    key: "u",
-    modifiers: []
-  },
-  {
-    action: "char",
-    targetAR: 2.39,
-    key: "d",
-    modifiers: []
-  },
-  {
-    action: "char",
-    targetAR: 1.78,
-    key: "s",
-    modifiers: []
-  },
-  {
-    action: "char",
-    targetAR: 2.0,
-    key: "c",
-    modifiers: []
-  },
-  {
-    action: "autoar",
-    key: "a",
-    modifiers: []
-  }
-];
-
 var DEFAULT_KEYBINDINGS = {
   "w": {
     action: "fitw"

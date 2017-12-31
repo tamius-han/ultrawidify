@@ -17,19 +17,33 @@ var _ard_timer
 // vrednosti v tabeli so na osminskih intervalih od [0, <sample height * 4> - 4].
 // we sample these lines in blackbox/stuff. 9 samples. If we change the canvas sample size, we have to correct these values as well
 // samples are every eighth between [0, <sample height * 4> - 4].
-var _ard_sampleLines = [ 0, 360, 720, 1080, 1440, 1800, 2160, 2520, 2876]
+var _ard_sampleLines = [ 0, 360, 720, 1080, 1440, 1800, 2160, 2520, 2876];
+var _ard_sampleCols = [ 128, 256, 384, 512, 640, 768, 896, 1024, 1125 ];
 
-
-
+var _ard_canvasWidth;
+var _ard_canvasHeight;
+var _ard_canvasDrawWindowHOffset = 0;
 
 // **** FUNCTIONS **** //
 
-var _arSetup = function(){
+var _arSetup = function(cwidth, cheight){
   if(Debug.debug)
     console.log("%c[ArDetect::_ard_setup] Starting automatic aspect ratio detection", _ard_console_start);
+
   this._halted = false;
   
-  var vid = document.getElementsByTagName("video")[0];
+  var existingCanvas = document.getElementById("uw_ArDetect_canvas");
+  if(existingCanvas){
+    if(Debug.debug)
+      console.log("[ArDetect::_ard_setup] existing canvas found. REMOVING KEBAB removing kebab\n\n\n\n(im hungry and you're not authorized to have it)");
+    
+    existingCanvas.remove();
+    
+    if(Debug.debug)
+      console.log("[ArDetect::_ard_setup] canvas removed");
+  }
+  
+    var vid = document.getElementsByTagName("video")[0];
   
   if(vid === undefined){
     _ard_setup_timer = setTimeout(_arSetup, 1000);
@@ -39,16 +53,19 @@ var _arSetup = function(){
   // imamo video, pa tudi problem. Ta problem bo verjetno kmalu popravljen, zato setup začnemo hitreje kot prej
   // we have a video, but also a problem. This problem will prolly be fixed very soon, so setup is called with
   // less delay than before
-  if(vid.videoWidth == 0){
+  if(vid.videoWidth === 0 || vid.videoHeight === 0){
     _ard_setup_timer = setTimeout(_arSetup, 100);
     return;
   }
+  
   
   var canvas = document.createElement("canvas");
   canvas.style.position = "absolute";
   
   //todo: change those values to push canvas off-screen
   
+  _ard_canvasWidth = cwidth ? cwidth : Settings.arDetect.hSamples;
+  _ard_canvasHeight = cheight ? cheight : Settings.arDetect.vSamples;
   
   if(Debug.showArDetectCanvas){
     canvas.style.left = "200px";
@@ -69,11 +86,16 @@ var _arSetup = function(){
   
   // do setup once
   // tho we could do it for every frame
-  var canvasScaleFactor =  1280 / vid.videoWidth;
-  var canvasWidth = vid.videoWidth * canvasScaleFactor;
-  var canvasHeight = vid.videoHeight * canvasScaleFactor;
-  
-  console.log("canvasScaleFactor, vid.videoWidth: ", canvasScaleFactor, vid.videoWidth);
+  if(cwidth && cheight){
+    var canvasWidth = cwidth;
+    var canvasHeight = cheight;
+    var canvasScaleFactor = cheight / vid.videoHeight;
+  }
+  else{
+    var canvasScaleFactor =  _ard_canvasWidth / vid.videoWidth;
+    var canvasWidth = vid.videoWidth * canvasScaleFactor;
+    var canvasHeight = vid.videoHeight * canvasScaleFactor;
+  }
   
   canvas.width = canvasWidth;
   canvas.height = canvasHeight;
@@ -83,18 +105,58 @@ var _arSetup = function(){
   _ard_oldAr = vid.videoWidth / vid.videoHeight;
   _ard_currentAr = _ard_oldAr;
   
+  try{
+    // determine where to sample
+    var ncol = Settings.arDetect.staticSampleCols;
+    var nrow = Settings.arDetect.staticSampleRows;
+    
+    var colSpacing = _ard_canvasWidth / ncol;
+    var rowSpacing = (_ard_canvasHeight * 4) / nrow;
+    
+    _ard_sampleLines = [];
+    _ard_sampleCols = [];
+
+    for(var i = 0; i < ncol; i++){
+      if(i < ncol - 1)
+        _ard_sampleCols.push(Math.round(colSpacing * i));
+      else{
+        _ard_sampleCols.push(Math.round(colSpacing * i) - 1);
+      }
+    }
+    
+    for(var i = 0; i < nrow; i++){
+      if(i < ncol - 5)
+        _ard_sampleLines.push(Math.round(rowSpacing * i));
+      else{
+        _ard_sampleLines.push(Math.round(rowSpacing * i) - 4);
+      }
+    }
+  }
+  catch(ex){
+    console.log("%c[ArDetect::_arSetup] something went terribly wrong when calcuating sample colums.", Settings.colors.criticalFail);
+    console.log("settings object:", Settings);
+    console.log("error:", ex);
+  }
+  
   this._forcehalt = false;
   _ard_vdraw(vid, context, canvasWidth, canvasHeight, false);
 };
 
+var _ard_canvasReadyForDrawWindow = function(){
+  if(Debug.debug)
+    console.log("%c[ArDetect::_ard_canvasReadyForDrawWindow] (?)", "color: #44f", _ard_canvasHeight == window.innerHeight, "(ard_height:", _ard_canvasHeight, "| window height:", window.innerHeight, ")");
+  
+  return _ard_canvasHeight == window.innerHeight
+}
 
-
-
-var _ard_processAr = function(video, width, height, edge_h, edge_w){
+var _ard_processAr = function(video, width, height, edge_h, edge_w, fallbackMode){
   // width, height —> canvas/sample
   
   //edge_w -—> null/undefined, because we don't autocorrect pillarbox yet
-
+  
+  if(Debug.debug){
+    console.log("[ArDetect::_ard_processAr] processing ar. width:", width, "; height:", height, "; edge top:", edge_h);
+  }
   // if we don't specify these things, they'll have some default values.
   if(edge_h === undefined){
     edge_h = 0;
@@ -104,7 +166,14 @@ var _ard_processAr = function(video, width, height, edge_h, edge_w){
   var letterbox = 2 * edge_h;
   var trueHeight = height - letterbox;
   
-  
+  if(fallbackMode){
+    if(edge_h > 1 && edge_h < 20)
+      return;
+    
+    // let's add some safety border to avoid automatic ar toggling between 21:9 and 16:9
+    
+    trueHeight += 6;
+  }
   
   
   var trueAr = width / trueHeight;
@@ -146,6 +215,7 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   if(this._forcehalt)
     return;
   
+  var fallbackMode = false;
   var blackbar_tresh = 10;  // how non-black can the bar be
   var how_far_treshold = 8; // how much can the edge pixel vary (*4)
   
@@ -154,15 +224,56 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   
   if(vid === undefined || vid.paused || vid.ended || Status.arStrat != "auto"){
     // we slow down if paused, no detection
-    _ard_timer = setTimeout(_ard_vdraw, 3000, vid, context, w, h);
+    _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_paused, vid, context, w, h);
     return false;
   }
   
-  
-  context.drawImage(vid, 0,0, w, h);
-  
+  try{
+    context.drawImage(vid, 0,0, w, h);
+  }
+  catch(ex){
+    if(Debug.debug)
+      console.log("%c[ArDetect::_ard_vdraw] can't draw image on canvas. Trying canvas.drawWindow instead", "color:#000; backgroud:#f51;", ex);
+    
+    try{
+      if(_ard_canvasReadyForDrawWindow()){
+        context.drawWindow(window, _ard_canvasDrawWindowHOffset, 0, w, h, "rgba(0,0,0,1)");
+        if(Debug.debug)
+          console.log("%c[ArDetect::_ard_vdraw] canvas.drawImage seems to have worked", "color:#000; backgroud:#2f5;");
+        fallbackMode = true;
+      }
+      else{
+        // canvas needs to be resized, so let's change setup
+        _ard_stop();
+        
+        var newCanvasWidth = window.innerHeight * 1.77;
+        var newCanvasHeight = window.innerHeight;
+        
+        if(Settings.miscFullscreenSettings.videoFloat == "center")
+          _ard_canvasDrawWindowHOffset = Math.round((window.innerWidth - newCanvasWidth) * 0.5);
+        else if(Settings.miscFullscreenSettings.videFloat == "left")
+          _ard_canvasDrawWindowHOffset = 0;
+        else
+          _ard_canvasDrawWindowHOffset = window.innerWidth - newCanvasWidth;
+        
+        _arSetup(newCanvasWidth, newCanvasHeight);
+        return;
+      }
+      
+    }
+    catch(ex){
+      if(Debug.debug)
+        console.log("%c[ArDetect::_ard_vdraw] okay this didnt work either", "color:#000; backgroud:#f51;", ex);
+      
+      _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_error, vid, context, w, h);
+      return;  
+    }
+    
+//     _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_error, vid, context, w, h);
+//     return;
+  }
   // "random" columns — todo: randomly pick some more
-  var rc = [ 128, 256, 384, 512, 640, 768, 896, 1024, 1125 ];
+  var rc = _ard_sampleCols;
 
 
   var cimg = [];
@@ -178,7 +289,7 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   isLetter=true;
   for(var i in cols){
     // if any of those points fails this check, we aren't letterboxed
-    isLetter &= (cols[i][4] <= blackbar_tresh && cols[i][5] <= blackbar_tresh && cols[i][6] <= blackbar_tresh);
+    isLetter &= (cols[i][0] <= blackbar_tresh && cols[i][1] <= blackbar_tresh && cols[i][2] <= blackbar_tresh);
     // should also check bottom
   }
 
@@ -187,6 +298,10 @@ var _ard_vdraw = function (vid, context, w, h, conf){
     // sedaj razveljaviti
     // even if we don't deect letterbox, we still issue processAr in case we adjusted for letterbox earlier and need to exit
     // corrected mode.
+    if(Debug.debug){
+      console.log("%c[ArDetect::_ard_vdraw] no edge detected. canvas has no edge.", "color: #aaf");
+    }
+    
     _ard_processAr(vid, w, h);
     
     _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_playing, vid, context, w, h); //no letterbox, no problem
@@ -334,7 +449,11 @@ var _ard_vdraw = function (vid, context, w, h, conf){
     // zakaj smo potem sploh tukaj?
     // why exactly are we here again?
     
-    _ard_processAr(vid, w, h);
+    if(Debug.debug){
+      console.log("%c[ArDetect.js] aspect ratio change is being triggered by an event we thought shouldn't be triggering it. Strange.\n\n","color: #4af", "color_lowermost (8=bad):", color_lowermost, "color_uppermost (0=bad):", color_uppermost);
+    }
+    
+//     _ard_processAr(vid, w, h);
     _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_playing, vid, context, w, h); //no letterbox, no problem
     return;
   }
@@ -357,7 +476,8 @@ var _ard_vdraw = function (vid, context, w, h, conf){
          cols[  cu_col[i]  ][ j+1 ] > blackbar_tresh &&
          cols[  cu_col[i]  ][ j+2 ] > blackbar_tresh ){
         
-        console.log("detecting value higher than blackbar_tresh!");
+        if(Debug.debug)
+          console.log("detecting value higher than blackbar_tresh!");
         
         tmpEndPixel = j >> 2;
         break;
@@ -411,7 +531,7 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   isLetter = (letterDiff < h * Settings.arDetect.allowedMisaligned);
   
   if(isLetter)
-    _ard_processAr(vid, w, h, topPixel);
+    _ard_processAr(vid, w, h, topPixel, null, fallbackMode);
   
   _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_playing, vid, context, w, h);
 }

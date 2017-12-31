@@ -19,11 +19,15 @@ The technology has been here for a while, but plenty of people don't know how to
 * **Fit video to width/height**
 * **Force specific aspect ratio**
 * **Attempts to automatically detect aspect ratio**
-* ~~**Rebindable shortcuts**~~
+* **Rebindable shortcuts**
+
+**Note that changing aspect ratio only works in fullscreen (at this time), which is a regression from 1.x**
 
 ### User interface
 
-There's no longer any user interface lol. Only keybinds.
+Most quick options for a page are accessible through a button in the extension bar. The options are pretty self-explanatory.
+
+![UI demo](img-demo/ui-popup-0.png)
 
 ### Default keyboard shortcuts
 
@@ -31,16 +35,15 @@ There's no longer any user interface lol. Only keybinds.
 `e`   - fit to height  
 `r`   - reset
 
-`a`   - attempt to automatically determine the aspect ratio (netflix only)  
+`a`   - attempt to automatically determine the aspect ratio 
 
-`s`   - force 21:9  
-`d`   - force 16:9  
-`x`   - force 16:10  
-`c`   - force 4:3  
+`s`   - force 16:9  
+`d`   - force 21:9  
+`x`   - force 18:9  
 
 ### About aspect ratio autodetection
 
-This is not available in AMO/Chrome version.
+This is not available in Chrome version yet. (Coming soon to AMO version).
 
 Aspect ratio autodetection is achieved by performing some black magic every 30-something milliseconds. This currently can't be turned off by default. If this extension makes video sites lag too much, open an issue and include your hardware and OS — **this is important for me to know in order to better optimize autodetection.**.
 
@@ -84,7 +87,16 @@ TODO: add stuff for 2.0
 
 ## Changelog
 
-###v2.0a1 (git/current version)
+###v2.0 (git version)
+
+* Completely rewritten
+* Automatic aspect ratio detection works on Youtube _and_ Netflix
+* Added popup for quick actions (serves as a replacement for player UI)
+* Restored settings page for keybinds.
+
+Getting automatic aspect ratio detection required some hacks, not sure how easy will be to port to chrome.
+
+###v2.0a1
 
 The extension is being rewritten almost ground-up, around automatic aspect ratio detection. By default, this extension now only works in fullscreen, but due to some simplification it should work on most sites. As direct result of this simplification:
 
@@ -95,7 +107,7 @@ The extension is being rewritten almost ground-up, around automatic aspect ratio
 * Zoom/unzoom options are gone
 * Can't customize keybinds yet
 
-###v1.3a1  (git/current version)
+###v1.3a1
 
 * Adding ability to add custom sites (in progress)
 * Most of the extension is being completely rewritten to accomodate that feature, which means there's a serious regression with Netflix support (no netflix at the moment)
