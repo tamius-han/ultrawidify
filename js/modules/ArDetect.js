@@ -185,11 +185,21 @@ var _ard_processAr = function(video, width, height, edge_h, edge_w, fallbackMode
   if (arDiff < 0)
     arDiff = -arDiff;
   
+  var arDiff_percent = arDiff / trueAr;
+  
   // ali je sprememba v mejah dovoljenega? Če da -> fertik
   // is ar variance within acceptable levels? If yes -> we done
-  if (arDiff < trueAr * Settings.arDetect.allowedVariance)
-    return;
+  if(Debug.debug && Debug.debugArDetect)
+    console.log("%c[ArDetect::_ard_processAr] new aspect ratio varies from the old one by this much:\n","color: #aaf","old Ar", _ard_oldAr, "current ar", trueAr, "arDiff (absolute):",arDiff,"ar diff (relative to new ar)", arDiff_percent);
   
+  if (arDiff < trueAr * Settings.arDetect.allowedArVariance){
+    if(Debug.debug && Debug.debugArDetect)
+      console.log("%c[ArDetect::_ard_processAr] aspect ratio change denied — diff %:", "background: #740; color: #fa2", arDiff_percent)
+    return;
+  }
+  else if(Debug.debug && Debug.debugArDetect){
+    console.log("%c[ArDetect::_ard_processAr] aspect ratio change accepted — diff %:", "background: #153; color: #4f9", arDiff_percent)
+  }
   // če je sprememba več od dovoljenega, spremeni razmerje stranic. Stvari se razlikujejo glede na to, ali smo v fullscreen ali ne
   // if change is greater than allowed, change the aspect ratio.  Whether we do that depends on whether we're in fullscreen.
   if( FullScreenDetect.isFullScreen() ){
@@ -219,8 +229,8 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   var blackbar_tresh = 10;  // how non-black can the bar be
   var how_far_treshold = 8; // how much can the edge pixel vary (*4)
   
-  if(Debug.debug)
-    Settings.arDetect.timer_playing = 1000;     // how long is the pause between two executions — 33ms ~ 30fps
+//   if(Debug.debug)
+//     Settings.arDetect.timer_playing = 1000;     // how long is the pause between two executions — 33ms ~ 30fps
   
   if(vid === undefined || vid.paused || vid.ended || Status.arStrat != "auto"){
     // we slow down if paused, no detection
@@ -441,6 +451,9 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   if(blackPoints > (blackPointsMax >> 1)){
     // if more than half of those points are black, we consider the entire frame black (or too dark to get anything useful
     // out of it, anyway)
+    if(Debug.debug && Debug.debugArDetect)
+      console.log("%c[ArDetect::_ard_vdraw] Frame too dark, doing nothing. (Over 50% of the points are black)", "color: #99f");
+    
     _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_playing, vid, context, w, h); //no letterbox, no problem
     return;
   }
@@ -449,8 +462,8 @@ var _ard_vdraw = function (vid, context, w, h, conf){
     // zakaj smo potem sploh tukaj?
     // why exactly are we here again?
     
-    if(Debug.debug){
-      console.log("%c[ArDetect.js] aspect ratio change is being triggered by an event we thought shouldn't be triggering it. Strange.\n\n","color: #4af", "color_lowermost (8=bad):", color_lowermost, "color_uppermost (0=bad):", color_uppermost);
+    if(Debug.debug && Debug.debugArDetect){
+      console.log("%c[ArDetect::_ard_vdraw] aspect ratio change is being triggered by an event we thought shouldn't be triggering it. Strange.\n\n","color: #4af", "color_lowermost (8=bad):", color_lowermost, "color_uppermost (0=bad):", color_uppermost);
     }
     
 //     _ard_processAr(vid, w, h);
@@ -475,9 +488,6 @@ var _ard_vdraw = function (vid, context, w, h, conf){
       if(cols[  cu_col[i]  ][ j   ] > blackbar_tresh &&
          cols[  cu_col[i]  ][ j+1 ] > blackbar_tresh &&
          cols[  cu_col[i]  ][ j+2 ] > blackbar_tresh ){
-        
-        if(Debug.debug)
-          console.log("detecting value higher than blackbar_tresh!");
         
         tmpEndPixel = j >> 2;
         break;
@@ -520,6 +530,8 @@ var _ard_vdraw = function (vid, context, w, h, conf){
       bottomPixel = endPixelBottom[i];
   }
   
+  
+  
   // preveri, če sta odmika zgoraj in spodaj podobno velika. Če nista, potem gledamo objekt, ne letterboxa
   // check if black borders match; if the line isn't horizontal we could be looking at an object in
   // the actual video that shouldn't be cropped out.
@@ -532,6 +544,9 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   
   if(isLetter)
     _ard_processAr(vid, w, h, topPixel, null, fallbackMode);
+  else if(Debug.debug && Debug.debugArDetect)
+      console.log("%c[ArDetect::_ard_vdraw] Black bars at the top and at the bottom differ in size more than we allow", "color: #99f");
+  
   
   _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_playing, vid, context, w, h);
 }

@@ -126,6 +126,10 @@ var _kbd_fetch = async function(){
     await _kbd_load();
   }
   
+  if(Debug.debug){
+    console.log("[Keybinds::_kbd_fetch] We'll be returning this:", _kbd_keybinds);
+  }
+  
   return _kbd_keybinds;
 }
 

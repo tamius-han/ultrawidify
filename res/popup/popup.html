@@ -23,6 +23,13 @@
       font-weight: 200;
     }
     
+    .small {
+      font-size: 0.85em;
+    }
+    .darker {
+      color: #666;
+    }
+    
     .label{
       font-size: 1.1em;
       font-weight: 600;
@@ -96,6 +103,10 @@
       margin-top: 3px;
       margin-bottom: 3px;
       color: #dbb;
+      text-align: center;
+    }
+    .w24 {
+      width: 100px;
     }
     .button:hover {
       color: #fff;
@@ -170,11 +181,11 @@
         <div class="row">
           <span class="label">Force aspect ratio:</span>
           <div class="button-row">
-            <a class="button _changeAr _ar_auto">Auto-detect</a>
-            <a class="button _changeAr _ar_reset">Reset</a>
-            <a class="button _changeAr _ar_219">21:9</a>
-            <a class="button _changeAr _ar_189">2:1 (18:9)</a>
-            <a class="button _changeAr _ar_169">16:9</a>
+            <a class="button _changeAr _ar_auto w24">Auto-detect<br/><span id="_b_changeAr_autoar_key" class="smallcaps small darker"></span></a>
+            <a class="button _changeAr _ar_reset w24">Reset<br/><span id="_b_changeAr_reset_key" class="smallcaps small darker"></span></a>
+            <a class="button _changeAr _ar_219 w24">21:9<br/><span id="_b_changeAr_219_key" class="smallcaps small darker"></span></a>
+            <a class="button _changeAr _ar_189 w24">2:1 (18:9)<br/><span id="_b_changeAr_189_key" class="smallcaps small darker"></span></a>
+            <a class="button _changeAr _ar_169 w24">16:9<br/><span id="_b_changeAr_169_key" class="smallcaps small darker"></span></a>
           </div>
         </div>
         <div class="row">
