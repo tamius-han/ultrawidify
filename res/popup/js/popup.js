@@ -32,6 +32,7 @@ var selectedMenu = "arSettings";
 var hasVideos = false;
 
 var _config; 
+var _changeAr_button_shortcuts = { "autoar":"none", "reset":"none", "219":"none", "189":"none", "169":"none" }
 
 async function check4videos(){
   var command = {};
@@ -78,6 +79,24 @@ async function check4conf(){
   });
 }
 
+function stringToKeyCombo(key_in){
+  var keys_in = key_in.split("_");
+  var keys_out = "";
+  
+  for(key of keys_in){
+    if(key == "ctrlKey")
+      keys_out += "ctrl + ";
+    else if(key == "shiftKey")
+      keys_out += "shift + ";
+    else if(key == "altKey")
+      keys_out += "alt + ";
+    else
+      keys_out += key;
+  }
+  
+  return keys_out;
+}
+
 function loadConfig(config){
   if(Debug.debug)
     console.log("[popup.js::loadConfig] loading config. conf object:",config);
@@ -91,6 +110,44 @@ function loadConfig(config){
     
     ArPanel.alignment[config.videoAlignment].classList.add("selected");
   }
+  
+  // process keyboard shortcuts:
+  if(config.keyboardShortcuts){
+    for(var key in config.keyboardShortcuts){
+      var shortcut = config.keyboardShortcuts[key];
+      var keypress = stringToKeyCombo(key);
+      
+      
+      try{
+        if(shortcut.action == "char"){
+          if(shortcut.targetAr == 2.0){
+            _changeAr_button_shortcuts["189"] = keypress;
+          }
+          else if(shortcut.targetAr == 2.39){
+            _changeAr_button_shortcuts["219"] = keypress;
+          }
+          else if(shortcut.targetAr == 1.78){
+            _changeAr_button_shortcuts["169"] = keypress;
+          }
+        }
+        else{
+            _changeAr_button_shortcuts[shortcut.action] = keypress;
+        }
+      }
+      catch(Ex){
+        //do nothing if key doesn't exist
+      }
+    }
+    for(var key in _changeAr_button_shortcuts){
+      try{
+        document.getElementById("_b_changeAr_" + key + "_key").textContent = "(" + _changeAr_button_shortcuts[key] + ")";
+      }
+      catch(ex){
+        
+      }
+    }
+  }
+  
   
   // process aspect ratio settings
   showArctlButtons();

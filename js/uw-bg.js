@@ -44,6 +44,11 @@ async function _uwbg_rcvmsg(message){
     config.arConf = {};
     config.arConf.enabled_global = Settings.arDetect.enabled == "global";
     
+    var keybinds = await Keybinds.fetch();
+    if(Debug.debug)
+      console.log("[uw-bg::_uwbg_rcvmsg] Keybinds.fetch returned this:", keybinds); 
+    
+    config.keyboardShortcuts = keybinds;
     
     
     // predvidevajmo, da je enako. Če je drugače, bomo popravili ko dobimo odgovor

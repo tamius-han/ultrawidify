@@ -1,6 +1,11 @@
 if(Debug.debug)
   console.log("Loading: Resizer.js");
 
+// restore watchdog. While true, _res_applyCss() tries to re-apply new css until this value becomes false again
+// value becomes false when width and height of <video> tag match with what we want to set. Only necessary when
+// calling _res_restore() for some weird reason.
+var _res_restore_wd = false;  
+
 var _res_manual_autoar = function(siteProps){
   if(! siteProps.autoar_imdb.enabled)
     return;
@@ -360,8 +365,8 @@ var _res_legacyAr = function(action){
     return;
   }
   if(action == "reset"){
-    //     _res_setAr_kbd(fileAr);
-    this.reset(true);
+        _res_setAr_kbd(fileAr);
+//     this.reset(true);
     return;
   }
   if(action == "autoar"){
@@ -493,6 +498,39 @@ var _res_align = function(float){
   }
 }
 
+var _res_setStyleString_maxRetries = 3;
+
+var _res_setStyleString = function(vid, styleString, count){
+  vid.setAttribute("style", styleString);
+  
+  if(_res_restore_wd){
+    var vid2 = $("video")[0];
+    
+    if(
+      styleString.indexOf("width: " + vid2.style.width) == -1 ||
+      styleString.indexOf("height: " + vid2.style.height) == -1) {
+      // css ni nastavljen?
+      // css not set?
+      if(Debug.debug)
+        console.log("[Resizer::_res_setStyleString] Style string not set ???");
+      
+      if(count++ < _res_setStyleString_maxRetries){
+        setTimeout( _res_setStyleString, 200, count);
+      }
+      else if(Debug.debug){
+        console.log("[Resizer::_res_setStyleString] we give up. css string won't be set");
+      }
+    }
+    else{
+      _res_restore_wd = false;
+    }
+  }
+  else{
+    if(Debug.debug)
+      console.log("[Resizer::_res_setStyleString] css applied. Style string:", styleString);
+  }
+}
+
 function _res_applyCss(dimensions){
   
   if(Debug.debug)
@@ -590,11 +628,10 @@ function _res_applyCss(dimensions){
     if(styleArray[i] !== undefined && styleArray[i] !== "")
       styleString += styleArray[i] + "; ";
   
-  vid.setAttribute("style", styleString);
-  
-  if(Debug.debug)
-    console.log("[Resizer::_res_applyCss] css applied. Style string:", styleString);
+  _res_setStyleString(vid, styleString);
 }
+
+
 
 var _res_setFsAr = function(ar){
   this._currentAr = ar;
@@ -604,6 +641,9 @@ var _res_restore = function(){
   if(Debug.debug){
     console.log("[Resizer::_res_restore] attempting to restore aspect ratio. this & settings:", {'this': this, "settings": Settings} );
   }
+  
+  // this is true until we verify that css has actually been applied
+  _res_restore_wd = true;
   
   if(this._currentAr > 0)
     _res_setAr_kbd(this._currentAr);

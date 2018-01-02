@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Ultrawidify-git",
-  "version": "2.0",
+  "version": "2.0.1",
   
   "icons": {
     "32":"res/icons/uw-32.png",
@@ -12,11 +12,14 @@
   
   "background": {
     "scripts": [
+      "js/dep/jquery-3.1.1.js",
+    
       "js/lib/BrowserDetect.js",
       "js/lib/StorageManager.js",
       
       "js/conf/Debug.js",
       "js/conf/Settings.js",
+      "js/conf/Keybinds.js",
       
       "js/uw-bg.js"
     ]

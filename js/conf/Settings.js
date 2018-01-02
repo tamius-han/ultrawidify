@@ -42,8 +42,8 @@ var _se_reload = function(){
 var Settings = {
   arDetect: {
     enabled: "global",        // thats my csgo rank kappa
-    allowedMisaligned: 0.01,  // top and bottom letterbox thickness can differ by this much. Any more and we don't adjust ar.
-    allowedArVariance: 0.025, // % by which old ar can differ from the new
+    allowedMisaligned: 0.05,  // top and bottom letterbox thickness can differ by this much. Any more and we don't adjust ar.
+    allowedArVariance: 0.075, // amount by which old ar can differ from the new (1 = 100%)
     timer_playing: 30,
     timer_paused: 3000,
     timer_error: 3000,
