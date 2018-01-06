@@ -93,7 +93,8 @@ var _kbd_load = async function() {
   
   var ret = await StorageManager.getopt_async("keybinds");
   
-  var keybinds = ret.keybinds;
+//   var keybinds = ret.keybinds;
+  var keybinds = {};
   
   if(Array.isArray(keybinds)){
     StorageManager.delopt("keybinds");
