@@ -40,7 +40,7 @@ async function check4videos(){
   command.sender = "popup";
   command.receiver = "uwbg";
   
-  browser.runtime.sendMessage(command)
+  Comms.sendMessageRuntime(command)
   .then(response => {
     if(Debug.debug)
       console.log("[popup.js::check4videos] received response:",response);
@@ -64,7 +64,7 @@ async function check4conf(){
   command.sender = "popup";
   command.receiver = "uwbg";
   
-  browser.runtime.sendMessage(command)
+  Comms.sendMessageRuntime(command)
   .then(response => {
     if(Debug.debug)
       console.log("[popup.js::check4conf] received response:",response);
@@ -346,7 +346,7 @@ document.addEventListener("click", (e) => {
   
   var command = getcmd(e);  
   if(command)
-    browser.runtime.sendMessage(command);
+    Comms.sendMessageRuntime(command);
 });
 
 

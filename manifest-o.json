@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Ultrawidify-git",
-  "version": "0.01",
+  "version": "2.0.1",
   
   "icons": {
     "32":"res/icons/uw-32.png",
@@ -10,22 +10,43 @@
   
   "description": "Aspect ratio fixer for youtube that works around some people's disability to properly encode 21:9 (and sometimes, 16:9) videos.",
   
-  
+  "background": {
+    "scripts": [
+      "js/dep/jquery-3.1.1.js",
+    
+      "js/lib/BrowserDetect.js",
+      "js/lib/StorageManager.js",
+      "js/lib/Comms.js",
+      
+      "js/conf/Debug.js",
+      "js/conf/Settings.js",
+      "js/conf/Keybinds.js",
+      
+      "js/uw-bg.js"
+    ]
+  },
   
   "content_scripts": [{
     "matches": ["*://*/*"],
     "js": [ 
       "js/dep/jquery-3.1.1.js",
       
+      "js/lib/BrowserDetect.js",
+      "js/lib/StorageManager.js",
+      "js/lib/Comms.js",
+      
       "js/conf/Debug.js",
       "js/conf/Settings.js",
       "js/conf/SitesConf.js",
       "js/conf/Status.js",
+      "js/conf/ExtensionConf.js",
       
       "js/lib/FullScreenDetect.js",
       
+      "js/modules/PageInfo.js",
       "js/modules/ArDetect.js", 
       "js/modules/Resizer.js",
+      
       "js/conf/Keybinds.js",
       
       "js/uw.js" ], 
@@ -61,7 +82,7 @@
   ],
   
   "options_ui" : {
-    "page": "res/settings.html",
+    "page": "res/settings/settings.html",
     "open_in_tab": true
   }
 }

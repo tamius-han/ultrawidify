@@ -11,12 +11,23 @@ var _sm_getopt = function(prop, callback){
     return browser.storage.local.get(prop).then(callback);
 }
 
+var _sm_chrome_getopt_wrapper = async function(prop){
+  return new Promise(function (resolve, reject){
+    browser.storage.local.get(prop, function(response){
+      resolve(response);
+    });
+  });
+}
+
 
 var _sm_getopt_async = async function(prop){
   if(Debug.debug && Debug.debugStorage)
     console.log("[StorageManager::_sm_getopt_async] requesting prop",prop,"from localStorage.");
-  if(BrowserDetect.usebrowser == "chrome")
-    return await browser.storage.local.get(prop);
+ 
+  if(BrowserDetect.usebrowser == "chrome"){
+    var ret = await _sm_chrome_getopt_wrapper(prop);
+    return ret;
+  }
   else{
     var ret = await browser.storage.local.get(prop);
     

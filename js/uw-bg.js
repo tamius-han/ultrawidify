@@ -11,16 +11,19 @@ async function main(){
 }
 
 async function sendMessage(message){
-  var tabs = await browser.tabs.query({currentWindow: true, active: true});
+  var tabs = await Comms.queryTabs({currentWindow: true, active: true}); 
+  
+  if(Debug.debug)
+    console.log("[uw-bg::sendMessage] queried tabs, got this:", tabs);
   
   if(Debug.debug)
     console.log("[uw-bg::sendMessage] trying to send message", message, " to tab ", tabs[0], ". (all tabs:", tabs,")");
 
-  var response = await browser.tabs.sendMessage(tabs[0].id, message);
+  var response = await Comms.sendMessage(tabs[0].id, message);
   return response;
 }
 
-async function _uwbg_rcvmsg(message){
+async function _uwbg_rcvmsg(message, sender, sendResponse){
   
   if(Debug.debug){
     console.log("[uw-bg::_uwbg_rcvmsg] received message", message);
@@ -35,7 +38,11 @@ async function _uwbg_rcvmsg(message){
     if(Debug.debug){
       console.log("[uw-bg::_uwbg_rcvmsg] received response!", message);
     }
-    return Promise.resolve(response);
+    if(BrowserDetect.usebrowser == "firefox")
+      return Promise.resolve(response);
+    
+    sendResponse({response: config});
+    return true;
   }
   if(message.cmd == "get-config"){
     
@@ -68,7 +75,11 @@ async function _uwbg_rcvmsg(message){
       console.log("%c[uw-bg::_uwbg_rcvmsg] there was something wrong with request for get-ardetect-active.", "color: #f00", ex);
     }
     
-    return Promise.resolve({response: config});
+    if(BrowserDetect.usebrowser == "firefox")
+      return Promise.resolve({response: config});
+    
+    sendResponse({response: config});
+    return true;
   }
   else if(message.cmd == "force-ar"){
     sendMessage(message);  // args: {cmd: string, newAr: number/"auto"}

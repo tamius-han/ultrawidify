@@ -135,7 +135,7 @@ function fullScreenCheck(count) {
 }
 
 // comms
-function receiveMessage(message) {
+function receiveMessage(message, sender, sendResponse) {
   if(Debug.debug)
     console.log("[uw::receiveMessage] we received a message.", message);
   
@@ -146,7 +146,12 @@ function receiveMessage(message) {
   }
   else if(message.cmd == "get-ardetect-active"){
     var arDetect_active = ArDetect.isRunning();
-    return Promise.resolve({response: {"arDetect_active": arDetect_active }});
+    
+    if(BrowserDetect.usebrowser == "firefox")
+      return Promise.resolve({response: {"arDetect_active": arDetect_active }});
+    
+    sendResponse({response: {"arDetect_active": arDetect_active }});
+    return true;
   }
   else if(message.cmd == "force-ar"){
     if(Debug.debug)
