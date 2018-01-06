@@ -56,7 +56,7 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 [v2.0.1 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
 
-[v1.2.1 — Regular version — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
+[v2.0.1 — Regular version — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi) (No UI tho, just keyboard shortcuts)
 
 ### Installing the current, github version
 
@@ -68,7 +68,8 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 ## Known issues
 
-* Netflix :b:roke in Chrome version, still.
+* Netflix autodetection not working in Chrome, wontfix
+* No UI (not even the extension popup) in Chrome, working on a fix
 
 ## Plans for the future
 
@@ -79,11 +80,11 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 ## Changelog
 
-### v2.0.1 (FF/AMO)
+### v2.0.1 (FF/AMO, Chrome)
 
 * Autodetection: aspect ratio is no longer corrected if the detected difference is too small to make a meaningful difference
 
-### v2.0 (git version)
+### v2.0
 
 * Completely rewritten
 * Automatic aspect ratio detection works on Youtube _and_ Netflix
@@ -109,7 +110,7 @@ The extension is being rewritten almost ground-up, around automatic aspect ratio
 * Most of the extension is being completely rewritten to accomodate that feature, which means there's a serious regression with Netflix support (no netflix at the moment)
 * I'm also trying to break the 1500 line behemoth into smaller files.
 
-### v1.2.1  (Chrome)
+### v1.2.1
 
 * Fixed the bugs which caused aspect ratio to not be calculated properly.
 * Introduced further changes that allow me to not keep two separate version for Firefox and Chrome.
