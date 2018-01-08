@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
-  "name": "Ultrawidify",
-  "version": "2.0.1",
+  "name": "Ultrawidify-git",
+  "version": "2.0.2",
   
   "icons": {
     "32":"res/icons/uw-32.png",
@@ -9,11 +9,31 @@
   },
   
   "description": "Aspect ratio fixer for youtube that works around some people's disability to properly encode 21:9 (and sometimes, 16:9) videos.",
-   
+  
+  "background": {
+    "scripts": [
+      "js/dep/jquery-3.1.1.js",
+      "js/dep/chrome/chrome-extension-async.js",
+    
+      "js/lib/BrowserDetect.js",
+      "js/lib/StorageManager.js",
+      "js/lib/Comms.js",
+      
+      "js/conf/Debug.js",
+      "js/conf/Settings.js",
+      "js/conf/Keybinds.js",
+      
+      "js/lib/ChromeCancer.js",
+      
+      "js/uw-bg.js"
+    ]
+  },
+  
   "content_scripts": [{
     "matches": ["*://*/*"],
     "js": [ 
       "js/dep/jquery-3.1.1.js",
+      "js/dep/chrome/chrome-extension-async.js",
       
       "js/lib/BrowserDetect.js",
       "js/lib/StorageManager.js",
@@ -33,6 +53,8 @@
       
       "js/conf/Keybinds.js",
       
+      "js/lib/ChromeCancer.js",
+      
       "js/uw.js" ], 
     "all_frames": true
   }],
@@ -40,6 +62,12 @@
   "permissions": [
     "tabs", "storage",  "activeTab", "<all_urls>", "*://*.youtube.com/*", "*://youtube.com/*", "*://imdb.com/*", "*://*.imdb.com/*"
   ],
+  
+  "browser_action": {
+    "default_icon": "res/icons/uw-32.png",
+    "default_popup": "res/popup/popup.html",
+    "default_title": "Uʟᴛʀᴀᴡɪᴅɪꜰʏ"
+  },
   
   "web_accessible_resources": [
     "js/*",

@@ -4,48 +4,47 @@ async function main(){
   
   await Settings.init();
   
-  browser.runtime.onMessage.addListener(_uwbg_rcvmsg);
+  if(BrowserDetect.usebrowser == "chrome")
+    browser.runtime.onMessage.addListener(ChromeCancer.recvmsg);
+  
+  else
+    browser.runtime.onMessage.addListener(_uwbg_rcvmsg);
+  
   
   if(Debug.debug)
     console.log("[uw-bg::main] listeners registered");
 }
 
 async function sendMessage(message){
+  console.log("SENDING MESSAGE TO CONTENT SCRIPT");
   var tabs = await Comms.queryTabs({currentWindow: true, active: true}); 
-  
-  if(Debug.debug)
-    console.log("[uw-bg::sendMessage] queried tabs, got this:", tabs);
-  
   if(Debug.debug)
     console.log("[uw-bg::sendMessage] trying to send message", message, " to tab ", tabs[0], ". (all tabs:", tabs,")");
 
-  var response = await Comms.sendMessage(tabs[0].id, message);
+  var response = await browser.tabs.sendMessage(tabs[0].id, message);
+  console.log("[uw-bg::sendMessage] response is this:",response);
   return response;
 }
 
-async function _uwbg_rcvmsg(message, sender, sendResponse){
-  
+async function _uwbg_rcvmsg(message){
   if(Debug.debug){
     console.log("[uw-bg::_uwbg_rcvmsg] received message", message);
-    
   }
   
   message.sender = "uwbg";
   message.receiver = "uw";
   
-  if(message.cmd == "has-videos"){
-    var response = await sendMessage(message);
-    if(Debug.debug){
-      console.log("[uw-bg::_uwbg_rcvmsg] received response!", message);
-    }
-    if(BrowserDetect.usebrowser == "firefox")
+   if(message.cmd == "has-videos"){
+      var response = await sendMessage(message);
+      
+      if(Debug.debug){
+        console.log("[uw-bg::_uwbg_rcvmsg] received response for message", message, "response is this -->", response);
+      }
+        
       return Promise.resolve(response);
-    
-    sendResponse({response: config});
-    return true;
+    }
   }
   if(message.cmd == "get-config"){
-    
     var config = {};
     config.videoAlignment = Settings.miscFullscreenSettings.videoFloat;
     config.arConf = {};
@@ -72,14 +71,11 @@ async function _uwbg_rcvmsg(message, sender, sendResponse){
       
     }
     catch(ex){
-      console.log("%c[uw-bg::_uwbg_rcvmsg] there was something wrong with request for get-ardetect-active.", "color: #f00", ex);
+      if(Debug.debug)
+        console.log("%c[uw-bg::_uwbg_rcvmsg] there was something wrong with request for get-ardetect-active.", "color: #f00", ex);
     }
-    
-    if(BrowserDetect.usebrowser == "firefox")
-      return Promise.resolve({response: config});
-    
-    sendResponse({response: config});
-    return true;
+  
+    return Promise.resolve({response: config});
   }
   else if(message.cmd == "force-ar"){
     sendMessage(message);  // args: {cmd: string, newAr: number/"auto"}
@@ -112,7 +108,6 @@ async function _uwbg_rcvmsg(message, sender, sendResponse){
     Settings.save();
     sendMessage("reload-settings");
   }
-  
 }
 
 
