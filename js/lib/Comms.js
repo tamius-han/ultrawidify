@@ -12,7 +12,7 @@ var _com_chrome_tabquery_wrapper = async function(tabInfo){
 
 var _com_queryTabs = async function(tabInfo){
   if(BrowserDetect.usebrowser == "chrome"){
-    return _com_chrome_tabquery_wrapper(tabInfo);
+    return await _com_chrome_tabquery_wrapper(tabInfo);
   }
   else{
     return browser.tabs.query(tabInfo);
@@ -22,20 +22,26 @@ var _com_queryTabs = async function(tabInfo){
 
 var _com_chrome_tabs_sendmsg_wrapper = async function(tab, message, options){
   return new Promise(function (resolve, reject){
-    browser.tabs.sendMessage(tab, message, options, function(response){
-      
-      // Chrome/js shittiness mitigation — remove this line and an empty array will be returned
-      var r = response; 
-      console.log("what is this owo? ---> (response to tabs.sendMessage)", r);
-      resolve(r);
-    });
+    try{
+      browser.tabs.sendMessage(tab, message, /*options, */function(response){
+        console.log("TESTING what is this owo? (response)", response);
+        
+        // Chrome/js shittiness mitigation — remove this line and an empty array will be returned
+        var r = response; 
+        
+        resolve(r);
+      });
+    }
+    catch(e){
+      reject(e);
+    }
   });
 }
 
 var _com_sendMessage = async function(tab, message, options){
   if(BrowserDetect.usebrowser == "chrome"){
-    var r = _com_chrome_tabs_sendmsg_wrapper(tab, message, options);
-    console.log("what is this owo? (should be a promise)", r);
+    var r = await _com_chrome_tabs_sendmsg_wrapper(tab, message, options);
+    console.log("TESTING what is this owo? (should be a promise)", r);
     return r;
   }
   else{

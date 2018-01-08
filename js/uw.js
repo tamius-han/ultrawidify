@@ -83,9 +83,16 @@ async function main(){
     fullScreenCheck(0);
     
   });
-  
-  browser.runtime.onMessage.addListener(receiveMessage);
-// });
+
+
+  if(BrowserDetect.usebrowser == "firefox"){
+    if(Debug.debug)
+      console.log("[uw::main] detected firefox.");
+    browser.runtime.onMessage.addListener(receiveMessage);
+  }
+  else{
+    browser.runtime.onMessage.addListener(ChromeCancer.receiveMessage_cs)
+  }
 }
 
 var _main_fscheck_tries = 3;
@@ -135,24 +142,22 @@ function fullScreenCheck(count) {
 }
 
 // comms
-function receiveMessage(message, sender, sendResponse) {
+function receiveMessage(message) {
   if(Debug.debug)
     console.log("[uw::receiveMessage] we received a message.", message);
-  
   
   if(message.cmd == "has-videos"){
     var anyVideos = PageInfo.hasVideos();
     return Promise.resolve({response: {"hasVideos": anyVideos }});
+
+    
   }
   else if(message.cmd == "get-ardetect-active"){
+
     var arDetect_active = ArDetect.isRunning();
-    
-    if(BrowserDetect.usebrowser == "firefox")
-      return Promise.resolve({response: {"arDetect_active": arDetect_active }});
-    
-    sendResponse({response: {"arDetect_active": arDetect_active }});
-    return true;
+    return Promise.resolve({response: {"arDetect_active": arDetect_active }});
   }
+
   else if(message.cmd == "force-ar"){
     if(Debug.debug)
       console.log("[uw::receiveMessage] we're being commanded to change aspect ratio to", message.newAr);

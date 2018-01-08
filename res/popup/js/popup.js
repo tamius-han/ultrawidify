@@ -34,7 +34,8 @@ var hasVideos = false;
 var _config; 
 var _changeAr_button_shortcuts = { "autoar":"none", "reset":"none", "219":"none", "189":"none", "169":"none" }
 
-async function check4videos(){
+function check4videos(){
+
   var command = {};
   command.cmd = "has-videos";
   command.sender = "popup";
@@ -58,7 +59,7 @@ async function check4videos(){
   });
 }
 
-async function check4conf(){
+function check4conf(){
   var command = {};
   command.cmd = "get-config";
   command.sender = "popup";
@@ -238,10 +239,8 @@ function showArctlButtons(){
 
 document.addEventListener("click", (e) => {
   
-//   console.log("we clicked. e?",e);
   
   function getcmd(e){
-//     console.log("extracting command from e", e);
     
     var command = {};
     command.sender = "popup";
@@ -350,6 +349,10 @@ document.addEventListener("click", (e) => {
 });
 
 
-
-check4videos();
-check4conf();
+if(BrowserDetect.usebrowser == "firefox"){
+  check4videos();
+  check4conf();
+}
+else{
+  
+}

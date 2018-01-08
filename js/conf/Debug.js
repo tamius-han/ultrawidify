@@ -1,5 +1,5 @@
 // Set prod to true when releasing
-_prod = true; 
+// _prod = true; 
 // _prod = false;
 
 Debug = {
