@@ -27,6 +27,7 @@ async function sendMessage(message){
 }
 
 async function _uwbg_rcvmsg(message){
+  return;
   if(Debug.debug){
     console.log("[uw-bg::_uwbg_rcvmsg] received message", message);
   }
@@ -34,16 +35,16 @@ async function _uwbg_rcvmsg(message){
   message.sender = "uwbg";
   message.receiver = "uw";
   
-   if(message.cmd == "has-videos"){
-      var response = await sendMessage(message);
-      
-      if(Debug.debug){
-        console.log("[uw-bg::_uwbg_rcvmsg] received response for message", message, "response is this -->", response);
-      }
-        
-      return Promise.resolve(response);
+  if(message.cmd == "has-videos"){
+    var response = await sendMessage(message);
+    
+    if(Debug.debug){
+      console.log("[uw-bg::_uwbg_rcvmsg] received response for message", message, "response is this -->", response);
     }
+      
+    return Promise.resolve(response);
   }
+  
   if(message.cmd == "get-config"){
     var config = {};
     config.videoAlignment = Settings.miscFullscreenSettings.videoFloat;
