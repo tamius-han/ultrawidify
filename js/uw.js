@@ -152,10 +152,24 @@ function receiveMessage(message) {
 
     
   }
-  else if(message.cmd == "get-ardetect-active"){
-
-    var arDetect_active = ArDetect.isRunning();
-    return Promise.resolve({response: {"arDetect_active": arDetect_active }});
+  else if(message.cmd == "get-config"){
+    
+    var config = {};
+    config.videoAlignment = Settings.miscFullscreenSettings.videoFloat;
+    config.arConf = {};
+    config.arConf.enabled_global = Settings.arDetect.enabled == "global";
+    
+    var keybinds = Keybinds.getKeybinds();
+    if(Debug.debug)
+      console.log("[uw-bg::_uwbg_rcvmsg] Keybinds.fetch returned this:", keybinds); 
+    
+    config.keyboardShortcuts = keybinds;
+    
+    // predvidevajmo, da je enako. Če je drugače, bomo popravili ko dobimo odgovor
+    // assume current is same as global & change that when you get response from content script
+    config.arConf.enabled_current = ArDetect.isRunning();
+    
+    return Promise.resolve({response: config});
   }
 
   else if(message.cmd == "force-ar"){
@@ -185,6 +199,10 @@ function receiveMessage(message) {
   }
   else if(message.cmd == "reload-settings"){
     Settings.reload();
+  }
+  
+  if(message.cmd == "testing"){
+    return Promise.resolve({response: "test response hier"});
   }
 }
 
