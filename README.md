@@ -8,6 +8,10 @@ If you own an ultrawide monitor, you have probably noticed that sometimes videos
 
 Works on Youtube and Netflix. Available for [Firefox (v1.2.1)](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) and [Chrome (v1.2.1)](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi).
 
+**Click for [youtube demo](https://www.youtube.com/watch?v=j2xn1WpbtCQ):**
+
+![Ultrawidify - youtube demo](https://img.youtube.com/vi/j2xn1WpbtCQ/0.jpg)](https://www.youtube.com/watch?v=j2xn1WpbtCQ)
+
 ## The long version
 
 The technology has been here for a while, but plenty of people don't know how to properly encode a video (despite the fact [youtube has an article that explains aspect ratios](https://support.google.com/youtube/answer/6375112)). Plenty of people surprisingly includes major Holywood studios, such as [Marvel](https://www.youtube.com/watch?v=Ke1Y3P9D0Bc), [Disney](https://www.youtube.com/watch?v=yCOPJi0Urq4), [Dreamworks](https://www.youtube.com/watch?v=oKiYuIsPxYk), [Warner Brothers](https://www.youtube.com/watch?v=VYZ3U1inHA4), [Sony](https://www.youtube.com/watch?v=7BWWWQzTpNU), et cetera. You'd think that this is the one thing Holywood studios and people who make [music videos for a living](https://www.youtube.com/watch?v=c6Mx2mxpaCY) would know how to do right, but they don't. This extension is here to fix that.
@@ -25,7 +29,7 @@ The technology has been here for a while, but plenty of people don't know how to
 
 ### User interface
 
-Most quick options for a page are accessible through a button in the extension bar. The options are pretty self-explanatory. **NOT YET AVAILABLE IN CHROME due to API incompatibilites between Firefox and Chrome** — if anyone has any experience with `tabs.sendMessage` and `runtime.sendMessage` in Chrome, I'd like to recommend myself for some free pro tips on how to fix that with minimal changes to how the code works.  
+Most quick options for a page are accessible through a button in the extension bar. The options are pretty self-explanatory.
 
 ![UI demo](img-demo/ui-popup-0.png)
 
@@ -56,7 +60,7 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 [v2.0.1 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
 
-[v2.0.1 — Regular version — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi) (No UI tho, just keyboard shortcuts)
+[v2.0.2 — Regular version — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi) (No UI tho, just keyboard shortcuts)
 
 ### Installing the current, github version
 
@@ -80,7 +84,11 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 ## Changelog
 
-### v2.0.1 (FF/AMO, Chrome)
+### v2.0.2 (Chrome)
+
+v2.0.1, but UI in the extension button now also works in Chrome.
+
+### v2.0.1 (FF/AMO)
 
 * Autodetection: aspect ratio is no longer corrected if the detected difference is too small to make a meaningful difference
 
