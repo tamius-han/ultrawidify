@@ -35,21 +35,21 @@ var _config;
 var _changeAr_button_shortcuts = { "autoar":"none", "reset":"none", "219":"none", "189":"none", "169":"none" }
 
 
-async function test(){
-  var message = {cmd: "testing"};
-  try{
-    var tabs = await Comms.queryTabs({currentWindow: true, active: true}); 
-    if(Debug.debug)
-      console.log("[popup.js::test] trying to send message", message, " to tab ", tabs[0], ". (all tabs:", tabs,")");
-
-    var response = await browser.tabs.sendMessage(tabs[0].id, message);
-    console.log("[popup.js::test] response is this:",response);
-  }
-  catch(e){
-    console.log("[popup.js::test] sending message failed. prolly cos browser.tabs no worky?", e); 
-  }
-}
-test();
+// async function test(){
+//   var message = {cmd: "testing"};
+//   try{
+//     var tabs = await Comms.queryTabs({currentWindow: true, active: true}); 
+//     if(Debug.debug)
+//       console.log("[popup.js::test] trying to send message", message, " to tab ", tabs[0], ". (all tabs:", tabs,")");
+// 
+//     var response = await browser.tabs.sendMessage(tabs[0].id, message);
+//     console.log("[popup.js::test] response is this:",response);
+//   }
+//   catch(e){
+//     console.log("[popup.js::test] sending message failed. prolly cos browser.tabs no worky?", e); 
+//   }
+// }
+// test();
 
 
 
@@ -370,10 +370,5 @@ document.addEventListener("click", (e) => {
 });
 
 
-if(BrowserDetect.usebrowser == "firefox"){
-  check4videos();
-  check4conf();
-}
-else{
-  
-}
+check4videos();
+check4conf();
