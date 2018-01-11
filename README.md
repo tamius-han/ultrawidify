@@ -8,8 +8,9 @@ If you own an ultrawide monitor, you have probably noticed that sometimes videos
 
 Works on Youtube and Netflix. Available for [Firefox (v1.2.1)](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) and [Chrome (v1.2.1)](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi).
 
+&nbsp;
 
-**Click for [youtube demo](https://www.youtube.com/watch?v=j2xn1WpbtCQ):**
+**Click for [youtube demo](https://www.youtube.com/watch?v=j2xn1WpbtCQ):**  
 [![Ultrawidify - youtube demo](https://img.youtube.com/vi/j2xn1WpbtCQ/0.jpg)](https://www.youtube.com/watch?v=j2xn1WpbtCQ)
 
 ## The long version
