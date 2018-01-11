@@ -61,7 +61,7 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 [v2.0.1 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
 
-[v2.0.2 — Regular version — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi) (No UI tho, just keyboard shortcuts)
+[v2.0.2 — Regular version — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
 
 ### Installing the current, github version
 
@@ -73,8 +73,7 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 ## Known issues
 
-* Netflix autodetection not working in Chrome, wontfix
-* No UI (not even the extension popup) in Chrome, working on a fix
+* Netflix autodetection not working in Chrome, wontfix as issue is fundamentally unfixable. (Although a different kind of workaround could be put in place)
 
 ## Plans for the future
 
