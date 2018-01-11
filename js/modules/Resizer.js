@@ -146,26 +146,6 @@ var _res_char = function(newAr, video, player){
   _res_setVideoAr(new_ar, video, player);
 }
 
-//     autochar: function(){
-//       
-//       if(debugmsg || debugmsg_autoar)
-//         console.log("uw::autochar | starting. Did we get ar?",char_got_ar,"What about arx and ary?",char_arx,char_ary);
-//       
-//       if(!char_got_ar)
-//         return;
-//       
-//       if(!char_arx || !char_ary)
-//         return;
-//       
-//       var ar = char_arx / char_ary;
-//       if(ar){
-//         setBestFit(ar);
-//         last_whatdo = {type: "autoar", what_do: "autoar"};
-//       }
-//     }
-
-
-
 
 
 /* Tukaj povemo, kakšno razmerje stranic ima video.
@@ -260,82 +240,6 @@ var setVideoAr = function(aspect_ratio, video, player){
   
   this._res_applyCss(nv);
 }
-
-
-
-// // Ta funkcija ugotovi, kako se kvadrat s podanim razmerjem stranic najbolj prilega ekranu
-// // Predpostavimo, da so ćrne obrobe vselej zgoraj in spodaj, nikoli levo in desno.
-// // 
-// // This function determines how a rectangle with a given aspect ratio best fits the monitor
-// // We assume letterbox is always letterbox, never pillarbox.
-// var _res_setBestFit = function(ar){
-//   if(debugmsg || debugmsg_autoar)
-//     console.log("uw::setBestFit | got ar:",ar);
-//   
-//   var player = {width: PLAYER.clientWidth, height: PLAYER.clientHeight};
-//   var player_ar = player.width / player.height;
-//   
-//   var evideo =  $("video")[0];
-//   var video = {width: evideo.videoWidth, height: evideo.videoHeight};
-//   var video_ar = video.width / video.height;
-//   
-//   // Ob predpostavki, da je argument 'ar' pravilen, naračunamo dimenzije videa glede na širino in višino predvajalnika
-//   // Kot rezultat laho dobimo dve možnosti:
-//   //     A: naračunana širina je širša, kot naš zaslon —> za računanje uporabimo širino (letterbox zgoraj/spodaj,
-//   //        levo/desno pa ne)
-//   //     B: naračunana širina je ožja, kot naš zaslon —> za računanje uporabimo višino (letterbox levo/desno,
-//   //        zgoraj/spodaj pa ne)
-//   
-//   if(debugmsg || debugmsg_autoar)
-//     console.log("uw::setBestFit | here's all we got. ar:",ar,"player:",player,"video:",video);
-//   
-//   var tru_width = player.height * ar;
-//   var tru_height = player.width / ar;
-//   
-//   var nv = {w: "", h: "", top: "", left: ""};
-//   
-//   if(ar >= video_ar){
-//     if(ar >= player_ar){
-//       if(debugmsg || debugmsg_autoar)
-//         console.log("uw::setBestFit | aspect ratio is wider than player ar.")
-//         nv.h = player.width / video_ar;
-//       nv.w = nv.h * ar;
-//     }
-//     else{
-//       if(debugmsg || debugmsg_autoar)
-//         console.log("uw::setBestFit | aspect ratio is narrower than player ar.", (player.height * ar), nv)
-//         nv.w = player.height * ar;
-//       nv.h = nv.w / video_ar;
-//     }
-//   }
-//   else{
-//     if(ar >= player_ar){
-//       if(debugmsg || debugmsg_autoar)
-//         console.log("uw::setBestFit | aspect ratio is wider than player ar.")
-//         nv.h = player.width / ar;
-//       nv.w = nv.h * video_ar;
-//     }
-//     else{
-//       if(debugmsg || debugmsg_autoar)
-//         console.log("uw::setBestFit | aspect ratio is narrower than player ar.", (player.height * ar), nv)
-//         nv.w = player.height * video_ar;
-//       nv.h = nv.w / ar;
-//     }
-//   }
-//   if(debugmsg || debugmsg_autoar)
-//     console.log("uw::setBestFit | new video width and height processed. nv so far:", nv)
-//     
-//     nv.top = (player.height - nv.h)/2;
-//   nv.left = (player.width - nv.w)/2;
-//   
-//   if(debugmsg || debugmsg_autoar)
-//     console.log("uw::setBestFit | tru width:",tru_width,"(player width:",player.width,"); new video size:",nv);
-//   
-//   _res_applyCss(nv);
-//   console.log("uw::setBestFit | css applied");
-// }
-
-
 
 var _res_reset = function(force){
   dimensions = {top: "", left: "", width: "100%", height: "100%"};
@@ -585,9 +489,6 @@ function _res_applyCss(dimensions){
       }
       else if(styleArray[i].startsWith("position:")){
         styleArray[i] = dimensions.position;
-      }
-      else if(styleArray[i].startsWith("object-fit:")){
-        styleArray[i] = dimensions.objectFit;
       }
     }
   }

@@ -74,25 +74,17 @@ async function main(){
   
   _main_last_fullscreen = FullScreenDetect.isFullScreen();
   
-  document.addEventListener("mozfullscreenchange", function( event ) {
-    
+  // Poslušamo za lovljenje spremembe iz navadnega načina v celozaslonski način in obratno.
+  // Listen for and handle changes to and from full screen.
+  $(document).bind('webkitfullscreenchange mozfullscreenchange fullscreenchange MSFullscreenChange',  function(){
     if(Debug.debug){
-//       console.log("[uw::mozfullscreenchange] full screen state is changing. event:", event);
-      console.log("%c[uw::mozfullscreenchange] are we in full screen?","color: #aaf", FullScreenDetect.isFullScreen());
+      console.log("%c[uw::onfullscreenchange] are we in full screen?","color: #aaf", FullScreenDetect.isFullScreen());
     }
     fullScreenCheck(0);
-    
   });
 
+  browser.runtime.onMessage.addListener(receiveMessage);
 
-  if(BrowserDetect.usebrowser == "firefox"){
-    if(Debug.debug)
-      console.log("[uw::main] detected firefox.");
-    browser.runtime.onMessage.addListener(receiveMessage);
-  }
-  else{
-    browser.runtime.onMessage.addListener(ChromeCancer.receiveMessage_cs)
-  }
 }
 
 var _main_fscheck_tries = 3;
@@ -142,15 +134,18 @@ function fullScreenCheck(count) {
 }
 
 // comms
-function receiveMessage(message) {
+function receiveMessage(message, sender, sendResponse) {
   if(Debug.debug)
     console.log("[uw::receiveMessage] we received a message.", message);
   
   if(message.cmd == "has-videos"){
     var anyVideos = PageInfo.hasVideos();
-    return Promise.resolve({response: {"hasVideos": anyVideos }});
-
     
+    if(BrowserDetect.usebrowser == "firefox")
+      return Promise.resolve({response: {"hasVideos": anyVideos }});
+
+    sendResponse({response: {"hasVideos":anyVideos}});
+    return true;
   }
   else if(message.cmd == "get-config"){
     
@@ -169,7 +164,11 @@ function receiveMessage(message) {
     // assume current is same as global & change that when you get response from content script
     config.arConf.enabled_current = ArDetect.isRunning();
     
-    return Promise.resolve({response: config});
+    if(BrowserDetect.usebrowser == "firefox")
+      return Promise.resolve({response: config});
+    
+    sendResponse({response: config});
+    return true;
   }
 
   else if(message.cmd == "force-ar"){
@@ -202,7 +201,11 @@ function receiveMessage(message) {
   }
   
   if(message.cmd == "testing"){
-    return Promise.resolve({response: "test response hier"});
+    if(Browserdetect.usebrowser = "firefox")
+      return Promise.resolve({response: "test response hier"});
+    
+    sendResponse({response: "test response hier"});
+    return true;
   }
 }
 
