@@ -1,4 +1,4 @@
-# Ultrawidify — aspect ratio fixer for youtube and netflix
+﻿# Ultrawidify — aspect ratio fixer for youtube and netflix
 
 ## TL;DR
 
@@ -6,7 +6,7 @@ If you own an ultrawide monitor, you have probably noticed that sometimes videos
 
 ![Demo](img-demo/example-httyd2.png "Should these black bars be here? No [...] But an ultrawide user never forgets.")
 
-Works on Youtube and Netflix. Available for [Firefox (v1.2.1)](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) and [Chrome (v1.2.1)](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi).
+Works on Youtube and Netflix. Available for [Firefox (v2.0.3)](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) and [Chrome (v2.0.2)](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi).
 
 &nbsp;
 
@@ -59,7 +59,7 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 ### Permanent install / stable
 
-[v2.0.1 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
+[v2.0.3 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
 
 [v2.0.2 — Regular version — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
 
@@ -77,18 +77,21 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 ## Plans for the future
 
-* Chrome port
 * Edge port
 * Improvements to autodetection
 
 
 ## Changelog
 
+### v2.0.3 (FF/AMO)
+
+* Fixed the bug where Netflix videos weren't vertically centered in Firefox 57+ (not present in Chrome or FF 56 or earlier)
+
 ### v2.0.2 (Chrome)
 
 v2.0.1, but UI in the extension button now also works in Chrome.
 
-### v2.0.1 (FF/AMO)
+### v2.0.1
 
 * Autodetection: aspect ratio is no longer corrected if the detected difference is too small to make a meaningful difference
 

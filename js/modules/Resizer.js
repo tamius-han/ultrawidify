@@ -454,6 +454,7 @@ function _res_applyCss(dimensions){
  
   // misc.
   dimensions.position = "position: absolute !important";
+  dimensions.margin = "margin: 0px !important";
 //   dimensions.objectFit = "object-fit: cover !important";
   
   var vid = $("video")[0];
