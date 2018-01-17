@@ -16,7 +16,7 @@ catch (e) {};
 if(typeof browser === "undefined"){ // This is a good sign we're in chrome or chromium-based browsers
   if(chrome){
     browser = chrome;
-    _bd_usebrowser = "chrome;
+    _bd_usebrowser = "chrome";
     _bd_isChrome = true;
     _bd_isEdge = false;
   }

@@ -55,7 +55,7 @@ var _changeAr_button_shortcuts = { "autoar":"none", "reset":"none", "219":"none"
 
 async function sendMessage(message){
   console.log("SENDING MESSAGE TO CONTENT SCRIPT");
-  var tabs = await Comms.queryTabs({currentWindow: true, active: true}); 
+  var tabs = await browser.tabs.query({currentWindow: true, active: true}); 
   if(Debug.debug)
     console.log("[uw-bg::sendMessage] trying to send message", message, " to tab ", tabs[0], ". (all tabs:", tabs,")");
   
@@ -367,6 +367,8 @@ document.addEventListener("click", (e) => {
   var command = getcmd(e);  
   if(command)
     sendMessage(command);
+  
+  return true;
 });
 
 
