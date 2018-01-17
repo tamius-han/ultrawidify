@@ -80,7 +80,7 @@ async function main(){
     if(Debug.debug){
       console.log("%c[uw::onfullscreenchange] are we in full screen?","color: #aaf", FullScreenDetect.isFullScreen());
     }
-    fullScreenCheck(0);
+//     fullScreenCheck(0);
   });
 
   browser.runtime.onMessage.addListener(receiveMessage);
@@ -98,13 +98,16 @@ function fullScreenCheck(count) {
   }
   
   var fsnow = FullScreenDetect.isFullScreen();
-  if(fsnow){
+  
+  // we restore, always — esp. now that we also do things in non-fullscreen
+  
+//   if(fsnow){
     // full screen is on
-    Resizer.restore();
-  }
-  else{
-    Resizer.reset();
-  }
+//     Resizer.restore();
+//   }
+//   else{
+//     Resizer.reset();
+//   }
   
   // kaj pa, če je FullScreenDetect vrnil narobno vrednost?
   // what if FullScreenDetect was not right? Let's verify; if it was wrong we re-trigger it in about 100 ms.

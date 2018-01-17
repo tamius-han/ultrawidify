@@ -1,0 +1,73 @@
+{
+  "manifest_version": 2,
+  "name": "Ultrawidify",
+  "version": "2.0.2",
+  
+  "icons": {
+    "32":"res/icons/uw-32.png",
+    "64":"res/icons/uw-64.png"
+  },
+  
+  "description": "Aspect ratio fixer for youtube that works around some people's disability to properly encode 21:9 (and sometimes, 16:9) videos.",
+    
+  "content_scripts": [{
+    "matches": ["*://*/*"],
+    "js": [ 
+      "js/dep/jquery-3.1.1.js",
+      "js/dep/chrome/chrome-extension-async.js",
+      
+      "js/lib/BrowserDetect.js",
+      "js/lib/StorageManager.js",
+      "js/lib/Comms.js",
+      
+      "js/conf/Debug.js",
+      "js/conf/Settings.js",
+      "js/conf/SitesConf.js",
+      "js/conf/Status.js",
+      "js/conf/ExtensionConf.js",
+      
+      "js/lib/FullScreenDetect.js",
+      
+      "js/modules/PageInfo.js",
+      "js/modules/ArDetect.js", 
+      "js/modules/Resizer.js",
+      
+      "js/conf/Keybinds.js",
+      
+      "js/uw.js" ], 
+    "all_frames": true
+  }],
+  
+  "permissions": [
+    "tabs", "storage",  "activeTab", "<all_urls>", "*://*.youtube.com/*", "*://youtube.com/*", "*://imdb.com/*", "*://*.imdb.com/*"
+  ],
+  
+  "browser_action": {
+    "default_icon": "res/icons/uw-32.png",
+    "default_popup": "res/popup/popup.html",
+    "default_title": "Ultrawidify"
+  },
+  
+  "web_accessible_resources": [
+    "js/*",
+  
+    "res/img/ytplayer-icons/zoom.png",
+    "res/img/ytplayer-icons/unzoom.png",
+    "res/img/ytplayer-icons/fitw.png",
+    "res/img/ytplayer-icons/fith.png",
+    "res/img/ytplayer-icons/reset.png",
+    "res/img/ytplayer-icons/settings.png",
+    
+    "res/img/settings/about-bg.png",
+    
+    "res/css/uw_common.css",
+    "res/css/uw_yt.css",
+    "res/css/uw_netflix.css",
+    "res/css/uw_settings.css"
+  ],
+  
+  "options_ui" : {
+    "page": "res/settings/settings.html",
+    "open_in_tab": true
+  }
+}

@@ -32,81 +32,6 @@ var _res_manual_autoar = function(siteProps){
     //     sending.then( function(){}, function(err1, err2){console.log("uw::periodic: there was an error while sending a message", err1, err2)} );
 }
 
-var _res_changeCSS = function(type, action, lastAction, conf, debugmsg){
-  if(debugmsg)
-    console.log("uw::changeCSS | starting function. type:", type, "; what_do:",what_do,"\nPlayer element is this:",PLAYER);
-  //   hideMenu("uw-armenu");
-  //   hideMenu("uw-smenu");
-  
-  var evideo = $("video")[0];
-  
-  if(!evideo){
-    if(debugmsg)
-      console.log("uw::changeCSS | no video element found. Doing nothing.");
-    
-    return;
-  }
-  
-  var video = { width: evideo.videoWidth, height: evideo.videoHeight };
-  var nplayer = { width: PLAYER.clientWidth, height: PLAYER.clientHeight };
-  
-  if(debugmsg)
-    console.log("uw::changeCSS | video dimensions:",video.width,"x",video.height,"; player:",nplayer.width,"x",nplayer.height);
-  
-  // Youtube predvajalnik privzeto resetira CSS ob prehodu v/iz fullscreen. Tukaj shranimo zadnje dejanje,
-  // da ga lahko onFullscreenOff/onFullscreenOn uveljavita.
-  // 
-  // Youtube player resets CSS on fullscreen state change. Here we save the last action taken, so 
-  // onFullscreenOff/onFullscreenOn are able to preserve it (if we want).
-  lastAction = {type:type, what_do:what_do};
-  
-  // -----------------------------------------------------------------------------------------
-  //  Handlanje dejanj se zgodi pod to črto
-  //  
-  //  Handling actions happens below this line
-  // -----------------------------------------------------------------------------------------
-  
-  if (type == "autoar"){
-    this.autochar();
-    return;
-  }
-  
-  if (type == "char"){      
-    if(debugmsg)
-      console.log("uw::changeCSS | trying to change aspect ratio.");
-    
-    // char = CHange Aspect Ratio
-    char(what_do, video, nplayer);
-    return;
-  }
-  
-  if (what_do == "reset"){
-    if(debugmsg)
-      console.log("uw::changeCSS | issuing reset.");
-    
-    resetCSS(video, nplayer); 
-    return;
-  }
-  
-  // Velikost videa spreminjamo samo, če smo v celozaslonskem načinu ALI če NE pišemo komentarja
-  // Videa ne spreminjamo tudi, če uporabljamo vrstico za iskanje.
-  // 
-  // We only change video size when we're in full screen OR if we are NOT writing a comment.
-  // We also leave video alone if we're using the search bar
-  
-  if(FullScreenDetect.isFullScreen() || (
-    (document.activeElement.getAttribute("role") != "textbox") &&
-    (document.activeElement.getAttribute("type") != "text")
-  )){
-    if(debugmsg)
-      console.log("uw::changeCSS | trying to fit width or height");
-    
-    changeCSS_nofs(what_do, video, nplayer);
-  }
-  
-  
-}
-
 
 var _res_char = function(newAr, video, player){
   
@@ -249,8 +174,8 @@ var _res_reset = function(force){
   if(Debug.debug)
     console.log("[Resizer::_res_reset] css applied. Dimensions/pos: w:",dimensions.width,"; h:",dimensions.height,"; top:",dimensions.top,"; left:",dimensions.left);
   
-  if(force)
-    this._currentAr = -1;
+//   if(force)
+//     this._currentAr = -1;
 }
 
 // Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". Približevanje opuščeno.
@@ -279,12 +204,12 @@ var _res_legacyAr = function(action){
 }
 
 var _res_setAr_kbd = function(ar){
-  if(FullScreenDetect.isFullScreen()){
-    if(Debug.debug)
-      console.log("[Resizer::_res_setAr_kbd] We're in full screen. Setting ar to ", ar);
-    
-    _res_setAr(ar, {width: screen.width, height: screen.height} );
-  }
+//   if(FullScreenDetect.isFullScreen()){
+//     if(Debug.debug)
+//       console.log("[Resizer::_res_setAr_kbd] We're in full screen. Setting ar to ", ar);
+//     
+    _res_setAr(ar);
+//   }
 //   else
 //     _res_setAr_nonfs(ar);
 // TODO: check if site supports non-fs ar
@@ -305,22 +230,19 @@ var _res_setAr = function(ar, playerDimensions){
   // 
   
   if(Debug.debug)
-    console.log("[Resizer::_res_setArFs] ar is " ,ar, ", playerDimensions are ", playerDimensions);
+    console.log("[Resizer::_res_setAr] ar is " ,ar, ", playerDimensions are ", playerDimensions);
   
   var videoDimensions = {
     width: 0,
     height: 0
   }
   
-  if(Debug.debug){
-    console.log("[Resizer::_res_setArFs] Player dimensions?",playerDimensions);
-  }
   
-  if(playerDimensions === undefined){
-    playerDimensions = {
-      width: screen.width,
-      height: screen.height
-    }
+  if(playerDimensions === undefined)
+    playerDimensions = PlayerDetect.getPlayerDimensions(vid);
+  
+  if(Debug.debug){
+    console.log("[Resizer::_res_setAr] Player dimensions?",playerDimensions);
   }
   
   if( fileAr < ar ){
@@ -549,8 +471,8 @@ var _res_restore = function(){
   
   if(this._currentAr > 0)
     _res_setAr_kbd(this._currentAr);
-  else
-    _res_setAr_kbd("default");
+//   else 
+//     _res_setAr_kbd("default");
 }
 
 var Resizer = {

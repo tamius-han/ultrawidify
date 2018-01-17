@@ -1,7 +1,7 @@
 var _com_chrome_tabquery_wrapper = async function(tabInfo){
   return new Promise(function (resolve, reject){    
     browser.tabs.query(tabInfo, function(response){
-      
+      browser.tabs.query(tabInfo);
       // Chrome/js shittiness mitigation — remove this line and an empty array will be returned
       var r = response; 
       resolve(r);

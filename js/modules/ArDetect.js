@@ -154,8 +154,8 @@ var _ard_processAr = function(video, width, height, edge_h, edge_w, fallbackMode
   
   //edge_w -—> null/undefined, because we don't autocorrect pillarbox yet
   
-  if(Debug.debug){
-    console.log("[ArDetect::_ard_processAr] processing ar. width:", width, "; height:", height, "; edge top:", edge_h);
+  if(Debug.debug && Debug.debugArDetect){
+    console.log("[ArDetect::_ard_processAr] processing ar. sample width:", width, "; sample height:", height, "; edge top:", edge_h);
   }
   // if we don't specify these things, they'll have some default values.
   if(edge_h === undefined){
@@ -202,21 +202,21 @@ var _ard_processAr = function(video, width, height, edge_h, edge_w, fallbackMode
   }
   // če je sprememba več od dovoljenega, spremeni razmerje stranic. Stvari se razlikujejo glede na to, ali smo v fullscreen ali ne
   // if change is greater than allowed, change the aspect ratio.  Whether we do that depends on whether we're in fullscreen.
-  if( FullScreenDetect.isFullScreen() ){
+//   if( FullScreenDetect.isFullScreen() ){
     if(Debug.debug)
       console.log("[ArDetect::_ard_processAr] attempting to fix aspect ratio. New aspect ratio: ", trueAr);
       
     _ard_oldAr = trueAr;
     Resizer.setAr_fs(trueAr);
-  }
-  else{
-    // če nismo v fullscreen, potem preverimo, ali naša stran dovoljuje ne-fs?
-    // first, we'll check if our site allows for non-fs autoar detection
-    if( SitesConf.nonfsArDetectEnabled() ){
-      _ard_oldAr = trueAr;
-      Resizer.setAr_nonfs(trueAr);
-    }
-  }
+//   }
+//   else{
+//     // če nismo v fullscreen, potem preverimo, ali naša stran dovoljuje ne-fs?
+//     // first, we'll check if our site allows for non-fs autoar detection
+//     if( SitesConf.nonfsArDetectEnabled() ){
+//       _ard_oldAr = trueAr;
+//       Resizer.setAr_nonfs(trueAr);
+//     }
+//   }
   
   
 }
