@@ -11,7 +11,7 @@ var _com_chrome_tabquery_wrapper = async function(tabInfo){
 
 
 var _com_queryTabs = async function(tabInfo){
-  if(BrowserDetect.usebrowser == "chrome"){
+  if(BrowserDetect.usebrowser != "firefox"){
     return await _com_chrome_tabquery_wrapper(tabInfo);
   }
   else{
@@ -39,7 +39,7 @@ var _com_chrome_tabs_sendmsg_wrapper = async function(tab, message, options){
 }
 
 var _com_sendMessage = async function(tab, message, options){
-  if(BrowserDetect.usebrowser == "chrome"){
+  if(BrowserDetect.usebrowser != "firefox"){
     var r = await _com_chrome_tabs_sendmsg_wrapper(tab, message, options);
     console.log("TESTING what is this owo? (should be a promise)", r);
     return r;
@@ -67,7 +67,7 @@ var _com_chrome_tabs_sendmsgrt_wrapper = async function(message){
 }
 
 var _com_sendMessageRuntime = async function(message){
-  if(BrowserDetect.usebrowser == "chrome"){
+  if(BrowserDetect.usebrowser != "firefox"){
     return _com_chrome_tabs_sendmsgrt_wrapper(message);
   }
   else{
