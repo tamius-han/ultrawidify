@@ -203,20 +203,14 @@ var _res_legacyAr = function(action){
   }
 }
 
-var _res_setAr_kbd = function(ar){
-//   if(FullScreenDetect.isFullScreen()){
-//     if(Debug.debug)
-//       console.log("[Resizer::_res_setAr_kbd] We're in full screen. Setting ar to ", ar);
-//     
-    _res_setAr(ar);
-//   }
-//   else
-//     _res_setAr_nonfs(ar);
-// TODO: check if site supports non-fs ar
-}
-
 var _res_setAr = function(ar, playerDimensions){
+  if(Debug.debug)
+    console.log("[Resizer::_res_setAr] trying to set ar. args are: ar->",ar,"; playerDimensions->",playerDimensions);
+
+  this._currentAr = ar;
+    
   var vid = $("video")[0];
+  
   
   // Dejansko razmerje stranic datoteke/<video> značke
   // Actual aspect ratio of the file/<video> tag
@@ -225,9 +219,6 @@ var _res_setAr = function(ar, playerDimensions){
   if(ar == "default")
     ar = fileAr;
   
-  // Zabavno dejstvo: ta funkcija se kliče samo v fullscreen. Za ne-fs verzijo bo posebna funkcija, ker bo včasih verjetno treba 
-  // spremeniti velikost predvajalnika
-  // 
   
   if(Debug.debug)
     console.log("[Resizer::_res_setAr] ar is " ,ar, ", playerDimensions are ", playerDimensions);
@@ -290,22 +281,6 @@ var _res_computeOffsets = function(vidDim, playerDim){
   }
   
   return offsets;
-}
-
-var _res_setAr_nonfs = function(ar){
-  var player = SitesConf.getPlayerTag();
-  
-  SitesConf.prepareNonfsPlayer();
-  
-  if(! player)
-    player = $("video")[0].parentNode;
-  
-  var playerDimensions = {
-    width: player.offsetWidth,
-    height: player.offsetHeight
-  }
-  
-  _res_setAr(ar, playerDimensions);
 }
 
 var _res_align = function(float){
@@ -456,11 +431,6 @@ function _res_applyCss(dimensions){
 }
 
 
-
-var _res_setFsAr = function(ar){
-  this._currentAr = ar;
-}
-
 var _res_restore = function(){
   if(Debug.debug){
     console.log("[Resizer::_res_restore] attempting to restore aspect ratio. this & settings:", {'this': this, "settings": Settings} );
@@ -470,7 +440,7 @@ var _res_restore = function(){
   _res_restore_wd = true;
   
   if(this._currentAr > 0)
-    _res_setAr_kbd(this._currentAr);
+    _res_setAr(this._currentAr);
 //   else 
 //     _res_setAr_kbd("default");
 }
@@ -478,11 +448,8 @@ var _res_restore = function(){
 var Resizer = {
   _currentAr: -1,
   align: _res_align,
-  setAr: _res_setAr_kbd,
-  setAr_fs: _res_setAr,
-  setAr_nonfs: _res_setAr_nonfs,
+  setAr: _res_setAr,
   legacyAr: _res_legacyAr,
   reset: _res_reset,
-  restore: _res_restore,
-  setFsAr: _res_setFsAr
+  restore: _res_restore
 }

@@ -202,12 +202,12 @@ var _ard_processAr = function(video, width, height, edge_h, edge_w, fallbackMode
   }
   // če je sprememba več od dovoljenega, spremeni razmerje stranic. Stvari se razlikujejo glede na to, ali smo v fullscreen ali ne
   // if change is greater than allowed, change the aspect ratio.  Whether we do that depends on whether we're in fullscreen.
-//   if( FullScreenDetect.isFullScreen() ){
+//   if( PlayerDetect.isFullScreen() ){
     if(Debug.debug)
       console.log("[ArDetect::_ard_processAr] attempting to fix aspect ratio. New aspect ratio: ", trueAr);
       
     _ard_oldAr = trueAr;
-    Resizer.setAr_fs(trueAr);
+    Resizer.setAr(trueAr);
 //   }
 //   else{
 //     // če nismo v fullscreen, potem preverimo, ali naša stran dovoljuje ne-fs?
