@@ -37,7 +37,7 @@ var _kbd_process = function (event) {          // Tukaj ugotovimo, katero tipko 
   // Tipke upoštevamo samo, če smo v celozaslonskem načinu oz. če ne pišemo komentarja
   // v nasprotnem primeru ne naredimo nič.
   // We only take actions if we're in full screen or not writing a comment
-  if( !(FullScreenDetect.isFullScreen() || (
+  if( !(PlayerDetect.isFullScreen() || (
     (document.activeElement.getAttribute("role") != "textbox") &&
     (document.activeElement.getAttribute("type") != "text")
   ))){

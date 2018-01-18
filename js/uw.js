@@ -4,6 +4,8 @@ if(Debug.debug)
 // global-ish
 var _main_last_fullscreen;
 
+var _player_dimensions_last;
+
 // load all settings from localStorage:
 
 async function main(){
@@ -64,77 +66,79 @@ async function main(){
       console.log("[uw::main] Aspect ratio detection is disabled. This is in settings:", Settings.arDetect.enabled);
   }
   
-  // preden karkoli delamo, se pozanimamo, ali smo v celozaslonskem načinu.
-  // ne bi smeli biti, načeloma
-  // je možnost, da smo i guess?
-  // 
-  // before we add this event, determine initial fullscreen state.
-  // we shouldn't be
-  // there's a chance that we are tho, I guess
-  
-  _main_last_fullscreen = FullScreenDetect.isFullScreen();
-  
-  // Poslušamo za lovljenje spremembe iz navadnega načina v celozaslonski način in obratno.
-  // Listen for and handle changes to and from full screen.
-  $(document).bind('webkitfullscreenchange mozfullscreenchange fullscreenchange MSFullscreenChange',  function(){
-    if(Debug.debug){
-      console.log("%c[uw::onfullscreenchange] are we in full screen?","color: #aaf", FullScreenDetect.isFullScreen());
-    }
-//     fullScreenCheck(0);
-  });
-
   browser.runtime.onMessage.addListener(receiveMessage);
-
+  setInterval( ghettoOnChange, 33);
 }
+
+
+
+// tukaj gledamo, ali se je velikost predvajalnika spremenila. Če se je, ponovno prožimo resizer
+// here we check (in the most ghetto way) whether player size has changed. If it has, we retrigger resizer.
+function ghettoOnChange(){
+
+  if(_player_dimensions_last === undefined){
+    _player_dimensions_last = PlayerDetect.getPlayerDimensions($("video")[0]);
+  }
+  
+  var newPlayerDims = PlayerDetect.getPlayerDimensions($("video")[0]);
+  if ( newPlayerDims.width  != _player_dimensions_last.width ||
+      newPlayerDims.height != _player_dimensions_last.height){
+    
+    Resizer.restore();
+  }
+    
+  _player_dimensions_last = newPlayerDims;
+}
+
 
 var _main_fscheck_tries = 3;
 
-function fullScreenCheck(count) {
-  if(count >= _main_fscheck_tries){
-    if(Debug.debug){
-      console.log("[uw::fullScreenCheck] ok really, I guess.");
-    }
-    return;
-  }
-  
-  var fsnow = FullScreenDetect.isFullScreen();
-  
-  // we restore, always — esp. now that we also do things in non-fullscreen
-  
-//   if(fsnow){
-    // full screen is on
-//     Resizer.restore();
+// function fullScreenCheck(count) {
+//   if(count >= _main_fscheck_tries){
+//     if(Debug.debug){
+//       console.log("[uw::fullScreenCheck] ok really, I guess.");
+//     }
+//     return;
+//   }
+//   
+//   var fsnow = FullScreenDetect.isFullScreen();
+//   
+//   // we restore, always — esp. now that we also do things in non-fullscreen
+//   
+// //   if(fsnow){
+//     // full screen is on
+// //     Resizer.restore();
+// //   }
+// //   else{
+// //     Resizer.reset();
+// //   }
+//   
+//   // kaj pa, če je FullScreenDetect vrnil narobno vrednost?
+//   // what if FullScreenDetect was not right? Let's verify; if it was wrong we re-trigger it in about 100 ms.
+//   
+//   if(fsnow != _main_last_fullscreen){
+// 
+//     // posodobimo vrednost / update value
+//     _main_last_fullscreen = fsnow;
+// 
+//     // če je to res, count pa je večji kot 0, potem smo imeli prav.
+//     // if that's the case and count is greater than 0, then we were right at some point.    
+//     if(Debug.debug && count > 0){
+//       console.log("[uw::fullScreenCheck] fucking knew it")
+//     }
+//     return;
 //   }
 //   else{
-//     Resizer.reset();
+//     // dobili smo event za spremembo celozaslonskega stanja. Stanje se ni spremenilo. Hmmm.
+//     // we got an event for fullscreen state change. State is unchanged. Hmmm.
+//     if(Debug.debug){
+//       console.log("[uw::fullScreenCheck] oh _really_? 🤔🤔🤔 -- fullscreen state", FullScreenDetect.isFullScreen());
+//     }
+//     count++;
+//     setTimeout(fullScreenCheck, 200, count);
 //   }
-  
-  // kaj pa, če je FullScreenDetect vrnil narobno vrednost?
-  // what if FullScreenDetect was not right? Let's verify; if it was wrong we re-trigger it in about 100 ms.
-  
-  if(fsnow != _main_last_fullscreen){
-
-    // posodobimo vrednost / update value
-    _main_last_fullscreen = fsnow;
-
-    // če je to res, count pa je večji kot 0, potem smo imeli prav.
-    // if that's the case and count is greater than 0, then we were right at some point.    
-    if(Debug.debug && count > 0){
-      console.log("[uw::fullScreenCheck] fucking knew it")
-    }
-    return;
-  }
-  else{
-    // dobili smo event za spremembo celozaslonskega stanja. Stanje se ni spremenilo. Hmmm.
-    // we got an event for fullscreen state change. State is unchanged. Hmmm.
-    if(Debug.debug){
-      console.log("[uw::fullScreenCheck] oh _really_? 🤔🤔🤔 -- fullscreen state", FullScreenDetect.isFullScreen());
-    }
-    count++;
-    setTimeout(fullScreenCheck, 200, count);
-  }
-  console.log("-------------------------------");
-}
+//   console.log("-------------------------------");
+// }
 
 // comms
 function receiveMessage(message, sender, sendResponse) {
@@ -186,7 +190,7 @@ function receiveMessage(message, sender, sendResponse) {
       ArDetect.stop();
       
       // we aren't in full screen, but we will want aspect ratio to be fixed when we go to 
-      Resizer.setFsAr(message.newAr);
+      Resizer.setAr(message.newAr);
     }
   }
   else if(message.cmd == "force-video-float"){

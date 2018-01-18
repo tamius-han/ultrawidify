@@ -26,7 +26,6 @@
     "js/conf/Status.js",
     "js/conf/ExtensionConf.js",
     
-    "js/lib/FullScreenDetect.js",
     "js/lib/PlayerDetect.js",
     
     "js/modules/PageInfo.js",

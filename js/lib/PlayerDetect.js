@@ -1,3 +1,10 @@
+if(Debug.debug)
+  console.log("Loading: FullScreenDetect.js");
+
+var _pd_isFullScreen = function(){
+  return ( window.innerHeight == window.screen.height && window.innerWidth == window.screen.width);
+}
+
 
 /* sprejme <video> tag (element
 // vrne dimenzije predvajalnika (širina, višina)
@@ -22,9 +29,12 @@
 // root should be the player.
 */
 
+
+
+
 var _pd_getPlayerDimensions = function(element){
   
-  if(FullScreenDetect.isFullScreen()){
+  if(_pd_isFullScreen()){
     if(Debug.debug){
       console.log("[PlayerDetect::_pd_getPlayerDimensions] video is full screen, returning player dimensions!");
     }
@@ -48,7 +58,7 @@ var _pd_getPlayerDimensions = function(element){
   // <video> can't be root in a document, so we can do this
   element = element.parentNode;
   
-  while(element.parentNode){    
+  while(element != undefined){    
     // odstranimo čudne elemente, ti bi pokvarili zadeve
     // remove weird elements, those would break our stuff
     if ( element.offsetWidth == 0 || element.offsetHeight == 0){
@@ -62,21 +72,24 @@ var _pd_getPlayerDimensions = function(element){
       candidate_width = element.offsetWidth;
       candidate_height = element.offsetHeight;
     
-      if(Debug.debug){
-        console.log("Found new candidate for player. Dimensions: w:", candidate_width, "h:",candidate_height);
-      }
+//       if(Debug.debug){
+//         console.log("Found new candidate for player. Dimensions: w:", candidate_width, "h:",candidate_height);
+//       }
     }
     
     element = element.parentNode;
   }
   
-  return {
-    width: playerCandidateNode.offsetWidth,
-    height: playerCandidateNode.offsetHeight
+  var dims = {
+    width: candidate_width,
+    height: candidate_height
   };
+  
+  return dims;
 }
 
 
 var PlayerDetect = {
-  getPlayerDimensions: _pd_getPlayerDimensions
+  getPlayerDimensions: _pd_getPlayerDimensions,
+  isFullScreen: _pd_isFullScreen
 }
