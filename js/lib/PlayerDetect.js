@@ -35,17 +35,10 @@ var _pd_isFullScreen = function(){
 var _pd_getPlayerDimensions = function(element){
   
   if(_pd_isFullScreen()){
-    if(Debug.debug){
-      console.log("[PlayerDetect::_pd_getPlayerDimensions] video is full screen, returning player dimensions!");
-    }
     return {
       width: screen.width,
       height: screen.height
     };
-  }
-  
-  if(Debug.debug){
-    console.log("[PlayerDetect::_pd_getPlayerDimensions] video is not full screen. Looking for player.");
   }
   
   var playerCandidateNode = element;
