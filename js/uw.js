@@ -2,6 +2,7 @@ if(Debug.debug)
   console.log("\n\n\n\n\n\n           ———    Sᴛλʀᴛɪɴɢ  Uʟᴛʀᴀᴡɪᴅɪꜰʏ    ———\n               <<   ʟᴏᴀᴅɪɴɢ ᴍᴀɪɴ ꜰɪʟᴇ   >>\n\n\n\n");
 
 // global-ish
+
 var _main_last_fullscreen;
 
 var _player_dimensions_last;
@@ -30,7 +31,6 @@ async function main(){
   // start autoar and setup everything
 
 
-// $(document).ready(function() {
   if(Debug.debug)
     console.log("uw::document.ready | document is ready. Starting ar script ...");
 
@@ -59,7 +59,7 @@ async function main(){
   if(Settings.arDetect.enabled == "global"){
     if(Debug.debug)
       console.log("[uw::main] Aspect ratio detection is enabled. Starting ArDetect");
-    ArDetect.arSetup();
+//     ArDetect.arSetup();
   }
   else{
     if(Debug.debug)
@@ -74,13 +74,37 @@ async function main(){
 
 // tukaj gledamo, ali se je velikost predvajalnika spremenila. Če se je, ponovno prožimo resizer
 // here we check (in the most ghetto way) whether player size has changed. If it has, we retrigger resizer.
-function ghettoOnChange(){
 
-  if(_player_dimensions_last === undefined){
-    _player_dimensions_last = PlayerDetect.getPlayerDimensions($("video")[0]);
+
+var _video_recheck_counter = 0;
+var _video_recheck_period = 60;  // on this many retries
+
+function ghettoOnChange(){
+  
+  if(_video_recheck_counter++ > _video_recheck_period){
+    _video_recheck_counter = 0;
+    
+    if(GlobalVars.video === null){
+      var video = document.getElementsByTagName("video")[0];
+      if(video !== undefined)
+        GlobalVars.video = video;
+    }
   }
   
-  var newPlayerDims = PlayerDetect.getPlayerDimensions($("video")[0]);
+  if(GlobalVars.video === null)
+    return;
+  
+  if(_player_dimensions_last === undefined){
+    _player_dimensions_last = PlayerDetect.getPlayerDimensions( GlobalVars.video );
+  }
+  
+  var newPlayerDims = PlayerDetect.getPlayerDimensions( GlobalVars.video );
+  
+  if (newPlayerDims == undefined)
+    return;
+  
+  GlobalVars.playerDimeimensions = newPlayerDims;
+  
   if ( newPlayerDims.width  != _player_dimensions_last.width ||
       newPlayerDims.height != _player_dimensions_last.height){
     
@@ -147,6 +171,9 @@ function receiveMessage(message, sender, sendResponse) {
   
   if(message.cmd == "has-videos"){
     var anyVideos = PageInfo.hasVideos();
+    
+    if(Debug.debug)
+      console.log("[uw::receiveMessage] returning response:", {response: {"hasVideos": anyVideos }});
     
     if(BrowserDetect.usebrowser == "firefox")
       return Promise.resolve({response: {"hasVideos": anyVideos }});
@@ -217,5 +244,6 @@ function receiveMessage(message, sender, sendResponse) {
 }
 
 
-
-main();
+$(document).ready(function() {
+  main();
+});

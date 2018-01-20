@@ -169,7 +169,7 @@ var setVideoAr = function(aspect_ratio, video, player){
 var _res_reset = function(force){
   dimensions = {top: "", left: "", width: "100%", height: "100%"};
   
-  $("video").css({"position": "relative", "width": dimensions.width,"height": dimensions.height,"top": dimensions.top, "left": dimensions.left});
+  GlobalVars.video.css({"position": "relative", "width": dimensions.width,"height": dimensions.height,"top": dimensions.top, "left": dimensions.left});
   
   if(Debug.debug)
     console.log("[Resizer::_res_reset] css applied. Dimensions/pos: w:",dimensions.width,"; h:",dimensions.height,"; top:",dimensions.top,"; left:",dimensions.left);
@@ -181,21 +181,20 @@ var _res_reset = function(force){
 // Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". Približevanje opuščeno.
 // handles "legacy" options, such as 'fit to widht', 'fit to height' and 'reset'. No zoom tho
 var _res_legacyAr = function(action){
-  var vid = $("video")[0];
+  var vid = GlobalVars.video;
   var ar = screen.width / screen.height;
   var fileAr = vid.videoWidth / vid.videoHeight;
   
   if(action == "fitw"){
-    _res_setAr_kbd( ar > fileAr ? ar : fileAr);
+    _res_setAr( ar > fileAr ? ar : fileAr);
     return;
   }
   if(action == "fith"){
-    _res_setAr_kbd( ar < fileAr ? ar : fileAr);
+    _res_setAr( ar < fileAr ? ar : fileAr);
     return;
   }
   if(action == "reset"){
-        _res_setAr_kbd(fileAr);
-//     this.reset(true);
+        _res_setAr(fileAr);
     return;
   }
   if(action == "autoar"){
@@ -209,7 +208,7 @@ var _res_setAr = function(ar, playerDimensions){
 
   this._currentAr = ar;
     
-  var vid = $("video")[0];
+  var vid = GlobalVars.video;
   
   
   // Dejansko razmerje stranic datoteke/<video> značke
@@ -229,8 +228,12 @@ var _res_setAr = function(ar, playerDimensions){
   }
   
   
-  if(playerDimensions === undefined)
+  if(playerDimensions === undefined){
     playerDimensions = PlayerDetect.getPlayerDimensions(vid);
+    
+    if(Debug.debug)
+      console.log("[Resizer::_res_setAr] playerDimensions are undefined, trying to determine new ones ... new dimensions:",playerDimensions);
+  }
   
   if(Debug.debug){
     console.log("[Resizer::_res_setAr] Player dimensions?",playerDimensions);
@@ -305,7 +308,7 @@ var _res_setStyleString = function(vid, styleString, count){
   vid.setAttribute("style", styleString);
   
   if(_res_restore_wd){
-    var vid2 = $("video")[0];
+    var vid2 = GlobalVars.video;
     
     if(
       styleString.indexOf("width: " + vid2.style.width) == -1 ||
@@ -352,9 +355,8 @@ function _res_applyCss(dimensions){
   // misc.
   dimensions.position = "position: absolute !important";
   dimensions.margin = "margin: 0px !important";
-//   dimensions.objectFit = "object-fit: cover !important";
   
-  var vid = $("video")[0];
+  var vid = GlobalVars.video;
   
   if(Debug.debug)
     console.log("[Resizer::_res_applyCss] trying to apply css. Css strings: ", dimensions, "video tag: ", vid);
@@ -387,6 +389,11 @@ function _res_applyCss(dimensions){
       }
       else if(styleArray[i].startsWith("position:")){
         styleArray[i] = dimensions.position;
+        delete dimensions.position;
+      }
+      else if(styleArray[i].startsWith("margin:")){
+        styleArray[i] = dimensions.margin;
+        delete dimensions.margin;
       }
     }
   }
@@ -397,29 +404,6 @@ function _res_applyCss(dimensions){
   // add remaining elements
   for(var key in dimensions)
     styleArray.push( dimensions[key] );
-  
-  // problem: last element can get duplicated a lot.
-  // solution: check if last element is a duplicate. if it is, remove first occurence (keep last)
-  // repeat until no element is removed
-  var dups = false;
-  
-//   debugger;
-  
-  
-  do{
-    dups = false;
-    var last = styleArray.length - 1;
-    var i = last;
-    while(i --> 0){
-      if(styleArray[i] === styleArray[last]){
-        dups = true;
-        styleArray.splice(i, 1);
-        
-        --last; // correct the index
-      }
-    }
-  } while(dups);
-  
   
   // build style string back
   var styleString = "";

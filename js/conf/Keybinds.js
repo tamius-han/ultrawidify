@@ -34,6 +34,10 @@ var DEFAULT_KEYBINDINGS = {
 
 var _kbd_process = function (event) {          // Tukaj ugotovimo, katero tipko smo pritisnili
   
+  if(Debug.debug  && Debug.keyboard ){
+    console.log("%c[Keybinds::_kbd_process] we pressed a key: ", "color: #ff0", event.key , " | keydown: ", event.keydown, "event:", event);
+  }
+  
   // Tipke upoštevamo samo, če smo v celozaslonskem načinu oz. če ne pišemo komentarja
   // v nasprotnem primeru ne naredimo nič.
   // We only take actions if we're in full screen or not writing a comment
@@ -46,9 +50,6 @@ var _kbd_process = function (event) {          // Tukaj ugotovimo, katero tipko 
     return;
   }
   
-  if(Debug.debug  && Debug.keyboard ){
-    console.log("[Keybinds::_kbd_process] we pressed a key: ", event.key , " | keydown: ", event.keydown, "event:", event);
-  }
   
   // building modifiers list:
   var modlist = "";
