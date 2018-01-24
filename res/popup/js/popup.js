@@ -66,15 +66,19 @@ async function sendMessage(message){
 
 function check4videos(){
 
-  sendMessage({cmd: "has-videos"})
-  .then(response => {
-    if(Debug.debug)
-      console.log("[popup.js::check4videos] received response:",response);
-    
-    if(response.response.hasVideos){
-      hasVideos = true;
-      openMenu(selectedMenu);
+  Comms.sendToEach({cmd: "has-videos"})
+  .then(responses => {
+    if(Debug.debug){
+      console.log("[popup.js::check4videos] received responses:",responses);
+      for(response of responses){
+        console.log(response.response);
+      }
     }
+    
+//     if(response.response.hasVideos){
+//       hasVideos = true;
+//       openMenu(selectedMenu);
+//     }
   })
   .catch(error => {
     if(Debug.debug)
@@ -89,7 +93,7 @@ function check4conf(){
   sendMessage({cmd: "get-config"})
   .then(response => {
     if(Debug.debug)
-      console.log("[popup.js::check4conf] received response:",response);
+      console.log("[popup.js::check4conf] received response:",response, response.response);
     
     loadConfig(response.response);
   })

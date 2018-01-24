@@ -1,29 +1,27 @@
+console.log("blabla");
+
 async function main(){
   if(Debug.debug)
     console.log("[uw-bg::main] setting up background script");
   
   await Settings.init();
   
-  if(BrowserDetect.usebrowser == "chrome")
-    browser.runtime.onMessage.addListener(ChromeCancer.recvmsg);
   
-  else
-    browser.runtime.onMessage.addListener(_uwbg_rcvmsg);
   
+  
+  browser.tabs.onActivated.addListener(_uwbg_onTabSwitched);
   
   if(Debug.debug)
     console.log("[uw-bg::main] listeners registered");
 }
 
-async function sendMessage(message){
-  console.log("SENDING MESSAGE TO CONTENT SCRIPT");
-  var tabs = await Comms.queryTabs({currentWindow: true, active: true}); 
+async function _uwbg_onTabSwitched(activeInfo){
   if(Debug.debug)
-    console.log("[uw-bg::sendMessage] trying to send message", message, " to tab ", tabs[0], ". (all tabs:", tabs,")");
-
-  var response = await browser.tabs.sendMessage(tabs[0].id, message);
-  console.log("[uw-bg::sendMessage] response is this:",response);
-  return response;
+    console.log("[uw-bg::onTabSwitched] TAB CHANGED, GETTING INFO FROM MAIN TAB");
+  
+  var tabId = activeInfo.tabId;   // just for readability
+  
+  Comms.sendToEach({"cmd":"has-video"});
 }
 
 async function _uwbg_rcvmsg(message){

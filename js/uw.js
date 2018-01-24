@@ -1,5 +1,17 @@
-if(Debug.debug)
+if(Debug.debug){
   console.log("\n\n\n\n\n\n           ———    Sᴛλʀᴛɪɴɢ  Uʟᴛʀᴀᴡɪᴅɪꜰʏ    ———\n               <<   ʟᴏᴀᴅɪɴɢ ᴍᴀɪɴ ꜰɪʟᴇ   >>\n\n\n\n");
+  try {
+    if(window.self !== window.top){
+      console.log("%cWe aren't in an iframe.", "color: #afc, background: #174");
+    }
+    else{
+      console.log("%cWe are in an iframe!", "color: #fea, background: #d31", window.self, window.top);
+    }
+  } catch (e) {
+    console.log("%cWe are in an iframe!", "color: #fea, background: #d31");
+  }
+}
+
 
 // global-ish
 
@@ -80,7 +92,8 @@ var _video_recheck_counter = 0;
 var _video_recheck_period = 60;  // on this many retries
 
 function ghettoOnChange(){
-  
+//   console.log("..");
+//   console.log("events:", $._data($(document)[0], "events"));
   if(_video_recheck_counter++ > _video_recheck_period){
     _video_recheck_counter = 0;
     
@@ -170,10 +183,10 @@ function receiveMessage(message, sender, sendResponse) {
     console.log("[uw::receiveMessage] we received a message.", message);
   
   if(message.cmd == "has-videos"){
-    var anyVideos = PageInfo.hasVideos();
+    var anyVideos = GlobalVars.video != null;
     
     if(Debug.debug)
-      console.log("[uw::receiveMessage] returning response:", {response: {"hasVideos": anyVideos }});
+      console.log("[uw::receiveMessage] are there any videos on this page?", anyVideos, GlobalVars.video, this);
     
     if(BrowserDetect.usebrowser == "firefox")
       return Promise.resolve({response: {"hasVideos": anyVideos }});
@@ -244,6 +257,6 @@ function receiveMessage(message, sender, sendResponse) {
 }
 
 
-$(document).ready(function() {
+// $(document).ready(function() {
   main();
-});
+// });
