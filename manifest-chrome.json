@@ -26,8 +26,6 @@
       "js/conf/Status.js",
       "js/conf/ExtensionConf.js",
       
-      "js/lib/FullScreenDetect.js",
-      
       "js/modules/PageInfo.js",
       "js/modules/ArDetect.js", 
       "js/modules/Resizer.js",
@@ -38,8 +36,10 @@
     "all_frames": true
   }],
   
+
+  
   "permissions": [
-    "tabs", "storage",  "activeTab", "<all_urls>", "*://*.youtube.com/*", "*://youtube.com/*", "*://imdb.com/*", "*://*.imdb.com/*"
+    "tabs", "storage", "webNavigation", "activeTab", "<all_urls>"
   ],
   
   "browser_action": {

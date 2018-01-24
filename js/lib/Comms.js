@@ -75,8 +75,66 @@ var _com_sendMessageRuntime = async function(message){
   }
 }
 
+// pošlje sporočilce vsem okvirjem v trenutno odprtem zavihku. Vrne tisti odgovor od tistega okvira, ki prispe prvi.
+// sends a message to all frames in the currently opened tab. Returns the response of a frame that replied first
+var _com_sendToAllFrames = async function(message) {
+  if(Debug.debug)
+    console.log("[Comms::_com_sendToAllFrames] sending message to all frames of currenntly active tab");
+  
+  var tabs = await browser.tabs.query({currentWindow: true, active: true}); 
+  
+  if(Debug.debug)
+    console.log("[Comms::_com_sendToAllFrames] trying to send message", message, " to tab ", tabs[0], ". (all tabs:", tabs,")");
+  
+  var response = await browser.tabs.sendMessage(tabs[0].id, message);
+  console.log("[Comms::_com_sendToAllFrames] response is this:",response);
+  return response;
+  
+//   if(BrowserDetect.firefox){
+//     return 
+//   }
+}
+
+// pošlje sporočilce vsem okvirjem v trenutno odprtem zavihku in vrne _vse_ odgovore
+// sends a message to all frames in currently opened tab and returns all responses
+var _com_sendToEachFrame = async function(message) {
+  if(Debug.debug)
+    console.log("[Comms::_com_sendToEveryFrame] sending message to every frames of currenntly active tab");
+  
+  try{
+    var tabs = await browser.tabs.query({currentWindow: true, active: true}); 
+    var frames = await browser.webNavigation.getAllFrames({tabId: tabs[0].id});
+  
+    if(Debug.debug)
+      console.log("[Comms::_com_sendToEveryFrame] we have this many frames:", frames.length, "||| tabs:",tabs,"frames:",frames);
+    
+    
+    // pošlji sporočilce vsakemu okvirju, potisni obljubo v tabelo
+    // send message to every frame, push promise to array
+    var promises = [];
+    for(var frame in frames){
+      promises.push(browser.tabs.sendMessage(tabs[0].id, message, {frameId: frame.frameId}));
+    }
+    
+    // počakajmo, da so obljube izpolnjene
+    // wait for all promises to be kept
+    var responses = Promise.all(promises);
+    
+    if(Debug.debug)
+      console.log("[Comms::_com_sendToEveryFrame] we received responses from all frames", responses);
+    
+    return responses;
+  }
+  catch(e){
+    console.log("[Comms::_com_sendToEveryFrame] something went wrong when getting frames. this is error:", e);
+    return null;
+  }
+}
+
 var Comms = {
   queryTabs: _com_queryTabs,
   sendMessage: _com_sendMessage,
-  sendMessageRuntime: _com_sendMessageRuntime
+  sendMessageRuntime: _com_sendMessageRuntime,
+  sendToEach: _com_sendToEachFrame,
+  sendToAll: _com_sendToAllFrames,
 }
