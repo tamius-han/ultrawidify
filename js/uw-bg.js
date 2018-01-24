@@ -21,7 +21,7 @@ async function _uwbg_onTabSwitched(activeInfo){
   
   var tabId = activeInfo.tabId;   // just for readability
   
-  Comms.sendToEach({"cmd":"has-video"});
+  Comms.sendToEach({"cmd":"has-videos"});
 }
 
 async function _uwbg_rcvmsg(message){

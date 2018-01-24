@@ -116,9 +116,9 @@ var _com_sendToEachFrame = async function(message) {
       promises.push(browser.tabs.sendMessage(tabs[0].id, message, {frameId: frame.frameId}));
     }
     
-    // počakajmo, da so obljube izpolnjene
+    // počakajmo, da so obljube izpolnjene. 
     // wait for all promises to be kept
-    var responses = Promise.all(promises);
+    var responses = await Promise.all(promises);
     
     if(Debug.debug)
       console.log("[Comms::_com_sendToEveryFrame] we received responses from all frames", responses);
@@ -127,7 +127,7 @@ var _com_sendToEachFrame = async function(message) {
   }
   catch(e){
     console.log("[Comms::_com_sendToEveryFrame] something went wrong when getting frames. this is error:", e);
-    return null;
+    return Promise.reject();
   }
 }
 
