@@ -99,8 +99,10 @@ function ghettoOnChange(){
     
     if(GlobalVars.video === null){
       var video = document.getElementsByTagName("video")[0];
-      if(video !== undefined)
+      if(video !== undefined){
         GlobalVars.video = video;
+        Comms.sendToBackgroundScript({"cmd":"register-video"});
+      }
     }
   }
   

@@ -19,6 +19,13 @@ var _com_queryTabs = async function(tabInfo){
   }
 }
 
+var _com_getActiveTab = async function(tabInfo){
+  if(BrowserDetect.firefox){
+    return await browser.tabs.query({currentWindow: true, active: true});
+  }
+  return _com_chrome_tabquery_wrapper({currentWindow: true, active: true});
+}
+
 
 var _com_chrome_tabs_sendmsg_wrapper = async function(tab, message, options){
   return new Promise(function (resolve, reject){
@@ -97,27 +104,31 @@ var _com_sendToAllFrames = async function(message) {
 
 // pošlje sporočilce vsem okvirjem v trenutno odprtem zavihku in vrne _vse_ odgovore
 // sends a message to all frames in currently opened tab and returns all responses
-var _com_sendToEachFrame = async function(message) {
+var _com_sendToEachFrame = async function(message, tabId) {
   if(Debug.debug)
     console.log("[Comms::_com_sendToEveryFrame] sending message to every frames of currenntly active tab");
   
   try{
-    var tabs = await browser.tabs.query({currentWindow: true, active: true}); 
-    var frames = await browser.webNavigation.getAllFrames({tabId: tabs[0].id});
-  
+    if(tabId === undefined){
+      var tabs = await browser.tabs.query({currentWindow: true, active: true});
+      tabId = tabs[0].id;
+    }
+    var frames = await browser.webNavigation.getAllFrames({tabId: tabId});
+    
     if(Debug.debug)
-      console.log("[Comms::_com_sendToEveryFrame] we have this many frames:", frames.length, "||| tabs:",tabs,"frames:",frames);
+      console.log("[Comms::_com_sendToEveryFrame] we have this many frames:", frames.length, "||| tabId:", tabId ,"frames:",frames);
     
     
     // pošlji sporočilce vsakemu okvirju, potisni obljubo v tabelo
     // send message to every frame, push promise to array
     var promises = [];
     for(var frame in frames){
-      promises.push(browser.tabs.sendMessage(tabs[0].id, message, {frameId: frame.frameId}));
+        promises.push(browser.tabs.sendMessage(tabId, message, {frameId: frame.frameId}));
     }
     
     // počakajmo, da so obljube izpolnjene. 
     // wait for all promises to be kept
+    
     var responses = await Promise.all(promises);
     
     if(Debug.debug)
@@ -132,6 +143,8 @@ var _com_sendToEachFrame = async function(message) {
 }
 
 var Comms = {
+  getActiveTab: _com_getActiveTab,
+  sendToBackgroundScript: _com_sendMessageRuntime,
   queryTabs: _com_queryTabs,
   sendMessage: _com_sendMessage,
   sendMessageRuntime: _com_sendMessageRuntime,
