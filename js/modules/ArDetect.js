@@ -304,15 +304,16 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   }
 
   if(!isLetter){
-    // tudi če ne zaznamo letterboxa, še vedno poženemo processAr. Lahko, da smo v preteklosti popravili letterbox, to pa moramo
-    // sedaj razveljaviti
-    // even if we don't deect letterbox, we still issue processAr in case we adjusted for letterbox earlier and need to exit
-    // corrected mode.
+    // Če ne zaznamo letterboxa, kličemo reset. Lahko, da je bilo razmerje stranic popravljeno na roke. Možno je tudi,
+    // da je letterbox izginil.
+    // If we don't detect letterbox, we reset aspect ratio to aspect ratio of the video file. The aspect ratio could
+    // have been corrected manually. It's also possible that letterbox (that was there before) disappeared.
     if(Debug.debug){
       console.log("%c[ArDetect::_ard_vdraw] no edge detected. canvas has no edge.", "color: #aaf");
     }
     
-    _ard_processAr(vid, w, h);
+//     _ard_processAr(vid, w, h);
+    Resizer.reset();
     
     _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_playing, vid, context, w, h); //no letterbox, no problem
     return;
