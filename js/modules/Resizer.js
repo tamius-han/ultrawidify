@@ -71,114 +71,8 @@ var _res_char = function(newAr, video, player){
   _res_setVideoAr(new_ar, video, player);
 }
 
-
-
-/* Tukaj povemo, kakšno razmerje stranic ima video.
-/  Kaj to pomeni: 
-//    Mi rečemo, da ima video razmerje stranic 16:9. Dejanski video
-//    ima razmerje 4:3. To pomeni, da ima video zgoraj in spodaj črno
-//    obrobo, ki je nočemo, zato video povečamo toliko, da se ta obroba odreže.
-//    
-//    OBROB TUKAJ NE DODAJAMO.
-// 
-// With this function, we specify the aspect ratio of the video. 
-// What does this mean?
-//    If we specify that the aspect ratio of a video is 16:9 when video is
-//    actually 4:3, that means the video has black bars above and below.
-//    We zoom the video just enough for the black lines to disappear.
-//    
-//    WE DO NOT ADD ANY BLACK BORDERS. If we get to a scenario when we'd have to add 
-//    black borders, we do nothing instead.
-*/
-
-var setVideoAr = function(aspect_ratio, video, player){
-  var video_ar = video.width / video.height;
-  var display_ar = player.width / player.height;
-  
-  if(debugmsg){
-    console.log("uw::set_video_ar | aspect ratio: " + aspect_ratio + "; video_ar: " + video_ar + "; display_ar: " + display_ar);
-    console.log("uw::set_video_ar | player dimensions: " + player.width + "x" + player.height + "; video dimensions: " + video.width + "x" + video.height);
-  }
-  
-  if( aspect_ratio*1.1 > video_ar && video_ar > aspect_ratio*0.9 ){
-    // Ta hack nas reši problema, ki ga predstavlja spodnji if stavek — če se legit 21:9 videu na 16:9 monitorju
-    // obreže na 16:9, potem ga s klicem te funkcije ne moremo spremeniti nazaj na 21:9. Vendar pa bi za tak primer
-    // radi imeli izjemo.
-    // 
-    // This hack solves the problem that the bottom if statement presents. If we crop a 21:9 video on a 16:9 monitor,
-    // we can't change it back to 21:9 in this function, even though we kinda want that to happen — so we add an
-    // exception.
-    if( debugmsg)
-      console.log("uw::set_video_ar | ar matches our display ar. resetting");
-    
-    resetCSS(video, player);
-    return;
-  }
-  
-  // Širina, višina, top, left za nov video
-  // Width, height, top and left for the new video
-  var nv = { "w":0, "h":0, "top":0, "left":0 }; 
-  
-  /*
-  * // Video hočemo pretvoriti v video z drugačnim razmerjem stranic.
-  * // To storimo tako, da širino videa nastavimo relativno na višino prikazovalnika, torej:
-  * // 
-  * //     širina = višina_prikazovalnika * razmerje_stranic
-  * //     višina = širina / video_ar
-  * //     
-  * // 
-  * // 
-  * // ----------------------------------------------------------------------------------------------
-  * // 
-  * // In this case, the video is narrower than we want (think 4:3, which we want to make into 16:9)
-  * // We achieve this by setting video width relative to the display width, so:
-  * // 
-  * //     width = display_height * aspect_ratio
-  * //    height = width / video_ar
-  * //     
-  */
-  
-  if( video_ar <= aspect_ratio ){
-    if(debugmsg){
-      console.log("uw::set_video_ar | reached pre-calc. Video is taller than ar. target ar: " + aspect_ratio );
-    }    
-    
-    nv.w = player.height * aspect_ratio;
-    nv.h = nv.w / video_ar;
-    
-    nv.top = (player.height - nv.h)/2;
-    nv.left = (player.width - nv.w)/2;
-  }
-  else{
-    if(debugmsg){
-      console.log("uw::set_video_ar | reached pre-calc. Video is wider than ar. target ar: " + aspect_ratio );
-    }  
-    nv.h = player.width / aspect_ratio;
-    nv.w = nv.h * video_ar;
-    
-    nv.top = (player.height - nv.h)/2;
-    nv.left = (player.width - nv.w)/2;
-  }
-  
-  if(nv.w > (player.width * 1.1) && nv.h > (player.height * 1.1))
-    return;
-  
-  this._res_applyCss(nv);
-}
-
-var _res_reset = function(force){
-  dimensions = {top: "", left: "", width: "100%", height: "100%"};
-  
-  GlobalVars.video.css({"position": "relative", "width": dimensions.width,"height": dimensions.height,"top": dimensions.top, "left": dimensions.left});
-  
-  if(Debug.debug)
-    console.log("[Resizer::_res_reset] css applied. Dimensions/pos: w:",dimensions.width,"; h:",dimensions.height,"; top:",dimensions.top,"; left:",dimensions.left);
-  
-//   if(force)
-//     this._currentAr = -1;
-}
-
-// Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". Približevanje opuščeno.
+// Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". 
+// Približevanje opuščeno.
 // handles "legacy" options, such as 'fit to widht', 'fit to height' and 'reset'. No zoom tho
 var _res_legacyAr = function(action){
   var vid = GlobalVars.video;
@@ -192,6 +86,7 @@ var _res_legacyAr = function(action){
   }
   
   var fileAr = vid.videoWidth / vid.videoHeight;
+  GlobalVars.lastAr = {type: "legacy", action: action};
   
   if(action == "fitw"){
     _res_setAr( ar > fileAr ? ar : fileAr);
@@ -202,10 +97,12 @@ var _res_legacyAr = function(action){
     return;
   }
   if(action == "reset"){
-        _res_setAr(fileAr);
+    GlobalVars.lastAr = {type: "original"};
+    _res_setAr(fileAr);
     return;
   }
   if(action == "autoar"){
+    GlobalVars.lastAr = {type: "auto"};
     ArDetect.init();
   }
 }
@@ -214,7 +111,7 @@ var _res_setAr = function(ar, playerDimensions){
   if(Debug.debug)
     console.log("[Resizer::_res_setAr] trying to set ar. args are: ar->",ar,"; playerDimensions->",playerDimensions);
 
-  this._currentAr = ar;
+  GlobalVars.lastAr = {type: "static", ar: ar};
     
   var vid = GlobalVars.video;
   
@@ -431,10 +328,19 @@ var _res_restore = function(){
   // this is true until we verify that css has actually been applied
   _res_restore_wd = true;
   
-  if(this._currentAr > 0)
-    _res_setAr(this._currentAr);
-//   else 
-//     _res_setAr_kbd("default");
+  if(GlobalVars.lastAr.type == "legacy"){
+    _res_legacyAr(GlobalVars.lastAr.action);
+  }
+  else if(GlobalVars.lastAr.type == "static"){
+    _res_setAr(GlobalVars.lastAr.ar);
+  }
+  else if(GlobalVars.lastAr.type == "original"){
+    _res_legacyAr("reset");
+  }
+}
+
+var _res_reset = function(){
+  _res_legacyAr("reset");
 }
 
 var Resizer = {
