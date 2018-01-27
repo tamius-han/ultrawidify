@@ -101,12 +101,7 @@ function ghettoOnChange(){
       var video = document.getElementsByTagName("video")[0];
       if(video !== undefined){
         GlobalVars.video = video;
-        
-//         try{
-          Comms.sendToBackgroundScript({"cmd":"register-video"});
-//         }
-//         catch(chromeIsShitError){
-          // cos firefox won't crap its bed if a promise comes back unfulfilled
+        Comms.sendToBackgroundScript({"cmd":"register-video"});
       }
     }
   }
@@ -123,7 +118,7 @@ function ghettoOnChange(){
   if (newPlayerDims == undefined)
     return;
   
-  GlobalVars.playerDimeimensions = newPlayerDims;
+  GlobalVars.playerDimensions = newPlayerDims;
   
   if ( newPlayerDims.width  != _player_dimensions_last.width ||
       newPlayerDims.height != _player_dimensions_last.height){

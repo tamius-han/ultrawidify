@@ -182,7 +182,15 @@ var _res_reset = function(force){
 // handles "legacy" options, such as 'fit to widht', 'fit to height' and 'reset'. No zoom tho
 var _res_legacyAr = function(action){
   var vid = GlobalVars.video;
-  var ar = screen.width / screen.height;
+  var ar;
+  
+  if(GlobalVars.playerDimensions === null || GlobalVars.playerDimensions === undefined){
+    ar = screen.width / screen.height;
+  }
+  else{
+    ar = GlobalVars.playerDimensions.width / GlobalVars.playerDimensions.height;
+  }
+  
   var fileAr = vid.videoWidth / vid.videoHeight;
   
   if(action == "fitw"){
