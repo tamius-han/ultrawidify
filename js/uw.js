@@ -101,7 +101,12 @@ function ghettoOnChange(){
       var video = document.getElementsByTagName("video")[0];
       if(video !== undefined){
         GlobalVars.video = video;
-        Comms.sendToBackgroundScript({"cmd":"register-video"});
+        
+//         try{
+          Comms.sendToBackgroundScript({"cmd":"register-video"});
+//         }
+//         catch(chromeIsShitError){
+          // cos firefox won't crap its bed if a promise comes back unfulfilled
       }
     }
   }
@@ -193,8 +198,12 @@ function receiveMessage(message, sender, sendResponse) {
     if(BrowserDetect.usebrowser == "firefox")
       return Promise.resolve({response: {"hasVideos": anyVideos }});
 
-    sendResponse({response: {"hasVideos":anyVideos}});
-    return true;
+    try{
+      sendResponse({response: {"hasVideos":anyVideos}});
+      return true;
+    }
+    catch(chromeIsShitError){}
+    return;
   }
   else if(message.cmd == "get-config"){
     
@@ -216,7 +225,11 @@ function receiveMessage(message, sender, sendResponse) {
     if(BrowserDetect.usebrowser == "firefox")
       return Promise.resolve({response: config});
     
-    sendResponse({response: config});
+    try{
+      sendResponse({response: config});
+    }
+    catch(chromeIsShitError){};
+    
     return true;
   }
 

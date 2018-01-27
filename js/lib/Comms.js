@@ -122,14 +122,28 @@ var _com_sendToEachFrame = async function(message, tabId) {
     // pošlji sporočilce vsakemu okvirju, potisni obljubo v tabelo
     // send message to every frame, push promise to array
     var promises = [];
-    for(var frame in frames){
-        promises.push(browser.tabs.sendMessage(tabId, message, {frameId: frame.frameId}));
+    for(var frame of frames){
+        if(Debug.debug)
+          console.log("[Comms:_com_sendToEachFrame] we sending message to tab with id", tabId, ", frame with id", frame.frameId);
+        try{
+          promises.push(browser.tabs.sendMessage(tabId, message, {frameId: frame.frameId}));
+        }
+        catch(e){
+          if(Debug.debug)
+            console.log("[Comms:_com_sendToEachFrame] we sending message to tab with id", tabId, ", frame with id", frame.frameId);
+        }
     }
     
     // počakajmo, da so obljube izpolnjene. 
     // wait for all promises to be kept
     
-    var responses = await Promise.all(promises);
+    var responses = [];
+    
+    for(var promise of promises){
+      var response = await promise;
+      if(response !== undefined)
+        responses.push(response);
+    }
     
     if(Debug.debug)
       console.log("[Comms::_com_sendToEveryFrame] we received responses from all frames", responses);

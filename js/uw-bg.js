@@ -22,12 +22,16 @@ async function main(){
 }
 
 async function _uwbg_onTabSwitched(activeInfo){
+  BgVars.hasVideos = false;
   if(Debug.debug)
     console.log("[uw-bg::onTabSwitched] TAB CHANGED, GETTING INFO FROM MAIN TAB");
   
   var tabId = activeInfo.tabId;   // just for readability
   
   var videoFrameList = await Comms.sendToEach({"cmd":"has-videos"}, tabId);
+  
+  if(Debug.debug)
+    console.log("[uw-bg::onTabSwitched] got list of frames and whether they have videos", videoFrameList);
   
   // Pogledamo, če kateri od okvirjev vsebuje video. Da omogočimo pojavno okno je zadosti že
   // en okvir z videom.
