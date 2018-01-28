@@ -13,6 +13,10 @@ Works on Youtube and Netflix. Available for [Firefox (v2.0.3)](https://addons.mo
 **Click for [youtube demo](https://www.youtube.com/watch?v=j2xn1WpbtCQ):**  
 [![Ultrawidify - youtube demo](https://img.youtube.com/vi/j2xn1WpbtCQ/0.jpg)](https://www.youtube.com/watch?v=j2xn1WpbtCQ)
 
+## Beggathon
+
+Working on this extension takes time, coffee and motivation. If you want to buy me a beer or something, you can [use this link to send me motivation](https://www.paypal.me/tamius). Money will be spent on Netflix and coffee/tea. 
+
 ## The long version
 
 The technology has been here for a while, but plenty of people don't know how to properly encode a video (despite the fact [youtube has an article that explains aspect ratios](https://support.google.com/youtube/answer/6375112)). Plenty of people surprisingly includes major Holywood studios, such as [Marvel](https://www.youtube.com/watch?v=Ke1Y3P9D0Bc), [Disney](https://www.youtube.com/watch?v=yCOPJi0Urq4), [Dreamworks](https://www.youtube.com/watch?v=oKiYuIsPxYk), [Warner Brothers](https://www.youtube.com/watch?v=VYZ3U1inHA4), [Sony](https://www.youtube.com/watch?v=7BWWWQzTpNU), et cetera. You'd think that this is the one thing Holywood studios and people who make [music videos for a living](https://www.youtube.com/watch?v=c6Mx2mxpaCY) would know how to do right, but they don't. This extension is here to fix that.
@@ -61,7 +65,7 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 [v2.0.3 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
 
-[v2.0.2 — Regular version — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
+[v2.0.3 — Regular version — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
 
 ### Installing the current, github version
 
@@ -83,11 +87,17 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 ## Changelog
 
-### v2.0.3 (FF/AMO)
+### v2.1.0 (Git)
+
+* Popup should work more reliably now in Chrome, but sometimes not in FF (?)
+* Twitch works
+* Keyboard shortcuts broken on Firefox/twitch
+
+### v2.0.3 (FF/AMO, Chrome)
 
 * Fixed the bug where Netflix videos weren't vertically centered in Firefox 57+ (not present in Chrome or FF 56 or earlier)
 
-### v2.0.2 (Chrome)
+### v2.0.2
 
 v2.0.1, but UI in the extension button now also works in Chrome.
 
