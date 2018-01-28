@@ -37,7 +37,9 @@ async function main(){
   await scpromise;
   await kbpromise;
 
-
+  // globalVars: lastAr type = original
+  GlobalVars.lastAr = {type: "original"};
+  
   if(Debug.debug)
     console.log("configuration should be loaded now");
   // start autoar and setup everything

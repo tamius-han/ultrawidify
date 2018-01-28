@@ -108,7 +108,7 @@ var _com_sendToEachFrame = async function(message, tabId) {
   if(Debug.debug)
     console.log("[Comms::_com_sendToEveryFrame] sending message to every frames of currenntly active tab");
   
-  try{
+//   try{
     if(tabId === undefined){
       var tabs = await browser.tabs.query({currentWindow: true, active: true});
       tabId = tabs[0].id;
@@ -149,11 +149,11 @@ var _com_sendToEachFrame = async function(message, tabId) {
       console.log("[Comms::_com_sendToEveryFrame] we received responses from all frames", responses);
     
     return responses;
-  }
-  catch(e){
-    console.log("[Comms::_com_sendToEveryFrame] something went wrong when getting frames. this is error:", e);
-    return Promise.reject();
-  }
+//   }
+//   catch(e){
+//     console.log("[Comms::_com_sendToEveryFrame] something went wrong when getting frames. this is error:", e);
+//     return Promise.reject();
+//   }
 }
 
 var Comms = {
