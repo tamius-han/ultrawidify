@@ -121,7 +121,7 @@ var _kbd_load = async function() {
 var _kbd_setup = async function() {
   await _kbd_load();
   
-  $(document).keydown(_kbd_process);
+  document.addEventListener('keydown', _kbd_process);
 }
 
 var _kbd_fetch = async function(){
