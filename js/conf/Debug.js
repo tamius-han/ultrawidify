@@ -9,7 +9,7 @@ Debug = {
   debugArDetect: false,
   debugStorage: true,
   showArDetectCanvas: false,
-  flushStoredSettings: true
+  flushStoredSettings: false
 }
 
 if(_prod){

@@ -132,54 +132,13 @@ function ghettoOnChange(){
 }
 
 
-var _main_fscheck_tries = 3;
 
-// function fullScreenCheck(count) {
-//   if(count >= _main_fscheck_tries){
-//     if(Debug.debug){
-//       console.log("[uw::fullScreenCheck] ok really, I guess.");
-//     }
-//     return;
-//   }
-//   
-//   var fsnow = FullScreenDetect.isFullScreen();
-//   
-//   // we restore, always — esp. now that we also do things in non-fullscreen
-//   
-// //   if(fsnow){
-//     // full screen is on
-// //     Resizer.restore();
-// //   }
-// //   else{
-// //     Resizer.reset();
-// //   }
-//   
-//   // kaj pa, če je FullScreenDetect vrnil narobno vrednost?
-//   // what if FullScreenDetect was not right? Let's verify; if it was wrong we re-trigger it in about 100 ms.
-//   
-//   if(fsnow != _main_last_fullscreen){
-// 
-//     // posodobimo vrednost / update value
-//     _main_last_fullscreen = fsnow;
-// 
-//     // če je to res, count pa je večji kot 0, potem smo imeli prav.
-//     // if that's the case and count is greater than 0, then we were right at some point.    
-//     if(Debug.debug && count > 0){
-//       console.log("[uw::fullScreenCheck] fucking knew it")
-//     }
-//     return;
-//   }
-//   else{
-//     // dobili smo event za spremembo celozaslonskega stanja. Stanje se ni spremenilo. Hmmm.
-//     // we got an event for fullscreen state change. State is unchanged. Hmmm.
-//     if(Debug.debug){
-//       console.log("[uw::fullScreenCheck] oh _really_? 🤔🤔🤔 -- fullscreen state", FullScreenDetect.isFullScreen());
-//     }
-//     count++;
-//     setTimeout(fullScreenCheck, 200, count);
-//   }
-//   console.log("-------------------------------");
-// }
+
+
+
+
+
+
 
 // comms
 function receiveMessage(message, sender, sendResponse) {
@@ -234,14 +193,12 @@ function receiveMessage(message, sender, sendResponse) {
     if(Debug.debug)
       console.log("[uw::receiveMessage] we're being commanded to change aspect ratio to", message.newAr);
     
-    if(message.newAr == "auto"){
-      ArDetect.stop();        // just in case
-      ArDetect.arSetup();
+    if(message.arType == "legacy"){
+      ArDetect.stop();
+      Resizer.legacyAr(message.newAr);
     }
     else{
       ArDetect.stop();
-      
-      // we aren't in full screen, but we will want aspect ratio to be fixed when we go to 
       Resizer.setAr(message.newAr);
     }
   }
@@ -257,6 +214,49 @@ function receiveMessage(message, sender, sendResponse) {
   }
   else if(message.cmd == "reload-settings"){
     Settings.reload();
+  }
+  else if(message.cmd == "uw-enabled-for-site"){
+    var site    = window.location.hostname;
+    var wlindex = Settings.whitelist.indexOf(site);
+    var blindex = Settings.blacklist.indexOf(site);
+    
+    var mode = "default";
+    if(wlindex > -1)
+      mode = "whitelist";
+    if(blindex > -1)
+      mode = "blacklist";
+    
+    if(Debug.debug){
+      console.log("[uw::receiveMessage] is this site whitelisted or blacklisted? whitelist:", (wlindex > -1), "; blacklist:", (blindex > -1), "; mode (return value):", mode, "\nwhitelist:",Settings.whitelist,"\nblacklist:",Settings.blacklist);
+      
+    }
+    
+    if(BrowserDetect.usebrowser == "firefox")
+      return Promise.resolve({response: mode});
+    
+    try{
+      sendResponse({response: mode});
+    }
+    catch(chromeIsShitError){};
+    
+    return true;
+  }
+  else if(message.cmd == "enable-for-site"){
+    var site    = window.location.hostname;
+    var wlindex = Settings.whitelist.indexOf(site);
+    var blindex = Settings.blacklist.indexOf(site);
+    
+    if(wlindex > -1)
+      Settings.whitelist.splice(site, 1);
+    if(blindex > -1)
+      Settings.blacklist.splice(site, 1);
+    
+    if(message.option == "whitelist")
+      Settings.whitelist.push(site);
+    if(message.option == "blacklist")
+      Settings.blacklist.push(site);
+    
+    Settings.save(Settings);
   }
   
   if(message.cmd == "testing"){

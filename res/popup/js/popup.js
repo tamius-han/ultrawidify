@@ -6,12 +6,14 @@ document.getElementById("uw-version").textContent = browser.runtime.getManifest(
 var Menu = {};
 Menu.noVideo    = document.getElementById("no-videos-display");
 Menu.general    = document.getElementById("extension-mode");
+Menu.thisSite   = document.getElementById("settings-for-current-site");
 Menu.arSettings = document.getElementById("aspect-ratio-settings");
 Menu.cssHacks   = document.getElementById("css-hacks-settings");
 Menu.about      = document.getElementById("panel-about");
 
 var MenuTab = {};
 MenuTab.general    = document.getElementById("_menu_general");
+MenuTab.thisSite   = document.getElementById("_menu_this_site");
 MenuTab.arSettings = document.getElementById("_menu_aspectratio");
 MenuTab.cssHacks   = document.getElementById("_menu_hacks");
 MenuTab.about      = document.getElementById("_menu_about");
@@ -86,7 +88,7 @@ function check4videos(){
 
 function check4conf(){
   
-  sendToBackgroundScript({cmd: "get-config"})
+  Comms.sendToBackgroundScript({cmd: "get-config"})
   .then(response => {
     if(Debug.debug)
       console.log("[popup.js::check4conf] received response:",response, response.response);
@@ -98,6 +100,22 @@ function check4conf(){
       console.log("%c[popup.js::check4conf] sending message failed with error", "color: #f00", error, "%c retrying in 1s ...", "color: #f00");
     
     setTimeout(check4conf, 1000);
+  });
+}
+
+function check4siteStatus(){
+  Comms.sendToMain({cmd: "uw-enabled-for-site"})
+  .then(response => {
+    if(Debug.debug)
+      console.log("[popup::check4siteStatus] received response:", response);
+    
+    document.extensionEnabledOnCurrentSite.mode.value = response.response;
+  })
+  .catch(error => {
+    if(Debug.debug)
+      console.log("%c[popup.js::check4siteStatus] sending message failed with error", "color: #f00", error, "%c retrying in 1s ...", "color: #f00");
+    
+//     setTimeout(check4siteStatus, 1000);
   });
 }
 
@@ -232,30 +250,37 @@ function showArctlButtons(){
   if(! _config)
     return;
   
-  if(_config.arConf){
-    if(! _config.arConf.enabled_global){
-      ArPanel.autoar.disable.classList.add("hidden");
-      ArPanel.autoar.enable.classList.remove("hidden");
-      
-      ArPanel.autoar.enable_tmp.textContent = "Temporarily enable";
-      ArPanel.autoar.disable_tmp.textContent = "Temporarily disable";
-    }
-    else{
-      ArPanel.autoar.disable.classList.remove("hidden");
-      ArPanel.autoar.enable.classList.add("hidden");
-      
-      ArPanel.autoar.enable_tmp.textContent = "Re-enable";
-      ArPanel.autoar.disable_tmp.textContent = "Temporarily disable";
-    }
-    if(! _config.arConf.enabled_current){
-      ArPanel.autoar.disable_tmp.classList.add("hidden");
-      ArPanel.autoar.enable_tmp.classList.remove("hidden");
-    }
-    else{
-      ArPanel.autoar.disable_tmp.classList.remove("hidden");
-      ArPanel.autoar.enable_tmp.classList.add("hidden");
-    }
-  }
+//   if(_config.arConf){
+//     if(! _config.arConf.enabled_global){
+//       ArPanel.autoar.disable.classList.add("hidden");
+//       ArPanel.autoar.enable.classList.remove("hidden");
+//       
+//       ArPanel.autoar.enable_tmp.textContent = "Temporarily enable";
+//       ArPanel.autoar.disable_tmp.textContent = "Temporarily disable";
+//     }
+//     else{
+//       ArPanel.autoar.disable.classList.remove("hidden");
+//       ArPanel.autoar.enable.classList.add("hidden");
+//       
+//       ArPanel.autoar.enable_tmp.textContent = "Re-enable";
+//       ArPanel.autoar.disable_tmp.textContent = "Temporarily disable";
+//     }
+//     if(! _config.arConf.enabled_current){
+//       ArPanel.autoar.disable_tmp.classList.add("hidden");
+//       ArPanel.autoar.enable_tmp.classList.remove("hidden");
+//     }
+//     else{
+//       ArPanel.autoar.disable_tmp.classList.remove("hidden");
+//       ArPanel.autoar.enable_tmp.classList.add("hidden");
+//     }
+//   }
+}
+
+function toggleSite(option){
+  if(Debug.debug)
+    console.log("[popup::toggleSite] toggling extension 'should I work' status to", option, "on current site");
+  
+  Comms.sendToMain({cmd:"enable-for-site", option:option});
 }
 
 document.addEventListener("click", (e) => {
@@ -273,6 +298,9 @@ document.addEventListener("click", (e) => {
     if(e.target.classList.contains("menu-item")){
       if(e.target.classList.contains("_menu_general")){
         openMenu("general");
+      }
+      if(e.target.classList.contains("_menu_this_site")){
+        openMenu("thisSite");
       }
       else if(e.target.classList.contains("_menu_aspectratio")){
         openMenu("arSettings");
@@ -292,31 +320,49 @@ document.addEventListener("click", (e) => {
       if(e.target.classList.contains("_ar_auto")){
         command.cmd = "force-ar";
         command.newAr = "auto";
+        command.arType = "legacy";
         return command;
       }
       if(e.target.classList.contains("_ar_reset")){
         command.cmd = "force-ar";
         command.newAr = "reset";
+        command.arType = "legacy";
+        return command;
+      }
+      if(e.target.classList.contains("_ar_fitw")){
+        command.cmd = "force-ar";
+        command.newAr = "fitw";
+        command.arType = "legacy";
+        return command;
+      }
+      if(e.target.classList.contains("_ar_fitw")){
+        command.cmd = "force-ar";
+        command.newAr = "fith";
+        command.arType = "legacy";
         return command;
       }
       if(e.target.classList.contains("_ar_219")){
         command.cmd = "force-ar";
         command.newAr = 2.39;
+        command.arType = "static";
         return command;
       }
       if(e.target.classList.contains("_ar_189")){
         command.cmd = "force-ar";
         command.newAr = 2.0;
+        command.arType = "static";
         return command;
       }
       if(e.target.classList.contains("_ar_169")){
         command.cmd = "force-ar";
         command.newAr = 1.78;
+        command.arType = "static";
         return command;
       }
       if(e.target.classList.contains("_ar_1610")){
         command.cmd = "force-ar";
         command.newAr = 1.6;
+        command.arType = "static";
         return command;
       }
     }
@@ -362,6 +408,11 @@ document.addEventListener("click", (e) => {
         return command;
       }
     }
+  
+    if(e.target.classList.contains("extensionEnabledOnCurrentSite")){
+      toggleSite(document.extensionEnabledOnCurrentSite.mode.value);
+    }
+    
   }
   
   var command = getcmd(e);  
@@ -374,3 +425,4 @@ document.addEventListener("click", (e) => {
 
 check4videos();
 check4conf();
+check4siteStatus();

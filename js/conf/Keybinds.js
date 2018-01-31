@@ -79,7 +79,6 @@ var _kbd_process = function (event) {          // Tukaj ugotovimo, katero tipko 
       ArDetect.stop();
     
     if(conf.action == "char"){
-//       Status.arStat = "fixed";
       Resizer.setAr(conf.targetAr);
     }
     else{
@@ -136,6 +135,8 @@ var _kbd_fetch = async function(){
   return _kbd_keybinds;
 }
 
+
+
 var _kbd_getKeybinds = function(){
   return _kbd_keybinds;
 }
@@ -144,5 +145,6 @@ var Keybinds = {
   init: _kbd_setup,
   fetch: _kbd_fetch,
   mods: _kbd_ModKeys,
-  getKeybinds: _kbd_getKeybinds
+  getKeybinds: _kbd_getKeybinds,
+  keybinds: _kbd_keybinds
 }

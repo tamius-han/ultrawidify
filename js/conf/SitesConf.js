@@ -73,10 +73,12 @@ var _sc_init = function() {
  * <location.hostname>: {
  *    enabled: string,        // whitelist, blacklist, global
  *    type: string,
- *    autoAr: {             // konfiguracija za samodejno zaznavanje razmerja stranic | conf for aspect ratio autodetection
+ *    autoAr: {       // konfiguracija za samodejno zaznavanje razmerja stranic | conf for aspect ratio autodetection
  *      active: bool           // aktivno zaznavanje — zaznavamo letterbox na sliki | active detection: scan the image
- *      passive: bool          // pasivno zaznavanje — za ar vprašamo imdb in ostale | passive detection: query imdb for aspect ratio
- *      nonfs: bool            // zaznavanje razmerja stranic izven celozaslonskega načina | detect ar if not in fullscreen?
+ *      passive: bool          // pasivno zaznavanje — za ar vprašamo imdb in ostale | passive detection: query imdb 
+ *                             // for aspect ratio [DEPRECATED]
+ *      nonfs: bool            // zaznavanje razmerja stranic izven celozaslonskega načina | detect ar if not in
+ *                             // fullscreen? [DEPRECATED]
  *      playerIdentificationString: string   
  *      playerIdentificationType: string     // "className" | "id"
  *      nonfsExtra: function   // non-fs hacks are generally site-specific, which means we need to write site-specific code 

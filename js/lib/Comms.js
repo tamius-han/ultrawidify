@@ -108,52 +108,68 @@ var _com_sendToEachFrame = async function(message, tabId) {
   if(Debug.debug)
     console.log("[Comms::_com_sendToEveryFrame] sending message to every frames of currenntly active tab");
   
-//   try{
-    if(tabId === undefined){
-      var tabs = await browser.tabs.query({currentWindow: true, active: true});
-      tabId = tabs[0].id;
-    }
-    var frames = await browser.webNavigation.getAllFrames({tabId: tabId});
-    
-    if(Debug.debug)
-      console.log("[Comms::_com_sendToEveryFrame] we have this many frames:", frames.length, "||| tabId:", tabId ,"frames:",frames);
-    
-    
-    // pošlji sporočilce vsakemu okvirju, potisni obljubo v tabelo
-    // send message to every frame, push promise to array
-    var promises = [];
-    for(var frame of frames){
+  if(tabId === undefined){
+    var tabs = await browser.tabs.query({currentWindow: true, active: true});
+    tabId = tabs[0].id;
+  }
+  var frames = await browser.webNavigation.getAllFrames({tabId: tabId});
+  
+  if(Debug.debug)
+    console.log("[Comms::_com_sendToEveryFrame] we have this many frames:", frames.length, "||| tabId:", tabId ,"frames:",frames);
+  
+  
+  // pošlji sporočilce vsakemu okvirju, potisni obljubo v tabelo
+  // send message to every frame, push promise to array
+  var promises = [];
+  for(var frame of frames){
+      if(Debug.debug)
+        console.log("[Comms:_com_sendToEachFrame] we sending message to tab with id", tabId, ", frame with id", frame.frameId);
+      try{
+        promises.push(browser.tabs.sendMessage(tabId, message, {frameId: frame.frameId}));
+      }
+      catch(e){
         if(Debug.debug)
           console.log("[Comms:_com_sendToEachFrame] we sending message to tab with id", tabId, ", frame with id", frame.frameId);
-        try{
-          promises.push(browser.tabs.sendMessage(tabId, message, {frameId: frame.frameId}));
-        }
-        catch(e){
-          if(Debug.debug)
-            console.log("[Comms:_com_sendToEachFrame] we sending message to tab with id", tabId, ", frame with id", frame.frameId);
-        }
-    }
+      }
+  }
+  
+  // počakajmo, da so obljube izpolnjene. 
+  // wait for all promises to be kept
+  
+  var responses = [];
+  
+  for(var promise of promises){
+    var response = await promise;
+    if(response !== undefined)
+      responses.push(response);
+  }
+  
+  if(Debug.debug)
+    console.log("[Comms::_com_sendToEveryFrame] we received responses from all frames", responses);
+  
+  return responses;
+}
+
+var _com_sendToMainFrame = async function(message, tabId){
+  if(Debug.debug)
+    console.log("[Comms::_com_sendToMainFrame] sending message to every frames of currenntly active tab");
+  
+  if(tabId === undefined){
+    var tabs = await browser.tabs.query({currentWindow: true, active: true});
+    tabId = tabs[0].id;
+  }
+  
+  // pošlji sporočilce glavnemu okvirju. Glavni okvir ima id=0
+  // send message to the main frame. Main frame has id=0
+  try{
+    var response = await browser.tabs.sendMessage(tabId, message, {frameId: 0});
+    console.log("[Comms::_com_sendToMainFrame] response is this:",response);
     
-    // počakajmo, da so obljube izpolnjene. 
-    // wait for all promises to be kept
-    
-    var responses = [];
-    
-    for(var promise of promises){
-      var response = await promise;
-      if(response !== undefined)
-        responses.push(response);
-    }
-    
-    if(Debug.debug)
-      console.log("[Comms::_com_sendToEveryFrame] we received responses from all frames", responses);
-    
-    return responses;
-//   }
-//   catch(e){
-//     console.log("[Comms::_com_sendToEveryFrame] something went wrong when getting frames. this is error:", e);
-//     return Promise.reject();
-//   }
+  }
+  catch(e){
+      console.log("[Comms:_com_sendToEachFrame] failed sending message to tab with id", tabId, ", frame with id", 0, "\nerror:",e);
+  }
+  return response;
 }
 
 var Comms = {
@@ -164,4 +180,5 @@ var Comms = {
   sendMessageRuntime: _com_sendMessageRuntime,
   sendToEach: _com_sendToEachFrame,
   sendToAll: _com_sendToAllFrames,
+  sendToMain: _com_sendToMainFrame,
 }

@@ -88,6 +88,7 @@ var _res_legacyAr = function(action){
   var fileAr = vid.videoWidth / vid.videoHeight;
   GlobalVars.lastAr = {type: "legacy", action: action};
   
+  
   if(action == "fitw"){
     _res_setAr( ar > fileAr ? ar : fileAr);
     return;
@@ -101,7 +102,7 @@ var _res_legacyAr = function(action){
     _res_setAr(fileAr);
     return;
   }
-  if(action == "autoar"){
+  if(action == "autoar" || action == "auto"){
     GlobalVars.lastAr = {type: "auto"};
     ArDetect.init();
   }

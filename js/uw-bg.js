@@ -10,6 +10,8 @@ async function main(){
   
   await Settings.init();
   await Keybinds.init();
+  Keybinds.keybinds = await Keybinds.fetch();
+  
   
   // Poslušalci za dogodke       |      event listeners here
   // {===]///[-------------------------------------]\\\[===}
@@ -95,9 +97,9 @@ function _uwbg_rcvmsg(message, sender, sendResponse){
     config.arConf.enabled_global = Settings.arDetect.enabled == "global";
     
     if(Debug.debug)
-      console.log("[uw-bg::_uwbg_rcvmsg] Keybinds.fetch returned this:", keybinds); 
+      console.log("[uw-bg::_uwbg_rcvmsg] Keybinds.getKeybinds() returned this:", Keybinds.getKeybinds()); 
     
-    config.keyboardShortcuts = BgVars.keyboardShortcuts;
+    config.keyboardShortcuts = Keybinds.getKeybinds();
     
     
     // predvidevajmo, da je enako. Če je drugače, bomo popravili ko dobimo odgovor
@@ -123,37 +125,6 @@ function _uwbg_rcvmsg(message, sender, sendResponse){
     
     _uwbg_registerVideo(sender.tab.id);
   }
-//   else if(message.cmd == "force-ar"){
-//     sendMessage(message);  // args: {cmd: string, newAr: number/"auto"}
-//   }
-//   else if(message.cmd == "stop-autoar"){
-//     sendMessage(message);
-//   }
-//   else if(message.cmd == "force-video-float"){
-//     if(message.global){
-//       Settings.miscFullscreenSettings.videoFloat = message.newFloat;
-//       sendMessage(message);
-//     }
-//     else{
-//       sendMessage(message);
-//     }
-//   }
-//   
-//   else if(message.cmd == "disable-autoar"){
-//     Settings.arDetect.enabled = "no";
-//     Settings.save();
-//     sendMessage("reload-settings");
-//   }
-//   else if(message.cmd == "disable-autoar-whitelist-only"){
-//     Settings.arDetect.enabled = "whitelist";
-//     Settings.save();
-//     sendMessage("reload-settings");
-//   }
-//   else if(message.cmd == "enable-autoar"){
-//     Settings.arDetect.enabled = "global";
-//     Settings.save();
-//     sendMessage("reload-settings");
-//   }
 }
 
 
