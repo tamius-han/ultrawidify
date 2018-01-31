@@ -139,8 +139,8 @@
       U<span class="smallcaps">ltrawidify</span>: <small>Quick settings</small>
     </div>
     <div class="left-side">
-      <div id="_menu_general" class="menu-item disabled _menu_general">
-        General settings
+      <div id="_menu_this_site" class="menu-item _menu_this_site">
+        Settings for this site
       </div>
       <div id="_menu_aspectratio" class="menu-item selected _menu_aspectratio">
         Aspect ratio and alignment
@@ -178,6 +178,17 @@
         </form>
       </div>
       
+      <div id="settings-for-current-site" class="suboption hidden">
+        <p>Allow this extension to run on this site?</p>
+        <form action="" name="extensionEnabledOnCurrentSite">
+          <input type="radio" class="extensionEnabledOnCurrentSite" name="mode" value="default" > Follow global rules<br/>
+          <input type="radio" class="extensionEnabledOnCurrentSite" name="mode" value="whitelist" > Always (whitelist)<br/>
+          <input type="radio" class="extensionEnabledOnCurrentSite" name="mode" value="blacklist" > Never (blacklist)<br/>
+        </form>
+        <small>NOTE: this settings <b>don't</b> apply to videos embedded from other sites.</small>
+        
+      </div>
+      
       <div id="aspect-ratio-settings" class="suboption hidden">
         <div class="row">
           <span class="label">Force aspect ratio:</span>
@@ -189,7 +200,7 @@
             <a class="button _changeAr _ar_169 w24">16:9<br/><span id="_b_changeAr_169_key" class="smallcaps small darker"></span></a>
           </div>
         </div>
-        <div class="row">
+        <!--<div class="row">
           <span class="label">Automatic aspect ratio autodetection:</span>
           <div class="button-row">
             <a id="_autoar_disable_tmp" class="button _autoar _autoar_temp-disable">Temporarily disable</a>
@@ -197,7 +208,7 @@
             <a id="_autoar_disable"           class="button _autoar _autoar_disable">Disable</a>
             <a id="_autoar_enable"            class="button _autoar _autoar_enable hidden">Enable</a>
           </div>
-        </div>
+        </div>-->
         <div class="row">
           <span class="label">Video alignment:</span>
           <div class="button-row">

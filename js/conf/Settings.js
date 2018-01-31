@@ -6,8 +6,8 @@ if(Debug.debug)
 
 var _se_init = async function(neverFlushStored){
   
-  if(Debug.flushStoredSettings && neverFlushStored === false)
-    StorageManager.delopt("uw-settings");
+//   if(Debug.flushStoredSettings && neverFlushStored === false)
+//     StorageManager.delopt("uw-settings");
   
   if(Debug.debug)
     console.log("[Settings::_se_init()] -------- starting init! ---------");
@@ -15,10 +15,10 @@ var _se_init = async function(neverFlushStored){
   
   var newSettings = await StorageManager.getopt_async("uw-settings");
   if (Debug.debug)
-    console.log("[Settings::_se_init()] settings saved in localstorage are ", (newSettings === {} ? ("nonexistent (", newSettings, ")") : newSettings ));
+    console.log("[Settings::_se_init()] settings saved in localstorage are:", newSettings, " - if that's empty, it's gonna be replaced by this:", JSON.stringify(this), ")");
   
-  if (newSettings === {}){
-    StorageManager.setopt({"uw-settings": this});
+  if ((Object.keys(newSettings).length === 0 && newSettings.constructor === Object)){
+    StorageManager.setopt({"uw-settings": JSON.stringify(this)});
   }
   else{
     for (var k in newSettings) 
@@ -30,9 +30,18 @@ var _se_init = async function(neverFlushStored){
   
 }
 
-var _se_save = function(){
+var _se_save = function(settings){
   StorageManager.delopt("uw-settings");
-  StorageManager.setopt({"uw-settings": this});
+  
+  if(settings !== undefined){
+    StorageManager.setopt({"uw-settings": JSON.stringify(settings)});    
+  }
+  else{
+    StorageManager.setopt({"uw-settings": JSON.stringify(this)});
+  }
+  
+  if (Debug.debug)
+    console.log("[Settings::_se_save()] saving settings:", JSON.stringify(settings));
 }
 
 var _se_reload = function(){
@@ -64,6 +73,8 @@ var Settings = {
   colors:{
 //     criticalFail: "background: #fa2; color: #000"
   },
+  whitelist: [],
+  blacklist: ["vimeo.com"],
   init: _se_init,
   save: _se_save,
   reload: _se_reload,
