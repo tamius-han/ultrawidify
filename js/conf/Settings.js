@@ -18,11 +18,17 @@ var _se_init = async function(neverFlushStored){
     console.log("[Settings::_se_init()] settings saved in localstorage are:", newSettings, " - if that's empty, it's gonna be replaced by this:", JSON.stringify(this), ")");
   
   if ((Object.keys(newSettings).length === 0 && newSettings.constructor === Object)){
+    console.log("[Settings::_se_init()] replacing settings");
     StorageManager.setopt({"uw-settings": JSON.stringify(this)});
   }
   else{
-    for (var k in newSettings) 
-      this[k] = newSettings[k];
+    var actualSettings = JSON.parse(newSettings["uw-settings"]);
+    
+    if(Debug.debug)
+      console.log("[Settings::_se_init()] parsed settings:", actualSettings);
+    
+    for (var k in actualSettings) 
+      this[k] = actualSettings[k];
   }
   
   if(Debug.debug)

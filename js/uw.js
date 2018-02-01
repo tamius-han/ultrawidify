@@ -94,8 +94,7 @@ var _video_recheck_counter = 0;
 var _video_recheck_period = 60;  // on this many retries
 
 function ghettoOnChange(){
-//   console.log("..");
-//   console.log("events:", $._data($(document)[0], "events"));
+  
   if(_video_recheck_counter++ > _video_recheck_period){
     _video_recheck_counter = 0;
     
@@ -215,50 +214,6 @@ function receiveMessage(message, sender, sendResponse) {
   else if(message.cmd == "reload-settings"){
     Settings.reload();
   }
-  else if(message.cmd == "uw-enabled-for-site"){
-    var site    = window.location.hostname;
-    var wlindex = Settings.whitelist.indexOf(site);
-    var blindex = Settings.blacklist.indexOf(site);
-    
-    var mode = "default";
-    if(wlindex > -1)
-      mode = "whitelist";
-    if(blindex > -1)
-      mode = "blacklist";
-    
-    if(Debug.debug){
-      console.log("[uw::receiveMessage] is this site whitelisted or blacklisted? whitelist:", (wlindex > -1), "; blacklist:", (blindex > -1), "; mode (return value):", mode, "\nwhitelist:",Settings.whitelist,"\nblacklist:",Settings.blacklist);
-      
-    }
-    
-    if(BrowserDetect.usebrowser == "firefox")
-      return Promise.resolve({response: mode});
-    
-    try{
-      sendResponse({response: mode});
-    }
-    catch(chromeIsShitError){};
-    
-    return true;
-  }
-  else if(message.cmd == "enable-for-site"){
-    var site    = window.location.hostname;
-    var wlindex = Settings.whitelist.indexOf(site);
-    var blindex = Settings.blacklist.indexOf(site);
-    
-    if(wlindex > -1)
-      Settings.whitelist.splice(site, 1);
-    if(blindex > -1)
-      Settings.blacklist.splice(site, 1);
-    
-    if(message.option == "whitelist")
-      Settings.whitelist.push(site);
-    if(message.option == "blacklist")
-      Settings.blacklist.push(site);
-    
-    Settings.save(Settings);
-  }
-  
   if(message.cmd == "testing"){
     if(Browserdetect.usebrowser = "firefox")
       return Promise.resolve({response: "test response hier"});

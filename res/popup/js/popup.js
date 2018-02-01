@@ -4,7 +4,7 @@ if(Debug.debug)
 document.getElementById("uw-version").textContent = browser.runtime.getManifest().version;
 
 var Menu = {};
-Menu.noVideo    = document.getElementById("no-videos-display");
+// Menu.noVideo    = document.getElementById("no-videos-display");
 Menu.general    = document.getElementById("extension-mode");
 Menu.thisSite   = document.getElementById("settings-for-current-site");
 Menu.arSettings = document.getElementById("aspect-ratio-settings");
@@ -66,6 +66,10 @@ async function sendMessage(message){
   return response;
 }
 
+function hideWarning(warn){
+  document.getElementById(warn).classList.add("hidden");
+}
+
 function check4videos(){
 
   Comms.sendToBackgroundScript({cmd: "has-videos"})
@@ -75,7 +79,8 @@ function check4videos(){
     }
     if(response.response.hasVideos){
       hasVideos = true;
-      openMenu(selectedMenu);
+//       openMenu(selectedMenu);
+      hideWarning("no-videos-warning");
     }
   })
   .catch(error => {
@@ -104,7 +109,7 @@ function check4conf(){
 }
 
 function check4siteStatus(){
-  Comms.sendToMain({cmd: "uw-enabled-for-site"})
+  Comms.sendToBackgroundScript({cmd: "uw-enabled-for-site"})
   .then(response => {
     if(Debug.debug)
       console.log("[popup::check4siteStatus] received response:", response);
@@ -208,13 +213,13 @@ function openMenu(menu){
   }
   
   if(menu == "arSettings" || menu == "cssHacks" ){
-    if(!hasVideos)
-      Menu.noVideo.classList.remove("hidden");
-    else{
+//     if(!hasVideos)
+//       Menu.noVideo.classList.remove("hidden");
+//     else{
       Menu[menu].classList.remove("hidden");
       if(Debug.debug){
         console.log("[popup.js::openMenu] unhid", menu, "| element: ", Menu[menu]);
-      }
+//       }
     }
   }
   else{
@@ -224,10 +229,10 @@ function openMenu(menu){
     }
   }
   
-  if(menu != "noVideo"){
-    selectedMenu = menu;
-    MenuTab[menu].classList.add("selected");
-  }
+//   if(menu != "noVideo"){
+//     selectedMenu = menu;
+//     MenuTab[menu].classList.add("selected");
+//   }
 }
 
 function _arctl_onclick(command){
@@ -280,7 +285,7 @@ function toggleSite(option){
   if(Debug.debug)
     console.log("[popup::toggleSite] toggling extension 'should I work' status to", option, "on current site");
   
-  Comms.sendToMain({cmd:"enable-for-site", option:option});
+  Comms.sendToBackgroundScript({cmd:"enable-for-site", option:option});
 }
 
 document.addEventListener("click", (e) => {
@@ -422,7 +427,8 @@ document.addEventListener("click", (e) => {
   return true;
 });
 
-
+hideWarning("script-not-running-warning");
+openMenu(selectedMenu);
 check4videos();
 check4conf();
 check4siteStatus();

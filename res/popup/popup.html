@@ -108,6 +108,23 @@
     .w24 {
       width: 100px;
     }
+    .warning {
+      /*background-*/color: #d6ba4a;
+/*       color: #000; */
+      padding-left: 35px;
+      float: right;
+    }
+    .warning::before {
+      content: "⚠ ";
+      display: inline-block;
+      font-weight: bold;
+      font-size: 2.5em;
+      margin-left: -35px;
+      padding-right: 10px;
+/*       top: 0px; */
+      float: left;
+    }
+    
     .button:hover {
       color: #fff;
       background-color: #433221;
@@ -153,13 +170,7 @@
       </div>
     </div>
     <div class="right-side">
-      <div id="no-videos-display" class="suboption">
-        <p class="label center">No videos have been found on this page.</p><p>If there <i>is</i> a video on this page, then you're seeing this message for one of these reasons:</p>
-        <ul><li>Page hasn't finished loading<small><br/><span class="smallcaps">Note</span>: webextensions only start working when page is fully loaded.</small></li>
-        <li>The video is embedded / in an iframe.<small><br/>This is a known issue/limitation. Use keyboard shortcuts to correct aspect ratio.</small></li>
-        <li>Hamster Rajko is on strike.<small><br/>(Close this popup and reopen in a few seconds)</small></li></ul>
-        <p><u>Keyboard shortcuts:</u><br/>* <b>A</b> - attempt automatic detection<br/>* <b>W</b> - fit to width<br/>* <b>E</b> - fit to height<br/>* <b>R</b> - reset/stop automatic detection<br/><br/>Force aspect ratio:<br/>* <b>S</b>: 16:9<br/>* <b>D</b>: 21:9<br/>* <b>X</b>: 2:1</p>
-      </div>
+      <div id="script-not-running-warning" class="warning">If you see this line, then your browser didn't start the popup script yet. This is a problem caused by the browser. Please wait a few seconds.</div>
     
       <div id="extension-mode" class="suboption hidden">
         <p>How should extension work in general?<br/><small>NOTE: settings will be applied when page is reloaded.</small></p>
@@ -185,11 +196,13 @@
           <input type="radio" class="extensionEnabledOnCurrentSite" name="mode" value="whitelist" > Always (whitelist)<br/>
           <input type="radio" class="extensionEnabledOnCurrentSite" name="mode" value="blacklist" > Never (blacklist)<br/>
         </form>
-        <small>NOTE: this settings <b>don't</b> apply to videos embedded from other sites.</small>
+        <small>NOTE: this settings <b>don't</b> apply to videos embedded from other sites. This option takes effect after page reload.</small>
         
       </div>
       
       <div id="aspect-ratio-settings" class="suboption hidden">
+        
+        <div id="no-videos-warning" class="warning">No videos were detected on this page. The buttons may not work at all. Check that this site is not blacklisted and reload the page.</div>
         <div class="row">
           <span class="label">Force aspect ratio:</span>
           <div class="button-row">
