@@ -1,7 +1,22 @@
 var BgVars = {
   arIsActive: true,
-  hasVideos: false
+  hasVideos: false,
+  currentSite: ""
+}
+
+function extractHostname(url){
+  // extract hostname  
+  if (url.indexOf("://") > -1) {    //find & remove protocol (http, ftp, etc.) and get hostname
+    hostname = url.split('/')[2];
+  }
+  else {
+    hostname = url.split('/')[0];
+  }
   
+  hostname = hostname.split(':')[0];   //find & remove port number
+  hostname = hostname.split('?')[0];   //find & remove "?"
+  
+  return hostname;
 }
 
 async function main(){
@@ -21,6 +36,11 @@ async function main(){
   
   if(Debug.debug)
     console.log("[uw-bg::main] listeners registered");
+  
+  // add currentSite
+  var tabs = await Comms.getActiveTab();
+  BgVars.currentSite = extractHostname(tabs[0].url);
+  
 }
 
 async function _uwbg_onTabSwitched(activeInfo){
@@ -28,8 +48,14 @@ async function _uwbg_onTabSwitched(activeInfo){
   if(Debug.debug)
     console.log("[uw-bg::onTabSwitched] TAB CHANGED, GETTING INFO FROM MAIN TAB");
   
+  
   var tabId = activeInfo.tabId;   // just for readability
   
+  var tab = await browser.tabs.get(tabId);
+  
+  BgVars.currentSite = extractHostname(tab.url);
+  
+  // this can fail. This might also not return a promise? Check that.
   var videoFrameList = await Comms.sendToEach({"cmd":"has-videos"}, tabId);
   
   if(Debug.debug)
@@ -125,6 +151,49 @@ function _uwbg_rcvmsg(message, sender, sendResponse){
     
     _uwbg_registerVideo(sender.tab.id);
   }
+  
+  else if(message.cmd == "uw-enabled-for-site"){
+    var wlindex = Settings.whitelist.indexOf(BgVars.currentSite);
+    var blindex = Settings.blacklist.indexOf(BgVars.currentSite);
+    
+    var mode = "default";
+    if(wlindex > -1)
+      mode = "whitelist";
+    if(blindex > -1)
+      mode = "blacklist";
+    
+    if(Debug.debug){
+      console.log("[uw::receiveMessage] is this site: ", BgVars.currentSite, "\n\n", "whitelisted or blacklisted? whitelist:", (wlindex > -1), "; blacklist:", (blindex > -1), "; mode (return value):", mode, "\nwhitelist:",Settings.whitelist,"\nblacklist:",Settings.blacklist);
+      
+    }
+    
+    if(BrowserDetect.usebrowser == "firefox")
+      return Promise.resolve({response: mode});
+    
+    try{
+      sendResponse({response: mode});
+    }
+    catch(chromeIsShitError){};
+    
+    return true;
+  }
+  else if(message.cmd == "enable-for-site"){
+    var wlindex = Settings.whitelist.indexOf(BgVars.currentSite);
+    var blindex = Settings.blacklist.indexOf(BgVars.currentSite);
+    
+    if(wlindex > -1)
+      Settings.whitelist.splice(BgVars.currentSite, 1);
+    if(blindex > -1)
+      Settings.blacklist.splice(BgVars.currentSite, 1);
+    
+    if(message.option == "whitelist")
+      Settings.whitelist.push(BgVars.currentSite);
+    if(message.option == "blacklist")
+      Settings.blacklist.push(BgVars.currentSite);
+    
+    Settings.save();
+  }
+  
 }
 
 
