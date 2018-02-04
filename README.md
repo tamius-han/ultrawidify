@@ -6,12 +6,9 @@ If you own an ultrawide monitor, you have probably noticed that sometimes videos
 
 ![Demo](img-demo/example-httyd2.png "Should these black bars be here? No [...] But an ultrawide user never forgets.")
 
-Works on Youtube and Netflix. Available for [Firefox (v2.0.3)](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) and [Chrome (v2.0.2)](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi).
+Works (tested!) on Youtube and Netflix, but you can try your luck with other sites as well. Available for [Firefox (v2.0.3)](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) and [Chrome (v2.0.2)](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi). Should support theater mode on youtube, iframes only supported on fullscreen.
 
-&nbsp;
-
-**Click for [youtube demo](https://www.youtube.com/watch?v=j2xn1WpbtCQ):**  
-[![Ultrawidify - youtube demo](https://img.youtube.com/vi/j2xn1WpbtCQ/0.jpg)](https://www.youtube.com/watch?v=j2xn1WpbtCQ)
+Youtube demo of autodetection stuff can be found [here](https://www.youtube.com/watch?v=j2xn1WpbtCQ).
 
 ## Beggathon
 
@@ -28,9 +25,8 @@ The technology has been here for a while, but plenty of people don't know how to
 * **Fit video to width/height**
 * **Force specific aspect ratio**
 * **Attempts to automatically detect aspect ratio**
-* **Rebindable shortcuts**
+* ~~**Rebindable shortcuts**~~ temporarily off
 
-**Note that changing aspect ratio only works in fullscreen (at this time), which is a regression from 1.x**
 
 ### User interface
 
@@ -53,8 +49,6 @@ Most quick options for a page are accessible through a button in the extension b
 
 ### About aspect ratio autodetection
 
-This is not available in Chrome version yet. (Coming soon to AMO version).
-
 Aspect ratio autodetection is achieved by performing some black magic every 30-something milliseconds. This currently can't be turned off by default. If this extension makes video sites lag too much, open an issue and include your hardware and OS — **this is important for me to know in order to better optimize autodetection.**.
 
 Manually triggering aspect ratio change will suspend automatic aspect ratio detection for until the page is refreshed, although it'll maybe unsuspend itself when video is changed. I don't know for certain.
@@ -63,9 +57,9 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 ### Permanent install / stable
 
-[v2.0.3 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
+[v2.1.0 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
 
-[v2.0.3 — Regular version — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
+[v2.1.0 — Regular version — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
 
 ### Installing the current, github version
 
@@ -77,7 +71,7 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 ## Known issues
 
-* Netflix autodetection not working in Chrome, wontfix as issue is fundamentally unfixable. (Although a different kind of workaround could be put in place)
+* Netflix autodetection not working in Chrome, wontfix as issue is fundamentally unfixable. (Although a different kind of workaround could probably be put in place, but don't count on it)
 
 ## Plans for the future
 
@@ -87,13 +81,12 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 ## Changelog
 
-### v2.1.0 (Git)
+### v2.1.0 (FF/AMO, Chrome)
 
-* Popup should work more reliably now in Chrome, but sometimes not in FF (?)
-* Twitch works
-* Keyboard shortcuts broken on Firefox/twitch
+* Popup should work more reliably now
+* Twitch works ... kinda but not always
 
-### v2.0.3 (FF/AMO, Chrome)
+### v2.0.3 
 
 * Fixed the bug where Netflix videos weren't vertically centered in Firefox 57+ (not present in Chrome or FF 56 or earlier)
 

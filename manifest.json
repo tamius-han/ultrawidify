@@ -14,7 +14,6 @@
     "matches": ["*://*/*"],
     "js": [ 
     "js/dep/jquery-3.1.1.js",
-    "js/dep/chrome/chrome-extension-async.js",
     
     "js/run/GlobalVars.js",
     "js/lib/BrowserDetect.js",
@@ -42,7 +41,6 @@
   "background": {
     "scripts": [
     "js/dep/jquery-3.1.1.js",
-    "js/dep/chrome/chrome-extension-async.js",
     
     "js/lib/BrowserDetect.js",
     "js/lib/StorageManager.js",
@@ -91,10 +89,5 @@
   "res/css/uw_yt.css",
   "res/css/uw_netflix.css",
   "res/css/uw_settings.css"
-  ],
-  
-  "options_ui" : {
-    "page": "res/settings/settings.html",
-    "open_in_tab": true
-  }
+  ]
 }
