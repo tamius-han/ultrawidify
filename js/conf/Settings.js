@@ -54,6 +54,14 @@ var _se_reload = function(){
   this.init(true);
 }
 
+var _se_isBlacklisted = function(site){
+  return this.blacklist.indexOf(site) > -1;
+}
+
+var _se_isWhitelisted = function(site){
+  return this.whitelist.indexOf(site) > -1;
+}
+
 var Settings = {
   arDetect: {
     enabled: "global",        // thats my csgo rank kappa
@@ -81,6 +89,8 @@ var Settings = {
   },
   whitelist: [],
   blacklist: ["vimeo.com"],
+  isBlacklisted: _se_isBlacklisted,
+  isWhitelisted: _se_isWhitelisted,
   init: _se_init,
   save: _se_save,
   reload: _se_reload,

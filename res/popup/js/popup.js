@@ -229,10 +229,8 @@ function openMenu(menu){
     }
   }
   
-//   if(menu != "noVideo"){
-//     selectedMenu = menu;
-//     MenuTab[menu].classList.add("selected");
-//   }
+  selectedMenu = menu;
+  MenuTab[menu].classList.add("selected");
 }
 
 function _arctl_onclick(command){
@@ -422,7 +420,7 @@ document.addEventListener("click", (e) => {
   
   var command = getcmd(e);  
   if(command)
-    sendMessage(command);
+    Comms.sendToAll(command);
   
   return true;
 });

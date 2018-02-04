@@ -115,7 +115,19 @@ var _res_setAr = function(ar, playerDimensions){
   GlobalVars.lastAr = {type: "static", ar: ar};
     
   var vid = GlobalVars.video;
+  if(vid == null || vid==undefined || vid.videoWidth == 0 || vid.videoHeight == 0){
+    vid =  document.getElementsByTagName("video")[0];
+    GlobalVars.video = vid;
+    
+    if(vid == null || vid==undefined || vid.videoWidth == 0 || vid.videoHeight == 0){
+      if(Debug.debug)
+        console.log("[Resizer::_res_setAr] You thought there is a video, didn't you? Tricked you. Never would be.", vid);
+      return;
+    }
+  }
   
+  if(Debug.debug)
+    console.log("[Resizer::_res_setAr] video:",vid,"width:", vid.videoWidth, "height:", vid.videoHeight);
   
   // Dejansko razmerje stranic datoteke/<video> značke
   // Actual aspect ratio of the file/<video> tag
@@ -123,10 +135,10 @@ var _res_setAr = function(ar, playerDimensions){
   
   if(ar == "default")
     ar = fileAr;
-  
+
   
   if(Debug.debug)
-    console.log("[Resizer::_res_setAr] ar is " ,ar, ", playerDimensions are ", playerDimensions);
+    console.log("[Resizer::_res_setAr] ar is " ,ar, ", file ar is", fileAr, ", playerDimensions are ", playerDimensions);
   
   var videoDimensions = {
     width: 0,
@@ -157,13 +169,13 @@ var _res_setAr = function(ar, playerDimensions){
   }
   
   if(Debug.debug){
-    console.log("[Resizer::_res_setArFs] Video dimensions: ",videoDimensions, "playerDimensions:",playerDimensions);
+    console.log("[Resizer::_res_setAr] Video dimensions: ",videoDimensions, "playerDimensions:",playerDimensions);
   }
   
   var cssValues = _res_computeOffsets(videoDimensions, playerDimensions);
   
   if(Debug.debug){
-    console.log("[Resizer::_res_setArFs] Offsets for css are: ",cssValues);
+    console.log("[Resizer::_res_setAr] Offsets for css are: ",cssValues);
   }
   
   _res_applyCss(cssValues);

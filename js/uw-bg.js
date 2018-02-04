@@ -77,6 +77,22 @@ async function _uwbg_onTabSwitched(activeInfo){
   // todo: change extension icon depending on whether there's a video on the page or not
 }
 
+async function _uwbg_check4videos(){
+  if(BgVars.hasVideos)
+    return;
+  
+  var videoFrameList = Comms.sendToEach({"cmd":"has-videos"});
+  
+  if(Debug.debug)
+    console.log("[uw-bg::check4videos] got updated list of frames and whether they have videos", videoFrameList);
+  
+  var hasVideos = false;
+  for(frame of videoFrameList){
+    hasVideos |= frame.response.hasVideos;
+  }
+  
+  BgVars.hasVideos = hasVideos;
+}
 
 async function _uwbg_registerVideo(tabId){
   var tabs = await Comms.getActiveTab();
