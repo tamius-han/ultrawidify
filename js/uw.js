@@ -48,32 +48,17 @@ async function main(){
   if(Debug.debug)
     console.log("uw::document.ready | document is ready. Starting ar script ...");
 
-  if(SitesConf.getMode(window.location.hostname) == "blacklist" ){
+  if(Settings.isBlacklisted(window.location.hostname)){
     if(Debug.debug)
       console.log("uw::document.ready | site", window.location.hostname, "is blacklisted.");
 
     return;
-  }
-  
-  if( ExtensionConf.mode == "none" ){
-    if(Debug.debug)
-      console.log("uw::document.ready | Extension is soft-disabled via popup");
-    
-    return;
-  }
-  if( ExtensionConf.mode == "whitelist" && SitesConf.getMode(window.location.hostname) != "whitelist"){
-    if(Debug.debug)
-      console.log("uw::document.ready | extension is set to run on whitelisted sites only, but site ", window.location.hostname, "is not on whitelist.");
-    
-    return;
-  }
-  
-  
+  } 
   
   if(Settings.arDetect.enabled == "global"){
     if(Debug.debug)
       console.log("[uw::main] Aspect ratio detection is enabled. Starting ArDetect");
-//     ArDetect.arSetup();
+    ArDetect.arSetup();
   }
   else{
     if(Debug.debug)
@@ -98,9 +83,16 @@ function ghettoOnChange(){
   if(_video_recheck_counter++ > _video_recheck_period){
     _video_recheck_counter = 0;
     
-    if(GlobalVars.video === null){
+    if ( GlobalVars.video == null || 
+         GlobalVars.video == undefined ||
+         GlobalVars.video.videoWidth == 0 ||
+         GlobalVars.video.videoHeight == 0 ){
+      
       var video = document.getElementsByTagName("video")[0];
-      if(video !== undefined){
+      if ( video !== undefined &&
+           video !== null && 
+           video.videoWidth > 0 &&
+           video.videoHeight > 0 ){
         GlobalVars.video = video;
         Comms.sendToBackgroundScript({"cmd":"register-video"});
       }

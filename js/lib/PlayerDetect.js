@@ -40,7 +40,12 @@ var _pd_getPlayerDimensions = function(element){
       height: screen.height
     };
   }
-  
+  if(element == null){
+    if(Debug.debug)
+      console.log("[PlayerDetect::_pd_getPlayerDimensions] element is not valid, doing nothing.", element)
+    
+    return;
+  }
   var playerCandidateNode = element;
   
   // in case our <video> is bigger than player in one dimension but smaller in the other
