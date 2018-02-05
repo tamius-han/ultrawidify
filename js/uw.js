@@ -67,13 +67,22 @@ async function main(){
   
   browser.runtime.onMessage.addListener(receiveMessage);
   setInterval( ghettoOnChange, 33);
+  setInterval( ghettoUrlWatcher, 500);
+  
+  // ko se na ticevki zamenja video, console.log pravi da ultrawidify spremeni razmerje stranic. preglej element 
+  // in pogled na predvajalnik pravita, da se to ni zgodilo. Iz tega sledi, da nam ticevka povozi css, ki smo ga
+  // vsilili. To super duper ni kul, zato uvedemo nekaj protiukrepov.
+  //
+  // when you change a video on youtube, console.log says that ultrawidify changes aspect ratio. inspect element 
+  // and a look at youtube player, on the other hand, say this didn't happen. It seems that youtube overrides our
+  // css, and this is super duper uncool. Therefore, extra checks and measures.
+  setInterval( Resizer.antiCssOverride, 200);
+  
 }
-
 
 
 // tukaj gledamo, ali se je velikost predvajalnika spremenila. Če se je, ponovno prožimo resizer
 // here we check (in the most ghetto way) whether player size has changed. If it has, we retrigger resizer.
-
 
 var _video_recheck_counter = 0;
 var _video_recheck_period = 60;  // on this many retries
@@ -123,6 +132,18 @@ function ghettoOnChange(){
 }
 
 
+
+function ghettoUrlWatcher(){
+  if (GlobalVars.lastUrl != window.location.href){
+    if(Debug.debug){
+      console.log("[uw::ghettoUrlWatcher] URL has changed. Trying to retrigger autoAr");
+    }
+    
+    GlobalVars.video = null;
+    GlobalVars.lastUrl = window.location.href;
+    main();
+  }
+}
 
 
 
