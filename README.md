@@ -81,7 +81,12 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 ## Changelog
 
-### v2.1.0 (FF/AMO, Chrome)
+### v2.1.1 (FF/Amo)
+
+* Fixed issue #20 — aspect ratio autodetection should now start on subsequent videos as well.
+* Netflix sometimes always showed 'no video detected' warning. Popup and background script now periodically poll for `hasVideos` property.
+
+### v2.1.0 (Chrome)
 
 * Popup should work more reliably now
 * Twitch works ... kinda but not always
