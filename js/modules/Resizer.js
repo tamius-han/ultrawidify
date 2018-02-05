@@ -374,7 +374,7 @@ var _res_antiCssOverride = function(){
         stuffChecked++;
       }
       
-      if(stuffChecked == stufTToCheck){
+      if(stuffChecked == stuffToCheck){
         if(Debug.debug){
           console.log("[Resizer::_res_antiCssOverride] My spaghett rests untouched. (nobody overrode our CSS, doing nothing)");
         }
