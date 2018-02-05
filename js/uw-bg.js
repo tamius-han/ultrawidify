@@ -41,6 +41,8 @@ async function main(){
   var tabs = await Comms.getActiveTab();
   BgVars.currentSite = extractHostname(tabs[0].url);
   
+  // 
+  setInterval(_uwbg_check4videos, 5000);
 }
 
 async function _uwbg_onTabSwitched(activeInfo){
@@ -105,7 +107,9 @@ async function _uwbg_registerVideo(tabId){
     }
     return;
   }
-  
+  if(Debug.debug){
+    console.log("%c[uw-bg::_uwbg_registerVideo] request came from currently active tab!", "color: #afd, background: #000");
+  }
   BgVars.hasVideos = true;
   
   // todo: change extension icon depending on whether there's a video on the page or not

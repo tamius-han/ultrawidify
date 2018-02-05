@@ -75,12 +75,16 @@ function check4videos(){
   Comms.sendToBackgroundScript({cmd: "has-videos"})
   .then(response => {
     if(Debug.debug){
-      console.log("[popup.js::check4videos] received response:",response, "has video?", response.response);
+      console.log("[popup.js::check4videos] received response:",response, "has video?", response.response.hasVideos);
     }
     if(response.response.hasVideos){
       hasVideos = true;
 //       openMenu(selectedMenu);
       hideWarning("no-videos-warning");
+    }
+    else{
+      // brute force error mitigation.
+      setTimeout(check4videos, 2000);
     }
   })
   .catch(error => {

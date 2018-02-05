@@ -102,6 +102,10 @@ function ghettoOnChange(){
            video !== null && 
            video.videoWidth > 0 &&
            video.videoHeight > 0 ){
+        if(Debug.debug){
+          console.log("%c[uw::ghettoOnChange] detected video. registering!", "color: #99f, background: #000");
+        }
+        
         GlobalVars.video = video;
         Comms.sendToBackgroundScript({"cmd":"register-video"});
       }
