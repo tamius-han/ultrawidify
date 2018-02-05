@@ -89,46 +89,34 @@ var _sc_init = function() {
 
 
 var _sc_SITES = {
-  "DEFAULT": {
-    enabled: "global",
-    type: "nonofficial",
-    autoAr: {
-      active: true,
-      passive: false,
-      nonfs: false
-    }
-  },
-  "www.youtube.com" : {
-    enabled: "global",
-    type: "official",
-    autoAr: {
-      active: true,
-      passive: false,
-      nonfs: false,
-    }
-  },
   "vimeo.com" : {
-    enabled: "global",
-    type: "official",
-    autoAr: {
-      active: true,
-      passive: false,
-      nonfs: true,
-      playerIdentificationString: "player_area-wrapper js-player_area-wrapper",
-      playerIdentificationType: "className",
-      nonfsPlayerMod: function(){
-        // hack player to take all the width
-        $("head").append('<style type="text/css">.uw_forceFullWidth {width: 100% !important} .uw_forceCenter{text-align: center;}</style>');
-        
-        var e = document.getElementsByClassName("player_outro_area")[0];
-        e.classList.add("uw_forceFullWidth");
-        e.classList.add("uw_forceCenter");
-        e = document.getElementsByClassName("player_container")[0];
-        e.classList.add("uw_forceFullWidth");
-        e.classList.add("uw_forceCenter");
-        
-        $("video")[0].style.display = "inline-block";
-      }
+    extraCss: [],
+    bannedCss: [],
+    nonfsPlayerMod: function(){
+      // hack player to take all the width
+      $("head").append('<style type="text/css">.uw_forceFullWidth {width: 100% !important} .uw_forceCenter{text-align: center;}</style>');
+      
+      var e = document.getElementsByClassName("player_outro_area")[0];
+      e.classList.add("uw_forceFullWidth");
+      e.classList.add("uw_forceCenter");
+      e = document.getElementsByClassName("player_container")[0];
+      e.classList.add("uw_forceFullWidth");
+      e.classList.add("uw_forceCenter");
+      
+      $("video")[0].style.display = "inline-block";
+    },
+    fsPlayerMod: function(){
+      // hack player to take all the width
+      $("head").append('<style type="text/css">.uw_forceFullWidth {width: 100% !important} .uw_forceCenter{text-align: center;}</style>');
+      
+      var e = document.getElementsByClassName("player_outro_area")[0];
+      e.classList.add("uw_forceFullWidth");
+      e.classList.add("uw_forceCenter");
+      e = document.getElementsByClassName("player_container")[0];
+      e.classList.add("uw_forceFullWidth");
+      e.classList.add("uw_forceCenter");
+      
+      $("video")[0].style.display = "inline-block";
     }
   }
 }

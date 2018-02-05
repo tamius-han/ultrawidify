@@ -274,11 +274,14 @@ function _res_applyCss(dimensions){
   dimensions.position = "position: absolute !important";
   dimensions.margin = "margin: 0px !important";
   
+  // save values for left and top to GlobalVars
+  GlobalVars.currentCss.top = dimensions.top;
+  GlobalVars.currentCss.left = dimensions.left;
+  
   var vid = GlobalVars.video;
   
   if(Debug.debug)
     console.log("[Resizer::_res_applyCss] trying to apply css. Css strings: ", dimensions, "video tag: ", vid);
-  
   
   var styleArrayStr = vid.getAttribute('style');
   
@@ -332,6 +335,54 @@ function _res_applyCss(dimensions){
   _res_setStyleString(vid, styleString);
 }
 
+var _res_antiCssOverride = function(){
+  
+  // this means we haven't set our CSS yet, or that we changed video.
+  if(GlobalVars.currentCss.top === null)
+    return;
+  
+  
+  var styleArrayStr = GlobalVars.video.getAttribute('style');
+  
+  if (styleArrayStr !== null && styleArrayStr !== undefined){
+    var styleArray = styleArrayStr.split(";");
+
+    var stuffChecked = 0;
+    var stuffToCheck = 2;
+    
+    for(var i in styleArray){
+      styleArray[i] = styleArray[i].trim();
+      
+      if (styleArray[i].startsWith("top:")){
+        if(styleArray[i] != GlobalVars.currentCss.top){
+          if(Debug.debug){
+            console.log("[Resizer::_res_antiCssOverride] SOMEBODY TOUCHED MA SPAGHETT (our CSS got overriden, restoring our css)");
+          }
+          this.restore();
+          return;
+        }
+        stuffChecked++;
+      }
+      else if(styleArray[i].startsWith("left:")){
+        if(styleArray[i] != GlobalVars.currentCss.left){
+          if(Debug.debug){
+            console.log("[Resizer::_res_antiCssOverride] SOMEBODY TOUCHED MA SPAGHETT (our CSS got overriden, restoring our css)");
+          }
+          this.restore();
+          return;
+        }
+        stuffChecked++;
+      }
+      
+      if(stuffChecked == stufTToCheck){
+        if(Debug.debug){
+          console.log("[Resizer::_res_antiCssOverride] My spaghett rests untouched. (nobody overrode our CSS, doing nothing)");
+        }
+        return;
+      }
+    }
+  }
+}
 
 var _res_restore = function(){
   if(Debug.debug){
@@ -362,5 +413,6 @@ var Resizer = {
   setAr: _res_setAr,
   legacyAr: _res_legacyAr,
   reset: _res_reset,
-  restore: _res_restore
+  restore: _res_restore,
+  antiCssOverride: _res_antiCssOverride
 }

@@ -1,14 +1,14 @@
 {
   "manifest_version": 2,
   "name": "Ultrawidify",
-  "version": "2.1.0",
+  "version": "2.1.1",
   
   "icons": {
     "32":"res/icons/uw-32.png",
     "64":"res/icons/uw-64.png"
   },
   
-  "description": "Aspect ratio fixer for youtube that works around some people's disability to properly encode 21:9 (and sometimes, 16:9) videos.",
+  "description": "Aspect ratio fixer for youtube that works around some people's disability to properly encode 21:9 (and sometimes, 16:9) videos. Now with more autodetection.",
   
   "content_scripts": [{
     "matches": ["*://*/*"],
