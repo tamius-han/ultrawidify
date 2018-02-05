@@ -1,44 +1,70 @@
 {
   "manifest_version": 2,
   "name": "Ultrawidify",
-  "version": "2.0.3",
+  "version": "2.1.1",
   
   "icons": {
     "32":"res/icons/uw-32.png",
     "64":"res/icons/uw-64.png"
   },
   
-  "description": "Aspect ratio fixer for youtube that works around some people's disability to properly encode 21:9 (and sometimes, 16:9) videos.",
-    
+  "description": "Aspect ratio fixer for youtube that works around some people's disability to properly encode 21:9 (and sometimes, 16:9) videos. Now with more autodetection.",
+  
   "content_scripts": [{
     "matches": ["*://*/*"],
     "js": [ 
-      "js/dep/jquery-3.1.1.js",
-      
-      "js/lib/BrowserDetect.js",
-      "js/lib/StorageManager.js",
-      "js/lib/Comms.js",
-      
-      "js/conf/Debug.js",
-      "js/conf/Settings.js",
-      "js/conf/SitesConf.js",
-      "js/conf/Status.js",
-      "js/conf/ExtensionConf.js",
-      
-      "js/lib/FullScreenDetect.js",
-      
-      "js/modules/PageInfo.js",
-      "js/modules/ArDetect.js", 
-      "js/modules/Resizer.js",
-      
-      "js/conf/Keybinds.js",
-      
-      "js/uw.js" ], 
+    "js/dep/jquery-3.1.1.js",
+    
+    "js/run/GlobalVars.js",
+    "js/lib/BrowserDetect.js",
+    "js/lib/StorageManager.js",
+    "js/lib/Comms.js",
+    
+    "js/conf/Debug.js",
+    "js/conf/Settings.js",
+    "js/conf/SitesConf.js",
+    "js/conf/Status.js",
+    "js/conf/ExtensionConf.js",
+    
+    "js/lib/PlayerDetect.js",
+    
+    "js/modules/PageInfo.js",
+    "js/modules/ArDetect.js", 
+    "js/modules/Resizer.js",
+    
+    "js/conf/Keybinds.js",
+    
+    "js/uw.js" ], 
     "all_frames": true
   }],
   
+  "background": {
+    "scripts": [
+    "js/dep/jquery-3.1.1.js",
+    
+    "js/lib/BrowserDetect.js",
+    "js/lib/StorageManager.js",
+    "js/lib/Comms.js",
+    
+    "js/conf/Debug.js",
+    "js/conf/Settings.js",
+    "js/conf/SitesConf.js",
+    "js/conf/Status.js",
+    "js/conf/ExtensionConf.js",
+    
+    
+    "js/modules/PageInfo.js",
+    "js/modules/ArDetect.js", 
+    "js/modules/Resizer.js",
+    
+    "js/conf/Keybinds.js",
+    
+    "js/uw-bg.js"
+    ]
+  },
+  
   "permissions": [
-    "tabs", "storage",  "activeTab", "<all_urls>", "*://*.youtube.com/*", "*://youtube.com/*", "*://imdb.com/*", "*://*.imdb.com/*"
+    "tabs", "storage",  "activeTab", "<all_urls>", "webNavigation"
   ],
   
   "browser_action": {
@@ -48,25 +74,20 @@
   },
   
   "web_accessible_resources": [
-    "js/*",
+  "js/*",
   
-    "res/img/ytplayer-icons/zoom.png",
-    "res/img/ytplayer-icons/unzoom.png",
-    "res/img/ytplayer-icons/fitw.png",
-    "res/img/ytplayer-icons/fith.png",
-    "res/img/ytplayer-icons/reset.png",
-    "res/img/ytplayer-icons/settings.png",
-    
-    "res/img/settings/about-bg.png",
-    
-    "res/css/uw_common.css",
-    "res/css/uw_yt.css",
-    "res/css/uw_netflix.css",
-    "res/css/uw_settings.css"
-  ],
+  "res/img/ytplayer-icons/zoom.png",
+  "res/img/ytplayer-icons/unzoom.png",
+  "res/img/ytplayer-icons/fitw.png",
+  "res/img/ytplayer-icons/fith.png",
+  "res/img/ytplayer-icons/reset.png",
+  "res/img/ytplayer-icons/settings.png",
   
-  "options_ui" : {
-    "page": "res/settings/settings.html",
-    "open_in_tab": true
-  }
+  "res/img/settings/about-bg.png",
+  
+  "res/css/uw_common.css",
+  "res/css/uw_yt.css",
+  "res/css/uw_netflix.css",
+  "res/css/uw_settings.css"
+  ]
 }
