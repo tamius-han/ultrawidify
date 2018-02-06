@@ -8,7 +8,7 @@
     "64":"res/icons/uw-64.png"
   },
   
-  "description": "Aspect ratio fixer for youtube that works around some people's disability to properly encode 21:9 (and sometimes, 16:9) videos. Now with more autodetection.",
+  "description": "Aspect ratio fixer for youtube that works around some people's disability to properly encode 21:9 (and sometimes, 16:9) videos.",
   
   "content_scripts": [{
     "matches": ["*://*/*"],
