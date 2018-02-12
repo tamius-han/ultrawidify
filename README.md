@@ -81,6 +81,12 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 ## Changelog
 
+### v2.1.2 
+
+* Fixed some bugs with autodetection sometimes not working properly on Youtube.
+
+Problem: there's this bit of code that keeps aspect ratio from changing when the difference between 'previous' and 'current' aspect ratio is too small. Unfortunately, the 'previous' value was _not_ updated on every aspect ratio switch for some reason. Also `ArDetect.init()` — for some reason — didn't always clean the 'previous' value even though it should. 
+
 ### v2.1.1 (FF/Amo)
 
 * Fixed issue #20 — aspect ratio autodetection should now start on subsequent videos as well.

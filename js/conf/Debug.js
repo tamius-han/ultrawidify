@@ -1,12 +1,12 @@
 // Set prod to true when releasing
-// _prod = true; 
-_prod = false;
+_prod = true; 
+// _prod = false;
 
 Debug = {
   debug: true,
   keyboard: true,
   debugResizer: true,
-  debugArDetect: false,
+  debugArDetect: true,
   debugStorage: true,
   showArDetectCanvas: false,
   flushStoredSettings: false
