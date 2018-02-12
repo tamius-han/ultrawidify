@@ -85,27 +85,31 @@ var _res_legacyAr = function(action){
     ar = GlobalVars.playerDimensions.width / GlobalVars.playerDimensions.height;
   }
   
+  // POMEMBNO: GlobalVars.lastAr je potrebno nastaviti šele po tem, ko kličemo _res_setAr(). _res_setAr() predvideva,
+  // da želimo nastaviti statično (type: 'static') razmerje stranic — tudi, če funkcijo kličemo tu oz. v ArDetect.
+  //
+  // IMPORTANT NOTE: GlobalVars.lastAr needs to be set after _res_setAr() is called, as _res_setAr() assumes we're
+  // setting a static aspect ratio (even if the function is called from here or ArDetect). 
+  
   var fileAr = vid.videoWidth / vid.videoHeight;
-  GlobalVars.lastAr = {type: "legacy", action: action};
-  
-  
-  if(action == "fitw"){
+    
+  if (action == "fitw"){
     _res_setAr( ar > fileAr ? ar : fileAr);
-    return;
   }
-  if(action == "fith"){
+  else if(action == "fith"){
     _res_setAr( ar < fileAr ? ar : fileAr);
-    return;
   }
-  if(action == "reset"){
-    GlobalVars.lastAr = {type: "original"};
+  else if(action == "reset"){
     _res_setAr(fileAr);
+    GlobalVars.lastAr = {type: "original"};
     return;
   }
-  if(action == "autoar" || action == "auto"){
-    GlobalVars.lastAr = {type: "auto"};
+  else if(action == "autoar" || action == "auto"){
+    GlobalVars.lastAr = {type: "auto", ar: null};
     ArDetect.init();
   }
+  
+  GlobalVars.lastAr = {type: "legacy", action: action};
 }
 
 var _res_setAr = function(ar, playerDimensions){
@@ -121,7 +125,7 @@ var _res_setAr = function(ar, playerDimensions){
     
     if(vid == null || vid==undefined || vid.videoWidth == 0 || vid.videoHeight == 0){
       if(Debug.debug)
-        console.log("[Resizer::_res_setAr] You thought there is a video, didn't you? Tricked you. Never would be.", vid);
+        console.log("[Resizer::_res_setAr] I lied. Tricked you! You thought there is a video, didn't you? Never would be.", vid);   // of course that's thorin reference -> https://youtu.be/OY5gGkeQn1c?t=1m20s
       return;
     }
   }
@@ -358,7 +362,7 @@ var _res_antiCssOverride = function(){
           if(Debug.debug){
             console.log("[Resizer::_res_antiCssOverride] SOMEBODY TOUCHED MA SPAGHETT (our CSS got overriden, restoring our css)");
           }
-          this.restore();
+          _res_restore();
           return;
         }
         stuffChecked++;
@@ -368,16 +372,16 @@ var _res_antiCssOverride = function(){
           if(Debug.debug){
             console.log("[Resizer::_res_antiCssOverride] SOMEBODY TOUCHED MA SPAGHETT (our CSS got overriden, restoring our css)");
           }
-          this.restore();
+          _res_restore();
           return;
         }
         stuffChecked++;
       }
       
       if(stuffChecked == stuffToCheck){
-        if(Debug.debug){
-          console.log("[Resizer::_res_antiCssOverride] My spaghett rests untouched. (nobody overrode our CSS, doing nothing)");
-        }
+//         if(Debug.debug){
+//           console.log("[Resizer::_res_antiCssOverride] My spaghett rests untouched. (nobody overrode our CSS, doing nothing)");
+//         }
         return;
       }
     }
@@ -400,6 +404,14 @@ var _res_restore = function(){
   }
   else if(GlobalVars.lastAr.type == "original"){
     _res_legacyAr("reset");
+  }
+  else if(GlobalVars.lastAr.type == "auto"){
+    // do same as static, except keep lastAr to 'auto'. If we're here, this means video probably changed
+    // and there's something broken that prevents AR from working properly
+//     var storeLastAr = {type: GlobalVars.lastAr.type, ar: GlobalVars.lastAr.ar};
+//     _res_setAr(GlobalVars.lastAr.ar);
+//     GlobalVars.lastAr = storeLastAr;
+    ArDetect.init();
   }
 }
 

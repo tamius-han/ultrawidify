@@ -4,9 +4,6 @@ if(Debug.debug)
 var _ard_console_stop = "background: #000; color: #f41";
 var _ard_console_start = "background: #000; color: #00c399";
 
-
-// global-ish variables
-var _ard_oldAr;
 var _ard_currentAr;
 
 
@@ -100,10 +97,6 @@ var _arSetup = function(cwidth, cheight){
   canvas.width = canvasWidth;
   canvas.height = canvasHeight;
   
-  // init oldAr to physical <video> aspect ratio
-  
-  _ard_oldAr = vid.videoWidth / vid.videoHeight;
-  _ard_currentAr = _ard_oldAr;
   
   try{
     // determine where to sample
@@ -139,6 +132,8 @@ var _arSetup = function(cwidth, cheight){
   }
   
   this._forcehalt = false;
+  // if we're restarting ArDetect, we need to do this in order to force-recalculate aspect ratio
+  GlobalVars.lastAr = {type: "auto", ar: null};
   _ard_vdraw(vid, context, canvasWidth, canvasHeight, false);
 };
 
@@ -181,47 +176,52 @@ var _ard_processAr = function(video, width, height, edge_h, edge_w, fallbackMode
   
   // poglejmo, če se je razmerje stranic spremenilo
   // check if aspect ratio is changed:
-  var arDiff = trueAr - _ard_oldAr;
-  if (arDiff < 0)
-    arDiff = -arDiff;
   
-  var arDiff_percent = arDiff / trueAr;
-  
-  // ali je sprememba v mejah dovoljenega? Če da -> fertik
-  // is ar variance within acceptable levels? If yes -> we done
-  if(Debug.debug && Debug.debugArDetect)
-    console.log("%c[ArDetect::_ard_processAr] new aspect ratio varies from the old one by this much:\n","color: #aaf","old Ar", _ard_oldAr, "current ar", trueAr, "arDiff (absolute):",arDiff,"ar diff (relative to new ar)", arDiff_percent);
-  
-  if (arDiff < trueAr * Settings.arDetect.allowedArVariance){
+  if(GlobalVars.lastAr.type == "auto" && GlobalVars.lastAr.ar != null){
+    // spremembo lahko zavrnemo samo, če uporabljamo avtomatski način delovanja in če smo razmerje stranic
+    // že nastavili.
+    //
+    // we can only deny aspect ratio changes if we use automatic mode and if aspect ratio was set from here.
+    
+    var arDiff = trueAr - GlobalVars.lastAr.ar;
+    if (arDiff < 0)
+      arDiff = -arDiff;
+    
+    var arDiff_percent = arDiff / trueAr;
+    
+    // ali je sprememba v mejah dovoljenega? Če da -> fertik
+    // is ar variance within acceptable levels? If yes -> we done
     if(Debug.debug && Debug.debugArDetect)
-      console.log("%c[ArDetect::_ard_processAr] aspect ratio change denied — diff %:", "background: #740; color: #fa2", arDiff_percent)
-    return;
+      console.log("%c[ArDetect::_ard_processAr] new aspect ratio varies from the old one by this much:\n","color: #aaf","old Ar", GlobalVars.lastAr.ar, "current ar", trueAr, "arDiff (absolute):",arDiff,"ar diff (relative to new ar)", arDiff_percent);
+    
+    if (arDiff < trueAr * Settings.arDetect.allowedArVariance){
+      if(Debug.debug && Debug.debugArDetect)
+        console.log("%c[ArDetect::_ard_processAr] aspect ratio change denied — diff %:", "background: #740; color: #fa2", arDiff_percent)
+        
+      return;
+    }
+    else if(Debug.debug && Debug.debugArDetect){
+      console.log("%c[ArDetect::_ard_processAr] aspect ratio change accepted — diff %:", "background: #153; color: #4f9", arDiff_percent)
+    }
   }
-  else if(Debug.debug && Debug.debugArDetect){
-    console.log("%c[ArDetect::_ard_processAr] aspect ratio change accepted — diff %:", "background: #153; color: #4f9", arDiff_percent)
-  }
-  // če je sprememba več od dovoljenega, spremeni razmerje stranic. Stvari se razlikujejo glede na to, ali smo v fullscreen ali ne
-  // if change is greater than allowed, change the aspect ratio.  Whether we do that depends on whether we're in fullscreen.
-//   if( PlayerDetect.isFullScreen() ){
-    if(Debug.debug)
-      console.log("[ArDetect::_ard_processAr] attempting to fix aspect ratio. New aspect ratio: ", trueAr);
-      
-    _ard_oldAr = trueAr;
-    Resizer.setAr(trueAr);
-//   }
-//   else{
-//     // če nismo v fullscreen, potem preverimo, ali naša stran dovoljuje ne-fs?
-//     // first, we'll check if our site allows for non-fs autoar detection
-//     if( SitesConf.nonfsArDetectEnabled() ){
-//       _ard_oldAr = trueAr;
-//       Resizer.setAr_nonfs(trueAr);
-//     }
-//   }
+  
+  if(Debug.debug)
+    console.log("[ArDetect::_ard_processAr] attempting to fix aspect ratio. New aspect ratio: ", trueAr);
   
   
+  // POMEMBNO: GlobalVars.lastAr je potrebno nastaviti šele po tem, ko kličemo _res_setAr(). _res_setAr() predvideva,
+  // da želimo nastaviti statično (type: 'static') razmerje stranic — tudi, če funkcijo kličemo tu oz. v ArDetect.
+  //
+  // IMPORTANT NOTE: GlobalVars.lastAr needs to be set after _res_setAr() is called, as _res_setAr() assumes we're
+  // setting a static aspect ratio (even if the function is called from here or ArDetect). 
+  
+  Resizer.setAr(trueAr);
+  GlobalVars.lastAr = {type: "auto", ar: trueAr};
 }
 
 var _ard_vdraw = function (vid, context, w, h, conf){
+  try{
+  
   if(this._forcehalt)
     return;
   
@@ -232,7 +232,7 @@ var _ard_vdraw = function (vid, context, w, h, conf){
 //   if(Debug.debug)
 //     Settings.arDetect.timer_playing = 1000;     // how long is the pause between two executions — 33ms ~ 30fps
   
-  if(vid === undefined || vid.paused || vid.ended || Status.arStrat != "auto"){
+  if(vid == null || vid.paused || vid.ended || Status.arStrat != "auto"){
     // we slow down if paused, no detection
     _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_paused, vid, context, w, h);
     return false;
@@ -314,6 +314,7 @@ var _ard_vdraw = function (vid, context, w, h, conf){
     
 //     _ard_processAr(vid, w, h);
     Resizer.reset();
+    GlobalVars.lastAr = {type: "auto", ar: null};
     
     _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_playing, vid, context, w, h); //no letterbox, no problem
     return;
@@ -550,6 +551,14 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   
   
   _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_playing, vid, context, w, h);
+  
+  }
+  catch(e){
+    if(Debug.debug)
+      console.log("%c[ArDetect::_ard_vdraw] vdraw has crashed for some reason ???. Error here:", "color: #000; background: #f80", e);
+    
+    _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_playing, vid, context, w, h);
+  }
 }
 
 var _ard_stop = function(){

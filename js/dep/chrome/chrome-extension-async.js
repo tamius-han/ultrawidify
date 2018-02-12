@@ -3,6 +3,13 @@
  * @author Keith Henry <keith.henry@evolutionjobs.co.uk>
  * @license MIT */
 (function () {
+  
+  // before we start: don't do shit in browsers that aren't Google Chrome.
+  // We might need to modify this for use in IE at a later date tho
+  if(chrome === undefined)
+    return;
+  
+  
     'use strict';
 
     /** Wrap a function with a callback with a Promise.
