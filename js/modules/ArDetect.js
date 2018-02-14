@@ -147,7 +147,7 @@ var _ard_canvasReadyForDrawWindow = function(){
 var _ard_processAr = function(video, width, height, edge_h, edge_w, fallbackMode){
   // width, height —> canvas/sample
   
-  //edge_w -—> null/undefined, because we don't autocorrect pillarbox yet
+  // edge_w -—> null/undefined, because we don't autocorrect pillarbox yet
   
   if(Debug.debug && Debug.debugArDetect){
     console.log("[ArDetect::_ard_processAr] processing ar. sample width:", width, "; sample height:", height, "; edge top:", edge_h);
@@ -226,7 +226,10 @@ var _ard_vdraw = function (vid, context, w, h, conf){
     return;
   
   var fallbackMode = false;
-  var blackbar_tresh = 10;  // how non-black can the bar be
+  var startTime = performance.now();
+  var guardLineResult = true;         // true if success, false if fail. true by default
+  
+  GlobalVars.arDetect.blackbarTreshold = 10;  // how non-black can the bar be, should be dynamically determined
   var how_far_treshold = 8; // how much can the edge pixel vary (*4)
   
 //   if(Debug.debug)
@@ -282,18 +285,19 @@ var _ard_vdraw = function (vid, context, w, h, conf){
 //     _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_error, vid, context, w, h);
 //     return;
   }
-  // "random" columns — todo: randomly pick some more
+ 
+ // "random" columns — todo: randomly pick some more
   var rc = _ard_sampleCols;
 
 
   var cimg = [];
   var cols = []; 
 
-  for(var i = 0; i < rc.length; i++){
-    //where-x, where-y, how wide, how tall
-    //random col, first y, 1 pix wide, all pixels tall 
-    cols[i] = context.getImageData(rc[i], 0, 1, h).data;
-  }
+//   for(var i = 0; i < rc.length; i++){
+//     //where-x, where-y, how wide, how tall
+//     //random col, first y, 1 pix wide, all pixels tall 
+//     cols[i] = context.getImageData(rc[i], 0, 1, h).data;
+//   }
 
   // fast test to see if aspect ratio is correct
   isLetter=true;
@@ -319,165 +323,25 @@ var _ard_vdraw = function (vid, context, w, h, conf){
     _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_playing, vid, context, w, h); //no letterbox, no problem
     return;
   }
-
+  
   // let's do a quick test to see if we're on a black frame
-  // let's also pick all points in advance (assuming canvas will always be 1280x720)
-
+  // TODO: reimplement but with less bullshit
   
-  var blackPoints = 0;
-  var blackPointsMax = cols.length * 9; // 9 we sample each col at 9 different places
-
   
-  // indexes in _ard_sampleLines
-  var color_uppermost = 10;          
-  var color_lowermost = 0;
-  
-  // stolpca, v katerih smo našli zgornji številki
-  // columns, in which the values above were found
-  var cl_col = [];
-  var cu_col = [];
-  
-  // if (pixel is black) 
-  for(var i in cols){
-    
-    // --- piksli na zgornji polovici -----------------//
-    // --- pixels from the top ------------------------//
-    if( cols[i][_ard_sampleLines[0]] < blackbar_tresh &&
-        cols[i][_ard_sampleLines[0] + 1] < blackbar_tresh &&
-        cols[i][_ard_sampleLines[0] + 2] < blackbar_tresh )
-      blackPoints++;
-    else if(color_uppermost > 0){
-      color_uppermost = 0;
-      cu_col = [i];
-    }
-    
-    if( cols[i][_ard_sampleLines[1]] < blackbar_tresh && 
-        cols[i][_ard_sampleLines[1] + 1] < blackbar_tresh &&
-        cols[i][_ard_sampleLines[1] + 2] < blackbar_tresh )
-      blackPoints++;
-    else if(color_uppermost > 1){
-      color_uppermost = 1;
-      cu_col = [i];
-    }
-    else if(color_uppermost == 1){
-      cu_col.push(i);
-    }
-    
-    if( cols[i][_ard_sampleLines[2]] < blackbar_tresh &&
-        cols[i][_ard_sampleLines[2] + 1] < blackbar_tresh &&
-        cols[i][_ard_sampleLines[1] + 2] < blackbar_tresh )
-      blackPoints++;
-    else if(color_uppermost > 2){
-      color_uppermost = 2;
-      cu_col = [i];
-    }
-    else if(color_uppermost == 2){
-      cu_col.push(i);
-    }
-    
-    if( cols[i][_ard_sampleLines[3]] < blackbar_tresh &&
-        cols[i][_ard_sampleLines[3] + 1] < blackbar_tresh &&
-        cols[i][_ard_sampleLines[3] + 2] < blackbar_tresh )
-      blackPoints++;
-    else if(color_uppermost > 3){
-      color_uppermost = 3;
-      cu_col = [i];
-    }
-    else if(color_uppermost == 3){
-      cu_col.push(i);
-    }
-    
-    
-    // --- piksli na spodnji polovici ---------------//
-    // tukaj gremo v obratni smeri, drugače bo v tabeli lahko napačen piksel 
-    // --- pixels on the bottom ---------------------//
-    // searching in the other direction, otherwise we could get incorrect results
-    
-    if( cols[i][_ard_sampleLines[8]] < blackbar_tresh &&
-        cols[i][_ard_sampleLines[8] + 1] < blackbar_tresh &&
-        cols[i][_ard_sampleLines[8] + 2] < blackbar_tresh )
-      blackPoints++;
-    else if(color_lowermost < 8){
-      color_lowermost = 8;
-      cl_col = [i];
-    }
-    
-    if( cols[i][_ard_sampleLines[7]] < blackbar_tresh && 
-        cols[i][_ard_sampleLines[7] + 1] < blackbar_tresh &&
-        cols[i][_ard_sampleLines[7] + 2] < blackbar_tresh )
-      blackPoints++;
-    else if(color_lowermost < 7){
-      color_lowermost = 7;
-      cl_col = [i];
-    }
-    else if(color_lowermost == 7){
-      cl_col.push(i);
-    }
-    
-    if( cols[i][_ard_sampleLines[6]] < blackbar_tresh &&
-        cols[i][_ard_sampleLines[6] + 1] < blackbar_tresh &&
-        cols[i][_ard_sampleLines[6] + 2] < blackbar_tresh )
-      blackPoints++;
-    else if(color_lowermost < 6){
-      color_lowermost = 6;
-      cl_col = [i];
-    }
-    else if(color_lowermost == 6){
-      cl_col.push(i);
-    }
-    
-    if( cols[i][_ard_sampleLines[5]] < blackbar_tresh &&
-        cols[i][_ard_sampleLines[5] + 1] < blackbar_tresh &&
-        cols[i][_ard_sampleLines[5] + 2] < blackbar_tresh )
-      blackPoints++;
-    else if(color_lowermost < 5){
-      color_lowermost = 5;
-      cl_col = [i];
-    }
-    else if(color_lowermost == 5){
-      cl_col.push(i);
-    }
-    // --- piksli na sredini ------------------------//
-    // na sredini ne preverjamo za color_lowermost in color_uppermost. Če bo color_lowermost in color_uppermost relevanten na tem
-    // nivoju, potem bo a) dovolj črnih točk za blackframe oz b) barvasta točka na višjem nivoju
-    // --- pixels in the center ---------------------//
-    // we don't check for color_lowermost and color_uppermost here, because it's pointless.
-    
-    if( cols[i][1440] < blackbar_tresh && cols[i][1441] < blackbar_tresh && cols[i][1442] < blackbar_tresh )
-      blackPoints++;    
-    
+  // poglejmo, če obrežemo preveč.
+  // let's check if we're cropping too much
+  var guardLineOut;
+  if(Settings.arDetect.guardLine.enabled){
+    guardLineOut = _ard_guardLineCheck()
+    guardLineResult = guardLineOut.success;
   }
-
-  
-  
-  if(blackPoints > (blackPointsMax >> 1)){
-    // if more than half of those points are black, we consider the entire frame black (or too dark to get anything useful
-    // out of it, anyway)
-    if(Debug.debug && Debug.debugArDetect)
-      console.log("%c[ArDetect::_ard_vdraw] Frame too dark, doing nothing. (Over 50% of the points are black)", "color: #99f");
-    
-    _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_playing, vid, context, w, h); //no letterbox, no problem
-    return;
-  }
-
-  if( color_lowermost == 8 || color_uppermost == 0){
-    // zakaj smo potem sploh tukaj?
-    // why exactly are we here again?
-    
-    if(Debug.debug && Debug.debugArDetect){
-      console.log("%c[ArDetect::_ard_vdraw] aspect ratio change is being triggered by an event we thought shouldn't be triggering it. Strange.\n\n","color: #4af", "color_lowermost (8=bad):", color_lowermost, "color_uppermost (0=bad):", color_uppermost);
-    }
-    
-//     _ard_processAr(vid, w, h);
-    _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_playing, vid, context, w, h); //no letterbox, no problem
-    return;
-  }
-  
-  
   
   // pa poglejmo, kje se končajo črne letvice na vrhu in na dnu videa.
-  // let's see where black bars end. We only need to check in the columns where we detected uppermost and lowermost color. 
+  // let's see where black bars end.
 
+  _ard_findBlackbarLimits(context);
+  
+  
   var endPixelTop = [];
   var endPixelBottom = [];
   
@@ -560,6 +424,136 @@ var _ard_vdraw = function (vid, context, w, h, conf){
     _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_playing, vid, context, w, h);
   }
 }
+
+var _ard_guardLineCheck(context){
+  // this test tests for whether we crop too aggressively
+  
+  // if this test is passed, then aspect ratio probably didn't change from wider to narrower. However, further
+  // checks are needed to determine whether aspect ratio got wider.
+  // if this test fails, it returns a list of offending points.
+  
+  // if the upper edge is null, then edge hasn't been detected before. This test is pointless, therefore it
+  // should succeed by default.
+  if(GlobalVars.arDetect.guardLine.top == null)
+    return { success: true };
+  
+  var blackbarTreshold = GlobalVars.arDetect.blackbarTreshold;
+  var edges = GlobalVars.arDetect.guardLine;  
+  var start = parseInt(_ard_canvasWidth * Settings.arDetect.guardLine.ignoreEdgeMargin);
+  var width = _ard_canvasWidth - (start << 1);
+  
+  var offenders = [];
+  var firstOffender = -1;
+  var offenderCount = -1;
+  
+  // TODO: implement logo check.
+  
+  
+  // preglejmo obe vrstici
+  // check both rows
+  for(var edge of [ edges.top, edges.bottom ]){
+    var row = context.getImageData(start, edges.top, width, 1).data;
+    for(var i = 0; i < row.length, i+=4){
+
+      // we track sections that go over what's supposed to be a black line, so we can suggest more 
+      // columns to sample
+      if(row[i] > blackbarTreshold || row[i+1] > blackbarTreshold || row[i+2] > blackbarTreshold){
+        if(firstOffender < 0){
+          firstOffender = i >> 2;
+          offenderCount++;
+          offenders.push({x: firstOffender, width: 1})
+        }
+        else{
+          offenders[offenderCount].width++
+        }
+      }
+      else{
+        // is that a black pixel again? Let's reset the 'first offender' 
+        firstOffender = -1;
+      }
+    }
+  }
+  
+  // če nismo našli nobenih prekrškarjev, vrnemo uspeh. Drugače vrnemo seznam prekrškarjev
+  // vrnemo tabelo, ki vsebuje sredinsko točko vsakega prekrškarja (x + width*0.5)
+  //
+  // if we haven't found any offenders, we return success. Else we return list of offenders
+  // we return array of middle points of offenders (x + (width >> 1) for every offender)
+  
+  if(offenderCount == -1)
+    return {success: true};
+  
+  var ret = new Array(offenders.length);
+  for(var o in offenders){
+    ret[o] = offenders[o].x + (offenders[o].width >> 2);
+  }
+  
+  return {success: false, offenders: ret};0
+}
+
+var _ard_findBlackbarLimits(context, cols){
+  var data = [];
+  var middle, bottomStart, blackbarTreshold, top, bottom;
+  var res = [];
+  
+  middle = context.canvas.height << 1 // x2 = middle of data column 
+  bottomStart = context.canvas.height - 1 << 2; // (height - 1) x 4 = bottom pixel
+  blackbarTreshold = GlobalVars.arDetect.blackbarTreshold;
+
+  var found = false;
+  
+  for(var col of cols){
+    data = context.getImageData(start, edges.top, 1, context.canvas.height).data;
+    for(var i = 0; i < middle; i+=4){
+      if(data[i] > blackbarTreshold || data[i+1] > blackbarTreshold || data[i+2] > blackbarTreshold){
+        top = (i >> 2) - 1;
+        found = true;
+        break;
+      }
+    }
+    if(!found)
+      top = -1; // universal "not found" mark. We don't break because the bottom side can still give good info
+    else
+      found = false; // reset
+    
+    for(var i = bottomStart; i > middle; i-=4){
+      if(data[i] > blackbarTreshold || data[i+1] > blackbarTreshold || data[i+2] > blackbarTreshold){
+        bottom = (i >> 2) + 1;
+        found = true;
+        break;
+      }
+    }
+    
+    if(!found)
+      bottom = -1;
+    
+    res.push({col: col, bottom: bottom, top: top});
+  }
+  
+  return res;
+}
+
+var _ard_preprocessPoints(samples){
+  // if the frame is black, some detected "edges" will be further towards the middle than they should actually be
+  // on the other hand, we need to have some watermark protection as well.
+  // 
+  // We will assume that a video will have a watermark at most in one corner/quarter.
+  // we will also assume that black bars are actually centered
+  
+  // TODO: assume position of the watermark doesn't change by much.
+  
+
+  
+  for(sample of samples){
+    
+  }
+}
+
+var _ard_edgeDetect(context, samples){
+  
+}
+
+
 
 var _ard_stop = function(){
   if(Debug.debug){

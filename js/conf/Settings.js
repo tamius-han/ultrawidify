@@ -65,7 +65,8 @@ var _se_isWhitelisted = function(site){
 var Settings = {
   arDetect: {
     enabled: "global",        // thats my csgo rank kappa
-    allowedMisaligned: 0.05,  // top and bottom letterbox thickness can differ by this much. Any more and we don't adjust ar.
+    allowedMisaligned: 0.05,  // top and bottom letterbox thickness can differ by this much. 
+                              // Any more and we don't adjust ar.
     allowedArVariance: 0.075, // amount by which old ar can differ from the new (1 = 100%)
     timer_playing: 30,
     timer_paused: 3000,
@@ -76,7 +77,18 @@ var Settings = {
     randomSampleCols: 0,      // we add this many randomly selected columns to the static columns
     staticSampleRows: 9,      // forms grid with staticSampleCols. Determined in the same way. For black frame checks
     blacklist: [],            // banned on enabled: "global" 
-    whitelist: []             // enabled on enabled: "whitelist-only", disabled on "disabled"
+    whitelist: [],            // enabled on enabled: "whitelist-only", disabled on "disabled"
+    guardLine: {              // all pixels on the guardline need to be black, or else we trigger AR recalculation 
+                              // (if AR fails to be recalculated, we reset AR)
+      enabled: true,
+      ignoreEdgeMargin: 0.20, // we ignore anything that pokes over the black line this close to the edge
+                              // (relative to width of the sample)
+      ignoreThis: "we just don't want to remove the comma in previous line. this reserved."
+    },
+    arSwitchLimiter: {        // to be implemented 
+      switches: 2,            // we can switch this many times
+      period: 2.0             // per this period
+    }
   },
   arChange: {
     samenessTreshold: 0.025,  // if aspect ratios are within 2.5% within each other, don't resize
