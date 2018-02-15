@@ -68,11 +68,15 @@ var Settings = {
     allowedMisaligned: 0.05,  // top and bottom letterbox thickness can differ by this much. 
                               // Any more and we don't adjust ar.
     allowedArVariance: 0.075, // amount by which old ar can differ from the new (1 = 100%)
-    timer_playing: 30,
+    timer_playing: 30,        // we trigger ar this often (in ms) under this conditions
     timer_paused: 3000,
     timer_error: 3000,
+    timer_minimumTimeout: 5,  // but regardless of above, we wait this many msec before retriggering
     hSamples: 1280,
     vSamples: 720,
+    blackLevel_default: 10,   // everything darker than 10/255 across all RGB components is considered black by
+                              // default. GlobalVars.blackLevel can decrease if we detect darker black.
+    blackbarTreshold: 2,      // if pixel is darker than blackLevel + blackbarTreshold, we count it as black
     staticSampleCols: 9,      // we take a column at [0-n]/n-th parts along the width and sample it
     randomSampleCols: 0,      // we add this many randomly selected columns to the static columns
     staticSampleRows: 9,      // forms grid with staticSampleCols. Determined in the same way. For black frame checks
@@ -83,11 +87,20 @@ var Settings = {
       enabled: true,
       ignoreEdgeMargin: 0.20, // we ignore anything that pokes over the black line this close to the edge
                               // (relative to width of the sample)
-      ignoreThis: "we just don't want to remove the comma in previous line. this reserved."
+      imageTestTreshold: 0.1  // when testing for image, this much pixels must be over blackbarTreshold
     },
     arSwitchLimiter: {        // to be implemented 
       switches: 2,            // we can switch this many times
       period: 2.0             // per this period
+    },
+    edgeDetection: {
+      sampleWidth: 20,        // we take a sample this wide for edge detection
+      detectionTreshold: 10,  // sample needs to have this many non-black pixels to be a valid edge
+      singleSideConfirmationTreshold: 0.3,   // we need this much edges (out of all samples, not just edges) in order
+                                            // to confirm an edge in case there's no edges on top or bottom (other
+                                           // than logo, of course)
+      logoTreshold: 0.15      // if edge candidate sits with count greater than this*all_samples, it can't be logo
+                              // or watermarl.
     }
   },
   arChange: {
@@ -100,7 +113,7 @@ var Settings = {
 //     criticalFail: "background: #fa2; color: #000"
   },
   whitelist: [],
-  blacklist: ["vimeo.com"],
+  blacklist: ["vimeo.com", "reddit.com"],
   isBlacklisted: _se_isBlacklisted,
   isWhitelisted: _se_isWhitelisted,
   init: _se_init,

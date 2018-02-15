@@ -9,7 +9,8 @@ var GlobalVars = {
     left: null
   },
   arDetect: {
-    blackbarTreshold: 10,
+    blackLevel: 10,
+    sampleCols_current: 0,
     guardLine: {
       top: null,
       bottom: null,
