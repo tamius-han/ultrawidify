@@ -7,7 +7,7 @@ if(Debug.debug)
 var _se_init = async function(neverFlushStored){
   
 //   if(Debug.flushStoredSettings && neverFlushStored === false)
-//     StorageManager.delopt("uw-settings");
+    StorageManager.delopt("uw-settings");
   
   if(Debug.debug)
     console.log("[Settings::_se_init()] -------- starting init! ---------");

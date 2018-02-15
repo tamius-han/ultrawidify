@@ -20,7 +20,7 @@ var GlobalVars = {
         top_right: null,
         bottom_left: null,
         bottom_right: null
-      }
+      },
       start: null,
       end: null
     }
