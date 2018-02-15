@@ -294,7 +294,7 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   var cimg = [];
   var cols = []; 
 
-  for(var i = 0; i < rc.length; i++){
+  for(var i = 0; i < sampleCols.length; i++){
     //where-x, where-y, how wide, how tall
     //random col, first y, 1 pix wide, all pixels tall 
     cols[i] = context.getImageData(sampleCols[i], 0, 1, h).data;
@@ -306,22 +306,21 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   var currentMaxVal;
   var currentMax_a, currentMax_b;
   
-  var bottom_r = (context.canvas.height - 1) << 4;
+  var bottom_r = cols[0].length - 4;
   var bottom_g = bottom_r + 1;
   var bottom_b = bottom_r + 2;
   
   for(var i in cols){
-    
     // get biggest brightness in the top and bottom row across all three RGB components
     currentMax_a = cols[i][0] > cols[i][1] ? cols[i][0] : cols[i][1];
-    currentMax_b = cols[i][bottom_r] > cols[i][bottom_g] : cols[i][bottom_r] : cols[i][bottom_g];
-    currentMaxVal = cols[i][2] > cols[i][bottom_b] : cols[i][2] : cols[i][bottom_b];
+    currentMax_b = cols[i][bottom_r] > cols[i][bottom_g] ? cols[i][bottom_r] : cols[i][bottom_g];
+    currentMaxVal = cols[i][2] > cols[i][bottom_b] ? cols[i][2] : cols[i][bottom_b];
     
     currentMax_a = currentMax_a > currentMax_b ? currentMax_a : currentMax_b;
     currentMaxVal = currentMaxVal > currentMax_a ? currentMaxVal : currentMax_a;
     
     // if any of those points fails this check, we aren't letterboxed
-    isLetter &= currentMaxVal <= GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold;
+    isLetter &= currentMaxVal <= (GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold);
     
     // any single point on that list could be the darkest black, so we still check if we can lower blackLevel
     if(currentMaxVal < GlobalVars.arDetect.blackLevel){
@@ -385,7 +384,7 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   GlobalVars.sampleCols_current = sampleCols.length;
   var blackbarSamples = _ard_findBlackbarLimits(context, sampleCols);
   var edgeCandidates = _ard_edgeDetect(context, blackbarSamples);
-  var edgePost = _ard_edgePostprocess(context, edgeCandidates);
+  var edgePost = _ard_edgePostprocess(edgeCandidates, context.canvas.height);
   
   if(edgePost.status == "ar_known"){
     _ard_processAr(vid, w, h, edgePost.blackbarWidth, null, fallbackMode);
@@ -408,7 +407,7 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   }
 }
 
-var _ard_guardLineCheck(context){
+function _ard_guardLineCheck(context){
   // this test tests for whether we crop too aggressively
   
   // if this test is passed, then aspect ratio probably didn't change from wider to narrower. However, further
@@ -436,7 +435,7 @@ var _ard_guardLineCheck(context){
   // check both rows
   for(var edge of [ edges.top, edges.bottom ]){
     var row = context.getImageData(start, edges.top, width, 1).data;
-    for(var i = 0; i < row.length, i+=4){
+    for(var i = 0; i < row.length; i+=4){
 
       // we track sections that go over what's supposed to be a black line, so we can suggest more 
       // columns to sample
@@ -474,7 +473,7 @@ var _ard_guardLineCheck(context){
   return {success: false, offenders: ret};
 }
 
-var _ard_guardLineImageDetect(context){  
+function _ard_guardLineImageDetect(context){  
   if(GlobalVars.arDetect.guardLine.top == null)
     return { success: false };
   
@@ -494,7 +493,7 @@ var _ard_guardLineImageDetect(context){
   
   for(var edge of [ edges.top, edges.bottom ]){
     var row = context.getImageData(start, edges.top, width, 1).data;
-    for(var i = 0; i < row.length, i+=4){
+    for(var i = 0; i < row.length; i+=4){
       
       // we track sections that go over what's supposed to be a black line, so we can suggest more 
       // columns to sample
@@ -510,19 +509,22 @@ var _ard_guardLineImageDetect(context){
   return {success: false};
 }
 
-var _ard_findBlackbarLimits(context, cols){
+function _ard_findBlackbarLimits(context, cols){
   var data = [];
   var middle, bottomStart, blackbarTreshold, top, bottom;
   var res = [];
   
   middle = context.canvas.height << 1 // x2 = middle of data column 
-  bottomStart = context.canvas.height - 1 << 2; // (height - 1) x 4 = bottom pixel
-  blackbarTreshold = GlobalVars.arDetect.blackbarTreshold;
-
-  var found = false;
+  bottomStart = (context.canvas.height - 1) << 2; // (height - 1) x 4 = bottom pixel
+  blackbarTreshold = GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold;
+  
+  var found; 
   
   for(var col of cols){
-    data = context.getImageData(start, edges.top, 1, context.canvas.height).data;
+    found = false;
+    
+    data = context.getImageData(col, 0, 1, context.canvas.height).data;
+    
     for(var i = 0; i < middle; i+=4){
       if(data[i] > blackbarTreshold || data[i+1] > blackbarTreshold || data[i+2] > blackbarTreshold){
         top = (i >> 2) - 1;
@@ -532,8 +534,8 @@ var _ard_findBlackbarLimits(context, cols){
     }
     if(!found)
       top = -1; // universal "not found" mark. We don't break because the bottom side can still give good info
-    else
-      found = false; // reset
+    
+    found = false; // reset
     
     for(var i = bottomStart; i > middle; i-=4){
       if(data[i] > blackbarTreshold || data[i+1] > blackbarTreshold || data[i+2] > blackbarTreshold){
@@ -549,11 +551,14 @@ var _ard_findBlackbarLimits(context, cols){
     res.push({col: col, bottom: bottom, top: top, bottomRelative: context.canvas.height - bottom});
   }
   
+  if(Debug.debug && Debug.debugArDetect)
+    console.log("[ArDetect::_ard_findBlackbarLimits] found some candidates for black bar limits", res);
+  
   return res;
 }
 
 
-var _ard_edgeDetect(context, samples){
+function _ard_edgeDetect(context, samples){
   var edgeCandidatesTop = {};
   var edgeCandidatesBottom = {};
   
@@ -568,10 +573,11 @@ var _ard_edgeDetect(context, samples){
   
   var imageData = [];
   var blackEdgeViolation = false;
-  var blackbarTreshold = GlobalVars.arDetect.blackbarTreshold;
+  var blackbarTreshold = GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold;
   
   var topEdgeCount = 0;
   var bottomEdgeCount = 0;
+  
   
   for(sample of samples){
     // determine size of the square
@@ -584,23 +590,28 @@ var _ard_edgeDetect(context, samples){
     sampleWidth = (sample.col + halfSample >= canvasWidth) ? 
               (sample.col - canvasWidth + sampleWidthBase) : sampleWidthBase;
 
-    // sample.top -> should be black. sample.top+2 -> should be color
+    // sample.top - 1 -> should be black (we assume a bit of margin in case of rough edges)
+    // sample.top + 2 -> should be color
     // we must also check for negative values, which mean something went wrong.
-    if(sample.top > 0){  // we won't be fixing for 1px wide black bar either
+    if(sample.top > 1){  
       // check whether black edge gets any non-black values. non-black -> insta fail      
-      imageData = context.getImageData(sampleStart, sample.top, sampleWidth, 1);
+      imageData = context.getImageData(sampleStart, sample.top - 1, sampleWidth, 1).data;
       
       for(var i = 0; i < imageData.length; i+= 4){
         if (imageData[i]   > blackbarTreshold ||
             imageData[i+1] > blackbarTreshold ||
             imageData[i+2] > blackbarTreshold ){
           blackEdgeViolation = true;
+          
+          if(Debug.debug && Debug.debugArDetect && Debug.arDetect.edgeDetect)
+            console.log(("[ArDetect::_ard_edgeDetect] detected black edge violation at i="+i+"; sample.top="+sample.top + "\n--"), imageData, context.getImageData(sampleStart, sample.top - 2, sampleWidth, 1));
+          
           break;
         }
       }
       // if black edge isn't black, we don't check the image part either
       if(!blackEdgeViolation){
-        imageData = context.getImageData(sampleStart, sample.top + 2, sampleWidth, 1);
+        imageData = context.getImageData(sampleStart, sample.top + 2, sampleWidth, 1).data;
         detections = 0;
         
         for(var i = 0; i < imageData.length; i+= 4){
@@ -611,12 +622,17 @@ var _ard_edgeDetect(context, samples){
           }
         }
         
+        console.log("detections:",detections, imageData,  context.getImageData(sampleStart, sample.top - 2, sampleWidth, 1));
+        
         if(detections >= detectionTreshold){
-          topEdgeCount++;
+          console.log("detection!");
+          
           if(edgeCandidatesTop[sample.top] != undefined)
             edgeCandidatesTop[sample.top].count++;
-          else
+          else{
+            topEdgeCount++; // only count distinct
             edgeCandidatesTop[sample.top] = {top: sample.top, count: 1};
+          }
         }
       }
     }
@@ -624,19 +640,21 @@ var _ard_edgeDetect(context, samples){
     // sample.bottom -> should be black
     // sample.bottom-2 -> should be non-black
     if(sample.bottom > 0){
-      imageData = context.getImageData(sampleStart, sample.bottom, sampleWidth, 1);
+      imageData = context.getImageData(sampleStart, sample.bottom, sampleWidth, 1).data;
       
       for(var i = 0; i < imageData.length; i+= 4){
         if (imageData[i]   > blackbarTreshold ||
           imageData[i+1] > blackbarTreshold ||
           imageData[i+2] > blackbarTreshold ){
           blackEdgeViolation = true;
+        console.log(("[ArDetect::_ard_edgeDetect] detected black edge violation at i="+i+"; sample.top="+sample.top + "\n--"), imageData, context.getImageData(sampleStart, sample.top - 2, sampleWidth, 1));
+        
         break;
           }
       }
       // if black edge isn't black, we don't check the image part either
       if(!blackEdgeViolation){
-        imageData = context.getImageData(sampleStart, sample.bottom - 2, sampleWidth, 1);
+        imageData = context.getImageData(sampleStart, sample.bottom - 2, sampleWidth, 1).data;
         detections = 0;
         
         for(var i = 0; i < imageData.length; i+= 4){
@@ -649,11 +667,15 @@ var _ard_edgeDetect(context, samples){
         
         if(detections >= detectionTreshold){
           // use bottomRelative for ez sort
-          bottomEdgeCount++;
+          
+          console.log("detection!");
+          
           if(edgeCandidatesBottom[sample.bottomRelative] != undefined)
-            edgeCandidatesTop[sample.bottomRelative].count++;
-          else
-            edgeCandidatesTop[sample.bottomRelative] = {bottom: sample.bottom, bottomRelative: sample.bottomRelative, count: 1};
+            edgeCandidatesBottom[sample.bottomRelative].count++;
+          else{
+            bottomEdgeCount++; // only count distinct edges
+            edgeCandidatesBottom[sample.bottomRelative] = {bottom: sample.bottom, bottomRelative: sample.bottomRelative, count: 1};
+          }
         }
       }
     }
@@ -667,7 +689,7 @@ var _ard_edgeDetect(context, samples){
   };
 }
 
-var _ard_edgePostprocess(edges, canvasHeight){
+function _ard_edgePostprocess(edges, canvasHeight){
   var edgesTop = [];
   var edgesBottom = [];
   var alignMargin = canvasHeight * Settings.arDetect.allowedMisaligned;
@@ -677,18 +699,23 @@ var _ard_edgePostprocess(edges, canvasHeight){
   // pretvorimo objekt v tabelo
   // convert objects to array
   
-  
+  console.log(edges.edgeCandidatesTop);
+    
   if( edges.edgeCandidatesTopCount > 0){
-    for(var edge of edges.edgeCandidatesTop){
+    for(var e in edges.edgeCandidatesTop){
+      var edge = edges.edgeCandidatesTop[e];
       edgesTop.push({distance: edge.top, count: edge.count});
     }
   }
   
   if( edges.edgeCandidatesBottomCount > 0){
-    for(var edge of edges.edgeCandidatesBottom){
+    for(var e in edges.edgeCandidatesBottom){
+      var edge = edges.edgeCandidatesBottom[e];
       edgesBottom.push({distance: edge.bottomRelative, count: edge.count});
     }
   }
+  
+  console.log("count top:",edges.edgeCandidatesTopCount, "edges:", edges, "edgesTop[]", edgesTop);
   
   // če za vsako stran (zgoraj in spodaj) poznamo vsaj enega kandidata, potem lahko preverimo nekaj
   // stvari
@@ -801,7 +828,7 @@ var _ard_isRunning = function(){
 }
 
 function _ard_getTimeout(baseTimeout, startTime){
-  var baseTimeout -= (performance.now() - startTime);
+  baseTimeout -= (performance.now() - startTime);
 
   return baseTimeout > Settings.arDetect.minimumTimeout ? baseTimeout : Settings.arDetect.minimumTimeout;
 }

@@ -1,6 +1,6 @@
 // Set prod to true when releasing
 _prod = true; 
-// _prod = false;
+_prod = false;
 
 Debug = {
   debug: true,
@@ -9,7 +9,10 @@ Debug = {
   debugArDetect: true,
   debugStorage: true,
   showArDetectCanvas: false,
-  flushStoredSettings: false
+  flushStoredSettings: false,
+  arDetect: {
+    edgeDetect: true
+  }
 }
 
 if(_prod){
