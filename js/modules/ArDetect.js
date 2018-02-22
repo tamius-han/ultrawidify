@@ -290,8 +290,6 @@ var _ard_vdraw = function (vid, context, w, h, conf){
 //     return;
   }
  
-
-  var cimg = [];
   var cols = []; 
 
   for(var i = 0; i < sampleCols.length; i++){
@@ -357,7 +355,7 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   var imageDetectOut;
   
   if(Settings.arDetect.guardLine.enabled){
-    guardLineOut = _ard_guardLineCheck()
+    guardLineOut = _ard_guardLineCheck(context);
     guardLineResult = guardLineOut.success;
     
     if(! guardLineResult ){ // add new ssamples to our sample columns
@@ -366,7 +364,7 @@ var _ard_vdraw = function (vid, context, w, h, conf){
       }
     }
     
-    imageDetectOut = _ard_guardLineImageDetect();
+    imageDetectOut = _ard_guardLineImageDetect(context);
     imageDetectResult = imageDetectOut.success;
     
     // če sta obe funkciji uspeli, potem se razmerje stranic ni spremenilo.
@@ -378,7 +376,6 @@ var _ard_vdraw = function (vid, context, w, h, conf){
     }
   }
   
-  
   // pa poglejmo, kje se končajo črne letvice na vrhu in na dnu videa.
   // let's see where black bars end.
   GlobalVars.sampleCols_current = sampleCols.length;
@@ -388,6 +385,11 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   
   if(edgePost.status == "ar_known"){
     _ard_processAr(vid, w, h, edgePost.blackbarWidth, null, fallbackMode);
+    
+    // we also know edges for guardline, so set them
+    GlobalVars.arDetect.guardLine.top = edgePost.guardLineTop;
+    GlobalVars.arDetect.guardLine.bottom = edgePost.guardLineBottom;
+    
     triggerTimeout = _ard_getTimeout(baseTimeout, startTime);
     _ard_timer = setTimeout(_ard_vdraw, triggerTimeout , vid, context, w, h); //no letterbox, no problem
     return;
@@ -415,26 +417,60 @@ function _ard_guardLineCheck(context){
   // if this test fails, it returns a list of offending points.
   
   // if the upper edge is null, then edge hasn't been detected before. This test is pointless, therefore it
-  // should succeed by default.
-  if(GlobalVars.arDetect.guardLine.top == null)
-    return { success: true };
+  // should succeed by default. Also need to check bottom, for cases where only one edge is known
   
-  var blackbarTreshold = GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold;
-  var edges = GlobalVars.arDetect.guardLine;  
-  var start = parseInt(_ard_canvasWidth * Settings.arDetect.guardLine.ignoreEdgeMargin);
-  var width = _ard_canvasWidth - (start << 1);
-  
-  var offenders = [];
-  var firstOffender = -1;
-  var offenderCount = -1;
-  
+  try{
+    if(GlobalVars.arDetect.guardLine.top == null || GlobalVars.arDetect.guardLine.bottom == null)
+      return { success: true };
+    
+    var blackbarTreshold = GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold;
+    var edges = GlobalVars.arDetect.guardLine;  
+    var start = parseInt(_ard_canvasWidth * Settings.arDetect.guardLine.ignoreEdgeMargin);
+    var width = _ard_canvasWidth - (start << 1);
+    
+    var offenders = [];
+    var firstOffender = -1;
+    var offenderCount = -1; // doing it this way means first offender has offenderCount==0. Ez index.
+  }
+  catch(e){
+    console.log("%c[ArDetect::_ard_guardLineCheck] guardline crashed for some reason??\n----\n", "color: #000; background: #f62", e, "%c\n----");
+    return {success: false};
+  }
   // TODO: implement logo check.
   
   
   // preglejmo obe vrstici
   // check both rows
-  for(var edge of [ edges.top, edges.bottom ]){
-    var row = context.getImageData(start, edges.top, width, 1).data;
+  
+  var rows = [];
+  
+  var ytolerance = Settings.arDetect.guardLine.edgeTolerancePx;
+  if(edges.top - ytolerance > 0){
+    rows.push(context.getImageData(start, edges.top - ytolerance, width, 1).data);
+  }
+  if(edges.bottom + ytolerance < context.canvas.height){
+    rows.push(context.getImageData(start, edges.bottom + ytolerance, width, 1).data);
+  }
+  
+//   context.font = "16px Overpass Mono";
+//   
+//   context.fillStyle = 'rgb(255, 192, 32)'; 
+//   context.fillText(("UPPER EDGE: "+edges.top ), 16, 12)
+//   
+//   context.fillStyle = 'rgb(32, 64, 255)'; 
+//   context.fillText(("LOWER EDGE: "+edges.bottom ), 16, 32)
+// 
+//   
+//   context.fillStyle = 'rgb(255, 192, 32)'; 
+//   context.fillRect(0,0,10,edges.top);
+//   
+//   context.fillStyle = 'rgb(32, 64, 255)'; 
+//   context.fillRect(0,edges.bottom, 10, edges.bottom);
+//   
+//   
+//   console.log("guardline - rows:", rows);
+  
+  for(var row of rows){
     for(var i = 0; i < row.length; i+=4){
 
       // we track sections that go over what's supposed to be a black line, so we can suggest more 
@@ -453,8 +489,10 @@ function _ard_guardLineCheck(context){
         // is that a black pixel again? Let's reset the 'first offender' 
         firstOffender = -1;
       }
+
     }
   }
+   
   
   // če nismo našli nobenih prekrškarjev, vrnemo uspeh. Drugače vrnemo seznam prekrškarjev
   // vrnemo tabelo, ki vsebuje sredinsko točko vsakega prekrškarja (x + width*0.5)
@@ -462,8 +500,12 @@ function _ard_guardLineCheck(context){
   // if we haven't found any offenders, we return success. Else we return list of offenders
   // we return array of middle points of offenders (x + (width >> 1) for every offender)
   
-  if(offenderCount == -1)
+  if(offenderCount == -1){
+    console.log("guardline - no black line violations detected.");
     return {success: true};
+  }
+  
+  console.log("guardline failed.");
   
   var ret = new Array(offenders.length);
   for(var o in offenders){
@@ -711,7 +753,7 @@ function _ard_edgePostprocess(edges, canvasHeight){
   if( edges.edgeCandidatesBottomCount > 0){
     for(var e in edges.edgeCandidatesBottom){
       var edge = edges.edgeCandidatesBottom[e];
-      edgesBottom.push({distance: edge.bottomRelative, count: edge.count});
+      edgesBottom.push({distance: edge.bottomRelative, absolute: edge.bottom, count: edge.count});
     }
   }
   
@@ -734,7 +776,7 @@ function _ard_edgePostprocess(edges, canvasHeight){
       var blackbarWidth = edgesTop[0].distance > edgesBottom[0].distance ? 
                           edgesTop[0].distance : edgesBottom[0].distance;
       
-      return {status: "ar_known", blackbarWidth: blackbarWidth};
+      return {status: "ar_known", blackbarWidth: blackbarWidth, guardLineTop: edgesTop[0].distance, guardLineBottom: edgesBottom[0].absolute };
     }
   
     // torej, lahko da je na sliki watermark. Lahko, da je slika samo ornh črna. Najprej preverimo za watermark
@@ -757,7 +799,7 @@ function _ard_edgePostprocess(edges, canvasHeight){
             var blackbarWidth = edgesTop[i].distance > edgesBottom[0].distance ? 
                                 edgesTop[i].distance : edgesBottom[0].distance;
             
-            return  {status: "ar_known", blackbarWidth: blackbarWidth};
+            return  {status: "ar_known", blackbarWidth: blackbarWidth, guardLineTop: edgesTop[i].distance, guardLineBottom: edgesBottom[0].absolute};
           }
         }
       }
@@ -777,7 +819,7 @@ function _ard_edgePostprocess(edges, canvasHeight){
             var blackbarWidth = edgesBottom[i].distance > edgesTop[0].distance ? 
                                 edgesBottom[i].distance : edgesTop[0].distance;
             
-            return  {status: "ar_known", blackbarWidth: blackbarWidth};
+            return  {status: "ar_known", blackbarWidth: blackbarWidth, guardLineTop: edgesTop[0].distance, guardLineBottom: edgesBottom[0].absolute};
           }
         }
       }
@@ -794,13 +836,13 @@ function _ard_edgePostprocess(edges, canvasHeight){
     if(edges.edgeCandidatesTopCount == 0 && edges.edgeCandidatesBottomCount != 0){
       for(var edge of edgesBottom){
         if(edge.count >= edgeDetectionTreshold)
-          return {status: "ar_known", blackbarWidth: edge.distance}
+          return {status: "ar_known", blackbarWidth: edge.distance, guardLineTop: null, guardLineBottom: edge.bottom}
       }
     }
     if(edges.edgeCandidatesTopCount != 0 && edges.edgeCandidatesBottomCount == 0){
       for(var edge of edgesTop){
         if(edge.count >= edgeDetectionTreshold)
-          return {status: "ar_known", blackbarWidth: edge.distance}
+          return {status: "ar_known", blackbarWidth: edge.distance, guardLineTop: edge.top, guardLineBottom: null}
       }
     }
   }

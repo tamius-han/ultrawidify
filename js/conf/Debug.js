@@ -8,7 +8,7 @@ Debug = {
   debugResizer: true,
   debugArDetect: true,
   debugStorage: true,
-  showArDetectCanvas: false,
+  showArDetectCanvas: true,
   flushStoredSettings: false,
   arDetect: {
     edgeDetect: true
