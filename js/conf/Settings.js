@@ -94,7 +94,7 @@ var Settings = {
 //     criticalFail: "background: #fa2; color: #000"
   },
   whitelist: [],
-  blacklist: ["vimeo.com"],
+  blacklist: ["vimeo.com", "reddit.com"],
   isBlacklisted: _se_isBlacklisted,
   isWhitelisted: _se_isWhitelisted,
   init: _se_init,
