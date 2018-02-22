@@ -9,7 +9,8 @@ Debug = {
   debugArDetect: true,
   debugStorage: true,
   showArDetectCanvas: false,
-  flushStoredSettings: false
+  flushStoredSettings: false,
+  playerDetectDebug: false
 }
 
 if(_prod){

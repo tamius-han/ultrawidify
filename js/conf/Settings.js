@@ -14,6 +14,8 @@ var _se_init = async function(neverFlushStored){
   
   
   var newSettings = await StorageManager.getopt_async("uw-settings");
+  var uwVersion = browser.runtime.getManifest().version;
+  
   if (Debug.debug)
     console.log("[Settings::_se_init()] settings saved in localstorage are:", newSettings, " - if that's empty, it's gonna be replaced by this:", JSON.stringify(this), ")");
   
@@ -23,6 +25,10 @@ var _se_init = async function(neverFlushStored){
   }
   else{
     var actualSettings = JSON.parse(newSettings["uw-settings"]);
+    if(actualSettings.version === undefined || actualSettings.version != uwVersion){
+      console.log("[Settings::_se_init()] extension was updated, replacing settings");
+      StorageManager.setopt({"uw-settings": JSON.stringify(this)});
+    }
     
     if(Debug.debug)
       console.log("[Settings::_se_init()] parsed settings:", actualSettings);
