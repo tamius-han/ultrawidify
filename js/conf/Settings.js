@@ -87,7 +87,9 @@ var Settings = {
       enabled: true,
       ignoreEdgeMargin: 0.20, // we ignore anything that pokes over the black line this close to the edge
                               // (relative to width of the sample)
-      imageTestTreshold: 0.1  // when testing for image, this much pixels must be over blackbarTreshold
+      imageTestTreshold: 0.1, // when testing for image, this much pixels must be over blackbarTreshold
+      edgeTolerancePx: 3,         // black edge violation is performed this far from reported 'last black pixel'
+      edgeTolerancePercent: null  // unused. same as above, except use % of canvas height instead of pixels
     },
     arSwitchLimiter: {        // to be implemented 
       switches: 2,            // we can switch this many times
@@ -99,8 +101,10 @@ var Settings = {
       singleSideConfirmationTreshold: 0.3,   // we need this much edges (out of all samples, not just edges) in order
                                             // to confirm an edge in case there's no edges on top or bottom (other
                                            // than logo, of course)
-      logoTreshold: 0.15      // if edge candidate sits with count greater than this*all_samples, it can't be logo
+      logoTreshold: 0.15,     // if edge candidate sits with count greater than this*all_samples, it can't be logo
                               // or watermarl.
+      edgeTolerancePx: 2,         // we check for black edge violation this far from detection point
+      edgeTolerancePercent: null  // we check for black edge detection this % of height from detection point. unused
     }
   },
   arChange: {
