@@ -6,33 +6,6 @@ if(Debug.debug)
 // calling _res_restore() for some weird reason.
 var _res_restore_wd = false;  
 
-var _res_manual_autoar = function(siteProps){
-  if(! siteProps.autoar_imdb.enabled)
-    return;
-  
-  if(siteProps.autoar_imdb.isClass)
-    var ntitle = document.querySelector("."+ siteProps.autoar_imdb.title); // NOTE: needs to be tested
-    else
-      var ntitle = document.querySelector("#"+ siteProps.autoar_imdb.title); // NOTE: needs to be tested
-      
-      //querySelector lahko vrne null, zato moramo preveriti, kaj smo dobili — drugače se .textContent pritožuje.
-      //querySelector can return null, in which case .textContent will complain.
-      if(!ntitle)
-        return;
-      
-      var title = ntitle.textContent;
-    
-    char_got_ar = false;
-    last_whatdo = {type: "autoar", what_do:"autoar"};
-    
-    var sending = browser.runtime.sendMessage({
-      type: "gibAspectRatio",
-      title: title
-    });
-    //     sending.then( function(){}, function(err1, err2){console.log("uw::periodic: there was an error while sending a message", err1, err2)} );
-}
-
-
 var _res_char = function(newAr, video, player){
   
   // Kot vhodni argument dobimo razmerje stranic. Problem je, ker pri nekaterih ločljivostih lahko razmerje stranic

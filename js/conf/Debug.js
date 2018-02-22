@@ -10,6 +10,7 @@ Debug = {
   debugStorage: true,
   showArDetectCanvas: true,
   flushStoredSettings: false,
+  playerDetectDebug: false
   arDetect: {
     edgeDetect: true
   }

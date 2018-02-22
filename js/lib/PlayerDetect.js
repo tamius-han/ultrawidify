@@ -47,7 +47,8 @@ var _pd_getPlayerDimensions = function(element){
     return;
   }
   var playerCandidateNode = element;
-  
+  var trustCandidateAfterGrows = 2; // if candidate_width or candidate_height increases in either dimensions this many
+                                    // times, we say we found our player. (This number ignores weird elements)
   // in case our <video> is bigger than player in one dimension but smaller in the other
   // if site is coded properly, player can't be wider than that
   var candidate_width = Math.max(element.offsetWidth, screen.width);
@@ -64,15 +65,22 @@ var _pd_getPlayerDimensions = function(element){
       continue;
     }
     
+    
     if ( element.offsetHeight <= candidate_height &&
          element.offsetWidth  <= candidate_width  ){
       playerCandidateNode = element;
       candidate_width = element.offsetWidth;
       candidate_height = element.offsetHeight;
     
-//       if(Debug.debug){
-//         console.log("Found new candidate for player. Dimensions: w:", candidate_width, "h:",candidate_height);
-//       }
+      if(Debug.debug){
+        console.log("Found new candidate for player. Dimensions: w:", candidate_width, "h:",candidate_height, "node:", playerCandidateNode);
+      }
+    }
+    else if(trustCandidateAfterGrows --<= 0){
+      if(Debug.debug && Debug.playerDetect){
+        console.log("Current element grew in comparrison to the child. We probably found the player. breaking loop, returning current result");
+      }
+      break;
     }
     
     element = element.parentNode;

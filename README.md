@@ -81,6 +81,10 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 ## Changelog
 
+### v2.1.3
+
+* Youtube pushed an update that broke this extension on Firefox (but not on Chrome?). This update fixes it.
+
 ### v2.1.2 
 
 * Fixed some bugs with autodetection sometimes not working properly on Youtube.
@@ -162,7 +166,7 @@ Furthermore, triggering UI re-initialisation on onUpdated events turned out to n
 
 This is why Netflix uses another function that manually checks whether the player bar is present. Ideally that check happens every tenth of a second, but Firefox may be limiting that to one per second.
 
-###v1.0.2  
+### v1.0.2  
 
 The 'extension sometimes not working' bug was fixed (by having extension try to setup every time a page got updated), but the fix had some problems. Namely, the extension would re-initiate (complete with re-adding the entire UI) itself very _very_ often. 
 
