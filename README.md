@@ -81,17 +81,24 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 ## Changelog
 
+### v2.1.4 (FF/AMO)
+
+* Extension has been disabled on imgur (it was breaking gifs)
+
 ### v2.1.3
 
 * Youtube pushed an update that broke this extension on Firefox (but not on Chrome?). This update fixes it.
+* Extension disabled on reddit by default
 
-### v2.1.2 
+Youtube fix seems to have broken Chrome compatibility (again), so any quick fix for this point forward will land in Chrome version along with v2.2.
+
+### v2.1.2 (Chrome)
 
 * Fixed some bugs with autodetection sometimes not working properly on Youtube.
 
 Problem: there's this bit of code that keeps aspect ratio from changing when the difference between 'previous' and 'current' aspect ratio is too small. Unfortunately, the 'previous' value was _not_ updated on every aspect ratio switch for some reason. Also `ArDetect.init()` — for some reason — didn't always clean the 'previous' value even though it should. 
 
-### v2.1.1 (FF/Amo)
+### v2.1.1
 
 * Fixed issue #20 — aspect ratio autodetection should now start on subsequent videos as well.
 * Netflix sometimes always showed 'no video detected' warning. Popup and background script now periodically poll for `hasVideos` property.
