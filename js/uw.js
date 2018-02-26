@@ -13,12 +13,6 @@ if(Debug.debug){
 }
 
 
-// global-ish
-
-var _main_last_fullscreen;
-
-var _player_dimensions_last;
-
 // load all settings from localStorage:
 
 async function main(){
@@ -115,24 +109,26 @@ function ghettoOnChange(){
   if(GlobalVars.video === null)
     return;
   
-  if(_player_dimensions_last === undefined){
-    _player_dimensions_last = PlayerDetect.getPlayerDimensions( GlobalVars.video );
+  if(GlobalVars.playerDimensions == null){
+    GlobalVars.playerDimensions = PlayerDetect.getPlayerDimensions( GlobalVars.video );
+    
+    
+    if(GlobalVars.playerDimensions == undefined){
+      GlobalVars.playerDimensions = null;
+      return;
+    }
   }
   
-  var newPlayerDims = PlayerDetect.getPlayerDimensions( GlobalVars.video );
-  
-  if (newPlayerDims == undefined)
-    return;
-  
-  GlobalVars.playerDimensions = newPlayerDims;
-  
-  if ( newPlayerDims.width  != _player_dimensions_last.width ||
-      newPlayerDims.height != _player_dimensions_last.height){
+  if(PlayerDetect.checkPlayerSizeChange()){
+    GlobalVars.playerDimensions = PlayerDetect.getPlayerDimensions( GlobalVars.video );
+    
+    if(GlobalVars.playerDimensions == undefined){
+      GlobalVars.playerDimensions = null;
+      return;
+    }
     
     Resizer.restore();
   }
-    
-  _player_dimensions_last = newPlayerDims;
 }
 
 

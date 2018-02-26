@@ -21,6 +21,8 @@ var _ard_canvasWidth;
 var _ard_canvasHeight;
 var _ard_canvasDrawWindowHOffset = 0;
 
+var localSettings = {};
+
 // **** FUNCTIONS **** //
 
 var _arSetup = function(cwidth, cheight){
@@ -324,8 +326,8 @@ var _ard_vdraw = function (vid, context, w, h, conf){
     if(currentMaxVal < GlobalVars.arDetect.blackLevel){
       GlobalVars.arDetect.blackLevel = currentMaxVal;
     }
-    
   }
+  cols = null;
 
   if(!isLetter){
     // Če ne zaznamo letterboxa, kličemo reset. Lahko, da je bilo razmerje stranic popravljeno na roke. Možno je tudi,
@@ -646,7 +648,7 @@ function _ard_edgeDetect(context, samples){
           blackEdgeViolation = true;
           
           if(Debug.debug && Debug.debugArDetect && Debug.arDetect.edgeDetect)
-            console.log(("[ArDetect::_ard_edgeDetect] detected black edge violation at i="+i+"; sample.top="+sample.top + "\n--"), imageData, context.getImageData(sampleStart, sample.top - 2, sampleWidth, 1));
+            console.log(("[ArDetect::_ard_edgeDetect] detected black edge violation at i="+i+"; sample.top="+sample.top + "\n--")/*, imageData, context.getImageData(sampleStart, sample.top - 2, sampleWidth, 1)*/);
           
           break;
         }
@@ -689,7 +691,7 @@ function _ard_edgeDetect(context, samples){
           imageData[i+1] > blackbarTreshold ||
           imageData[i+2] > blackbarTreshold ){
           blackEdgeViolation = true;
-        console.log(("[ArDetect::_ard_edgeDetect] detected black edge violation at i="+i+"; sample.top="+sample.top + "\n--"), imageData, context.getImageData(sampleStart, sample.top - 2, sampleWidth, 1));
+        console.log(("[ArDetect::_ard_edgeDetect] detected black edge violation at i="+i+"; sample.top="+sample.top + "\n--")/*, imageData, context.getImageData(sampleStart, sample.top - 2, sampleWidth, 1)*/);
         
         break;
           }
