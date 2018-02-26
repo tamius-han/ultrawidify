@@ -26,6 +26,7 @@ var _se_init = async function(neverFlushStored){
   else{
     var actualSettings = JSON.parse(newSettings["uw-settings"]);
     if(actualSettings.version === undefined || actualSettings.version != uwVersion){
+      this.version = uwVersion;
       console.log("[Settings::_se_init()] extension was updated, replacing settings");
       StorageManager.setopt({"uw-settings": JSON.stringify(this)});
     }

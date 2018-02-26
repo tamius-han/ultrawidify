@@ -34,12 +34,7 @@ var _pd_isFullScreen = function(){
 
 var _pd_getPlayerDimensions = function(element){
   
-  if(_pd_isFullScreen()){
-    return {
-      width: screen.width,
-      height: screen.height
-    };
-  }
+  
   if(element == null){
     if(Debug.debug)
       console.log("[PlayerDetect::_pd_getPlayerDimensions] element is not valid, doing nothing.", element)
@@ -88,14 +83,29 @@ var _pd_getPlayerDimensions = function(element){
   
   var dims = {
     width: candidate_width,
-    height: candidate_height
+    height: candidate_height,
+    element: playerCandidateNode
   };
   
   return dims;
 }
 
 
+// returns 'true' if there was a change.
+var _pd_checkPlayerSizeChange = function(){
+  if(GlobalVars.playerDimensions.element == undefined)
+    return true;
+  
+  if(GlobalVars.playerDimensions.width != GlobalVars.playerDimensions.element.offsetWidth || GlobalVars.playerDimensions.height != GlobalVars.playerDimensions.element.offsetHeight ){
+    return true;
+  }
+  
+  return false;
+}
+
+
 var PlayerDetect = {
   getPlayerDimensions: _pd_getPlayerDimensions,
+  checkPlayerSizeChange: _pd_checkPlayerSizeChange,
   isFullScreen: _pd_isFullScreen
 }

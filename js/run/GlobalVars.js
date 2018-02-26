@@ -2,6 +2,7 @@ var GlobalVars = {
   video: null,
   player: null,
   playerDimensions: null,
+  playerElement: null,
   lastAr: null,
   lastUrl: "",
   currentCss: {
