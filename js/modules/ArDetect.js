@@ -23,13 +23,29 @@ var _ard_canvasDrawWindowHOffset = 0;
 
 var localSettings = {};
 
+
 // **** FUNCTIONS **** //
 
+function isLittleEndian() {
+  // borrowed from here:  https://stackoverflow.com/questions/7869752/javascript-typed-arrays-and-endianness
+  var arrayBuffer = new ArrayBuffer(2);
+  var uint8Array = new Uint8Array(arrayBuffer);
+  var uint16array = new Uint16Array(arrayBuffer);
+  uint8Array[0] = 0xAA; // set first byte
+  uint8Array[1] = 0xBB; // set second byte
+  if(uint16array[0] === 0xBBAA) return true;
+  if(uint16array[0] === 0xAABB) return false;
+  else throw new Error("Something crazy just happened");
+}
+
 var _arSetup = function(cwidth, cheight){
+  try{
   if(Debug.debug)
     console.log("%c[ArDetect::_ard_setup] Starting automatic aspect ratio detection", _ard_console_start);
 
   this._halted = false;
+  
+  GlobalVars.isLittleEndian = isLittleEndian();
   
   var existingCanvas = document.getElementById("uw_ArDetect_canvas");
   if(existingCanvas){
@@ -57,31 +73,26 @@ var _arSetup = function(cwidth, cheight){
     return;
   }
   
-  
-  var canvas = document.createElement("canvas");
-  canvas.style.position = "absolute";
-  
-  //todo: change those values to push canvas off-screen
+  // things to note: we'll be keeping canvas in memory only. 
+  GlobalVars.arDetect.canvas = document.createElement("canvas");
   
   _ard_canvasWidth = cwidth ? cwidth : Settings.arDetect.hSamples;
   _ard_canvasHeight = cheight ? cheight : Settings.arDetect.vSamples;
   
   if(Debug.showArDetectCanvas){
-    canvas.style.left = "200px";
-    canvas.style.top = "780px";
-    canvas.style.zIndex = 10000;
+    GlobalVars.arDetect.canvas.style.position = "absolute";
+    GlobalVars.arDetect.canvas.style.left = "200px";
+    GlobalVars.arDetect.canvas.style.top = "780px";
+    GlobalVars.arDetect.canvas.style.zIndex = 10000;
+    GlobalVars.arDetect.canvas.id = "uw_ArDetect_canvas";
+    
+    var test = document.getElementsByTagName("body")[0];
+    test.appendChild(GlobalVars.arDetect.canvas);
   }
-  else{
-    canvas.style.left = "-20000px";
-    canvas.style.top = "-1080px";
-    canvas.style.zIndex = -10000;
-  }
-  canvas.id = "uw_ArDetect_canvas";
   
-  var test = document.getElementsByTagName("body")[0];
-  test.appendChild(canvas);
   
-  var context = canvas.getContext("2d");
+  
+  var context = GlobalVars.arDetect.canvas.getContext("2d");
   
   // do setup once
   // tho we could do it for every frame
@@ -96,8 +107,8 @@ var _arSetup = function(cwidth, cheight){
     var canvasHeight = vid.videoHeight * canvasScaleFactor;
   }
   
-  canvas.width = canvasWidth;
-  canvas.height = canvasHeight;
+  GlobalVars.arDetect.canvas.width = canvasWidth;
+  GlobalVars.arDetect.canvas.height = canvasHeight;
   
   
   try{
@@ -138,7 +149,14 @@ var _arSetup = function(cwidth, cheight){
   this._forcehalt = false;
   // if we're restarting ArDetect, we need to do this in order to force-recalculate aspect ratio
   GlobalVars.lastAr = {type: "auto", ar: null};
-  _ard_vdraw(vid, context, canvasWidth, canvasHeight, false);
+  GlobalVars.canvas.context = context;
+  GlobalVars.canvas.width = canvasWidth;
+  GlobalVars.canvas.height = canvasHeight;
+  _ard_vdraw(0);
+  }
+  catch(ex){
+    console.log(ex);
+  }
 };
 
 var _ard_canvasReadyForDrawWindow = function(){
@@ -223,10 +241,19 @@ var _ard_processAr = function(video, width, height, edge_h, edge_w, fallbackMode
   GlobalVars.lastAr = {type: "auto", ar: trueAr};
 }
 
-var _ard_vdraw = function (vid, context, w, h, conf){
+var _ard_vdraw = function (timeout){
+  _ard_timer = setTimeout(function(){
+    _ard_vdraw_but_for_reals();
+  },
+  timeout);
+}
+  
+var _ard_vdraw_but_for_reals = function() {
+  // thanks dude:
+  // https://www.reddit.com/r/iiiiiiitttttttttttt/comments/80qnss/i_tried_to_write_something_that_would/duyfg53/
   try{
   
-  if(this._forcehalt)
+  if(_forcehalt)
     return;
   
   var fallbackMode = false;
@@ -241,14 +268,14 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   
   var how_far_treshold = 8; // how much can the edge pixel vary (*4)
   
-  if(vid == null || vid.paused || vid.ended || Status.arStrat != "auto"){
+  if(GlobalVars.video == null || GlobalVars.video.paused || GlobalVars.video.ended || Status.arStrat != "auto"){
     // we slow down if paused, no detection
-    _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_paused, vid, context, w, h);
+    _ard_vdraw(Settings.arDetect.timer_paused);
     return false;
   }
   
   try{
-    context.drawImage(vid, 0,0, w, h);
+    GlobalVars.canvas.context.drawImage(GlobalVars.video, 0,0, GlobalVars.canvas.width, GlobalVars.canvas.height);
   }
   catch(ex){
     if(Debug.debug)
@@ -256,7 +283,7 @@ var _ard_vdraw = function (vid, context, w, h, conf){
     
     try{
       if(_ard_canvasReadyForDrawWindow()){
-        context.drawWindow(window, _ard_canvasDrawWindowHOffset, 0, w, h, "rgba(0,0,0,1)");
+        context.drawWindow(window, _ard_canvasDrawWindowHOffset, 0, GlobalVars.canvas.width, GlobalVars.canvas.height, "rgba(0,0,0,1)");
         if(Debug.debug)
           console.log("%c[ArDetect::_ard_vdraw] canvas.drawImage seems to have worked", "color:#000; backgroud:#2f5;");
         fallbackMode = true;
@@ -284,52 +311,73 @@ var _ard_vdraw = function (vid, context, w, h, conf){
       if(Debug.debug)
         console.log("%c[ArDetect::_ard_vdraw] okay this didnt work either", "color:#000; backgroud:#f51;", ex);
       
-      _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_error, vid, context, w, h);
+      _ard_vdraw( Settings.arDetect.timer_error );
       return;  
     }
     
 //     _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_error, vid, context, w, h);
 //     return;
   }
+
+  // we get the entire frame so there's less references for garbage collection to catch
+  var image = GlobalVars.canvas.context.getImageData(0,0,GlobalVars.canvas.width,GlobalVars.canvas.height).data;    
  
-  var cols = []; 
-
-  for(var i = 0; i < sampleCols.length; i++){
-    //where-x, where-y, how wide, how tall
-    //random col, first y, 1 pix wide, all pixels tall 
-    cols[i] = context.getImageData(sampleCols[i], 0, 1, h).data;
-  }
-
   // fast test to see if aspect ratio is correct. If we detect anything darker than blackLevel, we modify 
   // blackLevel to the new lowest value
   var isLetter=true;
-  var currentMaxVal;
-  var currentMax_a, currentMax_b;
+  var currentMaxVal = 0;
+  var currentMax_a;
+  var currentMinVal = 48; // not 255 cos safety, even this is prolly too high
+  var currentMin_a;
   
-  var bottom_r = cols[0].length - 4;
-  var bottom_g = bottom_r + 1;
-  var bottom_b = bottom_r + 2;
+  var rowOffset = 0;
+  var colOffset_r, colOffset_g, colOffset_b;
   
-  for(var i in cols){
-    // get biggest brightness in the top and bottom row across all three RGB components
-    currentMax_a = cols[i][0] > cols[i][1] ? cols[i][0] : cols[i][1];
-    currentMax_b = cols[i][bottom_r] > cols[i][bottom_g] ? cols[i][bottom_r] : cols[i][bottom_g];
-    currentMaxVal = cols[i][2] > cols[i][bottom_b] ? cols[i][2] : cols[i][bottom_b];
+  // detect black level. if currentMax and currentMin vary too much, we automatically know that 
+  // black level is bogus and that we aren't letterboxed. We still save the darkest value as black level,
+  // though — as black bars will never be brighter than that.
+  
+  for(var i = 0; i < sampleCols.length; ++i){
+    colOffset_r = sampleCols[i] << 2;
+    colOffset_g = colOffset + 1;
+    colOffset_b = colOffset + 2;
     
-    currentMax_a = currentMax_a > currentMax_b ? currentMax_a : currentMax_b;
+    currentMax_a = image[colOffset_r] > image[colOffset_g] ? image[colOffset_r] : image[colOffset_g];
+    currentMax_a = currentMax_a > image[colOffset_b] ? currentMax_a : image[colOffset_b];
+    
     currentMaxVal = currentMaxVal > currentMax_a ? currentMaxVal : currentMax_a;
     
-    // if any of those points fails this check, we aren't letterboxed
-    isLetter &= currentMaxVal <= (GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold);
+    currentMin_a = image[colOffset_r] < image[colOffset_g] ? image[colOffset_r] : image[colOffset_g];
+    currentMin_a = currentMin_a < image[colOffset_b] ? currentMin_a : image[colOffset_b];
     
-    // any single point on that list could be the darkest black, so we still check if we can lower blackLevel
-    if(currentMaxVal < GlobalVars.arDetect.blackLevel){
-      GlobalVars.arDetect.blackLevel = currentMaxVal;
-    }
+    currentMinVal = currenMinVal < currentMin_a ? currentMinVal : currentMin_a;
   }
-  cols = null;
 
-  if(!isLetter){
+  // we'll shift the sum. math says we can do this
+  rowOffset = GlobalData.canvas.width * (GlobalData.canvas.height - 1); 
+  
+  for(var i = 0; i < sampleCols.length; ++i){
+    colOffset_r = (rowOffset + sampleCols[i]) << 2;
+    colOffset_g = colOffset + 1;
+    colOffset_b = colOffset + 2;
+    
+    currentMax_a = image[colOffset_r] > image[colOffset_g] ? image[colOffset_r] : image[colOffset_g];
+    currentMax_a = currentMax_a > image[colOffset_b] ? currentMax_a : image[colOffset_b];
+    
+    currentMaxVal = currentMaxVal > currentMax_a ? currentMaxVal : currentMax_a;
+    
+    currentMin_a = image[colOffset_r] < image[colOffset_g] ? image[colOffset_r] : image[colOffset_g];
+    currentMin_a = currentMin_a < image[colOffset_b] ? currentMin_a : image[colOffset_b];
+    
+    currentMinVal = currenMinVal < currentMin_a ? currentMinVal : currentMin_a;
+  }
+  
+  // save black level
+  GlobalVars.arDetect.blackLevel = GlobalVars.arDetect.blackLevel < currentMinVal ? GlobalVars.arDetect.blackLevel : currentMinVal;
+
+  // this means we don't have letterbox
+  if ( currentMinVal > (GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold) || (currentMaxVal - currentMinVal) > blackbarTreshold ){
+    
     // Če ne zaznamo letterboxa, kličemo reset. Lahko, da je bilo razmerje stranic popravljeno na roke. Možno je tudi,
     // da je letterbox izginil.
     // If we don't detect letterbox, we reset aspect ratio to aspect ratio of the video file. The aspect ratio could
@@ -341,9 +389,9 @@ var _ard_vdraw = function (vid, context, w, h, conf){
     Resizer.reset();
     GlobalVars.lastAr = {type: "auto", ar: null};
     
-    
+    delete image;
     triggerTimeout = _ard_getTimeout(baseTimeout, startTime);
-    _ard_timer = setTimeout(_ard_vdraw, triggerTimeout , vid, context, w, h); //no letterbox, no problem
+    _ard_vdraw(triggerTimeout); //no letterbox, no problem
     return;
   }
   
@@ -357,7 +405,7 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   var imageDetectOut;
   
   if(Settings.arDetect.guardLine.enabled){
-    guardLineOut = _ard_guardLineCheck(context);
+    guardLineOut = _ard_guardLineCheck(image);
     guardLineResult = guardLineOut.success;
     
     if(! guardLineResult ){ // add new ssamples to our sample columns
@@ -366,14 +414,15 @@ var _ard_vdraw = function (vid, context, w, h, conf){
       }
     }
     
-    imageDetectOut = _ard_guardLineImageDetect(context);
+    imageDetectOut = _ard_guardLineImageDetect(image);
     imageDetectResult = imageDetectOut.success;
     
     // če sta obe funkciji uspeli, potem se razmerje stranic ni spremenilo.
     // if both succeed, then aspect ratio hasn't changed.    
     if(imageDetectResult && guardLineResult){
+      console.log("imageDetect detected no changes.");
       triggerTimeout = _ard_getTimeout(baseTimeout, startTime);
-      _ard_timer = setTimeout(_ard_vdraw, triggerTimeout , vid, context, w, h); //no letterbox, no problem
+      _ard_vdraw(triggerTimeout); //no letterbox, no problem
       return;
     }
   }
@@ -381,24 +430,24 @@ var _ard_vdraw = function (vid, context, w, h, conf){
   // pa poglejmo, kje se končajo črne letvice na vrhu in na dnu videa.
   // let's see where black bars end.
   GlobalVars.sampleCols_current = sampleCols.length;
-  var blackbarSamples = _ard_findBlackbarLimits(context, sampleCols);
-  var edgeCandidates = _ard_edgeDetect(context, blackbarSamples);
-  var edgePost = _ard_edgePostprocess(edgeCandidates, context.canvas.height);
+  var blackbarSamples = _ard_findBlackbarLimits(GlobalVars.canvas.context, sampleCols);
+  var edgeCandidates = _ard_edgeDetect(GlobalVars.canvas.context, blackbarSamples);
+  var edgePost = _ard_edgePostprocess(edgeCandidates, GlobalVars.canvas.height);
   
   if(edgePost.status == "ar_known"){
-    _ard_processAr(vid, w, h, edgePost.blackbarWidth, null, fallbackMode);
+    _ard_processAr(GlobalVars.video, GlobalVars.canvas.width, GlobalVars.canvas.height, edgePost.blackbarWidth, null, fallbackMode);
     
     // we also know edges for guardline, so set them
     GlobalVars.arDetect.guardLine.top = edgePost.guardLineTop;
     GlobalVars.arDetect.guardLine.bottom = edgePost.guardLineBottom;
     
     triggerTimeout = _ard_getTimeout(baseTimeout, startTime);
-    _ard_timer = setTimeout(_ard_vdraw, triggerTimeout , vid, context, w, h); //no letterbox, no problem
+    _ard_vdraw(triggerTimeout); //no letterbox, no problem
     return;
   }
   else{
     triggerTimeout = _ard_getTimeout(baseTimeout, startTime);
-    _ard_timer = setTimeout(_ard_vdraw, triggerTimeout , vid, context, w, h); //no letterbox, no problem
+    _ard_vdraw(triggerTimeout); //no letterbox, no problem
     return;
   }
   
@@ -407,11 +456,11 @@ var _ard_vdraw = function (vid, context, w, h, conf){
     if(Debug.debug)
       console.log("%c[ArDetect::_ard_vdraw] vdraw has crashed for some reason ???. Error here:", "color: #000; background: #f80", e);
     
-    _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_playing, vid, context, w, h);
+    _ard_vdraw(Settings.arDetect.timer_playing);
   }
 }
 
-function _ard_guardLineCheck(context){
+function _ard_guardLineCheck(image){
   // this test tests for whether we crop too aggressively
   
   // if this test is passed, then aspect ratio probably didn't change from wider to narrower. However, further
@@ -421,65 +470,45 @@ function _ard_guardLineCheck(context){
   // if the upper edge is null, then edge hasn't been detected before. This test is pointless, therefore it
   // should succeed by default. Also need to check bottom, for cases where only one edge is known
   
-  try{
-    if(GlobalVars.arDetect.guardLine.top == null || GlobalVars.arDetect.guardLine.bottom == null)
-      return { success: true };
-    
-    var blackbarTreshold = GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold;
-    var edges = GlobalVars.arDetect.guardLine;  
-    var start = parseInt(_ard_canvasWidth * Settings.arDetect.guardLine.ignoreEdgeMargin);
-    var width = _ard_canvasWidth - (start << 1);
-    
-    var offenders = [];
-    var firstOffender = -1;
-    var offenderCount = -1; // doing it this way means first offender has offenderCount==0. Ez index.
-  }
-  catch(e){
-    console.log("%c[ArDetect::_ard_guardLineCheck] guardline crashed for some reason??\n----\n", "color: #000; background: #f62", e, "%c\n----");
-    return {success: false};
-  }
+  if(GlobalVars.arDetect.guardLine.top == null || GlobalVars.arDetect.guardLine.bottom == null)
+    return { success: true };
+  
+  var blackbarTreshold = GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold;
+  var edges = GlobalVars.arDetect.guardLine;  
+
+  var checkWidth = GlobalVars.canvas.width - (start << 1);
+  
+  var offenders = [];
+  var firstOffender = -1;
+  var offenderCount = -1; // doing it this way means first offender has offenderCount==0. Ez index.
+
   // TODO: implement logo check.
   
   
   // preglejmo obe vrstici
   // check both rows
+    
+  var edge_upper = edges.top - ytolerance;
+  if(edge_upper < 0)
+    return {success: true}; // if we go out of bounds here, the black bars are negligible
   
-  var rows = [];
+  var edge_lower = edges.bottom + ytolerance;
+  if(edge_lower > GlobalVars.canvas.height - 1)
+    return {success: true}; // if we go out of bounds here, the black bars are negligible
   
-  var ytolerance = Settings.arDetect.guardLine.edgeTolerancePx;
-  if(edges.top - ytolerance > 0){
-    rows.push(context.getImageData(start, edges.top - ytolerance, width, 1).data);
-  }
-  if(edges.bottom + ytolerance < context.canvas.height){
-    rows.push(context.getImageData(start, edges.bottom + ytolerance, width, 1).data);
-  }
+  var rowStart, rowEnd;
   
-//   context.font = "16px Overpass Mono";
-//   
-//   context.fillStyle = 'rgb(255, 192, 32)'; 
-//   context.fillText(("UPPER EDGE: "+edges.top ), 16, 12)
-//   
-//   context.fillStyle = 'rgb(32, 64, 255)'; 
-//   context.fillText(("LOWER EDGE: "+edges.bottom ), 16, 32)
-// 
-//   
-//   context.fillStyle = 'rgb(255, 192, 32)'; 
-//   context.fillRect(0,0,10,edges.top);
-//   
-//   context.fillStyle = 'rgb(32, 64, 255)'; 
-//   context.fillRect(0,edges.bottom, 10, edges.bottom);
-//   
-//   
-//   console.log("guardline - rows:", rows);
+  rowStart = (edge_upper * GlobalVars.canvas.width) << 2;
+  rowEnd = rowStart + (checkWidth << 2);
   
   for(var row of rows){
-    for(var i = 0; i < row.length; i+=4){
+    for(var i = rowStart; i < rowEnd; i+=4){
 
       // we track sections that go over what's supposed to be a black line, so we can suggest more 
       // columns to sample
-      if(row[i] > blackbarTreshold || row[i+1] > blackbarTreshold || row[i+2] > blackbarTreshold){
+      if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
         if(firstOffender < 0){
-          firstOffender = i >> 2;
+          firstOffender = (i >> 2) - rowStart;
           offenderCount++;
           offenders.push({x: firstOffender, width: 1})
         }
@@ -666,10 +695,10 @@ function _ard_edgeDetect(context, samples){
           }
         }
         
-        console.log("detections:",detections, imageData,  context.getImageData(sampleStart, sample.top - 2, sampleWidth, 1));
+//         console.log("detections:",detections, imageData,  context.getImageData(sampleStart, sample.top - 2, sampleWidth, 1));
         
         if(detections >= detectionTreshold){
-          console.log("detection!");
+//           console.log("detection!");
           
           if(edgeCandidatesTop[sample.top] != undefined)
             edgeCandidatesTop[sample.top].count++;
@@ -691,7 +720,7 @@ function _ard_edgeDetect(context, samples){
           imageData[i+1] > blackbarTreshold ||
           imageData[i+2] > blackbarTreshold ){
           blackEdgeViolation = true;
-        console.log(("[ArDetect::_ard_edgeDetect] detected black edge violation at i="+i+"; sample.top="+sample.top + "\n--")/*, imageData, context.getImageData(sampleStart, sample.top - 2, sampleWidth, 1)*/);
+//         console.log(("[ArDetect::_ard_edgeDetect] detected black edge violation at i="+i+"; sample.top="+sample.top + "\n--")/*, imageData, context.getImageData(sampleStart, sample.top - 2, sampleWidth, 1)*/);
         
         break;
           }
@@ -712,7 +741,7 @@ function _ard_edgeDetect(context, samples){
         if(detections >= detectionTreshold){
           // use bottomRelative for ez sort
           
-          console.log("detection!");
+//           console.log("detection!");
           
           if(edgeCandidatesBottom[sample.bottomRelative] != undefined)
             edgeCandidatesBottom[sample.bottomRelative].count++;
@@ -759,7 +788,7 @@ function _ard_edgePostprocess(edges, canvasHeight){
     }
   }
   
-  console.log("count top:",edges.edgeCandidatesTopCount, "edges:", edges, "edgesTop[]", edgesTop);
+//   console.log("count top:",edges.edgeCandidatesTopCount, "edges:", edges, "edgesTop[]", edgesTop);
   
   // če za vsako stran (zgoraj in spodaj) poznamo vsaj enega kandidata, potem lahko preverimo nekaj
   // stvari
