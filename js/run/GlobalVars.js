@@ -9,7 +9,13 @@ var GlobalVars = {
     top: null,
     left: null
   },
+  canvas: {
+    context: null,
+    width: null,
+    height: null
+  },
   arDetect: {
+    canvas: null,
     blackLevel: 10,
     sampleCols_current: 0,
     guardLine: {
