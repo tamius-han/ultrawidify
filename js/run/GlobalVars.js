@@ -12,7 +12,8 @@ var GlobalVars = {
   canvas: {
     context: null,
     width: null,
-    height: null
+    height: null,
+    imageDataRowLength: null
   },
   arDetect: {
     canvas: null,

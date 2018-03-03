@@ -109,9 +109,14 @@ var Settings = {
                                             // to confirm an edge in case there's no edges on top or bottom (other
                                            // than logo, of course)
       logoTreshold: 0.15,     // if edge candidate sits with count greater than this*all_samples, it can't be logo
-                              // or watermarl.
-      edgeTolerancePx: 2,         // we check for black edge violation this far from detection point
-      edgeTolerancePercent: null  // we check for black edge detection this % of height from detection point. unused
+                              // or watermark.
+      edgeTolerancePx: 2,          // we check for black edge violation this far from detection point
+      edgeTolerancePercent: null,  // we check for black edge detection this % of height from detection point. unused
+      middleIgnoredArea: 0.2,      // we ignore this % of canvas height towards edges while detecting aspect ratios
+      minColsForSearch: 0.5,       // if we hit the edge of blackbars for all but this many columns (%-wise), we don't
+                                   // continue with search. It's pointless, because black edge is higher/lower than we
+                                   // are now. (NOTE: keep this less than 1 in case we implement logo detection)
+      edgeTolerancePx: 1,      // tests for edge detection are performed this far away from detected row 
     }
   },
   arChange: {
