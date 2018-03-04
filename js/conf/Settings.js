@@ -79,11 +79,13 @@ var Settings = {
     timer_paused: 3000,
     timer_error: 3000,
     timer_minimumTimeout: 5,  // but regardless of above, we wait this many msec before retriggering
-    hSamples: 1280,
-    vSamples: 720,
+    hSamples: 800,
+    vSamples: 450,
     blackLevel_default: 10,   // everything darker than 10/255 across all RGB components is considered black by
                               // default. GlobalVars.blackLevel can decrease if we detect darker black.
-    blackbarTreshold: 2,      // if pixel is darker than blackLevel + blackbarTreshold, we count it as black
+    blackbarTreshold: 8,      // if pixel is darker than blackLevel + blackbarTreshold, we count it as black
+                              // on 0-255. Needs to be fairly high (8 might not cut it) due to compression
+                              // artifacts in the video itself
     staticSampleCols: 9,      // we take a column at [0-n]/n-th parts along the width and sample it
     randomSampleCols: 0,      // we add this many randomly selected columns to the static columns
     staticSampleRows: 9,      // forms grid with staticSampleCols. Determined in the same way. For black frame checks
