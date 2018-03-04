@@ -14,8 +14,7 @@ var _ard_timer
 // vrednosti v tabeli so na osminskih intervalih od [0, <sample height * 4> - 4].
 // we sample these lines in blackbox/stuff. 9 samples. If we change the canvas sample size, we have to correct these values as well
 // samples are every eighth between [0, <sample height * 4> - 4].
-var _ard_sampleLines = [ 0, 360, 720, 1080, 1440, 1800, 2160, 2520, 2876];
-var _ard_sampleCols = [ 128, 256, 384, 512, 640, 768, 896, 1024, 1125 ];
+var _ard_sampleCols = [ 100, 200, 300, 400, 500, 600, 700 ];
 
 var _ard_canvasWidth;
 var _ard_canvasHeight;
@@ -82,7 +81,7 @@ var _arSetup = function(cwidth, cheight){
   if(Debug.showArDetectCanvas){
     GlobalVars.arDetect.canvas.style.position = "absolute";
     GlobalVars.arDetect.canvas.style.left = "200px";
-    GlobalVars.arDetect.canvas.style.top = "780px";
+    GlobalVars.arDetect.canvas.style.top = "1000px";
     GlobalVars.arDetect.canvas.style.zIndex = 10000;
     GlobalVars.arDetect.canvas.id = "uw_ArDetect_canvas";
     
@@ -152,7 +151,7 @@ var _arSetup = function(cwidth, cheight){
   GlobalVars.canvas.context = context;
   GlobalVars.canvas.width = canvasWidth;
   GlobalVars.canvas.height = canvasHeight;
-  GlobalVars.canvas.imageDataRowLength = canvasWidth << 2;
+  GlobalVars.canvas.imageDataRowLength = canvasWidth * 4;
   _ard_vdraw(0);
   }
   catch(ex){
@@ -242,6 +241,21 @@ var _ard_processAr = function(video, width, height, edge_h, edge_w, fallbackMode
   GlobalVars.lastAr = {type: "auto", ar: trueAr};
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 var _ard_vdraw = function (timeout){
   _ard_timer = setTimeout(function(){
     _ard_vdraw_but_for_reals();
@@ -265,7 +279,10 @@ var _ard_vdraw_but_for_reals = function() {
   var guardLineResult = true;         // true if success, false if fail. true by default
   var imageDetectResult = false;      // true if we detect image along the way. false by default
   
-  var sampleCols = _ard_sampleCols;
+  var sampleCols = [];
+  for(var i in  _ard_sampleCols){
+    sampleCols[i] = _ard_sampleCols[i];
+  }
   
   var how_far_treshold = 8; // how much can the edge pixel vary (*4)
   
@@ -321,7 +338,8 @@ var _ard_vdraw_but_for_reals = function() {
   }
 
   // we get the entire frame so there's less references for garbage collection to catch
-  var image = GlobalVars.canvas.context.getImageData(0,0,GlobalVars.canvas.width,GlobalVars.canvas.height).data;    
+  var imagestuff = GlobalVars.canvas.context.getImageData(0,0,GlobalVars.canvas.width,GlobalVars.canvas.height);    
+  var image = imagestuff.data;
   
   // fast test to see if aspect ratio is correct. If we detect anything darker than blackLevel, we modify 
   // blackLevel to the new lowest value
@@ -339,7 +357,7 @@ var _ard_vdraw_but_for_reals = function() {
   // though — as black bars will never be brighter than that.
   
   for(var i = 0; i < sampleCols.length; ++i){
-    colOffset_r = sampleCols[i] << 2;
+    colOffset_r = sampleCols[i] * 4;
     colOffset_g = colOffset_r + 1;
     colOffset_b = colOffset_r + 2;
     
@@ -358,7 +376,7 @@ var _ard_vdraw_but_for_reals = function() {
   rowOffset = GlobalVars.canvas.width * (GlobalVars.canvas.height - 1); 
   
   for(var i = 0; i < sampleCols.length; ++i){
-    colOffset_r = (rowOffset + sampleCols[i]) << 2;
+    colOffset_r = (rowOffset + sampleCols[i]) * 4;
     colOffset_g = colOffset_r + 1;
     colOffset_b = colOffset_r + 2;
     
@@ -387,10 +405,12 @@ var _ard_vdraw_but_for_reals = function() {
       console.log("%c[ArDetect::_ard_vdraw] no edge detected. canvas has no edge.", "color: #aaf");
     }
     
+    
+    image = null;
+    
     Resizer.reset();
     GlobalVars.lastAr = {type: "auto", ar: null};
     
-    delete image;
     triggerTimeout = _ard_getTimeout(baseTimeout, startTime);
     _ard_vdraw(triggerTimeout); //no letterbox, no problem
     return;
@@ -398,8 +418,7 @@ var _ard_vdraw_but_for_reals = function() {
   
   // let's do a quick test to see if we're on a black frame
   // TODO: reimplement but with less bullshit
-  
-  
+    
   // poglejmo, če obrežemo preveč.
   // let's check if we're cropping too much (or whatever)
   var guardLineOut;
@@ -434,10 +453,12 @@ var _ard_vdraw_but_for_reals = function() {
   GlobalVars.sampleCols_current = sampleCols.length;
   
   // blackSamples -> {res_top, res_bottom}
-  var blackbarSamples = _ard_findBlackbarLimits(image, sampleCols);
+  var blackbarSamples = _ard_findBlackbarLimits(image, sampleCols, guardLineResult, imageDetectResult);
   
   var edgeCandidates = _ard_edgeDetect(image, blackbarSamples);
   var edgePost = _ard_edgePostprocess(edgeCandidates, GlobalVars.canvas.height);
+  
+  console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:",GlobalVars.arDetect.blackLevel, "tresh:", GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold);
   
   if(edgePost.status == "ar_known"){
     _ard_processAr(GlobalVars.video, GlobalVars.canvas.width, GlobalVars.canvas.height, edgePost.blackbarWidth, null, fallbackMode);
@@ -461,7 +482,10 @@ var _ard_vdraw_but_for_reals = function() {
   delete image;
 }
 
-function _ard_guardLineCheck(image){
+
+
+
+var _ard_guardLineCheck = function(image){
   // this test tests for whether we crop too aggressively
   
   // if this test is passed, then aspect ratio probably didn't change from wider to narrower. However, further
@@ -476,43 +500,43 @@ function _ard_guardLineCheck(image){
   
   var blackbarTreshold = GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold;
   var edges = GlobalVars.arDetect.guardLine;  
-
   
-  var offset = parseInt(GlobalVars.canvas.width * Settings.arDetect.guardLine.ignoreEdgeMargin) << 2;
+  
+  var offset = parseInt(GlobalVars.canvas.width * Settings.arDetect.guardLine.ignoreEdgeMargin) * 4;
   
   var offenders = [];
   var firstOffender = -1;
   var offenderCount = -1; // doing it this way means first offender has offenderCount==0. Ez index.
-
+  
   // TODO: implement logo check.
   
   
   // preglejmo obe vrstici
   // check both rows
-    
+  
   var edge_upper = edges.top - Settings.arDetect.guardLine.edgeTolerancePx;
   if(edge_upper < 0)
     return {success: true}; // if we go out of bounds here, the black bars are negligible
-  
-  var edge_lower = edges.bottom + Settings.arDetect.guardLine.edgeTolerancePx;
+    
+    var edge_lower = edges.bottom + Settings.arDetect.guardLine.edgeTolerancePx;
   if(edge_lower > GlobalVars.canvas.height - 1)
     return {success: true}; // if we go out of bounds here, the black bars are negligible
-  
-  var rowStart, rowEnd;
+    
+    var rowStart, rowEnd;
   
   
   // <<<=======| checking upper row |========>>>
   
-  rowStart = ((edge_upper * GlobalVars.canvas.width) << 2) + offset;
-  rowEnd = rowStart + ( GlobalVars.canvas.width << 2 ) - (offset << 1);
+  rowStart = ((edge_upper * GlobalVars.canvas.width) * 4) + offset;
+  rowEnd = rowStart + ( GlobalVars.canvas.width * 4 ) - (offset * 2);
   
   for(var i = rowStart; i < rowEnd; i+=4){
-
+    
     // we track sections that go over what's supposed to be a black line, so we can suggest more 
     // columns to sample
     if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
       if(firstOffender < 0){
-        firstOffender = (i >> 2) - rowStart;
+        firstOffender = (i * 0.25) - rowStart;
         offenderCount++;
         offenders.push({x: firstOffender, width: 1})
       }
@@ -524,21 +548,21 @@ function _ard_guardLineCheck(image){
       // is that a black pixel again? Let's reset the 'first offender' 
       firstOffender = -1;
     }
-
+    
   }
   
   
   // <<<=======| checking lower row |========>>>
   
-  rowStart = ((edge_lower * GlobalVars.canvas.width) << 2) + offset;
-  rowEnd = rowStart + ( GlobalVars.canvas.width << 2 ) - (offset << 1);
+  rowStart = ((edge_lower * GlobalVars.canvas.width) * 4) + offset;
+  rowEnd = rowStart + ( GlobalVars.canvas.width * 4 ) - (offset * 2);
   
   for(var i = rowStart; i < rowEnd; i+=4){    
     // we track sections that go over what's supposed to be a black line, so we can suggest more 
     // columns to sample
     if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
       if(firstOffender < 0){
-        firstOffender = (i >> 2) - rowStart;
+        firstOffender = (i * 0.25) - rowStart;
         offenderCount++;
         offenders.push({x: firstOffender, width: 1})
       }
@@ -557,7 +581,7 @@ function _ard_guardLineCheck(image){
   // vrnemo tabelo, ki vsebuje sredinsko točko vsakega prekrškarja (x + width*0.5)
   //
   // if we haven't found any offenders, we return success. Else we return list of offenders
-  // we return array of middle points of offenders (x + (width >> 1) for every offender)
+  // we return array of middle points of offenders (x + (width * 0.5) for every offender)
   
   if(offenderCount == -1){
     console.log("guardline - no black line violations detected.");
@@ -568,13 +592,258 @@ function _ard_guardLineCheck(image){
   
   var ret = new Array(offenders.length);
   for(var o in offenders){
-    ret[o] = offenders[o].x + (offenders[o].width >> 2);
+    ret[o] = offenders[o].x + (offenders[o].width * 0.25);
   }
   
   return {success: false, offenders: ret};
 }
+var _ard_edgeDetect = function(image, samples){
+  var edgeCandidatesTop = {};
+  var edgeCandidatesBottom = {};
+  
+  var sampleWidthBase = Settings.arDetect.edgeDetection.sampleWidth * 4; // corrected so we can work on imagedata
+  var halfSample = sampleWidthBase * 0.5;
+  var detections;
+  var detectionTreshold = Settings.arDetect.edgeDetection.detectionTreshold;
+  var canvasWidth = GlobalVars.canvas.width;
+  var canvasHeight = GlobalVars.canvas.height;
+  
+  var sampleStart, sampleEnd, loopEnd;
+  var sampleRow_black, sampleRow_color;
+  
+  var blackEdgeViolation = false;
+  var blackbarTreshold = GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold;
+  
+  var topEdgeCount = 0;
+  var bottomEdgeCount = 0;
+  
+  
+  for(sample of samples.res_top){
+    blackEdgeViolation = false; // reset this
+    
+    // determine our bounds. Note that sample.col is _not_ corrected for imageData, but halfSample is
+    sampleStart = (sample.col * 4) - halfSample;
+    
+    if(sampleStart < 0)
+      sampleStart = 0;
+    
+    sampleEnd = sampleStart + sampleWidthBase;
+    if(sampleEnd > GlobalVars.canvas.imageDataRowLength)
+      sampleEnd = GlobalVars.canvas.imageDataRowLength;
+    
+    // calculate row offsets for imageData array
+    sampleRow_black = (sample.top - Settings.arDetect.edgeDetection.edgeTolerancePx) * GlobalVars.canvas.imageDataRowLength;
+    sampleRow_color = (sample.top + 1 + Settings.arDetect.edgeDetection.edgeTolerancePx) * GlobalVars.canvas.imageDataRowLength;
+    
+    // že ena kršitev črnega roba pomeni, da kandidat ni primeren
+    // even a single black edge violation means the candidate is not an edge
+    loopEnd = sampleRow_black + sampleEnd;
+    for(var i = sampleRow_black + sampleStart; i < loopEnd; i += 4){
+      if( image[i  ] > blackbarTreshold ||
+          image[i+1] > blackbarTreshold ||
+          image[i+2] > blackbarTreshold ){
+        blackEdgeViolation = true;
+      break;
+        }
+    }
+    
+    // če je bila črna črta skrunjena, preverimo naslednjega kandidata
+    // if we failed, we continue our search with the next candidate
+    if(blackEdgeViolation)
+      continue;
+    
+    detections = 0;
+    loopEnd = sampleRow_color + sampleEnd;
+    for(var i = sampleRow_color + sampleStart; i < loopEnd; i += 4){
+      if( image[i  ] > blackbarTreshold ||
+        image[i+1] > blackbarTreshold ||
+        image[i+2] > blackbarTreshold ){
+        ++detections;
+        }
+    }
+    if(detections >= detectionTreshold){
+      if(edgeCandidatesTop[sample.top] != undefined)
+        edgeCandidatesTop[sample.top].count++;
+      else{
+        topEdgeCount++; // only count distinct
+        edgeCandidatesTop[sample.top] = {top: sample.top, count: 1};
+      }
+    }
+  }
+  
+  for(sample of samples.res_bottom){
+    blackEdgeViolation = false; // reset this
+    
+    // determine our bounds. Note that sample.col is _not_ corrected for imageData, but halfSample is
+    sampleStart = (sample.col * 4) - halfSample;
+    
+    if(sampleStart < 0)
+      sampleStart = 0;
+    
+    sampleEnd = sampleStart + sampleWidthBase;
+    if(sampleEnd > GlobalVars.canvas.imageDataRowLength)
+      sampleEnd = GlobalVars.canvas.imageDataRowLength;
+    
+    // calculate row offsets for imageData array
+    sampleRow_black = (sample.bottom + Settings.arDetect.edgeDetection.edgeTolerancePx) * GlobalVars.canvas.imageDataRowLength;
+    sampleRow_color = (sample.bottom - 1 - Settings.arDetect.edgeDetection.edgeTolerancePx) * GlobalVars.canvas.imageDataRowLength;
+    
+    // že ena kršitev črnega roba pomeni, da kandidat ni primeren
+    // even a single black edge violation means the candidate is not an edge
+    loopEnd = sampleRow_black + sampleEnd;
+    for(var i = sampleRow_black + sampleStart; i < loopEnd; i += 4){
+      if( image[i  ] > blackbarTreshold ||
+        image[i+1] > blackbarTreshold ||
+        image[i+2] > blackbarTreshold ){
+        blackEdgeViolation = true;
+      break;
+        }
+    }
+    
+    // če je bila črna črta skrunjena, preverimo naslednjega kandidata
+    // if we failed, we continue our search with the next candidate
+    if(blackEdgeViolation)
+      continue;
+    
+    detections = 0;
+    loopEnd = sampleRow_color + sampleEnd;
+    for(var i = sampleRow_color + sampleStart; i < loopEnd; i += 4){
+      if( image[i  ] > blackbarTreshold ||
+        image[i+1] > blackbarTreshold ||
+        image[i+2] > blackbarTreshold ){
+        ++detections;
+        }
+    }
+    if(detections >= detectionTreshold){
+      if(edgeCandidatesBottom[sample.bottom] != undefined)
+        edgeCandidatesBottom[sample.bottom].count++;
+      else{
+        bottomEdgeCount++; // only count distinct
+        edgeCandidatesBottom[sample.bottom] = {bottom: sample.bottom, bottomRelative: sample.bottomRelative, count: 1};
+      }
+    }
+  }
+  
+  return {
+    edgeCandidatesTop: edgeCandidatesTop,
+    edgeCandidatesTopCount: topEdgeCount,
+    edgeCandidatesBottom: edgeCandidatesBottom,
+    edgeCandidatesBottomCount: bottomEdgeCount
+  };
+}
 
-function _ard_guardLineImageDetect(image){  
+
+
+
+
+var _ard_findBlackbarLimits = function(image, cols, guardLineResult, imageDetectResult){
+  
+  var upper_top, upper_bottom, lower_top, lower_bottom;
+  var blackbarTreshold;
+  
+  var cols_a = cols;
+  var cols_b = []
+  
+  for(var i in cols){
+    cols_b[i] = cols_a[i] + 0;
+  }
+  
+  var res_top = [];
+  var res_bottom = [];
+  
+  var colsTreshold = cols.length * Settings.arDetect.edgeDetection.minColsForSearch;
+  if(colsTreshold == 0)
+    colsTreshold = 1;
+  
+  blackbarTreshold = GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold;
+  
+  // if guardline didn't fail and imageDetect did, we don't have to check the upper few pixels
+  // but only if upper and lower edge are defined. If they're not, we need to check full height
+  //   if(GlobalVars.arDetect.guardLine.top != null || GlobalVars.arDetect.guardLine.bottom != null){
+  //     if(guardLineResult && !imageDetectResult){
+  //       upper_top = GlobalVars.arDetect.guardline.top;
+  //       upper_bottom = (GlobalVars.canvas.height * 0.5) - parseInt(GlobalVars.canvas.height * Settings.arDetect.edgeDetection.middleIgnoredArea);
+  //       
+  //       lower_top = (GlobalVars.canvas.height * 0.5) + parseInt(GlobalVars.canvas.height * Settings.arDetect.edgeDetection.middleIgnoredArea);
+  //       lower_bottom = GlobalVars.arDetect.guardline.bottom;
+  //     }
+  //     else if(!guardLineResult && imageDetectResult){
+  //       upper_top = 0;
+  //       upper_bottom = GlobalVars.arDetect.guardline.top;
+  //       
+  //       lower_top = GlobalVars.arDetect.guardline.bottom;
+  //       lower_bottom = GlobalVars.canvas.height;
+  //     }
+  //     else{
+  //       // if they're both false or true (?? they shouldn't be, but let's handle it anyway because dark frames
+  //       // could get confusing enough for that to happen), we go for default 
+  //       upper_top = 0;
+  //       upper_bottom = (GlobalVars.canvas.height * 0.5) - parseInt(GlobalVars.canvas.height * Settings.arDetect.edgeDetection.middleIgnoredArea);
+  //       
+  //       lower_top = (GlobalVars.canvas.height * 0.5) + parseInt(GlobalVars.canvas.height * Settings.arDetect.edgeDetection.middleIgnoredArea);
+  //       lower_bottom = GlobalVars.canvas.height;
+  //     }
+  //   }
+  //   else{
+  upper_top = 0;
+  upper_bottom = (GlobalVars.canvas.height * 0.5) /*- parseInt(GlobalVars.canvas.height * Settings.arDetect.edgeDetection.middleIgnoredArea);*/
+  
+  lower_top = (GlobalVars.canvas.height * 0.5) /*+ parseInt(GlobalVars.canvas.height * Settings.arDetect.edgeDetection.middleIgnoredArea);*/
+  lower_bottom = GlobalVars.canvas.height - 1;
+  //   }
+  
+  
+  var upper_top_corrected = upper_top * GlobalVars.canvas.imageDataRowLength;
+  var upper_bottom_corrected = upper_bottom * GlobalVars.canvas.imageDataRowLength;
+  var lower_top_corrected = lower_top * GlobalVars.canvas.imageDataRowLength;
+  var lower_bottom_corrected = lower_bottom * GlobalVars.canvas.imageDataRowLength;
+  
+  
+  var tmpI;
+  for(var i = upper_top_corrected; i < upper_bottom_corrected; i+= GlobalVars.canvas.imageDataRowLength){
+    for(var col of cols_a){
+      tmpI = i + (col * 4);
+      
+      if( image[tmpI]     > blackbarTreshold || 
+        image[tmpI + 1] > blackbarTreshold ||
+        image[tmpI + 2] > blackbarTreshold ){
+        res_top.push({
+          col: col,
+          top: (i / GlobalVars.canvas.imageDataRowLength) - 1
+        });
+      cols_a.splice(cols_a.indexOf(col), 1);
+        }
+    }
+    if(cols_a.length < colsTreshold)
+      break;
+  }
+  
+  
+  for(var i = lower_bottom_corrected - GlobalVars.canvas.imageDataRowLength; i >= lower_top_corrected; i-= GlobalVars.canvas.imageDataRowLength){
+    for(var col of cols_b){
+      tmpI = i + (col * 4);
+      
+      
+      if( image[tmpI]     > blackbarTreshold || 
+        image[tmpI + 1] > blackbarTreshold ||
+        image[tmpI + 2] > blackbarTreshold ){
+        var bottom = (i / GlobalVars.canvas.imageDataRowLength) + 1;
+      res_bottom.push({
+        col: col,
+        bottom: bottom,
+        bottomRelative: GlobalVars.canvas.height - bottom
+      });
+      cols_b.splice(cols_a.indexOf(col), 1);
+        }
+    }
+    if(cols_b.length < colsTreshold)
+      break;
+  }
+  
+  return {res_top: res_top, res_bottom: res_bottom};
+}
+
+var _ard_guardLineImageDetect = function(image){  
   if(GlobalVars.arDetect.guardLine.top == null || GlobalVars.arDetect.guardLine.bottom == null)
     return { success: false };
   
@@ -582,7 +851,7 @@ function _ard_guardLineImageDetect(image){
   var edges = GlobalVars.arDetect.guardLine;  
   
   
-  var offset = parseInt(GlobalVars.canvas.width * Settings.arDetect.guardLine.ignoreEdgeMargin) << 2;
+  var offset = parseInt(GlobalVars.canvas.width * Settings.arDetect.guardLine.ignoreEdgeMargin) * 4;
   
   var offenders = [];
   var firstOffender = -1;
@@ -607,8 +876,8 @@ function _ard_guardLineImageDetect(image){
   
   // <<<=======| checking upper row |========>>>
   
-  rowStart = ((edge_upper * GlobalVars.canvas.width) << 2) + offset;
-  rowEnd = rowStart + ( GlobalVars.canvas.width << 2 ) - (offset << 1);
+  rowStart = ((edge_upper * GlobalVars.canvas.width) * 4) + offset;
+  rowEnd = rowStart + ( GlobalVars.canvas.width * 4 ) - (offset * 2);
   
   
   
@@ -623,8 +892,8 @@ function _ard_guardLineImageDetect(image){
   
   // <<<=======| checking lower row |========>>>
   
-  rowStart = ((edge_lower * GlobalVars.canvas.width) << 2) + offset;
-  rowEnd = rowStart + ( GlobalVars.canvas.width << 2 ) - (offset << 1);
+  rowStart = ((edge_lower * GlobalVars.canvas.width) * 4) + offset;
+  rowEnd = rowStart + ( GlobalVars.canvas.width * 4 ) - (offset * 2);
   
   for(var i = rowStart; i < rowEnd; i+=4){
     if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
@@ -638,247 +907,7 @@ function _ard_guardLineImageDetect(image){
   return {success: false};
 }
 
-function _ard_findBlackbarLimits(image, cols, guardLineResult, imageDetectResult){
-  
-  var upper_top, upper_bottom, lower_top, lower_bottom;
-  var blackbarTreshold;
-  
-  var cols_a = cols;
-  var cols_b = []
-  
-  for(var i in cols){
-    cols_b[i] = cols_a[i];
-  }
-  
-  var res_top = [];
-  var res_bottom = [];
-  
-  var colsTreshold = cols.length * Settings.arDetect.edgeDetection.minColsForSearch;
-  if(colsTreshold == 0)
-    colsTreshold = 1;
-  
-  blackbarTreshold = GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold;
-  
-  // if guardline didn't fail and imageDetect did, we don't have to check the upper few pixels
-  // but only if upper and lower edge are defined. If they're not, we need to check full height
-  if(GlobalVars.arDetect.guardLine.top != null || GlobalVars.arDetect.guardLine.bottom != null){
-    if(guardLineResult && !imageDetectResult){
-      upper_top = GlobalVars.arDetect.guardline.top;
-      upper_bottom = (GlobalVars.canvas.height >> 1) - parseInt(GlobalVars.canvas.height * Settings.arDetect.edgeDetection.middleIgnoredArea);
-      
-      lower_top = (GlobalVars.canvas.height >> 1) + parseInt(GlobalVars.canvas.height * Settings.arDetect.edgeDetection.middleIgnoredArea);
-      lower_bottom = GlobalVars.arDetect.guardline.bottom;
-    }
-    else if(!guardLineResult && imageDetectResult){
-      upper_top = 0;
-      upper_bottom = GlobalVars.arDetect.guardline.top;
-      
-      lower_top = GlobalVars.arDetect.guardline.bottom;
-      lower_bottom = GlobalVars.canvas.height;
-    }
-    else{
-      // if they're both false or true (?? they shouldn't be, but let's handle it anyway because dark frames
-      // could get confusing enough for that to happen), we go for default 
-      upper_top = 0;
-      upper_bottom = (GlobalVars.canvas.height >> 1) - parseInt(GlobalVars.canvas.height * Settings.arDetect.edgeDetection.middleIgnoredArea);
-      
-      lower_top = (GlobalVars.canvas.height >> 1) + parseInt(GlobalVars.canvas.height * Settings.arDetect.edgeDetection.middleIgnoredArea);
-      lower_bottom = GlobalVars.canvas.height;
-    }
-  }
-  else{
-    upper_top = 0;
-    upper_bottom = (GlobalVars.canvas.height >> 1) - parseInt(GlobalVars.canvas.height * Settings.arDetect.edgeDetection.middleIgnoredArea);
-
-    lower_top = (GlobalVars.canvas.height >> 1) + parseInt(GlobalVars.canvas.height * Settings.arDetect.edgeDetection.middleIgnoredArea);
-    lower_bottom = GlobalVars.canvas.height;
-  }
-  
-  
-  var upper_top_corrected = upper_top * GlobalVars.canvas.imageDataRowLength;
-  var upper_bottom_corrected = upper_bottom * GlobalVars.canvas.imageDataRowLength;
-  var lower_top_corrected = lower_top * GlobalVars.canvas.imageDataRowLength;
-  var lower_bottom_corrected = lower_bottom * GlobalVars.canvas.imageDataRowLength;
-  
-  var tmpI;
-  for(var i = upper_top_corrected; i < upper_bottom_corrected; i+= GlobalVars.canvas.imageDataRowLength){
-    for(var col of cols_a){
-      tmpI = i + (col << 2);
-      
-      if( image[tmpI]     > blackbarTreshold || 
-          image[tmpI + 1] > blackbarTreshold ||
-          image[tmpI + 2] > blackbarTreshold ){
-        res_top.push({
-          col: col,
-          top: (i / GlobalVars.canvas.imageDataRowLength) - 1
-        });
-        cols_a.splice(cols_a.indexOf(col), 1);
-      }
-      
-    }
-    if(cols_a.length < colsTreshold)
-      break;
-  }
-  
-  for(var i = lower_bottom_corrected - GlobalVars.canvas.imageDataRowLength; i >= lower_bottom_corrected; i-= GlobalVars.canvas.imageDataRowLength){
-    for(var col of cols_b){
-      tmpI = i + (col << 2);
-      
-      if( image[tmpI]     > blackbarTreshold || 
-        image[tmpI + 1] > blackbarTreshold ||
-        image[tmpI + 2] > blackbarTreshold ){
-        var bottom = (i / GlobalVars.canvas.imageDataRowLength) + 1;
-        res_bottom.push({
-          col: col,
-          bottom: bottom,
-          bottom_relative: GlobalVars.canvas.height - bottom
-        });
-        cols_b.splice(cols_a.indexOf(col), 1);
-      }
-    }
-    if(cols_b.length < colsTreshold)
-      break;
-  }
-  
-  return {res_top: res_top, res_bottom: res_bottom};
-}
-
-
-function _ard_edgeDetect(image, samples){
-  var edgeCandidatesTop = {};
-  var edgeCandidatesBottom = {};
-  
-  var sampleWidthBase = Settings.arDetect.edgeDetection.sampleWidth << 2; // corrected so we can work on imagedata
-  var halfSample = sampleWidthBase >> 1;
-  var detections;
-  var detectionTreshold = Settings.arDetect.edgeDetection.detectionTreshold;
-  var canvasWidth = GlobalVars.canvas.width;
-  var canvasHeight = GlobalVars.canvas.height;
-  
-  var sampleStart, sampleEnd, loopEnd;
-  var sampleRow_black, sampleRow_color;
-  
-  var blackEdgeViolation = false;
-  var blackbarTreshold = GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold;
-  
-  var topEdgeCount = 0;
-  var bottomEdgeCount = 0;
-  
-  
-  for(sample of samples.res_top){
-    blackEdgeViolation = false; // reset this
-    
-    // determine our bounds. Note that sample.col is _not_ corrected for imageData, but halfSample is
-    sampleStart = (sample.col << 2) - halfSample;
-    
-    if(sampleStart < 0)
-      sampleStart = 0;
-    
-    sampleEnd = sampleStart + sampleWidthBase;
-    if(sampleEnd > GlobalVars.canvas.imageDataRowLength)
-      sampleEnd = GlobalVars.canvas.imageDataRowLength;
-    
-    // calculate row offsets for imageData array
-    sampleRow_black = (sample.top - Settings.arDetect.edgeDetection.edgeTolerancePx) * GlobalVars.canvas.imageDataRowLength;
-    sampleRow_color = (sample.top + 1 + Settings.arDetect.edgeDetection.edgeTolerancePx) * GlobalVars.canvas.imageDataRowLength;
-    
-    // že ena kršitev črnega roba pomeni, da kandidat ni primeren
-    // even a single black edge violation means the candidate is not an edge
-    loopEnd = sampleRow_black + sampleEnd;
-    for(var i = sampleRow_black + sampleStart; i < loopEnd; i += 4){
-      if( image[i  ] > blackbarTreshold ||
-          image[i+1] > blackbarTreshold ||
-          image[i+2] > blackbarTreshold ){
-        blackEdgeViolation = true;
-        break;
-      }
-    }
-    
-    // če je bila črna črta skrunjena, preverimo naslednjega kandidata
-    // if we failed, we continue our search with the next candidate
-    if(blackEdgeViolation)
-      continue;
-    
-    loopEnd = sampleRow_color + sampleEnd;
-    for(var i = sampleRow_color + sampleStart; i < loopEnd; i += 4){
-      if( image[i  ] > blackbarTreshold ||
-          image[i+1] > blackbarTreshold ||
-          image[i+2] > blackbarTreshold ){
-        ++detections;
-      }
-    }
-    if(detections >= detectionTreshold){
-      if(edgeCandidatesTop[sample.top] != undefined)
-        edgeCandidatesTop[sample.top].count++;
-      else{
-        topEdgeCount++; // only count distinct
-        edgeCandidatesTop[sample.top] = {top: sample.top, count: 1};
-      }
-    }
-  }
-  
-  
-  for(sample of samples.res_bottom){
-    blackEdgeViolation = false; // reset this
-    
-    // determine our bounds. Note that sample.col is _not_ corrected for imageData, but halfSample is
-    sampleStart = (sample.col << 2) - halfSample;
-    
-    if(sampleStart < 0)
-      sampleStart = 0;
-    
-    sampleEnd = sampleStart + sampleWidthBase;
-    if(sampleEnd > GlobalVars.canvas.imageDataRowLength)
-      sampleEnd = GlobalVars.canvas.imageDataRowLength;
-    
-    // calculate row offsets for imageData array
-    sampleRow_black = (sample.bottom - Settings.arDetect.edgeDetection.edgeTolerancePx) * GlobalVars.canvas.imageDataRowLength;
-    sampleRow_color = (sample.bottom - 1 - Settings.arDetect.edgeDetection.edgeTolerancePx) * GlobalVars.canvas.imageDataRowLength;
-    
-    // že ena kršitev črnega roba pomeni, da kandidat ni primeren
-    // even a single black edge violation means the candidate is not an edge
-    loopEnd = sampleRow_black + sampleEnd;
-    for(var i = sampleRow_black + sampleStart; i < loopEnd; i += 4){
-      if( image[i  ] > blackbarTreshold ||
-        image[i+1] > blackbarTreshold ||
-        image[i+2] > blackbarTreshold ){
-        blackEdgeViolation = true;
-      break;
-        }
-    }
-    
-    // če je bila črna črta skrunjena, preverimo naslednjega kandidata
-    // if we failed, we continue our search with the next candidate
-    if(blackEdgeViolation)
-      continue;
-    
-    loopEnd = sampleRow_color + sampleEnd;
-    for(var i = sampleRow_color + sampleStart; i < loopEnd; i += 4){
-      if( image[i  ] > blackbarTreshold ||
-        image[i+1] > blackbarTreshold ||
-        image[i+2] > blackbarTreshold ){
-        ++detections;
-        }
-    }
-    if(detections >= detectionTreshold){
-      if(edgeCandidatesBottom[sample.bottom] != undefined)
-        bottomCandidatesBottom[sample.bottom].count++;
-      else{
-        bottomEdgeCount++; // only count distinct
-        edgeCandidatesBottom[sample.bottom] = {bottom: sample.bottom, bottomRelative: sample.bottomRelative, count: 1};
-      }
-    }
-  }
-  
-  return {
-    edgeCandidatesTop: edgeCandidatesTop,
-    edgeCandidatesTopCount: topEdgeCount,
-    edgeCandidatesBottom: edgeCandidatesBottom,
-    edgeCandidatesBottomCount: bottomEdgeCount
-  };
-}
-
-function _ard_edgePostprocess(edges, canvasHeight){
+var _ard_edgePostprocess = function(edges, canvasHeight){
   var edgesTop = [];
   var edgesBottom = [];
   var alignMargin = canvasHeight * Settings.arDetect.allowedMisaligned;
