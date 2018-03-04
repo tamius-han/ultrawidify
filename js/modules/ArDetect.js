@@ -338,8 +338,7 @@ var _ard_vdraw_but_for_reals = function() {
   }
 
   // we get the entire frame so there's less references for garbage collection to catch
-  var imagestuff = GlobalVars.canvas.context.getImageData(0,0,GlobalVars.canvas.width,GlobalVars.canvas.height);    
-  var image = imagestuff.data;
+  var image = GlobalVars.canvas.context.getImageData(0,0,GlobalVars.canvas.width,GlobalVars.canvas.height).data;
   
   // fast test to see if aspect ratio is correct. If we detect anything darker than blackLevel, we modify 
   // blackLevel to the new lowest value
