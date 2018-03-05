@@ -14,7 +14,7 @@ var _ard_timer
 // vrednosti v tabeli so na osminskih intervalih od [0, <sample height * 4> - 4].
 // we sample these lines in blackbox/stuff. 9 samples. If we change the canvas sample size, we have to correct these values as well
 // samples are every eighth between [0, <sample height * 4> - 4].
-var _ard_sampleCols = [ 100, 200, 300, 400, 500, 600, 700 ];
+var _ard_sampleCols = [];
 
 var _ard_canvasWidth;
 var _ard_canvasHeight;
@@ -25,18 +25,6 @@ var localSettings = {};
 
 // **** FUNCTIONS **** //
 
-function isLittleEndian() {
-  // borrowed from here:  https://stackoverflow.com/questions/7869752/javascript-typed-arrays-and-endianness
-  var arrayBuffer = new ArrayBuffer(2);
-  var uint8Array = new Uint8Array(arrayBuffer);
-  var uint16array = new Uint16Array(arrayBuffer);
-  uint8Array[0] = 0xAA; // set first byte
-  uint8Array[1] = 0xBB; // set second byte
-  if(uint16array[0] === 0xBBAA) return true;
-  if(uint16array[0] === 0xAABB) return false;
-  else throw new Error("Something crazy just happened");
-}
-
 var _arSetup = function(cwidth, cheight){
   try{
   if(Debug.debug)
@@ -44,7 +32,13 @@ var _arSetup = function(cwidth, cheight){
 
   this._halted = false;
   
-  GlobalVars.isLittleEndian = isLittleEndian();
+  // vstavimo začetne stolpce v _ard_sampleCols. 
+  // let's insert initial columns to _ard_sampleCols
+  _ard_sampleCols = [];
+  var samplingIntervalPx = parseInt(GlobalVars.canvas.height / Settings.arDetect.samplingInterval)
+  for(var i = 1; i < Settings.arDetect.samplingInterval; i++){
+    _ard_sampleCols.push(i * samplingIntervalPx);
+  }
   
   var existingCanvas = document.getElementById("uw_ArDetect_canvas");
   if(existingCanvas){
@@ -262,11 +256,20 @@ var _ard_vdraw = function (timeout){
   },
   timeout);
 }
-  
+
+var executions = 0;
+
+setInterval(function(){
+  console.log("this many executions in last second:", executions);
+  executions = 0;
+}, 1000);
+
 var _ard_vdraw_but_for_reals = function() {
   // thanks dude:
   // https://www.reddit.com/r/iiiiiiitttttttttttt/comments/80qnss/i_tried_to_write_something_that_would/duyfg53/
- 
+  // except this method stops working as soon as I try to do something with the image :/
+  
+  ++executions;
   
   if(this._forcehalt)
     return;
@@ -415,6 +418,7 @@ var _ard_vdraw_but_for_reals = function() {
     return;
   }
   
+  
   // let's do a quick test to see if we're on a black frame
   // TODO: reimplement but with less bullshit
     
@@ -439,7 +443,6 @@ var _ard_vdraw_but_for_reals = function() {
     // če sta obe funkciji uspeli, potem se razmerje stranic ni spremenilo.
     // if both succeed, then aspect ratio hasn't changed.    
     if(imageDetectResult && guardLineResult){
-      console.log("imageDetect detected no changes.");
       delete image;
       triggerTimeout = _ard_getTimeout(baseTimeout, startTime);
       _ard_vdraw(triggerTimeout); //no letterbox, no problem
@@ -457,7 +460,7 @@ var _ard_vdraw_but_for_reals = function() {
   var edgeCandidates = _ard_edgeDetect(image, blackbarSamples);
   var edgePost = _ard_edgePostprocess(edgeCandidates, GlobalVars.canvas.height);
   
-  console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:",GlobalVars.arDetect.blackLevel, "tresh:", GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold);
+//   console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:",GlobalVars.arDetect.blackLevel, "tresh:", GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold);
   
   if(edgePost.status == "ar_known"){
     _ard_processAr(GlobalVars.video, GlobalVars.canvas.width, GlobalVars.canvas.height, edgePost.blackbarWidth, null, fallbackMode);
@@ -583,11 +586,8 @@ var _ard_guardLineCheck = function(image){
   // we return array of middle points of offenders (x + (width * 0.5) for every offender)
   
   if(offenderCount == -1){
-    console.log("guardline - no black line violations detected.");
     return {success: true};
   }
-  
-  console.log("guardline failed.");
   
   var ret = new Array(offenders.length);
   for(var o in offenders){
@@ -1043,9 +1043,11 @@ var _ard_isRunning = function(){
 }
 
 function _ard_getTimeout(baseTimeout, startTime){
-  baseTimeout -= (performance.now() - startTime);
+//   baseTimeout -= (performance.now() - startTime);
 
-  return baseTimeout > Settings.arDetect.minimumTimeout ? baseTimeout : Settings.arDetect.minimumTimeout;
+//   return baseTimeout > Settings.arDetect.minimumTimeout ? baseTimeout : Settings.arDetect.minimumTimeout;
+  
+  return baseTimeout;
 }
 
 var ArDetect = {
