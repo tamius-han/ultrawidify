@@ -61,8 +61,10 @@ var _arSetup = function(cwidth, cheight){
   // imamo video, pa tudi problem. Ta problem bo verjetno kmalu popravljen, zato setup začnemo hitreje kot prej
   // we have a video, but also a problem. This problem will prolly be fixed very soon, so setup is called with
   // less delay than before
-  if(vid.videoWidth === 0 || vid.videoHeight === 0){
-    _ard_setup_timer = setTimeout(_arSetup, 100);
+  if(vid.videoWidth === 0 || vid.videoHeight === 0 ){
+    if(! _ard_timer)
+      _ard_setup_timer = setTimeout(_arSetup, 100);
+    
     return;
   }
   
@@ -248,10 +250,17 @@ var _ard_processAr = function(video, width, height, edge_h, edge_w, fallbackMode
 
 
 
+var clearTimeoutCount = 0;
 
-
-var _ard_vdraw = function (timeout){
+var _ard_vdraw = function (timeout, force_reset){
+  // don't allow more than 1 instance
+  if(_ard_timer){ 
+    ++clearTimeoutCount;
+    clearTimeout(_ard_timer);
+  }
+  
   _ard_timer = setTimeout(function(){
+    _ard_timer = null;
     _ard_vdraw_but_for_reals();
   },
   timeout);
@@ -260,8 +269,9 @@ var _ard_vdraw = function (timeout){
 var executions = 0;
 
 setInterval(function(){
-  console.log("this many executions in last second:", executions);
+  console.log("STATS FOR LAST SECOND\nexecutions:", executions,"; vdraw timeouts cleared:", clearTimeoutCount);
   executions = 0;
+  clearTimeoutCount = 0;
 }, 1000);
 
 var _ard_vdraw_but_for_reals = function() {

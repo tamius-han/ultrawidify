@@ -41,17 +41,21 @@ var _pd_getPlayerDimensions = function(element){
     
     return;
   }
-  var playerCandidateNode = element;
+  
+  try{
   var trustCandidateAfterGrows = 2; // if candidate_width or candidate_height increases in either dimensions this many
                                     // times, we say we found our player. (This number ignores weird elements)
   // in case our <video> is bigger than player in one dimension but smaller in the other
   // if site is coded properly, player can't be wider than that
-  var candidate_width = Math.max(element.offsetWidth, screen.width);
-  var candidate_height = Math.max(element.offsetHeight, screen.height);
+  var candidate_width = Math.max(element.offsetWidth, window.width);
+  var candidate_height = Math.max(element.offsetHeight, window.height);
+  var playerCandidateNode = element;
   
   // <video> can't be root in a document, so we can do this
   element = element.parentNode;
   
+  
+  var grows = trustCandidateAfterGrows;
   while(element != undefined){    
     // odstranimo čudne elemente, ti bi pokvarili zadeve
     // remove weird elements, those would break our stuff
@@ -59,19 +63,23 @@ var _pd_getPlayerDimensions = function(element){
       element = element.parentNode;
       continue;
     }
-    
-    
+
     if ( element.offsetHeight <= candidate_height &&
          element.offsetWidth  <= candidate_width  ){
+      
       playerCandidateNode = element;
       candidate_width = element.offsetWidth;
       candidate_height = element.offsetHeight;
+    
+    
+      grows = trustCandidateAfterGrows;
     
       if(Debug.debug){
         console.log("Found new candidate for player. Dimensions: w:", candidate_width, "h:",candidate_height, "node:", playerCandidateNode);
       }
     }
-    else if(trustCandidateAfterGrows --<= 0){
+    else if(grows --<= 0){
+      
       if(Debug.debug && Debug.playerDetect){
         console.log("Current element grew in comparrison to the child. We probably found the player. breaking loop, returning current result");
       }
@@ -80,7 +88,10 @@ var _pd_getPlayerDimensions = function(element){
     
     element = element.parentNode;
   }
-  
+  }
+  catch(e){
+    console.log("pdeeee,",e);
+  }
   var dims = {
     width: candidate_width,
     height: candidate_height,

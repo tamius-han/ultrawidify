@@ -60,7 +60,7 @@ async function main(){
   }
   
   browser.runtime.onMessage.addListener(receiveMessage);
-  setInterval( ghettoOnChange, 33);
+  setInterval( ghettoOnChange, 10000);
   setInterval( ghettoUrlWatcher, 500);
   
   // ko se na ticevki zamenja video, console.log pravi da ultrawidify spremeni razmerje stranic. preglej element 
@@ -79,7 +79,7 @@ async function main(){
 // here we check (in the most ghetto way) whether player size has changed. If it has, we retrigger resizer.
 
 var _video_recheck_counter = 0;
-var _video_recheck_period = 60;  // on this many retries
+var _video_recheck_period = 1;  // on this many retries
 
 function ghettoOnChange(){
   
