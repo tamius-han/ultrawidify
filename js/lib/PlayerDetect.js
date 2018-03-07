@@ -35,26 +35,26 @@ var _pd_isFullScreen = function(){
 var _pd_getPlayerDimensions = function(element){
   
   
-  if(element == null){
+  if(element == null || element == undefined){
     if(Debug.debug)
       console.log("[PlayerDetect::_pd_getPlayerDimensions] element is not valid, doing nothing.", element)
     
     return;
   }
   
-  try{
+  
   var trustCandidateAfterGrows = 2; // if candidate_width or candidate_height increases in either dimensions this many
                                     // times, we say we found our player. (This number ignores weird elements)
   // in case our <video> is bigger than player in one dimension but smaller in the other
   // if site is coded properly, player can't be wider than that
-  var candidate_width = Math.max(element.offsetWidth, window.width);
-  var candidate_height = Math.max(element.offsetHeight, window.height);
+  var candidate_width = Math.max(element.offsetWidth, window.innerWidth);
+  var candidate_height = Math.max(element.offsetHeight, window.innerHeight);
   var playerCandidateNode = element;
   
   // <video> can't be root in a document, so we can do this
   element = element.parentNode;
   
-  
+  try{
   var grows = trustCandidateAfterGrows;
   while(element != undefined){    
     // odstranimo čudne elemente, ti bi pokvarili zadeve

@@ -75,7 +75,7 @@ var Settings = {
     allowedMisaligned: 0.05,  // top and bottom letterbox thickness can differ by this much. 
                               // Any more and we don't adjust ar.
     allowedArVariance: 0.075, // amount by which old ar can differ from the new (1 = 100%)
-    timer_playing: 100,        // we trigger ar this often (in ms) under this conditions
+    timer_playing: 30,        // we trigger ar this often (in ms) under this conditions
     timer_paused: 3000,
     timer_error: 3000,
     timer_minimumTimeout: 5,  // but regardless of above, we wait this many msec before retriggering

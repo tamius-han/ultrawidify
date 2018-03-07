@@ -381,10 +381,10 @@ var _res_restore = function(){
   else if(GlobalVars.lastAr.type == "auto"){
     // do same as static, except keep lastAr to 'auto'. If we're here, this means video probably changed
     // and there's something broken that prevents AR from working properly
-//     var storeLastAr = {type: GlobalVars.lastAr.type, ar: GlobalVars.lastAr.ar};
-//     _res_setAr(GlobalVars.lastAr.ar);
-//     GlobalVars.lastAr = storeLastAr;
-    ArDetect.init();
+    var storeLastAr = {type: GlobalVars.lastAr.type, ar: GlobalVars.lastAr.ar};
+    _res_setAr(GlobalVars.lastAr.ar);
+    GlobalVars.lastAr = storeLastAr;
+//     ArDetect.init();
   }
 }
 
