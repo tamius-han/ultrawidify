@@ -106,8 +106,8 @@ var Settings = {
       period: 2.0             // per this period
     },
     edgeDetection: {
-      sampleWidth: 20,        // we take a sample this wide for edge detection
-      detectionTreshold: 10,  // sample needs to have this many non-black pixels to be a valid edge
+      sampleWidth: 8,        // we take a sample this wide for edge detection
+      detectionTreshold: 4,  // sample needs to have this many non-black pixels to be a valid edge
       singleSideConfirmationTreshold: 0.3,   // we need this much edges (out of all samples, not just edges) in order
                                             // to confirm an edge in case there's no edges on top or bottom (other
                                            // than logo, of course)

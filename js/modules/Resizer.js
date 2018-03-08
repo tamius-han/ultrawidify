@@ -85,9 +85,9 @@ var _res_legacyAr = function(action){
   GlobalVars.lastAr = {type: "legacy", action: action};
 }
 
-var _res_setAr = function(ar, playerDimensions){
+var _res_setAr = function(ar){
   if(Debug.debug)
-    console.log("[Resizer::_res_setAr] trying to set ar. args are: ar->",ar,"; playerDimensions->",playerDimensions);
+    console.log("[Resizer::_res_setAr] trying to set ar. args are: ar->",ar,"; playerDimensions->",GlobalVars.playerDimensions);
 
   GlobalVars.lastAr = {type: "static", ar: ar};
     
@@ -115,7 +115,7 @@ var _res_setAr = function(ar, playerDimensions){
 
   
   if(Debug.debug)
-    console.log("[Resizer::_res_setAr] ar is " ,ar, ", file ar is", fileAr, ", playerDimensions are ", playerDimensions);
+    console.log("[Resizer::_res_setAr] ar is " ,ar, ", file ar is", fileAr, ", playerDimensions are ", GlobalVars.playerDimensions);
   
   var videoDimensions = {
     width: 0,
@@ -123,33 +123,33 @@ var _res_setAr = function(ar, playerDimensions){
   }
   
   
-  if(playerDimensions === undefined){
-    playerDimensions = PlayerDetect.getPlayerDimensions(vid);
+  if(GlobalVars.playerDimensions === undefined){
+    GlobalVars.playerDimensions = PlayerDetect.getPlayerDimensions(vid);
     
     if(Debug.debug)
-      console.log("[Resizer::_res_setAr] playerDimensions are undefined, trying to determine new ones ... new dimensions:",playerDimensions);
+      console.log("[Resizer::_res_setAr] playerDimensions are undefined, trying to determine new ones ... new dimensions:",GlobalVars.playerDimensions);
   }
   
   if(Debug.debug){
-    console.log("[Resizer::_res_setAr] Player dimensions?",playerDimensions);
+    console.log("[Resizer::_res_setAr] Player dimensions?",GlobalVars.playerDimensions);
   }
   
   if( fileAr < ar ){
     // imamo letterbox zgoraj in spodaj -> spremenimo velikost videa (ampak nikoli na več, kot je širina zaslona)
     // letterbox -> change video size (but never to wider than monitor width)
-    videoDimensions.width = Math.min(playerDimensions.height * ar, playerDimensions.width);
+    videoDimensions.width = Math.min(GlobalVars.playerDimensions.height * ar, GlobalVars.playerDimensions.width);
     videoDimensions.height = videoDimensions.width * (1/fileAr);
   }
   else{
-    videoDimensions.height = Math.min(playerDimensions.width * (1/ar), playerDimensions.height);
+    videoDimensions.height = Math.min(GlobalVars.playerDimensions.width * (1/ar), GlobalVars.playerDimensions.height);
     videoDimensions.width = videoDimensions.height * fileAr;
   }
   
   if(Debug.debug){
-    console.log("[Resizer::_res_setAr] Video dimensions: ",videoDimensions, "playerDimensions:",playerDimensions);
+    console.log("[Resizer::_res_setAr] Video dimensions: ",videoDimensions, "playerDimensions:",GlobalVars.playerDimensions);
   }
   
-  var cssValues = _res_computeOffsets(videoDimensions, playerDimensions);
+  var cssValues = _res_computeOffsets(videoDimensions, GlobalVars.playerDimensions);
   
   if(Debug.debug){
     console.log("[Resizer::_res_setAr] Offsets for css are: ",cssValues);
