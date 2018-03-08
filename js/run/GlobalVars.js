@@ -19,6 +19,7 @@ var GlobalVars = {
     canvas: null,
     blackLevel: 10,
     sampleCols_current: 0,
+    noLetterboxCanvasReset: false,
     guardLine: {
       top: null,
       bottom: null,

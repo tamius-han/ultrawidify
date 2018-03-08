@@ -148,6 +148,7 @@ var _arSetup = function(cwidth, cheight){
   GlobalVars.canvas.width = canvasWidth;
   GlobalVars.canvas.height = canvasHeight;
   GlobalVars.canvas.imageDataRowLength = canvasWidth * 4;
+  GlobalVars.arDetect.noLetterboxCanvasReset = false;
   _ard_vdraw(0);
   }
   catch(ex){
@@ -268,11 +269,13 @@ var _ard_vdraw = function (timeout, force_reset){
 
 var executions = 0;
 
-setInterval(function(){
-  console.log("STATS FOR LAST SECOND\nexecutions:", executions,"; vdraw timeouts cleared:", clearTimeoutCount);
-  executions = 0;
-  clearTimeoutCount = 0;
-}, 1000);
+if(Debug.debug){
+  setInterval(function(){
+    console.log("STATS FOR LAST SECOND\nexecutions:", executions,"; vdraw timeouts cleared:", clearTimeoutCount);
+    executions = 0;
+    clearTimeoutCount = 0;
+  }, 1000);
+}
 
 var _ard_vdraw_but_for_reals = function() {
   // thanks dude:
@@ -299,11 +302,17 @@ var _ard_vdraw_but_for_reals = function() {
   
   var how_far_treshold = 8; // how much can the edge pixel vary (*4)
   
-  if(GlobalVars.video == null || GlobalVars.video.paused || GlobalVars.video.ended || Status.arStrat != "auto"){
-    // we slow down if paused, no detection
+  if(GlobalVars.video == null || GlobalVars.video.ended || Status.arStrat != "auto"){
+    // we slow down if ended, null, or not auto. Detecting is pointless.
     _ard_vdraw(Settings.arDetect.timer_paused);
     return false;
   }
+  
+  if(GlobalVars.video.paused){
+    // if the video is paused, we still do autodetection. We just increase the interval.
+    baseTimeout = Settings.arDetect.timer_paused;
+  }
+  
   
   try{
     GlobalVars.canvas.context.drawImage(GlobalVars.video, 0,0, GlobalVars.canvas.width, GlobalVars.canvas.height);
@@ -416,18 +425,31 @@ var _ard_vdraw_but_for_reals = function() {
     if(Debug.debug){
       console.log("%c[ArDetect::_ard_vdraw] no edge detected. canvas has no edge.", "color: #aaf");
     }
-    
-    
+
     image = null;
     
-    Resizer.reset();
-    GlobalVars.lastAr = {type: "auto", ar: null};
+    // Pogledamo, ali smo že kdaj ponastavili CSS. Če še nismo, potem to storimo. Če smo že, potem ne.
+    // Ponastavimo tudi guardline (na null). 
+    // let's chec if we ever reset CSS. If we haven't, then we do so. If we did, then we don't.
+    // while resetting the CSS, we also reset guardline top and bottom back to null.
     
+    if(! GlobalVars.arDetect.noLetterboxCanvasReset){
+      Resizer.reset();
+      GlobalVars.lastAr = {type: "auto", ar: null};
+      GlobalVars.arDetect.guardLine.top = null;
+      GlobalVars.arDetect.guardLine.bottom = null;
+      GlobalVars.arDetect.noLetterboxCanvasReset = true;
+    }
     triggerTimeout = _ard_getTimeout(baseTimeout, startTime);
     _ard_vdraw(triggerTimeout); //no letterbox, no problem
     return;
   }
   
+  // Če preverjamo naprej, potem moramo postaviti to vrednost nazaj na 'false'. V nasprotnem primeru se bo
+  // css resetiral enkrat na video/pageload namesto vsakič, ko so za nekaj časa obrobe odstranejene
+  // if we look further we need to reset this value back to false. Otherwise we'll only get CSS reset once
+  // per video/pageload instead of every time letterbox goes away (this can happen more than once per vid)
+  GlobalVars.arDetect.noLetterboxCanvasReset = false;
   
   // let's do a quick test to see if we're on a black frame
   // TODO: reimplement but with less bullshit
@@ -453,6 +475,9 @@ var _ard_vdraw_but_for_reals = function() {
     // če sta obe funkciji uspeli, potem se razmerje stranic ni spremenilo.
     // if both succeed, then aspect ratio hasn't changed.    
     if(imageDetectResult && guardLineResult){
+      
+      console.log("STATS: both guardLine and imageTest tests succeeded. AR didn't change. Guard line:", GlobalVars.arDetect.guardLine);
+      
       delete image;
       triggerTimeout = _ard_getTimeout(baseTimeout, startTime);
       _ard_vdraw(triggerTimeout); //no letterbox, no problem
@@ -861,11 +886,7 @@ var _ard_guardLineImageDetect = function(image){
   
   
   var offset = parseInt(GlobalVars.canvas.width * Settings.arDetect.guardLine.ignoreEdgeMargin) * 4;
-  
-  var offenders = [];
-  var firstOffender = -1;
-  var offenderCount = -1; // doing it this way means first offender has offenderCount==0. Ez index.
-  
+    
   // TODO: implement logo check.
   
   
