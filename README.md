@@ -89,10 +89,12 @@ reintroduce settings page (rebindable keys, blacklist/whitelist management, some
 
 Various improvements to automatic aspect ratio detection:
 
-* **Fixed the issues with insane memory usage (#25, #32) and lag that appeared in certain cases after the extension has been running for a while**
+* **Fixed the situation with insane memory usage due to the automatic aspect ratio detection (#25, #32) and lag that appeared in certain cases after the extension has been running for a while.** There's still fun stuff going on — see notes below.
 * Improved accuracy of automatic detection. This should fix the issue of rapid switching in dark videos or videos with otherwise uneven edges (#12 - [video](https://www.youtube.com/watch?v=NaTGwlfRB_c); #24 - [video](https://www.youtube.com/watch?v=xvZqHgFz51I) (see the car at the beginning))
 
-Improved accuracy has increased the base RAM usage. Expect 30-300 MB (in some cases up to 500 MB) per video that's currently playing. (Videos that aren't playing (e.g. videos that are paused or ended) do (should) ***not*** use any meaningful amount of RAM).
+Improved accuracy has increased the base RAM usage. Expect 30-500 MB per video that's currently playing if you opened the Firefox just for youtube. I've spent 2 hours watching videos on youtube and RAM usage of the extension was 30-400 MB most of the time.
+
+In some weird cases, though, RAM usage could sway between 30 MB to ~2 gigs? while the video is playing. (Videos that aren't playing (e.g. videos that are paused or ended) do (should) ***not*** use any meaningful amount of RAM).
 
 * Overpass font is now bundled with this extension, meaning the popup should appear the way it was meant to appear™.
 
