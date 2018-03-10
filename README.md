@@ -57,9 +57,9 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 ### Permanent install / stable
 
-[v2.1.0 — Regular version — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
+[Latest stable for Firefox — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
 
-[v2.1.0 — Regular version — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
+[Latest stafle for Chrome — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
 
 ### Installing the current, github version
 
@@ -75,11 +75,27 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 ## Plans for the future
 
-* Edge port
-* Improvements to autodetection
-
+0. Memory leak bugfix (soon™)
+1. Handle porting of extension settings between versions. (Some people had some issues where extension broke until reinstalled, and corrupted settings seemed to be the problem.)
+2. Reintroduce gradual zoom on z and u and provide a way to 'scroll' the zoomed in video up/down left/right
+reintroduce settings page (rebindable keys, blacklist/whitelist management, some settings for automatic aspect ratio detection)
+3. site-specific options for sites that require additional CSS classes or other hacks (see: vimeo, which is disable)
+4. figure the best way to do GUI (injecting buttons into the player bar is not a good way. Been there, done that, each site has its own way and some appear to be impossible). Might get bumped to be released alongside #2
+5. Stretch mode, because some people are very salty and toxic about the fact that this extension is here to solve a problem that's different than the one they want. More salty than me rn.
 
 ## Changelog
+
+### v2.2.0a1 (Git - unstable)
+
+Various improvements to automatic aspect ratio detection:
+
+* **Fixed the issues with insane memory usage (#25, #32) and lag that appeared in certain cases after the extension has been running for a while**
+* Improved accuracy of automatic detection. This should fix the issue of rapid switching in dark videos or videos with otherwise uneven edges (#12 - [video](https://www.youtube.com/watch?v=NaTGwlfRB_c); #24 - [video](https://www.youtube.com/watch?v=xvZqHgFz51I) (see the car at the beginning))
+
+Improved accuracy has increased the base RAM usage. Expect 30-300 MB (in some cases up to 500 MB) per video that's currently playing. (Videos that aren't playing (e.g. videos that are paused or ended) do (should) ***not*** use any meaningful amount of RAM).
+
+* Overpass font is now bundled with this extension, meaning the popup should appear the way it was meant to appear™.
+
 
 ### v2.1.4 (FF/AMO)
 
