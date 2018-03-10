@@ -32,8 +32,9 @@ var _pd_isFullScreen = function(){
 
 
 
-var _pd_getPlayerDimensions = function(element){
+var _pd_getPlayerDimensions = function(startElement){
   
+  var element = startElement;
   
   if(element == null || element == undefined){
     if(Debug.debug)
@@ -42,6 +43,7 @@ var _pd_getPlayerDimensions = function(element){
     return;
   }
   
+  var isFullScreen = _pd_isFullScreen();
   
   var trustCandidateAfterGrows = 2; // if candidate_width or candidate_height increases in either dimensions this many
                                     // times, we say we found our player. (This number ignores weird elements)
@@ -49,7 +51,7 @@ var _pd_getPlayerDimensions = function(element){
   // if site is coded properly, player can't be wider than that
   var candidate_width = Math.max(element.offsetWidth, window.innerWidth);
   var candidate_height = Math.max(element.offsetHeight, window.innerHeight);
-  var playerCandidateNode = element;
+  var playerCandidateNode = startElement;
   
   // <video> can't be root in a document, so we can do this
   element = element.parentNode;
@@ -67,15 +69,19 @@ var _pd_getPlayerDimensions = function(element){
     if ( element.offsetHeight <= candidate_height &&
          element.offsetWidth  <= candidate_width  ){
       
-      playerCandidateNode = element;
-      candidate_width = element.offsetWidth;
-      candidate_height = element.offsetHeight;
-    
-    
-      grows = trustCandidateAfterGrows;
-    
-      if(Debug.debug){
-        console.log("Found new candidate for player. Dimensions: w:", candidate_width, "h:",candidate_height, "node:", playerCandidateNode);
+      // if we're in fullscreen, we only consider elements that are exactly as big as the monitor.
+      if( ! isFullScreen || 
+          (element.offsetWidth == window.innerWidth && element.offsetHeight == window.innerHeight) ){
+      
+        playerCandidateNode = element;
+        candidate_width = element.offsetWidth;
+        candidate_height = element.offsetHeight;
+      
+        grows = trustCandidateAfterGrows;
+      
+        if(Debug.debug){
+          console.log("Found new candidate for player. Dimensions: w:", candidate_width, "h:",candidate_height, "node:", playerCandidateNode);
+        }
       }
     }
     else if(grows --<= 0){
@@ -92,11 +98,22 @@ var _pd_getPlayerDimensions = function(element){
   catch(e){
     console.log("pdeeee,",e);
   }
-  var dims = {
-    width: candidate_width,
-    height: candidate_height,
-    element: playerCandidateNode
-  };
+  var dims;
+  
+  if(isFullScreen && playerCandidateNode == startElement){
+    dims = {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      element: "fullscreen"
+    }
+  }
+  else{
+    dims = {
+      width: candidate_width,
+      height: candidate_height,
+      element: playerCandidateNode
+    };
+  }
   
   return dims;
 }
@@ -107,7 +124,12 @@ var _pd_checkPlayerSizeChange = function(){
   if(GlobalVars.playerDimensions.element == undefined)
     return true;
   
+  if(GlobalVars.playerDimensions.element === "fullscreen"){
+    return ! isFullScreen();
+  }
+  
   if(GlobalVars.playerDimensions.width != GlobalVars.playerDimensions.element.offsetWidth || GlobalVars.playerDimensions.height != GlobalVars.playerDimensions.element.offsetHeight ){
+    
     return true;
   }
   
