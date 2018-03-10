@@ -131,8 +131,6 @@ function ghettoOnChange(){
   }
 }
 
-
-
 function ghettoUrlWatcher(){
   if (GlobalVars.lastUrl != window.location.href){
     if(Debug.debug){
