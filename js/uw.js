@@ -12,7 +12,6 @@ if(Debug.debug){
   }
 }
 
-
 // load all settings from localStorage:
 
 async function main(){
@@ -35,21 +34,21 @@ async function main(){
   GlobalVars.lastAr = {type: "original"};
   
   if(Debug.debug)
-    console.log("configuration should be loaded now");
+    console.log("[uw::main] configuration should be loaded now");
   // start autoar and setup everything
 
 
   if(Debug.debug)
-    console.log("uw::document.ready | document is ready. Starting ar script ...");
+    console.log("[uw::main] | document is ready. Starting ar script ...");
 
-  if(Settings.isBlacklisted(window.location.hostname)){
+  if(! SitesConf.isEnabled(window.location.hostname)){
     if(Debug.debug)
-      console.log("uw::document.ready | site", window.location.hostname, "is blacklisted.");
+      console.log("[uw:main] | site", window.location.hostname, "is blacklisted.");
 
     return;
   } 
   
-  if(Settings.arDetect.enabled == "global"){
+  if(SitesConf.isArEnabled(window.location.hostname)){
     if(Debug.debug)
       console.log("[uw::main] Aspect ratio detection is enabled. Starting ArDetect");
     ArDetect.arSetup();

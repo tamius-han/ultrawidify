@@ -1,3 +1,41 @@
+if(Debug.debug){
+  console.log("Loading: SitesConf.js");
+}
+
+// Nastavitve za posamezno stran
+// Config for a given page:
+// 
+// <hostname> : {
+//    status: <option>              // should extension work on this site?
+//    arStatus: <option>            // should we do autodetection on this site?
+//    statusEmbedded: <option>      // should we do autodetection on this site?
+// } 
+//  
+// Veljavne vrednosti za možnosti 
+// Valid values for options:
+//
+//     status, arStatus, statusEmbedded:
+//    
+//    * whitelisted     — always allow
+//    * follow-global   — allow if default is to allow, block if default is to block
+//    * blacklisted     — never allow
+// 
+
+var _sc_sites = {
+  "www.youtube.com" : {
+    status: "whitelisted",           // should extension work on this site?
+    arStatus: "follow-global",       // should we enable autodetection
+    statusEmbedded: "whitelisted",   // should extension work for this site when embedded on other sites?
+    override: false                  // ignore value localStorage in favour of this
+  },
+  "netflix.com" : {
+    status: "whitelisted",
+    arStatus: "blacklisted",
+    statusEmbedded: "whitelisted",
+    override: false
+  },
+}
+
 // var _sc_SITES = {
 //   "vimeo.com" : {
 //     extraCss: [],
@@ -31,22 +69,63 @@
 //   }
 // }
 
-
-var _sc_init(){
+var _sc_init = async function(){
+  
+  StorageManager.delopt("uw-siteopts");
+  
+  var newSettings = await StorageManager.getopt_async("uw-siteopts");
+  
+  if (Debug.debug)
+    console.log("[SitesConf::_sc_init()] settings saved in localstorage are:", newSettings, " - if that's empty, it's gonna be replaced by this:", JSON.stringify(_sc_sites), ")");
+  
+  if ((Object.keys(newSettings).length === 0 && newSettings.constructor === Object)){
+    console.log("[SitesConf::_sc_init()] replacing settings");
+    StorageManager.setopt({"uw-siteopts": JSON.stringify(_sc_sites)});
+  }
+  else{
+    var actualSettings = JSON.parse(newSettings["uw-siteopts"]);
+    
+    if(Debug.debug)
+      console.log("[SitesConf::_sc_init()] parsed settings:", actualSettings);
+    
+    var overrides = 0;
+    
+    for (var k in actualSettings){
+      
+      // let sites with override=true override saved sites
+      if( _sc_sites[k] != undefined && _sc_sites[k].override ){
+        ++overrides;
+        continue;
+      }
+      
+      _sc_sites[k] = actualSettings[k];
+    }
+    
+    if(overrides > 0)
+      _sc_save();
+  }
+  
+  if(Debug.debug)
+    console.log("[SitesConf::_sc_init()] settings have been loaded/reloaded. Current state: ", this);
   
 }
 
-var _sc_reload() {
+var _sc_reset = function(){
+  StoreManager.delopt("uw-siteopts");
   _sc_init();
 }
 
-var _sc_save() {
+var _sc_reload = function(){
+  _sc_init();
+}
+
+var _sc_save = function(){
   StorageManager.delopt("uw-siteopts");
   StorageManager.setopt({"uw-siteopts": JSON.stringify(_sc_sites)});    
 }
 
 
-var _sc_createEmptySite() {
+var _sc_createEmptySite = function(){
   return {
     status: "follow-global",
     arStatus: "follow-global",
@@ -54,7 +133,25 @@ var _sc_createEmptySite() {
   };
 }
 
-var _sc_siteEnabled(site){
+function inIframe(){
+  try {
+    return window.self !== window.top;
+  } catch (e) {
+    return true;
+  }
+}
+
+var _sc_isEnabled = function(site){
+  if( inIframe ) {
+    return _sc_siteEnableEmbedded(site);
+  }
+  return _sc_siteEnabled(site);
+}
+
+var _sc_siteEnabled = function(site){
+  
+  if(Debug.debug)
+    console.log("[SitesConf::_sc_siteEnabled] checking", site, "in", _sc_sites, ":", _sc_sites[site]);
   
   // če za stran nismo določili načina delovanja, potem storimo privzeto stvar
   // if we haven't defined options for a site, we do the default thing
@@ -76,7 +173,11 @@ var _sc_siteEnabled(site){
   return false;
 }
 
-var _sc_arEnabled(site){
+var _sc_arEnabled = function(site){
+  
+  if(Debug.debug)
+    console.log("[SitesConf::_sc_arEnabled] checking", site, "in", _sc_sites, ":", _sc_sites[site]);
+  
   if( _sc_sites[site] == undefined || _sc_sites[site].arStatus == "follow-global" ){
     if(Settings.arDetect.mode == "blacklist" ){
       return true;
@@ -91,7 +192,26 @@ var _sc_arEnabled(site){
     return false;
 }
 
-var _sc_updateSiteStatus(site, status){
+var _sc_siteEnableEmbedded = function(site) {
+  
+  if(Debug.debug)
+    console.log("[SitesConf::_sc_arEnableEmbedded] checking", site, "in", _sc_sites, ":", _sc_sites[site].statusEmbedded);
+  
+  if( _sc_sites[site] == undefined || _sc_sites[site].statusEmbedded == "follow-global" ){
+    if(Settings.arDetect.mode == "blacklist" ){
+      return true;
+    }
+    return false;
+  }
+  
+  if( _sc_sites[site].statusEmbedded == "whitelisted" )
+    return true;
+  
+  if( _sc_sites[site].statusEmbedded == "blacklisted" )
+    return false;
+}
+
+var _sc_updateSiteStatus = function(site, status){
   // status: {}
   // status.status - optional
   // status.arStatus - optional
@@ -122,39 +242,6 @@ var _sc_updateSiteStatus(site, status){
   _sc_save();
 }
 
-// Nastavitve za posamezno stran
-// Config for a given page:
-// 
-// <hostname> : {
-//    status: <option>              // should extension work on this site?
-//    arStatus: <option>            // should we do autodetection on this site?
-//    statusEmbedded: <option>      // should we do autodetection on this site?
-// } 
-//  
-// Veljavne vrednosti za možnosti 
-// Valid values for options:
-//
-//     status, arStatus, statusEmbedded:
-//    
-//    * whitelisted     — always allow
-//    * follow-global   — allow if default is to allow, block if default is to block
-//    * blacklisted     — never allow
-// 
-
-var _sc_sites = {
-  "youtube.com" : {
-    status: "whitelisted",           // should extension work on this site?
-    arStatus: "follow-global",       // should we enable autodetection
-    statusEmbedded: "whitelisted",   // should extension work for this site when embedded on other sites?
-    override: false                  // ignore value localStorage in favour of this
-  },
-  "netflix.com" : {
-    status: "whitelisted",
-    arStatus: "blacklisted",
-    statusEmbedded: "whitelisted",
-    override: false
-  },
-}
 
 
 
@@ -164,5 +251,13 @@ var _sc_sites = {
 var SitesConf = {
   siteopts: _sc_sites,
   init: _sc_init,
-  sites: null
+  reset: _sc_reset,
+  reload: _sc_reload,
+  save: _sc_save,
+  updateSiteStatus: _sc_updateSiteStatus,
+  siteEnabled: _sc_siteEnabled,
+  isEnabled: _sc_isEnabled,
+  siteEnableEmbedded: _sc_siteEnableEmbedded,
+  arEnabled: _sc_arEnabled,
+  isArEnabled: _sc_arEnabled
 }

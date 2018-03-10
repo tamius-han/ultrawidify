@@ -94,7 +94,9 @@ Various improvements to automatic aspect ratio detection:
 
 Improved accuracy has increased the base RAM usage. Expect 30-500 MB per video that's currently playing if you opened the Firefox just for youtube. I've spent 2 hours watching videos on youtube and RAM usage of the extension was 30-400 MB most of the time.
 
-In some weird cases, though, RAM usage could sway between 30 MB to ~2 gigs? while the video is playing. (Videos that aren't playing (e.g. videos that are paused or ended) do (should) ***not*** use any meaningful amount of RAM).
+In some weird cases, though, RAM usage could sway between 30 MB to ~2 gigs? while the video is playing. That normally happens when firefox has been running for a while (even if extension was disabled or not installed during that while).
+
+Videos that aren't playing (e.g. videos that are paused or ended) do (should) ***not*** use any meaningful amount of RAM.
 
 * Overpass font is now bundled with this extension, meaning the popup should appear the way it was meant to appear™.
 
