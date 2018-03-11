@@ -152,6 +152,28 @@ function loadConfig(config){
     
   _config = config;
   
+  console.log(".... site status, config mode:", config.site.status, config.mode);
+  
+  document.getElementById("current-site-status-global-status").innerHTML = config.mode == "blacklist" ? "<span style='color: #1f4'>allow</span>" : "<span style='color: #f00'>deny</span>";
+  
+  if(config.site.status == "blacklisted" || (config.site.status == "follow-global" && config.mode == "whitelist") ){
+    openMenu("thisSite");
+    
+//     document.getElementById("current-site-blacklisted").classList.remove("hidden");
+//     if(config.mode == "whitelist"){
+//       document.getElementById("current-site-whitelist-only").classList.remove("hidden");
+//     }
+    
+    document.getElementById("extensionEnabledCurrentSite_blacklisted").setAttribute("checked","checked");
+  }
+  else if(config.site.status == "whitelisted"){
+    document.getElementById("extensionEnabledCurrentSite_whitelisted").setAttribute("checked","checked");
+  }
+  else {
+    document.getElementById("extensionEnabledCurrentSite_followGlobal").setAttribute("checked","checked");
+  }
+  
+  
   // process video alignment:
   if(config.videoAlignment){
     for(var button in ArPanel.alignment)

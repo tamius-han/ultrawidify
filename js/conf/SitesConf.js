@@ -71,8 +71,6 @@ var _sc_sites = {
 
 var _sc_init = async function(){
   
-  StorageManager.delopt("uw-siteopts");
-  
   var newSettings = await StorageManager.getopt_async("uw-siteopts");
   
   if (Debug.debug)
@@ -142,6 +140,7 @@ function inIframe(){
 }
 
 var _sc_isEnabled = function(site){
+//   console.log(".... — _sc_sites[", site, "].status:", (_sc_sites[site] == undefined ? "<default>" : _sc_sites[site].status), "; Settings.extensionMode:", Settings.extensionMode)
   if( inIframe ) {
     return _sc_siteEnableEmbedded(site);
   }
@@ -150,12 +149,12 @@ var _sc_isEnabled = function(site){
 
 var _sc_siteEnabled = function(site){
   
-  if(Debug.debug)
-    console.log("[SitesConf::_sc_siteEnabled] checking", site, "in", _sc_sites, ":", _sc_sites[site]);
-  
   // če za stran nismo določili načina delovanja, potem storimo privzeto stvar
   // if we haven't defined options for a site, we do the default thing
   if( _sc_sites[site] == undefined || _sc_sites[site].status == "follow-global"){
+    
+    console.log(".... this site is undefined!");
+    
     if ( Settings.extensionMode == "blacklist" ){
       return true;
     }
@@ -173,13 +172,16 @@ var _sc_siteEnabled = function(site){
   return false;
 }
 
+var _sc_siteStatus = function(site){
+  if( _sc_sites[site] == undefined)
+    return "follow-global";
+  return _sc_sites[site].status;
+}
+
 var _sc_arEnabled = function(site){
   
-  if(Debug.debug)
-    console.log("[SitesConf::_sc_arEnabled] checking", site, "in", _sc_sites, ":", _sc_sites[site]);
-  
   if( _sc_sites[site] == undefined || _sc_sites[site].arStatus == "follow-global" ){
-    if(Settings.arDetect.mode == "blacklist" ){
+    if(Settings.extensionMode == "blacklist" ){
       return true;
     }
     return false;
@@ -192,13 +194,18 @@ var _sc_arEnabled = function(site){
     return false;
 }
 
+var _sc_arStatus = function(site){
+  if( _sc_sites[site] == undefined )
+    return "follow-global";
+  return _sc_sites[site].arStatus;
+}
+
 var _sc_siteEnableEmbedded = function(site) {
   
-  if(Debug.debug)
-    console.log("[SitesConf::_sc_arEnableEmbedded] checking", site, "in", _sc_sites, ":", _sc_sites[site].statusEmbedded);
-  
   if( _sc_sites[site] == undefined || _sc_sites[site].statusEmbedded == "follow-global" ){
-    if(Settings.arDetect.mode == "blacklist" ){
+    console.log(".... this site is undefined! er");
+    
+    if(Settings.extensionMode == "blacklist" ){
       return true;
     }
     return false;
@@ -255,6 +262,9 @@ var SitesConf = {
   reload: _sc_reload,
   save: _sc_save,
   updateSiteStatus: _sc_updateSiteStatus,
+  updateSite: _sc_updateSiteStatus,
+  getSiteStatus: _sc_siteStatus,
+  getArStatus: _sc_arStatus,
   siteEnabled: _sc_siteEnabled,
   isEnabled: _sc_isEnabled,
   siteEnableEmbedded: _sc_siteEnableEmbedded,

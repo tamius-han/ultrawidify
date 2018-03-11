@@ -177,6 +177,7 @@ function receiveMessage(message, sender, sendResponse) {
     config.arConf = {};
     config.arConf.enabled_global = Settings.arDetect.enabled == "global";
     
+    
     var keybinds = Keybinds.getKeybinds();
     if(Debug.debug)
       console.log("[uw-bg::_uwbg_rcvmsg] Keybinds.fetch returned this:", keybinds); 

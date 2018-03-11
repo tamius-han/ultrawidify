@@ -193,11 +193,13 @@
       </div>
       
       <div id="settings-for-current-site" class="suboption hidden">
-        <p>Allow this extension to run on this site?</p>
+<!--         <p class="current-site-status" id="current-site-blacklisted">This site is currently blacklisted.</p> -->
+<!--         <p class="current-site-status" id="current-site-whitelist-only">Extension is set to only work on sites that have been whitelisted.</p> -->
+        <p>Allow this extension to run on this site? <small><br/>NOTE: changes take effect after reload!</small></p>
         <form action="" name="extensionEnabledOnCurrentSite">
-          <input type="radio" class="extensionEnabledOnCurrentSite" name="mode" value="default" > Follow global rules<br/>
-          <input type="radio" class="extensionEnabledOnCurrentSite" name="mode" value="whitelist" > Always (whitelist)<br/>
-          <input type="radio" class="extensionEnabledOnCurrentSite" name="mode" value="blacklist" > Never (blacklist)<br/>
+          <input type="radio" class="extensionEnabledOnCurrentSite" name="mode" id="extensionEnabledCurrentSite_followGlobal" value="follow-global" > Follow default rules (currently: <span id="current-site-status-global-status"></span>)<br/>
+          <input type="radio" class="extensionEnabledOnCurrentSite" name="mode" id="extensionEnabledCurrentSite_whitelisted" value="whitelisted" > Allow (whitelist this site) <br/>
+          <input type="radio" class="extensionEnabledOnCurrentSite" name="mode" id="extensionEnabledCurrentSite_blacklisted" value="blacklisted" > Deny (blacklist this site)<br/>
         </form>
         <small>NOTE: this settings <b>don't</b> apply to videos embedded from other sites. This option takes effect after page reload.</small>
         

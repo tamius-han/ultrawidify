@@ -140,7 +140,13 @@ function _uwbg_rcvmsg(message, sender, sendResponse){
     var config = {};
     config.videoAlignment = Settings.miscFullscreenSettings.videoFloat;
     config.arConf = {};
-    config.arConf.enabled_global = Settings.arDetect.enabled == "global";
+    config.arConf.enabled_global = Settings.arDetect.enabled == "blacklist";
+    
+    config.site = {};
+    config.site.status = SitesConf.getSiteStatus(BgVars.currentSite);
+    config.site.arStatus = SitesConf.getArStatus(BgVars.currentSite);
+    
+    config.mode = Settings.extensionMode;
     
     if(Debug.debug)
       console.log("[uw-bg::_uwbg_rcvmsg] Keybinds.getKeybinds() returned this:", Keybinds.getKeybinds()); 
@@ -150,7 +156,7 @@ function _uwbg_rcvmsg(message, sender, sendResponse){
     
     // predvidevajmo, da je enako. Če je drugače, bomo popravili ko dobimo odgovor
     // assume current is same as global & change that when you get response from content script
-    config.arConf.enabled_current = Settings.arDetect.enabled == "global";
+    config.arConf.enabled_current = Settings.arDetect.enabled == "blacklist";
   
     var res = {response: config}
     if(BrowserDetect.firefox){
@@ -173,19 +179,8 @@ function _uwbg_rcvmsg(message, sender, sendResponse){
   }
   
   else if(message.cmd == "uw-enabled-for-site"){
-    var wlindex = Settings.whitelist.indexOf(BgVars.currentSite);
-    var blindex = Settings.blacklist.indexOf(BgVars.currentSite);
     
-    var mode = "default";
-    if(wlindex > -1)
-      mode = "whitelist";
-    if(blindex > -1)
-      mode = "blacklist";
-    
-    if(Debug.debug){
-      console.log("[uw::receiveMessage] is this site: ", BgVars.currentSite, "\n\n", "whitelisted or blacklisted? whitelist:", (wlindex > -1), "; blacklist:", (blindex > -1), "; mode (return value):", mode, "\nwhitelist:",Settings.whitelist,"\nblacklist:",Settings.blacklist);
-      
-    }
+    var mode = SitesConf.getSiteStatus(BgVars.currentSite);
     
     if(BrowserDetect.usebrowser == "firefox")
       return Promise.resolve({response: mode});
@@ -198,20 +193,7 @@ function _uwbg_rcvmsg(message, sender, sendResponse){
     return true;
   }
   else if(message.cmd == "enable-for-site"){
-    var wlindex = Settings.whitelist.indexOf(BgVars.currentSite);
-    var blindex = Settings.blacklist.indexOf(BgVars.currentSite);
-    
-    if(wlindex > -1)
-      Settings.whitelist.splice(BgVars.currentSite, 1);
-    if(blindex > -1)
-      Settings.blacklist.splice(BgVars.currentSite, 1);
-    
-    if(message.option == "whitelist")
-      Settings.whitelist.push(BgVars.currentSite);
-    if(message.option == "blacklist")
-      Settings.blacklist.push(BgVars.currentSite);
-    
-    Settings.save();
+    SitesConf.updateSite(BgVars.currentSite, {status: message.option, statusEmbedded: message.option});
   }
   
 }
