@@ -162,6 +162,9 @@
       <div id="_menu_this_site" class="menu-item _menu_this_site">
         Settings for this site
       </div>
+      <div id="_menu_autoar" class="menu-item _menu_autoar"> 
+        Automatic aspect ratio detection (auto-ar)
+      </div>
       <div id="_menu_aspectratio" class="menu-item selected _menu_aspectratio">
         Letterbox removal and alignment
       </div>
@@ -206,7 +209,11 @@
       </div>
       
       <div id="autoar-basic-settings" class="suboption hidden">
-        Automatic aspect ratio mode detection.
+        <div class="warning"><p>Due to technical reasons, the check frequency has been temporarily-ish decreased to 1 check per second.</p><small><p>Raising that number back to 30 will make sure the extension corrects aspect ratio as soon as change is detected. Doing so will also raise RAM usage to 30-500 MB if you opened your browser 5 seconds ago, north of 1 GB (<i>way</i> north) if your browser has been opened for a while.</p><p>Keeping check frequency low will make the problem go away (mostly), but aspect ratio corrections will be delayed a bit.</p></small></div>
+        
+        <p><input type="checkbox" id="_checkbox_autoArEnabled" class="_autoAr_enabled _autoAr"> Enable automatic aspect ratio detection?</p>
+        <p>Checks per second: <input id="_input_autoAr_frequency" class="_autoAr_frequency _autoAr" type="number" min="1" max="999"><span class="button _save_autoAr_frequency _autoAr">Save</div></p>
+        
       </div>
       
       <div id="aspect-ratio-settings" class="suboption hidden">

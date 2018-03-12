@@ -8,6 +8,7 @@ var Menu = {};
 Menu.general    = document.getElementById("extension-mode");
 Menu.thisSite   = document.getElementById("settings-for-current-site");
 Menu.arSettings = document.getElementById("aspect-ratio-settings");
+Menu.autoAr     = document.getElementById("autoar-basic-settings");
 Menu.cssHacks   = document.getElementById("css-hacks-settings");
 Menu.about      = document.getElementById("panel-about");
 
@@ -17,6 +18,7 @@ MenuTab.thisSite   = document.getElementById("_menu_this_site");
 MenuTab.arSettings = document.getElementById("_menu_aspectratio");
 MenuTab.cssHacks   = document.getElementById("_menu_hacks");
 MenuTab.about      = document.getElementById("_menu_about");
+MenuTab.autoAr     = document.getElementById("_menu_autoar");
 
 var ArPanel = {}
 ArPanel.alignment = {};
@@ -173,6 +175,8 @@ function loadConfig(config){
     document.getElementById("extensionEnabledCurrentSite_followGlobal").setAttribute("checked","checked");
   }
   
+  document.getElementById("_checkbox_autoArEnabled").checked = config.arMode == "blacklist";
+  document.getElementById("_input_autoAr_frequency").value = config.arTimeoutPlaying;
   
   // process video alignment:
   if(config.videoAlignment){
@@ -305,6 +309,7 @@ function showArctlButtons(){
 //   }
 }
 
+
 function toggleSite(option){
   if(Debug.debug)
     console.log("[popup::toggleSite] toggling extension 'should I work' status to", option, "on current site");
@@ -339,6 +344,9 @@ document.addEventListener("click", (e) => {
       }
       else if(e.target.classList.contains("_menu_about")){
         openMenu("about");
+      }
+      else if(e.target.classList.contains("_menu_autoar")){
+        openMenu("autoAr");
       }
       
       // don't send commands
@@ -396,22 +404,42 @@ document.addEventListener("click", (e) => {
       }
     }
     
-    if(e.target.classList.contains("_autoar")){
+    if(e.target.classList.contains("_autoAr")){
+//       var command = {};
+//       if(e.target.classList.contains("_autoar_temp-disable")){
+//         command = {cmd: "stop-autoar", sender: "popup", receiver: "uwbg"};
+//       }
+//       else if(e.target.classList.contains("_autoar_disable")){
+//         command = {cmd: "disable-autoar", sender: "popup", receiver: "uwbg"};
+//       }
+//       else if(e.target.classList.contains("_autoar_enable")){
+//         command = {cmd: "enable-autoar", sender: "popup", receiver: "uwbg"};
+//       }
+//       else{
+//         command = {cmd: "force-ar", newAr: "auto", sender: "popup", receiver: "uwbg"};
+//       }
+//       _arctl_onclick(command);
+//       return command;
       var command = {};
-      if(e.target.classList.contains("_autoar_temp-disable")){
-        command = {cmd: "stop-autoar", sender: "popup", receiver: "uwbg"};
+      if(e.target.classList.contains("_autoAr_enabled")){
+        var arStatus = document.getElementById("_checkbox_autoArEnabled").checked;
+        if(arStatus){
+          Comms.sendToAll({cmd: "disable-autoar", sender: "popup", receiver: "uwbg"});
+          Comms.sendToAll({cmd: "stop-autoar", sender: "popup", receiver: "uwbg"});
+        }
+        else{
+          Comms.sendToAll({cmd: "enable-autoar", sender: "popup", receiver: "uwbg"});
+          Comms.sendToAll({cmd: "force-ar", newAr: "auto", sender: "popup", receiver: "uwbg"});
+        }
+        return;
       }
-      else if(e.target.classList.contains("_autoar_disable")){
-        command = {cmd: "disable-autoar", sender: "popup", receiver: "uwbg"};
+      else if(e.target.classList.contains("_save_autoAr_frequency")){
+        var value = parseInt(document.getElementById("_input_autoAr_frequency").value);
+        if(! isNaN(value)){
+          var timeout = parseInt(1000 / value);
+          command = {cmd: "autoar-set-timer-playing", timeout: timeout, sender: "popup", receiver: "uwbg"};
+        }
       }
-      else if(e.target.classList.contains("_autoar_enable")){
-        command = {cmd: "enable-autoar", sender: "popup", receiver: "uwbg"};
-      }
-      else{
-        command = {cmd: "force-ar", newAr: "auto", sender: "popup", receiver: "uwbg"};
-      }
-      _arctl_onclick(command);
-      return command;
     }
     
     if(e.target.classList.contains("_align")){
