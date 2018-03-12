@@ -147,6 +147,8 @@ function _uwbg_rcvmsg(message, sender, sendResponse){
     config.site.arStatus = SitesConf.getArStatus(BgVars.currentSite);
     
     config.mode = Settings.extensionMode;
+    config.arMode = Settings.arDetect.mode;
+    config.arTimerPlaying = Settings.arDetect.timer_playing;
     
     if(Debug.debug)
       console.log("[uw-bg::_uwbg_rcvmsg] Keybinds.getKeybinds() returned this:", Keybinds.getKeybinds()); 
@@ -194,6 +196,27 @@ function _uwbg_rcvmsg(message, sender, sendResponse){
   }
   else if(message.cmd == "enable-for-site"){
     SitesConf.updateSite(BgVars.currentSite, {status: message.option, statusEmbedded: message.option});
+  }
+  else if(message.cmd == "enable-autoar"){
+    Settings.arDetect.mode = "blacklist";
+    Settings.save();
+    Comms.sendToAll({cmd: "reload-settings", sender: "uwbg"})
+  }
+  else if(message.cmd == "disable-autoar"){
+    Settings.arDetect.mode = "disabled";
+    Settings.save();
+    Comms.sendToAll({cmd: "reload-settings", sender: "uwbg"});
+  }
+  else if(message.cmd = "autoar-set-timer-playing"){
+    var timeout = message.timeout;
+    
+    if(timeout < 1)
+      timeout = 1;
+    if(timeout > 999)
+      timeout = 999;
+    
+    Settings.arDetect.timer_playing = timeout;
+    Comms.sendToAll({cmd: "reload-settings", sender: "uwbg"});
   }
   
 }
