@@ -35,8 +35,8 @@ var _arSetup = function(cwidth, cheight){
   // vstavimo začetne stolpce v _ard_sampleCols. 
   // let's insert initial columns to _ard_sampleCols
   _ard_sampleCols = [];
-  var samplingIntervalPx = parseInt(GlobalVars.canvas.height / Settings.arDetect.samplingInterval)
-  for(var i = 1; i < Settings.arDetect.samplingInterval; i++){
+  var samplingIntervalPx = parseInt(GlobalVars.canvas.height / ExtensionConf.arDetect.samplingInterval)
+  for(var i = 1; i < ExtensionConf.arDetect.samplingInterval; i++){
     _ard_sampleCols.push(i * samplingIntervalPx);
   }
   
@@ -71,8 +71,8 @@ var _arSetup = function(cwidth, cheight){
   // things to note: we'll be keeping canvas in memory only. 
   GlobalVars.arDetect.canvas = document.createElement("canvas");
   
-  _ard_canvasWidth = cwidth ? cwidth : Settings.arDetect.hSamples;
-  _ard_canvasHeight = cheight ? cheight : Settings.arDetect.vSamples;
+  _ard_canvasWidth = cwidth ? cwidth : ExtensionConf.arDetect.hSamples;
+  _ard_canvasHeight = cheight ? cheight : ExtensionConf.arDetect.vSamples;
   
   if(Debug.showArDetectCanvas){
     GlobalVars.arDetect.canvas.style.position = "absolute";
@@ -108,8 +108,8 @@ var _arSetup = function(cwidth, cheight){
   
   try{
     // determine where to sample
-    var ncol = Settings.arDetect.staticSampleCols;
-    var nrow = Settings.arDetect.staticSampleRows;
+    var ncol = ExtensionConf.arDetect.staticSampleCols;
+    var nrow = ExtensionConf.arDetect.staticSampleRows;
     
     var colSpacing = _ard_canvasWidth / ncol;
     var rowSpacing = (_ard_canvasHeight * 4) / nrow;
@@ -134,7 +134,7 @@ var _arSetup = function(cwidth, cheight){
     }
   }
   catch(ex){
-    console.log("%c[ArDetect::_arSetup] something went terribly wrong when calcuating sample colums.", Settings.colors.criticalFail);
+    console.log("%c[ArDetect::_arSetup] something went terribly wrong when calcuating sample colums.", ExtensionConf.colors.criticalFail);
     console.log("settings object:", Settings);
     console.log("error:", ex);
   }
@@ -213,7 +213,7 @@ var _ard_processAr = function(video, width, height, edge_h, edge_w, fallbackMode
     if(Debug.debug && Debug.debugArDetect)
       console.log("%c[ArDetect::_ard_processAr] new aspect ratio varies from the old one by this much:\n","color: #aaf","old Ar", GlobalVars.lastAr.ar, "current ar", trueAr, "arDiff (absolute):",arDiff,"ar diff (relative to new ar)", arDiff_percent);
     
-    if (arDiff < trueAr * Settings.arDetect.allowedArVariance){
+    if (arDiff < trueAr * ExtensionConf.arDetect.allowedArVariance){
       if(Debug.debug && Debug.debugArDetect)
         console.log("%c[ArDetect::_ard_processAr] aspect ratio change denied — diff %:", "background: #740; color: #fa2", arDiff_percent)
         
@@ -269,13 +269,13 @@ var _ard_vdraw = function (timeout, force_reset){
 
 var executions = 0;
 
-if(Debug.debug){
-  setInterval(function(){
-    console.log("STATS FOR LAST SECOND\nexecutions:", executions,"; vdraw timeouts cleared:", clearTimeoutCount);
-    executions = 0;
-    clearTimeoutCount = 0;
-  }, 1000);
-}
+// if(Debug.debug){
+//   setInterval(function(){
+//     console.log("STATS FOR LAST SECOND\nexecutions:", executions,"; vdraw timeouts cleared:", clearTimeoutCount);
+//     executions = 0;
+//     clearTimeoutCount = 0;
+//   }, 1000);
+// }
 
 var _ard_vdraw_but_for_reals = function() {
   // thanks dude:
@@ -289,7 +289,7 @@ var _ard_vdraw_but_for_reals = function() {
   
   var fallbackMode = false;
   var startTime = performance.now();
-  var baseTimeout = Settings.arDetect.timer_playing;
+  var baseTimeout = ExtensionConf.arDetect.timer_playing;
   var triggerTimeout;
   
   var guardLineResult = true;         // true if success, false if fail. true by default
@@ -304,13 +304,13 @@ var _ard_vdraw_but_for_reals = function() {
   
   if(GlobalVars.video == null || GlobalVars.video.ended || Status.arStrat != "auto"){
     // we slow down if ended, null, or not auto. Detecting is pointless.
-    _ard_vdraw(Settings.arDetect.timer_paused);
+    _ard_vdraw(ExtensionConf.arDetect.timer_paused);
     return false;
   }
   
   if(GlobalVars.video.paused){
     // if the video is paused, we still do autodetection. We just increase the interval.
-    baseTimeout = Settings.arDetect.timer_paused;
+    baseTimeout = ExtensionConf.arDetect.timer_paused;
   }
   
   
@@ -335,9 +335,9 @@ var _ard_vdraw_but_for_reals = function() {
         var newCanvasWidth = window.innerHeight * 1.77;
         var newCanvasHeight = window.innerHeight;
         
-        if(Settings.miscFullscreenSettings.videoFloat == "center")
+        if(ExtensionConf.miscFullscreenSettings.videoFloat == "center")
           _ard_canvasDrawWindowHOffset = Math.round((window.innerWidth - newCanvasWidth) * 0.5);
-        else if(Settings.miscFullscreenSettings.videFloat == "left")
+        else if(ExtensionConf.miscFullscreenSettings.videFloat == "left")
           _ard_canvasDrawWindowHOffset = 0;
         else
           _ard_canvasDrawWindowHOffset = window.innerWidth - newCanvasWidth;
@@ -351,11 +351,11 @@ var _ard_vdraw_but_for_reals = function() {
       if(Debug.debug)
         console.log("%c[ArDetect::_ard_vdraw] okay this didnt work either", "color:#000; backgroud:#f51;", ex);
       
-      _ard_vdraw( Settings.arDetect.timer_error );
+      _ard_vdraw( ExtensionConf.arDetect.timer_error );
       return;  
     }
     
-//     _ard_timer = setTimeout(_ard_vdraw, Settings.arDetect.timer_error, vid, context, w, h);
+//     _ard_timer = setTimeout(_ard_vdraw, ExtensionConf.arDetect.timer_error, vid, context, w, h);
 //     return;
   }
 
@@ -416,7 +416,7 @@ var _ard_vdraw_but_for_reals = function() {
   GlobalVars.arDetect.blackLevel = GlobalVars.arDetect.blackLevel < currentMinVal ? GlobalVars.arDetect.blackLevel : currentMinVal;
 
   // this means we don't have letterbox
-  if ( currentMaxVal > (GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold) || (currentMaxVal - currentMinVal) > Settings.arDetect.blackbarTreshold ){
+  if ( currentMaxVal > (GlobalVars.arDetect.blackLevel + ExtensionConf.arDetect.blackbarTreshold) || (currentMaxVal - currentMinVal) > ExtensionConf.arDetect.blackbarTreshold ){
     
     // Če ne zaznamo letterboxa, kličemo reset. Lahko, da je bilo razmerje stranic popravljeno na roke. Možno je tudi,
     // da je letterbox izginil.
@@ -459,7 +459,7 @@ var _ard_vdraw_but_for_reals = function() {
   var guardLineOut;
   var imageDetectOut;
   
-  if(Settings.arDetect.guardLine.enabled){
+  if(ExtensionConf.arDetect.guardLine.enabled){
     guardLineOut = _ard_guardLineCheck(image);
     guardLineResult = guardLineOut.success;
     
@@ -475,9 +475,6 @@ var _ard_vdraw_but_for_reals = function() {
     // če sta obe funkciji uspeli, potem se razmerje stranic ni spremenilo.
     // if both succeed, then aspect ratio hasn't changed.    
     if(imageDetectResult && guardLineResult){
-      
-      console.log("STATS: both guardLine and imageTest tests succeeded. AR didn't change. Guard line:", GlobalVars.arDetect.guardLine);
-      
       delete image;
       triggerTimeout = _ard_getTimeout(baseTimeout, startTime);
       _ard_vdraw(triggerTimeout); //no letterbox, no problem
@@ -495,7 +492,7 @@ var _ard_vdraw_but_for_reals = function() {
   var edgeCandidates = _ard_edgeDetect(image, blackbarSamples);
   var edgePost = _ard_edgePostprocess(edgeCandidates, GlobalVars.canvas.height);
   
-//   console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:",GlobalVars.arDetect.blackLevel, "tresh:", GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold);
+//   console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:",GlobalVars.arDetect.blackLevel, "tresh:", GlobalVars.arDetect.blackLevel + ExtensionConf.arDetect.blackbarTreshold);
   
   if(edgePost.status == "ar_known"){
     _ard_processAr(GlobalVars.video, GlobalVars.canvas.width, GlobalVars.canvas.height, edgePost.blackbarWidth, null, fallbackMode);
@@ -535,11 +532,11 @@ var _ard_guardLineCheck = function(image){
   if(GlobalVars.arDetect.guardLine.top == null || GlobalVars.arDetect.guardLine.bottom == null)
     return { success: true };
   
-  var blackbarTreshold = GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold;
+  var blackbarTreshold = GlobalVars.arDetect.blackLevel + ExtensionConf.arDetect.blackbarTreshold;
   var edges = GlobalVars.arDetect.guardLine;  
   
   
-  var offset = parseInt(GlobalVars.canvas.width * Settings.arDetect.guardLine.ignoreEdgeMargin) * 4;
+  var offset = parseInt(GlobalVars.canvas.width * ExtensionConf.arDetect.guardLine.ignoreEdgeMargin) * 4;
   
   var offenders = [];
   var firstOffender = -1;
@@ -551,11 +548,11 @@ var _ard_guardLineCheck = function(image){
   // preglejmo obe vrstici
   // check both rows
   
-  var edge_upper = edges.top - Settings.arDetect.guardLine.edgeTolerancePx;
+  var edge_upper = edges.top - ExtensionConf.arDetect.guardLine.edgeTolerancePx;
   if(edge_upper < 0)
     return {success: true}; // if we go out of bounds here, the black bars are negligible
     
-    var edge_lower = edges.bottom + Settings.arDetect.guardLine.edgeTolerancePx;
+    var edge_lower = edges.bottom + ExtensionConf.arDetect.guardLine.edgeTolerancePx;
   if(edge_lower > GlobalVars.canvas.height - 1)
     return {success: true}; // if we go out of bounds here, the black bars are negligible
     
@@ -635,10 +632,10 @@ var _ard_edgeDetect = function(image, samples){
   var edgeCandidatesTop = {};
   var edgeCandidatesBottom = {};
   
-  var sampleWidthBase = Settings.arDetect.edgeDetection.sampleWidth * 4; // corrected so we can work on imagedata
+  var sampleWidthBase = ExtensionConf.arDetect.edgeDetection.sampleWidth * 4; // corrected so we can work on imagedata
   var halfSample = sampleWidthBase * 0.5;
   var detections;
-  var detectionTreshold = Settings.arDetect.edgeDetection.detectionTreshold;
+  var detectionTreshold = ExtensionConf.arDetect.edgeDetection.detectionTreshold;
   var canvasWidth = GlobalVars.canvas.width;
   var canvasHeight = GlobalVars.canvas.height;
   
@@ -646,7 +643,7 @@ var _ard_edgeDetect = function(image, samples){
   var sampleRow_black, sampleRow_color;
   
   var blackEdgeViolation = false;
-  var blackbarTreshold = GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold;
+  var blackbarTreshold = GlobalVars.arDetect.blackLevel + ExtensionConf.arDetect.blackbarTreshold;
   
   var topEdgeCount = 0;
   var bottomEdgeCount = 0;
@@ -666,8 +663,8 @@ var _ard_edgeDetect = function(image, samples){
       sampleEnd = GlobalVars.canvas.imageDataRowLength;
     
     // calculate row offsets for imageData array
-    sampleRow_black = (sample.top - Settings.arDetect.edgeDetection.edgeTolerancePx) * GlobalVars.canvas.imageDataRowLength;
-    sampleRow_color = (sample.top + 1 + Settings.arDetect.edgeDetection.edgeTolerancePx) * GlobalVars.canvas.imageDataRowLength;
+    sampleRow_black = (sample.top - ExtensionConf.arDetect.edgeDetection.edgeTolerancePx) * GlobalVars.canvas.imageDataRowLength;
+    sampleRow_color = (sample.top + 1 + ExtensionConf.arDetect.edgeDetection.edgeTolerancePx) * GlobalVars.canvas.imageDataRowLength;
     
     // že ena kršitev črnega roba pomeni, da kandidat ni primeren
     // even a single black edge violation means the candidate is not an edge
@@ -719,8 +716,8 @@ var _ard_edgeDetect = function(image, samples){
       sampleEnd = GlobalVars.canvas.imageDataRowLength;
     
     // calculate row offsets for imageData array
-    sampleRow_black = (sample.bottom + Settings.arDetect.edgeDetection.edgeTolerancePx) * GlobalVars.canvas.imageDataRowLength;
-    sampleRow_color = (sample.bottom - 1 - Settings.arDetect.edgeDetection.edgeTolerancePx) * GlobalVars.canvas.imageDataRowLength;
+    sampleRow_black = (sample.bottom + ExtensionConf.arDetect.edgeDetection.edgeTolerancePx) * GlobalVars.canvas.imageDataRowLength;
+    sampleRow_color = (sample.bottom - 1 - ExtensionConf.arDetect.edgeDetection.edgeTolerancePx) * GlobalVars.canvas.imageDataRowLength;
     
     // že ena kršitev črnega roba pomeni, da kandidat ni primeren
     // even a single black edge violation means the candidate is not an edge
@@ -785,20 +782,20 @@ var _ard_findBlackbarLimits = function(image, cols, guardLineResult, imageDetect
   var res_top = [];
   var res_bottom = [];
   
-  var colsTreshold = cols.length * Settings.arDetect.edgeDetection.minColsForSearch;
+  var colsTreshold = cols.length * ExtensionConf.arDetect.edgeDetection.minColsForSearch;
   if(colsTreshold == 0)
     colsTreshold = 1;
   
-  blackbarTreshold = GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold;
+  blackbarTreshold = GlobalVars.arDetect.blackLevel + ExtensionConf.arDetect.blackbarTreshold;
   
   // if guardline didn't fail and imageDetect did, we don't have to check the upper few pixels
   // but only if upper and lower edge are defined. If they're not, we need to check full height
   //   if(GlobalVars.arDetect.guardLine.top != null || GlobalVars.arDetect.guardLine.bottom != null){
   //     if(guardLineResult && !imageDetectResult){
   //       upper_top = GlobalVars.arDetect.guardline.top;
-  //       upper_bottom = (GlobalVars.canvas.height * 0.5) - parseInt(GlobalVars.canvas.height * Settings.arDetect.edgeDetection.middleIgnoredArea);
+  //       upper_bottom = (GlobalVars.canvas.height * 0.5) - parseInt(GlobalVars.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);
   //       
-  //       lower_top = (GlobalVars.canvas.height * 0.5) + parseInt(GlobalVars.canvas.height * Settings.arDetect.edgeDetection.middleIgnoredArea);
+  //       lower_top = (GlobalVars.canvas.height * 0.5) + parseInt(GlobalVars.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);
   //       lower_bottom = GlobalVars.arDetect.guardline.bottom;
   //     }
   //     else if(!guardLineResult && imageDetectResult){
@@ -812,17 +809,17 @@ var _ard_findBlackbarLimits = function(image, cols, guardLineResult, imageDetect
   //       // if they're both false or true (?? they shouldn't be, but let's handle it anyway because dark frames
   //       // could get confusing enough for that to happen), we go for default 
   //       upper_top = 0;
-  //       upper_bottom = (GlobalVars.canvas.height * 0.5) - parseInt(GlobalVars.canvas.height * Settings.arDetect.edgeDetection.middleIgnoredArea);
+  //       upper_bottom = (GlobalVars.canvas.height * 0.5) - parseInt(GlobalVars.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);
   //       
-  //       lower_top = (GlobalVars.canvas.height * 0.5) + parseInt(GlobalVars.canvas.height * Settings.arDetect.edgeDetection.middleIgnoredArea);
+  //       lower_top = (GlobalVars.canvas.height * 0.5) + parseInt(GlobalVars.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);
   //       lower_bottom = GlobalVars.canvas.height;
   //     }
   //   }
   //   else{
   upper_top = 0;
-  upper_bottom = (GlobalVars.canvas.height * 0.5) /*- parseInt(GlobalVars.canvas.height * Settings.arDetect.edgeDetection.middleIgnoredArea);*/
+  upper_bottom = (GlobalVars.canvas.height * 0.5) /*- parseInt(GlobalVars.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);*/
   
-  lower_top = (GlobalVars.canvas.height * 0.5) /*+ parseInt(GlobalVars.canvas.height * Settings.arDetect.edgeDetection.middleIgnoredArea);*/
+  lower_top = (GlobalVars.canvas.height * 0.5) /*+ parseInt(GlobalVars.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);*/
   lower_bottom = GlobalVars.canvas.height - 1;
   //   }
   
@@ -881,11 +878,11 @@ var _ard_guardLineImageDetect = function(image){
   if(GlobalVars.arDetect.guardLine.top == null || GlobalVars.arDetect.guardLine.bottom == null)
     return { success: false };
   
-  var blackbarTreshold = GlobalVars.arDetect.blackLevel + Settings.arDetect.blackbarTreshold;
+  var blackbarTreshold = GlobalVars.arDetect.blackLevel + ExtensionConf.arDetect.blackbarTreshold;
   var edges = GlobalVars.arDetect.guardLine;  
   
   
-  var offset = parseInt(GlobalVars.canvas.width * Settings.arDetect.guardLine.ignoreEdgeMargin) * 4;
+  var offset = parseInt(GlobalVars.canvas.width * ExtensionConf.arDetect.guardLine.ignoreEdgeMargin) * 4;
     
   // TODO: implement logo check.
   
@@ -893,14 +890,14 @@ var _ard_guardLineImageDetect = function(image){
   // preglejmo obe vrstici - tukaj po pravilih ne bi smeli iti prek mej platna. ne rabimo preverjati
   // check both rows - by the rules and definitions, we shouldn't go out of bounds here. no need to check, then
   
-  var edge_upper = edges.top + Settings.arDetect.guardLine.edgeTolerancePx;
-  var edge_lower = edges.bottom - Settings.arDetect.guardLine.edgeTolerancePx;
+  var edge_upper = edges.top + ExtensionConf.arDetect.guardLine.edgeTolerancePx;
+  var edge_lower = edges.bottom - ExtensionConf.arDetect.guardLine.edgeTolerancePx;
 
   // koliko pikslov rabimo zaznati, da je ta funkcija uspe. Tu dovoljujemo tudi, da so vsi piksli na enem
   // robu (eden izmed robov je lahko v celoti črn)
   // how many non-black pixels we need to consider this check a success. We only need to detect enough pixels
   // on one edge (one of the edges can be black as long as both aren't)
-  var successTreshold = parseInt(GlobalVars.canvas.width * Settings.arDetect.guardLine.imageTestTreshold);
+  var successTreshold = parseInt(GlobalVars.canvas.width * ExtensionConf.arDetect.guardLine.imageTestTreshold);
   var rowStart, rowEnd;
   
   
@@ -940,7 +937,7 @@ var _ard_guardLineImageDetect = function(image){
 var _ard_edgePostprocess = function(edges, canvasHeight){
   var edgesTop = [];
   var edgesBottom = [];
-  var alignMargin = canvasHeight * Settings.arDetect.allowedMisaligned;
+  var alignMargin = canvasHeight * ExtensionConf.arDetect.allowedMisaligned;
   
   var missingEdge = edges.edgeCandidatesTopCount == 0 || edges.edgeCandidatesBottomCount == 0;
   
@@ -987,7 +984,7 @@ var _ard_edgePostprocess = function(edges, canvasHeight){
     // it could be watermark. It could be a dark frame. Let's check for watermark first.
     if( edgesTop[0].distance < edgesBottom[0].distance &&
         edgesTop[0].count    < edgesBottom[0].count    &&
-        edgesTop[0].count    < GlobalVars.arDetect.sampleCols * Settings.arDetect.edgeDetection.logoTreshold){
+        edgesTop[0].count    < GlobalVars.arDetect.sampleCols * ExtensionConf.arDetect.edgeDetection.logoTreshold){
       // možno, da je watermark zgoraj. Preverimo, če se kateri od drugih potencialnih robov na zgornjem robu
       // ujema s prvim spodnjim (+/- variance). Če je temu tako, potem bo verjetno watermark. Logo mora imeti
       // manj vzorcev kot navaden rob.
@@ -1010,7 +1007,7 @@ var _ard_edgePostprocess = function(edges, canvasHeight){
     }
     if( edgesBottom[0].distance < edgesTop[0].distance &&
         edgesBottom[0].count    < edgesTop[0].count    &&
-        edgesBottom[0].count    < GlobalVars.arDetect.sampleCols * Settings.arDetect.edgeDetection.logoTreshold){
+        edgesBottom[0].count    < GlobalVars.arDetect.sampleCols * ExtensionConf.arDetect.edgeDetection.logoTreshold){
       
       if(edgesBottom[0].length > 1){
         var lowMargin = edgesTop[0].distance - alignMargin;
@@ -1035,7 +1032,7 @@ var _ard_edgePostprocess = function(edges, canvasHeight){
     // either the top or the bottom edge remains undetected, but we have one more trick that we
     // can try. It also tries to work around logos.
     
-    var edgeDetectionTreshold = GlobalVars.arDetect.sampleCols * Settings.arDetect.edgeDetection.singleSideConfirmationTreshold;
+    var edgeDetectionTreshold = GlobalVars.arDetect.sampleCols * ExtensionConf.arDetect.edgeDetection.singleSideConfirmationTreshold;
     
     if(edges.edgeCandidatesTopCount == 0 && edges.edgeCandidatesBottomCount != 0){
       for(var edge of edgesBottom){
@@ -1066,7 +1063,7 @@ var _ard_stop = function(){
 }
 
 var _ard_resetBlackLevel = function(){
-  GlobalVars.arDetect.blackLevel = Settings.arDetect.blackLevel_default;
+  GlobalVars.arDetect.blackLevel = ExtensionConf.arDetect.blackLevel_default;
 }
 
 var _ard_isRunning = function(){
@@ -1076,7 +1073,7 @@ var _ard_isRunning = function(){
 function _ard_getTimeout(baseTimeout, startTime){
 //   baseTimeout -= (performance.now() - startTime);
 
-//   return baseTimeout > Settings.arDetect.minimumTimeout ? baseTimeout : Settings.arDetect.minimumTimeout;
+//   return baseTimeout > ExtensionConf.arDetect.minimumTimeout ? baseTimeout : ExtensionConf.arDetect.minimumTimeout;
   
   return baseTimeout;
 }

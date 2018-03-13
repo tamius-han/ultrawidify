@@ -176,7 +176,10 @@ function loadConfig(config){
   }
   
   document.getElementById("_checkbox_autoArEnabled").checked = config.arMode == "blacklist";
-  document.getElementById("_input_autoAr_frequency").value = config.arTimeoutPlaying;
+  
+  console.log("how do I checked? arMode:", config.arMode, " -- is equal to blacklist?", config.arMode == "blacklist");
+  
+  document.getElementById("_input_autoAr_frequency").value = parseInt(1000/config.arTimerPlaying);
   
   // process video alignment:
   if(config.videoAlignment){
@@ -420,25 +423,33 @@ document.addEventListener("click", (e) => {
 //       }
 //       _arctl_onclick(command);
 //       return command;
+      console.log("......");
       var command = {};
       if(e.target.classList.contains("_autoAr_enabled")){
         var arStatus = document.getElementById("_checkbox_autoArEnabled").checked;
-        if(arStatus){
+        
+        // this event fires before the checkbox is checked, therefore arStatus is opposite of what it should be
+        if(! arStatus){
+          Comms.sendToBackgroundScript({cmd: "disable-autoar", sender: "popup", receiver: "uwbg"});
           Comms.sendToAll({cmd: "disable-autoar", sender: "popup", receiver: "uwbg"});
           Comms.sendToAll({cmd: "stop-autoar", sender: "popup", receiver: "uwbg"});
         }
         else{
           Comms.sendToAll({cmd: "enable-autoar", sender: "popup", receiver: "uwbg"});
+          Comms.sendToBackgroundScript({cmd: "enable-autoar", sender: "popup", receiver: "uwbg"});
           Comms.sendToAll({cmd: "force-ar", newAr: "auto", sender: "popup", receiver: "uwbg"});
         }
         return;
       }
       else if(e.target.classList.contains("_save_autoAr_frequency")){
-        var value = parseInt(document.getElementById("_input_autoAr_frequency").value);
+        var value = parseInt(document.getElementById("_input_autoAr_frequency").value.trim());
+        
         if(! isNaN(value)){
           var timeout = parseInt(1000 / value);
           command = {cmd: "autoar-set-timer-playing", timeout: timeout, sender: "popup", receiver: "uwbg"};
+          Comms.sendToBackgroundScript(command);
         }
+        return;
       }
     }
     

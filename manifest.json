@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Ultrawidify",
-  "version": "2.2.0a1",
+  "version": "2.2.0a4",
   
   "icons": {
     "32":"res/icons/uw-32.png",
@@ -25,7 +25,6 @@
     "js/conf/Settings.js",
     "js/conf/SitesConf.js",
     "js/conf/Status.js",
-    "js/conf/ExtensionConf.js",
     
     "js/lib/PlayerDetect.js",
     
@@ -49,10 +48,10 @@
     "js/lib/Comms.js",
     
     "js/conf/Debug.js",
+    "js/conf/ExtensionConf.js",
     "js/conf/Settings.js",
     "js/conf/SitesConf.js",
     "js/conf/Status.js",
-    "js/conf/ExtensionConf.js",
     
     "js/conf/Keybinds.js",
     
@@ -61,7 +60,7 @@
   },
   
   "permissions": [
-  "tabs", "storage",  "activeTab", "<all_urls>", "webNavigation"
+    "tabs", "storage",  "activeTab", "<all_urls>", "webNavigation"
   ],
   
   "browser_action": {

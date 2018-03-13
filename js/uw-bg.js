@@ -138,17 +138,17 @@ function _uwbg_rcvmsg(message, sender, sendResponse){
   
   if(message.cmd == "get-config"){
     var config = {};
-    config.videoAlignment = Settings.miscFullscreenSettings.videoFloat;
+    config.videoAlignment = ExtensionConf.miscFullscreenSettings.videoFloat;
     config.arConf = {};
-    config.arConf.enabled_global = Settings.arDetect.enabled == "blacklist";
+    config.arConf.enabled_global = ExtensionConf.arDetect.enabled == "blacklist";
     
     config.site = {};
     config.site.status = SitesConf.getSiteStatus(BgVars.currentSite);
     config.site.arStatus = SitesConf.getArStatus(BgVars.currentSite);
     
-    config.mode = Settings.extensionMode;
-    config.arMode = Settings.arDetect.mode;
-    config.arTimerPlaying = Settings.arDetect.timer_playing;
+    config.mode = ExtensionConf.extensionMode;
+    config.arMode = ExtensionConf.arDetect.mode;
+    config.arTimerPlaying = ExtensionConf.arDetect.timer_playing;
     
     if(Debug.debug)
       console.log("[uw-bg::_uwbg_rcvmsg] Keybinds.getKeybinds() returned this:", Keybinds.getKeybinds()); 
@@ -158,7 +158,7 @@ function _uwbg_rcvmsg(message, sender, sendResponse){
     
     // predvidevajmo, da je enako. Če je drugače, bomo popravili ko dobimo odgovor
     // assume current is same as global & change that when you get response from content script
-    config.arConf.enabled_current = Settings.arDetect.enabled == "blacklist";
+    config.arConf.enabled_current = ExtensionConf.arDetect.enabled == "blacklist";
   
     var res = {response: config}
     if(BrowserDetect.firefox){
@@ -198,16 +198,40 @@ function _uwbg_rcvmsg(message, sender, sendResponse){
     SitesConf.updateSite(BgVars.currentSite, {status: message.option, statusEmbedded: message.option});
   }
   else if(message.cmd == "enable-autoar"){
-    Settings.arDetect.mode = "blacklist";
-    Settings.save();
-    Comms.sendToAll({cmd: "reload-settings", sender: "uwbg"})
+    ExtensionConf.arDetect.mode = "blacklist";
+    Settings.save(ExtensionConf);
+//     Comms.sendToAll({cmd: "reload-settings", sender: "uwbg"})
+    if(Debug.debug){
+      console.log("[uw-bg] autoar set to enabled (blacklist). evidenz:", ExtensionConf);
+    }
   }
   else if(message.cmd == "disable-autoar"){
-    Settings.arDetect.mode = "disabled";
-    Settings.save();
-    Comms.sendToAll({cmd: "reload-settings", sender: "uwbg"});
+    ExtensionConf.arDetect.mode = "disabled";
+    Settings.save(ExtensionConf);
+//     Comms.sendToAll({cmd: "reload-settings", sender: "uwbg"});
+    if(Debug.debug){
+      console.log("[uw-bg] autoar set to disabled. evidenz:", ExtensionConf);
+    }
+  }
+  else if(message.cmd == "gib-settings"){
+    if(Debug.debug)
+      console.log("[uw-bg] we got asked for settings. Returning this:", ExtensionConf);
+    
+    if(BrowserDetect.usebrowser == "firefox")
+      return Promise.resolve({response: ExtensionConf});
+    
+    try{
+      sendResponse({response: mode});
+    }
+    catch(chromeIsShitError){};
+    
+    return true;
   }
   else if(message.cmd = "autoar-set-timer-playing"){
+    
+    if(Debug.debug)
+      console.log("[uw-bg] trying to set new interval for autoAr. New interval is",message.timeout,"ms");
+    
     var timeout = message.timeout;
     
     if(timeout < 1)
@@ -215,8 +239,9 @@ function _uwbg_rcvmsg(message, sender, sendResponse){
     if(timeout > 999)
       timeout = 999;
     
-    Settings.arDetect.timer_playing = timeout;
-    Comms.sendToAll({cmd: "reload-settings", sender: "uwbg"});
+    ExtensionConf.arDetect.timer_playing = timeout;
+    Settings.save(ExtensionConf);
+    Comms.sendToAll({cmd: "update-settings", sender: "uwbg", newConf: ExtensionConf});
   }
   
 }
