@@ -140,7 +140,7 @@ function inIframe(){
 }
 
 var _sc_isEnabled = function(site){
-//   console.log(".... — _sc_sites[", site, "].status:", (_sc_sites[site] == undefined ? "<default>" : _sc_sites[site].status), "; Settings.extensionMode:", Settings.extensionMode)
+//   console.log(".... — _sc_sites[", site, "].status:", (_sc_sites[site] == undefined ? "<default>" : _sc_sites[site].status), "; ExtensionConf.extensionMode:", ExtensionConf.extensionMode)
   if( inIframe ) {
     return _sc_siteEnableEmbedded(site);
   }
@@ -155,7 +155,7 @@ var _sc_siteEnabled = function(site){
     
     console.log(".... this site is undefined!");
     
-    if ( Settings.extensionMode == "blacklist" ){
+    if ( ExtensionConf.extensionMode == "blacklist" ){
       return true;
     }
     return false;
@@ -181,7 +181,7 @@ var _sc_siteStatus = function(site){
 var _sc_arEnabled = function(site){
   
   if( _sc_sites[site] == undefined || _sc_sites[site].arStatus == "follow-global" ){
-    if(Settings.extensionMode == "blacklist" ){
+    if(ExtensionConf.extensionMode == "blacklist" ){
       return true;
     }
     return false;
@@ -205,7 +205,7 @@ var _sc_siteEnableEmbedded = function(site) {
   if( _sc_sites[site] == undefined || _sc_sites[site].statusEmbedded == "follow-global" ){
     console.log(".... this site is undefined! er");
     
-    if(Settings.extensionMode == "blacklist" ){
+    if(ExtensionConf.extensionMode == "blacklist" ){
       return true;
     }
     return false;

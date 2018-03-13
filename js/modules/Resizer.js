@@ -161,7 +161,7 @@ var _res_setAr = function(ar){
 var _res_computeOffsets = function(vidDim, playerDim){
   
   if(Debug.debug)
-    console.log("[Resizer::_res_computeOffsets] video will be aligned to ", Settings.miscFullscreenSettings.videoFloat);
+    console.log("[Resizer::_res_computeOffsets] video will be aligned to ", ExtensionConf.miscFullscreenSettings.videoFloat);
   
   var offsets = {
     width: vidDim.width,
@@ -170,11 +170,11 @@ var _res_computeOffsets = function(vidDim, playerDim){
     top: ((playerDim.height - vidDim.height) / 2)
   }
   
-  if( Settings.miscFullscreenSettings.videoFloat == "center" ){
+  if( ExtensionConf.miscFullscreenSettings.videoFloat == "center" ){
     offsets.left = (playerDim.width - vidDim.width ) / 2;
     
   }
-  else if( Settings.miscFullscreenSettings.videoFloat == "right" ){
+  else if( ExtensionConf.miscFullscreenSettings.videoFloat == "right" ){
     offsets.left = (playerDim.width - vidDim.width);
   }
   
@@ -183,7 +183,7 @@ var _res_computeOffsets = function(vidDim, playerDim){
 
 var _res_align = function(float){
   if(! float)
-    float = Settings.miscFullscreenSettings.videoFloat;
+    float = ExtensionConf.miscFullscreenSettings.videoFloat;
   
   var dimensions = {left: 0};
   

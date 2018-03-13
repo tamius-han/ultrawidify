@@ -19,12 +19,11 @@ async function main(){
     console.log("[uw::main] loading configuration ...");
 
   // load settings
-  await Settings.init();
+  var isSlave = true;
+  await Settings.init(isSlave);
   var scpromise = SitesConf.init();
   var kbpromise = Keybinds.init();
   
-  ExtensionConf.init();
-
   // počakamo, da so nastavitve naložene
   // wait for settings to load
   await scpromise;
@@ -48,14 +47,21 @@ async function main(){
     return;
   } 
   
-  if(SitesConf.isArEnabled(window.location.hostname)){
+//   if(SitesConf.isArEnabled(window.location.hostname)){
+//     if(Debug.debug)
+//       console.log("[uw::main] Aspect ratio detection is enabled. Starting ArDetect");
+//     ArDetect.arSetup();
+//   }
+  console.log("[uw::main] ExtensionConf:", ExtensionConf);
+
+  if(ExtensionConf.arDetect.mode == "blacklist"){
     if(Debug.debug)
-      console.log("[uw::main] Aspect ratio detection is enabled. Starting ArDetect");
+      console.log("[uw::main] Aspect ratio detection is enabled (mode=",ExtensionConf.arDetect.mode,"). Starting ArDetect");
     ArDetect.arSetup();
   }
   else{
     if(Debug.debug)
-      console.log("[uw::main] Aspect ratio detection is disabled. This is in settings:", Settings.arDetect.enabled);
+      console.log("[uw::main] Aspect ratio detection is disabled. Mode:", ExtensionConf.arDetect.mode);
   }
   
   browser.runtime.onMessage.addListener(receiveMessage);
@@ -173,9 +179,9 @@ function receiveMessage(message, sender, sendResponse) {
   else if(message.cmd == "get-config"){
     
     var config = {};
-    config.videoAlignment = Settings.miscFullscreenSettings.videoFloat;
+    config.videoAlignment = ExtensionConf.miscFullscreenSettings.videoFloat;
     config.arConf = {};
-    config.arConf.enabled_global = Settings.arDetect.enabled == "global";
+    config.arConf.enabled_global = ExtensionConf.arDetect.enabled == "global";
     
     
     var keybinds = Keybinds.getKeybinds();
@@ -216,15 +222,32 @@ function receiveMessage(message, sender, sendResponse) {
     if(Debug.debug)
       console.log("[uw::receiveMessage] we're aligning video to", message.newFloat);
     
-    Settings.miscFullscreenSettings.videoFloat = message.newFloat;
-    Settings.save();
+    ExtensionConf.miscFullscreenSettings.videoFloat = message.newFloat;
+    Settings.save(ExtensionConf);
   }
   else if(message.cmd == "stop-autoar"){
     ArDetect.stop();
   }
-  else if(message.cmd == "reload-settings"){
-    Settings.reload();
+  else if(message.cmd == "update-settings"){
+    if(Debug.debug){
+      console.log("[uw] we got sent new ExtensionConf to abide by:", cmd.newConf);
+    }
+    ExtensionConf = cmd.newConf;
   }
+//   else if(message.cmd == "enable-autoar"){
+//     if(Debug.debug){
+//       console.log("[uw] enabling autoar.");
+//     }
+//     ExtensionConf.autoAr.mode == "blacklist";
+//     Settings.save(ExtensionConf);
+//   }
+//   else if(message.cmd == "disable-autoar"){
+//     if(Debug.debug){
+//       console.log("[uw] disabling autoar.");
+//     }
+//     ExtensionConf.autoAr.mode == "disabled";
+//     Settings.save(ExtensionConf);
+//   }
   if(message.cmd == "testing"){
     if(Browserdetect.usebrowser = "firefox")
       return Promise.resolve({response: "test response hier"});
