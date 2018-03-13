@@ -85,23 +85,23 @@ reintroduce settings page (rebindable keys, blacklist/whitelist management, some
 
 ## Changelog
 
-### v2.2.0a1 (Git - unstable)
+### v2.2.0 (AMO)
 
 Various improvements to automatic aspect ratio detection:
 
 * **Fixed the situation with insane memory usage due to the automatic aspect ratio detection (#25, #32) and lag that appeared in certain cases after the extension has been running for a while.** There's still fun stuff going on — see notes below.
 * Improved accuracy of automatic detection. This should fix the issue of rapid switching in dark videos or videos with otherwise uneven edges (#12 - [video](https://www.youtube.com/watch?v=NaTGwlfRB_c); #24 - [video](https://www.youtube.com/watch?v=xvZqHgFz51I) (see the car at the beginning))
 
-Improved accuracy has increased the base RAM usage. Expect 30-500 MB per video that's currently playing if you opened the Firefox just for youtube. I've spent 2 hours watching videos on youtube and RAM usage of the extension was 30-400 MB most of the time.
+Improved accuracy has increased the base RAM usage, and not by a small amount (I seem to have fixed my blunders, so that could _actually_ be on Firefox). As a result, I've reduced both resolution of the sample as well as polling frequency. 
 
-In some weird cases, though, RAM usage could sway between 30 MB to ~2 gigs? while the video is playing. That normally happens when firefox has been running for a while (even if extension was disabled or not installed during that while).
+Polling of 1 check per second shouldn't use too much RAM. If you want automatic aspect ratio detection to react faster, you can up that number to 30 in the settings. 30 checks per second can be expensive: up to 400 MB if you've just started Firefox and went to youtube. Can go north of 2 gigs if you've been running Firefox for longer than that (seems to be a problem with Javascript garbage collection). 
 
 Videos that aren't playing (e.g. videos that are paused or ended) do (should) ***not*** use any meaningful amount of RAM.
 
 * Overpass font is now bundled with this extension, meaning the popup should appear the way it was meant to appear™.
 
 
-### v2.1.4 (FF/AMO)
+### v2.1.4
 
 * Extension has been disabled on imgur (it was breaking gifs)
 
