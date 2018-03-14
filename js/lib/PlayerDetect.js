@@ -104,14 +104,16 @@ var _pd_getPlayerDimensions = function(startElement){
     dims = {
       width: window.innerWidth,
       height: window.innerHeight,
-      element: "fullscreen"
+      element: null,
+      fullscreen: true
     }
   }
   else{
     dims = {
       width: candidate_width,
       height: candidate_height,
-      element: playerCandidateNode
+      element: playerCandidateNode,
+      fullscreen: isFullScreen
     };
   }
   
@@ -121,15 +123,30 @@ var _pd_getPlayerDimensions = function(startElement){
 
 // returns 'true' if there was a change.
 var _pd_checkPlayerSizeChange = function(){
+  
+  if(Debug.debug){
+    if(GlobalVars.playerDimensions.element == undefined)
+      console.log("[PlayerDetect] player size changed. reason: player element undefined");
+    
+    if(GlobalVars.playerDimensions.fullscreen){
+      if(! _pd_isFullScreen()){
+        console.log("[PlayerDetect] player size changed. reason: exited fullscreen");
+      }
+    }
+    
+    if(GlobalVars.playerDimensions.width != GlobalVars.playerDimensions.element.offsetWidth || GlobalVars.playerDimensions.height != GlobalVars.playerDimensions.element.offsetHeight ){
+      console.log("[PlayerDetect] player size changed. reason: dimension change");
+    }
+  }
+  
   if(GlobalVars.playerDimensions.element == undefined)
     return true;
   
-  if(GlobalVars.playerDimensions.element === "fullscreen"){
-    return ! isFullScreen();
+  if(GlobalVars.playerDimensions.fullscreen){
+    return ! _pd_isFullScreen();
   }
   
   if(GlobalVars.playerDimensions.width != GlobalVars.playerDimensions.element.offsetWidth || GlobalVars.playerDimensions.height != GlobalVars.playerDimensions.element.offsetHeight ){
-    
     return true;
   }
   

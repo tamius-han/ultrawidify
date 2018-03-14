@@ -1,6 +1,6 @@
 // Set prod to true when releasing
 _prod = true; 
-// _prod = false;
+_prod = false;
 
 Debug = {
   debug: true,

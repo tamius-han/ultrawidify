@@ -106,7 +106,7 @@ var _res_setAr = function(ar){
   if(Debug.debug)
     console.log("[Resizer::_res_setAr] video:",vid,"width:", vid.videoWidth, "height:", vid.videoHeight);
   
-  // Dejansko razmerje stranic datoteke/<video> značke
+//   // Dejansko razmerje stranic datoteke/<video> značke
   // Actual aspect ratio of the file/<video> tag
   var fileAr = vid.videoWidth / vid.videoHeight;
   
