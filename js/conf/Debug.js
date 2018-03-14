@@ -6,7 +6,7 @@ Debug = {
   debug: true,
   keyboard: true,
   debugResizer: true,
-  debugArDetect: false,
+  debugArDetect: true,
   debugStorage: true,
   showArDetectCanvas: true,
   flushStoredSettings: false,
