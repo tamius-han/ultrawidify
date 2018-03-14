@@ -85,7 +85,17 @@ reintroduce settings page (rebindable keys, blacklist/whitelist management, some
 
 ## Changelog
 
-### v2.2.0 (AMO)
+
+### v2.2.2 (AMO) 
+
+* Fixes problems with switching from normal to fullscreen player on youtube. If 2.2.1 didn't fix the font issue, this version should have.
+
+### v2.2.1 (Chrome)
+
+* Fixes few chrome-specific fixes/bugs that v2.2.0 introduced. Maybe fixed the font problem.
+
+
+### v2.2.0
 
 Various improvements to automatic aspect ratio detection:
 
@@ -112,7 +122,7 @@ Videos that aren't playing (e.g. videos that are paused or ended) do (should) **
 
 Youtube fix seems to have broken Chrome compatibility (again), so any quick fix for this point forward will land in Chrome version along with v2.2.
 
-### v2.1.2 (Chrome)
+### v2.1.2 
 
 * Fixed some bugs with autodetection sometimes not working properly on Youtube.
 
