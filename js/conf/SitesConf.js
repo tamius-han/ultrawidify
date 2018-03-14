@@ -203,7 +203,8 @@ var _sc_arStatus = function(site){
 var _sc_siteEnableEmbedded = function(site) {
   
   if( _sc_sites[site] == undefined || _sc_sites[site].statusEmbedded == "follow-global" ){
-    console.log(".... this site is undefined! er");
+    if(Debug.debug)
+      console.log("[SitesConf::_sc_siteEnableEmbedded] site", site, "is not defined in settings.");
     
     if(ExtensionConf.extensionMode == "blacklist" ){
       return true;

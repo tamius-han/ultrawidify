@@ -161,10 +161,15 @@ function _uwbg_rcvmsg(message, sender, sendResponse){
     config.arConf.enabled_current = ExtensionConf.arDetect.enabled == "blacklist";
   
     var res = {response: config}
+    
+    if(Debug.debug){
+      console.log("[uw-bg::_uwbg_rcvmsg] get-config: returning this to popup script:", res);
+    }
+    
     if(BrowserDetect.firefox){
       return Promise.resolve(res);
     }
-    sendMessage(res);
+    sendResponse(res);
     return true;
   }
   
@@ -221,7 +226,7 @@ function _uwbg_rcvmsg(message, sender, sendResponse){
       return Promise.resolve({response: ExtensionConf});
     
     try{
-      sendResponse({response: mode});
+      sendResponse({response: ExtensionConf});
     }
     catch(chromeIsShitError){};
     

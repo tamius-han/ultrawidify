@@ -102,7 +102,7 @@ function check4conf(){
   Comms.sendToBackgroundScript({cmd: "get-config"})
   .then(response => {
     if(Debug.debug)
-      console.log("[popup.js::check4conf] received response:",response, response.response);
+      console.log("[popup.js::check4conf] received response to get-config request:",response, response.response);
     
     loadConfig(response.response);
   })
@@ -176,8 +176,6 @@ function loadConfig(config){
   }
   
   document.getElementById("_checkbox_autoArEnabled").checked = config.arMode == "blacklist";
-  
-  console.log("how do I checked? arMode:", config.arMode, " -- is equal to blacklist?", config.arMode == "blacklist");
   
   document.getElementById("_input_autoAr_frequency").value = parseInt(1000/config.arTimerPlaying);
   
@@ -437,7 +435,7 @@ document.addEventListener("click", (e) => {
         else{
           Comms.sendToAll({cmd: "enable-autoar", sender: "popup", receiver: "uwbg"});
           Comms.sendToBackgroundScript({cmd: "enable-autoar", sender: "popup", receiver: "uwbg"});
-          Comms.sendToAll({cmd: "force-ar", newAr: "auto", sender: "popup", receiver: "uwbg"});
+          Comms.sendToAll({cmd: "force-ar", newAr: "auto", arType: "legacy", sender: "popup", receiver: "uwbg"});
         }
         return;
       }
