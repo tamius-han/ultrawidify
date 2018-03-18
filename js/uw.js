@@ -169,6 +169,7 @@ function ghettoUrlWatcher(){
     
     GlobalVars.video = null;
     GlobalVars.lastUrl = window.location.href;
+    Resizer.reset();
     main();
   }
 }

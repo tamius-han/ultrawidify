@@ -15,6 +15,12 @@ var GlobalVars = {
     height: null,
     imageDataRowLength: null
   },
+  correctedVideoDimensions: {
+    width: null,
+    height: null,
+    top: null,
+    left: null
+  },
   arDetect: {
     canvas: null,
     blackLevel: 10,
