@@ -75,18 +75,21 @@ Manually triggering aspect ratio change will suspend automatic aspect ratio dete
 
 ## Plans for the future
 
-0. Memory leak bugfix (soon™)
-1. Handle porting of extension settings between versions. (Some people had some issues where extension broke until reinstalled, and corrupted settings seemed to be the problem.)
+~~1. Handle porting of extension settings between versions. (Some people had some issues where extension broke until reinstalled, and corrupted settings seemed to be the problem.)~~ seems to work for me?
 2. Reintroduce gradual zoom on z and u and provide a way to 'scroll' the zoomed in video up/down left/right
 reintroduce settings page (rebindable keys, blacklist/whitelist management, some settings for automatic aspect ratio detection)
-3. site-specific options for sites that require additional CSS classes or other hacks (see: vimeo, which is disable)
+3. site-specific options for sites that require additional CSS classes or other hacks (see: vimeo, which is disabled)
 4. figure the best way to do GUI (injecting buttons into the player bar is not a good way. Been there, done that, each site has its own way and some appear to be impossible). Might get bumped to be released alongside #2
 5. Stretch mode, because some people are very salty and toxic about the fact that this extension is here to solve a problem that's different than the one they want. More salty than me rn.
+6. Improvements to automatic aspect ratio detection
 
 ## Changelog
 
+### v2.2.3 (AMO)
 
-### v2.2.2 (AMO) 
+* Fixed automatic aspect ratio detection on DRM-protected sites.
+
+### v2.2.2  
 
 * Fixes problems with switching from normal to fullscreen player on youtube. If 2.2.1 didn't fix the font issue, this version should have.
 
