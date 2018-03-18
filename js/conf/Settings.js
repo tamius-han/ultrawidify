@@ -47,17 +47,31 @@ var _se_init = async function(isSlave){
       
       StorageManager.setopt({"uw-settings": ExtensionConf});
     }
-    
+    else{
+      _se_patchUserSettings(actualSettings, ExtensionConf);
+    }
     if(Debug.debug)
-      console.log("[Settings::_se_init()] parsed settings:", actualSettings);
+      console.log("[Settings::_se_init()] parsed settings:", actualSettings, "were they copied to ExtensionConf?",ExtensionConf);
     
-    for (var k in actualSettings) 
-      ExtensionConf[k] = actualSettings[k];
   }
   
   if(Debug.debug)
     console.log("[Settings::_se_init] settings have been loaded/reloaded. Current state: ", ExtensionConf);
   
+}
+
+var _se_patchUserSettings = function(saved, extDefaults){
+  for(var k in extDefaults){
+    if(extDefaults[k] != null && typeof extDefaults[k] === 'object' && extDefaults[k].constructor === Object){
+      if(typeof saved[k] !== 'object' || saved[k].constructor !== Object)
+        continue;
+      
+      _se_patchUserSettings(saved[k], extDefaults[k]);
+    }
+    else{
+      extDefaults[k] = saved[k];
+    }
+  }
 }
 
 var _se_save = function(settings){

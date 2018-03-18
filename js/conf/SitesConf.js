@@ -28,7 +28,7 @@ var _sc_sites = {
     statusEmbedded: "whitelisted",   // should extension work for this site when embedded on other sites?
     override: false                  // ignore value localStorage in favour of this
   },
-  "netflix.com" : {
+  "www.netflix.com" : {
     status: "whitelisted",
     arStatus: "blacklisted",
     statusEmbedded: "whitelisted",

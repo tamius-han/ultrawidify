@@ -178,6 +178,11 @@ var _res_computeOffsets = function(vidDim, playerDim){
     offsets.left = (playerDim.width - vidDim.width);
   }
   
+  GlobalVars.correctedVideoDimensions.width = parseInt(offsets.width);
+  GlobalVars.correctedVideoDimensions.height= parseInt(offsets.height);
+  GlobalVars.correctedVideoDimensions.left = parseInt(offsets.left);
+  GlobalVars.correctedVideoDimensions.top = parseInt(offsets.top);
+  
   return offsets;
 }
 

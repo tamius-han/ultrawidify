@@ -38,6 +38,11 @@ var ExtensionConf = {
       edgeTolerancePx: 3,         // black edge violation is performed this far from reported 'last black pixel'
       edgeTolerancePercent: null  // unused. same as above, except use % of canvas height instead of pixels
     },
+    fallbackMode: {
+      enabled: true,
+      safetyBorderPx: 5,        // determines the thickness of safety border in fallback mode
+      noTriggerZonePx: 8        // if we detect edge less than this many pixels thick, we don't correct.
+    },
     arSwitchLimiter: {          // to be implemented 
       switches: 2,              // we can switch this many times
         period: 2.0             // per this period
