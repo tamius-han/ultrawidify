@@ -139,6 +139,9 @@ var _arSetup = function(cwidth, cheight){
     console.log("error:", ex);
   }
   
+  // we're also gonna reset this
+  GlobalVars.arDetect.guardLine.top = null;
+  GlobalVars.arDetect.guardLine.bottom = null;
   
   _ard_resetBlackLevel();
   this._forcehalt = false;
@@ -343,7 +346,6 @@ var _ard_vdraw_but_for_reals = function() {
         // canvas needs to be resized, so let's change setup
         _ard_stop();
         
-        console.log("globalvars corrected video dimensions is null");
         var newCanvasWidth = window.innerHeight * (GlobalVars.video.videoWidth / GlobalVars.video.videoHeight);
         var newCanvasHeight = window.innerHeight;
         
@@ -492,7 +494,7 @@ var _ard_vdraw_but_for_reals = function() {
       }
     }
     
-    imageDetectOut = _ard_guardLineImageDetect(image);
+    imageDetectOut = _ard_guardLineImageDetect(image, fallbackMode);
     imageDetectResult = imageDetectOut.success;
     
     // če sta obe funkciji uspeli, potem se razmerje stranic ni spremenilo.
@@ -923,7 +925,7 @@ var _ard_findBlackbarLimits = function(image, cols, guardLineResult, imageDetect
   return {res_top: res_top, res_bottom: res_bottom};
 }
 
-var _ard_guardLineImageDetect = function(image){  
+var _ard_guardLineImageDetect = function(image, fallbackMode){  
   if(GlobalVars.arDetect.guardLine.top == null || GlobalVars.arDetect.guardLine.bottom == null)
     return { success: false };
   
@@ -938,9 +940,15 @@ var _ard_guardLineImageDetect = function(image){
   // preglejmo obe vrstici - tukaj po pravilih ne bi smeli iti prek mej platna. ne rabimo preverjati
   // check both rows - by the rules and definitions, we shouldn't go out of bounds here. no need to check, then
   
-  var edge_upper = edges.top + ExtensionConf.arDetect.guardLine.edgeTolerancePx;
-  var edge_lower = edges.bottom - ExtensionConf.arDetect.guardLine.edgeTolerancePx;
-
+//   if(fallbackMode){
+//     var edge_upper = ExtensionConf.arDetect.fallbackMode.noTriggerZonePx;
+//     var edge_lower = GlobalVars.canvas.height - ExtensionConf.arDetect.fallbackMode.noTriggerZonePx - 1;
+//   }
+//   else{
+    var edge_upper = edges.top + ExtensionConf.arDetect.guardLine.edgeTolerancePx;
+    var edge_lower = edges.bottom - ExtensionConf.arDetect.guardLine.edgeTolerancePx;
+//   }
+  
   // koliko pikslov rabimo zaznati, da je ta funkcija uspe. Tu dovoljujemo tudi, da so vsi piksli na enem
   // robu (eden izmed robov je lahko v celoti črn)
   // how many non-black pixels we need to consider this check a success. We only need to detect enough pixels
@@ -973,6 +981,7 @@ var _ard_guardLineImageDetect = function(image){
   for(var i = rowStart; i < rowEnd; i+=4){
     if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
       if(successTreshold --<= 0){
+        
         return {success: true}
       }
     }
