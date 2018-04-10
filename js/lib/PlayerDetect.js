@@ -6,7 +6,7 @@ var _pd_isFullScreen = function(){
 }
 
 
-/* sprejme <video> tag (element
+/* sprejme <video> tag (element) in seznam imen, ki se lahko pojavijo v razredih oz. id staršev.
 // vrne dimenzije predvajalnika (širina, višina)
 // 
 // Na youtube v theater mode je razširitev rahlo pokvarjena. Video tag ostane večji od predvajalnika, ko se zapusti
@@ -15,10 +15,11 @@ var _pd_isFullScreen = function(){
 // Funkcija izkorišča lastnost, da bi načeloma moral biti vsak zunanji element večji od notranjega. Najmanjši element od
 // <video> značke pa do korena drevesa bi tako moral biti predvajalnik.
 // 
+// Če je podan seznam imen, potem funkcija vrne dimenzije prvega elementa, ki v id oz. razredu vsebuje katerokoli ime iz seznama
 // 
 // | EN |
 //
-// accepts <video> tag (element)
+// accepts <video> tag (element) and list of names that can appear in id or class 
 // returns player dimensions (width, height)
 //
 // Theater mode is mildly broken on youtube. <video> tag remains bigger than the player after leaving the fullscreen mode, and
@@ -27,13 +28,15 @@ var _pd_isFullScreen = function(){
 // 
 // In general, an outer tag should be bigger than the inner tag. Therefore the smallest element between <video> tag and the document
 // root should be the player.
+//
+// If list of names is provided, the function returns dimensions of the first element that contains any name from the list in either
+// id or class.
 */
 
 
 
 
-var _pd_getPlayerDimensions = function(startElement){
-  
+var _pd_getPlayerDimensions = function(startElement, elementNames){
   var element = startElement;
   
   if(element == null || element == undefined){
@@ -124,6 +127,8 @@ var _pd_getPlayerDimensions = function(startElement){
 // returns 'true' if there was a change.
 var _pd_checkPlayerSizeChange = function(){
   
+  // console.log("Player:", GlobalVars.playerDimensions, "Node:", GlobalVars.playerDimensions.element)
+
   if(Debug.debug){
     if(GlobalVars.playerDimensions.element == undefined)
       console.log("[PlayerDetect] player size changed. reason: player element undefined");
@@ -142,9 +147,9 @@ var _pd_checkPlayerSizeChange = function(){
   if(GlobalVars.playerDimensions.element == undefined)
     return true;
   
-  if(GlobalVars.playerDimensions.fullscreen){
-    return ! _pd_isFullScreen();
-  }
+  // if(GlobalVars.playerDimensions.fullscreen){
+  //   return ! _pd_isFullScreen();
+  // }
   
   if(GlobalVars.playerDimensions.width != GlobalVars.playerDimensions.element.offsetWidth || GlobalVars.playerDimensions.height != GlobalVars.playerDimensions.element.offsetHeight ){
     return true;
