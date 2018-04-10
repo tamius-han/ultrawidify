@@ -558,7 +558,65 @@ var _ard_vdraw_but_for_reals = function() {
   delete image;
 }
 
+var getBlackRatioEstimate = function(image){
+  var blackbarTreshold, upper, lower;
 
+  blackbarTreshold = GlobalVars.arDetect.blackLevel + ExtensionConf.arDetect.blackbarTreshold;
+
+  var sampleRows = 5;
+  var sampleCols = 10; // has 1 more than actually
+
+  var spread = 0.4; // how far from middle the samples go
+
+  var rowOffset = ~~(GlobalVars.canvas.height / (spread >> 1));
+  var rowSpacing = ~~(GlobalVars.canvas.height * spread / sampleRows);
+  var colSpacing = ~~(GlobalVars.canvas.width / sampleCols) >> 2;
+  var colOffset = colSpacing >> 1;
+
+  var rowStart;
+
+  var blackCount = 0, blackRatio, totalSamples = sampleCols * (sampleCols - 1);
+
+  for(var i = 0; i < sampleRows; i++){
+    rowStart = ((rowOffset * GlobalVars.canvas.width) << 2) + colOffset;
+    colOffset = rowStart;
+
+    for(var j = 1; j < sampleCols; j++){
+      if(image[colOffset] > blackbarTreshold || image[colOffset+1] > blackbarTreshold || image[colOffset+2] > blackbarTreshold){
+        blackCount++
+      }
+
+      colOffset += colSpacing;
+    }
+
+    rowOffset += rowSpacing;
+  }
+
+
+  rowStart = ((edge_upper * GlobalVars.canvas.width) << 2) + offset;
+  rowEnd = rowStart + ( GlobalVars.canvas.width << 2 ) - (offset * 2);
+  
+  for(var i = rowStart; i < rowEnd; i+=4){
+    
+    // we track sections that go over what's supposed to be a black line, so we can suggest more 
+    // columns to sample
+    if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
+      if(firstOffender < 0){
+        firstOffender = (i * 0.25) - rowStart;
+        offenderCount++;
+        offenders.push({x: firstOffender, width: 1})
+      }
+      else{
+        offenders[offenderCount].width++
+      }
+    }
+    else{
+      // is that a black pixel again? Let's reset the 'first offender' 
+      firstOffender = -1;
+    }
+    
+  }
+}
 
 
 var _ard_guardLineCheck = function(image, fallbackMode){
