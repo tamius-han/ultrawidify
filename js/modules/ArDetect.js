@@ -475,6 +475,9 @@ var _ard_vdraw_but_for_reals = function() {
   // per video/pageload instead of every time letterbox goes away (this can happen more than once per vid)
   GlobalVars.arDetect.noLetterboxCanvasReset = false;
   
+  console.log("ping!")
+
+
   // let's do a quick test to see if we're on a black frame
   // TODO: reimplement but with less bullshit
     
@@ -524,6 +527,24 @@ var _ard_vdraw_but_for_reals = function() {
     
   }
   
+  // će se razmerje stranic spreminja iz ožjega na širšega, potem najprej poglejmo za prisotnostjo navpičnih črnih obrob.
+  // če so prisotne navpične obrobe tudi na levi in desni strani, potlej obstaja možnost, da gre za logo na črnem ozadju.
+  // v tem primeru obstaja nevarnost, da porežemo preveč. Ker obstaja dovolj velika možnost, da bi porezali preveč, rajši
+  // ne naredimo ničesar.
+  //
+  // If aspect ratio changes from narrower to wider, we first check for presence of pillarbox. Presence of pillarbox indicates
+  // a chance of a logo on black background. We could cut easily cut too much. Because there's a somewhat significant chance
+  // that we will cut too much, we rather avoid doing anything at all. There's gonna be a next chance.
+  if(! imageDetectResult){
+    if(pillarTest(image)){
+      console.log("pillarboxing, doing jack shit")
+      delete image;
+      triggerTimeout = _ard_getTimeout(baseTimeout, startTime);
+      _ard_vdraw(triggerTimeout);
+      return;
+    }
+  }
+
   // pa poglejmo, kje se končajo črne letvice na vrhu in na dnu videa.
   // let's see where black bars end.
   GlobalVars.sampleCols_current = sampleCols.length;
@@ -537,12 +558,32 @@ var _ard_vdraw_but_for_reals = function() {
 //   console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:",GlobalVars.arDetect.blackLevel, "tresh:", GlobalVars.arDetect.blackLevel + ExtensionConf.arDetect.blackbarTreshold);
   
   if(edgePost.status == "ar_known"){
-    _ard_processAr(GlobalVars.video, GlobalVars.canvas.width, GlobalVars.canvas.height, edgePost.blackbarWidth, null, fallbackMode);
+    // zaznali smo rob — vendar pa moramo pred obdelavo še preveriti, ali ni "rob" slučajno besedilo. Če smo kot rob pofočkali
+    // besedilo, potem to ni veljaven rob. Razmerja stranic se zato ne bomo pipali.
+    // we detected an edge — but before we process it, we need to check if the "edge" isn't actually some text. If the detected
+    // edge is actually some text on black background, we shouldn't touch the aspect ratio. Whatever we detected is invalid.
+    var textEdge = false;;
+
+    if(edgePost.guardLineTop != null){
+      var row = edgePost.guardLineTop + ~~(GlobalVars.canvas.height * ExtensionConf.arDetect.textLineTest.testRowOffset);
+      textEdge |= textLineTest(image, row);
+    }
+    if(edgePost.guardLineTop != null){
+      var row = edgePost.guardLineTop - ~~(GlobalVars.canvas.height * ExtensionConf.arDetect.textLineTest.testRowOffset);
+      textEdge |= textLineTest(image, row);
+    }
+
+    if(!textEdge){
+      _ard_processAr(GlobalVars.video, GlobalVars.canvas.width, GlobalVars.canvas.height, edgePost.blackbarWidth, null, fallbackMode);
     
-    // we also know edges for guardline, so set them
-    GlobalVars.arDetect.guardLine.top = edgePost.guardLineTop;
-    GlobalVars.arDetect.guardLine.bottom = edgePost.guardLineBottom;
-    
+      // we also know edges for guardline, so set them
+      GlobalVars.arDetect.guardLine.top = edgePost.guardLineTop;
+      GlobalVars.arDetect.guardLine.bottom = edgePost.guardLineBottom;
+    }
+    else{
+      console.log("detected text on edges, dooing nothing")
+    }
+
     delete image;
     triggerTimeout = _ard_getTimeout(baseTimeout, startTime);
     _ard_vdraw(triggerTimeout); //no letterbox, no problem
@@ -558,66 +599,160 @@ var _ard_vdraw_but_for_reals = function() {
   delete image;
 }
 
-var getBlackRatioEstimate = function(image){
-  var blackbarTreshold, upper, lower;
+var pillarTest = function(image){
+  // preverimo, če na sliki obstajajo navpične črne obrobe. Vrne 'true' če so zaznane (in če so približno enako debele), 'false' sicer.
+  // true vrne tudi, če zaznamo preveč črnine.
+  //                             <==XX(::::}----{::::)XX==>
+  // checks the image for presence of vertical pillars. Less accurate than 'find blackbar limits'. If we find a non-black object that's
+  // roughly centered, we return true. Otherwise we return false.
+  // we also return true if we detect too much black
 
+  var blackbarTreshold, upper, lower;
   blackbarTreshold = GlobalVars.arDetect.blackLevel + ExtensionConf.arDetect.blackbarTreshold;
 
-  var sampleRows = 5;
-  var sampleCols = 10; // has 1 more than actually
 
-  var spread = 0.4; // how far from middle the samples go
+  var middleRowStart = (GlobalVars.canvas.height >> 1) * GlobalVars.canvas.width;
+  var middleRowEnd = middleRowStart + GlobalVars.canvas.width - 1;
 
-  var rowOffset = ~~(GlobalVars.canvas.height / (spread >> 1));
-  var rowSpacing = ~~(GlobalVars.canvas.height * spread / sampleRows);
-  var colSpacing = ~~(GlobalVars.canvas.width / sampleCols) >> 2;
-  var colOffset = colSpacing >> 1;
+  var rowStart = middleRowStart << 2;
+  var midpoint = (middleRowStart + (GlobalVars.canvas.width >> 1)) << 2
+  var rowEnd = middleRowEnd << 2;
 
-  var rowStart;
+  var edge_left = -1; edge_right = -1;
 
-  var blackCount = 0, blackRatio, totalSamples = sampleCols * (sampleCols - 1);
-
-  for(var i = 0; i < sampleRows; i++){
-    rowStart = ((rowOffset * GlobalVars.canvas.width) << 2) + colOffset;
-    colOffset = rowStart;
-
-    for(var j = 1; j < sampleCols; j++){
-      if(image[colOffset] > blackbarTreshold || image[colOffset+1] > blackbarTreshold || image[colOffset+2] > blackbarTreshold){
-        blackCount++
-      }
-
-      colOffset += colSpacing;
+  // preverimo na levi strani
+  // let's check for edge on the left side
+  for(var i = rowStart; i < midpoint; i+=4){
+    if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
+      edge_left = (i - rowStart) >> 2;
+      break;
     }
-
-    rowOffset += rowSpacing;
   }
 
-
-  rowStart = ((edge_upper * GlobalVars.canvas.width) << 2) + offset;
-  rowEnd = rowStart + ( GlobalVars.canvas.width << 2 ) - (offset * 2);
-  
-  for(var i = rowStart; i < rowEnd; i+=4){
-    
-    // we track sections that go over what's supposed to be a black line, so we can suggest more 
-    // columns to sample
+  // preverimo na desni strani
+  // check on the right
+  for(var i = rowEnd; i > midpoint; i-= 4){
     if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
-      if(firstOffender < 0){
-        firstOffender = (i * 0.25) - rowStart;
-        offenderCount++;
-        offenders.push({x: firstOffender, width: 1})
+      edge_right =  GlobalVars.canvas.width - ((i - rowStart) >> 2);
+      break;
+    }
+  }
+
+  // če je katerikoli -1, potem imamo preveč črnine
+  // we probably have too much black if either of those two is -1
+  if(edge_left == -1 || edge_right == -1){
+    return true;
+  }
+
+  // če sta oba robova v mejah merske napake, potem vrnemo 'false'
+  // if both edges resemble rounding error, we retunr 'false'
+  if(edge_left < ExtensionConf.arDetect.pillarTest.ignoreThinPillarsPx && edge_right < ExtensionConf.arDetect.pillarTest.ignoreThinPillarsPx){
+    return false;
+  }
+
+  var edgeError = ExtensionConf.arDetect.pillarTest.allowMisaligned;
+  var error_low = 1 - edgeError;
+  var error_hi = 1 + edgeError;
+
+  // če sta 'edge_left' in 'edge_right' podobna/v mejah merske napake, potem vrnemo true — lahko da smo našli logo na sredini zaslona
+  // if 'edge_left' and 'edge_right' are similar enough to each other, we return true. If we found a logo in a black frame, we could
+  // crop too eagerly 
+  if( (edge_left * error_low) < edge_right &&
+      (edge_left * error_hi) > edge_right  ){
+    return true;
+  }
+
+  // če se ne zgodi nič od neštetega, potem nismo našli problemov
+  // if none of the above, we haven't found a problem
+  return false;
+}
+
+var textLineTest = function(image, row){
+  // preverimo, če vrstica vsebuje besedilo na črnem ozadju. Če ob pregledu vrstice naletimo na veliko sprememb
+  // iz črnega v ne-črno, potem obstaja možnost, da gledamo besedilo. Prisotnost take vrstice je lahko znak, da 
+  // zaznano razmerje stranic ni veljavno
+  //
+  // vrne 'true' če zazna text, 'false' drugače.
+  //
+  // 
+  // check if line contains any text. If line scan reveals a lot of changes from black to non-black there's a 
+  // chance we're looking at text on a black background. If we detect text near what we think is an edge of the
+  // video, there's a good chance we're about to incorrectly adjust the aspect ratio.
+  // 
+  // returns 'true' if text is detected, 'false' otherwise
+
+  var blackbarTreshold = GlobalVars.arDetect.blackLevel + ExtensionConf.arDetect.blackbarTreshold;
+  var nontextTreshold = GlobalVars.canvas.width * ExtensionConf.arDetect.textLineTest.nonTextPulse;
+
+  var rowStart = (row * GlobalVars.canvas.width) << 2;
+  var rowEnd = rowStart + (GlobalVars.canvas.width << 2);
+
+  var pulse = false;
+  var currentPulseLength = 0, pulseCount = 0;
+  var pulses = [];
+  var longestBlack = 0;
+
+  // preglejmo vrstico
+  // analyse the row
+  for(var i = rowStart; i < rowEnd; i+= 4){
+    if(pulse){
+      if(image[i] < blackbarTreshold || image[i+1] < blackbarTreshold || image[i+2] < blackbarTreshold){
+        // pulses.push(currentPulseLength);
+        pulseCount++;
+        pulse = false;
+        currentPulseLength = 0;
       }
       else{
-        offenders[offenderCount].width++
+        currentPulseLength++;
+        
+        // če najdemo dovolj dolgo zaporedje ne-črnih točk, potem vrnemo 'false' — dobili smo legitimen rob
+        // if we find long enough uninterrupted line of non-black point, we fail the test. We found a legit edge.
+        if(currentPulseLength > nontextTreshold){
+          return false;
+        }
       }
     }
     else{
-      // is that a black pixel again? Let's reset the 'first offender' 
-      firstOffender = -1;
+      if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
+        if(currentPulseLength > longestBlack){
+          longestBlack = currentPulseLength;
+        }
+        pulse = true;
+        currentPulseLength = 0;
+      }
+      else{
+        currentPulseLength++;
+      }
     }
-    
   }
-}
+  if(pulse){
+    pulseCount++;
+    // pulses.push(currentPulseLength);
+  }
 
+  // pregledamo rezultate:
+  // analyse the results
+  console.log("pulse test:\n\npulses:", pulseCount, "longest black:", longestBlack);
+
+  // če smo zaznali dovolj pulzov, potem vrnemo res
+  // if we detected enough pulses, we return true
+  if(pulseCount > ExtensionConf.arDetect.textLineTest.pulsesToConfirm){
+    return true;
+  }
+
+  // če je najdaljša neprekinjena črta črnih pikslov širša od polovice širine je merilo za zaznavanje
+  // besedila rahlo milejše
+  // if the longest uninterrupted line of black pixels is wider than half the width, we use a more
+  // forgiving standard for determining if we found text
+  if( longestBlack > (GlobalVars.canvas.width >> 1) && 
+      pulseCount   > ExtensionConf.arDetect.textLineTest.pulsesToConfirmIfHalfBlack ){
+    return true;
+  }
+
+  // če pridemo do sem, potem besedilo ni bilo zaznano
+  // if we're here, no text was detected
+  return false;
+}
 
 var _ard_guardLineCheck = function(image, fallbackMode){
   // this test tests for whether we crop too aggressively
@@ -998,14 +1133,14 @@ var _ard_guardLineImageDetect = function(image, fallbackMode){
   // preglejmo obe vrstici - tukaj po pravilih ne bi smeli iti prek mej platna. ne rabimo preverjati
   // check both rows - by the rules and definitions, we shouldn't go out of bounds here. no need to check, then
   
-//   if(fallbackMode){
-//     var edge_upper = ExtensionConf.arDetect.fallbackMode.noTriggerZonePx;
-//     var edge_lower = GlobalVars.canvas.height - ExtensionConf.arDetect.fallbackMode.noTriggerZonePx - 1;
-//   }
-//   else{
-    var edge_upper = edges.top + ExtensionConf.arDetect.guardLine.edgeTolerancePx;
-    var edge_lower = edges.bottom - ExtensionConf.arDetect.guardLine.edgeTolerancePx;
-//   }
+  //   if(fallbackMode){
+  //     var edge_upper = ExtensionConf.arDetect.fallbackMode.noTriggerZonePx;
+  //     var edge_lower = GlobalVars.canvas.height - ExtensionConf.arDetect.fallbackMode.noTriggerZonePx - 1;
+  //   }
+  //   else{
+      var edge_upper = edges.top + ExtensionConf.arDetect.guardLine.edgeTolerancePx;
+      var edge_lower = edges.bottom - ExtensionConf.arDetect.guardLine.edgeTolerancePx;
+  //   }
   
   // koliko pikslov rabimo zaznati, da je ta funkcija uspe. Tu dovoljujemo tudi, da so vsi piksli na enem
   // robu (eden izmed robov je lahko v celoti črn)
@@ -1073,7 +1208,7 @@ var _ard_edgePostprocess = function(edges, canvasHeight){
     }
   }
   
-//   console.log("count top:",edges.edgeCandidatesTopCount, "edges:", edges, "edgesTop[]", edgesTop);
+  // console.log("count top:",edges.edgeCandidatesTopCount, "edges:", edges, "edgesTop[]", edgesTop);
   
   // če za vsako stran (zgoraj in spodaj) poznamo vsaj enega kandidata, potem lahko preverimo nekaj
   // stvari

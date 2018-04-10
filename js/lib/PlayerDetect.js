@@ -147,14 +147,16 @@ var _pd_checkPlayerSizeChange = function(){
   if(GlobalVars.playerDimensions.element == undefined)
     return true;
   
-  // if(GlobalVars.playerDimensions.fullscreen){
-  //   return ! _pd_isFullScreen();
-  // }
+  
   
   if(GlobalVars.playerDimensions.width != GlobalVars.playerDimensions.element.offsetWidth || GlobalVars.playerDimensions.height != GlobalVars.playerDimensions.element.offsetHeight ){
     return true;
   }
   
+  // if(GlobalVars.playerDimensions.fullscreen){
+  //   return ! _pd_isFullScreen();
+  // }
+
   return false;
 }
 

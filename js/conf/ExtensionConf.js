@@ -62,6 +62,18 @@ var ExtensionConf = {
                                    // continue with search. It's pointless, because black edge is higher/lower than we
                                    // are now. (NOTE: keep this less than 1 in case we implement logo detection)
       edgeTolerancePx: 1,          // tests for edge detection are performed this far away from detected row 
+    },
+    pillarTest: {
+      ignoreThinPillarsPx: 5, // ignore pillars that are less than this many pixels thick. 
+      allowMisaligned: 0.05   // left and right edge can vary this much (%)
+    },
+    textLineTest: {
+      nonTextPulse: 0.10,     // if a single continuous pulse has this many non-black pixels, we aren't dealing 
+                              // with text. This value is relative to canvas width (%)
+      pulsesToConfirm: 10,    // this is a treshold to confirm we're seeing text.
+      pulsesToConfirmIfHalfBlack: 5, // this is the treshold to confirm we're seeing text if longest black pulse
+                                     // is over 50% of the canvas width
+      testRowOffset: 0.02     // we test this % of height from detected edge
     }
   },
   arChange: {
