@@ -13,6 +13,9 @@ Debug = {
   playerDetectDebug: false,
   arDetect: {
     edgeDetect: true
+  },
+  canvas: {
+    debugDetection: false
   }
 }
 

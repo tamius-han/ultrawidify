@@ -127,7 +127,7 @@ var _pd_getPlayerDimensions = function(startElement, elementNames){
 // returns 'true' if there was a change.
 var _pd_checkPlayerSizeChange = function(){
   
-  // console.log("Player:", GlobalVars.playerDimensions, "Node:", GlobalVars.playerDimensions.element)
+  console.log("Player:", GlobalVars.playerDimensions, "Node:", GlobalVars.playerDimensions.element)
 
   if(Debug.debug){
     if(GlobalVars.playerDimensions.element == undefined)
