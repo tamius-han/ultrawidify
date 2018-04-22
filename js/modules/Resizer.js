@@ -47,11 +47,11 @@ var _res_char = function(newAr, video, player){
 // Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". 
 // Približevanje opuščeno.
 // handles "legacy" options, such as 'fit to widht', 'fit to height' and 'reset'. No zoom tho
-var _res_legacyAr = function(action){
+var _res_legacyAr = function(action){  
   var vid = GlobalVars.video;
   var ar;
   
-  if(GlobalVars.playerDimensions === null || GlobalVars.playerDimensions === undefined){
+  if(! GlobalVars.playerDimensions ){
     ar = screen.width / screen.height;
   }
   else{
@@ -98,7 +98,7 @@ var _res_setAr = function(ar){
     
     if(vid == null || vid==undefined || vid.videoWidth == 0 || vid.videoHeight == 0){
       if(Debug.debug)
-        console.log("[Resizer::_res_setAr] I lied. Tricked you! You thought there is a video, didn't you? Never would be.", vid);   // of course that's thorin reference -> https://youtu.be/OY5gGkeQn1c?t=1m20s
+        console.log("[Resizer::_res_setAr] I lied. Tricked you! You thought there's gonna be a video, didn't you? Never would be.", vid);   // of course that's thorin reference -> https://youtu.be/OY5gGkeQn1c?t=1m20s
       return;
     }
   }
@@ -209,6 +209,12 @@ var _res_setStyleString = function(vid, styleString, count){
   
   if(_res_restore_wd){
     var vid2 = GlobalVars.video;
+
+    if(vid2 == undefined || vid2 == null){
+      if(Debug.debug)
+        console.log("[Resizer::_res_setStyleString] Video element went missing, nothing to do here.")
+      return;
+    }
     
     if(
       styleString.indexOf("width: " + vid2.style.width) == -1 ||
@@ -236,6 +242,12 @@ var _res_setStyleString = function(vid, styleString, count){
 }
 
 function _res_applyCss(dimensions){
+
+  if(GlobalVars.video == undefined || GlobalVars.video == null){
+    if(Debug.debug)
+      console.log("[Resizer::_res_applyCss] Video went missing, doing nothing.");
+    return;
+  }
   
   if(Debug.debug)
     console.log("[Resizer::_res_applyCss] Starting to apply css. this is what we're getting in:", dimensions);
@@ -323,6 +335,9 @@ var _res_antiCssOverride = function(){
   if(GlobalVars.currentCss.top === null)
     return;
   
+  // this means video went missing. 
+  if(GlobalVars.video == undefined || GlobalVars.video == null)
+    return;
   
   var styleArrayStr = GlobalVars.video.getAttribute('style');
   

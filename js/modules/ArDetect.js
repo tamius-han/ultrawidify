@@ -53,7 +53,7 @@ var _arSetup = function(cwidth, cheight){
   
     var vid = document.getElementsByTagName("video")[0];
   
-  if(vid === undefined){
+  if(vid === undefined || vid === null){
     _ard_setup_timer = setTimeout(_arSetup, 1000);
     return;
   }
@@ -294,6 +294,15 @@ var _ard_vdraw_but_for_reals = function() {
   
   if(this._forcehalt)
     return;
+
+  if(! GlobalVars.video){
+    if(Debug.debug || Debug.warnings_critical)
+      console.log("[ArDetect::_ard_vdraw] Video went missing. Stopping current instance of automatic detection and trying to start a new one.")
+    _ard_stop();
+    this._forcehalt = true;
+    _arSetup();
+    return;
+  }
   
   var fallbackMode = false;
   var startTime = performance.now();
