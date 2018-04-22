@@ -47,7 +47,10 @@ var _res_char = function(newAr, video, player){
 // Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". 
 // Približevanje opuščeno.
 // handles "legacy" options, such as 'fit to widht', 'fit to height' and 'reset'. No zoom tho
-var _res_legacyAr = function(action){  
+var _res_legacyAr = function(action){
+  if (!vid) {
+    return;
+  }
   var vid = GlobalVars.video;
   var ar;
   
@@ -354,6 +357,7 @@ var _res_antiCssOverride = function(){
         if(styleArray[i] != GlobalVars.currentCss.top){
           if(Debug.debug){
             console.log("[Resizer::_res_antiCssOverride] SOMEBODY TOUCHED MA SPAGHETT (our CSS got overriden, restoring our css)");
+            console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT:", GlobalVars.currentCss.toString(), "thing that touched ma spaghett", styleArrayStr)
           }
           _res_restore();
           return;
@@ -382,6 +386,9 @@ var _res_antiCssOverride = function(){
 }
 
 var _res_restore = function(){
+  if(! GlobalVars.video)
+    return false;
+  
   if(Debug.debug){
     console.log("[Resizer::_res_restore] attempting to restore aspect ratio. this & settings:", {'this': this, "settings": Settings} );
   }
@@ -406,6 +413,8 @@ var _res_restore = function(){
     GlobalVars.lastAr = storeLastAr;
 //     ArDetect.init();
   }
+
+  return true;
 }
 
 var _res_reset = function(){

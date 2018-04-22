@@ -111,7 +111,7 @@ function ghettoOnChange(){
     }
   }
   
-  if(GlobalVars.video === null)
+  if(! GlobalVars.video)
     return;
   
   if(GlobalVars.playerDimensions == null){
@@ -138,7 +138,7 @@ function ghettoOnChange(){
       return;
     }
     
-    Resizer.restore();
+    Resizer.restore(); // note: this returns true if change goes through, false otherwise.
   }
   
   // sometimes, checkPlayerSizeChange might not detect a change to fullscreen. This means we need to 
@@ -169,7 +169,7 @@ function ghettoUrlWatcher(){
     
     GlobalVars.video = null;
     GlobalVars.lastUrl = window.location.href;
-    Resizer.reset();
+    // Resizer.reset();
     main();
   }
 }
