@@ -90,7 +90,7 @@ var _res_legacyAr = function(action){
 
 var _res_setAr = function(ar){
   if(Debug.debug)
-    console.log("[Resizer::_res_setAr] trying to set ar. args are: ar->",ar,"; playerDimensions->",GlobalVars.playerDimensions);
+    console.log("[Resizer::_res_setAr] trying to set ar. args are: ar->",ar,"; playerDimensions->",GlobalVars.playerDimensions.width, "×", GlobalVars.playerDimensions.height, "| obj:", GlobalVars.playerDimensions);
 
   GlobalVars.lastAr = {type: "static", ar: ar};
     
@@ -118,7 +118,7 @@ var _res_setAr = function(ar){
 
   
   if(Debug.debug)
-    console.log("[Resizer::_res_setAr] ar is " ,ar, ", file ar is", fileAr, ", playerDimensions are ", GlobalVars.playerDimensions);
+    console.log("[Resizer::_res_setAr] ar is " ,ar, ", file ar is", fileAr, ", playerDimensions are ", GlobalVars.playerDimensions.width, "×", GlobalVars.playerDimensions.height, "| obj:", GlobalVars.playerDimensions);
   
   var videoDimensions = {
     width: 0,
@@ -130,11 +130,11 @@ var _res_setAr = function(ar){
     GlobalVars.playerDimensions = PlayerDetect.getPlayerDimensions(vid);
     
     if(Debug.debug)
-      console.log("[Resizer::_res_setAr] playerDimensions are undefined, trying to determine new ones ... new dimensions:",GlobalVars.playerDimensions);
+      console.log("[Resizer::_res_setAr] playerDimensions are undefined, trying to determine new ones ... new dimensions:", GlobalVars.playerDimensions.width, "×", GlobalVars.playerDimensions.height, "| obj:", GlobalVars.playerDimensions);
   }
   
   if(Debug.debug){
-    console.log("[Resizer::_res_setAr] Player dimensions?",GlobalVars.playerDimensions);
+    console.log("[Resizer::_res_setAr] Player dimensions?", GlobalVars.playerDimensions.width, "×", GlobalVars.playerDimensions.height, "| obj:", GlobalVars.playerDimensions);
   }
   
   if( fileAr < ar ){
@@ -149,7 +149,7 @@ var _res_setAr = function(ar){
   }
   
   if(Debug.debug){
-    console.log("[Resizer::_res_setAr] Video dimensions: ",videoDimensions, "playerDimensions:",GlobalVars.playerDimensions);
+    console.log("[Resizer::_res_setAr] Video dimensions: ", videoDimensions.width, "×", videoDimensions.height, "(obj:", videoDimensions, "); playerDimensions:",GlobalVars.playerDimensions.width, "×", GlobalVars.playerDimensions.height, "(obj:", GlobalVars.playerDimensions, ")");
   }
   
   var cssValues = _res_computeOffsets(videoDimensions, GlobalVars.playerDimensions);
@@ -357,7 +357,7 @@ var _res_antiCssOverride = function(){
         if(styleArray[i] != GlobalVars.currentCss.top){
           if(Debug.debug){
             console.log("[Resizer::_res_antiCssOverride] SOMEBODY TOUCHED MA SPAGHETT (our CSS got overriden, restoring our css)");
-            console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT:", GlobalVars.currentCss.toString(), "thing that touched ma spaghett", styleArrayStr);
+            console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT: width:", GlobalVars.currentCss.width, "height:", GlobalVars.currentCss.height, "thing that touched ma spaghett", styleArrayStr);
           }
           _res_restore();
           return;
@@ -368,7 +368,7 @@ var _res_antiCssOverride = function(){
         if(styleArray[i] != GlobalVars.currentCss.left){
           if(Debug.debug){
             console.log("[Resizer::_res_antiCssOverride] SOMEBODY TOUCHED MA SPAGHETT (our CSS got overriden, restoring our css)");
-            console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT:", GlobalVars.currentCss.toString(), "thing that touched ma spaghett", styleArrayStr);            
+            console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT: width:", GlobalVars.currentCss.width, "height:", GlobalVars.currentCss.height, "thing that touched ma spaghett", styleArrayStr);            
           }
           _res_restore();
           return;
