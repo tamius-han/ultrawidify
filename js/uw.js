@@ -47,12 +47,12 @@ async function main(){
     return;
   } 
   
-//   if(SitesConf.isArEnabled(window.location.hostname)){
-//     if(Debug.debug)
-//       console.log("[uw::main] Aspect ratio detection is enabled. Starting ArDetect");
-//     ArDetect.arSetup();
-//   }
-//   console.log("[uw::main] ExtensionConf:", ExtensionConf);
+  //   if(SitesConf.isArEnabled(window.location.hostname)){
+  //     if(Debug.debug)
+  //       console.log("[uw::main] Aspect ratio detection is enabled. Starting ArDetect");
+  //     ArDetect.arSetup();
+  //   }
+  //   console.log("[uw::main] ExtensionConf:", ExtensionConf);
 
   if(ExtensionConf.arDetect.mode == "blacklist"){
     if(Debug.debug)

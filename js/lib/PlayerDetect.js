@@ -127,7 +127,7 @@ var _pd_getPlayerDimensions = function(startElement, elementNames){
 // returns 'true' if there was a change.
 var _pd_checkPlayerSizeChange = function(){
   
-  console.log("Player:", GlobalVars.playerDimensions, "Node:", GlobalVars.playerDimensions.element)
+  // console.log("Player:", GlobalVars.playerDimensions, "Node:", GlobalVars.playerDimensions.element)
 
   if(Debug.debug){
     if(GlobalVars.playerDimensions.element == undefined)
@@ -140,7 +140,7 @@ var _pd_checkPlayerSizeChange = function(){
     }
     
     if(GlobalVars.playerDimensions.width != GlobalVars.playerDimensions.element.offsetWidth || GlobalVars.playerDimensions.height != GlobalVars.playerDimensions.element.offsetHeight ){
-      console.log("[PlayerDetect] player size changed. reason: dimension change");
+      console.log("[PlayerDetect] player size changed. reason: dimension change. Old dimensions?", GlobalVars.playerDimensions.width, GlobalVars.playerDimensions.height, "new dimensions:", GlobalVars.playerDimensions.element.offsetWidth, GlobalVars.playerDimensions.element.offsetHeight);
     }
   }
   
