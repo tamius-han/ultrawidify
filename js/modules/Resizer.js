@@ -357,7 +357,7 @@ var _res_antiCssOverride = function(){
         if(styleArray[i] != GlobalVars.currentCss.top){
           if(Debug.debug){
             console.log("[Resizer::_res_antiCssOverride] SOMEBODY TOUCHED MA SPAGHETT (our CSS got overriden, restoring our css)");
-            console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT:", GlobalVars.currentCss.toString(), "thing that touched ma spaghett", styleArrayStr)
+            console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT:", GlobalVars.currentCss.toString(), "thing that touched ma spaghett", styleArrayStr);
           }
           _res_restore();
           return;
@@ -368,6 +368,7 @@ var _res_antiCssOverride = function(){
         if(styleArray[i] != GlobalVars.currentCss.left){
           if(Debug.debug){
             console.log("[Resizer::_res_antiCssOverride] SOMEBODY TOUCHED MA SPAGHETT (our CSS got overriden, restoring our css)");
+            console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT:", GlobalVars.currentCss.toString(), "thing that touched ma spaghett", styleArrayStr);            
           }
           _res_restore();
           return;
