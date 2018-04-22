@@ -1,6 +1,6 @@
 // Set prod to true when releasing
-_prod = true; 
-// _prod = false; 
+// _prod = true; 
+_prod = false; 
 
 Debug = {
   debug: true,
@@ -10,12 +10,12 @@ Debug = {
   debugStorage: true,
   showArDetectCanvas: true,
   flushStoredSettings: false,
-  playerDetectDebug: false,
+  playerDetectDebug: true,
   arDetect: {
     edgeDetect: true
   },
   canvas: {
-    debugDetection: false
+    debugDetection: true
   }
 }
 
