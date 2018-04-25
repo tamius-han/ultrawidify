@@ -24,6 +24,14 @@ async function main(){
   var scpromise = SitesConf.init();
   var kbpromise = Keybinds.init();
   
+  // reset current css stuff in GlobalVars
+  GlobalVars.correctedVideoDimensions.top = null;
+  GlobalVars.correctedVideoDimensions.left = null;
+  GlobalVars.correctedVideoDimensions.width = null;
+  GlobalVars.correctedVideoDimensions.height = null;
+
+  GlobalVars.currentCss = {top: null, left: null};
+
   // počakamo, da so nastavitve naložene
   // wait for settings to load
   await scpromise;
@@ -103,8 +111,13 @@ function ghettoOnChange(){
            video.videoHeight > 0 ){
         if(Debug.debug){
           console.log("%c[uw::ghettoOnChange] detected video. registering!", "color: #99f, background: #000");
+          console.log("[uw::ghettoOnChange] just for shits and giggles, let's see what's happened with GlobalVars.playerDimensions:", GlobalVars.playerDimensions)
         }
         
+        // zaznali smo novo <video> značko. Zaradi tega bomo resetirali GlobalVars.playerDimensions
+        // a new <video> has been detected. We'll be resetting GlobalVars.playerDimensions
+        GlobalVars.playerDimensions = PlayerDetect.getPlayerDimensions(video);
+
         GlobalVars.video = video;
         Comms.sendToBackgroundScript({"cmd":"register-video"});
       }

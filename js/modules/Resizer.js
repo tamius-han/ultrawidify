@@ -323,6 +323,8 @@ function _res_applyCss(dimensions){
   for(var key in dimensions)
     styleArray.push( dimensions[key] );
   
+  
+
   // build style string back
   var styleString = "";
   for(var i in styleArray)
@@ -342,6 +344,10 @@ var _res_antiCssOverride = function(){
   if(GlobalVars.video == undefined || GlobalVars.video == null)
     return;
   
+  // // our current css is fucky? Null, undefined and 0 are invalid values.
+  // if(! GlobalVars.currentCss.width || ! GlobalVars.currentCss.height )
+  //   return;
+
   var styleArrayStr = GlobalVars.video.getAttribute('style');
   
   if (styleArrayStr !== null && styleArrayStr !== undefined){
@@ -357,7 +363,7 @@ var _res_antiCssOverride = function(){
         if(styleArray[i] != GlobalVars.currentCss.top){
           if(Debug.debug){
             console.log("[Resizer::_res_antiCssOverride] SOMEBODY TOUCHED MA SPAGHETT (our CSS got overriden, restoring our css)");
-            console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT: width:", GlobalVars.currentCss.width, "height:", GlobalVars.currentCss.height, "thing that touched ma spaghett", styleArrayStr);
+            console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT: top:", GlobalVars.currentCss.top, "left:", GlobalVars.currentCss.left, "thing that touched ma spaghett", styleArrayStr);
           }
           _res_restore();
           return;
