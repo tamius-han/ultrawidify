@@ -29,6 +29,7 @@
     "js/lib/PlayerDetect.js",
     
     "js/modules/PageInfo.js",
+    "js/modules/DebugCanvas.js",
     "js/modules/ArDetect.js", 
     "js/modules/Resizer.js",
     
