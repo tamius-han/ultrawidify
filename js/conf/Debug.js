@@ -8,7 +8,7 @@ Debug = {
   debugResizer: true,
   debugArDetect: true,
   debugStorage: true,
-  showArDetectCanvas: true,
+  // showArDetectCanvas: true,
   flushStoredSettings: false,
   playerDetectDebug: true,
   arDetect: {
@@ -16,6 +16,11 @@ Debug = {
   },
   canvas: {
     debugDetection: true
+  },
+  debugCanvas: {
+    enable: true,
+    enabled: true,
+    guardLine: true
   }
 }
 

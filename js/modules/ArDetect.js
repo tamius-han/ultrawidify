@@ -104,7 +104,7 @@ var _arSetup = function(cwidth, cheight){
   
   GlobalVars.arDetect.canvas.width = canvasWidth;
   GlobalVars.arDetect.canvas.height = canvasHeight;
-  
+    
   
   try{
     // determine where to sample
@@ -162,6 +162,11 @@ var _arSetup = function(cwidth, cheight){
   }
   catch(ex){
     console.log(ex);
+  }
+
+  if(Debug.debugCanvas.enable){
+    DebugCanvas.init({width: canvasWidth, height: canvasHeight});
+    DebugCanvas.draw("test marker","test","rect", {x:5, y:5}, {width: 5, height: 5});
   }
 };
 
@@ -275,22 +280,10 @@ var _ard_vdraw = function (timeout, force_reset){
   timeout);
 }
 
-var executions = 0;
-
-// if(Debug.debug){
-//   setInterval(function(){
-//     console.log("STATS FOR LAST SECOND\nexecutions:", executions,"; vdraw timeouts cleared:", clearTimeoutCount);
-//     executions = 0;
-//     clearTimeoutCount = 0;
-//   }, 1000);
-// }
-
 var _ard_vdraw_but_for_reals = function() {
   // thanks dude:
   // https://www.reddit.com/r/iiiiiiitttttttttttt/comments/80qnss/i_tried_to_write_something_that_would/duyfg53/
   // except this method stops working as soon as I try to do something with the image :/
-  
-  ++executions;
   
   if(this._forcehalt)
     return;
@@ -484,9 +477,6 @@ var _ard_vdraw_but_for_reals = function() {
   // per video/pageload instead of every time letterbox goes away (this can happen more than once per vid)
   GlobalVars.arDetect.noLetterboxCanvasReset = false;
   
-  console.log("ping!")
-
-
   // let's do a quick test to see if we're on a black frame
   // TODO: reimplement but with less bullshit
     
@@ -496,7 +486,50 @@ var _ard_vdraw_but_for_reals = function() {
   var imageDetectOut;
   
   if(ExtensionConf.arDetect.guardLine.enabled){
-  
+    console.log("GUARDLINE ENABLED")
+    
+    if(Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine){
+      var xOffset = parseInt(GlobalVars.canvas.width * ExtensionConf.arDetect.guardLine.ignoreEdgeMargin);
+      var dbgc_w = GlobalVars.canvas.width - (xOffset * 2);
+
+      if(GlobalVars.arDetect.guardLine.top){
+        DebugCanvas.draw(
+          "",
+          "guardLine_blackbar",
+          "rect",
+          {x: xOffset, y: GlobalVars.arDetect.guardLine.top - ExtensionConf.arDetect.guardLine.edgeTolerancePx},
+          {width: dbgc_w, height: 1},
+          ExtensionConf.arDetect.timer_playing
+        );
+        DebugCanvas.draw(
+          "",
+          "guardLine_imageTest",
+          "rect",
+          {x: xOffset, y: GlobalVars.arDetect.guardLine.top + ExtensionConf.arDetect.guardLine.edgeTolerancePx},
+          {width: dbgc_w, height: 1},
+          ExtensionConf.arDetect.timer_playing
+        );
+      }
+      if(GlobalVars.arDetect.guardLine.bottom){
+        DebugCanvas.draw(
+          "",
+          "guardLine_blackbar",
+          "rect",
+          {x: xOffset, y: GlobalVars.arDetect.guardLine.bottom + ExtensionConf.arDetect.guardLine.edgeTolerancePx},
+          {width: dbgc_w, height: 1},
+          ExtensionConf.arDetect.timer_playing
+        );
+        DebugCanvas.draw(
+          "",
+          "guardLine_imageTest",
+          "rect",
+          {x: xOffset, y: GlobalVars.arDetect.guardLine.bottom - ExtensionConf.arDetect.guardLine.edgeTolerancePx},
+          {width: dbgc_w, height: 1},
+          ExtensionConf.arDetect.timer_playing
+        );
+      }
+    }
+    
     guardLineOut = _ard_guardLineCheck(image, fallbackMode);
     
     guardLineResult = guardLineOut.success;    
@@ -822,9 +855,13 @@ var _ard_guardLineCheck = function(image, fallbackMode){
     // columns to sample
     if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
       if(firstOffender < 0){
-        firstOffender = (i * 0.25) - rowStart;
+        firstOffender = (i >> 2) - rowStart;
         offenderCount++;
         offenders.push({x: firstOffender, width: 1})
+
+        if(Debug.debugCanvas.enable && Debug.debugCanvas.guardLine){
+          DebugCanvas.draw('','guardLine_blackbar_violation', 'rect', {x: i>>2, y: edge_upper}, {width: 3, height: 3}, 1000)
+        }
       }
       else{
         offenders[offenderCount].width++
@@ -848,9 +885,12 @@ var _ard_guardLineCheck = function(image, fallbackMode){
     // columns to sample
     if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
       if(firstOffender < 0){
-        firstOffender = (i * 0.25) - rowStart;
+        firstOffender = (i >> 2) - rowStart;
         offenderCount++;
         offenders.push({x: firstOffender, width: 1})
+        if(Debug.debugCanvas.enable && Debug.debugCanvas.blackBar){
+          DebugCanvas.draw('','guardLine_blackbar_violation', 'rect', {x: i>>2, y: edge_lower}, {width: 3, height: 3}, 1000)
+        }
       }
       else{
         offenders[offenderCount].width++
