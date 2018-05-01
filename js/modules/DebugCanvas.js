@@ -2,6 +2,7 @@ var _dbgc_canvas;
 var _dbgc_context;
 var _dbgc_timer;
 var _dbgc_clearTimeoutCount = 0;
+var _dbgc_imageBuffer;
 
 // drawQueue vsebuje stvari, ki jih bomo risali na platno
 // Je tabela objektov, ki naj bi zgledali takole:
@@ -20,9 +21,16 @@ var _dbgc_drawQueue = [];
 var _dbgc_classes = {
   guardLine_blackbar: "#000099",
   guardLine_imageTest: "#5555FF",
-  guardLine_blackbar_violation: "#2222FF",
+  guardLine_blackbar_violation: "#FF0000",
   
   test: "#FF0000"
+}
+
+var _dbgc_traceColors = {
+  guardLine_blackbar: [0, 0, 96],
+  guardLine_imageTest: [72, 72, 255],
+  guardLine_blackbar_violation: [255, 0, 0],
+  guardLine_imageTest_noimage: [69, 42, 42]
 }
 
 var _dbgc_init = async function(canvasSize, canvasPosition){
@@ -53,9 +61,9 @@ var _dbgc_init = async function(canvasSize, canvasPosition){
   _dbgc_canvas.width = canvasSize.width;
   _dbgc_canvas.height = canvasSize.height;
 
-  console.log("debug canvas is:", _dbgc_canvas)
+  console.log("debug canvas is:", _dbgc_canvas, "context:", _dbgc_context)
 
-  _dbgc_start(); 
+  // _dbgc_start(); 
 }
 
 var _dbgc_removeFromQueue = function(element){
@@ -154,15 +162,59 @@ var _dbgc_update = function(){
   _dbgc_scheduleUpdate(100);
 }
 
+var _dbgc_setBuffer = function(buffer) {
+  // _dbgc_imageBuffer = buffer.splice(0);
+  _dbgc_imageBuffer = new Uint8ClampedArray(buffer);
+  // console.log(buffer, "<--buf")
+}
 
+var _dbgc_trace = function(className, arrayIndex){
+  _dbgc_imageBuffer[arrayIndex  ] = _dbgc_traceColors[className][0];
+  _dbgc_imageBuffer[arrayIndex+1] = _dbgc_traceColors[className][1];
+  _dbgc_imageBuffer[arrayIndex+2] = _dbgc_traceColors[className][2];  
+}
+
+// because (context.putImageData) doesnt work
+function putImageData(ctx, imageData, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) {
+  var data = imageData.data;
+  var height = imageData.height;
+  var width = imageData.width;
+  dirtyX = dirtyX || 0;
+  dirtyY = dirtyY || 0;
+  dirtyWidth = dirtyWidth !== undefined? dirtyWidth: width;
+  dirtyHeight = dirtyHeight !== undefined? dirtyHeight: height;
+  var limitBottom = Math.min(dirtyHeight, height);
+  var limitRight = Math.min(dirtyWidth, width);
+  for (var y = dirtyY; y < limitBottom; y++) {
+    for (var x = dirtyX; x < limitRight; x++) {
+      var pos = y * width + x;
+      ctx.fillStyle = 'rgba(' + data[pos*4+0]
+                        + ',' + data[pos*4+1]
+                        + ',' + data[pos*4+2]
+                        + ',' + (data[pos*4+3]/255) + ')';
+      ctx.fillRect(x + dx, y + dy, 1, 1);
+    }
+  }
+}
+
+var _dbgc_showTraces = function(){
+  if(_dbgc_context && _dbgc_imageBuffer instanceof Uint8ClampedArray){
+    var idata = new ImageData(_dbgc_imageBuffer, _dbgc_canvas.width, _dbgc_canvas.height);
+    putImageData(_dbgc_context, idata, 0, 0);
+  }
+}
 
 var DebugCanvas = {
   events: {
     
   },
   init: _dbgc_init,
-  start: _dbgc_start,
-  draw: _dbgc_draw,
-  remove: _dbgc_remove,
-  removeClass: _dbgc_removeClass
+  // start: _dbgc_start,
+  // draw: _dbgc_draw,
+  // remove: _dbgc_remove,
+  // removeClass: _dbgc_removeClass,
+
+  setBuffer: _dbgc_setBuffer,
+  trace: _dbgc_trace,
+  showTraces: _dbgc_showTraces
 }

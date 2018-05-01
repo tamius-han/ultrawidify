@@ -18,7 +18,6 @@ Debug = {
     debugDetection: true
   },
   debugCanvas: {
-    enable: true,
     enabled: true,
     guardLine: true
   }
