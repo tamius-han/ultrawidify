@@ -153,20 +153,20 @@ var _arSetup = function(cwidth, cheight){
   GlobalVars.canvas.imageDataRowLength = canvasWidth << 2;
   GlobalVars.arDetect.noLetterboxCanvasReset = false;
   
-//   GlobalVars.correctedVideoDimensions.height = null;
-//   GlobalVars.correctedVideoDimensions.width = null;
-//   GlobalVars.correctedVideoDimensions.top = null;
-//   GlobalVars.correctedVideoDimensions.left = null;
-//   
+  //   GlobalVars.correctedVideoDimensions.height = null;
+  //   GlobalVars.correctedVideoDimensions.width = null;
+  //   GlobalVars.correctedVideoDimensions.top = null;
+  //   GlobalVars.correctedVideoDimensions.left = null;
+  //   
   _ard_vdraw(0);
   }
   catch(ex){
     console.log(ex);
   }
 
-  if(Debug.debugCanvas.enable){
+  if(Debug.debugCanvas.enabled){
     DebugCanvas.init({width: canvasWidth, height: canvasHeight});
-    DebugCanvas.draw("test marker","test","rect", {x:5, y:5}, {width: 5, height: 5});
+    // DebugCanvas.draw("test marker","test","rect", {x:5, y:5}, {width: 5, height: 5});
   }
 };
 
@@ -383,6 +383,11 @@ var _ard_vdraw_but_for_reals = function() {
   // we get the entire frame so there's less references for garbage collection to catch
   var image = GlobalVars.canvas.context.getImageData(0,0,GlobalVars.canvas.width,GlobalVars.canvas.height).data;
   
+  if(Debug.debugCanvas.enabled){
+    DebugCanvas.showTraces();
+    DebugCanvas.setBuffer(image);
+  }
+
   // fast test to see if aspect ratio is correct. If we detect anything darker than blackLevel, we modify 
   // blackLevel to the new lowest value
   var isLetter=true;
@@ -485,51 +490,7 @@ var _ard_vdraw_but_for_reals = function() {
   var guardLineOut;
   var imageDetectOut;
   
-  if(ExtensionConf.arDetect.guardLine.enabled){
-    console.log("GUARDLINE ENABLED")
-    
-    if(Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine){
-      var xOffset = parseInt(GlobalVars.canvas.width * ExtensionConf.arDetect.guardLine.ignoreEdgeMargin);
-      var dbgc_w = GlobalVars.canvas.width - (xOffset * 2);
-
-      if(GlobalVars.arDetect.guardLine.top){
-        DebugCanvas.draw(
-          "",
-          "guardLine_blackbar",
-          "rect",
-          {x: xOffset, y: GlobalVars.arDetect.guardLine.top - ExtensionConf.arDetect.guardLine.edgeTolerancePx},
-          {width: dbgc_w, height: 1},
-          ExtensionConf.arDetect.timer_playing
-        );
-        DebugCanvas.draw(
-          "",
-          "guardLine_imageTest",
-          "rect",
-          {x: xOffset, y: GlobalVars.arDetect.guardLine.top + ExtensionConf.arDetect.guardLine.edgeTolerancePx},
-          {width: dbgc_w, height: 1},
-          ExtensionConf.arDetect.timer_playing
-        );
-      }
-      if(GlobalVars.arDetect.guardLine.bottom){
-        DebugCanvas.draw(
-          "",
-          "guardLine_blackbar",
-          "rect",
-          {x: xOffset, y: GlobalVars.arDetect.guardLine.bottom + ExtensionConf.arDetect.guardLine.edgeTolerancePx},
-          {width: dbgc_w, height: 1},
-          ExtensionConf.arDetect.timer_playing
-        );
-        DebugCanvas.draw(
-          "",
-          "guardLine_imageTest",
-          "rect",
-          {x: xOffset, y: GlobalVars.arDetect.guardLine.bottom - ExtensionConf.arDetect.guardLine.edgeTolerancePx},
-          {width: dbgc_w, height: 1},
-          ExtensionConf.arDetect.timer_playing
-        );
-      }
-    }
-    
+  if(ExtensionConf.arDetect.guardLine.enabled){       
     guardLineOut = _ard_guardLineCheck(image, fallbackMode);
     
     guardLineResult = guardLineOut.success;    
@@ -538,7 +499,9 @@ var _ard_vdraw_but_for_reals = function() {
         sampleCols.push(col)
       }
     }
-    
+
+    console.log("GUARDLINE RESULT:", guardLineResult, guardLineOut)
+
     imageDetectOut = _ard_guardLineImageDetect(image, fallbackMode);
     imageDetectResult = imageDetectOut.success;
     
@@ -574,12 +537,23 @@ var _ard_vdraw_but_for_reals = function() {
   // v tem primeru obstaja nevarnost, da porežemo preveč. Ker obstaja dovolj velika možnost, da bi porezali preveč, rajši
   // ne naredimo ničesar.
   //
+  // če je pillarbox zaznan v primeru spremembe iz ožjega na širše razmerje stranice, razmerje povrnemo na privzeto vrednost.
+  //
   // If aspect ratio changes from narrower to wider, we first check for presence of pillarbox. Presence of pillarbox indicates
   // a chance of a logo on black background. We could cut easily cut too much. Because there's a somewhat significant chance
   // that we will cut too much, we rather avoid doing anything at all. There's gonna be a next chance.
-  if(! imageDetectResult){
+  
+  if(! imageDetectResult || ! guardLineResult){
     if(pillarTest(image)){
-      console.log("pillarboxing, doing jack shit")
+
+      if(Debug.debug && ! guardLineResult){
+        console.log("[ArDetect::_ard_vdraw] Detected blackbar violation and pillarbox. Resetting to default aspect ratio.");
+      }
+
+      if(! guardLineResult){
+        Resizer.reset();
+      }
+
       delete image;
       triggerTimeout = _ard_getTimeout(baseTimeout, startTime);
       _ard_vdraw(triggerTimeout);
@@ -597,7 +571,7 @@ var _ard_vdraw_but_for_reals = function() {
   var edgeCandidates = _ard_edgeDetect(image, blackbarSamples);
   var edgePost = _ard_edgePostprocess(edgeCandidates, GlobalVars.canvas.height);
   
-//   console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:",GlobalVars.arDetect.blackLevel, "tresh:", GlobalVars.arDetect.blackLevel + ExtensionConf.arDetect.blackbarTreshold);
+  //   console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:",GlobalVars.arDetect.blackLevel, "tresh:", GlobalVars.arDetect.blackLevel + ExtensionConf.arDetect.blackbarTreshold);
   
   if(edgePost.status == "ar_known"){
     // zaznali smo rob — vendar pa moramo pred obdelavo še preveriti, ali ni "rob" slučajno besedilo. Če smo kot rob pofočkali
@@ -849,58 +823,20 @@ var _ard_guardLineCheck = function(image, fallbackMode){
   rowStart = ((edge_upper * GlobalVars.canvas.width) << 2) + offset;
   rowEnd = rowStart + ( GlobalVars.canvas.width << 2 ) - (offset * 2);
   
-  for(var i = rowStart; i < rowEnd; i+=4){
-    
-    // we track sections that go over what's supposed to be a black line, so we can suggest more 
-    // columns to sample
-    if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
-      if(firstOffender < 0){
-        firstOffender = (i >> 2) - rowStart;
-        offenderCount++;
-        offenders.push({x: firstOffender, width: 1})
-
-        if(Debug.debugCanvas.enable && Debug.debugCanvas.guardLine){
-          DebugCanvas.draw('','guardLine_blackbar_violation', 'rect', {x: i>>2, y: edge_upper}, {width: 3, height: 3}, 1000)
-        }
-      }
-      else{
-        offenders[offenderCount].width++
-      }
-    }
-    else{
-      // is that a black pixel again? Let's reset the 'first offender' 
-      firstOffender = -1;
-    }
-    
+  if (Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine) {
+    offenderCount = _ard_gl_debugRowCheck(image, rowStart, rowEnd, offenders, offenderCount, blackbarTreshold);
+  } else {
+    offenderCount = _ard_gl_rowCheck(image, rowStart, rowEnd, offenders, offenderCount, blackbarTreshold);    
   }
-  
-  
   // <<<=======| checking lower row |========>>>
   
   rowStart = ((edge_lower * GlobalVars.canvas.width) << 2) + offset;
   rowEnd = rowStart + ( GlobalVars.canvas.width << 2 ) - (offset * 2);
   
-  for(var i = rowStart; i < rowEnd; i+=4){    
-    // we track sections that go over what's supposed to be a black line, so we can suggest more 
-    // columns to sample
-    if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
-      if(firstOffender < 0){
-        firstOffender = (i >> 2) - rowStart;
-        offenderCount++;
-        offenders.push({x: firstOffender, width: 1})
-        if(Debug.debugCanvas.enable && Debug.debugCanvas.blackBar){
-          DebugCanvas.draw('','guardLine_blackbar_violation', 'rect', {x: i>>2, y: edge_lower}, {width: 3, height: 3}, 1000)
-        }
-      }
-      else{
-        offenders[offenderCount].width++
-      }
-    }
-    else{
-      // is that a black pixel again? Let's reset the 'first offender' 
-      firstOffender = -1;
-    }
-    
+  if (Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine) {
+    offenderCount = _ard_gl_debugRowCheck(image, rowStart, rowEnd, offenders, offenderCount, blackbarTreshold);
+  } else {
+    offenderCount = _ard_gl_rowCheck(image, rowStart, rowEnd, offenders, offenderCount, blackbarTreshold);    
   }
   
   // če nismo našli nobenih prekrškarjev, vrnemo uspeh. Drugače vrnemo seznam prekrškarjev
@@ -920,6 +856,59 @@ var _ard_guardLineCheck = function(image, fallbackMode){
   
   return {success: false, offenders: ret};
 }
+
+var _ard_gl_rowCheck = function(image, rowStart, rowEnd, offenders, offenderCount, blackbarTreshold){
+  var firstOffender = -1;
+  for(var i = rowStart; i < rowEnd; i+=4){
+    
+    // we track sections that go over what's supposed to be a black line, so we can suggest more 
+    // columns to sample
+    if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
+      if(firstOffender < 0){
+        firstOffender = (i - rowStart) >> 2;
+        offenderCount++;
+        offenders.push({x: firstOffender, width: 1});
+      }
+      else{
+        offenders[offenderCount].width++
+      }
+    }
+    else{
+      // is that a black pixel again? Let's reset the 'first offender' 
+      firstOffender = -1;
+    }
+  }
+
+  return offenderCount;
+}
+var _ard_gl_debugRowCheck = function(image, rowStart, rowEnd, offenders, offenderCount, blackbarTreshold){
+  var firstOffender = -1;
+  for(var i = rowStart; i < rowEnd; i+=4){
+    
+    // we track sections that go over what's supposed to be a black line, so we can suggest more 
+    // columns to sample
+    if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
+      DebugCanvas.trace('guardLine_blackbar_violation', i);      
+      if(firstOffender < 0){
+        firstOffender = (i - rowStart) >> 2;
+        offenderCount++;
+        offenders.push({x: firstOffender, width: 1});
+      }
+      else{
+        offenders[offenderCount].width++
+      }
+    }
+    else{
+      DebugCanvas.trace('guardLine_blackbar', i);              
+      // is that a black pixel again? Let's reset the 'first offender' 
+      firstOffender = -1;
+    }
+    
+  }
+
+  return offenderCount;
+}
+
 var _ard_edgeDetect = function(image, samples){
   var edgeCandidatesTop = {};
   var edgeCandidatesBottom = {};
@@ -1167,7 +1156,7 @@ var _ard_findBlackbarLimits = function(image, cols, guardLineResult, imageDetect
   return {res_top: res_top, res_bottom: res_bottom};
 }
 
-var _ard_guardLineImageDetect = function(image, fallbackMode){  
+function _ard_guardLineImageDetect(image, fallbackMode){  
   if(GlobalVars.arDetect.guardLine.top == null || GlobalVars.arDetect.guardLine.bottom == null)
     return { success: false };
   
@@ -1204,33 +1193,57 @@ var _ard_guardLineImageDetect = function(image, fallbackMode){
   rowStart = ((edge_upper * GlobalVars.canvas.width) << 2) + offset;
   rowEnd = rowStart + ( GlobalVars.canvas.width << 2 ) - (offset * 2);
   
+  var res = false;
   
-  
-  for(var i = rowStart; i < rowEnd; i+=4){
-    if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
-      if(successTreshold --<= 0){
-        return {success: true}
-      }
-    }    
+  if(Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine){
+    res = _ard_ti_debugCheckRow(image, rowStart, rowEnd, successTreshold, blackbarTreshold);
+  } else {
+    res = _ard_ti_checkRow(image, rowStart, rowEnd,successTreshold, blackbarTreshold);
   }
+  
+  if(res)
+    return {success: true};
   
   
   // <<<=======| checking lower row |========>>>
   
   rowStart = ((edge_lower * GlobalVars.canvas.width) << 2) + offset;
-  rowEnd = rowStart + ( GlobalVars.canvas.width << 2 ) - (offset * 2);
+  // rowEnd = rowStart + ( GlobalVars.canvas.width << 2 ) - (offset * 2);
   
+  if(Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine){
+    res = _ard_ti_debugCheckRow(image, rowStart, rowEnd, successTreshold);
+  } else {
+    res = _ard_ti_checkRow(image, rowStart, rowEnd,successTreshold);
+  }
+  
+  return {success: res};
+}
+
+function _ard_ti_checkRow(image, rowStart, rowEnd, successTreshold, blackbarTreshold) {
   for(var i = rowStart; i < rowEnd; i+=4){
     if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
       if(successTreshold --<= 0){
-        
-        return {success: true}
+        return true;
       }
-    }
-    
+    }    
   }
-  
-  return {success: false};
+
+  return false;
+}
+
+function _ard_ti_debugCheckRow(image, rowStart, rowEnd, successTreshold, blackbarTreshold) {
+  for(var i = rowStart; i < rowEnd; i+=4){
+    if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
+      DebugCanvas.trace('guardLine_imageTest', i);
+      if(successTreshold --<= 0){
+        return true;
+      }
+    } else {
+      DebugCanvas.trace('guardLine_imageTest_noimage', i);
+    }   
+  }
+
+  return false;
 }
 
 var _ard_edgePostprocess = function(edges, canvasHeight){

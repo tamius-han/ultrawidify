@@ -14,7 +14,7 @@ var ExtensionConf = {
     allowedMisaligned: 0.05,  // top and bottom letterbox thickness can differ by this much. 
                               // Any more and we don't adjust ar.
     allowedArVariance: 0.075, // amount by which old ar can differ from the new (1 = 100%)
-    timer_playing: 1000,        // we trigger ar this often (in ms) under this conditions
+    timer_playing: 666,       // we trigger ar this often (in ms) under this conditions
     timer_paused: 3000,
     timer_error: 3000,
     timer_minimumTimeout: 5,  // but regardless of above, we wait this many msec before retriggering
@@ -23,7 +23,7 @@ var ExtensionConf = {
     samplingInterval: 10,     // we sample at columns at (width/this) * [ 1 .. this - 1] 
     blackLevel_default: 10,   // everything darker than 10/255 across all RGB components is considered black by
                               // default. GlobalVars.blackLevel can decrease if we detect darker black.
-    blackbarTreshold: 8,      // if pixel is darker than blackLevel + blackbarTreshold, we count it as black
+    blackbarTreshold: 16,     // if pixel is darker than blackLevel + blackbarTreshold, we count it as black
                               // on 0-255. Needs to be fairly high (8 might not cut it) due to compression
                               // artifacts in the video itself
     staticSampleCols: 9,      // we take a column at [0-n]/n-th parts along the width and sample it

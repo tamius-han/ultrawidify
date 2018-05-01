@@ -48,11 +48,16 @@ var _res_char = function(newAr, video, player){
 // Približevanje opuščeno.
 // handles "legacy" options, such as 'fit to widht', 'fit to height' and 'reset'. No zoom tho
 var _res_legacyAr = function(action){
-  if (!vid) {
-    return;
-  }
   var vid = GlobalVars.video;
   var ar;
+
+  if (!vid) {
+    if(Debug.debug){
+      console.log("[Resizer.js::_res_legacyAr] No video??",vid)
+    }
+
+    return;
+  }
   
   if(! GlobalVars.playerDimensions ){
     ar = screen.width / screen.height;
@@ -76,6 +81,10 @@ var _res_legacyAr = function(action){
     _res_setAr( ar < fileAr ? ar : fileAr);
   }
   else if(action == "reset"){
+    if(Debug.debug){
+      console.log("[Resizer.js::_res_legacyAr] Resetting aspect ratio to", fileAr)
+    }
+
     _res_setAr(fileAr);
     GlobalVars.lastAr = {type: "original"};
     return;

@@ -138,8 +138,13 @@ var _pd_checkPlayerSizeChange = function(){
         console.log("[PlayerDetect] player size changed. reason: exited fullscreen");
       }
     }
-    
-    if(GlobalVars.playerDimensions.width != GlobalVars.playerDimensions.element.offsetWidth || GlobalVars.playerDimensions.height != GlobalVars.playerDimensions.element.offsetHeight ){
+    if(! GlobalVars.playerDimensions.element)
+      console.log("[PlayerDetect] player element isnt defined");
+      
+    if ( GlobalVars.playerDimensions.element && 
+         ( GlobalVars.playerDimensions.width != GlobalVars.playerDimensions.element.offsetWidth ||
+           GlobalVars.playerDimensions.height != GlobalVars.playerDimensions.element.offsetHeight )
+    ){
       console.log("[PlayerDetect] player size changed. reason: dimension change. Old dimensions?", GlobalVars.playerDimensions.width, GlobalVars.playerDimensions.height, "new dimensions:", GlobalVars.playerDimensions.element.offsetWidth, GlobalVars.playerDimensions.element.offsetHeight);
     }
   }
