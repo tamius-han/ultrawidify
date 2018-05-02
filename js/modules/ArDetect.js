@@ -500,8 +500,6 @@ var _ard_vdraw_but_for_reals = function() {
       }
     }
 
-    console.log("GUARDLINE RESULT:", guardLineResult, guardLineOut)
-
     imageDetectOut = _ard_guardLineImageDetect(image, fallbackMode);
     imageDetectResult = imageDetectOut.success;
     
@@ -748,7 +746,7 @@ var textLineTest = function(image, row){
 
   // pregledamo rezultate:
   // analyse the results
-  console.log("pulse test:\n\npulses:", pulseCount, "longest black:", longestBlack);
+  // console.log("pulse test:\n\npulses:", pulseCount, "longest black:", longestBlack);
 
   // če smo zaznali dovolj pulzov, potem vrnemo res
   // if we detected enough pulses, we return true
