@@ -1,6 +1,6 @@
 // Set prod to true when releasing
-// _prod = true; 
-_prod = false; 
+_prod = true; 
+// _prod = false; 
 
 Debug = {
   debug: true,
@@ -24,8 +24,17 @@ Debug = {
 }
 
 if(_prod){
-  for(var key in Debug){
-    Debug[key] = false;
+  __disableAllDebug(Debug);
+}
+
+function __disableAllDebug(obj) {
+  for(key in obj) {
+    if (obj.hasOwnProperty(key) ){
+      if(obj[key] instanceof Object)
+        __disableAllDebug(obj[key]);
+      else
+        obj[key] = false;
+    }
   }
 }
 

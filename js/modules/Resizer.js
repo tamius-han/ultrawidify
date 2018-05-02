@@ -118,11 +118,26 @@ var _res_setAr = function(ar){
   if(Debug.debug)
     console.log("[Resizer::_res_setAr] video:",vid,"width:", vid.videoWidth, "height:", vid.videoHeight);
   
-//   // Dejansko razmerje stranic datoteke/<video> značke
+  if(! GlobalVars.playerDimensions || GlobalVars.playerDimensions.width === 0 || GlobalVars.playerDimensions.height){
+    GlobalVars.playerDimensions = PlayerDetect.getPlayerDimensions(vid);
+    
+    if(Debug.debug)
+      console.log("[Resizer::_res_setAr] playerDimensions are undefined, trying to determine new ones ... new dimensions:", GlobalVars.playerDimensions.width, "×", GlobalVars.playerDimensions.height, "| obj:", GlobalVars.playerDimensions);
+
+    if(! GlobalVars.playerDimensions || GlobalVars.playerDimensions.width === 0 || GlobalVars.playerDimensions.height === 0){
+      if(Debug.debug)
+        console.log("[Resizer::_res_setAr] failed to get player dimensions. Doing nothing. Here's the object:", GlobalVars.playerDimensions);
+      return;
+    }
+  }
+
+
+  // Dejansko razmerje stranic datoteke/<video> značke
   // Actual aspect ratio of the file/<video> tag
   var fileAr = vid.videoWidth / vid.videoHeight;
-  
-  if(ar == "default")
+  var playerAr = GlobalVars.playerDimensions.width / GlobalVars.playerDimensions.height;
+
+  if(ar == "default" || !ar)
     ar = fileAr;
 
   
@@ -134,27 +149,20 @@ var _res_setAr = function(ar){
     height: 0
   }
   
-  
-  if(GlobalVars.playerDimensions === undefined){
-    GlobalVars.playerDimensions = PlayerDetect.getPlayerDimensions(vid);
-    
-    if(Debug.debug)
-      console.log("[Resizer::_res_setAr] playerDimensions are undefined, trying to determine new ones ... new dimensions:", GlobalVars.playerDimensions.width, "×", GlobalVars.playerDimensions.height, "| obj:", GlobalVars.playerDimensions);
-  }
-  
   if(Debug.debug){
     console.log("[Resizer::_res_setAr] Player dimensions?", GlobalVars.playerDimensions.width, "×", GlobalVars.playerDimensions.height, "| obj:", GlobalVars.playerDimensions);
   }
   
   if( fileAr < ar ){
-    // imamo letterbox zgoraj in spodaj -> spremenimo velikost videa (ampak nikoli na več, kot je širina zaslona)
+    // imamo letterbox zgoraj in spodaj -> spremenimo velikost videa (a nikoli širše od ekrana)
     // letterbox -> change video size (but never to wider than monitor width)
-    videoDimensions.width = Math.min(GlobalVars.playerDimensions.height * ar, GlobalVars.playerDimensions.width);
-    videoDimensions.height = videoDimensions.width * (1/fileAr);
+
+      videoDimensions.width = Math.min(GlobalVars.playerDimensions.height * ar, GlobalVars.playerDimensions.width);
+      videoDimensions.height = videoDimensions.width * (1/fileAr);
   }
   else{
-    videoDimensions.height = Math.min(GlobalVars.playerDimensions.width * (1/ar), GlobalVars.playerDimensions.height);
-    videoDimensions.width = videoDimensions.height * fileAr;
+      videoDimensions.height = Math.min(GlobalVars.playerDimensions.width * (1/ar), GlobalVars.playerDimensions.height);
+      videoDimensions.width = videoDimensions.height * fileAr;
   }
   
   if(Debug.debug){
@@ -171,10 +179,10 @@ var _res_setAr = function(ar){
 }
 
 var _res_computeOffsets = function(vidDim, playerDim){
-  
+
   if(Debug.debug)
     console.log("[Resizer::_res_computeOffsets] video will be aligned to ", ExtensionConf.miscFullscreenSettings.videoFloat);
-  
+
   var offsets = {
     width: vidDim.width,
     height: vidDim.height,
@@ -392,9 +400,9 @@ var _res_antiCssOverride = function(){
       }
       
       if(stuffChecked == stuffToCheck){
-//         if(Debug.debug){
-//           console.log("[Resizer::_res_antiCssOverride] My spaghett rests untouched. (nobody overrode our CSS, doing nothing)");
-//         }
+  //         if(Debug.debug){
+  //           console.log("[Resizer::_res_antiCssOverride] My spaghett rests untouched. (nobody overrode our CSS, doing nothing)");
+  //         }
         return;
       }
     }
