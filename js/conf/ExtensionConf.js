@@ -11,6 +11,7 @@ var ExtensionConf = {
                               //       'blacklist' - work by default, problem sites need to be blocked
                               //       'whitelist' - only work if site has been specifically approved
                               //       'disabled'  - don't work at all 
+    disabledReason: "",       // if automatic aspect ratio has been disabled, show reason
     allowedMisaligned: 0.05,  // top and bottom letterbox thickness can differ by this much. 
                               // Any more and we don't adjust ar.
     allowedArVariance: 0.075, // amount by which old ar can differ from the new (1 = 100%)
@@ -18,6 +19,11 @@ var ExtensionConf = {
     timer_paused: 3000,
     timer_error: 3000,
     timer_minimumTimeout: 5,  // but regardless of above, we wait this many msec before retriggering
+    autoDisable: {            // settings for automatically disabling the extension
+      maxExecutionTime: 15,   // if execution time of main autodetect loop exceeds this many milliseconds,
+                              // we disable it.
+      consecutiveTimeoutCount: 5  // we only do it if it happens this many consecutive times
+    },
     hSamples: 640,
     vSamples: 360,
     samplingInterval: 10,     // we sample at columns at (width/this) * [ 1 .. this - 1] 

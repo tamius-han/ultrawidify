@@ -22,6 +22,9 @@ var GlobalVars = {
     left: null
   },
   arDetect: {
+    autoDisable: {
+      eventCount: 0
+    },
     canvas: null,
     blackLevel: 10,
     sampleCols_current: 0,

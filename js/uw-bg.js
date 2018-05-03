@@ -212,6 +212,11 @@ function _uwbg_rcvmsg(message, sender, sendResponse){
   }
   else if(message.cmd == "disable-autoar"){
     ExtensionConf.arDetect.mode = "disabled";
+    if(message.reason){
+      ExtensionConf.arDetect.disabledReason = message.reason;
+    } else {
+      ExtensionConf.arDetect.disabledReason = '';
+    }
     Settings.save(ExtensionConf);
 //     Comms.sendToAll({cmd: "reload-settings", sender: "uwbg"});
     if(Debug.debug){

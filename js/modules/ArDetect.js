@@ -1381,8 +1381,20 @@ var _ard_isRunning = function(){
 }
 
 function _ard_getTimeout(baseTimeout, startTime){
-//   baseTimeout -= (performance.now() - startTime);
+  var execTime = (performance.now() - startTime);
+  
+  if( execTime > ExtensionConf.arDetect.autoDisable.maxExecutionTime ){
+    GlobalVars.arDetect.autoDisable.eventCount++;
 
+    if(GlobalVars.arDetect.autoDisable.eventCount >= ExtensionConf.arDetect.autoDisable.consecutiveTimeoutCount ){
+      Comms.sendToBackgroundScript({cmd: 'disable-autoar', reason: 'Automatic aspect ratio detection was taking too much time and has been automatically disabled in order to avoid lag.'});
+      _ard_stop();
+      return 999999;
+    }
+    
+  } else {
+    GlobalVars.arDetect.autoDisable.eventCount = 0;
+  } 
 //   return baseTimeout > ExtensionConf.arDetect.minimumTimeout ? baseTimeout : ExtensionConf.arDetect.minimumTimeout;
   
   return baseTimeout;
