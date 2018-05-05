@@ -377,7 +377,8 @@ var _res_antiCssOverride = function(){
       styleArray[i] = styleArray[i].trim();
       
       if (styleArray[i].startsWith("top:")){
-        if(styleArray[i] != GlobalVars.currentCss.top){
+        // don't force css restore if currentCss.top is not defined
+        if(GlobalVars.currentCss.top && styleArray[i] != GlobalVars.currentCss.top){
           if(Debug.debug){
             console.log("[Resizer::_res_antiCssOverride] SOMEBODY TOUCHED MA SPAGHETT (our CSS got overriden, restoring our css)");
             console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT: top:", GlobalVars.currentCss.top, "left:", GlobalVars.currentCss.left, "thing that touched ma spaghett", styleArrayStr);
@@ -388,7 +389,8 @@ var _res_antiCssOverride = function(){
         stuffChecked++;
       }
       else if(styleArray[i].startsWith("left:")){
-        if(styleArray[i] != GlobalVars.currentCss.left){
+        // don't force css restore if currentCss.left is not defined        
+        if(GlobalVars.currentCss.left && styleArray[i] != GlobalVars.currentCss.left){
           if(Debug.debug){
             console.log("[Resizer::_res_antiCssOverride] SOMEBODY TOUCHED MA SPAGHETT (our CSS got overriden, restoring our css)");
             console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT: width:", GlobalVars.currentCss.width, "height:", GlobalVars.currentCss.height, "thing that touched ma spaghett", styleArrayStr);            
