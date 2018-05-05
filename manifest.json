@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Ultrawidify",
-  "version": "2.2.5",
+  "version": "2.3.0a",
   
   "icons": {
     "32":"res/icons/uw-32.png",
