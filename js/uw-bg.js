@@ -68,6 +68,7 @@ async function _uwbg_onTabSwitched(activeInfo){
   //                <===[///]----------------------------[\\\]===>
   // Check if any frame has a video in it. To enable the popup there only needs to be at least one,
   // but the popup controls all frames.
+
   var hasVideos = false;
   for(frame of videoFrameList){
     hasVideos |= frame.response.hasVideos;
@@ -148,6 +149,7 @@ function _uwbg_rcvmsg(message, sender, sendResponse){
     
     config.mode = ExtensionConf.extensionMode;
     config.arMode = ExtensionConf.arDetect.mode;
+    config.arDisabledReason = ExtensionConf.arDetect.disabledReason;
     config.arTimerPlaying = ExtensionConf.arDetect.timer_playing;
     
     if(Debug.debug)

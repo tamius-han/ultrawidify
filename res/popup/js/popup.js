@@ -176,7 +176,7 @@ function loadConfig(config){
   }
   
   document.getElementById("_checkbox_autoArEnabled").checked = config.arMode == "blacklist";
-  
+  document.getElementById("_autoAr_disabled_reason").textContent = config.arDisabledReason;
   document.getElementById("_input_autoAr_frequency").value = parseInt(1000/config.arTimerPlaying);
   
   // process video alignment:
