@@ -1,7 +1,10 @@
 # Changelog
 
+### v2.2.5 (AMO, Chrome)
 
-### v2.2.4 (AMO)
+Added some anti-lag measures. This seems to be an issue affecting _only_ Chrome (and only then some installs), where canvas.drawImage() won't work properly for some reason.
+
+### v2.2.4 
 
 Lots of mostly incredibly minor stuff.
 
@@ -12,7 +15,7 @@ Lots of mostly incredibly minor stuff.
 * Fixed some under-the-hood bugs nobody knew they even existed
 * A lil bit of refactoring
 
-### v2.2.3 (AMO)
+### v2.2.3 
 
 * Fixed automatic aspect ratio detection on DRM-protected sites.
 
@@ -20,7 +23,7 @@ Lots of mostly incredibly minor stuff.
 
 * Fixes problems with switching from normal to fullscreen player on youtube. If 2.2.1 didn't fix the font issue, this version should have.
 
-### v2.2.1 (Chrome)
+### v2.2.1
 
 * Fixes few chrome-specific fixes/bugs that v2.2.0 introduced. Maybe fixed the font problem.
 

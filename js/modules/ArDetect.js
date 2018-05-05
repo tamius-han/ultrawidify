@@ -31,6 +31,7 @@ var _arSetup = function(cwidth, cheight){
     console.log("%c[ArDetect::_ard_setup] Starting automatic aspect ratio detection", _ard_console_start);
 
   this._halted = false;
+  GlobalVars.arDetect.autoDisable.eventCount = 0;
   
   // vstavimo začetne stolpce v _ard_sampleCols. 
   // let's insert initial columns to _ard_sampleCols
@@ -1386,7 +1387,15 @@ function _ard_getTimeout(baseTimeout, startTime){
   if( execTime > ExtensionConf.arDetect.autoDisable.maxExecutionTime ){
     GlobalVars.arDetect.autoDisable.eventCount++;
 
+    if(Debug.debug){
+      console.log("[ArDetect::_ard_getTimeout] Exec time exceeded maximum allowed execution time. This has now happened" + GlobalVars.arDetect.autoDisable.eventCount + "times in a row.");
+    }
+
     if(GlobalVars.arDetect.autoDisable.eventCount >= ExtensionConf.arDetect.autoDisable.consecutiveTimeoutCount ){
+      if (Debug.debug){
+        console.log("[ArDetect::_ard_getTimeout] Maximum execution time was exceeded too many times. Automatic aspect ratio detection has been disabled.");
+      }
+
       Comms.sendToBackgroundScript({cmd: 'disable-autoar', reason: 'Automatic aspect ratio detection was taking too much time and has been automatically disabled in order to avoid lag.'});
       _ard_stop();
       return 999999;

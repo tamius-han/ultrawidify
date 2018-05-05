@@ -112,6 +112,10 @@
     .w24 {
       width: 100px;
     }
+
+    .color_warn {
+      color: #d6ba4a;
+    }
     .warning {
       /*background-*/color: #d6ba4a;
 /*       color: #000; */
@@ -217,7 +221,7 @@
            if your browser has been opened for a while.</p><p>Keeping check frequency low will make the problem go away (mostly), but aspect ratio corrections will be delayed a bit.</p></small>
         </div> -->
         
-        <p><input type="checkbox" id="_checkbox_autoArEnabled" class="_autoAr_enabled _autoAr"> Enable automatic aspect ratio detection?</p>
+        <p><input type="checkbox" id="_checkbox_autoArEnabled" class="_autoAr_enabled _autoAr"> Enable automatic aspect ratio detection?<br/><small class="color_warn" id="_autoAr_disabled_reason"></small></p>
         <p>Checks per second: <input id="_input_autoAr_frequency" class="_autoAr_frequency _autoAr" type="number" min="1" max="999"><span class="button _save_autoAr_frequency _autoAr">Save</span></p>
         
         <div class="warning"><p>NOTE: increasing the frequency can result in <i>very</i> high RAM usage and slow performance.</p></div>
