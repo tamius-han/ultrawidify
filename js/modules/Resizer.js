@@ -44,58 +44,58 @@ var _res_char = function(newAr, video, player){
   _res_setVideoAr(new_ar, video, player);
 }
 
-// Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". 
-// Približevanje opuščeno.
-// handles "legacy" options, such as 'fit to widht', 'fit to height' and 'reset'. No zoom tho
-var _res_legacyAr = function(action){
-  var vid = GlobalVars.video;
-  var ar;
+// // Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". 
+// // Približevanje opuščeno.
+// // handles "legacy" options, such as 'fit to widht', 'fit to height' and 'reset'. No zoom tho
+// var _res_legacyAr = function(action){
+//   var vid = GlobalVars.video;
+//   var ar;
 
-  if (!vid) {
-    if(Debug.debug){
-      console.log("[Resizer.js::_res_legacyAr] No video??",vid)
-    }
+//   if (!vid) {
+//     if(Debug.debug){
+//       console.log("[Resizer.js::_res_legacyAr] No video??",vid)
+//     }
 
-    return;
-  }
+//     return;
+//   }
   
-  if(! GlobalVars.playerDimensions ){
-    ar = screen.width / screen.height;
-  }
-  else{
-    ar = GlobalVars.playerDimensions.width / GlobalVars.playerDimensions.height;
-  }
+//   if(! GlobalVars.playerDimensions ){
+//     ar = screen.width / screen.height;
+//   }
+//   else{
+//     ar = GlobalVars.playerDimensions.width / GlobalVars.playerDimensions.height;
+//   }
   
-  // POMEMBNO: GlobalVars.lastAr je potrebno nastaviti šele po tem, ko kličemo _res_setAr(). _res_setAr() predvideva,
-  // da želimo nastaviti statično (type: 'static') razmerje stranic — tudi, če funkcijo kličemo tu oz. v ArDetect.
-  //
-  // IMPORTANT NOTE: GlobalVars.lastAr needs to be set after _res_setAr() is called, as _res_setAr() assumes we're
-  // setting a static aspect ratio (even if the function is called from here or ArDetect). 
+//   // POMEMBNO: GlobalVars.lastAr je potrebno nastaviti šele po tem, ko kličemo _res_setAr(). _res_setAr() predvideva,
+//   // da želimo nastaviti statično (type: 'static') razmerje stranic — tudi, če funkcijo kličemo tu oz. v ArDetect.
+//   //
+//   // IMPORTANT NOTE: GlobalVars.lastAr needs to be set after _res_setAr() is called, as _res_setAr() assumes we're
+//   // setting a static aspect ratio (even if the function is called from here or ArDetect). 
   
-  var fileAr = vid.videoWidth / vid.videoHeight;
+//   var fileAr = vid.videoWidth / vid.videoHeight;
     
-  if (action == "fitw"){
-    _res_setAr( ar > fileAr ? ar : fileAr);
-  }
-  else if(action == "fith"){
-    _res_setAr( ar < fileAr ? ar : fileAr);
-  }
-  else if(action == "reset"){
-    if(Debug.debug){
-      console.log("[Resizer.js::_res_legacyAr] Resetting aspect ratio to", fileAr)
-    }
+//   if (action == "fitw"){
+//     _res_setAr( ar > fileAr ? ar : fileAr);
+//   }
+//   else if(action == "fith"){
+//     _res_setAr( ar < fileAr ? ar : fileAr);
+//   }
+//   else if(action == "reset"){
+//     if(Debug.debug){
+//       console.log("[Resizer.js::_res_legacyAr] Resetting aspect ratio to", fileAr)
+//     }
 
-    _res_setAr(fileAr);
-    GlobalVars.lastAr = {type: "original"};
-    return;
-  }
-  else if(action == "autoar" || action == "auto"){
-    GlobalVars.lastAr = {type: "auto", ar: null};
-    ArDetect.init();
-  }
+//     _res_setAr(fileAr);
+//     GlobalVars.lastAr = {type: "original"};
+//     return;
+//   }
+//   else if(action == "autoar" || action == "auto"){
+//     GlobalVars.lastAr = {type: "auto", ar: null};
+//     ArDetect.init();
+//   }
   
-  GlobalVars.lastAr = {type: "legacy", action: action};
-}
+//   GlobalVars.lastAr = {type: "legacy", action: action};
+// }
 
 var _res_setAr = function(ar){
   if(Debug.debug)
