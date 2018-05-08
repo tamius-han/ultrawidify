@@ -6,96 +6,30 @@ if(Debug.debug)
 // calling _res_restore() for some weird reason.
 var _res_restore_wd = false;  
 
-var _res_char = function(newAr, video, player){
+class Resizer {
   
-  // Kot vhodni argument dobimo razmerje stranic. Problem je, ker pri nekaterih ločljivostih lahko razmerje stranic
-  // videa/našega zaslona minimalno odstopa od idealnega razmerja — npr 2560x1080 ni natanko 21:9, 1920x1080 ni 
-  // natanko 16:9. Zato ob podanem razmerju stranic izračunamo dejansko razmerje stranic.
-  // 
-  // The aspect ratio we get as an argument is an ideal aspect ratio. Some (most) resolutions' aspect ratios differ
-  // from that ideal aspect ratio (by a minimal amount) — e.g. 2560x1080 isn't exactly 21:9, 1920x1080 isn't exactly
-  // 16:9. What is more, both 3440x1440 and 2560x1080 are considered "21:9", but their aspect ratios are slightly 
-  // different. This has the potential to result in annoying black bars, so we correct the aspect ratio we're given
-  // to something that's slightly more correct.
-  
-  var ar;
-  var res_219 = [ [2560,1080], [3440,1440] ];
-  var res_169 = [ [1920,1080], [1280,720], [1366,768] ];
-  
-  if(newAr == (21/9)){
-    for (var i = 0; i < res_219.length; i++){
-      if( player.height == res_219[i][1]){
-        ar = res_219[i][0]/res_219[i][1];
-        set_video_ar( ar, video, player);
-        return;
-      }
-    }
-  }
-  else if(new_ar == (16/9)){
-    for (var i = 0; i < res_169.length; i++){
-      if( player.height == res_169[i][1]){
-        ar = res_169[i][0]/res_169[i][1];
-        setVideoAr( ar, video, player);
-        return;
-      }
-    }
+  constructor(videoData, player){
+    this.videoData = videoData;
+    this.video = videoData.video;
+
+    this.player = player;
   }
   
-  _res_setVideoAr(new_ar, video, player);
+  setAr(ar){
+    if(Debug.debug){
+      console.log('[Resizer::setAr] trying to set ar. New ar:', ar)
+    }
+
+    this.lastAr = {type: 'static', ar: ar};
+
+    if (! this.video) {
+      console.log("No video detected.")
+      this.videoData.destroy();
+    }
+  }
+
 }
 
-// // Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". 
-// // Približevanje opuščeno.
-// // handles "legacy" options, such as 'fit to widht', 'fit to height' and 'reset'. No zoom tho
-// var _res_legacyAr = function(action){
-//   var vid = GlobalVars.video;
-//   var ar;
-
-//   if (!vid) {
-//     if(Debug.debug){
-//       console.log("[Resizer.js::_res_legacyAr] No video??",vid)
-//     }
-
-//     return;
-//   }
-  
-//   if(! GlobalVars.playerDimensions ){
-//     ar = screen.width / screen.height;
-//   }
-//   else{
-//     ar = GlobalVars.playerDimensions.width / GlobalVars.playerDimensions.height;
-//   }
-  
-//   // POMEMBNO: GlobalVars.lastAr je potrebno nastaviti šele po tem, ko kličemo _res_setAr(). _res_setAr() predvideva,
-//   // da želimo nastaviti statično (type: 'static') razmerje stranic — tudi, če funkcijo kličemo tu oz. v ArDetect.
-//   //
-//   // IMPORTANT NOTE: GlobalVars.lastAr needs to be set after _res_setAr() is called, as _res_setAr() assumes we're
-//   // setting a static aspect ratio (even if the function is called from here or ArDetect). 
-  
-//   var fileAr = vid.videoWidth / vid.videoHeight;
-    
-//   if (action == "fitw"){
-//     _res_setAr( ar > fileAr ? ar : fileAr);
-//   }
-//   else if(action == "fith"){
-//     _res_setAr( ar < fileAr ? ar : fileAr);
-//   }
-//   else if(action == "reset"){
-//     if(Debug.debug){
-//       console.log("[Resizer.js::_res_legacyAr] Resetting aspect ratio to", fileAr)
-//     }
-
-//     _res_setAr(fileAr);
-//     GlobalVars.lastAr = {type: "original"};
-//     return;
-//   }
-//   else if(action == "autoar" || action == "auto"){
-//     GlobalVars.lastAr = {type: "auto", ar: null};
-//     ArDetect.init();
-//   }
-  
-//   GlobalVars.lastAr = {type: "legacy", action: action};
-// }
 
 var _res_setAr = function(ar){
   if(Debug.debug)
