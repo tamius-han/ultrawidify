@@ -1,3 +1,51 @@
+class ArDetector {
+  constructor(videoData){
+    this.videoData = videoData;
+    this.video = videoData.video;
+    
+    this.setupTimer = null;
+    this.timer = null;
+  }
+
+
+  init(){
+    setup(ExtensionConf.arDetect.hSamples, ExtensionConf.arDetect.vSamples);
+  }
+
+  setup(cwidth, cheight){
+
+  }
+
+  start(){
+    this.scheduleDraw(0, true);
+  }
+
+  scheduleDraw (timeout, force_reset){
+    // don't allow more than 1 instance
+    if(_ard_timer){ 
+      ++clearTimeoutCount;
+      clearTimeout(_ard_timer);
+    }
+    
+    _ard_timer = setTimeout(function(){
+      _ard_timer = null;
+      _ard_vdraw_but_for_reals();
+    },
+    timeout);
+  }
+
+  stop(){
+    if(Debug.debug){
+      console.log("%c[ArDetect::_ard_stop] Stopping automatic aspect ratio detection", _ard_console_stop);    
+    }
+    this._forcehalt = true;
+    this._halted = true;
+    clearTimeout(this.setupTimer);
+    clearTimeout(this.timer);
+  }
+
+}
+
 if(Debug.debug)
   console.log("Loading: ArDetect");
 
