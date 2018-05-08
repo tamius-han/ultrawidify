@@ -13,7 +13,110 @@ class ArDetector {
   }
 
   setup(cwidth, cheight){
+    try{
+      if(Debug.debug)
+        console.log("%c[ArDetect::_ard_setup] Starting automatic aspect ratio detection", _ard_console_start);
+    
+      this.halted = false;
+      this.detectionTimeoutEventCount = 0;
+      
+      // vstavimo začetne stolpce v _ard_sampleCols. 
+      // let's insert initial columns to _ard_sampleCols
+      this.sampleCols = [];
 
+      var samplingIntervalPx = parseInt(cheight / ExtensionConf.arDetect.samplingInterval)
+      for(var i = 1; i < ExtensionConf.arDetect.samplingInterval; i++){
+        _ard_sampleCols.push(i * samplingIntervalPx);
+      }
+      
+      if(this.canvas){
+        if(Debug.debug)
+          console.log("[ArDetect::_ard_setup] existing canvas found. REMOVING KEBAB removing kebab\n\n\n\n(im hungry and you're not authorized to have it)");
+        
+        this.canvas.remove();
+        
+        if(Debug.debug)
+          console.log("[ArDetect::_ard_setup] canvas removed");
+      }
+      
+      // imamo video, pa tudi problem. Ta problem bo verjetno kmalu popravljen, zato setup začnemo hitreje kot prej
+      // we have a video, but also a problem. This problem will prolly be fixed very soon, so setup is called with
+      // less delay than before
+
+      if(this.video.videoWidth === 0 || this.video.videoHeight === 0 ){
+        if(! this.timer)
+          this.setupTimer = setTimeout(_arSetup, 100);
+        
+        return;
+      }
+      
+      // things to note: we'll be keeping canvas in memory only. 
+      this.canvas = document.createElement("canvas");
+      this.canvas.width = cwidth;
+      this.canvas.height = cheight;
+
+      this.context = this.canvas.getContext("2d");
+      
+      // do setup once
+      // tho we could do it for every frame
+      this.canvasScaleFactor = cheight / vid.videoHeight;
+
+      try{
+        // determine where to sample
+        var ncol = ExtensionConf.arDetect.staticSampleCols;
+        var nrow = ExtensionConf.arDetect.staticSampleRows;
+        
+        var colSpacing = this.cwidth / ncol;
+        var rowSpacing = (this.cheight << 2) / nrow;
+        
+        this.sampleLines = [];
+        this.sampleCols = [];
+    
+        for(var i = 0; i < ncol; i++){
+          if(i < ncol - 1)
+            this.sampleCols.push(Math.round(colSpacing * i));
+          else{
+            this.sampleCols.push(Math.round(colSpacing * i) - 1);
+          }
+        }
+        
+        for(var i = 0; i < nrow; i++){
+          if(i < ncol - 5)
+            this.sampleLines.push(Math.round(rowSpacing * i));
+          else{
+            this.sampleLines.push(Math.round(rowSpacing * i) - 4);
+          }
+        }
+      }
+      catch(ex){
+        console.log("%c[ArDetect::_arSetup] something went terribly wrong when calcuating sample colums.", ExtensionConf.colors.criticalFail);
+        console.log("settings object:", Settings);
+        console.log("error:", ex);
+      }
+      
+      // we're also gonna reset this
+      this.guardLine.top = null;
+      this.guardLine.bottom = null;
+      
+      _ard_resetBlackLevel();
+      this._forcehalt = false;
+      // if we're restarting ArDetect, we need to do this in order to force-recalculate aspect ratio
+      
+      videoData.setLastAr({type: "auto", ar: null});
+
+      this.canvasImageDataRowLength = cwidth << 2;
+      this.noLetterboxCanvasReset = false;
+      
+      this.start();
+    }
+    catch(ex){
+      console.log(ex);
+    }
+  
+    if(Debug.debugCanvas.enabled){
+      DebugCanvas.init({width: cwidth, height: cheight});
+      // DebugCanvas.draw("test marker","test","rect", {x:5, y:5}, {width: 5, height: 5});
+    }
   }
 
   start(){
