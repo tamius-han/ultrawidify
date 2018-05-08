@@ -1,12 +1,16 @@
 class ArDetector {
+
   constructor(videoData){
     this.videoData = videoData;
     this.video = videoData.video;
     
     this.setupTimer = null;
     this.timer = null;
-  }
 
+    // todo: dynamically detect the following two
+    this.canFallback = true;
+    this.fallbackMode = false;
+  }
 
   init(){
     setup(ExtensionConf.arDetect.hSamples, ExtensionConf.arDetect.vSamples);
@@ -17,7 +21,7 @@ class ArDetector {
       if(Debug.debug)
         console.log("%c[ArDetect::_ard_setup] Starting automatic aspect ratio detection", _ard_console_start);
     
-      this.halted = false;
+      this._halted = false;
       this.detectionTimeoutEventCount = 0;
       
       // vstavimo začetne stolpce v _ard_sampleCols. 
@@ -120,21 +124,7 @@ class ArDetector {
   }
 
   start(){
-    this.scheduleDraw(0, true);
-  }
-
-  scheduleDraw (timeout, force_reset){
-    // don't allow more than 1 instance
-    if(_ard_timer){ 
-      ++clearTimeoutCount;
-      clearTimeout(_ard_timer);
-    }
-    
-    _ard_timer = setTimeout(function(){
-      _ard_timer = null;
-      _ard_vdraw_but_for_reals();
-    },
-    timeout);
+    this.scheduleFrameCheck(0, true);
   }
 
   stop(){
@@ -147,6 +137,124 @@ class ArDetector {
     clearTimeout(this.timer);
   }
 
+  scheduleFrameCheck(timeout, force_reset){
+    // don't allow more than 1 instance
+    if(this.timer){ 
+      clearTimeout(this.timer);
+    }
+    
+    this.timer = setTimeout(function(){
+        this.timer = null;
+        frameCheck();
+      },
+      timeout
+    );
+  }
+
+  //#region helper functions (general)
+  attachCanvas(canvas){
+    if(this.attachedCanvas)
+      this.attachedCanvas.remove();
+
+    // todo: place canvas on top of the video instead of random location
+    canvas.style.position = "absolute";
+    canvas.style.left = "200px";
+    canvas.style.top = "1200px";
+    canvas.style.zIndex = 10000;
+
+    document.getElementsByTagName("body")[0]
+            .appendChild(canvas);
+  }
+
+  canvasReadyForDrawWindow(){
+    if(Debug.debug)
+      console.log("%c[ArDetect::_ard_canvasReadyForDrawWindow] (?)", "color: #44f", this.canvas.height == window.innerHeight, "(ard_height:", this.canvas.height, "| window height:", window.innerHeight, ")");
+    
+    return this.canvas.height == window.innerHeight
+  }
+  //#endregion
+
+  processAr = function(edges){
+
+    if(Debug.debug && Debug.debugArDetect){
+      console.log("[ArDetect::_ard_processAr] processing ar. sample width:", this.canvas.width, "; sample height:", this.canvas.height, "; edge top:", edges.top);
+    }
+
+    // if we don't specify these things, they'll have some default values.
+    if(edges.top === undefined){
+      edges.top = 0;
+      edges.bottom = 0;
+      edge.left = 0;
+      edges.right = 0;
+    }
+    
+    var letterbox = edges.top + edges.bottom;
+    var trueHeight = this.canvas.height - letterbox;
+    
+    if(this.fallbackMode){
+      if(edge.top > 1 && edge.top <= ExtensionConf.arDetect.fallbackMode.noTriggerZonePx )
+        return;
+      
+      // varnostno območje, ki naj ostane črno (da lahko v fallback načinu odkrijemo ožanje razmerja stranic).
+      // x2, ker je safetyBorderPx definiran za eno stran.
+      // safety border so we can detect aspect ratio narrowing (21:9 -> 16:9).
+      // x2 because safetyBorderPx is for one side.
+      trueHeight += (ExtensionConf.arDetect.fallbackMode.safetyBorderPx << 1);
+    }
+    
+    
+    var trueAr = width / trueHeight;
+    this.detectedAr = trueAr;
+    
+    // poglejmo, če se je razmerje stranic spremenilo
+    // check if aspect ratio is changed:
+    var lastAr = this.videoData.getLastAr();
+    if( lastAr.type == "auto" && lastAr.ar != null){
+      // spremembo lahko zavrnemo samo, če uporabljamo avtomatski način delovanja in če smo razmerje stranic
+      // že nastavili.
+      //
+      // we can only deny aspect ratio changes if we use automatic mode and if aspect ratio was set from here.
+      
+      var arDiff = trueAr - lastAr.ar;
+      
+      if (arDiff < 0)
+        arDiff = -arDiff;
+      
+      var arDiff_percent = arDiff / trueAr;
+      
+      // ali je sprememba v mejah dovoljenega? Če da -> fertik
+      // is ar variance within acceptable levels? If yes -> we done
+      if(Debug.debug && Debug.debugArDetect)
+        console.log("%c[ArDetect::_ard_processAr] new aspect ratio varies from the old one by this much:\n","color: #aaf","old Ar", lastAr.ar, "current ar", trueAr, "arDiff (absolute):",arDiff,"ar diff (relative to new ar)", arDiff_percent);
+      
+      if (arDiff < trueAr * ExtensionConf.arDetect.allowedArVariance){
+        if(Debug.debug && Debug.debugArDetect)
+          console.log("%c[ArDetect::_ard_processAr] aspect ratio change denied — diff %:", "background: #740; color: #fa2", arDiff_percent)
+          
+        return;
+      }
+      else if(Debug.debug && Debug.debugArDetect){
+        console.log("%c[ArDetect::_ard_processAr] aspect ratio change accepted — diff %:", "background: #153; color: #4f9", arDiff_percent)
+      }
+    }
+    
+    if(Debug.debug)
+      console.log("[ArDetect::_ard_processAr] attempting to fix aspect ratio. New aspect ratio: ", trueAr);
+    
+    
+    // POMEMBNO: GlobalVars.lastAr je potrebno nastaviti šele po tem, ko kličemo _res_setAr(). _res_setAr() predvideva,
+    // da želimo nastaviti statično (type: 'static') razmerje stranic — tudi, če funkcijo kličemo tu oz. v ArDetect.
+    //
+    // IMPORTANT NOTE: GlobalVars.lastAr needs to be set after _res_setAr() is called, as _res_setAr() assumes we're
+    // setting a static aspect ratio (even if the function is called from here or ArDetect). 
+    
+    VideoData.resizer.setAr(trueAr, {type: "auto", ar: trueAr});
+  }
+
+  frameCheck(){
+
+  }
+
 }
 
 if(Debug.debug)
@@ -155,179 +263,170 @@ if(Debug.debug)
 var _ard_console_stop = "background: #000; color: #f41";
 var _ard_console_start = "background: #000; color: #00c399";
 
-var _ard_currentAr;
-
-
-var _ard_setup_timer;
-var _ard_timer
 
 // kjer vzemamo vzorce za blackbox/stuff. 9 vzorcev. Če spremenimo velikost vzorca, moramo spremeniti tudi vrednosti v tej tabeli
 // vrednosti v tabeli so na osminskih intervalih od [0, <sample height << 2> - 4].
 // we sample these lines in blackbox/stuff. 9 samples. If we change the canvas sample size, we have to correct these values as well
 // samples are every eighth between [0, <sample height << 2> - 4].
-var _ard_sampleCols = [];
+// var _ard_sampleCols = [];
 
-var _ard_canvasWidth;
-var _ard_canvasHeight;
-var _ard_canvasDrawWindowHOffset = 0;
+// var _ard_canvasWidth;
+// var _ard_canvasHeight;
+// var _ard_canvasDrawWindowHOffset = 0;
 
-var localSettings = {};
+// var localSettings = {};
 
 
 // **** FUNCTIONS **** //
 
-var _arSetup = function(cwidth, cheight){
-  try{
-  if(Debug.debug)
-    console.log("%c[ArDetect::_ard_setup] Starting automatic aspect ratio detection", _ard_console_start);
+/* var _arSetup = function(cwidth, cheight){
+//   try{
+//   if(Debug.debug)
+//     console.log("%c[ArDetect::_ard_setup] Starting automatic aspect ratio detection", _ard_console_start);
 
-  this._halted = false;
-  GlobalVars.arDetect.autoDisable.eventCount = 0;
+//   this._halted = false;
+//   GlobalVars.arDetect.autoDisable.eventCount = 0;
   
-  // vstavimo začetne stolpce v _ard_sampleCols. 
-  // let's insert initial columns to _ard_sampleCols
-  _ard_sampleCols = [];
-  var samplingIntervalPx = parseInt(GlobalVars.canvas.height / ExtensionConf.arDetect.samplingInterval)
-  for(var i = 1; i < ExtensionConf.arDetect.samplingInterval; i++){
-    _ard_sampleCols.push(i * samplingIntervalPx);
-  }
+//   // vstavimo začetne stolpce v _ard_sampleCols. 
+//   // let's insert initial columns to _ard_sampleCols
+//   _ard_sampleCols = [];
+//   var samplingIntervalPx = parseInt(GlobalVars.canvas.height / ExtensionConf.arDetect.samplingInterval)
+//   for(var i = 1; i < ExtensionConf.arDetect.samplingInterval; i++){
+//     _ard_sampleCols.push(i * samplingIntervalPx);
+//   }
   
-  var existingCanvas = document.getElementById("uw_ArDetect_canvas");
-  if(existingCanvas){
-    if(Debug.debug)
-      console.log("[ArDetect::_ard_setup] existing canvas found. REMOVING KEBAB removing kebab\n\n\n\n(im hungry and you're not authorized to have it)");
+//   var existingCanvas = document.getElementById("uw_ArDetect_canvas");
+//   if(existingCanvas){
+//     if(Debug.debug)
+//       console.log("[ArDetect::_ard_setup] existing canvas found. REMOVING KEBAB removing kebab\n\n\n\n(im hungry and you're not authorized to have it)");
     
-    existingCanvas.remove();
+//     existingCanvas.remove();
     
-    if(Debug.debug)
-      console.log("[ArDetect::_ard_setup] canvas removed");
-  }
+//     if(Debug.debug)
+//       console.log("[ArDetect::_ard_setup] canvas removed");
+//   }
   
-    var vid = document.getElementsByTagName("video")[0];
+//     var vid = document.getElementsByTagName("video")[0];
   
-  if(vid === undefined || vid === null){
-    _ard_setup_timer = setTimeout(_arSetup, 1000);
-    return;
-  }
+//   if(vid === undefined || vid === null){
+//     _ard_setup_timer = setTimeout(_arSetup, 1000);
+//     return;
+//   }
   
-  // imamo video, pa tudi problem. Ta problem bo verjetno kmalu popravljen, zato setup začnemo hitreje kot prej
-  // we have a video, but also a problem. This problem will prolly be fixed very soon, so setup is called with
-  // less delay than before
-  if(vid.videoWidth === 0 || vid.videoHeight === 0 ){
-    if(! _ard_timer)
-      _ard_setup_timer = setTimeout(_arSetup, 100);
+//   // imamo video, pa tudi problem. Ta problem bo verjetno kmalu popravljen, zato setup začnemo hitreje kot prej
+//   // we have a video, but also a problem. This problem will prolly be fixed very soon, so setup is called with
+//   // less delay than before
+//   if(vid.videoWidth === 0 || vid.videoHeight === 0 ){
+//     if(! _ard_timer)
+//       _ard_setup_timer = setTimeout(_arSetup, 100);
     
-    return;
-  }
+//     return;
+//   }
   
-  // things to note: we'll be keeping canvas in memory only. 
-  GlobalVars.arDetect.canvas = document.createElement("canvas");
+//   // things to note: we'll be keeping canvas in memory only. 
+//   GlobalVars.arDetect.canvas = document.createElement("canvas");
   
-  _ard_canvasWidth = cwidth ? cwidth : ExtensionConf.arDetect.hSamples;
-  _ard_canvasHeight = cheight ? cheight : ExtensionConf.arDetect.vSamples;
+//   _ard_canvasWidth = cwidth ? cwidth : ExtensionConf.arDetect.hSamples;
+//   _ard_canvasHeight = cheight ? cheight : ExtensionConf.arDetect.vSamples;
   
-  if(Debug.showArDetectCanvas){
-    GlobalVars.arDetect.canvas.style.position = "absolute";
-    GlobalVars.arDetect.canvas.style.left = "200px";
-    GlobalVars.arDetect.canvas.style.top = "1200px";
-    GlobalVars.arDetect.canvas.style.zIndex = 10000;
-    GlobalVars.arDetect.canvas.id = "uw_ArDetect_canvas";
+//   if(Debug.showArDetectCanvas){
+//     GlobalVars.arDetect.canvas.style.position = "absolute";
+//     GlobalVars.arDetect.canvas.style.left = "200px";
+//     GlobalVars.arDetect.canvas.style.top = "1200px";
+//     GlobalVars.arDetect.canvas.style.zIndex = 10000;
+//     GlobalVars.arDetect.canvas.id = "uw_ArDetect_canvas";
     
-    var test = document.getElementsByTagName("body")[0];
-    test.appendChild(GlobalVars.arDetect.canvas);
-  }
+//     var test = document.getElementsByTagName("body")[0];
+//     test.appendChild(GlobalVars.arDetect.canvas);
+//   }
   
   
   
-  var context = GlobalVars.arDetect.canvas.getContext("2d");
+//   var context = GlobalVars.arDetect.canvas.getContext("2d");
   
-  // do setup once
-  // tho we could do it for every frame
-  if(cwidth && cheight){
-    var canvasWidth = cwidth;
-    var canvasHeight = cheight;
-    var canvasScaleFactor = cheight / vid.videoHeight;
-  }
-  else{
-    var canvasScaleFactor =  _ard_canvasWidth / vid.videoWidth;
-    var canvasWidth = vid.videoWidth * canvasScaleFactor;
-    var canvasHeight = vid.videoHeight * canvasScaleFactor;
-  }
+//   // do setup once
+//   // tho we could do it for every frame
+//   if(cwidth && cheight){
+//     var canvasWidth = cwidth;
+//     var canvasHeight = cheight;
+//     var canvasScaleFactor = cheight / vid.videoHeight;
+//   }
+//   else{
+//     var canvasScaleFactor =  _ard_canvasWidth / vid.videoWidth;
+//     var canvasWidth = vid.videoWidth * canvasScaleFactor;
+//     var canvasHeight = vid.videoHeight * canvasScaleFactor;
+//   }
   
-  GlobalVars.arDetect.canvas.width = canvasWidth;
-  GlobalVars.arDetect.canvas.height = canvasHeight;
+//   GlobalVars.arDetect.canvas.width = canvasWidth;
+//   GlobalVars.arDetect.canvas.height = canvasHeight;
     
   
-  try{
-    // determine where to sample
-    var ncol = ExtensionConf.arDetect.staticSampleCols;
-    var nrow = ExtensionConf.arDetect.staticSampleRows;
+//   try{
+//     // determine where to sample
+//     var ncol = ExtensionConf.arDetect.staticSampleCols;
+//     var nrow = ExtensionConf.arDetect.staticSampleRows;
     
-    var colSpacing = _ard_canvasWidth / ncol;
-    var rowSpacing = (_ard_canvasHeight << 2) / nrow;
+//     var colSpacing = _ard_canvasWidth / ncol;
+//     var rowSpacing = (_ard_canvasHeight << 2) / nrow;
     
-    _ard_sampleLines = [];
-    _ard_sampleCols = [];
+//     _ard_sampleLines = [];
+//     _ard_sampleCols = [];
 
-    for(var i = 0; i < ncol; i++){
-      if(i < ncol - 1)
-        _ard_sampleCols.push(Math.round(colSpacing * i));
-      else{
-        _ard_sampleCols.push(Math.round(colSpacing * i) - 1);
-      }
-    }
+//     for(var i = 0; i < ncol; i++){
+//       if(i < ncol - 1)
+//         _ard_sampleCols.push(Math.round(colSpacing * i));
+//       else{
+//         _ard_sampleCols.push(Math.round(colSpacing * i) - 1);
+//       }
+//     }
     
-    for(var i = 0; i < nrow; i++){
-      if(i < ncol - 5)
-        _ard_sampleLines.push(Math.round(rowSpacing * i));
-      else{
-        _ard_sampleLines.push(Math.round(rowSpacing * i) - 4);
-      }
-    }
-  }
-  catch(ex){
-    console.log("%c[ArDetect::_arSetup] something went terribly wrong when calcuating sample colums.", ExtensionConf.colors.criticalFail);
-    console.log("settings object:", Settings);
-    console.log("error:", ex);
-  }
+//     for(var i = 0; i < nrow; i++){
+//       if(i < ncol - 5)
+//         _ard_sampleLines.push(Math.round(rowSpacing * i));
+//       else{
+//         _ard_sampleLines.push(Math.round(rowSpacing * i) - 4);
+//       }
+//     }
+//   }
+//   catch(ex){
+//     console.log("%c[ArDetect::_arSetup] something went terribly wrong when calcuating sample colums.", ExtensionConf.colors.criticalFail);
+//     console.log("settings object:", Settings);
+//     console.log("error:", ex);
+//   }
   
-  // we're also gonna reset this
-  GlobalVars.arDetect.guardLine.top = null;
-  GlobalVars.arDetect.guardLine.bottom = null;
+//   // we're also gonna reset this
+//   GlobalVars.arDetect.guardLine.top = null;
+//   GlobalVars.arDetect.guardLine.bottom = null;
   
-  _ard_resetBlackLevel();
-  this._forcehalt = false;
-  // if we're restarting ArDetect, we need to do this in order to force-recalculate aspect ratio
-  GlobalVars.lastAr = {type: "auto", ar: null};
-  GlobalVars.canvas.context = context;
-  GlobalVars.canvas.width = canvasWidth;
-  GlobalVars.canvas.height = canvasHeight;
-  GlobalVars.canvas.imageDataRowLength = canvasWidth << 2;
-  GlobalVars.arDetect.noLetterboxCanvasReset = false;
+//   _ard_resetBlackLevel();
+//   this._forcehalt = false;
+//   // if we're restarting ArDetect, we need to do this in order to force-recalculate aspect ratio
+//   GlobalVars.lastAr = {type: "auto", ar: null};
+//   GlobalVars.canvas.context = context;
+//   GlobalVars.canvas.width = canvasWidth;
+//   GlobalVars.canvas.height = canvasHeight;
+//   GlobalVars.canvas.imageDataRowLength = canvasWidth << 2;
+//   GlobalVars.arDetect.noLetterboxCanvasReset = false;
   
-  //   GlobalVars.correctedVideoDimensions.height = null;
-  //   GlobalVars.correctedVideoDimensions.width = null;
-  //   GlobalVars.correctedVideoDimensions.top = null;
-  //   GlobalVars.correctedVideoDimensions.left = null;
-  //   
-  _ard_vdraw(0);
-  }
-  catch(ex){
-    console.log(ex);
-  }
+//   //   GlobalVars.correctedVideoDimensions.height = null;
+//   //   GlobalVars.correctedVideoDimensions.width = null;
+//   //   GlobalVars.correctedVideoDimensions.top = null;
+//   //   GlobalVars.correctedVideoDimensions.left = null;
+//   //   
+//   _ard_vdraw(0);
+//   }
+//   catch(ex){
+//     console.log(ex);
+//   }
 
-  if(Debug.debugCanvas.enabled){
-    DebugCanvas.init({width: canvasWidth, height: canvasHeight});
-    // DebugCanvas.draw("test marker","test","rect", {x:5, y:5}, {width: 5, height: 5});
-  }
-};
+//   if(Debug.debugCanvas.enabled){
+//     DebugCanvas.init({width: canvasWidth, height: canvasHeight});
+//     // DebugCanvas.draw("test marker","test","rect", {x:5, y:5}, {width: 5, height: 5});
+//   }
+// };
+*/
 
-var _ard_canvasReadyForDrawWindow = function(){
-  if(Debug.debug)
-    console.log("%c[ArDetect::_ard_canvasReadyForDrawWindow] (?)", "color: #44f", _ard_canvasHeight == window.innerHeight, "(ard_height:", _ard_canvasHeight, "| window height:", window.innerHeight, ")");
-  
-  return _ard_canvasHeight == window.innerHeight
-}
+
 
 var _ard_processAr = function(video, width, height, edge_h, edge_w, fallbackMode){
   // width, height —> canvas/sample
