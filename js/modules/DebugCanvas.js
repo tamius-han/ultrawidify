@@ -39,10 +39,10 @@ class DebugCanvas {
     this.imageBuffer = new Uint8ClampedArray(buffer);
   }
 
-  trace = function(className, arrayIndex){
-    this.imageBuffer[arrayIndex  ] = this.traceColors[className][0];
-    this.imageBuffer[arrayIndex+1] = this.traceColors[className][1];
-    this.imageBuffer[arrayIndex+2] = this.traceColors[className][2];  
+  trace = function(arrayIndex, colorClass){
+    this.imageBuffer[arrayIndex  ] = colorClass.colorRgb[0];
+    this.imageBuffer[arrayIndex+1] = colorClass.colorRgb[1];
+    this.imageBuffer[arrayIndex+2] = colorClass.colorRgb[2];  
   }
 
   update(){
@@ -77,12 +77,12 @@ class DebugCanvas {
 }
 
 DebugCanvasClasses = {
-  VIOLATION = {color: '#ff4400', text: 'violation (general)'},
-  WARN = {color: '#d08539', text: 'lesser violation (general)'},
-  GUARDLINE_BLACKBAR = {color: '#3333FF', text: 'guardline/blackbar (expected value)'},
-  GUARDLINE_IMAGE = {color: '#000088', text: 'guardline/image (expected value)'},
+  VIOLATION: {color: '#ff4400', colorRgb: [255, 68, 0], text: 'violation (general)'},
+  WARN: {color: '#d08539', colorRgb: [208, 133, 57], text: 'lesser violation (general)'},
+  GUARDLINE_BLACKBAR: {color: '#3333FF', colorRgb: [51, 51, 255], text: 'guardline/blackbar (expected value)'},
+  GUARDLINE_IMAGE: {color: '#000088', colorRgb: [0, 0, 136], text: 'guardline/image (expected value)'},
   
-  EDGEDETECT_ONBLACK = {color: '#444444', text: 'edge detect - perpendicular (to edge)'},
-  EDGEDETECT_BLACKBAR = {color: '#07ac93', text: 'edge detect - parallel, black test'},
-  EDGEDETECT_IMAGE = {color: '#046c5c', text: 'edge detect - parallel, image test'}
+  EDGEDETECT_ONBLACK: {color: '#444444', colorRgb: [68, 68, 68], text: 'edge detect - perpendicular (to edge)'},
+  EDGEDETECT_BLACKBAR: {color: '#07ac93', colorRgb: [7, 172, 147], text: 'edge detect - parallel, black test'},
+  EDGEDETECT_IMAGE: {color: '#046c5c', colorRgb: [4, 108, 92], text: 'edge detect - parallel, image test'}
 }
