@@ -610,6 +610,210 @@ class ArDetector {
 
 
   //#region frameCheck helper functions
+  
+  guardLineCheck = function(image, fallbackMode){
+    // this test tests for whether we crop too aggressively
+    
+    // if this test is passed, then aspect ratio probably didn't change from wider to narrower. However, further
+    // checks are needed to determine whether aspect ratio got wider.
+    // if this test fails, it returns a list of offending points.
+    
+    // if the upper edge is null, then edge hasn't been detected before. This test is pointless, therefore it
+    // should succeed by default. Also need to check bottom, for cases where only one edge is known
+    
+    if(! fallbackMode){
+      if(GlobalVars.arDetect.guardLine.top == null || GlobalVars.arDetect.guardLine.bottom == null)
+        return { success: true };
+      
+      var edges = GlobalVars.arDetect.guardLine;  
+    }
+    var blackbarTreshold = this.blackLevel + ExtensionConf.arDetect.blackbarTreshold;
+    
+    var offset = parseInt(this.canvas.width * ExtensionConf.arDetect.guardLine.ignoreEdgeMargin) << 2;
+    
+    var offenders = [];
+    var firstOffender = -1;
+    var offenderCount = -1; // doing it this way means first offender has offenderCount==0. Ez index.
+    
+    // TODO: implement logo check.
+    
+    
+    // preglejmo obe vrstici
+    // check both rows
+    
+    if(! fallbackMode){
+      var edge_upper = edges.top - ExtensionConf.arDetect.guardLine.edgeTolerancePx;
+      if(edge_upper < 0)
+        return {success: true}; // if we go out of bounds here, the black bars are negligible
+        
+        var edge_lower = edges.bottom + ExtensionConf.arDetect.guardLine.edgeTolerancePx;
+      if(edge_lower > this.canvas.height - 1)
+        return {success: true}; // if we go out of bounds here, the black bars are negligible
+    }
+    else{
+      // fallback mode is a bit different
+      edge_upper = 0;
+      edge_lower = this.canvas.height - 1;
+    }
+    
+    var rowStart, rowEnd;
+    
+    
+    // <<<=======| checking upper row |========>>>
+    
+    rowStart = ((edge_upper * this.canvas.width) << 2) + offset;
+    rowEnd = rowStart + ( this.canvas.width << 2 ) - (offset * 2);
+    
+    if (Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine) {
+      offenderCount = this._gl_debugRowCheck(image, rowStart, rowEnd, offenders, offenderCount, blackbarTreshold);
+    } else {
+      offenderCount = this._gl_rowCheck(image, rowStart, rowEnd, offenders, offenderCount, blackbarTreshold);    
+    }
+    // <<<=======| checking lower row |========>>>
+    
+    rowStart = ((edge_lower * this.canvas.width) << 2) + offset;
+    rowEnd = rowStart + ( this.canvas.width << 2 ) - (offset * 2);
+    
+    if (Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine) {
+      offenderCount = this._gl_debugRowCheck(image, rowStart, rowEnd, offenders, offenderCount, blackbarTreshold);
+    } else {
+      offenderCount = this._gl_rowCheck(image, rowStart, rowEnd, offenders, offenderCount, blackbarTreshold);    
+    }
+    
+    // če nismo našli nobenih prekrškarjev, vrnemo uspeh. Drugače vrnemo seznam prekrškarjev
+    // vrnemo tabelo, ki vsebuje sredinsko točko vsakega prekrškarja (x + width*0.5)
+    //
+    // if we haven't found any offenders, we return success. Else we return list of offenders
+    // we return array of middle points of offenders (x + (width * 0.5) for every offender)
+    
+    if(offenderCount == -1){
+      return {success: true};
+    }
+    
+    var ret = new Array(offenders.length);
+    for(var o in offenders){
+      ret[o] = offenders[o].x + (offenders[o].width * 0.25);
+    }
+    
+    return {success: false, offenders: ret};
+  }
+
+  //#region guard line helper functions
+  _gl_rowCheck(image, rowStart, rowEnd, offenders, offenderCount, blackbarTreshold){
+    var firstOffender = -1;
+    for(var i = rowStart; i < rowEnd; i+=4){
+      
+      // we track sections that go over what's supposed to be a black line, so we can suggest more 
+      // columns to sample
+      if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
+        if(firstOffender < 0){
+          firstOffender = (i - rowStart) >> 2;
+          offenderCount++;
+          offenders.push({x: firstOffender, width: 1});
+        }
+        else{
+          offenders[offenderCount].width++
+        }
+      }
+      else{
+        // is that a black pixel again? Let's reset the 'first offender' 
+        firstOffender = -1;
+      }
+    }
+  
+    return offenderCount;
+  }
+  _gl_debugRowCheck(image, rowStart, rowEnd, offenders, offenderCount, blackbarTreshold){
+    var firstOffender = -1;
+    for(var i = rowStart; i < rowEnd; i+=4){
+      
+      // we track sections that go over what's supposed to be a black line, so we can suggest more 
+      // columns to sample
+      if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
+        DebugCanvas.trace('guardLine_blackbar_violation', i);      
+        if(firstOffender < 0){
+          firstOffender = (i - rowStart) >> 2;
+          offenderCount++;
+          offenders.push({x: firstOffender, width: 1});
+        }
+        else{
+          offenders[offenderCount].width++
+        }
+      }
+      else{
+        DebugCanvas.trace('guardLine_blackbar', i);              
+        // is that a black pixel again? Let's reset the 'first offender' 
+        firstOffender = -1;
+      }
+      
+    }
+  
+    return offenderCount;
+  }
+  //#endregion
+
+  guardLineImageDetect(image){  
+    if(GlobalVars.arDetect.guardLine.top == null || GlobalVars.arDetect.guardLine.bottom == null)
+      return { success: false };
+    
+    var blackbarTreshold = this.blackLevel + ExtensionConf.arDetect.blackbarTreshold;
+    var edges = GlobalVars.arDetect.guardLine;  
+    
+    var offset = parseInt(this.canvas.width * ExtensionConf.arDetect.guardLine.ignoreEdgeMargin) << 2;
+      
+    // TODO: implement logo check.
+    
+    
+    // preglejmo obe vrstici - tukaj po pravilih ne bi smeli iti prek mej platna. ne rabimo preverjati
+    // check both rows - by the rules and definitions, we shouldn't go out of bounds here. no need to check, then
+    
+    //   if(fallbackMode){
+    //     var edge_upper = ExtensionConf.arDetect.fallbackMode.noTriggerZonePx;
+    //     var edge_lower = this.canvas.height - ExtensionConf.arDetect.fallbackMode.noTriggerZonePx - 1;
+    //   }
+    //   else{
+        var edge_upper = edges.top + ExtensionConf.arDetect.guardLine.edgeTolerancePx;
+        var edge_lower = edges.bottom - ExtensionConf.arDetect.guardLine.edgeTolerancePx;
+    //   }
+    
+    // koliko pikslov rabimo zaznati, da je ta funkcija uspe. Tu dovoljujemo tudi, da so vsi piksli na enem
+    // robu (eden izmed robov je lahko v celoti črn)
+    // how many non-black pixels we need to consider this check a success. We only need to detect enough pixels
+    // on one edge (one of the edges can be black as long as both aren't)
+    var successTreshold = parseInt(this.canvas.width * ExtensionConf.arDetect.guardLine.imageTestTreshold);
+    var rowStart, rowEnd;
+    
+    
+    // <<<=======| checking upper row |========>>>
+    
+    rowStart = ((edge_upper * this.canvas.width) << 2) + offset;
+    rowEnd = rowStart + ( this.canvas.width << 2 ) - (offset * 2);
+    
+    var res = false;
+    
+    if(Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine){
+      res = _ard_ti_debugCheckRow(image, rowStart, rowEnd, successTreshold, blackbarTreshold);
+    } else {
+      res = _ard_ti_checkRow(image, rowStart, rowEnd,successTreshold, blackbarTreshold);
+    }
+    
+    if(res)
+      return {success: true};
+    
+    
+    // <<<=======| checking lower row |========>>>
+    
+    rowStart = ((edge_lower * this.canvas.width) << 2) + offset;
+    // rowEnd = rowStart + ( this.canvas.width << 2 ) - (offset * 2);
+    
+    if(Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine){
+      res = _ard_ti_debugCheckRow(image, rowStart, rowEnd, successTreshold);
+    } else {
+      res = _ard_ti_checkRow(image, rowStart, rowEnd,successTreshold);
+    }
+    
+    return {success: res};
+  }
 
   //#endregion
 }
@@ -1110,93 +1314,6 @@ var textLineTest = function(image, row){
   // če pridemo do sem, potem besedilo ni bilo zaznano
   // if we're here, no text was detected
   return false;
-}
-
-var _ard_guardLineCheck = function(image, fallbackMode){
-  // this test tests for whether we crop too aggressively
-  
-  // if this test is passed, then aspect ratio probably didn't change from wider to narrower. However, further
-  // checks are needed to determine whether aspect ratio got wider.
-  // if this test fails, it returns a list of offending points.
-  
-  // if the upper edge is null, then edge hasn't been detected before. This test is pointless, therefore it
-  // should succeed by default. Also need to check bottom, for cases where only one edge is known
-  
-  if(! fallbackMode){
-    if(GlobalVars.arDetect.guardLine.top == null || GlobalVars.arDetect.guardLine.bottom == null)
-      return { success: true };
-    
-    var edges = GlobalVars.arDetect.guardLine;  
-  }
-  var blackbarTreshold = this.blackLevel + ExtensionConf.arDetect.blackbarTreshold;
-  
-  var offset = parseInt(this.canvas.width * ExtensionConf.arDetect.guardLine.ignoreEdgeMargin) << 2;
-  
-  var offenders = [];
-  var firstOffender = -1;
-  var offenderCount = -1; // doing it this way means first offender has offenderCount==0. Ez index.
-  
-  // TODO: implement logo check.
-  
-  
-  // preglejmo obe vrstici
-  // check both rows
-  
-  if(! fallbackMode){
-    var edge_upper = edges.top - ExtensionConf.arDetect.guardLine.edgeTolerancePx;
-    if(edge_upper < 0)
-      return {success: true}; // if we go out of bounds here, the black bars are negligible
-      
-      var edge_lower = edges.bottom + ExtensionConf.arDetect.guardLine.edgeTolerancePx;
-    if(edge_lower > this.canvas.height - 1)
-      return {success: true}; // if we go out of bounds here, the black bars are negligible
-  }
-  else{
-    // fallback mode is a bit different
-    edge_upper = 0;
-    edge_lower = this.canvas.height - 1;
-  }
-  
-  var rowStart, rowEnd;
-  
-  
-  // <<<=======| checking upper row |========>>>
-  
-  rowStart = ((edge_upper * this.canvas.width) << 2) + offset;
-  rowEnd = rowStart + ( this.canvas.width << 2 ) - (offset * 2);
-  
-  if (Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine) {
-    offenderCount = _ard_gl_debugRowCheck(image, rowStart, rowEnd, offenders, offenderCount, blackbarTreshold);
-  } else {
-    offenderCount = _ard_gl_rowCheck(image, rowStart, rowEnd, offenders, offenderCount, blackbarTreshold);    
-  }
-  // <<<=======| checking lower row |========>>>
-  
-  rowStart = ((edge_lower * this.canvas.width) << 2) + offset;
-  rowEnd = rowStart + ( this.canvas.width << 2 ) - (offset * 2);
-  
-  if (Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine) {
-    offenderCount = _ard_gl_debugRowCheck(image, rowStart, rowEnd, offenders, offenderCount, blackbarTreshold);
-  } else {
-    offenderCount = _ard_gl_rowCheck(image, rowStart, rowEnd, offenders, offenderCount, blackbarTreshold);    
-  }
-  
-  // če nismo našli nobenih prekrškarjev, vrnemo uspeh. Drugače vrnemo seznam prekrškarjev
-  // vrnemo tabelo, ki vsebuje sredinsko točko vsakega prekrškarja (x + width*0.5)
-  //
-  // if we haven't found any offenders, we return success. Else we return list of offenders
-  // we return array of middle points of offenders (x + (width * 0.5) for every offender)
-  
-  if(offenderCount == -1){
-    return {success: true};
-  }
-  
-  var ret = new Array(offenders.length);
-  for(var o in offenders){
-    ret[o] = offenders[o].x + (offenders[o].width * 0.25);
-  }
-  
-  return {success: false, offenders: ret};
 }
 
 var _ard_gl_rowCheck = function(image, rowStart, rowEnd, offenders, offenderCount, blackbarTreshold){
