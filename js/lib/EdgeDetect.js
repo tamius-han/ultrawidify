@@ -2,7 +2,6 @@ class EdgeDetect{
 
   constructor(ardConf){
     this.conf = ardConf;
-
     
     this.sampleWidthBase = ExtensionConf.arDetect.edgeDetection.sampleWidth << 2; // corrected so we can work on imageData
     this.halfSample = this.sampleWidthBase >> 1; 
@@ -17,17 +16,22 @@ class EdgeDetect{
     
   }
 
-  findEdges(image, sampleCols, direction = EdgeDetectPrimaryDirection.VERTICAL, quality = EdgeDetectQuality.IMPROVED, guardLineOut){
-    var fastCandidates, edgeCandidates, edges,
+  findBars(image, sampleCols, direction = EdgeDetectPrimaryDirection.VERTICAL, quality = EdgeDetectQuality.IMPROVED, guardLineOut){
+    var fastCandidates, edgeCandidates, bars,
     if (direction == EdgeDetectPrimaryDirection.VERTICAL) {
       fastCandidates = this.findCandidates(image, sampleCols, guardLine);
 
-      if(quality == EdgeDetectQuality.FAST){
-        edges = fastCandidates;
-      } else {
+      // if(quality == EdgeDetectQuality.FAST){
+      //   edges = fastCandidates; // todo: processing
+      // } else {
         edgeCandidates = this.edgeDetect(image, edges);
-      }
+        bars = this.edgePostprocess(edgeCandidates, this.conf.canvas.height);
+      // }
+    } else {
+      bars = this.pillarTest(image) ? {status: 'ar_known'} : {status: 'ar_unknown'};
     }
+
+    return bars;
   }
 
   findCandidates(image, sampleCols, guardLineOut){
@@ -72,15 +76,15 @@ class EdgeDetect{
         lower_bottom = this.conf.canvas.height - 1;
       } else {
         upper_top = 0;
-        upper_bottom = (this.canvas.height >> 1) /*- parseInt(this.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);*/
-        lower_top = (this.canvas.height >> 1) /*+ parseInt(this.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);*/
-        lower_bottom = this.canvas.height - 1;
+        upper_bottom = (this.conf.canvas.height >> 1) /*- parseInt(this.conf.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);*/
+        lower_top = (this.conf.canvas.height >> 1) /*+ parseInt(this.conf.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);*/
+        lower_bottom = this.conf.canvas.height - 1;
       }
     } else{
       upper_top = 0;
-      upper_bottom = (this.canvas.height >> 1) /*- parseInt(this.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);*/
-      lower_top = (this.canvas.height >> 1) /*+ parseInt(this.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);*/
-      lower_bottom = this.canvas.height - 1;
+      upper_bottom = (this.conf.canvas.height >> 1) /*- parseInt(this.conf.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);*/
+      lower_top = (this.conf.canvas.height >> 1) /*+ parseInt(this.conf.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);*/
+      lower_bottom = this.conf.canvas.height - 1;
     }
 
     if(Debug.debug){
@@ -216,6 +220,190 @@ class EdgeDetect{
     };
   }
 
+  edgePostprocess = function(edges){
+    var edgesTop = [];
+    var edgesBottom = [];
+    var alignMargin = this.conf.context.height * ExtensionConf.arDetect.allowedMisaligned;
+    
+    var missingEdge = edges.edgeCandidatesTopCount == 0 || edges.edgeCandidatesBottomCount == 0;
+    
+    // pretvorimo objekt v tabelo
+    // convert objects to array
+    
+    if( edges.edgeCandidatesTopCount > 0){
+      for(var e in edges.edgeCandidatesTop){
+        var edge = edges.edgeCandidatesTop[e];
+        edgesTop.push({distance: edge.top, count: edge.count});
+      }
+    }
+    
+    if( edges.edgeCandidatesBottomCount > 0){
+      for(var e in edges.edgeCandidatesBottom){
+        var edge = edges.edgeCandidatesBottom[e];
+        edgesBottom.push({distance: edge.bottomRelative, absolute: edge.bottom, count: edge.count});
+      }
+    }
+    
+    // če za vsako stran (zgoraj in spodaj) poznamo vsaj enega kandidata, potem lahko preverimo nekaj
+    // stvari
+    
+    if(! missingEdge ){
+    // predvidevamo, da je logo zgoraj ali spodaj, nikakor pa ne na obeh straneh hkrati.
+    // če kanal logotipa/watermarka ni vključil v video, potem si bosta razdaliji (edge.distance) prvih ključev
+    // zgornjega in spodnjega roba približno enaki  
+    //
+    // we'll assume that no youtube channel is rude enough to put channel logo/watermark both on top and the bottom
+    // of the video. If logo's not included in the video, distances (edge.distance) of the first two keys should be
+    // roughly equal. Let's check for that.
+      if( edgesTop[0].distance >= edgesBottom[0].distance - alignMargin &&
+          edgesTop[0].distance <= edgesBottom[0].distance + alignMargin ){
+        
+        var blackbarWidth = edgesTop[0].distance > edgesBottom[0].distance ? 
+                            edgesTop[0].distance : edgesBottom[0].distance;
+        
+        return {status: "ar_known", blackbarWidth: blackbarWidth, guardLineTop: edgesTop[0].distance, guardLineBottom: edgesBottom[0].absolute };
+      }
+    
+      // torej, lahko da je na sliki watermark. Lahko, da je slika samo ornh črna. Najprej preverimo za watermark
+      // it could be watermark. It could be a dark frame. Let's check for watermark first.
+      if( edgesTop[0].distance < edgesBottom[0].distance &&
+          edgesTop[0].count    < edgesBottom[0].count    &&
+          edgesTop[0].count    < GlobalVars.arDetect.sampleCols * ExtensionConf.arDetect.edgeDetection.logoTreshold){
+        // možno, da je watermark zgoraj. Preverimo, če se kateri od drugih potencialnih robov na zgornjem robu
+        // ujema s prvim spodnjim (+/- variance). Če je temu tako, potem bo verjetno watermark. Logo mora imeti
+        // manj vzorcev kot navaden rob.
+        
+        if(edgesTop[0].length > 1){
+          var lowMargin = edgesBottom[0].distance - alignMargin;
+          var highMargin = edgesBottom[0].distance + alignMargin;
+          
+          for(var i = 1; i < edgesTop.length; i++){
+            if(edgesTop[i].distance >= lowMargin && edgesTop[i].distance <= highMargin){
+              // dobili smo dejanski rob. vrnimo ga
+              // we found the actual edge. let's return that.
+              var blackbarWidth = edgesTop[i].distance > edgesBottom[0].distance ? 
+                                  edgesTop[i].distance : edgesBottom[0].distance;
+              
+              return  {status: "ar_known", blackbarWidth: blackbarWidth, guardLineTop: edgesTop[i].distance, guardLineBottom: edgesBottom[0].absolute};
+            }
+          }
+        }
+      }
+      if( edgesBottom[0].distance < edgesTop[0].distance &&
+          edgesBottom[0].count    < edgesTop[0].count    &&
+          edgesBottom[0].count    < GlobalVars.arDetect.sampleCols * ExtensionConf.arDetect.edgeDetection.logoTreshold){
+        
+        if(edgesBottom[0].length > 1){
+          var lowMargin = edgesTop[0].distance - alignMargin;
+          var highMargin = edgesTop[0].distance + alignMargin;
+          
+          for(var i = 1; i < edgesBottom.length; i++){
+            if(edgesBottom[i].distance >= lowMargin && edgesTop[i].distance <= highMargin){
+              // dobili smo dejanski rob. vrnimo ga
+              // we found the actual edge. let's return that.
+              var blackbarWidth = edgesBottom[i].distance > edgesTop[0].distance ? 
+                                  edgesBottom[i].distance : edgesTop[0].distance;
+              
+              return  {status: "ar_known", blackbarWidth: blackbarWidth, guardLineTop: edgesTop[0].distance, guardLineBottom: edgesBottom[0].absolute};
+            }
+          }
+        }
+      }
+    }
+    else{
+      // zgornjega ali spodnjega roba nismo zaznali. Imamo še en trik, s katerim lahko poskusimo 
+      // določiti razmerje stranic
+      // either the top or the bottom edge remains undetected, but we have one more trick that we
+      // can try. It also tries to work around logos.
+      
+      var edgeDetectionTreshold = GlobalVars.arDetect.sampleCols * ExtensionConf.arDetect.edgeDetection.singleSideConfirmationTreshold;
+      
+      if(edges.edgeCandidatesTopCount == 0 && edges.edgeCandidatesBottomCount != 0){
+        for(var edge of edgesBottom){
+          if(edge.count >= edgeDetectionTreshold)
+            return {status: "ar_known", blackbarWidth: edge.distance, guardLineTop: null, guardLineBottom: edge.bottom}
+        }
+      }
+      if(edges.edgeCandidatesTopCount != 0 && edges.edgeCandidatesBottomCount == 0){
+        for(var edge of edgesTop){
+          if(edge.count >= edgeDetectionTreshold)
+            return {status: "ar_known", blackbarWidth: edge.distance, guardLineTop: edge.top, guardLineBottom: null}
+        }
+      }
+    }
+    // če pridemo do sem, nam ni uspelo nič. Razmerje stranic ni znano
+    // if we reach this bit, we have failed in determining aspect ratio. It remains unknown.
+    return {status: "ar_unknown"}
+  }
+  
+  pillarTest(image){
+    // preverimo, če na sliki obstajajo navpične črne obrobe. Vrne 'true' če so zaznane (in če so približno enako debele), 'false' sicer.
+    // true vrne tudi, če zaznamo preveč črnine.
+    //                             <==XX(::::}----{::::)XX==>
+    // checks the image for presence of vertical pillars. Less accurate than 'find blackbar limits'. If we find a non-black object that's
+    // roughly centered, we return true. Otherwise we return false.
+    // we also return true if we detect too much black
+  
+    var blackbarTreshold, upper, lower;
+    blackbarTreshold = this.conf.blackLevel + ExtensionConf.arDetect.blackbarTreshold;
+  
+  
+    var middleRowStart = (this.conf.canvas.height >> 1) * this.conf.canvas.width;
+    var middleRowEnd = middleRowStart + this.conf.canvas.width - 1;
+  
+    var rowStart = middleRowStart << 2;
+    var midpoint = (middleRowStart + (this.conf.canvas.width >> 1)) << 2
+    var rowEnd = middleRowEnd << 2;
+  
+    var edge_left = -1; edge_right = -1;
+  
+    // preverimo na levi strani
+    // let's check for edge on the left side
+    for(var i = rowStart; i < midpoint; i+=4){
+      if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
+        edge_left = (i - rowStart) >> 2;
+        break;
+      }
+    }
+  
+    // preverimo na desni strani
+    // check on the right
+    for(var i = rowEnd; i > midpoint; i-= 4){
+      if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
+        edge_right =  this.conf.canvas.width - ((i - rowStart) >> 2);
+        break;
+      }
+    }
+  
+    // če je katerikoli -1, potem imamo preveč črnine
+    // we probably have too much black if either of those two is -1
+    if(edge_left == -1 || edge_right == -1){
+      return true;
+    }
+  
+    // če sta oba robova v mejah merske napake, potem vrnemo 'false'
+    // if both edges resemble rounding error, we retunr 'false'
+    if(edge_left < ExtensionConf.arDetect.pillarTest.ignoreThinPillarsPx && edge_right < ExtensionConf.arDetect.pillarTest.ignoreThinPillarsPx){
+      return false;
+    }
+  
+    var edgeError = ExtensionConf.arDetect.pillarTest.allowMisaligned;
+    var error_low = 1 - edgeError;
+    var error_hi = 1 + edgeError;
+  
+    // če sta 'edge_left' in 'edge_right' podobna/v mejah merske napake, potem vrnemo true — lahko da smo našli logo na sredini zaslona
+    // if 'edge_left' and 'edge_right' are similar enough to each other, we return true. If we found a logo in a black frame, we could
+    // crop too eagerly 
+    if( (edge_left * error_low) < edge_right &&
+        (edge_left * error_hi) > edge_right  ){
+      return true;
+    }
+  
+    // če se ne zgodi nič od neštetega, potem nismo našli problemov
+    // if none of the above, we haven't found a problem
+    return false;
+  }
+
 
   // pomožne funkcije
   // helper functions
@@ -235,7 +423,7 @@ class EdgeDetect{
             colsOut.push({
               col: col,
               bottom: bottom,
-              bottomRelative: this.canvas.height - bottom
+              bottomRelative: this.conf.canvas.height - bottom
             });
             colsIn.splice(colsIn.indexOf(col), 1);
           }
@@ -280,7 +468,7 @@ class EdgeDetect{
             colsOut.push({
               col: col,
               bottom: bottom,
-              bottomRelative: this.canvas.height - bottom
+              bottomRelative: this.conf.canvas.height - bottom
             });
             colsIn.splice(colsIn.indexOf(col), 1);
             this.conf.debugCanvas.trace(tmpI,DebugCanvasClasses.EDGEDETECT_CANDIDATE);
