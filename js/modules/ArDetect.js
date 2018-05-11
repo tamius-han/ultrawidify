@@ -127,6 +127,7 @@ class ArDetector {
   }
 
   start(){
+    this._halted = false;
     this.scheduleFrameCheck(0, true);
   }
 
@@ -140,7 +141,19 @@ class ArDetector {
     clearTimeout(this.timer);
   }
 
+  isRunning(){
+    return ! this._halted;
+  }
+
   scheduleFrameCheck(timeout, force_reset){
+    if(! timeout){
+      this.frameCheck();
+      return;
+    }
+  
+    // run anything that needs to be run after frame check
+    this.postFrameCheck(); 
+
     // don't allow more than 1 instance
     if(this.timer){ 
       clearTimeout(this.timer);
@@ -148,10 +161,16 @@ class ArDetector {
     
     this.timer = setTimeout(function(){
         this.timer = null;
-        frameCheck();
+        this.frameCheck();
       },
       timeout
     );
+  }
+
+  postFrameCheck(){
+    if(Debug.debugCanvas.enabled){
+      this.debugCanvas.update();
+    }
   }
 
   //#region helper functions (general)
@@ -381,8 +400,7 @@ class ArDetector {
     var image = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
     
     if(Debug.debugCanvas.enabled){
-      DebugCanvas.showTraces();
-      DebugCanvas.setBuffer(image);
+      this.debugCanvas.setBuffer(image);
     }
 
     //#region black level detection
@@ -506,7 +524,7 @@ class ArDetector {
       this.arDetect.noLetterboxCanvasReset = true;
       
       triggerTimeout = this.getTimeout(baseTimeout, startTime);
-      _ard_vdraw(triggerTimeout); //no letterbox, no problem
+      this.scheduleFrameCheck(triggerTimeout); //no letterbox, no problem
       return;
     }
     
@@ -563,52 +581,38 @@ class ArDetector {
       // besedilo, potem to ni veljaven rob. Razmerja stranic se zato ne bomo pipali.
       // we detected an edge — but before we process it, we need to check if the "edge" isn't actually some text. If the detected
       // edge is actually some text on black background, we shouldn't touch the aspect ratio. Whatever we detected is invalid.
-      var textEdge = false;;
+      // var textEdge = false;;
 
-      if(edgePost.guardLineTop != null){
-        var row = edgePost.guardLineTop + ~~(this.canvas.height * ExtensionConf.arDetect.textLineTest.testRowOffset);
-        textEdge |= textLineTest(image, row);
-      }
-      if(edgePost.guardLineTop != null){
-        var row = edgePost.guardLineTop - ~~(this.canvas.height * ExtensionConf.arDetect.textLineTest.testRowOffset);
-        textEdge |= textLineTest(image, row);
-      }
+      // if(edgePost.guardLineTop != null){
+      //   var row = edgePost.guardLineTop + ~~(this.canvas.height * ExtensionConf.arDetect.textLineTest.testRowOffset);
+      //   textEdge |= textLineTest(image, row);
+      // }
+      // if(edgePost.guardLineTop != null){
+      //   var row = edgePost.guardLineTop - ~~(this.canvas.height * ExtensionConf.arDetect.textLineTest.testRowOffset);
+      //   textEdge |= textLineTest(image, row);
+      // }
 
-      if(!textEdge){
-        _ard_processAr(GlobalVars.video, this.canvas.width, this.canvas.height, edgePost.blackbarWidth, null, fallbackMode);
+      // if(!textEdge){
+        this.processAr(GlobalVars.video, this.canvas.width, this.canvas.height, edgePost.blackbarWidth, null, fallbackMode);
       
         // we also know edges for guardline, so set them
-        GlobalVars.arDetect.guardLine.top = edgePost.guardLineTop;
-        GlobalVars.arDetect.guardLine.bottom = edgePost.guardLineBottom;
-      }
-      else{
-        console.log("detected text on edges, dooing nothing")
-      }
+        this.guardLine.setBlackbar({top: edgePost.guardLineTop, bottom: edgePost.guardLineBottom});
+      // }
+      // else{
+      //   console.log("detected text on edges, dooing nothing")
+      // }
 
        
       triggerTimeout = this.getTimeout(baseTimeout, startTime);
-      _ard_vdraw(triggerTimeout); //no letterbox, no problem
+      this.scheduleFrameCheck(triggerTimeout); //no letterbox, no problem
       return;
-    }
-    else{
-       
+    } else {
       triggerTimeout = this.getTimeout(baseTimeout, startTime);
-      _ard_vdraw(triggerTimeout); //no letterbox, no problem
+      this.scheduleFrameCheck(triggerTimeout); //no letterbox, no problem
       return;
     }
   }
 
-
-  //#region frameCheck helper functions
-  
-  
-  //#region guard line helper functions
-  
-  //#endregion
-
-  
-
-  //#endregion
 }
 
 if(Debug.debug)
@@ -617,73 +621,6 @@ if(Debug.debug)
 var _ard_console_stop = "background: #000; color: #f41";
 var _ard_console_start = "background: #000; color: #00c399";
 
-var pillarTest = function(image){
-  // preverimo, če na sliki obstajajo navpične črne obrobe. Vrne 'true' če so zaznane (in če so približno enako debele), 'false' sicer.
-  // true vrne tudi, če zaznamo preveč črnine.
-  //                             <==XX(::::}----{::::)XX==>
-  // checks the image for presence of vertical pillars. Less accurate than 'find blackbar limits'. If we find a non-black object that's
-  // roughly centered, we return true. Otherwise we return false.
-  // we also return true if we detect too much black
-
-  var blackbarTreshold, upper, lower;
-  blackbarTreshold = this.blackLevel + ExtensionConf.arDetect.blackbarTreshold;
-
-
-  var middleRowStart = (this.canvas.height >> 1) * this.canvas.width;
-  var middleRowEnd = middleRowStart + this.canvas.width - 1;
-
-  var rowStart = middleRowStart << 2;
-  var midpoint = (middleRowStart + (this.canvas.width >> 1)) << 2
-  var rowEnd = middleRowEnd << 2;
-
-  var edge_left = -1; edge_right = -1;
-
-  // preverimo na levi strani
-  // let's check for edge on the left side
-  for(var i = rowStart; i < midpoint; i+=4){
-    if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
-      edge_left = (i - rowStart) >> 2;
-      break;
-    }
-  }
-
-  // preverimo na desni strani
-  // check on the right
-  for(var i = rowEnd; i > midpoint; i-= 4){
-    if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
-      edge_right =  this.canvas.width - ((i - rowStart) >> 2);
-      break;
-    }
-  }
-
-  // če je katerikoli -1, potem imamo preveč črnine
-  // we probably have too much black if either of those two is -1
-  if(edge_left == -1 || edge_right == -1){
-    return true;
-  }
-
-  // če sta oba robova v mejah merske napake, potem vrnemo 'false'
-  // if both edges resemble rounding error, we retunr 'false'
-  if(edge_left < ExtensionConf.arDetect.pillarTest.ignoreThinPillarsPx && edge_right < ExtensionConf.arDetect.pillarTest.ignoreThinPillarsPx){
-    return false;
-  }
-
-  var edgeError = ExtensionConf.arDetect.pillarTest.allowMisaligned;
-  var error_low = 1 - edgeError;
-  var error_hi = 1 + edgeError;
-
-  // če sta 'edge_left' in 'edge_right' podobna/v mejah merske napake, potem vrnemo true — lahko da smo našli logo na sredini zaslona
-  // if 'edge_left' and 'edge_right' are similar enough to each other, we return true. If we found a logo in a black frame, we could
-  // crop too eagerly 
-  if( (edge_left * error_low) < edge_right &&
-      (edge_left * error_hi) > edge_right  ){
-    return true;
-  }
-
-  // če se ne zgodi nič od neštetega, potem nismo našli problemov
-  // if none of the above, we haven't found a problem
-  return false;
-}
 
 var textLineTest = function(image, row){
   // preverimo, če vrstica vsebuje besedilo na črnem ozadju. Če ob pregledu vrstice naletimo na veliko sprememb
@@ -772,292 +709,3 @@ var textLineTest = function(image, row){
   return false;
 }
 
-
-
-
-var _ard_findBlackbarLimits = function(image, cols, guardLineResult, imageDetectResult){
-  
-  var upper_top, upper_bottom, lower_top, lower_bottom;
-  var blackbarTreshold;
-  
-  var cols_a = cols;
-  var cols_b = []
-  
-  for(var i in cols){
-    cols_b[i] = cols_a[i] + 0;
-  }
-  
-  var res_top = [];
-  var res_bottom = [];
-  
-  var colsTreshold = cols.length * ExtensionConf.arDetect.edgeDetection.minColsForSearch;
-  if(colsTreshold == 0)
-    colsTreshold = 1;
-  
-  blackbarTreshold = this.blackLevel + ExtensionConf.arDetect.blackbarTreshold;
-  
-  // if guardline didn't fail and imageDetect did, we don't have to check the upper few pixels
-  // but only if upper and lower edge are defined. If they're not, we need to check full height
-  //   if(GlobalVars.arDetect.guardLine.top != null || GlobalVars.arDetect.guardLine.bottom != null){
-  //     if(guardLineResult && !imageDetectResult){
-  //       upper_top = GlobalVars.arDetect.guardline.top;
-  //       upper_bottom = (this.canvas.height * 0.5) - parseInt(this.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);
-  //       
-  //       lower_top = (this.canvas.height * 0.5) + parseInt(this.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);
-  //       lower_bottom = GlobalVars.arDetect.guardline.bottom;
-  //     }
-  //     else if(!guardLineResult && imageDetectResult){
-  //       upper_top = 0;
-  //       upper_bottom = GlobalVars.arDetect.guardline.top;
-  //       
-  //       lower_top = GlobalVars.arDetect.guardline.bottom;
-  //       lower_bottom = this.canvas.height;
-  //     }
-  //     else{
-  //       // if they're both false or true (?? they shouldn't be, but let's handle it anyway because dark frames
-  //       // could get confusing enough for that to happen), we go for default 
-  //       upper_top = 0;
-  //       upper_bottom = (this.canvas.height * 0.5) - parseInt(this.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);
-  //       
-  //       lower_top = (this.canvas.height * 0.5) + parseInt(this.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);
-  //       lower_bottom = this.canvas.height;
-  //     }
-  //   }
-  //   else{
-  upper_top = 0;
-  upper_bottom = (this.canvas.height * 0.5) /*- parseInt(this.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);*/
-  
-  lower_top = (this.canvas.height * 0.5) /*+ parseInt(this.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);*/
-  lower_bottom = this.canvas.height - 1;
-  //   }
-  
-  
-  var upper_top_corrected = upper_top * this.canvas.imageDataRowLength;
-  var upper_bottom_corrected = upper_bottom * this.canvas.imageDataRowLength;
-  var lower_top_corrected = lower_top * this.canvas.imageDataRowLength;
-  var lower_bottom_corrected = lower_bottom * this.canvas.imageDataRowLength;
-  
-  
-  var tmpI;
-  for(var i = upper_top_corrected; i < upper_bottom_corrected; i+= this.canvas.imageDataRowLength){
-    for(var col of cols_a){
-      tmpI = i + (col << 2);
-      
-      if( image[tmpI]     > blackbarTreshold || 
-        image[tmpI + 1] > blackbarTreshold ||
-        image[tmpI + 2] > blackbarTreshold ){
-      
-        res_top.push({
-          col: col,
-          top: (i / this.canvas.imageDataRowLength) - 1
-        });
-        cols_a.splice(cols_a.indexOf(col), 1);
-      }
-    }
-    if(cols_a.length < colsTreshold)
-      break;
-  }
-  
-  
-  for(var i = lower_bottom_corrected - this.canvas.imageDataRowLength; i >= lower_top_corrected; i-= this.canvas.imageDataRowLength){
-    for(var col of cols_b){
-      tmpI = i + (col << 2);
-      
-      if( image[tmpI]     > blackbarTreshold || 
-        image[tmpI + 1] > blackbarTreshold ||
-        image[tmpI + 2] > blackbarTreshold ){
-        
-        var bottom = (i / this.canvas.imageDataRowLength) + 1;
-        res_bottom.push({
-          col: col,
-          bottom: bottom,
-          bottomRelative: this.canvas.height - bottom
-        });
-        cols_b.splice(cols_a.indexOf(col), 1);
-      }
-    }
-    if(cols_b.length < colsTreshold)
-      break;
-  }
-  
-  return {res_top: res_top, res_bottom: res_bottom};
-}
-
-
-
-var _ard_edgePostprocess = function(edges, canvasHeight){
-  var edgesTop = [];
-  var edgesBottom = [];
-  var alignMargin = canvasHeight * ExtensionConf.arDetect.allowedMisaligned;
-  
-  var missingEdge = edges.edgeCandidatesTopCount == 0 || edges.edgeCandidatesBottomCount == 0;
-  
-  // pretvorimo objekt v tabelo
-  // convert objects to array
-  
-  if( edges.edgeCandidatesTopCount > 0){
-    for(var e in edges.edgeCandidatesTop){
-      var edge = edges.edgeCandidatesTop[e];
-      edgesTop.push({distance: edge.top, count: edge.count});
-    }
-  }
-  
-  if( edges.edgeCandidatesBottomCount > 0){
-    for(var e in edges.edgeCandidatesBottom){
-      var edge = edges.edgeCandidatesBottom[e];
-      edgesBottom.push({distance: edge.bottomRelative, absolute: edge.bottom, count: edge.count});
-    }
-  }
-  
-  // console.log("count top:",edges.edgeCandidatesTopCount, "edges:", edges, "edgesTop[]", edgesTop);
-  
-  // če za vsako stran (zgoraj in spodaj) poznamo vsaj enega kandidata, potem lahko preverimo nekaj
-  // stvari
-  
-  if(! missingEdge ){
-  // predvidevamo, da je logo zgoraj ali spodaj, nikakor pa ne na obeh straneh hkrati.
-  // če kanal logotipa/watermarka ni vključil v video, potem si bosta razdaliji (edge.distance) prvih ključev
-  // zgornjega in spodnjega roba približno enaki  
-  //
-  // we'll assume that no youtube channel is rude enough to put channel logo/watermark both on top and the bottom
-  // of the video. If logo's not included in the video, distances (edge.distance) of the first two keys should be
-  // roughly equal. Let's check for that.
-    if( edgesTop[0].distance >= edgesBottom[0].distance - alignMargin &&
-        edgesTop[0].distance <= edgesBottom[0].distance + alignMargin ){
-      
-      var blackbarWidth = edgesTop[0].distance > edgesBottom[0].distance ? 
-                          edgesTop[0].distance : edgesBottom[0].distance;
-      
-      return {status: "ar_known", blackbarWidth: blackbarWidth, guardLineTop: edgesTop[0].distance, guardLineBottom: edgesBottom[0].absolute };
-    }
-  
-    // torej, lahko da je na sliki watermark. Lahko, da je slika samo ornh črna. Najprej preverimo za watermark
-    // it could be watermark. It could be a dark frame. Let's check for watermark first.
-    if( edgesTop[0].distance < edgesBottom[0].distance &&
-        edgesTop[0].count    < edgesBottom[0].count    &&
-        edgesTop[0].count    < GlobalVars.arDetect.sampleCols * ExtensionConf.arDetect.edgeDetection.logoTreshold){
-      // možno, da je watermark zgoraj. Preverimo, če se kateri od drugih potencialnih robov na zgornjem robu
-      // ujema s prvim spodnjim (+/- variance). Če je temu tako, potem bo verjetno watermark. Logo mora imeti
-      // manj vzorcev kot navaden rob.
-      
-      if(edgesTop[0].length > 1){
-        var lowMargin = edgesBottom[0].distance - alignMargin;
-        var highMargin = edgesBottom[0].distance + alignMargin;
-        
-        for(var i = 1; i < edgesTop.length; i++){
-          if(edgesTop[i].distance >= lowMargin && edgesTop[i].distance <= highMargin){
-            // dobili smo dejanski rob. vrnimo ga
-            // we found the actual edge. let's return that.
-            var blackbarWidth = edgesTop[i].distance > edgesBottom[0].distance ? 
-                                edgesTop[i].distance : edgesBottom[0].distance;
-            
-            return  {status: "ar_known", blackbarWidth: blackbarWidth, guardLineTop: edgesTop[i].distance, guardLineBottom: edgesBottom[0].absolute};
-          }
-        }
-      }
-    }
-    if( edgesBottom[0].distance < edgesTop[0].distance &&
-        edgesBottom[0].count    < edgesTop[0].count    &&
-        edgesBottom[0].count    < GlobalVars.arDetect.sampleCols * ExtensionConf.arDetect.edgeDetection.logoTreshold){
-      
-      if(edgesBottom[0].length > 1){
-        var lowMargin = edgesTop[0].distance - alignMargin;
-        var highMargin = edgesTop[0].distance + alignMargin;
-        
-        for(var i = 1; i < edgesBottom.length; i++){
-          if(edgesBottom[i].distance >= lowMargin && edgesTop[i].distance <= highMargin){
-            // dobili smo dejanski rob. vrnimo ga
-            // we found the actual edge. let's return that.
-            var blackbarWidth = edgesBottom[i].distance > edgesTop[0].distance ? 
-                                edgesBottom[i].distance : edgesTop[0].distance;
-            
-            return  {status: "ar_known", blackbarWidth: blackbarWidth, guardLineTop: edgesTop[0].distance, guardLineBottom: edgesBottom[0].absolute};
-          }
-        }
-      }
-    }
-  }
-  else{
-    // zgornjega ali spodnjega roba nismo zaznali. Imamo še en trik, s katerim lahko poskusimo 
-    // določiti razmerje stranic
-    // either the top or the bottom edge remains undetected, but we have one more trick that we
-    // can try. It also tries to work around logos.
-    
-    var edgeDetectionTreshold = GlobalVars.arDetect.sampleCols * ExtensionConf.arDetect.edgeDetection.singleSideConfirmationTreshold;
-    
-    if(edges.edgeCandidatesTopCount == 0 && edges.edgeCandidatesBottomCount != 0){
-      for(var edge of edgesBottom){
-        if(edge.count >= edgeDetectionTreshold)
-          return {status: "ar_known", blackbarWidth: edge.distance, guardLineTop: null, guardLineBottom: edge.bottom}
-      }
-    }
-    if(edges.edgeCandidatesTopCount != 0 && edges.edgeCandidatesBottomCount == 0){
-      for(var edge of edgesTop){
-        if(edge.count >= edgeDetectionTreshold)
-          return {status: "ar_known", blackbarWidth: edge.distance, guardLineTop: edge.top, guardLineBottom: null}
-      }
-    }
-  }
-  // če pridemo do sem, nam ni uspelo nič. Razmerje stranic ni znano
-  // if we reach this bit, we have failed in determining aspect ratio. It remains unknown.
-  return {status: "ar_unknown"}
-}
-
-var _ard_stop = function(){
-  if(Debug.debug){
-    console.log("%c[ArDetect::_ard_stop] Stopping automatic aspect ratio detection", _ard_console_stop);    
-  }
-  this._forcehalt = true;
-  this._halted = true;
-  clearTimeout(_ard_timer);
-  clearTimeout(_ard_setup_timer);
-}
-
-var _ard_resetBlackLevel = function(){
-  this.blackLevel = ExtensionConf.arDetect.blackLevel_default;
-}
-
-var _ard_isRunning = function(){
-  return ! this._halted;
-}
-
-function this.getTimeout(baseTimeout, startTime){
-  var execTime = (performance.now() - startTime);
-  
-  if( execTime > ExtensionConf.arDetect.autoDisable.maxExecutionTime ){
-     this.detectionTimeoutEventCount++;
-
-    if(Debug.debug){
-      console.log("[ArDetect::getTimeout] Exec time exceeded maximum allowed execution time. This has now happened" +  this.detectionTimeoutEventCount + "times in a row.");
-    }
-
-    if( this.detectionTimeoutEventCount >= ExtensionConf.arDetect.autoDisable.consecutiveTimeoutCount ){
-      if (Debug.debug){
-        console.log("[ArDetect::getTimeout] Maximum execution time was exceeded too many times. Automatic aspect ratio detection has been disabled.");
-      }
-
-      Comms.sendToBackgroundScript({cmd: 'disable-autoar', reason: 'Automatic aspect ratio detection was taking too much time and has been automatically disabled in order to avoid lag.'});
-      _ard_stop();
-      return 999999;
-    }
-    
-  } else {
-     this.detectionTimeoutEventCount = 0;
-  } 
-//   return baseTimeout > ExtensionConf.arDetect.minimumTimeout ? baseTimeout : ExtensionConf.arDetect.minimumTimeout;
-  
-  return baseTimeout;
-}
-
-var ArDetect = {
-  _forcehalt: false,
-  _halted: false,
-  arSetup: _arSetup,
-  init: _arSetup,
-  vdraw: _ard_vdraw,
-  detectedAr: 1,
-  arChangedCallback: function() {},
-  stop: _ard_stop,
-  isRunning: _ard_isRunning,
-  resetBlackLevel: _ard_resetBlackLevel
-}
