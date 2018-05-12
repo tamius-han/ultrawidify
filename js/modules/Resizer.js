@@ -1,116 +1,70 @@
 if(Debug.debug)
   console.log("Loading: Resizer.js");
 
-// restore watchdog. While true, _res_applyCss() tries to re-apply new css until this value becomes false again
-// value becomes false when width and height of <video> tag match with what we want to set. Only necessary when
-// calling _res_restore() for some weird reason.
-var _res_restore_wd = false;  
+
+
+var StretchMode = {
+  NO_STRETCH = 0,
+  CONDITIONAL = 1,
+  FULL = 2
+}
+
 
 class Resizer {
   
-  constructor(videoData, player){
-    this.videoData = videoData;
+  constructor(videoData){
+    this.conf = videoData;
     this.video = videoData.video;
 
-    this.player = player;
+
+    this.scaler = new Scaler();
+    this.stretcher = new Stretcher(); 
+    this.zoom = new Zoom();
+
+    // load up default values
+    this.stretch = {mode: ExtensionConf.stretch.initialMode};
+
+    // restore watchdog. While true, applyCss() tries to re-apply new css until this value becomes false again
+    // value becomes false when width and height of <video> tag match with what we want to set. Only necessary when
+    // calling _res_restore() for some weird reason.
+    this.restore_wd = false;
   }
   
-  setAr(ar){
+  setAr(ar, lastAr){
     if(Debug.debug){
       console.log('[Resizer::setAr] trying to set ar. New ar:', ar)
     }
 
-    this.lastAr = {type: 'static', ar: ar};
+    if(lastAr) {
+      this.lastAr = lastAr;
+    } else {
+      this.lastAr = {type: 'static', ar: ar};
+    }
 
     if (! this.video) {
       console.log("No video detected.")
       this.videoData.destroy();
     }
+
+
+    var dimensions = Scaler.calculateCrop(ar, this.video, this.conf.player.dimensions);
+    var stretchFactors;
+
+    // if we set stretching, we apply stretching
+    if (this.stretch.mode == StretchMode.FULL){
+      stretchFactors = Stretcher.calculateStretch(dimensions);
+    } else if (this.stretch.mode == StretchMode.CONDITIONAL) {
+      stretchFactors = Stretcher.conditionalStretch(dimensions, ExtensionConf.stretch.conditionalDifferencePercent);
+    }
+
+    zoom.applyZoom(dimensions);
+
   }
+
 
 }
 
 
-var _res_setAr = function(ar){
-  if(Debug.debug)
-    console.log("[Resizer::_res_setAr] trying to set ar. args are: ar->",ar,"; playerDimensions->",GlobalVars.playerDimensions.width, "×", GlobalVars.playerDimensions.height, "| obj:", GlobalVars.playerDimensions);
-
-  GlobalVars.lastAr = {type: "static", ar: ar};
-    
-  var vid = GlobalVars.video;
-  if(vid == null || vid==undefined || vid.videoWidth == 0 || vid.videoHeight == 0){
-    vid =  document.getElementsByTagName("video")[0];
-    GlobalVars.video = vid;
-    
-    if(vid == null || vid==undefined || vid.videoWidth == 0 || vid.videoHeight == 0){
-      if(Debug.debug)
-        console.log("[Resizer::_res_setAr] I lied. Tricked you! You thought there's gonna be a video, didn't you? Never would be.", vid);   // of course that's thorin reference -> https://youtu.be/OY5gGkeQn1c?t=1m20s
-      return;
-    }
-  }
-  
-  if(Debug.debug)
-    console.log("[Resizer::_res_setAr] video:",vid,"width:", vid.videoWidth, "height:", vid.videoHeight);
-  
-  if(! GlobalVars.playerDimensions || GlobalVars.playerDimensions.width === 0 || GlobalVars.playerDimensions.height){
-    GlobalVars.playerDimensions = PlayerDetect.getPlayerDimensions(vid);
-    
-    if(Debug.debug)
-      console.log("[Resizer::_res_setAr] playerDimensions are undefined, trying to determine new ones ... new dimensions:", GlobalVars.playerDimensions.width, "×", GlobalVars.playerDimensions.height, "| obj:", GlobalVars.playerDimensions);
-
-    if(! GlobalVars.playerDimensions || GlobalVars.playerDimensions.width === 0 || GlobalVars.playerDimensions.height === 0){
-      if(Debug.debug)
-        console.log("[Resizer::_res_setAr] failed to get player dimensions. Doing nothing. Here's the object:", GlobalVars.playerDimensions);
-      return;
-    }
-  }
-
-
-  // Dejansko razmerje stranic datoteke/<video> značke
-  // Actual aspect ratio of the file/<video> tag
-  var fileAr = vid.videoWidth / vid.videoHeight;
-  var playerAr = GlobalVars.playerDimensions.width / GlobalVars.playerDimensions.height;
-
-  if(ar == "default" || !ar)
-    ar = fileAr;
-
-  
-  if(Debug.debug)
-    console.log("[Resizer::_res_setAr] ar is " ,ar, ", file ar is", fileAr, ", playerDimensions are ", GlobalVars.playerDimensions.width, "×", GlobalVars.playerDimensions.height, "| obj:", GlobalVars.playerDimensions);
-  
-  var videoDimensions = {
-    width: 0,
-    height: 0
-  }
-  
-  if(Debug.debug){
-    console.log("[Resizer::_res_setAr] Player dimensions?", GlobalVars.playerDimensions.width, "×", GlobalVars.playerDimensions.height, "| obj:", GlobalVars.playerDimensions);
-  }
-  
-  if( fileAr < ar ){
-    // imamo letterbox zgoraj in spodaj -> spremenimo velikost videa (a nikoli širše od ekrana)
-    // letterbox -> change video size (but never to wider than monitor width)
-
-      videoDimensions.width = Math.min(GlobalVars.playerDimensions.height * ar, GlobalVars.playerDimensions.width);
-      videoDimensions.height = videoDimensions.width * (1/fileAr);
-  }
-  else{
-      videoDimensions.height = Math.min(GlobalVars.playerDimensions.width * (1/ar), GlobalVars.playerDimensions.height);
-      videoDimensions.width = videoDimensions.height * fileAr;
-  }
-  
-  if(Debug.debug){
-    console.log("[Resizer::_res_setAr] Video dimensions: ", videoDimensions.width, "×", videoDimensions.height, "(obj:", videoDimensions, "); playerDimensions:",GlobalVars.playerDimensions.width, "×", GlobalVars.playerDimensions.height, "(obj:", GlobalVars.playerDimensions, ")");
-  }
-  
-  var cssValues = _res_computeOffsets(videoDimensions, GlobalVars.playerDimensions);
-  
-  if(Debug.debug){
-    console.log("[Resizer::_res_setAr] Offsets for css are: ",cssValues);
-  }
-  
-  _res_applyCss(cssValues);
-}
 
 var _res_computeOffsets = function(vidDim, playerDim){
 

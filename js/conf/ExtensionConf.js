@@ -88,6 +88,11 @@ var ExtensionConf = {
   miscFullscreenSettings: {
     videoFloat: "center"
   },
+  stretch: {
+    initialMode: 0,                     // 0 - no stretch, 1 - conditional, 2 - full
+    conditionalDifferencePercent: 0.05  // black bars less than this wide will trigger stretch
+                                        // if mode is set to '1'. 1.0=100%
+  },
   colors:{
     //     criticalFail: "background: #fa2; color: #000"
   }

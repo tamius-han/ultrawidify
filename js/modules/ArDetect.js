@@ -10,6 +10,8 @@ class ArDetector {
     // todo: dynamically detect the following two
     this.canFallback = true;
     this.fallbackMode = false;
+
+    this.init();
   }
 
   init(){
