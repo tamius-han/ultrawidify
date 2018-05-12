@@ -60,7 +60,7 @@ class Scaler {
     // if 'ar' is string, we'll handle that in legacy wrapper
     var ar = 0;
     if(isNaN(mode)){
-      ar = this.modeToAr(ar);
+      ar = this.modeToAr(mode);
     } else {
       ar = mode;
     }
