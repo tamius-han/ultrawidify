@@ -5,6 +5,7 @@ class VideoData {
     // todo: add ArDetect instance
     this.arDetector = new ArDetector(video);
     this.resizer = new Resizer(this);
+    this.player = new PlayerData(this);
 
     // player dimensions need to be in:
     // this.player.dimensions
@@ -25,5 +26,6 @@ class VideoData {
   setLastAr(lastAr){
     this.resizer.setLastAr(lastAr);
   }
+
 
 }
