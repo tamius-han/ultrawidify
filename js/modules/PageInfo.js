@@ -6,19 +6,23 @@ class PageInfo {
     this.hasVideos = false;
     this.siteDisabled = false;
     this.videos = [];
+
+
+    this.rescan();
   }
 
+  rescan(count){
+    var vids = document.getElementsByTagName('video');
 
-  rescan(){
-    var videos = document.getElementsByTagName('video');
-
-    if(!videos || videos.length == 0){
+    if(!vids || vids.length == 0){
       this.hasVideos = false;
       return;
     }
 
+    debugger;
+
     // add new videos
-    for(video of videos){
+    for(var video of vids){
       var existing = this.videos.find( (x) => {
         if (x == video.video)
           return x;
@@ -30,20 +34,30 @@ class PageInfo {
       if(existing){
         video.video = existing;
       } else {
-        videos.push(
+        this.videos.push(
           new VideoData(video)
         );
       }
     }
   }
 
-}
+  initAr(){
+    for(var vd in this.videos){
+      vd.initAr();
+    }
+  }
 
-var _pi_hasVideos = function(){
-//   return true;
-  var videos = document.getElementsByTagName("video");
-  if(videos.length == 0)
-    return false;
+  setAr(ar){
+    // TODO: find a way to only change aspect ratio for one video
+    for(var vd in this.videos){
+      vd.setAr(ar)
+    }
+  }
   
-//   if(videos[0].style.display == "none") // in this case ultrawidify doesn't even work
-//     return false;
+  setStretchMode(sm){
+    for(var vd in this.videos){
+      vd.setStretchMode(ar)
+    }
+  }
+
+}

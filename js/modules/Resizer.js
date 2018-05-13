@@ -1,12 +1,10 @@
 if(Debug.debug)
   console.log("Loading: Resizer.js");
 
-
-
 var StretchMode = {
-  NO_STRETCH = 0,
-  CONDITIONAL = 1,
-  FULL = 2
+  NO_STRETCH: 0,
+  CONDITIONAL: 1,
+  FULL: 2
 }
 
 

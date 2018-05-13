@@ -12,88 +12,64 @@ if(Debug.debug){
   }
 }
 
-class VideoManager {
 
 
-  refresh(){
-
-  }
-
-}
-
-
-// load all settings from localStorage:
-
-async function main(){
+async function init(){
   if(Debug.debug)
     console.log("[uw::main] loading configuration ...");
 
   // load settings
   var isSlave = true;
   await Settings.init(isSlave);
-  var scpromise = SitesConf.init();
-  var kbpromise = Keybinds.init();
+
+  // za sporočilca poslušamo v vsakem primeru, tudi če je razširitev na spletnem mestu onemogočena
+  // we listen for messages in any case, even if extension is disabled on current site. 
+  browser.runtime.onMessage.addListener(receiveMessage);  
+
+  await SitesConf.init();
+  // če je trenutno mesto onemogočeno, potem zaključimo na tem mestu
+  // if current site is disabled, we quit here
   
-  // reset current css stuff in GlobalVars
-  GlobalVars.correctedVideoDimensions.top = null;
-  GlobalVars.correctedVideoDimensions.left = null;
-  GlobalVars.correctedVideoDimensions.width = null;
-  GlobalVars.correctedVideoDimensions.height = null;
-
-  GlobalVars.currentCss = {top: null, left: null};
-
-  // počakamo, da so nastavitve naložene
-  // wait for settings to load
-  await scpromise;
-  await kbpromise;
-
-  // globalVars: lastAr type = original
-  GlobalVars.lastAr = {type: "original"};
-  
-  if(Debug.debug)
-    console.log("[uw::main] configuration should be loaded now");
-  // start autoar and setup everything
-
-
-  if(Debug.debug)
-    console.log("[uw::main] | document is ready. Starting ar script ...");
-
   if(! SitesConf.isEnabled(window.location.hostname)){
     if(Debug.debug)
       console.log("[uw:main] | site", window.location.hostname, "is blacklisted.");
 
     return;
   } 
-  
-  //   if(SitesConf.isArEnabled(window.location.hostname)){
-  //     if(Debug.debug)
-  //       console.log("[uw::main] Aspect ratio detection is enabled. Starting ArDetect");
-  //     ArDetect.arSetup();
-  //   }
-  //   console.log("[uw::main] ExtensionConf:", ExtensionConf);
 
-  if(ExtensionConf.arDetect.mode == "blacklist"){
-    if(Debug.debug)
-      console.log("[uw::main] Aspect ratio detection is enabled (mode=",ExtensionConf.arDetect.mode,"). Starting ArDetect");
-    ArDetect.arSetup();
-  }
-  else{
-    if(Debug.debug)
-      console.log("[uw::main] Aspect ratio detection is disabled. Mode:", ExtensionConf.arDetect.mode);
+
+
+  await Keybinds.init();
+
+  if(Debug.debug)
+    console.log("[uw::main] configuration should be loaded now");
+
+  
+  // setup the extension
+  setup();
+}
+
+var pageInfo;
+
+async function setup(){
+  
+  pageInfo = new PageInfo();
+
+  if(Debug.debug){
+    console.log("[uw.js::setup] pageInfo initialized. Here's the object:", pageInfo);
   }
   
-  browser.runtime.onMessage.addListener(receiveMessage);
-  setInterval( ghettoOnChange, 100);
-  setInterval( ghettoUrlWatcher, 500);
+  // if(ExtensionConf.arDetect.mode == "blacklist"){
+  //   if(Debug.debug)
+  //     console.log("[uw::main] Aspect ratio detection is enabled (mode=",ExtensionConf.arDetect.mode,"). Starting ArDetect");
+  //   ArDetect.arSetup();
+  // }
+  // else{
+  //   if(Debug.debug)
+  //     console.log("[uw::main] Aspect ratio detection is disabled. Mode:", ExtensionConf.arDetect.mode);
+  // }
   
-  // ko se na ticevki zamenja video, console.log pravi da ultrawidify spremeni razmerje stranic. preglej element 
-  // in pogled na predvajalnik pravita, da se to ni zgodilo. Iz tega sledi, da nam ticevka povozi css, ki smo ga
-  // vsilili. To super duper ni kul, zato uvedemo nekaj protiukrepov.
-  //
-  // when you change a video on youtube, console.log says that ultrawidify changes aspect ratio. inspect element 
-  // and a look at youtube player, on the other hand, say this didn't happen. It seems that youtube overrides our
-  // css, and this is super duper uncool. Therefore, extra checks and measures.
-  setInterval( Resizer.antiCssOverride, 200);
+  
   
 }
 
@@ -272,5 +248,5 @@ function receiveMessage(message, sender, sendResponse) {
 
 
 // $(document).ready(function() {
-  main();
+  init();
 // });

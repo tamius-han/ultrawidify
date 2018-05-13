@@ -3,7 +3,7 @@ class DebugCanvas {
     this.conf = ardConf;
   }
 
-  init = async function(canvasSize, canvasPosition){
+  init(canvasSize, canvasPosition) {
     console.log("initiating DebugCanvas")
    
     var body = document.getElementsByTagName('body')[0];
@@ -34,18 +34,18 @@ class DebugCanvas {
     console.log("debug canvas is:", this.canvas, "context:", this.context)
   }
 
-  setBuffer = function(buffer) {
+  setBuffer(buffer) {
     // this.imageBuffer = buffer.splice(0);
     this.imageBuffer = new Uint8ClampedArray(buffer);
   }
 
-  trace = function(arrayIndex, colorClass){
+  trace(arrayIndex, colorClass) {
     this.imageBuffer[arrayIndex  ] = colorClass.colorRgb[0];
     this.imageBuffer[arrayIndex+1] = colorClass.colorRgb[1];
     this.imageBuffer[arrayIndex+2] = colorClass.colorRgb[2];  
   }
 
-  update(){
+  update() {
     if(this.context && this.imageBuffer instanceof Uint8ClampedArray){
       var idata = new ImageData(this.imageBuffer, this.canvas.width, this.canvas.height);
       this.putImageData(this.context, idata, 0, 0);
