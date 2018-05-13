@@ -1,3 +1,13 @@
+var EdgeDetectPrimaryDirection = {
+  VERTICAL: 0,
+  HORIZONTAL: 1
+}
+
+var EdgeDetectQuality = {
+  FAST: 0,
+  IMPROVED: 1
+}
+
 class EdgeDetect{
 
   constructor(ardConf){
@@ -575,14 +585,4 @@ class EdgeDetect{
     }
   }
 
-}
-
-var EdgeDetectPrimaryDirection = {
-  VERTICAL: 0,
-  HORIZONTAL: 1
-}
-
-var EdgeDetectQuality = {
-  FAST: 0,
-  IMPROVED: 1
 }

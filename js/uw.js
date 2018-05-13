@@ -12,6 +12,16 @@ if(Debug.debug){
   }
 }
 
+class VideoManager {
+
+
+  refresh(){
+
+  }
+
+}
+
+
 // load all settings from localStorage:
 
 async function main(){
@@ -136,42 +146,6 @@ function ghettoOnChange(){
       return;
     }
   }
-  
-  if(PlayerDetect.checkPlayerSizeChange()){
-    
-    if(Debug.debug){
-      console.log("[uw::ghettoOnChange] change detected");
-    }
-    
-    
-    GlobalVars.playerDimensions = PlayerDetect.getPlayerDimensions( GlobalVars.video );
-    
-    if(GlobalVars.playerDimensions == undefined){
-      GlobalVars.playerDimensions = null;
-      return;
-    }
-    
-    Resizer.restore(); // note: this returns true if change goes through, false otherwise.
-  }
-  
-  // sometimes, checkPlayerSizeChange might not detect a change to fullscreen. This means we need to 
-  // trick it into doing that
-  
-  if(GlobalVars.playerDimensions.fullscreen != PlayerDetect.isFullScreen()){
-    
-    if(Debug.debug){
-      console.log("[uw::ghettoOnChange] fullscreen switch detected");
-    }
-    
-    GlobalVars.playerDimensions = PlayerDetect.getPlayerDimensions(GlobalVars.video);
-    if(GlobalVars.playerDimensions == undefined){
-      GlobalVars.playerDimensions = null;
-      return;
-    }
-    
-    Resizer.restore();
-  }
-  
 }
 
 function ghettoUrlWatcher(){
