@@ -93,6 +93,12 @@ var ExtensionConf = {
     conditionalDifferencePercent: 0.05  // black bars less than this wide will trigger stretch
                                         // if mode is set to '1'. 1.0=100%
   },
+  resizer: {
+    setStyleString: {
+      maxRetries: 3,
+      retryTimeout: 200
+    }
+  },
   colors:{
     //     criticalFail: "background: #fa2; color: #000"
   }

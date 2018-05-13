@@ -29,7 +29,7 @@
     "js/lib/EdgeDetect.js",
     "js/lib/GuardLine.js",
     
-    "js/lib/PlayerDetect.js",
+    
     
     "js/modules/PageInfo.js",
     "js/modules/DebugCanvas.js",
@@ -38,7 +38,8 @@
     "js/modules/Scaler.js",
     "js/modules/Stretcher.js",
 
-    "js/modules/Resizer.js",    
+    "js/modules/Resizer.js",   
+    "js/lib/PlayerData.js", 
     "js/lib/VideoData.js",
 
     "js/conf/Keybinds.js",
