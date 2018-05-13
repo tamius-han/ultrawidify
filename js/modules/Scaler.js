@@ -39,15 +39,15 @@ class Scaler {
     
     var fileAr = video.videoWidth / video.videoHeight;
       
-    if (action == "fitw"){
+    if (mode == "fitw"){
       return ar > fileAr ? ar : fileAr;
     }
-    else if(action == "fith"){
+    else if(mode == "fith"){
       return ar < fileAr ? ar : fileAr;
     }
-    else if(action == "reset"){
+    else if(mode == "reset"){
       if(Debug.debug){
-        console.log("[Resizer.js::_res_legacyAr] Resetting aspect ratio to", fileAr)
+        console.log("[Scaler.js::modeToAr] Using original aspect ratio -", fileAr)
       }
 
       return fileAr;

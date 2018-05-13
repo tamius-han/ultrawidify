@@ -1,5 +1,5 @@
 if(Debug.debug)
-  console.log("Loading: FullScreenDetect.js");
+  console.log("Loading: PlayerData.js");
 
 /* sprejme <video> tag (element) in seznam imen, ki se lahko pojavijo v razredih oz. id staršev.
 // vrne dimenzije predvajalnika (širina, višina)
