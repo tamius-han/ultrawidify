@@ -3,7 +3,7 @@ class VideoData {
   constructor(video){
     this.video = video;
     // todo: add ArDetect instance
-    this.arDetector = new ArDetector(video);
+    this.arDetector = new ArDetector(video);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
     this.resizer = new Resizer(this);
     this.player = new PlayerData(this);
 
@@ -27,5 +27,12 @@ class VideoData {
     this.resizer.setLastAr(lastAr);
   }
 
+  setAr(ar, lastAr){
+    this.resizer.setAr(ar, lastAr);
+  }
+
+  setStretchMode(stretchMode){
+    this.resizer.setStretchMode(stretchMode);
+  }
 
 }

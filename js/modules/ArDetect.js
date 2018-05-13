@@ -18,7 +18,7 @@ class ArDetector {
     this.guardLine = new GuardLine(this);
     this.edgeDetector = new EdgeDetect(this);
     this.debugCanvas = new DebugCanvas(this);
-    setup(ExtensionConf.arDetect.hSamples, ExtensionConf.arDetect.vSamples);
+    this.setup(ExtensionConf.arDetect.hSamples, ExtensionConf.arDetect.vSamples);
   }
 
   setup(cwidth, cheight){
@@ -226,7 +226,7 @@ class ArDetector {
   }
   //#endregion
 
-  processAr = function(edges){
+  processAr(edges){
 
     if(Debug.debug && Debug.debugArDetect){
       console.log("[ArDetect::_ard_processAr] processing ar. sample width:", this.canvas.width, "; sample height:", this.canvas.height, "; edge top:", edges.top);

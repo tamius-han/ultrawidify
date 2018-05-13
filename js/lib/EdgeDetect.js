@@ -27,7 +27,7 @@ class EdgeDetect{
   }
 
   findBars(image, sampleCols, direction = EdgeDetectPrimaryDirection.VERTICAL, quality = EdgeDetectQuality.IMPROVED, guardLineOut){
-    var fastCandidates, edgeCandidates, bars,
+    var fastCandidates, edgeCandidates, bars;
     if (direction == EdgeDetectPrimaryDirection.VERTICAL) {
       fastCandidates = this.findCandidates(image, sampleCols, guardLine);
 
@@ -230,7 +230,7 @@ class EdgeDetect{
     };
   }
 
-  edgePostprocess = function(edges){
+  edgePostprocess(edges){
     var edgesTop = [];
     var edgesBottom = [];
     var alignMargin = this.conf.context.height * ExtensionConf.arDetect.allowedMisaligned;

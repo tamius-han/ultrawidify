@@ -99,7 +99,7 @@ class PlayerData {
       return;
     }
 
-    var isFullScreen = PlayerData.isFullScreen();
+    var isFullScreen = this.isFullScreen();
   
     var trustCandidateAfterGrows = 2; // if candidate_width or candidate_height increases in either dimensions this many
                                       // times, we say we found our player. (This number ignores weird elements)
