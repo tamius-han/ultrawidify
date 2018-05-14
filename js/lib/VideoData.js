@@ -2,20 +2,23 @@ class VideoData {
   
   constructor(video){
     this.video = video;
-    // todo: add ArDetect instance
-    this.arDetector = new ArDetector(video);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
-    this.resizer = new Resizer(this);
+
+    // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
+    // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)    
     this.player = new PlayerData(this);
+    this.resizer = new Resizer(this);
+
+    this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
 
     // player dimensions need to be in:
     // this.player.dimensions
   }
 
-  initAr() {
+  initArDetection() {
     this.arDetector.init();
   }
 
-  startAr() {
+  startArDetection() {
     this.arDetector.start();
   }
 

@@ -70,6 +70,10 @@ class Resizer {
     this.applyCss(cssOffsets, stretchFactors);
   }
 
+  setLastAr(override){
+    this.lastAr = override;
+  }
+
   setStretchMode(stretchMode){
     this.stretch.mode = stretchMode;
   }

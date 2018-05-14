@@ -19,7 +19,7 @@ class PageInfo {
       return;
     }
 
-    debugger;
+    // debugger;
 
     // add new videos
     for(var video of vids){
@@ -41,9 +41,9 @@ class PageInfo {
     }
   }
 
-  initAr(){
+  initArDetection(){
     for(var vd in this.videos){
-      vd.initAr();
+      vd.initArDetection();
     }
   }
 

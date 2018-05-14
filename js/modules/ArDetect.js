@@ -1,20 +1,27 @@
 class ArDetector {
 
   constructor(videoData){
-    this.videoData = videoData;
+    this.conf = videoData;
     this.video = videoData.video;
     
     this.setupTimer = null;
     this.timer = null;
 
+    this.sampleCols = [];
+
     // todo: dynamically detect the following two
     this.canFallback = true;
     this.fallbackMode = false;
+
+    this.blackLevel = ExtensionConf.arDetect.blackLevel_default;    
 
     this.init();
   }
 
   init(){
+    if(Debug.debug){
+      console.log("[ArDetect::init] Initializing autodetection")
+    }
     this.guardLine = new GuardLine(this);
     this.edgeDetector = new EdgeDetect(this);
     this.debugCanvas = new DebugCanvas(this);
@@ -22,6 +29,16 @@ class ArDetector {
   }
 
   setup(cwidth, cheight){
+    if(Debug.debug){
+      console.log("[ArDetect::setup] Starting autodetection setup");
+    }
+
+    if(!cwidth){
+      cwidth = ExtensionConf.arDetect.hSamples;
+      cheight = ExtensionConf.arDetect.vSamples;
+    }
+
+    
     try{
       if(Debug.debug)
         console.log("%c[ArDetect::_ard_setup] Starting automatic aspect ratio detection", _ard_console_start);
@@ -29,13 +46,13 @@ class ArDetector {
       this._halted = false;
       this.detectionTimeoutEventCount = 0;
       
-      // vstavimo začetne stolpce v _ard_sampleCols. 
-      // let's insert initial columns to _ard_sampleCols
+      // vstavimo začetne stolpce v this.sampleCols. 
+      // let's insert initial columns to this.sampleCols
       this.sampleCols = [];
 
       var samplingIntervalPx = parseInt(cheight / ExtensionConf.arDetect.samplingInterval)
       for(var i = 1; i < ExtensionConf.arDetect.samplingInterval; i++){
-        _ard_sampleCols.push(i * samplingIntervalPx);
+        this.sampleCols.push(i * samplingIntervalPx);
       }
       
       if(this.canvas){
@@ -68,7 +85,7 @@ class ArDetector {
       
       // do setup once
       // tho we could do it for every frame
-      this.canvasScaleFactor = cheight / vid.videoHeight;
+      this.canvasScaleFactor = cheight / this.video.videoHeight;
 
       try{
         // determine where to sample
@@ -107,11 +124,11 @@ class ArDetector {
       this.guardLine.top = null;
       this.guardLine.bottom = null;
       
-      _ard_resetBlackLevel();
+      this.resetBlackLevel();
       this._forcehalt = false;
       // if we're restarting ArDetect, we need to do this in order to force-recalculate aspect ratio
       
-      videoData.setLastAr({type: "auto", ar: null});
+      this.conf.resizer.setLastAr({type: "auto", ar: null});
 
       this.canvasImageDataRowLength = cwidth << 2;
       this.noLetterboxCanvasReset = false;
@@ -123,7 +140,7 @@ class ArDetector {
     }
   
     if(Debug.debugCanvas.enabled){
-      DebugCanvas.init({width: cwidth, height: cheight});
+      this.debugCanvas.init({width: cwidth, height: cheight});
       // DebugCanvas.draw("test marker","test","rect", {x:5, y:5}, {width: 5, height: 5});
     }
   }
@@ -147,27 +164,6 @@ class ArDetector {
     return ! this._halted;
   }
 
-  scheduleFrameCheck(timeout, force_reset){
-    if(! timeout){
-      this.frameCheck();
-      return;
-    }
-  
-    // run anything that needs to be run after frame check
-    this.postFrameCheck(); 
-
-    // don't allow more than 1 instance
-    if(this.timer){ 
-      clearTimeout(this.timer);
-    }
-    
-    this.timer = setTimeout(function(){
-        this.timer = null;
-        this.frameCheck();
-      },
-      timeout
-    );
-  }
 
   postFrameCheck(){
     if(Debug.debugCanvas.enabled){
@@ -260,7 +256,7 @@ class ArDetector {
     
     // poglejmo, če se je razmerje stranic spremenilo
     // check if aspect ratio is changed:
-    var lastAr = this.videoData.getLastAr();
+    var lastAr = this.conf.getLastAr();
     if( lastAr.type == "auto" && lastAr.ar != null){
       // spremembo lahko zavrnemo samo, če uporabljamo avtomatski način delovanja in če smo razmerje stranic
       // že nastavili.
@@ -300,7 +296,7 @@ class ArDetector {
     // IMPORTANT NOTE: GlobalVars.lastAr needs to be set after _res_setAr() is called, as _res_setAr() assumes we're
     // setting a static aspect ratio (even if the function is called from here or ArDetect). 
     
-    this.videoData.resizer.setAr(trueAr, {type: "auto", ar: trueAr});
+    this.conf.resizer.setAr(trueAr, {type: "auto", ar: trueAr});
   }
 
   frameCheck(){
@@ -395,7 +391,7 @@ class ArDetector {
       if(Debug.debugArDetect)
         console.log("[ArDetect::_ard_vdraw] black level undefined, resetting");
       
-      _ard_resetBlackLevel();
+      this.resetBlackLevel();
     }
     
     // we get the entire frame so there's less references for garbage collection to catch
@@ -484,7 +480,7 @@ class ArDetector {
       // while resetting the CSS, we also reset guardline top and bottom back to null.
       
       if(! GlobalVars.arDetect.noLetterboxCanvasReset){
-        this.videoData.resizer.reset({type: "auto", ar: null});
+        this.conf.resizer.reset({type: "auto", ar: null});
         this.guardLine.top = null;
         this.guardLine.bottom = null;
         this.noLetterboxCanvasReset = true;
@@ -508,7 +504,7 @@ class ArDetector {
     // let's check if we're cropping too much (or whatever)
     var guardLineOut;
     
-    guardLineOut = GuardLine.check(image, fallbackMode);
+    guardLineOut = this.guardLine.check(image, fallbackMode);
     
     if (guardLineOut.blackbarFail) { // add new ssamples to our sample columns
       for(var col of guardLineOut.offenders){
@@ -521,7 +517,7 @@ class ArDetector {
     
     // if we're in fallback mode and blackbar test failed, we restore CSS
     if (fallbackMode && guardLineOut.blackbarFail) {
-      this.videoData.resizer.reset({type: "auto", ar: null});
+      this.conf.resizer.reset({type: "auto", ar: null});
       this.guardLine.reset();
       this.arDetect.noLetterboxCanvasReset = true;
       
@@ -548,14 +544,14 @@ class ArDetector {
     // that we will cut too much, we rather avoid doing anything at all. There's gonna be a next chance.
     
     if(guardLineOut.blackbarFail || guardLineOut.imageFail){
-      if(pillarTest(image)){
+      if(this.edgeDetector.findBars(image, null, EdgeDetectPrimaryDirection.HORIZONTAL).status === 'ar_known'){
 
         if(Debug.debug && guardLineOut.blackbarFail){
           console.log("[ArDetect::_ard_vdraw] Detected blackbar violation and pillarbox. Resetting to default aspect ratio.");
         }
 
         if(! guardLineResult){
-          this.videoData.resizer.reset({type: "auto", ar: null});
+          this.conf.resizer.reset({type: "auto", ar: null});
           this.guardLine.reset();
         }
 
@@ -571,10 +567,8 @@ class ArDetector {
     GlobalVars.sampleCols_current = sampleCols.length;
     
     // blackSamples -> {res_top, res_bottom}
-    var blackbarSamples = _ard_findBlackbarLimits(image, sampleCols, guardLineResult, imageDetectResult);
-    
-    var edgeCandidates = _ard_edgeDetect(image, blackbarSamples);
-    var edgePost = _ard_edgePostprocess(edgeCandidates, this.canvas.height);
+   
+    var edgePost = this.edgeDetector.findBars(image, sampleCols, EdgeDetectPrimaryDirection.VERTICAL, EdgeDetectQuality.IMPROVED, guardLineOut);
     
     //   console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:",GlobalVars.arDetect.blackLevel, "tresh:", this.blackLevel + ExtensionConf.arDetect.blackbarTreshold);
     
@@ -613,6 +607,35 @@ class ArDetector {
       this.scheduleFrameCheck(triggerTimeout); //no letterbox, no problem
       return;
     }
+  }
+
+  resetBlackLevel(){
+    this.blackLevel = ExtensionConf.arDetect.blackLevel_default;    
+  }
+
+  scheduleFrameCheck(timeout, force_reset){
+    if(! timeout){
+      this.frameCheck();
+      return;
+    }
+  
+    // run anything that needs to be run after frame check
+    this.postFrameCheck(); 
+
+    // don't allow more than 1 instance
+    if(this.timer){ 
+      clearTimeout(this.timer);
+    }
+    
+    var ths = this;
+
+    this.timer = setTimeout(function(){
+        ths.timer = null;
+        ths.frameCheck();
+        ths = null;
+      },
+      timeout
+    );
   }
 
 }
