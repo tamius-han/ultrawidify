@@ -29,12 +29,12 @@ class EdgeDetect{
   findBars(image, sampleCols, direction = EdgeDetectPrimaryDirection.VERTICAL, quality = EdgeDetectQuality.IMPROVED, guardLineOut){
     var fastCandidates, edgeCandidates, bars;
     if (direction == EdgeDetectPrimaryDirection.VERTICAL) {
-      fastCandidates = this.findCandidates(image, sampleCols, guardLine);
+      fastCandidates = this.findCandidates(image, sampleCols, guardLineOut);
 
       // if(quality == EdgeDetectQuality.FAST){
       //   edges = fastCandidates; // todo: processing
       // } else {
-        edgeCandidates = this.edgeDetect(image, edges);
+        edgeCandidates = this.edgeDetect(image, fastCandidates);
         bars = this.edgePostprocess(edgeCandidates, this.conf.canvas.height);
       // }
     } else {
@@ -52,16 +52,16 @@ class EdgeDetect{
     var cols_b = []
     
     // todo: cloning can be done better. check array.splice or whatever
-    for(var i in cols){
+    for(var i in sampleCols){
       cols_b[i] = cols_a[i] + 0;
     }
     
     var res_top = [];
     var res_bottom = [];
     
-    this.colsTreshold = cols.length * ExtensionConf.arDetect.edgeDetection.minColsForSearch;
-    if(colsTreshold == 0)
-      colsTreshold = 1;
+    this.colsTreshold = sampleCols.length * ExtensionConf.arDetect.edgeDetection.minColsForSearch;
+    if(this.colsTreshold == 0)
+      this.colsTreshold = 1;
     
     this.blackbarTreshold = this.conf.blackLevel + ExtensionConf.arDetect.blackbarTreshold;
     
@@ -137,6 +137,7 @@ class EdgeDetect{
     var topEdgeCount = 0;
     var bottomEdgeCount = 0;
     
+    var sample;
     
     for(sample of samples.res_top){
       blackEdgeViolation = false; // reset this
@@ -365,7 +366,7 @@ class EdgeDetect{
     var midpoint = (middleRowStart + (this.conf.canvas.width >> 1)) << 2
     var rowEnd = middleRowEnd << 2;
   
-    var edge_left = -1; edge_right = -1;
+    var edge_left = -1, edge_right = -1;
   
     // preverimo na levi strani
     // let's check for edge on the left side
@@ -503,7 +504,7 @@ class EdgeDetect{
               col: col,
               top: (i / this.conf.canvasImageDataRowLength) - 1
             });
-            colsIn.splice(cols_a.indexOf(col), 1);
+            colsIn.splice(colsIn.indexOf(col), 1);
             this.conf.debugCanvas.trace(tmpI, DebugCanvasClasses.EDGEDETECT_CANDIDATE);            
           } else {
             this.conf.debugCanvas.trace(tmpI, DebugCanvasClasses.EDGEDETECT_ONBLACK);
