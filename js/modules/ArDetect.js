@@ -278,12 +278,12 @@ class ArDetector {
     }
     
     
-    var trueAr = width / trueHeight;
+    var trueAr = this.canvas.width / trueHeight;
     this.detectedAr = trueAr;
     
     // poglejmo, če se je razmerje stranic spremenilo
     // check if aspect ratio is changed:
-    var lastAr = this.conf.getLastAr();
+    var lastAr = this.conf.resizer.getLastAr();
     if( lastAr.type == "auto" && lastAr.ar != null){
       // spremembo lahko zavrnemo samo, če uporabljamo avtomatski način delovanja in če smo razmerje stranic
       // že nastavili.
@@ -614,7 +614,7 @@ class ArDetector {
       // }
 
       // if(!textEdge){
-        this.processAr(GlobalVars.video, this.canvas.width, this.canvas.height, edgePost.blackbarWidth, null, fallbackMode);
+        this.processAr(edgePost);
       
         // we also know edges for guardline, so set them
         this.guardLine.setBlackbar({top: edgePost.guardLineTop, bottom: edgePost.guardLineBottom});

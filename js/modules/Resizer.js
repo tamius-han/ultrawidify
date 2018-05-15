@@ -64,14 +64,18 @@ class Resizer {
       stretchFactors = Stretcher.conditionalStretch(dimensions, ExtensionConf.stretch.conditionalDifferencePercent);
     }
 
-    zoom.applyZoom(dimensions);
+    this.zoom.applyZoom(dimensions);
 
-    cssOffsets = this.computeOffsets(dimensions);
+    var cssOffsets = this.computeOffsets(dimensions);
     this.applyCss(cssOffsets, stretchFactors);
   }
 
   setLastAr(override){
     this.lastAr = override;
+  }
+
+  getLastAr(){
+    return this.lastAr;
   }
 
   setStretchMode(stretchMode){
@@ -276,7 +280,7 @@ class Resizer {
   }
 
   setStyleString (styleString, count = 0) {
-    vid.setAttribute("style", styleString);
+    this.video.setAttribute("style", styleString);
     
     if(this.restore_wd){
   
