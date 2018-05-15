@@ -84,6 +84,7 @@ DebugCanvasClasses = {
   
   EDGEDETECT_ONBLACK: {color: '#444444', colorRgb: [68, 68, 68], text: 'edge detect - perpendicular (to edge)'},
   EDGEDETECT_CANDIDATE: {color: '#FFFFFF', colorRgb: [255, 255, 255], text: 'edge detect - edge candidate'},
+  EDGEDETECT_CANDIDATE_SECONDARY: {color: '#OOOOOO', colorRgb: [0, 0, 0], text: 'edge detect - edge candidate, but for when candidate is really bright'},
   EDGEDETECT_BLACKBAR: {color: '#07ac93', colorRgb: [7, 172, 147], text: 'edge detect - parallel, black test'},
   EDGEDETECT_IMAGE: {color: '#046c5c', colorRgb: [4, 108, 92], text: 'edge detect - parallel, image test'}
 }

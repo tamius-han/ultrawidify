@@ -26,7 +26,7 @@ var ExtensionConf = {
     },
     hSamples: 640,
     vSamples: 360,
-    samplingInterval: 10,     // we sample at columns at (width/this) * [ 1 .. this - 1] 
+    // samplingInterval: 10,     // we sample at columns at (width/this) * [ 1 .. this - 1] 
     blackLevel_default: 10,   // everything darker than 10/255 across all RGB components is considered black by
                               // default. GlobalVars.blackLevel can decrease if we detect darker black.
     blackbarTreshold: 16,     // if pixel is darker than blackLevel + blackbarTreshold, we count it as black

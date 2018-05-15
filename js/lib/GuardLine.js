@@ -61,7 +61,7 @@ class GuardLine {
 
     return {
       blackbarFail: false,
-      imageFail: imageCheckResult
+      imageFail: ! imageCheckResult.success
     }
   }
 
@@ -78,7 +78,8 @@ class GuardLine {
     // should succeed by default. Also need to check bottom, for cases where only one edge is known
     
     if(! fallbackMode && (! this.blackbar.top || ! this.blackbar.bottom)) {
-        return { success: true };
+      console.log("NO EDGE WAS DETECTED. THIS TEST IS POINTLESS. btw guardline")
+      return { success: true };
     }
 
     var offset = parseInt(this.conf.canvas.width * ExtensionConf.arDetect.guardLine.ignoreEdgeMargin) << 2;
@@ -104,6 +105,7 @@ class GuardLine {
     
     var rowStart, rowEnd;
     
+    console.log("!!!! -asdsa --------------- asdas-                          BLACKBAR CHECK")
     
     // <<<=======| checking upper row |========>>>
     
@@ -183,6 +185,8 @@ class GuardLine {
     
     var res = false;
     
+    console.log("!!!! -asdsa --------------- asdas-                          IMAGE CHECK")
+
     if(Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine){
       res = this._ti_debugCheckRow(image, rowStart, rowEnd, successTreshold);
     } else {
@@ -198,6 +202,7 @@ class GuardLine {
     rowStart = ((edge_lower * this.conf.canvas.width) << 2) + offset;
     // rowEnd = rowStart + ( this.canvas.width << 2 ) - (offset * 2);
     
+
     if(Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine){
       res = this._ti_debugCheckRow(image, rowStart, rowEnd, successTreshold);
     } else {
@@ -243,7 +248,7 @@ class GuardLine {
       // we track sections that go over what's supposed to be a black line, so we can suggest more 
       // columns to sample
       if(image[i] > this.blackbarTreshold || image[i+1] > this.blackbarTreshold || image[i+2] > this.blackbarTreshold){
-        DebugCanvas.trace('guardLine_blackbar_violation', i);      
+        this.conf.this.conf.debugCanvas.trace(i, DebugCanvasClasses.VIOLATION);      
         if(firstOffender < 0){
           firstOffender = (i - rowStart) >> 2;
           offenderCount++;
@@ -254,7 +259,7 @@ class GuardLine {
         }
       }
       else{
-        DebugCanvas.trace('guardLine_blackbar', i);              
+        this.conf.this.conf.debugCanvas.trace(i, DebugCanvasClasses.GUARDLINE_BLACKBAR);              
         // is that a black pixel again? Let's reset the 'first offender' 
         firstOffender = -1;
       }
@@ -279,12 +284,12 @@ class GuardLine {
   _ti_debugCheckRow(image, rowStart, rowEnd, successTreshold) {
     for(var i = rowStart; i < rowEnd; i+=4){
       if(image[i] > this.blackbarTreshold || image[i+1] > this.blackbarTreshold || image[i+2] > this.blackbarTreshold){
-        DebugCanvas.trace('guardLine_imageTest', i);
+        this.conf.debugCanvas.trace(i, DebugCanvasClasses.GUARDLINE_IMAGE);
         if(successTreshold --<= 0){
           return true;
         }
       } else {
-        DebugCanvas.trace('guardLine_imageTest_noimage', i);
+        this.conf.debugCanvas.trace(i, DebugCanvasClasses.WARN);
       }   
     }
   
