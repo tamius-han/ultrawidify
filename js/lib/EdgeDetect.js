@@ -177,9 +177,9 @@ class EdgeDetect{
       loopEnd = sampleRow_color + sampleEnd;
 
       if(Debug.debugCanvas.enabled) {
-        this._imageTest_dbg(image, sampleRow_color + sampleStart, loopEnd, sample, edgeCandidatesTop)
+        this._imageTest_dbg(image, sampleRow_color + sampleStart, loopEnd, sample.top, edgeCandidatesTop)
       } else {
-        this._imageTest(image, start, end, sample, edgeCandidatesBottom)
+        this._imageTest(image, start, end, sample.top, edgeCandidatesTop)
       }
     }
     
@@ -219,9 +219,9 @@ class EdgeDetect{
       loopEnd = sampleRow_color + sampleEnd;
 
       if(Debug.debugCanvas.enabled) {
-        this._imageTest_dbg(image, sampleRow_color + sampleStart, loopEnd, sample, edgeCandidatesTop);
+        this._imageTest_dbg(image, sampleRow_color + sampleStart, loopEnd, sample.bottom, edgeCandidatesBottom);
       } else {
-        this._imageTest(image, start, end, sample, edgeCandidatesBottom);
+        this._imageTest(image, start, end, sample.bottom, edgeCandidatesBottom);
       }
     }
     
@@ -236,27 +236,49 @@ class EdgeDetect{
   edgePostprocess(edges){
     var edgesTop = [];
     var edgesBottom = [];
-    var alignMargin = this.conf.context.height * ExtensionConf.arDetect.allowedMisaligned;
+    var alignMargin = this.conf.canvas.height * ExtensionConf.arDetect.allowedMisaligned;
     
     var missingEdge = edges.edgeCandidatesTopCount == 0 || edges.edgeCandidatesBottomCount == 0;
     
     // pretvorimo objekt v tabelo
     // convert objects to array
     
+    delete(edges.edgeCandidatesTop.count);
+    delete(edges.edgeCandidatesBottom.count);
+
+    console.log("edges", edges, "missing edge?" ,missingEdge);
+
     if( edges.edgeCandidatesTopCount > 0){
       for(var e in edges.edgeCandidatesTop){
         var edge = edges.edgeCandidatesTop[e];
-        edgesTop.push({distance: edge.top, count: edge.count});
+        edgesTop.push({
+          distance: edge.offset,
+          absolute: edge.offset,
+          count: edge.count
+        });
       }
     }
     
     if( edges.edgeCandidatesBottomCount > 0){
       for(var e in edges.edgeCandidatesBottom){
         var edge = edges.edgeCandidatesBottom[e];
-        edgesBottom.push({distance: edge.bottomRelative, absolute: edge.bottom, count: edge.count});
+        edgesBottom.push({
+          distance: this.conf.canvas.height - edge.offset,
+          absolute: edge.offset,
+          count: edge.count
+        });
       }
     }
     
+    console.log("edges pre-sort:", edgesTop.slice(0), edgesBottom.slice(0));
+
+    // sort by distance
+    edgesTop = edgesTop.sort((a,b) => {return a.distance - b.distance});
+    edgesBottom = edgesBottom.sort((a,b) => {return a.distance - b.distance});
+
+    console.log("edges post-sort:", edgesTop.slice(0), edgesBottom.slice(0));
+
+
     // če za vsako stran (zgoraj in spodaj) poznamo vsaj enega kandidata, potem lahko preverimo nekaj
     // stvari
     
@@ -274,7 +296,15 @@ class EdgeDetect{
         var blackbarWidth = edgesTop[0].distance > edgesBottom[0].distance ? 
                             edgesTop[0].distance : edgesBottom[0].distance;
         
-        return {status: "ar_known", blackbarWidth: blackbarWidth, guardLineTop: edgesTop[0].distance, guardLineBottom: edgesBottom[0].absolute };
+        return {
+          status: "ar_known",
+          blackbarWidth: blackbarWidth,
+          guardLineTop: edgesTop[0].distance,
+          guardLineBottom: edgesBottom[0].absolute,
+
+          top: edgesTop[0].distance,
+          bottom: edgesBottom[0].distance
+        };
       }
     
       // torej, lahko da je na sliki watermark. Lahko, da je slika samo ornh črna. Najprej preverimo za watermark
@@ -297,7 +327,15 @@ class EdgeDetect{
               var blackbarWidth = edgesTop[i].distance > edgesBottom[0].distance ? 
                                   edgesTop[i].distance : edgesBottom[0].distance;
               
-              return  {status: "ar_known", blackbarWidth: blackbarWidth, guardLineTop: edgesTop[i].distance, guardLineBottom: edgesBottom[0].absolute};
+              return {
+                status: "ar_known",
+                blackbarWidth: blackbarWidth,
+                guardLineTop: edgesTop[i].distance,
+                guardLineBottom: edgesBottom[0].absolute,
+              
+                top: edgesTop[i].distance,
+                bottom: edgesBottom[0].distance
+              };
             }
           }
         }
@@ -317,7 +355,15 @@ class EdgeDetect{
               var blackbarWidth = edgesBottom[i].distance > edgesTop[0].distance ? 
                                   edgesBottom[i].distance : edgesTop[0].distance;
               
-              return  {status: "ar_known", blackbarWidth: blackbarWidth, guardLineTop: edgesTop[0].distance, guardLineBottom: edgesBottom[0].absolute};
+              return {
+                status: "ar_known",
+                blackbarWidth: blackbarWidth,
+                guardLineTop: edgesTop[0].distance,
+                guardLineBottom: edgesBottom[0].absolute,
+
+                top: edgesTop[0].distance,
+                bottom: edgesBottom[i].distance
+              };
             }
           }
         }
@@ -334,13 +380,29 @@ class EdgeDetect{
       if(edges.edgeCandidatesTopCount == 0 && edges.edgeCandidatesBottomCount != 0){
         for(var edge of edgesBottom){
           if(edge.count >= edgeDetectionTreshold)
-            return {status: "ar_known", blackbarWidth: edge.distance, guardLineTop: null, guardLineBottom: edge.bottom}
+            return {
+              status: "ar_known", 
+              blackbarWidth: edge.distance,
+              guardLineTop: null,
+              guardLineBottom: edge.bottom,
+            
+              top: edge.distance,
+              bottom: edge.distance
+            }
         }
       }
       if(edges.edgeCandidatesTopCount != 0 && edges.edgeCandidatesBottomCount == 0){
         for(var edge of edgesTop){
           if(edge.count >= edgeDetectionTreshold)
-            return {status: "ar_known", blackbarWidth: edge.distance, guardLineTop: edge.top, guardLineBottom: null}
+            return {
+              status: "ar_known",
+              blackbarWidth: edge.distance,
+              guardLineTop: edge.top,
+              guardLineBottom: null,
+            
+              top: edge.distance,
+              bottom: edge.distance
+            }
         }
       }
     }
@@ -435,8 +497,7 @@ class EdgeDetect{
             var bottom = (i / this.conf.canvasImageDataRowLength) + 1;
             colsOut.push({
               col: col,
-              bottom: bottom,
-              bottomRelative: this.conf.canvas.height - bottom
+              bottom: bottom
             });
             colsIn.splice(colsIn.indexOf(col), 1);
           }
@@ -480,8 +541,7 @@ class EdgeDetect{
             var bottom = (i / this.conf.canvasImageDataRowLength) + 1;
             colsOut.push({
               col: col,
-              bottom: bottom,
-              bottomRelative: this.conf.canvas.height - bottom
+              bottom: bottom
             });
             colsIn.splice(colsIn.indexOf(col), 1);
             this.conf.debugCanvas.trace(tmpI,DebugCanvasClasses.EDGEDETECT_CANDIDATE);
@@ -550,7 +610,7 @@ class EdgeDetect{
     return false; // no violation
   }
 
-  _imageTest(image, start, end, sample, edgeCandidates){
+  _imageTest(image, start, end, sampleOffset, edgeCandidates){
     var detections = 0;
 
     for(var i = start; i < end; i += 4){
@@ -561,16 +621,16 @@ class EdgeDetect{
         }
     }
     if(detections >= detectionTreshold){
-      if(edgeCandidates[sample.top] != undefined)
-        edgeCandidates[sample.top].count++;
+      if(edgeCandidates[sampleOffset] != undefined)
+        edgeCandidates[sampleOffset].count++;
       else{
-        edgeCandidates[sample.top] = {top: sample.top, count: 1};
+        edgeCandidates[sampleOffset] = {offset: sampleOffset, count: 1};
         edgeCandidates.count++;
       }
     }
   }
 
-  _imageTest_dbg(image, start, end, sample, edgeCandidates){
+  _imageTest_dbg(image, start, end, sampleOffset, edgeCandidates){
     var detections = 0;
 
     for(var i = start; i < end; i += 4){
@@ -584,10 +644,10 @@ class EdgeDetect{
       }
     }
     if(detections >= this.detectionTreshold){
-      if(edgeCandidates[sample.top] != undefined)
-        edgeCandidates[sample.top].count++;
+      if(edgeCandidates[sampleOffset] != undefined)
+        edgeCandidates[sampleOffset].count++;
       else{
-        edgeCandidates[sample.top] = {top: sample.top, count: 1};
+        edgeCandidates[sampleOffset] = {offset: sampleOffset, count: 1};
         edgeCandidates.count++;
       }
     }
