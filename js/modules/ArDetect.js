@@ -40,20 +40,22 @@ class ArDetector {
 
     
     try{
-      if(Debug.debug)
-        console.log("%c[ArDetect::_ard_setup] Starting automatic aspect ratio detection", _ard_console_start);
+      if(Debug.debug){
+        console.log("%c[ArDetect::_ard_setup] Starting automatic aspect ratio detection.", _ard_console_start);
+        console.log("[ArDetect::_ard_setup] Choice config bits:\ncanvas dimensions:",cwidth, "×", cheight, "\nsamplingInterval (ExtensionConf):", ExtensionConf.arDetect.samplingInterval, "width/interval:", parseInt(cheight / ExtensionConf.arDetect.samplingInterval));
+      }
     
       this._halted = false;
       this.detectionTimeoutEventCount = 0;
       
-      // vstavimo začetne stolpce v this.sampleCols. 
-      // let's insert initial columns to this.sampleCols
-      this.sampleCols = [];
+      // // vstavimo začetne stolpce v this.sampleCols.  - NE!
+      // // let's insert initial columns to this.sampleCols - NO!!! do it later dow
+      // this.sampleCols = [];
 
-      var samplingIntervalPx = parseInt(cheight / ExtensionConf.arDetect.samplingInterval)
-      for(var i = 1; i < ExtensionConf.arDetect.samplingInterval; i++){
-        this.sampleCols.push(i * samplingIntervalPx);
-      }
+      // var samplingIntervalPx = parseInt(cheight / ExtensionConf.arDetect.samplingInterval)
+      // for(var i = 1; i < ExtensionConf.arDetect.samplingInterval; i++){
+      //   this.sampleCols.push(i * samplingIntervalPx);
+      // }
       
       if(this.canvas){
         if(Debug.debug)
@@ -92,8 +94,8 @@ class ArDetector {
         var ncol = ExtensionConf.arDetect.staticSampleCols;
         var nrow = ExtensionConf.arDetect.staticSampleRows;
         
-        var colSpacing = this.cwidth / ncol;
-        var rowSpacing = (this.cheight << 2) / nrow;
+        var colSpacing = this.canvas.width / ncol;
+        var rowSpacing = (this.canvas.height << 2) / nrow;
         
         this.sampleLines = [];
         this.sampleCols = [];
@@ -105,7 +107,7 @@ class ArDetector {
             this.sampleCols.push(Math.round(colSpacing * i) - 1);
           }
         }
-        
+
         for(var i = 0; i < nrow; i++){
           if(i < ncol - 5)
             this.sampleLines.push(Math.round(rowSpacing * i));
@@ -164,6 +166,31 @@ class ArDetector {
     return ! this._halted;
   }
 
+  scheduleFrameCheck(timeout, force_reset){
+    if(! timeout){
+      this.frameCheck();
+      return;
+    }
+  
+    // run anything that needs to be run after frame check
+    this.postFrameCheck(); 
+
+    // don't allow more than 1 instance
+    if(this.timer){ 
+      clearTimeout(this.timer);
+    }
+    
+    var ths = this;
+
+    this.timer = setTimeout(function(){
+        ths.timer = null;
+        ths.frameCheck();
+        ths = null;
+      },
+      timeout
+    );
+  }
+
 
   postFrameCheck(){
     if(Debug.debugCanvas.enabled){
@@ -203,15 +230,15 @@ class ArDetector {
         console.log("[ArDetect::getTimeout] Exec time exceeded maximum allowed execution time. This has now happened" +  this.detectionTimeoutEventCount + "times in a row.");
       }
   
-      if( this.detectionTimeoutEventCount >= ExtensionConf.arDetect.autoDisable.consecutiveTimeoutCount ){
-        if (Debug.debug){
-          console.log("[ArDetect::getTimeout] Maximum execution time was exceeded too many times. Automatic aspect ratio detection has been disabled.");
-        }
+      // if( this.detectionTimeoutEventCount >= ExtensionConf.arDetect.autoDisable.consecutiveTimeoutCount ){
+      //   if (Debug.debug){
+      //     console.log("[ArDetect::getTimeout] Maximum execution time was exceeded too many times. Automatic aspect ratio detection has been disabled.");
+      //   }
   
-        Comms.sendToBackgroundScript({cmd: 'disable-autoar', reason: 'Automatic aspect ratio detection was taking too much time and has been automatically disabled in order to avoid lag.'});
-        _ard_stop();
-        return 999999;
-      }
+      //   Comms.sendToBackgroundScript({cmd: 'disable-autoar', reason: 'Automatic aspect ratio detection was taking too much time and has been automatically disabled in order to avoid lag.'});
+      //   _ard_stop();
+      //   return 999999;
+      // }
       
     } else {
        this.detectionTimeoutEventCount = 0;
@@ -319,11 +346,7 @@ class ArDetector {
     var imageDetectResult = false;      // true if we detect image along the way. false by default
     
 
-    // todo - can be done faster, probably. Use array.splice (i think)
-    var sampleCols = [];
-    for(var i in  this.sampleCols){
-      sampleCols[i] = this.sampleCols[i];
-    }
+    var sampleCols = this.sampleCols.slice(0);
     
     var how_far_treshold = 8; // how much can the edge pixel vary (*4)
     
@@ -457,6 +480,8 @@ class ArDetector {
       
     }
     
+    console.log("sample cols", sampleCols)
+
     // save black level only if defined
     if(currentMinVal)
       this.blackLevel = this.blackLevel < currentMinVal ? this.blackLevel : currentMinVal;
@@ -564,7 +589,7 @@ class ArDetector {
 
     // pa poglejmo, kje se končajo črne letvice na vrhu in na dnu videa.
     // let's see where black bars end.
-    GlobalVars.sampleCols_current = sampleCols.length;
+    this.sampleCols_current = sampleCols.length;
     
     // blackSamples -> {res_top, res_bottom}
    
@@ -613,33 +638,7 @@ class ArDetector {
     this.blackLevel = ExtensionConf.arDetect.blackLevel_default;    
   }
 
-  scheduleFrameCheck(timeout, force_reset){
-    if(! timeout){
-      this.frameCheck();
-      return;
-    }
-  
-    // run anything that needs to be run after frame check
-    this.postFrameCheck(); 
-
-    // don't allow more than 1 instance
-    if(this.timer){ 
-      clearTimeout(this.timer);
-    }
-    
-    var ths = this;
-
-    this.timer = setTimeout(function(){
-        ths.timer = null;
-        ths.frameCheck();
-        ths = null;
-      },
-      timeout
-    );
-  }
-
 }
-
 if(Debug.debug)
   console.log("Loading: ArDetect");
 

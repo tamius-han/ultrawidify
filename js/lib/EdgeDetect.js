@@ -36,6 +36,8 @@ class EdgeDetect{
       // } else {
         edgeCandidates = this.edgeDetect(image, fastCandidates);
         bars = this.edgePostprocess(edgeCandidates, this.conf.canvas.height);
+
+        console.log("\n------------------------------------\nguardLineOut",guardLineOut,"\nsample cols",sampleCols,"\nfast candidates:", fastCandidates, "\nedgeCandidates:",edgeCandidates,"\nbars:",bars,"\n----------------------------\n\n\n")
       // }
     } else {
       bars = this.pillarTest(image) ? {status: 'ar_known'} : {status: 'ar_unknown'};
@@ -48,8 +50,8 @@ class EdgeDetect{
     var upper_top, upper_bottom, lower_top, lower_bottom;
     var blackbarTreshold;
     
-    var cols_a = sampleCols;
-    var cols_b = []
+    var cols_a = sampleCols.slice(0);
+    var cols_b = cols_a.slice(0);
     
     // todo: cloning can be done better. check array.splice or whatever
     for(var i in sampleCols){
@@ -149,12 +151,12 @@ class EdgeDetect{
         sampleStart = 0;
       
       sampleEnd = sampleStart + this.sampleWidthBase;
-      if(sampleEnd > this.conf.canvas.imageDataRowLength)
-        sampleEnd = this.conf.canvas.imageDataRowLength;
+      if(sampleEnd > this.conf.canvasImageDataRowLength)
+        sampleEnd = this.conf.canvasImageDataRowLength;
       
       // calculate row offsets for imageData array
-      sampleRow_black = (sample.top - ExtensionConf.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvas.imageDataRowLength;
-      sampleRow_color = (sample.top + 1 + ExtensionConf.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvas.imageDataRowLength;
+      sampleRow_black = (sample.top - ExtensionConf.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
+      sampleRow_color = (sample.top + 1 + ExtensionConf.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
       
       // že ena kršitev črnega roba pomeni, da kandidat ni primeren
       // even a single black edge violation means the candidate is not an edge
@@ -191,12 +193,12 @@ class EdgeDetect{
         sampleStart = 0;
       
       sampleEnd = sampleStart + this.sampleWidthBase;
-      if(sampleEnd > this.conf.canvas.imageDataRowLength)
-        sampleEnd = this.conf.canvas.imageDataRowLength;
+      if(sampleEnd > this.conf.canvasImageDataRowLength)
+        sampleEnd = this.conf.canvasImageDataRowLength;
       
       // calculate row offsets for imageData array
-      sampleRow_black = (sample.bottom + ExtensionConf.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvas.imageDataRowLength;
-      sampleRow_color = (sample.bottom - 1 - ExtensionConf.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvas.imageDataRowLength;
+      sampleRow_black = (sample.bottom + ExtensionConf.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
+      sampleRow_color = (sample.bottom - 1 - ExtensionConf.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
       
       // že ena kršitev črnega roba pomeni, da kandidat ni primeren
       // even a single black edge violation means the candidate is not an edge
@@ -505,7 +507,13 @@ class EdgeDetect{
               top: (i / this.conf.canvasImageDataRowLength) - 1
             });
             colsIn.splice(colsIn.indexOf(col), 1);
-            this.conf.debugCanvas.trace(tmpI, DebugCanvasClasses.EDGEDETECT_CANDIDATE);            
+            this.conf.debugCanvas.trace(tmpI, DebugCanvasClasses.EDGEDETECT_CANDIDATE);      
+            if(tmpI-1 > 0){
+              this.conf.debugCanvas.trace(tmpI - 1, DebugCanvasClasses.EDGEDETECT_CANDIDATE_SECONDARY);
+            }
+            if(tmpI+1 < image.length){
+              this.conf.debugCanvas.trace(tmpI + 1, DebugCanvasClasses.EDGEDETECT_CANDIDATE_SECONDARY);
+            }
           } else {
             this.conf.debugCanvas.trace(tmpI, DebugCanvasClasses.EDGEDETECT_ONBLACK);
           }
@@ -539,7 +547,6 @@ class EdgeDetect{
         this.conf.debugCanvas.trace(i, DebugCanvasClasses.EDGEDETECT_BLACKBAR)
       }
     }
-
     return false; // no violation
   }
 
