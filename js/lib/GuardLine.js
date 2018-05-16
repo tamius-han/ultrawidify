@@ -100,7 +100,7 @@ class GuardLine {
     else{
       // fallback mode is a bit different
       edge_upper = 0;
-      edge_lower = this.canvas.height - 1;
+      edge_lower = this.conf.canvas.height - 1;
     }
     
     var rowStart, rowEnd;
@@ -109,8 +109,8 @@ class GuardLine {
     
     // <<<=======| checking upper row |========>>>
     
-    rowStart = ((edge_upper * this.canvas.width) << 2) + offset;
-    rowEnd = rowStart + ( this.canvas.width << 2 ) - (offset * 2);
+    rowStart = ((edge_upper * this.conf.canvas.width) << 2) + offset;
+    rowEnd = rowStart + ( this.conf.canvas.width << 2 ) - (offset * 2);
     
     if (Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine) {
       offenderCount = this._gl_debugRowCheck(image, rowStart, rowEnd, offenders, offenderCount);
@@ -119,8 +119,8 @@ class GuardLine {
     }
     // <<<=======| checking lower row |========>>>
     
-    rowStart = ((edge_lower * this.canvas.width) << 2) + offset;
-    rowEnd = rowStart + ( this.canvas.width << 2 ) - (offset * 2);
+    rowStart = ((edge_lower * this.conf.canvas.width) << 2) + offset;
+    rowEnd = rowStart + ( this.conf.canvas.width << 2 ) - (offset * 2);
     
     if (Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine) {
       offenderCount = this._gl_debugRowCheck(image, rowStart, rowEnd, offenders, offenderCount);
@@ -163,7 +163,7 @@ class GuardLine {
     
     //   if(fallbackMode){
     //     var edge_upper = ExtensionConf.arDetect.fallbackMode.noTriggerZonePx;
-    //     var edge_lower = this.canvas.height - ExtensionConf.arDetect.fallbackMode.noTriggerZonePx - 1;
+    //     var edge_lower = this.conf.canvas.height - ExtensionConf.arDetect.fallbackMode.noTriggerZonePx - 1;
     //   }
     //   else{
         var edge_upper = this.imageBar.top;
@@ -200,7 +200,7 @@ class GuardLine {
     // <<<=======| checking lower row |========>>>
     
     rowStart = ((edge_lower * this.conf.canvas.width) << 2) + offset;
-    // rowEnd = rowStart + ( this.canvas.width << 2 ) - (offset * 2);
+    // rowEnd = rowStart + ( this.conf.canvas.width << 2 ) - (offset * 2);
     
 
     if(Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine){
@@ -248,7 +248,7 @@ class GuardLine {
       // we track sections that go over what's supposed to be a black line, so we can suggest more 
       // columns to sample
       if(image[i] > this.blackbarTreshold || image[i+1] > this.blackbarTreshold || image[i+2] > this.blackbarTreshold){
-        this.conf.this.conf.debugCanvas.trace(i, DebugCanvasClasses.VIOLATION);      
+        this.conf.debugCanvas.trace(i, DebugCanvasClasses.VIOLATION);      
         if(firstOffender < 0){
           firstOffender = (i - rowStart) >> 2;
           offenderCount++;
@@ -259,7 +259,7 @@ class GuardLine {
         }
       }
       else{
-        this.conf.this.conf.debugCanvas.trace(i, DebugCanvasClasses.GUARDLINE_BLACKBAR);              
+        this.conf.debugCanvas.trace(i, DebugCanvasClasses.GUARDLINE_BLACKBAR);              
         // is that a black pixel again? Let's reset the 'first offender' 
         firstOffender = -1;
       }

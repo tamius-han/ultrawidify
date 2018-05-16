@@ -71,7 +71,7 @@ class Scaler {
     }
 
     if(Debug.debug)
-      console.log("[Scaler::calculateCrop] trying to set ar. args are: ar->",ar,"; playerDimensions->",playerDimensions.width, "×", playerDimensions.height, "| obj:", GlobalVars.playerDimensions);
+      console.log("[Scaler::calculateCrop] trying to set ar. args are: ar->",ar,"; playerDimensions->",playerDimensions.width, "×", playerDimensions.height, "| obj:", playerDimensions);
   
     if(!video || video.videoWidth == 0 || video.videoHeight == 0){
       if(Debug.debug)
@@ -79,7 +79,7 @@ class Scaler {
       return {error: "no_video"};
     }
 
-    if(! playerDimensions || playerDimensions.width === 0 || playerDimensions.height){
+    if( (! playerDimensions) || playerDimensions.width === 0 || playerDimensions.height === 0 ){
       if(Debug.debug)
         console.log("[Scaler::calculateCrop] ERROR — no (or invalid) playerDimensions:",playerDimensions);
       return {error: "playerDimensions_error"};
@@ -99,7 +99,7 @@ class Scaler {
 
   
     if(Debug.debug)
-      console.log("[Scaler::calculateCrop] ar is " ,ar, ", file ar is", fileAr, ", playerDimensions are ", GlobalVars.playerDimensions.width, "×", GlobalVars.playerDimensions.height, "| obj:", GlobalVars.playerDimensions);
+      console.log("[Scaler::calculateCrop] ar is " ,ar, ", file ar is", fileAr, ", playerDimensions are ", playerDimensions.width, "×", playerDimensions.height, "| obj:", playerDimensions);
     
     var videoDimensions = {
       width: 0,
@@ -109,18 +109,18 @@ class Scaler {
     }
   
     if(Debug.debug){
-      console.log("[Scaler::calculateCrop] Player dimensions?", GlobalVars.playerDimensions.width, "×", GlobalVars.playerDimensions.height, "| obj:", GlobalVars.playerDimensions);
+      console.log("[Scaler::calculateCrop] Player dimensions?", playerDimensions.width, "×", playerDimensions.height, "| obj:", playerDimensions);
     }
   
     if( fileAr < ar ){
       // imamo letterbox zgoraj in spodaj -> spremenimo velikost videa (a nikoli širše od ekrana)
       // letterbox -> change video size (but never to wider than monitor width)
 
-        videoDimensions.width = Math.min(GlobalVars.playerDimensions.height * ar, GlobalVars.playerDimensions.width);
+        videoDimensions.width = Math.min(playerDimensions.height * ar, playerDimensions.width);
         videoDimensions.height = videoDimensions.width * (1/fileAr);
     }
     else{
-        videoDimensions.height = Math.min(GlobalVars.playerDimensions.width / ar, GlobalVars.playerDimensions.height);
+        videoDimensions.height = Math.min(playerDimensions.width / ar, playerDimensions.height);
         videoDimensions.width = videoDimensions.height * fileAr;
     }
     
@@ -140,7 +140,7 @@ class Scaler {
     }
 
     if(Debug.debug){
-      console.log("[Scaler::calculateCrop] Video dimensions: ", videoDimensions.width, "×", videoDimensions.height, "(obj:", videoDimensions, "); playerDimensions:",GlobalVars.playerDimensions.width, "×", GlobalVars.playerDimensions.height, "(obj:", GlobalVars.playerDimensions, ")");
+      console.log("[Scaler::calculateCrop] Video dimensions: ", videoDimensions.width, "×", videoDimensions.height, "(obj:", videoDimensions, "); playerDimensions:",playerDimensions.width, "×", playerDimensions.height, "(obj:", playerDimensions, ")");
     }
 
     return videoDimensions;

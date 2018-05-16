@@ -36,6 +36,7 @@ class PlayerData {
     this.dimensions = undefined;
 
     this.getPlayerDimensions();
+    this.startChangeDetection();
   }
 
   static isFullScreen(){
@@ -43,25 +44,30 @@ class PlayerData {
   }
 
   startChangeDetection(){
-    this.watchTimeout = setInterval(this.ghettoWatcher, 100);
+    console.log("STARTING CHANGE DETECTION!")
+
+    // // var gw = this.ghettoWatcher;
+    this.watchTimeout = setInterval(this.ghettoWatcher, 100, this);
   }
 
   stopChangeDetection(){
     clearInterval(this.watchTimeout);
   }
 
-  ghettoWatcher(){
-    if(this.checkPlayerSizeChange()){
+  ghettoWatcher(ths){
+    console.log("playerdata — dimensions", ths.dimensions)
+    try{
+    if(ths.checkPlayerSizeChange()){
       if(Debug.debug){
         console.log("[uw::ghettoOnChange] change detected");
       }
 
-      this.getPlayerDimensions();
-      if(! this.element ){
+      ths.getPlayerDimensions();
+      if(! ths.element ){
         return;
       }
 
-      this.videoData.resizer.restore(); // note: this returns true if change goes through, false otherwise.
+      ths.videoData.resizer.restore(); // note: this returns true if change goes through, false otherwise.
       return;
     }
 
@@ -70,25 +76,29 @@ class PlayerData {
     // sometimes, checkPlayerSizeChange might not detect a change to fullscreen. This means we need to 
     // trick it into doing that
 
-    if(this.dimensions.fullscreen != PlayerData.isFullScreen()) {
+    if(ths.dimensions.fullscreen != PlayerData.isFullScreen()) {
       if(Debug.debug){
         console.log("[PlayerData::ghettoWatcher] fullscreen switch detected (basic change detection failed)");
       }
 
-      this.getPlayerDimensions();
+      ths.getPlayerDimensions();
 
-      if(! this.element ){
+      if(! ths.element ){
         return;
       }
 
-      this.videoData.resizer.restore();
+      ths.videoData.resizer.restore();
     }
+  }
+  catch(e){
+    console.log("e",e)
+  }
   }
 
   getPlayerDimensions(elementNames){
     // element names — reserved for future use. If element names are provided, this function should return first element that
     // has classname or id that matches at least one in the elementNames array.
-    var element = this.video;
+    var element = this.video.parentNode;
 
     if(! element ){
       if(Debug.debug)
