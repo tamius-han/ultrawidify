@@ -44,9 +44,6 @@ class PlayerData {
   }
 
   startChangeDetection(){
-    console.log("STARTING CHANGE DETECTION!")
-
-    // // var gw = this.ghettoWatcher;
     this.watchTimeout = setInterval(this.ghettoWatcher, 100, this);
   }
 
@@ -55,8 +52,6 @@ class PlayerData {
   }
 
   ghettoWatcher(ths){
-    console.log("playerdata — dimensions", ths.dimensions)
-    try{
     if(ths.checkPlayerSizeChange()){
       if(Debug.debug){
         console.log("[uw::ghettoOnChange] change detected");
@@ -89,10 +84,6 @@ class PlayerData {
 
       ths.videoData.resizer.restore();
     }
-  }
-  catch(e){
-    console.log("e",e)
-  }
   }
 
   getPlayerDimensions(elementNames){
