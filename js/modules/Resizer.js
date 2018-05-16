@@ -171,15 +171,15 @@ class Resizer {
       var defaultOffset = (this.conf.player.dimensions.height - videoDimensions.height) / 2;
       offsets.top = defaultOffset + (defualtOffset * this.pan.relativeOffsetY);
       
-      defaultOffset = (this.conf.player.dimensions.height - videoDimensions.width ) / 2;
+      defaultOffset = (this.conf.player.dimensions.width - videoDimensions.width ) / 2;
       offsets.left = defaultOffset + (defaultOffset * this.pan.relativeOffsetX);
     } else {
       if( ExtensionConf.miscFullscreenSettings.videoFloat == "center" ){
-        offsets.left = (this.conf.player.dimensions.height - videoDimensions.width ) / 2;
+        offsets.left = (this.conf.player.dimensions.width - videoDimensions.width ) / 2;
         
       }
       else if( ExtensionConf.miscFullscreenSettings.videoFloat == "right" ){
-        offsets.left = (this.conf.player.dimensions.height - videoDimensions.width);
+        offsets.left = (this.conf.player.dimensions.height - videoDimensions.height);
       }
     }
 
