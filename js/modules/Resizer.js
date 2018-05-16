@@ -30,8 +30,13 @@ class Resizer {
     this.restore_wd = false;
 
     this.lastAr = {type: 'original'};
+    this.destroyed = false;
   }
   
+  destroy(){
+    this.destroyed = true;
+    this.stopCssWatcher();
+  }
 
   setAr(ar, lastAr){
     if(Debug.debug){
@@ -50,15 +55,17 @@ class Resizer {
 
     if (! this.video) {
       // console.log("No video detected.")
-      // this.videoData.destroy();
+      this.videoData.destroy();
     }
-
 
     var dimensions = Scaler.calculateCrop(ar, this.video, this.conf.player.dimensions);
 
-    if(dimensions.error){
+    if(! dimensions || dimensions.error){
       if(Debug.debug){
-        console.log("[Resizer::setAr] failed to set AR due to problem with calculating crop. Error:", dimensions.error)
+        console.log("[Resizer::setAr] failed to set AR due to problem with calculating crop. Error:", (dimensions ? dimensions.error : dimensions));
+      }
+      if(dimensions.error === 'no_video'){
+        this.conf.destroy();
       }
       return;
     }
@@ -75,6 +82,9 @@ class Resizer {
 
     var cssOffsets = this.computeOffsets(dimensions);
     this.applyCss(cssOffsets, stretchFactors);
+
+    if(! this.destroyed)
+      this.startCssWatcher(); 
   }
 
   setLastAr(override){
@@ -101,10 +111,18 @@ class Resizer {
   }
 
   startCssWatcher(){
-    this.cssWatcherTimeout = setInterval(this.cssWatcher, 200);
+    // this.haltCssWatcher = false;
+    if(!this.cssWatcherTimeout){
+      if(Debug.debug)
+        console.log("[Resizer.js] STARTING CSS WATCHER")
+  
+      this.cssWatcherTimeout = setInterval(this.cssWatcher, 200, this);
+    }
   }
 
   stopCssWatcher(){
+    if(Debug.debug) console.log("[Resizer.js] STOPPING CSS WATCHER!")
+
     clearInterval(this.cssWatcherTimeout);
   }
 
@@ -190,12 +208,20 @@ class Resizer {
   
   applyCss(dimensions, stretchFactors){
 
-    if(this.video == undefined || this.video == null){
+    if (! this.video ){
       if(Debug.debug)
         console.log("[Resizer::_res_applyCss] Video went missing, doing nothing.");
+      this.conf.destroy();
       return;
     }
     
+    // save stuff for quick tests (before we turn numbers into css values):
+    this.currentVideoSettings = {
+      validFor:  this.conf.player.dimensions,
+      videoWidth: dimensions.width,
+      videoHeight: dimensions.height
+    }
+
     if(Debug.debug)
       console.log("[Resizer::_res_applyCss] Starting to apply css. this is what we're getting in:", dimensions);
     
@@ -284,6 +310,9 @@ class Resizer {
         styleString += styleArray[i] + "; ";
     
     this.setStyleString(styleString);
+
+    
+
   }
 
   setStyleString (styleString, count = 0) {
@@ -322,21 +351,31 @@ class Resizer {
     }
   }
 
-  cssWatcher(){
-  
+  cssWatcher(ths){
     // this means we haven't set our CSS yet, or that we changed video.
-    if(! this.currentCss.top)
+    if(! ths.currentCss.top)
       return;
     
-    // this means video went missing. 
-    if(! this.video)
+    // this means video went missing. videoData will be re-initialized when the next video is found
+    if(! ths.video){
+      ths.conf.destroy();
       return;
+    }
     
     // // our current css is fucky? Null, undefined and 0 are invalid values.
     // if(! GlobalVars.currentCss.width || ! GlobalVars.currentCss.height )
     //   return;
+
+    // first, a quick test:
+    if (ths.currentVideoSettings.validFor == ths.conf.player.dimensions ){
+      if (ths.currentVideoSettings.videoWidth != ths.video.offsetWidth  ||
+          ths.currentVideoSettings.videoHeight != ths.video.offsetHeight){
+        ths.restore();
+        return;
+      }
+    }
   
-    var styleArrayStr = this.video.getAttribute('style');
+    var styleArrayStr = ths.video.getAttribute('style');
     
     if (styleArrayStr){
       var styleArray = styleArrayStr.split(";");
@@ -349,24 +388,24 @@ class Resizer {
         
         if (styleArray[i].startsWith("top:")){
           // don't force css restore if currentCss.top is not defined
-          if(this.currentCss.top && styleArray[i] != this.currentCss.top){
+          if(ths.currentCss.top && styleArray[i] != ths.currentCss.top){
             if(Debug.debug){
               console.log("[Resizer::_res_antiCssOverride] SOMEBODY TOUCHED MA SPAGHETT (our CSS got overriden, restoring our css)");
-              console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT: top:", this.currentCss.top, "left:", this.currentCss.left, "thing that touched ma spaghett", styleArrayStr);
+              console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT: top:", ths.currentCss.top, "left:", ths.currentCss.left, "thing that touched ma spaghett", styleArrayStr);
             }
-            _res_restore();
+            ths.restore();
             return;
           }
           stuffChecked++;
         }
         else if(styleArray[i].startsWith("left:")){
           // don't force css restore if currentCss.left is not defined        
-          if(this.currentCss.left && styleArray[i] != this.currentCss.left){
+          if(ths.currentCss.left && styleArray[i] != ths.currentCss.left){
             if(Debug.debug){
               console.log("[Resizer::_res_antiCssOverride] SOMEBODY TOUCHED MA SPAGHETT (our CSS got overriden, restoring our css)");
-              console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT: width:", this.currentCss.width, "height:", this.currentCss.height, "thing that touched ma spaghett", styleArrayStr);            
+              console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT: width:", ths.currentCss.width, "height:", ths.currentCss.height, "thing that touched ma spaghett", styleArrayStr);            
             }
-            _res_restore();
+            ths.restore();
             return;
           }
           stuffChecked++;
