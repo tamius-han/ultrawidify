@@ -37,7 +37,6 @@ class EdgeDetect{
         edgeCandidates = this.edgeDetect(image, fastCandidates);
         bars = this.edgePostprocess(edgeCandidates, this.conf.canvas.height);
 
-        console.log("\n------------------------------------\nguardLineOut",guardLineOut,"\nsample cols",sampleCols,"\nfast candidates:", fastCandidates, "\nedgeCandidates:",edgeCandidates,"\nbars:",bars,"\n----------------------------\n\n\n")
       // }
     } else {
       bars = this.pillarTest(image) ? {status: 'ar_known'} : {status: 'ar_unknown'};
@@ -246,8 +245,6 @@ class EdgeDetect{
     delete(edges.edgeCandidatesTop.count);
     delete(edges.edgeCandidatesBottom.count);
 
-    console.log("edges", edges, "missing edge?" ,missingEdge);
-
     if( edges.edgeCandidatesTopCount > 0){
       for(var e in edges.edgeCandidatesTop){
         var edge = edges.edgeCandidatesTop[e];
@@ -270,14 +267,9 @@ class EdgeDetect{
       }
     }
     
-    console.log("edges pre-sort:", edgesTop.slice(0), edgesBottom.slice(0));
-
     // sort by distance
     edgesTop = edgesTop.sort((a,b) => {return a.distance - b.distance});
     edgesBottom = edgesBottom.sort((a,b) => {return a.distance - b.distance});
-
-    console.log("edges post-sort:", edgesTop.slice(0), edgesBottom.slice(0));
-
 
     // če za vsako stran (zgoraj in spodaj) poznamo vsaj enega kandidata, potem lahko preverimo nekaj
     // stvari

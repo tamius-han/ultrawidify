@@ -480,8 +480,6 @@ class ArDetector {
       
     }
     
-    console.log("sample cols", sampleCols)
-
     // save black level only if defined
     if(currentMinVal)
       this.blackLevel = this.blackLevel < currentMinVal ? this.blackLevel : currentMinVal;

@@ -71,11 +71,8 @@ class Resizer {
     } else if (this.stretch.mode == StretchMode.CONDITIONAL) {
       stretchFactors = Stretcher.conditionalStretch(dimensions, ExtensionConf.stretch.conditionalDifferencePercent);
     }
-    console.log("PRE_ZOOM DIMENSIONS:",dimensions);
-
     this.zoom.applyZoom(dimensions);
 
-    console.log("POST_ZOOM DIMENSIONS:",dimensions);
     var cssOffsets = this.computeOffsets(dimensions);
     this.applyCss(cssOffsets, stretchFactors);
   }
@@ -192,8 +189,6 @@ class Resizer {
   }
   
   applyCss(dimensions, stretchFactors){
-
-    console.log("CSS DIMENSIOPNS", dimensions)
 
     if(this.video == undefined || this.video == null){
       if(Debug.debug)
