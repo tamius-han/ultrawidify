@@ -57,27 +57,32 @@ class Scaler {
   }
 
   static calculateCrop(mode, video, playerDimensions) {
-    // if 'ar' is string, we'll handle that in legacy wrapper
-    var ar = 0;
-    if(isNaN(mode)){
-      ar = this.modeToAr(mode);
-    } else {
-      ar = mode;
-    }
 
-    // handle fuckie-wuckies
-    if (! ar){
-      return null;
-    }
-
-    if(Debug.debug)
-      console.log("[Scaler::calculateCrop] trying to set ar. args are: ar->",ar,"; playerDimensions->",playerDimensions.width, "×", playerDimensions.height, "| obj:", playerDimensions);
   
     if(!video || video.videoWidth == 0 || video.videoHeight == 0){
       if(Debug.debug)
         console.log("[Scaler::calculateCrop] ERROR — no video detected.")
       return {error: "no_video"};
     }
+
+
+    // if 'ar' is string, we'll handle that in legacy wrapper
+    var ar = 0;
+    if(isNaN(mode)){
+      ar = Scaler.modeToAr(mode);
+    } else {
+      ar = mode;
+    }
+
+    // handle fuckie-wuckies
+    if (! ar){
+      if(Debug.debug)
+        console.log("[Scaler::calculateCrop] no ar?", ar, " -- we were given this mode:", mode);
+      return {error: "no_ar", ar: ar};
+    }
+
+    if(Debug.debug)
+      console.log("[Scaler::calculateCrop] trying to set ar. args are: ar->",ar,"; playerDimensions->",playerDimensions.width, "×", playerDimensions.height, "| obj:", playerDimensions);
 
     if( (! playerDimensions) || playerDimensions.width === 0 || playerDimensions.height === 0 ){
       if(Debug.debug)

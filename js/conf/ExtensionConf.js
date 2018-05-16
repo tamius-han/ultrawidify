@@ -41,7 +41,7 @@ var ExtensionConf = {
       ignoreEdgeMargin: 0.20, // we ignore anything that pokes over the black line this close to the edge
                               // (relative to width of the sample)
       imageTestTreshold: 0.1, // when testing for image, this much pixels must be over blackbarTreshold
-      edgeTolerancePx: 3,         // black edge violation is performed this far from reported 'last black pixel'
+      edgeTolerancePx: 2,         // black edge violation is performed this far from reported 'last black pixel'
       edgeTolerancePercent: null  // unused. same as above, except use % of canvas height instead of pixels
     },
     fallbackMode: {

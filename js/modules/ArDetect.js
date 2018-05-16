@@ -28,6 +28,10 @@ class ArDetector {
     this.setup(ExtensionConf.arDetect.hSamples, ExtensionConf.arDetect.vSamples);
   }
 
+  destroy(){
+    this.debugCanvas.destroy();
+  }
+
   setup(cwidth, cheight){
     if(Debug.debug){
       console.log("[ArDetect::setup] Starting autodetection setup");
@@ -73,7 +77,7 @@ class ArDetector {
 
       if(this.video.videoWidth === 0 || this.video.videoHeight === 0 ){
         if(! this.timer)
-          this.setupTimer = setTimeout(_arSetup, 100);
+          this.setupTimer = setTimeout(this.init(), 100);
         
         return;
       }
@@ -145,6 +149,8 @@ class ArDetector {
       this.debugCanvas.init({width: cwidth, height: cheight});
       // DebugCanvas.draw("test marker","test","rect", {x:5, y:5}, {width: 5, height: 5});
     }
+
+    this.conf.arSetupComplete = true;
   }
 
   start(){
@@ -332,8 +338,8 @@ class ArDetector {
 
     if(! this.video){
       if(Debug.debug || Debug.warnings_critical)
-        console.log("[ArDetect::_ard_vdraw] Video went missing. Stopping current instance of automatic detection.")
-      this.stop();
+        console.log("[ArDetect::_ard_vdraw] Video went missing. Destroying current instance of videoData.")
+      this.conf.destroy();
       return;
     }
     
@@ -350,8 +356,8 @@ class ArDetector {
     
     var how_far_treshold = 8; // how much can the edge pixel vary (*4)
     
-    if(this.video == null || this.video.ended ){
-      // we slow down if ended or null. Detecting is pointless.
+    if(this.video.ended ){
+      // we slow down if ended. Detecting is pointless.
       
       this.scheduleFrameCheck(ExtensionConf.arDetect.timer_paused);
       return false;
@@ -502,7 +508,7 @@ class ArDetector {
       // let's chec if we ever reset CSS. If we haven't, then we do so. If we did, then we don't.
       // while resetting the CSS, we also reset guardline top and bottom back to null.
       
-      if(! GlobalVars.arDetect.noLetterboxCanvasReset){
+      if(! this.noLetterboxCanvasReset){
         this.conf.resizer.reset({type: "auto", ar: null});
         this.guardLine.top = null;
         this.guardLine.bottom = null;
@@ -518,7 +524,7 @@ class ArDetector {
     // css resetiral enkrat na video/pageload namesto vsakič, ko so za nekaj časa obrobe odstranejene
     // if we look further we need to reset this value back to false. Otherwise we'll only get CSS reset once
     // per video/pageload instead of every time letterbox goes away (this can happen more than once per vid)
-    GlobalVars.arDetect.noLetterboxCanvasReset = false;
+    this.noLetterboxCanvasReset = false;
     
     // let's do a quick test to see if we're on a black frame
     // TODO: reimplement but with less bullshit
@@ -542,7 +548,7 @@ class ArDetector {
     if (fallbackMode && guardLineOut.blackbarFail) {
       this.conf.resizer.reset({type: "auto", ar: null});
       this.guardLine.reset();
-      this.arDetect.noLetterboxCanvasReset = true;
+      this.noLetterboxCanvasReset = true;
       
       triggerTimeout = this.getTimeout(baseTimeout, startTime);
       this.scheduleFrameCheck(triggerTimeout); //no letterbox, no problem
@@ -565,7 +571,7 @@ class ArDetector {
     // If aspect ratio changes from narrower to wider, we first check for presence of pillarbox. Presence of pillarbox indicates
     // a chance of a logo on black background. We could cut easily cut too much. Because there's a somewhat significant chance
     // that we will cut too much, we rather avoid doing anything at all. There's gonna be a next chance.
-    
+    try{
     if(guardLineOut.blackbarFail || guardLineOut.imageFail){
       if(this.edgeDetector.findBars(image, null, EdgeDetectPrimaryDirection.HORIZONTAL).status === 'ar_known'){
 
@@ -573,7 +579,7 @@ class ArDetector {
           console.log("[ArDetect::_ard_vdraw] Detected blackbar violation and pillarbox. Resetting to default aspect ratio.");
         }
 
-        if(! guardLineResult){
+        if(guardLineOut.blackbarFail){
           this.conf.resizer.reset({type: "auto", ar: null});
           this.guardLine.reset();
         }
@@ -584,6 +590,7 @@ class ArDetector {
         return;
       }
     }
+  }catch(e) {console.log("deeee",e)}
 
     // pa poglejmo, kje se končajo črne letvice na vrhu in na dnu videa.
     // let's see where black bars end.

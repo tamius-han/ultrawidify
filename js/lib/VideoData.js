@@ -1,6 +1,7 @@
 class VideoData {
   
   constructor(video){
+    this.arSetupComplete = false;
     this.video = video;
 
     // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
@@ -14,8 +15,17 @@ class VideoData {
     // this.player.dimensions
   }
 
+  firstTimeArdInit(){
+    if(! this.arSetupComplete){
+      this.arDetector = new ArDetector(this);
+    }
+  }
+
   initArDetection() {
-    this.arDetector.init();
+    if(ths.arDetector)
+      this.arDetector.init();
+    else
+      this.arDetector = new ArDetector(this);
   }
 
   startArDetection() {
@@ -23,7 +33,15 @@ class VideoData {
   }
 
   destroy() {
-    this.arDetector.stop();
+    if(this.arDetector){
+      this.arDetector.stop();
+      this.arDetector.destroy();
+    }
+    this.arDetector = null;
+    if(this.resizer){
+      this.resizer.destroy();
+    }
+    this.video = null;
   }
 
   setLastAr(lastAr){
