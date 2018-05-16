@@ -105,8 +105,6 @@ class GuardLine {
     
     var rowStart, rowEnd;
     
-    console.log("!!!! -asdsa --------------- asdas-                          BLACKBAR CHECK")
-    
     // <<<=======| checking upper row |========>>>
     
     rowStart = ((edge_upper * this.conf.canvas.width) << 2) + offset;
@@ -147,7 +145,7 @@ class GuardLine {
   }
 
   imageCheck(image){  
-    if(GlobalVars.arDetect.guardLine.top == null || GlobalVars.arDetect.guardLine.bottom == null)
+    if(!this.imageBar.top || !this.imageBar.bottom)
       return { success: false };
     
     
@@ -185,8 +183,6 @@ class GuardLine {
     
     var res = false;
     
-    console.log("!!!! -asdsa --------------- asdas-                          IMAGE CHECK")
-
     if(Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine){
       res = this._ti_debugCheckRow(image, rowStart, rowEnd, successTreshold);
     } else {
