@@ -22,9 +22,7 @@ class ArDetector {
     if(Debug.debug){
       console.log("[ArDetect::init] Initializing autodetection")
     }
-    this.guardLine = new GuardLine(this);
-    this.edgeDetector = new EdgeDetect(this);
-    this.debugCanvas = new DebugCanvas(this);
+  
     this.setup(ExtensionConf.arDetect.hSamples, ExtensionConf.arDetect.vSamples);
   }
 
@@ -33,6 +31,11 @@ class ArDetector {
   }
 
   setup(cwidth, cheight){
+    
+    this.guardLine = new GuardLine(this);
+    this.edgeDetector = new EdgeDetect(this);
+    this.debugCanvas = new DebugCanvas(this);
+
     if(Debug.debug){
       console.log("[ArDetect::setup] Starting autodetection setup");
     }
@@ -190,7 +193,9 @@ class ArDetector {
 
     this.timer = setTimeout(function(){
         ths.timer = null;
+        try{
         ths.frameCheck();
+        }catch(e){console.log("Frame check failed. Error:",e)}
         ths = null;
       },
       timeout
@@ -233,7 +238,7 @@ class ArDetector {
        this.detectionTimeoutEventCount++;
   
       if(Debug.debug){
-        console.log("[ArDetect::getTimeout] Exec time exceeded maximum allowed execution time. This has now happened" +  this.detectionTimeoutEventCount + "times in a row.");
+        console.log("[ArDetect::getTimeout] Exec time exceeded maximum allowed execution time. This has now happened " +  this.detectionTimeoutEventCount + " times in a row.");
       }
   
       // if( this.detectionTimeoutEventCount >= ExtensionConf.arDetect.autoDisable.consecutiveTimeoutCount ){
@@ -381,7 +386,7 @@ class ArDetector {
           throw "fallbackMode is disabled.";
         
         if(this.canvasReadyForDrawWindow()){
-          this.canvas.context.drawWindow(window, this.canvasDrawWindowHOffset, 0, this.canvas.width, this.canvas.height, "rgba(0,0,0,0)");
+          this.context.drawWindow(window, this.canvasDrawWindowHOffset, 0, this.canvas.width, this.canvas.height, "rgba(0,0,128,1)");
           
           if(Debug.debug)
             console.log("%c[ArDetect::_ard_vdraw] canvas.drawImage seems to have worked", "color:#000; backgroud:#2f5;");
@@ -391,7 +396,7 @@ class ArDetector {
           // canvas needs to be resized, so let's change setup
           this.stop();
           
-          var newCanvasWidth = window.innerHeight * (GlobalVars.video.videoWidth / GlobalVars.video.videoHeight);
+          var newCanvasWidth = window.innerHeight * (this.video.videoWidth / this.video.videoHeight);
           var newCanvasHeight = window.innerHeight;
           
           if(ExtensionConf.miscFullscreenSettings.videoFloat == "center")

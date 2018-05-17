@@ -1,9 +1,13 @@
 class DebugCanvas {
   constructor(ardConf){
     this.conf = ardConf;
+    this.targetWidth = 1280;
+    this.targetHeight = 720;
+    this.targetOffsetTop = 1080;
+    this.targetOffsetLeft = 100;
   }
 
-  init(canvasSize, canvasPosition) {
+  init(canvasSize, canvasPosition, targetCanvasSize) {
     console.log("initiating DebugCanvas")
    
     var body = document.getElementsByTagName('body')[0];
@@ -19,11 +23,15 @@ class DebugCanvas {
       body.appendChild(this.canvas);
     }
     
+    if(targetCanvasSize){
+      this.targetWidth = targetCanvasSize.width;
+      this.targetHeight = targetCanvasSize.height;
+    }
+
     this.canvas.style.position = "absolute";
     this.canvas.style.left = `${canvasPosition.left}px`;
     this.canvas.style.top = `${canvasPosition.top}px`;
     this.canvas.style.zIndex = 10002;
-    this.canvas.style.transform = "scale(2.5, 2.5)";
     this.canvas.id = "uw_debug_canvas";
     
     this.context = this.canvas.getContext("2d");
@@ -31,7 +39,17 @@ class DebugCanvas {
     this.canvas.width = canvasSize.width;
     this.canvas.height = canvasSize.height;
   
+    this.calculateCanvasZoom();
+
     console.log("debug canvas is:", this.canvas, "context:", this.context)
+  }
+
+  calculateCanvasZoom(){
+    var canvasZoom = this.targetWidth / this.canvas.width;
+    var translateX = (this.canvas.width - this.targetWidth)/2;
+    var translateY = (this.canvas.height - this.targetHeight)/2;
+
+    this.canvas.style.transform = `scale(${canvasZoom},${canvasZoom}) translateX(${translateX}px) translateY(${translateY}px)`;
   }
 
   destroy(){
@@ -50,10 +68,26 @@ class DebugCanvas {
   }
 
   update() {
-    if(this.context && this.imageBuffer instanceof Uint8ClampedArray){
-      var idata = new ImageData(this.imageBuffer, this.canvas.width, this.canvas.height);
-      this.putImageData(this.context, idata, 0, 0);
+    var start = performance.now();
+    try{
+      if(this.context && this.imageBuffer instanceof Uint8ClampedArray){
+        try{
+          var idata = new ImageData(this.imageBuffer, this.canvas.width, this.canvas.height);
+        } catch (ee) {
+          console.log("[DebugCanvas.js::update] can't create image data. Trying to correct canvas size. Error was:", ee);
+          this.canvas.width = this.conf.canvas.width;
+          this.canvas.height = this.conf.canvas.height;
+
+          this.calculateCanvasZoom();
+          // this.context = this.canvas.getContext("2d");
+          var idata = new ImageData(this.imageBuffer, this.canvas.width, this.canvas.height);
+        }
+        this.putImageData(this.context, idata, 0, 0, 0, 0, this.canvas.width, this.canvas.height);
+      }
+    } catch(e) {
+      console.log("[DebugCanvas.js::update] updating canvas failed.", e);
     }
+    console.log("[DebugCanvas.js::update] update took", (performance.now() - start), "ms.");
   }
 
 
