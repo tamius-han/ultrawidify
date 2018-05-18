@@ -15,9 +15,9 @@ class Resizer {
     this.video = videoData.video;
 
 
-    this.scaler = new Scaler();
-    this.stretcher = new Stretcher(); 
-    this.zoom = new Zoom();
+    this.scaler = new Scaler(this.conf);
+    this.stretcher = new Stretcher(this.conf); 
+    this.zoom = new Zoom(this.conf);
 
     // load up default values
     this.correctedVideoDimensions = {};
@@ -58,7 +58,7 @@ class Resizer {
       this.videoData.destroy();
     }
 
-    var dimensions = Scaler.calculateCrop(ar, this.video, this.conf.player.dimensions);
+    var dimensions = this.scaler.calculateCrop(ar, this.video, this.conf.player.dimensions);
 
     if(! dimensions || dimensions.error){
       if(Debug.debug){

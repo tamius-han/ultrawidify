@@ -278,8 +278,10 @@ class ArDetector {
     var trueHeight = this.canvas.height - letterbox;
     
     if(this.fallbackMode){
-      if(edge.top > 1 && edge.top <= ExtensionConf.arDetect.fallbackMode.noTriggerZonePx )
+      if(edges.top > 1 && edges.top <= ExtensionConf.arDetect.fallbackMode.noTriggerZonePx ){
+        console.log("Edge is in the no-trigger zone. Aspect ratio change is not triggered.")
         return;
+      }
       
       // varnostno območje, ki naj ostane črno (da lahko v fallback načinu odkrijemo ožanje razmerja stranic).
       // x2, ker je safetyBorderPx definiran za eno stran.

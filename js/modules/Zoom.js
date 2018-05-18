@@ -6,11 +6,12 @@ class Zoom {
 
 
   // functions
-  constructor() {
+  constructor(videoData) {
     this.scale = 1;
     this.scaleStep = 1.2;
     this.minScale = 0.5;  // not accurate, actually slightly less
     this.maxScale = 8;    // not accurate, actually slightly more
+    this.conf = videoData;
   }
 
   reset(){
