@@ -9,8 +9,8 @@ class Stretcher {
 
 
   // functions
-  constructor() {
-
+  constructor(videoData) {
+    this.conf = videoData;
   }
 
   static conditionalStretch(videoDimensions, maxDifferencePercent){

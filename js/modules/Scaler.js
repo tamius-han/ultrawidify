@@ -6,10 +6,11 @@ class Scaler {
   // internal variables
 
   // functions
-  constructor() {
+  constructor(videoData) {
+    this.conf = videoData;
   }
 
-  static modeToAr(mode, video, playerDimensions){
+  modeToAr(mode, video, playerDimensions){
     // Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". 
     // Približevanje opuščeno.
     // handles "legacy" options, such as 'fit to widht', 'fit to height' and 'reset'. No zoom tho
@@ -17,9 +18,9 @@ class Scaler {
 
     if (!video) {
       if(Debug.debug){
-        console.log("[Scaler.js::modeToAr] No video??",video)
+        console.log("[Scaler.js::modeToAr] No video??",video, "killing videoData");
       }
-
+      this.conf.destroy();
       return null;
     }
 
@@ -56,12 +57,14 @@ class Scaler {
     return null;
   }
 
-  static calculateCrop(mode, video, playerDimensions) {
+  calculateCrop(mode, video, playerDimensions) {
 
   
     if(!video || video.videoWidth == 0 || video.videoHeight == 0){
       if(Debug.debug)
-        console.log("[Scaler::calculateCrop] ERROR — no video detected.")
+        console.log("[Scaler::calculateCrop] ERROR — no video detected.");
+      
+      this.conf.destroy();
       return {error: "no_video"};
     }
 
@@ -69,7 +72,7 @@ class Scaler {
     // if 'ar' is string, we'll handle that in legacy wrapper
     var ar = 0;
     if(isNaN(mode)){
-      ar = Scaler.modeToAr(mode);
+      ar = this.modeToAr(mode);
     } else {
       ar = mode;
     }
