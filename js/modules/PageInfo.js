@@ -45,6 +45,7 @@ class PageInfo {
     if(! vids[0].offsetWidth || ! vids[0].offsetHeight){
       this.hasVideos = false;
       this.scheduleRescan();
+      return;
     }
 
     if(this.videos.length > 0){
