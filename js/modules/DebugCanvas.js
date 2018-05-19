@@ -32,7 +32,7 @@ class DebugCanvas {
     this.canvas.style.left = `${canvasPosition.left}px`;
     this.canvas.style.top = `${canvasPosition.top}px`;
     this.canvas.style.zIndex = 10002;
-    this.canvas.id = "uw_debug_canvas";
+    // this.canvas.id = "uw_debug_canvas";
     
     this.context = this.canvas.getContext("2d");
   

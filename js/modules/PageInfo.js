@@ -42,6 +42,11 @@ class PageInfo {
     //     );
     //   }
     // }
+    if(! vids[0].offsetWidth || ! vids[0].offsetHeight){
+      this.hasVideos = false;
+      this.scheduleRescan();
+    }
+
     if(this.videos.length > 0){
       if(vids[0] == this.videos[0].video){
       // do nothing
