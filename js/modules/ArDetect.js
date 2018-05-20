@@ -14,15 +14,12 @@ class ArDetector {
     this.fallbackMode = false;
 
     this.blackLevel = ExtensionConf.arDetect.blackLevel_default;    
-
-    this.init();
   }
 
   init(){
     if(Debug.debug){
       console.log("[ArDetect::init] Initializing autodetection")
     }
-  
     this.setup(ExtensionConf.arDetect.hSamples, ExtensionConf.arDetect.vSamples);
   }
 
@@ -48,8 +45,8 @@ class ArDetector {
     
     try{
       if(Debug.debug){
-        console.log("%c[ArDetect::_ard_setup] Starting automatic aspect ratio detection.", _ard_console_start);
-        console.log("[ArDetect::_ard_setup] Choice config bits:\ncanvas dimensions:",cwidth, "×", cheight, "\nsamplingInterval (ExtensionConf):", ExtensionConf.arDetect.samplingInterval, "width/interval:", parseInt(cheight / ExtensionConf.arDetect.samplingInterval));
+        console.log("%c[ArDetect::setup] Starting automatic aspect ratio detection.", _ard_console_start);
+        console.log("[ArDetect::setup] Choice config bits:\ncanvas dimensions:",cwidth, "×", cheight, "\nvideoData:", this.conf);
       }
     
       this._halted = false;
@@ -66,12 +63,12 @@ class ArDetector {
       
       if(this.canvas){
         if(Debug.debug)
-          console.log("[ArDetect::_ard_setup] existing canvas found. REMOVING KEBAB removing kebab\n\n\n\n(im hungry and you're not authorized to have it)");
+          console.log("[ArDetect::setup] existing canvas found. REMOVING KEBAB removing kebab\n\n\n\n(im hungry and you're not authorized to have it)");
         
         this.canvas.remove();
         
         if(Debug.debug)
-          console.log("[ArDetect::_ard_setup] canvas removed");
+          console.log("[ArDetect::setup] canvas removed");
       }
       
       // imamo video, pa tudi problem. Ta problem bo verjetno kmalu popravljen, zato setup začnemo hitreje kot prej
@@ -79,8 +76,11 @@ class ArDetector {
       // less delay than before
 
       if(this.video.videoWidth === 0 || this.video.videoHeight === 0 ){
-        if(! this.timer)
-          this.setupTimer = setTimeout(this.init(), 100);
+
+        if(Debug.debug){
+          console.log("[ArDetector::setup] video has no width or height!", this.video.videoWidth,"×", this.video.videoHeight)
+        }
+        this.scheduleInitRestart();
         
         return;
       }
@@ -173,6 +173,27 @@ class ArDetector {
 
   isRunning(){
     return ! this._halted;
+  }
+
+  scheduleInitRestart(timeout, force_reset){
+    if(! timeout){
+      timeout = 100;
+    }
+    // don't allow more than 1 instance
+    if(this.setupTimer){ 
+      clearTimeout(this.setupTimer);
+    }
+    
+    var ths = this;
+    this.setupTimer = setTimeout(function(){
+        ths.setupTimer = null;
+        try{
+        ths.init();
+        }catch(e){console.log("[ArDetector::scheduleInitRestart] Failed to start init(). Error:",e)}
+        ths = null;
+      },
+      timeout
+    );
   }
 
   scheduleFrameCheck(timeout, force_reset){
