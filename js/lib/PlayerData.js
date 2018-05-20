@@ -44,25 +44,34 @@ class PlayerData {
   }
 
   startChangeDetection(){
+    this.ghettoWatcher
     this.watchTimeout = setInterval(this.ghettoWatcher, 100, this);
   }
 
-  stopChangeDetection(){
-    clearInterval(this.watchTimeout);
+  scheduleGhettoWatcher(){
+    ths = this;
+    this.watchTimeout = setTimeout(function(){
+      ths.ghettoWatcher();
+      ths.scheduleGhettoWatcher();
+    }, 100)
   }
 
-  ghettoWatcher(ths){
-    if(ths.checkPlayerSizeChange()){
+  stopChangeDetection(){
+    clearTimeout(this.watchTimeout);
+  }
+
+  ghettoWatcher(){
+    if(this.checkPlayerSizeChange()){
       if(Debug.debug){
         console.log("[uw::ghettoOnChange] change detected");
       }
 
-      ths.getPlayerDimensions();
-      if(! ths.element ){
+      this.getPlayerDimensions();
+      if(! this.element ){
         return;
       }
 
-      ths.videoData.resizer.restore(); // note: this returns true if change goes through, false otherwise.
+      this.videoData.resizer.restore(); // note: this returns true if change goes through, false otherwise.
       return;
     }
 
@@ -71,18 +80,18 @@ class PlayerData {
     // sometimes, checkPlayerSizeChange might not detect a change to fullscreen. This means we need to 
     // trick it into doing that
 
-    if(ths.dimensions.fullscreen != PlayerData.isFullScreen()) {
+    if(this.dimensions.fullscreen != PlayerData.isFullScreen()) {
       if(Debug.debug){
         console.log("[PlayerData::ghettoWatcher] fullscreen switch detected (basic change detection failed)");
       }
 
-      ths.getPlayerDimensions();
+      this.getPlayerDimensions();
 
-      if(! ths.element ){
+      if(! this.element ){
         return;
       }
 
-      ths.videoData.resizer.restore();
+      this.videoData.resizer.restore();
     }
   }
 

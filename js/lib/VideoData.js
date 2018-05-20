@@ -22,10 +22,13 @@ class VideoData {
   }
 
   initArDetection() {
-    if(ths.arDetector)
+    if(this.arDetector){
       this.arDetector.init();
-    else
+    }
+    else{
       this.arDetector = new ArDetector(this);
+      this.arDetector.init();
+    }
   }
 
   startArDetection() {

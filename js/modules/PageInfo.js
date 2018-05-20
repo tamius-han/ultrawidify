@@ -44,22 +44,35 @@ class PageInfo {
     // }
     if(! vids[0].offsetWidth || ! vids[0].offsetHeight){
       this.hasVideos = false;
+
+      if(Debug.debug){
+        console.log("[PageInfo::rescan] video lacks offsetwidth or offsetheight, doing nothing")
+      }
+
       this.scheduleRescan();
       return;
     }
 
     if(this.videos.length > 0){
       if(vids[0] == this.videos[0].video){
+        console.log("[PageInfo::rescan] videos are equal, doing nothing")
       // do nothing
       } else {
+        console.log("videos not equal!", vids[0], this.videos[0].video)
         this.videos[0].destroy();
         this.videos[0] = new VideoData(vids[0]);
+        this.videos[0].initArDetection();
       }
     } else {
+
+      if(Debug.debug)
+        console.log("[PageInfo::rescan] Adding new video!", vids[0], ";", vids[0].offsetWidth, "×", vids[0].offsetHeight);
+
       this.videos.push(new VideoData(vids[0]));
+      this.videos[0].initArDetection();
     }
 
-    console.log("Rescan complete. Total videos?", this.videos.length)
+    // console.log("Rescan complete. Total videos?", this.videos.length)
     }catch(e){
       console.log("rescan error:",e)
     }
