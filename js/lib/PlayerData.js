@@ -44,16 +44,30 @@ class PlayerData {
   }
 
   startChangeDetection(){
-    this.ghettoWatcher
-    this.watchTimeout = setInterval(this.ghettoWatcher, 100, this);
+    this.scheduleGhettoWatcher();
   }
 
-  scheduleGhettoWatcher(){
-    ths = this;
+  scheduleGhettoWatcher(timeout, force_reset) {
+    if(! timeout){
+      timeout = 100;
+    }
+
+    // don't allow more than 1 instance
+    if(this.watchTimeout){ 
+      clearTimeout(this.watchTimeout);
+    }
+    
+    var ths = this;
+
     this.watchTimeout = setTimeout(function(){
-      ths.ghettoWatcher();
-      ths.scheduleGhettoWatcher();
-    }, 100)
+        ths.watchTimeout = null;
+        try{
+        ths.ghettoWatcher();
+        }catch(e){console.log("[PlayerData::scheduleGhettoWatcher] Scheduling failed. Error:",e)}
+        ths = null;
+      },
+      timeout
+    );
   }
 
   stopChangeDetection(){
@@ -68,10 +82,13 @@ class PlayerData {
 
       this.getPlayerDimensions();
       if(! this.element ){
+        this.scheduleGhettoWatcher();
         return;
       }
 
       this.videoData.resizer.restore(); // note: this returns true if change goes through, false otherwise.
+      
+      this.scheduleGhettoWatcher();
       return;
     }
 
@@ -88,11 +105,14 @@ class PlayerData {
       this.getPlayerDimensions();
 
       if(! this.element ){
+        this.scheduleGhettoWatcher();
         return;
       }
 
       this.videoData.resizer.restore();
     }
+
+    this.scheduleGhettoWatcher();
   }
 
   getPlayerDimensions(elementNames){
