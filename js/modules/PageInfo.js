@@ -59,9 +59,18 @@ class PageInfo {
       if (videoExists) {
         continue;
       } else {
+        if(Debug.debug && Debug.periodic && Debug.videoRescan){
+          console.log("[PageInfo::rescan] found new video candidate:", video)
+        }
         v = new VideoData(video);
+        // console.log("[PageInfo::rescan] v is:", v)
+        // debugger;
         v.initArDetection();
         this.videos.push(v);
+
+        if(Debug.debug && Debug.periodic && Debug.videoRescan){
+          console.log("[PageInfo::rescan] — videos[] is now this:", this.videos,"\n\n\n\n\n\n\n\n")
+        }
       }
     }
 
