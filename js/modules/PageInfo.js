@@ -7,93 +7,136 @@ class PageInfo {
     this.siteDisabled = false;
     this.videos = [];
 
+    this.lastUrl = window.location.href;
 
-    this.rescan();
+    this.rescan(RescanReason.PERIODIC);
+    this.scheduleUrlCheck();
   }
 
-  rescan(count){
+  rescan(rescanReason){
     try{
     var vids = document.getElementsByTagName('video');
 
     if(!vids || vids.length == 0){
       this.hasVideos = false;
   
-      this.scheduleRescan();
+      if(rescanReason == RescanReason.PERIODIC){
+        this.scheduleRescan(RescanReason.PERIODIC);
+      }
       return;
     }
-
-    // debugger;
 
     // add new videos
-    // for(var video of vids){
-    //   var existing = this.videos.find( (x) => {
-    //     if (video && x == video.video)
-    //       return x;
-    //     if (video && x.currentSrc == video.video.currentSrc){
-    //       return x;
-    //     }
-    //   })
-      
-    //   if(existing){
-    //     video.video = existing;
-    //   } else {
-    //     this.videos.push(
-    //       new VideoData(video)
-    //     );
-    //   }
-    // }
-    if(! vids[0].offsetWidth || ! vids[0].offsetHeight){
-      this.hasVideos = false;
+    this.hasVideos = false;
+    var videoExists = false;    
+    var video, v;
 
-      if(Debug.debug){
-        console.log("[PageInfo::rescan] video lacks offsetwidth or offsetheight, doing nothing")
-      }
-
-      this.scheduleRescan();
-      return;
-    }
-
-    if(this.videos.length > 0){
-      if(vids[0] == this.videos[0].video){
-        console.log("[PageInfo::rescan] videos are equal, doing nothing")
-      // do nothing
+    for (video of vids) {
+      // če najdemo samo en video z višino in širino, to pomeni, da imamo na strani veljavne videe
+      // če trenutni video nima definiranih teh vrednostih, preskočimo vse nadaljnja preverjanja
+      // <===[:::::::]===>
+      // if we find even a single video with width and height, that means the page has valid videos
+      // if video lacks either of the two properties, we skip all further checks cos pointless
+      if(video.offsetWidth && video.offsetHeight){
+        this.hasVideos = true;
       } else {
-        console.log("videos not equal!", vids[0], this.videos[0].video)
-        this.videos[0].destroy();
-        this.videos[0] = new VideoData(vids[0]);
-        this.videos[0].initArDetection();
+        continue;
       }
-    } else {
 
-      if(Debug.debug)
-        console.log("[PageInfo::rescan] Adding new video!", vids[0], ";", vids[0].offsetWidth, "×", vids[0].offsetHeight);
+      videoExists = false;
 
-      this.videos.push(new VideoData(vids[0]));
-      this.videos[0].initArDetection();
+      for (v of this.videos) {
+        if (v.destroyed) {
+          continue; //TODO: if destroyed video is same as current video, copy aspect ratio settings to current video
+        }
+
+        if (v.video == video) {
+          videoExists = true;
+          break;
+        }
+      }
+
+      if (videoExists) {
+        continue;
+      } else {
+        v = new VideoData(video);
+        v.initArDetection();
+        this.videos.push(v);
+      }
     }
 
+    this.removeDestroyed();
+    
     // console.log("Rescan complete. Total videos?", this.videos.length)
     }catch(e){
       console.log("rescan error:",e)
     }
-    this.scheduleRescan();
+
+    if(rescanReason == RescanReason.PERIODIC){
+      this.scheduleRescan(RescanReason.PERIODIC);
+    }
   }
 
-  scheduleRescan(){
+  removeDestroyed(){
+    this.videos = this.videos.filter( vid => vid.destroyed === false);
+  }
+
+
+  scheduleRescan(rescanReason){
+    if(rescanReason != RescanReason.PERIODIC){
+      this.rescan(rescanReason);
+      return;
+    }
+
     try{
-    if(this.rescanTimer){
-      clearTimeout(this.rescanTimer);
+      if(this.rescanTimer){
+        clearTimeout(this.rescanTimer);
+      }
+
+      var ths = this;
+      
+      
+      this.rescanTimer = setTimeout(function(rr){
+        ths.rescanTimer = null;
+        ths.rescan(rr);
+        ths = null;
+      }, rescanReason === ExtensionConf.pageInfo.timeouts.rescan, RescanReason.PERIODIC)
+    } catch(e) {
+      if(Debug.debug){
+        console.log("[PageInfo::scheduleRescan] scheduling rescan failed. Here's why:",e)
+      }
+    }
+  }
+
+  scheduleUrlCheck() {
+    try{
+    if(this.urlCheckTimer){
+      clearTimeout(this.urlCheckTimer);
     }
 
     var ths = this;
-    
-    
+        
     this.rescanTimer = setTimeout(function(){
       ths.rescanTimer = null;
-      ths.rescan();
+      ths.ghettoUrlCheck();
       ths = null;
-    }, 1000)
-  }catch(e){console.log("eee",e)}
+    }, ExtensionConf.pageInfo.timeouts.urlCheck)
+    }catch(e){
+      if(Debug.debug){
+        console.log("[PageInfo::scheduleUrlCheck] scheduling URL check failed. Here's why:",e)
+      }
+    }
+  }
+
+  ghettoUrlCheck() {
+    if (this.lastUrl != window.location.href){
+      if(Debug.debug){
+        console.log("[PageInfo::ghettoUrlCheck] URL has changed. Triggering a rescan!");
+      }
+      
+      this.rescan(RescanReason.URL_CHANGE);
+      this.lastUrl = window.location.href;
+    }
   }
 
   initArDetection(){
@@ -115,4 +158,10 @@ class PageInfo {
     }
   }
 
+}
+
+var RescanReason = {
+  PERIODIC: 0,
+  URL_CHANGE: 1,
+  MANUAL: 2
 }
