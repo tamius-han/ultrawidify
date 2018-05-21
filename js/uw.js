@@ -77,65 +77,65 @@ async function setup(){
 // tukaj gledamo, ali se je velikost predvajalnika spremenila. Če se je, ponovno prožimo resizer
 // here we check (in the most ghetto way) whether player size has changed. If it has, we retrigger resizer.
 
-var _video_recheck_counter = 5;
-var _video_recheck_period = 1;  // on this many retries
+// var _video_recheck_counter = 5;
+// var _video_recheck_period = 1;  // on this many retries
 
-function ghettoOnChange(){
+// function ghettoOnChange(){
   
-  if(_video_recheck_counter++ > _video_recheck_period){
-    _video_recheck_counter = 0;
+//   if(_video_recheck_counter++ > _video_recheck_period){
+//     _video_recheck_counter = 0;
     
-    if ( GlobalVars.video == null || 
-         GlobalVars.video == undefined ||
-         GlobalVars.video.videoWidth == 0 ||
-         GlobalVars.video.videoHeight == 0 ){
+//     if ( GlobalVars.video == null || 
+//          GlobalVars.video == undefined ||
+//          GlobalVars.video.videoWidth == 0 ||
+//          GlobalVars.video.videoHeight == 0 ){
       
-      var video = document.getElementsByTagName("video")[0];
-      if ( video !== undefined &&
-           video !== null && 
-           video.videoWidth > 0 &&
-           video.videoHeight > 0 ){
-        if(Debug.debug){
-          console.log("%c[uw::ghettoOnChange] detected video. registering!", "color: #99f, background: #000");
-          console.log("[uw::ghettoOnChange] just for shits and giggles, let's see what's happened with GlobalVars.playerDimensions:", GlobalVars.playerDimensions)
-        }
+//       var video = document.getElementsByTagName("video")[0];
+//       if ( video !== undefined &&
+//            video !== null && 
+//            video.videoWidth > 0 &&
+//            video.videoHeight > 0 ){
+//         if(Debug.debug){
+//           console.log("%c[uw::ghettoOnChange] detected video. registering!", "color: #99f, background: #000");
+//           console.log("[uw::ghettoOnChange] just for shits and giggles, let's see what's happened with GlobalVars.playerDimensions:", GlobalVars.playerDimensions)
+//         }
         
-        // zaznali smo novo <video> značko. Zaradi tega bomo resetirali GlobalVars.playerDimensions
-        // a new <video> has been detected. We'll be resetting GlobalVars.playerDimensions
-        GlobalVars.playerDimensions = PlayerDetect.getPlayerDimensions(video);
+//         // zaznali smo novo <video> značko. Zaradi tega bomo resetirali GlobalVars.playerDimensions
+//         // a new <video> has been detected. We'll be resetting GlobalVars.playerDimensions
+//         GlobalVars.playerDimensions = PlayerDetect.getPlayerDimensions(video);
 
-        GlobalVars.video = video;
-        Comms.sendToBackgroundScript({"cmd":"register-video"});
-      }
-    }
-  }
+//         GlobalVars.video = video;
+//         Comms.sendToBackgroundScript({"cmd":"register-video"});
+//       }
+//     }
+//   }
   
-  if(! GlobalVars.video)
-    return;
+//   if(! GlobalVars.video)
+//     return;
   
-  if(GlobalVars.playerDimensions == null){
-    GlobalVars.playerDimensions = PlayerDetect.getPlayerDimensions( GlobalVars.video );
+//   if(GlobalVars.playerDimensions == null){
+//     GlobalVars.playerDimensions = PlayerDetect.getPlayerDimensions( GlobalVars.video );
     
     
-    if(GlobalVars.playerDimensions == undefined){
-      GlobalVars.playerDimensions = null;
-      return;
-    }
-  }
-}
+//     if(GlobalVars.playerDimensions == undefined){
+//       GlobalVars.playerDimensions = null;
+//       return;
+//     }
+//   }
+// }
 
-function ghettoUrlWatcher(){
-  if (GlobalVars.lastUrl != window.location.href){
-    if(Debug.debug){
-      console.log("[uw::ghettoUrlWatcher] URL has changed. Trying to retrigger autoAr");
-    }
+// function ghettoUrlWatcher(){
+//   if (GlobalVars.lastUrl != window.location.href){
+//     if(Debug.debug){
+//       console.log("[uw::ghettoUrlWatcher] URL has changed. Trying to retrigger autoAr");
+//     }
     
-    GlobalVars.video = null;
-    GlobalVars.lastUrl = window.location.href;
-    // Resizer.reset();
-    main();
-  }
-}
+//     GlobalVars.video = null;
+//     GlobalVars.lastUrl = window.location.href;
+//     // Resizer.reset();
+//     main();
+//   }
+// }
 
 
 

@@ -99,6 +99,12 @@ var ExtensionConf = {
       retryTimeout: 200
     }
   },
+  pageInfo: {
+    timeouts: {
+      urlCheck: 200,
+      rescan: 1500
+    }
+  },
   colors:{
     //     criticalFail: "background: #fa2; color: #000"
   }

@@ -3,6 +3,7 @@ class VideoData {
   constructor(video){
     this.arSetupComplete = false;
     this.video = video;
+    this.destroyed = false;
 
     // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
     // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)    
@@ -36,6 +37,7 @@ class VideoData {
   }
 
   destroy() {
+    this.destroyed = true;
     if(this.arDetector){
       this.arDetector.stop();
       this.arDetector.destroy();
