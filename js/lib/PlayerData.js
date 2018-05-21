@@ -47,6 +47,10 @@ class PlayerData {
     this.scheduleGhettoWatcher();
   }
 
+  destroy() {
+    this.stopChangeDetection();
+  }
+
   scheduleGhettoWatcher(timeout, force_reset) {
     if(! timeout){
       timeout = 100;

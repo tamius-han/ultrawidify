@@ -16,9 +16,9 @@ class Scaler {
     // handles "legacy" options, such as 'fit to widht', 'fit to height' and 'reset'. No zoom tho
     var ar;
 
-    if (!video) {
+    if (!this.conf.video) {
       if(Debug.debug){
-        console.log("[Scaler.js::modeToAr] No video??",video, "killing videoData");
+        console.log("[Scaler.js::modeToAr] No video??",this.conf.video, "killing videoData");
       }
       this.conf.destroy();
       return null;
@@ -38,7 +38,7 @@ class Scaler {
     // IMPORTANT NOTE: GlobalVars.lastAr needs to be set after _res_setAr() is called, as _res_setAr() assumes we're
     // setting a static aspect ratio (even if the function is called from here or ArDetect). 
     
-    var fileAr = video.videoWidth / video.videoHeight;
+    var fileAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
       
     if (mode == "fitw"){
       return ar > fileAr ? ar : fileAr;
@@ -60,7 +60,7 @@ class Scaler {
   calculateCrop(mode, video, playerDimensions) {
 
   
-    if(!video || video.videoWidth == 0 || video.videoHeight == 0){
+    if(!this.conf.video || this.conf.video.videoWidth == 0 || this.conf.video.videoHeight == 0){
       if(Debug.debug)
         console.log("[Scaler::calculateCrop] ERROR — no video detected.");
       
@@ -99,7 +99,7 @@ class Scaler {
 
     // Dejansko razmerje stranic datoteke/<video> značke
     // Actual aspect ratio of the file/<video> tag
-    var fileAr = video.videoWidth / video.videoHeight;
+    var fileAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
     var playerAr = playerDimensions.width / playerDimensions.height;
 
     if(mode == "default" || !ar)

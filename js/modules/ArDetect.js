@@ -45,8 +45,7 @@ class ArDetector {
     
     try{
       if(Debug.debug){
-        console.log("%c[ArDetect::setup] Starting automatic aspect ratio detection.", _ard_console_start);
-        console.log("[ArDetect::setup] Choice config bits:\ncanvas dimensions:",cwidth, "×", cheight, "\nvideoData:", this.conf);
+        console.log("[ArDetect::setup] Trying to setup automatic aspect ratio detector. Choice config bits:\ncanvas dimensions:",cwidth, "×", cheight, "\nvideoData:", this.conf);
       }
     
       this._halted = false;
@@ -157,6 +156,7 @@ class ArDetector {
   }
 
   start(){
+    console.log("%c[ArDetect::setup] Starting automatic aspect ratio detection.", _ard_console_start);
     this._halted = false;
     this.scheduleFrameCheck(0, true);
   }
@@ -211,6 +211,13 @@ class ArDetector {
     }
     
     var ths = this;
+
+    // console.log(this.video, "this.video | ths.video", ths.video)
+    // console.log(this.conf.video, "this.conf | ths.conf", ths.conf.video)
+    // console.log("resizer conf&vid", 
+    // this.conf.resizer, this.conf.resizer.conf, this.conf.resizer.video, this.conf.resizer.conf.video )
+    
+    // debugger;
 
     this.timer = setTimeout(function(){
         ths.timer = null;
@@ -361,6 +368,10 @@ class ArDetector {
   }
 
   frameCheck(){
+
+    // console.log("this.video:", this.video, this.conf.video);
+    // debugger;
+
     if(this._halted)
      return;
 

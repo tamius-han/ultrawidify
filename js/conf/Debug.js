@@ -11,6 +11,8 @@ Debug = {
   // showArDetectCanvas: true,
   flushStoredSettings: false,
   playerDetectDebug: true,
+  periodic: true,
+  videoRescan: true,
   arDetect: {
     edgeDetect: true
   },

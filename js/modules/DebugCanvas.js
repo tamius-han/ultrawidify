@@ -53,7 +53,8 @@ class DebugCanvas {
   }
 
   destroy(){
-    this.canvas.remove();
+    if(this.canvas)
+      this.canvas.remove();
   }
 
   setBuffer(buffer) {

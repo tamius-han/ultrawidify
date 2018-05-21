@@ -46,6 +46,9 @@ class VideoData {
     if(this.resizer){
       this.resizer.destroy();
     }
+    if(this.player){
+      player.destroy();
+    }
     this.video = null;
   }
 
