@@ -58,7 +58,7 @@ class Resizer {
       this.videoData.destroy();
     }
 
-    var dimensions = this.scaler.calculateCrop(ar, this.video, this.conf.player.dimensions);
+    var dimensions = this.scaler.calculateCrop(ar);
 
     if(! dimensions || dimensions.error){
       if(Debug.debug){

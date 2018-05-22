@@ -10,7 +10,7 @@ class Scaler {
     this.conf = videoData;
   }
 
-  modeToAr(mode, video, playerDimensions){
+  modeToAr(mode){
     // Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". 
     // Približevanje opuščeno.
     // handles "legacy" options, such as 'fit to widht', 'fit to height' and 'reset'. No zoom tho
@@ -25,11 +25,11 @@ class Scaler {
     }
 
     
-    if(! playerDimensions ){
+    if(! this.conf.player.dimensions ){
       ar = screen.width / screen.height;
     }
     else {
-      ar = playerDimensions.width / playerDimensions.height;
+      ar = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
     }
     
     // POMEMBNO: GlobalVars.lastAr je potrebno nastaviti šele po tem, ko kličemo _res_setAr(). _res_setAr() predvideva,
@@ -57,7 +57,7 @@ class Scaler {
     return null;
   }
 
-  calculateCrop(mode, video, playerDimensions) {
+  calculateCrop(mode) {
 
   
     if(!this.conf.video || this.conf.video.videoWidth == 0 || this.conf.video.videoHeight == 0){
@@ -85,12 +85,12 @@ class Scaler {
     }
 
     if(Debug.debug)
-      console.log("[Scaler::calculateCrop] trying to set ar. args are: ar->",ar,"; playerDimensions->",playerDimensions.width, "×", playerDimensions.height, "| obj:", playerDimensions);
+      console.log("[Scaler::calculateCrop] trying to set ar. args are: ar->",ar,"; this.conf.player.dimensions->",this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
 
-    if( (! playerDimensions) || playerDimensions.width === 0 || playerDimensions.height === 0 ){
+    if( (! this.conf.player.dimensions) || this.conf.player.dimensions.width === 0 || this.conf.player.dimensions.height === 0 ){
       if(Debug.debug)
-        console.log("[Scaler::calculateCrop] ERROR — no (or invalid) playerDimensions:",playerDimensions);
-      return {error: "playerDimensions_error"};
+        console.log("[Scaler::calculateCrop] ERROR — no (or invalid) this.conf.player.dimensions:",this.conf.player.dimensions);
+      return {error: "this.conf.player.dimensions_error"};
     }
 
     // zdaj lahko končno začnemo računati novo velikost videa
@@ -100,14 +100,14 @@ class Scaler {
     // Dejansko razmerje stranic datoteke/<video> značke
     // Actual aspect ratio of the file/<video> tag
     var fileAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
-    var playerAr = playerDimensions.width / playerDimensions.height;
+    var playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
 
     if(mode == "default" || !ar)
       ar = fileAr;
 
   
     if(Debug.debug)
-      console.log("[Scaler::calculateCrop] ar is " ,ar, ", file ar is", fileAr, ", playerDimensions are ", playerDimensions.width, "×", playerDimensions.height, "| obj:", playerDimensions);
+      console.log("[Scaler::calculateCrop] ar is " ,ar, ", file ar is", fileAr, ", this.conf.player.dimensions are ", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
     
     var videoDimensions = {
       width: 0,
@@ -117,18 +117,18 @@ class Scaler {
     }
   
     if(Debug.debug){
-      console.log("[Scaler::calculateCrop] Player dimensions?", playerDimensions.width, "×", playerDimensions.height, "| obj:", playerDimensions);
+      console.log("[Scaler::calculateCrop] Player dimensions?", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
     }
   
     if( fileAr < ar ){
       // imamo letterbox zgoraj in spodaj -> spremenimo velikost videa (a nikoli širše od ekrana)
       // letterbox -> change video size (but never to wider than monitor width)
 
-        videoDimensions.width = Math.min(playerDimensions.height * ar, playerDimensions.width);
+        videoDimensions.width = Math.min(this.conf.player.dimensions.height * ar, this.conf.player.dimensions.width);
         videoDimensions.height = videoDimensions.width * (1/fileAr);
     }
     else{
-        videoDimensions.height = Math.min(playerDimensions.width / ar, playerDimensions.height);
+        videoDimensions.height = Math.min(this.conf.player.dimensions.width / ar, this.conf.player.dimensions.height);
         videoDimensions.width = videoDimensions.height * fileAr;
     }
     
@@ -148,7 +148,7 @@ class Scaler {
     }
 
     if(Debug.debug){
-      console.log("[Scaler::calculateCrop] Video dimensions: ", videoDimensions.width, "×", videoDimensions.height, "(obj:", videoDimensions, "); playerDimensions:",playerDimensions.width, "×", playerDimensions.height, "(obj:", playerDimensions, ")");
+      console.log("[Scaler::calculateCrop] Video dimensions: ", videoDimensions.width, "×", videoDimensions.height, "(obj:", videoDimensions, "); this.conf.player.dimensions:",this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "(obj:", this.conf.player.dimensions, ")");
     }
 
     return videoDimensions;
