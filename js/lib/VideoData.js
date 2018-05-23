@@ -52,6 +52,38 @@ class VideoData {
     this.video = null;
   }
 
+  pause(){
+    this.paused = true;
+    if(this.arDetector){
+      this.arDetector.stop();
+    }
+    if(this.resizer){
+      this.resizer.stop();
+    }
+    if(this.player){
+      this.player.stop();
+    }
+  }
+
+  resume(){
+    this.paused = false;
+    try {
+      this.resizer.start();
+      this.player.start();
+    } catch (e) {
+      if(Debug.debug){
+        console.log("[VideoData.js::resume] cannot resume for reasons. Will destroy videoData. Error here:", e);
+      }
+      this.destroy();
+    }
+  }
+
+  resumeAutoAr(){
+    if(this.arDetector){
+      this.startArDetection();
+    }
+  }
+
   setLastAr(lastAr){
     this.resizer.setLastAr(lastAr);
   }
