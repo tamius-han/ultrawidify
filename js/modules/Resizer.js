@@ -33,6 +33,14 @@ class Resizer {
     this.destroyed = false;
   }
   
+  start(){
+    this.startCssWatcher();
+  }
+
+  stop(){
+    this.stopCssWatcher();
+  }
+
   destroy(){
     this.destroyed = true;
     this.stopCssWatcher();

@@ -154,6 +154,24 @@ class PageInfo {
     }
   }
 
+
+  // to je treba klicat ob menjavi zavihkov
+  // these need to be called on tab switch
+  pauseProcessing(){
+    for(var vd of this.videos){
+      vd.pause();
+    }
+  }
+
+  resumeProcessing(resumeAutoar = false){
+    for(var vd of this.videos){
+      vd.resume();
+      if(resumeAutoar){
+        vd.resumeAutoAr();
+      }
+    }
+  }
+
   setAr(ar){
     // TODO: find a way to only change aspect ratio for one video
     for(var vd in this.videos){
