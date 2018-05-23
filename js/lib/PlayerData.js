@@ -43,17 +43,34 @@ class PlayerData {
     return ( window.innerHeight == window.screen.height && window.innerWidth == window.screen.width);
   }
 
-  startChangeDetection(){
-    this.scheduleGhettoWatcher();
+
+
+  start(){
+    this.startChangeDetection();
+  }
+
+  stop(){
+    this.halted = true;
+    this.stopChangeDetection();
   }
 
   destroy() {
     this.stopChangeDetection();
   }
 
+  startChangeDetection(){
+    this.scheduleGhettoWatcher();
+  }
+  stopChangeDetection(){
+    clearTimeout(this.watchTimeout);
+  }
+
   scheduleGhettoWatcher(timeout, force_reset) {
     if(! timeout){
       timeout = 100;
+    }
+    if(this.halted){
+      return;
     }
 
     // don't allow more than 1 instance
@@ -74,9 +91,6 @@ class PlayerData {
     );
   }
 
-  stopChangeDetection(){
-    clearTimeout(this.watchTimeout);
-  }
 
   ghettoWatcher(){
     if(this.checkPlayerSizeChange()){
