@@ -3,6 +3,8 @@ if(Debug.debug)
 
 class PageInfo {
   constructor(){
+    this.keybinds = new Keybinds(this);
+    this.keybinds.setup();
     this.hasVideos = false;
     this.siteDisabled = false;
     this.videos = [];
@@ -149,7 +151,7 @@ class PageInfo {
   }
 
   initArDetection(){
-    for(var vd in this.videos){
+    for(var vd of this.videos){
       vd.initArDetection();
     }
   }
@@ -172,19 +174,38 @@ class PageInfo {
     }
   }
 
+
+
+  startArDetection(){
+    for(var vd of this.videos){
+      vd.startArDetection();
+    }
+  }
+
+  stopArDetection(){
+    for(var vd of this.videos){
+      vd.stopArDetection();
+    }
+  }
+
   setAr(ar){
     // TODO: find a way to only change aspect ratio for one video
-    for(var vd in this.videos){
+    for(var vd of this.videos){
       vd.setAr(ar)
     }
   }
   
   setStretchMode(sm){
-    for(var vd in this.videos){
+    for(var vd of this.videos){
       vd.setStretchMode(ar)
     }
   }
 
+  setZoom(step){
+    for(var vd of this.videos){
+      vd.zoomStep(step);
+    }
+  }
 }
 
 var RescanReason = {

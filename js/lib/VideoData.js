@@ -31,9 +31,13 @@ class VideoData {
       this.arDetector.init();
     }
   }
-
+  
   startArDetection() {
     this.arDetector.start();
+  }
+
+  stopArDetection() {
+    this.arDetector.stop();
   }
 
   destroy() {
@@ -94,6 +98,10 @@ class VideoData {
 
   setStretchMode(stretchMode){
     this.resizer.setStretchMode(stretchMode);
+  }
+
+  zoomStep(step){
+    this.resizer.zoomStep();
   }
 
 }

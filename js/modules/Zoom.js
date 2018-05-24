@@ -8,7 +8,7 @@ class Zoom {
   // functions
   constructor(videoData) {
     this.scale = 1;
-    this.scaleStep = 1.2;
+    this.scaleStep = 0.1;
     this.minScale = 0.5;  // not accurate, actually slightly less
     this.maxScale = 8;    // not accurate, actually slightly more
     this.conf = videoData;
@@ -19,15 +19,31 @@ class Zoom {
   }
 
   zoomIn(){
-    if(this.scale >= this.maxScale)
-      return;
-    this.scale *= this.scaleStep;
+    this.scale += this.scaleStep;
+
+    if (this.scale >= this.maxScale) {
+      this.scale = this.maxScale;
+    }
   }
 
   zoomOut(){
-    if(this.scale <= this.minScale)
-      return;
-    this.scale *= (1/this.scaleStep);
+    this.scale -= this.scaleStep;
+
+    if (this.scale <= this.minScale) {
+      this.scale = this.minScale;
+    }
+    
+  }
+
+  zoomStep(amount){
+    this.scale += amount;
+
+    if (this.scale <= this.minScale) {
+      this.scale = this.minScale;
+    }
+    if (this.scale >= this.maxScale) {
+      this.scale = this.maxScale;
+    }
   }
 
   setZoom(scale){

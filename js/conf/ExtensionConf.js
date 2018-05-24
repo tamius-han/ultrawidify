@@ -107,5 +107,50 @@ var ExtensionConf = {
   },
   colors:{
     //     criticalFail: "background: #fa2; color: #000"
+  },
+  keybinds: {
+    shortcuts: {
+      // automatic
+      "a": {
+        action: "auto-ar",
+      },
+      //#region crop
+      "r": {
+        action: "crop",
+        arg: "reset"
+      },
+      "w": {
+        action: "crop",
+        arg: "fitw"
+      },
+      "e": {
+        action: "crop",
+        arg: "fith"
+      },
+      "s": {
+        action: "crop",
+        arg: 1.78 
+      },
+      "d": {
+        action: "crop",
+        arg: 2.39
+      },
+      "x": {
+        action: "crop",
+        arg: 2.0
+      },
+      //#endregion
+      //#region zoom
+      "z": {
+        action: "zoom",
+        arg: 0.1
+      },
+      "u": {
+        action: "zoom",
+        arg: -0.1
+      }
+      //#endregion
+    },
+    modKeys: ["ctrlKey", "shiftKey", "altKey"]
   }
 }

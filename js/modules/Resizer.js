@@ -161,6 +161,10 @@ class Resizer {
     this.pan = undefined;
   }
 
+  zoomStep(step){
+    this.zoom.zoomStep(step);
+  }
+
   resetZoom(){
     this.zoom.setZoom(1);
     this.restore();

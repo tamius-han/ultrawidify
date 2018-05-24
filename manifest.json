@@ -13,7 +13,6 @@
   "content_scripts": [{
     "matches": ["*://*/*"],
     "js": [ 
-    "js/dep/jquery-3.1.1.js",
     "js/dep/chrome/chrome-extension-async.js",
     
     "js/run/GlobalVars.js",
@@ -22,6 +21,7 @@
     "js/lib/Comms.js",
     
     "js/conf/Debug.js",
+    "js/conf/ExtensionConf.js",    
     "js/conf/Settings.js",
     "js/conf/SitesConf.js",
     "js/conf/Status.js",
