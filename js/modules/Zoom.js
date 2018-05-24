@@ -57,7 +57,7 @@ class Zoom {
   }
 
   applyZoom(videoDimensions){
-    videoDimensions.width *= this.scale;
-    videoDimensions.height *= this.scale;
+    videoDimensions.xFactor *= this.scale;
+    videoDimensions.yFactor *= this.scale;
   }
 }

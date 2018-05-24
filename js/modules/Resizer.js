@@ -3,8 +3,9 @@ if(Debug.debug)
 
 var StretchMode = {
   NO_STRETCH: 0,
-  CONDITIONAL: 1,
-  FULL: 2
+  BASIC: 1,
+  HYBRID: 2,
+  CONDITIONAL: 3
 }
 
 
@@ -46,6 +47,7 @@ class Resizer {
     this.stopCssWatcher();
   }
 
+
   setAr(ar, lastAr){
     if(Debug.debug){
       console.log('[Resizer::setAr] trying to set ar. New ar:', ar)
@@ -66,33 +68,34 @@ class Resizer {
       this.videoData.destroy();
     }
 
-    var zoomFactors = this.scaler.calculateCrop(ar);
 
-    if(! zoomFactors || zoomFactors.error){
-      if(Debug.debug){
-        console.log("[Resizer::setAr] failed to set AR due to problem with calculating crop. Error:", (zoomFactors ? zoomFactors.error : zoomFactors));
+    if (this.stretch.mode === StretchMode.NO_STRETCH || this.stretch.mode === StretchMode.CONDITIONAL){
+      var stretchFactors = this.scaler.calculateCrop(ar);
+
+      if(! stretchFactors || stretchFactors.error){
+        if(Debug.debug){
+          console.log("[Resizer::setAr] failed to set AR due to problem with calculating crop. Error:", (stretchFactors ? stretchFactors.error : stretchFactors));
+        }
+        if(dimensions.error === 'no_video'){
+          this.conf.destroy();
+        }
+        return;
       }
-      if(dimensions.error === 'no_video'){
-        this.conf.destroy();
+      if(this.stretch.mode === StretchMode.CONDITIONAL){
+        this.stretcher.applyConditionalStretch(stretchFactors, ar);
       }
-      return;
+    } else if (this.stretch.mode === StretchMode.HYBRID) {
+      var stretchFactors = this.stretcher.calculateStretch(ar);
     }
 
-    var stretchFactors = undefined;
+    this.zoom.applyZoom(stretchFactors);
 
-    // if we set stretching, we apply stretching
-    if (this.stretch.mode == StretchMode.FULL){
-      this.stretcher.calculateStretch(ar);
-    } else if (this.stretch.mode == StretchMode.CONDITIONAL) {
-      this.stretcher.conditionalStretch(zoomFactors, ar);
-    }
-    // this.zoom.applyZoom(dimensions);
-
-    var cssOffsets = this.computeOffsets(dimensions);
+    //TODO: correct these two
+    var cssOffsets = this.computeOffsets(stretchFactors);
     this.applyCss(cssOffsets, stretchFactors);
 
-    if(! this.destroyed)
-      this.startCssWatcher(); 
+    // if(! this.destroyed)
+    //   this.startCssWatcher(); 
   }
 
   setLastAr(override){
