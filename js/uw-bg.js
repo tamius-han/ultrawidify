@@ -24,7 +24,6 @@ async function main(){
     console.log("[uw-bg::main] setting up background script");
   
   await Settings.init();
-  await Keybinds.init();
   Keybinds.keybinds = await Keybinds.fetch();
   
   
@@ -259,4 +258,4 @@ function _uwbg_rcvmsg(message, sender, sendResponse){
 }
 
 
-main();
+// main();
