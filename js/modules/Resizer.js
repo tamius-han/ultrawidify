@@ -66,11 +66,11 @@ class Resizer {
       this.videoData.destroy();
     }
 
-    var dimensions = this.scaler.calculateCrop(ar);
+    var zoomFactors = this.scaler.calculateCrop(ar);
 
-    if(! dimensions || dimensions.error){
+    if(! zoomFactors || zoomFactors.error){
       if(Debug.debug){
-        console.log("[Resizer::setAr] failed to set AR due to problem with calculating crop. Error:", (dimensions ? dimensions.error : dimensions));
+        console.log("[Resizer::setAr] failed to set AR due to problem with calculating crop. Error:", (zoomFactors ? zoomFactors.error : zoomFactors));
       }
       if(dimensions.error === 'no_video'){
         this.conf.destroy();
@@ -82,11 +82,11 @@ class Resizer {
 
     // if we set stretching, we apply stretching
     if (this.stretch.mode == StretchMode.FULL){
-      stretchFactors = Stretcher.calculateStretch(dimensions);
+      this.stretcher.calculateStretch(ar);
     } else if (this.stretch.mode == StretchMode.CONDITIONAL) {
-      stretchFactors = Stretcher.conditionalStretch(dimensions, ExtensionConf.stretch.conditionalDifferencePercent);
+      this.stretcher.conditionalStretch(zoomFactors, ar);
     }
-    this.zoom.applyZoom(dimensions);
+    // this.zoom.applyZoom(dimensions);
 
     var cssOffsets = this.computeOffsets(dimensions);
     this.applyCss(cssOffsets, stretchFactors);
@@ -121,10 +121,10 @@ class Resizer {
   startCssWatcher(){
     // this.haltCssWatcher = false;
     if(!this.cssWatcherTimeout){
-      if(Debug.debug)
-        console.log("[Resizer.js] STARTING CSS WATCHER")
+      // if(Debug.debug)
+        // console.log("[Resizer.js] STARTING CSS WATCHER")
   
-      this.cssWatcherTimeout = setInterval(this.cssWatcher, 200, this);
+      // this.cssWatcherTimeout = setInterval(this.cssWatcher, 200, this);
     }
   }
 

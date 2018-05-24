@@ -110,45 +110,30 @@ class Scaler {
       console.log("[Scaler::calculateCrop] ar is " ,ar, ", file ar is", fileAr, ", this.conf.player.dimensions are ", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
     
     var videoDimensions = {
-      width: 0,
-      height: 0,
+      xFactor: 1,
+      yFactor: 1,
       actualWidth: 0,   // width of the video (excluding pillarbox) when <video> tag height is equal to width
       actualHeight: 0,  // height of the video (excluding letterbox) when <video> tag height is equal to height
     }
   
-    if(Debug.debug){
-      console.log("[Scaler::calculateCrop] Player dimensions?", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
-    }
+    // if(Debug.debug){
+    //   console.log("[Scaler::calculateCrop] Player dimensions?", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
+    // }
   
     if( fileAr < ar ){
       // imamo letterbox zgoraj in spodaj -> spremenimo velikost videa (a nikoli širše od ekrana)
       // letterbox -> change video size (but never to wider than monitor width)
 
-        videoDimensions.width = Math.min(this.conf.player.dimensions.height * ar, this.conf.player.dimensions.width);
-        videoDimensions.height = videoDimensions.width * (1/fileAr);
+        videoDimensions.xFactor = Math.min(ar, playerAr) / fileAr;
+        videoDimensions.yFactor = videoDimensions.xFactor;
     }
-    else{
-        videoDimensions.height = Math.min(this.conf.player.dimensions.width / ar, this.conf.player.dimensions.height);
-        videoDimensions.width = videoDimensions.height * fileAr;
+    else {
+        videoDimensions.xFactor = fileAr / Math.max(ar, player);
+        videoDimensions.yFactor = videoDimensions.xFactor;
     }
     
-    // izračunamo, kako visok/širok je video (brez črnih obrob). Če se željeno razmerje stranic
-    // ne ujema z razmerjem stranic predvajalnika, potem bomo še vedno videli črno obrobo bodisi
-    // zgoraj in spodaj, bodisi levo in desno. Zato v videoDimensions vključimo tudi dejansko
-    // velikost videa, da lahko Stretcher.js izračuna faktorje raztegovanja.
-    // Če je razmerje stranic predvajalnika širše kot želeno razmerje stranic, potem bosta `height`
-    // in `actualHeight` enaka, `actualWidth` pa bo izračunan na podlagi višine (in obratno).
-    
-    if (ar > playerAr){
-      videoDimensions.actualHeight = videoDimensions.height;
-      videoDimensions.actualWidth = videoDimensions.height * ar;
-    } else {
-      videoDimensions.actualWidth = videoDimensions.width;
-      videoDimensions.actualHeight = videoDimensions.width / ar;
-    }
-
     if(Debug.debug){
-      console.log("[Scaler::calculateCrop] Video dimensions: ", videoDimensions.width, "×", videoDimensions.height, "(obj:", videoDimensions, "); this.conf.player.dimensions:",this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "(obj:", this.conf.player.dimensions, ")");
+      console.log("[Scaler::calculateCrop] Crop factor calculated — ", videoDimensions.xFactor);
     }
 
     return videoDimensions;

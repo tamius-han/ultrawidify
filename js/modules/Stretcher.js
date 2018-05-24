@@ -13,7 +13,7 @@ class Stretcher {
     this.conf = videoData;
   }
 
-  static conditionalStretch(videoDimensions, maxDifferencePercent){
+  applyConditionalStretch(stretchFactors, actualAr){
     // samo razširjamo, nikoli krčimo
     // only stretch, no shrink
 
@@ -37,19 +37,39 @@ class Stretcher {
     }
   }
 
-  static calculateStretch(videoDimensions) {
+  calculateStretch(actualAr) {
     // naj ponovim: samo razširjamo, nikoli krčimo
     // let me reiterate: only stretch, no shrink
 
-    var stretch = {x: 1, y: 1};
+    var playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
+    var videoAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
 
-    if (videoDimensions.actualWidth < videoDimensions.width) {
-      stretch.x = videoDimensions.width / videoDimensions.actualWidth;
-    }
-    if (videoDimensions.actualHeight < videoDimensions.height){
-      stretch.y = videoDimensions.height / videoDimensions.actualHeight;
+    if (! actualAr){
+      actualAr = playerAr;
     }
 
-    return stretch;
+    var stretchFactors = {
+      xFactor: 1,
+      yFactor: 1
+    };
+
+    if (actualAr > videoAr) {
+      if(videoAr > playerAr) {
+        stretchFactors.xFactor = playerAr / videoAr;
+        stretchFactors.yFactor = actualAr / videoAr;
+      } else {
+        stretchFactors.xFactor = 1;
+        stretchFactors.yFactor = actualAr / videoAr;
+      }
+    } else {
+      if (videoAr > playerAr) {
+        stretchFactors.xFactor = videoAr / actualAr;
+        stretchFactors.yFactor = playerAr / actualAr;
+      } else {
+        stretchFactors.xFactor = playerAr / actualAr;
+        stretchFactors.yFactor = 1;
+      }
+    }
+    return stretchFactors;
   }
 }

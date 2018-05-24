@@ -201,7 +201,7 @@ class PageInfo {
     }
   }
 
-  setZoom(step){
+  zoomStep(step){
     for(var vd of this.videos){
       vd.zoomStep(step);
     }
