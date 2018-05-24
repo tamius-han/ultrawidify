@@ -14,26 +14,38 @@ class Stretcher {
   }
 
   applyConditionalStretch(stretchFactors, actualAr){
-    // samo razširjamo, nikoli krčimo
-    // only stretch, no shrink
+    var playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
+    var videoAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
 
-    var x, y;
-
-    x = videoDimensions.width / videoDimensions.actualWidth;
-    y = videoDimensions.height / videoDimensions.actualHeight;
-
-    var dmax = 1 + maxDifferencePercent;
-
-    if(x < 1 || x > dmax){
-      x = 1;
-    }
-    if(y < 1 || y > dmax){
-      y = 1;
+    if (! actualAr){
+      actualAr = playerAr;
     }
 
-    return {
-      x: x,
-      y: y
+    var newWidth = this.conf.video.offsetWidth * stretchFactors.xFactor;
+    var newHeight = this.conf.video.offsetHeight * stretchFactors.yFactor;
+
+    var actualWidth, actualHeight;
+
+    // determine the dimensions of the video (sans black bars) after scaling
+    if(actualAr < videoAr){
+      actualHeight = newHeight;
+      actualWidth = newHeight * actualAr;
+    } else {
+      actualHeight = newWidth / actualAr;
+      actualWidth = newWidth;
+    }
+
+    var minW = this.conf.player.dimensions.width * (1 - ExtensionConf.stretch.conditionalDifferencePercent);
+    var maxW = this.conf.player.dimensions.width * (1 + ExtensionConf.stretch.conditionalDifferencePercent);
+
+    var minX = this.conf.player.dimensions.height * (1 - ExtensionConf.stretch.conditionalDifferencePercent);
+    var maxX = this.conf.player.dimensions.height * (1 + ExtensionConf.stretch.conditionalDifferencePercent);
+
+    if (actualWidth >= minW && actualWidth <= maxW) {
+      stretchFactors.xFactor *= this.conf.player.dimensions.width / actualWidth;
+    }
+    if (actualHeight >= minH && actualHeight <= maxH) {
+      stretchFactors.yFactor *= this.conf.player.dimensions.height / actualHeight;
     }
   }
 
