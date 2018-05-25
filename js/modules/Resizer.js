@@ -82,7 +82,7 @@ class Resizer {
         return;
       }
       if(this.stretch.mode === StretchMode.CONDITIONAL){
-        this.stretcher.applyConditionalStretch(stretchFactors, ar);
+         this.stretcher.applyConditionalStretch(stretchFactors, ar);
       }
     } else if (this.stretch.mode === StretchMode.HYBRID) {
       var stretchFactors = this.stretcher.calculateStretch(ar);
@@ -91,8 +91,8 @@ class Resizer {
     this.zoom.applyZoom(stretchFactors);
 
     //TODO: correct these two
-    var cssOffsets = this.computeOffsets(stretchFactors);
-    this.applyCss(cssOffsets, stretchFactors);
+    var translate = this.computeOffsets(stretchFactors);
+    this.applyCss(stretchFactors, translate);
 
     // if(! this.destroyed)
     //   this.startCssWatcher(); 
@@ -185,43 +185,31 @@ class Resizer {
 
   // mostly internal stuff
 
-  computeOffsets(videoDimensions){
+  computeOffsets(stretchFactors){
 
     if(Debug.debug)
       console.log("[Resizer::_res_computeOffsets] video will be aligned to ", ExtensionConf.miscFullscreenSettings.videoFloat);
   
-    var offsets = {
-      width: videoDimensions.width,
-      height: videoDimensions.height,
-      left: 0,
-      top: ((this.conf.player.dimensions.height - videoDimensions.height) / 2)
-    }
+    var actualWidth = this.conf.video.offsetWidth * stretchFactors.xFactor;
+    var actualHeight = this.conf.video.offsetHeight * stretchFactors.yFactor;
+
+    var translate = {x: 0, y: 0};
 
     if(this.pan){
-      var defaultOffset = (this.conf.player.dimensions.height - videoDimensions.height) / 2;
-      offsets.top = defaultOffset + (defualtOffset * this.pan.relativeOffsetY);
-      
-      defaultOffset = (this.conf.player.dimensions.width - videoDimensions.width ) / 2;
-      offsets.left = defaultOffset + (defaultOffset * this.pan.relativeOffsetX);
+      // todo: calculate translate
     } else {
-      if( ExtensionConf.miscFullscreenSettings.videoFloat == "center" ){
-        offsets.left = (this.conf.player.dimensions.width - videoDimensions.width ) / 2;
-        
+      if( ExtensionConf.miscFullscreenSettings.videoFloat == "left" ){
+        translate.x =  (this.conf.player.dimensions.width - actualWidth ) * -0.5;
       }
       else if( ExtensionConf.miscFullscreenSettings.videoFloat == "right" ){
-        offsets.left = (this.conf.player.dimensions.height - videoDimensions.height);
+        translate.x =  (this.conf.player.dimensions.width - actualWidth ) * 0.5;
       }
     }
 
-    this.correctedVideoDimensions.width = parseInt(offsets.width);
-    this.correctedVideoDimensions.height= parseInt(offsets.height);
-    this.correctedVideoDimensions.left = parseInt(offsets.left);
-    this.correctedVideoDimensions.top = parseInt(offsets.top);
-
-    return offsets; 
+    return translate; 
   }
   
-  applyCss(dimensions, stretchFactors){
+  applyCss(stretchFactors, translate){
 
     if (! this.video ){
       if(Debug.debug)
@@ -233,76 +221,21 @@ class Resizer {
     // save stuff for quick tests (before we turn numbers into css values):
     this.currentVideoSettings = {
       validFor:  this.conf.player.dimensions,
-      videoWidth: dimensions.width,
-      videoHeight: dimensions.height
+      // videoWidth: dimensions.width,
+      // videoHeight: dimensions.height
     }
 
-    if(Debug.debug)
-      console.log("[Resizer::_res_applyCss] Starting to apply css. this is what we're getting in:", dimensions);
-    
-    if(dimensions.top !== undefined)
-      dimensions.top = "top: " + Math.round(dimensions.top) + "px !important";
-    
-    if(dimensions.left !== undefined)
-      dimensions.left = "left: " + Math.round(dimensions.left) + "px !important";
-    
-    if(dimensions.width !== undefined)
-      dimensions.width = "width: " + Math.round(dimensions.width) + "px !important";
-    
-    if(dimensions.height !== undefined)
-      dimensions.height = "height: " + Math.round(dimensions.height) + "px !important";
-   
-    // misc.
-    dimensions.position = "position: absolute !important";
-    dimensions.margin = "margin: 0px !important";
-    
-
-    // save values for left and top to
-    this.currentCss.top = dimensions.top;
-    this.currentCss.left = dimensions.left;
-    
-    
-    if(Debug.debug)
-      console.log("[Resizer::_res_applyCss] trying to apply css. Css strings: ", dimensions, "video tag: ", this.video);
-    
     var styleArrayStr = this.video.getAttribute('style');
     
-    if (styleArrayStr !== null && styleArrayStr !== undefined){
+    if (styleArrayStr) {
       
       var styleArray = styleArrayStr.split(";");
       for(var i in styleArray){
         
         styleArray[i] = styleArray[i].trim();
         
-        if (styleArray[i].startsWith("top:")){
-          styleArray[i] = dimensions.top;
-          delete dimensions.top;
-        }
-        else if(styleArray[i].startsWith("left:")){
-          styleArray[i] = dimensions.left;
-          delete dimensions.left;
-        }
-        else if(styleArray[i].startsWith("width:")){
-          styleArray[i] = dimensions.width;
-          delete dimensions.width;
-        }
-        else if(styleArray[i].startsWith("height:")){
-          styleArray[i] = dimensions.height;
-          delete dimensions.height;
-        }
-        else if(styleArray[i].startsWith("position:")){
-          styleArray[i] = dimensions.position;
-          delete dimensions.position;
-        }
-        else if(styleArray[i].startsWith("margin:")){
-          styleArray[i] = dimensions.margin;
-          delete dimensions.margin;
-        }
-        else if(styleArray[i].startsWith("transform:")){
-          if(stretchFactors){
-            styleArray[i] = `scale(${stretchFactors.x}, ${stretchFactors.y}`;
-            stretchFactors = undefined;
-          }
+        if (styleArray[i].startsWith("transform:")){
+          delete styleArray[i];
         }
       }
     }
@@ -311,17 +244,15 @@ class Resizer {
     }
     
     // add remaining elements
-    for(var key in dimensions)
-      styleArray.push( dimensions[key] );
     
     if(stretchFactors){
-      styleArray.push(`scale(${stretchFactors.x}, ${stretchFactors.y}`);
+      styleArray.push(`transform: scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor}) translate(${translate.x}px, ${translate.y}px)`);
     }
 
     // build style string back
     var styleString = "";
     for(var i in styleArray)
-      if(styleArray[i] !== undefined && styleArray[i] !== "")
+      if(styleArray[i])
         styleString += styleArray[i] + "; ";
     
     this.setStyleString(styleString);
@@ -335,30 +266,30 @@ class Resizer {
     
     if(this.restore_wd){
   
-      if(this.video == undefined || this.video == null){
+      if(! this.video){
         if(Debug.debug)
           console.log("[Resizer::_res_setStyleString] Video element went missing, nothing to do here.")
         return;
       }
       
-      if(
-        styleString.indexOf("width: " + this.video.style.width) == -1 ||
-        styleString.indexOf("height: " + this.video.style.height) == -1) {
-        // css ni nastavljen?
-        // css not set?
-        if(Debug.debug)
-          console.log("[Resizer::_res_setStyleString] Style string not set ???");
+      // if(
+      //   styleString.indexOf("width: " + this.video.style.width) == -1 ||
+      //   styleString.indexOf("height: " + this.video.style.height) == -1) {
+      //   // css ni nastavljen?
+      //   // css not set?
+      //   if(Debug.debug)
+      //     console.log("[Resizer::_res_setStyleString] Style string not set ???");
         
-        if(count < ExtensionConf.resizer.setStyleString.maxRetries){
-          setTimeout( this.setStyleString, ExtensionConf.resizer.setStyleString.retryTimeout, count + 1);
-        }
-        else if(Debug.debug){
-          console.log("[Resizer::_res_setStyleString] we give up. css string won't be set");
-        }
-      }
-      else{
+      //   if(count < ExtensionConf.resizer.setStyleString.maxRetries){
+      //     setTimeout( this.setStyleString, ExtensionConf.resizer.setStyleString.retryTimeout, count + 1);
+      //   }
+      //   else if(Debug.debug){
+      //     console.log("[Resizer::_res_setStyleString] we give up. css string won't be set");
+      //   }
+      // }
+      // else{
         this.restore_wd = false;
-      }
+      // }
     }
     else{
       if(Debug.debug)
