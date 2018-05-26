@@ -130,12 +130,57 @@ class CommsServer {
     }
   }
 
+  sendToAll(message){
+    for(p of this.ports){
+      for(frame in p){
+        p[frame].postMessage(message);
+      }
+    }
+  }
+
+  sendToActive(message) {
+    if(BrowserDetect.firefox){
+      this._sendToActive_ff(message);
+    } else if (BrowserDetect.chrome) {
+
+    }
+  }
+
+  async _sendToActive_ff(message){ 
+    var activeTab = await browser.tabs.query({currentWindow: true, active: true});
+    for (key in this.ports[tabs[0].id]) {
+      this.ports[tabs[0].id][key].postMessage(message);
+    }
+  }
+
+
+  async queryTabs_chrome(tabInfo){
+    return new Promise(function (resolve, reject){    
+      browser.tabs.query(tabInfo, function(response){
+        browser.tabs.query(tabInfo);
+        // Chrome/js shittiness mitigation — remove this line and an empty array will be returned
+        var r = response; 
+        resolve(r);
+      });
+    });
+  }
+
   onConnect(port){
-    console.log("on connect!")
+    console.log("on connect!", port.sender.tab.id, port)
     var tabId = port.sender.tab.id;
+    var frameId = port.sender.frameId;
     var ths = this;
-    this.ports[tabId] = port;
-    this.ports[tabId].onMessage.addListener( (m,p) => ths.processReceivedMessage(m, p));
+    if(! this.ports[tabId]){
+      this.ports[tabId] = {}; 
+    }
+    this.ports[tabId][frameId] = port;
+    this.ports[tabId][frameId].onMessage.addListener( (m,p) => ths.processReceivedMessage(m, p));
+    this.ports[tabId][frameId].onDisconnect.addListener( (p) => { 
+      delete ths.ports[p.sender.tab.id][p.sender.frameId]; 
+      if(Object.keys(ths.ports[p.sender.tab.id]).length === 0){
+        ths.ports[tabId] = undefined;
+      }
+    });
   }
 
   processReceivedMessage(message, port){
@@ -160,6 +205,9 @@ class CommsServer {
       }
       Promise.resolve(ret);
     }
+    if (message.cmd === "enable-autoar"){
+      this.sendToActive({cmd: "autoar-enable", enabled: true})
+    }
   }
 
   processReceivedMessage_nonpersistent_chrome(message, sender, sendResponse){
@@ -175,14 +223,7 @@ class CommsServer {
 }
 
 var _com_chrome_tabquery_wrapper = async function(tabInfo){
-  return new Promise(function (resolve, reject){    
-    browser.tabs.query(tabInfo, function(response){
-      browser.tabs.query(tabInfo);
-      // Chrome/js shittiness mitigation — remove this line and an empty array will be returned
-      var r = response; 
-      resolve(r);
-    });
-  });
+  
 }
 
 
