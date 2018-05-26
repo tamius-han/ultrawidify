@@ -1,3 +1,7 @@
+if(Debug.debug){
+  console.log("Loading Comms.js")
+}
+
 class CommsClient {
   constructor(name){
     this.port = browser.runtime.connect({name: name});
@@ -17,7 +21,7 @@ class CommsClient {
     }
 
     if(message.cmd === "set-ar"){
-      this.pageInfo.setAr(message.ar);
+      this.pageInfo.setAr(message.ratio);
     } else if (message.cmd === "has-videos") {
       
     } else if (message.cmd === "set-config") {
@@ -85,11 +89,11 @@ class CommsClient {
 
   async requestSettings(){
     if(Debug.debug){
-      console.log("%c[CommsClient::requestSettings] sending request for congif!", "background: #11D; color: #DDA");
+      console.log("%c[CommsClient::requestSettings] sending request for congif!", "background: #11D; color: #aad");
     }
     var response = await this.sendMessage_nonpersistent({cmd: 'get-config'});
     if(Debug.debug){
-      console.log("%c[CommsClient::requestSettings] received settings response!", "background: #11D; color: #DDA", response);
+      console.log("%c[CommsClient::requestSettings] received settings response!", "background: #11D; color: #aad", response);
     }
 
     if(! response || response.extensionConf){
@@ -139,6 +143,10 @@ class CommsServer {
   }
 
   sendToActive(message) {
+    if(Debug.debug && Debug.comms){
+      console.log("%c[CommsServer::sendToActive] trying to send a message to active tab. Message:", "background: #dda; color: #11D", message);
+    }
+
     if(BrowserDetect.firefox){
       this._sendToActive_ff(message);
     } else if (BrowserDetect.chrome) {
@@ -147,8 +155,17 @@ class CommsServer {
   }
 
   async _sendToActive_ff(message){ 
-    var activeTab = await browser.tabs.query({currentWindow: true, active: true});
-    for (key in this.ports[tabs[0].id]) {
+    var tabs = await browser.tabs.query({currentWindow: true, active: true});
+
+    if(Debug.debug && Debug.comms){
+      console.log("[CommsServer::_sendToActive_ff] currently active tab(s)?", tabs);
+      for (var key in this.ports[tabs[0].id]) {
+        console.log("key?", key, this.ports[tabs[0].id]);
+        // this.ports[tabs[0].id][key].postMessage(message);
+      }
+    }
+
+    for (var key in this.ports[tabs[0].id]) {
       this.ports[tabs[0].id][key].postMessage(message);
     }
   }
@@ -166,10 +183,17 @@ class CommsServer {
   }
 
   onConnect(port){
-    console.log("on connect!", port.sender.tab.id, port)
+    var ths = this;
+    
+    // poseben primer | special case
+    if (port.name === 'popup-port') {
+      this.popupPort = port;
+      this.popupPort.onMessage.addListener( (m,p) => ths.processReceivedMessage(m,p));
+      return;
+    }
+
     var tabId = port.sender.tab.id;
     var frameId = port.sender.frameId;
-    var ths = this;
     if(! this.ports[tabId]){
       this.ports[tabId] = {}; 
     }
@@ -191,17 +215,23 @@ class CommsServer {
     if (message.cmd === 'get-config') {
       port.postMessage({cmd: "set-config", conf: ExtensionConf})
     }
+    if (message.cmd === 'set-ar') {
+      this.sendToActive(message);
+    }
+    if (message.cmd === 'autoar-enable') {
+      this.sendToActive(message);
+    }
   }
 
   processReceivedMessage_nonpersistent_ff(message, sender){
     if (Debug.debug && Debug.comms) {
-      console.log("%c[CommsServer.js::processMessage_nonpersistent_ff] Received message from background script!", "background-color: #11D; color: #DDA", message, sender);
+      console.log("%c[CommsServer.js::processMessage_nonpersistent_ff] Received message from background script!", "background-color: #11D; color: #aad", message, sender);
     }
 
     if (message.cmd === 'get-config') {
       var ret = {extensionConf: JSON.stringify(ExtensionConf)};
       if (Debug.debug && Debug.comms) {
-        console.log("%c[CommsServer.js::processMessage_nonpersistent_ff] Returning this:", "background-color: #11D; color: #DDA", ret);
+        console.log("%c[CommsServer.js::processMessage_nonpersistent_ff] Returning this:", "background-color: #11D; color: #aad", ret);
       }
       Promise.resolve(ret);
     }
@@ -222,10 +252,34 @@ class CommsServer {
   }
 }
 
-var _com_chrome_tabquery_wrapper = async function(tabInfo){
-  
-}
+class Comms {
+  static async sendMessage(message){
+    if(BrowserDetect.firefox){
+      return browser.runtime.sendMessage(message)
+    } else {
+      return new Promise((resolve, reject) => {
+        try{
+          if(BrowserDetect.edge){
+            browser.runtime.sendMessage(message, function(response){
+              var r = response; 
+              resolve(r);
+            });
+          } else {
+            chrome.runtime.sendMessage(message, function(response){
+              // Chrome/js shittiness mitigation — remove this line and an empty array will be returned
+              var r = response; 
+              resolve(r);
+            });
+          }
+        }
+        catch(e){
+          reject(e);
+        }
+      });
+    }
+  }
 
+}
 
 var _com_queryTabs = async function(tabInfo){
   if(BrowserDetect.usebrowser != "firefox"){

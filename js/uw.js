@@ -91,7 +91,7 @@ async function init(){
 //     config.arConf.enabled_global = ExtensionConf.arDetect.enabled == "global";
     
     
-//     var keybinds = ExtensionConf.keybinds.shortcuts;
+//     var keybinds = ExtensionConf.keyboard.shortcuts;
 //     if(Debug.debug)
 //       console.log("[uw-bg::_uwbg_rcvmsg] Keybinds.fetch returned this:", keybinds); 
     

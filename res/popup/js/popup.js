@@ -38,96 +38,18 @@ var hasVideos = false;
 var _config; 
 var _changeAr_button_shortcuts = { "autoar":"none", "reset":"none", "219":"none", "189":"none", "169":"none" }
 
+var comms = new Comms();
+var port = browser.runtime.connect({name: 'popup-port'});
+port.onMessage.addListener( (m,p) => processReceivedMessage(m,p));
 
-// async function test(){
-//   var message = {cmd: "testing"};
-//   try{
-//     var tabs = await Comms.queryTabs({currentWindow: true, active: true}); 
-//     if(Debug.debug)
-//       console.log("[popup.js::test] trying to send message", message, " to tab ", tabs[0], ". (all tabs:", tabs,")");
-// 
-//     var response = await browser.tabs.sendMessage(tabs[0].id, message);
-//     console.log("[popup.js::test] response is this:",response);
-//   }
-//   catch(e){
-//     console.log("[popup.js::test] sending message failed. prolly cos browser.tabs no worky?", e); 
-//   }
-// }
-// test();
-
-
-
-async function sendMessage(message){
-  console.log("SENDING MESSAGE TO CONTENT SCRIPT");
-  var tabs = await browser.tabs.query({currentWindow: true, active: true}); 
-  if(Debug.debug)
-    console.log("[uw-bg::sendMessage] trying to send message", message, " to tab ", tabs[0], ". (all tabs:", tabs,")");
-  
-  var response = await browser.tabs.sendMessage(tabs[0].id, message);
-  console.log("[uw-bg::sendMessage] response is this:",response);
-  return response;
+async function processReceivedMessage(message, port){
+  if(message.cmd === 'set-config'){
+    this.loadConfig(message.conf);
+  }
 }
 
 function hideWarning(warn){
   document.getElementById(warn).classList.add("hidden");
-}
-
-function check4videos(){
-
-  Comms.sendToBackgroundScript({cmd: "has-videos"})
-  .then(response => {
-    if(Debug.debug){
-      console.log("[popup.js::check4videos] received response:",response, "has video?", response.response.hasVideos);
-    }
-    if(response.response.hasVideos){
-      hasVideos = true;
-//       openMenu(selectedMenu);
-      hideWarning("no-videos-warning");
-    }
-    else{
-      // brute force error mitigation.
-      setTimeout(check4videos, 2000);
-    }
-  })
-  .catch(error => {
-    if(Debug.debug)
-      console.log("%c[popup.js::check4videos] sending message failed with error", "color: #f00", error, "%c retrying in 1s ...", "color: #f00");
-    
-    setTimeout(check4videos, 1000);
-  });
-}
-
-function check4conf(){
-  
-  Comms.sendToBackgroundScript({cmd: "get-config"})
-  .then(response => {
-    if(Debug.debug)
-      console.log("[popup.js::check4conf] received response to get-config request:",response, response.response);
-    
-    loadConfig(response.response);
-  })
-  .catch(error => {
-    if(Debug.debug)
-      console.log("%c[popup.js::check4conf] sending message failed with error", "color: #f00", error, "%c retrying in 1s ...", "color: #f00");
-    
-    setTimeout(check4conf, 1000);
-  });
-}
-
-function check4siteStatus(){
-  Comms.sendToBackgroundScript({cmd: "uw-enabled-for-site"})
-  .then(response => {
-    if(Debug.debug)
-      console.log("[popup::check4siteStatus] received response:", response);
-    
-    document.extensionEnabledOnCurrentSite.mode.value = response.response;
-  })
-  .catch(error => {
-    if(Debug.debug)
-      console.log("%c[popup.js::check4siteStatus] sending message failed with error", "color: #f00", error, "%c retrying in 1s ...", "color: #f00");
-    
-//     setTimeout(check4siteStatus, 1000);
-  });
 }
 
 function stringToKeyCombo(key_in){
@@ -148,66 +70,55 @@ function stringToKeyCombo(key_in){
   return keys_out;
 }
 
-function loadConfig(config){
+function loadConfig(extensionConf){
   if(Debug.debug)
-    console.log("[popup.js::loadConfig] loading config. conf object:",config);
+    console.log("[popup.js::loadConfig] loading config. conf object:", extensionConf);
     
-  _config = config;
+  _extensionConf = extensionConf;
+
   
-  console.log(".... site status, config mode:", config.site.status, config.mode);
-  
-  document.getElementById("current-site-status-global-status").innerHTML = config.mode == "blacklist" ? "<span style='color: #1f4'>allow</span>" : "<span style='color: #f00'>deny</span>";
-  
-  if(config.site.status == "blacklisted" || (config.site.status == "follow-global" && config.mode == "whitelist") ){
-    openMenu("thisSite");
-    
-//     document.getElementById("current-site-blacklisted").classList.remove("hidden");
-//     if(config.mode == "whitelist"){
-//       document.getElementById("current-site-whitelist-only").classList.remove("hidden");
-//     }
-    
-    document.getElementById("extensionEnabledCurrentSite_blacklisted").setAttribute("checked","checked");
-  }
-  else if(config.site.status == "whitelisted"){
-    document.getElementById("extensionEnabledCurrentSite_whitelisted").setAttribute("checked","checked");
-  }
-  else {
-    document.getElementById("extensionEnabledCurrentSite_followGlobal").setAttribute("checked","checked");
-  }
-  
-  document.getElementById("_checkbox_autoArEnabled").checked = config.arMode == "blacklist";
-  document.getElementById("_autoAr_disabled_reason").textContent = config.arDisabledReason;
-  document.getElementById("_input_autoAr_frequency").value = parseInt(1000/config.arTimerPlaying);
+  document.getElementById("_checkbox_autoArEnabled").checked = extensionConf.arDetect.mode == "blacklist";
+  document.getElementById("_autoAr_disabled_reason").textContent = extensionConf.arDetect.DisabledReason;
+  document.getElementById("_input_autoAr_timer").value = extensionConf.arDetect.timer_playing;
   
   // process video alignment:
-  if(config.videoAlignment){
+  if(extensionConf.miscFullscreenSettings.videoFloat){
     for(var button in ArPanel.alignment)
       ArPanel.alignment[button].classList.remove("selected");
     
-    ArPanel.alignment[config.videoAlignment].classList.add("selected");
+    ArPanel.alignment[extensionConf.miscFullscreenSettings.videoFloat].classList.add("selected");
   }
   
   // process keyboard shortcuts:
-  if(config.keyboardShortcuts){
-    for(var key in config.keyboardShortcuts){
-      var shortcut = config.keyboardShortcuts[key];
+  if(extensionConf.keyboard.shortcuts){
+    for(var key in extensionConf.keyboard.shortcuts){
+      var shortcut = extensionConf.keyboard.shortcuts[key];
       var keypress = stringToKeyCombo(key);
       
       
       try{
-        if(shortcut.action == "char"){
-          if(shortcut.targetAr == 2.0){
+        if(shortcut.action == "crop"){
+          if(shortcut.arg == 2.0){
             _changeAr_button_shortcuts["189"] = keypress;
           }
-          else if(shortcut.targetAr == 2.39){
+          else if(shortcut.arg == 2.39){
             _changeAr_button_shortcuts["219"] = keypress;
           }
-          else if(shortcut.targetAr == 1.78){
+          else if(shortcut.arg == 1.78){
             _changeAr_button_shortcuts["169"] = keypress;
           }
+          else if(shortcut.arg == "fitw") {
+            _changeAr_button_shortcuts["fitw"] = keypress;
+          }
+          else if(shortcut.arg == "fith") {
+            _changeAr_button_shortcuts["fith"] = keypress;
+          }
+          else if(shortcut.arg == "reset") {
+            _changeAr_button_shortcuts["reset"] = keypress;
+          }
         }
-        else{
-            _changeAr_button_shortcuts[shortcut.action] = keypress;
+        else if(shortcut.action == "auto-ar") {
+            _changeAr_button_shortcuts["auto-ar"] = keypress;
         }
       }
       catch(Ex){
@@ -216,7 +127,7 @@ function loadConfig(config){
     }
     for(var key in _changeAr_button_shortcuts){
       try{
-        document.getElementById("_b_changeAr_" + key + "_key").textContent = "(" + _changeAr_button_shortcuts[key] + ")";
+        document.getElementById(`_b_changeAr_${key}_key`).textContent = `(${_changeAr_button_shortcuts[key]})`;
       }
       catch(ex){
         
@@ -227,8 +138,14 @@ function loadConfig(config){
   
   // process aspect ratio settings
   showArctlButtons();
+
+  if(Debug.debug)
+    console.log("[popup.js::loadConfig] config loaded");
 }
 
+async function getConf(){
+  port.postMessage({cmd: 'get-config'});
+}
 
 function openMenu(menu){
   if(Debug.debug){
@@ -244,14 +161,14 @@ function openMenu(menu){
   }
   
   if(menu == "arSettings" || menu == "cssHacks" ){
-//     if(!hasVideos)
-//       Menu.noVideo.classList.remove("hidden");
-//     else{
+    // if(!hasVideos)
+    //   Menu.noVideo.classList.remove("hidden");
+    // else{
       Menu[menu].classList.remove("hidden");
       if(Debug.debug){
         console.log("[popup.js::openMenu] unhid", menu, "| element: ", Menu[menu]);
-//       }
-    }
+      }
+    // }
   }
   else{
     Menu[menu].classList.remove("hidden");
@@ -284,30 +201,30 @@ function showArctlButtons(){
   if(! _config)
     return;
   
-//   if(_config.arConf){
-//     if(! _config.arConf.enabled_global){
-//       ArPanel.autoar.disable.classList.add("hidden");
-//       ArPanel.autoar.enable.classList.remove("hidden");
-//       
-//       ArPanel.autoar.enable_tmp.textContent = "Temporarily enable";
-//       ArPanel.autoar.disable_tmp.textContent = "Temporarily disable";
-//     }
-//     else{
-//       ArPanel.autoar.disable.classList.remove("hidden");
-//       ArPanel.autoar.enable.classList.add("hidden");
-//       
-//       ArPanel.autoar.enable_tmp.textContent = "Re-enable";
-//       ArPanel.autoar.disable_tmp.textContent = "Temporarily disable";
-//     }
-//     if(! _config.arConf.enabled_current){
-//       ArPanel.autoar.disable_tmp.classList.add("hidden");
-//       ArPanel.autoar.enable_tmp.classList.remove("hidden");
-//     }
-//     else{
-//       ArPanel.autoar.disable_tmp.classList.remove("hidden");
-//       ArPanel.autoar.enable_tmp.classList.add("hidden");
-//     }
-//   }
+  // if(_config.arConf){
+  //   if(! _config.arConf.enabled_global){
+  //     ArPanel.autoar.disable.classList.add("hidden");
+  //     ArPanel.autoar.enable.classList.remove("hidden");
+      
+  //     ArPanel.autoar.enable_tmp.textContent = "Temporarily enable";
+  //     ArPanel.autoar.disable_tmp.textContent = "Temporarily disable";
+  //   }
+  //   else{
+  //     ArPanel.autoar.disable.classList.remove("hidden");
+  //     ArPanel.autoar.enable.classList.add("hidden");
+      
+  //     ArPanel.autoar.enable_tmp.textContent = "Re-enable";
+  //     ArPanel.autoar.disable_tmp.textContent = "Temporarily disable";
+  //   }
+  //   if(! _config.arConf.enabled_current){
+  //     ArPanel.autoar.disable_tmp.classList.add("hidden");
+  //     ArPanel.autoar.enable_tmp.classList.remove("hidden");
+  //   }
+  //   else{
+  //     ArPanel.autoar.disable_tmp.classList.remove("hidden");
+  //     ArPanel.autoar.enable_tmp.classList.add("hidden");
+  //   }
+  // }
 }
 
 
@@ -356,71 +273,63 @@ document.addEventListener("click", (e) => {
     
     if(e.target.classList.contains("_changeAr")){
       if(e.target.classList.contains("_ar_auto")){
-        command.cmd = "force-ar";
-        command.newAr = "auto";
-        command.arType = "legacy";
+        command.cmd = "autoar-enable";
+        command.enable = true;
         return command;
       }
       if(e.target.classList.contains("_ar_reset")){
-        command.cmd = "force-ar";
-        command.newAr = "reset";
-        command.arType = "legacy";
+        command.cmd = "set-ar";
+        command.ratio = "reset";
         return command;
       }
       if(e.target.classList.contains("_ar_fitw")){
-        command.cmd = "force-ar";
-        command.newAr = "fitw";
-        command.arType = "legacy";
+        command.cmd = "set-ar";
+        command.ratio = "fitw";
         return command;
       }
       if(e.target.classList.contains("_ar_fitw")){
-        command.cmd = "force-ar";
-        command.newAr = "fith";
-        command.arType = "legacy";
+        command.cmd = "set-ar";
+        command.ratio = "fith";
         return command;
       }
       if(e.target.classList.contains("_ar_219")){
-        command.cmd = "force-ar";
-        command.newAr = 2.39;
-        command.arType = "static";
+        command.cmd = "set-ar";
+        command.ratio = 2.39;
         return command;
       }
       if(e.target.classList.contains("_ar_189")){
-        command.cmd = "force-ar";
-        command.newAr = 2.0;
-        command.arType = "static";
+        command.cmd = "set-ar";
+        command.ratio = 2.0;
         return command;
       }
       if(e.target.classList.contains("_ar_169")){
-        command.cmd = "force-ar";
-        command.newAr = 1.78;
-        command.arType = "static";
+        command.cmd = "set-ar";
+        command.ratio = 1.78;
         return command;
       }
       if(e.target.classList.contains("_ar_1610")){
-        command.cmd = "force-ar";
-        command.newAr = 1.6;
-        command.arType = "static";
+        command.cmd = "set-ar";
+        command.ratio = 1.6;
         return command;
       }
     }
     
     if(e.target.classList.contains("_autoAr")){
-//       var command = {};
-//       if(e.target.classList.contains("_autoar_temp-disable")){
-//         command = {cmd: "stop-autoar", sender: "popup", receiver: "uwbg"};
-//       }
-//       else if(e.target.classList.contains("_autoar_disable")){
-//         command = {cmd: "disable-autoar", sender: "popup", receiver: "uwbg"};
-//       }
-//       else if(e.target.classList.contains("_autoar_enable")){
-//         command = {cmd: "enable-autoar", sender: "popup", receiver: "uwbg"};
-//       }
-//       else{
-//         command = {cmd: "force-ar", newAr: "auto", sender: "popup", receiver: "uwbg"};
-//       }
-//       _arctl_onclick(command);
-//       return command;
+      // var command = {};
+      // if(e.target.classList.contains("_autoar_temp-disable")){
+      //   command = {cmd: "stop-autoar", sender: "popup", receiver: "uwbg"};
+      // }
+      // else if(e.target.classList.contains("_autoar_disable")){
+      //   command = {cmd: "disable-autoar", sender: "popup", receiver: "uwbg"};
+      // }
+      // else if(e.target.classList.contains("_autoar_enable")){
+      //   command = {cmd: "enable-autoar", sender: "popup", receiver: "uwbg"};
+      // }
+      // else{
+      //   command = {cmd: "force-ar", newAr: "auto", sender: "popup", receiver: "uwbg"};
+      // }
+      // _arctl_onclick(command);
+      // return command;
       console.log("......");
       var command = {};
       if(e.target.classList.contains("_autoAr_enabled")){
@@ -483,13 +392,14 @@ document.addEventListener("click", (e) => {
   
   var command = getcmd(e);  
   if(command)
-    Comms.sendToAll(command);
+    port.postMessage(command);
   
   return true;
 });
 
 hideWarning("script-not-running-warning");
 openMenu(selectedMenu);
-check4videos();
-check4conf();
-check4siteStatus();
+// check4videos();
+getConf();
+
+// check4siteStatus();

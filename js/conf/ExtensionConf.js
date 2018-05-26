@@ -108,7 +108,7 @@ var ExtensionConf = {
   colors:{
     //     criticalFail: "background: #fa2; color: #000"
   },
-  keybinds: {
+  keyboard: {
     shortcuts: {
       // automatic
       "a": {

@@ -58,7 +58,7 @@ class Scaler {
   }
 
   calculateCrop(mode) {
-
+    
   
     if(!this.conf.video || this.conf.video.videoWidth == 0 || this.conf.video.videoHeight == 0){
       if(Debug.debug)
@@ -69,7 +69,14 @@ class Scaler {
     }
 
 
-    // if 'ar' is string, we'll handle that in legacy wrapper
+    // če je 'ar' string, potem bomo z njim opravili v legacy wrapperju. Seveda obstaja izjema
+    // if 'ar' is string, we'll handle that in legacy wrapper, with one exception
+
+    if(mode === 'reset'){
+      return {xFactor: 1, yFactor: 1}
+    }
+
+
     var ar = 0;
     if(isNaN(mode)){
       ar = this.modeToAr(mode);
@@ -128,7 +135,7 @@ class Scaler {
         videoDimensions.yFactor = videoDimensions.xFactor;
     }
     else {
-        videoDimensions.xFactor = fileAr / Math.max(ar, player);
+        videoDimensions.xFactor = fileAr / Math.min(ar, playerAr);
         videoDimensions.yFactor = videoDimensions.xFactor;
     }
     

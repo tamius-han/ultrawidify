@@ -222,7 +222,7 @@
       
       <div id="autoar-basic-settings" class="suboption hidden">
         <p><input type="checkbox" id="_checkbox_autoArEnabled" class="_autoAr_enabled _autoAr"> Enable automatic aspect ratio detection?<br/><small class="color_warn" id="_autoAr_disabled_reason"></small></p>
-        <p>Checks per second: <input id="_input_autoAr_frequency" class="_autoAr_frequency _autoAr" type="number" min="1" max="999"><span class="button _save_autoAr_frequency _autoAr">Save</span></p>
+        <p>Check every <input id="_input_autoAr_timer" class="_autoAr_timer _autoAr" type="number" min="5" max="10000"> ms — <span class="button _save_autoAr_frequency _autoAr">Save</span></p>
         
         <!-- <div class="warning"><p>NOTE: increasing the frequency can result in <i>very</i> high RAM usage and slow performance.</p></div> -->
         <p>
@@ -242,17 +242,18 @@
         <div class="row">
           <span class="label">Cropping mode</span>
           <div class="button-row">
-            <a class="button _changeAr _ar_auto w24">Auto-detect<br/><span id="_b_changeAr_autoar_key" class="smallcaps small darker"></span></a>
+            <a class="button _changeAr _ar_auto w24">Auto-detect<br/><span id="_b_changeAr_auto-ar_key" class="smallcaps small darker"></span></a>
             <a class="button _changeAr _ar_reset w24">Reset<br/><span id="_b_changeAr_reset_key" class="smallcaps small darker"></span></a>
             <a class="button _changeAr _ar_219 w24">21:9<br/><span id="_b_changeAr_219_key" class="smallcaps small darker"></span></a>
             <a class="button _changeAr _ar_189 w24">2:1 (18:9)<br/><span id="_b_changeAr_189_key" class="smallcaps small darker"></span></a>
             <a class="button _changeAr _ar_169 w24">16:9<br/><span id="_b_changeAr_169_key" class="smallcaps small darker"></span></a>
           </div>
-          <span class="label">Stretching mode (todo)<br><small>Stretching is independent of crop mode. Crop gets applied before stretching.</small></span>
+          <span class="label">Stretching mode<br><small>Stretching is independent of crop mode. Crop gets applied before stretching.</small></span>
           <div class="button-row">
-            <a class="button _changeAr _ar_reset w24">Reset<br/><span id="_b_changeAr_reset_key" class="smallcaps small darker"></span></a>
-            <a class="button _changeAr _ar_sw w24">Fill width<br/><span id="_b_changeAr_sw_key" class="smallcaps small darker"></span></a>
-            <a class="button _changeAr _ar_sh w24">Fill height<br/><span id="_b_changeAr_sh_key" class="smallcaps small darker"></span></a>
+            <a class="button _changeAr _ar_stretch_none w24">Never<br/><span id="_b_changeAr_reset_key" class="smallcaps small darker"></span></a>
+            <a class="button _changeAr _ar_stretch_basic w24">Basic<br/><span id="_b_changeAr_reset_key" class="smallcaps small darker"></span></a>            
+            <a class="button _changeAr _ar_stretch_hybrid w24">Hybrid<br/><span id="_b_changeAr_sw_key" class="smallcaps small darker"></span></a>
+            <a class="button _changeAr _ar_stretch_conditional w24">Conditional<br/><span id="_b_changeAr_sh_key" class="smallcaps small darker"></span></a>
           </div>
         </div>
         <!--<div class="row">
@@ -296,9 +297,6 @@
     </div>
     
     <!-- load all scripts. ordering is important!  -->
-    
-    <script src="../../js/dep/jquery-3.1.1.js" ></script>
-    <script src="../../js/dep/chrome/chrome-extension-async.js" ></script>
     
     <script src="../../js/conf/Debug.js"></script>
     
