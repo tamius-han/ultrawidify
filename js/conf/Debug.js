@@ -8,6 +8,7 @@ Debug = {
   debugResizer: true,
   debugArDetect: true,
   debugStorage: true,
+  comms: true,
   // showArDetectCanvas: true,
   flushStoredSettings: false,
   playerDetectDebug: true,

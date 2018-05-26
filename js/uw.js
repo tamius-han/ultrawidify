@@ -13,15 +13,26 @@ if(Debug.debug){
 }
 
 
+var pageInfo;
+var comms;
 
 async function init(){
   if(Debug.debug)
     console.log("[uw::main] loading configuration ...");
 
+  comms = new CommsClient('content-client-port');
+
   // load settings
   // var isSlave = true;
   // await Settings.init(isSlave);
-  await Settings.init();
+  var settingsLoaded = await comms.requestSettings();
+  if(!settingsLoaded){
+    console.log("[uw::main] failed to get settings (settingsLoaded=",settingsLoaded,") Waiting for settings the old fashioned way");
+    comms.requestSettings_fallback();
+    await comms.waitForSettings();
+    console.log("[uw::main] settings loaded.");
+  }
+  // await Settings.init();
 
   // za sporočilca poslušamo v vsakem primeru, tudi če je razširitev na spletnem mestu onemogočena
   // we listen for messages in any case, even if extension is disabled on current site. 
@@ -42,21 +53,14 @@ async function init(){
     console.log("[uw::main] configuration should be loaded now");
 
   
-  // setup the extension
-  setup();
-}
-
-var pageInfo;
-
-async function setup(){
-  
   pageInfo = new PageInfo();
+  comms.setPageInfo(pageInfo);
 
   if(Debug.debug){
     console.log("[uw.js::setup] pageInfo initialized. Here's the object:", pageInfo);
   }
-
 }
+
 
 // comms
 // function receiveMessage(message, sender, sendResponse) {

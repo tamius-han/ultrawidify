@@ -4,6 +4,21 @@ var BgVars = {
   currentSite: ""
 }
 
+class UWServer {
+  constructor() {
+    this.ports = [];
+
+    this.setup();
+  }
+
+  async setup() {
+    await Settings.init();
+    this.comms = new CommsServer(this);  
+  }
+}
+
+var server = new UWServer();
+
 function extractHostname(url){
   // extract hostname  
   if (url.indexOf("://") > -1) {    //find & remove protocol (http, ftp, etc.) and get hostname
@@ -23,7 +38,7 @@ async function main(){
   if(Debug.debug)
     console.log("[uw-bg::main] setting up background script");
   
-  await Settings.init();
+  
   Keybinds.keybinds = await Keybinds.fetch();
   
   

@@ -2,12 +2,10 @@ var _bd_usebrowser = "firefox";
 
 var _bd_isFirefox = false;
 var _bd_isChrome = false;
-var _bd_isEdge = true;    // we'll see if FF 
+var _bd_isEdge = false;    // we'll see if FF 
 
 try{
-  // this will fail in Edge
-  
-  var promise = browser.runtime.getBrowserInfo();
+  // todo: find something that works in firefox but not in edge (or vice-versa)  
   _bd_isFirefox = true;
   _bd_isEdge = false;
 }
@@ -27,4 +25,8 @@ var BrowserDetect = {
   firefox: _bd_isFirefox,
   chrome: _bd_isChrome,
   edge: _bd_isEdge
+}
+
+if(Debug.debug){
+  console.log("BrowserDetect loaded! Here's BrowserDetect object:", BrowserDetect)
 }

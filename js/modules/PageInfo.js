@@ -2,7 +2,7 @@ if(Debug.debug)
   console.log("Loading: PageInfo.js");
 
 class PageInfo {
-  constructor(){
+  constructor(comms){
     this.keybinds = new Keybinds(this);
     this.keybinds.setup();
     this.hasVideos = false;
@@ -13,6 +13,13 @@ class PageInfo {
 
     this.rescan(RescanReason.PERIODIC);
     this.scheduleUrlCheck();
+
+    if(comms){ 
+      this.comms = comms;
+      if(this.videos.length > 0){
+        comms.registerVideo();
+      }
+    }
   }
 
   rescan(rescanReason){
