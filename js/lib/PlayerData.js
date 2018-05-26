@@ -218,15 +218,12 @@ class PlayerData {
   }
 
   checkPlayerSizeChange(){
-  
-    // console.log("Player:", this.dimensions, "Node:", this.element)
-  
     if(Debug.debug){
       if(this.element == undefined)
         console.log("[PlayerDetect] player size changed. reason: player element undefined");
       
       if(this.dimensions.fullscreen){
-        if(! this.isFullScreen()){
+        if(! PlayerData.isFullScreen()){
           console.log("[PlayerDetect] player size changed. reason: exited fullscreen");
         }
       }

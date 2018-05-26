@@ -1,3 +1,179 @@
+class CommsClient {
+  constructor(name){
+    this.port = browser.runtime.connect({name: name});
+
+    var ths = this;
+    this.port.onMessage.addListener(m => ths.processReceivedMessage(m));
+    this.hasSettings = false;
+  }
+  
+  setPageInfo(pageInfo){
+    this.pageInfo = pageInfo;
+  }
+
+  processReceivedMessage(message){
+    if(Debug.debug && Debug.comms){
+      console.log("[CommsClient.js::processMessage] Received message from background script!", message);
+    }
+
+    if(message.cmd === "set-ar"){
+      this.pageInfo.setAr(message.ar);
+    } else if (message.cmd === "has-videos") {
+      
+    } else if (message.cmd === "set-config") {
+      this.hasSettings = true;
+      ExtensionConf = message.conf;
+    } else if (message.cmd === "set-stretch") {
+
+    } else if (message.cmd === "autoar-enable") {
+      if (message.enabled !== false) {
+        this.pageInfo.initArDetection();
+        this.pageInfo.startArDetection();
+      } else {
+        this.pageInfo.stopArDetection();
+      }
+    } else if (message.cmd === "pause-processing") {
+      this.pageInfo.pauseProcessing();
+    } else if (message.cmd === "resume-processing") {
+      // todo: autoArStatus
+      this.pageInfo.resumeProcessing(message.autoArStatus);
+    }
+  }
+
+  async waitForSettings(){
+    var t = this;
+    return new Promise( async (resolve, reject) => {
+      while(true){
+        await t.sleep(100);
+        if(this.hasSettings){
+          resolve();
+          break;
+        }
+      }
+    });
+  }
+
+  async sleep(n){
+    return new Promise( (resolve, reject) => setTimeout(resolve, n) );
+  }
+
+  async sendMessage_nonpersistent(message){
+    if(BrowserDetect.firefox){
+      return browser.runtime.sendMessage(message)
+    } else {
+      return new Promise((resolve, reject) => {
+        try{
+          if(BrowserDetect.edge){
+            browser.runtime.sendMessage(message, function(response){
+              var r = response; 
+              resolve(r);
+            });
+          } else {
+            chrome.runtime.sendMessage(message, function(response){
+              // Chrome/js shittiness mitigation — remove this line and an empty array will be returned
+              var r = response; 
+              resolve(r);
+            });
+          }
+        }
+        catch(e){
+          reject(e);
+        }
+      });
+    }
+  }
+
+  async requestSettings(){
+    if(Debug.debug){
+      console.log("%c[CommsClient::requestSettings] sending request for congif!", "background: #11D; color: #DDA");
+    }
+    var response = await this.sendMessage_nonpersistent({cmd: 'get-config'});
+    if(Debug.debug){
+      console.log("%c[CommsClient::requestSettings] received settings response!", "background: #11D; color: #DDA", response);
+    }
+
+    if(! response || response.extensionConf){
+      return Promise.resolve(false);
+    }
+
+    ExtensionConf = JSON.parse(response.extensionConf);
+    return Promise.resolve(true);
+  }
+
+  async requestSettings_fallback(){
+    this.port.postMessage({cmd: "get-config"});
+  }
+
+  registerVideo(){
+    this.port.postMessage({cmd: "has-video"});
+  }
+
+  unregisterVideo(){
+    this.port.postMessage({cmd: "noVideo"});  // ayymd
+  }
+}
+
+class CommsServer {
+  constructor(server) {
+    this.server = server;
+    this.ports = [];
+
+    var ths = this;
+
+
+    if (BrowserDetect.firefox) {
+      browser.runtime.onConnect.addListener(p => ths.onConnect(p));
+      browser.runtime.onMessage.addListener(m => ths.processReceivedMessage_nonpersistent_ff(m));
+    } else {
+      chrome.runtime.onConnect.addListener(p => ths.onConnect(p));
+      chrome.runtime.onMessage.addListener((msg, sender, callback) => ths.processReceivedMessage_nonpersistent_chrome(m, sender, callback));
+    }
+  }
+
+  onConnect(port){
+    console.log("on connect!")
+    var tabId = port.sender.tab.id;
+    var ths = this;
+    this.ports[tabId] = port;
+    this.ports[tabId].onMessage.addListener( (m,p) => ths.processReceivedMessage(m, p));
+  }
+
+  processReceivedMessage(message, port){
+    if (Debug.debug && Debug.comms) {
+      console.log("[CommsServer.js::processMessage] Received message from background script!", message, "port", port);
+    }
+
+    if (message.cmd === 'get-config') {
+      port.postMessage({cmd: "set-config", conf: ExtensionConf})
+    }
+  }
+
+  processReceivedMessage_nonpersistent_ff(message, sender){
+    if (Debug.debug && Debug.comms) {
+      console.log("%c[CommsServer.js::processMessage_nonpersistent_ff] Received message from background script!", "background-color: #11D; color: #DDA", message, sender);
+    }
+
+    if (message.cmd === 'get-config') {
+      var ret = {extensionConf: JSON.stringify(ExtensionConf)};
+      if (Debug.debug && Debug.comms) {
+        console.log("%c[CommsServer.js::processMessage_nonpersistent_ff] Returning this:", "background-color: #11D; color: #DDA", ret);
+      }
+      Promise.resolve(ret);
+    }
+  }
+
+  processReceivedMessage_nonpersistent_chrome(message, sender, sendResponse){
+    if (Debug.debug && Debug.comms) {
+      console.log("[CommsServer.js::processMessage_nonpersistent_chrome] Received message from background script!", message);
+    }
+
+    if(message.cmd === 'get-config') {
+      sendResponse({extensionConf: JSON.stringify(ExtensionConf)});
+      // return true;
+    }
+  }
+}
+
 var _com_chrome_tabquery_wrapper = async function(tabInfo){
   return new Promise(function (resolve, reject){    
     browser.tabs.query(tabInfo, function(response){
@@ -172,13 +348,13 @@ var _com_sendToMainFrame = async function(message, tabId){
   return response;
 }
 
-var Comms = {
-  getActiveTab: _com_getActiveTab,
-  sendToBackgroundScript: _com_sendMessageRuntime,
-  queryTabs: _com_queryTabs,
-  sendMessage: _com_sendMessage,
-  sendMessageRuntime: _com_sendMessageRuntime,
-  sendToEach: _com_sendToEachFrame,
-  sendToAll: _com_sendToAllFrames,
-  sendToMain: _com_sendToMainFrame,
-}
+// var Comms = {
+//   getActiveTab: _com_getActiveTab,
+//   sendToBackgroundScript: _com_sendMessageRuntime,
+//   queryTabs: _com_queryTabs,
+//   sendMessage: _com_sendMessage,
+//   sendMessageRuntime: _com_sendMessageRuntime,
+//   sendToEach: _com_sendToEachFrame,
+//   sendToAll: _com_sendToAllFrames,
+//   sendToMain: _com_sendToMainFrame,
+// }

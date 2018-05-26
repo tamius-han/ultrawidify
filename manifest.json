@@ -13,14 +13,13 @@
   "content_scripts": [{
     "matches": ["*://*/*"],
     "js": [ 
-    "js/dep/chrome/chrome-extension-async.js",
-    
+    "js/conf/Debug.js",
+
     "js/run/GlobalVars.js",
     "js/lib/BrowserDetect.js",
     "js/lib/StorageManager.js",
     "js/lib/Comms.js",
     
-    "js/conf/Debug.js",
     "js/conf/ExtensionConf.js",    
     "js/conf/Settings.js",
     "js/conf/SitesConf.js",
@@ -50,14 +49,12 @@
   
   "background": {
     "scripts": [
-    "js/dep/jquery-3.1.1.js",
-    "js/dep/chrome/chrome-extension-async.js",
-    
+    "js/conf/Debug.js",
+      
     "js/lib/BrowserDetect.js",
     "js/lib/StorageManager.js",
     "js/lib/Comms.js",
     
-    "js/conf/Debug.js",
     "js/conf/ExtensionConf.js",
     "js/conf/Settings.js",
     "js/conf/SitesConf.js",
