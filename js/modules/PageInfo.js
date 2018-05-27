@@ -206,8 +206,10 @@ class PageInfo {
   }
   
   setStretchMode(sm){
+    // TODO: find a way to only change aspect ratio for one video
+    
     for(var vd of this.videos){
-      vd.setStretchMode(ar)
+      vd.setStretchMode(sm)
     }
   }
 

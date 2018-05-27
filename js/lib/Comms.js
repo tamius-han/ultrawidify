@@ -28,7 +28,7 @@ class CommsClient {
       this.hasSettings = true;
       ExtensionConf = message.conf;
     } else if (message.cmd === "set-stretch") {
-
+      this.pageInfo.setStretchMode(StretchMode[message.mode]);
     } else if (message.cmd === "autoar-enable") {
       if (message.enabled !== false) {
         this.pageInfo.initArDetection();
@@ -214,6 +214,9 @@ class CommsServer {
 
     if (message.cmd === 'get-config') {
       port.postMessage({cmd: "set-config", conf: ExtensionConf})
+    }
+    if (message.cmd === 'set-stretch') {
+      this.sendToActive(message);
     }
     if (message.cmd === 'set-ar') {
       this.sendToActive(message);

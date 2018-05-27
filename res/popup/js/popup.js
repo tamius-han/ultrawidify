@@ -274,7 +274,7 @@ document.addEventListener("click", (e) => {
     if(e.target.classList.contains("_changeAr")){
       if(e.target.classList.contains("_ar_auto")){
         command.cmd = "autoar-enable";
-        command.enable = true;
+        command.enabled = true;
         return command;
       }
       if(e.target.classList.contains("_ar_reset")){
@@ -313,7 +313,22 @@ document.addEventListener("click", (e) => {
         return command;
       }
     }
-    
+    if(e.target.classList.contains("_stretch")){
+      if(e.target.classList.contains("_ar_stretch_none")) {
+        command.cmd = "set-stretch";
+        command.mode = "NO_STRETCH";
+      } else if(e.target.classList.contains("_ar_stretch_basic")) {
+        command.cmd = "set-stretch";
+        command.mode = "BASIC";
+      } else if(e.target.classList.contains("_ar_stretch_hybrid")) {
+        command.cmd = "set-stretch";
+        command.mode = "HYBRID";
+      } else if(e.target.classList.contains("_ar_stretch_conditional")) {
+        command.cmd = "set-stretch";
+        command.mode = "CONDITIONAL";
+      }
+      return command;
+    }
     if(e.target.classList.contains("_autoAr")){
       // var command = {};
       // if(e.target.classList.contains("_autoar_temp-disable")){

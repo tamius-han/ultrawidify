@@ -38,8 +38,8 @@ class Stretcher {
     var minW = this.conf.player.dimensions.width * (1 - ExtensionConf.stretch.conditionalDifferencePercent);
     var maxW = this.conf.player.dimensions.width * (1 + ExtensionConf.stretch.conditionalDifferencePercent);
 
-    var minX = this.conf.player.dimensions.height * (1 - ExtensionConf.stretch.conditionalDifferencePercent);
-    var maxX = this.conf.player.dimensions.height * (1 + ExtensionConf.stretch.conditionalDifferencePercent);
+    var minH = this.conf.player.dimensions.height * (1 - ExtensionConf.stretch.conditionalDifferencePercent);
+    var maxH = this.conf.player.dimensions.height * (1 + ExtensionConf.stretch.conditionalDifferencePercent);
 
     if (actualWidth >= minW && actualWidth <= maxW) {
       stretchFactors.xFactor *= this.conf.player.dimensions.width / actualWidth;
@@ -50,9 +50,6 @@ class Stretcher {
   }
 
   calculateStretch(actualAr) {
-    // naj ponovim: samo razširjamo, nikoli krčimo
-    // let me reiterate: only stretch, no shrink
-
     var playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
     var videoAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
 
@@ -67,17 +64,29 @@ class Stretcher {
 
     if (actualAr > videoAr) {
       if(videoAr > playerAr) {
-        stretchFactors.xFactor = playerAr / videoAr;
+        if(Debug.debug){
+          console.log("[Stretcher.js::calculateStretch] stretching strategy 1")
+        }
+        stretchFactors.xFactor = playerAr / videoAr; // is this 1 then?
         stretchFactors.yFactor = actualAr / videoAr;
       } else {
-        stretchFactors.xFactor = 1;
+        if(Debug.debug){
+          console.log("[Stretcher.js::calculateStretch] stretching strategy 2")
+        }
+        stretchFactors.xFactor = playerAr / videoAr;
         stretchFactors.yFactor = actualAr / videoAr;
       }
     } else {
       if (videoAr > playerAr) {
+        if(Debug.debug){
+          console.log("[Stretcher.js::calculateStretch] stretching strategy 3")
+        }
         stretchFactors.xFactor = videoAr / actualAr;
         stretchFactors.yFactor = playerAr / actualAr;
       } else {
+        if(Debug.debug){
+          console.log("[Stretcher.js::calculateStretch] stretching strategy 4")
+        }
         stretchFactors.xFactor = playerAr / actualAr;
         stretchFactors.yFactor = 1;
       }

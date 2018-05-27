@@ -8,7 +8,6 @@ var StretchMode = {
   CONDITIONAL: 3
 }
 
-
 class Resizer {
   
   constructor(videoData){
@@ -108,6 +107,7 @@ class Resizer {
 
   setStretchMode(stretchMode){
     this.stretch.mode = stretchMode;
+    this.restore();
   }
 
   setPan(relativeMousePosX, relativeMousePosY){
