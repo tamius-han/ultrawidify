@@ -62,30 +62,37 @@ class Stretcher {
       yFactor: 1
     };
 
-    if(playerAr >= videoAr){ž
+    if(playerAr >= videoAr){
       // player adds PILLARBOX
 
       if(actualAr >= playerAr){
-        // actual > player > video 
-        stretchFactors.xFactor = videoAr / playerAr;
-        stretchFactors.yFactor = actualAr / playerAr
+        // VERIFIED WORKS
+
+        // actual > player > video  — video is letterboxed
+        // solution: horizontal stretch according to difference between video and player AR
+        //           vertical stretch according to difference between actual AR and player AR
+        stretchFactors.xFactor = playerAr / videoAr;
+        stretchFactors.yFactor = actualAr / videoAr;
 
         if(Debug.debug){
           console.log("[Stretcher.js::calculateStretch] stretching strategy 1")
         }
       } else if ( actualAr >= videoAr) {
-        // player > actual > video — letterbox & pillarbox
+        // VERIFIED WORKS
+
+        // player > actual > video — video is still letterboxed
         // we need vertical stretch to remove black bars in video
         // we need horizontal stretch to make video fit width
-        stretchFactors.xFactor = actualAr / videoAr;
-        stretchFactors.yFactor = actualAr / playerAr;
+        stretchFactors.xFactor = playerAr / videoAr;
+        stretchFactors.yFactor = actualAr / videoAr;
 
         if(Debug.debug){
           console.log("[Stretcher.js::calculateStretch] stretching strategy 2")
         }
       } else {
+        // NEEDS CHECKING
         // player > video > actual — double pillarbox
-        stretchFactors.xFactor = actualAr / playerAr;
+        stretchFactors.xFactor = actualAr /  playerAr;
         stretchFactors.yFactor = 1;
         
         if(Debug.debug){
@@ -96,8 +103,10 @@ class Stretcher {
       // player adds LETTERBOX
 
       if (actualAr < playerAr) {
+        // NEEDS CHECKING
+
         // video > player > actual
-        // actual has pillarbox (same height as video)
+        // video is PILLARBOXED
         stretchFactors.xFactor = actualAr / playerAr;
         stretchFactors.yFactor = videoAr / playerAr;
 
@@ -105,6 +114,8 @@ class Stretcher {
           console.log("[Stretcher.js::calculateStretch] stretching strategy 4")
         }
       } else if ( actualAr < videoAr ) {
+        // NEEDS CHECKING 
+
         // video > actual > player
         // video is letterboxed by player
         // actual is pillarboxed by video
@@ -115,6 +126,8 @@ class Stretcher {
           console.log("[Stretcher.js::calculateStretch] stretching strategy 5")
         }
       } else {
+        // VERIFIED CORRECT
+
         // actual > video > player
         // actual fits width. Letterboxed by both.
         stretchFactors.xFactor = 1;
