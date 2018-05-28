@@ -62,35 +62,101 @@ class Stretcher {
       yFactor: 1
     };
 
-    if (actualAr > videoAr) {
-      if(videoAr > playerAr) {
+    if(playerAr >= videoAr){ž
+      // player adds PILLARBOX
+
+      if(actualAr >= playerAr){
+        // actual > player > video 
+        stretchFactors.xFactor = videoAr / playerAr;
+        stretchFactors.yFactor = actualAr / playerAr
+
         if(Debug.debug){
           console.log("[Stretcher.js::calculateStretch] stretching strategy 1")
         }
-        stretchFactors.xFactor = playerAr / videoAr; // is this 1 then?
-        stretchFactors.yFactor = actualAr / videoAr;
-      } else {
+      } else if ( actualAr >= videoAr) {
+        // player > actual > video — letterbox & pillarbox
+        // we need vertical stretch to remove black bars in video
+        // we need horizontal stretch to make video fit width
+        stretchFactors.xFactor = actualAr / videoAr;
+        stretchFactors.yFactor = actualAr / playerAr;
+
         if(Debug.debug){
           console.log("[Stretcher.js::calculateStretch] stretching strategy 2")
         }
-        stretchFactors.xFactor = playerAr / videoAr;
-        stretchFactors.yFactor = actualAr / videoAr;
-      }
-    } else {
-      if (videoAr > playerAr) {
+      } else {
+        // player > video > actual — double pillarbox
+        stretchFactors.xFactor = actualAr / playerAr;
+        stretchFactors.yFactor = 1;
+        
         if(Debug.debug){
           console.log("[Stretcher.js::calculateStretch] stretching strategy 3")
         }
-        stretchFactors.xFactor = videoAr / actualAr;
-        stretchFactors.yFactor = playerAr / actualAr;
-      } else {
+      }
+    } else {
+      // player adds LETTERBOX
+
+      if (actualAr < playerAr) {
+        // video > player > actual
+        // actual has pillarbox (same height as video)
+        stretchFactors.xFactor = actualAr / playerAr;
+        stretchFactors.yFactor = videoAr / playerAr;
+
         if(Debug.debug){
           console.log("[Stretcher.js::calculateStretch] stretching strategy 4")
         }
-        stretchFactors.xFactor = playerAr / actualAr;
-        stretchFactors.yFactor = 1;
+      } else if ( actualAr < videoAr ) {
+        // video > actual > player
+        // video is letterboxed by player
+        // actual is pillarboxed by video
+        stretchFactors.xFactor =  actualAr / playerAr;
+        stretchFActors.yFactor = actualAr / playerAr;
+
+        if(Debug.debug){
+          console.log("[Stretcher.js::calculateStretch] stretching strategy 5")
+        }
+      } else {
+        // actual > video > player
+        // actual fits width. Letterboxed by both.
+        stretchFactors.xFactor = 1;
+        stretchFactors.yFactor = actualAr / playerAr;
+
+        if(Debug.debug){
+          console.log("[Stretcher.js::calculateStretch] stretching strategy 6")
+        }
       }
     }
+
+    // if (actualAr > videoAr) {
+    //   if(videoAr > playerAr) {
+    //     // actual ar > video ar > player ar
+    //     // stretch to fit player
+
+    //     // stretchFactors.xFactor = playerAr / videoAr; // is this 1 then?
+    //     stretchFactors.xFactor = 1;
+    //     stretchFactors.yFactor = actualAr / playerAr;
+    //   } else {
+    //     // actual ar > player ar > video ar
+    //     if(Debug.debug){
+    //       console.log("[Stretcher.js::calculateStretch] stretching strategy 2")
+    //     }
+    //     stretchFactors.xFactor = 1; //playerAr / videoAr;
+    //     stretchFactors.yFactor = actualAr / videoAr;
+    //   }
+    // } else {
+    //   if (videoAr > playerAr) {
+    //     if(Debug.debug){
+    //       console.log("[Stretcher.js::calculateStretch] stretching strategy 3")
+    //     }
+    //     stretchFactors.xFactor = videoAr / actualAr;
+    //     stretchFactors.yFactor = playerAr / actualAr;
+    //   } else {
+    //     if(Debug.debug){
+    //       console.log("[Stretcher.js::calculateStretch] stretching strategy 4")
+    //     }
+    //     stretchFactors.xFactor = playerAr / actualAr;
+    //     stretchFactors.yFactor = 1;
+    //   }
+    // }
     return stretchFactors;
   }
 }
