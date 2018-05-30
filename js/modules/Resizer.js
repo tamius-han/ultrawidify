@@ -22,7 +22,6 @@ class Resizer {
     // load up default values
     this.correctedVideoDimensions = {};
     this.currentCss = {};
-    this.stretch = {mode: ExtensionConf.stretch.initialMode};
 
     // restore watchdog. While true, applyCss() tries to re-apply new css until this value becomes false again
     // value becomes false when width and height of <video> tag match with what we want to set. Only necessary when
@@ -68,7 +67,7 @@ class Resizer {
     }
 
 
-    if (this.stretch.mode === StretchMode.NO_STRETCH || this.stretch.mode === StretchMode.CONDITIONAL){
+    if (this.stretcher.mode === StretchMode.NO_STRETCH || this.stretcher.mode === StretchMode.CONDITIONAL){
       var stretchFactors = this.scaler.calculateCrop(ar);
 
       if(! stretchFactors || stretchFactors.error){
@@ -80,10 +79,10 @@ class Resizer {
         }
         return;
       }
-      if(this.stretch.mode === StretchMode.CONDITIONAL){
+      if(this.stretcher.mode === StretchMode.CONDITIONAL){
          this.stretcher.applyConditionalStretch(stretchFactors, ar);
       }
-    } else if (this.stretch.mode === StretchMode.HYBRID) {
+    } else if (this.stretcher.mode === StretchMode.HYBRID) {
       var stretchFactors = this.stretcher.calculateStretch(ar);
     }
 
@@ -106,7 +105,7 @@ class Resizer {
   }
 
   setStretchMode(stretchMode){
-    this.stretch.mode = stretchMode;
+    this.stretcher.mode = stretchMode;
     this.restore();
   }
 
@@ -178,7 +177,7 @@ class Resizer {
   }
 
   resetStretch(){
-    this.stretch.mode = StretchMode.NO_STRETCH;
+    this.stretcher.mode = StretchMode.NO_STRETCH;
     this.restore();
   }
 
