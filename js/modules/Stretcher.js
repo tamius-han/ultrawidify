@@ -11,6 +11,7 @@ class Stretcher {
   // functions
   constructor(videoData) {
     this.conf = videoData;
+    this.mode = ExtensionConf.stretch.initialMode;
   }
 
   applyConditionalStretch(stretchFactors, actualAr){
@@ -139,37 +140,6 @@ class Stretcher {
       }
     }
 
-    // if (actualAr > videoAr) {
-    //   if(videoAr > playerAr) {
-    //     // actual ar > video ar > player ar
-    //     // stretch to fit player
-
-    //     // stretchFactors.xFactor = playerAr / videoAr; // is this 1 then?
-    //     stretchFactors.xFactor = 1;
-    //     stretchFactors.yFactor = actualAr / playerAr;
-    //   } else {
-    //     // actual ar > player ar > video ar
-    //     if(Debug.debug){
-    //       console.log("[Stretcher.js::calculateStretch] stretching strategy 2")
-    //     }
-    //     stretchFactors.xFactor = 1; //playerAr / videoAr;
-    //     stretchFactors.yFactor = actualAr / videoAr;
-    //   }
-    // } else {
-    //   if (videoAr > playerAr) {
-    //     if(Debug.debug){
-    //       console.log("[Stretcher.js::calculateStretch] stretching strategy 3")
-    //     }
-    //     stretchFactors.xFactor = videoAr / actualAr;
-    //     stretchFactors.yFactor = playerAr / actualAr;
-    //   } else {
-    //     if(Debug.debug){
-    //       console.log("[Stretcher.js::calculateStretch] stretching strategy 4")
-    //     }
-    //     stretchFactors.xFactor = playerAr / actualAr;
-    //     stretchFactors.yFactor = 1;
-    //   }
-    // }
     return stretchFactors;
   }
 }
