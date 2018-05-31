@@ -4,6 +4,7 @@ if(Debug.debug)
 class Keybinds {
   constructor(pageInfo){
     this.pageInfo = pageInfo;
+    this.inputs = ['input','select','button','textarea'];
   }
 
   setup(){
@@ -20,10 +21,16 @@ class Keybinds {
     // Tipke upoštevamo samo, če smo v celozaslonskem načinu oz. če ne pišemo komentarja
     // v nasprotnem primeru ne naredimo nič.
     // We only take actions if we're in full screen or not writing a comment
-    if( !(PlayerData.isFullScreen() || (
-      (document.activeElement.getAttribute("role") != "textbox") &&
-      (document.activeElement.getAttribute("type") != "text")
-    ))){
+    var activeElement = document.activeElement;
+
+    console.log("[Keybinds::_kbd_process]\n\n\n\n", PlayerData.isFullScreen(), this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1, PlayerData.isFullScreen() && this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1  );
+    
+
+    if( (! PlayerData.isFullScreen()) && (
+      (this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1) ||
+      (activeElement.getAttribute("role") === "textbox") ||
+      (activeElement.getAttribute("type") === "text")
+    )){
       if(Debug.debug && Debug.keyboard)
         console.log("[Keybinds::_kbd_process] We're writing a comment or something. Doing nothing");
       return;
