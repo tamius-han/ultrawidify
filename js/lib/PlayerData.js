@@ -83,8 +83,14 @@ class PlayerData {
     this.watchTimeout = setTimeout(function(){
         ths.watchTimeout = null;
         try{
-        ths.ghettoWatcher();
-        }catch(e){console.log("[PlayerData::scheduleGhettoWatcher] Scheduling failed. Error:",e)}
+          ths.ghettoWatcher();
+        } catch(e) {
+          if (Debug.debug) {
+            console.log("[PlayerData::scheduleGhettoWatcher] Scheduling failed. Error:",e)
+          }
+
+          ths.scheduleGhettoWatcher(1000);
+        }
         ths = null;
       },
       timeout
