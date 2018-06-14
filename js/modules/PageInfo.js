@@ -22,6 +22,14 @@ class PageInfo {
     }
   }
 
+
+  reset(){
+    for(video of this.videos) {
+      video.destroy();
+    }
+    this.rescan(RescanReason.MANUAL);
+  }
+
   rescan(rescanReason){
     try{
     var vids = document.getElementsByTagName('video');

@@ -84,6 +84,9 @@ class Resizer {
       }
     } else if (this.stretcher.mode === StretchMode.HYBRID) {
       var stretchFactors = this.stretcher.calculateStretch(ar);
+    } else if (this.stretcher.mode === StretchMode.BASIC) {
+      console.log("basic stretch mode")
+      var stretchFactors = this.stretcher.calculateBasicStretch();
     }
 
     this.zoom.applyZoom(stretchFactors);
@@ -91,6 +94,8 @@ class Resizer {
     //TODO: correct these two
     var translate = this.computeOffsets(stretchFactors);
     this.applyCss(stretchFactors, translate);
+
+    console.log("applied css")
 
     // if(! this.destroyed)
     //   this.startCssWatcher(); 
@@ -105,6 +110,7 @@ class Resizer {
   }
 
   setStretchMode(stretchMode){
+    console.log("setting stretch mode:", stretchMode)
     this.stretcher.mode = stretchMode;
     this.restore();
   }
@@ -130,13 +136,13 @@ class Resizer {
     }
   }
 
-  stopCssWatcher(){
+  stopCssWatcher() {
     if(Debug.debug) console.log("[Resizer.js] STOPPING CSS WATCHER!")
 
     clearInterval(this.cssWatcherTimeout);
   }
 
-  restore(){
+  restore() {
     if(Debug.debug){
       console.log("[Resizer::restore] attempting to restore aspect ratio. this & settings:", {'this': this, "settings": Settings} );
     }

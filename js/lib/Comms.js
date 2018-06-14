@@ -29,7 +29,7 @@ class CommsClient {
       ExtensionConf = message.conf;
     } else if (message.cmd === "set-stretch") {
       this.pageInfo.setStretchMode(StretchMode[message.mode]);
-    } else if (message.cmd === "autoar-enable") {
+    } else if (message.cmd === "autoar-start") {
       if (message.enabled !== false) {
         this.pageInfo.initArDetection();
         this.pageInfo.startArDetection();
@@ -41,6 +41,9 @@ class CommsClient {
     } else if (message.cmd === "resume-processing") {
       // todo: autoArStatus
       this.pageInfo.resumeProcessing(message.autoArStatus);
+    } else if (message.cmd === "reload-settings") {
+      ExtensionConf = message.newConf;
+      this.pageInfo.reset();
     }
   }
 
@@ -214,15 +217,40 @@ class CommsServer {
 
     if (message.cmd === 'get-config') {
       port.postMessage({cmd: "set-config", conf: ExtensionConf})
-    }
-    if (message.cmd === 'set-stretch') {
+    } else if (message.cmd === 'set-stretch') {
       this.sendToActive(message);
-    }
-    if (message.cmd === 'set-ar') {
+    } else if (message.cmd === 'set-ar') {
       this.sendToActive(message);
-    }
-    if (message.cmd === 'autoar-enable') {
+    } else if (message.cmd === 'autoar-start') {
       this.sendToActive(message);
+    } else if (message.cmd === "autoar-enable") {
+      ExtensionConf.arDetect.mode = "blacklist";
+      Settings.save(ExtensionConf);
+      this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
+      if(Debug.debug){
+        console.log("[uw-bg] autoar set to enabled (blacklist). evidenz:", ExtensionConf);
+      }
+    } else if (message.cmd === "autoar-disable") {
+      ExtensionConf.arDetect.mode = "disabled";
+      if(message.reason){
+        ExtensionConf.arDetect.disabledReason = message.reason;
+      } else {
+        ExtensionConf.arDetect.disabledReason = 'User disabled';
+      }
+      Settings.save(ExtensionConf);
+      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      if(Debug.debug){
+        console.log("[uw-bg] autoar set to disabled. evidenz:", ExtensionConf);
+      }
+    } else if (message.cmd === "autoar-set-interval") {
+      if(Debug.debug)
+        console.log("[uw-bg] trying to set new interval for autoAr. New interval is",message.timeout,"ms");
+
+      // set fairly liberal limit
+      var timeout = message.timeout < 4 ? 4 : message.timeout;
+      ExtensionConf.arDetect.timer_playing = timeout;
+      Settings.save(ExtensionConf);
+      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
     }
   }
 
@@ -237,9 +265,34 @@ class CommsServer {
         console.log("%c[CommsServer.js::processMessage_nonpersistent_ff] Returning this:", "background-color: #11D; color: #aad", ret);
       }
       Promise.resolve(ret);
-    }
-    if (message.cmd === "enable-autoar"){
-      this.sendToActive({cmd: "autoar-enable", enabled: true})
+    } else if (message.cmd === "autoar-enable") {
+      ExtensionConf.arDetect.mode = "blacklist";
+      Settings.save(ExtensionConf);
+      this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
+      if(Debug.debug){
+        console.log("[uw-bg] autoar set to enabled (blacklist). evidenz:", ExtensionConf);
+      }
+    } else if (message.cmd === "autoar-disable") {
+      ExtensionConf.arDetect.mode = "disabled";
+      if(message.reason){
+        ExtensionConf.arDetect.disabledReason = message.reason;
+      } else {
+        ExtensionConf.arDetect.disabledReason = 'User disabled';
+      }
+      Settings.save(ExtensionConf);
+      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      if(Debug.debug){
+        console.log("[uw-bg] autoar set to disabled. evidenz:", ExtensionConf);
+      }
+    } else if (message.cmd === "autoar-set-interval") {
+      if(Debug.debug)
+        console.log("[uw-bg] trying to set new interval for autoAr. New interval is",message.timeout,"ms");
+
+      // set fairly liberal limit
+      var timeout = message.timeout < 4 ? 4 : message.timeout;
+      ExtensionConf.arDetect.timer_playing = timeout;
+      Settings.save(ExtensionConf);
+      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
     }
   }
 
@@ -251,6 +304,34 @@ class CommsServer {
     if(message.cmd === 'get-config') {
       sendResponse({extensionConf: JSON.stringify(ExtensionConf)});
       // return true;
+    } else if (message.cmd === "autoar-enable") {
+      ExtensionConf.arDetect.mode = "blacklist";
+      Settings.save(ExtensionConf);
+      this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
+      if(Debug.debug){
+        console.log("[uw-bg] autoar set to enabled (blacklist). evidenz:", ExtensionConf);
+      }
+    } else if (message.cmd === "autoar-disable") {
+      ExtensionConf.arDetect.mode = "disabled";
+      if(message.reason){
+        ExtensionConf.arDetect.disabledReason = message.reason;
+      } else {
+        ExtensionConf.arDetect.disabledReason = 'User disabled';
+      }
+      Settings.save(ExtensionConf);
+      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      if(Debug.debug){
+        console.log("[uw-bg] autoar set to disabled. evidenz:", ExtensionConf);
+      }
+    } else if (message.cmd === "autoar-set-interval") {
+      if(Debug.debug)
+        console.log("[uw-bg] trying to set new interval for autoAr. New interval is",message.timeout,"ms");
+
+      // set fairly liberal limit
+      var timeout = message.timeout < 4 ? 4 : message.timeout;
+      ExtensionConf.arDetect.timer_playing = timeout;
+      Settings.save(ExtensionConf);
+      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
     }
   }
 }
@@ -284,167 +365,167 @@ class Comms {
 
 }
 
-var _com_queryTabs = async function(tabInfo){
-  if(BrowserDetect.usebrowser != "firefox"){
-    return await _com_chrome_tabquery_wrapper(tabInfo);
-  }
-  else{
-    return browser.tabs.query(tabInfo);
-  }
-}
-
-var _com_getActiveTab = async function(tabInfo){
-  if(BrowserDetect.firefox){
-    return await browser.tabs.query({currentWindow: true, active: true});
-  }
-  return _com_chrome_tabquery_wrapper({currentWindow: true, active: true});
-}
-
-
-var _com_chrome_tabs_sendmsg_wrapper = async function(tab, message, options){
-  return new Promise(function (resolve, reject){
-    try{
-      browser.tabs.sendMessage(tab, message, /*options, */function(response){
-        console.log("TESTING what is this owo? (response)", response);
-        
-        // Chrome/js shittiness mitigation — remove this line and an empty array will be returned
-        var r = response; 
-        
-        resolve(r);
-      });
-    }
-    catch(e){
-      reject(e);
-    }
-  });
-}
-
-var _com_sendMessage = async function(tab, message, options){
-  if(BrowserDetect.usebrowser != "firefox"){
-    var r = await _com_chrome_tabs_sendmsg_wrapper(tab, message, options);
-    console.log("TESTING what is this owo? (should be a promise)", r);
-    return r;
-  }
-  else{
-    return browser.tabs.sendMessage(tab, message, options);
-  }
-}
-
-var _com_chrome_tabs_sendmsgrt_wrapper = async function(message){
-  return new Promise(function (resolve, reject){
-    try{
-      browser.runtime.sendMessage(message, function(response){
-        
-        // Chrome/js shittiness mitigation — remove this line and an empty array will be returned
-        var r = response; 
-        
-        resolve(r);
-      });
-    }
-    catch(e){
-      reject(e);
-    }
-  });
-}
-
-var _com_sendMessageRuntime = async function(message){
-  if(BrowserDetect.usebrowser != "firefox"){
-    return _com_chrome_tabs_sendmsgrt_wrapper(message);
-  }
-  else{
-    return browser.runtime.sendMessage(message);
-  }
-}
-
-// pošlje sporočilce vsem okvirjem v trenutno odprtem zavihku. Vrne tisti odgovor od tistega okvira, ki prispe prvi.
-// sends a message to all frames in the currently opened tab. Returns the response of a frame that replied first
-var _com_sendToAllFrames = async function(message) {
-  if(Debug.debug)
-    console.log("[Comms::_com_sendToAllFrames] sending message to all frames of currenntly active tab");
-  
-  var tabs = await browser.tabs.query({currentWindow: true, active: true}); 
-  
-  if(Debug.debug)
-    console.log("[Comms::_com_sendToAllFrames] trying to send message", message, " to tab ", tabs[0], ". (all tabs:", tabs,")");
-  
-  var response = await browser.tabs.sendMessage(tabs[0].id, message);
-  console.log("[Comms::_com_sendToAllFrames] response is this:",response);
-  return response;
-  
-//   if(BrowserDetect.firefox){
-//     return 
+// var _com_queryTabs = async function(tabInfo){
+//   if(BrowserDetect.usebrowser != "firefox"){
+//     return await _com_chrome_tabquery_wrapper(tabInfo);
 //   }
-}
+//   else{
+//     return browser.tabs.query(tabInfo);
+//   }
+// }
 
-// pošlje sporočilce vsem okvirjem v trenutno odprtem zavihku in vrne _vse_ odgovore
-// sends a message to all frames in currently opened tab and returns all responses
-var _com_sendToEachFrame = async function(message, tabId) {
-  if(Debug.debug)
-    console.log("[Comms::_com_sendToEveryFrame] sending message to every frames of currenntly active tab");
-  
-  if(tabId === undefined){
-    var tabs = await browser.tabs.query({currentWindow: true, active: true});
-    tabId = tabs[0].id;
-  }
-  var frames = await browser.webNavigation.getAllFrames({tabId: tabId});
-  
-  if(Debug.debug)
-    console.log("[Comms::_com_sendToEveryFrame] we have this many frames:", frames.length, "||| tabId:", tabId ,"frames:",frames);
-  
-  
-  // pošlji sporočilce vsakemu okvirju, potisni obljubo v tabelo
-  // send message to every frame, push promise to array
-  var promises = [];
-  for(var frame of frames){
-      if(Debug.debug)
-        console.log("[Comms:_com_sendToEachFrame] we sending message to tab with id", tabId, ", frame with id", frame.frameId);
-      try{
-        promises.push(browser.tabs.sendMessage(tabId, message, {frameId: frame.frameId}));
-      }
-      catch(e){
-        if(Debug.debug)
-          console.log("[Comms:_com_sendToEachFrame] we sending message to tab with id", tabId, ", frame with id", frame.frameId);
-      }
-  }
-  
-  // počakajmo, da so obljube izpolnjene. 
-  // wait for all promises to be kept
-  
-  var responses = [];
-  
-  for(var promise of promises){
-    var response = await promise;
-    if(response !== undefined)
-      responses.push(response);
-  }
-  
-  if(Debug.debug)
-    console.log("[Comms::_com_sendToEveryFrame] we received responses from all frames", responses);
-  
-  return responses;
-}
+// var _com_getActiveTab = async function(tabInfo){
+//   if(BrowserDetect.firefox){
+//     return await browser.tabs.query({currentWindow: true, active: true});
+//   }
+//   return _com_chrome_tabquery_wrapper({currentWindow: true, active: true});
+// }
 
-var _com_sendToMainFrame = async function(message, tabId){
-  if(Debug.debug)
-    console.log("[Comms::_com_sendToMainFrame] sending message to every frames of currenntly active tab");
+
+// var _com_chrome_tabs_sendmsg_wrapper = async function(tab, message, options){
+//   return new Promise(function (resolve, reject){
+//     try{
+//       browser.tabs.sendMessage(tab, message, /*options, */function(response){
+//         console.log("TESTING what is this owo? (response)", response);
+        
+//         // Chrome/js shittiness mitigation — remove this line and an empty array will be returned
+//         var r = response; 
+        
+//         resolve(r);
+//       });
+//     }
+//     catch(e){
+//       reject(e);
+//     }
+//   });
+// }
+
+// var _com_sendMessage = async function(tab, message, options){
+//   if(BrowserDetect.usebrowser != "firefox"){
+//     var r = await _com_chrome_tabs_sendmsg_wrapper(tab, message, options);
+//     console.log("TESTING what is this owo? (should be a promise)", r);
+//     return r;
+//   }
+//   else{
+//     return browser.tabs.sendMessage(tab, message, options);
+//   }
+// }
+
+// var _com_chrome_tabs_sendmsgrt_wrapper = async function(message){
+//   return new Promise(function (resolve, reject){
+//     try{
+//       browser.runtime.sendMessage(message, function(response){
+        
+//         // Chrome/js shittiness mitigation — remove this line and an empty array will be returned
+//         var r = response; 
+        
+//         resolve(r);
+//       });
+//     }
+//     catch(e){
+//       reject(e);
+//     }
+//   });
+// }
+
+// var _com_sendMessageRuntime = async function(message){
+//   if(BrowserDetect.usebrowser != "firefox"){
+//     return _com_chrome_tabs_sendmsgrt_wrapper(message);
+//   }
+//   else{
+//     return browser.runtime.sendMessage(message);
+//   }
+// }
+
+// // pošlje sporočilce vsem okvirjem v trenutno odprtem zavihku. Vrne tisti odgovor od tistega okvira, ki prispe prvi.
+// // sends a message to all frames in the currently opened tab. Returns the response of a frame that replied first
+// var _com_sendToAllFrames = async function(message) {
+//   if(Debug.debug)
+//     console.log("[Comms::_com_sendToAllFrames] sending message to all frames of currenntly active tab");
   
-  if(tabId === undefined){
-    var tabs = await browser.tabs.query({currentWindow: true, active: true});
-    tabId = tabs[0].id;
-  }
+//   var tabs = await browser.tabs.query({currentWindow: true, active: true}); 
   
-  // pošlji sporočilce glavnemu okvirju. Glavni okvir ima id=0
-  // send message to the main frame. Main frame has id=0
-  try{
-    var response = await browser.tabs.sendMessage(tabId, message, {frameId: 0});
-    console.log("[Comms::_com_sendToMainFrame] response is this:",response);
+//   if(Debug.debug)
+//     console.log("[Comms::_com_sendToAllFrames] trying to send message", message, " to tab ", tabs[0], ". (all tabs:", tabs,")");
+  
+//   var response = await browser.tabs.sendMessage(tabs[0].id, message);
+//   console.log("[Comms::_com_sendToAllFrames] response is this:",response);
+//   return response;
+  
+// //   if(BrowserDetect.firefox){
+// //     return 
+// //   }
+// }
+
+// // pošlje sporočilce vsem okvirjem v trenutno odprtem zavihku in vrne _vse_ odgovore
+// // sends a message to all frames in currently opened tab and returns all responses
+// var _com_sendToEachFrame = async function(message, tabId) {
+//   if(Debug.debug)
+//     console.log("[Comms::_com_sendToEveryFrame] sending message to every frames of currenntly active tab");
+  
+//   if(tabId === undefined){
+//     var tabs = await browser.tabs.query({currentWindow: true, active: true});
+//     tabId = tabs[0].id;
+//   }
+//   var frames = await browser.webNavigation.getAllFrames({tabId: tabId});
+  
+//   if(Debug.debug)
+//     console.log("[Comms::_com_sendToEveryFrame] we have this many frames:", frames.length, "||| tabId:", tabId ,"frames:",frames);
+  
+  
+//   // pošlji sporočilce vsakemu okvirju, potisni obljubo v tabelo
+//   // send message to every frame, push promise to array
+//   var promises = [];
+//   for(var frame of frames){
+//       if(Debug.debug)
+//         console.log("[Comms:_com_sendToEachFrame] we sending message to tab with id", tabId, ", frame with id", frame.frameId);
+//       try{
+//         promises.push(browser.tabs.sendMessage(tabId, message, {frameId: frame.frameId}));
+//       }
+//       catch(e){
+//         if(Debug.debug)
+//           console.log("[Comms:_com_sendToEachFrame] we sending message to tab with id", tabId, ", frame with id", frame.frameId);
+//       }
+//   }
+  
+//   // počakajmo, da so obljube izpolnjene. 
+//   // wait for all promises to be kept
+  
+//   var responses = [];
+  
+//   for(var promise of promises){
+//     var response = await promise;
+//     if(response !== undefined)
+//       responses.push(response);
+//   }
+  
+//   if(Debug.debug)
+//     console.log("[Comms::_com_sendToEveryFrame] we received responses from all frames", responses);
+  
+//   return responses;
+// }
+
+// var _com_sendToMainFrame = async function(message, tabId){
+//   if(Debug.debug)
+//     console.log("[Comms::_com_sendToMainFrame] sending message to every frames of currenntly active tab");
+  
+//   if(tabId === undefined){
+//     var tabs = await browser.tabs.query({currentWindow: true, active: true});
+//     tabId = tabs[0].id;
+//   }
+  
+//   // pošlji sporočilce glavnemu okvirju. Glavni okvir ima id=0
+//   // send message to the main frame. Main frame has id=0
+//   try{
+//     var response = await browser.tabs.sendMessage(tabId, message, {frameId: 0});
+//     console.log("[Comms::_com_sendToMainFrame] response is this:",response);
     
-  }
-  catch(e){
-      console.log("[Comms:_com_sendToEachFrame] failed sending message to tab with id", tabId, ", frame with id", 0, "\nerror:",e);
-  }
-  return response;
-}
+//   }
+//   catch(e){
+//       console.log("[Comms:_com_sendToEachFrame] failed sending message to tab with id", tabId, ", frame with id", 0, "\nerror:",e);
+//   }
+//   return response;
+// }
 
 // var Comms = {
 //   getActiveTab: _com_getActiveTab,

@@ -273,7 +273,7 @@ document.addEventListener("click", (e) => {
     
     if(e.target.classList.contains("_changeAr")){
       if(e.target.classList.contains("_ar_auto")){
-        command.cmd = "autoar-enable";
+        command.cmd = "autoar-start";
         command.enabled = true;
         return command;
       }
@@ -352,18 +352,11 @@ document.addEventListener("click", (e) => {
         
         // this event fires before the checkbox is checked, therefore arStatus is opposite of what it should be
         if(! arStatus){
-          Comms.sendToBackgroundScript({cmd: "disable-autoar", sender: "popup", receiver: "uwbg"});
-          Comms.sendToAll({cmd: "disable-autoar", sender: "popup", receiver: "uwbg"});
-          Comms.sendToAll({cmd: "stop-autoar", sender: "popup", receiver: "uwbg"});
+          return {cmd: "autoar-disable", sender: "popup", receiver: "uwbg"};
+        } else {
+          return {cmd: "autoar-enable", sender: "popup", receiver: "uwbg"};
         }
-        else{
-          Comms.sendToAll({cmd: "enable-autoar", sender: "popup", receiver: "uwbg"});
-          Comms.sendToBackgroundScript({cmd: "enable-autoar", sender: "popup", receiver: "uwbg"});
-          Comms.sendToAll({cmd: "force-ar", newAr: "auto", arType: "legacy", sender: "popup", receiver: "uwbg"});
-        }
-        return;
-      }
-      else if(e.target.classList.contains("_save_autoAr_frequency")){
+      } else if(e.target.classList.contains("_save_autoAr_frequency")) {
         var value = parseInt(document.getElementById("_input_autoAr_frequency").value.trim());
         
         if(! isNaN(value)){

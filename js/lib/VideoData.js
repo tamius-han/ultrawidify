@@ -11,7 +11,6 @@ class VideoData {
     this.resizer = new Resizer(this);
 
     this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
-
     // player dimensions need to be in:
     // this.player.dimensions
   }
