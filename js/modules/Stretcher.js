@@ -50,6 +50,18 @@ class Stretcher {
     }
   }
 
+  calculateBasicStretch() {
+    console.log("calculating basic stretch - -- stretcher")
+    // var videoAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
+    // var playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
+
+    return {
+      xFactor: this.conf.player.dimensions.width / this.conf.video.videoWidth,
+      yFactor: this.conf.player.dimensions.height / this.conf.video.videoHeight
+    };
+    // return this.calculateStretch(actualAr); 
+  }
+
   calculateStretch(actualAr) {
     var playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
     var videoAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
@@ -93,7 +105,7 @@ class Stretcher {
       } else {
         // NEEDS CHECKING
         // player > video > actual — double pillarbox
-        stretchFactors.xFactor = actualAr /  playerAr;
+        stretchFactors.xFactor = playerAr / actualAr;
         stretchFactors.yFactor = 1;
         
         if(Debug.debug){
