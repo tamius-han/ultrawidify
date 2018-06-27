@@ -27,7 +27,7 @@ class ArDetector {
     this.debugCanvas.destroy();
   }
 
-  setup(cwidth, cheight){
+  setup(cwidth, cheight, forceStart){
     
     this.guardLine = new GuardLine(this);
     this.edgeDetector = new EdgeDetect(this);
@@ -141,7 +141,9 @@ class ArDetector {
       this.canvasImageDataRowLength = cwidth << 2;
       this.noLetterboxCanvasReset = false;
       
-      this.start();
+      if(forceStart || canStartAutoAr() ) {
+        this.start();
+      }
     }
     catch(ex){
       console.log(ex);

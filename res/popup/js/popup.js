@@ -20,16 +20,24 @@ MenuTab.cssHacks   = document.getElementById("_menu_hacks");
 MenuTab.about      = document.getElementById("_menu_about");
 MenuTab.autoAr     = document.getElementById("_menu_autoar");
 
-var ArPanel = {}
+var ExtPanel = {};
+ExtPanel.siteOptions = {};
+ExtPanel.siteOptions.disabled = document.getElementById("_ext_site_options_blacklist");
+ExtPanel.siteOptions.enabled  = document.getElementById("_ext_site_options_whitelist");
+ExtPanel.siteOptions.default  = document.getElementById("_ext_site_options_default");
+
+var AutoArPanel = {};
+AutoArPanel.siteOptions = {};
+AutoArPanel.siteOptions.disabled = document.getElementById("_ext_site_options_blacklist");
+AutoArPanel.siteOptions.enabled  = document.getElementById("_ext_site_options_whitelist");
+AutoArPanel.siteOptions.default  = document.getElementById("_ext_site_options_default");
+
+var ArPanel = {};
 ArPanel.alignment = {};
 ArPanel.alignment.left   = document.getElementById("_align_left");
 ArPanel.alignment.center = document.getElementById("_align_center");
 ArPanel.alignment.right  = document.getElementById("_align_right");
 ArPanel.autoar = {};
-ArPanel.autoar.enable      = document.getElementById("_autoar_enable");
-ArPanel.autoar.disable     = document.getElementById("_autoar_disable");
-ArPanel.autoar.enable_tmp  = document.getElementById("_autoar_enable_tmp");
-ArPanel.autoar.disable_tmp = document.getElementById("_autoar_disable_tmp");
 
 
 var selectedMenu = "arSettings";
@@ -44,7 +52,7 @@ port.onMessage.addListener( (m,p) => processReceivedMessage(m,p));
 
 async function processReceivedMessage(message, port){
   if(message.cmd === 'set-config'){
-    this.loadConfig(message.conf);
+    this.loadConfig(message.conf, message.site);
   }
 }
 
@@ -70,17 +78,46 @@ function stringToKeyCombo(key_in){
   return keys_out;
 }
 
-function loadConfig(extensionConf){
+function loadConfig(extensionConf, site){
   if(Debug.debug)
-    console.log("[popup.js::loadConfig] loading config. conf object:", extensionConf);
+    console.log("[popup.js::loadConfig] loading config. conf object:", extensionConf, "\n\n\n\n\n\n\n\n-------------------------------------");
     
   _extensionConf = extensionConf;
 
-  
-  document.getElementById("_checkbox_autoArEnabled").checked = extensionConf.arDetect.mode == "blacklist";
+  // ----------------------
+  //#region extension-basics - SET BASIC EXTENSION OPTIONS
+  if(Debug.debug)
+    console.log("Extension mode?", extensionConf.extensionMode, "| site & site options:", site, ",", (site && extensionConf.sites[site]) ? extensionConf.sites[site].status : "fucky wucky?");
+  document.getElementById("_checkbox_ext-enabled").checked = extensionConf.extensionMode !== "disabled";
+  document.getElementById("_checkbox_ext-whitelist").checked = extensionConf.extensionMode === "whitelist";  
+
+  for(var button in ExtPanel.siteOptions) {
+    ExtPanel.siteOptions[button].classList.remove("selected");
+  }
+
+  if(site && extensionConf.sites[site]) {
+    ExtPanel.siteOptions[extensionConf.sites[site].arStatus].classList.add("selected");
+  }
+  //#endregion extension-basics
+  //
+  // ------------
+  //#region autoar - SET AUTOAR OPTIONS
+  if(Debug.debug)
+    console.log("Autodetect mode?", extensionConf.arDetect.mode, "| site & site options:", site, ",", (site && extensionConf.sites[site]) ? extensionConf.sites[site].arStatus : "fucky wucky?" );
+  document.getElementById("_checkbox_autoArEnabled").checked = extensionConf.arDetect.mode !== "disabled";
+  document.getElementById("_checkbox_autoar-whitelist").checked = extensionConf.arDetect.mode === "whitelist";  
   document.getElementById("_autoAr_disabled_reason").textContent = extensionConf.arDetect.DisabledReason;
   document.getElementById("_input_autoAr_timer").value = extensionConf.arDetect.timer_playing;
-  
+
+  for(var button in AutoArPanel.siteOptions) {
+    AutoArPanel.siteOptions[button].classList.remove("selected");
+  }
+
+  if(site && extensionConf.sites[site]) {
+    AutoArPanel.siteOptions[extensionConf.sites[site].arStatus].classList.add("selected");
+  }
+  //#endregion
+
   // process video alignment:
   if(extensionConf.miscFullscreenSettings.videoFloat){
     for(var button in ArPanel.alignment)
@@ -135,9 +172,6 @@ function loadConfig(extensionConf){
     }
   }
   
-  
-  // process aspect ratio settings
-  showArctlButtons();
 
   if(Debug.debug)
     console.log("[popup.js::loadConfig] config loaded");
@@ -235,6 +269,15 @@ function toggleSite(option){
   Comms.sendToBackgroundScript({cmd:"enable-for-site", option:option});
 }
 
+function getMode(isEnabled, whitelistOnly) {
+  if(isEnabled) {
+    return whitelistOnly ? "whitelist" : "blacklist" 
+  } else {
+    return "disabled";
+  }
+}
+
+
 document.addEventListener("click", (e) => {
   
   
@@ -270,7 +313,43 @@ document.addEventListener("click", (e) => {
       // don't send commands
       return;
     }
-    
+    if(e.target.classList.contains("_ext")) {
+      var command = {};
+      if(e.target.classList.contains("_ext_enabled")){
+        var extStatus = document.getElementById("_checkbox_ext-enabled").checked;
+        var whitelist = document.getElementById("_checkbox_ext-whitelist").checked;
+
+        // if extension is set to disabled, we also disable 'whitelist only' checkbox
+        document.getElementById("_checkbox_ext-whitelist").disabled = !extStatus;
+
+        return {
+          cmd: "set-extension-defaults",
+          mode: getMode(extStatus, whitelist),
+          sender: "popup",
+          receiver: "uwbg"
+        };
+      } else if (e.target.classList.contains("_ext_whitelist-only")) {
+        var extStatus = document.getElementById("_checkbox_ext-enabled").checked;
+        var whitelist = document.getElementById("_checkbox_ext-whitelist").checked;
+
+        return {
+          cmd: "set-extension-defaults",
+          mode: getMode(extStatus, whitelist),
+          sender: "popup",
+          receiver: "uwbg"
+        };
+      } else if (e.target.classList.contains("_ext_site_options")) {
+        command.cmd = "set-extension-for-site";
+        if(e.target.classList.contains("_blacklist")){
+          command.mode = "disabled";
+        } else if(e.target.classList.contains("_whitelist")) {
+          command.mode = "enabled";
+        } else {
+          command.mode = "default";
+        }
+        return command;
+      }
+    }
     if(e.target.classList.contains("_changeAr")){
       if(e.target.classList.contains("_ar_auto")){
         command.cmd = "autoar-start";
@@ -330,33 +409,32 @@ document.addEventListener("click", (e) => {
       return command;
     }
     if(e.target.classList.contains("_autoAr")){
-      // var command = {};
-      // if(e.target.classList.contains("_autoar_temp-disable")){
-      //   command = {cmd: "stop-autoar", sender: "popup", receiver: "uwbg"};
-      // }
-      // else if(e.target.classList.contains("_autoar_disable")){
-      //   command = {cmd: "disable-autoar", sender: "popup", receiver: "uwbg"};
-      // }
-      // else if(e.target.classList.contains("_autoar_enable")){
-      //   command = {cmd: "enable-autoar", sender: "popup", receiver: "uwbg"};
-      // }
-      // else{
-      //   command = {cmd: "force-ar", newAr: "auto", sender: "popup", receiver: "uwbg"};
-      // }
-      // _arctl_onclick(command);
-      // return command;
-      console.log("......");
+
       var command = {};
       if(e.target.classList.contains("_autoAr_enabled")){
         var arStatus = document.getElementById("_checkbox_autoArEnabled").checked;
-        
-        // this event fires before the checkbox is checked, therefore arStatus is opposite of what it should be
-        if(! arStatus){
-          return {cmd: "autoar-disable", sender: "popup", receiver: "uwbg"};
-        } else {
-          return {cmd: "autoar-enable", sender: "popup", receiver: "uwbg"};
-        }
-      } else if(e.target.classList.contains("_save_autoAr_frequency")) {
+        var whitelist = document.getElementById("_checkbox_autoar-whitelist").checked;
+
+        // if autoar is set to disabled, we also disable 'whitelist only' checkbox
+        document.getElementById("_checkbox_autoar-whitelist").disabled = !arStatus;
+
+        return {
+          cmd: "set-autoar-defaults",
+          mode: getMode(arStatus, whitelist),
+          sender: "popup",
+          receiver: "uwbg"
+        };
+      } else if (e.target.classList.contains("_autoAr_whitelist-only")) {
+        var arStatus = document.getElementById("_checkbox_autoArEnabled").checked;        
+        var whitelist = document.getElementById("_checkbox_autoar-whitelist").checked;
+
+        return {
+          cmd: "set-autoar-mode",
+          mode: getMode(arStatus, whitelist),
+          sender: "popup",
+          receiver: "uwbg"
+        };
+      } else if (e.target.classList.contains("_save_autoAr_frequency")) {
         var value = parseInt(document.getElementById("_input_autoAr_frequency").value.trim());
         
         if(! isNaN(value)){
@@ -365,6 +443,16 @@ document.addEventListener("click", (e) => {
           Comms.sendToBackgroundScript(command);
         }
         return;
+      } else if (e.target.classList.contains("_ar_site_options")) {
+        command.cmd = "set-autoar-for-site";
+        if(e.target.classList.contains("_blacklist")){
+          command.mode = "disabled";
+        } else if(e.target.classList.contains("_whitelist")) {
+          command.mode = "enabled";
+        } else {
+          command.mode = "default";
+        }
+        return command;
       }
     }
     
@@ -376,7 +464,7 @@ document.addEventListener("click", (e) => {
         command.cmd = "force-video-float",
         command.newFloat = "left"
         
-        console.log(".................\n\n\n..........\n\n              >>command<< \n\n\n\n            ",command,"\n\n\n.........\n\n\n................................");
+        // console.log(".................\n\n\n..........\n\n              >>command<< \n\n\n\n            ",command,"\n\n\n.........\n\n\n................................");
         
         return command;
       }
@@ -391,8 +479,7 @@ document.addEventListener("click", (e) => {
         return command;
       }
     }
-  
-    if(e.target.classList.contains("extensionEnabledOnCurrentSite")){
+    if(e.target.classList.contains("extensionEnabledOnCurrentSite")){  // legacy? can be removed?
       toggleSite(document.extensionEnabledOnCurrentSite.mode.value);
     }
     

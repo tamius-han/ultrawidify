@@ -63,8 +63,8 @@ var _se_init = async function(isSlave){
 var _se_patchUserSettings = function(saved, extDefaults){
   for(var k in extDefaults){
     if(extDefaults[k] != null && typeof extDefaults[k] === 'object' && extDefaults[k].constructor === Object){
-      if(typeof saved[k] !== 'object' || saved[k].constructor !== Object)
-        continue;
+      if(typeof saved[k] !== 'object' || saved[k].constructor !== Object || extDefaults[k].override === true)
+        continue;   // if user's settings are wrong or if override flag is set, we keep value in extDefaults
       
       _se_patchUserSettings(saved[k], extDefaults[k]);
     }
@@ -104,4 +104,61 @@ var Settings = {
   init: _se_init,
   save: _se_save,
   reload: _se_reload,
+}
+
+
+// -----------------------------------------
+// Nastavitve za posamezno stran
+// Config for a given page:
+// 
+// <hostname> : {
+//    status: <option>              // should extension work on this site?
+//    arStatus: <option>            // should we do autodetection on this site?
+//    statusEmbedded: <option>      // reserved for future... maybe
+// } 
+//  
+// Veljavne vrednosti za možnosti 
+// Valid values for options:
+//
+//     status, arStatus, statusEmbedded:
+//    
+//    * enabled     — always allow
+//    * default     — allow if default is to allow, block if default is to block
+//    * disabled    — never allow
+// 
+
+canStartExtension = function(site) {
+  if(site === undefined) {
+    site = window.location.hostname;
+  }
+  
+  if (ExtensionConf.sites[site] === undefined) {
+    return ExtensionConf.arDetect.mode === "blacklist"; // site not defined, this does default option
+  }
+
+  if (ExtensionConf.arDetect.mode === "blacklist") {
+    return ExtensionConf.sites[site].status !== "disabled";
+  } else if (ExtensionConf.arDetect.mode === "whitelist" ) {
+    return ExtensionConf.sites[site].status === "enabled";
+  } else {
+    return false;
+  }
+}
+
+canStartAutoAr = function(site) {
+  if(site === undefined) {
+    site = window.location.hostname;
+  }
+
+  if (ExtensionConf.sites[site] === undefined) {
+    return ExtensionConf.arDetect.mode === "blacklist"; // site not defined, this does default option
+  }
+  
+  if (ExtensionConf.arDetect.mode === "blacklist") {
+    return ExtensionConf.sites[site].arStatus !== "disabled";
+  } else if (ExtensionConf.arDetect.mode === "whitelist" ) {
+    return ExtensionConf.sites[site].arStatus === "enabled";
+  } else {
+    return false;
+  }
 }

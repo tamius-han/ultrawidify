@@ -27,6 +27,7 @@ class CommsClient {
     } else if (message.cmd === "set-config") {
       this.hasSettings = true;
       ExtensionConf = message.conf;
+      // this.pageInfo.reset();
     } else if (message.cmd === "set-stretch") {
       this.pageInfo.setStretchMode(StretchMode[message.mode]);
     } else if (message.cmd === "autoar-start") {
@@ -44,6 +45,11 @@ class CommsClient {
     } else if (message.cmd === "reload-settings") {
       ExtensionConf = message.newConf;
       this.pageInfo.reset();
+      if(ExtensionConf.arDetect.mode === "disabled") {
+        this.pageInfo.stopArDetection();
+      } else {
+        this.pageInfo.startArDetection();
+      }
     }
   }
 
@@ -137,6 +143,10 @@ class CommsServer {
     }
   }
 
+  async getCurrentTabUrl() {
+
+  }
+
   sendToAll(message){
     for(p of this.ports){
       for(frame in p){
@@ -216,21 +226,21 @@ class CommsServer {
     }
 
     if (message.cmd === 'get-config') {
-      port.postMessage({cmd: "set-config", conf: ExtensionConf})
+      port.postMessage({cmd: "set-config", conf: ExtensionConf, site: this.server.currentSite})
     } else if (message.cmd === 'set-stretch') {
       this.sendToActive(message);
     } else if (message.cmd === 'set-ar') {
       this.sendToActive(message);
     } else if (message.cmd === 'autoar-start') {
       this.sendToActive(message);
-    } else if (message.cmd === "autoar-enable") {
+    } else if (message.cmd === "autoar-enable") {   // LEGACY - can be removed prolly?
       ExtensionConf.arDetect.mode = "blacklist";
       Settings.save(ExtensionConf);
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
       if(Debug.debug){
         console.log("[uw-bg] autoar set to enabled (blacklist). evidenz:", ExtensionConf);
       }
-    } else if (message.cmd === "autoar-disable") {
+    } else if (message.cmd === "autoar-disable") {  // LEGACY - can be removed prolly?
       ExtensionConf.arDetect.mode = "disabled";
       if(message.reason){
         ExtensionConf.arDetect.disabledReason = message.reason;
@@ -251,6 +261,22 @@ class CommsServer {
       ExtensionConf.arDetect.timer_playing = timeout;
       Settings.save(ExtensionConf);
       this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+    } else if (message.cmd === "set-autoar-defaults") {
+      ExtensionConf.arDetect.mode = message.mode;
+      Settings.save(ExtensionConf);
+      this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
+    } else if (message.cmd === "set-autoar-for-site") {
+      ExtensionConf.sites[this.server.currentSite].arStatus = message.mode;
+      Settings.save(ExtensionConf);
+      this.sendToAll({cmd: "reload-settings", sender: "uwbg"});
+    } else if (message.cmd === "set-extension-defaults") {
+      ExtensionConf.mode = message.mode;
+      Settings.save(ExtensionConf);
+      this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
+    } else if (message.cmd === "set-extension-for-site") {
+      ExtensionConf.sites[this.server.currentSite].status = message.mode;
+      Settings.save(ExtensionConf);
+      this.sendToAll({cmd: "reload-settings", sender: "uwbg"});
     }
   }
 
@@ -302,7 +328,7 @@ class CommsServer {
     }
 
     if(message.cmd === 'get-config') {
-      sendResponse({extensionConf: JSON.stringify(ExtensionConf)});
+      sendResponse({extensionConf: JSON.stringify(ExtensionConf), site: getCurrentTabUrl()});
       // return true;
     } else if (message.cmd === "autoar-enable") {
       ExtensionConf.arDetect.mode = "blacklist";

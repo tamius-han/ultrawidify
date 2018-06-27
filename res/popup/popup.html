@@ -208,32 +208,39 @@
       </div>
       
       <div id="settings-for-current-site" class="suboption hidden">
-<!--         <p class="current-site-status" id="current-site-blacklisted">This site is currently blacklisted.</p> -->
-<!--         <p class="current-site-status" id="current-site-whitelist-only">Extension is set to only work on sites that have been whitelisted.</p> -->
-        <p>Allow this extension to run on this site? <small><br/>NOTE: changes take effect after reload!</small></p>
-        <form action="" name="extensionEnabledOnCurrentSite">
-          <input type="radio" class="extensionEnabledOnCurrentSite" name="mode" id="extensionEnabledCurrentSite_followGlobal" value="follow-global" > Follow default rules (currently: <span id="current-site-status-global-status"></span>)<br/>
-          <input type="radio" class="extensionEnabledOnCurrentSite" name="mode" id="extensionEnabledCurrentSite_whitelisted" value="whitelisted" > Allow (whitelist this site) <br/>
-          <input type="radio" class="extensionEnabledOnCurrentSite" name="mode" id="extensionEnabledCurrentSite_blacklisted" value="blacklisted" > Deny (blacklist this site)<br/>
-        </form>
-        <small>NOTE: this settings <b>don't</b> apply to videos embedded from other sites. This option takes effect after page reload.</small>
-        
+        <div class="warn">Some settings will only apply after reload. Settings don't apply to videos embedded from other sites.</div>
+        <p>
+          <input type="checkbox" id="_checkbox_ext-enabled" class="_ext _ext_enabled"> Enable this extension<br/>
+          &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+          <input type="checkbox" id="_checkbox_ext-whitelist" class="_ext _ext_whitelist-only"> Only on whitelisted sites
+        </p>
+
+        <div class="row">
+          <span class="label">Options for this site:</span>
+          <div class="button-row">
+            <a id="_ext_site_options_blacklist" class="button _ext _ext_site_options _blacklist">Blacklist</a>
+            <a id="_ext_site_options_default"   class="button _ext _ext_site_options _default"  >Default</a>
+            <a id="_ext_site_options_whitelist" class="button _ext _ext_site_options _whitelist">Whitelist</a>
+          </div>
+        </div>
       </div>
       
       <div id="autoar-basic-settings" class="suboption hidden">
-        <p><input type="checkbox" id="_checkbox_autoArEnabled" class="_autoAr_enabled _autoAr"> Enable automatic aspect ratio detection?<br/><small class="color_warn" id="_autoAr_disabled_reason"></small></p>
-        <p>Check every <input id="_input_autoAr_timer" class="_autoAr_timer _autoAr" type="number" min="5" max="10000"> ms — <span class="button _save_autoAr_frequency _autoAr">Save</span></p>
+        <p><small class="color_warn" id="_autoAr_disabled_reason"></small><br/>
+          <input type="checkbox" id="_checkbox_autoArEnabled" class="_autoAr _autoAr_enabled"> Enable automatic aspect ratio detection<br/>
+          &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+          <input type="checkbox" id="_checkbox_autoar-whitelist" class="_autoAr _autoAr_whitelist-only"> Only on whitelisted sites
+        </p>
+        <p>Check every <input id="_input_autoAr_timer" class="_autoAr _autoAr_timer" type="number" min="5" max="10000"> ms — <span class="button _save_autoAr_frequency _autoAr">Save</span></p>
         
-        <!-- <div class="warning"><p>NOTE: increasing the frequency can result in <i>very</i> high RAM usage and slow performance.</p></div> -->
-        <p>
-          <b>Stretch video while using automatic detection (todo)</b>
-          <br/>
-          <input type="radio" id="_checkbox_arStretch" name="arStretchMode" class="_autoAr_ _autoAr"> No, I'm a civilized person<br/>
-          <input type="radio" id="_checkbox_arStretch" name="arStretchMode" class="_autoAr_removeThinBorders _autoAr"> Stretch to remove thin borders<br/>
-          <input type="radio" id="_checkbox_arStretch" name="arStretchMode" class="_autoAr_removeThinBorders _autoAr"> Always stretch in full screen<br/>
-          <input type="radio" id="_checkbox_arStretch" name="arStretchMode" class="_autoAr_removeThinBorders _autoAr"> Always stretch, even when not in full screen
-        </p>        
-        
+        <div class="row">
+          <span class="label">Options for this site:</span>
+          <div class="button-row">
+            <a id="_ar_site_options_blacklist" class="button _autoAr _ar_site_options _blacklist">Blacklist</a>
+            <a id="_ar_site_options_default"   class="button _autoAr _ar_site_options _default"  >Default</a>
+            <a id="_ar_site_options_whitelist" class="button _autoAr _ar_site_options _whitelist">Whitelist</a>
+          </div>
+        </div>
       </div>
       
       <div id="aspect-ratio-settings" class="suboption hidden">
