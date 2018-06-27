@@ -105,7 +105,7 @@ class Stretcher {
       } else {
         // NEEDS CHECKING
         // player > video > actual — double pillarbox
-        stretchFactors.xFactor = playerAr / actualAr;
+        stretchFactors.xFactor = actualAr /  playerAr;
         stretchFactors.yFactor = 1;
         
         if(Debug.debug){

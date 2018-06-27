@@ -23,36 +23,31 @@ async function init(){
   comms = new CommsClient('content-client-port');
 
   // load settings
-  // var isSlave = true;
-  // await Settings.init(isSlave);
   var settingsLoaded = await comms.requestSettings();
   if(!settingsLoaded){
-    console.log("[uw::main] failed to get settings (settingsLoaded=",settingsLoaded,") Waiting for settings the old fashioned way");
+    if(Debug.debug) {
+      console.log("[uw::main] failed to get settings (settingsLoaded=",settingsLoaded,") Waiting for settings the old fashioned way");
+    }
     comms.requestSettings_fallback();
     await comms.waitForSettings();
-    console.log("[uw::main] settings loaded.");
+    if(Debug.debug){
+      console.log("[uw::main] settings loaded.");
+    }
   }
-  // await Settings.init();
-
-  // za sporočilca poslušamo v vsakem primeru, tudi če je razširitev na spletnem mestu onemogočena
-  // we listen for messages in any case, even if extension is disabled on current site. 
-  // browser.runtime.onMessage.addListener(receiveMessage);  
-
-  // await SitesConf.init();
-  // če je trenutno mesto onemogočeno, potem zaključimo na tem mestu
-  // if current site is disabled, we quit here
-  
-  // if(! SitesConf.isEnabled(window.location.hostname)){
-  //   if(Debug.debug)
-  //     console.log("[uw:main] | site", window.location.hostname, "is blacklisted.");
-
-  //   return;
-  // } 
 
   if(Debug.debug)
     console.log("[uw::main] configuration should be loaded now");
 
   
+  // če smo razširitev onemogočili v nastavitvah, ne naredimo ničesar
+  // If extension is soft-disabled, don't do shit
+  if(! canStartExtension()){
+    if(Debug.debug) {
+      console.log("[uw::init] EXTENSION DISABLED, THEREFORE WONT BE STARTED")
+    }
+    return;
+  }
+
   pageInfo = new PageInfo();
   comms.setPageInfo(pageInfo);
 

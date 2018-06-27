@@ -20,7 +20,7 @@ var ExtensionConf = {
     timer_error: 3000,
     timer_minimumTimeout: 5,  // but regardless of above, we wait this many msec before retriggering
     autoDisable: {            // settings for automatically disabling the extension
-      maxExecutionTime: 15,   // if execution time of main autodetect loop exceeds this many milliseconds,
+      maxExecutionTime: 6000, // if execution time of main autodetect loop exceeds this many milliseconds,
                               // we disable it.
       consecutiveTimeoutCount: 5  // we only do it if it happens this many consecutive times
     },
@@ -152,5 +152,40 @@ var ExtensionConf = {
       //#endregion
     },
     modKeys: ["ctrlKey", "shiftKey", "altKey"]
+  },
+  // -----------------------------------------
+  //       ::: SITE CONFIGURATION :::
+  // -----------------------------------------
+  // Nastavitve za posamezno stran
+  // Config for a given page:
+  // 
+  // <hostname> : {
+  //    status: <option>              // should extension work on this site?
+  //    arStatus: <option>            // should we do autodetection on this site?
+  //    statusEmbedded: <option>      // reserved for future... maybe
+  // } 
+  //  
+  // Veljavne vrednosti za možnosti 
+  // Valid values for options:
+  //
+  //     status, arStatus, statusEmbedded:
+  //    
+  //    * enabled     — always allow
+  //    * default     — allow if default is to allow, block if default is to block
+  //    * disabled    — never allow
+  // 
+  sites: {
+    "www.youtube.com" : {
+      status: "enabled",                // should extension work on this site?
+      arStatus: "default",              // should we enable autodetection
+      statusEmbedded: "enabled",        // should extension work for this site when embedded on other sites?
+      override: true                   // ignore value localStorage in favour of this
+    },
+    "www.netflix.com" : {
+      status: "enabled",
+      arStatus: BrowserDetect.firefox ? "default" : "disabled",
+      statusEmbedded: "enabled",
+      override: true
+    },
   }
 }

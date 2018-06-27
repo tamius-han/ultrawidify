@@ -2,24 +2,7 @@ if(Debug.debug){
   console.log("Loading: SitesConf.js");
 }
 
-// Nastavitve za posamezno stran
-// Config for a given page:
-// 
-// <hostname> : {
-//    status: <option>              // should extension work on this site?
-//    arStatus: <option>            // should we do autodetection on this site?
-//    statusEmbedded: <option>      // should we do autodetection on this site?
-// } 
-//  
-// Veljavne vrednosti za možnosti 
-// Valid values for options:
-//
-//     status, arStatus, statusEmbedded:
-//    
-//    * whitelisted     — always allow
-//    * follow-global   — allow if default is to allow, block if default is to block
-//    * blacklisted     — never allow
-// 
+
 
 var _sc_sites = {
   "www.youtube.com" : {

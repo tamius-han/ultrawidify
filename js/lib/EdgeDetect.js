@@ -178,7 +178,7 @@ class EdgeDetect{
       if(Debug.debugCanvas.enabled) {
         this._imageTest_dbg(image, sampleRow_color + sampleStart, loopEnd, sample.top, edgeCandidatesTop)
       } else {
-        this._imageTest(image, start, end, sample.top, edgeCandidatesTop)
+        this._imageTest(image, sampleRow_color + sampleStart, loopEnd, sample.top, edgeCandidatesTop)
       }
     }
     
@@ -220,7 +220,7 @@ class EdgeDetect{
       if(Debug.debugCanvas.enabled) {
         this._imageTest_dbg(image, sampleRow_color + sampleStart, loopEnd, sample.bottom, edgeCandidatesBottom);
       } else {
-        this._imageTest(image, start, end, sample.bottom, edgeCandidatesBottom);
+        this._imageTest(image, sampleRow_color + sampleStart, loopEnd, sample.bottom, edgeCandidatesBottom);
       }
     }
     
@@ -510,7 +510,7 @@ class EdgeDetect{
               col: col,
               top: (i / this.conf.canvasImageDataRowLength) - 1
             });
-            colsIn.splice(cols_a.indexOf(col), 1);
+            colsIn.splice(colsIn.indexOf(col), 1);
           }
         }
         if(colsIn.length < this.colsTreshold)
@@ -577,7 +577,7 @@ class EdgeDetect{
   }
 
   _blackbarTest(image, start, end){
-    for(var i = sampleRow_black + sampleStart; i < loopEnd; i += 4){
+    for(var i = start; i < end; i += 4){
       if( image[i  ] > this.blackbarTreshold ||
           image[i+1] > this.blackbarTreshold ||
           image[i+2] > this.blackbarTreshold ){
@@ -612,7 +612,7 @@ class EdgeDetect{
         ++detections;
         }
     }
-    if(detections >= detectionTreshold){
+    if(detections >= this.detectionTreshold){
       if(edgeCandidates[sampleOffset] != undefined)
         edgeCandidates[sampleOffset].count++;
       else{
