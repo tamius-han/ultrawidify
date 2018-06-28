@@ -5,20 +5,22 @@ document.getElementById("uw-version").textContent = browser.runtime.getManifest(
 
 var Menu = {};
 // Menu.noVideo    = document.getElementById("no-videos-display");
-Menu.general    = document.getElementById("extension-mode");
-Menu.thisSite   = document.getElementById("settings-for-current-site");
-Menu.arSettings = document.getElementById("aspect-ratio-settings");
-Menu.autoAr     = document.getElementById("autoar-basic-settings");
-Menu.cssHacks   = document.getElementById("css-hacks-settings");
-Menu.about      = document.getElementById("panel-about");
+Menu.general         = document.getElementById("extension-mode");
+Menu.thisSite        = document.getElementById("settings-for-current-site");
+Menu.arSettings      = document.getElementById("aspect-ratio-settings");
+Menu.autoAr          = document.getElementById("autoar-basic-settings");
+Menu.cssHacks        = document.getElementById("css-hacks-settings");
+Menu.about           = document.getElementById("panel-about");
+Menu.stretchSettings = document.getElementById("stretch-settings")
 
 var MenuTab = {};
-MenuTab.general    = document.getElementById("_menu_general");
-MenuTab.thisSite   = document.getElementById("_menu_this_site");
-MenuTab.arSettings = document.getElementById("_menu_aspectratio");
-MenuTab.cssHacks   = document.getElementById("_menu_hacks");
-MenuTab.about      = document.getElementById("_menu_about");
-MenuTab.autoAr     = document.getElementById("_menu_autoar");
+MenuTab.general         = document.getElementById("_menu_general");
+MenuTab.thisSite        = document.getElementById("_menu_this_site");
+MenuTab.arSettings      = document.getElementById("_menu_aspectratio");
+MenuTab.cssHacks        = document.getElementById("_menu_hacks");
+MenuTab.about           = document.getElementById("_menu_about");
+MenuTab.autoAr          = document.getElementById("_menu_autoar");
+MenuTab.stretchSettings = document.getElementById("_menu_stretch");
 
 var ExtPanel = {};
 ExtPanel.globalOptions = {};
@@ -46,6 +48,13 @@ ArPanel.alignment.left   = document.getElementById("_align_left");
 ArPanel.alignment.center = document.getElementById("_align_center");
 ArPanel.alignment.right  = document.getElementById("_align_right");
 ArPanel.autoar = {};
+
+var StretchPanel = {};
+StretchPanel.global = {};
+StretchPanel.global.none        = document.getElementById("_stretch_global_none");
+StretchPanel.global.basic       = document.getElementById("_stretch_global_basic");
+StretchPanel.global.hybrid      = document.getElementById("_stretch_global_hybrid");
+StretchPanel.global.conditional = document.getElementById("_stretch_global_conditional");
 
 
 var selectedMenu = "arSettings";
@@ -94,6 +103,9 @@ function loadConfig(extensionConf, site){
 
   // ----------------------
   //#region extension-basics - SET BASIC EXTENSION OPTIONS
+  if(Debug.debug)
+    console.log("EXT: site is:", site, "|extensionConf for this site: ", (site && extensionConf.sites[site]) ? extensionConf.sites[site] : "default site")
+
 
   for(var button in ExtPanel.globalOptions) {
     ExtPanel.globalOptions[button].classList.remove("selected");
@@ -104,7 +116,7 @@ function loadConfig(extensionConf, site){
 
   ExtPanel.globalOptions[extensionConf.extensionMode].classList.add("selected");
   if(site && extensionConf.sites[site]) {
-    ExtPanel.siteOptions[extensionConf.sites[site].arStatus].classList.add("selected");
+    ExtPanel.siteOptions[extensionConf.sites[site].status].classList.add("selected");
   } else {
     ExtPanel.siteOptions.default.classList.add("selected");
   }
@@ -113,7 +125,7 @@ function loadConfig(extensionConf, site){
   // ------------
   //#region autoar - SET AUTOAR OPTIONS
   // if(Debug.debug)
-  //   console.log("Autodetect mode?", extensionConf.arDetect.mode, "| site & site options:", site, ",", (site && extensionConf.sites[site]) ? extensionConf.sites[site].arStatus : "fucky wucky?" );
+    // console.log("Autodetect mode?", extensionConf.arDetect.mode, "| site & site options:", site, ",", (site && extensionConf.sites[site]) ? extensionConf.sites[site].arStatus : "fucky wucky?" );
   // document.getElementById("_autoAr_disabled_reason").textContent = extensionConf.arDetect.DisabledReason;
   document.getElementById("_input_autoAr_timer").value = extensionConf.arDetect.timer_playing;
 
@@ -124,6 +136,7 @@ function loadConfig(extensionConf, site){
   for(var button in AutoArPanel.siteOptions) {
     AutoArPanel.siteOptions[button].classList.remove("selected");
   }
+
 
   AutoArPanel.globalOptions[extensionConf.arDetect.mode].classList.add("selected");
   if(site && extensionConf.sites[site]) {
@@ -141,6 +154,21 @@ function loadConfig(extensionConf, site){
     ArPanel.alignment[extensionConf.miscFullscreenSettings.videoFloat].classList.add("selected");
   }
   
+  //#region - SET STRETCH
+  for (var button in StretchPanel.global) {
+    StretchPanel.global[button].classList.remove("selected");
+  }
+  if (extensionConf.stretch.initialMode === 0) {
+    StretchPanel.global.none.classList.add("selected");
+  } else if (extensionConf.stretch.initialMode === 1) {
+    StretchPanel.global.basic.classList.add("selected");
+  } else if (extensionConf.stretch.initialMode === 2) {
+    StretchPanel.global.hybrid.classList.add("selected");
+  } else if (extensionConf.stretch.initialMode === 3) {
+    StretchPanel.global.conditional.classList.add("selected");
+  }
+  //#endregion
+
   // process keyboard shortcuts:
   if(extensionConf.keyboard.shortcuts){
     for(var key in extensionConf.keyboard.shortcuts){
@@ -315,6 +343,9 @@ document.addEventListener("click", (e) => {
       else if(e.target.classList.contains("_menu_aspectratio")){
         openMenu("arSettings");
       }
+      else if(e.target.classList.contains("_menu_stretch")){
+        openMenu("stretchSettings");
+      }
       else if(e.target.classList.contains("_menu_hacks")){
         openMenu("cssHacks");
       }
@@ -395,6 +426,20 @@ document.addEventListener("click", (e) => {
       }
     }
     if(e.target.classList.contains("_stretch")){
+      if (e.target.classList.contains("_ar_stretch_global")) {
+        command.cmd = "set-stretch-default"
+        if (e.target.classList.contains("_none")) {
+          command.mode = 0;
+        } else if (e.target.classList.contains("_basic")) {
+          command.mode = 1;
+        } else if (e.target.classList.contains("_hybrid")) {
+          command.mode = 2;
+        } else if (e.target.classList.contains("_conditional")) {
+          command.mode = 3;
+        }
+        return command;
+      }
+
       if(e.target.classList.contains("_ar_stretch_none")) {
         command.cmd = "set-stretch";
         command.mode = "NO_STRETCH";

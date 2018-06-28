@@ -17,7 +17,9 @@
       font-family: "overpass";
       font-size: 1em;
     }
-    
+    strike {
+      opacity: 0.5;
+    }
     a {
       color: #af7f37;
     }
@@ -178,7 +180,10 @@
         Automatic aspect ratio detection (auto-ar)
       </div>
       <div id="_menu_aspectratio" class="menu-item selected _menu_aspectratio">
-        Letterbox removal and alignment
+        Crop settings
+      </div>
+      <div id="_menu_stretch" class="menu-item _menu_stretch">
+        Stretc settings
       </div>
       <div id="_menu_csshacks" class="menu-item disabled hidden _menu_hacks">
         CSS hacks for this site
@@ -253,8 +258,8 @@
       </div>
       
       <div id="aspect-ratio-settings" class="suboption hidden">
-        
-        <div id="no-videos-warning" class="warning">No videos were detected on this page. The buttons may not work at all. Check that this site is not blacklisted and reload the page.</div>
+        <div id="no-videos-warning"></div>
+        <!-- <div id="no-videos-warning" class="warning">No videos were detected on this page. The buttons may not work at all. Check that this site is not blacklisted and reload the page.</div> -->
         <div class="row">
           <span class="label">Cropping mode</span>
           <div class="button-row">
@@ -263,13 +268,6 @@
             <a class="button _changeAr _ar_219 w24">21:9<br/><span id="_b_changeAr_219_key" class="smallcaps small darker"></span></a>
             <a class="button _changeAr _ar_189 w24">2:1 (18:9)<br/><span id="_b_changeAr_189_key" class="smallcaps small darker"></span></a>
             <a class="button _changeAr _ar_169 w24">16:9<br/><span id="_b_changeAr_169_key" class="smallcaps small darker"></span></a>
-          </div>
-          <span class="label">Stretching mode<br><small>Stretching is independent of crop mode. Crop gets applied before stretching.</small></span>
-          <div class="button-row">
-            <a class="button _stretch _ar_stretch_none w24">Never<br/><span id="_b_changeAr_reset_key" class="smallcaps small darker"></span></a>
-            <a class="button _stretch _ar_stretch_basic w24">Basic<br/><span id="_b_changeAr_reset_key" class="smallcaps small darker"></span></a>            
-            <a class="button _stretch _ar_stretch_hybrid w24">Hybrid<br/><span id="_b_changeAr_sw_key" class="smallcaps small darker"></span></a>
-            <a class="button _stretch _ar_stretch_conditional w24">Thin borders<br/><span id="_b_changeAr_sh_key" class="smallcaps small darker"></span></a>
           </div>
         </div>
         <!--<div class="row">
@@ -291,6 +289,28 @@
         </div>
       </div>
       
+      <div id="stretch-settings" class="suboption hidden">
+        <p class="warning">
+          Stretching video is currently experimental and has <strike>been tested even less rigorously than the rest of this addon</strike> not been tested thoroughly. If you notice any bugs, please consider reporting via github or email.
+        </p>
+        
+        <span class="label">Default stretching mode<br><small>Stretching is independent of crop mode. Crop gets applied before stretching.</small></span>
+        <div class="button-row">
+          <a id="_stretch_global_none"        class="button _stretch _ar_stretch_global _none w24">Never<br/><span id="_b_changeAr_reset_key" class="smallcaps small darker"></span></a>
+          <a id="_stretch_global_basic"       class="button _stretch _ar_stretch_global _basic w24">Basic<br/><span id="_b_changeAr_reset_key" class="smallcaps small darker"></span></a>            
+          <a id="_stretch_global_hybrid"      class="button _stretch _ar_stretch_global _hybrid w24">Hybrid<br/><span id="_b_changeAr_sw_key" class="smallcaps small darker"></span></a>
+          <a id="_stretch_global_conditional" class="button _stretch _ar_stretch_global _conditional w24">Thin borders<br/><span id="_b_changeAr_sh_key" class="smallcaps small darker"></span></a>
+        </div>
+        
+        <span class="label">Stretching mode for this video<br><small>Temporarily overrides default stretching mode.</small></span>
+        <div class="button-row">
+          <a class="button _stretch _ar_stretch_none w24">Never<br/><span id="_b_changeAr_reset_key" class="smallcaps small darker"></span></a>
+          <a class="button _stretch _ar_stretch_basic w24">Basic<br/><span id="_b_changeAr_reset_key" class="smallcaps small darker"></span></a>            
+          <a class="button _stretch _ar_stretch_hybrid w24">Hybrid<br/><span id="_b_changeAr_sw_key" class="smallcaps small darker"></span></a>
+          <a class="button _stretch _ar_stretch_conditional w24">Thin borders<br/><span id="_b_changeAr_sh_key" class="smallcaps small darker"></span></a>
+        </div>
+      </div>
+
       <div id="css-hacks-settings" class="suboption hidden">
         <p>If zoomed in video doesn't align properly, try enabling or disabling certain CSS rules below:</p>
       </div>

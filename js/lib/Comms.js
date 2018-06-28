@@ -229,6 +229,10 @@ class CommsServer {
       port.postMessage({cmd: "set-config", conf: ExtensionConf, site: this.server.currentSite})
     } else if (message.cmd === 'set-stretch') {
       this.sendToActive(message);
+    } else if (message.cmd === 'set-stretch-default') {
+      ExtensionConf.stretch.initialMode = message.mode;
+      Settings.save(ExtensionConf);
+      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
     } else if (message.cmd === 'set-ar') {
       this.sendToActive(message);
     } else if (message.cmd === 'autoar-start') {
@@ -236,10 +240,7 @@ class CommsServer {
     } else if (message.cmd === "autoar-enable") {   // LEGACY - can be removed prolly?
       ExtensionConf.arDetect.mode = "blacklist";
       Settings.save(ExtensionConf);
-      this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
-      if(Debug.debug){
-        console.log("[uw-bg] autoar set to enabled (blacklist). evidenz:", ExtensionConf);
-      }
+      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
     } else if (message.cmd === "autoar-disable") {  // LEGACY - can be removed prolly?
       ExtensionConf.arDetect.mode = "disabled";
       if(message.reason){
@@ -249,9 +250,6 @@ class CommsServer {
       }
       Settings.save(ExtensionConf);
       this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
-      if(Debug.debug){
-        console.log("[uw-bg] autoar set to disabled. evidenz:", ExtensionConf);
-      }
     } else if (message.cmd === "autoar-set-interval") {
       if(Debug.debug)
         console.log("[uw-bg] trying to set new interval for autoAr. New interval is",message.timeout,"ms");

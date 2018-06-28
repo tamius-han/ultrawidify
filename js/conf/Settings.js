@@ -132,28 +132,18 @@ canStartExtension = function(site) {
     site = window.location.hostname;
   }
   
-  console.log("CAN WE START THIS EXTENSION ON SITE", site,
-              "?\n\nExtensionConf.sites[site]=",ExtensionConf.sites[site],
-              "\nExtension mode?", ExtensionConf.extensionMode
-            );
+  // console.log("CAN WE START THIS EXTENSION ON SITE", site,
+  //             "?\n\nExtensionConf.sites[site]=",ExtensionConf.sites[site],
+  //             "\nExtension mode?", ExtensionConf.extensionMode
+  //           );
 
   if (ExtensionConf.sites[site] === undefined) {
     return ExtensionConf.extensionMode === "blacklist"; // site not defined, this does default option
   }
 
   if (ExtensionConf.extensionMode === "blacklist") {
-    console.log("Extension mode is 'blacklist', returning true unless disabled. Ret:", ExtensionConf.sites[site].status !== "disabled");
-  } else if (ExtensionConf.arDetect.mode === "whitelist" ) {
-    console.log("Extension mode set to 'whitelist, returning true only if enabled", ExtensionConf.sites[site].status === "enabled");
-  } else {
-    console.log("Extension is not even enabled globally");
-    return false;
-  }
-
-
-  if (ExtensionConf.extensionMode === "blacklist") {
     return ExtensionConf.sites[site].status !== "disabled";
-  } else if (ExtensionConf.arDetect.mode === "whitelist" ) {
+  } else if (ExtensionConf.extensionMode === "whitelist" ) {
     return ExtensionConf.sites[site].status === "enabled";
   } else {
     return false;
