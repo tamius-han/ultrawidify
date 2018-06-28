@@ -148,8 +148,8 @@ class CommsServer {
   }
 
   sendToAll(message){
-    for(p of this.ports){
-      for(frame in p){
+    for(var p of this.ports){
+      for(var frame in p){
         p[frame].postMessage(message);
       }
     }
@@ -266,17 +266,40 @@ class CommsServer {
       Settings.save(ExtensionConf);
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
     } else if (message.cmd === "set-autoar-for-site") {
-      ExtensionConf.sites[this.server.currentSite].arStatus = message.mode;
-      Settings.save(ExtensionConf);
+      if (ExtensionConf.sites[this.server.currentSite]) {
+        ExtensionConf.sites[this.server.currentSite].arStatus = message.mode;
+        Settings.save(ExtensionConf);
+      } else {
+        ExtensionConf.sites[this.server.currentSite] = {
+          status: "default",
+          arStatus: message.mode,
+          statusEmbedded: "default"
+        };
+        Settings.save(ExtensionConf);
+      }
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"});
     } else if (message.cmd === "set-extension-defaults") {
-      ExtensionConf.mode = message.mode;
+      ExtensionConf.extensionMode = message.mode;
       Settings.save(ExtensionConf);
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
     } else if (message.cmd === "set-extension-for-site") {
-      ExtensionConf.sites[this.server.currentSite].status = message.mode;
-      Settings.save(ExtensionConf);
+      if (ExtensionConf.sites[this.server.currentSite]) {
+        ExtensionConf.sites[this.server.currentSite].status = message.mode;
+        Settings.save(ExtensionConf);
+      } else {
+        ExtensionConf.sites[this.server.currentSite] = {
+          status: message.mode,
+          arStatus: "default",
+          statusEmbedded: message.mode
+        };
+        Settings.save(ExtensionConf);        
+        console.log("SAVING PER-SITE OPTIONS,", this.server.currentSite, ExtensionConf.sites[this.server.currentSite])
+      }
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"});
+    }
+
+    if (message.cmd.startsWith('set-')) {
+      port.postMessage({cmd: "set-config", conf: ExtensionConf, site: this.server.currentSite});
     }
   }
 

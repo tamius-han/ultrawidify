@@ -21,16 +21,24 @@ MenuTab.about      = document.getElementById("_menu_about");
 MenuTab.autoAr     = document.getElementById("_menu_autoar");
 
 var ExtPanel = {};
+ExtPanel.globalOptions = {};
+ExtPanel.globalOptions.blacklist = document.getElementById("_ext_global_options_blacklist");
+ExtPanel.globalOptions.whitelist = document.getElementById("_ext_global_options_whitelist");
+ExtPanel.globalOptions.disabled  = document.getElementById("_ext_global_options_disabled");
 ExtPanel.siteOptions = {};
 ExtPanel.siteOptions.disabled = document.getElementById("_ext_site_options_blacklist");
 ExtPanel.siteOptions.enabled  = document.getElementById("_ext_site_options_whitelist");
 ExtPanel.siteOptions.default  = document.getElementById("_ext_site_options_default");
 
 var AutoArPanel = {};
+AutoArPanel.globalOptions = {};
+AutoArPanel.globalOptions.blacklist = document.getElementById("_ar_global_options_blacklist");
+AutoArPanel.globalOptions.whitelist = document.getElementById("_ar_global_options_whitelist");
+AutoArPanel.globalOptions.disabled  = document.getElementById("_ar_global_options_disabled");
 AutoArPanel.siteOptions = {};
-AutoArPanel.siteOptions.disabled = document.getElementById("_ext_site_options_blacklist");
-AutoArPanel.siteOptions.enabled  = document.getElementById("_ext_site_options_whitelist");
-AutoArPanel.siteOptions.default  = document.getElementById("_ext_site_options_default");
+AutoArPanel.siteOptions.disabled = document.getElementById("_ar_site_options_blacklist");
+AutoArPanel.siteOptions.enabled  = document.getElementById("_ar_site_options_whitelist");
+AutoArPanel.siteOptions.default  = document.getElementById("_ar_site_options_default");
 
 var ArPanel = {};
 ArPanel.alignment = {};
@@ -86,35 +94,42 @@ function loadConfig(extensionConf, site){
 
   // ----------------------
   //#region extension-basics - SET BASIC EXTENSION OPTIONS
-  if(Debug.debug)
-    console.log("Extension mode?", extensionConf.extensionMode, "| site & site options:", site, ",", (site && extensionConf.sites[site]) ? extensionConf.sites[site].status : "fucky wucky?");
-  document.getElementById("_checkbox_ext-enabled").checked = extensionConf.extensionMode !== "disabled";
-  document.getElementById("_checkbox_ext-whitelist").checked = extensionConf.extensionMode === "whitelist";  
 
+  for(var button in ExtPanel.globalOptions) {
+    ExtPanel.globalOptions[button].classList.remove("selected");
+  }
   for(var button in ExtPanel.siteOptions) {
     ExtPanel.siteOptions[button].classList.remove("selected");
   }
 
+  ExtPanel.globalOptions[extensionConf.extensionMode].classList.add("selected");
   if(site && extensionConf.sites[site]) {
     ExtPanel.siteOptions[extensionConf.sites[site].arStatus].classList.add("selected");
+  } else {
+    ExtPanel.siteOptions.default.classList.add("selected");
   }
   //#endregion extension-basics
   //
   // ------------
   //#region autoar - SET AUTOAR OPTIONS
-  if(Debug.debug)
-    console.log("Autodetect mode?", extensionConf.arDetect.mode, "| site & site options:", site, ",", (site && extensionConf.sites[site]) ? extensionConf.sites[site].arStatus : "fucky wucky?" );
-  document.getElementById("_checkbox_autoArEnabled").checked = extensionConf.arDetect.mode !== "disabled";
-  document.getElementById("_checkbox_autoar-whitelist").checked = extensionConf.arDetect.mode === "whitelist";  
-  document.getElementById("_autoAr_disabled_reason").textContent = extensionConf.arDetect.DisabledReason;
+  // if(Debug.debug)
+  //   console.log("Autodetect mode?", extensionConf.arDetect.mode, "| site & site options:", site, ",", (site && extensionConf.sites[site]) ? extensionConf.sites[site].arStatus : "fucky wucky?" );
+  // document.getElementById("_autoAr_disabled_reason").textContent = extensionConf.arDetect.DisabledReason;
   document.getElementById("_input_autoAr_timer").value = extensionConf.arDetect.timer_playing;
 
+
+  for(var button in AutoArPanel.globalOptions) {
+    AutoArPanel.globalOptions[button].classList.remove("selected");
+  }
   for(var button in AutoArPanel.siteOptions) {
     AutoArPanel.siteOptions[button].classList.remove("selected");
   }
 
+  AutoArPanel.globalOptions[extensionConf.arDetect.mode].classList.add("selected");
   if(site && extensionConf.sites[site]) {
     AutoArPanel.siteOptions[extensionConf.sites[site].arStatus].classList.add("selected");
+  } else {
+    AutoArPanel.siteOptions.default.classList.add("selected");
   }
   //#endregion
 
@@ -315,29 +330,16 @@ document.addEventListener("click", (e) => {
     }
     if(e.target.classList.contains("_ext")) {
       var command = {};
-      if(e.target.classList.contains("_ext_enabled")){
-        var extStatus = document.getElementById("_checkbox_ext-enabled").checked;
-        var whitelist = document.getElementById("_checkbox_ext-whitelist").checked;
-
-        // if extension is set to disabled, we also disable 'whitelist only' checkbox
-        document.getElementById("_checkbox_ext-whitelist").disabled = !extStatus;
-
-        return {
-          cmd: "set-extension-defaults",
-          mode: getMode(extStatus, whitelist),
-          sender: "popup",
-          receiver: "uwbg"
-        };
-      } else if (e.target.classList.contains("_ext_whitelist-only")) {
-        var extStatus = document.getElementById("_checkbox_ext-enabled").checked;
-        var whitelist = document.getElementById("_checkbox_ext-whitelist").checked;
-
-        return {
-          cmd: "set-extension-defaults",
-          mode: getMode(extStatus, whitelist),
-          sender: "popup",
-          receiver: "uwbg"
-        };
+      if(e.target.classList.contains("_ext_global_options")){
+        command.cmd = "set-extension-defaults";
+        if (e.target.classList.contains("_blacklist")) {
+          command.mode = "blacklist";
+        } else if (e.target.classList.contains("_whitelist")) {
+          command.mode = "whitelist";
+        } else {
+          command.mode = "disabled";
+        }
+        return command;
       } else if (e.target.classList.contains("_ext_site_options")) {
         command.cmd = "set-extension-for-site";
         if(e.target.classList.contains("_blacklist")){
@@ -411,22 +413,24 @@ document.addEventListener("click", (e) => {
     if(e.target.classList.contains("_autoAr")){
 
       var command = {};
-      if(e.target.classList.contains("_autoAr_enabled")){
-        var arStatus = document.getElementById("_checkbox_autoArEnabled").checked;
-        var whitelist = document.getElementById("_checkbox_autoar-whitelist").checked;
-
-        // if autoar is set to disabled, we also disable 'whitelist only' checkbox
-        document.getElementById("_checkbox_autoar-whitelist").disabled = !arStatus;
-
-        return {
-          cmd: "set-autoar-defaults",
-          mode: getMode(arStatus, whitelist),
-          sender: "popup",
-          receiver: "uwbg"
-        };
+      if(e.target.classList.contains("_ext_global_options")){
+        command.cmd = "set-autoar-defaults";
+        if (e.target.classList.contains("_blacklist")) {
+          command.mode = "blacklist";
+        } else if (e.target.classList.contains("_whitelist")) {
+          command.mode = "whitelist";
+        } else {
+          command.mode = "disabled";
+        }
+        return command;
       } else if (e.target.classList.contains("_autoAr_whitelist-only")) {
-        var arStatus = document.getElementById("_checkbox_autoArEnabled").checked;        
+        var arStatus = document.getElementById("_checkbox_autoar-enabled").checked;        
         var whitelist = document.getElementById("_checkbox_autoar-whitelist").checked;
+
+
+        if(Debug.debug) {
+          console.log("CHANGED CHECKMARK IN _AR-WHTIELIST:", extStatus, whitelist)
+        }
 
         return {
           cmd: "set-autoar-mode",
