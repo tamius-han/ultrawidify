@@ -15,12 +15,13 @@
     "js": [ 
     "js/conf/Debug.js",
 
-    "js/run/GlobalVars.js",
     "js/lib/BrowserDetect.js",
+    "js/conf/ExtensionConf.js",    
+
+    "js/run/GlobalVars.js",
     "js/lib/StorageManager.js",
     "js/lib/Comms.js",
     
-    "js/conf/ExtensionConf.js",    
     "js/conf/Settings.js",
     "js/conf/SitesConf.js",
     "js/conf/Status.js",
@@ -50,12 +51,13 @@
   "background": {
     "scripts": [
     "js/conf/Debug.js",
-      
     "js/lib/BrowserDetect.js",
+
+    "js/conf/ExtensionConf.js",
+    
     "js/lib/StorageManager.js",
     "js/lib/Comms.js",
     
-    "js/conf/ExtensionConf.js",
     "js/conf/Settings.js",
     "js/conf/SitesConf.js",
     "js/conf/Status.js",
