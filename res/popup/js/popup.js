@@ -61,7 +61,7 @@ var selectedMenu = "arSettings";
 var hasVideos = false;
 
 var _config; 
-var _changeAr_button_shortcuts = { "autoar":"none", "reset":"none", "219":"none", "189":"none", "169":"none" }
+var _changeAr_button_shortcuts = { "autoar":"none", "reset":"none", "219":"none", "189":"none", "169":"none", "custom":"none" }
 
 var comms = new Comms();
 var port = browser.runtime.connect({name: 'popup-port'});
@@ -120,6 +120,7 @@ function loadConfig(extensionConf, site){
   } else {
     ExtPanel.siteOptions.default.classList.add("selected");
   }
+
   //#endregion extension-basics
   //
   // ------------
@@ -153,8 +154,10 @@ function loadConfig(extensionConf, site){
     
     ArPanel.alignment[extensionConf.miscFullscreenSettings.videoFloat].classList.add("selected");
   }
-  
+
   //#region - SET STRETCH
+
+  // set stretching
   for (var button in StretchPanel.global) {
     StretchPanel.global[button].classList.remove("selected");
   }
@@ -178,7 +181,10 @@ function loadConfig(extensionConf, site){
       
       try{
         if(shortcut.action == "crop"){
-          if(shortcut.arg == 2.0){
+          if (key == 'q') {
+            _changeAr_button_shortcuts["custom"] = keypress;
+          }
+          else if(shortcut.arg == 2.0){
             _changeAr_button_shortcuts["189"] = keypress;
           }
           else if(shortcut.arg == 2.39){
@@ -203,6 +209,11 @@ function loadConfig(extensionConf, site){
       }
       catch(Ex){
         //do nothing if key doesn't exist
+      }
+
+      // fill in custom aspect ratio
+      if (extensionConf.keyboard.shortcuts.q) {
+        document.getElementById("_input_custom_ar").value = extensionConf.keyboard.shortcuts.q.arg;
       }
     }
     for(var key in _changeAr_button_shortcuts){
@@ -304,6 +315,47 @@ function showArctlButtons(){
   // }
 }
 
+function getCustomAspectRatio() {
+  var textBox_value = document.getElementById("_input_custom_ar").value.trim();
+  // validate value - this spaghett will match the following stuff
+  //   [int]/[int]
+  //   1:[float]
+  //   [float]
+  if (! /(^[0-9]+\/[0-9]+$|^(1:)?[0-9]+\.?[0-9]*$)/.test(textBox_value)) {
+    return false; // validation failed!
+  }
+
+  if (! isNaN(parseFloat(textBox_value))) {
+    return parseFloat(textBox_value);
+  }
+  if (/\//.test(textBox_value)) {
+    const vars = textBox_value.split('/');
+    return parseInt(vars[0])/parseInt(vars[1]); // non-ints shouldn't make it past regex
+  }
+  if (/:/.test(textBox_value)) {
+    const vars = textBox_value.split(':');
+    return parseFloat(vars[1]);
+  }
+
+   // we should never come this far. 
+   // If we do, then there's something wrong with the input and our regex
+  return false;
+}
+
+function validateCustomAr(){
+  console.log("validating!")
+  const valid = getCustomAspectRatio() !== false;
+  const inputField = document.getElementById("_input_custom_ar");
+  const valueSaveButton = document.getElementById("_b_changeAr_save_custom_ar");
+
+  if (valid) {
+    inputField.classList.remove("invalid-input");
+    valueSaveButton.classList.remove("disabled-button");
+  } else {
+    inputField.classList.add("invalid-input");
+    valueSaveButton.classList.add("disabled-button");
+  }
+}
 
 function toggleSite(option){
   if(Debug.debug)
@@ -325,6 +377,7 @@ document.addEventListener("click", (e) => {
   
   
   function getcmd(e){
+    
     
     var command = {};
     command.sender = "popup";
@@ -424,6 +477,18 @@ document.addEventListener("click", (e) => {
         command.ratio = 1.6;
         return command;
       }
+      if(e.target.classList.contains("_ar_custom")){
+        ratio = getCustomAspectRatio();
+        command.cmd = "set-ar";
+        command.ratio = ratio;
+        return ratio !== false ? command : null;
+      }
+      if(e.target.classList.contains("_ar_save_custom_ar")){
+        ratio = getCustomAspectRatio();
+        command.cmd = "set-custom-ar";
+        command.ratio = ratio;
+        return ratio !== false ? command : null; // this validates input
+      }
     }
     if(e.target.classList.contains("_stretch")){
       if (e.target.classList.contains("_ar_stretch_global")) {
@@ -487,7 +552,7 @@ document.addEventListener("click", (e) => {
         var value = parseInt(document.getElementById("_input_autoAr_frequency").value.trim());
         
         if(! isNaN(value)){
-          var timeout = parseInt(1000 / value);
+          var timeout = parseInt(value);
           command = {cmd: "autoar-set-timer-playing", timeout: timeout, sender: "popup", receiver: "uwbg"};
           Comms.sendToBackgroundScript(command);
         }
@@ -541,9 +606,14 @@ document.addEventListener("click", (e) => {
   return true;
 });
 
+const inputField = document.getElementById("_input_custom_ar");
+inputField.addEventListener("blur", (event) => {
+  validateCustomAr();
+});
+inputField.addEventListener("mouseleave", (event) => {
+  validateCustomAr();
+});
+
 hideWarning("script-not-running-warning");
 openMenu(selectedMenu);
-// check4videos();
 getConf();
-
-// check4siteStatus();

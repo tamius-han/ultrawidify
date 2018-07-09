@@ -27,6 +27,13 @@
       color: #c0924e;
     }
 
+    input {
+      border: 1px solid #322;
+      padding: 0.5em;
+      padding-top: 0.5em;
+      padding-bottom: 0.5em;
+    }
+
     .hidden {
       display: none !important;
     }
@@ -59,6 +66,18 @@
     }
     .disabled {
       color: #666;
+    }
+    .disabled-button {
+      color: #666 !important;
+      cursor: not-allowed !important;     
+    }
+    .disabled-button:hover {
+      color: #777 !important;
+      background-color: #222 !important;
+    }
+    .invalid-input {
+      border: 1px solid #720 !important;
+      background-color: #410 !important;
     }
     .header {
       background-color: #7f1416;
@@ -183,7 +202,7 @@
         Crop settings
       </div>
       <div id="_menu_stretch" class="menu-item _menu_stretch">
-        Stretc settings
+        Stretch settings
       </div>
       <div id="_menu_csshacks" class="menu-item disabled hidden _menu_hacks">
         CSS hacks for this site
@@ -263,22 +282,25 @@
         <div class="row">
           <span class="label">Cropping mode</span>
           <div class="button-row">
-            <a class="button _changeAr _ar_auto w24">Auto-detect<br/><span id="_b_changeAr_auto-ar_key" class="smallcaps small darker"></span></a>
-            <a class="button _changeAr _ar_reset w24">Reset<br/><span id="_b_changeAr_reset_key" class="smallcaps small darker"></span></a>
-            <a class="button _changeAr _ar_219 w24">21:9<br/><span id="_b_changeAr_219_key" class="smallcaps small darker"></span></a>
-            <a class="button _changeAr _ar_189 w24">2:1 (18:9)<br/><span id="_b_changeAr_189_key" class="smallcaps small darker"></span></a>
-            <a class="button _changeAr _ar_169 w24">16:9<br/><span id="_b_changeAr_169_key" class="smallcaps small darker"></span></a>
+            <a class="button _changeAr _ar_auto w24">Auto-detect<br/><span id="_b_changeAr_auto-ar_key" class="smallcaps small darker"></span>&nbsp;</a>
+            <a class="button _changeAr _ar_reset w24">Reset<br/><span id="_b_changeAr_reset_key" class="smallcaps small darker">&nbsp;</span></a>
+            <a class="button _changeAr _ar_219 w24">21:9<br/><span id="_b_changeAr_219_key" class="smallcaps small darker">&nbsp;</span></a>
+            <a class="button _changeAr _ar_189 w24">2:1 (18:9)<br/><span id="_b_changeAr_189_key" class="smallcaps small darker">&nbsp;</span></a>
+            <a class="button _changeAr _ar_169 w24">16:9<br/><span id="_b_changeAr_169_key" class="smallcaps small darker">&nbsp;</span></a>
+            <a class="button _changeAr _ar_custom w24">Custom<br/><span id="_b_changeAr_custom_key" class="smallcaps small darker">&nbsp;</span></a>
           </div>
         </div>
-        <!--<div class="row">
-          <span class="label">Automatic aspect ratio autodetection:</span>
-          <div class="button-row">
-            <a id="_autoar_disable_tmp" class="button _autoar _autoar_temp-disable">Temporarily disable</a>
-            <a id="_autoar_enable_tmp"          class="button _autoar _ar_auto hidden">Re-enable</a>
-            <a id="_autoar_disable"           class="button _autoar _autoar_disable">Disable</a>
-            <a id="_autoar_enable"            class="button _autoar _autoar_enable hidden">Enable</a>
+        <div class="row">
+          <span class="label">Custom aspect ratio</span>
+          <div>
+            <input id="_input_custom_ar" class="_changeAr _custom" onblur="validateCustomAr()"> &nbsp; &nbsp; <span id="_b_changeAr_save_custom_ar" class="button _ar_save_custom_ar _changeAr">Save</span>
+            <br/><small>Aspect ratio can be entered in any of these forms (without quotes): 
+              <ul style="display: block; padding-top: 0px; margin-top: 0px">
+                <li>fraction (<i>width/height</i>, e.g. <i>16/10</i>, <i>2560/1080</i>, etc.)</li>
+                <li>ratio (e.g. <i>1:2.35</i> or simply <i>2.35</i> — <i>1:</i> bit can be left out)</li>
+              </ul></small>
           </div>
-        </div>-->
+        </div>
         <div class="row">
           <span class="label">Video alignment:</span>
           <div class="button-row">
@@ -291,23 +313,23 @@
       
       <div id="stretch-settings" class="suboption hidden">
         <p class="warning">
-          Stretching video is currently experimental and has <strike>been tested even less rigorously than the rest of this addon</strike> not been tested thoroughly. If you notice any bugs, please consider reporting via github or email.
+          Stretching video is currently experimental and has <strike>been tested even less rigorously than the rest of this addon</strike> not been tested thoroughly. If you notice any bugs, please consider reporting them.
         </p>
         
-        <span class="label">Default stretching mode<br><small>Stretching is independent of crop mode. Crop gets applied before stretching.</small></span>
+        <span class="label">Default stretching mode<br><small>You may need to reload for this option to take effect. NOTE: Stretching is independent of crop mode. Crop gets applied before stretching.</small></span>
         <div class="button-row">
-          <a id="_stretch_global_none"        class="button _stretch _ar_stretch_global _none w24">Never<br/><span id="_b_changeAr_reset_key" class="smallcaps small darker"></span></a>
-          <a id="_stretch_global_basic"       class="button _stretch _ar_stretch_global _basic w24">Basic<br/><span id="_b_changeAr_reset_key" class="smallcaps small darker"></span></a>            
-          <a id="_stretch_global_hybrid"      class="button _stretch _ar_stretch_global _hybrid w24">Hybrid<br/><span id="_b_changeAr_sw_key" class="smallcaps small darker"></span></a>
-          <a id="_stretch_global_conditional" class="button _stretch _ar_stretch_global _conditional w24">Thin borders<br/><span id="_b_changeAr_sh_key" class="smallcaps small darker"></span></a>
+          <a id="_stretch_global_none"        class="button _stretch _ar_stretch_global _none w24">Never<br/><span id="_b_stretch_default_none_key" class="smallcaps small darker"></span></a>
+          <a id="_stretch_global_basic"       class="button _stretch _ar_stretch_global _basic w24">Basic<br/><span id="_b_stretch_default_basic_key" class="smallcaps small darker"></span></a>            
+          <a id="_stretch_global_hybrid"      class="button _stretch _ar_stretch_global _hybrid w24">Hybrid<br/><span id="_b_stretch_default_hybrid_key" class="smallcaps small darker"></span></a>
+          <a id="_stretch_global_conditional" class="button _stretch _ar_stretch_global _conditional w24">Thin borders<br/><span id="_b_stretch_default_conditional_key" class="smallcaps small darker"></span></a>
         </div>
         
-        <span class="label">Stretching mode for this video<br><small>Temporarily overrides default stretching mode.</small></span>
+        <span class="label">Temporary stretching mode<br><small>Temporarily overrides default stretching mode.</small></span>
         <div class="button-row">
-          <a class="button _stretch _ar_stretch_none w24">Never<br/><span id="_b_changeAr_reset_key" class="smallcaps small darker"></span></a>
-          <a class="button _stretch _ar_stretch_basic w24">Basic<br/><span id="_b_changeAr_reset_key" class="smallcaps small darker"></span></a>            
-          <a class="button _stretch _ar_stretch_hybrid w24">Hybrid<br/><span id="_b_changeAr_sw_key" class="smallcaps small darker"></span></a>
-          <a class="button _stretch _ar_stretch_conditional w24">Thin borders<br/><span id="_b_changeAr_sh_key" class="smallcaps small darker"></span></a>
+          <a class="button _stretch _ar_stretch_none w24">Never<br/><span id="_b_stretch_none_key" class="smallcaps small darker"></span></a>
+          <a class="button _stretch _ar_stretch_basic w24">Basic<br/><span id="_b_stretch_basic_key" class="smallcaps small darker"></span></a>            
+          <a class="button _stretch _ar_stretch_hybrid w24">Hybrid<br/><span id="_b_stretch_hybrid_key" class="smallcaps small darker"></span></a>
+          <a class="button _stretch _ar_stretch_conditional w24">Thin borders<br/><span id="_b_stretch_conditional_key" class="smallcaps small darker"></span></a>
         </div>
       </div>
 

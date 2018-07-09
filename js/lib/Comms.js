@@ -235,6 +235,10 @@ class CommsServer {
       this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
     } else if (message.cmd === 'set-ar') {
       this.sendToActive(message);
+    } else if (message.cmd === 'set-custom-ar') {
+      ExtensionConf.keyboard.shortcuts.q.arg = message.ratio;
+      Settings.save(ExtensionConf);
+      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
     } else if (message.cmd === 'autoar-start') {
       this.sendToActive(message);
     } else if (message.cmd === "autoar-enable") {   // LEGACY - can be removed prolly?
