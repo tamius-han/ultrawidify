@@ -343,12 +343,24 @@ function getCustomAspectRatio() {
 }
 
 function validateCustomAr(){
-  console.log("validating!")
   const valid = getCustomAspectRatio() !== false;
   const inputField = document.getElementById("_input_custom_ar");
   const valueSaveButton = document.getElementById("_b_changeAr_save_custom_ar");
 
   if (valid) {
+    inputField.classList.remove("invalid-input");
+    valueSaveButton.classList.remove("disabled-button");
+  } else {
+    inputField.classList.add("invalid-input");
+    valueSaveButton.classList.add("disabled-button");
+  }
+}
+
+function validateAutoArTimeout(){
+  const inputField = document.getElementById("_input_autoAr_timer");
+  const valueSaveButton = document.getElementById("_b_autoar_save_autoar_frequency");
+
+  if (! isNaN(parseInt(inputField.trim().value()))) {
     inputField.classList.remove("invalid-input");
     valueSaveButton.classList.remove("disabled-button");
   } else {
@@ -606,12 +618,21 @@ document.addEventListener("click", (e) => {
   return true;
 });
 
-const inputField = document.getElementById("_input_custom_ar");
-inputField.addEventListener("blur", (event) => {
+const customArInputField = document.getElementById("_input_custom_ar");
+const autoarFrequencyInputField = document.getElementById("_input_autoAr_timer");
+
+customArInputField.addEventListener("blur", (event) => {
   validateCustomAr();
 });
-inputField.addEventListener("mouseleave", (event) => {
+customArInputField.addEventListener("mouseleave", (event) => {
   validateCustomAr();
+});
+
+autoarFrequencyInputField.addEventListener("blur", (event) => {
+  validateAutoArTimeout();
+});
+autoarFrequencyInputField.addEventListener("mouseleave", (event) => {
+  validateAutoArTimeout();
 });
 
 hideWarning("script-not-running-warning");
