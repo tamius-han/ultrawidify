@@ -139,6 +139,10 @@ var ExtensionConf = {
         action: "crop",
         arg: 2.0
       },
+      "q": {
+        action: "crop",
+        arg: 2.35
+      },
       //#endregion
       //#region zoom
       "z": {
