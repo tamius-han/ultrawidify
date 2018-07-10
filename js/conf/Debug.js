@@ -21,6 +21,8 @@ Debug = {
     debugDetection: true
   },
   debugCanvas: {
+    // enabled: true,
+    // guardLine: true
     enabled: false,
     guardLine: false
   }

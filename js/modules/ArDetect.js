@@ -536,14 +536,14 @@ class ArDetector {
     //#endregion
 
     // this means we don't have letterbox
-    if ( currentMaxVal > (this.blackLevel + ExtensionConf.arDetect.blackbarTreshold) || (currentMaxVal - currentMinVal) > ExtensionConf.arDetect.blackbarTreshold ){
+    if ( currentMaxVal > (this.blackLevel + ExtensionConf.arDetect.blackbarTreshold) || (currentMaxVal - currentMinVal) > ExtensionConf.arDetect.blackbarTreshold*4 ){
       
       // Če ne zaznamo letterboxa, kličemo reset. Lahko, da je bilo razmerje stranic popravljeno na roke. Možno je tudi,
       // da je letterbox izginil.
       // If we don't detect letterbox, we reset aspect ratio to aspect ratio of the video file. The aspect ratio could
       // have been corrected manually. It's also possible that letterbox (that was there before) disappeared.
       if(Debug.debug){
-        console.log("%c[ArDetect::_ard_vdraw] no edge detected. canvas has no edge.", "color: #aaf");
+        console.log(`%c[ArDetect::_ard_vdraw] no edge detected. canvas has no edge.\ncurrentMaxVal: ${currentMaxVal}\nBlack level (+ treshold):${this.blackLevel} (${this.blackLevel + ExtensionConf.arDetect.blackbarTreshold})\n---diff test---\nmaxVal-minVal: ${ (currentMaxVal - currentMinVal)}\ntreshold: ${ExtensionConf.arDetect.blackbarTreshold}`, "color: #aaf");
       }
       
       // Pogledamo, ali smo že kdaj ponastavili CSS. Če še nismo, potem to storimo. Če smo že, potem ne.
@@ -576,7 +576,7 @@ class ArDetector {
     // let's check if we're cropping too much (or whatever)
     var guardLineOut;
     
-    guardLineOut = this.guardLine.check(image, fallbackMode);
+    guardLineOut = this.guardLine.check(image, this.fallbackMode);
     
     if (guardLineOut.blackbarFail) { // add new ssamples to our sample columns
       for(var col of guardLineOut.offenders){
@@ -588,7 +588,7 @@ class ArDetector {
     // if both succeed, then aspect ratio hasn't changed.    
     
     // if we're in fallback mode and blackbar test failed, we restore CSS
-    if (fallbackMode && guardLineOut.blackbarFail) {
+    if (this.fallbackMode && guardLineOut.blackbarFail) {
       this.conf.resizer.reset({type: "auto", ar: null});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
@@ -664,8 +664,16 @@ class ArDetector {
       // if(!textEdge){
         this.processAr(edgePost);
       
-        // we also know edges for guardline, so set them
-        this.guardLine.setBlackbar({top: edgePost.guardLineTop, bottom: edgePost.guardLineBottom});
+        // we also know edges for guardline, so set them.
+        // we need to be mindful of fallbackMode though
+        if (!this.fallbackMode) {
+          this.guardLine.setBlackbar({top: edgePost.guardLineTop, bottom: edgePost.guardLineBottom});
+        } else {
+          if (this.conf.player.dimensions){
+            this.guardLine.setBlackbar({top: 0, bottom: this.conf.player.dimensions.height - 1})
+          }
+        }
+
       // }
       // else{
       //   console.log("detected text on edges, dooing nothing")
