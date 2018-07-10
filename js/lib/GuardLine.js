@@ -13,6 +13,17 @@ class GuardLine {
     this.imageBar = {top: undefined, bottom: undefined};
   }
 
+  setBlackbarManual(blackbarConf, imagebarConf){
+    // ni lepo uporabljat tega, ampak pri fallback mode nastavljamo blackbar stuff na roke
+    // it's not nice to use this, but we're setting these values manually in fallbackMode
+    if (blackbarConf) {
+      this.blackbar = blackbarConf;
+    }
+    if (imagebarConf) {
+      this.imageBar = imagebarConf;
+    }
+  }
+
   setBlackbar(bbconf){
     var bbTop = bbconf.top - ExtensionConf.arDetect.guardLine.edgeTolerancePx;
     var bbBottom = bbconf.bottom + ExtensionConf.arDetect.guardLine.edgeTolerancePx;
@@ -20,6 +31,7 @@ class GuardLine {
     // to odstrani vse neveljavne nastavitve in vse možnosti, ki niso smiselne
     // this removes any configs with invalid values or values that dont make sense
     if (bbTop < 0 || bbBottom >= this.conf.canvas.height ){
+      console.log("%c[GuardLine::setBlackbar] INVALID SETTINGS IN GUARDLINE","background: #000; color: #fff")
       this.reset();
       return;
     }

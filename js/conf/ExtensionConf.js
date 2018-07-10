@@ -22,7 +22,10 @@ var ExtensionConf = {
     autoDisable: {            // settings for automatically disabling the extension
       maxExecutionTime: 6000, // if execution time of main autodetect loop exceeds this many milliseconds,
                               // we disable it.
-      consecutiveTimeoutCount: 5  // we only do it if it happens this many consecutive times
+      consecutiveTimeoutCount: 5,  // we only do it if it happens this many consecutive times
+
+      // FOR FUTURE USE
+      consecutiveArResets: 5       // if aspect ratio reverts immediately after AR change is applied, we disable everything
     },
     hSamples: 640,
     vSamples: 360,
@@ -32,6 +35,14 @@ var ExtensionConf = {
     blackbarTreshold: 16,     // if pixel is darker than blackLevel + blackbarTreshold, we count it as black
                               // on 0-255. Needs to be fairly high (8 might not cut it) due to compression
                               // artifacts in the video itself
+    variableBlackbarTresholdOptions: {    // In case of poor bitrate videos, jpeg artifacts may cause us issues
+      // FOR FUTURE USE
+      enabled: true,                      // allow increasing blackbar threshold
+      disableArDetectOnMax: true,         // disable autodetection when treshold goes over max blackbar treshold
+      maxBlackbarTreshold: 48,            // max threshold (don't increase past this)
+      thresholdStep: 8,                   // when failing to set aspect ratio, increase treshold by this much
+      increaseAfterConsecutiveResets: 2   // increase if AR resets this many times in a row
+    },
     staticSampleCols: 9,      // we take a column at [0-n]/n-th parts along the width and sample it
     randomSampleCols: 0,      // we add this many randomly selected columns to the static columns
     staticSampleRows: 9,      // forms grid with staticSampleCols. Determined in the same way. For black frame checks
