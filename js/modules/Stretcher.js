@@ -51,15 +51,37 @@ class Stretcher {
   }
 
   calculateBasicStretch() {
-    console.log("calculating basic stretch - -- stretcher")
-    // var videoAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
-    // var playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
+    // video.videoWidth in video.videoHeight predstavljata velikost datoteke. 
+    // velikost video datoteke je lahko drugačna kot velikost <video> elementa. 
+    // Zaradi tega lahko pride do te situacije:
+    //     * Ločljivost videa je 850x480 (videoWidth & videoHeight)
+    //     * Velikost <video> značke je 1920x720. 
+    // Znotraj te video značke bo video prikazan v 1280x720 pravokotniku. Raztegovanje
+    // torej hočemo računati z uporabo vrednosti 1280 in 720. Teh vrednosti pa ne
+    // poznamo. Torej jih moramo računati.
+    //
+    //
+    // video.videoWidht and video.videoHeight describe the size of the video file.
+    // Size of the video file can be different than the size of the <video> tag.
+    // This can leave us with the following situation:
+    //     * Video resolution is 850x480-ish (as reported by videoWidth and videoHeight)
+    //     * Size of the <video> tag is 1920x720
+    // The video will be displayed in a 1280x720 rectangle inside that <video> tag. 
+    // This means we want to calculate stretching using those values, but we don't know
+    // them. This means we have to calculate them.
+
+    const videoAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
+    if (this.conf.player.dimensions.width > this.conf.player.dimensions.height * videoAr) {
+      return {
+        xFactor: this.conf.player.dimensions.width / (this.conf.player.dimensions.height * videoAr),
+        yFactor: 1
+      };
+    }
 
     return {
-      xFactor: this.conf.player.dimensions.width / this.conf.video.videoWidth,
-      yFactor: this.conf.player.dimensions.height / this.conf.video.videoHeight
+      xFactor: 1,
+      yFactor: this.conf.player.dimensions.height / (this.conf.player.dimensions.width / videoAr)
     };
-    // return this.calculateStretch(actualAr); 
   }
 
   calculateStretch(actualAr) {

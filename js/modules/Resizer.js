@@ -85,7 +85,6 @@ class Resizer {
     } else if (this.stretcher.mode === StretchMode.HYBRID) {
       var stretchFactors = this.stretcher.calculateStretch(ar);
     } else if (this.stretcher.mode === StretchMode.BASIC) {
-      console.log("basic stretch mode")
       var stretchFactors = this.stretcher.calculateBasicStretch();
     }
 
@@ -95,10 +94,10 @@ class Resizer {
     var translate = this.computeOffsets(stretchFactors);
     this.applyCss(stretchFactors, translate);
 
-    console.log("applied css")
+  }
 
-    // if(! this.destroyed)
-    //   this.startCssWatcher(); 
+  resetLastAr() {
+    this.lastAr = {type: 'original'};
   }
 
   setLastAr(override){
@@ -110,7 +109,6 @@ class Resizer {
   }
 
   setStretchMode(stretchMode){
-    console.log("setting stretch mode:", stretchMode)
     this.stretcher.mode = stretchMode;
     this.restore();
   }
