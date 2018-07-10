@@ -33,8 +33,16 @@ class ArDetector {
     this.edgeDetector = new EdgeDetect(this);
     this.debugCanvas = new DebugCanvas(this);
 
-    if(Debug.debug){
+    if(Debug.debug) {
       console.log("[ArDetect::setup] Starting autodetection setup");
+    }
+
+    if (this.fallbackMode || cheight !== ExtensionConf.arDetect.hSamples) {
+      if(Debug.debug) {
+        console.log("%c[ArDetect::setup] WARNING: CANVAS RESET DETECTED - recalculating guardLine", "background: #000; color: #ff2" )
+      }
+      // blackbar, imagebar
+      this.guardLine.reset();
     }
 
     if(!cwidth){
@@ -292,12 +300,7 @@ class ArDetector {
   }
   //#endregion
 
-  processAr(edges){
-
-    if(Debug.debug && Debug.debugArDetect){
-      console.log("[ArDetect::_ard_processAr] processing ar. sample width:", this.canvas.width, "; sample height:", this.canvas.height, "; edge top:", edges.top);
-    }
-
+  calculateArFromEdges(edges) {
     // if we don't specify these things, they'll have some default values.
     if(edges.top === undefined){
       edges.top = 0;
@@ -305,10 +308,10 @@ class ArDetector {
       edge.left = 0;
       edges.right = 0;
     }
-    
+
     var letterbox = edges.top + edges.bottom;
     var trueHeight = this.canvas.height - letterbox;
-    
+
     if(this.fallbackMode){
       if(edges.top > 1 && edges.top <= ExtensionConf.arDetect.fallbackMode.noTriggerZonePx ){
         console.log("Edge is in the no-trigger zone. Aspect ratio change is not triggered.")
@@ -321,9 +324,18 @@ class ArDetector {
       // x2 because safetyBorderPx is for one side.
       trueHeight += (ExtensionConf.arDetect.fallbackMode.safetyBorderPx << 1);
     }
+
+
+    return this.canvas.width / trueHeight;
+  }
+
+  processAr(trueAr){
+
+    // if(Debug.debug && Debug.debugArDetect){
+      // console.log("[ArDetect::_ard_processAr] processing ar. sample width:", this.canvas.width, "; sample height:", this.canvas.height, "; edge top:", edges.top);
+    // }
+
     
-    
-    var trueAr = this.canvas.width / trueHeight;
     this.detectedAr = trueAr;
     
     // poglejmo, če se je razmerje stranic spremenilo
@@ -615,25 +627,25 @@ class ArDetector {
     // a chance of a logo on black background. We could cut easily cut too much. Because there's a somewhat significant chance
     // that we will cut too much, we rather avoid doing anything at all. There's gonna be a next chance.
     try{
-    if(guardLineOut.blackbarFail || guardLineOut.imageFail){
-      if(this.edgeDetector.findBars(image, null, EdgeDetectPrimaryDirection.HORIZONTAL).status === 'ar_known'){
+      if(guardLineOut.blackbarFail || guardLineOut.imageFail){
+        if(this.edgeDetector.findBars(image, null, EdgeDetectPrimaryDirection.HORIZONTAL).status === 'ar_known'){
 
-        if(Debug.debug && guardLineOut.blackbarFail){
-          console.log("[ArDetect::_ard_vdraw] Detected blackbar violation and pillarbox. Resetting to default aspect ratio.");
+          if(Debug.debug && guardLineOut.blackbarFail){
+            console.log("[ArDetect::_ard_vdraw] Detected blackbar violation and pillarbox. Resetting to default aspect ratio.");
+          }
+
+          if(guardLineOut.blackbarFail){
+            this.conf.resizer.reset({type: "auto", ar: null});
+            this.guardLine.reset();
+          }
+
+          
+          triggerTimeout = this.getTimeout(baseTimeout, startTime);
+          this.scheduleFrameCheck(triggerTimeout);
+          return;
         }
-
-        if(guardLineOut.blackbarFail){
-          this.conf.resizer.reset({type: "auto", ar: null});
-          this.guardLine.reset();
-        }
-
-         
-        triggerTimeout = this.getTimeout(baseTimeout, startTime);
-        this.scheduleFrameCheck(triggerTimeout);
-        return;
       }
-    }
-  }catch(e) {console.log("deeee",e)}
+    } catch(e) { }
 
     // pa poglejmo, kje se končajo črne letvice na vrhu in na dnu videa.
     // let's see where black bars end.
@@ -646,6 +658,7 @@ class ArDetector {
     //   console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:",GlobalVars.arDetect.blackLevel, "tresh:", this.blackLevel + ExtensionConf.arDetect.blackbarTreshold);
     
     if(edgePost.status == "ar_known"){
+
       // zaznali smo rob — vendar pa moramo pred obdelavo še preveriti, ali ni "rob" slučajno besedilo. Če smo kot rob pofočkali
       // besedilo, potem to ni veljaven rob. Razmerja stranic se zato ne bomo pipali.
       // we detected an edge — but before we process it, we need to check if the "edge" isn't actually some text. If the detected
@@ -661,8 +674,26 @@ class ArDetector {
       //   textEdge |= textLineTest(image, row);
       // }
 
+      // v nekaterih common-sense izjemah ne storimo ničesar
+
+      var newAr = this.calculateArFromEdges(edgePost);
+
+      if (this.fallbackMode
+          && (!guardLineOut.blackbarFail && guardLineOut.imageFail)
+          && newAr < this.conf.resizer.getLastAr().ar
+      ) {
+        // V primeru nesmiselnih rezultatov tudi ne naredimo ničesar.
+        // v fallback mode se lahko naredi, da je novo razmerje stranice ožje kot staro, kljub temu da je šel
+        // blackbar test skozi. Spremembe v tem primeru ne dovolimo.
+        //
+        // (Pravilen fix? Popraviti je treba računanje robov. V fallback mode je treba upoštevati, da obrobe,
+        // ki smo jih obrezali, izginejo is canvasa)
+        triggerTimeout = this.getTimeout(baseTimeout, startTime);
+        this.scheduleFrameCheck(triggerTimeout);
+        return;
+      }
       // if(!textEdge){
-        this.processAr(edgePost);
+        this.processAr(newAr);
       
         // we also know edges for guardline, so set them.
         // we need to be mindful of fallbackMode though
@@ -670,7 +701,13 @@ class ArDetector {
           this.guardLine.setBlackbar({top: edgePost.guardLineTop, bottom: edgePost.guardLineBottom});
         } else {
           if (this.conf.player.dimensions){
-            this.guardLine.setBlackbar({top: 0, bottom: this.conf.player.dimensions.height - 1})
+            this.guardLine.setBlackbarManual({
+              top: ExtensionConf.arDetect.fallbackMode.noTriggerZonePx,
+              bottom: this.conf.player.dimensions.height - ExtensionConf.arDetect.fallbackMode.noTriggerZonePx - 1
+            },{
+              top: edgePost.guardLineTop + ExtensionConf.arDetect.guardLine.edgeTolerancePx,
+              bottom: edgePost.guardLineBottom - ExtensionConf.arDetect.guardLine.edgeTolerancePx
+            })
           }
         }
 

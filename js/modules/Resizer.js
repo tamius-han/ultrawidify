@@ -74,7 +74,7 @@ class Resizer {
         if(Debug.debug){
           console.log("[Resizer::setAr] failed to set AR due to problem with calculating crop. Error:", (stretchFactors ? stretchFactors.error : stretchFactors));
         }
-        if(dimensions.error === 'no_video'){
+        if(stretchFactors.error === 'no_video'){
           this.conf.destroy();
         }
         return;
