@@ -160,6 +160,7 @@ class ArDetector {
   start(){
     console.log("%c[ArDetect::setup] Starting automatic aspect ratio detection.", _ard_console_start);
     this._halted = false;
+    this.conf.resizer.resetLastAr();
     this.scheduleFrameCheck(0, true);
   }
 
@@ -171,6 +172,7 @@ class ArDetector {
     this._halted = true;
     clearTimeout(this.setupTimer);
     clearTimeout(this.timer);
+    this.conf.resizer.resetLastAr();
   }
 
   isRunning(){
