@@ -166,10 +166,28 @@ class ArDetector {
   }
 
   start(){
-    console.log("%c[ArDetect::setup] Starting automatic aspect ratio detection.", _ard_console_start);
+    if (Debug.debug) {
+      console.log("%c[ArDetect::setup] Starting automatic aspect ratio detection.", _ard_console_start);
+    }
     this._halted = false;
     this.conf.resizer.resetLastAr();
     this.scheduleFrameCheck(0, true);
+  }
+
+  unpause() {
+    if(this._paused){ // resume only if we explicitly paused
+      this._paused = false;
+      this.start();
+    }
+  }
+
+  pause() {
+    // pause only if we were running before. Don't pause if we aren't running
+    // (we are running when _halted is neither true nor undefined)
+    if (this._halted === false) {
+      this._paused = true;
+      this.stop();
+    }
   }
 
   stop(){
@@ -184,8 +202,9 @@ class ArDetector {
   }
 
   isRunning(){
-    return ! this._halted;
+    return ! this._halted && ! this._paused;
   }
+
 
   scheduleInitRestart(timeout, force_reset){
     if(! timeout){
@@ -309,8 +328,23 @@ class ArDetector {
       edges.right = 0;
     }
 
+    let zoomFactor = 1;
     var letterbox = edges.top + edges.bottom;
-    var trueHeight = this.canvas.height - letterbox;
+   
+    if (this.fallbackMode) {
+      // there's stuff missing from the canvas. We need to assume canvas' actual height is bigger by a factor x, where
+      //   x = [video.zoomedHeight] / [video.unzoomedHeight]
+      //
+      // letterbox also needs to be corrected:
+      //   letterbox += [video.zoomedHeight] - [video.unzoomedHeight]
+
+      var vbr = this.video.getBoundingClientRect();
+      
+      zoomFactor = vbr.height / this.video.clientHeight;
+      letterbox += vbr.height - this.video.clientHeight;
+    }
+
+    var trueHeight = this.canvas.height * zoomFactor - letterbox;
 
     if(this.fallbackMode){
       if(edges.top > 1 && edges.top <= ExtensionConf.arDetect.fallbackMode.noTriggerZonePx ){
@@ -326,16 +360,11 @@ class ArDetector {
     }
 
 
-    return this.canvas.width / trueHeight;
+    return this.canvas.width * zoomFactor / trueHeight;
   }
 
   processAr(trueAr){
-
-    // if(Debug.debug && Debug.debugArDetect){
-      // console.log("[ArDetect::_ard_processAr] processing ar. sample width:", this.canvas.width, "; sample height:", this.canvas.height, "; edge top:", edges.top);
-    // }
-
-    
+    let actualHeight = 0; // purely for fallback mode
     this.detectedAr = trueAr;
     
     // poglejmo, če se je razmerje stranic spremenilo
@@ -372,13 +401,6 @@ class ArDetector {
     
     if(Debug.debug)
       console.log("[ArDetect::_ard_processAr] attempting to fix aspect ratio. New aspect ratio: ", trueAr);
-    
-    
-    // POMEMBNO: GlobalVars.lastAr je potrebno nastaviti šele po tem, ko kličemo _res_setAr(). _res_setAr() predvideva,
-    // da želimo nastaviti statično (type: 'static') razmerje stranic — tudi, če funkcijo kličemo tu oz. v ArDetect.
-    //
-    // IMPORTANT NOTE: GlobalVars.lastAr needs to be set after _res_setAr() is called, as _res_setAr() assumes we're
-    // setting a static aspect ratio (even if the function is called from here or ArDetect). 
     
     this.conf.resizer.setAr(trueAr, {type: "auto", ar: trueAr});
   }

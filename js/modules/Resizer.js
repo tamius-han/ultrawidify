@@ -66,7 +66,14 @@ class Resizer {
       this.videoData.destroy();
     }
 
+    // pause AR on basic stretch, unpause when using other mdoes
+    if (this.stretcher.mode === StretchMode.BASIC) {
+      this.conf.arDetector.pause();
+    } else {
+      this.conf.arDetector.unpause();
+    }
 
+    // do stretch thingy
     if (this.stretcher.mode === StretchMode.NO_STRETCH || this.stretcher.mode === StretchMode.CONDITIONAL){
       var stretchFactors = this.scaler.calculateCrop(ar);
 
