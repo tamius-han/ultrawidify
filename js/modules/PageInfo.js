@@ -163,6 +163,8 @@ class PageInfo {
       this.rescan(RescanReason.URL_CHANGE);
       this.lastUrl = window.location.href;
     }
+
+    this.scheduleUrlCheck();
   }
 
   initArDetection(){
