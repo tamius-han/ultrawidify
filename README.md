@@ -22,20 +22,42 @@ The technology has been here for a while, but plenty of people don't know how to
 
 ## Features
 
-* **Fit video to width/height**
-* **Force specific aspect ratio**
-* **Attempts to automatically detect aspect ratio**
-* ~~**Rebindable shortcuts**~~ temporarily off
+TL;DR:
+
+* **Can be enabled or disabled on per-site basis**
+* **Crop video to fit screen** (no stretching. Supported aspect ratios: 21/9 (1:2.39), 16:9, 16:10, _one custom aspect ratio_)
+* **Automatic aspect ratio detection** (can be enabled/disabled entirely or on a per-site basis, separately of the extension)
+* **[NEW in v3!] Stretch video to fit the screen** (4 different approaches)
+
+Most settings are self-explanatory.
+
+### Automatic aspect ratio detection
+
+There's a few caveats to automatic aspect ratio detection. Namely, it only works on videos. If videos on the site are DRM-protected (e.g. Netflix), autodetection will not work unless you're using Firefox (and even then, no guarantees).
 
 
-### User interface
+![Demo](img-demo/ui/popup/autoar.png)
 
-Most quick options for a page are accessible through a button in the extension bar. The options are pretty self-explanatory.
+Top row of buttons determines the default mode of operation for automatic detection.
 
-![UI demo](img-demo/ui-popup-0.png)
+* **Always** — works on all sites this extension is enabled on, unless autodetection is specifically disabled for that site. [Default]
+* **Only on whitelisted sites** — autodetection only works on sites, on which autodetection is enabled.
+* **Never** — turn aspect ratio detection off
+
+Bottom row of buttons detemrmines the mode of operation for automatic detection for current site. 
+
+* **Blacklist** — don't ever attempt automatic aspect ratio detection on this site
+* **Default** — follow global rules. If default mode of operation is 'always', automatic aspect ratio detection will work on this site, otherwise it won't.
+* **Whitelist** — perform automatic detection on given site, unless automatic aspec ratio detection is turned off 
+
+'Check every ___ ms box determines how often the extension will check for aspect ratio changes. Longer periods will result in this extension using less system resources, but extension will be slow to detect changes. Short periods will increase the use of system resources. Periods shorter than 500 ms will significantly increase RAM and CPU usage. **Time periods shorter than 100 _will_ result in _massive_ RAM usage due to technical limitations of Javascript and canvas API. To give a solid example, setting this value to '30' ms can result in multiple _gigabytes_ of RAM used (personal record is 7 GB, but the number is very dependant on multiple factors, such as what browser are you using and how long the browser has been running. In Firefox 56, the amount of RAM used was correlated with amount of time the browser has been running).
+
+By default, extension is set to check for aspect ratio changes once every 666 ms, as it turned out to be a decent compromise between RAM usage (generally well under 500 MB) and the time it takes extension to react to aspect ratio changes.
 
 
-### Default keyboard shortcuts
+
+
+## Default keyboard shortcuts
 
 `w`   - fit to width  
 `e`   - fit to height  
