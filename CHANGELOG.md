@@ -1,5 +1,19 @@
 # Changelog
 
+## v3.x
+
+### v3.0.0
+
+Pretty much rewrote extension in more object-oriented way and sorted out spaghetti a little. Site settings and keybinds have been merged with the rest of the extension settings. Rewrote messageing.
+
+User-facing changes:
+* Extension can be enabled/disabled globally or on per-site basis
+* Automatic aspect ratio can be turned off, either globally or on per-site basis
+* Stretching mode implemented
+* Popup has been pimped up to reflect those changes
+
+## v2.x
+
 ### v2.2.5 (AMO, Chrome)
 
 Added some anti-lag measures. This seems to be an issue affecting _only_ Chrome (and only then some installs), where canvas.drawImage() won't work properly for some reason.
@@ -102,6 +116,8 @@ The extension is being rewritten almost ground-up, around automatic aspect ratio
 * Added "the impossible aspect ratio autodetection"
 * Zoom/unzoom options are gone
 * Can't customize keybinds yet
+
+# v1.x
 
 ### v1.3a1
 
