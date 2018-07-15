@@ -23,9 +23,6 @@ class Keybinds {
     // We only take actions if we're in full screen or not writing a comment
     var activeElement = document.activeElement;
 
-    console.log("[Keybinds::_kbd_process]\n\n\n\n", PlayerData.isFullScreen(), this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1, PlayerData.isFullScreen() && this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1  );
-    
-
     if( (! PlayerData.isFullScreen()) && (
       (this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1) ||
       (activeElement.getAttribute("role") === "textbox") ||
