@@ -294,7 +294,7 @@ class ArDetector {
     var execTime = (performance.now() - startTime);
     
     if( execTime > ExtensionConf.arDetect.autoDisable.maxExecutionTime ){
-       this.detectionTimeoutEventCount++;
+      //  this.detectionTimeoutEventCount++;
   
       if(Debug.debug){
         console.log("[ArDetect::getTimeout] Exec time exceeded maximum allowed execution time. This has now happened " +  this.detectionTimeoutEventCount + " times in a row.");
@@ -576,8 +576,8 @@ class ArDetector {
       // da je letterbox izginil.
       // If we don't detect letterbox, we reset aspect ratio to aspect ratio of the video file. The aspect ratio could
       // have been corrected manually. It's also possible that letterbox (that was there before) disappeared.
-      if(Debug.debug){
-        console.log(`%c[ArDetect::_ard_vdraw] no edge detected. canvas has no edge.\ncurrentMaxVal: ${currentMaxVal}\nBlack level (+ treshold):${this.blackLevel} (${this.blackLevel + ExtensionConf.arDetect.blackbarTreshold})\n---diff test---\nmaxVal-minVal: ${ (currentMaxVal - currentMinVal)}\ntreshold: ${ExtensionConf.arDetect.blackbarTreshold}`, "color: #aaf");
+      if(Debug.debug && Debug.debugArDetect){
+        console.log(`%c[ArDetect::_ard_vdraw] ---- NO EDGE DETECTED! — canvas has no edge. ----\ncurrentMaxVal: ${currentMaxVal}\nBlack level (+ treshold):${this.blackLevel} (${this.blackLevel + ExtensionConf.arDetect.blackbarTreshold})\n---diff test---\nmaxVal-minVal: ${ (currentMaxVal - currentMinVal)}\ntreshold: ${ExtensionConf.arDetect.blackbarTreshold}`, "color: #aaf");
       }
       
       // Pogledamo, ali smo že kdaj ponastavili CSS. Če še nismo, potem to storimo. Če smo že, potem ne.
@@ -587,14 +587,17 @@ class ArDetector {
       
       if(! this.noLetterboxCanvasReset){
         this.conf.resizer.reset({type: "auto", ar: null});
-        this.guardLine.top = null;
-        this.guardLine.bottom = null;
+        this.guardLine.reset();
         this.noLetterboxCanvasReset = true;
       }
 
       triggerTimeout = this.getTimeout(baseTimeout, startTime);
       this.scheduleFrameCheck(triggerTimeout); //no letterbox, no problem
       return;
+    }
+
+    if(Debug.debug && Debug.debugArDetect){
+      console.log(`%c[ArDetect::_ard_vdraw] edge was detected. Here are stats:\ncurrentMaxVal: ${currentMaxVal}\nBlack level (+ treshold):${this.blackLevel} (${this.blackLevel + ExtensionConf.arDetect.blackbarTreshold})\n---diff test---\nmaxVal-minVal: ${ (currentMaxVal - currentMinVal)}\ntreshold: ${ExtensionConf.arDetect.blackbarTreshold}`, "color: #afa");
     }
     
     // Če preverjamo naprej, potem moramo postaviti to vrednost nazaj na 'false'. V nasprotnem primeru se bo
@@ -633,6 +636,10 @@ class ArDetector {
     }
     
     if (!guardLineOut.imageFail && !guardLineOut.blackbarFail) {
+      if(Debug.debug && Debug.debugArDetect){
+        console.log(`%c[ArDetect::_ard_vdraw] guardLine tests were successful. (no imagefail and no blackbarfail)\n`, "color: #afa", guardLineOut);
+      }
+
       triggerTimeout = this.getTimeout(baseTimeout, startTime);
       this.scheduleFrameCheck(triggerTimeout); //no letterbox, no problem
       return;
@@ -667,7 +674,11 @@ class ArDetector {
           return;
         }
       }
-    } catch(e) { }
+    } catch(e) { 
+      if(Debug.debug) {
+        console.log("[ArDetect.js::frameCheck] something went wrong when checking for pillarbox. Error:\n", e)
+      }
+    }
 
     // pa poglejmo, kje se končajo črne letvice na vrhu in na dnu videa.
     // let's see where black bars end.
@@ -677,6 +688,9 @@ class ArDetector {
    
     var edgePost = this.edgeDetector.findBars(image, sampleCols, EdgeDetectPrimaryDirection.VERTICAL, EdgeDetectQuality.IMPROVED, guardLineOut);
     
+    if(Debug.debug && Debug.debugArDetect){
+      console.log(`%c[ArDetect::_ard_vdraw] edgeDetector returned this\n`,  "color: #aaf", edgePost);
+    }
     //   console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:",GlobalVars.arDetect.blackLevel, "tresh:", this.blackLevel + ExtensionConf.arDetect.blackbarTreshold);
     
     if(edgePost.status == "ar_known"){
@@ -710,11 +724,16 @@ class ArDetector {
         //
         // (Pravilen fix? Popraviti je treba računanje robov. V fallback mode je treba upoštevati, da obrobe,
         // ki smo jih obrezali, izginejo is canvasa)
+        //
+        // NOTE: pravilen fix je bil implementiran
         triggerTimeout = this.getTimeout(baseTimeout, startTime);
         this.scheduleFrameCheck(triggerTimeout);
         return;
       }
       // if(!textEdge){
+        if(Debug.debug && Debug.debugArDetect){
+          console.log(`%c[ArDetect::_ard_vdraw] Triggering aspect ration change! new ar: ${newAr}`, "color: #aaf");
+        }
         this.processAr(newAr);
       
         // we also know edges for guardline, so set them.
@@ -740,7 +759,7 @@ class ArDetector {
 
        
       triggerTimeout = this.getTimeout(baseTimeout, startTime);
-      this.scheduleFrameCheck(triggerTimeout); //no letterbox, no problem
+      this.scheduleFrameCheck(triggerTimeout);
       return;
     } else {
       triggerTimeout = this.getTimeout(baseTimeout, startTime);
