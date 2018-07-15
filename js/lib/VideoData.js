@@ -95,6 +95,10 @@ class VideoData {
     this.resizer.setAr(ar, lastAr);
   }
 
+  restoreAr(){
+    this.resizer.restore();
+  }
+
   setStretchMode(stretchMode){
     this.resizer.setStretchMode(stretchMode);
   }

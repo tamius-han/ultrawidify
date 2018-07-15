@@ -90,7 +90,7 @@ class GuardLine {
     // should succeed by default. Also need to check bottom, for cases where only one edge is known
     
     if(! fallbackMode && (! this.blackbar.top || ! this.blackbar.bottom)) {
-      console.log("NO EDGE WAS DETECTED. THIS TEST IS POINTLESS. btw guardline")
+      // console.log("NO EDGE WAS DETECTED. THIS TEST IS POINTLESS. btw guardline")
       return { success: true };
     }
 

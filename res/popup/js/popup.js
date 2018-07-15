@@ -587,7 +587,7 @@ document.addEventListener("click", (e) => {
       command.global = true;
       
       if(e.target.classList.contains("_align_left")){
-        command.cmd = "force-video-float",
+        command.cmd = "set-video-float",
         command.newFloat = "left"
         
         // console.log(".................\n\n\n..........\n\n              >>command<< \n\n\n\n            ",command,"\n\n\n.........\n\n\n................................");
@@ -595,12 +595,12 @@ document.addEventListener("click", (e) => {
         return command;
       }
       if(e.target.classList.contains("_align_center")){
-        command.cmd = "force-video-float"
+        command.cmd = "set-video-float"
         command.newFloat = "center"
         return command;
       }
       if(e.target.classList.contains("_align_right")){
-        command.cmd = "force-video-float";
+        command.cmd = "set-video-float";
         command.newFloat = "right";
         return command;
       }

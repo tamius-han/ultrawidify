@@ -348,7 +348,9 @@ class ArDetector {
 
     if(this.fallbackMode){
       if(edges.top > 1 && edges.top <= ExtensionConf.arDetect.fallbackMode.noTriggerZonePx ){
-        console.log("Edge is in the no-trigger zone. Aspect ratio change is not triggered.")
+        if(Debug.debug && Debug.debugArDetect) {
+          console.log("Edge is in the no-trigger zone. Aspect ratio change is not triggered.")
+        }
         return;
       }
       
@@ -450,9 +452,10 @@ class ArDetector {
       this.context.drawImage(this.video, 0,0, this.canvas.width, this.canvas.height);
     }
     catch(ex){
-      if(Debug.debug)
+      if(Debug.debug) {
         console.log("%c[ArDetect::_ard_vdraw] can't draw image on canvas. Trying canvas.drawWindow instead", "color:#000; backgroud:#f51;", ex);
-      
+      }
+
       try{
         if(! ExtensionConf.arDetect.fallbackMode.enabled)
           throw "fallbackMode is disabled.";
