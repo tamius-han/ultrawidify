@@ -6,30 +6,56 @@ If you own an ultrawide monitor, you have probably noticed that sometimes videos
 
 ![Demo](img-demo/example-httyd2.png "Should these black bars be here? No [...] But an ultrawide user never forgets.")
 
-Works (tested!) on Youtube and Netflix, but you can try your luck with other sites as well. Available for [Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) and [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi). Should support theater mode on youtube, iframes only supported on fullscreen.
+### Limitations
 
-Youtube demo of autodetection stuff can be found [here](https://www.youtube.com/watch?v=j2xn1WpbtCQ).
+* Unclear how extension handles sites with more than one video per page.
+* Autodetection is only correct 95% of the time, most of the time.
+* That new stretching mode wasn't thoroughly tested yet. Issues may be present.
+* Enabling extension everywhere (as opposed to whitelisted sites) could break some websites. 
 
-## Beggathon
+### Features
+
+* **Can be enabled or disabled on per-site basis**
+* **Crop video to fit screen** (no stretching. Supported aspect ratios: 21/9 (1:2.39), 16:9, 16:10, _one (1) custom aspect ratio_)
+* **Automatic aspect ratio detection** (can be enabled/disabled entirely or on a per-site basis, separately of the extension. Autodetection in action: [youtube](https://www.youtube.com/watch?v=j2xn1WpbtCQ))
+* **[NEW in v3!] Stretch video to fit the screen** (4 different approaches)
+* **Supports Youtube theater mode**
+
+### Officially supported sites
+
+* Youtube
+* Netflix
+
+### Other sites
+
+I am not actively testing extension on other sites. You can try your luck and enable extension for any unsupported site you stumble across via extension popup (in the _Setting for this site_ menu), but I make no guarantees it will work everywhere.
+
+### Installing this extension
+
+You can download this extension from Firefox' and Chrome's extension stores:
+
+* [Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) (v3.0.0) 
+* [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi) (v2.2.5-ish)
+
+### Beggathon
 
 Working on this extension takes time, coffee and motivation. If you want to buy me a beer or something, you can [use this link to send me motivation](https://www.paypal.me/tamius). **Any donations are well appreciated.**
 
-## The long version
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+# The long version
 
 The technology has been here for a while, but plenty of people don't know how to properly encode a video (despite the fact [youtube has an article that explains aspect ratios](https://support.google.com/youtube/answer/6375112)). Plenty of people surprisingly includes major Holywood studios, such as [Marvel](https://www.youtube.com/watch?v=Ke1Y3P9D0Bc), [Disney](https://www.youtube.com/watch?v=yCOPJi0Urq4), [Dreamworks](https://www.youtube.com/watch?v=oKiYuIsPxYk), [Warner Brothers](https://www.youtube.com/watch?v=VYZ3U1inHA4), [Sony](https://www.youtube.com/watch?v=7BWWWQzTpNU), et cetera. You'd think that this is the one thing Holywood studios and people who make [music videos for a living](https://www.youtube.com/watch?v=c6Mx2mxpaCY) would know how to do right, but they don't. This extension is here to fix that.
 
 ![Jesus Christ.](img-demo/example-jasonbourne.png "This is indeed worse than Snowden.")
 
 ## Features
-
-(Note: this readme is being written ahead of time, so not all features described here are available in the store version of the extension. Firefox users can expect these features by, at latest, 1st of August. Chrome version may take a little longer.)
-
-TL;DR:
-
-* **Can be enabled or disabled on per-site basis**
-* **Crop video to fit screen** (no stretching. Supported aspect ratios: 21/9 (1:2.39), 16:9, 16:10, _one custom aspect ratio_)
-* **Automatic aspect ratio detection** (can be enabled/disabled entirely or on a per-site basis, separately of the extension)
-* **[NEW in v3!] Stretch video to fit the screen** (4 different approaches)
 
 Most settings are self-explanatory, but we'll get into details anyway. 
 
@@ -56,8 +82,7 @@ In the **Options for this site** section, there's some sidenotes to be had:
 
 ### Automatic aspect ratio detection
 
-There's a few caveats to automatic aspect ratio detection. Namely, it only works on HTML5 videos (but who doesn't use HTML5 these days?). If videos on the site are DRM-protected (e.g. Netflix), autodetection will not work unless you're using Firefox (and even then, no guarantees).
-
+There's a few caveats to automatic aspect ratio detection. Namely, it only works on HTML5 videos (but who doesn't use HTML5 these days?). If videos on the site are DRM-protected (e.g. Netflix), autodetection will not work unless you're using Firefox (and even then, no guarantees). Video demonstration of autodetection can be found [here](https://www.youtube.com/watch?v=j2xn1WpbtCQ). 
 
 ![Demo](img-demo/ui/popup/autoar.png)
 
@@ -134,9 +159,9 @@ They still aren't rebindable.
 
 ### Permanent install / stable
 
-[Latest stable for Firefox — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
+[Latest stable for Firefox — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) (v3.0.0)
 
-[Latest stafle for Chrome — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
+[Latest stafle for Chrome — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi) (v2.2.5)
 
 ### Installing the current, github version
 
@@ -153,13 +178,13 @@ They still aren't rebindable.
 
 ## Plans for the future
 
-~~1. Handle porting of extension settings between versions. (Some people had some issues where extension broke until reinstalled, and corrupted settings seemed to be the problem.)~~ seems to work for me?
-2. Reintroduce gradual zoom on z and u and provide a way to 'scroll' the zoomed in video up/down left/right
-reintroduce settings page (rebindable keys, blacklist/whitelist management, some settings for automatic aspect ratio detection)
-3. site-specific options for sites that require additional CSS classes or other hacks
-4. figure the best way to do GUI (injecting buttons into the player bar is not a good way. Been there, done that, each site has its own way and some appear to be impossible). Might get bumped to be released alongside #2
-~~5. Stretch mode, because some people are very salty and toxic about the fact that this extension is here to solve a problem that's different than the one they want. More salty than me rn.~~ done 
-6. Improvements to automatic aspect ratio detection
+1. ~~Handle porting of extension settings between versions. (Some people had some issues where extension broke until reinstalled, and corrupted settings seemed to be the problem.)~~ seems to work for me?
+2. Reintroduce gradual zoom on z and u and provide a way to 'scroll' the zoomed in video up/down left/right.
+3. reintroduce settings page (rebindable keys, blacklist/whitelist management, some settings for automatic aspect ratio detection)
+4. site-specific options for sites that require additional CSS classes or other hacks
+5. figure the best way to do GUI (injecting buttons into the player bar is not a good way. Been there, done that, each site has its own way and some appear to be impossible). Might get bumped to be released alongside #2
+6. ~~Stretch mode, because some people are very salty and toxic about the fact that this extension is here to solve a problem that's different than the one they want. More salty than me rn.~~ done 
+7. Improvements to automatic aspect ratio detection
 
 ## Changelog
 
