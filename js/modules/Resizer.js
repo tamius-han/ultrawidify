@@ -67,11 +67,12 @@ class Resizer {
     }
 
     // pause AR on basic stretch, unpause when using other mdoes
-    if (this.stretcher.mode === StretchMode.BASIC) {
-      this.conf.arDetector.pause();
-    } else {
-      this.conf.arDetector.unpause();
-    }
+    // fir sine reason unpause doesn't unpause. investigate that later
+    // if (this.stretcher.mode === StretchMode.BASIC) {
+    //   this.conf.arDetector.pause();
+    // } else {
+    //   this.conf.arDetector.unpause();
+    // }
 
     // do stretch thingy
     if (this.stretcher.mode === StretchMode.NO_STRETCH || this.stretcher.mode === StretchMode.CONDITIONAL){
@@ -205,14 +206,14 @@ class Resizer {
 
     var translate = {x: 0, y: 0};
 
-    if(this.pan){
+    if (this.pan) {
       // todo: calculate translate
     } else {
-      if( ExtensionConf.miscFullscreenSettings.videoFloat == "left" ){
-        translate.x =  (this.conf.player.dimensions.width - actualWidth ) * -0.5;
+      if (ExtensionConf.miscFullscreenSettings.videoFloat == "left") {
+        translate.x = (this.conf.player.dimensions.width - actualWidth) * -0.5;
       }
-      else if( ExtensionConf.miscFullscreenSettings.videoFloat == "right" ){
-        translate.x =  (this.conf.player.dimensions.width - actualWidth ) * 0.5;
+      else if (ExtensionConf.miscFullscreenSettings.videoFloat == "right") {
+        translate.x = (this.conf.player.dimensions.width - actualWidth) * 0.5;
       }
     }
 
@@ -221,7 +222,7 @@ class Resizer {
   
   applyCss(stretchFactors, translate){
 
-    if (! this.video ){
+    if (! this.video) {
       if(Debug.debug)
         console.log("[Resizer::_res_applyCss] Video went missing, doing nothing.");
       this.conf.destroy();
@@ -266,9 +267,6 @@ class Resizer {
         styleString += styleArray[i] + "; ";
     
     this.setStyleString(styleString);
-
-    
-
   }
 
   setStyleString (styleString, count = 0) {

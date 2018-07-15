@@ -215,6 +215,12 @@ class PageInfo {
     }
   }
   
+  restoreAr() {
+    for(var vd of this.videos){
+      vd.restoreAr()
+    }
+  }
+
   setStretchMode(sm){
     // TODO: find a way to only change aspect ratio for one video
     

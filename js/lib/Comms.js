@@ -20,8 +20,11 @@ class CommsClient {
       console.log("[CommsClient.js::processMessage] Received message from background script!", message);
     }
 
-    if(message.cmd === "set-ar"){
+    if (message.cmd === "set-ar") {
       this.pageInfo.setAr(message.ratio);
+    } else if (message.cmd === 'set-video-float') {
+      ExtensionConf.miscFullscreenSettings.videoFloat = message.newFloat;
+      this.pageInfo.restoreAr();
     } else if (message.cmd === "has-videos") {
       
     } else if (message.cmd === "set-config") {
@@ -239,6 +242,12 @@ class CommsServer {
       ExtensionConf.keyboard.shortcuts.q.arg = message.ratio;
       Settings.save(ExtensionConf);
       this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+    } else if (message.cmd === 'set-video-float') {
+      this.sendToActive(message);
+      ExtensionConf.miscFullscreenSettings.videoFloat = message.newFloat;
+      Settings.save(ExtensionConf);
+      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+
     } else if (message.cmd === 'autoar-start') {
       this.sendToActive(message);
     } else if (message.cmd === "autoar-enable") {   // LEGACY - can be removed prolly?
