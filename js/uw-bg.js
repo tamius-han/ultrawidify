@@ -71,7 +71,9 @@ class UWServer {
       console.log(e);
     }
 
-    console.log("TAB SWITCHED!", this.currentSite)
+    if(Debug.debug) {
+      console.log("TAB SWITCHED!", this.currentSite)
+    }
     //TODO: change extension icon based on whether there's any videos on current page
   }
 
