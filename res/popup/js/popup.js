@@ -376,21 +376,10 @@ function toggleSite(option){
   Comms.sendToBackgroundScript({cmd:"enable-for-site", option:option});
 }
 
-function getMode(isEnabled, whitelistOnly) {
-  if(isEnabled) {
-    return whitelistOnly ? "whitelist" : "blacklist" 
-  } else {
-    return "disabled";
-  }
-}
-
-
 document.addEventListener("click", (e) => {
   
   
   function getcmd(e){
-    
-    
     var command = {};
     command.sender = "popup";
     command.receiver = "uwbg";
@@ -533,9 +522,7 @@ document.addEventListener("click", (e) => {
       return command;
     }
     if(e.target.classList.contains("_autoAr")){
-
-      var command = {};
-      if(e.target.classList.contains("_ext_global_options")){
+      if(e.target.classList.contains("_ar_global_options")){
         command.cmd = "set-autoar-defaults";
         if (e.target.classList.contains("_blacklist")) {
           command.mode = "blacklist";
@@ -546,14 +533,6 @@ document.addEventListener("click", (e) => {
         }
         return command;
       } else if (e.target.classList.contains("_autoAr_whitelist-only")) {
-        var arStatus = document.getElementById("_checkbox_autoar-enabled").checked;        
-        var whitelist = document.getElementById("_checkbox_autoar-whitelist").checked;
-
-
-        if(Debug.debug) {
-          console.log("CHANGED CHECKMARK IN _AR-WHTIELIST:", extStatus, whitelist)
-        }
-
         return {
           cmd: "set-autoar-mode",
           mode: getMode(arStatus, whitelist),
