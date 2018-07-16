@@ -1,10 +1,14 @@
 if(Debug.debug){
-  console.log("Loading Comms.js")
+  console.log("Loading Comms.js");
 }
 
 class CommsClient {
-  constructor(name){
-    this.port = browser.runtime.connect({name: name});
+  constructor(name) {
+    if (BrowserDetect.firefox) {
+      this.port = browser.runtime.connect({name: name});
+    } else if (BrowserDetect.chrome) {
+      this.port = chrome.runtime.connect({name: name});
+    }
 
     var ths = this;
     this.port.onMessage.addListener(m => ths.processReceivedMessage(m));
@@ -158,20 +162,25 @@ class CommsServer {
     }
   }
 
-  sendToActive(message) {
+  async _getActiveTab() {
+    if (BrowserDetect.firefox) {
+      console.log("we firefox")
+      return await browser.tabs.query({currentWindow: true, active: true});
+    } else {
+      return await new Promise( (resolve, reject) => {
+        chrome.tabs.query({currentWindow: true, active: true}, function (res) {
+          resolve(res);
+        });
+      });
+    }
+  }
+
+  async sendToActive(message) {
     if(Debug.debug && Debug.comms){
       console.log("%c[CommsServer::sendToActive] trying to send a message to active tab. Message:", "background: #dda; color: #11D", message);
     }
 
-    if(BrowserDetect.firefox){
-      this._sendToActive_ff(message);
-    } else if (BrowserDetect.chrome) {
-
-    }
-  }
-
-  async _sendToActive_ff(message){ 
-    var tabs = await browser.tabs.query({currentWindow: true, active: true});
+    var tabs = await this._getActiveTab();
 
     if(Debug.debug && Debug.comms){
       console.log("[CommsServer::_sendToActive_ff] currently active tab(s)?", tabs);
@@ -184,18 +193,6 @@ class CommsServer {
     for (var key in this.ports[tabs[0].id]) {
       this.ports[tabs[0].id][key].postMessage(message);
     }
-  }
-
-
-  async queryTabs_chrome(tabInfo){
-    return new Promise(function (resolve, reject){    
-      browser.tabs.query(tabInfo, function(response){
-        browser.tabs.query(tabInfo);
-        // Chrome/js shittiness mitigation — remove this line and an empty array will be returned
-        var r = response; 
-        resolve(r);
-      });
-    });
   }
 
   onConnect(port){
