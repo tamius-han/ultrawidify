@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <link rel='stylesheet' type='text/css' href='../css/font/overpass.css'>
     <link rel='stylesheet' type='text/css' href='../css/font/overpass-mono.css'>
+    <link rel='stylesheet' type='text/css' href='../css/uw-common.css'>
     <style>
     
     html, body {
@@ -20,33 +21,10 @@
     }
     strike {
       opacity: 0.5;
-    }
-    a {
-      color: #af7f37;
-    }
-    a:hover {
-      color: #c0924e;
-    }
+    }    
 
-    input {
-      border: 1px solid #322;
-      padding: 0.5em;
-      padding-top: 0.5em;
-      padding-bottom: 0.5em;
-    }
 
-    .hidden {
-      display: none !important;
-    }
     
-    small{
-      font-size: 0.75em;
-      font-weight: 200;
-    }
-    
-    .small {
-      font-size: 0.85em;
-    }
     .darker {
       color: #666;
     }
@@ -56,11 +34,7 @@
       font-weight: 600;
       color: #ffe;
     }
-    
-    .smallcaps{
-      font-variant: small-caps;
-    }
-    
+        
     .selected{
       color: #ffddaa;
       background-color: #433221;
@@ -76,10 +50,7 @@
       color: #777 !important;
       background-color: #222 !important;
     }
-    .invalid-input {
-      border: 1px solid #720 !important;
-      background-color: #410 !important;
-    }
+    
     .header {
       background-color: #7f1416;
       color: #fff;
@@ -126,66 +97,13 @@
       min-height: 250px;
     }
     
-    .button {
-      display: inline-block;
-      padding-top: 8px;
-      padding-bottom: 3px;
-      padding-left: 20px;
-      padding-right: 20px;
-      border: 1px solid #444;
-      margin-top: 3px;
-      margin-bottom: 3px;
-      color: #dbb;
-      text-align: center;
-    }
-    .w24 {
-      width: 100px;
-    }
-
-    .color_warn {
-      color: #d6ba4a;
-    }
-    .warning {
-      /*background-*/color: #d6ba4a;
-/*       color: #000; */
-      padding-left: 35px;
-      float: right;
-    }
-    .warning::before {
-      content: "⚠ ";
-      display: inline-block;
-      font-weight: bold;
-      font-size: 2.5em;
-      margin-left: -35px;
-      padding-right: 10px;
-/*       top: 0px; */
-      float: left;
-    }
-    
-    .button:hover {
-      color: #fff;
-      background-color: #433221;
-    }
-    
-    .row {
-      display: block;
-      margin-top: 20px;
-      margin-bottom: 10px;
-    }
-    .button-row {
-      display: block;
-      margin-top: 5px;
-      margin-bottom: 10px;
-    }
+   
     #no-videos-display {
       height: 100%;
       padding-top: 50px;
 /*       text-align: center; */
     }
-    .center{
-      text-align: center;
-      width: 100%;
-    }
+
     </style>
   </head>
   <body>
@@ -214,24 +132,7 @@
     </div>
     <div class="right-side">
       <div id="script-not-running-warning" class="warning">If you see this line, then your browser didn't start the popup script yet. This is a problem caused by the browser. Please wait a few seconds.</div>
-    
-      <div id="extension-mode" class="suboption hidden">
-        <p>How should extension work in general?<br/><small>NOTE: settings will be applied when page is reloaded.</small></p>
-      
-        <form action="">
-          <input type="radio" name="mode" value="white"> Enable everywhere except blacklist<br/>
-          <input type="radio" name="mode" value="black"> Enable only on whitelisted sites<br/>
-          <input type="radio" name="mode" value="block"> Disable extension on all sites
-        </form>
-        
-        <p>How should extension work on this site?<br><small class="important">NOTE: this doesn't apply to embedded videos!<br/>NOTE: settings will be applied when page is reloaded.</small></p>
-        <form action="">
-          <input type="radio" name="mode" value="default"> Follow global rules<br/>
-          <input type="radio" name="mode" value="black"> Always block (blacklist)<br/>
-          <input type="radio" name="mode" value="white"> Always allow (whitelist)
-        </form>
-      </div>
-      
+ 
       <div id="settings-for-current-site" class="suboption hidden">
         <div class="warn">Some settings will only apply after reload. Settings don't apply to videos embedded from other sites.</div>
         
