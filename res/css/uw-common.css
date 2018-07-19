@@ -1,0 +1,117 @@
+a {
+  color: #af7f37;
+}
+a:hover {
+  color: #c0924e;
+}
+
+.hidden {
+  display: none !important;
+}
+
+
+
+/** layout stuff **/
+
+.row {
+  display: block;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.button-row {
+  display: block;
+  margin-top: 5px;
+  margin-bottom: 10px;
+}
+
+.w24 {
+  width: 100px;
+}
+
+
+
+/** input **/
+
+input {
+  border: 1px solid #322;
+  padding: 0.5em;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+}
+
+.invalid-input {
+  border: 1px solid #720 !important;
+  background-color: #410 !important;
+}
+
+
+
+
+/** buttons and stuff ***/
+
+.button {
+  display: inline-block;
+  padding-top: 8px;
+  padding-bottom: 3px;
+  padding-left: 20px;
+  padding-right: 20px;
+  border: 1px solid #444;
+  margin-top: 3px;
+  margin-bottom: 3px;
+  color: #dbb;
+  text-align: center;
+}
+
+.button:hover {
+  color: #fff;
+  background-color: #433221;
+}
+
+
+
+
+/** formatting **/
+
+small{
+  font-size: 0.75em;
+  font-weight: 200;
+}
+
+.smallcaps{
+  font-variant: small-caps;
+}
+
+.center{
+  text-align: center;
+  width: 100%;
+}
+
+
+
+
+/** misc **/
+
+.color_warn {
+  color: #d6ba4a;
+}
+
+.warning {
+  color: #d6ba4a;
+  padding-left: 35px;
+  float: right;
+}
+
+.warning::before {
+  content: "⚠ ";
+  display: inline-block;
+  font-weight: bold;
+  font-size: 2.5em;
+  margin-left: -35px;
+  padding-right: 10px;
+/*       top: 0px; */
+  float: left;
+}
+
+
+
