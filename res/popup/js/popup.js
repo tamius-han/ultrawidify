@@ -38,8 +38,8 @@ AutoArPanel.globalOptions.blacklist = document.getElementById("_ar_global_option
 AutoArPanel.globalOptions.whitelist = document.getElementById("_ar_global_options_whitelist");
 AutoArPanel.globalOptions.disabled  = document.getElementById("_ar_global_options_disabled");
 AutoArPanel.siteOptions = {};
-AutoArPanel.siteOptions.disabled = document.getElementById("_ar_site_options_blacklist");
-AutoArPanel.siteOptions.enabled  = document.getElementById("_ar_site_options_whitelist");
+AutoArPanel.siteOptions.disabled = document.getElementById("_ar_site_options_disabled");
+AutoArPanel.siteOptions.enabled  = document.getElementById("_ar_site_options_enabled");
 AutoArPanel.siteOptions.default  = document.getElementById("_ar_site_options_default");
 
 var ArPanel = {};
@@ -269,51 +269,6 @@ function openMenu(menu){
   MenuTab[menu].classList.add("selected");
 }
 
-function _arctl_onclick(command){
-  if(! _config)
-    return;
-  
-  if(command.cmd == "stop-autoar")
-    _config.arConf.enabled_current = false;
-  else if(command.cmd == "force-ar")
-    _config.arConf.enabled_current = true;
-  else if(command.cmd == "disable-autoar")
-    _config.arConf.enabled_global = false;
-  else if(command.cmd == "enable-autoar")
-    _config.arConf.enabled_global = true;
-  
-  showArctlButtons();
-}
-
-function showArctlButtons(){
-  if(! _config)
-    return;
-  
-  // if(_config.arConf){
-  //   if(! _config.arConf.enabled_global){
-  //     ArPanel.autoar.disable.classList.add("hidden");
-  //     ArPanel.autoar.enable.classList.remove("hidden");
-      
-  //     ArPanel.autoar.enable_tmp.textContent = "Temporarily enable";
-  //     ArPanel.autoar.disable_tmp.textContent = "Temporarily disable";
-  //   }
-  //   else{
-  //     ArPanel.autoar.disable.classList.remove("hidden");
-  //     ArPanel.autoar.enable.classList.add("hidden");
-      
-  //     ArPanel.autoar.enable_tmp.textContent = "Re-enable";
-  //     ArPanel.autoar.disable_tmp.textContent = "Temporarily disable";
-  //   }
-  //   if(! _config.arConf.enabled_current){
-  //     ArPanel.autoar.disable_tmp.classList.add("hidden");
-  //     ArPanel.autoar.enable_tmp.classList.remove("hidden");
-  //   }
-  //   else{
-  //     ArPanel.autoar.disable_tmp.classList.remove("hidden");
-  //     ArPanel.autoar.enable_tmp.classList.add("hidden");
-  //   }
-  // }
-}
 
 function getCustomAspectRatio() {
   var textBox_value = document.getElementById("_input_custom_ar").value.trim();
@@ -532,13 +487,6 @@ document.addEventListener("click", (e) => {
           command.mode = "disabled";
         }
         return command;
-      } else if (e.target.classList.contains("_autoAr_whitelist-only")) {
-        return {
-          cmd: "set-autoar-mode",
-          mode: getMode(arStatus, whitelist),
-          sender: "popup",
-          receiver: "uwbg"
-        };
       } else if (e.target.classList.contains("_save_autoAr_frequency")) {
         var value = parseInt(document.getElementById("_input_autoAr_frequency").value.trim());
         
@@ -550,9 +498,9 @@ document.addEventListener("click", (e) => {
         return;
       } else if (e.target.classList.contains("_ar_site_options")) {
         command.cmd = "set-autoar-for-site";
-        if(e.target.classList.contains("_blacklist")){
+        if(e.target.classList.contains("_disabled")){
           command.mode = "disabled";
-        } else if(e.target.classList.contains("_whitelist")) {
+        } else if(e.target.classList.contains("_enabled")) {
           command.mode = "enabled";
         } else {
           command.mode = "default";
