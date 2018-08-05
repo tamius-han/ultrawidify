@@ -27,13 +27,13 @@ class CommsClient {
     if (message.cmd === "set-ar") {
       this.pageInfo.setAr(message.ratio);
     } else if (message.cmd === 'set-video-float') {
-      ExtensionConf.miscFullscreenSettings.videoFloat = message.newFloat;
+      this.settings.active.miscFullscreenthis.settings.videoFloat = message.newFloat;
       this.pageInfo.restoreAr();
     } else if (message.cmd === "has-videos") {
       
     } else if (message.cmd === "set-config") {
       this.hasSettings = true;
-      ExtensionConf = message.conf;
+      this.settings.active = message.conf;
       // this.pageInfo.reset();
     } else if (message.cmd === "set-stretch") {
       this.pageInfo.setStretchMode(StretchMode[message.mode]);
@@ -50,9 +50,9 @@ class CommsClient {
       // todo: autoArStatus
       this.pageInfo.resumeProcessing(message.autoArStatus);
     } else if (message.cmd === "reload-settings") {
-      ExtensionConf = message.newConf;
+      this.settings.active = message.newConf;
       this.pageInfo.reset();
-      if(ExtensionConf.arDetect.mode === "disabled") {
+      if(this.settings.active.arDetect.mode === "disabled") {
         this.pageInfo.stopArDetection();
       } else {
         this.pageInfo.startArDetection();
@@ -116,7 +116,7 @@ class CommsClient {
       return Promise.resolve(false);
     }
 
-    ExtensionConf = JSON.parse(response.extensionConf);
+    this.settings.active = JSON.parse(response.extensionConf);
     return Promise.resolve(true);
   }
 
@@ -225,88 +225,88 @@ class CommsServer {
     }
 
     if (message.cmd === 'get-config') {
-      port.postMessage({cmd: "set-config", conf: ExtensionConf, site: this.server.currentSite})
+      port.postMessage({cmd: "set-config", conf: this.settings.active, site: this.server.currentSite})
     } else if (message.cmd === 'set-stretch') {
       this.sendToActive(message);
     } else if (message.cmd === 'set-stretch-default') {
-      ExtensionConf.stretch.initialMode = message.mode;
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      this.settings.active.stretch.initialMode = message.mode;
+      this.settings.save(this.settings.active);
+      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     } else if (message.cmd === 'set-ar') {
       this.sendToActive(message);
     } else if (message.cmd === 'set-custom-ar') {
-      ExtensionConf.keyboard.shortcuts.q.arg = message.ratio;
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      this.settings.active.keyboard.shortcuts.q.arg = message.ratio;
+      this.settings.save(this.settings.active);
+      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     } else if (message.cmd === 'set-video-float') {
       this.sendToActive(message);
-      ExtensionConf.miscFullscreenSettings.videoFloat = message.newFloat;
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      this.settings.active.miscFullscreenthis.settings.videoFloat = message.newFloat;
+      this.settings.save(this.settings.active);
+      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
 
     } else if (message.cmd === 'autoar-start') {
       this.sendToActive(message);
     } else if (message.cmd === "autoar-enable") {   // LEGACY - can be removed prolly?
-      ExtensionConf.arDetect.mode = "blacklist";
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      this.settings.active.arDetect.mode = "blacklist";
+      this.settings.save(this.settings.active);
+      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     } else if (message.cmd === "autoar-disable") {  // LEGACY - can be removed prolly?
-      ExtensionConf.arDetect.mode = "disabled";
+      this.settings.active.arDetect.mode = "disabled";
       if(message.reason){
-        ExtensionConf.arDetect.disabledReason = message.reason;
+        this.settings.active.arDetect.disabledReason = message.reason;
       } else {
-        ExtensionConf.arDetect.disabledReason = 'User disabled';
+        this.settings.active.arDetect.disabledReason = 'User disabled';
       }
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      this.settings.save(this.settings.active);
+      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     } else if (message.cmd === "autoar-set-interval") {
       if(Debug.debug)
         console.log("[uw-bg] trying to set new interval for autoAr. New interval is",message.timeout,"ms");
 
       // set fairly liberal limit
       var timeout = message.timeout < 4 ? 4 : message.timeout;
-      ExtensionConf.arDetect.timer_playing = timeout;
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      this.settings.active.arDetect.timer_playing = timeout;
+      this.settings.save(this.settings.active);
+      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     } else if (message.cmd === "set-autoar-defaults") {
-      ExtensionConf.arDetect.mode = message.mode;
-      Settings.save(ExtensionConf);
+      this.settings.active.arDetect.mode = message.mode;
+      this.settings.save(this.settings.active);
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
     } else if (message.cmd === "set-autoar-for-site") {
-      if (ExtensionConf.sites[this.server.currentSite]) {
-        ExtensionConf.sites[this.server.currentSite].arStatus = message.mode;
-        Settings.save(ExtensionConf);
+      if (this.settings.active.sites[this.server.currentSite]) {
+        this.settings.active.sites[this.server.currentSite].arStatus = message.mode;
+        this.settings.save(this.settings.active);
       } else {
-        ExtensionConf.sites[this.server.currentSite] = {
+        this.settings.active.sites[this.server.currentSite] = {
           status: "default",
           arStatus: message.mode,
           statusEmbedded: "default"
         };
-        Settings.save(ExtensionConf);
+        this.settings.save(this.settings.active);
       }
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"});
     } else if (message.cmd === "set-extension-defaults") {
-      ExtensionConf.extensionMode = message.mode;
-      Settings.save(ExtensionConf);
+      this.settings.active.extensionMode = message.mode;
+      this.settings.save(this.settings.active);
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
     } else if (message.cmd === "set-extension-for-site") {
-      if (ExtensionConf.sites[this.server.currentSite]) {
-        ExtensionConf.sites[this.server.currentSite].status = message.mode;
-        Settings.save(ExtensionConf);
+      if (this.settings.active.sites[this.server.currentSite]) {
+        this.settings.active.sites[this.server.currentSite].status = message.mode;
+        this.settings.save(this.settings.active);
       } else {
-        ExtensionConf.sites[this.server.currentSite] = {
+        this.settings.active.sites[this.server.currentSite] = {
           status: message.mode,
           arStatus: "default",
           statusEmbedded: message.mode
         };
-        Settings.save(ExtensionConf);        
-        console.log("SAVING PER-SITE OPTIONS,", this.server.currentSite, ExtensionConf.sites[this.server.currentSite])
+        this.settings.save(this.settings.active);        
+        console.log("SAVING PER-SITE OPTIONS,", this.server.currentSite, this.settings.active.sites[this.server.currentSite])
       }
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"});
     }
 
     if (message.cmd.startsWith('set-')) {
-      port.postMessage({cmd: "set-config", conf: ExtensionConf, site: this.server.currentSite});
+      port.postMessage({cmd: "set-config", conf: this.settings.active, site: this.server.currentSite});
     }
   }
 
@@ -316,29 +316,29 @@ class CommsServer {
     }
 
     if (message.cmd === 'get-config') {
-      var ret = {extensionConf: JSON.stringify(ExtensionConf)};
+      var ret = {extensionConf: JSON.stringify(this.settings.active)};
       if (Debug.debug && Debug.comms) {
         console.log("%c[CommsServer.js::processMessage_nonpersistent_ff] Returning this:", "background-color: #11D; color: #aad", ret);
       }
       Promise.resolve(ret);
     } else if (message.cmd === "autoar-enable") {
-      ExtensionConf.arDetect.mode = "blacklist";
-      Settings.save(ExtensionConf);
+      this.settings.active.arDetect.mode = "blacklist";
+      this.settings.save(this.settings.active);
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
       if(Debug.debug){
-        console.log("[uw-bg] autoar set to enabled (blacklist). evidenz:", ExtensionConf);
+        console.log("[uw-bg] autoar set to enabled (blacklist). evidenz:", this.settings.active);
       }
     } else if (message.cmd === "autoar-disable") {
-      ExtensionConf.arDetect.mode = "disabled";
+      this.settings.active.arDetect.mode = "disabled";
       if(message.reason){
-        ExtensionConf.arDetect.disabledReason = message.reason;
+        this.settings.active.arDetect.disabledReason = message.reason;
       } else {
-        ExtensionConf.arDetect.disabledReason = 'User disabled';
+        this.settings.active.arDetect.disabledReason = 'User disabled';
       }
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      this.settings.save(this.settings.active);
+      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
       if(Debug.debug){
-        console.log("[uw-bg] autoar set to disabled. evidenz:", ExtensionConf);
+        console.log("[uw-bg] autoar set to disabled. evidenz:", this.settings.active);
       }
     } else if (message.cmd === "autoar-set-interval") {
       if(Debug.debug)
@@ -346,9 +346,9 @@ class CommsServer {
 
       // set fairly liberal limit
       var timeout = message.timeout < 4 ? 4 : message.timeout;
-      ExtensionConf.arDetect.timer_playing = timeout;
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      this.settings.active.arDetect.timer_playing = timeout;
+      this.settings.save(this.settings.active);
+      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     }
   }
 
@@ -358,26 +358,26 @@ class CommsServer {
     }
 
     if(message.cmd === 'get-config') {
-      sendResponse({extensionConf: JSON.stringify(ExtensionConf), site: getCurrentTabUrl()});
+      sendResponse({extensionConf: JSON.stringify(this.settings.active), site: getCurrentTabUrl()});
       // return true;
     } else if (message.cmd === "autoar-enable") {
-      ExtensionConf.arDetect.mode = "blacklist";
-      Settings.save(ExtensionConf);
+      this.settings.active.arDetect.mode = "blacklist";
+      this.settings.save(this.settings.active);
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
       if(Debug.debug){
-        console.log("[uw-bg] autoar set to enabled (blacklist). evidenz:", ExtensionConf);
+        console.log("[uw-bg] autoar set to enabled (blacklist). evidenz:", this.settings.active);
       }
     } else if (message.cmd === "autoar-disable") {
-      ExtensionConf.arDetect.mode = "disabled";
+      this.settings.active.arDetect.mode = "disabled";
       if(message.reason){
-        ExtensionConf.arDetect.disabledReason = message.reason;
+        this.settings.active.arDetect.disabledReason = message.reason;
       } else {
-        ExtensionConf.arDetect.disabledReason = 'User disabled';
+        this.settings.active.arDetect.disabledReason = 'User disabled';
       }
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      this.settings.save(this.settings.active);
+      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
       if(Debug.debug){
-        console.log("[uw-bg] autoar set to disabled. evidenz:", ExtensionConf);
+        console.log("[uw-bg] autoar set to disabled. evidenz:", this.settings.active);
       }
     } else if (message.cmd === "autoar-set-interval") {
       if(Debug.debug)
@@ -385,9 +385,9 @@ class CommsServer {
 
       // set fairly liberal limit
       var timeout = message.timeout < 4 ? 4 : message.timeout;
-      ExtensionConf.arDetect.timer_playing = timeout;
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      this.settings.active.arDetect.timer_playing = timeout;
+      this.settings.save(this.settings.active);
+      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     }
   }
 }

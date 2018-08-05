@@ -3,6 +3,7 @@ class ArDetector {
   constructor(videoData){
     this.conf = videoData;
     this.video = videoData.video;
+    this.settings = videoData.settings;
     
     this.setupTimer = null;
     this.timer = null;
@@ -13,14 +14,14 @@ class ArDetector {
     this.canFallback = true;
     this.fallbackMode = false;
 
-    this.blackLevel = ExtensionConf.arDetect.blackLevel_default;    
+    this.blackLevel = this.settings.active.arDetect.blackLevel_default;    
   }
 
   init(){
     if(Debug.debug){
       console.log("[ArDetect::init] Initializing autodetection")
     }
-    this.setup(ExtensionConf.arDetect.hSamples, ExtensionConf.arDetect.vSamples);
+    this.setup(this.settings.active.arDetect.hSamples, this.settings.active.arDetect.vSamples);
   }
 
   destroy(){
@@ -37,7 +38,7 @@ class ArDetector {
       console.log("[ArDetect::setup] Starting autodetection setup");
     }
 
-    if (this.fallbackMode || cheight !== ExtensionConf.arDetect.hSamples) {
+    if (this.fallbackMode || cheight !== this.settings.active.arDetect.hSamples) {
       if(Debug.debug) {
         console.log("%c[ArDetect::setup] WARNING: CANVAS RESET DETECTED - recalculating guardLine", "background: #000; color: #ff2" )
       }
@@ -46,8 +47,8 @@ class ArDetector {
     }
 
     if(!cwidth){
-      cwidth = ExtensionConf.arDetect.hSamples;
-      cheight = ExtensionConf.arDetect.vSamples;
+      cwidth = this.settings.active.arDetect.hSamples;
+      cheight = this.settings.active.arDetect.vSamples;
     }
 
     
@@ -63,8 +64,8 @@ class ArDetector {
       // // let's insert initial columns to this.sampleCols - NO!!! do it later dow
       // this.sampleCols = [];
 
-      // var samplingIntervalPx = parseInt(cheight / ExtensionConf.arDetect.samplingInterval)
-      // for(var i = 1; i < ExtensionConf.arDetect.samplingInterval; i++){
+      // var samplingIntervalPx = parseInt(cheight / this.settings.active.arDetect.samplingInterval)
+      // for(var i = 1; i < this.settings.active.arDetect.samplingInterval; i++){
       //   this.sampleCols.push(i * samplingIntervalPx);
       // }
       
@@ -105,8 +106,8 @@ class ArDetector {
 
       try{
         // determine where to sample
-        var ncol = ExtensionConf.arDetect.staticSampleCols;
-        var nrow = ExtensionConf.arDetect.staticSampleRows;
+        var ncol = this.settings.active.arDetect.staticSampleCols;
+        var nrow = this.settings.active.arDetect.staticSampleRows;
         
         var colSpacing = this.canvas.width / ncol;
         var rowSpacing = (this.canvas.height << 2) / nrow;
@@ -131,7 +132,7 @@ class ArDetector {
         }
       }
       catch(ex){
-        console.log("%c[ArDetect::_arSetup] something went terribly wrong when calcuating sample colums.", ExtensionConf.colors.criticalFail);
+        console.log("%c[ArDetect::_arSetup] something went terribly wrong when calcuating sample colums.", this.settings.active.colors.criticalFail);
         console.log("settings object:", Settings);
         console.log("error:", ex);
       }
@@ -293,14 +294,14 @@ class ArDetector {
   getTimeout(baseTimeout, startTime){
     var execTime = (performance.now() - startTime);
     
-    if( execTime > ExtensionConf.arDetect.autoDisable.maxExecutionTime ){
+    if( execTime > this.settings.active.arDetect.autoDisable.maxExecutionTime ){
       //  this.detectionTimeoutEventCount++;
   
       if(Debug.debug){
         console.log("[ArDetect::getTimeout] Exec time exceeded maximum allowed execution time. This has now happened " +  this.detectionTimeoutEventCount + " times in a row.");
       }
   
-      // if( this.detectionTimeoutEventCount >= ExtensionConf.arDetect.autoDisable.consecutiveTimeoutCount ){
+      // if( this.detectionTimeoutEventCount >= this.settings.active.arDetect.autoDisable.consecutiveTimeoutCount ){
       //   if (Debug.debug){
       //     console.log("[ArDetect::getTimeout] Maximum execution time was exceeded too many times. Automatic aspect ratio detection has been disabled.");
       //   }
@@ -313,7 +314,7 @@ class ArDetector {
     } else {
        this.detectionTimeoutEventCount = 0;
     } 
-  //   return baseTimeout > ExtensionConf.arDetect.minimumTimeout ? baseTimeout : ExtensionConf.arDetect.minimumTimeout;
+  //   return baseTimeout > this.settings.active.arDetect.minimumTimeout ? baseTimeout : this.settings.active.arDetect.minimumTimeout;
     
     return baseTimeout;
   }
@@ -347,7 +348,7 @@ class ArDetector {
     var trueHeight = this.canvas.height * zoomFactor - letterbox;
 
     if(this.fallbackMode){
-      if(edges.top > 1 && edges.top <= ExtensionConf.arDetect.fallbackMode.noTriggerZonePx ){
+      if(edges.top > 1 && edges.top <= this.settings.active.arDetect.fallbackMode.noTriggerZonePx ){
         if(Debug.debug && Debug.debugArDetect) {
           console.log("Edge is in the no-trigger zone. Aspect ratio change is not triggered.")
         }
@@ -358,7 +359,7 @@ class ArDetector {
       // x2, ker je safetyBorderPx definiran za eno stran.
       // safety border so we can detect aspect ratio narrowing (21:9 -> 16:9).
       // x2 because safetyBorderPx is for one side.
-      trueHeight += (ExtensionConf.arDetect.fallbackMode.safetyBorderPx << 1);
+      trueHeight += (this.settings.active.arDetect.fallbackMode.safetyBorderPx << 1);
     }
 
 
@@ -390,7 +391,7 @@ class ArDetector {
       if(Debug.debug && Debug.debugArDetect)
         console.log("%c[ArDetect::_ard_processAr] new aspect ratio varies from the old one by this much:\n","color: #aaf","old Ar", lastAr.ar, "current ar", trueAr, "arDiff (absolute):",arDiff,"ar diff (relative to new ar)", arDiff_percent);
       
-      if (arDiff < trueAr * ExtensionConf.arDetect.allowedArVariance){
+      if (arDiff < trueAr * this.settings.active.arDetect.allowedArVariance){
         if(Debug.debug && Debug.debugArDetect)
           console.log("%c[ArDetect::_ard_processAr] aspect ratio change denied — diff %:", "background: #740; color: #fa2", arDiff_percent)
           
@@ -424,7 +425,7 @@ class ArDetector {
     
     var fallbackMode = false;
     var startTime = performance.now();
-    var baseTimeout = ExtensionConf.arDetect.timer_playing;
+    var baseTimeout = this.settings.active.arDetect.timer_playing;
     var triggerTimeout;
     
     var guardLineResult = true;         // true if success, false if fail. true by default
@@ -438,14 +439,14 @@ class ArDetector {
     if(this.video.ended ){
       // we slow down if ended. Detecting is pointless.
       
-      this.scheduleFrameCheck(ExtensionConf.arDetect.timer_paused);
+      this.scheduleFrameCheck(this.settings.active.arDetect.timer_paused);
       return false;
     }
     
     if(this.video.paused){
       // če je video pavziran, še vedno skušamo zaznati razmerje stranic - ampak bolj poredko.
       // if the video is paused, we still do autodetection. We just do it less often.
-      baseTimeout = ExtensionConf.arDetect.timer_paused;
+      baseTimeout = this.settings.active.arDetect.timer_paused;
     }
     
     try{
@@ -457,7 +458,7 @@ class ArDetector {
       }
 
       try{
-        if(! ExtensionConf.arDetect.fallbackMode.enabled)
+        if(! this.settings.active.arDetect.fallbackMode.enabled)
           throw "fallbackMode is disabled.";
         
         if(this.canvasReadyForDrawWindow()){
@@ -474,9 +475,9 @@ class ArDetector {
           var newCanvasWidth = window.innerHeight * (this.video.videoWidth / this.video.videoHeight);
           var newCanvasHeight = window.innerHeight;
           
-          if(ExtensionConf.miscFullscreenSettings.videoFloat == "center")
+          if(this.settings.active.miscFullscreenthis.settings.videoFloat == "center")
             this.canvasDrawWindowHOffset = Math.round((window.innerWidth - newCanvasWidth) * 0.5);
-          else if(ExtensionConf.miscFullscreenSettings.videFloat == "left")
+          else if(this.settings.active.miscFullscreenthis.settings.videFloat == "left")
             this.canvasDrawWindowHOffset = 0;
           else
             this.canvasDrawWindowHOffset = window.innerWidth - newCanvasWidth;
@@ -491,7 +492,7 @@ class ArDetector {
         if(Debug.debug)
           console.log("%c[ArDetect::_ard_vdraw] okay this didnt work either", "color:#000; backgroud:#f51;", ex);
         
-        this.scheduleFrameCheck( ExtensionConf.arDetect.timer_error );
+        this.scheduleFrameCheck( this.settings.active.arDetect.timer_error );
         return;  
       }
     }
@@ -573,14 +574,14 @@ class ArDetector {
     //#endregion
 
     // this means we don't have letterbox
-    if ( currentMaxVal > (this.blackLevel + ExtensionConf.arDetect.blackbarTreshold) || (currentMaxVal - currentMinVal) > ExtensionConf.arDetect.blackbarTreshold*4 ){
+    if ( currentMaxVal > (this.blackLevel + this.settings.active.arDetect.blackbarTreshold) || (currentMaxVal - currentMinVal) > this.settings.active.arDetect.blackbarTreshold*4 ){
       
       // Če ne zaznamo letterboxa, kličemo reset. Lahko, da je bilo razmerje stranic popravljeno na roke. Možno je tudi,
       // da je letterbox izginil.
       // If we don't detect letterbox, we reset aspect ratio to aspect ratio of the video file. The aspect ratio could
       // have been corrected manually. It's also possible that letterbox (that was there before) disappeared.
       if(Debug.debug && Debug.debugArDetect){
-        console.log(`%c[ArDetect::_ard_vdraw] ---- NO EDGE DETECTED! — canvas has no edge. ----\ncurrentMaxVal: ${currentMaxVal}\nBlack level (+ treshold):${this.blackLevel} (${this.blackLevel + ExtensionConf.arDetect.blackbarTreshold})\n---diff test---\nmaxVal-minVal: ${ (currentMaxVal - currentMinVal)}\ntreshold: ${ExtensionConf.arDetect.blackbarTreshold}`, "color: #aaf");
+        console.log(`%c[ArDetect::_ard_vdraw] ---- NO EDGE DETECTED! — canvas has no edge. ----\ncurrentMaxVal: ${currentMaxVal}\nBlack level (+ treshold):${this.blackLevel} (${this.blackLevel + this.settings.active.arDetect.blackbarTreshold})\n---diff test---\nmaxVal-minVal: ${ (currentMaxVal - currentMinVal)}\ntreshold: ${this.settings.active.arDetect.blackbarTreshold}`, "color: #aaf");
       }
       
       // Pogledamo, ali smo že kdaj ponastavili CSS. Če še nismo, potem to storimo. Če smo že, potem ne.
@@ -600,7 +601,7 @@ class ArDetector {
     }
 
     if(Debug.debug && Debug.debugArDetect){
-      console.log(`%c[ArDetect::_ard_vdraw] edge was detected. Here are stats:\ncurrentMaxVal: ${currentMaxVal}\nBlack level (+ treshold):${this.blackLevel} (${this.blackLevel + ExtensionConf.arDetect.blackbarTreshold})\n---diff test---\nmaxVal-minVal: ${ (currentMaxVal - currentMinVal)}\ntreshold: ${ExtensionConf.arDetect.blackbarTreshold}`, "color: #afa");
+      console.log(`%c[ArDetect::_ard_vdraw] edge was detected. Here are stats:\ncurrentMaxVal: ${currentMaxVal}\nBlack level (+ treshold):${this.blackLevel} (${this.blackLevel + this.settings.active.arDetect.blackbarTreshold})\n---diff test---\nmaxVal-minVal: ${ (currentMaxVal - currentMinVal)}\ntreshold: ${this.settings.active.arDetect.blackbarTreshold}`, "color: #afa");
     }
     
     // Če preverjamo naprej, potem moramo postaviti to vrednost nazaj na 'false'. V nasprotnem primeru se bo
@@ -694,7 +695,7 @@ class ArDetector {
     if(Debug.debug && Debug.debugArDetect){
       console.log(`%c[ArDetect::_ard_vdraw] edgeDetector returned this\n`,  "color: #aaf", edgePost);
     }
-    //   console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:",GlobalVars.arDetect.blackLevel, "tresh:", this.blackLevel + ExtensionConf.arDetect.blackbarTreshold);
+    //   console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:",GlobalVars.arDetect.blackLevel, "tresh:", this.blackLevel + this.settings.active.arDetect.blackbarTreshold);
     
     if(edgePost.status == "ar_known"){
 
@@ -705,11 +706,11 @@ class ArDetector {
       // var textEdge = false;;
 
       // if(edgePost.guardLineTop != null){
-      //   var row = edgePost.guardLineTop + ~~(this.canvas.height * ExtensionConf.arDetect.textLineTest.testRowOffset);
+      //   var row = edgePost.guardLineTop + ~~(this.canvas.height * this.settings.active.arDetect.textLineTest.testRowOffset);
       //   textEdge |= textLineTest(image, row);
       // }
       // if(edgePost.guardLineTop != null){
-      //   var row = edgePost.guardLineTop - ~~(this.canvas.height * ExtensionConf.arDetect.textLineTest.testRowOffset);
+      //   var row = edgePost.guardLineTop - ~~(this.canvas.height * this.settings.active.arDetect.textLineTest.testRowOffset);
       //   textEdge |= textLineTest(image, row);
       // }
 
@@ -746,11 +747,11 @@ class ArDetector {
         } else {
           if (this.conf.player.dimensions){
             this.guardLine.setBlackbarManual({
-              top: ExtensionConf.arDetect.fallbackMode.noTriggerZonePx,
-              bottom: this.conf.player.dimensions.height - ExtensionConf.arDetect.fallbackMode.noTriggerZonePx - 1
+              top: this.settings.active.arDetect.fallbackMode.noTriggerZonePx,
+              bottom: this.conf.player.dimensions.height - this.settings.active.arDetect.fallbackMode.noTriggerZonePx - 1
             },{
-              top: edgePost.guardLineTop + ExtensionConf.arDetect.guardLine.edgeTolerancePx,
-              bottom: edgePost.guardLineBottom - ExtensionConf.arDetect.guardLine.edgeTolerancePx
+              top: edgePost.guardLineTop + this.settings.active.arDetect.guardLine.edgeTolerancePx,
+              bottom: edgePost.guardLineBottom - this.settings.active.arDetect.guardLine.edgeTolerancePx
             })
           }
         }
@@ -772,7 +773,7 @@ class ArDetector {
   }
 
   resetBlackLevel(){
-    this.blackLevel = ExtensionConf.arDetect.blackLevel_default;    
+    this.blackLevel = this.settings.active.arDetect.blackLevel_default;    
   }
 
 }
@@ -797,8 +798,8 @@ var textLineTest = function(image, row){
   // 
   // returns 'true' if text is detected, 'false' otherwise
 
-  var blackbarTreshold = this.blackLevel + ExtensionConf.arDetect.blackbarTreshold;
-  var nontextTreshold = this.canvas.width * ExtensionConf.arDetect.textLineTest.nonTextPulse;
+  var blackbarTreshold = this.blackLevel + this.settings.active.arDetect.blackbarTreshold;
+  var nontextTreshold = this.canvas.width * this.settings.active.arDetect.textLineTest.nonTextPulse;
 
   var rowStart = (row * this.canvas.width) << 2;
   var rowEnd = rowStart + (this.canvas.width << 2);
@@ -852,7 +853,7 @@ var textLineTest = function(image, row){
 
   // če smo zaznali dovolj pulzov, potem vrnemo res
   // if we detected enough pulses, we return true
-  if(pulseCount > ExtensionConf.arDetect.textLineTest.pulsesToConfirm){
+  if(pulseCount > this.settings.active.arDetect.textLineTest.pulsesToConfirm){
     return true;
   }
 
@@ -861,7 +862,7 @@ var textLineTest = function(image, row){
   // if the longest uninterrupted line of black pixels is wider than half the width, we use a more
   // forgiving standard for determining if we found text
   if( longestBlack > (this.canvas.width >> 1) && 
-      pulseCount   > ExtensionConf.arDetect.textLineTest.pulsesToConfirmIfHalfBlack ){
+      pulseCount   > this.settings.active.arDetect.textLineTest.pulsesToConfirmIfHalfBlack ){
     return true;
   }
 

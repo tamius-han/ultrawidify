@@ -1,10 +1,10 @@
 class VideoData {
   
-  constructor(video){
+  constructor(video, settings){
     this.arSetupComplete = false;
     this.video = video;
     this.destroyed = false;
-
+    this.settings = settings;
     // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
     // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)    
     this.player = new PlayerData(this);

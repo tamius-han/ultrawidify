@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Ultrawidify",
-  "version": "3.0.1",
+  "version": "3.0.2a",
   
   "icons": {
     "32":"res/icons/uw-32.png",
@@ -16,13 +16,14 @@
     "js/conf/Debug.js",
 
     "js/lib/BrowserDetect.js",
-    "js/conf/ExtensionConf.js",    
+    "js/conf/Settings.active..js",    
 
     "js/run/GlobalVars.js",
     "js/lib/StorageManager.js",
     "js/lib/Comms.js",
     
-    "js/conf/Settings.js",
+    "js/lib/ObjectCopy.js",
+    "js/lib/Settings.js",
     "js/conf/SitesConf.js",
     "js/conf/Status.js",
 
@@ -53,13 +54,13 @@
     "js/conf/Debug.js",
     "js/lib/BrowserDetect.js",
 
-    "js/conf/ExtensionConf.js",
+    "js/conf/Settings.active..js",
     
     "js/lib/StorageManager.js",
     "js/lib/Comms.js",
-    
-    "js/conf/Settings.js",
-    "js/conf/SitesConf.js",
+
+    "js/lib/ObjectCopy.js",
+    "js/lib/Settings.js",
     "js/conf/Status.js",
     
     "js/conf/Keybinds.js",
