@@ -13,7 +13,7 @@ class Resizer {
   constructor(videoData){
     this.conf = videoData;
     this.video = videoData.video;
-
+    this.settings = videoData.settings;
 
     this.scaler = new Scaler(this.conf);
     this.stretcher = new Stretcher(this.conf); 
@@ -199,7 +199,7 @@ class Resizer {
   computeOffsets(stretchFactors){
 
     if(Debug.debug)
-      console.log("[Resizer::_res_computeOffsets] video will be aligned to ", ExtensionConf.miscFullscreenSettings.videoFloat);
+      console.log("[Resizer::_res_computeOffsets] video will be aligned to ", settings.active.miscFullscreenSettings.videoFloat);
   
     var actualWidth = this.conf.video.offsetWidth * stretchFactors.xFactor;
     var actualHeight = this.conf.video.offsetHeight * stretchFactors.yFactor;
@@ -209,10 +209,10 @@ class Resizer {
     if (this.pan) {
       // todo: calculate translate
     } else {
-      if (ExtensionConf.miscFullscreenSettings.videoFloat == "left") {
+      if (settings.active.miscFullscreenSettings.videoFloat == "left") {
         translate.x = (this.conf.player.dimensions.width - actualWidth) * -0.5;
       }
-      else if (ExtensionConf.miscFullscreenSettings.videoFloat == "right") {
+      else if (settings.active.miscFullscreenSettings.videoFloat == "right") {
         translate.x = (this.conf.player.dimensions.width - actualWidth) * 0.5;
       }
     }
@@ -288,8 +288,8 @@ class Resizer {
       //   if(Debug.debug)
       //     console.log("[Resizer::_res_setStyleString] Style string not set ???");
         
-      //   if(count < ExtensionConf.resizer.setStyleString.maxRetries){
-      //     setTimeout( this.setStyleString, ExtensionConf.resizer.setStyleString.retryTimeout, count + 1);
+      //   if(count < settings.active.resizer.setStyleString.maxRetries){
+      //     setTimeout( this.setStyleString, settings.active.resizer.setStyleString.retryTimeout, count + 1);
       //   }
       //   else if(Debug.debug){
       //     console.log("[Resizer::_res_setStyleString] we give up. css string won't be set");

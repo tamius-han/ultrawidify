@@ -11,7 +11,8 @@ class Stretcher {
   // functions
   constructor(videoData) {
     this.conf = videoData;
-    this.mode = ExtensionConf.stretch.initialMode;
+    this.settings = videoData.settings;
+    this.mode = this.settings.active.stretch.initialMode;
   }
 
   applyConditionalStretch(stretchFactors, actualAr){
@@ -36,11 +37,11 @@ class Stretcher {
       actualWidth = newWidth;
     }
 
-    var minW = this.conf.player.dimensions.width * (1 - ExtensionConf.stretch.conditionalDifferencePercent);
-    var maxW = this.conf.player.dimensions.width * (1 + ExtensionConf.stretch.conditionalDifferencePercent);
+    var minW = this.conf.player.dimensions.width * (1 - this.settings.active.stretch.conditionalDifferencePercent);
+    var maxW = this.conf.player.dimensions.width * (1 + this.settings.active.stretch.conditionalDifferencePercent);
 
-    var minH = this.conf.player.dimensions.height * (1 - ExtensionConf.stretch.conditionalDifferencePercent);
-    var maxH = this.conf.player.dimensions.height * (1 + ExtensionConf.stretch.conditionalDifferencePercent);
+    var minH = this.conf.player.dimensions.height * (1 - this.settings.active.stretch.conditionalDifferencePercent);
+    var maxH = this.conf.player.dimensions.height * (1 + this.settings.active.stretch.conditionalDifferencePercent);
 
     if (actualWidth >= minW && actualWidth <= maxW) {
       stretchFactors.xFactor *= this.conf.player.dimensions.width / actualWidth;
