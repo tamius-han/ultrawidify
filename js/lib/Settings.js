@@ -1,7 +1,7 @@
 class Settings {
 
-  constructor() {
-    this.active = {};
+  constructor(activeSettings) {
+    this.active = activeSettings ? activeSettings : {};
     this.default = ExtensionConf;
   }
 
@@ -13,7 +13,8 @@ class Settings {
     }
 
     // if there's no settings saved, return default settings.
-    if(! settings || (Object.keys(newSettings).length === 0 && newSettings.constructor === Object)) {
+    if(! settings || (Object.keys(settings).length === 0 && settings.constructor === Object)) {
+      console.log("NO SETTINGS")
       this.setDefaultSettings();
       this.active = this.getDefaultSettings();
       return this.active;
@@ -23,7 +24,16 @@ class Settings {
     this.active = settings;
 
     // check if extension has been updated. If not, return settings as they were retreived
-    const uwVersion = runtime.getManifest().version;
+    var uwVersion;
+    
+    if (BrowserDetect.firefox) {
+      uwVersion = browser.runtime.getManifest().version;
+    } else if (BrowserDetect.chrome) {
+      uwVersion = chrome.runtime.getManifest().version;
+    } else if (BrowserDetect.edge) {
+      uwVersion = browser.runtime.getManifest().version;
+    }
+
     if(settings.version === uwVersion) {
       if(Debug.debug) {
         console.log("[Settings::init] extension was saved with current version of ultrawidify (", uwVersion, "). Returning object as-is.");
@@ -40,18 +50,32 @@ class Settings {
 
   async get() {
     if (BrowserDetect.firefox || BrowserDetect.edge) {
-      return browser.storage.sync.get('uw-settings');
+      const ret = browser.storage.sync.get('uw-settings');
+      return ret['uw-settings'];
     } else if (BrowserDetect.chrome) {
-      return chrome.storage.sync.get('uw-settings');
+      const ret = chrome.storage.sync.get('uw-settings');
+      return ret['uw-settings'];
     }
   }
 
   async set(extensionConf) {
     if (BrowserDetect.firefox || BrowserDetect.edge) {
-      return browser.storage.sync.set('uw-settings', extensionConf);
+      return browser.storage.sync.set( {'uw-settings': extensionConf});
     } else if (BrowserDetect.chrome) {
-      return chrome.storage.sync.set('uw-settings', extensionConf);
+      return chrome.storage.sync.set( {'uw-settings': extensionConf});
     }
+  }
+
+  async setActive(activeSettings) {
+    this.active = activeSettings;
+  }
+
+  async setProp(prop, value) {
+    this.active[prop] = value;
+  }
+
+  async save() {
+    this.set(this.active);
   }
 
   getDefaultSettings() {
@@ -87,6 +111,8 @@ class Settings {
       site = window.location.hostname;
 
       if (!site) {
+        console.log("[Settings::canStartExtension] window.location.hostname is null or undefined:", window.location.hostname)
+        console.log("active settings:", this.active)
         return false;
       }
     }
@@ -105,19 +131,22 @@ class Settings {
                   "\nCan extension be started?", cse
                  );
     }
-
+    try{
     // if site is not defined, we use default mode:
     if (! this.active.sites[site]) {
       return this.active.extensionMode === "blacklist";
     }
 
     if(this.active.extensionMode === "blacklist") {
-      return this.active.sites[site] !== "disabled";
+      return this.active.sites[site].status !== "disabled";
     } else if (this.active.extensionMode === "whitelist") {
-      return this.active.sites[site] === "enabled";
+      return this.active.sites[site].status === "enabled";
     } else {
       return false;
     }
+  }catch(e){
+    console.log("THIS?", this)
+  }
   }
 
 

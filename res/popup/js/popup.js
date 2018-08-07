@@ -241,6 +241,9 @@ function openMenu(menu){
   }
   
   for(var m in Menu){
+    if(Menu[m] === null)
+      continue; //todo: remove menus that are no longer there
+    
     Menu[m].classList.add("hidden");
   }
   for(var m in MenuTab){

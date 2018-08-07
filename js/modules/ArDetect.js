@@ -150,7 +150,7 @@ class ArDetector {
       this.canvasImageDataRowLength = cwidth << 2;
       this.noLetterboxCanvasReset = false;
       
-      if(forceStart || canStartAutoAr() ) {
+      if(forceStart || this.settings.canStartAutoAr() ) {
         this.start();
       }
     }

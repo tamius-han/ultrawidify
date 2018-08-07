@@ -2,6 +2,11 @@
   "manifest_version": 2,
   "name": "Ultrawidify",
   "version": "3.0.2a",
+  "applications": {
+    "gecko": {
+      "id": "{cf02b1a7-a01a-4e37-a609-516a283f1ed3}"
+    }
+  },
   
   "icons": {
     "32":"res/icons/uw-32.png",
@@ -16,16 +21,12 @@
     "js/conf/Debug.js",
 
     "js/lib/BrowserDetect.js",
-    "js/conf/Settings.active..js",    
-
-    "js/run/GlobalVars.js",
-    "js/lib/StorageManager.js",
-    "js/lib/Comms.js",
+    "js/conf/ExtensionConf.js",    
     
     "js/lib/ObjectCopy.js",
     "js/lib/Settings.js",
-    "js/conf/SitesConf.js",
-    "js/conf/Status.js",
+
+    "js/lib/Comms.js",
 
     "js/lib/EdgeDetect.js",
     "js/lib/GuardLine.js",
@@ -54,7 +55,7 @@
     "js/conf/Debug.js",
     "js/lib/BrowserDetect.js",
 
-    "js/conf/Settings.active..js",
+    "js/conf/ExtensionConf.js",
     
     "js/lib/StorageManager.js",
     "js/lib/Comms.js",
