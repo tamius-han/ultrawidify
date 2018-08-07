@@ -8,11 +8,17 @@ class CommsClient {
       this.port = browser.runtime.connect({name: name});
     } else if (BrowserDetect.chrome) {
       this.port = chrome.runtime.connect({name: name});
+    } else if (BrowserDetect.edge) {
+      this.port = browser.runtime.connect({name: name})
     }
 
+    console.log("BrowserDetect", BrowserDetect)
+    console.log("!! port", this.port)
     var ths = this;
     this.port.onMessage.addListener(m => ths.processReceivedMessage(m));
     this.hasSettings = false;
+
+    this.settings = new Settings();
   }
   
   setPageInfo(pageInfo){
@@ -136,6 +142,7 @@ class CommsClient {
 class CommsServer {
   constructor(server) {
     this.server = server;
+    this.settings = server.settings;
     this.ports = [];
 
     var ths = this;
@@ -230,25 +237,25 @@ class CommsServer {
       this.sendToActive(message);
     } else if (message.cmd === 'set-stretch-default') {
       this.settings.active.stretch.initialMode = message.mode;
-      this.settings.save(this.settings.active);
+      this.settings.save();
       this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     } else if (message.cmd === 'set-ar') {
       this.sendToActive(message);
     } else if (message.cmd === 'set-custom-ar') {
       this.settings.active.keyboard.shortcuts.q.arg = message.ratio;
-      this.settings.save(this.settings.active);
+      this.settings.save();
       this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     } else if (message.cmd === 'set-video-float') {
       this.sendToActive(message);
       this.settings.active.miscFullscreenthis.settings.videoFloat = message.newFloat;
-      this.settings.save(this.settings.active);
+      this.settings.save();
       this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
 
     } else if (message.cmd === 'autoar-start') {
       this.sendToActive(message);
     } else if (message.cmd === "autoar-enable") {   // LEGACY - can be removed prolly?
       this.settings.active.arDetect.mode = "blacklist";
-      this.settings.save(this.settings.active);
+      this.settings.save();
       this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     } else if (message.cmd === "autoar-disable") {  // LEGACY - can be removed prolly?
       this.settings.active.arDetect.mode = "disabled";
@@ -257,7 +264,7 @@ class CommsServer {
       } else {
         this.settings.active.arDetect.disabledReason = 'User disabled';
       }
-      this.settings.save(this.settings.active);
+      this.settings.save();
       this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     } else if (message.cmd === "autoar-set-interval") {
       if(Debug.debug)
@@ -266,40 +273,40 @@ class CommsServer {
       // set fairly liberal limit
       var timeout = message.timeout < 4 ? 4 : message.timeout;
       this.settings.active.arDetect.timer_playing = timeout;
-      this.settings.save(this.settings.active);
+      this.settings.save();
       this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     } else if (message.cmd === "set-autoar-defaults") {
       this.settings.active.arDetect.mode = message.mode;
-      this.settings.save(this.settings.active);
+      this.settings.save();
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
     } else if (message.cmd === "set-autoar-for-site") {
       if (this.settings.active.sites[this.server.currentSite]) {
         this.settings.active.sites[this.server.currentSite].arStatus = message.mode;
-        this.settings.save(this.settings.active);
+        this.settings.save();
       } else {
         this.settings.active.sites[this.server.currentSite] = {
           status: "default",
           arStatus: message.mode,
           statusEmbedded: "default"
         };
-        this.settings.save(this.settings.active);
+        this.settings.save();
       }
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"});
     } else if (message.cmd === "set-extension-defaults") {
       this.settings.active.extensionMode = message.mode;
-      this.settings.save(this.settings.active);
+      this.settings.save();
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
     } else if (message.cmd === "set-extension-for-site") {
       if (this.settings.active.sites[this.server.currentSite]) {
         this.settings.active.sites[this.server.currentSite].status = message.mode;
-        this.settings.save(this.settings.active);
+        this.settings.save();
       } else {
         this.settings.active.sites[this.server.currentSite] = {
           status: message.mode,
           arStatus: "default",
           statusEmbedded: message.mode
         };
-        this.settings.save(this.settings.active);        
+        this.settings.save();        
         console.log("SAVING PER-SITE OPTIONS,", this.server.currentSite, this.settings.active.sites[this.server.currentSite])
       }
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"});
@@ -323,7 +330,7 @@ class CommsServer {
       Promise.resolve(ret);
     } else if (message.cmd === "autoar-enable") {
       this.settings.active.arDetect.mode = "blacklist";
-      this.settings.save(this.settings.active);
+      this.settings.save();
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
       if(Debug.debug){
         console.log("[uw-bg] autoar set to enabled (blacklist). evidenz:", this.settings.active);
@@ -335,7 +342,7 @@ class CommsServer {
       } else {
         this.settings.active.arDetect.disabledReason = 'User disabled';
       }
-      this.settings.save(this.settings.active);
+      this.settings.save();
       this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
       if(Debug.debug){
         console.log("[uw-bg] autoar set to disabled. evidenz:", this.settings.active);
@@ -347,7 +354,7 @@ class CommsServer {
       // set fairly liberal limit
       var timeout = message.timeout < 4 ? 4 : message.timeout;
       this.settings.active.arDetect.timer_playing = timeout;
-      this.settings.save(this.settings.active);
+      this.settings.save();
       this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     }
   }
@@ -362,7 +369,7 @@ class CommsServer {
       // return true;
     } else if (message.cmd === "autoar-enable") {
       this.settings.active.arDetect.mode = "blacklist";
-      this.settings.save(this.settings.active);
+      this.settings.save();
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
       if(Debug.debug){
         console.log("[uw-bg] autoar set to enabled (blacklist). evidenz:", this.settings.active);
@@ -374,7 +381,7 @@ class CommsServer {
       } else {
         this.settings.active.arDetect.disabledReason = 'User disabled';
       }
-      this.settings.save(this.settings.active);
+      this.settings.save();
       this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
       if(Debug.debug){
         console.log("[uw-bg] autoar set to disabled. evidenz:", this.settings.active);
@@ -386,7 +393,7 @@ class CommsServer {
       // set fairly liberal limit
       var timeout = message.timeout < 4 ? 4 : message.timeout;
       this.settings.active.arDetect.timer_playing = timeout;
-      this.settings.save(this.settings.active);
+      this.settings.save();
       this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     }
   }

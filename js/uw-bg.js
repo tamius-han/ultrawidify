@@ -15,7 +15,9 @@ class UWServer {
   }
 
   async setup() {
-    await Settings.init();
+    this.settings = new Settings();
+
+    await this.settings.init();
     this.comms = new CommsServer(this);
 
 
