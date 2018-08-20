@@ -695,7 +695,7 @@ class ArDetector {
     if(Debug.debug && Debug.debugArDetect){
       console.log(`%c[ArDetect::_ard_vdraw] edgeDetector returned this\n`,  "color: #aaf", edgePost);
     }
-    //   console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:",GlobalVars.arDetect.blackLevel, "tresh:", this.blackLevel + this.settings.active.arDetect.blackbarTreshold);
+    //   console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:", this.blackLevel, "tresh:", this.blackLevel + this.settings.active.arDetect.blackbarTreshold);
     
     if(edgePost.status == "ar_known"){
 

@@ -317,9 +317,6 @@ class Resizer {
     }
     console.log("css watcher running. video?", ths.video)
     
-    // // our current css is fucky? Null, undefined and 0 are invalid values.
-    // if(! GlobalVars.currentCss.width || ! GlobalVars.currentCss.height )
-    //   return;
 
     // first, a quick test:
     if (ths.currentVideoSettings.validFor == ths.conf.player.dimensions ){

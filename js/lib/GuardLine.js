@@ -160,10 +160,7 @@ class GuardLine {
   imageCheck(image){  
     if(!this.imageBar.top || !this.imageBar.bottom)
       return { success: false };
-    
-    
-    var edges = GlobalVars.arDetect.guardLine;  
-    
+        
     var offset = parseInt(this.conf.canvas.width * this.settings.active.arDetect.guardLine.ignoreEdgeMargin) << 2;
       
     // TODO: implement logo check.
