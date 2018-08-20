@@ -22,11 +22,17 @@ class Resizer {
     // load up default values
     this.correctedVideoDimensions = {};
     this.currentCss = {};
+    this.currentStyleString = "";
+    this.currentCssValidFor = {};
 
     // restore watchdog. While true, applyCss() tries to re-apply new css until this value becomes false again
     // value becomes false when width and height of <video> tag match with what we want to set. Only necessary when
     // calling _res_restore() for some weird reason.
     this.restore_wd = false;
+
+    // CSS watcher will trigger _very_ often for this many iterations
+    this.cssWatcherIncreasedFrequencyCounter = 0;
+
 
     this.lastAr = {type: 'original'};
     this.destroyed = false;
@@ -47,6 +53,9 @@ class Resizer {
 
 
   setAr(ar, lastAr){
+    this.startCssWatcher();
+    this.cssWatcherIncreasedFrequencyCounter = 20;
+    
     if(Debug.debug){
       console.log('[Resizer::setAr] trying to set ar. New ar:', ar)
     }
@@ -134,12 +143,38 @@ class Resizer {
 
   startCssWatcher(){
     // this.haltCssWatcher = false;
-    if(!this.cssWatcherTimeout){
-      // if(Debug.debug)
-        // console.log("[Resizer.js] STARTING CSS WATCHER")
-  
-      // this.cssWatcherTimeout = setInterval(this.cssWatcher, 200, this);
+    if(!this.cssWatcherTimer){
+      this.scheduleCssWatcher(1);
+    } else {
+      clearTimeout(this.cssWatcherTimer);
+      this.scheduleCssWatcher(1);
     }
+  }
+  
+  scheduleCssWatcher(timeout, force_reset) {
+    if(timeout === undefined) {
+      console.log("?")
+      this.cssCheck(); // no timeout = one-off
+      return;
+    }
+
+    console.log("shcedulasdasdasds")
+
+    if(this.cssWatcherTimeout) {
+      clearTimeout(this.cssWatcherTimer);
+    }
+
+    var ths = this;
+    this.cssWatcherTimer = setTimeout(function () {
+        ths.cssWatcherTimer = null;
+        try {
+          ths.cssCheck();
+        } catch (e) {
+          if(Debug.debug) {
+            console.log("[Resizer.js::scheduleCssWatcher] Css check failed. Error:", e);
+          }
+        }
+      }, timeout);
   }
 
   stopCssWatcher() {
@@ -271,6 +306,9 @@ class Resizer {
 
   setStyleString (styleString, count = 0) {
     this.video.setAttribute("style", styleString);
+
+    this.currentStyleString = this.video.getAttribute('style');
+    this.currentCssValidFor = this.conf.player.dimensions;
     
     if(this.restore_wd){
   
@@ -305,71 +343,78 @@ class Resizer {
     }
   }
 
-  cssWatcher(ths){
+  cssCheck(){
     // this means we haven't set our CSS yet, or that we changed video.
-    if(! ths.currentCss.top)
-      return;
+    // if(! this.currentCss.tranform) {
+    //   this.scheduleCssWatcher(200);      
+    //   return;
+    // }
     
     // this means video went missing. videoData will be re-initialized when the next video is found
-    if(! ths.video){
-      ths.conf.destroy();
+    if(! this.video){
+      this.conf.destroy();
       return;
     }
-    console.log("css watcher running. video?", ths.video)
     
 
+    var styleString = this.video.getAttribute('style');
+
     // first, a quick test:
-    if (ths.currentVideoSettings.validFor == ths.conf.player.dimensions ){
-      if (ths.currentVideoSettings.videoWidth != ths.video.offsetWidth  ||
-          ths.currentVideoSettings.videoHeight != ths.video.offsetHeight){
-        ths.restore();
+    // if (this.currentVideoSettings.validFor == this.conf.player.dimensions ){
+      if (this.currentStyleString !== styleString){
+        this.restore();
+        this.scheduleCssWatcher(10);
         return;
       }
-    }
-  
-    var styleArrayStr = ths.video.getAttribute('style');
-    
-    if (styleArrayStr){
-      var styleArray = styleArrayStr.split(";");
-  
-      var stuffChecked = 0;
-      var stuffToCheck = 2;
+    // }
       
-      for(var i in styleArray){
-        styleArray[i] = styleArray[i].trim();
+    // if (styleString){
+    //   var styleArray = styleString.split(";");
+  
+    //   var stuffChecked = 0;
+    //   var stuffToCheck = 2;
+      
+    //   for(var i in styleArray){
+    //     styleArray[i] = styleArray[i].trim();
         
-        if (styleArray[i].startsWith("top:")){
-          // don't force css restore if currentCss.top is not defined
-          if(ths.currentCss.top && styleArray[i] != ths.currentCss.top){
-            if(Debug.debug){
-              console.log("[Resizer::_res_antiCssOverride] SOMEBODY TOUCHED MA SPAGHETT (our CSS got overriden, restoring our css)");
-              console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT: top:", ths.currentCss.top, "left:", ths.currentCss.left, "thing that touched ma spaghett", styleArrayStr);
-            }
-            ths.restore();
-            return;
-          }
-          stuffChecked++;
-        }
-        else if(styleArray[i].startsWith("left:")){
-          // don't force css restore if currentCss.left is not defined        
-          if(ths.currentCss.left && styleArray[i] != ths.currentCss.left){
-            if(Debug.debug){
-              console.log("[Resizer::_res_antiCssOverride] SOMEBODY TOUCHED MA SPAGHETT (our CSS got overriden, restoring our css)");
-              console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT: width:", ths.currentCss.width, "height:", ths.currentCss.height, "thing that touched ma spaghett", styleArrayStr);            
-            }
-            ths.restore();
-            return;
-          }
-          stuffChecked++;
-        }
-        
-        if(stuffChecked == stuffToCheck){
+    //     if (styleArray[i].startsWith("top:")){
+    //       // don't force css restore if currentCss.top is not defined
+    //       if(this.currentCss.top && styleArray[i] != this.currentCss.top){
     //         if(Debug.debug){
-    //           console.log("[Resizer::_res_antiCssOverride] My spaghett rests untouched. (nobody overrode our CSS, doing nothing)");
+    //           console.log("[Resizer::_res_antiCssOverride] SOMEBODY TOUCHED MA SPAGHETT (our CSS got overriden, restoring our css)");
+    //           console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT: top:", this.currentCss.top, "left:", this.currentCss.left, "thing that touched ma spaghett", styleString);
     //         }
-          return;
-        }
-      }
+    //         this.restore();
+    //         return;
+    //       }
+    //       stuffChecked++;
+    //     }
+    //     else if(styleArray[i].startsWith("left:")){
+    //       // don't force css restore if currentCss.left is not defined        
+    //       if(this.currentCss.left && styleArray[i] != this.currentCss.left){
+    //         if(Debug.debug){
+    //           console.log("[Resizer::_res_antiCssOverride] SOMEBODY TOUCHED MA SPAGHETT (our CSS got overriden, restoring our css)");
+    //           console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT: width:", this.currentCss.width, "height:", this.currentCss.height, "thing that touched ma spaghett", styleString);            
+    //         }
+    //         this.restore();
+    //         return;
+    //       }
+    //       stuffChecked++;
+    //     }
+        
+    //     if(stuffChecked == stuffToCheck){
+    // //         if(Debug.debug){
+    // //           console.log("[Resizer::_res_antiCssOverride] My spaghett rests untouched. (nobody overrode our CSS, doing nothing)");
+    // //         }
+    //       return;
+    //     }
+    //   }
+    // }
+    if (this.cssWatcherIncreasedFrequencyCounter > 0) {
+      --this.cssWatcherIncreasedFrequencyCounter;
+      this.scheduleCssWatcher(20);
+    } else {
+      this.scheduleCssWatcher(1000);    
     }
   }
 }

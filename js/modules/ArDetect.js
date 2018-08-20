@@ -14,7 +14,7 @@ class ArDetector {
     this.canFallback = true;
     this.fallbackMode = false;
 
-    this.blackLevel = this.settings.active.arDetect.blackLevel_default;    
+    this.blackLevel = this.settings.active.arDetect.blackLevel_default;   
   }
 
   init(){
