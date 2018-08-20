@@ -304,7 +304,7 @@ class EdgeDetect{
       // it could be watermark. It could be a dark frame. Let's check for watermark first.
       if( edgesTop[0].distance < edgesBottom[0].distance &&
           edgesTop[0].count    < edgesBottom[0].count    &&
-          edgesTop[0].count    < GlobalVars.arDetect.sampleCols * this.settings.active.arDetect.edgeDetection.logoTreshold){
+          edgesTop[0].count    < this.conf.sampleCols.length * this.settings.active.arDetect.edgeDetection.logoTreshold){
         // možno, da je watermark zgoraj. Preverimo, če se kateri od drugih potencialnih robov na zgornjem robu
         // ujema s prvim spodnjim (+/- variance). Če je temu tako, potem bo verjetno watermark. Logo mora imeti
         // manj vzorcev kot navaden rob.
@@ -335,7 +335,7 @@ class EdgeDetect{
       }
       if( edgesBottom[0].distance < edgesTop[0].distance &&
           edgesBottom[0].count    < edgesTop[0].count    &&
-          edgesBottom[0].count    < GlobalVars.arDetect.sampleCols * this.settings.active.arDetect.edgeDetection.logoTreshold){
+          edgesBottom[0].count    <this.conf.sampleCols.length * this.settings.active.arDetect.edgeDetection.logoTreshold){
         
         if(edgesBottom[0].length > 1){
           var lowMargin = edgesTop[0].distance - alignMargin;
@@ -368,7 +368,7 @@ class EdgeDetect{
       // either the top or the bottom edge remains undetected, but we have one more trick that we
       // can try. It also tries to work around logos.
       
-      var edgeDetectionTreshold = GlobalVars.arDetect.sampleCols * this.settings.active.arDetect.edgeDetection.singleSideConfirmationTreshold;
+      var edgeDetectionTreshold = this.conf.sampleCols.length * this.settings.active.arDetect.edgeDetection.singleSideConfirmationTreshold;
       
       if(edges.edgeCandidatesTopCount == 0 && edges.edgeCandidatesBottomCount != 0){
         for(var edge of edgesBottom){
