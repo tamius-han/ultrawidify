@@ -228,12 +228,14 @@ class ArDetector {
     );
   }
 
-  scheduleFrameCheck(timeout, force_reset){
+  async scheduleFrameCheck(timeout, force_reset){
     if(! timeout){
       this.frameCheck();
       return;
     }
   
+    var e = await this.settings.get();
+    console.log("settings?", this.settings.active, e);
     // run anything that needs to be run after frame check
     this.postFrameCheck(); 
 

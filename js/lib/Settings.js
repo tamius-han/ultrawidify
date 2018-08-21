@@ -3,18 +3,18 @@ class Settings {
   constructor(activeSettings) {
     this.active = activeSettings ? activeSettings : {};
     this.default = ExtensionConf;
+    this.useSync = false;
   }
 
   async init() {
-    const settings = await this.get('uw-settings');
+    const settings = await this.get();
 
     if(Debug.debug) {
-      console.log("[Settings::init] Configuration fetched from background script:", settings);
+      console.log("[Settings::init] Configuration fetched from storage:", settings);
     }
 
     // if there's no settings saved, return default settings.
     if(! settings || (Object.keys(settings).length === 0 && settings.constructor === Object)) {
-      console.log("NO SETTINGS")
       this.setDefaultSettings();
       this.active = this.getDefaultSettings();
       return this.active;
@@ -50,8 +50,12 @@ class Settings {
 
   async get() {
     if (BrowserDetect.firefox || BrowserDetect.edge) {
-      const ret = browser.storage.sync.get('uw-settings');
-      return ret['uw-settings'];
+      const ret = this.useSync ? await browser.storage.sync.get('uw-settings') : await browser.storage.local.get('uw-settings');
+      try {
+        return JSON.parse(ret['uw-settings']);
+      } catch(e) {
+        return undefined;
+      }
     } else if (BrowserDetect.chrome) {
       const ret = chrome.storage.sync.get('uw-settings');
       return ret['uw-settings'];
@@ -60,7 +64,7 @@ class Settings {
 
   async set(extensionConf) {
     if (BrowserDetect.firefox || BrowserDetect.edge) {
-      return browser.storage.sync.set( {'uw-settings': extensionConf});
+      return this.useSync ? browser.storage.sync.set( {'uw-settings': JSON.stringify(extensionConf)}): browser.storage.local.set( {'uw-settings': JSON.stringify(extensionConf)});
     } else if (BrowserDetect.chrome) {
       return chrome.storage.sync.set( {'uw-settings': extensionConf});
     }
@@ -125,11 +129,11 @@ class Settings {
       const cse = this.canStartExtension(site);
       Debug.debug = true;
 
-      console.log("[Settings::canStartExtension] ----------------\nCAN WE START THIS EXTENSION ON SITE", site,
-                  "?\n\nsettings.active.sites[site]=", this.active.sites[site],
-                  "\nExtension mode?", this.active.extensionMode,
-                  "\nCan extension be started?", cse
-                 );
+      // console.log("[Settings::canStartExtension] ----------------\nCAN WE START THIS EXTENSION ON SITE", site,
+      //             "?\n\nsettings.active.sites[site]=", this.active.sites[site],
+      //             "\nExtension mode?", this.active.extensionMode,
+      //             "\nCan extension be started?", cse
+      //            );
     }
     try{
     // if site is not defined, we use default mode:
