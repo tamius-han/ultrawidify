@@ -69,6 +69,11 @@ port.onMessage.addListener( (m,p) => processReceivedMessage(m,p));
 
 async function processReceivedMessage(message, port){
   if(message.cmd === 'set-config'){
+
+    if(Debug.debug){
+      console.log("[popup.js] setting config. Message was:", message)
+    }
+
     this.loadConfig(message.conf, message.site);
   }
 }

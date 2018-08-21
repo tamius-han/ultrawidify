@@ -232,6 +232,9 @@ class CommsServer {
     }
 
     if (message.cmd === 'get-config') {
+      if(Debug.debug) {
+        console.log("CommsServer: received get-config. Active settings?", this.settings.active, "\n(settings:", this.settings, ")")
+      }
       port.postMessage({cmd: "set-config", conf: this.settings.active, site: this.server.currentSite})
     } else if (message.cmd === 'set-stretch') {
       this.sendToActive(message);
