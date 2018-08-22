@@ -23,9 +23,9 @@ class UWServer {
 
     var ths = this;
     if(BrowserDetect.firefox) {
-      browser.tabs.onActivated.addListener((m) => ths.onTabSwitched(m));  
+      browser.tabs.onActivated.addListener(function(m) {ths.onTabSwitched(m)});  
     } else if (BrowserDetect.chrome) {
-      chrome.tabs.onActivated.addListener((m) => ths.onTabSwitched(m));
+      chrome.tabs.onActivated.addListener(function(m) {ths.onTabSwitched(m)});
     }
   }
 
