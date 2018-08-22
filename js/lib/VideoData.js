@@ -50,7 +50,7 @@ class VideoData {
       this.resizer.destroy();
     }
     if(this.player){
-      player.destroy();
+      this.player.destroy();
     }
     this.video = null;
   }

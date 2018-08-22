@@ -5,6 +5,16 @@ class Settings {
     this.default = ExtensionConf;
     this.useSync = false;
     this.version = undefined;
+
+    const ths = this;
+
+    if(BrowserDetect.firefox) {
+      browser.storage.onChanged.addListener( (changes, area) => {
+        if(changes['uwSettings'] && changes['uwSettings'].newValue) {
+          ths.active = JSON.parse(changes.uwSettings.newValue);
+        }
+      });
+    }
   }
 
   async init() {
@@ -72,6 +82,10 @@ class Settings {
   }
 
   async set(extensionConf) {
+    if (Debug.debug) {
+      console.log("[Settings::set] setting new settings:", extensionConf)
+    }
+
     if (BrowserDetect.firefox || BrowserDetect.edge) {
       extensionConf.version = this.version;
       return this.useSync ? browser.storage.sync.set( {'uwSettings': JSON.stringify(extensionConf)}): browser.storage.local.set( {'uwSettings': JSON.stringify(extensionConf)});
@@ -89,6 +103,10 @@ class Settings {
   }
 
   async save() {
+    if (Debug.debug) {
+      console.log("[Settings::save] Saving active settings:", this.active);
+    }
+
     this.set(this.active);
   }
 
