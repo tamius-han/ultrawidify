@@ -28,7 +28,7 @@ class CommsClient {
       console.log("[CommsClient.js::processMessage] Received message from background script!", message);
     }
 
-    if (! this.pageInfo) {
+    if (! this.pageInfo || this.settings.active) {
       if(Debug.debug && Debug.comms){
         console.log("[CommsClient.js::processMessage] this.pageInfo not defined. Extension is probably disabled for this site.");
       }
@@ -233,7 +233,7 @@ class CommsServer {
 
   processReceivedMessage(message, port){
     if (Debug.debug && Debug.comms) {
-      console.log("[CommsServer.js::processMessage] Received message from background script!", message, "port", port);
+      console.log("[CommsServer.js::processMessage] Received message from background script!", message, "port", port, "\nsettings and server:", this.settings,this.server);
     }
 
     if (message.cmd === 'get-config') {

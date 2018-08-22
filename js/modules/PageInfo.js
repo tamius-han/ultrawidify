@@ -26,7 +26,7 @@ class PageInfo {
 
 
   reset() {
-    for(video of this.videos) {
+    for(var video of this.videos) {
       video.destroy();
     }
     this.rescan(RescanReason.MANUAL);
