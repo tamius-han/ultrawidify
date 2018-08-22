@@ -21,7 +21,11 @@ async function init(){
   if(Debug.debug)
     console.log("[uw::main] loading configuration ...");
 
-  comms = new CommsClient('content-client-port');
+
+  settings = new Settings();
+  await settings.init();
+
+  comms = new CommsClient('content-client-port', settings);
 
   // load settings
   // var settingsLoaded = await comms.requestSettings();
@@ -39,8 +43,7 @@ async function init(){
   // if(Debug.debug)
   //   console.log("[uw::main] configuration should be loaded now");
 
-  settings = new Settings();
-  await settings.init();
+  
   
   console.log("SETTINGS SHOULD BE LOADED NOW!", settings)
 

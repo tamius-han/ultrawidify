@@ -3,7 +3,7 @@ if(Debug.debug){
 }
 
 class CommsClient {
-  constructor(name) {
+  constructor(name, settings) {
     if (BrowserDetect.firefox) {
       this.port = browser.runtime.connect({name: name});
     } else if (BrowserDetect.chrome) {
@@ -12,13 +12,10 @@ class CommsClient {
       this.port = browser.runtime.connect({name: name})
     }
 
-    console.log("BrowserDetect", BrowserDetect)
-    console.log("!! port", this.port)
     var ths = this;
     this.port.onMessage.addListener(m => ths.processReceivedMessage(m));
-    this.hasSettings = false;
 
-    this.settings = new Settings();
+    this.settings = settings;
   }
   
   setPageInfo(pageInfo){
@@ -33,7 +30,7 @@ class CommsClient {
     if (message.cmd === "set-ar") {
       this.pageInfo.setAr(message.ratio);
     } else if (message.cmd === 'set-video-float') {
-      this.settings.active.miscFullscreenthis.settings.videoFloat = message.newFloat;
+      this.settings.active.miscFullscreenSettings.videoFloat = message.newFloat;
       this.pageInfo.restoreAr();
     } else if (message.cmd === "has-videos") {
       
