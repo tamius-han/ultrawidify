@@ -16,6 +16,7 @@ class CommsClient {
     this.port.onMessage.addListener(m => ths.processReceivedMessage(m));
 
     this.settings = settings;
+    this.pageInfo = undefined;
   }
   
   setPageInfo(pageInfo){
@@ -25,6 +26,13 @@ class CommsClient {
   processReceivedMessage(message){
     if(Debug.debug && Debug.comms){
       console.log("[CommsClient.js::processMessage] Received message from background script!", message);
+    }
+
+    if (! this.pageInfo) {
+      if(Debug.debug && Debug.comms){
+        console.log("[CommsClient.js::processMessage] this.pageInfo not defined. Extension is probably disabled for this site.");
+      }
+      return;
     }
 
     if (message.cmd === "set-ar") {
@@ -282,6 +290,7 @@ class CommsServer {
     } else if (message.cmd === "set-autoar-for-site") {
       if (this.settings.active.sites[this.server.currentSite]) {
         this.settings.active.sites[this.server.currentSite].arStatus = message.mode;
+        console.log("SAVING AUTOAR MODE FOR SITE", this.server.currentSite, "\nnew site obj",this.settings.active.sites[this.server.currentSite] )
         this.settings.save();
       } else {
         this.settings.active.sites[this.server.currentSite] = {

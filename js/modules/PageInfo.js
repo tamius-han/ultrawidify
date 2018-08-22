@@ -17,6 +17,7 @@ class PageInfo {
 
     if(comms){ 
       this.comms = comms;
+      this.comms.setPageInfo(this);
       if(this.videos.length > 0){
         comms.registerVideo();
       }
@@ -24,7 +25,7 @@ class PageInfo {
   }
 
 
-  reset(){
+  reset() {
     for(video of this.videos) {
       video.destroy();
     }

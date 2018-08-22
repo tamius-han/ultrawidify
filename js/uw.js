@@ -57,7 +57,6 @@ async function init(){
   }
 
   pageInfo = new PageInfo(comms, settings);
-  comms.setPageInfo(pageInfo);
 
   if(Debug.debug){
     console.log("[uw.js::setup] pageInfo initialized. Here's the object:", pageInfo);
