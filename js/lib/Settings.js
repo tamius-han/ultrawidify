@@ -1,9 +1,10 @@
 class Settings {
 
   constructor(activeSettings) {
-    this.active = activeSettings ? activeSettings : {};
+    this.active = activeSettings ? activeSettings : undefined;
     this.default = ExtensionConf;
     this.useSync = false;
+    this.version = undefined;
   }
 
   async init() {
@@ -24,49 +25,58 @@ class Settings {
     this.active = settings;
 
     // check if extension has been updated. If not, return settings as they were retreived
-    var uwVersion;
-    
     if (BrowserDetect.firefox) {
-      uwVersion = browser.runtime.getManifest().version;
+      this.version = browser.runtime.getManifest().version;
     } else if (BrowserDetect.chrome) {
-      uwVersion = chrome.runtime.getManifest().version;
+      this.version = chrome.runtime.getManifest().version;
     } else if (BrowserDetect.edge) {
-      uwVersion = browser.runtime.getManifest().version;
+      this.version = browser.runtime.getManifest().version;
     }
 
-    if(settings.version === uwVersion) {
+    if(settings.version === this.version) {
       if(Debug.debug) {
-        console.log("[Settings::init] extension was saved with current version of ultrawidify (", uwVersion, "). Returning object as-is.");
+        console.log("[Settings::init] extension was saved with current version of ultrawidify (", this.version, "). Returning object as-is.");
       }
       return this.active;
     }
 
     // if extension has been updated, update existing settings with any options added in the
     // new version. In addition to that, we remove old keys that are no longer used.
-    this.active = ObjectCopy.addNew(settings, this.default);
+    const patched = ObjectCopy.addNew(settings, this.default);
+    if(Debug.debug) {
+      console.log("[Settings.init] Results from ObjectCopy.addNew()?", patched, "\n\nSettings from storage", settings, "\ndefault?", this.default,);
+    }
+
+    if(patched){
+      this.active = patched;
+    } else {
+      this.active = JSON.parse(JSON.stringify(this.default));
+    }
+
     this.set(this.active);
     return this.active;
   }
 
   async get() {
     if (BrowserDetect.firefox || BrowserDetect.edge) {
-      const ret = this.useSync ? await browser.storage.sync.get('uw-settings') : await browser.storage.local.get('uw-settings');
+      const ret = this.useSync ? await browser.storage.sync.get('uwSettings') : await browser.storage.local.get('uwSettings');
       try {
-        return JSON.parse(ret['uw-settings']);
+        return JSON.parse(ret.uwSettings);
       } catch(e) {
         return undefined;
       }
     } else if (BrowserDetect.chrome) {
-      const ret = chrome.storage.sync.get('uw-settings');
-      return ret['uw-settings'];
+      const ret = chrome.storage.sync.get('uwSettings');
+      return ret['uwSettings'];
     }
   }
 
   async set(extensionConf) {
     if (BrowserDetect.firefox || BrowserDetect.edge) {
-      return this.useSync ? browser.storage.sync.set( {'uw-settings': JSON.stringify(extensionConf)}): browser.storage.local.set( {'uw-settings': JSON.stringify(extensionConf)});
+      extensionConf.version = this.version;
+      return this.useSync ? browser.storage.sync.set( {'uwSettings': JSON.stringify(extensionConf)}): browser.storage.local.set( {'uwSettings': JSON.stringify(extensionConf)});
     } else if (BrowserDetect.chrome) {
-      return chrome.storage.sync.set( {'uw-settings': extensionConf});
+      return chrome.storage.sync.set( {'uwSettings': extensionConf});
     }
   }
 
@@ -148,9 +158,12 @@ class Settings {
     } else {
       return false;
     }
-  }catch(e){
-    console.log("THIS?", this)
-  }
+    }catch(e){
+      if(Debug.debug){
+        console.log("[Settings.js::canStartExtension] Something went wrong — are settings defined/has init() been called?\nSettings object:", this)
+      }
+      return false;
+    }
   }
 
 
