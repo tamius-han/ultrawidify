@@ -57,12 +57,10 @@
 
     "js/conf/ExtensionConf.js",
     
-    "js/lib/StorageManager.js",
     "js/lib/Comms.js",
 
     "js/lib/ObjectCopy.js",
     "js/lib/Settings.js",
-    "js/conf/Status.js",
     
     "js/conf/Keybinds.js",
     
