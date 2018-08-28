@@ -255,7 +255,7 @@ class CommsServer {
       this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     } else if (message.cmd === 'set-video-float') {
       this.sendToActive(message);
-      this.settings.active.miscFullscreenthis.settings.videoFloat = message.newFloat;
+      this.settings.active.miscFullscreenSettings.videoFloat = message.newFloat;
       this.settings.save();
       this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
 

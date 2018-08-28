@@ -56,7 +56,11 @@ async function init(){
     return;
   }
 
-  pageInfo = new PageInfo(comms, settings);
+  try {
+    pageInfo = new PageInfo(comms, settings);
+  } catch (e) {
+    console.log("[uw::init] FAILED TO START EXTENSION. Error:", e);
+  }
 
   if(Debug.debug){
     console.log("[uw.js::setup] pageInfo initialized. Here's the object:", pageInfo);

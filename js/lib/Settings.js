@@ -10,10 +10,28 @@ class Settings {
 
     if(BrowserDetect.firefox) {
       browser.storage.onChanged.addListener( (changes, area) => {
+        if (Debug.debug) {
+          console.log("[Settings::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
+          if (changes['uwSettings'] && changes['uwSettings'].newValue) {
+            console.log("[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));
+          }
+        }
         if(changes['uwSettings'] && changes['uwSettings'].newValue) {
           ths.active = JSON.parse(changes.uwSettings.newValue);
         }
       });
+    } else if (BrowserDetect.chrome) {
+      chrome.storage.onChanged.addListener( (changes, area) => {
+        if (Debug.debug) {
+          console.log("[Settings::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
+          if (changes['uwSettings'] && changes['uwSettings'].newValue) {
+            console.log("[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));
+          }
+        }
+        if(changes['uwSettings'] && changes['uwSettings'].newValue) {
+          ths.active = JSON.parse(changes.uwSettings.newValue);
+        }
+      })
     }
   }
 
@@ -76,7 +94,9 @@ class Settings {
         return undefined;
       }
     } else if (BrowserDetect.chrome) {
-      const ret = chrome.storage.sync.get('uwSettings');
+      const ret = new Promise( (resolve, reject) => {
+        chrome.storage.sync.get('uwSettings', (res) => resolve(res));
+      });
       return ret['uwSettings'];
     }
   }
@@ -90,7 +110,7 @@ class Settings {
       extensionConf.version = this.version;
       return this.useSync ? browser.storage.sync.set( {'uwSettings': JSON.stringify(extensionConf)}): browser.storage.local.set( {'uwSettings': JSON.stringify(extensionConf)});
     } else if (BrowserDetect.chrome) {
-      return chrome.storage.sync.set( {'uwSettings': extensionConf});
+      return chrome.storage.sync.set( {'uwSettings': JSON.stringify(extensionConf)});
     }
   }
 

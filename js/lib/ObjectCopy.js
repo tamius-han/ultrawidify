@@ -5,7 +5,7 @@ class ObjectCopy {
     var out = JSON.parse(JSON.stringify(target));
 
     if(! existing) {
-      if(Settings.debug) {
+      if(Debug.debug) {
         console.log("[ObjectCopy::addNew] There's no existing value. Returning target value.");
       }
 
