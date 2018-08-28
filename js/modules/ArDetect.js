@@ -235,7 +235,6 @@ class ArDetector {
     }
   
     var e = await this.settings.get();
-    console.log("settings?", this.settings.active, e);
     // run anything that needs to be run after frame check
     this.postFrameCheck(); 
 
@@ -477,9 +476,9 @@ class ArDetector {
           var newCanvasWidth = window.innerHeight * (this.video.videoWidth / this.video.videoHeight);
           var newCanvasHeight = window.innerHeight;
           
-          if(this.settings.active.miscFullscreenthis.settings.videoFloat == "center")
+          if(this.settings.active.miscFullscreenSettings.videoFloat == "center")
             this.canvasDrawWindowHOffset = Math.round((window.innerWidth - newCanvasWidth) * 0.5);
-          else if(this.settings.active.miscFullscreenthis.settings.videFloat == "left")
+          else if(this.settings.active.miscFullscreenSettings.videFloat == "left")
             this.canvasDrawWindowHOffset = 0;
           else
             this.canvasDrawWindowHOffset = window.innerWidth - newCanvasWidth;

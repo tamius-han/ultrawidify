@@ -158,8 +158,6 @@ class Resizer {
       return;
     }
 
-    console.log("shcedulasdasdasds")
-
     if(this.cssWatcherTimeout) {
       clearTimeout(this.cssWatcherTimer);
     }
