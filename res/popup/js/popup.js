@@ -5,7 +5,6 @@ document.getElementById("uw-version").textContent = browser.runtime.getManifest(
 
 var Menu = {};
 // Menu.noVideo    = document.getElementById("no-videos-display");
-Menu.general         = document.getElementById("extension-mode");
 Menu.thisSite        = document.getElementById("settings-for-current-site");
 Menu.arSettings      = document.getElementById("aspect-ratio-settings");
 Menu.autoAr          = document.getElementById("autoar-basic-settings");
@@ -57,40 +56,31 @@ StretchPanel.global.hybrid      = document.getElementById("_stretch_global_hybri
 StretchPanel.global.conditional = document.getElementById("_stretch_global_conditional");
 
 
-var selectedMenu = "arSettings";
+var selectedMenu = "";
 var hasVideos = false;
 
 var _config; 
 var _changeAr_button_shortcuts = { "autoar":"none", "reset":"none", "219":"none", "189":"none", "169":"none", "custom":"none" }
 
 var comms = new Comms();
-var settings = new Settings();
+var settings = new Settings(undefined, () => updateConfig());
+
+var site = undefined;
 
 var port = browser.runtime.connect({name: 'popup-port'});
 port.onMessage.addListener( (m,p) => processReceivedMessage(m,p));
 
 
-
-// let's init settings and check if they're loaded
-await settings.init();
-
-if (Debug.debug) {
-  console.log("[popup] Are settings loaded?", settings)
+async function processReceivedMessage(message, port){
+  if(message.cmd === 'set-current-site'){
+    site = message.site;
+    loadConfig(message.site);
+  }
 }
 
-
-
-
-
-
-async function processReceivedMessage(message, port){
-  if(message.cmd === 'set-config'){
-
-    if(Debug.debug){
-      console.log("[popup.js] setting config. Message was:", message)
-    }
-
-    this.loadConfig(message.conf, message.site);
+async function updateConfig() {
+  if (site) {
+    loadConfig(site);
   }
 }
 
@@ -116,12 +106,43 @@ function stringToKeyCombo(key_in){
   return keys_out;
 }
 
-async function loadConfig(){
+async function loadConfig(site){
 
   if(Debug.debug)
     console.log("[popup.js::loadConfig] loading config. conf object:", settings.active, "\n\n\n\n\n\n\n\n-------------------------------------");
-    
+  
+  // -----------------------
+  //#region tab-disabled
+  //
+  // if extension is disabled on current site, we can't do shit. Therefore, the following tabs will be disabled:
+  //      * AutoAR options
+  //      * Crop settings
+  //      * Stretch settings
+  var canStartExtension = settings.canStartExtension(site);
 
+  if (canStartExtension) {
+    MenuTab.arSettings.classList.remove('disabled');
+    MenuTab.autoAr.classList.remove('disabled');
+    MenuTab.stretchSettings.classList.remove('disabled');
+
+    // only switch when popup is being opened for the first time
+    if(! selectedMenu) {
+      openMenu('arSettings');
+    }
+  } else {
+    MenuTab.arSettings.classList.add('disabled');
+    MenuTab.autoAr.classList.add('disabled');
+    MenuTab.stretchSettings.classList.add('disabled');
+
+    // if popup isn't being opened for the first time, there's no reason to switch
+    // we're already in this tab
+    if(! selectedMenu) {
+      openMenu('thisSite');
+    }
+  }
+
+  //#endregion
+  //
   // ----------------------
   //#region extension-basics - SET BASIC EXTENSION OPTIONS
   if(Debug.debug)
@@ -252,8 +273,8 @@ async function loadConfig(){
     console.log("[popup.js::loadConfig] config loaded");
 }
 
-async function getConf(){
-  port.postMessage({cmd: 'get-config'});
+async function getSite(){
+  port.postMessage({cmd: 'get-current-site'});
 }
 
 function openMenu(menu){
@@ -337,22 +358,15 @@ function validateCustomAr(){
 
 function validateAutoArTimeout(){
   const inputField = document.getElementById("_input_autoAr_timer");
-  const valueSaveButton = document.getElementById("_b_autoar_save_autoar_frequency");
+  const valueSaveButton = document.getElementById("_b_autoar_save_autoar_timer");
 
-  if (! isNaN(parseInt(inputField.trim().value()))) {
+  if (! isNaN(parseInt(inputField.value.trim().value()))) {
     inputField.classList.remove("invalid-input");
     valueSaveButton.classList.remove("disabled-button");
   } else {
     inputField.classList.add("invalid-input");
     valueSaveButton.classList.add("disabled-button");
   }
-}
-
-function toggleSite(option){
-  if(Debug.debug)
-    console.log("[popup::toggleSite] toggling extension 'should I work' status to", option, "on current site");
-  
-  Comms.sendToBackgroundScript({cmd:"enable-for-site", option:option});
 }
 
 document.addEventListener("click", (e) => {
@@ -367,9 +381,6 @@ document.addEventListener("click", (e) => {
       return;
     
     if(e.target.classList.contains("menu-item")){
-      if(e.target.classList.contains("_menu_general")){
-        openMenu("general");
-      }
       if(e.target.classList.contains("_menu_this_site")){
         openMenu("thisSite");
       }
@@ -405,15 +416,28 @@ document.addEventListener("click", (e) => {
         settings.save();
         return;
       } else if (e.target.classList.contains("_ext_site_options")) {
-        command.cmd = "set-extension-for-site";
+        var mode; 
         if(e.target.classList.contains("_blacklist")){
-          command.mode = "disabled";
+          mode = "disabled";
         } else if(e.target.classList.contains("_whitelist")) {
-          command.mode = "enabled";
+          mode = "enabled";
         } else {
-          command.mode = "default";
+          mode = "default";
         }
-        return command;
+        
+        if(settings.active.sites[site]) {
+          settings.active.sites[site].status = mode;
+          settings.active.sites[site].statusEmbedded = mode;
+        } else {
+          settings.active.sites[site] = {
+            status: mode,
+            statusEmbedded: mode,
+            arStatus: 'default',
+            type: 'user-defined'
+          }
+        }
+        settings.save();
+        return;
       }
     }
     if(e.target.classList.contains("_changeAr")){
@@ -511,8 +535,8 @@ document.addEventListener("click", (e) => {
         }
         settings.save();
         return;
-      } else if (e.target.classList.contains("_save_autoAr_frequency")) {
-        var value = parseInt(document.getElementById("_input_autoAr_frequency").value.trim());
+      } else if (e.target.classList.contains("_save_autoAr_timer")) {
+        var value = parseInt(document.getElementById("_input_autoAr_timer").value.trim());
         
         if(! isNaN(value)){
           var timeout = parseInt(value);
@@ -521,15 +545,27 @@ document.addEventListener("click", (e) => {
         }
         return;
       } else if (e.target.classList.contains("_ar_site_options")) {
-        command.cmd = "set-autoar-for-site";
+        var mode;
         if(e.target.classList.contains("_disabled")){
-          command.mode = "disabled";
+          mode = "disabled";
         } else if(e.target.classList.contains("_enabled")) {
-          command.mode = "enabled";
+          mode = "enabled";
         } else {
-          command.mode = "default";
+          mode = "default";
         }
-        return command;
+
+        if(settings.active.sites[site]) {
+          settings.active.sites[site].arStatus = mode;
+        } else {
+          settings.active.sites[site] = {
+            status: settings.active.extensionMode,
+            statusEmbedded: settings.active.extensionMode,
+            arStatus: mode,
+            type: 'user-defined'
+          }
+        }
+        settings.save();
+        return;
       }
     }
     
@@ -557,23 +593,39 @@ document.addEventListener("click", (e) => {
   return true;
 });
 
-const customArInputField = document.getElementById("_input_custom_ar");
-const autoarFrequencyInputField = document.getElementById("_input_autoAr_timer");
 
-customArInputField.addEventListener("blur", (event) => {
-  validateCustomAr();
-});
-customArInputField.addEventListener("mouseleave", (event) => {
-  validateCustomAr();
-});
 
-autoarFrequencyInputField.addEventListener("blur", (event) => {
-  validateAutoArTimeout();
-});
-autoarFrequencyInputField.addEventListener("mouseleave", (event) => {
-  validateAutoArTimeout();
-});
 
-hideWarning("script-not-running-warning");
-openMenu(selectedMenu);
-getConf();
+
+
+async function popup_init() {
+  // let's init settings and check if they're loaded
+  await settings.init();
+
+  if (Debug.debug) {
+    console.log("[popup] Are settings loaded?", settings)
+  }
+
+
+  const customArInputField = document.getElementById("_input_custom_ar");
+  const autoarFrequencyInputField = document.getElementById("_input_autoAr_timer");
+
+  customArInputField.addEventListener("blur", (event) => {
+    validateCustomAr();
+  });
+  customArInputField.addEventListener("mouseleave", (event) => {
+    validateCustomAr();
+  });
+
+  autoarFrequencyInputField.addEventListener("blur", (event) => {
+    validateAutoArTimeout();
+  });
+  autoarFrequencyInputField.addEventListener("mouseleave", (event) => {
+    validateAutoArTimeout();
+  });
+
+  hideWarning("script-not-running-warning");
+  getSite();
+}
+
+popup_init();

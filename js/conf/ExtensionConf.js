@@ -194,13 +194,15 @@ var ExtensionConf = {
       status: "enabled",                // should extension work on this site?
       arStatus: "default",              // should we enable autodetection
       statusEmbedded: "enabled",        // should extension work for this site when embedded on other sites?
-      override: false                   // ignore value localStorage in favour of this
+      override: false,                  // ignore value localStorage in favour of this
+      type: 'official'                  // is officially supported? (Alternatives are 'community' and 'user-defined')
     },
     "www.netflix.com" : {
       status: "enabled",
       arStatus: BrowserDetect.firefox ? "default" : "disabled",
       statusEmbedded: "enabled",
-      override: false
+      override: false,
+      type: 'official'
     },
   }
 }

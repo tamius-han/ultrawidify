@@ -40,6 +40,10 @@ class VideoData {
   }
 
   destroy() {
+    if(Debug.debug){ 
+      console.log("[VideoData::destroy] received destroy command");
+    }
+
     this.destroyed = true;
     if(this.arDetector){
       this.arDetector.stop();
@@ -49,9 +53,11 @@ class VideoData {
     if(this.resizer){
       this.resizer.destroy();
     }
+    this.resizer = null;
     if(this.player){
       this.player.destroy();
     }
+    this.player = null;
     this.video = null;
   }
 

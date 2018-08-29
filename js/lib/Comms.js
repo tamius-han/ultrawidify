@@ -13,24 +13,46 @@ class CommsClient {
     }
 
     var ths = this;
-    this.port.onMessage.addListener(m => ths.processReceivedMessage(m));
+    this._listener = m => ths.processReceivedMessage(m);
+    this.port.onMessage.addListener(this._listener);
 
     this.settings = settings;
     this.pageInfo = undefined;
+    this.commsId = (Math.random() * 20).toFixed(0);
   }
   
+  destroy() {
+    this.pageInfo = null;
+    this.settings = null;
+    this.port.onMessage.removeListener(this._listener);
+  }
+
   setPageInfo(pageInfo){
+
     this.pageInfo = pageInfo;
+
+    if(Debug.debug) {
+      console.log(`[CommsClient::setPageInfo] <${this.commsId}>`, "SETTING PAGEINFO —", this.pageInfo, this)
+    }
+
+    var ths = this;
+    this._listener = m => ths.processReceivedMessage(m);
+    this.port.onMessage.removeListener(this._listener);
+    this.port.onMessage.addListener(this._listener);
+    
   }
 
   processReceivedMessage(message){
     if(Debug.debug && Debug.comms){
-      console.log("[CommsClient.js::processMessage] Received message from background script!", message);
+      console.log(`[CommsClient.js::processMessage] <${this.commsId}> Received message from background script!`, message);
     }
 
-    if (! this.pageInfo || this.settings.active) {
+    if (!this.pageInfo || !this.settings.active) {
       if(Debug.debug && Debug.comms){
-        console.log("[CommsClient.js::processMessage] this.pageInfo not defined. Extension is probably disabled for this site.");
+        console.log(`[CommsClient.js::processMessage] <${this.commsId}> this.pageInfo (or settings) not defined. Extension is probably disabled for this site.\npageInfo:`, this.pageInfo,
+                    "\nsettings.active:", this.settings.active,
+                    "\nnobj:", this
+        );
       }
       return;
     }
@@ -40,12 +62,6 @@ class CommsClient {
     } else if (message.cmd === 'set-video-float') {
       this.settings.active.miscFullscreenSettings.videoFloat = message.newFloat;
       this.pageInfo.restoreAr();
-    } else if (message.cmd === "has-videos") {
-      
-    } else if (message.cmd === "set-config") {
-      this.hasSettings = true;
-      this.settings.active = message.conf;
-      // this.pageInfo.reset();
     } else if (message.cmd === "set-stretch") {
       this.pageInfo.setStretchMode(StretchMode[message.mode]);
     } else if (message.cmd === "autoar-start") {
@@ -60,28 +76,7 @@ class CommsClient {
     } else if (message.cmd === "resume-processing") {
       // todo: autoArStatus
       this.pageInfo.resumeProcessing(message.autoArStatus);
-    } else if (message.cmd === "reload-settings") {
-      this.settings.active = message.newConf;
-      this.pageInfo.reset();
-      if(this.settings.active.arDetect.mode === "disabled") {
-        this.pageInfo.stopArDetection();
-      } else {
-        this.pageInfo.startArDetection();
-      }
-    }
-  }
-
-  async waitForSettings(){
-    var t = this;
-    return new Promise( async (resolve, reject) => {
-      while(true){
-        await t.sleep(100);
-        if(this.hasSettings){
-          resolve();
-          break;
-        }
-      }
-    });
+    } 
   }
 
   async sleep(n){
@@ -129,10 +124,6 @@ class CommsClient {
 
     this.settings.active = JSON.parse(response.extensionConf);
     return Promise.resolve(true);
-  }
-
-  async requestSettings_fallback(){
-    this.port.postMessage({cmd: "get-config"});
   }
 
   registerVideo(){
@@ -236,6 +227,10 @@ class CommsServer {
       console.log("[CommsServer.js::processMessage] Received message from background script!", message, "port", port, "\nsettings and server:", this.settings,this.server);
     }
 
+    if(message.cmd === 'get-current-site') {
+      port.postMessage({cmd: 'set-current-site', site: this.server.currentSite});
+    }
+
     if (message.cmd === 'get-config') {
       if(Debug.debug) {
         console.log("CommsServer: received get-config. Active settings?", this.settings.active, "\n(settings:", this.settings, ")")
@@ -246,25 +241,17 @@ class CommsServer {
     } else if (message.cmd === 'set-stretch-default') {
       this.settings.active.stretch.initialMode = message.mode;
       this.settings.save();
-      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     } else if (message.cmd === 'set-ar') {
       this.sendToActive(message);
     } else if (message.cmd === 'set-custom-ar') {
       this.settings.active.keyboard.shortcuts.q.arg = message.ratio;
       this.settings.save();
-      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     } else if (message.cmd === 'set-video-float') {
       this.sendToActive(message);
       this.settings.active.miscFullscreenSettings.videoFloat = message.newFloat;
       this.settings.save();
-      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
-
     } else if (message.cmd === 'autoar-start') {
       this.sendToActive(message);
-    } else if (message.cmd === "autoar-enable") {   // LEGACY - can be removed prolly?
-      this.settings.active.arDetect.mode = "blacklist";
-      this.settings.save();
-      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     } else if (message.cmd === "autoar-disable") {  // LEGACY - can be removed prolly?
       this.settings.active.arDetect.mode = "disabled";
       if(message.reason){
@@ -273,7 +260,6 @@ class CommsServer {
         this.settings.active.arDetect.disabledReason = 'User disabled';
       }
       this.settings.save();
-      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     } else if (message.cmd === "autoar-set-interval") {
       if(Debug.debug)
         console.log("[uw-bg] trying to set new interval for autoAr. New interval is",message.timeout,"ms");
@@ -282,15 +268,12 @@ class CommsServer {
       var timeout = message.timeout < 4 ? 4 : message.timeout;
       this.settings.active.arDetect.timer_playing = timeout;
       this.settings.save();
-      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     } else if (message.cmd === "set-autoar-defaults") {
       this.settings.active.arDetect.mode = message.mode;
       this.settings.save();
-      this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
     } else if (message.cmd === "set-autoar-for-site") {
       if (this.settings.active.sites[this.server.currentSite]) {
         this.settings.active.sites[this.server.currentSite].arStatus = message.mode;
-        console.log("SAVING AUTOAR MODE FOR SITE", this.server.currentSite, "\nnew site obj",this.settings.active.sites[this.server.currentSite] )
         this.settings.save();
       } else {
         this.settings.active.sites[this.server.currentSite] = {
@@ -300,11 +283,9 @@ class CommsServer {
         };
         this.settings.save();
       }
-      this.sendToAll({cmd: "reload-settings", sender: "uwbg"});
     } else if (message.cmd === "set-extension-defaults") {
       this.settings.active.extensionMode = message.mode;
       this.settings.save();
-      this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
     } else if (message.cmd === "set-extension-for-site") {
       if (this.settings.active.sites[this.server.currentSite]) {
         this.settings.active.sites[this.server.currentSite].status = message.mode;
@@ -315,14 +296,11 @@ class CommsServer {
           arStatus: "default",
           statusEmbedded: message.mode
         };
-        this.settings.save();        
-        console.log("SAVING PER-SITE OPTIONS,", this.server.currentSite, this.settings.active.sites[this.server.currentSite])
+        this.settings.save();
+        if(Debug.debug) {
+          console.log("SAVING PER-SITE OPTIONS,", this.server.currentSite, this.settings.active.sites[this.server.currentSite])
+        }
       }
-      this.sendToAll({cmd: "reload-settings", sender: "uwbg"});
-    }
-
-    if (message.cmd.startsWith('set-')) {
-      port.postMessage({cmd: "set-config", conf: this.settings.active, site: this.server.currentSite});
     }
   }
 

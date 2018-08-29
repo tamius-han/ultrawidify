@@ -3,8 +3,6 @@ if(Debug.debug)
 
 class PageInfo {
   constructor(comms, settings){
-    this.keybinds = new Keybinds(this);
-    this.keybinds.setup();
     this.hasVideos = false;
     this.siteDisabled = false;
     this.videos = [];
@@ -17,13 +15,21 @@ class PageInfo {
 
     if(comms){ 
       this.comms = comms;
-      this.comms.setPageInfo(this);
-      if(this.videos.length > 0){
-        comms.registerVideo();
-      }
+    }
+
+    if(this.videos.length > 0){
+      comms.registerVideo();
     }
   }
 
+  destroy() {
+    if(Debug.debug){
+      console.log("[PageInfo::destroy] destroying all videos!")
+    }
+    for (var video of this.videos) {
+      video.destroy();
+    }
+  }
 
   reset() {
     for(var video of this.videos) {
@@ -128,7 +134,7 @@ class PageInfo {
         ths.rescanTimer = null;
         ths.rescan(rr);
         ths = null;
-      }, rescanReason === settings.active.pageInfo.timeouts.rescan, RescanReason.PERIODIC)
+      }, rescanReason === this.settings.active.pageInfo.timeouts.rescan, RescanReason.PERIODIC)
     } catch(e) {
       if(Debug.debug){
         console.log("[PageInfo::scheduleRescan] scheduling rescan failed. Here's why:",e)
@@ -148,7 +154,7 @@ class PageInfo {
       ths.rescanTimer = null;
       ths.ghettoUrlCheck();
       ths = null;
-    }, settings.active.pageInfo.timeouts.urlCheck)
+    }, this.settings.active.pageInfo.timeouts.urlCheck)
     }catch(e){
       if(Debug.debug){
         console.log("[PageInfo::scheduleUrlCheck] scheduling URL check failed. Here's why:",e)
