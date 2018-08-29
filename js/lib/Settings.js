@@ -1,16 +1,17 @@
 class Settings {
 
-  constructor(activeSettings) {
+  constructor(activeSettings, updateCallback) {
     this.active = activeSettings ? activeSettings : undefined;
     this.default = ExtensionConf;
     this.useSync = false;
     this.version = undefined;
+    this.updateCallback = updateCallback;
 
     const ths = this;
 
     if(BrowserDetect.firefox) {
       browser.storage.onChanged.addListener( (changes, area) => {
-        if (Debug.debug) {
+        if (Debug.debug && Debug.debugStorage) {
           console.log("[Settings::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
           if (changes['uwSettings'] && changes['uwSettings'].newValue) {
             console.log("[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));
@@ -18,11 +19,19 @@ class Settings {
         }
         if(changes['uwSettings'] && changes['uwSettings'].newValue) {
           ths.active = JSON.parse(changes.uwSettings.newValue);
+        }
+
+        if(this.updateCallback) {
+          try {
+            updateCallback();
+          } catch (e) {
+            console.log("[Settings] CALLING UPDATE CALLBACK FAILED.")
+          }
         }
       });
     } else if (BrowserDetect.chrome) {
       chrome.storage.onChanged.addListener( (changes, area) => {
-        if (Debug.debug) {
+        if (Debug.debug && Debug.debugStorage) {
           console.log("[Settings::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
           if (changes['uwSettings'] && changes['uwSettings'].newValue) {
             console.log("[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));
@@ -31,7 +40,15 @@ class Settings {
         if(changes['uwSettings'] && changes['uwSettings'].newValue) {
           ths.active = JSON.parse(changes.uwSettings.newValue);
         }
-      })
+
+        if(this.updateCallback) {
+          try {
+            updateCallback();
+          } catch (e) {
+            console.log("[Settings] CALLING UPDATE CALLBACK FAILED.")
+          }
+        }
+      });
     }
   }
 
