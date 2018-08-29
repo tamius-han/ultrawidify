@@ -64,8 +64,24 @@ var _config;
 var _changeAr_button_shortcuts = { "autoar":"none", "reset":"none", "219":"none", "189":"none", "169":"none", "custom":"none" }
 
 var comms = new Comms();
+var settings = new Settings();
+
 var port = browser.runtime.connect({name: 'popup-port'});
 port.onMessage.addListener( (m,p) => processReceivedMessage(m,p));
+
+
+
+// let's init settings and check if they're loaded
+await settings.init();
+
+if (Debug.debug) {
+  console.log("[popup] Are settings loaded?", settings)
+}
+
+
+
+
+
 
 async function processReceivedMessage(message, port){
   if(message.cmd === 'set-config'){
@@ -100,16 +116,16 @@ function stringToKeyCombo(key_in){
   return keys_out;
 }
 
-function loadConfig(extensionConf, site){
+async function loadConfig(){
+
   if(Debug.debug)
-    console.log("[popup.js::loadConfig] loading config. conf object:", extensionConf, "\n\n\n\n\n\n\n\n-------------------------------------");
+    console.log("[popup.js::loadConfig] loading config. conf object:", settings.active, "\n\n\n\n\n\n\n\n-------------------------------------");
     
-  _extensionConf = extensionConf;
 
   // ----------------------
   //#region extension-basics - SET BASIC EXTENSION OPTIONS
   if(Debug.debug)
-    console.log("EXT: site is:", site, "|extensionConf for this site: ", (site && extensionConf.sites[site]) ? extensionConf.sites[site] : "default site")
+    console.log("EXT: site is:", site, "|settings for this site: ", (site && settings.active.sites[site]) ? settings.active.sites[site] : "default site")
 
 
   for(var button in ExtPanel.globalOptions) {
@@ -119,9 +135,9 @@ function loadConfig(extensionConf, site){
     ExtPanel.siteOptions[button].classList.remove("selected");
   }
 
-  ExtPanel.globalOptions[extensionConf.extensionMode].classList.add("selected");
-  if(site && extensionConf.sites[site]) {
-    ExtPanel.siteOptions[extensionConf.sites[site].status].classList.add("selected");
+  ExtPanel.globalOptions[settings.active.extensionMode].classList.add("selected");
+  if(site && settings.active.sites[site]) {
+    ExtPanel.siteOptions[settings.active.sites[site].status].classList.add("selected");
   } else {
     ExtPanel.siteOptions.default.classList.add("selected");
   }
@@ -131,9 +147,9 @@ function loadConfig(extensionConf, site){
   // ------------
   //#region autoar - SET AUTOAR OPTIONS
   // if(Debug.debug)
-    // console.log("Autodetect mode?", extensionConf.arDetect.mode, "| site & site options:", site, ",", (site && extensionConf.sites[site]) ? extensionConf.sites[site].arStatus : "fucky wucky?" );
-  // document.getElementById("_autoAr_disabled_reason").textContent = extensionConf.arDetect.DisabledReason;
-  document.getElementById("_input_autoAr_timer").value = extensionConf.arDetect.timer_playing;
+    // console.log("Autodetect mode?", settings.active.arDetect.mode, "| site & site options:", site, ",", (site && settings.active.sites[site]) ? settings.active.sites[site].arStatus : "fucky wucky?" );
+  // document.getElementById("_autoAr_disabled_reason").textContent = settings.active.arDetect.DisabledReason;
+  document.getElementById("_input_autoAr_timer").value = settings.active.arDetect.timer_playing;
 
 
   for(var button in AutoArPanel.globalOptions) {
@@ -144,20 +160,20 @@ function loadConfig(extensionConf, site){
   }
 
 
-  AutoArPanel.globalOptions[extensionConf.arDetect.mode].classList.add("selected");
-  if(site && extensionConf.sites[site]) {
-    AutoArPanel.siteOptions[extensionConf.sites[site].arStatus].classList.add("selected");
+  AutoArPanel.globalOptions[settings.active.arDetect.mode].classList.add("selected");
+  if(site && settings.active.sites[site]) {
+    AutoArPanel.siteOptions[settings.active.sites[site].arStatus].classList.add("selected");
   } else {
     AutoArPanel.siteOptions.default.classList.add("selected");
   }
   //#endregion
 
   // process video alignment:
-  if(extensionConf.miscFullscreenSettings.videoFloat){
+  if(settings.active.miscFullscreenSettings.videoFloat){
     for(var button in ArPanel.alignment)
       ArPanel.alignment[button].classList.remove("selected");
     
-    ArPanel.alignment[extensionConf.miscFullscreenSettings.videoFloat].classList.add("selected");
+    ArPanel.alignment[settings.active.miscFullscreenSettings.videoFloat].classList.add("selected");
   }
 
   //#region - SET STRETCH
@@ -166,21 +182,21 @@ function loadConfig(extensionConf, site){
   for (var button in StretchPanel.global) {
     StretchPanel.global[button].classList.remove("selected");
   }
-  if (extensionConf.stretch.initialMode === 0) {
+  if (settings.active.stretch.initialMode === 0) {
     StretchPanel.global.none.classList.add("selected");
-  } else if (extensionConf.stretch.initialMode === 1) {
+  } else if (settings.active.stretch.initialMode === 1) {
     StretchPanel.global.basic.classList.add("selected");
-  } else if (extensionConf.stretch.initialMode === 2) {
+  } else if (settings.active.stretch.initialMode === 2) {
     StretchPanel.global.hybrid.classList.add("selected");
-  } else if (extensionConf.stretch.initialMode === 3) {
+  } else if (settings.active.stretch.initialMode === 3) {
     StretchPanel.global.conditional.classList.add("selected");
   }
   //#endregion
 
   // process keyboard shortcuts:
-  if(extensionConf.keyboard.shortcuts){
-    for(var key in extensionConf.keyboard.shortcuts){
-      var shortcut = extensionConf.keyboard.shortcuts[key];
+  if(settings.active.keyboard.shortcuts){
+    for(var key in settings.active.keyboard.shortcuts){
+      var shortcut = settings.active.keyboard.shortcuts[key];
       var keypress = stringToKeyCombo(key);
       
       
@@ -217,8 +233,8 @@ function loadConfig(extensionConf, site){
       }
 
       // fill in custom aspect ratio
-      if (extensionConf.keyboard.shortcuts.q) {
-        document.getElementById("_input_custom_ar").value = extensionConf.keyboard.shortcuts.q.arg;
+      if (settings.active.keyboard.shortcuts.q) {
+        document.getElementById("_input_custom_ar").value = settings.active.keyboard.shortcuts.q.arg;
       }
     }
     for(var key in _changeAr_button_shortcuts){
@@ -379,15 +395,15 @@ document.addEventListener("click", (e) => {
     if(e.target.classList.contains("_ext")) {
       var command = {};
       if(e.target.classList.contains("_ext_global_options")){
-        command.cmd = "set-extension-defaults";
         if (e.target.classList.contains("_blacklist")) {
-          command.mode = "blacklist";
+          settings.active.extensionMode = "blacklist";
         } else if (e.target.classList.contains("_whitelist")) {
-          command.mode = "whitelist";
+          settings.active.extensionMode = "whitelist";
         } else {
-          command.mode = "disabled";
+          settings.active.extensionMode = "disabled";
         }
-        return command;
+        settings.save();
+        return;
       } else if (e.target.classList.contains("_ext_site_options")) {
         command.cmd = "set-extension-for-site";
         if(e.target.classList.contains("_blacklist")){
@@ -456,17 +472,17 @@ document.addEventListener("click", (e) => {
     }
     if(e.target.classList.contains("_stretch")){
       if (e.target.classList.contains("_ar_stretch_global")) {
-        command.cmd = "set-stretch-default"
         if (e.target.classList.contains("_none")) {
-          command.mode = 0;
+          settings.active.stretch.initialMode = 0;
         } else if (e.target.classList.contains("_basic")) {
-          command.mode = 1;
+          settings.active.stretch.initialMode = 1;
         } else if (e.target.classList.contains("_hybrid")) {
-          command.mode = 2;
+          settings.active.stretch.initialMode = 2;
         } else if (e.target.classList.contains("_conditional")) {
-          command.mode = 3;
+          settings.active.stretch.initialMode = 3;
         }
-        return command;
+        settings.save();
+        return;
       }
 
       if(e.target.classList.contains("_ar_stretch_none")) {
@@ -486,22 +502,22 @@ document.addEventListener("click", (e) => {
     }
     if(e.target.classList.contains("_autoAr")){
       if(e.target.classList.contains("_ar_global_options")){
-        command.cmd = "set-autoar-defaults";
         if (e.target.classList.contains("_blacklist")) {
-          command.mode = "blacklist";
+          settings.active.arDetect.mode = "blacklist";
         } else if (e.target.classList.contains("_whitelist")) {
-          command.mode = "whitelist";
+          settings.active.arDetect.mode = "whitelist";
         } else {
-          command.mode = "disabled";
+          settings.active.arDetect.mode = "disabled";
         }
-        return command;
+        settings.save();
+        return;
       } else if (e.target.classList.contains("_save_autoAr_frequency")) {
         var value = parseInt(document.getElementById("_input_autoAr_frequency").value.trim());
         
         if(! isNaN(value)){
           var timeout = parseInt(value);
-          command = {cmd: "autoar-set-timer-playing", timeout: timeout, sender: "popup", receiver: "uwbg"};
-          Comms.sendToBackgroundScript(command);
+          settings.active.arDetect.timer_playing = timeout;
+          settings.save();
         }
         return;
       } else if (e.target.classList.contains("_ar_site_options")) {
@@ -521,29 +537,17 @@ document.addEventListener("click", (e) => {
       
       command.global = true;
       
-      if(e.target.classList.contains("_align_left")){
-        command.cmd = "set-video-float",
-        command.newFloat = "left"
-        
-        // console.log(".................\n\n\n..........\n\n              >>command<< \n\n\n\n            ",command,"\n\n\n.........\n\n\n................................");
-        
-        return command;
+      if (e.target.classList.contains("_align_left")) {
+        settings.active.miscFullscreenSettings.videoFloat = 'left';
+      } else if (e.target.classList.contains("_align_center")) {
+        settings.active.miscFullscreenSettings.videoFloat = 'center';
+      } else if (e.target.classList.contains("_align_right")) {
+        settings.active.miscFullscreenSettings.videoFloat = 'left';
       }
-      if(e.target.classList.contains("_align_center")){
-        command.cmd = "set-video-float"
-        command.newFloat = "center"
-        return command;
-      }
-      if(e.target.classList.contains("_align_right")){
-        command.cmd = "set-video-float";
-        command.newFloat = "right";
-        return command;
-      }
-    }
-    if(e.target.classList.contains("extensionEnabledOnCurrentSite")){  // legacy? can be removed?
-      toggleSite(document.extensionEnabledOnCurrentSite.mode.value);
-    }
-    
+
+      settings.save();
+      return;
+    }    
   }
   
   var command = getcmd(e);  
