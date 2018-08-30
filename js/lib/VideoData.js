@@ -32,11 +32,16 @@ class VideoData {
   }
   
   startArDetection() {
+    if(!this.arDetector) {
+      this.arDetector.init();
+    }
     this.arDetector.start();
   }
 
   stopArDetection() {
-    this.arDetector.stop();
+    if (this.arDetector) {
+      this.arDetector.stop();
+    }
   }
 
   destroy() {
