@@ -2,6 +2,10 @@
 
 ## v3.x
 
+### v3.1.1 (Chrome-only)
+
+* Logging was accidentally left on in release version. This was fixed.
+
 ### v3.1.0
 
 * Fixed the issue where aspect ratio change wouldn't survive switching between fullscreen and non-fullscreen modes
