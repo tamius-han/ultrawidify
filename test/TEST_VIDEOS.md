@@ -21,3 +21,10 @@ https://www.youtube.com/watch?v=NaTGwlfRB_c (dark, triggers minor corrections)
 ### Watermark stopping AR
 
 https://www.youtube.com/watch?v=tXTFdDrd7pA
+
+
+### HARD MODE 
+
+For situations that would be _really_ hard to fix (if fix is even possible)
+
+https://www.youtube.com/watch?v=hg25ONutphA

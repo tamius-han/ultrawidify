@@ -1,36 +1,67 @@
 if(Debug.debug){
-  console.log("Loading Comms.js")
+  console.log("Loading Comms.js");
 }
 
 class CommsClient {
-  constructor(name){
-    this.port = browser.runtime.connect({name: name});
+  constructor(name, settings) {
+    if (BrowserDetect.firefox) {
+      this.port = browser.runtime.connect({name: name});
+    } else if (BrowserDetect.chrome) {
+      this.port = chrome.runtime.connect({name: name});
+    } else if (BrowserDetect.edge) {
+      this.port = browser.runtime.connect({name: name})
+    }
 
     var ths = this;
-    this.port.onMessage.addListener(m => ths.processReceivedMessage(m));
-    this.hasSettings = false;
+    this._listener = m => ths.processReceivedMessage(m);
+    this.port.onMessage.addListener(this._listener);
+
+    this.settings = settings;
+    this.pageInfo = undefined;
+    this.commsId = (Math.random() * 20).toFixed(0);
   }
   
+  destroy() {
+    this.pageInfo = null;
+    this.settings = null;
+    this.port.onMessage.removeListener(this._listener);
+  }
+
   setPageInfo(pageInfo){
+
     this.pageInfo = pageInfo;
+
+    if(Debug.debug) {
+      console.log(`[CommsClient::setPageInfo] <${this.commsId}>`, "SETTING PAGEINFO —", this.pageInfo, this)
+    }
+
+    var ths = this;
+    this._listener = m => ths.processReceivedMessage(m);
+    this.port.onMessage.removeListener(this._listener);
+    this.port.onMessage.addListener(this._listener);
+    
   }
 
   processReceivedMessage(message){
     if(Debug.debug && Debug.comms){
-      console.log("[CommsClient.js::processMessage] Received message from background script!", message);
+      console.log(`[CommsClient.js::processMessage] <${this.commsId}> Received message from background script!`, message);
+    }
+
+    if (!this.pageInfo || !this.settings.active) {
+      if(Debug.debug && Debug.comms){
+        console.log(`[CommsClient.js::processMessage] <${this.commsId}> this.pageInfo (or settings) not defined. Extension is probably disabled for this site.\npageInfo:`, this.pageInfo,
+                    "\nsettings.active:", this.settings.active,
+                    "\nnobj:", this
+        );
+      }
+      return;
     }
 
     if (message.cmd === "set-ar") {
       this.pageInfo.setAr(message.ratio);
     } else if (message.cmd === 'set-video-float') {
-      ExtensionConf.miscFullscreenSettings.videoFloat = message.newFloat;
+      this.settings.active.miscFullscreenSettings.videoFloat = message.newFloat;
       this.pageInfo.restoreAr();
-    } else if (message.cmd === "has-videos") {
-      
-    } else if (message.cmd === "set-config") {
-      this.hasSettings = true;
-      ExtensionConf = message.conf;
-      // this.pageInfo.reset();
     } else if (message.cmd === "set-stretch") {
       this.pageInfo.setStretchMode(StretchMode[message.mode]);
     } else if (message.cmd === "autoar-start") {
@@ -45,28 +76,7 @@ class CommsClient {
     } else if (message.cmd === "resume-processing") {
       // todo: autoArStatus
       this.pageInfo.resumeProcessing(message.autoArStatus);
-    } else if (message.cmd === "reload-settings") {
-      ExtensionConf = message.newConf;
-      this.pageInfo.reset();
-      if(ExtensionConf.arDetect.mode === "disabled") {
-        this.pageInfo.stopArDetection();
-      } else {
-        this.pageInfo.startArDetection();
-      }
-    }
-  }
-
-  async waitForSettings(){
-    var t = this;
-    return new Promise( async (resolve, reject) => {
-      while(true){
-        await t.sleep(100);
-        if(this.hasSettings){
-          resolve();
-          break;
-        }
-      }
-    });
+    } 
   }
 
   async sleep(n){
@@ -112,12 +122,8 @@ class CommsClient {
       return Promise.resolve(false);
     }
 
-    ExtensionConf = JSON.parse(response.extensionConf);
+    this.settings.active = JSON.parse(response.extensionConf);
     return Promise.resolve(true);
-  }
-
-  async requestSettings_fallback(){
-    this.port.postMessage({cmd: "get-config"});
   }
 
   registerVideo(){
@@ -132,6 +138,7 @@ class CommsClient {
 class CommsServer {
   constructor(server) {
     this.server = server;
+    this.settings = server.settings;
     this.ports = [];
 
     var ths = this;
@@ -158,20 +165,24 @@ class CommsServer {
     }
   }
 
-  sendToActive(message) {
+  async _getActiveTab() {
+    if (BrowserDetect.firefox) {
+      return await browser.tabs.query({currentWindow: true, active: true});
+    } else {
+      return await new Promise( (resolve, reject) => {
+        chrome.tabs.query({currentWindow: true, active: true}, function (res) {
+          resolve(res);
+        });
+      });
+    }
+  }
+
+  async sendToActive(message) {
     if(Debug.debug && Debug.comms){
       console.log("%c[CommsServer::sendToActive] trying to send a message to active tab. Message:", "background: #dda; color: #11D", message);
     }
 
-    if(BrowserDetect.firefox){
-      this._sendToActive_ff(message);
-    } else if (BrowserDetect.chrome) {
-
-    }
-  }
-
-  async _sendToActive_ff(message){ 
-    var tabs = await browser.tabs.query({currentWindow: true, active: true});
+    var tabs = await this._getActiveTab();
 
     if(Debug.debug && Debug.comms){
       console.log("[CommsServer::_sendToActive_ff] currently active tab(s)?", tabs);
@@ -184,18 +195,6 @@ class CommsServer {
     for (var key in this.ports[tabs[0].id]) {
       this.ports[tabs[0].id][key].postMessage(message);
     }
-  }
-
-
-  async queryTabs_chrome(tabInfo){
-    return new Promise(function (resolve, reject){    
-      browser.tabs.query(tabInfo, function(response){
-        browser.tabs.query(tabInfo);
-        // Chrome/js shittiness mitigation — remove this line and an empty array will be returned
-        var r = response; 
-        resolve(r);
-      });
-    });
   }
 
   onConnect(port){
@@ -225,92 +224,83 @@ class CommsServer {
 
   processReceivedMessage(message, port){
     if (Debug.debug && Debug.comms) {
-      console.log("[CommsServer.js::processMessage] Received message from background script!", message, "port", port);
+      console.log("[CommsServer.js::processMessage] Received message from background script!", message, "port", port, "\nsettings and server:", this.settings,this.server);
+    }
+
+    if(message.cmd === 'get-current-site') {
+      port.postMessage({cmd: 'set-current-site', site: this.server.currentSite});
     }
 
     if (message.cmd === 'get-config') {
-      port.postMessage({cmd: "set-config", conf: ExtensionConf, site: this.server.currentSite})
+      if(Debug.debug) {
+        console.log("CommsServer: received get-config. Active settings?", this.settings.active, "\n(settings:", this.settings, ")")
+      }
+      port.postMessage({cmd: "set-config", conf: this.settings.active, site: this.server.currentSite})
     } else if (message.cmd === 'set-stretch') {
       this.sendToActive(message);
     } else if (message.cmd === 'set-stretch-default') {
-      ExtensionConf.stretch.initialMode = message.mode;
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      this.settings.active.stretch.initialMode = message.mode;
+      this.settings.save();
     } else if (message.cmd === 'set-ar') {
       this.sendToActive(message);
     } else if (message.cmd === 'set-custom-ar') {
-      ExtensionConf.keyboard.shortcuts.q.arg = message.ratio;
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      this.settings.active.keyboard.shortcuts.q.arg = message.ratio;
+      this.settings.save();
     } else if (message.cmd === 'set-video-float') {
       this.sendToActive(message);
-      ExtensionConf.miscFullscreenSettings.videoFloat = message.newFloat;
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
-
+      this.settings.active.miscFullscreenSettings.videoFloat = message.newFloat;
+      this.settings.save();
     } else if (message.cmd === 'autoar-start') {
       this.sendToActive(message);
-    } else if (message.cmd === "autoar-enable") {   // LEGACY - can be removed prolly?
-      ExtensionConf.arDetect.mode = "blacklist";
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
     } else if (message.cmd === "autoar-disable") {  // LEGACY - can be removed prolly?
-      ExtensionConf.arDetect.mode = "disabled";
+      this.settings.active.arDetect.mode = "disabled";
       if(message.reason){
-        ExtensionConf.arDetect.disabledReason = message.reason;
+        this.settings.active.arDetect.disabledReason = message.reason;
       } else {
-        ExtensionConf.arDetect.disabledReason = 'User disabled';
+        this.settings.active.arDetect.disabledReason = 'User disabled';
       }
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      this.settings.save();
     } else if (message.cmd === "autoar-set-interval") {
       if(Debug.debug)
         console.log("[uw-bg] trying to set new interval for autoAr. New interval is",message.timeout,"ms");
 
       // set fairly liberal limit
       var timeout = message.timeout < 4 ? 4 : message.timeout;
-      ExtensionConf.arDetect.timer_playing = timeout;
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      this.settings.active.arDetect.timer_playing = timeout;
+      this.settings.save();
     } else if (message.cmd === "set-autoar-defaults") {
-      ExtensionConf.arDetect.mode = message.mode;
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
+      this.settings.active.arDetect.mode = message.mode;
+      this.settings.save();
     } else if (message.cmd === "set-autoar-for-site") {
-      if (ExtensionConf.sites[this.server.currentSite]) {
-        ExtensionConf.sites[this.server.currentSite].arStatus = message.mode;
-        Settings.save(ExtensionConf);
+      if (this.settings.active.sites[this.server.currentSite]) {
+        this.settings.active.sites[this.server.currentSite].arStatus = message.mode;
+        this.settings.save();
       } else {
-        ExtensionConf.sites[this.server.currentSite] = {
+        this.settings.active.sites[this.server.currentSite] = {
           status: "default",
           arStatus: message.mode,
           statusEmbedded: "default"
         };
-        Settings.save(ExtensionConf);
+        this.settings.save();
       }
-      this.sendToAll({cmd: "reload-settings", sender: "uwbg"});
     } else if (message.cmd === "set-extension-defaults") {
-      ExtensionConf.extensionMode = message.mode;
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
+      this.settings.active.extensionMode = message.mode;
+      this.settings.save();
     } else if (message.cmd === "set-extension-for-site") {
-      if (ExtensionConf.sites[this.server.currentSite]) {
-        ExtensionConf.sites[this.server.currentSite].status = message.mode;
-        Settings.save(ExtensionConf);
+      if (this.settings.active.sites[this.server.currentSite]) {
+        this.settings.active.sites[this.server.currentSite].status = message.mode;
+        this.settings.save();
       } else {
-        ExtensionConf.sites[this.server.currentSite] = {
+        this.settings.active.sites[this.server.currentSite] = {
           status: message.mode,
           arStatus: "default",
           statusEmbedded: message.mode
         };
-        Settings.save(ExtensionConf);        
-        console.log("SAVING PER-SITE OPTIONS,", this.server.currentSite, ExtensionConf.sites[this.server.currentSite])
+        this.settings.save();
+        if(Debug.debug) {
+          console.log("SAVING PER-SITE OPTIONS,", this.server.currentSite, this.settings.active.sites[this.server.currentSite])
+        }
       }
-      this.sendToAll({cmd: "reload-settings", sender: "uwbg"});
-    }
-
-    if (message.cmd.startsWith('set-')) {
-      port.postMessage({cmd: "set-config", conf: ExtensionConf, site: this.server.currentSite});
     }
   }
 
@@ -320,29 +310,29 @@ class CommsServer {
     }
 
     if (message.cmd === 'get-config') {
-      var ret = {extensionConf: JSON.stringify(ExtensionConf)};
+      var ret = {extensionConf: JSON.stringify(this.settings.active)};
       if (Debug.debug && Debug.comms) {
         console.log("%c[CommsServer.js::processMessage_nonpersistent_ff] Returning this:", "background-color: #11D; color: #aad", ret);
       }
       Promise.resolve(ret);
     } else if (message.cmd === "autoar-enable") {
-      ExtensionConf.arDetect.mode = "blacklist";
-      Settings.save(ExtensionConf);
+      this.settings.active.arDetect.mode = "blacklist";
+      this.settings.save();
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
       if(Debug.debug){
-        console.log("[uw-bg] autoar set to enabled (blacklist). evidenz:", ExtensionConf);
+        console.log("[uw-bg] autoar set to enabled (blacklist). evidenz:", this.settings.active);
       }
     } else if (message.cmd === "autoar-disable") {
-      ExtensionConf.arDetect.mode = "disabled";
+      this.settings.active.arDetect.mode = "disabled";
       if(message.reason){
-        ExtensionConf.arDetect.disabledReason = message.reason;
+        this.settings.active.arDetect.disabledReason = message.reason;
       } else {
-        ExtensionConf.arDetect.disabledReason = 'User disabled';
+        this.settings.active.arDetect.disabledReason = 'User disabled';
       }
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      this.settings.save();
+      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
       if(Debug.debug){
-        console.log("[uw-bg] autoar set to disabled. evidenz:", ExtensionConf);
+        console.log("[uw-bg] autoar set to disabled. evidenz:", this.settings.active);
       }
     } else if (message.cmd === "autoar-set-interval") {
       if(Debug.debug)
@@ -350,9 +340,9 @@ class CommsServer {
 
       // set fairly liberal limit
       var timeout = message.timeout < 4 ? 4 : message.timeout;
-      ExtensionConf.arDetect.timer_playing = timeout;
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      this.settings.active.arDetect.timer_playing = timeout;
+      this.settings.save();
+      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     }
   }
 
@@ -362,26 +352,26 @@ class CommsServer {
     }
 
     if(message.cmd === 'get-config') {
-      sendResponse({extensionConf: JSON.stringify(ExtensionConf), site: getCurrentTabUrl()});
+      sendResponse({extensionConf: JSON.stringify(this.settings.active), site: getCurrentTabUrl()});
       // return true;
     } else if (message.cmd === "autoar-enable") {
-      ExtensionConf.arDetect.mode = "blacklist";
-      Settings.save(ExtensionConf);
+      this.settings.active.arDetect.mode = "blacklist";
+      this.settings.save();
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
       if(Debug.debug){
-        console.log("[uw-bg] autoar set to enabled (blacklist). evidenz:", ExtensionConf);
+        console.log("[uw-bg] autoar set to enabled (blacklist). evidenz:", this.settings.active);
       }
     } else if (message.cmd === "autoar-disable") {
-      ExtensionConf.arDetect.mode = "disabled";
+      this.settings.active.arDetect.mode = "disabled";
       if(message.reason){
-        ExtensionConf.arDetect.disabledReason = message.reason;
+        this.settings.active.arDetect.disabledReason = message.reason;
       } else {
-        ExtensionConf.arDetect.disabledReason = 'User disabled';
+        this.settings.active.arDetect.disabledReason = 'User disabled';
       }
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      this.settings.save();
+      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
       if(Debug.debug){
-        console.log("[uw-bg] autoar set to disabled. evidenz:", ExtensionConf);
+        console.log("[uw-bg] autoar set to disabled. evidenz:", this.settings.active);
       }
     } else if (message.cmd === "autoar-set-interval") {
       if(Debug.debug)
@@ -389,9 +379,9 @@ class CommsServer {
 
       // set fairly liberal limit
       var timeout = message.timeout < 4 ? 4 : message.timeout;
-      ExtensionConf.arDetect.timer_playing = timeout;
-      Settings.save(ExtensionConf);
-      this.sendToAll({cmd: 'reload-settings', newConf: ExtensionConf});
+      this.settings.active.arDetect.timer_playing = timeout;
+      this.settings.save();
+      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     }
   }
 }
@@ -424,176 +414,3 @@ class Comms {
   }
 
 }
-
-// var _com_queryTabs = async function(tabInfo){
-//   if(BrowserDetect.usebrowser != "firefox"){
-//     return await _com_chrome_tabquery_wrapper(tabInfo);
-//   }
-//   else{
-//     return browser.tabs.query(tabInfo);
-//   }
-// }
-
-// var _com_getActiveTab = async function(tabInfo){
-//   if(BrowserDetect.firefox){
-//     return await browser.tabs.query({currentWindow: true, active: true});
-//   }
-//   return _com_chrome_tabquery_wrapper({currentWindow: true, active: true});
-// }
-
-
-// var _com_chrome_tabs_sendmsg_wrapper = async function(tab, message, options){
-//   return new Promise(function (resolve, reject){
-//     try{
-//       browser.tabs.sendMessage(tab, message, /*options, */function(response){
-//         console.log("TESTING what is this owo? (response)", response);
-        
-//         // Chrome/js shittiness mitigation — remove this line and an empty array will be returned
-//         var r = response; 
-        
-//         resolve(r);
-//       });
-//     }
-//     catch(e){
-//       reject(e);
-//     }
-//   });
-// }
-
-// var _com_sendMessage = async function(tab, message, options){
-//   if(BrowserDetect.usebrowser != "firefox"){
-//     var r = await _com_chrome_tabs_sendmsg_wrapper(tab, message, options);
-//     console.log("TESTING what is this owo? (should be a promise)", r);
-//     return r;
-//   }
-//   else{
-//     return browser.tabs.sendMessage(tab, message, options);
-//   }
-// }
-
-// var _com_chrome_tabs_sendmsgrt_wrapper = async function(message){
-//   return new Promise(function (resolve, reject){
-//     try{
-//       browser.runtime.sendMessage(message, function(response){
-        
-//         // Chrome/js shittiness mitigation — remove this line and an empty array will be returned
-//         var r = response; 
-        
-//         resolve(r);
-//       });
-//     }
-//     catch(e){
-//       reject(e);
-//     }
-//   });
-// }
-
-// var _com_sendMessageRuntime = async function(message){
-//   if(BrowserDetect.usebrowser != "firefox"){
-//     return _com_chrome_tabs_sendmsgrt_wrapper(message);
-//   }
-//   else{
-//     return browser.runtime.sendMessage(message);
-//   }
-// }
-
-// // pošlje sporočilce vsem okvirjem v trenutno odprtem zavihku. Vrne tisti odgovor od tistega okvira, ki prispe prvi.
-// // sends a message to all frames in the currently opened tab. Returns the response of a frame that replied first
-// var _com_sendToAllFrames = async function(message) {
-//   if(Debug.debug)
-//     console.log("[Comms::_com_sendToAllFrames] sending message to all frames of currenntly active tab");
-  
-//   var tabs = await browser.tabs.query({currentWindow: true, active: true}); 
-  
-//   if(Debug.debug)
-//     console.log("[Comms::_com_sendToAllFrames] trying to send message", message, " to tab ", tabs[0], ". (all tabs:", tabs,")");
-  
-//   var response = await browser.tabs.sendMessage(tabs[0].id, message);
-//   console.log("[Comms::_com_sendToAllFrames] response is this:",response);
-//   return response;
-  
-// //   if(BrowserDetect.firefox){
-// //     return 
-// //   }
-// }
-
-// // pošlje sporočilce vsem okvirjem v trenutno odprtem zavihku in vrne _vse_ odgovore
-// // sends a message to all frames in currently opened tab and returns all responses
-// var _com_sendToEachFrame = async function(message, tabId) {
-//   if(Debug.debug)
-//     console.log("[Comms::_com_sendToEveryFrame] sending message to every frames of currenntly active tab");
-  
-//   if(tabId === undefined){
-//     var tabs = await browser.tabs.query({currentWindow: true, active: true});
-//     tabId = tabs[0].id;
-//   }
-//   var frames = await browser.webNavigation.getAllFrames({tabId: tabId});
-  
-//   if(Debug.debug)
-//     console.log("[Comms::_com_sendToEveryFrame] we have this many frames:", frames.length, "||| tabId:", tabId ,"frames:",frames);
-  
-  
-//   // pošlji sporočilce vsakemu okvirju, potisni obljubo v tabelo
-//   // send message to every frame, push promise to array
-//   var promises = [];
-//   for(var frame of frames){
-//       if(Debug.debug)
-//         console.log("[Comms:_com_sendToEachFrame] we sending message to tab with id", tabId, ", frame with id", frame.frameId);
-//       try{
-//         promises.push(browser.tabs.sendMessage(tabId, message, {frameId: frame.frameId}));
-//       }
-//       catch(e){
-//         if(Debug.debug)
-//           console.log("[Comms:_com_sendToEachFrame] we sending message to tab with id", tabId, ", frame with id", frame.frameId);
-//       }
-//   }
-  
-//   // počakajmo, da so obljube izpolnjene. 
-//   // wait for all promises to be kept
-  
-//   var responses = [];
-  
-//   for(var promise of promises){
-//     var response = await promise;
-//     if(response !== undefined)
-//       responses.push(response);
-//   }
-  
-//   if(Debug.debug)
-//     console.log("[Comms::_com_sendToEveryFrame] we received responses from all frames", responses);
-  
-//   return responses;
-// }
-
-// var _com_sendToMainFrame = async function(message, tabId){
-//   if(Debug.debug)
-//     console.log("[Comms::_com_sendToMainFrame] sending message to every frames of currenntly active tab");
-  
-//   if(tabId === undefined){
-//     var tabs = await browser.tabs.query({currentWindow: true, active: true});
-//     tabId = tabs[0].id;
-//   }
-  
-//   // pošlji sporočilce glavnemu okvirju. Glavni okvir ima id=0
-//   // send message to the main frame. Main frame has id=0
-//   try{
-//     var response = await browser.tabs.sendMessage(tabId, message, {frameId: 0});
-//     console.log("[Comms::_com_sendToMainFrame] response is this:",response);
-    
-//   }
-//   catch(e){
-//       console.log("[Comms:_com_sendToEachFrame] failed sending message to tab with id", tabId, ", frame with id", 0, "\nerror:",e);
-//   }
-//   return response;
-// }
-
-// var Comms = {
-//   getActiveTab: _com_getActiveTab,
-//   sendToBackgroundScript: _com_sendMessageRuntime,
-//   queryTabs: _com_queryTabs,
-//   sendMessage: _com_sendMessage,
-//   sendMessageRuntime: _com_sendMessageRuntime,
-//   sendToEach: _com_sendToEachFrame,
-//   sendToAll: _com_sendToAllFrames,
-//   sendToMain: _com_sendToMainFrame,
-// }

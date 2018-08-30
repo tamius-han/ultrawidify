@@ -12,11 +12,12 @@ class EdgeDetect{
 
   constructor(ardConf){
     this.conf = ardConf;
-    
-    this.sampleWidthBase = ExtensionConf.arDetect.edgeDetection.sampleWidth << 2; // corrected so we can work on imageData
+    this.settings = ardConf.settings;
+
+    this.sampleWidthBase = this.settings.active.arDetect.edgeDetection.sampleWidth << 2; // corrected so we can work on imageData
     this.halfSample = this.sampleWidthBase >> 1; 
 
-    this.detectionTreshold = ExtensionConf.arDetect.edgeDetection.detectionTreshold;
+    this.detectionTreshold = this.settings.active.arDetect.edgeDetection.detectionTreshold;
 
     this.init(); // initiate things that can change
   }
@@ -60,11 +61,11 @@ class EdgeDetect{
     var res_top = [];
     var res_bottom = [];
     
-    this.colsTreshold = sampleCols.length * ExtensionConf.arDetect.edgeDetection.minColsForSearch;
+    this.colsTreshold = sampleCols.length * this.settings.active.arDetect.edgeDetection.minColsForSearch;
     if(this.colsTreshold == 0)
       this.colsTreshold = 1;
     
-    this.blackbarTreshold = this.conf.blackLevel + ExtensionConf.arDetect.blackbarTreshold;
+    this.blackbarTreshold = this.conf.blackLevel + this.settings.active.arDetect.blackbarTreshold;
     
     
     // if guardline didn't fail and imageDetect did, we don't have to check the upper few pixels
@@ -87,14 +88,14 @@ class EdgeDetect{
         lower_bottom = this.conf.canvas.height - 1;
       } else {
         upper_top = 0;
-        upper_bottom = (this.conf.canvas.height >> 1) /*- parseInt(this.conf.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);*/
-        lower_top = (this.conf.canvas.height >> 1) /*+ parseInt(this.conf.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);*/
+        upper_bottom = (this.conf.canvas.height >> 1) /*- parseInt(this.conf.canvas.height * this.settings.active.arDetect.edgeDetection.middleIgnoredArea);*/
+        lower_top = (this.conf.canvas.height >> 1) /*+ parseInt(this.conf.canvas.height * this.settings.active.arDetect.edgeDetection.middleIgnoredArea);*/
         lower_bottom = this.conf.canvas.height - 1;
       }
     } else{
       upper_top = 0;
-      upper_bottom = (this.conf.canvas.height >> 1) /*- parseInt(this.conf.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);*/
-      lower_top = (this.conf.canvas.height >> 1) /*+ parseInt(this.conf.canvas.height * ExtensionConf.arDetect.edgeDetection.middleIgnoredArea);*/
+      upper_bottom = (this.conf.canvas.height >> 1) /*- parseInt(this.conf.canvas.height * this.settings.active.arDetect.edgeDetection.middleIgnoredArea);*/
+      lower_top = (this.conf.canvas.height >> 1) /*+ parseInt(this.conf.canvas.height * this.settings.active.arDetect.edgeDetection.middleIgnoredArea);*/
       lower_bottom = this.conf.canvas.height - 1;
     }
 
@@ -154,8 +155,8 @@ class EdgeDetect{
         sampleEnd = this.conf.canvasImageDataRowLength;
       
       // calculate row offsets for imageData array
-      sampleRow_black = (sample.top - ExtensionConf.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
-      sampleRow_color = (sample.top + 1 + ExtensionConf.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
+      sampleRow_black = (sample.top - this.settings.active.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
+      sampleRow_color = (sample.top + 1 + this.settings.active.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
       
       // že ena kršitev črnega roba pomeni, da kandidat ni primeren
       // even a single black edge violation means the candidate is not an edge
@@ -196,8 +197,8 @@ class EdgeDetect{
         sampleEnd = this.conf.canvasImageDataRowLength;
       
       // calculate row offsets for imageData array
-      sampleRow_black = (sample.bottom + ExtensionConf.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
-      sampleRow_color = (sample.bottom - 1 - ExtensionConf.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
+      sampleRow_black = (sample.bottom + this.settings.active.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
+      sampleRow_color = (sample.bottom - 1 - this.settings.active.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
       
       // že ena kršitev črnega roba pomeni, da kandidat ni primeren
       // even a single black edge violation means the candidate is not an edge
@@ -235,7 +236,7 @@ class EdgeDetect{
   edgePostprocess(edges){
     var edgesTop = [];
     var edgesBottom = [];
-    var alignMargin = this.conf.canvas.height * ExtensionConf.arDetect.allowedMisaligned;
+    var alignMargin = this.conf.canvas.height * this.settings.active.arDetect.allowedMisaligned;
     
     var missingEdge = edges.edgeCandidatesTopCount == 0 || edges.edgeCandidatesBottomCount == 0;
     
@@ -303,7 +304,7 @@ class EdgeDetect{
       // it could be watermark. It could be a dark frame. Let's check for watermark first.
       if( edgesTop[0].distance < edgesBottom[0].distance &&
           edgesTop[0].count    < edgesBottom[0].count    &&
-          edgesTop[0].count    < GlobalVars.arDetect.sampleCols * ExtensionConf.arDetect.edgeDetection.logoTreshold){
+          edgesTop[0].count    < this.conf.sampleCols.length * this.settings.active.arDetect.edgeDetection.logoTreshold){
         // možno, da je watermark zgoraj. Preverimo, če se kateri od drugih potencialnih robov na zgornjem robu
         // ujema s prvim spodnjim (+/- variance). Če je temu tako, potem bo verjetno watermark. Logo mora imeti
         // manj vzorcev kot navaden rob.
@@ -334,7 +335,7 @@ class EdgeDetect{
       }
       if( edgesBottom[0].distance < edgesTop[0].distance &&
           edgesBottom[0].count    < edgesTop[0].count    &&
-          edgesBottom[0].count    < GlobalVars.arDetect.sampleCols * ExtensionConf.arDetect.edgeDetection.logoTreshold){
+          edgesBottom[0].count    <this.conf.sampleCols.length * this.settings.active.arDetect.edgeDetection.logoTreshold){
         
         if(edgesBottom[0].length > 1){
           var lowMargin = edgesTop[0].distance - alignMargin;
@@ -367,7 +368,7 @@ class EdgeDetect{
       // either the top or the bottom edge remains undetected, but we have one more trick that we
       // can try. It also tries to work around logos.
       
-      var edgeDetectionTreshold = GlobalVars.arDetect.sampleCols * ExtensionConf.arDetect.edgeDetection.singleSideConfirmationTreshold;
+      var edgeDetectionTreshold = this.conf.sampleCols.length * this.settings.active.arDetect.edgeDetection.singleSideConfirmationTreshold;
       
       if(edges.edgeCandidatesTopCount == 0 && edges.edgeCandidatesBottomCount != 0){
         for(var edge of edgesBottom){
@@ -412,7 +413,7 @@ class EdgeDetect{
     // we also return true if we detect too much black
   
     var blackbarTreshold, upper, lower;
-    blackbarTreshold = this.conf.blackLevel + ExtensionConf.arDetect.blackbarTreshold;
+    blackbarTreshold = this.conf.blackLevel + this.settings.active.arDetect.blackbarTreshold;
   
   
     var middleRowStart = (this.conf.canvas.height >> 1) * this.conf.canvas.width;
@@ -450,11 +451,11 @@ class EdgeDetect{
   
     // če sta oba robova v mejah merske napake, potem vrnemo 'false'
     // if both edges resemble rounding error, we retunr 'false'
-    if(edge_left < ExtensionConf.arDetect.pillarTest.ignoreThinPillarsPx && edge_right < ExtensionConf.arDetect.pillarTest.ignoreThinPillarsPx){
+    if(edge_left < this.settings.active.arDetect.pillarTest.ignoreThinPillarsPx && edge_right < this.settings.active.arDetect.pillarTest.ignoreThinPillarsPx){
       return false;
     }
   
-    var edgeError = ExtensionConf.arDetect.pillarTest.allowMisaligned;
+    var edgeError = this.settings.active.arDetect.pillarTest.allowMisaligned;
     var error_low = 1 - edgeError;
     var error_hi = 1 + edgeError;
   

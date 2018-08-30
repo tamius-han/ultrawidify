@@ -4,6 +4,7 @@ if(Debug.debug)
 class Keybinds {
   constructor(pageInfo){
     this.pageInfo = pageInfo;
+    this.settings = pageInfo.settings;
     this.inputs = ['input','select','button','textarea'];
   }
 
@@ -36,7 +37,7 @@ class Keybinds {
     
     // building modifiers list:
     var modlist = "";
-    for(var mod of ExtensionConf.keyboard.modKeys){
+    for(var mod of this.settings.active.keyboard.modKeys){
       if(event[mod])
         modlist += (mod + "_")
     }
@@ -52,8 +53,8 @@ class Keybinds {
       console.log("[Keybinds::_kbd_process] our full keypress is this", keypress );
     
     
-    if(ExtensionConf.keyboard.shortcuts[keypress]){
-      var conf = ExtensionConf.keyboard.shortcuts[keypress];
+    if(this.settings.active.keyboard.shortcuts[keypress]){
+      var conf = this.settings.active.keyboard.shortcuts[keypress];
       
       if(Debug.debug && Debug.keyboard)
         console.log("[Keybinds::_kbd_process] there's an action associated with this keypress. conf:", conf);
