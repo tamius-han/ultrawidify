@@ -2,6 +2,24 @@
 
 ## v3.x
 
+### v3.1.1 (Chrome-only)
+
+* Logging was accidentally left on in release version. This was fixed.
+
+### v3.1.0
+
+* Fixed the issue where aspect ratio change wouldn't survive switching between fullscreen and non-fullscreen modes
+* Fixed the issue where settings wouldn't survive browser restarts in Firefox
+
+Under the hood:
+
+* rewrote how settings work, swapped Comms with storage.onChanged where it made sense & as much as possible
+* enabling/disabling extension (either globally or for a given site) has now instant effect (consequence of above)
+
+### v3.0.1
+
+Minor fixes.
+
 ### v3.0.0
 
 Pretty much rewrote extension in more object-oriented way and sorted out spaghetti a little. Site settings and keybinds have been merged with the rest of the extension settings. Rewrote messageing.

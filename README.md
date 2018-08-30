@@ -34,8 +34,8 @@ I am not actively testing extension on other sites. You can try your luck and en
 
 You can download this extension from Firefox' and Chrome's extension stores:
 
-* [Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/) (v3.0.0) 
-* [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi) (v2.2.5-ish)
+* [Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
+* [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
 
 ### Beggathon
 
@@ -178,13 +178,12 @@ They still aren't rebindable.
 
 ## Plans for the future
 
-1. ~~Handle porting of extension settings between versions. (Some people had some issues where extension broke until reinstalled, and corrupted settings seemed to be the problem.)~~ seems to work for me?
+1. Handle porting of extension settings between versions. 
 2. Reintroduce gradual zoom on z and u and provide a way to 'scroll' the zoomed in video up/down left/right.
 3. reintroduce settings page (rebindable keys, blacklist/whitelist management, some settings for automatic aspect ratio detection)
 4. site-specific options for sites that require additional CSS classes or other hacks
 5. figure the best way to do GUI (injecting buttons into the player bar is not a good way. Been there, done that, each site has its own way and some appear to be impossible). Might get bumped to be released alongside #2
-6. ~~Stretch mode, because some people are very salty and toxic about the fact that this extension is here to solve a problem that's different than the one they want. More salty than me rn.~~ done 
-7. Improvements to automatic aspect ratio detection
+6. Improvements to automatic aspect ratio detection
 
 ## Changelog
 
