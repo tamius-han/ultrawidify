@@ -2,12 +2,11 @@ if(Debug.debug)
   console.log("Loading: PageInfo.js");
 
 class PageInfo {
-  constructor(comms){
-    this.keybinds = new Keybinds(this);
-    this.keybinds.setup();
+  constructor(comms, settings){
     this.hasVideos = false;
     this.siteDisabled = false;
     this.videos = [];
+    this.settings = settings;
 
     this.lastUrl = window.location.href;
 
@@ -16,15 +15,27 @@ class PageInfo {
 
     if(comms){ 
       this.comms = comms;
-      if(this.videos.length > 0){
-        comms.registerVideo();
-      }
+    }
+
+    if(this.videos.length > 0){
+      comms.registerVideo();
     }
   }
 
+  destroy() {
+    if(Debug.debug){
+      console.log("[PageInfo::destroy] destroying all videos!")
+    }
+    if(this.rescanTimer){
+      clearTimeout(this.rescanTimer);
+    }
+    for (var video of this.videos) {
+      video.destroy();
+    }
+  }
 
-  reset(){
-    for(video of this.videos) {
+  reset() {
+    for(var video of this.videos) {
       video.destroy();
     }
     this.rescan(RescanReason.MANUAL);
@@ -79,7 +90,7 @@ class PageInfo {
         if(Debug.debug && Debug.periodic && Debug.videoRescan){
           console.log("[PageInfo::rescan] found new video candidate:", video)
         }
-        v = new VideoData(video);
+        v = new VideoData(video, this.settings);
         // console.log("[PageInfo::rescan] v is:", v)
         // debugger;
         v.initArDetection();
@@ -126,7 +137,7 @@ class PageInfo {
         ths.rescanTimer = null;
         ths.rescan(rr);
         ths = null;
-      }, rescanReason === ExtensionConf.pageInfo.timeouts.rescan, RescanReason.PERIODIC)
+      }, rescanReason === this.settings.active.pageInfo.timeouts.rescan, RescanReason.PERIODIC)
     } catch(e) {
       if(Debug.debug){
         console.log("[PageInfo::scheduleRescan] scheduling rescan failed. Here's why:",e)
@@ -146,7 +157,7 @@ class PageInfo {
       ths.rescanTimer = null;
       ths.ghettoUrlCheck();
       ths = null;
-    }, ExtensionConf.pageInfo.timeouts.urlCheck)
+    }, this.settings.active.pageInfo.timeouts.urlCheck)
     }catch(e){
       if(Debug.debug){
         console.log("[PageInfo::scheduleUrlCheck] scheduling URL check failed. Here's why:",e)

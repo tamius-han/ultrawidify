@@ -31,7 +31,7 @@ var ExtensionConf = {
     vSamples: 360,
     // samplingInterval: 10,     // we sample at columns at (width/this) * [ 1 .. this - 1] 
     blackLevel_default: 10,   // everything darker than 10/255 across all RGB components is considered black by
-                              // default. GlobalVars.blackLevel can decrease if we detect darker black.
+                              // default. blackLevel can decrease if we detect darker black.
     blackbarTreshold: 16,     // if pixel is darker than blackLevel + blackbarTreshold, we count it as black
                               // on 0-255. Needs to be fairly high (8 might not cut it) due to compression
                               // artifacts in the video itself
@@ -194,13 +194,15 @@ var ExtensionConf = {
       status: "enabled",                // should extension work on this site?
       arStatus: "default",              // should we enable autodetection
       statusEmbedded: "enabled",        // should extension work for this site when embedded on other sites?
-      override: true                   // ignore value localStorage in favour of this
+      override: false,                  // ignore value localStorage in favour of this
+      type: 'official'                  // is officially supported? (Alternatives are 'community' and 'user-defined')
     },
     "www.netflix.com" : {
       status: "enabled",
       arStatus: BrowserDetect.firefox ? "default" : "disabled",
       statusEmbedded: "enabled",
-      override: true
+      override: false,
+      type: 'official'
     },
   }
 }

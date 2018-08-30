@@ -1,10 +1,10 @@
 class VideoData {
   
-  constructor(video){
+  constructor(video, settings){
     this.arSetupComplete = false;
     this.video = video;
     this.destroyed = false;
-
+    this.settings = settings;
     // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
     // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)    
     this.player = new PlayerData(this);
@@ -40,6 +40,10 @@ class VideoData {
   }
 
   destroy() {
+    if(Debug.debug){ 
+      console.log("[VideoData::destroy] received destroy command");
+    }
+
     this.destroyed = true;
     if(this.arDetector){
       this.arDetector.stop();
@@ -49,9 +53,11 @@ class VideoData {
     if(this.resizer){
       this.resizer.destroy();
     }
+    this.resizer = null;
     if(this.player){
-      player.destroy();
+      this.player.destroy();
     }
+    this.player = null;
     this.video = null;
   }
 

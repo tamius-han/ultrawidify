@@ -13,7 +13,7 @@ class Resizer {
   constructor(videoData){
     this.conf = videoData;
     this.video = videoData.video;
-
+    this.settings = videoData.settings;
 
     this.scaler = new Scaler(this.conf);
     this.stretcher = new Stretcher(this.conf); 
@@ -22,14 +22,22 @@ class Resizer {
     // load up default values
     this.correctedVideoDimensions = {};
     this.currentCss = {};
+    this.currentStyleString = "";
+    this.currentCssValidFor = {};
 
     // restore watchdog. While true, applyCss() tries to re-apply new css until this value becomes false again
     // value becomes false when width and height of <video> tag match with what we want to set. Only necessary when
     // calling _res_restore() for some weird reason.
     this.restore_wd = false;
 
+    // CSS watcher will trigger _very_ often for this many iterations
+    this.cssWatcherIncreasedFrequencyCounter = 0;
+
+
     this.lastAr = {type: 'original'};
     this.destroyed = false;
+
+    this.resizerId = (Math.random(99)*100).toFixed(0);
   }
   
   start(){
@@ -41,14 +49,23 @@ class Resizer {
   }
 
   destroy(){
+    if(Debug.debug){
+      console.log(`[Resizer::destroy] <rid:${this.resizerId}> received destroy command.`);
+    }
     this.destroyed = true;
     this.stopCssWatcher();
   }
 
 
   setAr(ar, lastAr){
+    if (this.destroyed) {
+      return;
+    }
+    this.startCssWatcher();
+    this.cssWatcherIncreasedFrequencyCounter = 20;
+    
     if(Debug.debug){
-      console.log('[Resizer::setAr] trying to set ar. New ar:', ar)
+      console.log('[Resizer::setAr] <rid:'+this.resizerId+'> trying to set ar. New ar:', ar)
     }
 
     if(lastAr) {
@@ -80,7 +97,7 @@ class Resizer {
 
       if(! stretchFactors || stretchFactors.error){
         if(Debug.debug){
-          console.log("[Resizer::setAr] failed to set AR due to problem with calculating crop. Error:", (stretchFactors ? stretchFactors.error : stretchFactors));
+          console.log("[Resizer::setAr] <rid:"+this.resizerId+"> failed to set AR due to problem with calculating crop. Error:", (stretchFactors ? stretchFactors.error : stretchFactors));
         }
         if(stretchFactors.error === 'no_video'){
           this.conf.destroy();
@@ -133,13 +150,44 @@ class Resizer {
   }
 
   startCssWatcher(){
-    // this.haltCssWatcher = false;
-    if(!this.cssWatcherTimeout){
-      // if(Debug.debug)
-        // console.log("[Resizer.js] STARTING CSS WATCHER")
-  
-      // this.cssWatcherTimeout = setInterval(this.cssWatcher, 200, this);
+    if (this.destroyed) {
+      return;
     }
+    // this.haltCssWatcher = false;
+    if(!this.cssWatcherTimer){
+      this.scheduleCssWatcher(1);
+    } else {
+      clearTimeout(this.cssWatcherTimer);
+      this.scheduleCssWatcher(1);
+    }
+  }
+  
+  scheduleCssWatcher(timeout, force_reset) {
+    if (this.destroyed) {
+      return;
+    }
+
+    if(timeout === undefined) {
+      console.log("?")
+      this.cssCheck(); // no timeout = one-off
+      return;
+    }
+
+    if(this.cssWatcherTimeout) {
+      clearTimeout(this.cssWatcherTimer);
+    }
+
+    var ths = this;
+    this.cssWatcherTimer = setTimeout(function () {
+        ths.cssWatcherTimer = null;
+        try {
+          ths.cssCheck();
+        } catch (e) {
+          if(Debug.debug) {
+            console.log("[Resizer.js::scheduleCssWatcher] Css check failed. Error:", e);
+          }
+        }
+      }, timeout);
   }
 
   stopCssWatcher() {
@@ -150,7 +198,7 @@ class Resizer {
 
   restore() {
     if(Debug.debug){
-      console.log("[Resizer::restore] attempting to restore aspect ratio. this & settings:", {'this': this, "settings": Settings} );
+      console.log("[Resizer::restore] <rid:"+this.resizerId+"> attempting to restore aspect ratio. this & settings:", {'this': this, "settings": this.settings} );
     }
     
     // this is true until we verify that css has actually been applied
@@ -199,7 +247,7 @@ class Resizer {
   computeOffsets(stretchFactors){
 
     if(Debug.debug)
-      console.log("[Resizer::_res_computeOffsets] video will be aligned to ", ExtensionConf.miscFullscreenSettings.videoFloat);
+      console.log("[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.settings.active.miscFullscreenSettings.videoFloat);
   
     var actualWidth = this.conf.video.offsetWidth * stretchFactors.xFactor;
     var actualHeight = this.conf.video.offsetHeight * stretchFactors.yFactor;
@@ -209,10 +257,10 @@ class Resizer {
     if (this.pan) {
       // todo: calculate translate
     } else {
-      if (ExtensionConf.miscFullscreenSettings.videoFloat == "left") {
+      if (this.settings.active.miscFullscreenSettings.videoFloat == "left") {
         translate.x = (this.conf.player.dimensions.width - actualWidth) * -0.5;
       }
-      else if (ExtensionConf.miscFullscreenSettings.videoFloat == "right") {
+      else if (this.settings.active.miscFullscreenSettings.videoFloat == "right") {
         translate.x = (this.conf.player.dimensions.width - actualWidth) * 0.5;
       }
     }
@@ -224,7 +272,7 @@ class Resizer {
 
     if (! this.video) {
       if(Debug.debug)
-        console.log("[Resizer::_res_applyCss] Video went missing, doing nothing.");
+        console.log("[Resizer::_res_applyCss] <rid:"+this.resizerId+"> Video went missing, doing nothing.");
       this.conf.destroy();
       return;
     }
@@ -271,12 +319,15 @@ class Resizer {
 
   setStyleString (styleString, count = 0) {
     this.video.setAttribute("style", styleString);
+
+    this.currentStyleString = this.video.getAttribute('style');
+    this.currentCssValidFor = this.conf.player.dimensions;
     
     if(this.restore_wd){
   
       if(! this.video){
         if(Debug.debug)
-          console.log("[Resizer::_res_setStyleString] Video element went missing, nothing to do here.")
+          console.log("[Resizer::_res_setStyleString] <rid:"+this.resizerId+"> Video element went missing, nothing to do here.")
         return;
       }
       
@@ -288,8 +339,8 @@ class Resizer {
       //   if(Debug.debug)
       //     console.log("[Resizer::_res_setStyleString] Style string not set ???");
         
-      //   if(count < ExtensionConf.resizer.setStyleString.maxRetries){
-      //     setTimeout( this.setStyleString, ExtensionConf.resizer.setStyleString.retryTimeout, count + 1);
+      //   if(count < settings.active.resizer.setStyleString.maxRetries){
+      //     setTimeout( this.setStyleString, settings.active.resizer.setStyleString.retryTimeout, count + 1);
       //   }
       //   else if(Debug.debug){
       //     console.log("[Resizer::_res_setStyleString] we give up. css string won't be set");
@@ -301,78 +352,47 @@ class Resizer {
     }
     else{
       if(Debug.debug)
-        console.log("[Resizer::_res_setStyleString] css applied. Style string:", styleString);
+        console.log("[Resizer::_res_setStyleString] <rid:"+this.resizerId+"> css applied. Style string:", styleString);
     }
   }
 
-  cssWatcher(ths){
+  cssCheck(){
     // this means we haven't set our CSS yet, or that we changed video.
-    if(! ths.currentCss.top)
-      return;
+    // if(! this.currentCss.tranform) {
+    //   this.scheduleCssWatcher(200);      
+    //   return;
+    // }
     
     // this means video went missing. videoData will be re-initialized when the next video is found
-    if(! ths.video){
-      ths.conf.destroy();
+    if(! this.video){
+      if(Debug.debug) {
+        console.log("[Resizer::cssCheck] <rid:"+this.resizerId+"> no video detecting, issuing destroy command");
+      }
+      this.conf.destroy();
       return;
     }
-    console.log("css watcher running. video?", ths.video)
     
-    // // our current css is fucky? Null, undefined and 0 are invalid values.
-    // if(! GlobalVars.currentCss.width || ! GlobalVars.currentCss.height )
-    //   return;
+    if(this.destroyed) {
+      if(Debug.debug) {
+        console.log("[Resizer::cssCheck] <rid:"+this.resizerId+"> destroyed flag is set, we shouldnt be running");
+      }
+      return;
+    }
+
+    var styleString = this.video.getAttribute('style');
 
     // first, a quick test:
-    if (ths.currentVideoSettings.validFor == ths.conf.player.dimensions ){
-      if (ths.currentVideoSettings.videoWidth != ths.video.offsetWidth  ||
-          ths.currentVideoSettings.videoHeight != ths.video.offsetHeight){
-        ths.restore();
-        return;
-      }
+    // if (this.currentVideoSettings.validFor == this.conf.player.dimensions ){
+    if (this.currentStyleString !== styleString){
+      this.restore();
+      this.scheduleCssWatcher(10);
+      return;
     }
-  
-    var styleArrayStr = ths.video.getAttribute('style');
-    
-    if (styleArrayStr){
-      var styleArray = styleArrayStr.split(";");
-  
-      var stuffChecked = 0;
-      var stuffToCheck = 2;
-      
-      for(var i in styleArray){
-        styleArray[i] = styleArray[i].trim();
-        
-        if (styleArray[i].startsWith("top:")){
-          // don't force css restore if currentCss.top is not defined
-          if(ths.currentCss.top && styleArray[i] != ths.currentCss.top){
-            if(Debug.debug){
-              console.log("[Resizer::_res_antiCssOverride] SOMEBODY TOUCHED MA SPAGHETT (our CSS got overriden, restoring our css)");
-              console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT: top:", ths.currentCss.top, "left:", ths.currentCss.left, "thing that touched ma spaghett", styleArrayStr);
-            }
-            ths.restore();
-            return;
-          }
-          stuffChecked++;
-        }
-        else if(styleArray[i].startsWith("left:")){
-          // don't force css restore if currentCss.left is not defined        
-          if(ths.currentCss.left && styleArray[i] != ths.currentCss.left){
-            if(Debug.debug){
-              console.log("[Resizer::_res_antiCssOverride] SOMEBODY TOUCHED MA SPAGHETT (our CSS got overriden, restoring our css)");
-              console.log("[Resizer::_res_antiCssOverride] MA SPAGHETT: width:", ths.currentCss.width, "height:", ths.currentCss.height, "thing that touched ma spaghett", styleArrayStr);            
-            }
-            ths.restore();
-            return;
-          }
-          stuffChecked++;
-        }
-        
-        if(stuffChecked == stuffToCheck){
-    //         if(Debug.debug){
-    //           console.log("[Resizer::_res_antiCssOverride] My spaghett rests untouched. (nobody overrode our CSS, doing nothing)");
-    //         }
-          return;
-        }
-      }
+    if (this.cssWatcherIncreasedFrequencyCounter > 0) {
+      --this.cssWatcherIncreasedFrequencyCounter;
+      this.scheduleCssWatcher(20);
+    } else {
+      this.scheduleCssWatcher(1000);    
     }
   }
 }

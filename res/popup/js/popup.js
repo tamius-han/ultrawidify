@@ -5,7 +5,6 @@ document.getElementById("uw-version").textContent = browser.runtime.getManifest(
 
 var Menu = {};
 // Menu.noVideo    = document.getElementById("no-videos-display");
-Menu.general         = document.getElementById("extension-mode");
 Menu.thisSite        = document.getElementById("settings-for-current-site");
 Menu.arSettings      = document.getElementById("aspect-ratio-settings");
 Menu.autoAr          = document.getElementById("autoar-basic-settings");
@@ -38,8 +37,8 @@ AutoArPanel.globalOptions.blacklist = document.getElementById("_ar_global_option
 AutoArPanel.globalOptions.whitelist = document.getElementById("_ar_global_options_whitelist");
 AutoArPanel.globalOptions.disabled  = document.getElementById("_ar_global_options_disabled");
 AutoArPanel.siteOptions = {};
-AutoArPanel.siteOptions.disabled = document.getElementById("_ar_site_options_blacklist");
-AutoArPanel.siteOptions.enabled  = document.getElementById("_ar_site_options_whitelist");
+AutoArPanel.siteOptions.disabled = document.getElementById("_ar_site_options_disabled");
+AutoArPanel.siteOptions.enabled  = document.getElementById("_ar_site_options_enabled");
 AutoArPanel.siteOptions.default  = document.getElementById("_ar_site_options_default");
 
 var ArPanel = {};
@@ -57,19 +56,31 @@ StretchPanel.global.hybrid      = document.getElementById("_stretch_global_hybri
 StretchPanel.global.conditional = document.getElementById("_stretch_global_conditional");
 
 
-var selectedMenu = "arSettings";
+var selectedMenu = "";
 var hasVideos = false;
 
 var _config; 
 var _changeAr_button_shortcuts = { "autoar":"none", "reset":"none", "219":"none", "189":"none", "169":"none", "custom":"none" }
 
 var comms = new Comms();
+var settings = new Settings(undefined, () => updateConfig());
+
+var site = undefined;
+
 var port = browser.runtime.connect({name: 'popup-port'});
 port.onMessage.addListener( (m,p) => processReceivedMessage(m,p));
 
+
 async function processReceivedMessage(message, port){
-  if(message.cmd === 'set-config'){
-    this.loadConfig(message.conf, message.site);
+  if(message.cmd === 'set-current-site'){
+    site = message.site;
+    loadConfig(message.site);
+  }
+}
+
+async function updateConfig() {
+  if (site) {
+    loadConfig(site);
   }
 }
 
@@ -95,16 +106,47 @@ function stringToKeyCombo(key_in){
   return keys_out;
 }
 
-function loadConfig(extensionConf, site){
-  if(Debug.debug)
-    console.log("[popup.js::loadConfig] loading config. conf object:", extensionConf, "\n\n\n\n\n\n\n\n-------------------------------------");
-    
-  _extensionConf = extensionConf;
+async function loadConfig(site){
 
+  if(Debug.debug)
+    console.log("[popup.js::loadConfig] loading config. conf object:", settings.active, "\n\n\n\n\n\n\n\n-------------------------------------");
+  
+  // -----------------------
+  //#region tab-disabled
+  //
+  // if extension is disabled on current site, we can't do shit. Therefore, the following tabs will be disabled:
+  //      * AutoAR options
+  //      * Crop settings
+  //      * Stretch settings
+  var canStartExtension = settings.canStartExtension(site);
+
+  if (canStartExtension) {
+    MenuTab.arSettings.classList.remove('disabled');
+    MenuTab.autoAr.classList.remove('disabled');
+    MenuTab.stretchSettings.classList.remove('disabled');
+
+    // only switch when popup is being opened for the first time
+    if(! selectedMenu) {
+      openMenu('arSettings');
+    }
+  } else {
+    MenuTab.arSettings.classList.add('disabled');
+    MenuTab.autoAr.classList.add('disabled');
+    MenuTab.stretchSettings.classList.add('disabled');
+
+    // if popup isn't being opened for the first time, there's no reason to switch
+    // we're already in this tab
+    if(! selectedMenu) {
+      openMenu('thisSite');
+    }
+  }
+
+  //#endregion
+  //
   // ----------------------
   //#region extension-basics - SET BASIC EXTENSION OPTIONS
   if(Debug.debug)
-    console.log("EXT: site is:", site, "|extensionConf for this site: ", (site && extensionConf.sites[site]) ? extensionConf.sites[site] : "default site")
+    console.log("EXT: site is:", site, "|settings for this site: ", (site && settings.active.sites[site]) ? settings.active.sites[site] : "default site")
 
 
   for(var button in ExtPanel.globalOptions) {
@@ -114,9 +156,9 @@ function loadConfig(extensionConf, site){
     ExtPanel.siteOptions[button].classList.remove("selected");
   }
 
-  ExtPanel.globalOptions[extensionConf.extensionMode].classList.add("selected");
-  if(site && extensionConf.sites[site]) {
-    ExtPanel.siteOptions[extensionConf.sites[site].status].classList.add("selected");
+  ExtPanel.globalOptions[settings.active.extensionMode].classList.add("selected");
+  if(site && settings.active.sites[site]) {
+    ExtPanel.siteOptions[settings.active.sites[site].status].classList.add("selected");
   } else {
     ExtPanel.siteOptions.default.classList.add("selected");
   }
@@ -126,9 +168,9 @@ function loadConfig(extensionConf, site){
   // ------------
   //#region autoar - SET AUTOAR OPTIONS
   // if(Debug.debug)
-    // console.log("Autodetect mode?", extensionConf.arDetect.mode, "| site & site options:", site, ",", (site && extensionConf.sites[site]) ? extensionConf.sites[site].arStatus : "fucky wucky?" );
-  // document.getElementById("_autoAr_disabled_reason").textContent = extensionConf.arDetect.DisabledReason;
-  document.getElementById("_input_autoAr_timer").value = extensionConf.arDetect.timer_playing;
+    // console.log("Autodetect mode?", settings.active.arDetect.mode, "| site & site options:", site, ",", (site && settings.active.sites[site]) ? settings.active.sites[site].arStatus : "fucky wucky?" );
+  // document.getElementById("_autoAr_disabled_reason").textContent = settings.active.arDetect.DisabledReason;
+  document.getElementById("_input_autoAr_timer").value = settings.active.arDetect.timer_playing;
 
 
   for(var button in AutoArPanel.globalOptions) {
@@ -139,20 +181,20 @@ function loadConfig(extensionConf, site){
   }
 
 
-  AutoArPanel.globalOptions[extensionConf.arDetect.mode].classList.add("selected");
-  if(site && extensionConf.sites[site]) {
-    AutoArPanel.siteOptions[extensionConf.sites[site].arStatus].classList.add("selected");
+  AutoArPanel.globalOptions[settings.active.arDetect.mode].classList.add("selected");
+  if(site && settings.active.sites[site]) {
+    AutoArPanel.siteOptions[settings.active.sites[site].arStatus].classList.add("selected");
   } else {
     AutoArPanel.siteOptions.default.classList.add("selected");
   }
   //#endregion
 
   // process video alignment:
-  if(extensionConf.miscFullscreenSettings.videoFloat){
+  if(settings.active.miscFullscreenSettings.videoFloat){
     for(var button in ArPanel.alignment)
       ArPanel.alignment[button].classList.remove("selected");
     
-    ArPanel.alignment[extensionConf.miscFullscreenSettings.videoFloat].classList.add("selected");
+    ArPanel.alignment[settings.active.miscFullscreenSettings.videoFloat].classList.add("selected");
   }
 
   //#region - SET STRETCH
@@ -161,21 +203,21 @@ function loadConfig(extensionConf, site){
   for (var button in StretchPanel.global) {
     StretchPanel.global[button].classList.remove("selected");
   }
-  if (extensionConf.stretch.initialMode === 0) {
+  if (settings.active.stretch.initialMode === 0) {
     StretchPanel.global.none.classList.add("selected");
-  } else if (extensionConf.stretch.initialMode === 1) {
+  } else if (settings.active.stretch.initialMode === 1) {
     StretchPanel.global.basic.classList.add("selected");
-  } else if (extensionConf.stretch.initialMode === 2) {
+  } else if (settings.active.stretch.initialMode === 2) {
     StretchPanel.global.hybrid.classList.add("selected");
-  } else if (extensionConf.stretch.initialMode === 3) {
+  } else if (settings.active.stretch.initialMode === 3) {
     StretchPanel.global.conditional.classList.add("selected");
   }
   //#endregion
 
   // process keyboard shortcuts:
-  if(extensionConf.keyboard.shortcuts){
-    for(var key in extensionConf.keyboard.shortcuts){
-      var shortcut = extensionConf.keyboard.shortcuts[key];
+  if(settings.active.keyboard.shortcuts){
+    for(var key in settings.active.keyboard.shortcuts){
+      var shortcut = settings.active.keyboard.shortcuts[key];
       var keypress = stringToKeyCombo(key);
       
       
@@ -212,8 +254,8 @@ function loadConfig(extensionConf, site){
       }
 
       // fill in custom aspect ratio
-      if (extensionConf.keyboard.shortcuts.q) {
-        document.getElementById("_input_custom_ar").value = extensionConf.keyboard.shortcuts.q.arg;
+      if (settings.active.keyboard.shortcuts.q) {
+        document.getElementById("_input_custom_ar").value = settings.active.keyboard.shortcuts.q.arg;
       }
     }
     for(var key in _changeAr_button_shortcuts){
@@ -231,8 +273,8 @@ function loadConfig(extensionConf, site){
     console.log("[popup.js::loadConfig] config loaded");
 }
 
-async function getConf(){
-  port.postMessage({cmd: 'get-config'});
+async function getSite(){
+  port.postMessage({cmd: 'get-current-site'});
 }
 
 function openMenu(menu){
@@ -241,6 +283,9 @@ function openMenu(menu){
   }
   
   for(var m in Menu){
+    if(Menu[m] === null)
+      continue; //todo: remove menus that are no longer there
+    
     Menu[m].classList.add("hidden");
   }
   for(var m in MenuTab){
@@ -269,51 +314,6 @@ function openMenu(menu){
   MenuTab[menu].classList.add("selected");
 }
 
-function _arctl_onclick(command){
-  if(! _config)
-    return;
-  
-  if(command.cmd == "stop-autoar")
-    _config.arConf.enabled_current = false;
-  else if(command.cmd == "force-ar")
-    _config.arConf.enabled_current = true;
-  else if(command.cmd == "disable-autoar")
-    _config.arConf.enabled_global = false;
-  else if(command.cmd == "enable-autoar")
-    _config.arConf.enabled_global = true;
-  
-  showArctlButtons();
-}
-
-function showArctlButtons(){
-  if(! _config)
-    return;
-  
-  // if(_config.arConf){
-  //   if(! _config.arConf.enabled_global){
-  //     ArPanel.autoar.disable.classList.add("hidden");
-  //     ArPanel.autoar.enable.classList.remove("hidden");
-      
-  //     ArPanel.autoar.enable_tmp.textContent = "Temporarily enable";
-  //     ArPanel.autoar.disable_tmp.textContent = "Temporarily disable";
-  //   }
-  //   else{
-  //     ArPanel.autoar.disable.classList.remove("hidden");
-  //     ArPanel.autoar.enable.classList.add("hidden");
-      
-  //     ArPanel.autoar.enable_tmp.textContent = "Re-enable";
-  //     ArPanel.autoar.disable_tmp.textContent = "Temporarily disable";
-  //   }
-  //   if(! _config.arConf.enabled_current){
-  //     ArPanel.autoar.disable_tmp.classList.add("hidden");
-  //     ArPanel.autoar.enable_tmp.classList.remove("hidden");
-  //   }
-  //   else{
-  //     ArPanel.autoar.disable_tmp.classList.remove("hidden");
-  //     ArPanel.autoar.enable_tmp.classList.add("hidden");
-  //   }
-  // }
-}
 
 function getCustomAspectRatio() {
   var textBox_value = document.getElementById("_input_custom_ar").value.trim();
@@ -358,9 +358,9 @@ function validateCustomAr(){
 
 function validateAutoArTimeout(){
   const inputField = document.getElementById("_input_autoAr_timer");
-  const valueSaveButton = document.getElementById("_b_autoar_save_autoar_frequency");
+  const valueSaveButton = document.getElementById("_b_autoar_save_autoar_timer");
 
-  if (! isNaN(parseInt(inputField.trim().value()))) {
+  if (! isNaN(parseInt(inputField.value.trim().value()))) {
     inputField.classList.remove("invalid-input");
     valueSaveButton.classList.remove("disabled-button");
   } else {
@@ -369,28 +369,10 @@ function validateAutoArTimeout(){
   }
 }
 
-function toggleSite(option){
-  if(Debug.debug)
-    console.log("[popup::toggleSite] toggling extension 'should I work' status to", option, "on current site");
-  
-  Comms.sendToBackgroundScript({cmd:"enable-for-site", option:option});
-}
-
-function getMode(isEnabled, whitelistOnly) {
-  if(isEnabled) {
-    return whitelistOnly ? "whitelist" : "blacklist" 
-  } else {
-    return "disabled";
-  }
-}
-
-
 document.addEventListener("click", (e) => {
   
   
   function getcmd(e){
-    
-    
     var command = {};
     command.sender = "popup";
     command.receiver = "uwbg";
@@ -399,9 +381,6 @@ document.addEventListener("click", (e) => {
       return;
     
     if(e.target.classList.contains("menu-item")){
-      if(e.target.classList.contains("_menu_general")){
-        openMenu("general");
-      }
       if(e.target.classList.contains("_menu_this_site")){
         openMenu("thisSite");
       }
@@ -427,25 +406,38 @@ document.addEventListener("click", (e) => {
     if(e.target.classList.contains("_ext")) {
       var command = {};
       if(e.target.classList.contains("_ext_global_options")){
-        command.cmd = "set-extension-defaults";
         if (e.target.classList.contains("_blacklist")) {
-          command.mode = "blacklist";
+          settings.active.extensionMode = "blacklist";
         } else if (e.target.classList.contains("_whitelist")) {
-          command.mode = "whitelist";
+          settings.active.extensionMode = "whitelist";
         } else {
-          command.mode = "disabled";
+          settings.active.extensionMode = "disabled";
         }
-        return command;
+        settings.save();
+        return;
       } else if (e.target.classList.contains("_ext_site_options")) {
-        command.cmd = "set-extension-for-site";
+        var mode; 
         if(e.target.classList.contains("_blacklist")){
-          command.mode = "disabled";
+          mode = "disabled";
         } else if(e.target.classList.contains("_whitelist")) {
-          command.mode = "enabled";
+          mode = "enabled";
         } else {
-          command.mode = "default";
+          mode = "default";
         }
-        return command;
+        
+        if(settings.active.sites[site]) {
+          settings.active.sites[site].status = mode;
+          settings.active.sites[site].statusEmbedded = mode;
+        } else {
+          settings.active.sites[site] = {
+            status: mode,
+            statusEmbedded: mode,
+            arStatus: 'default',
+            type: 'user-defined'
+          }
+        }
+        settings.save();
+        return;
       }
     }
     if(e.target.classList.contains("_changeAr")){
@@ -504,17 +496,17 @@ document.addEventListener("click", (e) => {
     }
     if(e.target.classList.contains("_stretch")){
       if (e.target.classList.contains("_ar_stretch_global")) {
-        command.cmd = "set-stretch-default"
         if (e.target.classList.contains("_none")) {
-          command.mode = 0;
+          settings.active.stretch.initialMode = 0;
         } else if (e.target.classList.contains("_basic")) {
-          command.mode = 1;
+          settings.active.stretch.initialMode = 1;
         } else if (e.target.classList.contains("_hybrid")) {
-          command.mode = 2;
+          settings.active.stretch.initialMode = 2;
         } else if (e.target.classList.contains("_conditional")) {
-          command.mode = 3;
+          settings.active.stretch.initialMode = 3;
         }
-        return command;
+        settings.save();
+        return;
       }
 
       if(e.target.classList.contains("_ar_stretch_none")) {
@@ -533,52 +525,47 @@ document.addEventListener("click", (e) => {
       return command;
     }
     if(e.target.classList.contains("_autoAr")){
-
-      var command = {};
-      if(e.target.classList.contains("_ext_global_options")){
-        command.cmd = "set-autoar-defaults";
+      if(e.target.classList.contains("_ar_global_options")){
         if (e.target.classList.contains("_blacklist")) {
-          command.mode = "blacklist";
+          settings.active.arDetect.mode = "blacklist";
         } else if (e.target.classList.contains("_whitelist")) {
-          command.mode = "whitelist";
+          settings.active.arDetect.mode = "whitelist";
         } else {
-          command.mode = "disabled";
+          settings.active.arDetect.mode = "disabled";
         }
-        return command;
-      } else if (e.target.classList.contains("_autoAr_whitelist-only")) {
-        var arStatus = document.getElementById("_checkbox_autoar-enabled").checked;        
-        var whitelist = document.getElementById("_checkbox_autoar-whitelist").checked;
-
-
-        if(Debug.debug) {
-          console.log("CHANGED CHECKMARK IN _AR-WHTIELIST:", extStatus, whitelist)
-        }
-
-        return {
-          cmd: "set-autoar-mode",
-          mode: getMode(arStatus, whitelist),
-          sender: "popup",
-          receiver: "uwbg"
-        };
-      } else if (e.target.classList.contains("_save_autoAr_frequency")) {
-        var value = parseInt(document.getElementById("_input_autoAr_frequency").value.trim());
+        settings.save();
+        return;
+      } else if (e.target.classList.contains("_save_autoAr_timer")) {
+        var value = parseInt(document.getElementById("_input_autoAr_timer").value.trim());
         
         if(! isNaN(value)){
           var timeout = parseInt(value);
-          command = {cmd: "autoar-set-timer-playing", timeout: timeout, sender: "popup", receiver: "uwbg"};
-          Comms.sendToBackgroundScript(command);
+          settings.active.arDetect.timer_playing = timeout;
+          settings.save();
         }
         return;
       } else if (e.target.classList.contains("_ar_site_options")) {
-        command.cmd = "set-autoar-for-site";
-        if(e.target.classList.contains("_blacklist")){
-          command.mode = "disabled";
-        } else if(e.target.classList.contains("_whitelist")) {
-          command.mode = "enabled";
+        var mode;
+        if(e.target.classList.contains("_disabled")){
+          mode = "disabled";
+        } else if(e.target.classList.contains("_enabled")) {
+          mode = "enabled";
         } else {
-          command.mode = "default";
+          mode = "default";
         }
-        return command;
+
+        if(settings.active.sites[site]) {
+          settings.active.sites[site].arStatus = mode;
+        } else {
+          settings.active.sites[site] = {
+            status: settings.active.extensionMode,
+            statusEmbedded: settings.active.extensionMode,
+            arStatus: mode,
+            type: 'user-defined'
+          }
+        }
+        settings.save();
+        return;
       }
     }
     
@@ -586,29 +573,17 @@ document.addEventListener("click", (e) => {
       
       command.global = true;
       
-      if(e.target.classList.contains("_align_left")){
-        command.cmd = "set-video-float",
-        command.newFloat = "left"
-        
-        // console.log(".................\n\n\n..........\n\n              >>command<< \n\n\n\n            ",command,"\n\n\n.........\n\n\n................................");
-        
-        return command;
+      if (e.target.classList.contains("_align_left")) {
+        settings.active.miscFullscreenSettings.videoFloat = 'left';
+      } else if (e.target.classList.contains("_align_center")) {
+        settings.active.miscFullscreenSettings.videoFloat = 'center';
+      } else if (e.target.classList.contains("_align_right")) {
+        settings.active.miscFullscreenSettings.videoFloat = 'left';
       }
-      if(e.target.classList.contains("_align_center")){
-        command.cmd = "set-video-float"
-        command.newFloat = "center"
-        return command;
-      }
-      if(e.target.classList.contains("_align_right")){
-        command.cmd = "set-video-float";
-        command.newFloat = "right";
-        return command;
-      }
-    }
-    if(e.target.classList.contains("extensionEnabledOnCurrentSite")){  // legacy? can be removed?
-      toggleSite(document.extensionEnabledOnCurrentSite.mode.value);
-    }
-    
+
+      settings.save();
+      return;
+    }    
   }
   
   var command = getcmd(e);  
@@ -618,23 +593,39 @@ document.addEventListener("click", (e) => {
   return true;
 });
 
-const customArInputField = document.getElementById("_input_custom_ar");
-const autoarFrequencyInputField = document.getElementById("_input_autoAr_timer");
 
-customArInputField.addEventListener("blur", (event) => {
-  validateCustomAr();
-});
-customArInputField.addEventListener("mouseleave", (event) => {
-  validateCustomAr();
-});
 
-autoarFrequencyInputField.addEventListener("blur", (event) => {
-  validateAutoArTimeout();
-});
-autoarFrequencyInputField.addEventListener("mouseleave", (event) => {
-  validateAutoArTimeout();
-});
 
-hideWarning("script-not-running-warning");
-openMenu(selectedMenu);
-getConf();
+
+
+async function popup_init() {
+  // let's init settings and check if they're loaded
+  await settings.init();
+
+  if (Debug.debug) {
+    console.log("[popup] Are settings loaded?", settings)
+  }
+
+
+  const customArInputField = document.getElementById("_input_custom_ar");
+  const autoarFrequencyInputField = document.getElementById("_input_autoAr_timer");
+
+  customArInputField.addEventListener("blur", (event) => {
+    validateCustomAr();
+  });
+  customArInputField.addEventListener("mouseleave", (event) => {
+    validateCustomAr();
+  });
+
+  autoarFrequencyInputField.addEventListener("blur", (event) => {
+    validateAutoArTimeout();
+  });
+  autoarFrequencyInputField.addEventListener("mouseleave", (event) => {
+    validateAutoArTimeout();
+  });
+
+  hideWarning("script-not-running-warning");
+  getSite();
+}
+
+popup_init();
