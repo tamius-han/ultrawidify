@@ -2,6 +2,10 @@
 
 ## v3.x
 
+### v3.2.0 
+
+* Zoom and panning
+
 ### v3.1.1 (Chrome-only)
 
 * Logging was accidentally left on in release version. This was fixed.
