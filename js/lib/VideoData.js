@@ -106,6 +106,14 @@ class VideoData {
     this.resizer.setAr(ar, lastAr);
   }
 
+  panHandler(event) {
+    this.resizer.panHandler(event);
+  }
+
+  setPanMode(mode) {
+    this.resizer.setPanMode(mode);
+  }
+
   restoreAr(){
     this.resizer.restore();
   }
@@ -115,7 +123,7 @@ class VideoData {
   }
 
   zoomStep(step){
-    this.resizer.zoomStep();
+    this.resizer.zoomStep(step);
   }
 
 }

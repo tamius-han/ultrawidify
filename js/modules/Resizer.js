@@ -38,6 +38,13 @@ class Resizer {
     this.destroyed = false;
 
     this.resizerId = (Math.random(99)*100).toFixed(0);
+
+    if (this.settings.active.pan) {
+      console.log("can pan:", this.settings.active.pan.mousePanEnabled, "(default:", this.settings.active.pan.mousePanEnabled, ")")
+      this.canPan = this.settings.active.pan.mousePanEnabled;
+    } else {
+      this.canPan = false;
+    }
   }
   
   start(){
@@ -138,6 +145,24 @@ class Resizer {
     this.restore();
   }
 
+  panHandler(event) {
+    // console.log("this.conf.canPan:", this.conf.canPan)
+    if (this.canPan) {
+      // console.log("event?", event)
+      // console.log("this?", this)
+
+      if(!this.conf.player || !this.conf.player.element) {
+        return;
+      }
+      const player = this.conf.player.element;
+
+      const relativeX = (event.pageX - player.offsetLeft) / player.offsetWidth;
+      const relativeY = (event.pageY - player.offsetTop) / player.offsetHeight;
+      
+      this.setPan(relativeX, relativeY);
+    }
+  }
+
   setPan(relativeMousePosX, relativeMousePosY){
     // relativeMousePos[X|Y] - on scale from 0 to 1, how close is the mouse to player edges. 
     // use these values: top, left: 0, bottom, right: 1
@@ -145,8 +170,13 @@ class Resizer {
       this.pan = {};
     }
 
-    this.pan.relativeOffsetX = relativeMousePosX*2.5 - 1.25;
-    this.pan.relativeOffsetY = relativeMousePosY*2.5 - 1.25;
+    this.pan.relativeOffsetX = -(relativeMousePosX * 1.1) + 0.55;
+    this.pan.relativeOffsetY = -(relativeMousePosY * 1.1) + 0.55;
+
+    // if(Debug.debug){
+    //   console.log("[Resizer::setPan] relative cursor pos:", relativeMousePosX, ",",relativeMousePosY, " | new pan obj:", this.pan)
+    // }
+    this.restore();
   }
 
   startCssWatcher(){
@@ -219,6 +249,16 @@ class Resizer {
     this.setAr('reset');
   }
 
+  setPanMode(mode) {
+    if (mode === 'enable') {
+      this.canPan = true;
+    } else if (mode === 'disable') {
+      this.canPan = false;
+    } else if (mode === 'toggle') {
+      this.canPan = !this.canPan;
+    }
+  }
+
   resetPan(){
     this.pan = undefined;
   }
@@ -246,23 +286,36 @@ class Resizer {
 
   computeOffsets(stretchFactors){
 
-    if(Debug.debug)
+    if (Debug.debug) {
       console.log("[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.settings.active.miscFullscreenSettings.videoFloat);
-  
+    }
+
     var actualWidth = this.conf.video.offsetWidth * stretchFactors.xFactor;
     var actualHeight = this.conf.video.offsetHeight * stretchFactors.yFactor;
+
+    var wdiff = actualWidth - this.conf.player.dimensions.width;
+    var hdiff = actualHeight - this.conf.player.dimensions.height;
 
     var translate = {x: 0, y: 0};
 
     if (this.pan) {
-      // todo: calculate translate
+      // don't offset when video is smaller than player
+      if(wdiff < 0 && hdiff < 0) {
+        return translate;
+      }
+      translate.x = wdiff * this.pan.relativeOffsetX / this.zoom.scale;
+      translate.y = hdiff * this.pan.relativeOffsetY / this.zoom.scale;
     } else {
       if (this.settings.active.miscFullscreenSettings.videoFloat == "left") {
-        translate.x = (this.conf.player.dimensions.width - actualWidth) * -0.5;
+        translate.x = wdiff * 0.5;
       }
       else if (this.settings.active.miscFullscreenSettings.videoFloat == "right") {
-        translate.x = (this.conf.player.dimensions.width - actualWidth) * 0.5;
+        translate.x = wdiff * -0.5;
       }
+    }
+
+    if(Debug.debug) {
+      console.log("[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> calculated offsets:", translate);
     }
 
     return translate; 
@@ -271,8 +324,10 @@ class Resizer {
   applyCss(stretchFactors, translate){
 
     if (! this.video) {
-      if(Debug.debug)
+      if(Debug.debug) {
         console.log("[Resizer::_res_applyCss] <rid:"+this.resizerId+"> Video went missing, doing nothing.");
+      }
+
       this.conf.destroy();
       return;
     }

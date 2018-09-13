@@ -226,6 +226,12 @@ class PageInfo {
     }
   }
   
+  setPanMode(mode) {
+    for(var vd of this.videos) {
+      vd.setPanMode(mode);
+    }
+  }
+
   restoreAr() {
     for(var vd of this.videos){
       vd.restoreAr()
