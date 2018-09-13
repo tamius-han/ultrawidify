@@ -171,7 +171,7 @@ var ExtensionConf = {
         action: "pan",
         arg: 'toggle'   // possible: 'enable', 'disable', 'toggle'
       },
-      "Shift": {
+      "shift": {
         action: "pan",
         arg: 'toggle',
         keyup: {

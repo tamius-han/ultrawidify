@@ -18,8 +18,10 @@ If you own an ultrawide monitor, you have probably noticed that sometimes videos
 * **Can be enabled or disabled on per-site basis**
 * **Crop video to fit screen** (no stretching. Supported aspect ratios: 21/9 (1:2.39), 16:9, 16:10, _one (1) custom aspect ratio_)
 * **Automatic aspect ratio detection** (can be enabled/disabled entirely or on a per-site basis, separately of the extension. Autodetection in action: [youtube](https://www.youtube.com/watch?v=j2xn1WpbtCQ))
-* **[NEW in v3!] Stretch video to fit the screen** (4 different approaches)
 * **Supports Youtube theater mode**
+* **[EXPERIMENTAL!]** Stretch video to fit the screen (4 different approaches)
+* **[EXPERIMENTAL!] (3.2.0) custom zooming and panning**
+
 
 ### Officially supported sites
 
