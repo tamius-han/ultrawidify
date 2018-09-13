@@ -44,6 +44,12 @@ class Zoom {
     if (this.scale >= this.maxScale) {
       this.scale = this.maxScale;
     }
+  
+    if (Debug.debug) {
+      console.log("[Zoom::zoomStep] changing zoom by", amount, ". New zoom level:", this.scale);
+    }
+
+    this.conf.restoreAr();
   }
 
   setZoom(scale){

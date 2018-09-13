@@ -110,6 +110,9 @@ var ExtensionConf = {
       retryTimeout: 200
     }
   },
+  pan: {
+    mousePanEnabled: false
+  },
   pageInfo: {
     timeouts: {
       urlCheck: 200,
@@ -163,6 +166,18 @@ var ExtensionConf = {
       "u": {
         action: "zoom",
         arg: -0.1
+      },
+      "p": {
+        action: "pan",
+        arg: 'toggle'   // possible: 'enable', 'disable', 'toggle'
+      },
+      "Shift": {
+        action: "pan",
+        arg: 'toggle',
+        keyup: {
+          action: 'pan',
+          arg: 'toggle'
+        }
       }
       //#endregion
     },

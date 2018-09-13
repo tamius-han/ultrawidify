@@ -193,12 +193,6 @@ class Settings {
       Debug.debug = false;
       const cse = this.canStartExtension(site);
       Debug.debug = true;
-
-      // console.log("[Settings::canStartExtension] ----------------\nCAN WE START THIS EXTENSION ON SITE", site,
-      //             "?\n\nsettings.active.sites[site]=", this.active.sites[site],
-      //             "\nExtension mode?", this.active.extensionMode,
-      //             "\nCan extension be started?", cse
-      //            );
     }
     try{
     // if site is not defined, we use default mode:
