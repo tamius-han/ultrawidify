@@ -171,12 +171,20 @@ var ExtensionConf = {
         action: "pan",
         arg: 'toggle'   // possible: 'enable', 'disable', 'toggle'
       },
-      "shift": {
+      "shiftKey_shift": {
         action: "pan",
         arg: 'toggle',
-        keyup: {
+        keyup: {        
           action: 'pan',
           arg: 'toggle'
+        }
+      },
+      "shift": {
+        action: "",
+        arg: "",
+        keyup: {
+          action: 'pan',
+          arg: 'toggle',
         }
       }
       //#endregion

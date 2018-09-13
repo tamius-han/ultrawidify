@@ -106,6 +106,10 @@ class VideoData {
     this.resizer.setAr(ar, lastAr);
   }
 
+  resetAr() {
+    this.resizer.reset();
+  }
+
   panHandler(event) {
     this.resizer.panHandler(event);
   }
