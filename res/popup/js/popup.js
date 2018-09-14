@@ -5,21 +5,16 @@ document.getElementById("uw-version").textContent = browser.runtime.getManifest(
 
 var Menu = {};
 // Menu.noVideo    = document.getElementById("no-videos-display");
-Menu.thisSite        = document.getElementById("settings-for-current-site");
-Menu.arSettings      = document.getElementById("aspect-ratio-settings");
-Menu.autoAr          = document.getElementById("autoar-basic-settings");
-Menu.cssHacks        = document.getElementById("css-hacks-settings");
-Menu.about           = document.getElementById("panel-about");
-Menu.stretchSettings = document.getElementById("stretch-settings")
+Menu.extensionSettings = document.getElementById('_menu_settings_ext');
+Menu.siteSettings      = document.getElementById('_menu_settings_site');
+Menu.videoSettings     = document.getElementById('_menu_settings_video');
+Menu.about             = document.getElementById('_menu_about')
 
 var MenuTab = {};
-MenuTab.general         = document.getElementById("_menu_general");
-MenuTab.thisSite        = document.getElementById("_menu_this_site");
-MenuTab.arSettings      = document.getElementById("_menu_aspectratio");
-MenuTab.cssHacks        = document.getElementById("_menu_hacks");
-MenuTab.about           = document.getElementById("_menu_about");
-MenuTab.autoAr          = document.getElementById("_menu_autoar");
-MenuTab.stretchSettings = document.getElementById("_menu_stretch");
+MenuTab.extensionSettings = document.getElementById('_menu_tab_settings_ext');
+MenuTab.siteSettings      = document.getElementById('_menu_tab_settings_site');
+MenuTab.videoSettings     = document.getElementById('_menu_tab_settings_video');
+MenuTab.about             = document.getElementById('_menu_tab_about')
 
 var ExtPanel = {};
 ExtPanel.globalOptions = {};
