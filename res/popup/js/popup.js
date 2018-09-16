@@ -145,6 +145,8 @@ function configurePopupTabs(site) {
     MenuTab.videoSettings.classList.remove('disabled');
   }
 
+  console.log("ext enabled?", extensionEnabled, "for site", site, "?", extensionEnabledForSite);
+
   if (! extensionEnabledForSite) {
     MenuTab.videoSettings.classList.add('disabled');
     if (! extensionEnabled) {
@@ -634,12 +636,12 @@ async function popup_init() {
     validateCustomAr();
   });
 
-  autoarFrequencyInputField.addEventListener("blur", (event) => {
-    validateAutoArTimeout();
-  });
-  autoarFrequencyInputField.addEventListener("mouseleave", (event) => {
-    validateAutoArTimeout();
-  });
+  // autoarFrequencyInputField.addEventListener("blur", (event) => {
+  //   validateAutoArTimeout();
+  // });
+  // autoarFrequencyInputField.addEventListener("mouseleave", (event) => {
+  //   validateAutoArTimeout();
+  // });
 
   hideWarning("script-not-running-warning");
   getSite();
