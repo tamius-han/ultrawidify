@@ -215,6 +215,13 @@ class Settings {
     }
   }
 
+  extensionEnabled(){
+    return this.active.extensionMode !== 'disabled'
+  }
+
+  extensionEnabledForSite(site) {
+    return this.canStartExtension(site);
+  }
 
   canStartAutoAr(site) {
     if (!site) {
