@@ -61,10 +61,7 @@
           </div>
 
           <!-- TODO: default aspect ratio settings -->
-          <p class="warning">
-            <b>Video stretching options are currently experimental.</b> If you find any bugs, please consider reporting the problem. See 'About ultrawidify' tab for details.
-          </p>
-          <span class="label">Default stretching mode</span>
+          <span class="label experimental">Default stretching mode</span>
           <div class="button-row">
             <a id="_stretch_global_none"        class="button _stretch _ar_stretch_global _none w24">Never<br/><span id="_b_stretch_default_none_key" class="smallcaps small darker"></span></a>
             <a id="_stretch_global_basic"       class="button _stretch _ar_stretch_global _basic w24">Basic<br/><span id="_b_stretch_default_basic_key" class="smallcaps small darker"></span></a>            
@@ -109,9 +106,10 @@
         <div class="row">
           <span class="label">Video alignment:</span>
           <div class="button-row">
-            <a id="_align_site_left"   class="button _align _align_site_left">left</a>
-            <a id="_align_site_center" class="button _align _align_site_center">center</a>
-            <a id="_align_site_right"  class="button _align _align_site_right">right</a>
+            <a id="_align_site_left"   class="button _align _align_video_left">left</a>
+            <a id="_align_site_center" class="button _align _align_video_center">center</a>
+            <a id="_align_site_right"  class="button _align _align_video_right">right</a>
+            <a id="_align_site_default"class="button _align _align_site_right">default</a>
           </div>
         </div>
       </div>
@@ -145,10 +143,7 @@
         </div>
 
         <!-- ZOOM STUFF -->
-        <p class="warning">
-          <b>Zoom settings currently experimental.</b> If you find any bugs, please consider reporting the problem. See 'About ultrawidify' tab for details.
-        </p>
-        <span class="label">Manual zooming and panning</span>
+        <span class="label experimental">Manual zooming and panning</span>
         <div class="row">
           <!--
             min, max and value need to be implemented in js as this slider 
@@ -176,10 +171,7 @@
         </div>
 
         <!-- STRETCH STUFF -->
-        <p class="warning">
-          <b>Video stretching options are currently experimental.</b> If you find any bugs, please consider reporting the problem. See 'About ultrawidify' tab for details.
-        </p>
-        <span class="label">Stretching mode</span>
+        <span class="label experimental">Stretching mode</span>
         <div class="button-row">
           <a class="button _stretch _ar_stretch_none w24">Normal<br/><span id="_b_stretch_none_key" class="smallcaps small darker"></span></a>
           <a class="button _stretch _ar_stretch_basic w24">Basic<br/><span id="_b_stretch_basic_key" class="smallcaps small darker"></span></a>            

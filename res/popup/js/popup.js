@@ -42,16 +42,17 @@ SitePanel.arOptions.disabled   = document.getElementById("_ar_site_options_disab
 SitePanel.arOptions.enabled    = document.getElementById("_ar_site_options_enabled");
 SitePanel.arOptions.default    = document.getElementById("_ar_site_options_default");
 SitePanel.alignment = {};
-SitePanel.alignment.left       = document.getElementById("_align_ext_left");
-SitePanel.alignment.center     = document.getElementById("_align_ext_center");
-SitePanel.alignment.right      = document.getElementById("_align_ext_right");
+SitePanel.alignment.left       = document.getElementById("_align_site_left");
+SitePanel.alignment.center     = document.getElementById("_align_site_center");
+SitePanel.alignment.right      = document.getElementById("_align_site_right");
+SitePanel.alignment.default    = document.getElementById("_align_site_default");
 //#endregion
 
 var VideoPanel = {};
 VideoPanel.alignment = {};
-VideoPanel.alignment.left   = document.getElementById("_align_left");
-VideoPanel.alignment.center = document.getElementById("_align_center");
-VideoPanel.alignment.right  = document.getElementById("_align_right");
+VideoPanel.alignment.left   = document.getElementById("_align_video_left");
+VideoPanel.alignment.center = document.getElementById("_align_video_center");
+VideoPanel.alignment.right  = document.getElementById("_align_video_right");
 
 // labels on buttons
 VideoPanel.buttonLabels = {};
@@ -174,8 +175,9 @@ function configurePopupTabs(site) {
 
 function configureGlobalTab() {
   if (Debug.debug) {
-    console.log("[popup.js] Configuring global tab (ExtPanel).\nextension mode?", settings.active.extensionMode,
-    "\narDetect mode:", settings.active.arDetect.mode,
+    console.log("[popup.js] Configuring global tab (ExtPanel).",
+    "\nextension mode:  ", settings.active.extensionMode,
+    "\narDetect mode:   ", settings.active.arDetect.mode,
     "\nvideo float mode:", settings.active.miscFullscreenSettings.videoFloat,
     "\n..")
   }
@@ -201,11 +203,13 @@ function configureGlobalTab() {
 
 function configureSitesTab(site) {
   if (Debug.debug) {
-    console.log("[popup.js] Configuring sites tab (SitePanel).\nsite:",site,
-    "extension mode?", settings.active.sites[site].status,
-    "\narDetect mode:", settings.active.sites[site].arStatus,
-    // "\nvideo float mode:", settings.active.miscFullscreenSettings.videoFloat,
-    "\n", SitePanel.extOptions, SitePanel.arOptions,
+    console.log("[popup.js] Configuring sites tab (SitePanel).",
+    "\nsite:            ", site,
+    "extension mode:    ", settings.active.sites[site].status,
+    "\narDetect mode:   ", settings.active.sites[site].arStatus,
+    "\nvideo float mode:", settings.active.sites[site].videoFloat,
+    "\ndefault ar:      ", settings.active.sites[site].ar,
+    "\nstretch mode:    ", settings.active.sites[site].stretch,
     "\n...")
   }
 
@@ -221,7 +225,13 @@ function configureSitesTab(site) {
 
   SitePanel.extOptions[settings.active.sites[site].status].classList.add("selected");
   SitePanel.arOptions[settings.active.sites[site].arStatus].classList.add("selected");
-  // SitePanel.alignment[settings.active.miscFullscreenSettings.videoFloat].classList.add("selected");
+
+  // optional settings:
+  if (settings.active.sites.ar) {
+    SitePanel.alignment[settings.active.sites[site].videoAlignment].classList.add("selected");
+  } else {
+    SitePanel.alignment.default.classList.add('selected');
+  }
 }
 
 function configureVideoTab() {
@@ -294,35 +304,15 @@ function configureVideoTab() {
 async function loadConfig(site){
 
   if(Debug.debug)
-    console.log("[popup.js::loadConfig] loading config. conf object:", settings.active, "\n\n\n\n\n\n\n\n-------------------------------------");
+    console.log("\n\n-------------------------------------\n[popup.js::loadConfig] loading config. conf object:", settings.active);
   
   configurePopupTabs(site);
   configureGlobalTab();
   configureSitesTab(site);
   configureVideoTab();
 
-  //#region - SET STRETCH
-  //
-  // // set stretching
-  // for (var button in StretchPanel.global) {
-  //   StretchPanel.global[button].classList.remove("selected");
-  // }
-  // if (settings.active.stretch.initialMode === 0) {
-  //   StretchPanel.global.none.classList.add("selected");
-  // } else if (settings.active.stretch.initialMode === 1) {
-  //   StretchPanel.global.basic.classList.add("selected");
-  // } else if (settings.active.stretch.initialMode === 2) {
-  //   StretchPanel.global.hybrid.classList.add("selected");
-  // } else if (settings.active.stretch.initialMode === 3) {
-  //   StretchPanel.global.conditional.classList.add("selected");
-  // }
-  //#endregion
-
-
-  
-
   if(Debug.debug)
-    console.log("[popup.js::loadConfig] config loaded");
+    console.log("[popup.js::loadConfig] config loaded\n-----------------------\n\n");
 }
 
 async function getSite(){
