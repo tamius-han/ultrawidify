@@ -33,15 +33,16 @@ class Resizer {
     // CSS watcher will trigger _very_ often for this many iterations
     this.cssWatcherIncreasedFrequencyCounter = 0;
 
-
-    this.lastAr = {type: 'original'};
+    
+    this.lastAr = this.settings.getDefaultAr();                 // this is the aspect ratio we start with
+    this.videoFloat = this.settings.getDefaultVideoAlignment(); // this is initial video alignment
     this.destroyed = false;
 
     this.resizerId = (Math.random(99)*100).toFixed(0);
 
     if (this.settings.active.pan) {
-      console.log("can pan:", this.settings.active.pan.mousePanEnabled, "(default:", this.settings.active.pan.mousePanEnabled, ")")
-      this.canPan = this.settings.active.pan.mousePanEnabled;
+      console.log("can pan:", this.settings.active.miscFullscreenSettings.mousePan.enabled, "(default:", this.settings.active.miscFullscreenSettings.mousePan.enabled, ")")
+      this.canPan = this.settings.active.miscFullscreenSettings.mousePan.enabled;
     } else {
       this.canPan = false;
     }
@@ -306,10 +307,10 @@ class Resizer {
       translate.x = wdiff * this.pan.relativeOffsetX / this.zoom.scale;
       translate.y = hdiff * this.pan.relativeOffsetY / this.zoom.scale;
     } else {
-      if (this.settings.active.miscFullscreenSettings.videoFloat == "left") {
+      if (this.videoFloat == "left") {
         translate.x = wdiff * 0.5;
       }
-      else if (this.settings.active.miscFullscreenSettings.videoFloat == "right") {
+      else if (this.videoFloat == "right") {
         translate.x = wdiff * -0.5;
       }
     }

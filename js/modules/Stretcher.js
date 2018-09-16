@@ -12,7 +12,7 @@ class Stretcher {
   constructor(videoData) {
     this.conf = videoData;
     this.settings = videoData.settings;
-    this.mode = this.settings.active.stretch.initialMode;
+    this.mode = this.settings.getDefaultStretchMode();
   }
 
   applyConditionalStretch(stretchFactors, actualAr){

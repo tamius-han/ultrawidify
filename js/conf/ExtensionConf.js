@@ -97,7 +97,11 @@ var ExtensionConf = {
     samenessTreshold: 0.025,  // if aspect ratios are within 2.5% within each other, don't resize
   },
   miscFullscreenSettings: {
-    videoFloat: "center"
+    videoFloat: "center",
+    mousePan: {
+      enabled: false
+    },
+    defaultAr: "original",
   },
   stretch: {
     initialMode: 0,                     // 0 - no stretch, 1 - basic, 2 - hybrid, 3 - conditional
@@ -109,9 +113,6 @@ var ExtensionConf = {
       maxRetries: 3,
       retryTimeout: 200
     }
-  },
-  pan: {
-    mousePanEnabled: false
   },
   pageInfo: {
     timeouts: {

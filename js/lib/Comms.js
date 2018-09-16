@@ -60,7 +60,7 @@ class CommsClient {
     if (message.cmd === "set-ar") {
       this.pageInfo.setAr(message.ratio);
     } else if (message.cmd === 'set-video-float') {
-      this.settings.active.miscFullscreenSettings.videoFloat = message.newFloat;
+      this.pageInfo.setVideoFloat(message.newFloat);
       this.pageInfo.restoreAr();
     } else if (message.cmd === "set-stretch") {
       this.pageInfo.setStretchMode(StretchMode[message.mode]);
@@ -248,7 +248,6 @@ class CommsServer {
       this.settings.save();
     } else if (message.cmd === 'set-video-float') {
       this.sendToActive(message);
-      this.settings.active.miscFullscreenSettings.videoFloat = message.newFloat;
       this.settings.save();
     } else if (message.cmd === 'autoar-start') {
       this.sendToActive(message);
