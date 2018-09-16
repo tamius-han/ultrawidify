@@ -21,10 +21,10 @@
       <div id="_menu_tab_settings_ext" class="menu-item _menu_tab_settings_ext">
         Extension settings
       </div>
-      <div id="_menu_tab_settings_site" class="menu-item _menu_tab_settings_ext">
+      <div id="_menu_tab_settings_site" class="menu-item _menu_tab_settings_site">
         Site settings
       </div>
-      <div id="_menu_tab_settings_video" class="menu-item _menu_tab_settings_ext">
+      <div id="_menu_tab_settings_video" class="menu-item _menu_tab_settings_video">
         Video settings
         <span class="menu-item-inline-desc"><br/>Crop & stretch options for current video</span>
       </div>
@@ -72,6 +72,16 @@
             <a id="_stretch_global_conditional" class="button _stretch _ar_stretch_global _conditional w24">Thin borders<br/><span id="_b_stretch_default_conditional_key" class="smallcaps small darker"></span></a>
           </div>
         </div>
+
+        <!-- VIDEO ALIGNMENT -->
+        <div class="row">
+          <span class="label">Video alignment:</span>
+          <div class="button-row">
+            <a id="_align_ext_left"   class="button _align _align_ext_left">left</a>
+            <a id="_align_ext_center" class="button _align _align_ext_center">center</a>
+            <a id="_align_ext_right"  class="button _align _align_ext_right">right</a>
+          </div>
+        </div>
       </div>
 
 
@@ -94,6 +104,16 @@
           </div>
         </div>
         <!-- TODO: default aspect ratio, default settings -->
+
+        <!-- VIDEO ALIGNMENT -->
+        <div class="row">
+          <span class="label">Video alignment:</span>
+          <div class="button-row">
+            <a id="_align_site_left"   class="button _align _align_site_left">left</a>
+            <a id="_align_site_center" class="button _align _align_site_center">center</a>
+            <a id="_align_site_right"  class="button _align _align_site_right">right</a>
+          </div>
+        </div>
       </div>
 
 
@@ -134,20 +154,22 @@
             min, max and value need to be implemented in js as this slider 
             should use logarithmic scale
           -->
-          <input id="_zoom_slider" class="w100"
+          <input id="_input_zoom_slider" class="w100"
                  type="range"
+                 step="any"
                  />
           <div style="overflow: auto">
             <div class="inline-block float-left medium-small x-pad-1em">
-              Zoom: <span id="zoom_level">100</span>%
+              Zoom: <span id="_label_zoom_level">100</span>%
             </div>
             <div class="inline-block float-right medium-small">
               <a class="_zoom_show_shortcuts x-pad-1em">show shortcuts</a><a class="_zoom_hide_shortcuts hidden x-pad-1em">show shortcuts</a><a class="_zoom_reset x-pad-1em">reset</a>
             </div> 
           </div>
           <div class="m-t-0-33em w100 display-block">
-            <input  type="checkbox" 
-                    />
+            <input id="_input_zoom_site_allow_pan"
+                   type="checkbox" 
+                   />
             Pan with mouse
           </div>
           <!-- <small>Keyboard shortcuts:<ul><li>Z: zoom</li><li>U: unzoom</li><li>P: toggle pan</li><li>shift: hold to enable/prevent pan</li></ul></small> -->
@@ -159,7 +181,7 @@
         </p>
         <span class="label">Stretching mode</span>
         <div class="button-row">
-          <a class="button _stretch _ar_stretch_none w24">Never<br/><span id="_b_stretch_none_key" class="smallcaps small darker"></span></a>
+          <a class="button _stretch _ar_stretch_none w24">Normal<br/><span id="_b_stretch_none_key" class="smallcaps small darker"></span></a>
           <a class="button _stretch _ar_stretch_basic w24">Basic<br/><span id="_b_stretch_basic_key" class="smallcaps small darker"></span></a>            
           <a class="button _stretch _ar_stretch_hybrid w24">Hybrid<br/><span id="_b_stretch_hybrid_key" class="smallcaps small darker"></span></a>
           <a class="button _stretch _ar_stretch_conditional w24">Thin borders<br/><span id="_b_stretch_conditional_key" class="smallcaps small darker"></span></a>
@@ -169,23 +191,16 @@
         <div class="row">
           <span class="label">Video alignment:</span>
           <div class="button-row">
-            <a id="_align_left"   class="button _align _align_left">left</a>
-            <a id="_align_center" class="button _align _align_center">center</a>
-            <a id="_align_right"  class="button _align _align_right">right</a>
+            <a id="_align_video_left"   class="button _align _align_video_left">left</a>
+            <a id="_align_video_center" class="button _align _align_video_center">center</a>
+            <a id="_align_video_right"  class="button _align _align_video_right">right</a>
           </div>
         </div>
       </div>
 
-      <div id="autoar-basic-settings" class="suboption hidden">
-          <!-- <p><small class="color_warn" id="_autoAr_disabled_reason"></small><br/> -->
-        <p>Check every <input id="_input_autoAr_timer" class="_autoAr _autoAr_timer" type="number" min="5" max="10000"> ms — <span id="_b_autoar_save_autoar_timer" class="button _save_autoAr_timer _autoAr">Save</span></p>
-      </div>
-
-      <div id="css-hacks-settings" class="suboption hidden">
-        <p>If zoomed in video doesn't align properly, try enabling or disabling certain CSS rules below:</p>
-      </div>
-      
-      <div id="panel-about" class="suboption hidden">
+    
+      <!-- ABOUT -->
+      <div id="_menu_about" class="suboption hidden">
         <div class="row">
           <span class="label">Ultrawidify version:</span><br/> <span id="uw-version"></span>
         </div>

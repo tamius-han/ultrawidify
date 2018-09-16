@@ -201,6 +201,15 @@ var ExtensionConf = {
   //    status: <option>              // should extension work on this site?
   //    arStatus: <option>            // should we do autodetection on this site?
   //    statusEmbedded: <option>      // reserved for future... maybe
+  //    
+  //    ar?: <ratio>                  // automatically apply this aspect ratio on this side. Use extension defaults if undefined.
+  //    stretch? <stretch mode>       // automatically stretch video on this site in this manner
+  //    videoAlignment? <left|center|right>
+  //
+  //    type: <official|community|user>  // 'official' — blessed by Tam. 
+  //                                     // 'community' — blessed by reddit.
+  //                                     // 'user' — user-defined (not here)
+  //    override: <true|false>           // override user settings for this site on update
   // } 
   //  
   // Veljavne vrednosti za možnosti 

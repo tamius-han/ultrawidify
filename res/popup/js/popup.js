@@ -17,38 +17,66 @@ MenuTab.videoSettings     = document.getElementById('_menu_tab_settings_video');
 MenuTab.about             = document.getElementById('_menu_tab_about')
 
 var ExtPanel = {};
-ExtPanel.globalOptions = {};
-ExtPanel.globalOptions.blacklist = document.getElementById("_ext_global_options_blacklist");
-ExtPanel.globalOptions.whitelist = document.getElementById("_ext_global_options_whitelist");
-ExtPanel.globalOptions.disabled  = document.getElementById("_ext_global_options_disabled");
-ExtPanel.siteOptions = {};
-ExtPanel.siteOptions.disabled = document.getElementById("_ext_site_options_blacklist");
-ExtPanel.siteOptions.enabled  = document.getElementById("_ext_site_options_whitelist");
-ExtPanel.siteOptions.default  = document.getElementById("_ext_site_options_default");
+ExtPanel.extOptions = {};
+ExtPanel.extOptions.blacklist = document.getElementById("_ext_global_options_blacklist");
+ExtPanel.extOptions.whitelist = document.getElementById("_ext_global_options_whitelist");
+ExtPanel.extOptions.disabled  = document.getElementById("_ext_global_options_disabled");
+ExtPanel.arOptions = {};
+ExtPanel.arOptions.disabled   = document.getElementById("_ar_global_options_blacklist");
+ExtPanel.arOptions.enabled    = document.getElementById("_ar_global_options_whitelist");
+ExtPanel.arOptions.default    = document.getElementById("_ar_global_options_default");
+ExtPanel.alignment = {};
+ExtPanel.alignment.left       = document.getElementById("_align_ext_left");
+ExtPanel.alignment.center     = document.getElementById("_align_ext_center");
+ExtPanel.alignment.right      = document.getElementById("_align_ext_right");
 
-var AutoArPanel = {};
-AutoArPanel.globalOptions = {};
-AutoArPanel.globalOptions.blacklist = document.getElementById("_ar_global_options_blacklist");
-AutoArPanel.globalOptions.whitelist = document.getElementById("_ar_global_options_whitelist");
-AutoArPanel.globalOptions.disabled  = document.getElementById("_ar_global_options_disabled");
-AutoArPanel.siteOptions = {};
-AutoArPanel.siteOptions.disabled = document.getElementById("_ar_site_options_disabled");
-AutoArPanel.siteOptions.enabled  = document.getElementById("_ar_site_options_enabled");
-AutoArPanel.siteOptions.default  = document.getElementById("_ar_site_options_default");
+var SitePanel = {};
+SitePanel.extOptions = {};
+SitePanel.extOptions.blacklist = document.getElementById("_ext_site_options_blacklist");
+SitePanel.extOptions.whitelist = document.getElementById("_ext_site_options_whitelist");
+SitePanel.extOptions.disabled  = document.getElementById("_ext_site_options_disabled");
+SitePanel.arOptions = {};
+SitePanel.arOptions.disabled   = document.getElementById("_ar_site_options_disabled");
+SitePanel.arOptions.enabled    = document.getElementById("_ar_site_options_enabled");
+SitePanel.arOptions.default    = document.getElementById("_ar_site_options_default");
+SitePanel.alignment = {};
+SitePanel.alignment.left       = document.getElementById("_align_ext_left");
+SitePanel.alignment.center     = document.getElementById("_align_ext_center");
+SitePanel.alignment.right      = document.getElementById("_align_ext_right");
 
-var ArPanel = {};
-ArPanel.alignment = {};
-ArPanel.alignment.left   = document.getElementById("_align_left");
-ArPanel.alignment.center = document.getElementById("_align_center");
-ArPanel.alignment.right  = document.getElementById("_align_right");
-ArPanel.autoar = {};
 
-var StretchPanel = {};
-StretchPanel.global = {};
-StretchPanel.global.none        = document.getElementById("_stretch_global_none");
-StretchPanel.global.basic       = document.getElementById("_stretch_global_basic");
-StretchPanel.global.hybrid      = document.getElementById("_stretch_global_hybrid");
-StretchPanel.global.conditional = document.getElementById("_stretch_global_conditional");
+var VideoPanel = {};
+VideoPanel.alignment = {};
+VideoPanel.alignment.left   = document.getElementById("_align_left");
+VideoPanel.alignment.center = document.getElementById("_align_center");
+VideoPanel.alignment.right  = document.getElementById("_align_right");
+
+// labels on buttons
+VideoPanel.buttonLabels = {};
+VideoPanel.buttonLabels.crop = {};
+VideoPanel.buttonLabels.crop['auto-ar'] = document.getElementById("_b_changeAr_auto-ar_key");
+VideoPanel.buttonLabels.crop.reset      = document.getElementById("_b_changeAr_reset_key");
+VideoPanel.buttonLabels.crop['219']     = document.getElementById("_b_changeAr_219_key");
+VideoPanel.buttonLabels.crop['189']     = document.getElementById("_b_changeAr_189_key");
+VideoPanel.buttonLabels.crop['169']     = document.getElementById("_b_changeAr_169_key");
+VideoPanel.buttonLabels.crop.custom     = document.getElementById("_b_changeAr_custom_key");
+VideoPanel.buttonLabels.zoom = {};
+
+// buttons: for toggle, select
+VideoPanel.buttons = {};
+VideoPanel.buttons.zoom = {};
+VideoPanel.buttons.zoom.showShortcuts = document.getElementById("_zoom_b_show_shortcuts")
+VideoPanel.buttons.zoom.hideShortcuts = document.getElementById("_zoom_b_hide_shortcuts")
+
+// inputs (getting values)
+VideoPanel.inputs = {};
+VideoPanel.inputs.customCrop       = document.getElementById("_input_custom_ar");
+VideoPanel.inputs.zoomSlider       = document.getElementById("_input_zoom_slider");
+VideoPanel.inputs.allowPan         = document.getElementById("_input_zoom_site_allow_pan");
+
+// various labels
+VideoPanel.labels = {};
+VideoPanel.labels.zoomLevel        = document.getElementById("_label_zoom_level");
 
 
 var selectedMenu = "";
@@ -101,120 +129,92 @@ function stringToKeyCombo(key_in){
   return keys_out;
 }
 
-async function loadConfig(site){
+function configurePopupTabs(site) {
+  // Determine which tabs can we touch.
+  // If extension is disabled, we can't touch 'site settings' and 'video settings'
+  // If extension is enabled, but site is disabled, we can't touch 'video settings'
+  var extensionEnabled = settings.extensionEnabled();
+  var extensionEnabledForSite = settings.extensionEnabledForSite(site);
 
-  if(Debug.debug)
-    console.log("[popup.js::loadConfig] loading config. conf object:", settings.active, "\n\n\n\n\n\n\n\n-------------------------------------");
-  
-  // -----------------------
-  //#region tab-disabled
-  //
-  // if extension is disabled on current site, we can't do shit. Therefore, the following tabs will be disabled:
-  //      * AutoAR options
-  //      * Crop settings
-  //      * Stretch settings
-  var canStartExtension = settings.canStartExtension(site);
+  MenuTab.siteSettings.classList.add('disabled');
 
-  if (canStartExtension) {
-    MenuTab.arSettings.classList.remove('disabled');
-    MenuTab.autoAr.classList.remove('disabled');
-    MenuTab.stretchSettings.classList.remove('disabled');
+  if (extensionEnabledForSite) {
+    MenuTab.videoSettings.classList.remove('disabled');
+  }
+  if (extensionEnabled) {
+    MenuTab.videoSettings.classList.remove('disabled');
+  }
 
-    // only switch when popup is being opened for the first time
-    if(! selectedMenu) {
-      openMenu('arSettings');
+  if (! extensionEnabledForSite) {
+    MenuTab.videoSettings.classList.add('disabled');
+    if (! extensionEnabled) {
+      MenuTab.siteSettings.classList.add('disabled');
+      if (!selectedMenu) {
+        openMenu('extensionSettings');
+      }
+    } else {
+      MenuTab.siteSettings.classList.remove('disabled');
+      if (!selectedMenu) {
+        openMenu('siteSettings');
+      }
     }
   } else {
-    MenuTab.arSettings.classList.add('disabled');
-    MenuTab.autoAr.classList.add('disabled');
-    MenuTab.stretchSettings.classList.add('disabled');
+    MenuTab.videoSettings.classList.remove('disabled');
+    MenuTab.siteSettings.classList.remove('disabled');
 
     // if popup isn't being opened for the first time, there's no reason to switch
     // we're already in this tab
-    if(! selectedMenu) {
-      openMenu('thisSite');
+    if (!selectedMenu) {
+      openMenu('videoSettings');
     }
   }
+}
 
-  //#endregion
-  //
-  // ----------------------
-  //#region extension-basics - SET BASIC EXTENSION OPTIONS
-  if(Debug.debug)
-    console.log("EXT: site is:", site, "|settings for this site: ", (site && settings.active.sites[site]) ? settings.active.sites[site] : "default site")
-
-
-  for(var button in ExtPanel.globalOptions) {
-    ExtPanel.globalOptions[button].classList.remove("selected");
+function configureGlobalTab() {
+  for(var button in ExtPanel.extOptions) {
+    ExtPanel.extOptions[button].classList.remove("selected");
   }
-  for(var button in ExtPanel.siteOptions) {
-    ExtPanel.siteOptions[button].classList.remove("selected");
+  try{
+  for(var button in ExtPanel.arOptions) {
+    ExtPanel.arOptions[button].classList.remove("selected");
   }
-
-  ExtPanel.globalOptions[settings.active.extensionMode].classList.add("selected");
-  if(site && settings.active.sites[site]) {
-    ExtPanel.siteOptions[settings.active.sites[site].status].classList.add("selected");
-  } else {
-    ExtPanel.siteOptions.default.classList.add("selected");
+  } catch (e) {};
+  for(var button in ExtPanel.alignment) {
+    ExtPanel.alignment[button].classList.remove("selected");
   }
 
-  //#endregion extension-basics
-  //
-  // ------------
-  //#region autoar - SET AUTOAR OPTIONS
-  // if(Debug.debug)
-    // console.log("Autodetect mode?", settings.active.arDetect.mode, "| site & site options:", site, ",", (site && settings.active.sites[site]) ? settings.active.sites[site].arStatus : "fucky wucky?" );
-  // document.getElementById("_autoAr_disabled_reason").textContent = settings.active.arDetect.DisabledReason;
-  document.getElementById("_input_autoAr_timer").value = settings.active.arDetect.timer_playing;
+  ExtPanel.extOptions[settings.active.extensionMode].classList.add("selected");
+  console.log("ExtPanel", ExtPanel, "spaghett:", settings.active.arDetect.mode);
+  try {
+  ExtPanel.arOptions[settings.active.arDetect.mode].classList.add("selected");
+  }catch(e) {}
+  ExtPanel.alignment[settings.active.miscFullscreenSettings.videoFloat].classList.add("selected");
+}
 
-
-  for(var button in AutoArPanel.globalOptions) {
-    AutoArPanel.globalOptions[button].classList.remove("selected");
+function configureSitesTab(site) {
+  function configureGlobalTab() {
+    for(const button in SitePanel.extOptions) {
+      SitePanel.extOptions[button].classList.remove("selected");
+    }
+    for(const button in SitePanel.arOptions) {
+      SitePanel.arOptions[button].classList.remove("selected");
+    }
+    for(const button in SitePanel.alignment) {
+      SitePanel.alignment[button].classList.remove("selected");
+    }
+  
+    SitePanel.extOptions[settings.active.sites[site].status].classList.add("selected");
+    SitePanel.arOptions[settings.active.sites[site].arStatus].classList.add("selected");
+    // SitePanel.alignment[settings.active.miscFullscreenSettings.videoFloat].classList.add("selected");
   }
-  for(var button in AutoArPanel.siteOptions) {
-    AutoArPanel.siteOptions[button].classList.remove("selected");
-  }
+}
 
-
-  AutoArPanel.globalOptions[settings.active.arDetect.mode].classList.add("selected");
-  if(site && settings.active.sites[site]) {
-    AutoArPanel.siteOptions[settings.active.sites[site].arStatus].classList.add("selected");
-  } else {
-    AutoArPanel.siteOptions.default.classList.add("selected");
-  }
-  //#endregion
-
-  // process video alignment:
-  if(settings.active.miscFullscreenSettings.videoFloat){
-    for(var button in ArPanel.alignment)
-      ArPanel.alignment[button].classList.remove("selected");
-    
-    ArPanel.alignment[settings.active.miscFullscreenSettings.videoFloat].classList.add("selected");
-  }
-
-  //#region - SET STRETCH
-
-  // set stretching
-  for (var button in StretchPanel.global) {
-    StretchPanel.global[button].classList.remove("selected");
-  }
-  if (settings.active.stretch.initialMode === 0) {
-    StretchPanel.global.none.classList.add("selected");
-  } else if (settings.active.stretch.initialMode === 1) {
-    StretchPanel.global.basic.classList.add("selected");
-  } else if (settings.active.stretch.initialMode === 2) {
-    StretchPanel.global.hybrid.classList.add("selected");
-  } else if (settings.active.stretch.initialMode === 3) {
-    StretchPanel.global.conditional.classList.add("selected");
-  }
-  //#endregion
-
-  // process keyboard shortcuts:
+function configureVideoTab() {
+  // process keyboard shortcuts for crop settings
   if(settings.active.keyboard.shortcuts){
     for(var key in settings.active.keyboard.shortcuts){
       var shortcut = settings.active.keyboard.shortcuts[key];
       var keypress = stringToKeyCombo(key);
-      
       
       try{
         if(shortcut.action == "crop"){
@@ -247,12 +247,13 @@ async function loadConfig(site){
       catch(Ex){
         //do nothing if key doesn't exist
       }
-
-      // fill in custom aspect ratio
-      if (settings.active.keyboard.shortcuts.q) {
-        document.getElementById("_input_custom_ar").value = settings.active.keyboard.shortcuts.q.arg;
-      }
     }
+
+    // fill in custom aspect ratio
+    if (settings.active.keyboard.shortcuts.q) {
+      document.getElementById("_input_custom_ar").value = settings.active.keyboard.shortcuts.q.arg;
+    }
+
     for(var key in _changeAr_button_shortcuts){
       try{
         document.getElementById(`_b_changeAr_${key}_key`).textContent = `(${_changeAr_button_shortcuts[key]})`;
@@ -262,6 +263,47 @@ async function loadConfig(site){
       }
     }
   }
+
+  
+  // todo: get min, max from settings
+  VideoPanel.inputs.zoomSlider.min = Math.log2(0.5);
+  VideoPanel.inputs.zoomSlider.max = Math.log2(8);
+  VideoPanel.inputs.zoomSlider.value = 0;
+  VideoPanel.inputs.zoomSlider.addEventListener('input', (event) => {
+    var newZoom = Math.pow(2, VideoPanel.inputs.zoomSlider.value);
+    // TODO: send new zoom value to current tab
+    VideoPanel.labels.zoomLevel.textContent = (newZoom * 100).toFixed();
+  });
+}
+
+async function loadConfig(site){
+
+  if(Debug.debug)
+    console.log("[popup.js::loadConfig] loading config. conf object:", settings.active, "\n\n\n\n\n\n\n\n-------------------------------------");
+  
+  configurePopupTabs(site);
+  configureGlobalTab();
+  configureSitesTab(site);
+  configureVideoTab();
+
+  //#region - SET STRETCH
+  //
+  // // set stretching
+  // for (var button in StretchPanel.global) {
+  //   StretchPanel.global[button].classList.remove("selected");
+  // }
+  // if (settings.active.stretch.initialMode === 0) {
+  //   StretchPanel.global.none.classList.add("selected");
+  // } else if (settings.active.stretch.initialMode === 1) {
+  //   StretchPanel.global.basic.classList.add("selected");
+  // } else if (settings.active.stretch.initialMode === 2) {
+  //   StretchPanel.global.hybrid.classList.add("selected");
+  // } else if (settings.active.stretch.initialMode === 3) {
+  //   StretchPanel.global.conditional.classList.add("selected");
+  // }
+  //#endregion
+
+
   
 
   if(Debug.debug)
@@ -274,39 +316,23 @@ async function getSite(){
 
 function openMenu(menu){
   if(Debug.debug){
-    console.log("[popup.js::openMenu] trying to open menu", menu, "| element: ", Menu[menu]);
+    console.log("[popup.js::openMenu] trying to open menu", menu, "\n element: ", Menu[menu]);
   }
   
   for(var m in Menu){
-    if(Menu[m] === null)
-      continue; //todo: remove menus that are no longer there
-    
-    Menu[m].classList.add("hidden");
+    if(Menu[m])
+      Menu[m].classList.add("hidden");
   }
   for(var m in MenuTab){
     if(MenuTab[m])
       MenuTab[m].classList.remove("selected");
   }
   
-  if(menu == "arSettings" || menu == "cssHacks" ){
-    // if(!hasVideos)
-    //   Menu.noVideo.classList.remove("hidden");
-    // else{
-      Menu[menu].classList.remove("hidden");
-      if(Debug.debug){
-        console.log("[popup.js::openMenu] unhid", menu, "| element: ", Menu[menu]);
-      }
-    // }
-  }
-  else{
-    Menu[menu].classList.remove("hidden");
-    if(Debug.debug){
-      console.log("[popup.js::openMenu] unhid", menu, "| element: ", Menu[menu]);
-    }
-  }
-  
-  selectedMenu = menu;
+  Menu[menu].classList.remove("hidden"); 
   MenuTab[menu].classList.add("selected");
+
+  selectedMenu = menu;
+
 }
 
 
@@ -376,23 +402,19 @@ document.addEventListener("click", (e) => {
       return;
     
     if(e.target.classList.contains("menu-item")){
-      if(e.target.classList.contains("_menu_this_site")){
-        openMenu("thisSite");
+
+      if(Debug.debug) {
+        console.log("[popup.js::eventListener] clicked on a tab. Class list:", e.target.classList);
       }
-      else if(e.target.classList.contains("_menu_aspectratio")){
-        openMenu("arSettings");
-      }
-      else if(e.target.classList.contains("_menu_stretch")){
-        openMenu("stretchSettings");
-      }
-      else if(e.target.classList.contains("_menu_hacks")){
-        openMenu("cssHacks");
-      }
-      else if(e.target.classList.contains("_menu_about")){
+
+      if(e.target.classList.contains("_menu_tab_settings_ext")){
+        openMenu("extensionSettings");
+      } else if(e.target.classList.contains("_menu_tab_settings_site")){
+        openMenu("siteSettings");
+      } else if(e.target.classList.contains("_menu_tab_settings_video")){
+        openMenu("videoSettings");
+      } else if(e.target.classList.contains("_menu_tab_about")){
         openMenu("about");
-      }
-      else if(e.target.classList.contains("_menu_autoar")){
-        openMenu("autoAr");
       }
       
       // don't send commands
