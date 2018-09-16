@@ -18,7 +18,7 @@ class Settings {
           }
         }
         if(changes['uwSettings'] && changes['uwSettings'].newValue) {
-          ths.active = JSON.parse(changes.uwSettings.newValue);
+          ths.setActive(JSON.parse(changes.uwSettings.newValue));
         }
 
         if(this.updateCallback) {
@@ -38,7 +38,7 @@ class Settings {
           }
         }
         if(changes['uwSettings'] && changes['uwSettings'].newValue) {
-          ths.active = JSON.parse(changes.uwSettings.newValue);
+          ths.setActive(JSON.parse(changes.uwSettings.newValue));
         }
 
         if(this.updateCallback) {
@@ -155,6 +155,7 @@ class Settings {
     this.set(this.default);
   }
 
+
   // -----------------------------------------
   // Nastavitve za posamezno stran
   // Config for a given page:
@@ -173,7 +174,17 @@ class Settings {
   //    * enabled     — always allow
   //    * default     — allow if default is to allow, block if default is to block
   //    * disabled    — never allow
-  
+
+  getSiteSettings(site) {
+    if (!site) {
+      site = window.location.hostname;
+    }
+    if (!site || !this.active.sites[site]) {
+      return {};
+    }
+    return this.active.sites[site];
+  }
+
   canStartExtension(site) {
     // returns 'true' if extension can be started on a given site. Returns false if we shouldn't run.
     if (!site) {
@@ -259,5 +270,32 @@ class Settings {
     } else {
       return false;
     }
+  }
+
+  getDefaultAr(site) {
+    site = this.getSiteSettings(site);
+
+    if (this.active.sites[site].ar) {
+      return this.active.sites[site].ar;
+    }
+    return this.active.miscFullscreenSettings.defaultAr;
+  }
+
+  getDefaultStretch(site) {
+    site = this.getSiteSettings(site);
+
+    if (this.active.sites[site].stretch) {
+      return this.active.sites[site].stretch;
+    }
+    return this.active.miscFullscreenSettings.stretch.initialMode;
+  }
+
+  getDefaultVideoAlignment(site) {
+    site = this.getSiteSettings(site);
+
+    if (this.active.sites[site].videoAlignment) {
+      return this.active.sites[site].videoAlignment;
+    }
+    return this.active.miscFullscreenSettings.videoFloat;
   }
 }

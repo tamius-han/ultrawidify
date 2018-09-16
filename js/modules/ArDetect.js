@@ -476,9 +476,9 @@ class ArDetector {
           var newCanvasWidth = window.innerHeight * (this.video.videoWidth / this.video.videoHeight);
           var newCanvasHeight = window.innerHeight;
           
-          if(this.settings.active.miscFullscreenSettings.videoFloat == "center")
+          if(this.resizer.videFloat === "center")
             this.canvasDrawWindowHOffset = Math.round((window.innerWidth - newCanvasWidth) * 0.5);
-          else if(this.settings.active.miscFullscreenSettings.videFloat == "left")
+          else if(this.resizer.videFloat == "left")
             this.canvasDrawWindowHOffset = 0;
           else
             this.canvasDrawWindowHOffset = window.innerWidth - newCanvasWidth;
