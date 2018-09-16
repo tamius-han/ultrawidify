@@ -16,25 +16,27 @@ MenuTab.siteSettings      = document.getElementById('_menu_tab_settings_site');
 MenuTab.videoSettings     = document.getElementById('_menu_tab_settings_video');
 MenuTab.about             = document.getElementById('_menu_tab_about')
 
+//#region ExtPanel
 var ExtPanel = {};
 ExtPanel.extOptions = {};
 ExtPanel.extOptions.blacklist = document.getElementById("_ext_global_options_blacklist");
 ExtPanel.extOptions.whitelist = document.getElementById("_ext_global_options_whitelist");
 ExtPanel.extOptions.disabled  = document.getElementById("_ext_global_options_disabled");
 ExtPanel.arOptions = {};
-ExtPanel.arOptions.disabled   = document.getElementById("_ar_global_options_blacklist");
-ExtPanel.arOptions.enabled    = document.getElementById("_ar_global_options_whitelist");
-ExtPanel.arOptions.default    = document.getElementById("_ar_global_options_default");
+ExtPanel.arOptions.blacklist   = document.getElementById("_ar_global_options_blacklist");
+ExtPanel.arOptions.whitelist  = document.getElementById("_ar_global_options_whitelist");
+ExtPanel.arOptions.disabled    = document.getElementById("_ar_global_options_disabled");
 ExtPanel.alignment = {};
 ExtPanel.alignment.left       = document.getElementById("_align_ext_left");
 ExtPanel.alignment.center     = document.getElementById("_align_ext_center");
 ExtPanel.alignment.right      = document.getElementById("_align_ext_right");
-
+//#endregion
+//#region SitePanel
 var SitePanel = {};
 SitePanel.extOptions = {};
-SitePanel.extOptions.blacklist = document.getElementById("_ext_site_options_blacklist");
-SitePanel.extOptions.whitelist = document.getElementById("_ext_site_options_whitelist");
-SitePanel.extOptions.disabled  = document.getElementById("_ext_site_options_disabled");
+SitePanel.extOptions.enabled   = document.getElementById("_ext_site_options_whitelist");
+SitePanel.extOptions.default   = document.getElementById("_ext_site_options_default");
+SitePanel.extOptions.disabled  = document.getElementById("_ext_site_options_blacklist");
 SitePanel.arOptions = {};
 SitePanel.arOptions.disabled   = document.getElementById("_ar_site_options_disabled");
 SitePanel.arOptions.enabled    = document.getElementById("_ar_site_options_enabled");
@@ -43,7 +45,7 @@ SitePanel.alignment = {};
 SitePanel.alignment.left       = document.getElementById("_align_ext_left");
 SitePanel.alignment.center     = document.getElementById("_align_ext_center");
 SitePanel.alignment.right      = document.getElementById("_align_ext_right");
-
+//#endregion
 
 var VideoPanel = {};
 VideoPanel.alignment = {};
@@ -65,8 +67,8 @@ VideoPanel.buttonLabels.zoom = {};
 // buttons: for toggle, select
 VideoPanel.buttons = {};
 VideoPanel.buttons.zoom = {};
-VideoPanel.buttons.zoom.showShortcuts = document.getElementById("_zoom_b_show_shortcuts")
-VideoPanel.buttons.zoom.hideShortcuts = document.getElementById("_zoom_b_hide_shortcuts")
+VideoPanel.buttons.zoom.showShortcuts = document.getElementById("_zoom_b_show_shortcuts");
+VideoPanel.buttons.zoom.hideShortcuts = document.getElementById("_zoom_b_hide_shortcuts");
 
 // inputs (getting values)
 VideoPanel.inputs = {};
@@ -145,8 +147,6 @@ function configurePopupTabs(site) {
     MenuTab.videoSettings.classList.remove('disabled');
   }
 
-  console.log("ext enabled?", extensionEnabled, "for site", site, "?", extensionEnabledForSite);
-
   if (! extensionEnabledForSite) {
     MenuTab.videoSettings.classList.add('disabled');
     if (! extensionEnabled) {
@@ -173,6 +173,14 @@ function configurePopupTabs(site) {
 }
 
 function configureGlobalTab() {
+  if (Debug.debug) {
+    console.log("[popup.js] Configuring global tab (ExtPanel).\nextension mode?", settings.active.extensionMode,
+    "\narDetect mode:", settings.active.arDetect.mode,
+    "\nvideo float mode:", settings.active.miscFullscreenSettings.videoFloat,
+    "\n..")
+  }
+
+
   for(var button in ExtPanel.extOptions) {
     ExtPanel.extOptions[button].classList.remove("selected");
   }
@@ -186,29 +194,34 @@ function configureGlobalTab() {
   }
 
   ExtPanel.extOptions[settings.active.extensionMode].classList.add("selected");
-  console.log("ExtPanel", ExtPanel, "spaghett:", settings.active.arDetect.mode);
-  try {
+
   ExtPanel.arOptions[settings.active.arDetect.mode].classList.add("selected");
-  }catch(e) {}
   ExtPanel.alignment[settings.active.miscFullscreenSettings.videoFloat].classList.add("selected");
 }
 
 function configureSitesTab(site) {
-  function configureGlobalTab() {
-    for(const button in SitePanel.extOptions) {
-      SitePanel.extOptions[button].classList.remove("selected");
-    }
-    for(const button in SitePanel.arOptions) {
-      SitePanel.arOptions[button].classList.remove("selected");
-    }
-    for(const button in SitePanel.alignment) {
-      SitePanel.alignment[button].classList.remove("selected");
-    }
-  
-    SitePanel.extOptions[settings.active.sites[site].status].classList.add("selected");
-    SitePanel.arOptions[settings.active.sites[site].arStatus].classList.add("selected");
-    // SitePanel.alignment[settings.active.miscFullscreenSettings.videoFloat].classList.add("selected");
+  if (Debug.debug) {
+    console.log("[popup.js] Configuring sites tab (SitePanel).\nsite:",site,
+    "extension mode?", settings.active.sites[site].status,
+    "\narDetect mode:", settings.active.sites[site].arStatus,
+    // "\nvideo float mode:", settings.active.miscFullscreenSettings.videoFloat,
+    "\n", SitePanel.extOptions, SitePanel.arOptions,
+    "\n...")
   }
+
+  for(const button in SitePanel.extOptions) {
+    SitePanel.extOptions[button].classList.remove("selected");
+  }
+  for(const button in SitePanel.arOptions) {
+    SitePanel.arOptions[button].classList.remove("selected");
+  }
+  for(const button in SitePanel.alignment) {
+    SitePanel.alignment[button].classList.remove("selected");
+  }
+
+  SitePanel.extOptions[settings.active.sites[site].status].classList.add("selected");
+  SitePanel.arOptions[settings.active.sites[site].arStatus].classList.add("selected");
+  // SitePanel.alignment[settings.active.miscFullscreenSettings.videoFloat].classList.add("selected");
 }
 
 function configureVideoTab() {
