@@ -111,6 +111,10 @@ class VideoData {
   }
 
   panHandler(event) {
+    if(!this.resizer) {
+      this.destroy();
+      return;
+    }
     this.resizer.panHandler(event);
   }
 
