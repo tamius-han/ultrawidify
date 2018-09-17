@@ -61,6 +61,7 @@
           </div>
 
           <!-- TODO: default aspect ratio settings -->
+
           <span class="label experimental">Default stretching mode</span>
           <div class="button-row">
             <a id="_stretch_global_none"        class="button _stretch _ar_stretch_global _none w24">Never<br/><span id="_b_stretch_default_none_key" class="smallcaps small darker"></span></a>
@@ -74,9 +75,9 @@
         <div class="row">
           <span class="label">Video alignment:</span>
           <div class="button-row">
-            <a id="_align_ext_left"   class="button _align _align_ext_left">left</a>
-            <a id="_align_ext_center" class="button _align _align_ext_center">center</a>
-            <a id="_align_ext_right"  class="button _align _align_ext_right">right</a>
+            <a id="_align_ext_left"   class="button _align_ext _align_ext_left">Left</a>
+            <a id="_align_ext_center" class="button _align_ext _align_ext_center">Center</a>
+            <a id="_align_ext_right"  class="button _align_ext _align_ext_right">Right</a>
           </div>
         </div>
       </div>
@@ -100,16 +101,29 @@
             <a id="_ar_site_options_disabled" class="button _autoAr _ar_site_options _disabled">Blacklist</a>
           </div>
         </div>
+
         <!-- TODO: default aspect ratio, default settings -->
+
+        <!-- STRETCH MODE -->
+        <div class="row">
+          <span class="label experimental">Default stretching mode</span>
+          <div class="button-row">
+            <a id="_stretch_site_none"        class="button _stretch _ar_stretch_site _none w24">Never<br/><span id="_b_stretch_default_none_key" class="smallcaps small darker"></span></a>
+            <a id="_stretch_site_basic"       class="button _stretch _ar_stretch_site _basic w24">Basic<br/><span id="_b_stretch_default_basic_key" class="smallcaps small darker"></span></a>            
+            <a id="_stretch_site_hybrid"      class="button _stretch _ar_stretch_site _hybrid w24">Hybrid<br/><span id="_b_stretch_default_hybrid_key" class="smallcaps small darker"></span></a>
+            <a id="_stretch_site_conditional" class="button _stretch _ar_stretch_site _conditional w24">Thin borders<br/><span id="_b_stretch_default_conditional_key" class="smallcaps small darker"></span></a>
+            <a id="_stretch_site_default"     class="button _stretch _ar_stretch_site _default w24">Default<br/><span id="_b_stretch_default_conditional_key" class="smallcaps small darker"></span></a>
+          </div>
+        </div>
 
         <!-- VIDEO ALIGNMENT -->
         <div class="row">
           <span class="label">Video alignment:</span>
           <div class="button-row">
-            <a id="_align_site_left"   class="button _align _align_video_left">left</a>
-            <a id="_align_site_center" class="button _align _align_video_center">center</a>
-            <a id="_align_site_right"  class="button _align _align_video_right">right</a>
-            <a id="_align_site_default"class="button _align _align_site_right">default</a>
+            <a id="_align_site_left"   class="button _align_site _align_site_left">Left</a>
+            <a id="_align_site_center" class="button _align_site _align_site_center">Center</a>
+            <a id="_align_site_right"  class="button _align_site _align_site_right">Right</a>
+            <a id="_align_site_default"class="button _align_site _align_site_default">Default</a>
           </div>
         </div>
       </div>
@@ -129,8 +143,14 @@
             <a class="button _changeAr _ar_169 w24">16:9<br/><span id="_b_changeAr_169_key" class="smallcaps small darker">&nbsp;</span></a>
             <a class="button _changeAr _ar_custom w24">Custom<br/><span id="_b_changeAr_custom_key" class="smallcaps small darker">&nbsp;</span></a>
           </div>
+          <div style="overflow: auto">
+            <div class="float-right medium-small">
+              <a id="_changeAr_b_show_customAr" class="_changeAr_show_customAr x-pad-1em">Set custom aspect ratio</a>
+              <a id="_changeAr_b_hide_customAr" class="_changeAr_hide_customAr hidden x-pad-1em">Hide custom aspect ratio settings</a>
+            </div>
+          </div>
         </div>
-        <div class="row">
+        <div id="_changeAr_customAr" class="row hidden">
           <span class="label">Custom aspect ratio</span>
           <div>
             <input id="_input_custom_ar" class="_changeAr _custom" onblur="validateCustomAr()"> &nbsp; &nbsp; <span id="_b_changeAr_save_custom_ar" class="button _ar_save_custom_ar _changeAr">Save</span>
@@ -158,16 +178,25 @@
               Zoom: <span id="_label_zoom_level">100</span>%
             </div>
             <div class="inline-block float-right medium-small">
-              <a class="_zoom_show_shortcuts x-pad-1em">show shortcuts</a><a class="_zoom_hide_shortcuts hidden x-pad-1em">show shortcuts</a><a class="_zoom_reset x-pad-1em">reset</a>
+              <a id="_zoom_b_show_shortcuts" class="_zoom_show_shortcuts x-pad-1em">show shortcuts</a>
+              <a id="_zoom_b_hide_shortcuts" class="_zoom_hide_shortcuts hidden x-pad-1em">hide shortcuts</a>
+              <a class="_zoom_reset x-pad-1em">reset</a>
             </div> 
           </div>
-          <div class="m-t-0-33em w100 display-block">
+          <!-- <div class="m-t-0-33em w100 display-block">
             <input id="_input_zoom_site_allow_pan"
                    type="checkbox" 
                    />
             Pan with mouse
+          </div> -->
+          <div id="_zoom_shortcuts" class="row hidden">
+            <small>Keyboard shortcuts:<ul>
+              <li>Z: zoom</li>
+              <li>U: unzoom</li>
+              <li>P: toggle pan</li>
+              <li>shift: hold to enable/prevent pan</li>
+            </ul></small>
           </div>
-          <!-- <small>Keyboard shortcuts:<ul><li>Z: zoom</li><li>U: unzoom</li><li>P: toggle pan</li><li>shift: hold to enable/prevent pan</li></ul></small> -->
         </div>
 
         <!-- STRETCH STUFF -->
@@ -183,9 +212,9 @@
         <div class="row">
           <span class="label">Video alignment:</span>
           <div class="button-row">
-            <a id="_align_video_left"   class="button _align _align_video_left">left</a>
-            <a id="_align_video_center" class="button _align _align_video_center">center</a>
-            <a id="_align_video_right"  class="button _align _align_video_right">right</a>
+            <a id="_align_video_left"   class="button _align _align_video_left">Left</a>
+            <a id="_align_video_center" class="button _align _align_video_center">Center</a>
+            <a id="_align_video_right"  class="button _align _align_video_right">Right</a>
           </div>
         </div>
       </div>

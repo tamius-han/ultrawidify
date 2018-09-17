@@ -203,7 +203,7 @@ var ExtensionConf = {
   //    arStatus: <option>            // should we do autodetection on this site?
   //    statusEmbedded: <option>      // reserved for future... maybe
   //    
-  //    ar?: <ratio>                  // automatically apply this aspect ratio on this side. Use extension defaults if undefined.
+  //    defaultAar?: <ratio>          // automatically apply this aspect ratio on this side. Use extension defaults if undefined.
   //    stretch? <stretch mode>       // automatically stretch video on this site in this manner
   //    videoAlignment? <left|center|right>
   //
