@@ -30,6 +30,11 @@ ExtPanel.alignment = {};
 ExtPanel.alignment.left       = document.getElementById("_align_ext_left");
 ExtPanel.alignment.center     = document.getElementById("_align_ext_center");
 ExtPanel.alignment.right      = document.getElementById("_align_ext_right");
+ExtPanel.stretch = {};
+ExtPanel.stretch['0']         = document.getElementById("_stretch_global_none");
+ExtPanel.stretch['1']         = document.getElementById("_stretch_global_basic");
+ExtPanel.stretch['2']         = document.getElementById("_stretch_global_hybrid");
+ExtPanel.stretch['3']         = document.getElementById("_stretch_global_conditional");
 //#endregion
 //#region SitePanel
 var SitePanel = {};
@@ -46,8 +51,14 @@ SitePanel.alignment.left       = document.getElementById("_align_site_left");
 SitePanel.alignment.center     = document.getElementById("_align_site_center");
 SitePanel.alignment.right      = document.getElementById("_align_site_right");
 SitePanel.alignment.default    = document.getElementById("_align_site_default");
+SitePanel.stretch = {};
+SitePanel.stretch['-1']        = document.getElementById("_stretch_site_default")
+SitePanel.stretch['0']         = document.getElementById("_stretch_site_none")
+SitePanel.stretch['1']         = document.getElementById("_stretch_site_basic")
+SitePanel.stretch['2']         = document.getElementById("_stretch_site_hybrid")
+SitePanel.stretch['3']         = document.getElementById("_stretch_site_conditional")
 //#endregion
-
+//#region VideoPanel
 var VideoPanel = {};
 VideoPanel.alignment = {};
 VideoPanel.alignment.left   = document.getElementById("_align_video_left");
@@ -70,6 +81,9 @@ VideoPanel.buttons = {};
 VideoPanel.buttons.zoom = {};
 VideoPanel.buttons.zoom.showShortcuts = document.getElementById("_zoom_b_show_shortcuts");
 VideoPanel.buttons.zoom.hideShortcuts = document.getElementById("_zoom_b_hide_shortcuts");
+VideoPanel.buttons.changeAr = {};
+VideoPanel.buttons.changeAr.showCustomAr = document.getElementById("_changeAr_b_show_customAr");
+VideoPanel.buttons.changeAr.hideCustomAr = document.getElementById("_changeAr_b_hide_customAr");
 
 // inputs (getting values)
 VideoPanel.inputs = {};
@@ -81,6 +95,12 @@ VideoPanel.inputs.allowPan         = document.getElementById("_input_zoom_site_a
 VideoPanel.labels = {};
 VideoPanel.labels.zoomLevel        = document.getElementById("_label_zoom_level");
 
+// misc stuff
+VideoPanel.misc = {};
+VideoPanel.misc.zoomShortcuts      = document.getElementById("_zoom_shortcuts");
+VideoPanel.misc.customArChanger    = document.getElementById("_changeAr_customAr");
+
+//#endregion
 
 var selectedMenu = "";
 var hasVideos = false;
@@ -179,6 +199,7 @@ function configureGlobalTab() {
     "\nextension mode:  ", settings.active.extensionMode,
     "\narDetect mode:   ", settings.active.arDetect.mode,
     "\nvideo float mode:", settings.active.miscFullscreenSettings.videoFloat,
+    "\nstretch mode:    ", settings.active.stretch.initialMode,
     "\n..")
   }
 
@@ -186,19 +207,20 @@ function configureGlobalTab() {
   for(var button in ExtPanel.extOptions) {
     ExtPanel.extOptions[button].classList.remove("selected");
   }
-  try{
   for(var button in ExtPanel.arOptions) {
     ExtPanel.arOptions[button].classList.remove("selected");
   }
-  } catch (e) {};
   for(var button in ExtPanel.alignment) {
     ExtPanel.alignment[button].classList.remove("selected");
   }
+  for(var button in ExtPanel.stretch) {
+    ExtPanel.stretch[button].classList.remove("selected");
+  }
 
   ExtPanel.extOptions[settings.active.extensionMode].classList.add("selected");
-
   ExtPanel.arOptions[settings.active.arDetect.mode].classList.add("selected");
   ExtPanel.alignment[settings.active.miscFullscreenSettings.videoFloat].classList.add("selected");
+  ExtPanel.stretch[settings.active.stretch.initialMode].classList.add("selected");
 }
 
 function configureSitesTab(site) {
@@ -222,15 +244,24 @@ function configureSitesTab(site) {
   for(const button in SitePanel.alignment) {
     SitePanel.alignment[button].classList.remove("selected");
   }
+  for(const button in SitePanel.stretch) {
+    SitePanel.stretch[button].classList.remove("selected");
+  }
 
   SitePanel.extOptions[settings.active.sites[site].status].classList.add("selected");
   SitePanel.arOptions[settings.active.sites[site].arStatus].classList.add("selected");
 
   // optional settings:
-  if (settings.active.sites.ar) {
+  if (settings.active.sites[site].videoAlignment) {
     SitePanel.alignment[settings.active.sites[site].videoAlignment].classList.add("selected");
   } else {
     SitePanel.alignment.default.classList.add('selected');
+  }
+
+  if(settings.active.sites[site].stretch !== undefined) {  // can be 0
+    SitePanel.stretch[settings.active.sites[site].stretch].classList.add("selected");
+  } else {
+    SitePanel.stretch['-1'].classList.add("selected");
   }
 }
 
@@ -294,10 +325,18 @@ function configureVideoTab() {
   VideoPanel.inputs.zoomSlider.min = Math.log2(0.5);
   VideoPanel.inputs.zoomSlider.max = Math.log2(8);
   VideoPanel.inputs.zoomSlider.value = 0;
+
   VideoPanel.inputs.zoomSlider.addEventListener('input', (event) => {
     var newZoom = Math.pow(2, VideoPanel.inputs.zoomSlider.value);
     // TODO: send new zoom value to current tab
     VideoPanel.labels.zoomLevel.textContent = (newZoom * 100).toFixed();
+
+    var command = {
+      cmd: 'set-zoom',
+      zoom: newZoom
+    };
+
+    port.postMessage(command);
   });
 }
 
@@ -517,6 +556,7 @@ document.addEventListener("click", (e) => {
       }
     }
     if(e.target.classList.contains("_stretch")){
+      // stretch, global
       if (e.target.classList.contains("_ar_stretch_global")) {
         if (e.target.classList.contains("_none")) {
           settings.active.stretch.initialMode = 0;
@@ -526,6 +566,23 @@ document.addEventListener("click", (e) => {
           settings.active.stretch.initialMode = 2;
         } else if (e.target.classList.contains("_conditional")) {
           settings.active.stretch.initialMode = 3;
+        }
+        settings.save();
+        return;
+      }
+
+      // stretch, site
+      if (e.target.classList.contains("_ar_stretch_site")) {
+        if (e.target.classList.contains("_none")) {
+          settings.active.sites[site].stretch = 0;
+        } else if (e.target.classList.contains("_basic")) {
+          settings.active.sites[site].stretch = 1;
+        } else if (e.target.classList.contains("_hybrid")) {
+          settings.active.sites[site].stretch = 2;
+        } else if (e.target.classList.contains("_conditional")) {
+          settings.active.sites[site].stretch = 3;
+        } else {
+          delete(settings.active.sites[site].stretch);
         }
         settings.save();
         return;
@@ -591,21 +648,83 @@ document.addEventListener("click", (e) => {
       }
     }
     
-    if(e.target.classList.contains("_align")){
-      
-      command.global = true;
-      
-      if (e.target.classList.contains("_align_left")) {
+
+    if (e.target.classList.contains("_align_ext")) {
+      if (e.target.classList.contains("_align_ext_left")) {
         settings.active.miscFullscreenSettings.videoFloat = 'left';
-      } else if (e.target.classList.contains("_align_center")) {
+      } else if (e.target.classList.contains("_align_ext_center")) {
         settings.active.miscFullscreenSettings.videoFloat = 'center';
-      } else if (e.target.classList.contains("_align_right")) {
-        settings.active.miscFullscreenSettings.videoFloat = 'left';
+      } else if (e.target.classList.contains("_align_ext_right")) {
+        settings.active.miscFullscreenSettings.videoFloat = 'right';
+      }
+    }
+    if (e.target.classList.contains("_align_site")) {
+      if (!site) {
+        return;
+      }
+      if (e.target.classList.contains("_align_site_left")) {
+        settings.active.sites[site].videoAlignment = 'left';
+      } else if (e.target.classList.contains("_align_site_center")) {
+        settings.active.sites[site].videoAlignment = 'center';
+      } else if (e.target.classList.contains("_align_site_right")) {
+        settings.active.sites[site].videoAlignment = 'right';
+      } else {
+        // default case — remove this object
+        delete(settings.active.sites[site].videoAlignment);
       }
 
       settings.save();
       return;
-    }    
+    }
+    if (e.target.classList.contains("_align")) {
+      command.cmd = "set-alignment";
+
+      if (e.target.classList.contains("_align_left")) {
+        command.mode = 'left';
+      } else if (e.target.classList.contains("_align_center")) {
+        command.mode = 'center';
+      } else if (e.target.classList.contains("_align_right")) {
+        command.mode = 'right';
+      }
+      
+      return command;
+    }
+
+    //#region zoom buttons
+    if (e.target.classList.contains("_zoom_show_shortcuts")) {
+      VideoPanel.misc.zoomShortcuts.classList.remove("hidden");
+      VideoPanel.buttons.zoom.hideShortcuts.classList.remove("hidden");
+      VideoPanel.buttons.zoom.showShortcuts.classList.add("hidden");
+      return;
+    }
+    if (e.target.classList.contains("_zoom_hide_shortcuts")) {
+      VideoPanel.misc.zoomShortcuts.classList.add("hidden");
+      VideoPanel.buttons.zoom.hideShortcuts.classList.add("hidden");
+      VideoPanel.buttons.zoom.showShortcuts.classList.remove("hidden");
+      return;
+    }
+    if (e.target.classList.contains("_zoom_reset")) {
+      VideoPanel.labels.zoomLevel.textContent = 100;
+      VideoPanel.inputs.zoomSlider.value = 0;         // log₂(1)
+      command.cmd = 'set-zoom';
+      command.zoom = 1;
+      return;
+    }
+    //#endregion
+    //#region show/hide custom ar
+    if (e.target.classList.contains("_changeAr_show_customAr")) {
+      VideoPanel.misc.customArChanger.classList.remove("hidden");
+      VideoPanel.buttons.changeAr.showCustomAr.classList.add("hidden");
+      VideoPanel.buttons.changeAr.hideCustomAr.classList.remove("hidden");
+      return;
+    }
+    if (e.target.classList.contains("_changeAr_hide_customAr")) {
+      VideoPanel.misc.customArChanger.classList.add("hidden");
+      VideoPanel.buttons.changeAr.showCustomAr.classList.remove("hidden");
+      VideoPanel.buttons.changeAr.hideCustomAr.classList.add("hidden");
+      return;
+    }
+    //#endregion
   }
   
   var command = getcmd(e);  

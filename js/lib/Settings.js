@@ -275,26 +275,26 @@ class Settings {
   getDefaultAr(site) {
     site = this.getSiteSettings(site);
 
-    if (this.active.sites[site].ar) {
-      return this.active.sites[site].ar;
+    if (site.defaultAr) {
+      return site.defaultAr;
     }
     return this.active.miscFullscreenSettings.defaultAr;
   }
 
-  getDefaultStretch(site) {
+  getDefaultStretchMode(site) {
     site = this.getSiteSettings(site);
 
-    if (this.active.sites[site].stretch) {
-      return this.active.sites[site].stretch;
+    if (site.stretch) {
+      return site.stretch;
     }
-    return this.active.miscFullscreenSettings.stretch.initialMode;
+    return this.active.stretch.initialMode;
   }
 
   getDefaultVideoAlignment(site) {
     site = this.getSiteSettings(site);
 
-    if (this.active.sites[site].videoAlignment) {
-      return this.active.sites[site].videoAlignment;
+    if (site.videoAlignment) {
+      return site.videoAlignment;
     }
     return this.active.miscFullscreenSettings.videoFloat;
   }
