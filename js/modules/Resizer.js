@@ -264,6 +264,10 @@ class Resizer {
     this.pan = undefined;
   }
 
+  setZoom(zoomLevel) {
+    this.zoom.setZoom(zoomLevel);
+  }
+  
   zoomStep(step){
     this.zoom.zoomStep(step);
   }

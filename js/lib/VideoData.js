@@ -130,8 +130,13 @@ class VideoData {
     this.resizer.setStretchMode(stretchMode);
   }
 
+  setZoom(zoomLevel){
+    this.resizer.setZoom(zoomLevel);
+  }
+
   zoomStep(step){
     this.resizer.zoomStep(step);
   }
+
 
 }

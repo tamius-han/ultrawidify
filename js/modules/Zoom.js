@@ -8,9 +8,10 @@ class Zoom {
   // functions
   constructor(videoData) {
     this.scale = 1;
+    this.logScale = 0;
     this.scaleStep = 0.1;
-    this.minScale = 0.5;  // not accurate, actually slightly less
-    this.maxScale = 8;    // not accurate, actually slightly more
+    this.minScale = -1;  // 50% (log2(0.5) = -1)
+    this.maxScale = 3;   // 800% (log2(8) = 3)
     this.conf = videoData;
   }
 
@@ -19,32 +20,37 @@ class Zoom {
   }
 
   zoomIn(){
-    this.scale += this.scaleStep;
+    this.logScale += this.scaleStep;
 
-    if (this.scale >= this.maxScale) {
-      this.scale = this.maxScale;
+    if (this.logScale >= this.maxScale) {
+      this.logScale = this.maxScale;
     }
+
+    this.scale = Math.pow(2, this.logScale);
   }
 
   zoomOut(){
-    this.scale -= this.scaleStep;
+    this.logScale -= this.scaleStep;
 
-    if (this.scale <= this.minScale) {
-      this.scale = this.minScale;
+    if (this.logScale <= this.minScale) {
+      this.logScale = this.minScale;
     }
     
+    this.scale = Math.pow(2, this.logScale);
   }
 
   zoomStep(amount){
-    this.scale += amount;
+    this.logScale += amount;
 
-    if (this.scale <= this.minScale) {
-      this.scale = this.minScale;
+    if (this.logScale <= this.minScale) {
+      this.logScale = this.minScale;
     }
-    if (this.scale >= this.maxScale) {
-      this.scale = this.maxScale;
+    if (this.logScale >= this.maxScale) {
+      this.logScale = this.maxScale;
     }
   
+    this.scale = Math.pow(2, this.logScale);
+
     if (Debug.debug) {
       console.log("[Zoom::zoomStep] changing zoom by", amount, ". New zoom level:", this.scale);
     }
@@ -54,12 +60,14 @@ class Zoom {
 
   setZoom(scale){
     if(scale < this.minScale) {
-      this.scale = this.minScale;
+      scale = this.minScale;
     } else if (scale > this.maxScale) {
-      this.scale = this.maxScale;
-    } else {
-      this.scale = scale;
+      scale = this.maxScale;
     }
+
+    this.scale = Math.pow(2, this.logScale);
+
+    this.conf.restoreAr();
   }
 
   applyZoom(videoDimensions){

@@ -76,7 +76,9 @@ class CommsClient {
     } else if (message.cmd === "resume-processing") {
       // todo: autoArStatus
       this.pageInfo.resumeProcessing(message.autoArStatus);
-    } 
+    } else if (message.cmd === 'set-zoom') {
+      this.pageInfo.setZoom(message.zoom);
+    }
   }
 
   async sleep(n){
@@ -238,9 +240,6 @@ class CommsServer {
       port.postMessage({cmd: "set-config", conf: this.settings.active, site: this.server.currentSite})
     } else if (message.cmd === 'set-stretch') {
       this.sendToActive(message);
-    } else if (message.cmd === 'set-stretch-default') {
-      this.settings.active.stretch.initialMode = message.mode;
-      this.settings.save();
     } else if (message.cmd === 'set-ar') {
       this.sendToActive(message);
     } else if (message.cmd === 'set-custom-ar') {
@@ -248,10 +247,9 @@ class CommsServer {
       this.settings.save();
     } else if (message.cmd === 'set-video-float') {
       this.sendToActive(message);
-      this.settings.save();
     } else if (message.cmd === 'autoar-start') {
       this.sendToActive(message);
-    } else if (message.cmd === "autoar-disable") {  // LEGACY - can be removed prolly?
+    } else if (message.cmd === "autoar-disable") {  // LEGACY - can be removed prolly
       this.settings.active.arDetect.mode = "disabled";
       if(message.reason){
         this.settings.active.arDetect.disabledReason = message.reason;
@@ -259,47 +257,8 @@ class CommsServer {
         this.settings.active.arDetect.disabledReason = 'User disabled';
       }
       this.settings.save();
-    } else if (message.cmd === "autoar-set-interval") {
-      if(Debug.debug)
-        console.log("[uw-bg] trying to set new interval for autoAr. New interval is",message.timeout,"ms");
-
-      // set fairly liberal limit
-      var timeout = message.timeout < 4 ? 4 : message.timeout;
-      this.settings.active.arDetect.timer_playing = timeout;
-      this.settings.save();
-    } else if (message.cmd === "set-autoar-defaults") {
-      this.settings.active.arDetect.mode = message.mode;
-      this.settings.save();
-    } else if (message.cmd === "set-autoar-for-site") {
-      if (this.settings.active.sites[this.server.currentSite]) {
-        this.settings.active.sites[this.server.currentSite].arStatus = message.mode;
-        this.settings.save();
-      } else {
-        this.settings.active.sites[this.server.currentSite] = {
-          status: "default",
-          arStatus: message.mode,
-          statusEmbedded: "default"
-        };
-        this.settings.save();
-      }
-    } else if (message.cmd === "set-extension-defaults") {
-      this.settings.active.extensionMode = message.mode;
-      this.settings.save();
-    } else if (message.cmd === "set-extension-for-site") {
-      if (this.settings.active.sites[this.server.currentSite]) {
-        this.settings.active.sites[this.server.currentSite].status = message.mode;
-        this.settings.save();
-      } else {
-        this.settings.active.sites[this.server.currentSite] = {
-          status: message.mode,
-          arStatus: "default",
-          statusEmbedded: message.mode
-        };
-        this.settings.save();
-        if(Debug.debug) {
-          console.log("SAVING PER-SITE OPTIONS,", this.server.currentSite, this.settings.active.sites[this.server.currentSite])
-        }
-      }
+    } else if (message.cmd === 'set-zoom') {
+      this.setToActive(message);
     }
   }
 
