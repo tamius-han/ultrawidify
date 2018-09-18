@@ -118,6 +118,10 @@ port.onMessage.addListener( (m,p) => processReceivedMessage(m,p));
 
 
 async function processReceivedMessage(message, port){
+  if (Debug.debug) {
+    console.log("[popup.js] received message", message)
+  }
+
   if(message.cmd === 'set-current-site'){
     site = message.site;
     loadConfig(message.site);
@@ -125,6 +129,10 @@ async function processReceivedMessage(message, port){
 }
 
 async function updateConfig() {
+  if (Debug.debug) {
+    console.log("[popup.js] settings changed. updating popup if site exists. Site:", site);
+  }
+
   if (site) {
     loadConfig(site);
   }
@@ -227,7 +235,7 @@ function configureSitesTab(site) {
   if (Debug.debug) {
     console.log("[popup.js] Configuring sites tab (SitePanel).",
     "\nsite:            ", site,
-    "extension mode:    ", settings.active.sites[site].status,
+    "\nextension mode:    ", settings.active.sites[site].status,
     "\narDetect mode:   ", settings.active.sites[site].arStatus,
     "\nvideo float mode:", settings.active.sites[site].videoFloat,
     "\ndefault ar:      ", settings.active.sites[site].ar,
@@ -355,6 +363,10 @@ async function loadConfig(site){
 }
 
 async function getSite(){
+  if (Debug.debug) {
+    console.log("[popup.js] requesting current site");
+  }
+  
   port.postMessage({cmd: 'get-current-site'});
 }
 
