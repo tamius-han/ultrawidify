@@ -253,6 +253,12 @@ class PageInfo {
     }
   }
 
+  setZoom(zoomLevel) {
+    for(var vd of this.videos) {
+      vd.setZoom(zoomLevel);
+    }
+  }
+
   zoomStep(step){
     for(var vd of this.videos){
       vd.zoomStep(step);
