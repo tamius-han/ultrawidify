@@ -18,8 +18,11 @@ class PageInfo {
     }
 
     if(this.videos.length > 0){
+      console.log("registering video")
       comms.registerVideo();
     }
+
+    comms.registerTab();
   }
 
   destroy() {
@@ -117,7 +120,6 @@ class PageInfo {
   removeDestroyed(){
     this.videos = this.videos.filter( vid => vid.destroyed === false);
   }
-
 
   scheduleRescan(rescanReason){
     if(rescanReason != RescanReason.PERIODIC){
