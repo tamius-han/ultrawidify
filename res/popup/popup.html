@@ -23,6 +23,7 @@
       </div>
       <div id="_menu_tab_settings_site" class="menu-item _menu_tab_settings_site">
         Site settings
+        <span class="menu-item-inline-desc"><br/>Settings for <span id="_menu_tab_settings_site_site_label"></span></span>
       </div>
       <div id="_menu_tab_settings_video" class="menu-item _menu_tab_settings_video">
         Video settings
@@ -93,37 +94,41 @@
             <a id="_ext_site_options_blacklist" class="button _ext _ext_site_options _blacklist">Blacklist</a>
           </div>
         </div>
-        <div class="row">
-          <span class="label">Options for this site:</span>
-          <div class="button-row">
-            <a id="_ar_site_options_enabled"  class="button _autoAr _ar_site_options _enabled" >Whitelist</a>
-            <a id="_ar_site_options_default"  class="button _autoAr _ar_site_options _default" >Default</a>
-            <a id="_ar_site_options_disabled" class="button _autoAr _ar_site_options _disabled">Blacklist</a>
+
+        <!-- things that are disabled if site is disabled -->
+        <div id="_site_only_when_site_enabled">
+          <div class="row">
+            <span class="label">Automatic detection:</span>
+            <div class="button-row">
+              <a id="_ar_site_options_enabled"  class="button _autoAr _ar_site_options _enabled" >Whitelist</a>
+              <a id="_ar_site_options_default"  class="button _autoAr _ar_site_options _default" >Default</a>
+              <a id="_ar_site_options_disabled" class="button _autoAr _ar_site_options _disabled">Blacklist</a>
+            </div>
           </div>
-        </div>
+        
+          <!-- TODO: default aspect ratio, default settings -->
 
-        <!-- TODO: default aspect ratio, default settings -->
-
-        <!-- STRETCH MODE -->
-        <div class="row">
-          <span class="label experimental">Default stretching mode</span>
-          <div class="button-row">
-            <a id="_stretch_site_none"        class="button _stretch _ar_stretch_site _none w24">Never<br/><span id="_b_stretch_default_none_key" class="smallcaps small darker"></span></a>
-            <a id="_stretch_site_basic"       class="button _stretch _ar_stretch_site _basic w24">Basic<br/><span id="_b_stretch_default_basic_key" class="smallcaps small darker"></span></a>            
-            <a id="_stretch_site_hybrid"      class="button _stretch _ar_stretch_site _hybrid w24">Hybrid<br/><span id="_b_stretch_default_hybrid_key" class="smallcaps small darker"></span></a>
-            <a id="_stretch_site_conditional" class="button _stretch _ar_stretch_site _conditional w24">Thin borders<br/><span id="_b_stretch_default_conditional_key" class="smallcaps small darker"></span></a>
-            <a id="_stretch_site_default"     class="button _stretch _ar_stretch_site _default w24">Default<br/><span id="_b_stretch_default_conditional_key" class="smallcaps small darker"></span></a>
+          <!-- STRETCH MODE -->
+          <div class="row">
+            <span class="label experimental">Default stretching mode</span>
+            <div class="button-row">
+              <a id="_stretch_site_none"        class="button _stretch _ar_stretch_site _none w24">Never<br/><span id="_b_stretch_default_none_key" class="smallcaps small darker"></span></a>
+              <a id="_stretch_site_basic"       class="button _stretch _ar_stretch_site _basic w24">Basic<br/><span id="_b_stretch_default_basic_key" class="smallcaps small darker"></span></a>            
+              <a id="_stretch_site_hybrid"      class="button _stretch _ar_stretch_site _hybrid w24">Hybrid<br/><span id="_b_stretch_default_hybrid_key" class="smallcaps small darker"></span></a>
+              <a id="_stretch_site_conditional" class="button _stretch _ar_stretch_site _conditional w24">Thin borders<br/><span id="_b_stretch_default_conditional_key" class="smallcaps small darker"></span></a>
+              <a id="_stretch_site_default"     class="button _stretch _ar_stretch_site _default w24">Default<br/><span id="_b_stretch_default_conditional_key" class="smallcaps small darker"></span></a>
+            </div>
           </div>
-        </div>
 
-        <!-- VIDEO ALIGNMENT -->
-        <div class="row">
-          <span class="label">Video alignment:</span>
-          <div class="button-row">
-            <a id="_align_site_left"   class="button _align_site _align_site_left">Left</a>
-            <a id="_align_site_center" class="button _align_site _align_site_center">Center</a>
-            <a id="_align_site_right"  class="button _align_site _align_site_right">Right</a>
-            <a id="_align_site_default"class="button _align_site _align_site_default">Default</a>
+          <!-- VIDEO ALIGNMENT -->
+          <div class="row">
+            <span class="label">Video alignment:</span>
+            <div class="button-row">
+              <a id="_align_site_left"   class="button _align_site _align_site_left">Left</a>
+              <a id="_align_site_center" class="button _align_site _align_site_center">Center</a>
+              <a id="_align_site_right"  class="button _align_site _align_site_right">Right</a>
+              <a id="_align_site_default"class="button _align_site _align_site_default">Default</a>
+            </div>
           </div>
         </div>
       </div>

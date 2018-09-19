@@ -131,7 +131,9 @@ strike {
 }
 
 .disabled {
-  color: #666;
+  pointer-events: none;
+  /* color: #666; */
+  filter: contrast(50%) brightness(40%) grayscale(100%);
 }
 
 .disabled-button {
