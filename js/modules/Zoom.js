@@ -59,13 +59,14 @@ class Zoom {
   }
 
   setZoom(scale){
-    if(scale < this.minScale) {
+    // NOTE: SCALE IS NOT LOGARITHMIC
+    if(scale < Math.pow(this.minScale)) {
       scale = this.minScale;
-    } else if (scale > this.maxScale) {
+    } else if (scale > Math.pow(this.maxScale)) {
       scale = this.maxScale;
     }
 
-    this.scale = Math.pow(2, this.logScale);
+    this.scale = scale;
 
     this.conf.restoreAr();
   }

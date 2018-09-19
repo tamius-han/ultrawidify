@@ -258,7 +258,7 @@ class CommsServer {
       }
       this.settings.save();
     } else if (message.cmd === 'set-zoom') {
-      this.setToActive(message);
+      this.sendToActive(message);
     }
   }
 
