@@ -178,6 +178,10 @@ function configurePopupTabs(site) {
 
   if (! extensionEnabledForSite) {
     MenuTab.videoSettings.classList.add('disabled');
+
+    // also disable extra settings for site
+    document.getElementById("_site_only_when_site_enabled").classList.add("disabled");
+
     if (! extensionEnabled) {
       MenuTab.siteSettings.classList.add('disabled');
       if (!selectedMenu) {
@@ -192,6 +196,7 @@ function configurePopupTabs(site) {
   } else {
     MenuTab.videoSettings.classList.remove('disabled');
     MenuTab.siteSettings.classList.remove('disabled');
+    document.getElementById("_site_only_when_site_enabled").classList.remove("disabled");
 
     // if popup isn't being opened for the first time, there's no reason to switch
     // we're already in this tab
@@ -235,11 +240,11 @@ function configureSitesTab(site) {
   if (Debug.debug) {
     console.log("[popup.js] Configuring sites tab (SitePanel).",
     "\nsite:            ", site,
-    "\nextension mode:    ", settings.active.sites[site].status,
-    "\narDetect mode:   ", settings.active.sites[site].arStatus,
-    "\nvideo float mode:", settings.active.sites[site].videoFloat,
-    "\ndefault ar:      ", settings.active.sites[site].ar,
-    "\nstretch mode:    ", settings.active.sites[site].stretch,
+    "\nextension mode:    ", settings.active.sites[site] ? settings.active.sites[site].status : 'no site-special settings for this site',
+    "\narDetect mode:   ", settings.active.sites[site] ? settings.active.sites[site].arStatus : 'no site-special settings for this site',
+    "\nvideo float mode:", settings.active.sites[site] ? settings.active.sites[site].videoFloat : 'no site-special settings for this site',
+    "\ndefault ar:      ", settings.active.sites[site] ? settings.active.sites[site].ar : 'no site-special settings for this site',
+    "\nstretch mode:    ", settings.active.sites[site] ? settings.active.sites[site].stretch : 'no site-special settings for this site',
     "\n...")
   }
 
@@ -256,17 +261,23 @@ function configureSitesTab(site) {
     SitePanel.stretch[button].classList.remove("selected");
   }
 
-  SitePanel.extOptions[settings.active.sites[site].status].classList.add("selected");
-  SitePanel.arOptions[settings.active.sites[site].arStatus].classList.add("selected");
+  if (settings.active.sites[site] && settings.active.sites[site]) {
+    console.log("settings for", site, "exist!")
+    SitePanel.extOptions[settings.active.sites[site].status].classList.add("selected");
+    SitePanel.arOptions[settings.active.sites[site].arStatus].classList.add("selected");
+  } else {
+    SitePanel.extOptions.default.classList.add("selected");
+    SitePanel.arOptions.default.classList.add("selected");
+  }
 
   // optional settings:
-  if (settings.active.sites[site].videoAlignment) {
+  if (settings.active.sites[site] && settings.active.sites[site].videoAlignment) {
     SitePanel.alignment[settings.active.sites[site].videoAlignment].classList.add("selected");
   } else {
     SitePanel.alignment.default.classList.add('selected');
   }
 
-  if(settings.active.sites[site].stretch !== undefined) {  // can be 0
+  if(settings.active.sites[site] && settings.active.sites[site].stretch !== undefined) {  // can be 0
     SitePanel.stretch[settings.active.sites[site].stretch].classList.add("selected");
   } else {
     SitePanel.stretch['-1'].classList.add("selected");
@@ -350,16 +361,21 @@ function configureVideoTab() {
 
 async function loadConfig(site){
 
-  if(Debug.debug)
+  if (Debug.debug) {
     console.log("\n\n-------------------------------------\n[popup.js::loadConfig] loading config. conf object:", settings.active);
-  
+  }
+
+  document.getElementById("_menu_tab_settings_site_site_label").textContent = site;
+
+
   configurePopupTabs(site);
   configureGlobalTab();
   configureSitesTab(site);
   configureVideoTab();
 
-  if(Debug.debug)
+  if (Debug.debug) {
     console.log("[popup.js::loadConfig] config loaded\n-----------------------\n\n");
+  }
 }
 
 async function getSite(){
@@ -749,7 +765,11 @@ document.addEventListener("click", (e) => {
 
 
 
-
+async function sleep(t) {
+  return new Promise( (resolve,reject) => {
+    setTimeout(t, () => resolve());
+  });
+}
 
 async function popup_init() {
   // let's init settings and check if they're loaded
@@ -778,7 +798,10 @@ async function popup_init() {
   // });
 
   hideWarning("script-not-running-warning");
-  getSite();
+  while (!this.site) {
+    getSite();
+    await sleep(5000);
+  }
 }
 
 popup_init();
