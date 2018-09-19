@@ -128,6 +128,10 @@ class CommsClient {
     return Promise.resolve(true);
   }
 
+  registerTab() {
+    this.port.postMessage({cmd: "register-tab", url: location.hostname});
+  } 
+
   registerVideo(){
     this.port.postMessage({cmd: "has-video"});
   }
@@ -155,8 +159,24 @@ class CommsServer {
     }
   }
 
-  async getCurrentTabUrl() {
+  async getCurrentTabHostname() {
+    const activeTab = await this._getActiveTab();
 
+    const url = activeTab[0].url;
+
+    var hostname;
+
+    if (url.indexOf("://") > -1) {    //find & remove protocol (http, ftp, etc.) and get hostname
+      hostname = url.split('/')[2];
+    }
+    else {
+      hostname = url.split('/')[0];
+    }
+    
+    hostname = hostname.split(':')[0];   //find & remove port number
+    hostname = hostname.split('?')[0];   //find & remove "?"
+
+    return hostname;
   }
 
   sendToAll(message){
@@ -224,13 +244,32 @@ class CommsServer {
     });
   }
 
-  processReceivedMessage(message, port){
+  async processReceivedMessage(message, port){
     if (Debug.debug && Debug.comms) {
       console.log("[CommsServer.js::processMessage] Received message from background script!", message, "port", port, "\nsettings and server:", this.settings,this.server);
     }
 
     if(message.cmd === 'get-current-site') {
       port.postMessage({cmd: 'set-current-site', site: this.server.currentSite});
+    }
+
+    if(message.cmd === 'register-tab') {
+      if(Debug.debug) { // we want to get these messages always when debugging
+        console.log("[Comms::processReceivedMessage] registering tab with hostname", message.url)
+      }
+
+      const currentUrl = await this.getCurrentTabHostname();
+      if (message.url === currentUrl) {
+        this.server.url = message.url;
+
+        if(Debug.debug) { // we want to get these messages always when debugging
+          console.log("[Comms::processReceivedMessage] hostname matches currently active tab. active:", currentUrl, "message:", message.url);
+        }
+      } else {
+        if(Debug.debug) { // we want to get these messages always when debugging
+          console.log("[Comms::processReceivedMessage] hostnames don't match. active:", currentUrl, "message:", message.url);
+        }
+      }
     }
 
     if (message.cmd === 'get-config') {
