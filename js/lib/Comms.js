@@ -128,10 +128,6 @@ class CommsClient {
     return Promise.resolve(true);
   }
 
-  registerTab() {
-    this.port.postMessage({cmd: "register-tab", url: location.hostname});
-  } 
-
   registerVideo(){
     this.port.postMessage({cmd: "has-video"});
   }
@@ -192,7 +188,7 @@ class CommsServer {
       return await browser.tabs.query({currentWindow: true, active: true});
     } else {
       return await new Promise( (resolve, reject) => {
-        chrome.tabs.query({currentWindow: true, active: true}, function (res) {
+        chrome.tabs.query({lastFocusedWindow: true, active: true}, function (res) {
           resolve(res);
         });
       });
@@ -250,26 +246,7 @@ class CommsServer {
     }
 
     if(message.cmd === 'get-current-site') {
-      port.postMessage({cmd: 'set-current-site', site: this.server.currentSite});
-    }
-
-    if(message.cmd === 'register-tab') {
-      if(Debug.debug) { // we want to get these messages always when debugging
-        console.log("[Comms::processReceivedMessage] registering tab with hostname", message.url)
-      }
-
-      const currentUrl = await this.getCurrentTabHostname();
-      if (message.url === currentUrl) {
-        this.server.currentSite = message.url;
-
-        if(Debug.debug) { // we want to get these messages always when debugging
-          console.log("[Comms::processReceivedMessage] hostname matches currently active tab. active:", currentUrl, "message:", message.url);
-        }
-      } else {
-        if(Debug.debug) { // we want to get these messages always when debugging
-          console.log("[Comms::processReceivedMessage] hostnames don't match. active:", currentUrl, "message:", message.url);
-        }
-      }
+      port.postMessage({cmd: 'set-current-site', site: await this.getCurrentTabHostname()});
     }
 
     if (message.cmd === 'get-config') {
@@ -349,7 +326,7 @@ class CommsServer {
     }
 
     if(message.cmd === 'get-config') {
-      sendResponse({extensionConf: JSON.stringify(this.settings.active), site: getCurrentTabUrl()});
+      sendResponse({extensionConf: JSON.stringify(this.settings.active), site: this.getCurrentTabHostname()});
       // return true;
     } else if (message.cmd === "autoar-enable") {
       this.settings.active.arDetect.mode = "blacklist";

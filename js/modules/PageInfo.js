@@ -21,8 +21,6 @@ class PageInfo {
       console.log("registering video")
       comms.registerVideo();
     }
-
-    comms.registerTab();
   }
 
   destroy() {
@@ -175,7 +173,6 @@ class PageInfo {
       
       this.rescan(RescanReason.URL_CHANGE);
       this.lastUrl = window.location.href;
-      this.comms.registerTab();
     }
 
     this.scheduleUrlCheck();
