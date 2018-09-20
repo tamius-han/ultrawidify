@@ -96,6 +96,11 @@ var ExtensionConf = {
   arChange: {
     samenessTreshold: 0.025,  // if aspect ratios are within 2.5% within each other, don't resize
   },
+  zoom: {
+    minLogZoom: -1,
+    maxLogZoom: 3,
+    announceDebounce: 200     // we wait this long before announcing new zoom
+  },
   miscFullscreenSettings: {
     videoFloat: "center",
     mousePan: {

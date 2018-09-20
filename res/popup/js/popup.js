@@ -123,8 +123,13 @@ async function processReceivedMessage(message, port){
   }
 
   if(message.cmd === 'set-current-site'){
+    if (site !== message.site) {
+      port.postMessage({cmd: 'get-current-zoom'});
+    }
     site = message.site;
     loadConfig(message.site);
+  } else if (message.cmd === 'set-current-zoom') {
+    setCurrentZoom(message.zoom);
   }
 }
 
@@ -136,6 +141,15 @@ async function updateConfig() {
   if (site) {
     loadConfig(site);
   }
+}
+
+async function setCurrentZoom(scale) {
+  if(Debug.debug) {
+    console.log("[popup.js::setCurrentZoom] we're setting zoom:", scale);
+  }
+
+  VideoPanel.inputs.zoomSlider.value = Math.log2(scale);
+  VideoPanel.labels.zoomLevel.textContent = (scale * 100).toFixed();
 }
 
 function hideWarning(warn){

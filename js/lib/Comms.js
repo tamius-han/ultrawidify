@@ -57,6 +57,10 @@ class CommsClient {
       return;
     }
 
+    if (message.cmd === 'get-current-zoom') {
+      this.pageInfo.requestCurrentZoom();
+    }
+
     if (message.cmd === "set-ar") {
       this.pageInfo.setAr(message.ratio);
     } else if (message.cmd === 'set-video-float') {
@@ -77,7 +81,7 @@ class CommsClient {
       // todo: autoArStatus
       this.pageInfo.resumeProcessing(message.autoArStatus);
     } else if (message.cmd === 'set-zoom') {
-      this.pageInfo.setZoom(message.zoom);
+      this.pageInfo.setZoom(message.zoom, true);
     }
   }
 
@@ -130,6 +134,10 @@ class CommsClient {
 
   registerVideo(){
     this.port.postMessage({cmd: "has-video"});
+  }
+
+  announceZoom(scale){
+    this.port.postMessage({cmd: "announce-zoom", zoom: scale});
   }
 
   unregisterVideo(){
@@ -245,7 +253,14 @@ class CommsServer {
       console.log("[CommsServer.js::processMessage] Received message from background script!", message, "port", port, "\nsettings and server:", this.settings,this.server);
     }
 
-    if(message.cmd === 'get-current-site') {
+    if (message.cmd === 'announce-zoom') {
+      // forward off to the popup, no use for this here
+      this.popupPort.postMessage({cmd: 'set-current-zoom', zoom: message.zoom});
+    } else if (message.cmd === 'get-current-zoom') {
+      this.sendToActive(message);
+    }
+
+    if (message.cmd === 'get-current-site') {
       port.postMessage({cmd: 'set-current-site', site: await this.getCurrentTabHostname()});
     }
 

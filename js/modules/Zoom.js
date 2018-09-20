@@ -19,26 +19,6 @@ class Zoom {
     this.scale = 1;
   }
 
-  zoomIn(){
-    this.logScale += this.scaleStep;
-
-    if (this.logScale >= this.maxScale) {
-      this.logScale = this.maxScale;
-    }
-
-    this.scale = Math.pow(2, this.logScale);
-  }
-
-  zoomOut(){
-    this.logScale -= this.scaleStep;
-
-    if (this.logScale <= this.minScale) {
-      this.logScale = this.minScale;
-    }
-    
-    this.scale = Math.pow(2, this.logScale);
-  }
-
   zoomStep(amount){
     this.logScale += amount;
 
@@ -56,9 +36,10 @@ class Zoom {
     }
 
     this.conf.restoreAr();
+    this.conf.announceZoom(this.scale);
   }
 
-  setZoom(scale){
+  setZoom(scale, no_announce){
     // NOTE: SCALE IS NOT LOGARITHMIC
     if(scale < Math.pow(this.minScale)) {
       scale = this.minScale;
@@ -69,6 +50,9 @@ class Zoom {
     this.scale = scale;
 
     this.conf.restoreAr();
+    if (!no_announce) {
+      this.conf.announceZoom(this.scale);
+    }
   }
 
   applyZoom(videoDimensions){
