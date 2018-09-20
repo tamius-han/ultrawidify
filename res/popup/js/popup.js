@@ -176,6 +176,11 @@ function configurePopupTabs(site) {
     MenuTab.videoSettings.classList.remove('disabled');
   }
 
+  // we assume that these two can be shown. If extension or site are disabled, we'll
+  // add 'disabled' class later down the line:
+  document.getElementById("_site_only_when_site_enabled").classList.remove("disabled");
+  document.getElementById("_ext_only_when_ext_enabled").classList.remove("disabled");
+
   if (! extensionEnabledForSite) {
     MenuTab.videoSettings.classList.add('disabled');
 
@@ -184,6 +189,9 @@ function configurePopupTabs(site) {
 
     if (! extensionEnabled) {
       MenuTab.siteSettings.classList.add('disabled');
+      
+      // also disable extra settings for extension
+      document.getElementById("_ext_only_when_ext_enabled").classList.add("disabled");
       if (!selectedMenu) {
         openMenu('extensionSettings');
       }
@@ -196,7 +204,6 @@ function configurePopupTabs(site) {
   } else {
     MenuTab.videoSettings.classList.remove('disabled');
     MenuTab.siteSettings.classList.remove('disabled');
-    document.getElementById("_site_only_when_site_enabled").classList.remove("disabled");
 
     // if popup isn't being opened for the first time, there's no reason to switch
     // we're already in this tab
