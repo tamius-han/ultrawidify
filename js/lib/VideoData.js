@@ -1,6 +1,6 @@
 class VideoData {
   
-  constructor(video, settings){
+  constructor(video, settings, pageInfo){
     this.arSetupComplete = false;
     this.video = video;
     this.destroyed = false;
@@ -13,6 +13,7 @@ class VideoData {
     this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
     // player dimensions need to be in:
     // this.player.dimensions
+    this.pageInfo = pageInfo;
   }
 
   firstTimeArdInit(){
@@ -130,13 +131,15 @@ class VideoData {
     this.resizer.setStretchMode(stretchMode);
   }
 
-  setZoom(zoomLevel){
-    this.resizer.setZoom(zoomLevel);
+  setZoom(zoomLevel, no_announce){
+    this.resizer.setZoom(zoomLevel, no_announce);
   }
 
   zoomStep(step){
     this.resizer.zoomStep(step);
   }
 
-
+  announceZoom(scale){
+    this.pageInfo.announceZoom(scale);
+  }
 }

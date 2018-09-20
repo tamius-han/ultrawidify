@@ -21,6 +21,8 @@ class PageInfo {
       console.log("registering video")
       comms.registerVideo();
     }
+
+    this.currentZoomScale = 1;
   }
 
   destroy() {
@@ -91,7 +93,7 @@ class PageInfo {
         if(Debug.debug && Debug.periodic && Debug.videoRescan){
           console.log("[PageInfo::rescan] found new video candidate:", video)
         }
-        v = new VideoData(video, this.settings);
+        v = new VideoData(video, this.settings, this);
         // console.log("[PageInfo::rescan] v is:", v)
         // debugger;
         v.initArDetection();
@@ -253,9 +255,9 @@ class PageInfo {
     }
   }
 
-  setZoom(zoomLevel) {
+  setZoom(zoomLevel, no_announce) {
     for(var vd of this.videos) {
-      vd.setZoom(zoomLevel);
+      vd.setZoom(zoomLevel, no_announce);
     }
   }
 
@@ -263,6 +265,19 @@ class PageInfo {
     for(var vd of this.videos){
       vd.zoomStep(step);
     }
+  }
+
+  announceZoom(scale) {
+    if (this.announceZoomTimeout) {
+      clearTimeout(this.announceZoom);
+    }
+    this.currentZoomScale = scale;
+    const ths = this;
+    this.announceZoomTimeout = setTimeout(() => ths.comms.announceZoom(scale), this.settings.active.zoom.announceDebounce);
+  }
+
+  requestCurrentZoom() {
+    this.comms.announceZoom(this.currentZoomScale);
   }
 }
 
