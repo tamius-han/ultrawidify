@@ -260,7 +260,7 @@ class CommsServer {
 
       const currentUrl = await this.getCurrentTabHostname();
       if (message.url === currentUrl) {
-        this.server.url = message.url;
+        this.server.currentSite = message.url;
 
         if(Debug.debug) { // we want to get these messages always when debugging
           console.log("[Comms::processReceivedMessage] hostname matches currently active tab. active:", currentUrl, "message:", message.url);

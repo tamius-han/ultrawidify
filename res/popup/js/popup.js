@@ -361,6 +361,8 @@ function configureVideoTab() {
 
 async function loadConfig(site){
 
+  console.log("NEW CONFIG!")
+
   if (Debug.debug) {
     console.log("\n\n-------------------------------------\n[popup.js::loadConfig] loading config. conf object:", settings.active);
   }
@@ -767,7 +769,7 @@ document.addEventListener("click", (e) => {
 
 async function sleep(t) {
   return new Promise( (resolve,reject) => {
-    setTimeout(t, () => resolve());
+    setTimeout(() => resolve(), t);
   });
 }
 
@@ -798,7 +800,8 @@ async function popup_init() {
   // });
 
   hideWarning("script-not-running-warning");
-  while (!this.site) {
+  while (true) {
+    console.log("GETTING SITE")
     getSite();
     await sleep(5000);
   }
