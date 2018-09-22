@@ -105,6 +105,8 @@ VideoPanel.misc.customArChanger    = document.getElementById("_changeAr_customAr
 var selectedMenu = "";
 var hasVideos = false;
 
+var zoom_videoScale = 1;
+
 var _config; 
 var _changeAr_button_shortcuts = { "autoar":"none", "reset":"none", "219":"none", "189":"none", "169":"none", "custom":"none" }
 
@@ -144,12 +146,16 @@ async function updateConfig() {
 }
 
 async function setCurrentZoom(scale) {
+  zoom_videoScale = scale;
+
+  console.log("zoom_videoscale", scale);
+
   if(Debug.debug) {
-    console.log("[popup.js::setCurrentZoom] we're setting zoom:", scale);
+    console.log("[popup.js::setCurrentZoom] we're setting zoom:", zoom_videoScale);
   }
 
-  VideoPanel.inputs.zoomSlider.value = Math.log2(scale);
-  VideoPanel.labels.zoomLevel.textContent = (scale * 100).toFixed();
+  VideoPanel.inputs.zoomSlider.value = Math.log2(zoom_videoScale);
+  VideoPanel.labels.zoomLevel.textContent = (zoom_videoScale * 100).toFixed();
 }
 
 function hideWarning(warn){
@@ -360,17 +366,23 @@ function configureVideoTab() {
     }
   }
 
+  console.log("zoom_videoscale — resetting zoom slider", zoom_videoScale);
   
   // todo: get min, max from settings
   VideoPanel.inputs.zoomSlider.min = Math.log2(0.5);
   VideoPanel.inputs.zoomSlider.max = Math.log2(8);
-  VideoPanel.inputs.zoomSlider.value = 0;
+  VideoPanel.inputs.zoomSlider.value = Math.log2(zoom_videoScale);
 
   VideoPanel.inputs.zoomSlider.addEventListener('input', (event) => {
     var newZoom = Math.pow(2, VideoPanel.inputs.zoomSlider.value);
-    // TODO: send new zoom value to current tab
+
+    // save value so it doesn't get reset next time the popup updates
+    zoom_videoScale = newZoom;
+
+    // update zoom% label
     VideoPanel.labels.zoomLevel.textContent = (newZoom * 100).toFixed();
 
+    // send the command to bg script
     var command = {
       cmd: 'set-zoom',
       zoom: newZoom
