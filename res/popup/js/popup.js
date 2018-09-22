@@ -148,8 +148,6 @@ async function updateConfig() {
 async function setCurrentZoom(scale) {
   zoom_videoScale = scale;
 
-  console.log("zoom_videoscale", scale);
-
   if(Debug.debug) {
     console.log("[popup.js::setCurrentZoom] we're setting zoom:", zoom_videoScale);
   }
@@ -366,8 +364,6 @@ function configureVideoTab() {
     }
   }
 
-  console.log("zoom_videoscale — resetting zoom slider", zoom_videoScale);
-  
   // todo: get min, max from settings
   VideoPanel.inputs.zoomSlider.min = Math.log2(0.5);
   VideoPanel.inputs.zoomSlider.max = Math.log2(8);
