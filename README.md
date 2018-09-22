@@ -148,8 +148,8 @@ Quick rundown of the options:
 
 Whether the extension is enabled. Options:
 
-`Always` — allow this extension to run on every site (unless the site is blacklisted)
-`On whitelisted sites` — allow this extension to run only on sites you manually enabled
+`Always` — allow this extension to run on every site (unless the site is blacklisted)  
+`On whitelisted sites` — allow this extension to run only on sites you manually enabled  
 `Never` — this extension won't work. At all. 
 
 * **Enable autodetection** (Extension settings)
@@ -160,8 +160,8 @@ Whether extension should automatically detect aspect ratio. Uses same options as
 
 Whether the extension is enabled on current site. Options:
 
-`Whitelist` — allow this extension to run on current site.
-`Default` — follow global settings (allow if global option is set to 'always', don't allow if global option is set to any of the other two)
+`Whitelist` — allow this extension to run on current site.  
+`Default` — follow global settings (allow if global option is set to 'always', don't allow if global option is set to any of the other two)  
 `Blacklist` — never allow extension to run on current site.
 
 * **Enable autodetection** (Site settings)
