@@ -6,6 +6,12 @@ If you own an ultrawide monitor, you have probably noticed that sometimes videos
 
 ![Demo](img-demo/example-httyd2.png "Should these black bars be here? No [...] But an ultrawide user never forgets.")
 
+## Known issues
+
+* Netflix autodetection not working in Chrome, wontfix as issue is fundamentally unfixable.
+* Keyboard shortcut for automatic detection (A) doesn't really work for some reason.
+* Everything reported in [issues](https://github.com/xternal7/ultrawidify/issues)
+
 ### Limitations
 
 * Unclear how extension handles sites with more than one video per page.
@@ -204,10 +210,6 @@ is currently not possible. Settings page for this extension has been disabled so
 
 However, I do plan on implementing this feature. Hopefully by the end of the year, but given how consistently I've been breaking self-imposed deadlines and goals for this extension don't hold your breath. After all, [Hofstadter's a bitch](https://en.wikipedia.org/wiki/Hofstadter%27s_law).
 
-## Known issues
-
-* Netflix autodetection not working in Chrome, wontfix as issue is fundamentally unfixable.
-* Everything reported in [issues](https://github.com/xternal7/ultrawidify/issues)
 
 ## Plans for the future
 
