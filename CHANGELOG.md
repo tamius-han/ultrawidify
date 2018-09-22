@@ -5,6 +5,8 @@
 ### v3.2.0 
 
 * Zoom and panning
+* Reorganized popup
+* Various bug fixes
 
 ### v3.1.1 (Chrome-only)
 
