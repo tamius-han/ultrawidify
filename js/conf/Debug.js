@@ -1,9 +1,10 @@
 // Set prod to true when releasing
-_prod = true; 
-// _prod = false; 
+// _prod = true; 
+_prod = false; 
 
 Debug = {
-  debug: true,
+  init: true,
+  debug: false,
   keyboard: true,
   debugResizer: true,
   debugArDetect: true,

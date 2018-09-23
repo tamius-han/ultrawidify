@@ -45,7 +45,9 @@ class PlayerData {
     return ( window.innerHeight == window.screen.height && window.innerWidth == window.screen.width);
   }
 
-
+  panListener(event) {
+    this.panHandler(event);
+  } 
 
   start(){
     this.startChangeDetection();
@@ -57,6 +59,7 @@ class PlayerData {
   }
 
   destroy() {
+    this.element.removeEventListener('mousemove', this.panListener);
     this.stopChangeDetection();
   }
 
@@ -156,7 +159,7 @@ class PlayerData {
       
       if(this.element) {
         const ths = this;
-        this.element.removeEventListener('mousemove', (event) => ths.panHandler(event));      
+        this.element.removeEventListener('mousemove', this.panListener);      
       }
       this.element = undefined;
       this.dimensions = undefined;
@@ -224,10 +227,10 @@ class PlayerData {
       }
       const ths = this;
       if(this.element) {
-        this.element.removeEventListener('mousemove', (event) => ths.panHandler(event));
+        this.element.removeEventListener('mousemove', (event) => ths.panListener);
       }
       this.element = element;
-      this.element.addEventListener('mousemove', (event) => ths.panHandler(event));
+      this.element.addEventListener('mousemove', ths.panListener);
     } else {
       this.dimensions = {
         width: candidate_width,
@@ -236,10 +239,10 @@ class PlayerData {
       };
       const ths = this;
       if(this.element) {
-        this.element.removeEventListener('mousemove', (event) => ths.panHandler(event));
+        this.element.removeEventListener('mousemove', (event) => ths.panListener);
       }
       this.element = playerCandidateNode;
-      this.element.addEventListener('mousemove', (event) => ths.panHandler(event));
+      this.element.addEventListener('mousemove', (event) => ths.panListener);
     }
   }
 

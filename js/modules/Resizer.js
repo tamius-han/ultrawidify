@@ -49,7 +49,9 @@ class Resizer {
   }
   
   start(){
-    this.startCssWatcher();
+    if(!this.destroyed) {
+      this.startCssWatcher();
+    }
   }
 
   stop(){
@@ -57,7 +59,7 @@ class Resizer {
   }
 
   destroy(){
-    if(Debug.debug){
+    if(Debug.debug || Debug.init){
       console.log(`[Resizer::destroy] <rid:${this.resizerId}> received destroy command.`);
     }
     this.destroyed = true;
@@ -91,7 +93,7 @@ class Resizer {
       this.videoData.destroy();
     }
 
-    // pause AR on basic stretch, unpause when using other mdoes
+    // // pause AR on basic stretch, unpause when using other mdoes
     // fir sine reason unpause doesn't unpause. investigate that later
     // if (this.stretcher.mode === StretchMode.BASIC) {
     //   this.conf.arDetector.pause();
@@ -186,9 +188,13 @@ class Resizer {
   }
 
   startCssWatcher(){
+    if(Debug.debug) {
+      console.log("[Resizer.js::startCssWatcher] starting css watcher. Is resizer destroyed?", this.destroyed);
+    }
     if (this.destroyed) {
       return;
     }
+
     // this.haltCssWatcher = false;
     if(!this.cssWatcherTimer){
       this.scheduleCssWatcher(1);
@@ -441,6 +447,7 @@ class Resizer {
       if(Debug.debug) {
         console.log("[Resizer::cssCheck] <rid:"+this.resizerId+"> destroyed flag is set, we shouldnt be running");
       }
+      this.stopCssWatcher();
       return;
     }
 

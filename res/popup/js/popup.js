@@ -766,8 +766,10 @@ document.addEventListener("click", (e) => {
       return;
     }
     if (e.target.classList.contains("_zoom_reset")) {
+      zoom_videoScale = scale;
       VideoPanel.labels.zoomLevel.textContent = 100;
       VideoPanel.inputs.zoomSlider.value = 0;         // log₂(1)
+      
       command.cmd = 'set-zoom';
       command.zoom = 1;
       return command;

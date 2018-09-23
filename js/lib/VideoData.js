@@ -14,15 +14,25 @@ class VideoData {
     // player dimensions need to be in:
     // this.player.dimensions
     this.pageInfo = pageInfo;
+    this.vdid = (Math.random()*100).toFixed();
+    if (Debug.init) {
+      console.log("[VideoData::ctor] Created videoData with vdid", this.vdid);
+    }
   }
 
   firstTimeArdInit(){
+    if(this.destroyed) {
+      throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
+    }
     if(! this.arSetupComplete){
       this.arDetector = new ArDetector(this);
     }
   }
 
   initArDetection() {
+    if(this.destroyed) {
+      throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
+    }
     if(this.arDetector){
       this.arDetector.init();
     }
@@ -33,6 +43,9 @@ class VideoData {
   }
   
   startArDetection() {
+    if(this.destroyed) {
+      throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
+    }
     if(!this.arDetector) {
       this.arDetector.init();
     }
@@ -46,10 +59,11 @@ class VideoData {
   }
 
   destroy() {
-    if(Debug.debug){ 
-      console.log("[VideoData::destroy] received destroy command");
+    if(Debug.debug || Debug.init){ 
+      console.log(`[VideoData::destroy] <vdid:${this.vdid}> received destroy command`);
     }
 
+    this.pause();
     this.destroyed = true;
     if(this.arDetector){
       this.arDetector.stop();
@@ -81,6 +95,9 @@ class VideoData {
   }
 
   resume(){
+    if(this.destroyed) {
+      throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
+    }
     this.paused = false;
     try {
       this.resizer.start();
@@ -112,6 +129,9 @@ class VideoData {
   }
 
   panHandler(event) {
+    if(this.destroyed) {
+      throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
+    }
     if(!this.resizer) {
       this.destroy();
       return;

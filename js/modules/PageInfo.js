@@ -26,7 +26,7 @@ class PageInfo {
   }
 
   destroy() {
-    if(Debug.debug){
+    if(Debug.debug || Debug.init){
       console.log("[PageInfo::destroy] destroying all videos!")
     }
     if(this.rescanTimer){
