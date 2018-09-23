@@ -255,7 +255,11 @@ class CommsServer {
 
     if (message.cmd === 'announce-zoom') {
       // forward off to the popup, no use for this here
-      this.popupPort.postMessage({cmd: 'set-current-zoom', zoom: message.zoom});
+      try {
+        this.popupPort.postMessage({cmd: 'set-current-zoom', zoom: message.zoom});
+      } catch (e) {
+        // can't forward stuff to popup if it isn't open
+      }
     } else if (message.cmd === 'get-current-zoom') {
       this.sendToActive(message);
     }
