@@ -180,6 +180,11 @@ class Resizer {
     this.restore();
   }
 
+  setVideoFloat(videoFloat) {
+    this.videoFloat = videoFloat;
+    this.restore();
+  }
+
   startCssWatcher(){
     if (this.destroyed) {
       return;

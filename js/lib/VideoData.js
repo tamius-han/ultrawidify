@@ -123,6 +123,10 @@ class VideoData {
     this.resizer.setPanMode(mode);
   }
 
+  setVideoFloat(videoFloat) {
+    this.resizer.setVideoFloat(videoFloat);
+  }
+
   restoreAr(){
     this.resizer.restore();
   }

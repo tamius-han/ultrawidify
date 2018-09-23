@@ -235,6 +235,12 @@ class PageInfo {
     }
   }
   
+  setVideoFloat(videoFloat) {
+    for(var vd of this.videos) {
+      vd.setVideoFloat(videoFloat)
+    }
+  }
+
   setPanMode(mode) {
     for(var vd of this.videos) {
       vd.setPanMode(mode);

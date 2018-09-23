@@ -63,8 +63,8 @@ class CommsClient {
 
     if (message.cmd === "set-ar") {
       this.pageInfo.setAr(message.ratio);
-    } else if (message.cmd === 'set-video-float') {
-      this.pageInfo.setVideoFloat(message.newFloat);
+    } else if (message.cmd === 'set-alignment') {
+      this.pageInfo.setVideoFloat(message.mode);
       this.pageInfo.restoreAr();
     } else if (message.cmd === "set-stretch") {
       this.pageInfo.setStretchMode(StretchMode[message.mode]);
@@ -276,7 +276,7 @@ class CommsServer {
     } else if (message.cmd === 'set-custom-ar') {
       this.settings.active.keyboard.shortcuts.q.arg = message.ratio;
       this.settings.save();
-    } else if (message.cmd === 'set-video-float') {
+    } else if (message.cmd === 'set-alignment') {
       this.sendToActive(message);
     } else if (message.cmd === 'autoar-start') {
       this.sendToActive(message);
