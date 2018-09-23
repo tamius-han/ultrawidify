@@ -738,11 +738,11 @@ document.addEventListener("click", (e) => {
     if (e.target.classList.contains("_align")) {
       command.cmd = "set-alignment";
 
-      if (e.target.classList.contains("_align_left")) {
+      if (e.target.classList.contains("_align_video_left")) {
         command.mode = 'left';
-      } else if (e.target.classList.contains("_align_center")) {
+      } else if (e.target.classList.contains("_align_video_center")) {
         command.mode = 'center';
-      } else if (e.target.classList.contains("_align_right")) {
+      } else if (e.target.classList.contains("_align_video_right")) {
         command.mode = 'right';
       }
       
@@ -767,7 +767,7 @@ document.addEventListener("click", (e) => {
       VideoPanel.inputs.zoomSlider.value = 0;         // log₂(1)
       command.cmd = 'set-zoom';
       command.zoom = 1;
-      return;
+      return command;
     }
     //#endregion
     //#region show/hide custom ar
