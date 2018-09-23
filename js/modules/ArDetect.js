@@ -14,18 +14,28 @@ class ArDetector {
     this.canFallback = true;
     this.fallbackMode = false;
 
-    this.blackLevel = this.settings.active.arDetect.blackLevel_default;   
+    this.blackLevel = this.settings.active.arDetect.blackLevel_default;
+
+    this.arid = (Math.random()*100).toFixed();
+
+    if (Debug.init) {
+      console.log("[ArDetector::ctor] creating new ArDetector. arid:", this.arid);
+    }
   }
 
   init(){
-    if(Debug.debug){
-      console.log("[ArDetect::init] Initializing autodetection")
+    if (Debug.debug || Debug.init) {
+      console.log("[ArDetect::init] Initializing autodetection. arid:", this.arid);
     }
     this.setup(this.settings.active.arDetect.hSamples, this.settings.active.arDetect.vSamples);
   }
 
   destroy(){
+    if(Debug.debug || Debug.init) {
+      console.log(`[ArDetect::destroy] <arid:${this.arid}>`)
+    }
     this.debugCanvas.destroy();
+    this.stop();
   }
 
   setup(cwidth, cheight, forceStart){
@@ -34,8 +44,8 @@ class ArDetector {
     this.edgeDetector = new EdgeDetect(this);
     this.debugCanvas = new DebugCanvas(this);
 
-    if(Debug.debug) {
-      console.log("[ArDetect::setup] Starting autodetection setup");
+    if(Debug.debug || Debug.init) {
+      console.log("[ArDetect::setup] Starting autodetection setup. arid:", this.arid);
     }
 
     if (this.fallbackMode || cheight !== this.settings.active.arDetect.hSamples) {
@@ -476,13 +486,14 @@ class ArDetector {
           var newCanvasWidth = window.innerHeight * (this.video.videoWidth / this.video.videoHeight);
           var newCanvasHeight = window.innerHeight;
           
-          if(this.settings.active.miscFullscreenSettings.videoFloat == "center")
+          if (this.conf.resizer.videoFloat === "center") {
             this.canvasDrawWindowHOffset = Math.round((window.innerWidth - newCanvasWidth) * 0.5);
-          else if(this.settings.active.miscFullscreenSettings.videFloat == "left")
+          } else if (this.conf.resizer.videoFloat == "left") {
             this.canvasDrawWindowHOffset = 0;
-          else
+          } else {
             this.canvasDrawWindowHOffset = window.innerWidth - newCanvasWidth;
-          
+          }
+
           this.setup(newCanvasWidth, newCanvasHeight);
           
           return;

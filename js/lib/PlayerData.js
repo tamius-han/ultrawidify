@@ -32,8 +32,10 @@ class PlayerData {
   constructor(videoData) {
     this.videoData = videoData;
     this.video = videoData.video;
+    this.settings = videoData.settings;
     this.element = undefined;
     this.dimensions = undefined;
+
 
     this.getPlayerDimensions();
     this.startChangeDetection();
@@ -43,7 +45,9 @@ class PlayerData {
     return ( window.innerHeight == window.screen.height && window.innerWidth == window.screen.width);
   }
 
-
+  panListener(event) {
+    this.panHandler(event);
+  } 
 
   start(){
     this.startChangeDetection();
@@ -55,6 +59,7 @@ class PlayerData {
   }
 
   destroy() {
+    this.element.removeEventListener('mousemove', this.panListener);
     this.stopChangeDetection();
   }
 
@@ -139,6 +144,10 @@ class PlayerData {
     this.scheduleGhettoWatcher();
   }
 
+  panHandler(event) {
+    this.videoData.panHandler(event);    
+  }
+
   getPlayerDimensions(elementNames){
     // element names — reserved for future use. If element names are provided, this function should return first element that
     // has classname or id that matches at least one in the elementNames array.
@@ -148,6 +157,10 @@ class PlayerData {
       if(Debug.debug)
         console.log("[PlayerDetect::_pd_getPlayerDimensions] element is not valid, doing nothing.", element)
       
+      if(this.element) {
+        const ths = this;
+        this.element.removeEventListener('mousemove', this.panListener);      
+      }
       this.element = undefined;
       this.dimensions = undefined;
       return;
@@ -212,14 +225,24 @@ class PlayerData {
         height: window.innerHeight,
         fullscreen: true
       }
+      const ths = this;
+      if(this.element) {
+        this.element.removeEventListener('mousemove', (event) => ths.panListener);
+      }
       this.element = element;
+      this.element.addEventListener('mousemove', ths.panListener);
     } else {
       this.dimensions = {
         width: candidate_width,
         height: candidate_height,
         fullscreen: isFullScreen
       };
+      const ths = this;
+      if(this.element) {
+        this.element.removeEventListener('mousemove', (event) => ths.panListener);
+      }
       this.element = playerCandidateNode;
+      this.element.addEventListener('mousemove', (event) => ths.panListener);
     }
   }
 

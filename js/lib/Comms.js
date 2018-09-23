@@ -57,10 +57,14 @@ class CommsClient {
       return;
     }
 
+    if (message.cmd === 'get-current-zoom') {
+      this.pageInfo.requestCurrentZoom();
+    }
+
     if (message.cmd === "set-ar") {
       this.pageInfo.setAr(message.ratio);
-    } else if (message.cmd === 'set-video-float') {
-      this.settings.active.miscFullscreenSettings.videoFloat = message.newFloat;
+    } else if (message.cmd === 'set-alignment') {
+      this.pageInfo.setVideoFloat(message.mode);
       this.pageInfo.restoreAr();
     } else if (message.cmd === "set-stretch") {
       this.pageInfo.setStretchMode(StretchMode[message.mode]);
@@ -76,7 +80,9 @@ class CommsClient {
     } else if (message.cmd === "resume-processing") {
       // todo: autoArStatus
       this.pageInfo.resumeProcessing(message.autoArStatus);
-    } 
+    } else if (message.cmd === 'set-zoom') {
+      this.pageInfo.setZoom(message.zoom, true);
+    }
   }
 
   async sleep(n){
@@ -130,6 +136,10 @@ class CommsClient {
     this.port.postMessage({cmd: "has-video"});
   }
 
+  announceZoom(scale){
+    this.port.postMessage({cmd: "announce-zoom", zoom: scale});
+  }
+
   unregisterVideo(){
     this.port.postMessage({cmd: "noVideo"});  // ayymd
   }
@@ -153,8 +163,24 @@ class CommsServer {
     }
   }
 
-  async getCurrentTabUrl() {
+  async getCurrentTabHostname() {
+    const activeTab = await this._getActiveTab();
 
+    const url = activeTab[0].url;
+
+    var hostname;
+
+    if (url.indexOf("://") > -1) {    //find & remove protocol (http, ftp, etc.) and get hostname
+      hostname = url.split('/')[2];
+    }
+    else {
+      hostname = url.split('/')[0];
+    }
+    
+    hostname = hostname.split(':')[0];   //find & remove port number
+    hostname = hostname.split('?')[0];   //find & remove "?"
+
+    return hostname;
   }
 
   sendToAll(message){
@@ -170,7 +196,7 @@ class CommsServer {
       return await browser.tabs.query({currentWindow: true, active: true});
     } else {
       return await new Promise( (resolve, reject) => {
-        chrome.tabs.query({currentWindow: true, active: true}, function (res) {
+        chrome.tabs.query({lastFocusedWindow: true, active: true}, function (res) {
           resolve(res);
         });
       });
@@ -222,13 +248,24 @@ class CommsServer {
     });
   }
 
-  processReceivedMessage(message, port){
+  async processReceivedMessage(message, port){
     if (Debug.debug && Debug.comms) {
       console.log("[CommsServer.js::processMessage] Received message from background script!", message, "port", port, "\nsettings and server:", this.settings,this.server);
     }
 
-    if(message.cmd === 'get-current-site') {
-      port.postMessage({cmd: 'set-current-site', site: this.server.currentSite});
+    if (message.cmd === 'announce-zoom') {
+      // forward off to the popup, no use for this here
+      try {
+        this.popupPort.postMessage({cmd: 'set-current-zoom', zoom: message.zoom});
+      } catch (e) {
+        // can't forward stuff to popup if it isn't open
+      }
+    } else if (message.cmd === 'get-current-zoom') {
+      this.sendToActive(message);
+    }
+
+    if (message.cmd === 'get-current-site') {
+      port.postMessage({cmd: 'set-current-site', site: await this.getCurrentTabHostname()});
     }
 
     if (message.cmd === 'get-config') {
@@ -238,21 +275,16 @@ class CommsServer {
       port.postMessage({cmd: "set-config", conf: this.settings.active, site: this.server.currentSite})
     } else if (message.cmd === 'set-stretch') {
       this.sendToActive(message);
-    } else if (message.cmd === 'set-stretch-default') {
-      this.settings.active.stretch.initialMode = message.mode;
-      this.settings.save();
     } else if (message.cmd === 'set-ar') {
       this.sendToActive(message);
     } else if (message.cmd === 'set-custom-ar') {
       this.settings.active.keyboard.shortcuts.q.arg = message.ratio;
       this.settings.save();
-    } else if (message.cmd === 'set-video-float') {
+    } else if (message.cmd === 'set-alignment') {
       this.sendToActive(message);
-      this.settings.active.miscFullscreenSettings.videoFloat = message.newFloat;
-      this.settings.save();
     } else if (message.cmd === 'autoar-start') {
       this.sendToActive(message);
-    } else if (message.cmd === "autoar-disable") {  // LEGACY - can be removed prolly?
+    } else if (message.cmd === "autoar-disable") {  // LEGACY - can be removed prolly
       this.settings.active.arDetect.mode = "disabled";
       if(message.reason){
         this.settings.active.arDetect.disabledReason = message.reason;
@@ -260,47 +292,8 @@ class CommsServer {
         this.settings.active.arDetect.disabledReason = 'User disabled';
       }
       this.settings.save();
-    } else if (message.cmd === "autoar-set-interval") {
-      if(Debug.debug)
-        console.log("[uw-bg] trying to set new interval for autoAr. New interval is",message.timeout,"ms");
-
-      // set fairly liberal limit
-      var timeout = message.timeout < 4 ? 4 : message.timeout;
-      this.settings.active.arDetect.timer_playing = timeout;
-      this.settings.save();
-    } else if (message.cmd === "set-autoar-defaults") {
-      this.settings.active.arDetect.mode = message.mode;
-      this.settings.save();
-    } else if (message.cmd === "set-autoar-for-site") {
-      if (this.settings.active.sites[this.server.currentSite]) {
-        this.settings.active.sites[this.server.currentSite].arStatus = message.mode;
-        this.settings.save();
-      } else {
-        this.settings.active.sites[this.server.currentSite] = {
-          status: "default",
-          arStatus: message.mode,
-          statusEmbedded: "default"
-        };
-        this.settings.save();
-      }
-    } else if (message.cmd === "set-extension-defaults") {
-      this.settings.active.extensionMode = message.mode;
-      this.settings.save();
-    } else if (message.cmd === "set-extension-for-site") {
-      if (this.settings.active.sites[this.server.currentSite]) {
-        this.settings.active.sites[this.server.currentSite].status = message.mode;
-        this.settings.save();
-      } else {
-        this.settings.active.sites[this.server.currentSite] = {
-          status: message.mode,
-          arStatus: "default",
-          statusEmbedded: message.mode
-        };
-        this.settings.save();
-        if(Debug.debug) {
-          console.log("SAVING PER-SITE OPTIONS,", this.server.currentSite, this.settings.active.sites[this.server.currentSite])
-        }
-      }
+    } else if (message.cmd === 'set-zoom') {
+      this.sendToActive(message);
     }
   }
 
@@ -352,7 +345,7 @@ class CommsServer {
     }
 
     if(message.cmd === 'get-config') {
-      sendResponse({extensionConf: JSON.stringify(this.settings.active), site: getCurrentTabUrl()});
+      sendResponse({extensionConf: JSON.stringify(this.settings.active), site: this.getCurrentTabHostname()});
       // return true;
     } else if (message.cmd === "autoar-enable") {
       this.settings.active.arDetect.mode = "blacklist";

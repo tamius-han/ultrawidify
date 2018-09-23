@@ -3,14 +3,16 @@ _prod = true;
 // _prod = false; 
 
 Debug = {
-  debug: true,
+  init: true,
+  debug: false,
   keyboard: true,
   debugResizer: true,
   debugArDetect: true,
   debugStorage: false,
   comms: false,
   // showArDetectCanvas: true,
-  flushStoredSettings: false,
+  flushStoredSettings: true,
+  // flushStoredSettings: false,
   playerDetectDebug: true,
   periodic: true,
   videoRescan: true,

@@ -1,0 +1,59 @@
+html, body {
+  width: 780px !important;
+  max-width: 800px !important;
+  padding: 0px;
+  margin: 0px;
+}
+
+.header {
+  background-color: #7f1416;
+  color: #fff;
+  margin: 0px;
+  margin-top: 0px;
+  padding-top: 8px;
+  padding-left: 15px;
+  padding-bottom: 1px;
+  font-size: 2.7em;
+}
+
+.menu-item-inline-desc{
+  font-size: 0.60em;
+  font-weight: 300;
+  font-variant: normal;
+}
+
+.left-side {
+  display: inline-block;
+  width: 39%;
+  float: left;
+  font-size: 1.6em;
+}
+
+.right-side {
+  display: inline-block;
+  width: 60%;
+  float: right;
+}
+
+.menu-item {
+  padding-left: 15px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  font-variant: small-caps;
+}
+
+.suboption {
+  display: block;
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-top: 5px;
+  padding-bottom: 20px;
+  min-height: 250px;
+}
+
+
+#no-videos-display {
+  height: 100%;
+  padding-top: 50px;
+/*       text-align: center; */
+}

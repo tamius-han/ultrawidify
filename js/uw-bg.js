@@ -59,16 +59,16 @@ class UWServer {
       console.log("[uw-bg::onTabSwitched] TAB CHANGED, GETTING INFO FROM MAIN TAB");
 
     try {
-    var tabId = activeInfo.tabId;   // just for readability
+      var tabId = activeInfo.tabId;   // just for readability
 
-    var tab;
-    if (BrowserDetect.firefox) {
-      var tab = await browser.tabs.get(tabId);
-    } else if (BrowserDetect.chrome) {
-      var tab = await this._promisifyTabsGet(chrome, tabId);
-    }
+      var tab;
+      if (BrowserDetect.firefox) {
+        var tab = await browser.tabs.get(tabId);
+      } else if (BrowserDetect.chrome) {
+        var tab = await this._promisifyTabsGet(chrome, tabId);
+      }
 
-    this.currentSite = this.extractHostname(tab.url);
+      this.currentSite = this.extractHostname(tab.url);
     } catch(e) {
       console.log(e);
     }

@@ -32,6 +32,16 @@ class ObjectCopy {
         }
       }
     }
+
+    // add the values that would otherwise be deleted back to our object. (We need that so user-defined
+    // sites don't get forgotten)
+    for(var k in existing) {
+      if (! out[k]) {
+        out[k] = existing[k];
+      }
+    }
+
+    return out;
   }
 
   static pruneUnused(existing, target, ignoreKeys) {

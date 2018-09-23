@@ -5,137 +5,45 @@
     <meta charset="utf-8">
     <link rel='stylesheet' type='text/css' href='../css/font/overpass.css'>
     <link rel='stylesheet' type='text/css' href='../css/font/overpass-mono.css'>
-    <link rel='stylesheet' type='text/css' href='../css/uw-common.css'>
-    <style>
-    
-    html, body {
-      width: 780px !important;
-      max-width: 800px !important;
-      padding: 0px;
-      margin: 0px;
-/*       width: 100%; */
-      color: #f8f8f8;
-      background-color: #1f1f1f;
-      font-family: "overpass";
-      font-size: 1em;
-    }
-    strike {
-      opacity: 0.5;
-    }    
-
-
-    
-    .darker {
-      color: #666;
-    }
-    
-    .label{
-      font-size: 1.1em;
-      font-weight: 600;
-      color: #ffe;
-    }
-        
-    .selected{
-      color: #ffddaa;
-      background-color: #433221;
-    }
-    .disabled {
-      color: #666;
-    }
-    .disabled-button {
-      color: #666 !important;
-      cursor: not-allowed !important;     
-    }
-    .disabled-button:hover {
-      color: #777 !important;
-      background-color: #222 !important;
-    }
-    
-    .header {
-      background-color: #7f1416;
-      color: #fff;
-      margin: 0px;
-      margin-top: 0px;
-      padding-top: 8px;
-      padding-left: 15px;
-      padding-bottom: 1px;
-      font-size: 2.7em;
-    }
-    
-    .menu-item-inline-desc{
-      font-size: 0.60em;
-      font-weight: 300;
-      font-variant: normal;
-    }
-    
-    .left-side {
-      display: inline-block;
-      width: 39%;
-      float: left;
-      font-size: 1.6em;
-    }
-    
-    .right-side {
-      display: inline-block;
-      width: 60%;
-      float: right;
-    }
-    
-    .menu-item {
-      padding-left: 15px;
-      padding-top: 5px;
-      padding-bottom: 5px;
-      font-variant: small-caps;
-    }
-    
-    .suboption {
-      display: block;
-      padding-left: 15px;
-      padding-right: 15px;
-      padding-top: 5px;
-      padding-bottom: 20px;
-      min-height: 250px;
-    }
-    
-   
-    #no-videos-display {
-      height: 100%;
-      padding-top: 50px;
-/*       text-align: center; */
-    }
-
-    </style>
+    <link rel='stylesheet' type='text/css' href='../css/common.css'>
+    <link rel='stylesheet' type='text/css' href='./css/popup.css'>
   </head>
   <body>
     <div class="header">
       U<span class="smallcaps">ltrawidify</span>: <small>Quick settings</small>
     </div>
+
+
+
+    <!-- TABS/SIDEBAR -->
     <div class="left-side">
-      <div id="_menu_this_site" class="menu-item _menu_this_site">
-        Settings for this site
+
+      <div id="_menu_tab_settings_ext" class="menu-item _menu_tab_settings_ext">
+        Extension settings
       </div>
-      <div id="_menu_autoar" class="menu-item _menu_autoar"> 
-        Automatic aspect ratio detection (auto-ar)
+      <div id="_menu_tab_settings_site" class="menu-item _menu_tab_settings_site">
+        Site settings
+        <span class="menu-item-inline-desc"><br/>Settings for <span id="_menu_tab_settings_site_site_label"></span></span>
       </div>
-      <div id="_menu_aspectratio" class="menu-item selected _menu_aspectratio">
-        Crop settings
+      <div id="_menu_tab_settings_video" class="menu-item _menu_tab_settings_video">
+        Video settings
+        <span class="menu-item-inline-desc"><br/>Crop & stretch options for current video</span>
       </div>
-      <div id="_menu_stretch" class="menu-item _menu_stretch">
-        Stretch settings
-      </div>
-      <div id="_menu_csshacks" class="menu-item disabled hidden _menu_hacks">
-        CSS hacks for this site
-      </div>
-      <div id="_menu_about" class="menu-item _menu_about">
+      <div id="_menu_tab_about" class="menu-item _menu_tab_about">
         About Ultrawidify<span class="menu-item-inline-desc"><br/>See for bug reports</span>
       </div>
     </div>
+
+
+
+    <!-- PANELS/CONTENT -->
     <div class="right-side">
       <div id="script-not-running-warning" class="warning">If you see this line, then your browser didn't start the popup script yet. This is a problem caused by the browser. Please wait a few seconds.</div>
  
-      <div id="settings-for-current-site" class="suboption hidden">
-        <div class="warn">Some settings will only apply after reload. Settings don't apply to videos embedded from other sites.</div>
-        
+
+      <!-- EXTENSION SETTINGS -->
+      <div id="_menu_settings_ext" class="suboption hidden">
+        <p>These settings can be overriden on per-site basis.</p>
         <div class="row">
           <span class="label">Enable this extension:</span>
           <div class="button-row">
@@ -143,8 +51,44 @@
             <a id="_ext_global_options_whitelist" class="button _ext _ext_global_options _whitelist">On whitelisted sites</a>
             <a id="_ext_global_options_disabled"  class="button _ext _ext_global_options _disabled" >Never</a>
           </div>
-        </div>
 
+          <div id="_ext_only_when_ext_enabled">
+            <div class="row">
+              <span class="label">Enable autodetection:</span>
+              <div class="button-row">
+                <a id="_ar_global_options_blacklist" class="button _autoAr _ar_global_options _blacklist">Always</a>
+                <a id="_ar_global_options_whitelist" class="button _autoAr _ar_global_options _whitelist">On whitelisted sites</a>
+                <a id="_ar_global_options_disabled"  class="button _autoAr _ar_global_options _disabled" >Never</a>
+              </div>
+            </div>
+
+            <!-- TODO: default aspect ratio settings -->
+
+            <div class="row">
+              <span class="label experimental">Default stretching mode</span>
+              <div class="button-row">
+                <a id="_stretch_global_none"        class="button _stretch _ar_stretch_global _none w24">Never<br/><span id="_b_stretch_default_none_key" class="smallcaps small darker"></span></a>
+                <a id="_stretch_global_basic"       class="button _stretch _ar_stretch_global _basic w24">Basic<br/><span id="_b_stretch_default_basic_key" class="smallcaps small darker"></span></a>            
+                <a id="_stretch_global_hybrid"      class="button _stretch _ar_stretch_global _hybrid w24">Hybrid<br/><span id="_b_stretch_default_hybrid_key" class="smallcaps small darker"></span></a>
+                <a id="_stretch_global_conditional" class="button _stretch _ar_stretch_global _conditional w24">Thin borders<br/><span id="_b_stretch_default_conditional_key" class="smallcaps small darker"></span></a>
+              </div>
+            </div>
+
+            <!-- VIDEO ALIGNMENT -->
+            <div class="row">
+              <span class="label">Video alignment:</span>
+              <div class="button-row">
+                <a id="_align_ext_left"   class="button _align_ext _align_ext_left">Left</a>
+                <a id="_align_ext_center" class="button _align_ext _align_ext_center">Center</a>
+                <a id="_align_ext_right"  class="button _align_ext _align_ext_right">Right</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SITE SETTINGS -->
+      <div id="_menu_settings_site" class="suboption hidden">
         <div class="row">
           <span class="label">Options for this site:</span>
           <div class="button-row">
@@ -153,34 +97,50 @@
             <a id="_ext_site_options_blacklist" class="button _ext _ext_site_options _blacklist">Blacklist</a>
           </div>
         </div>
-      </div>
-      
-      <div id="autoar-basic-settings" class="suboption hidden">
+
+        <!-- things that are disabled if site is disabled -->
+        <div id="_site_only_when_site_enabled">
           <div class="row">
-            <span class="label">Enable autodetection:</span>
+            <span class="label">Automatic detection:</span>
             <div class="button-row">
-              <a id="_ar_global_options_blacklist" class="button _autoAr _ar_global_options _blacklist">Always</a>
-              <a id="_ar_global_options_whitelist" class="button _autoAr _ar_global_options _whitelist">On whitelisted sites</a>
-              <a id="_ar_global_options_disabled"  class="button _autoAr _ar_global_options _disabled" >Never</a>
+              <a id="_ar_site_options_enabled"  class="button _autoAr _ar_site_options _enabled" >Whitelist</a>
+              <a id="_ar_site_options_default"  class="button _autoAr _ar_site_options _default" >Default</a>
+              <a id="_ar_site_options_disabled" class="button _autoAr _ar_site_options _disabled">Blacklist</a>
             </div>
           </div>
-          <!-- <p><small class="color_warn" id="_autoAr_disabled_reason"></small><br/> -->
-
-        <p>Check every <input id="_input_autoAr_timer" class="_autoAr _autoAr_timer" type="number" min="5" max="10000"> ms — <span id="_b_autoar_save_autoar_timer" class="button _save_autoAr_timer _autoAr">Save</span></p>
         
-        <div class="row">
-          <span class="label">Options for this site:</span>
-          <div class="button-row">
-            <a id="_ar_site_options_enabled"  class="button _autoAr _ar_site_options _enabled" >Whitelist</a>
-            <a id="_ar_site_options_default"  class="button _autoAr _ar_site_options _default" >Default</a>
-            <a id="_ar_site_options_disabled" class="button _autoAr _ar_site_options _disabled">Blacklist</a>
+          <!-- TODO: default aspect ratio, default settings -->
+
+          <!-- STRETCH MODE -->
+          <div class="row">
+            <span class="label experimental">Default stretching mode</span>
+            <div class="button-row">
+              <a id="_stretch_site_none"        class="button _stretch _ar_stretch_site _none w24">Never<br/><span id="_b_stretch_default_none_key" class="smallcaps small darker"></span></a>
+              <a id="_stretch_site_basic"       class="button _stretch _ar_stretch_site _basic w24">Basic<br/><span id="_b_stretch_default_basic_key" class="smallcaps small darker"></span></a>            
+              <a id="_stretch_site_hybrid"      class="button _stretch _ar_stretch_site _hybrid w24">Hybrid<br/><span id="_b_stretch_default_hybrid_key" class="smallcaps small darker"></span></a>
+              <a id="_stretch_site_conditional" class="button _stretch _ar_stretch_site _conditional w24">Thin borders<br/><span id="_b_stretch_default_conditional_key" class="smallcaps small darker"></span></a>
+              <a id="_stretch_site_default"     class="button _stretch _ar_stretch_site _default w24">Default<br/><span id="_b_stretch_default_conditional_key" class="smallcaps small darker"></span></a>
+            </div>
+          </div>
+
+          <!-- VIDEO ALIGNMENT -->
+          <div class="row">
+            <span class="label">Video alignment:</span>
+            <div class="button-row">
+              <a id="_align_site_left"   class="button _align_site _align_site_left">Left</a>
+              <a id="_align_site_center" class="button _align_site _align_site_center">Center</a>
+              <a id="_align_site_right"  class="button _align_site _align_site_right">Right</a>
+              <a id="_align_site_default"class="button _align_site _align_site_default">Default</a>
+            </div>
           </div>
         </div>
       </div>
-      
-      <div id="aspect-ratio-settings" class="suboption hidden">
-        <div id="no-videos-warning"></div>
-        <!-- <div id="no-videos-warning" class="warning">No videos were detected on this page. The buttons may not work at all. Check that this site is not blacklisted and reload the page.</div> -->
+
+
+      <!-- VIDEO SETTINGS -->
+      <div id="_menu_settings_video" class="suboption">
+
+        <!-- CROP STUFF -->
         <div class="row">
           <span class="label">Cropping mode</span>
           <div class="button-row">
@@ -191,8 +151,14 @@
             <a class="button _changeAr _ar_169 w24">16:9<br/><span id="_b_changeAr_169_key" class="smallcaps small darker">&nbsp;</span></a>
             <a class="button _changeAr _ar_custom w24">Custom<br/><span id="_b_changeAr_custom_key" class="smallcaps small darker">&nbsp;</span></a>
           </div>
+          <div style="overflow: auto">
+            <div class="float-right medium-small">
+              <a id="_changeAr_b_show_customAr" class="_changeAr_show_customAr x-pad-1em">Set custom aspect ratio</a>
+              <a id="_changeAr_b_hide_customAr" class="_changeAr_hide_customAr hidden x-pad-1em">Hide custom aspect ratio settings</a>
+            </div>
+          </div>
         </div>
-        <div class="row">
+        <div id="_changeAr_customAr" class="row hidden">
           <span class="label">Custom aspect ratio</span>
           <div>
             <input id="_input_custom_ar" class="_changeAr _custom" onblur="validateCustomAr()"> &nbsp; &nbsp; <span id="_b_changeAr_save_custom_ar" class="button _ar_save_custom_ar _changeAr">Save</span>
@@ -203,43 +169,67 @@
               </ul></small>
           </div>
         </div>
+
+        <!-- ZOOM STUFF -->
+        <span class="label experimental">Manual zooming and panning</span>
         <div class="row">
-          <span class="label">Video alignment:</span>
-          <div class="button-row">
-            <a id="_align_left"   class="button _align _align_left">left</a>
-            <a id="_align_center" class="button _align _align_center">center</a>
-            <a id="_align_right"  class="button _align _align_right">right</a>
+          <!--
+            min, max and value need to be implemented in js as this slider 
+            should use logarithmic scale
+          -->
+          <input id="_input_zoom_slider" class="w100"
+                 type="range"
+                 step="any"
+                 />
+          <div style="overflow: auto">
+            <div class="inline-block float-left medium-small x-pad-1em">
+              Zoom: <span id="_label_zoom_level">100</span>%
+            </div>
+            <div class="inline-block float-right medium-small">
+              <a id="_zoom_b_show_shortcuts" class="_zoom_show_shortcuts x-pad-1em">show shortcuts</a>
+              <a id="_zoom_b_hide_shortcuts" class="_zoom_hide_shortcuts hidden x-pad-1em">hide shortcuts</a>
+              <a class="_zoom_reset x-pad-1em">reset</a>
+            </div> 
+          </div>
+          <!-- <div class="m-t-0-33em w100 display-block">
+            <input id="_input_zoom_site_allow_pan"
+                   type="checkbox" 
+                   />
+            Pan with mouse
+          </div> -->
+          <div id="_zoom_shortcuts" class="row hidden">
+            <small>Keyboard shortcuts:<ul>
+              <li>Z: zoom</li>
+              <li>U: unzoom</li>
+              <li>P: toggle pan</li>
+              <li>shift: hold to enable/prevent pan</li>
+            </ul></small>
           </div>
         </div>
-      </div>
-      
-      <div id="stretch-settings" class="suboption hidden">
-        <p class="warning">
-          <b>Video stretching options are currently experimental.</b> If you find any bugs, please consider reporting the problem. See 'About ultrawidify' tab for details.
-        </p>
-        
-        <span class="label">Default stretching mode<br><small>You may need to reload for this option to take effect. NOTE: Stretching is independent of crop mode. Crop gets applied before stretching.</small></span>
+
+        <!-- STRETCH STUFF -->
+        <span class="label experimental">Stretching mode</span>
         <div class="button-row">
-          <a id="_stretch_global_none"        class="button _stretch _ar_stretch_global _none w24">Never<br/><span id="_b_stretch_default_none_key" class="smallcaps small darker"></span></a>
-          <a id="_stretch_global_basic"       class="button _stretch _ar_stretch_global _basic w24">Basic<br/><span id="_b_stretch_default_basic_key" class="smallcaps small darker"></span></a>            
-          <a id="_stretch_global_hybrid"      class="button _stretch _ar_stretch_global _hybrid w24">Hybrid<br/><span id="_b_stretch_default_hybrid_key" class="smallcaps small darker"></span></a>
-          <a id="_stretch_global_conditional" class="button _stretch _ar_stretch_global _conditional w24">Thin borders<br/><span id="_b_stretch_default_conditional_key" class="smallcaps small darker"></span></a>
-        </div>
-        
-        <span class="label">Temporary stretching mode<br><small>Temporarily overrides default stretching mode.</small></span>
-        <div class="button-row">
-          <a class="button _stretch _ar_stretch_none w24">Never<br/><span id="_b_stretch_none_key" class="smallcaps small darker"></span></a>
+          <a class="button _stretch _ar_stretch_none w24">Normal<br/><span id="_b_stretch_none_key" class="smallcaps small darker"></span></a>
           <a class="button _stretch _ar_stretch_basic w24">Basic<br/><span id="_b_stretch_basic_key" class="smallcaps small darker"></span></a>            
           <a class="button _stretch _ar_stretch_hybrid w24">Hybrid<br/><span id="_b_stretch_hybrid_key" class="smallcaps small darker"></span></a>
           <a class="button _stretch _ar_stretch_conditional w24">Thin borders<br/><span id="_b_stretch_conditional_key" class="smallcaps small darker"></span></a>
         </div>
+
+        <!-- VIDEO ALIGNMENT -->
+        <div class="row">
+          <span class="label">Video alignment:</span>
+          <div class="button-row">
+            <a id="_align_video_left"   class="button _align _align_video_left">Left</a>
+            <a id="_align_video_center" class="button _align _align_video_center">Center</a>
+            <a id="_align_video_right"  class="button _align _align_video_right">Right</a>
+          </div>
+        </div>
       </div>
 
-      <div id="css-hacks-settings" class="suboption hidden">
-        <p>If zoomed in video doesn't align properly, try enabling or disabling certain CSS rules below:</p>
-      </div>
-      
-      <div id="panel-about" class="suboption hidden">
+    
+      <!-- ABOUTR -->
+      <div id="_menu_about" class="suboption hidden">
         <div class="row">
           <span class="label">Ultrawidify version:</span><br/> <span id="uw-version"></span>
         </div>

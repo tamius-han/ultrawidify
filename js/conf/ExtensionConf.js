@@ -96,8 +96,17 @@ var ExtensionConf = {
   arChange: {
     samenessTreshold: 0.025,  // if aspect ratios are within 2.5% within each other, don't resize
   },
+  zoom: {
+    minLogZoom: -1,
+    maxLogZoom: 3,
+    announceDebounce: 200     // we wait this long before announcing new zoom
+  },
   miscFullscreenSettings: {
-    videoFloat: "center"
+    videoFloat: "center",
+    mousePan: {
+      enabled: false
+    },
+    defaultAr: "original",
   },
   stretch: {
     initialMode: 0,                     // 0 - no stretch, 1 - basic, 2 - hybrid, 3 - conditional
@@ -163,6 +172,26 @@ var ExtensionConf = {
       "u": {
         action: "zoom",
         arg: -0.1
+      },
+      "p": {
+        action: "pan",
+        arg: 'toggle'   // possible: 'enable', 'disable', 'toggle'
+      },
+      "shiftKey_shift": {
+        action: "pan",
+        arg: 'toggle',
+        keyup: {        
+          action: 'pan',
+          arg: 'toggle'
+        }
+      },
+      "shift": {
+        action: "",
+        arg: "",
+        keyup: {
+          action: 'pan',
+          arg: 'toggle',
+        }
       }
       //#endregion
     },
@@ -178,6 +207,15 @@ var ExtensionConf = {
   //    status: <option>              // should extension work on this site?
   //    arStatus: <option>            // should we do autodetection on this site?
   //    statusEmbedded: <option>      // reserved for future... maybe
+  //    
+  //    defaultAar?: <ratio>          // automatically apply this aspect ratio on this side. Use extension defaults if undefined.
+  //    stretch? <stretch mode>       // automatically stretch video on this site in this manner
+  //    videoAlignment? <left|center|right>
+  //
+  //    type: <official|community|user>  // 'official' — blessed by Tam. 
+  //                                     // 'community' — blessed by reddit.
+  //                                     // 'user' — user-defined (not here)
+  //    override: <true|false>           // override user settings for this site on update
   // } 
   //  
   // Veljavne vrednosti za možnosti 
