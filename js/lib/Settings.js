@@ -18,7 +18,7 @@ class Settings {
           }
         }
         if(changes['uwSettings'] && changes['uwSettings'].newValue) {
-          ths.active = JSON.parse(changes.uwSettings.newValue);
+          ths.setActive(JSON.parse(changes.uwSettings.newValue));
         }
 
         if(this.updateCallback) {
@@ -38,7 +38,7 @@ class Settings {
           }
         }
         if(changes['uwSettings'] && changes['uwSettings'].newValue) {
-          ths.active = JSON.parse(changes.uwSettings.newValue);
+          ths.setActive(JSON.parse(changes.uwSettings.newValue));
         }
 
         if(this.updateCallback) {
@@ -155,6 +155,7 @@ class Settings {
     this.set(this.default);
   }
 
+
   // -----------------------------------------
   // Nastavitve za posamezno stran
   // Config for a given page:
@@ -173,7 +174,17 @@ class Settings {
   //    * enabled     — always allow
   //    * default     — allow if default is to allow, block if default is to block
   //    * disabled    — never allow
-  
+
+  getSiteSettings(site) {
+    if (!site) {
+      site = window.location.hostname;
+    }
+    if (!site || !this.active.sites[site]) {
+      return {};
+    }
+    return this.active.sites[site];
+  }
+
   canStartExtension(site) {
     // returns 'true' if extension can be started on a given site. Returns false if we shouldn't run.
     if (!site) {
@@ -193,12 +204,6 @@ class Settings {
       Debug.debug = false;
       const cse = this.canStartExtension(site);
       Debug.debug = true;
-
-      // console.log("[Settings::canStartExtension] ----------------\nCAN WE START THIS EXTENSION ON SITE", site,
-      //             "?\n\nsettings.active.sites[site]=", this.active.sites[site],
-      //             "\nExtension mode?", this.active.extensionMode,
-      //             "\nCan extension be started?", cse
-      //            );
     }
     try{
     // if site is not defined, we use default mode:
@@ -221,6 +226,13 @@ class Settings {
     }
   }
 
+  extensionEnabled(){
+    return this.active.extensionMode !== 'disabled'
+  }
+
+  extensionEnabledForSite(site) {
+    return this.canStartExtension(site);
+  }
 
   canStartAutoAr(site) {
     if (!site) {
@@ -258,5 +270,32 @@ class Settings {
     } else {
       return false;
     }
+  }
+
+  getDefaultAr(site) {
+    site = this.getSiteSettings(site);
+
+    if (site.defaultAr) {
+      return site.defaultAr;
+    }
+    return this.active.miscFullscreenSettings.defaultAr;
+  }
+
+  getDefaultStretchMode(site) {
+    site = this.getSiteSettings(site);
+
+    if (site.stretch) {
+      return site.stretch;
+    }
+    return this.active.stretch.initialMode;
+  }
+
+  getDefaultVideoAlignment(site) {
+    site = this.getSiteSettings(site);
+
+    if (site.videoAlignment) {
+      return site.videoAlignment;
+    }
+    return this.active.miscFullscreenSettings.videoFloat;
   }
 }

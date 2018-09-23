@@ -18,12 +18,15 @@ class PageInfo {
     }
 
     if(this.videos.length > 0){
+      console.log("registering video")
       comms.registerVideo();
     }
+
+    this.currentZoomScale = 1;
   }
 
   destroy() {
-    if(Debug.debug){
+    if(Debug.debug || Debug.init){
       console.log("[PageInfo::destroy] destroying all videos!")
     }
     if(this.rescanTimer){
@@ -90,7 +93,7 @@ class PageInfo {
         if(Debug.debug && Debug.periodic && Debug.videoRescan){
           console.log("[PageInfo::rescan] found new video candidate:", video)
         }
-        v = new VideoData(video, this.settings);
+        v = new VideoData(video, this.settings, this);
         // console.log("[PageInfo::rescan] v is:", v)
         // debugger;
         v.initArDetection();
@@ -117,7 +120,6 @@ class PageInfo {
   removeDestroyed(){
     this.videos = this.videos.filter( vid => vid.destroyed === false);
   }
-
 
   scheduleRescan(rescanReason){
     if(rescanReason != RescanReason.PERIODIC){
@@ -220,12 +222,31 @@ class PageInfo {
     if(ar !== 'auto') {
       this.stopArDetection();
     }
+
     // TODO: find a way to only change aspect ratio for one video
-    for(var vd of this.videos){
-      vd.setAr(ar)
+    if (ar === 'reset') {
+      for (var vd of this.videos) {
+        vd.resetAr();
+      }
+    } else {
+      for (var vd of this.videos) {
+        vd.setAr(ar)
+      }
     }
   }
   
+  setVideoFloat(videoFloat) {
+    for(var vd of this.videos) {
+      vd.setVideoFloat(videoFloat)
+    }
+  }
+
+  setPanMode(mode) {
+    for(var vd of this.videos) {
+      vd.setPanMode(mode);
+    }
+  }
+
   restoreAr() {
     for(var vd of this.videos){
       vd.restoreAr()
@@ -240,10 +261,29 @@ class PageInfo {
     }
   }
 
+  setZoom(zoomLevel, no_announce) {
+    for(var vd of this.videos) {
+      vd.setZoom(zoomLevel, no_announce);
+    }
+  }
+
   zoomStep(step){
     for(var vd of this.videos){
       vd.zoomStep(step);
     }
+  }
+
+  announceZoom(scale) {
+    if (this.announceZoomTimeout) {
+      clearTimeout(this.announceZoom);
+    }
+    this.currentZoomScale = scale;
+    const ths = this;
+    this.announceZoomTimeout = setTimeout(() => ths.comms.announceZoom(scale), this.settings.active.zoom.announceDebounce);
+  }
+
+  requestCurrentZoom() {
+    this.comms.announceZoom(this.currentZoomScale);
   }
 }
 
