@@ -2,6 +2,11 @@
 
 ## v3.x
 
+### v3.2.2
+
+* Pan event listener now gets properly unbound
+* Fixed 'reset zoom' button in popup
+
 ### v3.2.1
 
 * Fixed issue where global video alignment setting didn't get saved properly
