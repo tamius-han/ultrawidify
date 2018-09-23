@@ -2,6 +2,10 @@
 
 ## v3.x
 
+### v3.2.1
+
+* Fixed issue where global video alignment setting didn't get saved properly
+
 ### v3.2.0 
 
 * Zoom and panning

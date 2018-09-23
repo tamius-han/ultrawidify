@@ -716,6 +716,9 @@ document.addEventListener("click", (e) => {
       } else if (e.target.classList.contains("_align_ext_right")) {
         settings.active.miscFullscreenSettings.videoFloat = 'right';
       }
+
+      settings.save();
+      return;
     }
     if (e.target.classList.contains("_align_site")) {
       if (!site) {
