@@ -494,7 +494,9 @@ function validateAutoArTimeout(){
 }
 
 document.addEventListener("click", (e) => {
-  
+  if(Debug.debug) {
+    console.log("[popup.js] something clicked. event:", e, JSON.stringify(e));
+  }
   
   function getcmd(e){
     var command = {};
@@ -791,7 +793,12 @@ document.addEventListener("click", (e) => {
     //#endregion
   }
   
-  var command = getcmd(e);  
+  var command = getcmd(e);
+
+  if(Debug.debug) {
+    console.log("[popup.js] Got command (can be undefined):", command, JSON.stringify(command))
+  }
+
   if(command)
     port.postMessage(command);
   
