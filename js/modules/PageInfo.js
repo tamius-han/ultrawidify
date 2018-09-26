@@ -106,8 +106,6 @@ class PageInfo {
     }
 
     this.removeDestroyed();
-    
-    // console.log("Rescan complete. Total videos?", this.videos.length)
     }catch(e){
       console.log("rescan error:",e)
     }
