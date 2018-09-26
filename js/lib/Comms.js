@@ -24,7 +24,9 @@ class CommsClient {
   destroy() {
     this.pageInfo = null;
     this.settings = null;
-    this.port.onMessage.removeListener(this._listener);
+    if (!BrowserDetect.edge) { // edge is a very special browser made by outright morons.
+      this.port.onMessage.removeListener(this._listener);
+    }
   }
 
   setPageInfo(pageInfo){
@@ -37,7 +39,9 @@ class CommsClient {
 
     var ths = this;
     this._listener = m => ths.processReceivedMessage(m);
-    this.port.onMessage.removeListener(this._listener);
+    if (!BrowserDetect.edge) {
+      this.port.onMessage.removeListener(this._listener);
+    }
     this.port.onMessage.addListener(this._listener);
     
   }
