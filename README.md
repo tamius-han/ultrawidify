@@ -1,12 +1,16 @@
 ﻿# Ultrawidify — aspect ratio fixer for youtube and netflix
 
+## Super TL;DR: I'm just looking for the install links, thanks
+
+[Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/), [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi), [Edge](#edge-speficic-limitations-important).
+
 ## TL;DR
 
 If you own an ultrawide monitor, you have probably noticed that sometimes videos aren't encoded properly — they feature black bars on all four sides. This could happen because someone was incompetent (note: as far as youtube is concerned, improperly rendered videos might be due to youtube's implementation of certain new features). The extension kinda fixes that by doing this:
 
 ![Demo](img-demo/example-httyd2.png "Should these black bars be here? No [...] But an ultrawide user never forgets.")
 
-Available for [Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/), [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi) and Edge. If you want to use extension on Edge, [see notes first](#edge-speficic-limitations-important).
+
 
 ## Known issues
 
@@ -48,9 +52,15 @@ You can download this extension from Firefox' and Chrome's extension stores:
 * [Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
 * [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
 
-### Beggathon
+This extension also has a version for Microsoft Edge, but that requires a bit more effort. [See notes first](#edge-speficic-limitations-important).
 
-Working on this extension takes time, coffee and motivation. If you want to buy me a beer or something, you can [use this link to send me motivation](https://www.paypal.me/tamius). **Any donations are well appreciated.**
+# Beggathon (donations)
+
+If you want to support this project, please consider a donation. Working on this extension takes time, money, coffee and motivation. Sometimes also [a very precise amount of alco](https://xkcd.com/323/).
+
+You can make a donation [via Paypal](https://www.paypal.me/tamius).
+
+**Any donation — no matter how big or small — is well appreciated. Thanks.**
 
 &nbsp;
 
