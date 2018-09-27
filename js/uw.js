@@ -12,6 +12,9 @@ if(Debug.debug){
   }
 }
 
+if (BrowserDetect.edge) {
+  HTMLCollection.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator];
+}
 
 class UW {
   constructor(){
