@@ -245,7 +245,7 @@ However, I do plan on implementing this feature. Hopefully by the end of the yea
 
 # Edge-specific limitations (IMPORTANT!)
 
-For various reasons — most notably, I refuse to pay Microsoft €14 for the privilege of developing shit for their outright broken browser (and in addition to that, the extension needs to go through review process as well) — this extension isn't going to appear on Microsoft Store. (And I do not permit anyone else to do that in my name either). Full rant on that topic is [here](https://github.com/xternal7/ultrawidify/issues/14#issuecomment-424903335)
+For various reasons — most notably, I refuse to pay Microsoft €14 for the privilege of developing shit for their outright broken browser (and in addition to that, the extension needs to go through review process as well) — this extension isn't going to appear on Microsoft Store. (And I do not permit anyone else to do that in my name either). Full rant on why I've made this decision can be found [here](https://github.com/xternal7/ultrawidify/issues/14#issuecomment-424903335).
 
 As a result, you'll have to download the extension and install it manually. This approach has some downsides.
 
