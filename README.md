@@ -6,6 +6,8 @@ If you own an ultrawide monitor, you have probably noticed that sometimes videos
 
 ![Demo](img-demo/example-httyd2.png "Should these black bars be here? No [...] But an ultrawide user never forgets.")
 
+Available for [Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/), [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi) and Edge. If you want to use extension on Edge, [see notes first](#edge-speficic-limitations-important).
+
 ## Known issues
 
 * Netflix autodetection not working in Chrome, wontfix as issue is fundamentally unfixable.
@@ -17,7 +19,8 @@ If you own an ultrawide monitor, you have probably noticed that sometimes videos
 * Unclear how extension handles sites with more than one video per page.
 * Autodetection is only correct 95% of the time, most of the time.
 * That new stretching mode wasn't thoroughly tested yet. Issues may be present. (Same with zoom)
-* Enabling extension everywhere (as opposed to whitelisted sites) could break some websites. 
+* Enabling extension everywhere (as opposed to whitelisted sites) could break some websites.
+* Edge has 
 
 ### Features
 
@@ -211,6 +214,8 @@ is currently not possible. Settings page for this extension has been disabled so
 However, I do plan on implementing this feature. Hopefully by the end of the year, but given how consistently I've been breaking self-imposed deadlines and goals for this extension don't hold your breath. After all, [Hofstadter's a bitch](https://en.wikipedia.org/wiki/Hofstadter%27s_law).
 
 
+
+
 ## Plans for the future
 
 1. Handle porting of extension settings between versions. 
@@ -220,13 +225,14 @@ However, I do plan on implementing this feature. Hopefully by the end of the yea
 5. figure the best way to do GUI (injecting buttons into the player bar is not a good way. Been there, done that, each site has its own way and some appear to be impossible). ~~Might get bumped to be released alongside #2~~no it wont lol
 6. Improvements to automatic aspect ratio detection
 
+
 ## Installing
 
 ### Permanent install / stable
 
 [Latest stable for Firefox — download from AMO](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
 
-[Latest stafle for Chrome — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
+[Latest stable for Chrome — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
 
 ### Installing the current, github version
 
@@ -236,7 +242,27 @@ However, I do plan on implementing this feature. Hopefully by the end of the yea
 4. Add temporary addon
 5. Browse to wherever you saved it and select manifest.json
 
-## Changelog
+
+# Edge-specific limitations (IMPORTANT!)
+
+For various reasons — most notably, I refuse to pay Microsoft €14 for the privilege of developing shit for their outright broken browser (and in addition to that, the extension needs to go through review process as well) — this extension isn't going to appear on Microsoft Store. (And I do not permit anyone else to do that in my name either). Full rant on that topic is [here](https://github.com/xternal7/ultrawidify/issues/14#issuecomment-424903335)
+
+As a result, you'll have to download the extension and install it manually. This approach has some downsides.
+
+1. You'll get this popup after starting Edge. If you've already opened Youtube or Netflix, **you will have to reload the page (or navigate to somewhere else) in order for extension to start.**
+![slika](https://user-images.githubusercontent.com/12505802/46114175-05912200-c1e1-11e8-91c7-2217f5bf79e3.png)
+
+2. Certain WebExtension APIs that I rely on are outright broken in Edge. This bug would cause global extension settings (tab: Extension settings) and per-site settings (tab: Site settings) to reset to default values every time you'd open the popup. As a result, _Extension settings_ and _Site settings_ tabs are disabled in Edge:
+![Feast on dem popup](https://user-images.githubusercontent.com/12505802/46113923-d1693180-c1df-11e8-82f0-ad64cbc57558.png)
+Unfortunate consequence of this is that you won't be able to enable this extension for sites other than Youtube and Netflix, but then again. Let's be honest. You're only using Edge for Netflix, so that's probably no big deal for you.
+
+## Installing Ultrawidify in M$ Edge
+
+1. Download the zip file from [here](https://github.com/xternal7/ultrawidify/tree/master/releases/edge)
+2. Extract contents of the zip file in some folder. It really doesn't matter where, just keep it somewhere that won't be in your way when using your computer.
+3. Follow the steps in [this guide](https://docs.microsoft.com/en-us/microsoft-edge/extensions/guides/adding-and-removing-extensions)
+
+# Changelog
 
 see changelog.md
 
