@@ -103,8 +103,8 @@ class Settings {
   }
 
   async get() {
-    if (BrowserDetect.firefox || BrowserDetect.edge) {
-      const ret = this.useSync ? await browser.storage.sync.get('uwSettings') : await browser.storage.local.get('uwSettings');
+    if (BrowserDetect.firefox) {
+      const ret = await browser.storage.local.get('uwSettings');
       try {
         return JSON.parse(ret.uwSettings);
       } catch(e) {
@@ -113,6 +113,11 @@ class Settings {
     } else if (BrowserDetect.chrome) {
       const ret = new Promise( (resolve, reject) => {
         chrome.storage.sync.get('uwSettings', (res) => resolve(res));
+      });
+      return ret['uwSettings'];
+    } else if (BrowserDetect.edge) {
+      const ret = new Promise( (resolve, reject) => {
+        browser.storage.sync.get('uwSettings', (res) => resolve(res));
       });
       return ret['uwSettings'];
     }
