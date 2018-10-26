@@ -6,6 +6,13 @@ A quick list of videos where letterbox is encoded in the file.
 
 https://vimeo.com/channels/staffpicks/169599296
 
+## Reddit (v.reddit)
+
+https://redd.it/9rfg84
+
+## Streamable
+
+https://streamable.com/vrb4w
 
 ## Youtube
 
