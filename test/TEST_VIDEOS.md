@@ -23,6 +23,7 @@ https://www.youtube.com/watch?v=L_u97PqWX6g (also dark at the start)
 
 ### Dark or triggering minor AR corrections
 
+https://www.youtube.com/watch?v=Xr9Oubxw1gA (triggers autocorrection every now and then)
 https://www.youtube.com/watch?v=NaTGwlfRB_c (dark, triggers minor corrections)
 
 ### Watermark stopping AR
