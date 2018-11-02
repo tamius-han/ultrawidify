@@ -1,19 +1,13 @@
 if(Debug.debug)
   console.log("Loading: Resizer.js");
 
-var StretchMode = {
-  NO_STRETCH: 0,
-  BASIC: 1,
-  HYBRID: 2,
-  CONDITIONAL: 3
-}
-
-class Resizer {
+  class Resizer {
   
-  constructor(videoData){
+  constructor(videoData) {
     this.conf = videoData;
     this.video = videoData.video;
     this.settings = videoData.settings;
+    this.extensionMode = videoData.extensionMode;
 
     this.scaler = new Scaler(this.conf);
     this.stretcher = new Stretcher(this.conf); 
@@ -71,9 +65,9 @@ class Resizer {
     if (this.destroyed) {
       return;
     }
-    this.startCssWatcher();
-    this.cssWatcherIncreasedFrequencyCounter = 20;
-    
+  
+    console.log("ext mode?", this.extensionMode, "basic/full:", ExtensionMode.Basic, ExtensionMode.Full, "is fullscreen?", PlayerData.isFullScreen())
+
     if(Debug.debug){
       console.log('[Resizer::setAr] <rid:'+this.resizerId+'> trying to set ar. New ar:', ar)
     }
@@ -88,10 +82,19 @@ class Resizer {
       }
     }
 
+    if (this.extensionMode !== ExtensionMode.Full && !PlayerData.isFullScreen()) {
+      return; // don't actually apply or calculate css when using basic mode if not in fullscreen
+    }
+
     if (! this.video) {
       // console.log("No video detected.")
       this.videoData.destroy();
     }
+
+    if (this.extensionMode !== ExtensionMode.Full || PlayerData.isFullScreen()) {
+      this.startCssWatcher();
+    }
+    this.cssWatcherIncreasedFrequencyCounter = 20;
 
     // // pause AR on basic stretch, unpause when using other mdoes
     // fir sine reason unpause doesn't unpause. investigate that later
@@ -205,7 +208,7 @@ class Resizer {
   }
   
   scheduleCssWatcher(timeout, force_reset) {
-    if (this.destroyed) {
+    if (this.destroyed || (this.extensionMode !== ExtensionMode.Full && !PlayerData.isFullScreen())) {
       return;
     }
 

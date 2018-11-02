@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Ultrawidify",
-  "version": "3.2.2",
+  "version": "3.2.3-a1",
   "applications": {
     "gecko": {
       "id": "{cf02b1a7-a01a-4e37-a609-516a283f1ed3}"
@@ -19,6 +19,7 @@
     "matches": ["*://*/*"],
     "js": [ 
     "js/conf/Debug.js",
+    "js/lib/enums.js",
 
     "js/lib/BrowserDetect.js",
     "js/conf/ExtensionConf.js",    

@@ -8,12 +8,10 @@ class VideoData {
     this.pageInfo = pageInfo;
     this.extensionMode = pageInfo.extensionMode;
 
-    
+
     // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
     // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)    
-    if (pageInfo.extensionMode === ExtensionMode.Full) {
-      this.player = new PlayerData(this);
-    }
+    this.player = new PlayerData(this);
     this.resizer = new Resizer(this);
 
     this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
@@ -22,7 +20,7 @@ class VideoData {
     
     this.vdid = (Math.random()*100).toFixed();
     if (Debug.init) {
-      console.log("[VideoData::ctor] Created videoData with vdid", this.vdid);
+      console.log("[VideoData::ctor] Created videoData with vdid", this.vdid,"\nextension mode:", this.extensionMode);
     }
   }
 
