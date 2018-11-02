@@ -143,7 +143,7 @@ class PlayerData {
     if (this.checkFullscreenChange()) {
       if (PlayerData.isFullScreen()) {
         this.videoData.resizer.restore();
-        this.videoData.startArDetection();
+        this.videoData.rebootArDetection();
       } else {
         const lastAr = this.videoData.resizer.getLastAr();    // save last ar for restore later
         this.videoData.resizer.reset();
@@ -159,7 +159,6 @@ class PlayerData {
       this.ghettoWatcherFull();
       this.scheduleGhettoWatcher();
     } else if (this.extensionMode === ExtensionMode.Basic) {
-      console.log("ghetto watcher basic mode - triggered")
       this.ghettoWatcherBasic();
       this.scheduleGhettoWatcher();
     }
@@ -309,8 +308,6 @@ class PlayerData {
   checkFullscreenChange() {
     const isFs = PlayerData.isFullScreen();
 
-    console.log("isFs:", isFs)
-
     if (this.dimensions) {
       if (this.dimensions.fullscreen != isFs) {
         this.dimensions = {
@@ -324,7 +321,7 @@ class PlayerData {
     }
 
     if(Debug.debug) {
-      console.log("[PlayerData::checkFullscreenChange] this.dimensions is not defined.")
+      console.log("[PlayerData::checkFullscreenChange] this.dimensions is not defined. Assuming fs change happened and setting default values.")
     }
 
     this.dimensions = {
