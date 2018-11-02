@@ -56,6 +56,13 @@ class VideoData {
     this.arDetector.start();
   }
 
+  rebootArDetection() {
+    if(this.destroyed) {
+      throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
+    }
+    this.arDetector.init();
+  }
+
   stopArDetection() {
     if (this.arDetector) {
       this.arDetector.stop();
