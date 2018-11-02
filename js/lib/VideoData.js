@@ -5,15 +5,21 @@ class VideoData {
     this.video = video;
     this.destroyed = false;
     this.settings = settings;
+    this.pageInfo = pageInfo;
+    this.extensionMode = pageInfo.extensionMode;
+
+    
     // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
     // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)    
-    this.player = new PlayerData(this);
+    if (pageInfo.extensionMode === ExtensionMode.Full) {
+      this.player = new PlayerData(this);
+    }
     this.resizer = new Resizer(this);
 
     this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
     // player dimensions need to be in:
     // this.player.dimensions
-    this.pageInfo = pageInfo;
+    
     this.vdid = (Math.random()*100).toFixed();
     if (Debug.init) {
       console.log("[VideoData::ctor] Created videoData with vdid", this.vdid);
@@ -101,7 +107,9 @@ class VideoData {
     this.paused = false;
     try {
       this.resizer.start();
-      this.player.start();
+      if (this.player) {
+        this.player.start();
+      }
     } catch (e) {
       if(Debug.debug){
         console.log("[VideoData.js::resume] cannot resume for reasons. Will destroy videoData. Error here:", e);
