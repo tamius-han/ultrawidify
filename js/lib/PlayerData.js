@@ -142,14 +142,19 @@ class PlayerData {
   ghettoWatcherBasic() {
     if (this.checkFullscreenChange()) {
       if (PlayerData.isFullScreen()) {
+        const lastAr = this.videoData.resizer.getLastAr();    // save last ar for restore later
+
         this.videoData.resizer.restore();
-        this.videoData.rebootArDetection();
+
+        if (lastAr.type === 'original' || lastAr.type === 'auto') {
+          this.videoData.rebootArDetection();
+        }
       } else {
         const lastAr = this.videoData.resizer.getLastAr();    // save last ar for restore later
         this.videoData.resizer.reset();
         this.videoData.resizer.stop();
-        this.videoData.resizer.setLastAr(lastAr);
         this.videoData.stopArDetection();
+        this.videoData.resizer.setLastAr(lastAr);
       }
     }
   }
