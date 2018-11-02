@@ -33,11 +33,13 @@ class PlayerData {
     this.videoData = videoData;
     this.video = videoData.video;
     this.settings = videoData.settings;
+    this.extensionMode = videoData.extensionMode;
     this.element = undefined;
     this.dimensions = undefined;
 
-
-    this.getPlayerDimensions();
+    if (this.extensionMode === ExtensionMode.Full) {
+      this.getPlayerDimensions();
+    }
     this.startChangeDetection();
   }
 
@@ -102,8 +104,7 @@ class PlayerData {
     );
   }
 
-
-  ghettoWatcher(){
+  ghettoWatcherFull() {
     if(this.checkPlayerSizeChange()){
       if(Debug.debug){
         console.log("[uw::ghettoOnChange] change detected");
@@ -111,13 +112,10 @@ class PlayerData {
 
       this.getPlayerDimensions();
       if(! this.element ){
-        this.scheduleGhettoWatcher();
         return;
       }
 
       this.videoData.resizer.restore(); // note: this returns true if change goes through, false otherwise.
-      
-      this.scheduleGhettoWatcher();
       return;
     }
 
@@ -134,17 +132,44 @@ class PlayerData {
       this.getPlayerDimensions();
 
       if(! this.element ){
-        this.scheduleGhettoWatcher();
         return;
       }
 
       this.videoData.resizer.restore();
     }
+  }
 
-    this.scheduleGhettoWatcher();
+  ghettoWatcherBasic() {
+    if (this.checkFullscreenChange()) {
+      if (PlayerData.isFullScreen()) {
+        this.videoData.resizer.restore();
+        this.videoData.startArDetection();
+      } else {
+        const lastAr = this.videoData.resizer.getLastAr();    // save last ar for restore later
+        this.videoData.resizer.reset();
+        this.videoData.resizer.stop();
+        this.videoData.resizer.setLastAr(lastAr);
+        this.videoData.stopArDetection();
+      }
+    }
+  }
+
+  ghettoWatcher(){
+    if (this.extensionMode === ExtensionMode.Full) {
+      this.ghettoWatcherFull();
+      this.scheduleGhettoWatcher();
+    } else if (this.extensionMode === ExtensionMode.Basic) {
+      console.log("ghetto watcher basic mode - triggered")
+      this.ghettoWatcherBasic();
+      this.scheduleGhettoWatcher();
+    }
+
   }
 
   panHandler(event) {
+    if (this.extensionMode !== ExtensionMode.Full) {
+      return;
+    }
     this.videoData.panHandler(event);    
   }
 
@@ -279,6 +304,36 @@ class PlayerData {
     }
 
     return false;
+  }
+
+  checkFullscreenChange() {
+    const isFs = PlayerData.isFullScreen();
+
+    console.log("isFs:", isFs)
+
+    if (this.dimensions) {
+      if (this.dimensions.fullscreen != isFs) {
+        this.dimensions = {
+          fullscreen: isFs,
+          width: screen.width,
+          height: screen.height
+        };
+        return true;
+      }
+      return false;
+    }
+
+    if(Debug.debug) {
+      console.log("[PlayerData::checkFullscreenChange] this.dimensions is not defined.")
+    }
+
+    this.dimensions = {
+      fullscreen: isFs,
+      width: screen.width,
+      height: screen.height
+    };
+
+    return true;
   }
 }
 

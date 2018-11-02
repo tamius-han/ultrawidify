@@ -51,7 +51,11 @@ class UW {
     // če smo razširitev onemogočili v nastavitvah, ne naredimo ničesar
     // If extension is soft-disabled, don't do shit
 
-    extensionMode = this.settings.getExtensionMode();
+    var extensionMode = this.settings.getExtensionMode();
+
+    if(Debug.debug) {
+      console.log("[uw::init] Extension mode:" + (extensionMode < 0 ? "disabled" : extensionMode == '1' ? 'basic' : 'full'));
+    }
 
     if(extensionMode === ExtensionMode.Disabled){
       if(Debug.debug) {
@@ -61,7 +65,7 @@ class UW {
     }
   
     try {
-      this.pageInfo = new PageInfo(this.comms, this.settings);
+      this.pageInfo = new PageInfo(this.comms, this.settings, extensionMode);
       if(Debug.debug){
         console.log("[uw.js::setup] pageInfo initialized. Here's the object:", this.pageInfo);
       }
