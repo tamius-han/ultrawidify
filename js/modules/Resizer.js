@@ -66,8 +66,6 @@ if(Debug.debug)
       return;
     }
   
-    console.log("ext mode?", this.extensionMode, "basic/full:", ExtensionMode.Basic, ExtensionMode.Full, "is fullscreen?", PlayerData.isFullScreen())
-
     if(Debug.debug){
       console.log('[Resizer::setAr] <rid:'+this.resizerId+'> trying to set ar. New ar:', ar)
     }
@@ -82,8 +80,10 @@ if(Debug.debug)
       }
     }
 
-    if (this.extensionMode !== ExtensionMode.Full && !PlayerData.isFullScreen()) {
-      return; // don't actually apply or calculate css when using basic mode if not in fullscreen
+    if (this.extensionMode !== ExtensionMode.Full && !PlayerData.isFullScreen() && ar !== 'reset') {
+      // don't actually apply or calculate css when using basic mode if not in fullscreen
+      //  ... unless we're resetting the aspect ratio to original
+      return; 
     }
 
     if (! this.video) {
