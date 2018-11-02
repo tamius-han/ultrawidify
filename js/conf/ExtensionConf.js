@@ -2,6 +2,7 @@ if(Debug.debug)
   console.log("Loading: ExtensionConf.js");
 
 var ExtensionConf = {
+  basicExtensionMode: "blacklist",
   extensionMode: "whitelist", // how should this extension work? 
                               //       'blacklist' - work everywhere except blacklist
                               //       'whitelist' - only work on whitelisted sites
@@ -223,7 +224,8 @@ var ExtensionConf = {
   //
   //     status, arStatus, statusEmbedded:
   //    
-  //    * enabled     — always allow
+  //    * enabled     — always allow, full
+  //    * basic       — allow, but only the basic version without playerData
   //    * default     — allow if default is to allow, block if default is to block
   //    * disabled    — never allow
   // 

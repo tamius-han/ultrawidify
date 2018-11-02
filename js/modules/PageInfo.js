@@ -2,13 +2,14 @@ if(Debug.debug)
   console.log("Loading: PageInfo.js");
 
 class PageInfo {
-  constructor(comms, settings){
+  constructor(comms, settings, extensionMode){
     this.hasVideos = false;
     this.siteDisabled = false;
     this.videos = [];
     this.settings = settings;
 
     this.lastUrl = window.location.href;
+    this.extensionMode = extensionMode;
 
     this.rescan(RescanReason.PERIODIC);
     this.scheduleUrlCheck();

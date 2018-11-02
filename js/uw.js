@@ -50,7 +50,10 @@ class UW {
   
     // če smo razširitev onemogočili v nastavitvah, ne naredimo ničesar
     // If extension is soft-disabled, don't do shit
-    if(! this.settings.canStartExtension()){
+
+    extensionMode = this.settings.getExtensionMode();
+
+    if(extensionMode === ExtensionMode.Disabled){
       if(Debug.debug) {
         console.log("[uw::init] EXTENSION DISABLED, THEREFORE WONT BE STARTED")
       }

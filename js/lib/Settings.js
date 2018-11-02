@@ -1,3 +1,13 @@
+var ExtensionMode = Object.freeze(
+  {
+    AutoDisabled: -2,
+    Disabled: -1,
+    Default: 0,
+    Basic: 1,
+    Full: 2
+  }
+);
+
 class Settings {
 
   constructor(activeSettings, updateCallback) {
@@ -177,6 +187,7 @@ class Settings {
   //     status, arStatus, statusEmbedded:
   //    
   //    * enabled     — always allow
+  //    * basic       — only allow fullscreen
   //    * default     — allow if default is to allow, block if default is to block
   //    * disabled    — never allow
 
@@ -188,6 +199,49 @@ class Settings {
       return {};
     }
     return this.active.sites[site];
+  }
+
+  getExtensionMode(site) {
+    if (!site) {
+      site = window.location.hostname;
+
+      if (!site) {
+        console.log("[Settings::canStartExtension] window.location.hostname is null or undefined:", window.location.hostname)
+        console.log("active settings:", this.active)
+        return ExtensionMode.Disabled;
+      }
+    }
+
+    try {
+      // if site-specific settings don't exist for the site, we use default mode:
+      if (! this.active.sites[site]) {
+        if (this.active.extensionMode === "blacklist") {
+          return ExtensionMode.Full;
+        } else {
+          return this.active.basicExtensionMode === "blacklist" ? ExtensionMode.Basic : ExtensionMode.Disabled;
+        }
+      }
+
+      if (this.active.sites[site].status === 'enabled') {
+        return ExtensionMode.Full;
+      } else if (this.active.sites[site].status === 'basic') {
+        return ExtensionMode.Basic;
+      } else if (this.active.sites[site].status === 'default') {
+        if (this.active.extensionMode === "blacklist") {
+          return ExtensionMode.Full;
+        } else {
+          return this.active.basicExtensionMode === "blacklist" ? ExtensionMode.Basic : ExtensionMode.Disabled;
+        }
+      } else {
+        return ExtensionMode.Disabled;
+      }
+  
+    } catch(e){
+      if(Debug.debug){
+        console.log("[Settings.js::canStartExtension] Something went wrong — are settings defined/has init() been called?\nSettings object:", this)
+      }
+      return ExtensionMode.Disabled;
+    }
   }
 
   canStartExtension(site) {
@@ -202,14 +256,14 @@ class Settings {
       }
     }
 
-    if (Debug.debug) {
-      // let's just temporarily disable debugging while recursively calling
-      // this function to get extension status on current site without duplo
-      // console logs (and without endless recursion)
-      Debug.debug = false;
-      const cse = this.canStartExtension(site);
-      Debug.debug = true;
-    }
+    // if (Debug.debug) {
+    //   // let's just temporarily disable debugging while recursively calling
+    //   // this function to get extension status on current site without duplo
+    //   // console logs (and without endless recursion)
+    //   Debug.debug = false;
+    //   const cse = this.canStartExtension(site);
+    //   Debug.debug = true;
+    // }
     try{
     // if site is not defined, we use default mode:
     if (! this.active.sites[site]) {

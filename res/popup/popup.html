@@ -45,7 +45,16 @@
       <div id="_menu_settings_ext" class="suboption hidden">
         <p>These settings can be overriden on per-site basis.</p>
         <div class="row">
-          <span class="label">Enable this extension:</span>
+          <span class="label">Enable this extension:<br/>
+            <small>By default, extension will only work on fullscreen videos.</small></span>
+          <div class="button-row">
+            <a id="_ext_global_options_blacklist" class="button _ext _ext_global_options_basic _blacklist">Always</a>
+            <a id="_ext_global_options_whitelist" class="button _ext _ext_global_options_basic _whitelist">On whitelisted sites</a>
+            <a id="_ext_global_options_disabled"  class="button _ext _ext_global_options_basic _disabled" >Never</a>
+          </div>
+
+          <span class="label">Enable advanced mode:<br/>
+            <small>In advanced mode, extension will also try to correct video aspect ratio when not in full screen. Useful for e.g. theater mode on youtube.</small></span>
           <div class="button-row">
             <a id="_ext_global_options_blacklist" class="button _ext _ext_global_options _blacklist">Always</a>
             <a id="_ext_global_options_whitelist" class="button _ext _ext_global_options _whitelist">On whitelisted sites</a>
