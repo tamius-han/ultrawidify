@@ -359,27 +359,35 @@ if(Debug.debug)
     }
 
     var styleArrayStr = this.video.getAttribute('style');
-    
+    var styleArrayObj = window.getComputedStyle(this.video);
+
+
     if (styleArrayStr) {
-      
       var styleArray = styleArrayStr.split(";");
       for(var i in styleArray){
         
         styleArray[i] = styleArray[i].trim();
         
-        if (styleArray[i].startsWith("transform:")){
+        // some sites do 'top: 50%; left: 50%; transform: <transform>' to center videos. 
+        // we dont wanna, because we already center videos on our own
+        if (styleArray[i].startsWith("transform:") ||
+            styleArray[i].startsWith("top:") ||
+            styleArray[i].startsWith("left:") ||
+            styleArray[i].startsWith("right:") ||
+            styleArray[i].startsWith("bottom") ){
           delete styleArray[i];
         }
       }
-    }
-    else{
+    }else {
       var styleArray = [];
     }
     
+
     // add remaining elements
     
     if(stretchFactors){
       styleArray.push(`transform: scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor}) translate(${translate.x}px, ${translate.y}px)`);
+      styleArray.push("top: 0px; left: 0px; bottom: 0px; right: 0px");
     }
 
     // build style string back
