@@ -12,6 +12,8 @@ class UWServer {
     this.hasVideos = false;
     this.currentSite = "";
     this.setup();
+
+    this.videoTabs = {};
   }
 
   async setup() {
@@ -19,7 +21,6 @@ class UWServer {
 
     await this.settings.init();
     this.comms = new CommsServer(this);
-
 
     var ths = this;
     if(BrowserDetect.firefox) {
@@ -79,6 +80,71 @@ class UWServer {
     //TODO: change extension icon based on whether there's any videos on current page
   }
 
+  registerVideo(sender) {
+    if (Debug.debug && Debug.comms) {
+      console.log("[UWServer::registerVideo] registering video.\nsender:", sender);
+    }
+
+    const tabHostname = this.extractHostname(sender.tab.url);
+    const frameHostname = this.extractHostname(sender.url);
+
+    // preveri za osirotele/zastarele vrednosti ter jih po potrebi izbriši
+    // check for orphaned/outdated values and remove them if neccessary
+    if (this.videoTabs[sender.tab.id]) {
+      if (this.videoTabs[sender.tab.id].host != tabHostname) {
+        delete this.videoTabs[sender.tab.id]
+      } else {
+        if(this.videoTabs[sender.tab.id].frames[sender.frameId]) {
+          if (this.videoTabs[sender.tab.id].frames[sender.frameId].host != frameHostname) {
+            delete this.videoTabs[sender.tab.id].frames[sender.frameId];
+          }
+        }
+      }
+    }
+
+    if (this.videoTabs[sender.tab.id]) {
+      if (this.videoTabs[sender.tab.id].frames[sender.frameId]) {
+        return; // existing value is fine, no need to act
+      } else {
+        this.videoTabs[sender.tab.id].frames[sender.frameId] = {
+          host: frameHostname,
+          url: sender.url
+        }
+      }
+    } else {
+      this.videoTabs[sender.tab.id] = {
+        host: tabHostname,
+        url: sender.tab.url,
+        frames: {}
+      };
+      this.videoTabs[sender.tab.id].frames[sender.frameId] = {
+        host: frameHostname,
+        url: sender.url
+      }
+    }
+
+    if (Debug.debug && Debug.comms) {
+      console.log("[UWServer::registerVideo] video registered. current videoTabs:", this.videoTabs);
+    }
+  }
+
+  unregisterVideo(sender) {
+    if (Debug.debug && Debug.comms) {
+      console.log("[UWServer::unregisterVideo] unregistering video.\nsender:", sender);
+    }
+    if (this.videoTabs[sender.tab.id]) {
+      if ( Object.keys(this.videoTabs[sender.tab.id].frames).length <= 1) {
+        delete this.videoTabs[sender.tab.id]
+      } else {
+        if(this.videoTabs[sender.tab.id].frames[sender.frameId]) {
+          delete this.videoTabs[sender.tab.id].frames[sender.frameId];
+        }
+      }
+    }
+    if (Debug.debug && Debug.comms) {
+      console.log("[UWServer::ungisterVideo] video unregistered. current videoTabs:", this.videoTabs);
+    }
+  }
 }
 
 var server = new UWServer();

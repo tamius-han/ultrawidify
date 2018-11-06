@@ -11,17 +11,12 @@ class PageInfo {
     this.lastUrl = window.location.href;
     this.extensionMode = extensionMode;
 
-    this.rescan(RescanReason.PERIODIC);
-    this.scheduleUrlCheck();
-
     if(comms){ 
       this.comms = comms;
     }
 
-    if(this.videos.length > 0){
-      console.log("registering video")
-      comms.registerVideo();
-    }
+    this.rescan(RescanReason.PERIODIC);
+    this.scheduleUrlCheck();
 
     this.currentZoomScale = 1;
   }
@@ -34,6 +29,7 @@ class PageInfo {
       clearTimeout(this.rescanTimer);
     }
     for (var video of this.videos) {
+      this.comms.unregister(video.id)
       video.destroy();
     }
   }
@@ -46,6 +42,8 @@ class PageInfo {
   }
 
   rescan(rescanReason){
+    const oldVideoCount = this.videos.length;
+
     try{
     var vids = document.getElementsByTagName('video');
 
@@ -92,7 +90,7 @@ class PageInfo {
         continue;
       } else {
         if(Debug.debug && Debug.periodic && Debug.videoRescan){
-          console.log("[PageInfo::rescan] found new video candidate:", video)
+          console.log("[PageInfo::rescan] found new video candidate:", video, "NOTE:: Video initialization starts here:\n--------------------------------\n")
         }
         v = new VideoData(video, this.settings, this);
         // console.log("[PageInfo::rescan] v is:", v)
@@ -101,12 +99,31 @@ class PageInfo {
         this.videos.push(v);
 
         if(Debug.debug && Debug.periodic && Debug.videoRescan){
-          console.log("[PageInfo::rescan] — videos[] is now this:", this.videos,"\n\n\n\n\n\n\n\n")
+          console.log("[PageInfo::rescan] END VIDEO INITIALIZATION\n\n\n-------------------------------------\nvideos[] is now this:", this.videos,"\n\n\n\n\n\n\n\n")
         }
       }
     }
 
     this.removeDestroyed();
+
+    // če smo ostali brez videev, potem odregistriraj stran. 
+    // če nismo ostali brez videev, potem registriraj stran.
+    //
+    // if we're left withotu videos on the current page, we unregister the page.
+    // if we have videos, we call register.
+    // if(Debug.debug) {
+    //   console.log("[PageInfo::rescan] Comms:", this.comms, "\nvideos.length:", this.videos.length, "\nold video count:", oldVideoCount)
+    // }
+    if (this.comms) {
+      if (this.videos.length != oldVideoCount) { // only if number of videos changed, tho
+        if (this.videos.length > 0) {
+          this.comms.registerVideo({host: window.location.host, location: window.location});
+        } else {
+          this.comms.unregisterVideo({host: window.location.host, location: window.location});
+        }
+      }
+    }
+
     }catch(e){
       console.log("rescan error:",e)
     }
