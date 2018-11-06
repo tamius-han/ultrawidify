@@ -137,16 +137,24 @@ class CommsClient {
   }
 
   registerVideo(){
+    if (Debug.debug && Debug.comms) {
+      console.log(`[CommsClient::registerVideo] <${this.commsId}>`, "Registering video for current page.");
+    }
     this.port.postMessage({cmd: "has-video"});
+  }
+
+  unregisterVideo(){
+    if (Debug.debug && Debug.comms) {
+      console.log(`[CommsClient::unregisterVideo] <${this.commsId}>`, "Unregistering video for current page.");
+    }
+    this.port.postMessage({cmd: "noVideo"});  // ayymd
   }
 
   announceZoom(scale){
     this.port.postMessage({cmd: "announce-zoom", zoom: scale});
+    this.registerVideo()
   }
 
-  unregisterVideo(){
-    this.port.postMessage({cmd: "noVideo"});  // ayymd
-  }
 }
 
 class CommsServer {
@@ -298,6 +306,10 @@ class CommsServer {
       this.settings.save();
     } else if (message.cmd === 'set-zoom') {
       this.sendToActive(message);
+    } else if (message.cmd === 'has-video') {
+      this.server.registerVideo(port.sender);
+    } else if (message.cmd === 'noVideo') {
+      this.server.unregisterVideo(port.sender);
     }
   }
 
