@@ -2,6 +2,11 @@
 
 ## v3.x
 
+### v3.3.0
+
+* Basic mode added
+* Per-video controls in popup
+
 ### v3.2.2
 
 * Pan event listener now gets properly unbound
