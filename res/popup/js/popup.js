@@ -3,104 +3,6 @@ if(Debug.debug)
 
 document.getElementById("uw-version").textContent = browser.runtime.getManifest().version;
 
-var Menu = {};
-// Menu.noVideo    = document.getElementById("no-videos-display");
-Menu.extensionSettings = document.getElementById('_menu_settings_ext');
-Menu.siteSettings      = document.getElementById('_menu_settings_site');
-Menu.videoSettings     = document.getElementById('_menu_settings_video');
-Menu.about             = document.getElementById('_menu_about')
-
-var MenuTab = {};
-MenuTab.extensionSettings = document.getElementById('_menu_tab_settings_ext');
-MenuTab.siteSettings      = document.getElementById('_menu_tab_settings_site');
-MenuTab.videoSettings     = document.getElementById('_menu_tab_settings_video');
-MenuTab.about             = document.getElementById('_menu_tab_about')
-
-//#region ExtPanel
-var ExtPanel = {};
-ExtPanel.extOptions = {};
-ExtPanel.extOptions.blacklist = document.getElementById("_ext_global_options_blacklist");
-ExtPanel.extOptions.whitelist = document.getElementById("_ext_global_options_whitelist");
-ExtPanel.extOptions.disabled  = document.getElementById("_ext_global_options_disabled");
-ExtPanel.arOptions = {};
-ExtPanel.arOptions.blacklist   = document.getElementById("_ar_global_options_blacklist");
-ExtPanel.arOptions.whitelist  = document.getElementById("_ar_global_options_whitelist");
-ExtPanel.arOptions.disabled    = document.getElementById("_ar_global_options_disabled");
-ExtPanel.alignment = {};
-ExtPanel.alignment.left       = document.getElementById("_align_ext_left");
-ExtPanel.alignment.center     = document.getElementById("_align_ext_center");
-ExtPanel.alignment.right      = document.getElementById("_align_ext_right");
-ExtPanel.stretch = {};
-ExtPanel.stretch['0']         = document.getElementById("_stretch_global_none");
-ExtPanel.stretch['1']         = document.getElementById("_stretch_global_basic");
-ExtPanel.stretch['2']         = document.getElementById("_stretch_global_hybrid");
-ExtPanel.stretch['3']         = document.getElementById("_stretch_global_conditional");
-//#endregion
-//#region SitePanel
-var SitePanel = {};
-SitePanel.extOptions = {};
-SitePanel.extOptions.enabled   = document.getElementById("_ext_site_options_whitelist");
-SitePanel.extOptions.default   = document.getElementById("_ext_site_options_default");
-SitePanel.extOptions.disabled  = document.getElementById("_ext_site_options_blacklist");
-SitePanel.arOptions = {};
-SitePanel.arOptions.disabled   = document.getElementById("_ar_site_options_disabled");
-SitePanel.arOptions.enabled    = document.getElementById("_ar_site_options_enabled");
-SitePanel.arOptions.default    = document.getElementById("_ar_site_options_default");
-SitePanel.alignment = {};
-SitePanel.alignment.left       = document.getElementById("_align_site_left");
-SitePanel.alignment.center     = document.getElementById("_align_site_center");
-SitePanel.alignment.right      = document.getElementById("_align_site_right");
-SitePanel.alignment.default    = document.getElementById("_align_site_default");
-SitePanel.stretch = {};
-SitePanel.stretch['-1']        = document.getElementById("_stretch_site_default")
-SitePanel.stretch['0']         = document.getElementById("_stretch_site_none")
-SitePanel.stretch['1']         = document.getElementById("_stretch_site_basic")
-SitePanel.stretch['2']         = document.getElementById("_stretch_site_hybrid")
-SitePanel.stretch['3']         = document.getElementById("_stretch_site_conditional")
-//#endregion
-//#region VideoPanel
-var VideoPanel = {};
-VideoPanel.alignment = {};
-VideoPanel.alignment.left   = document.getElementById("_align_video_left");
-VideoPanel.alignment.center = document.getElementById("_align_video_center");
-VideoPanel.alignment.right  = document.getElementById("_align_video_right");
-
-// labels on buttons
-VideoPanel.buttonLabels = {};
-VideoPanel.buttonLabels.crop = {};
-VideoPanel.buttonLabels.crop['auto-ar'] = document.getElementById("_b_changeAr_auto-ar_key");
-VideoPanel.buttonLabels.crop.reset      = document.getElementById("_b_changeAr_reset_key");
-VideoPanel.buttonLabels.crop['219']     = document.getElementById("_b_changeAr_219_key");
-VideoPanel.buttonLabels.crop['189']     = document.getElementById("_b_changeAr_189_key");
-VideoPanel.buttonLabels.crop['169']     = document.getElementById("_b_changeAr_169_key");
-VideoPanel.buttonLabels.crop.custom     = document.getElementById("_b_changeAr_custom_key");
-VideoPanel.buttonLabels.zoom = {};
-
-// buttons: for toggle, select
-VideoPanel.buttons = {};
-VideoPanel.buttons.zoom = {};
-VideoPanel.buttons.zoom.showShortcuts = document.getElementById("_zoom_b_show_shortcuts");
-VideoPanel.buttons.zoom.hideShortcuts = document.getElementById("_zoom_b_hide_shortcuts");
-VideoPanel.buttons.changeAr = {};
-VideoPanel.buttons.changeAr.showCustomAr = document.getElementById("_changeAr_b_show_customAr");
-VideoPanel.buttons.changeAr.hideCustomAr = document.getElementById("_changeAr_b_hide_customAr");
-
-// inputs (getting values)
-VideoPanel.inputs = {};
-VideoPanel.inputs.customCrop       = document.getElementById("_input_custom_ar");
-VideoPanel.inputs.zoomSlider       = document.getElementById("_input_zoom_slider");
-VideoPanel.inputs.allowPan         = document.getElementById("_input_zoom_site_allow_pan");
-
-// various labels
-VideoPanel.labels = {};
-VideoPanel.labels.zoomLevel        = document.getElementById("_label_zoom_level");
-
-// misc stuff
-VideoPanel.misc = {};
-VideoPanel.misc.zoomShortcuts      = document.getElementById("_zoom_shortcuts");
-VideoPanel.misc.customArChanger    = document.getElementById("_changeAr_customAr");
-
-//#endregion
 
 var selectedMenu = "";
 var hasVideos = false;
@@ -118,6 +20,7 @@ var site = undefined;
 var port = browser.runtime.connect({name: 'popup-port'});
 port.onMessage.addListener( (m,p) => processReceivedMessage(m,p));
 
+var _video_settings_tab_items = [];
 
 async function processReceivedMessage(message, port){
   if (Debug.debug) {
@@ -407,6 +310,45 @@ async function loadConfig(site){
 
   if (Debug.debug) {
     console.log("[popup.js::loadConfig] config loaded\n-----------------------\n\n");
+  }
+}
+
+function removeAll(itemArray) {
+  for(item of itemArray) {
+    item.remove();
+  }
+}
+
+function unselect(itemArray, extraClasses) {
+  for(item of itemArray) {
+    item.classList.remove('selected');
+    if (extraClasses) {
+      item.classList.remove(extraClasses);
+    }
+  }
+}
+
+function loadFrames(videoTab) {
+  console.log("LOADING FRAMES:", videoTab)
+  removeAll(_video_settings_tab_items);
+  _video_settings_tab_items = [];
+  
+  for (var frame in videoTab.frames) {
+    var newItem = TabItem.create(
+      `_vsi_${videoTab.id}-${videoTab.frames[frame].id}`,
+      videoTab.frames[frame].host,
+      videoTab.frames[frame].id != 0,
+      (click) => {
+        unselect(_video_settings_tab_items, 'tab-selected');
+        click.target.classList.add('selected');
+        click.target.classList.add('tab-selected');
+        loadConfig(videoTab.frames[frame].host);
+        console.log("click:", click, "target classlist", click.target.classList)
+        click.stopPropagation();
+      }
+    );
+    MenuTab.videoSettings_items.appendChild(newItem);
+    _video_settings_tab_items.push(newItem);
   }
 }
 

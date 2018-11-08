@@ -57,3 +57,21 @@ html, body {
   padding-top: 50px;
 /*       text-align: center; */
 }
+
+.tabitem-container {
+  padding-top: 0.5em;
+}
+
+.tabitem {
+  font-variant: normal;
+  font-size: 0.69em;
+  margin-left: 1em;
+}
+
+.tabitem-selected {
+  color: #fff !important;
+}
+.tabitem-selected::before {
+  content: "⦿";
+  padding-right: 0.5em;
+}
