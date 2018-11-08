@@ -30,6 +30,7 @@ async function processReceivedMessage(message, port){
   if(message.cmd === 'set-current-site'){
     if (site) {
       if (!site.host) {
+        // dunno why this fix is needed, but sometimes it is
         site.host = site.tabHostname;
       }
     }
