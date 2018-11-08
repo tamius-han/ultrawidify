@@ -108,17 +108,20 @@ class UWServer {
         return; // existing value is fine, no need to act
       } else {
         this.videoTabs[sender.tab.id].frames[sender.frameId] = {
+          id: sender.frameId,
           host: frameHostname,
           url: sender.url
         }
       }
     } else {
       this.videoTabs[sender.tab.id] = {
+        id: sender.tab.id,
         host: tabHostname,
         url: sender.tab.url,
         frames: {}
       };
       this.videoTabs[sender.tab.id].frames[sender.frameId] = {
+        id: sender.frameId,
         host: frameHostname,
         url: sender.url
       }
