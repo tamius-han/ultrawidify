@@ -129,7 +129,8 @@ async function processReceivedMessage(message, port){
       port.postMessage({cmd: 'get-current-zoom'});
     }
     site = message.site;
-    loadConfig(message.site);
+    loadConfig(message.site.host);
+    loadFrames(message.site);
   } else if (message.cmd === 'set-current-zoom') {
     setCurrentZoom(message.zoom);
   }
