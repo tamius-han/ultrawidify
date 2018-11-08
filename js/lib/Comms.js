@@ -277,7 +277,7 @@ class CommsServer {
     }
 
     if (message.cmd === 'get-current-site') {
-      port.postMessage({cmd: 'set-current-site', site: this.server.getVideoTab()});
+      port.postMessage({cmd: 'set-current-site', site: this.server.getVideoTab(), tabHostname: await this.getCurrentTabHostname()});
     }
 
     if (message.cmd === 'get-config') {

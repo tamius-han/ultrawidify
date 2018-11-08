@@ -29,7 +29,7 @@ class PageInfo {
       clearTimeout(this.rescanTimer);
     }
     for (var video of this.videos) {
-      this.comms.unregister(video.id)
+      this.comms.unregisterVideo(video.id)
       video.destroy();
     }
   }
