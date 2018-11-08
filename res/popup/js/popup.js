@@ -339,9 +339,9 @@ function loadFrames(videoTab) {
       videoTab.frames[frame].host,
       videoTab.frames[frame].id != 0,
       (click) => {
-        unselect(_video_settings_tab_items, 'tab-selected');
+        unselect(_video_settings_tab_items, 'tabitem-selected');
         click.target.classList.add('selected');
-        click.target.classList.add('tab-selected');
+        click.target.classList.add('tabitem-selected');
         loadConfig(videoTab.frames[frame].host);
         console.log("click:", click, "target classlist", click.target.classList)
         click.stopPropagation();
