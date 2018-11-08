@@ -14,6 +14,7 @@ class UWServer {
     this.setup();
 
     this.videoTabs = {};
+    this.currentTabId = 0;
   }
 
   async setup() {
@@ -60,13 +61,13 @@ class UWServer {
       console.log("[uw-bg::onTabSwitched] TAB CHANGED, GETTING INFO FROM MAIN TAB");
 
     try {
-      var tabId = activeInfo.tabId;   // just for readability
+      this.currentTabId = activeInfo.tabId;   // just for readability
 
       var tab;
       if (BrowserDetect.firefox) {
-        var tab = await browser.tabs.get(tabId);
+        var tab = await browser.tabs.get(this.currentTabId);
       } else if (BrowserDetect.chrome) {
-        var tab = await this._promisifyTabsGet(chrome, tabId);
+        var tab = await this._promisifyTabsGet(chrome, this.currentTabId);
       }
 
       this.currentSite = this.extractHostname(tab.url);
@@ -143,6 +144,21 @@ class UWServer {
     }
     if (Debug.debug && Debug.comms) {
       console.log("[UWServer::ungisterVideo] video unregistered. current videoTabs:", this.videoTabs);
+    }
+  }
+
+  getVideoTab() {
+    // friendly reminder: if current tab doesn't have a video, 
+    // there won't be anything in this.videoTabs[this.currentTabId]
+    if (this.videoTabs[this.currentTabId]) {
+      return this.videoTabs[this.currentTabId];
+    }
+
+    // return something more or less empty if this tab doesn't have 
+    // a video registered for it
+    return {
+      host: this.currentSite,
+      frames: []
     }
   }
 }
