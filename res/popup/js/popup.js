@@ -28,10 +28,16 @@ async function processReceivedMessage(message, port){
   }
 
   if(message.cmd === 'set-current-site'){
-    if (site !== message.site) {
+    if (site) {
+      if (!site.host) {
+        site.host = site.tabHostname;
+      }
+    }
+    if (!site || site.host !== message.site.host) {
       port.postMessage({cmd: 'get-current-zoom'});
     }
     site = message.site;
+    if(message.site.host)
     loadConfig(message.site.host);
     loadFrames(message.site);
   } else if (message.cmd === 'set-current-zoom') {
@@ -41,11 +47,11 @@ async function processReceivedMessage(message, port){
 
 async function updateConfig() {
   if (Debug.debug) {
-    console.log("[popup.js] settings changed. updating popup if site exists. Site:", site);
+    console.log("[popup.js] settings changed. updating popup if site exists. Site:", site.host);
   }
 
-  if (site) {
-    loadConfig(site);
+  if (site && site.host) {
+    loadConfig(site.host);
   }
 }
 
@@ -169,11 +175,11 @@ function configureSitesTab(site) {
   if (Debug.debug) {
     console.log("[popup.js] Configuring sites tab (SitePanel).",
     "\nsite:            ", site,
-    "\nextension mode:    ", settings.active.sites[site] ? settings.active.sites[site].status : 'no site-special settings for this site',
-    "\narDetect mode:   ", settings.active.sites[site] ? settings.active.sites[site].arStatus : 'no site-special settings for this site',
-    "\nvideo float mode:", settings.active.sites[site] ? settings.active.sites[site].videoFloat : 'no site-special settings for this site',
-    "\ndefault ar:      ", settings.active.sites[site] ? settings.active.sites[site].ar : 'no site-special settings for this site',
-    "\nstretch mode:    ", settings.active.sites[site] ? settings.active.sites[site].stretch : 'no site-special settings for this site',
+    "\nextension mode:    ", settings.active.sites[site.host] ? settings.active.sites[site.host].status : 'no site-special settings for this site',
+    "\narDetect mode:   ", settings.active.sites[site.host] ? settings.active.sites[site.host].arStatus : 'no site-special settings for this site',
+    "\nvideo float mode:", settings.active.sites[site.host] ? settings.active.sites[site.host].videoFloat : 'no site-special settings for this site',
+    "\ndefault ar:      ", settings.active.sites[site.host] ? settings.active.sites[site.host].ar : 'no site-special settings for this site',
+    "\nstretch mode:    ", settings.active.sites[site.host] ? settings.active.sites[site.host].stretch : 'no site-special settings for this site',
     "\n...")
   }
 
@@ -190,24 +196,24 @@ function configureSitesTab(site) {
     SitePanel.stretch[button].classList.remove("selected");
   }
 
-  if (settings.active.sites[site] && settings.active.sites[site]) {
+  if (settings.active.sites[site.host] && settings.active.sites[site.host]) {
     console.log("settings for", site, "exist!")
-    SitePanel.extOptions[settings.active.sites[site].status].classList.add("selected");
-    SitePanel.arOptions[settings.active.sites[site].arStatus].classList.add("selected");
+    SitePanel.extOptions[settings.active.sites[site.host].status].classList.add("selected");
+    SitePanel.arOptions[settings.active.sites[site.host].arStatus].classList.add("selected");
   } else {
     SitePanel.extOptions.default.classList.add("selected");
     SitePanel.arOptions.default.classList.add("selected");
   }
 
   // optional settings:
-  if (settings.active.sites[site] && settings.active.sites[site].videoAlignment) {
-    SitePanel.alignment[settings.active.sites[site].videoAlignment].classList.add("selected");
+  if (settings.active.sites[site.host] && settings.active.sites[site.host].videoAlignment) {
+    SitePanel.alignment[settings.active.sites[site.host].videoAlignment].classList.add("selected");
   } else {
     SitePanel.alignment.default.classList.add('selected');
   }
 
-  if(settings.active.sites[site] && settings.active.sites[site].stretch !== undefined) {  // can be 0
-    SitePanel.stretch[settings.active.sites[site].stretch].classList.add("selected");
+  if(settings.active.sites[site.host] && settings.active.sites[site.host].stretch !== undefined) {  // can be 0
+    SitePanel.stretch[settings.active.sites[site.host].stretch].classList.add("selected");
   } else {
     SitePanel.stretch['-1'].classList.add("selected");
   }
@@ -343,7 +349,6 @@ function loadFrames(videoTab) {
         click.target.classList.add('selected');
         click.target.classList.add('tabitem-selected');
         loadConfig(videoTab.frames[frame].host);
-        console.log("click:", click, "target classlist", click.target.classList)
         click.stopPropagation();
       }
     );
@@ -490,11 +495,11 @@ document.addEventListener("click", (e) => {
           mode = "default";
         }
         
-        if(settings.active.sites[site]) {
-          settings.active.sites[site].status = mode;
-          settings.active.sites[site].statusEmbedded = mode;
+        if(settings.active.sites[site.host]) {
+          settings.active.sites[site.host].status = mode;
+          settings.active.sites[site.host].statusEmbedded = mode;
         } else {
-          settings.active.sites[site] = {
+          settings.active.sites[site.host] = {
             status: mode,
             statusEmbedded: mode,
             arStatus: 'default',
@@ -578,15 +583,15 @@ document.addEventListener("click", (e) => {
       // stretch, site
       if (e.target.classList.contains("_ar_stretch_site")) {
         if (e.target.classList.contains("_none")) {
-          settings.active.sites[site].stretch = 0;
+          settings.active.sites[site.host].stretch = 0;
         } else if (e.target.classList.contains("_basic")) {
-          settings.active.sites[site].stretch = 1;
+          settings.active.sites[site.host].stretch = 1;
         } else if (e.target.classList.contains("_hybrid")) {
-          settings.active.sites[site].stretch = 2;
+          settings.active.sites[site.host].stretch = 2;
         } else if (e.target.classList.contains("_conditional")) {
-          settings.active.sites[site].stretch = 3;
+          settings.active.sites[site.host].stretch = 3;
         } else {
-          delete(settings.active.sites[site].stretch);
+          delete(settings.active.sites[site.host].stretch);
         }
         settings.save();
         return;
@@ -637,10 +642,10 @@ document.addEventListener("click", (e) => {
           mode = "default";
         }
 
-        if(settings.active.sites[site]) {
-          settings.active.sites[site].arStatus = mode;
+        if(settings.active.sites[site.host]) {
+          settings.active.sites[site.host].arStatus = mode;
         } else {
-          settings.active.sites[site] = {
+          settings.active.sites[site.host] = {
             status: settings.active.extensionMode,
             statusEmbedded: settings.active.extensionMode,
             arStatus: mode,
@@ -670,14 +675,14 @@ document.addEventListener("click", (e) => {
         return;
       }
       if (e.target.classList.contains("_align_site_left")) {
-        settings.active.sites[site].videoAlignment = 'left';
+        settings.active.sites[site.host].videoAlignment = 'left';
       } else if (e.target.classList.contains("_align_site_center")) {
-        settings.active.sites[site].videoAlignment = 'center';
+        settings.active.sites[site.host].videoAlignment = 'center';
       } else if (e.target.classList.contains("_align_site_right")) {
-        settings.active.sites[site].videoAlignment = 'right';
+        settings.active.sites[site.host].videoAlignment = 'right';
       } else {
         // default case — remove this object
-        delete(settings.active.sites[site].videoAlignment);
+        delete(settings.active.sites[site.host].videoAlignment);
       }
 
       settings.save();
