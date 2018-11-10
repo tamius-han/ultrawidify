@@ -344,7 +344,7 @@ function loadFrames(videoTab) {
     var newItem = TabItem.create(
       `_vsi_${videoTab.id}-${videoTab.frames[frame].id}`,
       videoTab.frames[frame].host,
-      videoTab.frames[frame].id != 0,
+      videoTab.frames[frame].url != videoTab.url,
       (click) => {
         unselect(_video_settings_tab_items, 'tabitem-selected');
         click.target.classList.add('selected');
