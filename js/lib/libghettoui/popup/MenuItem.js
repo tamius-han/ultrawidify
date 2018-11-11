@@ -7,24 +7,56 @@ class MenuItem extends BaseUi {
       additionalClasses
     );
     this.element.classList.add('menu-item');
-    this.element.subitemList = document.createElement('div');
+    this.subitemListElement = document.createElement('div');
+    this.element.appendChild(this.subitemListElement);
+    this.subitemList = [];
   }
 
-  insertSubitem(subitemElement) {
-    this.element.subitemList.appendChild(subitemElement);
+  insertSubitem(subitem) {
+    this.subitemList.push(subitem);
+    this.subitemListElement.appendChild(subitem.element);
   }
 
   removeSubitems() {
-    while (this.element.subitemList.firstChild) {
-      this.element.subitemList.removeChild(this.element.subitemList.firstChild);
+    while (this.subitemListElement.lastChild) {
+      this.subitemListElement.removeChild(this.subitemListElement.lastChild);
     }
+    this.subitemList = [];
+  }
+  
+  selectSubitem(subitemName) {
+    for(let item of this.subitemList) {
+      if (item.name === subitemName) {
+        item.select();
+      } else {
+        item.unselect();
+      }
+    }
+  }
+  selectFirstSubitem() {
+    for(let item of this.subitemList) {
+      item.unselect();
+    }
+
+    this.subitemList[0].select();
   }
 
   showSubitems() {
-    this.element.subitemList.classList.remove('hidden');
+    this.subitemListElement.classList.remove('hidden');
   }
 
   hideSubitems() {
-    this.element.subitemList.classList.add('hidden');
+    this.subitemListElement.classList.add('hidden');
   }
+
+  select() {
+    super.select();
+    this.showSubitems();
+  }
+  
+  unselect() {
+    super.unselect();
+    this.hideSubitems();
+  }
+
 }

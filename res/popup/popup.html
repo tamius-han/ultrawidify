@@ -16,32 +16,12 @@
 
 
     <!-- TABS/SIDEBAR -->
-    <div class="left-side">
-
-      <div id="_menu_tab_settings_ext" class="menu-item _menu_tab_settings_ext">
-        Extension settings
-      </div>
-      <div id="_menu_tab_settings_site" class="menu-item _menu_tab_settings_site">
-        Site settings
-        <span class="menu-item-inline-desc"><br/>Settings for <span id="_menu_tab_settings_site_site_label"></span></span>
-      </div>
-      <div id="_menu_tab_settings_video" class="menu-item _menu_tab_settings_video">
-        Video settings
-        <span class="menu-item-inline-desc"><br/>Crop & stretch options for current video</span>
-        <div id="_menu_tab_settings_video_items" class="tabitem-container">
-        </div>
-      </div>
-      <div id="_menu_tab_about" class="menu-item _menu_tab_about">
-        About Ultrawidify<span class="menu-item-inline-desc"><br/>See for bug reports</span>
-      </div>
+    <div id="tablist" class="left-side">
     </div>
 
-
-
     <!-- PANELS/CONTENT -->
-    <div class="right-side">
-      <div id="script-not-running-warning" class="warning">If you see this line, then your browser didn't start the popup script yet. This is a problem caused by the browser. Please wait a few seconds.</div>
- 
+    <div id="tab-content" class="right-side">
+      <!-- <div id="script-not-running-warning" class="warning">If you see this line, then your browser didn't start the popup script yet. This is a problem caused by the browser. Please wait a few seconds.</div> -->
 
       <!-- EXTENSION SETTINGS -->
       <div id="_menu_settings_ext" class="suboption hidden">
@@ -239,7 +219,7 @@
       </div>
 
     
-      <!-- ABOUTR -->
+      <!-- ABOUT -->
       <div id="_menu_about" class="suboption hidden">
         <div class="row">
           <span class="label">Ultrawidify version:</span><br/> <span id="uw-version"></span>
@@ -264,7 +244,11 @@
     <script src="../../js/lib/Settings.js"></script>
     
     <!-- ui libs -->
+    <script src="../../js/lib/libghettoui/BaseUi.js"></script>
+    <script src="../../js/lib/libghettoui/popup/MenuItem.js"></script>
     <script src="../../js/lib/libghettoui/popup/TabItem.js"></script>
+
+    
 
     <script src="./js/popupvars.js"></script>
     <script src="./js/popup.js"></script>

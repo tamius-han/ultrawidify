@@ -75,3 +75,8 @@ html, body {
   content: "⦿";
   padding-right: 0.5em;
 }
+
+.tabitem-iframe::after {
+  content: "</>";
+  padding-left: 0.33em;
+}

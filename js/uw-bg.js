@@ -15,6 +15,7 @@ class UWServer {
 
     this.videoTabs = {};
     this.currentTabId = 0;
+    this._gctimeout = undefined;
   }
 
   async setup() {
@@ -29,12 +30,34 @@ class UWServer {
     } else if (BrowserDetect.chrome) {
       chrome.tabs.onActivated.addListener(function(m) {ths.onTabSwitched(m)});
     }
+
+    console.log("will schedule gcframe")
+    this.scheduleGc();
   }
 
   async _promisifyTabsGet(browserObj, tabId){
     return new Promise( (resolve, reject) => {
       browserObj.tabs.get(tabId, (tab) => resolve(tab));
     });
+  }
+
+  scheduleGc(timeout) {
+    console.log("scheduling gcframe")
+    if (this._gctimeout) {
+      return;
+    }
+    if (!timeout) {
+      timeout = 0;
+    }
+
+    const ths = this;
+    setTimeout( () => {
+      clearTimeout(ths._gctimeout);
+      ths.gcFrames();
+
+
+      ths._gctimeoutgcTimeout = ths.scheduleGc(5000);
+    }, timeout);
   }
 
   extractHostname(url){
@@ -79,6 +102,25 @@ class UWServer {
       console.log("TAB SWITCHED!", this.currentSite)
     }
     //TODO: change extension icon based on whether there's any videos on current page
+  }
+
+  async gcFrames() {
+    // does "garbage collection" on frames
+    let frames;
+    
+    if (BrowserDetect.firefox) {
+      frames = await browser.webNavigation.getAllFrames({tabId: this.currentTabId});
+    } else if (BrowserDetect.chrome) {
+      frames = await new Promise( (resolve, reject) => {
+        chrome.webNavigation.getAllFrames({tabId: this.currentTabId}, (data) => resolve(data) );
+      });
+    }
+
+    for (let key in this.videoTabs[this.currentTabId].frames) {
+      if (! frames.find(x => x.frameId == key)) {
+        delete this.videoTabs[this.currentTabId].frames[key];
+      }
+    }
   }
 
   registerVideo(sender) {

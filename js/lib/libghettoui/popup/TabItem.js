@@ -1,14 +1,20 @@
-class TabItem {
-  static create(id, text, isIframe, onClick) {
-    var tabitem = document.createElement('div');
-    tabitem.classList.add('tabitem');
-    if (isIframe) {
-      tabitem.classList.add('tabitem-iframe');
-    }
-    tabitem.setAttribute('id', id);
-    tabitem.textContent = text;
-    tabitem.addEventListener('click', onClick);
+class TabItem extends BaseUi {
 
-    return tabitem;
+  constructor (id, name, label, isIframe, onClick, additionalClasses) {
+    super(id, label, onClick, additionalClasses);
+    this.element.classList.add('tabitem');
+    if (isIframe) {
+      this.element.classList.add('tabitem-iframe');
+    }
+    this.name = name;
+  }
+
+  select() {
+    super.select();
+    this.element.classList.add('tabitem-selected');
+  }
+  unselect() {
+    super.unselect();
+    this.element.classList.remove('tabitem-selected');
   }
 }
