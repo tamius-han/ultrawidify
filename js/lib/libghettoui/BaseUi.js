@@ -23,6 +23,12 @@ class BaseUi {
   show() {
     this.element.classList.remove('hidden');
   }
+  select() {
+    this.element.classList.add('selected');
+  }
+  unselect() {
+    this.element.classList.remove('selected');
+  }
   appendTo(element) {
     element.appendChild(this.element);
   }

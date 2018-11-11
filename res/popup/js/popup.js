@@ -5,6 +5,11 @@ document.getElementById("uw-version").textContent = browser.runtime.getManifest(
 
 
 var selectedMenu = "";
+var selectedSubitem = {
+  'siteSettings': undefined,
+  'videoSettings': undefined,
+}
+
 var hasVideos = false;
 
 var zoom_videoScale = 1;
@@ -21,6 +26,58 @@ var port = browser.runtime.connect({name: 'popup-port'});
 port.onMessage.addListener( (m,p) => processReceivedMessage(m,p));
 
 var _video_settings_tab_items = [];
+
+
+//#region build ui
+var tablist = {
+  'extensionSettings': new MenuItem('_menu_item_settings_ext', 'Extension settings', '', () => showMenu('extensionSettings')),
+  'siteSettings': new MenuItem('_menu_item_settings_site', 'Site settings', 'Settings for current site', () => showMenu('siteSettings')),
+  'videoSettings': new MenuItem('_menu_item_settings_video', 'Video settings', 'Crop & stretch options for videos on current page', () => showMenu('videoSettings')),
+  'about': new MenuItem('_menu_item_about', 'About Ultrawidify', '', () => showMenu('about'))
+};
+
+for (let t in tablist) {
+  tablist[t].appendTo(document.getElementById('tablist'));
+}
+
+
+
+
+function loadFrames(videoTab) {
+  tablist['siteSettings'].removeSubitems();
+  tablist['videoSettings'].removeSubitems();
+
+  for (var frame in videoTab.frames) {
+    const nid = `_vsi_${videoTab.id}-${videoTab.frames[frame].id}`;
+    var newItem = new TabItem(
+      undefined,
+      nid,
+      videoTab.frames[frame].host,
+      videoTab.frames[frame].url != videoTab.url,
+      (click) => {
+        tablist[selectedMenu].selectSubitem(nid);
+        selectedSubitem[selectedMenu] = nid;
+        // todo: set selected subitem
+      }
+    )
+    
+    tablist['siteSettings'].insertSubitem(newItem);
+    tablist['videoSettings'].insertSubitem(newItem);
+  }
+
+  if (! selectedSubitem.siteSettings) {
+    tablist['siteSettings'].selectFirstSubitem();
+  } else {
+    tablist['siteSettings'].selectSubitem(selectedSubitem.siteSettings)
+  }
+  if (! selectedSubitem.videoSettings) {
+    tablist['videoSettings'].selectFirstSubitem();
+  } else {
+    tablist['videoSettings'].selectSubitem(selectedSubitem.videoSettings);
+  }
+}
+
+//#endregion
 
 async function processReceivedMessage(message, port){
   if (Debug.debug) {
@@ -68,7 +125,7 @@ async function setCurrentZoom(scale) {
 }
 
 function hideWarning(warn){
-  document.getElementById(warn).classList.add("hidden");
+  // document.getElementById(warn).classList.add("hidden");
 }
 
 function stringToKeyCombo(key_in){
@@ -90,59 +147,30 @@ function stringToKeyCombo(key_in){
 }
 
 function configurePopupTabs(site) {
+  // todo: this can potentially be removed
+
   // Determine which tabs can we touch.
   // If extension is disabled, we can't touch 'site settings' and 'video settings'
   // If extension is enabled, but site is disabled, we can't touch 'video settings'
   var extensionEnabled = settings.extensionEnabled();
   var extensionEnabledForSite = settings.extensionEnabledForSite(site);
 
-  MenuTab.siteSettings.classList.add('disabled');
 
-  if (extensionEnabledForSite) {
-    MenuTab.videoSettings.classList.remove('disabled');
-  }
-  if (extensionEnabled) {
-    MenuTab.videoSettings.classList.remove('disabled');
-  }
-
-  // we assume that these two can be shown. If extension or site are disabled, we'll
-  // add 'disabled' class later down the line:
-  document.getElementById("_site_only_when_site_enabled").classList.remove("disabled");
-  document.getElementById("_ext_only_when_ext_enabled").classList.remove("disabled");
-
-  if (! extensionEnabledForSite) {
-    MenuTab.videoSettings.classList.add('disabled');
-
-    // also disable extra settings for site
-    document.getElementById("_site_only_when_site_enabled").classList.add("disabled");
-
-    if (! extensionEnabled) {
-      MenuTab.siteSettings.classList.add('disabled');
-      
-      // also disable extra settings for extension
-      document.getElementById("_ext_only_when_ext_enabled").classList.add("disabled");
-      if (!selectedMenu) {
-        openMenu('extensionSettings');
-      }
-    } else {
-      MenuTab.siteSettings.classList.remove('disabled');
-      if (!selectedMenu) {
-        openMenu('siteSettings');
-      }
-    }
+  if (extensionEnabledForSite || extensionEnabled) {
+    tablist['videoSettings'].enable();
   } else {
-    MenuTab.videoSettings.classList.remove('disabled');
-    MenuTab.siteSettings.classList.remove('disabled');
+    tablist['videoSettings'].disable();
+  }
 
-    // if popup isn't being opened for the first time, there's no reason to switch
-    // we're already in this tab
-    if (!selectedMenu) {
-      openMenu('videoSettings');
-    }
+  // if popup isn't being opened for the first time, there's no reason to switch
+  // we're already in this tab
+  if (!selectedMenu) {
+    showMenu('videoSettings');
   }
 }
 
 function configureGlobalTab() {
+  return; // todo: revisit
   if (Debug.debug) {
     console.log("[popup.js] Configuring global tab (ExtPanel).",
     "\nextension mode:  ", settings.active.extensionMode,
@@ -173,6 +201,7 @@ function configureGlobalTab() {
 }
 
 function configureSitesTab(site) {
+  return; // todo: revisit
   if (Debug.debug) {
     console.log("[popup.js] Configuring sites tab (SitePanel).",
     "\nsite:            ", site,
@@ -307,9 +336,6 @@ async function loadConfig(site){
     console.log("\n\n-------------------------------------\n[popup.js::loadConfig] loading config. conf object:", settings.active);
   }
 
-  document.getElementById("_menu_tab_settings_site_site_label").textContent = site;
-
-
   configurePopupTabs(site);
   configureGlobalTab();
   configureSitesTab(site);
@@ -335,35 +361,18 @@ function unselect(itemArray, extraClasses) {
   }
 }
 
-function loadFrames(videoTab) {
-  console.log("LOADING FRAMES:", videoTab)
-  removeAll(_video_settings_tab_items);
-  _video_settings_tab_items = [];
-  
-  for (var frame in videoTab.frames) {
-    var newItem = TabItem.create(
-      `_vsi_${videoTab.id}-${videoTab.frames[frame].id}`,
-      videoTab.frames[frame].host,
-      videoTab.frames[frame].url != videoTab.url,
-      (click) => {
-        unselect(_video_settings_tab_items, 'tabitem-selected');
-        click.target.classList.add('selected');
-        click.target.classList.add('tabitem-selected');
-        loadConfig(videoTab.frames[frame].host);
-        click.stopPropagation();
-      }
-    );
-    MenuTab.videoSettings_items.appendChild(newItem);
-    _video_settings_tab_items.push(newItem);
-  }
-}
+
 
 async function getSite(){
   if (Debug.debug) {
     console.log("[popup.js] requesting current site");
   }
   
-  port.postMessage({cmd: 'get-current-site'});
+  try {
+    port.postMessage({cmd: 'get-current-site'});
+  } catch (e) {
+    console.log("[popup::getSite] sending get-current-site failed for some reason. Reason:", e)
+  }
 }
 
 function openMenu(menu){
@@ -385,6 +394,23 @@ function openMenu(menu){
 
   selectedMenu = menu;
 
+}
+
+function showMenu(tab) {
+  if (!tablist) {
+    // todo: fix & remove this
+    return;
+  }
+  for (const i in tablist) {
+    tablist[i].unselect();
+    tablist[i].hideSubitems();
+  }
+  tablist[tab].select();
+  tablist[tab].showSubitems();
+
+  // todo: display the correct tab 
+
+  selectedMenu = tab;
 }
 
 
@@ -455,25 +481,25 @@ document.addEventListener("click", (e) => {
     if(e.target.classList.contains("disabled"))
       return;
     
-    if(e.target.classList.contains("menu-item")){
+    // if(e.target.classList.contains("menu-item")){
 
-      if(Debug.debug) {
-        console.log("[popup.js::eventListener] clicked on a tab. Class list:", e.target.classList);
-      }
+    //   if(Debug.debug) {
+    //     console.log("[popup.js::eventListener] clicked on a tab. Class list:", e.target.classList);
+    //   }
 
-      if(e.target.classList.contains("_menu_tab_settings_ext")){
-        openMenu("extensionSettings");
-      } else if(e.target.classList.contains("_menu_tab_settings_site")){
-        openMenu("siteSettings");
-      } else if(e.target.classList.contains("_menu_tab_settings_video")){
-        openMenu("videoSettings");
-      } else if(e.target.classList.contains("_menu_tab_about")){
-        openMenu("about");
-      }
+    //   if(e.target.classList.contains("_menu_tab_settings_ext")){
+    //     openMenu("extensionSettings");
+    //   } else if(e.target.classList.contains("_menu_tab_settings_site")){
+    //     openMenu("siteSettings");
+    //   } else if(e.target.classList.contains("_menu_tab_settings_video")){
+    //     openMenu("videoSettings");
+    //   } else if(e.target.classList.contains("_menu_tab_about")){
+    //     openMenu("about");
+    //   }
       
-      // don't send commands
-      return;
-    }
+    //   // don't send commands
+    //   return;
+    // }
     if(e.target.classList.contains("_ext")) {
       var command = {};
       if(e.target.classList.contains("_ext_global_options")){
