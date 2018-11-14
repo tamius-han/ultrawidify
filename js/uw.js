@@ -21,7 +21,7 @@ class UW {
     this.pageInfo = undefined;
     this.comms = undefined;
     this.settings = undefined;
-    this.keybinds = undefined;
+    this.actionHandler = undefined;
   }
 
   async init(){
@@ -71,8 +71,12 @@ class UW {
       }
       this.comms.setPageInfo(this.pageInfo);
   
-      this.keybinds = new Keybinds(this.pageInfo);
-      this.keybinds.setup();
+      if(Debug.debug) {
+        console.log("[uw.js::setup] will try to initate ActionHandler. Settings are:", this.settings, this.settings.active)
+      }
+
+      this.actionHandler = new ActionHandler(this.pageInfo);
+      this.actionHandler.init();
       
     } catch (e) {
       console.log("[uw::init] FAILED TO START EXTENSION. Error:", e);

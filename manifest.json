@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Ultrawidify",
-  "version": "3.3.0-a1",
+  "version": "3.3.0-a2",
   "applications": {
     "gecko": {
       "id": "{cf02b1a7-a01a-4e37-a609-516a283f1ed3}"
@@ -45,7 +45,7 @@
     "js/lib/PlayerData.js", 
     "js/lib/VideoData.js",
 
-    "js/conf/Keybinds.js",
+    "js/modules/ActionHandler.js",
     
     "js/uw.js" ], 
     "all_frames": true
@@ -63,7 +63,7 @@
     "js/lib/ObjectCopy.js",
     "js/lib/Settings.js",
     
-    "js/conf/Keybinds.js",
+    "js/modules/ActionHandler.js",
     
     "js/uw-bg.js"
     ]

@@ -237,6 +237,12 @@ class PageInfo {
   setAr(ar){
     if(ar !== 'auto') {
       this.stopArDetection();
+    } else {
+      for (var vd of this.videos) {
+        vd.resetLastAr();
+      }
+      this.startArDetection();
+      return;
     }
 
     // TODO: find a way to only change aspect ratio for one video
