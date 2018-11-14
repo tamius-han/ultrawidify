@@ -4,8 +4,11 @@
 
 ### v3.3.0
 
+This will probably get promoted to 4.0, continuing the trend of version something.3 not happening. Eulul
+
 * Basic mode added
-* Per-video controls in popup
+* Per-site controls in popup (to control embedded videos)
+* Rewrote keyboard shortcuts and changed how they're handled. Massively.
 
 ### v3.2.2
 
