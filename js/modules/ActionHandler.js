@@ -34,25 +34,26 @@ class ActionHandler {
     }
 
     for (var action of actions) {
-      if (action.onKeyDown) {
+      var shortcut = action.shortcut[0];
+      if (shortcut.onKeyDown) {
         this.keyDownActions.push(action);
       }
-      if (action.onKeyUp) {
+      if (shortcut.onKeyUp) {
         this.keyUpActions.push(action);
       }
-      if (action.onScrollUp) {
+      if (shortcut.onScrollUp) {
         this.mouseScrollUpActions.push(action);
       }
-      if (action.onScrollDown) {
+      if (shortcut.onScrollDown) {
         this.mouseScrollDownActions.push(action);
       }
-      if (action.onMouseEnter) {
+      if (shortcut.onMouseEnter) {
         this.mouseEnterActions.push(action);
       }
-      if (action.onMouseLeave) {
+      if (shortcut.onMouseLeave) {
         this.mouseLeaveActions.push(action);
       }
-      if (action.onMouseMove) {
+      if (shortcut.onMouseMove) {
         this.mouseMoveActions.push(action);
       }
     }
@@ -69,7 +70,7 @@ class ActionHandler {
       
       console.log("[ActionHandler::preventAction] Testing whether we're in a textbox or something. Detailed rundown of conditions:\n" +
       "is full screen? (yes->allow):", PlayerData.isFullScreen(),
-      "\nis tag one of defined inputs? (no->prevent):", this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1,
+      "\nis tag one of defined inputs? (yes->prevent):", this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1,
       "\nis role = textbox? (yes -> prevent):", activeElement.getAttribute("role") === "textbox",
       "\nis type === 'text'? (yes -> prevent):", activeElement.getAttribute("type") === "text",
       "\nwill the action be prevented? (yes -> prevent)", this.preventAction(),
@@ -108,7 +109,7 @@ class ActionHandler {
 
   execAction(actions, event, shortcutIndex) {
     if(Debug.debug  && Debug.keyboard ){
-      console.log("%c[ActionHandler::execAction] Trying to find and execute action for event.: ", "color: #ff0");
+      console.log("%c[ActionHandler::execAction] Trying to find and execute action for event. Actions/event: ", "color: #ff0", actions, event);
     }
 
     if (!shortcutIndex) {
@@ -123,10 +124,8 @@ class ActionHandler {
 
         for (var cmd of action.cmd) {
           if (cmd.action === "crop") {
-            this.pageInfo.stopArDetection();
             this.pageInfo.setAr(cmd.arg);
           } else if (cmd.action === "zoom") {
-            this.pageInfo.stopArDetection();
             this.pageInfo.zoomStep(cmd.arg);
           } else if (cmd.action === "stretch") {
             this.pageInfo.setStretchMode(cmd.arg);
@@ -145,14 +144,26 @@ class ActionHandler {
 
   handleKeyup(event) {
     if(Debug.debug  && Debug.keyboard ){
-      console.log("%c[ActionHandler::handleKeyup] we pressed a key: ", "color: #ff0", event.key , " | keydown: ", event.keydown, "event:", event);
+      console.log("%c[ActionHandler::handleKeyup] we pressed a key: ", "color: #ff0", event.key , " | keydown: ", event.keyup, "event:", event);
     }
 
     if (this.preventAction()) {
       return;
     }
 
+    this.execAction(this.keyUpActions, event, 0);
+  }
 
+  handleKeydown(event) {
+    if(Debug.debug  && Debug.keyboard ){
+      console.log("%c[ActionHandler::handleKeydown] we pressed a key: ", "color: #ff0", event.key , " | keydown: ", event.keydown, "event:", event);
+    }
+
+    if (this.preventAction()) {
+      return;
+    }
+
+    this.execAction(this.keyDownActions, event, 0);
   }
 
 }
