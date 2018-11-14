@@ -130,74 +130,206 @@ var ExtensionConf = {
     //     criticalFail: "background: #fa2; color: #000"
   },
   keyboard: {
-    shortcuts: {
-      // automatic
-      "a": {
-        action: "auto-ar",
-      },
-      //#region crop
-      "r": {
-        action: "crop",
-        arg: "reset"
-      },
-      "w": {
-        action: "crop",
-        arg: "fitw"
-      },
-      "e": {
-        action: "crop",
-        arg: "fith"
-      },
-      "s": {
-        action: "crop",
-        arg: 1.78 
-      },
-      "d": {
-        action: "crop",
-        arg: 2.39
-      },
-      "x": {
-        action: "crop",
-        arg: 2.0
-      },
-      "q": {
-        action: "crop",
-        arg: 2.35
-      },
-      //#endregion
-      //#region zoom
-      "z": {
-        action: "zoom",
-        arg: 0.1
-      },
-      "u": {
-        action: "zoom",
-        arg: -0.1
-      },
-      "p": {
-        action: "pan",
-        arg: 'toggle'   // possible: 'enable', 'disable', 'toggle'
-      },
-      "shiftKey_shift": {
-        action: "pan",
-        arg: 'toggle',
-        keyup: {        
-          action: 'pan',
-          arg: 'toggle'
-        }
-      },
-      "shift": {
-        action: "",
-        arg: "",
-        keyup: {
-          action: 'pan',
-          arg: 'toggle',
-        }
-      }
-      //#endregion
-    },
-    modKeys: ["ctrlKey", "shiftKey", "altKey"]
   },
+  // -----------------------------------------
+  //             ::: ACTIONS :::
+  // -----------------------------------------
+  // Nastavitve za ukaze. Zamenja stare nastavitve za bližnične tipke.
+  // 
+  // Polje 'shortcut' je tabela, če se slučajno lotimo kdaj delati choordov. 
+  actions: [{
+    cmd: [{
+      action: 'crop',
+      arg: 'auto'
+    }],
+    shortcut: [{
+      key: 'a',
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false, 
+      shiftKey: false,
+      onKeyUp: true,
+      onKeyDown: false,
+    }],
+    popup: true,
+    ui: true,
+  },{
+    cmd: [{
+      action: 'crop',
+      arg: 'reset',
+    }],
+    shortcut: [{
+      key: 'r',
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false, 
+      shiftKey: false,
+      onKeyUp: true,
+      onKeyDown: false,
+    }],
+    popup: true,
+    ui: true,
+  },{
+    cmd: [{
+      action: 'crop',
+      arg: 'fitw',
+    }],
+    shortcut: [{
+      key: 'w',
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false, 
+      shiftKey: false,
+      onKeyUp: false,
+      onKeyDown: true,
+    }],
+    popup: true,
+    ui: true,
+  },{
+    cmd: [{
+      action: 'crop',
+      arg: 'fith',
+    }],
+    shortcut: [{
+      key: 'e',
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false, 
+      shiftKey: false,
+      onKeyUp: true,
+      onKeyDown: false,
+    }],
+    popup: true,
+    ui: true,
+  },{
+    cmd: [{
+      action: 'crop',
+      arg: 1.78,
+    }],
+    shortcut: [{
+      key: 's',
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false, 
+      shiftKey: false,
+      onKeyUp: false,
+      onKeyDown: true,
+    }],
+    popup: true,
+    ui: true,
+  },{
+    cmd: [{
+      action: 'crop',
+      arg: 2.39,
+    }],
+    shortcut: [{
+      key: 'd',
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false, 
+      shiftKey: false,
+      onKeyUp: false,
+      onKeyDown: true,
+    }],
+    popup: true,
+    ui: true,
+  },{
+    cmd: [{
+      action: 'crop',
+      arg: 2.35,
+    }],
+    shortcut: [{
+      key: 'q',
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false, 
+      shiftKey: false,
+      onKeyUp: false,
+      onKeyDown: true,
+    }],
+    popup: true,
+    ui: true,
+  },{
+    cmd: [{
+      action: 'crop',
+      arg: 2.0,
+    }],
+    shortcut: [{
+      key: 'x',
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false, 
+      shiftKey: false,
+      onKeyUp: true,
+      onKeyDown: false,
+    }],
+    popup: true,
+    ui: true,
+  },{
+    cmd: [{
+      action: 'zoom',
+      arg: 0.1
+    }],
+    shortcut: [{
+      key: 'z',
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false, 
+      shiftKey: false,
+      onKeyUp: true,
+      onKeyDown: false,
+    }],
+    popup: true,
+    ui: true,
+  },{
+    cmd: [{
+      action: 'zoom',
+      arg: -0.1
+    }],
+    shortcut: [{
+      key: 'u',
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false, 
+      shiftKey: false,
+      onKeyUp: true,
+      onKeyDown: false,
+    }],
+    popup: true,
+    ui: true,
+  },{
+    cmd: [{
+      action: 'toggle-pan',
+      arg: 'toggle'
+    }],
+    shortcut: [{
+      key: 'p',
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false, 
+      shiftKey: false,
+      onKeyUp: true,
+      onKeyDown: false,
+    }],
+    popup: true,
+    ui: true,
+  },{
+    cmd: [{
+      action: 'pan',
+      arg: 1,
+    }],
+    shortcut: [{
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false, 
+      shiftKey: true,
+      onKeyDown: false,
+      onKeyUp: false,
+      onMouseMove: true,
+    }],
+    popup: false,
+    ui: false,
+  }],
   // -----------------------------------------
   //       ::: SITE CONFIGURATION :::
   // -----------------------------------------
@@ -235,7 +367,8 @@ var ExtensionConf = {
       arStatus: "default",              // should we enable autodetection
       statusEmbedded: "enabled",        // should extension work for this site when embedded on other sites?
       override: false,                  // ignore value localStorage in favour of this
-      type: 'official'                  // is officially supported? (Alternatives are 'community' and 'user-defined')
+      type: 'official',                 // is officially supported? (Alternatives are 'community' and 'user-defined')
+      actions: null,                    // overrides global keyboard shortcuts and button configs. Is array, is optional.
     },
     "www.netflix.com" : {
       status: "enabled",
