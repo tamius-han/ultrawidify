@@ -309,8 +309,10 @@ if(Debug.debug)
       console.log("[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.settings.active.miscFullscreenSettings.videoFloat);
     }
 
-    var wdiff = this.conf.player.dimensions.width - this.conf.video.offsetWidth;
-    var hdiff = this.conf.player.dimensions.height - this.conf.video.offsetHeight;
+    const wdiff = this.conf.player.dimensions.width - this.conf.video.offsetWidth;
+    const hdiff = this.conf.player.dimensions.height - this.conf.video.offsetHeight;
+
+    const wdiffAfterzoom = this.conf.video.offsetWidth * stretchFactors.xFactor - this.conf.player.dimensions.width;
 
     var translate = {
       x: wdiff * 0.5,
@@ -326,10 +328,10 @@ if(Debug.debug)
       translate.y = hdiff * this.pan.relativeOffsetY / this.zoom.scale;
     } else {
       if (this.videoFloat == "left") {
-        translate.x = 0;
+        translate.x += wdiffAfterzoom * 0.5;
       }
       else if (this.videoFloat == "right") {
-        translate.x = wdiff;
+        translate.x -= wdiffAfterzoom * 0.5;
       }
     }
 
