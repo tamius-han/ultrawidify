@@ -309,13 +309,13 @@ if(Debug.debug)
       console.log("[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.settings.active.miscFullscreenSettings.videoFloat);
     }
 
-    var actualWidth = this.conf.video.offsetWidth * stretchFactors.xFactor;
-    var actualHeight = this.conf.video.offsetHeight * stretchFactors.yFactor;
+    var wdiff = this.conf.player.dimensions.width - this.conf.video.offsetWidth;
+    var hdiff = this.conf.player.dimensions.height - this.conf.video.offsetHeight;
 
-    var wdiff = actualWidth - this.conf.player.dimensions.width;
-    var hdiff = actualHeight - this.conf.player.dimensions.height;
-
-    var translate = {x: 0, y: 0};
+    var translate = {
+      x: wdiff * 0.5,
+      y: hdiff * 0.5,
+    };
 
     if (this.pan) {
       // don't offset when video is smaller than player
@@ -326,10 +326,10 @@ if(Debug.debug)
       translate.y = hdiff * this.pan.relativeOffsetY / this.zoom.scale;
     } else {
       if (this.videoFloat == "left") {
-        translate.x = wdiff * 0.5;
+        translate.x = 0;
       }
       else if (this.videoFloat == "right") {
-        translate.x = wdiff * -0.5;
+        translate.x = wdiff;
       }
     }
 
@@ -386,7 +386,7 @@ if(Debug.debug)
     // add remaining elements
     
     if(stretchFactors){
-      styleArray.push(`transform: scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor}) translate(${translate.x}px, ${translate.y}px)`);
+      styleArray.push(`transform: translate(${translate.x}px, ${translate.y}px) scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor})`);
       styleArray.push("top: 0px; left: 0px; bottom: 0px; right: 0px");
     }
 
