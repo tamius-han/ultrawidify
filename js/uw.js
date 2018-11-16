@@ -78,6 +78,10 @@ class UW {
       this.actionHandler = new ActionHandler(this.pageInfo);
       this.actionHandler.init();
       
+      if(Debug.debug) {
+        console.log("[uw.js::setup] ActionHandler initiated:", this.actionHandler);
+      }
+
     } catch (e) {
       console.log("[uw::init] FAILED TO START EXTENSION. Error:", e);
     }
