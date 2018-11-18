@@ -178,7 +178,53 @@ function basicCommandHandler(cmdArray) {
       arg: cmd.arg
     });
   }
+}
 
+function buildKeyboardShortcutString(keypress) {
+  var shortcutCombo = '';
+
+  if (keypress.ctrlKey) {
+    shortcutCombo += 'Ctrl + ';
+  }
+  if (keypress.shiftKey) {
+    shortcutCombo += 'Shift + ';
+  }
+  if (keypress.metaKey) {
+    shortcutCombo += 'Meta + ';
+  }
+  if (keypress.altKey) {
+    shortcutCombo += 'Alt + ';
+  }
+  shortcutCombo += keypress.key.toUpperCase();
+
+  return shortcutCombo;
+} 
+
+function processButtonsForPopupCategory(category, buttons) {
+  if (buttons.length === 0) {
+    category.container.hide();
+  } else {
+    category.buttonContainer.removeChildren();
+    category.container.show();
+    category.buttonContainer.show();
+
+    for (var button of buttons) {
+      var shortcutCombo = '';
+      if (button.shortcut && button.shortcut[0].key) {
+        shortcutCombo = buildKeyboardShortcutString(button.shortcut[0]);
+      }
+
+      const cmd = button.cmd;
+      var nb = new ShortcutButton(
+        '',
+        button.label,
+        shortcutCombo,
+        () => basicCommandHandler(cmd),
+        ['w24']
+      )
+      nb.appendTo(category.buttonContainer);
+    }
+  }
 }
 
 function configureGlobalTab() {
@@ -268,66 +314,9 @@ function configureVideoTab(site) {
   const stretchButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'stretch');
   const alignButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'align');
 
-  if (cropButtons.length === 0) {
-    VideoPanel.elements.cropSettings.container.hide();
-  } else {
-    VideoPanel.elements.cropSettings.buttonContainer.removeChildren();
-    VideoPanel.elements.cropSettings.container.show();
-    VideoPanel.elements.cropSettings.buttonContainer.show();
-
-    for (var button of cropButtons) {
-      const cmd = button.cmd;
-      var nb = new ShortcutButton(
-        '',
-        button.label,
-        (button.shortcut && button.shortcut[0].key ? button.shortcut[0].key.toUpperCase() : ''),
-        () => basicCommandHandler(cmd),
-        ['w24']
-      )
-      nb.appendTo(VideoPanel.elements.cropSettings.buttonContainer);
-    }
-  }
-
-  if (stretchButtons.length === 0) {
-    VideoPanel.elements.stretchSettings.container.hide();
-  } else {
-    VideoPanel.elements.stretchSettings.buttonContainer.removeChildren();
-    VideoPanel.elements.stretchSettings.container.show();
-    VideoPanel.elements.stretchSettings.buttonContainer.show();
-
-    for (var button of stretchButtons) {
-      const cmd = button.cmd;
-      var nb = new ShortcutButton(
-        '',
-        button.label,
-        button.shortcut && button.shortcut[0].key ? button.shortcut[0].key.toUpperCase() : '',
-        () => basicCommandHandler(cmd),
-        ['w24']
-      )
-      nb.appendTo(VideoPanel.elements.stretchSettings.buttonContainer);
-    }
-  }
-
-  if (alignButtons.length === 0) {
-    VideoPanel.elements.stretchSettings.container.hide();
-  } else {
-    VideoPanel.elements.alignmentSettings.buttonContainer.removeChildren();
-    VideoPanel.elements.alignmentSettings.container.show();
-    VideoPanel.elements.alignmentSettings.buttonContainer.show();
-
-    for (var button of alignButtons) {
-      const cmd = button.cmd;
-      var nb = new ShortcutButton(
-        '',
-        button.label,
-        button.shortcut && button.shortcut[0].key ? button.shortcut[0].key.toUpperCase() : '',
-        () => basicCommandHandler(cmd),
-        ['w24']
-      )
-      nb.appendTo(VideoPanel.elements.alignmentSettings.buttonContainer);
-    }
-  }
-
+  processButtonsForPopupCategory(VideoPanel.elements.cropSettings, cropButtons);
+  processButtonsForPopupCategory(VideoPanel.elements.stretchSettings, stretchButtons);
+  processButtonsForPopupCategory(VideoPanel.elements.alignmentSettings, alignButtons);
 
   // todo: get min, max from settings
   VideoPanel.inputs.zoomSlider.min = Math.log2(0.5);
