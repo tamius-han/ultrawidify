@@ -61,21 +61,19 @@ SitePanel.stretch['3']         = document.getElementById("_stretch_site_conditio
 
 //#region VideoPanel
 var VideoPanel = {};
-VideoPanel.alignment = {};
-VideoPanel.alignment.left   = document.getElementById("_align_video_left");
-VideoPanel.alignment.center = document.getElementById("_align_video_center");
-VideoPanel.alignment.right  = document.getElementById("_align_video_right");
-
-// labels on buttons
-VideoPanel.buttonLabels = {};
-VideoPanel.buttonLabels.crop = {};
-VideoPanel.buttonLabels.crop['auto-ar'] = document.getElementById("_b_changeAr_auto-ar_key");
-VideoPanel.buttonLabels.crop.reset      = document.getElementById("_b_changeAr_reset_key");
-VideoPanel.buttonLabels.crop['219']     = document.getElementById("_b_changeAr_219_key");
-VideoPanel.buttonLabels.crop['189']     = document.getElementById("_b_changeAr_189_key");
-VideoPanel.buttonLabels.crop['169']     = document.getElementById("_b_changeAr_169_key");
-VideoPanel.buttonLabels.crop.custom     = document.getElementById("_b_changeAr_custom_key");
-VideoPanel.buttonLabels.zoom = {};
+VideoPanel.elements = {};
+VideoPanel.elements.cropSettings = {
+  container: BaseElement.fromExisting(document.getElementById('_menu_settings_video_crop')),
+  buttonContainer: BaseElement.fromExisting(document.getElementById('_menu_settings_video_crop_buttons'))
+}
+VideoPanel.elements.stretchSettings = {
+  container: BaseElement.fromExisting(document.getElementById('_menu_settings_video_stretch')),
+  buttonContainer: BaseElement.fromExisting(document.getElementById('_menu_settings_video_stretch_buttons'))
+}
+VideoPanel.elements.alignmentSettings = {
+  container: BaseElement.fromExisting(document.getElementById('_menu_settings_video_alignment')),
+  buttonContainer: BaseElement.fromExisting(document.getElementById('_menu_settings_video_alignment_buttons'))
+}
 
 // buttons: for toggle, select
 VideoPanel.buttons = {};
@@ -88,7 +86,6 @@ VideoPanel.buttons.changeAr.hideCustomAr = document.getElementById("_changeAr_b_
 
 // inputs (getting values)
 VideoPanel.inputs = {};
-VideoPanel.inputs.customCrop       = document.getElementById("_input_custom_ar");
 VideoPanel.inputs.zoomSlider       = document.getElementById("_input_zoom_slider");
 VideoPanel.inputs.allowPan         = document.getElementById("_input_zoom_site_allow_pan");
 
@@ -99,5 +96,4 @@ VideoPanel.labels.zoomLevel        = document.getElementById("_label_zoom_level"
 // misc stuff
 VideoPanel.misc = {};
 VideoPanel.misc.zoomShortcuts      = document.getElementById("_zoom_shortcuts");
-VideoPanel.misc.customArChanger    = document.getElementById("_changeAr_customAr");
 //#endregion

@@ -66,7 +66,7 @@ class CommsClient {
     }
 
     if (message.cmd === "set-ar") {
-      this.pageInfo.setAr(message.ratio);
+      this.pageInfo.setAr(message.arg);
     } else if (message.cmd === 'set-alignment') {
       this.pageInfo.setVideoFloat(message.mode);
       this.pageInfo.restoreAr();
@@ -290,7 +290,7 @@ class CommsServer {
     } else if (message.cmd === 'set-ar') {
       this.sendToActive(message);
     } else if (message.cmd === 'set-custom-ar') {
-      this.settings.active.keyboard.shortcuts.q.arg = message.ratio;
+      this.settings.active.keyboard.shortcuts.q.arg = message.arg;
       this.settings.save();
     } else if (message.cmd === 'set-alignment') {
       this.sendToActive(message);

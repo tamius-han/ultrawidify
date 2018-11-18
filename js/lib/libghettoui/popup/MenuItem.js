@@ -1,4 +1,4 @@
-class MenuItem extends BaseUi {
+class MenuItem extends BaseElement {
   constructor(id, label, sublabel, onClick, additionalClasses) {
     super(
       id, 

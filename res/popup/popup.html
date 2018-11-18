@@ -132,34 +132,19 @@
       <div id="_menu_settings_video" class="suboption">
 
         <!-- CROP STUFF -->
-        <div class="row">
+        <div id="_menu_settings_video_crop" class="row">
           <span class="label">Cropping mode</span>
-          <div class="button-row">
-            <a class="button _changeAr _ar_auto w24">Auto-detect<br/><span id="_b_changeAr_auto-ar_key" class="smallcaps small darker"></span>&nbsp;</a>
-            <a class="button _changeAr _ar_reset w24">Reset<br/><span id="_b_changeAr_reset_key" class="smallcaps small darker">&nbsp;</span></a>
-            <a class="button _changeAr _ar_219 w24">21:9<br/><span id="_b_changeAr_219_key" class="smallcaps small darker">&nbsp;</span></a>
-            <a class="button _changeAr _ar_189 w24">2:1 (18:9)<br/><span id="_b_changeAr_189_key" class="smallcaps small darker">&nbsp;</span></a>
-            <a class="button _changeAr _ar_169 w24">16:9<br/><span id="_b_changeAr_169_key" class="smallcaps small darker">&nbsp;</span></a>
-            <a class="button _changeAr _ar_custom w24">Custom<br/><span id="_b_changeAr_custom_key" class="smallcaps small darker">&nbsp;</span></a>
+          <div id="_menu_settings_video_crop_buttons" class="button-row">
+
           </div>
-          <div style="overflow: auto">
+          <!-- todo: redirect 'custom aspect ratio' to settings -->
+          <!-- <div style="overflow: auto">
             <div class="float-right medium-small">
               <a id="_changeAr_b_show_customAr" class="_changeAr_show_customAr x-pad-1em">Set custom aspect ratio</a>
-              <a id="_changeAr_b_hide_customAr" class="_changeAr_hide_customAr hidden x-pad-1em">Hide custom aspect ratio settings</a>
             </div>
-          </div>
+          </div> -->
         </div>
-        <div id="_changeAr_customAr" class="row hidden">
-          <span class="label">Custom aspect ratio</span>
-          <div>
-            <input id="_input_custom_ar" class="_changeAr _custom" onblur="validateCustomAr()"> &nbsp; &nbsp; <span id="_b_changeAr_save_custom_ar" class="button _ar_save_custom_ar _changeAr">Save</span>
-            <br/><small>Aspect ratio can be entered in any of these forms (without quotes): 
-              <ul style="display: block; padding-top: 0px; margin-top: 0px">
-                <li>fraction (<i>width/height</i>, e.g. <i>16/10</i>, <i>2560/1080</i>, etc.)</li>
-                <li>ratio (e.g. <i>1:2.35</i> or simply <i>2.35</i> — <i>1:</i> bit can be left out)</li>
-              </ul></small>
-          </div>
-        </div>
+
 
         <!-- ZOOM STUFF -->
         <span class="label experimental">Manual zooming and panning</span>
@@ -199,21 +184,16 @@
         </div>
 
         <!-- STRETCH STUFF -->
-        <span class="label experimental">Stretching mode</span>
-        <div class="button-row">
-          <a class="button _stretch _ar_stretch_none w24">Normal<br/><span id="_b_stretch_none_key" class="smallcaps small darker"></span></a>
-          <a class="button _stretch _ar_stretch_basic w24">Basic<br/><span id="_b_stretch_basic_key" class="smallcaps small darker"></span></a>            
-          <a class="button _stretch _ar_stretch_hybrid w24">Hybrid<br/><span id="_b_stretch_hybrid_key" class="smallcaps small darker"></span></a>
-          <a class="button _stretch _ar_stretch_conditional w24">Thin borders<br/><span id="_b_stretch_conditional_key" class="smallcaps small darker"></span></a>
+        <div id="_menu_settings_video_stretch" class="row">
+          <span class="label experimental">Stretching mode</span>
+          <div id="_menu_settings_video_stretch_buttons" class="button-row">
+          </div>
         </div>
 
         <!-- VIDEO ALIGNMENT -->
-        <div class="row">
+        <div id="_menu_settings_video_alignment" class="row">
           <span class="label">Video alignment:</span>
-          <div class="button-row">
-            <a id="_align_video_left"   class="button _align _align_video_left">Left</a>
-            <a id="_align_video_center" class="button _align _align_video_center">Center</a>
-            <a id="_align_video_right"  class="button _align _align_video_right">Right</a>
+          <div id="_menu_settings_video_alignment_buttons" class="button-row">
           </div>
         </div>
       </div>
@@ -244,9 +224,11 @@
     <script src="../../js/lib/Settings.js"></script>
     
     <!-- ui libs -->
-    <script src="../../js/lib/libghettoui/BaseUi.js"></script>
+    <script src="../../js/lib/libghettoui/BaseElement.js"></script>
     <script src="../../js/lib/libghettoui/popup/MenuItem.js"></script>
     <script src="../../js/lib/libghettoui/popup/TabItem.js"></script>
+    <script src="../../js/lib/libghettoui/buttons/Button.js"></script>
+    <script src="../../js/lib/libghettoui/buttons/ShortcutButton.js"></script>
 
     
 

@@ -57,6 +57,13 @@ class Settings {
 
     if(Debug.debug) {
       console.log("[Settings::init] Configuration fetched from storage:", settings);
+
+      if (Debug.flushStoredSettings) {
+        console.log("%c[Settings::init] Debug.flushStoredSettings is true. Using default settings", "background: #d00; color: #ffd");
+        Debug.flushStoredSettings = false; // don't do it again this session
+        this.active = this.getDefaultSettings();
+        return this.active;
+      }
     }
 
     // if there's no settings saved, return default settings.
@@ -189,6 +196,16 @@ class Settings {
       return {};
     }
     return this.active.sites[site];
+  }
+
+  getActionsForSite(site) {
+    if (!site) {
+      return this.active.actions;
+    }
+    if (this.active.sites[site] && this.active.sites[site].actions && this.active.sites[site].actions.length > 0) {
+      return this.active.sites[site].actions;
+    }
+    return this.active.actions;
   }
 
   getExtensionMode(site) {
