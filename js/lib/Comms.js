@@ -68,10 +68,10 @@ class CommsClient {
     if (message.cmd === "set-ar") {
       this.pageInfo.setAr(message.arg);
     } else if (message.cmd === 'set-alignment') {
-      this.pageInfo.setVideoFloat(message.mode);
+      this.pageInfo.setVideoFloat(message.arg);
       this.pageInfo.restoreAr();
     } else if (message.cmd === "set-stretch") {
-      this.pageInfo.setStretchMode(StretchMode[message.mode]);
+      this.pageInfo.setStretchMode(StretchMode[message.arg]);
     } else if (message.cmd === "autoar-start") {
       if (message.enabled !== false) {
         this.pageInfo.initArDetection();

@@ -47,6 +47,9 @@ class VideoData {
   }
   
   startArDetection() {
+    if (Debug.debug) {
+      console.log("[VideoData::startArDetection] starting AR detection")
+    }
     if(this.destroyed) {
       throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
     }
@@ -139,6 +142,10 @@ class VideoData {
 
   resetAr() {
     this.resizer.reset();
+  }
+
+  resetLastAr() {
+    this.resizer.setLastAr('original');
   }
 
   panHandler(event) {

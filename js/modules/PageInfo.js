@@ -223,6 +223,9 @@ class PageInfo {
 
 
   startArDetection(){
+    if (Debug.debug) {
+      console.log('[PageInfo::startArDetection()] starting automatic ar detection!')
+    }
     for(var vd of this.videos){
       vd.startArDetection();
     }
@@ -235,12 +238,26 @@ class PageInfo {
   }
 
   setAr(ar){
-    if(ar !== 'auto') {
+    if (Debug.debug) {
+      console.log('[PageInfo::setAr] aspect ratio:', ar)
+    }
+
+
+    if (ar !== 'auto') {
       this.stopArDetection();
     } else {
-      for (var vd of this.videos) {
-        vd.resetLastAr();
+      if (Debug.debug) {
+        console.log('[PageInfo::setAr] aspect ratio is auto');
       }
+
+      try {
+        for (var vd of this.videos) {
+          vd.resetLastAr();
+        }
+      } catch (e) {
+        console.log("???", e);
+      }
+      this.initArDetection();
       this.startArDetection();
       return;
     }

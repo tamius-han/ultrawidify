@@ -328,7 +328,7 @@ var ExtensionConf = {
     label: '18:9'
   },{
     cmd: [{
-      action: 'zoom',
+      action: 'set-zoom',
       arg: 0.1
     }],
     shortcut: [{
@@ -345,7 +345,7 @@ var ExtensionConf = {
     label: 'Zoom',
   },{
     cmd: [{
-      action: 'zoom',
+      action: 'set-zoom',
       arg: -0.1
     }],
     shortcut: [{
@@ -380,7 +380,7 @@ var ExtensionConf = {
   },{
     cmd: [{
       action: 'pan',
-      arg: 1,
+      arg: 'toggle',
     }],
     shortcut: [{
       ctrlKey: false,
@@ -400,8 +400,8 @@ var ExtensionConf = {
   //
   {
     cmd: [{
-      action: 'stretch',
-      arg: 0,
+      action: 'set-stretch',
+      arg: 'NO_STRETCH',
     }],
     popup: true,
     popup_site: true,
@@ -410,8 +410,8 @@ var ExtensionConf = {
     label: 'Normal',
   },{
     cmd: [{
-      action: 'stretch',
-      arg: 1,
+      action: 'set-stretch',
+      arg: 'BASIC',
     }],
     popup: true,
     popup_site: true,
@@ -420,8 +420,8 @@ var ExtensionConf = {
     label: 'Basic'
   },{
     cmd: [{
-      action: 'stretch',
-      arg: 2,
+      action: 'set-stretch',
+      arg: 'HYBRID',
     }],
     popup: true,
     popup_site: true,
@@ -430,8 +430,8 @@ var ExtensionConf = {
     label: 'Hybrid'
   },{
     cmd: [{
-      action: 'stretch',
-      arg: 3,
+      action: 'set-stretch',
+      arg: 'CONDITIONAL',
     }],
     popup: true,
     popup_site: true,
@@ -444,7 +444,7 @@ var ExtensionConf = {
   //
   {
     cmd: [{
-      action: 'align',
+      action: 'set-alignment',
       arg: 'left'
     }],
     popup: true,
@@ -454,7 +454,7 @@ var ExtensionConf = {
     label: 'Left',
   },{
     cmd: [{
-      action: 'align',
+      action: 'set-alignment',
       arg: 'center'
     }],
     popup: true,
@@ -464,7 +464,7 @@ var ExtensionConf = {
     label: 'Center',
   },{
     cmd: [{
-      action: 'align',
+      action: 'set-alignment',
       arg: 'right'
     }],
     popup: true,

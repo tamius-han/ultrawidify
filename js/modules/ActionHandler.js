@@ -12,6 +12,10 @@ class ActionHandler {
   }
 
   init() {
+    if (Debug.debug) {
+      console.log("[ActionHandler::init] starting init");
+    }
+
     this.keyUpActions = [];
     this.keyDownActions = [];
     this.mouseMoveActions = [];
@@ -34,6 +38,9 @@ class ActionHandler {
     }
 
     for (var action of actions) {
+      if(! action.shortcut) {
+        continue;
+      }
       var shortcut = action.shortcut[0];
       if (shortcut.onKeyDown) {
         this.keyDownActions.push(action);
@@ -60,6 +67,11 @@ class ActionHandler {
 
     document.addEventListener('keydown',  (event) => ths.handleKeydown(event) );
     document.addEventListener('keyup', (event) => ths.handleKeyup(event) );
+
+
+    if (Debug.debug) {
+      console.log("[ActionHandler::init] initialization complete");
+    }
   }
 
   preventAction() {
@@ -123,11 +135,11 @@ class ActionHandler {
         }
 
         for (var cmd of action.cmd) {
-          if (cmd.action === "crop") {
+          if (cmd.action === "set-ar") {
             this.pageInfo.setAr(cmd.arg);
-          } else if (cmd.action === "zoom") {
+          } else if (cmd.action === "set-zoom") {
             this.pageInfo.zoomStep(cmd.arg);
-          } else if (cmd.action === "stretch") {
+          } else if (cmd.action === "set-stretch") {
             this.pageInfo.setStretchMode(cmd.arg);
           } else if (cmd.action === "toggle-pan") {
             this.pageInfo.setPanMode(cmd.arg)
@@ -148,6 +160,9 @@ class ActionHandler {
     }
 
     if (this.preventAction()) {
+      if (Debug.debug && Debug.keyboard) {
+        console.log("[ActionHandler::handleKeyup] we are in a text box or something. Doing nothing.");
+      }
       return;
     }
 
@@ -160,6 +175,9 @@ class ActionHandler {
     }
 
     if (this.preventAction()) {
+      if (Debug.debug && Debug.keyboard) {
+        console.log("[ActionHandler::handleKeydown] we are in a text box or something. Doing nothing.");
+      }
       return;
     }
 
