@@ -317,8 +317,8 @@ class PlayerData {
       if (this.dimensions.fullscreen != isFs) {
         this.dimensions = {
           fullscreen: isFs,
-          width: screen.width,
-          height: screen.height
+          width: isFs ? screen.width : this.video.offsetWidth,
+          height: isFs ? screen.height : this.video.offsetHeight
         };
         return true;
       }
@@ -331,8 +331,8 @@ class PlayerData {
 
     this.dimensions = {
       fullscreen: isFs,
-      width: screen.width,
-      height: screen.height
+      width: isFs ? screen.width : this.video.offsetWidth,
+      height: isFs ? screen.height : this.video.offsetHeight
     };
 
     return true;
