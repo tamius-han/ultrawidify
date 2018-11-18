@@ -131,6 +131,57 @@ var ExtensionConf = {
   },
   keyboard: {
   },
+  // List of all possible actions, for use in settings
+  // TODO: move to separate file as this shouldn't be user-settable
+  actionsList: [{
+    action: 'crop',
+    args: [{
+      name: 'Automatic',
+      arg: 'auto',
+    },{
+      name: 'Fit width',
+      arg: 'fitw'
+    },{
+      name: 'Fit height',
+      arg: 'fith',
+    },{
+      name: 'Reset',
+      arg: 'reset',
+    },{
+      name: 'Ratio',
+      customArg: true,
+      customLabel: true,
+    }]
+  },{
+    action: 'stretch',
+    args: [{
+      name: 'Normal',
+      arg: 0
+    },{
+      name: 'Basic',
+      arg: 1,
+    },{
+      name: 'Hybrid',
+      arg: 2,
+    },{
+      name: 'Thin borders',
+      arg: 3,
+    }],
+    sitewide: true, // if true, you can see this in site settings
+    global: true,   // if true, it can appear in extension settings
+  },{
+    action: 'align',
+    args: [{
+      name: 'Left',
+      arg: 'left',
+    },{
+      name: 'Center',
+      arg: 'center',
+    },{
+      name: 'Right',
+      arg: 'right'
+    }]
+  }],
   // -----------------------------------------
   //             ::: ACTIONS :::
   // -----------------------------------------
@@ -152,7 +203,10 @@ var ExtensionConf = {
       onKeyDown: false,
     }],
     popup: true,
+    popup_site: false,  // optional, false by default
+    popup_global: false,// optional, false by default
     ui: true,
+    label: 'Automatic'
   },{
     cmd: [{
       action: 'crop',
@@ -169,6 +223,7 @@ var ExtensionConf = {
     }],
     popup: true,
     ui: true,
+    label: 'Reset',
   },{
     cmd: [{
       action: 'crop',
@@ -185,6 +240,7 @@ var ExtensionConf = {
     }],
     popup: true,
     ui: true,
+    label: 'Fit width',
   },{
     cmd: [{
       action: 'crop',
@@ -201,6 +257,7 @@ var ExtensionConf = {
     }],
     popup: true,
     ui: true,
+    label: 'Fit height',
   },{
     cmd: [{
       action: 'crop',
@@ -217,6 +274,7 @@ var ExtensionConf = {
     }],
     popup: true,
     ui: true,
+    label: '16:9',
   },{
     cmd: [{
       action: 'crop',
@@ -233,6 +291,7 @@ var ExtensionConf = {
     }],
     popup: true,
     ui: true,
+    label: '21:9'
   },{
     cmd: [{
       action: 'crop',
@@ -249,6 +308,7 @@ var ExtensionConf = {
     }],
     popup: true,
     ui: true,
+    label: '2.35',
   },{
     cmd: [{
       action: 'crop',
@@ -265,6 +325,7 @@ var ExtensionConf = {
     }],
     popup: true,
     ui: true,
+    label: '18:9'
   },{
     cmd: [{
       action: 'zoom',
@@ -279,8 +340,9 @@ var ExtensionConf = {
       onKeyUp: true,
       onKeyDown: false,
     }],
-    popup: true,
-    ui: true,
+    popup: false,
+    ui: false,
+    label: 'Zoom',
   },{
     cmd: [{
       action: 'zoom',
@@ -295,8 +357,9 @@ var ExtensionConf = {
       onKeyUp: true,
       onKeyDown: false,
     }],
-    popup: true,
-    ui: true,
+    popup: false,
+    ui: false,
+    label: 'Unzoom',
   },{
     cmd: [{
       action: 'toggle-pan',
@@ -313,6 +376,7 @@ var ExtensionConf = {
     }],
     popup: true,
     ui: true,
+    label: 'Toggle panning mode',
   },{
     cmd: [{
       action: 'pan',
@@ -329,6 +393,92 @@ var ExtensionConf = {
     }],
     popup: false,
     ui: false,
+    label: 'Pan (hold)'
+  },
+  //
+  //   S T R E T C H I N G
+  //
+  {
+    cmd: [{
+      action: 'stretch',
+      arg: 0,
+    }],
+    shortcut: [],
+    popup: true,
+    popup_site: true,
+    popup_global: true,
+    ui: true,
+    label: 'Normal',
+  },{
+    cmd: [{
+      action: 'stretch',
+      arg: 1,
+    }],
+    shortcut: [],
+    popup: true,
+    popup_site: true,
+    popup_global: true,
+    ui: true,
+    label: 'Basic'
+  },{
+    cmd: [{
+      action: 'stretch',
+      arg: 2,
+    }],
+    shortcut: [],
+    popup: true,
+    popup_site: true,
+    popup_global: true,
+    ui: true,
+    label: 'Hybrid'
+  },{
+    cmd: [{
+      action: 'stretch',
+      arg: 3,
+    }],
+    shortcut: [],
+    popup: true,
+    popup_site: true,
+    popup_global: true,
+    ui: true,
+    label: 'Thin borders'
+  },
+  //
+  //    A L I G N M E N T
+  //
+  {
+    cmd: [{
+      action: 'align',
+      arg: 'left'
+    }],
+    shortcut: [],
+    popup: true,
+    popup_site: true,
+    popup_global: true,
+    ui: true,
+    label: 'Left',
+  },{
+    cmd: [{
+      action: 'align',
+      arg: 'center'
+    }],
+    shortcut: [],
+    popup: true,
+    popup_site: true,
+    popup_global: true,
+    ui: true,
+    label: 'Center',
+  },{
+    cmd: [{
+      action: 'align',
+      arg: 'right'
+    }],
+    shortcut: [],
+    popup: true,
+    popup_site: true,
+    popup_global: true,
+    ui: true,
+    label: 'Right',
   }],
   // -----------------------------------------
   //       ::: SITE CONFIGURATION :::
