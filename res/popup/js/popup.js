@@ -275,15 +275,15 @@ function configureVideoTab(site) {
     VideoPanel.elements.cropSettings.container.show();
     VideoPanel.elements.cropSettings.buttonContainer.show();
 
-    for (button in cropButtons) {
-      const nb = new ShortcutButton(
+    for (var button of cropButtons) {
+      const cmd = button.cmd;
+      var nb = new ShortcutButton(
         '',
         button.label,
         (button.shortcut && button.shortcut[0].key ? button.shortcut[0].key.toUpperCase() : ''),
-        () => basicCommandHandler(button.cmd),
+        () => basicCommandHandler(cmd),
         ['w24']
       )
-      console.log("BUTON CONTAINER", VideoPanel.elements.cropSettings.buttonContainer)
       nb.appendTo(VideoPanel.elements.cropSettings.buttonContainer);
     }
   }
@@ -295,12 +295,13 @@ function configureVideoTab(site) {
     VideoPanel.elements.stretchSettings.container.show();
     VideoPanel.elements.stretchSettings.buttonContainer.show();
 
-    for (button in stretchButtons) {
-      const nb = new ShortcutButton(
+    for (var button of stretchButtons) {
+      const cmd = button.cmd;
+      var nb = new ShortcutButton(
         '',
         button.label,
         button.shortcut && button.shortcut[0].key ? button.shortcut[0].key.toUpperCase() : '',
-        () => basicCommandHandler(button.cmd),
+        () => basicCommandHandler(cmd),
         ['w24']
       )
       nb.appendTo(VideoPanel.elements.stretchSettings.buttonContainer);
@@ -314,12 +315,13 @@ function configureVideoTab(site) {
     VideoPanel.elements.alignmentSettings.container.show();
     VideoPanel.elements.alignmentSettings.buttonContainer.show();
 
-    for (button in alignButtons) {
-      const nb = new ShortcutButton(
+    for (var button of alignButtons) {
+      const cmd = button.cmd;
+      var nb = new ShortcutButton(
         '',
         button.label,
         button.shortcut && button.shortcut[0].key ? button.shortcut[0].key.toUpperCase() : '',
-        () => basicCommandHandler(),
+        () => basicCommandHandler(cmd),
         ['w24']
       )
       nb.appendTo(VideoPanel.elements.alignmentSettings.buttonContainer);
