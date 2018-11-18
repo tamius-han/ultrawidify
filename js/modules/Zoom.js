@@ -55,8 +55,8 @@ class Zoom {
     }
   }
 
-  applyZoom(videoDimensions){
-    videoDimensions.xFactor *= this.scale;
-    videoDimensions.yFactor *= this.scale;
+  applyZoom(stretchFactors){
+    stretchFactors.xFactor *= this.scale;
+    stretchFactors.yFactor *= this.scale;
   }
 }

@@ -311,8 +311,8 @@ function configureVideoTab(site) {
   const popupButtons = settings.getActionsForSite(site).filter(action => action.popup === true); 
 
   const cropButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-ar');
-  const stretchButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'stretch');
-  const alignButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'align');
+  const stretchButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-stretch');
+  const alignButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-alignment');
 
   processButtonsForPopupCategory(VideoPanel.elements.cropSettings, cropButtons);
   processButtonsForPopupCategory(VideoPanel.elements.stretchSettings, stretchButtons);
@@ -555,53 +555,7 @@ document.addEventListener("click", (e) => {
         command.enabled = true;
         return command;
       }
-      if(e.target.classList.contains("_ar_reset")){
-        command.cmd = "set-ar";
-        command.ratio = "reset";
-        return command;
-      }
-      if(e.target.classList.contains("_ar_fitw")){
-        command.cmd = "set-ar";
-        command.ratio = "fitw";
-        return command;
-      }
-      if(e.target.classList.contains("_ar_fitw")){
-        command.cmd = "set-ar";
-        command.ratio = "fith";
-        return command;
-      }
-      if(e.target.classList.contains("_ar_219")){
-        command.cmd = "set-ar";
-        command.ratio = 2.39;
-        return command;
-      }
-      if(e.target.classList.contains("_ar_189")){
-        command.cmd = "set-ar";
-        command.ratio = 2.0;
-        return command;
-      }
-      if(e.target.classList.contains("_ar_169")){
-        command.cmd = "set-ar";
-        command.ratio = 1.78;
-        return command;
-      }
-      if(e.target.classList.contains("_ar_1610")){
-        command.cmd = "set-ar";
-        command.ratio = 1.6;
-        return command;
-      }
-      if(e.target.classList.contains("_ar_custom")){
-        ratio = getCustomAspectRatio();
-        command.cmd = "set-ar";
-        command.ratio = ratio;
-        return ratio !== false ? command : null;
-      }
-      if(e.target.classList.contains("_ar_save_custom_ar")){
-        ratio = getCustomAspectRatio();
-        command.cmd = "set-custom-ar";
-        command.ratio = ratio;
-        return ratio !== false ? command : null; // this validates input
-      }
+ 
     }
     if(e.target.classList.contains("_stretch")){
       // stretch, global
@@ -636,20 +590,7 @@ document.addEventListener("click", (e) => {
         return;
       }
 
-      if(e.target.classList.contains("_ar_stretch_none")) {
-        command.cmd = "set-stretch";
-        command.mode = "NO_STRETCH";
-      } else if(e.target.classList.contains("_ar_stretch_basic")) {
-        command.cmd = "set-stretch";
-        command.mode = "BASIC";
-      } else if(e.target.classList.contains("_ar_stretch_hybrid")) {
-        command.cmd = "set-stretch";
-        command.mode = "HYBRID";
-      } else if(e.target.classList.contains("_ar_stretch_conditional")) {
-        command.cmd = "set-stretch";
-        command.mode = "CONDITIONAL";
-      }
-      return command;
+
     }
     if(e.target.classList.contains("_autoAr")){
       if(e.target.classList.contains("_ar_global_options")){
