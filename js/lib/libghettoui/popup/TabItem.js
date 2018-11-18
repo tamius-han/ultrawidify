@@ -1,4 +1,4 @@
-class TabItem extends BaseUi {
+class TabItem extends BaseElement {
 
   constructor (id, name, label, isIframe, onClick, additionalClasses) {
     super(id, label, onClick, additionalClasses);

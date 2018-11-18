@@ -134,7 +134,7 @@ var ExtensionConf = {
   // List of all possible actions, for use in settings
   // TODO: move to separate file as this shouldn't be user-settable
   actionsList: [{
-    action: 'crop',
+    action: 'set-ar',
     args: [{
       name: 'Automatic',
       arg: 'auto',
@@ -190,7 +190,7 @@ var ExtensionConf = {
   // Polje 'shortcut' je tabela, če se slučajno lotimo kdaj delati choordov. 
   actions: [{
     cmd: [{
-      action: 'crop',
+      action: 'set-ar',
       arg: 'auto'
     }],
     shortcut: [{
@@ -209,7 +209,7 @@ var ExtensionConf = {
     label: 'Automatic'
   },{
     cmd: [{
-      action: 'crop',
+      action: 'set-ar',
       arg: 'reset',
     }],
     shortcut: [{
@@ -226,7 +226,7 @@ var ExtensionConf = {
     label: 'Reset',
   },{
     cmd: [{
-      action: 'crop',
+      action: 'set-ar',
       arg: 'fitw',
     }],
     shortcut: [{
@@ -243,7 +243,7 @@ var ExtensionConf = {
     label: 'Fit width',
   },{
     cmd: [{
-      action: 'crop',
+      action: 'set-ar',
       arg: 'fith',
     }],
     shortcut: [{
@@ -260,7 +260,7 @@ var ExtensionConf = {
     label: 'Fit height',
   },{
     cmd: [{
-      action: 'crop',
+      action: 'set-ar',
       arg: 1.78,
     }],
     shortcut: [{
@@ -277,7 +277,7 @@ var ExtensionConf = {
     label: '16:9',
   },{
     cmd: [{
-      action: 'crop',
+      action: 'set-ar',
       arg: 2.39,
     }],
     shortcut: [{
@@ -294,7 +294,7 @@ var ExtensionConf = {
     label: '21:9'
   },{
     cmd: [{
-      action: 'crop',
+      action: 'set-ar',
       arg: 2.35,
     }],
     shortcut: [{
@@ -311,7 +311,7 @@ var ExtensionConf = {
     label: '2.35',
   },{
     cmd: [{
-      action: 'crop',
+      action: 'set-ar',
       arg: 2.0,
     }],
     shortcut: [{
@@ -403,7 +403,6 @@ var ExtensionConf = {
       action: 'stretch',
       arg: 0,
     }],
-    shortcut: [],
     popup: true,
     popup_site: true,
     popup_global: true,
@@ -414,7 +413,6 @@ var ExtensionConf = {
       action: 'stretch',
       arg: 1,
     }],
-    shortcut: [],
     popup: true,
     popup_site: true,
     popup_global: true,
@@ -425,7 +423,6 @@ var ExtensionConf = {
       action: 'stretch',
       arg: 2,
     }],
-    shortcut: [],
     popup: true,
     popup_site: true,
     popup_global: true,
@@ -436,7 +433,6 @@ var ExtensionConf = {
       action: 'stretch',
       arg: 3,
     }],
-    shortcut: [],
     popup: true,
     popup_site: true,
     popup_global: true,
@@ -451,7 +447,6 @@ var ExtensionConf = {
       action: 'align',
       arg: 'left'
     }],
-    shortcut: [],
     popup: true,
     popup_site: true,
     popup_global: true,
@@ -462,7 +457,6 @@ var ExtensionConf = {
       action: 'align',
       arg: 'center'
     }],
-    shortcut: [],
     popup: true,
     popup_site: true,
     popup_global: true,
@@ -473,7 +467,6 @@ var ExtensionConf = {
       action: 'align',
       arg: 'right'
     }],
-    shortcut: [],
     popup: true,
     popup_site: true,
     popup_global: true,

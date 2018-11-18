@@ -95,9 +95,8 @@ async function processReceivedMessage(message, port){
       port.postMessage({cmd: 'get-current-zoom'});
     }
     site = message.site;
-    if(message.site.host)
-    loadConfig(message.site.host);
-    loadFrames(message.site);
+    loadConfig(site.host);
+    loadFrames(site);
   } else if (message.cmd === 'set-current-zoom') {
     setCurrentZoom(message.zoom);
   }
@@ -147,6 +146,7 @@ function stringToKeyCombo(key_in){
 }
 
 function configurePopupTabs(site) {
+  return;
   // todo: this can potentially be removed
 
   // Determine which tabs can we touch.
@@ -167,6 +167,18 @@ function configurePopupTabs(site) {
   if (!selectedMenu) {
     showMenu('videoSettings');
   }
+}
+
+
+
+function basicCommandHandler(cmdArray) {
+  for (cmd of cmdArray) {
+    port.postMessage({
+      cmd: cmd.action,
+      arg: cmd.arg
+    });
+  }
+
 }
 
 function configureGlobalTab() {
@@ -249,60 +261,71 @@ function configureSitesTab(site) {
   }
 }
 
-function configureVideoTab() {
-  // process keyboard shortcuts for crop settings
-  if(settings.active.keyboard.shortcuts){
-    for(var key in settings.active.keyboard.shortcuts){
-      var shortcut = settings.active.keyboard.shortcuts[key];
-      var keypress = stringToKeyCombo(key);
-      
-      try{
-        if(shortcut.action == "crop"){
-          if (key == 'q') {
-            _changeAr_button_shortcuts["custom"] = keypress;
-          }
-          else if(shortcut.arg == 2.0){
-            _changeAr_button_shortcuts["189"] = keypress;
-          }
-          else if(shortcut.arg == 2.39){
-            _changeAr_button_shortcuts["219"] = keypress;
-          }
-          else if(shortcut.arg == 1.78){
-            _changeAr_button_shortcuts["169"] = keypress;
-          }
-          else if(shortcut.arg == "fitw") {
-            _changeAr_button_shortcuts["fitw"] = keypress;
-          }
-          else if(shortcut.arg == "fith") {
-            _changeAr_button_shortcuts["fith"] = keypress;
-          }
-          else if(shortcut.arg == "reset") {
-            _changeAr_button_shortcuts["reset"] = keypress;
-          }
-        }
-        else if(shortcut.action == "auto-ar") {
-            _changeAr_button_shortcuts["auto-ar"] = keypress;
-        }
-      }
-      catch(Ex){
-        //do nothing if key doesn't exist
-      }
-    }
+function configureVideoTab(site) {
+  const popupButtons = settings.getActionsForSite(site).filter(action => action.popup === true); 
 
-    // fill in custom aspect ratio
-    if (settings.active.keyboard.shortcuts.q) {
-      document.getElementById("_input_custom_ar").value = settings.active.keyboard.shortcuts.q.arg;
-    }
+  const cropButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-ar');
+  const stretchButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'stretch');
+  const alignButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'align');
 
-    for(var key in _changeAr_button_shortcuts){
-      try{
-        document.getElementById(`_b_changeAr_${key}_key`).textContent = `(${_changeAr_button_shortcuts[key]})`;
-      }
-      catch(ex){
-        
-      }
+  if (cropButtons.length === 0) {
+    VideoPanel.elements.cropSettings.container.hide();
+  } else {
+    VideoPanel.elements.cropSettings.buttonContainer.removeChildren();
+    VideoPanel.elements.cropSettings.container.show();
+    VideoPanel.elements.cropSettings.buttonContainer.show();
+
+    for (button in cropButtons) {
+      const nb = new ShortcutButton(
+        '',
+        button.label,
+        (button.shortcut && button.shortcut[0].key ? button.shortcut[0].key.toUpperCase() : ''),
+        () => basicCommandHandler(button.cmd),
+        ['w24']
+      )
+      console.log("BUTON CONTAINER", VideoPanel.elements.cropSettings.buttonContainer)
+      nb.appendTo(VideoPanel.elements.cropSettings.buttonContainer);
     }
   }
+
+  if (stretchButtons.length === 0) {
+    VideoPanel.elements.stretchSettings.container.hide();
+  } else {
+    VideoPanel.elements.stretchSettings.buttonContainer.removeChildren();
+    VideoPanel.elements.stretchSettings.container.show();
+    VideoPanel.elements.stretchSettings.buttonContainer.show();
+
+    for (button in stretchButtons) {
+      const nb = new ShortcutButton(
+        '',
+        button.label,
+        button.shortcut && button.shortcut[0].key ? button.shortcut[0].key.toUpperCase() : '',
+        () => basicCommandHandler(button.cmd),
+        ['w24']
+      )
+      nb.appendTo(VideoPanel.elements.stretchSettings.buttonContainer);
+    }
+  }
+
+  if (alignButtons.length === 0) {
+    VideoPanel.elements.stretchSettings.container.hide();
+  } else {
+    VideoPanel.elements.alignmentSettings.buttonContainer.removeChildren();
+    VideoPanel.elements.alignmentSettings.container.show();
+    VideoPanel.elements.alignmentSettings.buttonContainer.show();
+
+    for (button in alignButtons) {
+      const nb = new ShortcutButton(
+        '',
+        button.label,
+        button.shortcut && button.shortcut[0].key ? button.shortcut[0].key.toUpperCase() : '',
+        () => basicCommandHandler(),
+        ['w24']
+      )
+      nb.appendTo(VideoPanel.elements.alignmentSettings.buttonContainer);
+    }
+  }
+
 
   // todo: get min, max from settings
   VideoPanel.inputs.zoomSlider.min = Math.log2(0.5);
@@ -330,8 +353,6 @@ function configureVideoTab() {
 
 async function loadConfig(site){
 
-  console.log("NEW CONFIG!")
-
   if (Debug.debug) {
     console.log("\n\n-------------------------------------\n[popup.js::loadConfig] loading config. conf object:", settings.active);
   }
@@ -339,7 +360,7 @@ async function loadConfig(site){
   configurePopupTabs(site);
   configureGlobalTab();
   configureSitesTab(site);
-  configureVideoTab();
+  configureVideoTab(site);
 
   if (Debug.debug) {
     console.log("[popup.js::loadConfig] config loaded\n-----------------------\n\n");
@@ -797,16 +818,6 @@ async function popup_init() {
     console.log("[popup] Are settings loaded?", settings)
   }
 
-
-  const customArInputField = document.getElementById("_input_custom_ar");
-  const autoarFrequencyInputField = document.getElementById("_input_autoAr_timer");
-
-  customArInputField.addEventListener("blur", (event) => {
-    validateCustomAr();
-  });
-  customArInputField.addEventListener("mouseleave", (event) => {
-    validateCustomAr();
-  });
 
   // autoarFrequencyInputField.addEventListener("blur", (event) => {
   //   validateAutoArTimeout();

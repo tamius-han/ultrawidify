@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Ultrawidify",
-  "version": "3.3.0-a2",
+  "version": "3.3.0-a3",
   "applications": {
     "gecko": {
       "id": "{cf02b1a7-a01a-4e37-a609-516a283f1ed3}"

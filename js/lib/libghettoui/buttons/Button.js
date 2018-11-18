@@ -1,5 +1,7 @@
-class ShortcutButton extends BaseUi {
+class Button extends BaseElement {
   constructor(id, label, onClick, additionalClasses) {
+    console.log("additional classes", additionalClasses)
+
     super(
       id,
       label,
