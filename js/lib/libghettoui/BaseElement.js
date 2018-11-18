@@ -1,7 +1,5 @@
 class BaseElement {
   constructor(id, label, onClick, additionalClasses, existingElement) {
-    console.log("additional classes", additionalClasses)
-
     if (existingElement) {
       this.element = existingElement;
     } else {
