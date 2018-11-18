@@ -22,6 +22,11 @@ var settings = new Settings(undefined, () => updateConfig());
 
 var site = undefined;
 
+// aside from hostname, this can have two additional values:
+//   __playing — commands get sent to all frames with videos of status 'playing'
+//   __all     — commands get sent to all frames
+var selectedFrame = '__playing';
+
 var port = browser.runtime.connect({name: 'popup-port'});
 port.onMessage.addListener( (m,p) => processReceivedMessage(m,p));
 
@@ -47,19 +52,36 @@ function loadFrames(videoTab) {
   tablist['siteSettings'].removeSubitems();
   tablist['videoSettings'].removeSubitems();
 
+
+  function onTabitemClick(item) {
+    tablist[selectedMenu].selectSubitem(item);
+    selectedSubitem[selectedMenu] = item;
+  }
+
+  for (var option of [{id: '__playing', label: 'Currently playing'}, {id: '__all', label: 'All'}]) {
+    const id = option.id;
+    var newItem = new TabItem(
+      undefined,
+      option.id,
+      option.label,
+      false,
+      () => onTabitemClick(id)
+    );
+
+    tablist['siteSettings'].insertSubitem(newItem);
+    tablist['videoSettings'].insertSubitem(newItem);
+  }
+
+
   for (var frame in videoTab.frames) {
-    const nid = `_vsi_${videoTab.id}-${videoTab.frames[frame].id}`;
+    const nid = `${videoTab.id}-${videoTab.frames[frame].id}`;
     var newItem = new TabItem(
       undefined,
       nid,
       videoTab.frames[frame].host,
       videoTab.frames[frame].url != videoTab.url,
-      (click) => {
-        tablist[selectedMenu].selectSubitem(nid);
-        selectedSubitem[selectedMenu] = nid;
-        // todo: set selected subitem
-      }
-    )
+      (click) => onTabitemClick(nid)
+    );
     
     tablist['siteSettings'].insertSubitem(newItem);
     tablist['videoSettings'].insertSubitem(newItem);
@@ -146,6 +168,11 @@ function stringToKeyCombo(key_in){
 }
 
 function configurePopupTabs(site) {
+  if (!selectedMenu) {
+    showMenu('videoSettings');
+  } else {
+    showMenu(selectedMenu);
+  }
   return;
   // todo: this can potentially be removed
 
@@ -760,7 +787,6 @@ async function popup_init() {
 
   hideWarning("script-not-running-warning");
   while (true) {
-    console.log("GETTING SITE")
     getSite();
     await sleep(5000);
   }
