@@ -196,55 +196,98 @@ class PageInfo {
     this.scheduleUrlCheck();
   }
 
-  initArDetection(){
-    for(var vd of this.videos){
-      vd.initArDetection();
+  initArDetection(playingOnly){
+    if (playingOnly) {
+      for(var vd of this.videos){
+        if(vd.isPlaying()) {
+          vd.initArDetection();
+        }
+      }
+      return;
+    } else {
+      for(var vd of this.videos){
+        vd.initArDetection();
+      }
     }
   }
 
 
   // to je treba klicat ob menjavi zavihkov
   // these need to be called on tab switch
-  pauseProcessing(){
-    for(var vd of this.videos){
-      vd.pause();
+  pauseProcessing(playingOnly){
+    if (playingOnly) {
+      for(var vd of this.videos){
+        if (vd.isPlaying()) {
+          vd.pause();
+        }
+      }  
+    } else {
+      for(var vd of this.videos){
+        vd.pause();
+      }
     }
   }
 
-  resumeProcessing(resumeAutoar = false){
-    for(var vd of this.videos){
-      vd.resume();
-      if(resumeAutoar){
-        vd.resumeAutoAr();
+  resumeProcessing(resumeAutoar = false, playingOnly = false){
+    if (playingOnly) {
+      for(var vd of this.videos){
+        if (vd.isPlaying()) {
+          vd.resume();
+          if(resumeAutoar){
+            vd.resumeAutoAr();
+          }
+        }
+      }
+    } else {
+      for(var vd of this.videos){
+        vd.resume();
+        if(resumeAutoar){
+          vd.resumeAutoAr();
+        }
       }
     }
   }
 
 
 
-  startArDetection(){
+  startArDetection(playingOnly){
     if (Debug.debug) {
       console.log('[PageInfo::startArDetection()] starting automatic ar detection!')
     }
-    for(var vd of this.videos){
-      vd.startArDetection();
+    if (playingOnly) {
+      for(var vd of this.videos){
+        if (video.isPlaying()) {
+          vd.startArDetection();
+        }
+      }
+    } else {
+      for(var vd of this.videos){
+        vd.startArDetection();
+      }
     }
   }
 
-  stopArDetection(){
-    for(var vd of this.videos){
-      vd.stopArDetection();
+  stopArDetection(playingOnly){
+    if (playingOnly) {
+      for(var vd of this.videos){
+        if (vd.isPlaying()) { 
+          vd.stopArDetection();
+        }
+      }
+    } else {
+      for(var vd of this.videos){
+        vd.stopArDetection();
+      }
     }
   }
 
-  setAr(ar){
+  setAr(ar, playingOnly){
     if (Debug.debug) {
-      console.log('[PageInfo::setAr] aspect ratio:', ar)
+      console.log('[PageInfo::setAr] aspect ratio:', ar, "playing only?", playingOnly)
     }
-
 
     if (ar !== 'auto') {
-      this.stopArDetection();
+      this.stopArDetection(playingOnly);
     } else {
       if (Debug.debug) {
         console.log('[PageInfo::setAr] aspect ratio is auto');
@@ -252,63 +295,111 @@ class PageInfo {
 
       try {
         for (var vd of this.videos) {
-          vd.resetLastAr();
+          if (!playingOnly || vd.isPlaying()) {
+            vd.resetLastAr();
+          }
         }
       } catch (e) {
         console.log("???", e);
       }
-      this.initArDetection();
-      this.startArDetection();
+      this.initArDetection(playingOnly);
+      this.startArDetection(playingOnly);
       return;
     }
 
     // TODO: find a way to only change aspect ratio for one video
     if (ar === 'reset') {
       for (var vd of this.videos) {
-        vd.resetAr();
+        if (!playingOnly || vd.isPlaying()) {
+          vd.resetAr();
+        }
       }
     } else {
       for (var vd of this.videos) {
-        vd.setAr(ar)
+        if (!playingOnly || vd.isPlaying()) {
+          vd.setAr(ar)
+        }
       }
     }
   }
   
-  setVideoFloat(videoFloat) {
-    for(var vd of this.videos) {
-      vd.setVideoFloat(videoFloat)
+  setVideoFloat(videoFloat, playingOnly) {
+    if (playingOnly) {
+      for(var vd of this.videos) {
+        if (vd.isPlaying()) { 
+          vd.setVideoFloat(videoFloat)
+        }
+      }
+    } else {
+      for(var vd of this.videos) {
+        vd.setVideoFloat(videoFloat)
+      }
     }
   }
 
-  setPanMode(mode) {
-    for(var vd of this.videos) {
-      vd.setPanMode(mode);
+  setPanMode(mode, playingOnly) {
+    if (playingOnly) {
+      for(var vd of this.videos) {
+        if (vd.isPlaying()) {
+          vd.setPanMode(mode);
+        }
+      }
+    } else {
+      for(var vd of this.videos) {
+        vd.setPanMode(mode);
+      }
     }
   }
 
-  restoreAr() {
-    for(var vd of this.videos){
-      vd.restoreAr()
+  restoreAr(playingOnly) {
+    if (playingOnly) {
+      for(var vd of this.videos){
+        if (vd.isPlaying()) {
+          vd.restoreAr();
+        }
+      }
+    } else {
+      for(var vd of this.videos){
+        vd.restoreAr();
+      }
     }
   }
 
-  setStretchMode(sm){
+  setStretchMode(sm, playingOnly){
     // TODO: find a way to only change aspect ratio for one video
-    
-    for(var vd of this.videos){
-      vd.setStretchMode(sm)
+
+    if (playingOnly) {
+      for(var vd of this.videos){
+        if (vd.isPlaying()) {
+          vd.setStretchMode(sm)
+        }
+      }
+    } else {
+      for(var vd of this.videos){
+        vd.setStretchMode(sm)
+      }
     }
   }
 
-  setZoom(zoomLevel, no_announce) {
-    for(var vd of this.videos) {
-      vd.setZoom(zoomLevel, no_announce);
+  setZoom(zoomLevel, no_announce, playingOnly) {
+    if (playingOnly) {
+      for(var vd of this.videos) {
+        if (vd.isPlaying()) {
+          vd.setZoom(zoomLevel, no_announce);
+        }
+      }
+    } else {
+      for(var vd of this.videos) {
+        vd.setZoom(zoomLevel, no_announce);
+      }
     }
   }
 
-  zoomStep(step){
+  zoomStep(step, playingOnly) {
     for(var vd of this.videos){
-      vd.zoomStep(step);
+      if (!playingOnly || vd.isPlaying()) {
+        vd.zoomStep(step);
+      }
     }
   }
 
