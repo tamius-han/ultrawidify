@@ -39,6 +39,7 @@ class MenuItem extends BaseElement {
     }
 
     this.subitemList[0].select();
+    return this.subitemList[0].name;
   }
 
   showSubitems() {

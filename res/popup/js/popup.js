@@ -88,15 +88,19 @@ function loadFrames(videoTab) {
   }
 
   if (! selectedSubitem.siteSettings) {
-    tablist['siteSettings'].selectFirstSubitem();
+    selectedSubitem['siteSettings'] = tablist['siteSettings'].selectFirstSubitem();
   } else {
     tablist['siteSettings'].selectSubitem(selectedSubitem.siteSettings)
+    selectedSubitem['siteSettings'] = selectedSubitem.siteSettings.name;
   }
   if (! selectedSubitem.videoSettings) {
-    tablist['videoSettings'].selectFirstSubitem();
+    selectedSubitem['videoSettings'] = tablist['videoSettings'].selectFirstSubitem();
   } else {
     tablist['videoSettings'].selectSubitem(selectedSubitem.videoSettings);
+    selectedSubitem['videoSettings'] = selectedSubitem.videoSettings.name;
   }
+
+  console.log("SELECTED SUBITEMT:", selectedSubitem)
 }
 
 //#endregion
@@ -202,7 +206,8 @@ function basicCommandHandler(cmdArray) {
   for (cmd of cmdArray) {
     port.postMessage({
       cmd: cmd.action,
-      arg: cmd.arg
+      arg: cmd.arg,
+      targetFrame: selectedSubitem[selectedMenu]
     });
   }
 }
@@ -362,7 +367,8 @@ function configureVideoTab(site) {
     // send the command to bg script
     var command = {
       cmd: 'set-zoom',
-      zoom: newZoom
+      zoom: newZoom,
+      targetFrame: selectedSubitem[selectedMenu]
     };
 
     port.postMessage(command);
@@ -749,6 +755,7 @@ document.addEventListener("click", (e) => {
   }
   
   var command = getcmd(e);
+  command.targetFrame = selectedSubitem[selectedMenu]
 
   if(Debug.debug) {
     console.log("[popup.js] Got command (can be undefined):", command, JSON.stringify(command))
