@@ -86,18 +86,17 @@ function loadFrames(videoTab) {
     tablist['siteSettings'].insertSubitem(newItem);
     tablist['videoSettings'].insertSubitem(newItem);
   }
+  console.log("SELECTED SUBITEM — FIRST:", selectedSubitem)
 
   if (! selectedSubitem.siteSettings) {
     selectedSubitem['siteSettings'] = tablist['siteSettings'].selectFirstSubitem();
   } else {
     tablist['siteSettings'].selectSubitem(selectedSubitem.siteSettings)
-    selectedSubitem['siteSettings'] = selectedSubitem.siteSettings.name;
   }
   if (! selectedSubitem.videoSettings) {
     selectedSubitem['videoSettings'] = tablist['videoSettings'].selectFirstSubitem();
   } else {
     tablist['videoSettings'].selectSubitem(selectedSubitem.videoSettings);
-    selectedSubitem['videoSettings'] = selectedSubitem.videoSettings.name;
   }
 
   console.log("SELECTED SUBITEMT:", selectedSubitem)
