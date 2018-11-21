@@ -66,26 +66,26 @@ class CommsClient {
     }
 
     if (message.cmd === "set-ar") {
-      this.pageInfo.setAr(message.arg);
+      this.pageInfo.setAr(message.arg, message.playing);
     } else if (message.cmd === 'set-alignment') {
-      this.pageInfo.setVideoFloat(message.arg);
+      this.pageInfo.setVideoFloat(message.arg, message.playing);
       this.pageInfo.restoreAr();
     } else if (message.cmd === "set-stretch") {
-      this.pageInfo.setStretchMode(StretchMode[message.arg]);
+      this.pageInfo.setStretchMode(StretchMode[message.arg], message.playing);
     } else if (message.cmd === "autoar-start") {
       if (message.enabled !== false) {
-        this.pageInfo.initArDetection();
-        this.pageInfo.startArDetection();
+        this.pageInfo.initArDetection(message.playing);
+        this.pageInfo.startArDetection(message.playing);
       } else {
-        this.pageInfo.stopArDetection();
+        this.pageInfo.stopArDetection(message.playing);
       }
     } else if (message.cmd === "pause-processing") {
-      this.pageInfo.pauseProcessing();
+      this.pageInfo.pauseProcessing(message.playing);
     } else if (message.cmd === "resume-processing") {
       // todo: autoArStatus
-      this.pageInfo.resumeProcessing(message.autoArStatus);
+      this.pageInfo.resumeProcessing(message.autoArStatus, message.playing);
     } else if (message.cmd === 'set-zoom') {
-      this.pageInfo.setZoom(message.zoom, true);
+      this.pageInfo.setZoom(message.zoom, true, message.playing);
     }
   }
 

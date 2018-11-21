@@ -186,4 +186,13 @@ class VideoData {
   announceZoom(scale){
     this.pageInfo.announceZoom(scale);
   }
+
+  isPlaying() {
+
+    console.log("is playing? video:", this.video, "ctime:", this.video.currentTime, 
+    "paused/ended:", this.video.paused, this.video.ended,
+    "is playing?", this.video && this.video.currentTime > 0 && !this.video.paused && !this.video.ended);
+
+    return this.video && this.video.currentTime > 0 && !this.video.paused && !this.video.ended;
+  }
 }
