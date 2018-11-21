@@ -165,7 +165,6 @@ class CommsServer {
 
     var ths = this;
 
-
     if (BrowserDetect.firefox) {
       browser.runtime.onConnect.addListener(p => ths.onConnect(p));
       browser.runtime.onMessage.addListener(m => ths.processReceivedMessage_nonpersistent_ff(m));
@@ -212,6 +211,37 @@ class CommsServer {
           resolve(res);
         });
       });
+    }
+  }
+
+  async sendToFrame(message, tab, frame) {
+
+    if(Debug.debug && Debug.comms){
+      console.log(`%c[CommsServer::sendToFrame] attempting to send message to tab ${tab}, frame ${frame}`, "background: #dda; color: #11D", message);
+    }
+
+    if (isNaN(tab)) {
+      if (tab === '__playing') {
+        message['playing'] = true;
+        this.sendToAll(message);
+        return;
+      } else if (tab === '__all') {
+        this.sendToAll(message);
+        return;
+      }
+      [tab, frame] = tab.split('-')
+    }
+
+    if(Debug.debug && Debug.comms){
+      console.log(`%c[CommsServer::sendToFrame] attempting to send message to tab ${tab}, frame ${frame}`, "background: #dda; color: #11D", message);
+    }
+
+    try {
+      this.ports[tab][frame].postMessage(message);
+    } catch (e) {
+      if(Debug.debug && Debug.comms){
+        console.log(`%c[CommsServer::sendToFrame] Sending message failed. Reason:`, "background: #dda; color: #11D", e);
+      }
     }
   }
 
@@ -286,16 +316,16 @@ class CommsServer {
       }
       port.postMessage({cmd: "set-config", conf: this.settings.active, site: this.server.currentSite})
     } else if (message.cmd === 'set-stretch') {
-      this.sendToActive(message);
+      this.sendToFrame(message, message.targetFrame);
     } else if (message.cmd === 'set-ar') {
-      this.sendToActive(message);
+      this.sendToFrame(message, message.targetFrame);
     } else if (message.cmd === 'set-custom-ar') {
       this.settings.active.keyboard.shortcuts.q.arg = message.arg;
       this.settings.save();
     } else if (message.cmd === 'set-alignment') {
-      this.sendToActive(message);
+      this.sendToFrame(message, message.targetFrame);
     } else if (message.cmd === 'autoar-start') {
-      this.sendToActive(message);
+      this.sendToFrame(message, message.targetFrame);
     } else if (message.cmd === "autoar-disable") {  // LEGACY - can be removed prolly
       this.settings.active.arDetect.mode = "disabled";
       if(message.reason){
@@ -305,7 +335,7 @@ class CommsServer {
       }
       this.settings.save();
     } else if (message.cmd === 'set-zoom') {
-      this.sendToActive(message);
+      this.sendToFrame(message, message.targetFrame);      
     } else if (message.cmd === 'has-video') {
       this.server.registerVideo(port.sender);
     } else if (message.cmd === 'noVideo') {
