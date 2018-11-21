@@ -86,7 +86,6 @@ function loadFrames(videoTab) {
     tablist['siteSettings'].insertSubitem(newItem);
     tablist['videoSettings'].insertSubitem(newItem);
   }
-  console.log("SELECTED SUBITEM — FIRST:", selectedSubitem)
 
   if (! selectedSubitem.siteSettings) {
     selectedSubitem['siteSettings'] = tablist['siteSettings'].selectFirstSubitem();
@@ -98,8 +97,6 @@ function loadFrames(videoTab) {
   } else {
     tablist['videoSettings'].selectSubitem(selectedSubitem.videoSettings);
   }
-
-  console.log("SELECTED SUBITEMT:", selectedSubitem)
 }
 
 //#endregion
