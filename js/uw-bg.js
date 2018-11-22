@@ -203,6 +203,9 @@ class UWServer {
   }
 
   setSelectedTab(menu, subitem) {
+    if (Debug.debug && Debug.comms) {
+      console.log("[uw-bg::setSelectedTab] saving selected tab for", menu, ":", subitem)
+    }
     this.selectedSubitem[menu] = subitem;
   }
 
@@ -210,7 +213,10 @@ class UWServer {
     // friendly reminder: if current tab doesn't have a video, 
     // there won't be anything in this.videoTabs[this.currentTabId]
     if (this.videoTabs[this.currentTabId]) {
-      return this.videoTabs[this.currentTabId];
+      return {
+        ...this.videoTabs[this.currentTabId],
+        selected: this.selectedSubitem 
+      };
     }
 
     // return something more or less empty if this tab doesn't have 
