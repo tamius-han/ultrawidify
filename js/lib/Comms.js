@@ -309,6 +309,9 @@ class CommsServer {
     if (message.cmd === 'get-current-site') {
       port.postMessage({cmd: 'set-current-site', site: this.server.getVideoTab(), tabHostname: await this.getCurrentTabHostname()});
     }
+    if (message.cmd === 'set-selected-tab') {
+      this.server.setSelectedTab(cmd.selectedMenu, cmd.selectedSubitem);
+    }
 
     if (message.cmd === 'get-config') {
       if(Debug.debug) {

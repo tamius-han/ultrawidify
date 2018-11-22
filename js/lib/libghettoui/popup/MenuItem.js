@@ -33,6 +33,16 @@ class MenuItem extends BaseElement {
       }
     }
   }
+
+  existsSubitem(subitemName) {
+    for(let item of this.subitemList) {
+      if (item.name === subitemName) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   selectFirstSubitem() {
     for(let item of this.subitemList) {
       item.unselect();

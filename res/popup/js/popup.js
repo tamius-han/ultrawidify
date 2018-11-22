@@ -32,6 +32,7 @@ port.onMessage.addListener( (m,p) => processReceivedMessage(m,p));
 
 var _video_settings_tab_items = [];
 
+var selectedSubitemLoaded = false;
 
 //#region build ui
 var tablist = {
@@ -46,16 +47,22 @@ for (let t in tablist) {
 }
 
 
-
-
 function loadFrames(videoTab) {
   tablist['siteSettings'].removeSubitems();
   tablist['videoSettings'].removeSubitems();
 
+  console.log("VIDEO TAB", videoTab)
+  if (!selectedSubitemLoaded) {
+    if (videoTab.selected) {
+      selectedSubitem = videoTab.selected;
+      selectedSubitemLoaded = true;
+    }
+  }
 
   function onTabitemClick(item) {
     tablist[selectedMenu].selectSubitem(item);
     selectedSubitem[selectedMenu] = item;
+    port.postMessage({cmd: 'select-tab', selectedMenu: selectedMenu, selectedSubitem: item});
   }
 
   for (var option of [{id: '__playing', label: 'Currently playing'}, {id: '__all', label: 'All'}]) {
@@ -87,12 +94,14 @@ function loadFrames(videoTab) {
     tablist['videoSettings'].insertSubitem(newItem);
   }
 
-  if (! selectedSubitem.siteSettings) {
+  console.log("TIME TO SELECT SUBITEM", selectedSubitem, "\nexists subitem in site settings/video settings?", selectedSubitem && tablist['siteSettings'].existsSubitem(selectedSubitem.siteSettings), selectedSubitem && tablist['videoSettings'].existsSubitem(selectedSubitem.videoSettings))
+
+  if (! selectedSubitem.siteSettings || !tablist['siteSettings'].existsSubitem(selectedSubitem.siteSettings)) {
     selectedSubitem['siteSettings'] = tablist['siteSettings'].selectFirstSubitem();
   } else {
     tablist['siteSettings'].selectSubitem(selectedSubitem.siteSettings)
   }
-  if (! selectedSubitem.videoSettings) {
+  if (! selectedSubitem.videoSettings || !tablist['videoSettings'].existsSubitem(selectedSubitem.videoSettings)) {
     selectedSubitem['videoSettings'] = tablist['videoSettings'].selectFirstSubitem();
   } else {
     tablist['videoSettings'].selectSubitem(selectedSubitem.videoSettings);
