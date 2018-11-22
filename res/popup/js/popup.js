@@ -62,7 +62,7 @@ function loadFrames(videoTab) {
   function onTabitemClick(item) {
     tablist[selectedMenu].selectSubitem(item);
     selectedSubitem[selectedMenu] = item;
-    port.postMessage({cmd: 'select-tab', selectedMenu: selectedMenu, selectedSubitem: item});
+    port.postMessage({cmd: 'popup-set-selected-tab', selectedMenu: selectedMenu, selectedSubitem: item});
   }
 
   for (var option of [{id: '__playing', label: 'Currently playing'}, {id: '__all', label: 'All'}]) {
@@ -98,11 +98,13 @@ function loadFrames(videoTab) {
 
   if (! selectedSubitem.siteSettings || !tablist['siteSettings'].existsSubitem(selectedSubitem.siteSettings)) {
     selectedSubitem['siteSettings'] = tablist['siteSettings'].selectFirstSubitem();
+    console.log("selected first subitem!")
   } else {
     tablist['siteSettings'].selectSubitem(selectedSubitem.siteSettings)
   }
   if (! selectedSubitem.videoSettings || !tablist['videoSettings'].existsSubitem(selectedSubitem.videoSettings)) {
     selectedSubitem['videoSettings'] = tablist['videoSettings'].selectFirstSubitem();
+    console.log("selected first subitem (vs)!")
   } else {
     tablist['videoSettings'].selectSubitem(selectedSubitem.videoSettings);
   }
@@ -760,6 +762,8 @@ document.addEventListener("click", (e) => {
   }
   
   var command = getcmd(e);
+  if (!command)
+    return;
   command.targetFrame = selectedSubitem[selectedMenu]
 
   if(Debug.debug) {
