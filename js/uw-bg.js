@@ -16,6 +16,11 @@ class UWServer {
     this.videoTabs = {};
     this.currentTabId = 0;
     this._gctimeout = undefined;
+
+    this.selectedSubitem = {
+      'siteSettings': undefined,
+      'videoSettings': undefined,
+    }
   }
 
   async setup() {
@@ -100,6 +105,11 @@ class UWServer {
 
     if(Debug.debug) {
       console.log("TAB SWITCHED!", this.currentSite)
+    }
+
+    this.selectedSubitem = {
+      'siteSettings': undefined,
+      'videoSettings': undefined,
     }
     //TODO: change extension icon based on whether there's any videos on current page
   }
@@ -192,6 +202,10 @@ class UWServer {
     }
   }
 
+  setSelectedTab(menu, subitem) {
+    this.selectedSubitem[menu] = subitem;
+  }
+
   getVideoTab() {
     // friendly reminder: if current tab doesn't have a video, 
     // there won't be anything in this.videoTabs[this.currentTabId]
@@ -203,7 +217,8 @@ class UWServer {
     // a video registered for it
     return {
       host: this.currentSite,
-      frames: []
+      frames: [],
+      selected: this.selectedSubitem
     }
   }
 }
