@@ -247,6 +247,14 @@ function processButtonsForPopupCategory(category, buttons) {
 }
 
 function configureGlobalTab() {
+  const popupButtons = settings.getActionsForSite(site).filter(action => action.popup_global === true); 
+
+  const stretchButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-stretch');
+  const alignButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-alignment');
+
+  processButtonsForPopupCategory(VideoPanel.elements.stretchSettings, stretchButtons);
+  processButtonsForPopupCategory(VideoPanel.elements.alignmentSettings, alignButtons);
+
   return; // todo: revisit
   if (Debug.debug) {
     console.log("[popup.js] Configuring global tab (ExtPanel).",
@@ -278,7 +286,7 @@ function configureGlobalTab() {
 }
 
 function configureSitesTab(site) {
-  const popupButtons = settings.getActionsForSite(site).filter(action => action.popup === true); 
+  const popupButtons = settings.getActionsForSite(site).filter(action => action.popup_site === true); 
 
   const stretchButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-stretch');
   const alignButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-alignment');
