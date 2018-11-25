@@ -185,26 +185,6 @@ function configurePopupTabs(site) {
     showMenu(selectedMenu);
   }
   return;
-  // todo: this can potentially be removed
-
-  // Determine which tabs can we touch.
-  // If extension is disabled, we can't touch 'site settings' and 'video settings'
-  // If extension is enabled, but site is disabled, we can't touch 'video settings'
-  var extensionEnabled = settings.extensionEnabled();
-  var extensionEnabledForSite = settings.extensionEnabledForSite(site);
-
-
-  if (extensionEnabledForSite || extensionEnabled) {
-    tablist['videoSettings'].enable();
-  } else {
-    tablist['videoSettings'].disable();
-  }
-
-  // if popup isn't being opened for the first time, there's no reason to switch
-  // we're already in this tab
-  if (!selectedMenu) {
-    showMenu('videoSettings');
-  }
 }
 
 
@@ -298,6 +278,14 @@ function configureGlobalTab() {
 }
 
 function configureSitesTab(site) {
+  const popupButtons = settings.getActionsForSite(site).filter(action => action.popup === true); 
+
+  const stretchButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-stretch');
+  const alignButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-alignment');
+
+  processButtonsForPopupCategory(VideoPanel.elements.stretchSettings, stretchButtons);
+  processButtonsForPopupCategory(VideoPanel.elements.alignmentSettings, alignButtons);
+
   return; // todo: revisit
   if (Debug.debug) {
     console.log("[popup.js] Configuring sites tab (SitePanel).",

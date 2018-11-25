@@ -27,52 +27,31 @@
       <div id="_menu_settings_ext" class="suboption hidden">
         <p>These settings can be overriden on per-site basis.</p>
         <div class="row">
-          <span class="label">Enable this extension:<br/>
-            <small>By default, extension will only work on fullscreen videos.</small></span>
-          <div class="button-row">
-            <a id="_ext_global_options_blacklist" class="button _ext _ext_global_options_basic _blacklist">Always</a>
-            <a id="_ext_global_options_whitelist" class="button _ext _ext_global_options_basic _whitelist">On whitelisted sites</a>
-            <a id="_ext_global_options_disabled"  class="button _ext _ext_global_options_basic _disabled" >Never</a>
+
+          <div id="_menu_settings_site_status" class="row">
+            <span class="label experimental">Extension status</span>
+            <div id="_menu_settings_global_status_buttons" class="button-row">
+            </div>
+          </div>
+    
+          <div id="_menu_settings_site_autoar" class="row">
+            <span class="label experimental">Automatic detection</span>
+            <div id="_menu_settings_global_autoar_buttons" class="button-row">
+            </div>
           </div>
 
-          <span class="label">Enable advanced mode:<br/>
-            <small>In advanced mode, extension will also try to correct video aspect ratio when not in full screen. Useful for e.g. theater mode on youtube.</small></span>
-          <div class="button-row">
-            <a id="_ext_global_options_blacklist" class="button _ext _ext_global_options _blacklist">Always</a>
-            <a id="_ext_global_options_whitelist" class="button _ext _ext_global_options _whitelist">On whitelisted sites</a>
-            <a id="_ext_global_options_disabled"  class="button _ext _ext_global_options _disabled" >Never</a>
+            
+          <!-- STRETCH STUFF -->
+          <div id="_menu_settings_global_stretch" class="row">
+            <span class="label experimental">Stretching mode</span>
+            <div id="_menu_settings_global_stretch_buttons" class="button-row">
+            </div>
           </div>
-
-          <div id="_ext_only_when_ext_enabled">
-            <div class="row">
-              <span class="label">Enable autodetection:</span>
-              <div class="button-row">
-                <a id="_ar_global_options_blacklist" class="button _autoAr _ar_global_options _blacklist">Always</a>
-                <a id="_ar_global_options_whitelist" class="button _autoAr _ar_global_options _whitelist">On whitelisted sites</a>
-                <a id="_ar_global_options_disabled"  class="button _autoAr _ar_global_options _disabled" >Never</a>
-              </div>
-            </div>
-
-            <!-- TODO: default aspect ratio settings -->
-
-            <div class="row">
-              <span class="label experimental">Default stretching mode</span>
-              <div class="button-row">
-                <a id="_stretch_global_none"        class="button _stretch _ar_stretch_global _none w24">Never<br/><span id="_b_stretch_default_none_key" class="smallcaps small darker"></span></a>
-                <a id="_stretch_global_basic"       class="button _stretch _ar_stretch_global _basic w24">Basic<br/><span id="_b_stretch_default_basic_key" class="smallcaps small darker"></span></a>            
-                <a id="_stretch_global_hybrid"      class="button _stretch _ar_stretch_global _hybrid w24">Hybrid<br/><span id="_b_stretch_default_hybrid_key" class="smallcaps small darker"></span></a>
-                <a id="_stretch_global_conditional" class="button _stretch _ar_stretch_global _conditional w24">Thin borders<br/><span id="_b_stretch_default_conditional_key" class="smallcaps small darker"></span></a>
-              </div>
-            </div>
-
-            <!-- VIDEO ALIGNMENT -->
-            <div class="row">
-              <span class="label">Video alignment:</span>
-              <div class="button-row">
-                <a id="_align_ext_left"   class="button _align_ext _align_ext_left">Left</a>
-                <a id="_align_ext_center" class="button _align_ext _align_ext_center">Center</a>
-                <a id="_align_ext_right"  class="button _align_ext _align_ext_right">Right</a>
-              </div>
+    
+          <!-- VIDEO ALIGNMENT -->
+          <div id="_menu_settings_global_alignment" class="row">
+            <span class="label">Video alignment:</span>
+            <div id="_menu_settings_global_alignment_buttons" class="button-row">
             </div>
           </div>
         </div>
@@ -89,40 +68,29 @@
           </div>
         </div>
 
-        <!-- things that are disabled if site is disabled -->
-        <div id="_site_only_when_site_enabled">
-          <div class="row">
-            <span class="label">Automatic detection:</span>
-            <div class="button-row">
-              <a id="_ar_site_options_enabled"  class="button _autoAr _ar_site_options _enabled" >Whitelist</a>
-              <a id="_ar_site_options_default"  class="button _autoAr _ar_site_options _default" >Default</a>
-              <a id="_ar_site_options_disabled" class="button _autoAr _ar_site_options _disabled">Blacklist</a>
-            </div>
+        <div id="_menu_settings_site_status" class="row">
+          <span class="label experimental">Extension status for this site</span>
+          <div id="_menu_settings_site_status_buttons" class="button-row">
           </div>
+        </div>
+
+        <div id="_menu_settings_site_autoar" class="row">
+          <span class="label experimental">Automatic detection</span>
+          <div id="_menu_settings_site_autoar_buttons" class="button-row">
+          </div>
+        </div>
         
-          <!-- TODO: default aspect ratio, default settings -->
-
-          <!-- STRETCH MODE -->
-          <div class="row">
-            <span class="label experimental">Default stretching mode</span>
-            <div class="button-row">
-              <a id="_stretch_site_none"        class="button _stretch _ar_stretch_site _none w24">Never<br/><span id="_b_stretch_default_none_key" class="smallcaps small darker"></span></a>
-              <a id="_stretch_site_basic"       class="button _stretch _ar_stretch_site _basic w24">Basic<br/><span id="_b_stretch_default_basic_key" class="smallcaps small darker"></span></a>            
-              <a id="_stretch_site_hybrid"      class="button _stretch _ar_stretch_site _hybrid w24">Hybrid<br/><span id="_b_stretch_default_hybrid_key" class="smallcaps small darker"></span></a>
-              <a id="_stretch_site_conditional" class="button _stretch _ar_stretch_site _conditional w24">Thin borders<br/><span id="_b_stretch_default_conditional_key" class="smallcaps small darker"></span></a>
-              <a id="_stretch_site_default"     class="button _stretch _ar_stretch_site _default w24">Default<br/><span id="_b_stretch_default_conditional_key" class="smallcaps small darker"></span></a>
-            </div>
+        <!-- STRETCH STUFF -->
+        <div id="_menu_settings_site_stretch" class="row">
+          <span class="label experimental">Stretching mode</span>
+          <div id="_menu_settings_site_stretch_buttons" class="button-row">
           </div>
-
-          <!-- VIDEO ALIGNMENT -->
-          <div class="row">
-            <span class="label">Video alignment:</span>
-            <div class="button-row">
-              <a id="_align_site_left"   class="button _align_site _align_site_left">Left</a>
-              <a id="_align_site_center" class="button _align_site _align_site_center">Center</a>
-              <a id="_align_site_right"  class="button _align_site _align_site_right">Right</a>
-              <a id="_align_site_default"class="button _align_site _align_site_default">Default</a>
-            </div>
+        </div>
+  
+        <!-- VIDEO ALIGNMENT -->
+        <div id="_menu_settings_site_alignment" class="row">
+          <span class="label">Video alignment:</span>
+          <div id="_menu_settings_site_alignment_buttons" class="button-row">
           </div>
         </div>
       </div>

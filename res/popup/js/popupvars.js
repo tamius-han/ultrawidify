@@ -58,6 +58,49 @@ SitePanel.stretch['2']         = document.getElementById("_stretch_site_hybrid")
 SitePanel.stretch['3']         = document.getElementById("_stretch_site_conditional")
 //#endregion
 
+//#region GlobalPanel
+var GlobalPanel = {};
+GlobalPanel.elements = {};
+GlobalPanel.elements.extensionSettings = {
+  container: BaseElement.fromExisting(document.getElementById('_menu_settings_global_status')),
+  buttonContainer: BaseElement.fromExisting(document.getElementById('_menu_settings_global_status_buttons'))
+}
+GlobalPanel.elements.autoarSettings = {
+  container: BaseElement.fromExisting(document.getElementById('_menu_settings_global_autoar')),
+  buttonContainer: BaseElement.fromExisting(document.getElementById('_menu_settings_global_autoar_buttons'))
+}
+GlobalPanel.elements.stretchSettings = {
+  container: BaseElement.fromExisting(document.getElementById('_menu_settings_global_crop')),
+  buttonContainer: BaseElement.fromExisting(document.getElementById('_menu_settings_global_stretch_buttons'))
+}
+GlobalPanel.elements.alignmentSettings = {
+  container: BaseElement.fromExisting(document.getElementById('_menu_settings_global_alignment')),
+  buttonContainer: BaseElement.fromExisting(document.getElementById('_menu_settings_global_alignment_buttons'))
+}
+//#endregion
+
+//#region SitePanel
+var SitePanel = {};
+GlobalPanel.elements = {};
+GlobalPanel.elements.extensionSettings = {
+  container: BaseElement.fromExisting(document.getElementById('_menu_settings_site_status')),
+  buttonContainer: BaseElement.fromExisting(document.getElementById('_menu_settings_site_status_buttons'))
+}
+GlobalPanel.elements.autoarSettings = {
+  container: BaseElement.fromExisting(document.getElementById('_menu_settings_site_autoar')),
+  buttonContainer: BaseElement.fromExisting(document.getElementById('_menu_settings_site_autoar_buttons'))
+}
+GlobalPanel.elements.stretchSettings = {
+  container: BaseElement.fromExisting(document.getElementById('_menu_settings_site_crop')),
+  buttonContainer: BaseElement.fromExisting(document.getElementById('_menu_settings_site_crop_buttons'))
+};
+GlobalPanel.elements.alignmentSettings = {
+  container: BaseElement.fromExisting(document.getElementById('_menu_settings_site_alignment')),
+  buttonContainer: BaseElement.fromExisting(document.getElementById('_menu_settings_site_alignment_buttons'))
+};
+//#endregion
+
+
 
 //#region VideoPanel
 var VideoPanel = {};
