@@ -1,5 +1,6 @@
 //#region GlobalPanel
 var GlobalPanel = {};
+GlobalPanel.container = BaseElement.fromExisting(document.getElementById('_menu_settings_global'))
 GlobalPanel.elements = {};
 GlobalPanel.elements.extensionSettings = {
   container: BaseElement.fromExisting(document.getElementById('_menu_settings_global_status')),
@@ -21,20 +22,21 @@ GlobalPanel.elements.alignmentSettings = {
 
 //#region SitePanel
 var SitePanel = {};
-GlobalPanel.elements = {};
-GlobalPanel.elements.extensionSettings = {
+SitePanel.elements = {};
+SitePanel.container = BaseElement.fromExisting(document.getElementById('_menu_settings_site'))
+SitePanel.elements.extensionSettings = {
   container: BaseElement.fromExisting(document.getElementById('_menu_settings_site_status')),
   buttonContainer: BaseElement.fromExisting(document.getElementById('_menu_settings_site_status_buttons'))
 }
-GlobalPanel.elements.autoarSettings = {
+SitePanel.elements.autoarSettings = {
   container: BaseElement.fromExisting(document.getElementById('_menu_settings_site_autoar')),
   buttonContainer: BaseElement.fromExisting(document.getElementById('_menu_settings_site_autoar_buttons'))
 }
-GlobalPanel.elements.stretchSettings = {
+SitePanel.elements.stretchSettings = {
   container: BaseElement.fromExisting(document.getElementById('_menu_settings_site_crop')),
   buttonContainer: BaseElement.fromExisting(document.getElementById('_menu_settings_site_crop_buttons'))
 };
-GlobalPanel.elements.alignmentSettings = {
+SitePanel.elements.alignmentSettings = {
   container: BaseElement.fromExisting(document.getElementById('_menu_settings_site_alignment')),
   buttonContainer: BaseElement.fromExisting(document.getElementById('_menu_settings_site_alignment_buttons'))
 };
@@ -45,6 +47,7 @@ GlobalPanel.elements.alignmentSettings = {
 //#region VideoPanel
 var VideoPanel = {};
 VideoPanel.elements = {};
+VideoPanel.container = BaseElement.fromExisting(document.getElementById('_menu_settings_video'))
 VideoPanel.elements.cropSettings = {
   container: BaseElement.fromExisting(document.getElementById('_menu_settings_video_crop')),
   buttonContainer: BaseElement.fromExisting(document.getElementById('_menu_settings_video_crop_buttons'))
@@ -80,3 +83,11 @@ VideoPanel.labels.zoomLevel        = document.getElementById("_label_zoom_level"
 VideoPanel.misc = {};
 VideoPanel.misc.zoomShortcuts      = document.getElementById("_zoom_shortcuts");
 //#endregion
+
+
+//#region about
+var AboutPanel = {};
+AboutPanel.container = BaseElement.fromExisting(document.getElementById('_menu_about'))
+
+//#endregion
+

@@ -36,14 +36,26 @@ var selectedSubitemLoaded = false;
 
 //#region build ui
 var tablist = {
-  'extensionSettings': new MenuItem('_menu_item_settings_ext', 'Extension settings', '', () => showMenu('extensionSettings')),
-  'siteSettings': new MenuItem('_menu_item_settings_site', 'Site settings', 'Settings for current site', () => showMenu('siteSettings')),
-  'videoSettings': new MenuItem('_menu_item_settings_video', 'Video settings', 'Crop & stretch options for videos on current page', () => showMenu('videoSettings')),
-  'about': new MenuItem('_menu_item_about', 'About Ultrawidify', '', () => showMenu('about'))
+  'extensionSettings': {
+    tab: new MenuItem('_menu_item_settings_ext', 'Extension settings', '', () => showMenu('extensionSettings')),
+    container: GlobalPanel.container,
+  },
+  'siteSettings': {
+    tab: new MenuItem('_menu_item_settings_site', 'Site settings', 'Settings for current site', () => showMenu('siteSettings')),
+    container: SitePanel.container
+  },
+  'videoSettings': {
+    tab: new MenuItem('_menu_item_settings_video', 'Video settings', 'Crop & stretch options for videos on current page', () => showMenu('videoSettings')),
+    container: VideoPanel.container
+  },
+  'about': {
+    tab: new MenuItem('_menu_item_about', 'About Ultrawidify', '', () => showMenu('about')),
+    container: AboutPanel.container
+  }
 };
 
 for (let t in tablist) {
-  tablist[t].appendTo(document.getElementById('tablist'));
+  tablist[t].tab.appendTo(document.getElementById('tablist'));
 }
 
 
@@ -60,7 +72,7 @@ function loadFrames(videoTab) {
   }
 
   function onTabitemClick(item) {
-    tablist[selectedMenu].selectSubitem(item);
+    tablist[selectedMenu].tab.selectSubitem(item);
     selectedSubitem[selectedMenu] = item;
     port.postMessage({cmd: 'popup-set-selected-tab', selectedMenu: selectedMenu, selectedSubitem: item});
   }
@@ -75,8 +87,8 @@ function loadFrames(videoTab) {
       () => onTabitemClick(id)
     );
 
-    tablist['siteSettings'].insertSubitem(newItem);
-    tablist['videoSettings'].insertSubitem(newItem);
+    tablist['siteSettings'].tab.insertSubitem(newItem);
+    tablist['videoSettings'].tab.insertSubitem(newItem);
   }
 
 
@@ -90,27 +102,25 @@ function loadFrames(videoTab) {
       (click) => onTabitemClick(nid)
     );
     
-    tablist['siteSettings'].insertSubitem(newItem);
-    tablist['videoSettings'].insertSubitem(newItem);
+    tablist['siteSettings'].tab.insertSubitem(newItem);
+    tablist['videoSettings'].tab.insertSubitem(newItem);
   }
 
   console.log("TIME TO SELECT SUBITEM", selectedSubitem, "\nexists subitem in site settings/video settings?", selectedSubitem && tablist['siteSettings'].existsSubitem(selectedSubitem.siteSettings), selectedSubitem && tablist['videoSettings'].existsSubitem(selectedSubitem.videoSettings))
 
-  if (! selectedSubitem.siteSettings || !tablist['siteSettings'].existsSubitem(selectedSubitem.siteSettings)) {
-    selectedSubitem['siteSettings'] = tablist['siteSettings'].selectFirstSubitem();
+  if (! selectedSubitem.siteSettings || !tablist['siteSettings'].tab.existsSubitem(selectedSubitem.siteSettings)) {
+    selectedSubitem['siteSettings'] = tablist['siteSettings'].tab.selectFirstSubitem();
     console.log("selected first subitem!")
   } else {
-    tablist['siteSettings'].selectSubitem(selectedSubitem.siteSettings)
+    tablist['siteSettings'].tab.selectSubitem(selectedSubitem.siteSettings)
   }
-  if (! selectedSubitem.videoSettings || !tablist['videoSettings'].existsSubitem(selectedSubitem.videoSettings)) {
-    selectedSubitem['videoSettings'] = tablist['videoSettings'].selectFirstSubitem();
+  if (! selectedSubitem.videoSettings || !tablist['videoSettings'].tab.existsSubitem(selectedSubitem.videoSettings)) {
+    selectedSubitem['videoSettings'] = tablist['videoSettings'].tab.selectFirstSubitem();
     console.log("selected first subitem (vs)!")
   } else {
-    tablist['videoSettings'].selectSubitem(selectedSubitem.videoSettings);
+    tablist['videoSettings'].tab.selectSubitem(selectedSubitem.videoSettings);
   }
 }
-
-//#endregion
 
 async function processReceivedMessage(message, port){
   if (Debug.debug) {
@@ -445,18 +455,24 @@ function openMenu(menu){
 }
 
 function showMenu(tab) {
+  if(Debug.debug) {
+    console.log("[popup.js::showMenu] opening menu", tab, "tablist?", tablist)
+  }
   if (!tablist) {
     // todo: fix & remove this
     return;
   }
   for (const i in tablist) {
-    tablist[i].unselect();
-    tablist[i].hideSubitems();
+    tablist[i].tab.unselect();
+    tablist[i].tab.hideSubitems();
+    tablist[i].container.hide();
   }
-  tablist[tab].select();
-  tablist[tab].showSubitems();
+  tablist[tab].tab.select();
+  tablist[tab].tab.showSubitems();
+  tablist[tab].container.show();
 
   // todo: display the correct tab 
+
 
   selectedMenu = tab;
 }
