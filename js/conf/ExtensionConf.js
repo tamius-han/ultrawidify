@@ -401,7 +401,7 @@ var ExtensionConf = {
   {
     cmd: [{
       action: 'set-stretch',
-      arg: 'NO_STRETCH',
+      arg: 0,
     }],
     popup: true,
     popup_site: true,
@@ -411,7 +411,7 @@ var ExtensionConf = {
   },{
     cmd: [{
       action: 'set-stretch',
-      arg: 'BASIC',
+      arg: 1,
     }],
     popup: true,
     popup_site: true,
@@ -421,7 +421,7 @@ var ExtensionConf = {
   },{
     cmd: [{
       action: 'set-stretch',
-      arg: 'HYBRID',
+      arg: 2,
     }],
     popup: true,
     popup_site: true,
@@ -431,7 +431,7 @@ var ExtensionConf = {
   },{
     cmd: [{
       action: 'set-stretch',
-      arg: 'CONDITIONAL',
+      arg: 3,
     }],
     popup: true,
     popup_site: true,

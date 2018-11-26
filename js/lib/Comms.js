@@ -71,7 +71,7 @@ class CommsClient {
       this.pageInfo.setVideoFloat(message.arg, message.playing);
       this.pageInfo.restoreAr();
     } else if (message.cmd === "set-stretch") {
-      this.pageInfo.setStretchMode(StretchMode[message.arg], message.playing);
+      this.pageInfo.setStretchMode(message.arg, message.playing);
     } else if (message.cmd === "autoar-start") {
       if (message.enabled !== false) {
         this.pageInfo.initArDetection(message.playing);
