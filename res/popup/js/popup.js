@@ -195,12 +195,13 @@ function configurePopupTabs(site) {
 
 
 
-function basicCommandHandler(cmdArray) {
+function basicCommandHandler(cmdArray, scope) {
   for (cmd of cmdArray) {
     port.postMessage({
       cmd: cmd.action,
       arg: cmd.arg,
-      targetFrame: selectedSubitem[selectedMenu]
+      targetFrame: selectedSubitem[selectedMenu],
+      scope: scope
     });
   }
 }
@@ -225,10 +226,11 @@ function buildKeyboardShortcutString(keypress) {
   return shortcutCombo;
 } 
 
-function processButtonsForPopupCategory(category, buttons) {
+function processButtonsForPopupCategory(category, buttons, scope) {
   if (buttons.length === 0) {
     category.container.hide();
   } else {
+    category.buttons = {};
     category.buttonContainer.removeChildren();
     category.container.show();
     category.buttonContainer.show();
@@ -244,12 +246,30 @@ function processButtonsForPopupCategory(category, buttons) {
         '',
         button.label,
         shortcutCombo,
-        () => basicCommandHandler(cmd),
+        () => basicCommandHandler(cmd, scope),
         ['w24']
       )
       nb.appendTo(category.buttonContainer);
+
+      var buttonId = '';
+      for (var c in cmd) {
+        buttonId += `${c > 0 ? ';' : ''}${cmd[c].action}:${cmd[c].arg}`;
+      }
+      category.buttons[buttonId] = nb;
     }
   }
+}
+
+function selectButton(action, arg, buttons) {
+  for (var b in buttons) {
+    buttons[b].unselect();
+  }
+  const cmd=`${action}:${arg}`
+  
+  if (buttons[cmd]) {
+    buttons[cmd].select();
+  }
+  console.log("SSSSSSSSSSSSSSSSSSS\nselecting button:", cmd, "\nbuttons", buttons)
 }
 
 function configureGlobalTab() {
@@ -258,37 +278,15 @@ function configureGlobalTab() {
   const stretchButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-stretch');
   const alignButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-alignment');
 
-  processButtonsForPopupCategory(VideoPanel.elements.stretchSettings, stretchButtons);
-  processButtonsForPopupCategory(VideoPanel.elements.alignmentSettings, alignButtons);
+  processButtonsForPopupCategory(GlobalPanel.elements.stretchSettings, stretchButtons);
+  processButtonsForPopupCategory(GlobalPanel.elements.alignmentSettings, alignButtons);
+
+  selectButton('set-stretch', settings.active.stretch.initialMode, GlobalPanel.elements.stretchSettings.buttons);
+  selectButton('set-alignment', settings.active.miscFullscreenSettings.videoFloat, GlobalPanel.elements.alignmentSettings.buttons);
 
   return; // todo: revisit
-  if (Debug.debug) {
-    console.log("[popup.js] Configuring global tab (ExtPanel).",
-    "\nextension mode:  ", settings.active.extensionMode,
-    "\narDetect mode:   ", settings.active.arDetect.mode,
-    "\nvideo float mode:", settings.active.miscFullscreenSettings.videoFloat,
-    "\nstretch mode:    ", settings.active.stretch.initialMode,
-    "\n..")
-  }
-
-
-  for(var button in ExtPanel.extOptions) {
-    ExtPanel.extOptions[button].classList.remove("selected");
-  }
-  for(var button in ExtPanel.arOptions) {
-    ExtPanel.arOptions[button].classList.remove("selected");
-  }
-  for(var button in ExtPanel.alignment) {
-    ExtPanel.alignment[button].classList.remove("selected");
-  }
-  for(var button in ExtPanel.stretch) {
-    ExtPanel.stretch[button].classList.remove("selected");
-  }
-
   ExtPanel.extOptions[settings.active.extensionMode].classList.add("selected");
   ExtPanel.arOptions[settings.active.arDetect.mode].classList.add("selected");
-  ExtPanel.alignment[settings.active.miscFullscreenSettings.videoFloat].classList.add("selected");
-  ExtPanel.stretch[settings.active.stretch.initialMode].classList.add("selected");
 }
 
 function configureSitesTab(site) {
@@ -297,20 +295,23 @@ function configureSitesTab(site) {
   const stretchButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-stretch');
   const alignButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-alignment');
 
-  processButtonsForPopupCategory(VideoPanel.elements.stretchSettings, stretchButtons);
-  processButtonsForPopupCategory(VideoPanel.elements.alignmentSettings, alignButtons);
+  processButtonsForPopupCategory(SitePanel.elements.stretchSettings, stretchButtons, 'site');
+  processButtonsForPopupCategory(SitePanel.elements.alignmentSettings, alignButtons, 'site');
+
+  // optional settings:
+  if(settings.active.sites[site.host] && settings.active.sites[site.host].stretch !== undefined) {  // can be 0
+    selectButton('set-stretch', settings.active.sites[site.host].stretch, SitePanel.elements.stretchSettings.buttons)
+  } else {
+    selectButton('set-stretch', -1, SitePanel.elements.stretchSettings.buttons)
+  }
+
+  if (settings.active.sites[site.host] && settings.active.sites[site.host].videoAlignment) {
+    selectButton('set-alignment', settings.active.sites[site.host].videoAlignment, SitePanel.elements.alignmentSettings.buttons);
+  } else {
+    selectButton('set-alignment', 'default', SitePanel.elements.alignmentSettings.buttons);
+  }
 
   return; // todo: revisit
-  if (Debug.debug) {
-    console.log("[popup.js] Configuring sites tab (SitePanel).",
-    "\nsite:            ", site,
-    "\nextension mode:    ", settings.active.sites[site.host] ? settings.active.sites[site.host].status : 'no site-special settings for this site',
-    "\narDetect mode:   ", settings.active.sites[site.host] ? settings.active.sites[site.host].arStatus : 'no site-special settings for this site',
-    "\nvideo float mode:", settings.active.sites[site.host] ? settings.active.sites[site.host].videoFloat : 'no site-special settings for this site',
-    "\ndefault ar:      ", settings.active.sites[site.host] ? settings.active.sites[site.host].ar : 'no site-special settings for this site',
-    "\nstretch mode:    ", settings.active.sites[site.host] ? settings.active.sites[site.host].stretch : 'no site-special settings for this site',
-    "\n...")
-  }
 
   for(const button in SitePanel.extOptions) {
     SitePanel.extOptions[button].classList.remove("selected");
@@ -334,18 +335,7 @@ function configureSitesTab(site) {
     SitePanel.arOptions.default.classList.add("selected");
   }
 
-  // optional settings:
-  if (settings.active.sites[site.host] && settings.active.sites[site.host].videoAlignment) {
-    SitePanel.alignment[settings.active.sites[site.host].videoAlignment].classList.add("selected");
-  } else {
-    SitePanel.alignment.default.classList.add('selected');
-  }
 
-  if(settings.active.sites[site.host] && settings.active.sites[site.host].stretch !== undefined) {  // can be 0
-    SitePanel.stretch[settings.active.sites[site.host].stretch].classList.add("selected");
-  } else {
-    SitePanel.stretch['-1'].classList.add("selected");
-  }
 }
 
 function configureVideoTab(site) {
