@@ -275,28 +275,43 @@ function selectButton(action, arg, buttons) {
 function configureGlobalTab() {
   const popupButtons = settings.getActionsForSite(site).filter(action => action.popup_global === true); 
 
+  const extensionButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-extension-mode');
+  const autoarButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-autoar-mode');
   const stretchButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-stretch');
   const alignButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-alignment');
 
+  processButtonsForPopupCategory(GlobalPanel.elements.extensionSettings, extensionButtons, 'site');
+  processButtonsForPopupCategory(GlobalPanel.elements.autoarSettings, autoarButtons, 'site');
   processButtonsForPopupCategory(GlobalPanel.elements.stretchSettings, stretchButtons);
   processButtonsForPopupCategory(GlobalPanel.elements.alignmentSettings, alignButtons);
 
   selectButton('set-stretch', settings.active.stretch.initialMode, GlobalPanel.elements.stretchSettings.buttons);
   selectButton('set-alignment', settings.active.miscFullscreenSettings.videoFloat, GlobalPanel.elements.alignmentSettings.buttons);
 
-  return; // todo: revisit
-  ExtPanel.extOptions[settings.active.extensionMode].classList.add("selected");
-  ExtPanel.arOptions[settings.active.arDetect.mode].classList.add("selected");
+  selectButton('set-extension-mode', settings.active.extensionMode, GlobalPanel.elements.extensionSettings.buttons);
+  selectButton('set-extension-mode', settings.active.arDetect.mode, GlobalPanel.elements.autoarSettings.buttons);
 }
 
 function configureSitesTab(site) {
   const popupButtons = settings.getActionsForSite(site).filter(action => action.popup_site === true); 
 
+  const extensionButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-extension-mode');
+  const autoarButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-autoar-mode');
   const stretchButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-stretch');
   const alignButtons = popupButtons.filter(action => action.cmd.length === 1 && action.cmd[0].action === 'set-alignment');
 
+  processButtonsForPopupCategory(SitePanel.elements.extensionSettings, extensionButtons, 'site');
+  processButtonsForPopupCategory(SitePanel.elements.autoarSettings, autoarButtons, 'site');
   processButtonsForPopupCategory(SitePanel.elements.stretchSettings, stretchButtons, 'site');
   processButtonsForPopupCategory(SitePanel.elements.alignmentSettings, alignButtons, 'site');
+
+  if (settings.active.sites[site.host] && settings.active.sites[site.host]) {
+    selectButton('set-extension-mode', settings.active.sites[site.host].status, SitePanel.elements.extensionSettings.buttons);
+    selectButton('set-autoar-mode', settings.active.sites[site.host].arStatus, SitePanel.elements.extensionSettings.buttons);
+  } else {
+    selectButton('set-extension-mode', 'default', SitePanel.elements.extensionSettings.buttons);
+    selectButton('set-autoar-mode', 'default', SitePanel.elements.extensionSettings.buttons);
+  }
 
   // optional settings:
   if(settings.active.sites[site.host] && settings.active.sites[site.host].stretch !== undefined) {  // can be 0
@@ -310,32 +325,6 @@ function configureSitesTab(site) {
   } else {
     selectButton('set-alignment', 'default', SitePanel.elements.alignmentSettings.buttons);
   }
-
-  return; // todo: revisit
-
-  for(const button in SitePanel.extOptions) {
-    SitePanel.extOptions[button].classList.remove("selected");
-  }
-  for(const button in SitePanel.arOptions) {
-    SitePanel.arOptions[button].classList.remove("selected");
-  }
-  for(const button in SitePanel.alignment) {
-    SitePanel.alignment[button].classList.remove("selected");
-  }
-  for(const button in SitePanel.stretch) {
-    SitePanel.stretch[button].classList.remove("selected");
-  }
-
-  if (settings.active.sites[site.host] && settings.active.sites[site.host]) {
-    console.log("settings for", site, "exist!")
-    SitePanel.extOptions[settings.active.sites[site.host].status].classList.add("selected");
-    SitePanel.arOptions[settings.active.sites[site.host].arStatus].classList.add("selected");
-  } else {
-    SitePanel.extOptions.default.classList.add("selected");
-    SitePanel.arOptions.default.classList.add("selected");
-  }
-
-
 }
 
 function configureVideoTab(site) {
@@ -528,198 +517,6 @@ document.addEventListener("click", (e) => {
     command.sender = "popup";
     command.receiver = "uwbg";
     
-    if(e.target.classList.contains("disabled"))
-      return;
-    
-    // if(e.target.classList.contains("menu-item")){
-
-    //   if(Debug.debug) {
-    //     console.log("[popup.js::eventListener] clicked on a tab. Class list:", e.target.classList);
-    //   }
-
-    //   if(e.target.classList.contains("_menu_tab_settings_ext")){
-    //     openMenu("extensionSettings");
-    //   } else if(e.target.classList.contains("_menu_tab_settings_site")){
-    //     openMenu("siteSettings");
-    //   } else if(e.target.classList.contains("_menu_tab_settings_video")){
-    //     openMenu("videoSettings");
-    //   } else if(e.target.classList.contains("_menu_tab_about")){
-    //     openMenu("about");
-    //   }
-      
-    //   // don't send commands
-    //   return;
-    // }
-    if(e.target.classList.contains("_ext")) {
-      var command = {};
-      if(e.target.classList.contains("_ext_global_options")){
-        if (e.target.classList.contains("_blacklist")) {
-          settings.active.extensionMode = "blacklist";
-        } else if (e.target.classList.contains("_whitelist")) {
-          settings.active.extensionMode = "whitelist";
-        } else {
-          settings.active.extensionMode = "disabled";
-        }
-        settings.save();
-        return;
-      } else if (e.target.classList.contains("_ext_site_options")) {
-        var mode; 
-        if(e.target.classList.contains("_blacklist")){
-          mode = "disabled";
-        } else if(e.target.classList.contains("_whitelist")) {
-          mode = "enabled";
-        } else {
-          mode = "default";
-        }
-        
-        if(settings.active.sites[site.host]) {
-          settings.active.sites[site.host].status = mode;
-          settings.active.sites[site.host].statusEmbedded = mode;
-        } else {
-          settings.active.sites[site.host] = {
-            status: mode,
-            statusEmbedded: mode,
-            arStatus: 'default',
-            type: 'user-defined'
-          }
-        }
-        settings.save();
-        return;
-      }
-    }
-    if(e.target.classList.contains("_changeAr")){
-      if(e.target.classList.contains("_ar_auto")){
-        command.cmd = "autoar-start";
-        command.enabled = true;
-        return command;
-      }
- 
-    }
-    if(e.target.classList.contains("_stretch")){
-      // stretch, global
-      if (e.target.classList.contains("_ar_stretch_global")) {
-        if (e.target.classList.contains("_none")) {
-          settings.active.stretch.initialMode = 0;
-        } else if (e.target.classList.contains("_basic")) {
-          settings.active.stretch.initialMode = 1;
-        } else if (e.target.classList.contains("_hybrid")) {
-          settings.active.stretch.initialMode = 2;
-        } else if (e.target.classList.contains("_conditional")) {
-          settings.active.stretch.initialMode = 3;
-        }
-        settings.save();
-        return;
-      }
-
-      // stretch, site
-      if (e.target.classList.contains("_ar_stretch_site")) {
-        if (e.target.classList.contains("_none")) {
-          settings.active.sites[site.host].stretch = 0;
-        } else if (e.target.classList.contains("_basic")) {
-          settings.active.sites[site.host].stretch = 1;
-        } else if (e.target.classList.contains("_hybrid")) {
-          settings.active.sites[site.host].stretch = 2;
-        } else if (e.target.classList.contains("_conditional")) {
-          settings.active.sites[site.host].stretch = 3;
-        } else {
-          delete(settings.active.sites[site.host].stretch);
-        }
-        settings.save();
-        return;
-      }
-
-
-    }
-    if(e.target.classList.contains("_autoAr")){
-      if(e.target.classList.contains("_ar_global_options")){
-        if (e.target.classList.contains("_blacklist")) {
-          settings.active.arDetect.mode = "blacklist";
-        } else if (e.target.classList.contains("_whitelist")) {
-          settings.active.arDetect.mode = "whitelist";
-        } else {
-          settings.active.arDetect.mode = "disabled";
-        }
-        settings.save();
-        return;
-      } else if (e.target.classList.contains("_save_autoAr_timer")) {
-        var value = parseInt(document.getElementById("_input_autoAr_timer").value.trim());
-        
-        if(! isNaN(value)){
-          var timeout = parseInt(value);
-          settings.active.arDetect.timer_playing = timeout;
-          settings.save();
-        }
-        return;
-      } else if (e.target.classList.contains("_ar_site_options")) {
-        var mode;
-        if(e.target.classList.contains("_disabled")){
-          mode = "disabled";
-        } else if(e.target.classList.contains("_enabled")) {
-          mode = "enabled";
-        } else {
-          mode = "default";
-        }
-
-        if(settings.active.sites[site.host]) {
-          settings.active.sites[site.host].arStatus = mode;
-        } else {
-          settings.active.sites[site.host] = {
-            status: settings.active.extensionMode,
-            statusEmbedded: settings.active.extensionMode,
-            arStatus: mode,
-            type: 'user-defined'
-          }
-        }
-        settings.save();
-        return;
-      }
-    }
-    
-
-    if (e.target.classList.contains("_align_ext")) {
-      if (e.target.classList.contains("_align_ext_left")) {
-        settings.active.miscFullscreenSettings.videoFloat = 'left';
-      } else if (e.target.classList.contains("_align_ext_center")) {
-        settings.active.miscFullscreenSettings.videoFloat = 'center';
-      } else if (e.target.classList.contains("_align_ext_right")) {
-        settings.active.miscFullscreenSettings.videoFloat = 'right';
-      }
-
-      settings.save();
-      return;
-    }
-    if (e.target.classList.contains("_align_site")) {
-      if (!site) {
-        return;
-      }
-      if (e.target.classList.contains("_align_site_left")) {
-        settings.active.sites[site.host].videoAlignment = 'left';
-      } else if (e.target.classList.contains("_align_site_center")) {
-        settings.active.sites[site.host].videoAlignment = 'center';
-      } else if (e.target.classList.contains("_align_site_right")) {
-        settings.active.sites[site.host].videoAlignment = 'right';
-      } else {
-        // default case — remove this object
-        delete(settings.active.sites[site.host].videoAlignment);
-      }
-
-      settings.save();
-      return;
-    }
-    if (e.target.classList.contains("_align")) {
-      command.cmd = "set-alignment";
-
-      if (e.target.classList.contains("_align_video_left")) {
-        command.mode = 'left';
-      } else if (e.target.classList.contains("_align_video_center")) {
-        command.mode = 'center';
-      } else if (e.target.classList.contains("_align_video_right")) {
-        command.mode = 'right';
-      }
-      
-      return command;
-    }
-
     //#region zoom buttons
     if (e.target.classList.contains("_zoom_show_shortcuts")) {
       VideoPanel.misc.zoomShortcuts.classList.remove("hidden");
