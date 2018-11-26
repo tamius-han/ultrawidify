@@ -34,7 +34,6 @@ var _video_settings_tab_items = [];
 
 var selectedSubitemLoaded = false;
 
-//#region build ui
 var tablist = {
   'extensionSettings': {
     tab: new MenuItem('_menu_item_settings_ext', 'Extension settings', '', () => showMenu('extensionSettings')),
@@ -60,10 +59,9 @@ for (let t in tablist) {
 
 
 function loadFrames(videoTab) {
-  tablist['siteSettings'].removeSubitems();
-  tablist['videoSettings'].removeSubitems();
+  tablist['siteSettings'].tab.removeSubitems();
+  tablist['videoSettings'].tab.removeSubitems();
 
-  console.log("VIDEO TAB", videoTab)
   if (!selectedSubitemLoaded) {
     if (videoTab.selected) {
       selectedSubitem = videoTab.selected;
@@ -105,8 +103,6 @@ function loadFrames(videoTab) {
     tablist['siteSettings'].tab.insertSubitem(newItem);
     tablist['videoSettings'].tab.insertSubitem(newItem);
   }
-
-  console.log("TIME TO SELECT SUBITEM", selectedSubitem, "\nexists subitem in site settings/video settings?", selectedSubitem && tablist['siteSettings'].existsSubitem(selectedSubitem.siteSettings), selectedSubitem && tablist['videoSettings'].existsSubitem(selectedSubitem.videoSettings))
 
   if (! selectedSubitem.siteSettings || !tablist['siteSettings'].tab.existsSubitem(selectedSubitem.siteSettings)) {
     selectedSubitem['siteSettings'] = tablist['siteSettings'].tab.selectFirstSubitem();
