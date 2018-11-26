@@ -191,7 +191,9 @@ var ExtensionConf = {
   actions: [{
     cmd: [{
       action: 'set-ar',
-      arg: 'auto'
+      arg: 'auto',
+      persistent: false, // optional, false by default. If true, change doesn't take effect immediately.
+                         // Instead, this action saves stuff to settings
     }],
     shortcut: [{
       key: 'a',
@@ -438,6 +440,16 @@ var ExtensionConf = {
     popup_global: true,
     ui: true,
     label: 'Thin borders'
+  },{
+    cmd: [{
+      action: 'set-stretch',
+      arg: -1,
+    }],
+    popup: false,
+    popup_site: true,
+    popup_global: false,
+    ui: false,
+    label: 'Default'
   },
   //
   //    A L I G N M E N T
@@ -472,7 +484,159 @@ var ExtensionConf = {
     popup_global: true,
     ui: true,
     label: 'Right',
-  }],
+  },{
+    cmd: [{
+      action: 'set-alignment',
+      arg: 'default'
+    }],
+    popup: false,
+    popup_site: true,
+    popup_global: false,
+    ui: false,
+    label: 'Default',
+  },
+  //
+  //    E N A B L E   E X T E N S I O N / A U T O A R
+  //    (for sites/extension tab in the popup)
+  //
+  { // extension options:
+    // global
+    cmd: [{
+      action: 'set-extension-mode',
+      arg: 'blacklist',
+      persistent: true,
+    }],
+    popup: false,
+    popup_global: true,
+    popup_site: false,
+    ui: true,
+    label: 'Enable'
+  },{
+    cmd: [{
+      action: 'set-extension-mode',
+      arg: 'whitelist',
+      persistent: true,
+    }],
+    popup: false,
+    popup_global: true,
+    popup_site: false,
+    ui: true,
+    label: 'On whitelisted only'
+  },{
+    cmd: [{
+      action: 'set-extension-mode',
+      arg: 'disabled',
+      persistent: true,
+    }],
+    popup: false,
+    popup_global: true,
+    popup_site: false,
+    ui: true,
+    label: 'Disabled'
+  },{
+    // site-only
+    cmd: [{
+      action: 'set-extension-mode',
+      arg: 'whitelist',
+      persistent: true,
+    }],
+    popup: false,
+    popup_global: false,
+    popup_site: true,
+    ui: true,
+    label: 'Enable'
+  },{
+    cmd: [{
+      action: 'set-extension-mode',
+      arg: 'default',
+      persistent: true,
+    }],
+    popup: false,
+    popup_global: false,
+    popup_site: true,
+    ui: true,
+    label: 'Use default option'
+  },{
+    cmd: [{
+      action: 'set-extension-mode',
+      arg: 'disabled',
+      persistent: true,
+    }],
+    popup: false,
+    popup_global: false,
+    popup_site: true,
+    ui: true,
+    label: 'Disable'
+  },{ // extension options:
+      // global
+    cmd: [{
+      action: 'set-autoar-mode',
+      arg: 'blacklist',
+      persistent: true,
+    }],
+    popup: false,
+    popup_global: true,
+    popup_site: false,
+    ui: true,
+    label: 'Enable'
+  },{
+    cmd: [{
+      action: 'set-autoar-mode',
+      arg: 'whitelist',
+      persistent: true,
+    }],
+    popup: false,
+    popup_global: true,
+    popup_site: false,
+    ui: true,
+    label: 'On whitelisted only'
+  },{
+    cmd: [{
+      action: 'set-autoar-mode',
+      arg: 'disabled',
+      persistent: true,
+    }],
+    popup: false,
+    popup_global: true,
+    popup_site: false,
+    ui: true,
+    label: 'Disabled'
+  },{
+    // site-only
+    cmd: [{
+      action: 'set-autoar-mode',
+      arg: 'whitelist',
+      persistent: true,
+    }],
+    popup: false,
+    popup_global: false,
+    popup_site: true,
+    ui: true,
+    label: 'Enable'
+  },{
+    
+    cmd: [{
+      action: 'set-autoar-mode',
+      arg: 'default',
+      persistent: true,
+    }],
+    popup: false,
+    popup_global: false,
+    popup_site: true,
+    ui: true,
+    label: 'Use default option'
+  },{
+    cmd: [{
+      action: 'set-autoar-mode',
+      arg: 'disabled',
+      persistent: true,
+    }],
+    popup: false,
+    popup_global: false,
+    popup_site: true,
+    ui: true,
+    label: 'Disable'
+  },],
   // -----------------------------------------
   //       ::: SITE CONFIGURATION :::
   // -----------------------------------------
