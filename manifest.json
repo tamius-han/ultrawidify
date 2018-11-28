@@ -78,6 +78,11 @@
     "default_popup": "res/popup/popup.html",
     "default_title": "Ultrawidify"
   },
+  "options_ui": {
+    "page": "res/settings/settings.html",
+    "browser_style": false,
+    "open_in_tab": true
+  },
   
   "web_accessible_resources": [
   "js/*",
