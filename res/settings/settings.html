@@ -5,8 +5,10 @@
     <base target="_blank">
     <link rel='stylesheet' type='text/css' href='../css/font/overpass.css'>
     <link rel='stylesheet' type='text/css' href='../css/font/overpass-mono.css'>
+    <link rel='stylesheet' type='text/css' href='./css/flex.css'>
     <link rel='stylesheet' type='text/css' href='../css/common.css'>
     <link rel='stylesheet' type='text/css' href='./css/settings.css'>
+
   </head>
   <body>
     <div id="all">
@@ -31,91 +33,141 @@
     <!-- GENERAL SETTINGS -->
     
     <div id="general_settings">
-       <div class="content left">
+      <div class="content left">
+        <div class="row">
+          <span class="label">Enable this extension:</span>
+          <!-- Buttons go here -->
+          <div class="button-row" id="_general_extension_global_settings">
+            
+          </div>
+          <span class="description">
+            <b>Always</b> enables this extension on every site you visit that you didn't blacklist.<br/>
+            <b>On whitelisted sites</b> enables this extension only on sites you explicitly whitelisted.<br/> 
+            <b>Never</b> disables extension on all sites, even on those you whitelisted.
+          </span>
+        </div>
+        
+        <div class="flex flex-row">
+          <div class="flex flex-column flex-auto">
+            <div class="label">Whitelisted sites</div>
+            <div class="description">List of whitelisted sites. One per line.</div>
+            <textarea id="_general_extension_whitelist"></textarea>
+          </div>
+          <div class="flex flex-column flex-auto">
+            <div class="label">Blacklisted sites</div>
+            <div class="description">List of blacklisted sites. One per line.</div>
+            <textarea id="_general_extension_blacklist"></textarea>
+          </div>
+        </div>
 
-          <div class="row">
-            <span class="label">Enable this extension:</span>
-            <div class="button-row">
-              <a id="_ext_global_options_blacklist" class="button _ext _ext_global_options _blacklist">Always</a>
-              <a id="_ext_global_options_whitelist" class="button _ext _ext_global_options _whitelist">On whitelisted sites</a>
-              <a id="_ext_global_options_disabled"  class="button _ext _ext_global_options _disabled" >Never</a>
-            </div>
-            <span class="description">
-              <b>Always</b> enables this extension on every site you visit that you didn't blacklist.
-              <b>On whitelisted sites</b> enables this extension only on sites you explicitly whitelisted. 
-              <b>Never</b> disables extension on all sites, even on those you whitelisted.
-            </span>
+        <div class="row">
+          <span class="label">Enable autodetection:</span>
+          <div class="button-row" id="_general_extension_global_autoar">
           </div>
-          
-          <div class="row">
-            <span class="label">Enable autodetection:</span>
-            <div class="button-row">
-              <a id="_general_ar_global_options_blacklist" class="button _autoAr _ar_global_options _blacklist">Always</a>
-              <a id="_general_ar_global_options_whitelist" class="button _autoAr _ar_global_options _whitelist">On whitelisted sites</a>
-              <a id="_general_ar_global_options_disabled"  class="button _autoAr _ar_global_options _disabled" >Never</a>
-            </div>
-            <span class="description">
-                <b>Always</b> enables autodetection on every site this extension is enabled for, unless blacklisted.
-                <b>On whitelisted sites</b> enables autodetection only for sites that you explicitly enabled.
-                <b>Never</b> disables autodetection on all sites, even on those you whitelisted.
-              </span>
-          </div>
+          <span class="description">
+            <b>Always</b> enables autodetection on every site this extension is enabled for, unless blacklisted.<br/>
+            <b>On whitelisted sites</b> enables autodetection only for sites that you explicitly enabled.<br/>
+            <b>Never</b> disables autodetection on all sites, even on those you whitelisted.<br/>
+            <br/>
+            For more settings related to autodetection, please check the 'Autodetection' tab.
+          </span>
+        </div>
 
-          <div class="row">
-            <span class="label">In-player UI</span>
-            <div class="button-row">
-              <a id="_ar_global_options_blacklist" class="button _ui _ui_global_options _blacklist">Always/a>
-              <a id="_ar_global_options_whitelist" class="button _ui _ui_global_options _whitelist">On whitelisted sites</a>
-              <a id="_ar_global_options_disabled"  class="button _ui _ui_global_options _disabled" >Never</a>
+        <div class="row">
+          <span class="label">Default video alignment:</span>
+          <div class="button-row" id="_general_extension_global_alignment">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="label">Default stretch mode</div>
+          <div class="button-row" id="_general_extension_global_alignment">
+          </div>
+          <span class="description">
+            <b>None:</b> do not stretch the video at all. This is the default option, for men of culture.<br/>
+            <b>Basic:</b> stretches video to fit the player or screen unconditionally. If video has letterbox encoded, this option <i>will not</i> try to remove letterbox before stretching. You probably shouldn't be using this option.<br/>
+            <b>Hybrid:</b> stretches the video to fit the player, but only if cropping didn't completely remove the black bars.<br/>
+            <b>Thin borders:</b> stretches only if the width of black borders after cropping is thin.
+            <br/>
+            Treshold for thin borders can be defined below.
+          </span>
+          <div class="flex flex-row">
+            <div class="flex flex-input-label">
+              Thin border treshold (%):
+            </div>
+            <div class="flex flex-input">
+              <input type="number">
             </div>
           </div>
-         
-
-          <div class="row">
-            <span class="label">Video alignment:</span>
-            <div class="button-row">
-              <a id="_align_left"   class="button _align _align_left">left</a>
-              <a id="_align_center" class="button _align _align_center">center</a>
-              <a id="_align_right"  class="button _align _align_right">right</a>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="button-row">
-                <a id="_stretch_global_none"        class="button _stretch _ar_stretch_global _none">Never<br/><span id="_b_stretch_default_none_key" class="smallcaps small darker"></span></a>
-                <a id="_stretch_global_basic"       class="button _stretch _ar_stretch_global _basic">Basic<br/><span id="_b_stretch_default_basic_key" class="smallcaps small darker"></span></a>            
-                <a id="_stretch_global_hybrid"      class="button _stretch _ar_stretch_global _hybrid">Hybrid<br/><span id="_b_stretch_default_hybrid_key" class="smallcaps small darker"></span></a>
-                <a id="_stretch_global_conditional" class="button _stretch _ar_stretch_global _conditional">Thin borders<br/><span id="_b_stretch_default_conditional_key" class="smallcaps small darker"></span></a>
-              </div>
-          </div>
-         </div>
-         
-       </div>
+        </div>
+      </div>
     </div>
-    
-
-
+  
     <!-- AUTOMATIC DETECTION SETTINGS -->
 
     <div id="autoar_settings">
 
       <div class="row">
         <span class="label">Enable autodetection:</span>
-        <div class="button-row">
-          <a id="_ar_global_options_blacklist" class="button _autoAr _ar_global_options _blacklist">Always</a>
-          <a id="_ar_global_options_whitelist" class="button _autoAr _ar_global_options _whitelist">On whitelisted sites</a>
-          <a id="_ar_global_options_disabled"  class="button _autoAr _ar_global_options _disabled" >Never</a>
+        <!-- Buttons go here -->
+        <div class="button-row" id="_general_autoar_global_settings">
+          
         </div>
-        <div class="description">
-            <b>Always</b> enables autodetection on every site this extension is enabled for, unless blacklisted.
-            <b>On whitelisted sites</b> enables autodetection only for sites that you explicitly enabled.
-            <b>Never</b> disables autodetection on all sites, even on those you whitelisted.
+        <span class="description">
+          <b>Always</b> enables autodetection on every site you visit that you didn't blacklist.<br/>
+          <b>On whitelisted sites</b> enables autodetection only on sites you explicitly whitelisted.<br/> 
+          <b>Never</b> disables autodetection on all sites, even on those you whitelisted.
+        </span>
+      </div>
+      
+      <div class="flex flex-row">
+        <div class="flex flex-column flex-auto">
+          <div class="label">Whitelisted sites</div>
+          <div class="description">List of whitelisted sites. One per line.</div>
+          <textarea id="_general_autoar_whitelist"></textarea>
+        </div>
+        <div class="flex flex-column flex-auto">
+          <div class="label">Blacklisted sites</div>
+          <div class="description">List of blacklisted sites. One per line.</div>
+          <textarea id="_general_autoar_blacklist"></textarea>
         </div>
       </div>
 
+      <h2>Advanced automatic detection options</h2>
+
       <div class="row">
-        <span class="label">Checking for aspect ratio changes</span>
-        <div>
+        <div class="label">Aspect ratio check frequency</div>
+        <div class="description">
+          <p>Options here decide how often the extension will check for changes in aspect ratio of a given video.</p>
+          <p>Values are given in milliseconds. Longer intervals increase delay between aspect ratio changing and extension re-correcting for the change. Using shorter intervals than the default ones can cause lage and <i>immense</i> RAM usage.</p>
+        </div>
+        <div class="flex flex-column">
+          <div class="flex flex-row">
+            <div class="flex flex-input-label">
+              Check frequency when video is playing (ms):
+            </div>
+            <div class="flex flex-input">
+              <input type="number">
+            </div>
+          </div>
+          <div class="flex flex-row">
+            <div class="flex flex-input-label">
+              Check frequency when video is paused (ms):
+            </div>
+            <div class="flex flex-input">
+              <input type="number">
+            </div>
+          </div>
+          <div class="flex flex-row">
+            <div class="flex flex-input-label">
+              Recheck delay on error (ms):
+            </div>
+            <div class="flex flex-input">
+              <input type="number">
+            </div>
+          </div>
+        </div>
+        <!-- <div>
           When video is playing: <input id="_input_autoAr_timer" class="_autoAr _autoAr_timer" type="number" min="5" max="10000"> ms
         <div>
         <div>
@@ -123,139 +175,39 @@
         <div>
         <div>
           On error: <input id="_input_autoAr_timer_error" class="_autoAr _autoAr_timer_error" type="number" min="5" max="10000"> ms
-        <div>
-
-        <div class="description">
-          All values are in milliseconds. 
-          The values determine how often the autodetection script will scan video for changes in aspect ratio under different circumstances.
-          Using shorter intervals can cause lag and increases resource usage.
-          Using longer intervals increases delay between aspect ratio changing and said change being detected.
-        </div>
+        <div> -->
       </div>
 
       <div id="_autoar_fallback_mode_top" class="row">
-        <label>Enable fallback mode</label>
-        todo: insert checkbox
+        <div class="label">Fallback mode</div>
         <div class="description">
           <p>In order for autodetection to work, the extension grabs a frame of the video you're watching and takes a look at it.
           Some websites use DRM, which prevents you from using the HTML5-blessed way of getting a frame from a video.
           Some browsers offer some features that can be used to circumvent DRM protection.
           With this option enabled, the extension will use said features to basically do that. 
           </p>
-          <p><b>Technical details: tl;dr — only works in Firefox and maybe its forks.</b><br/>
-            Fallback mode depends on two things: 
-            <ol>
-             <li>Attempting to grab a video frame from DRM protected video stream must return an error (Chrome returns black image)</li>
-             <li>Supports <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawWindow" target="_blank">CanvasRenderingContext2D.drawWindow()</a> method, which pretty much only Firefox does</li> 
-            </ol>
-          </p>
-          <p><b>But I thought it's <a href="http://www.dmlp.org/legal-guide/circumventing-copyright-controls" target="_blank">illegal</a> to circumvent DRM?</b><br/>
-            Courts <a href="https://arstechnica.com/information-technology/2010/07/court-breaking-drm-for-a-fair-use-is-legal/" target="_blank">disagree</a> (at least as far as our use-case is concerned).
-            At this point I'd also throw in some choice words about DRM and everyone using it, but AMO gives me "you're breaking terms of conduct" warnings over use of the word for thing you flush down the toilet, prepended by a word for male cow*, in the code comments.<small><br/>*'cow' is term for the female</small>
-          </p>
+          <p>At the moment, Firefox is the only browser to support this.</p>
+          <div>
+            This browser doesn't support fallback mode. 
+          </div>
         </div>
+        <div class="">Enable fallback mode</div>
       </div>
 
     </div>
 
 
-    <!-- INTERFACE AND SHORTCUTS -->
+    <!-- CUSTOMIZATION (INTERFACE AND SHORTCUTS) -->
 
     <div id="interface_shortcut_settings">
-
-    </div>
-
-
-    <!-- SITE SETTINGS -->
-
-    <div id="uw_sites" class="hide">
-      <h1>PLEASE NOTE: THIS IS COMPLETELY NON-FUNCTIONAL ATM. YOU CANT SET SITE-SPECIFIC OPTIONS ATM</h1>
-      <div id="uw_sites_body" class="content left">
-        
+      <div class="label">Actions</div>
+      <div class="description">
+        <p>In this sections, you can define custom actions, add or change keyboard shortcut or hide buttons from the popup.</p>
       </div>
-    </div>
-    
+      <div class="flex flex-column" id="_customization_action_list">
 
-    <!-- REMOVE PLOX -->
-
-    <div id="uw_shortcuts" class="hide">
-      <div class="content left"> 
-      <h2>Keyboard shortcuts</h2>
-      
-        <form>
-        <!-- BEGIN FORM -->
-        
-        <!-- try autoar -->
-          <div class="uw_shortcuts_line">
-            <div class="uw_shortcuts_label">Autodetect aspect ratio</div>
-            <input type='checkbox' id="_kbd_autoar_ctrlKey"  > Ctrl + 
-            <input type='checkbox' id="_kbd_autoar_shiftKey" > Shift + 
-            <input type='checkbox' id="_kbd_autoar_altKey"   > Alt +
-            <input type='text'     id="_kbd_autoar_lettr" maxlength='1' class='shortcut_input'>
-          </div>
-        
-          <!-- fit width -->
-          <div class="uw_shortcuts_line">
-            <div class="uw_shortcuts_label">Fit to width</div>
-            <input type='checkbox' id="_kbd_fitw_ctrlKey"  > Ctrl + 
-            <input type='checkbox' id="_kbd_fitw_shiftKey" > Shift + 
-            <input type='checkbox' id="_kbd_fitw_altKey"   > Alt +
-            <input type='text'     id="_kbd_fitw_lettr" maxlength='1' class='shortcut_input'>
-          </div>
-          
-          <!-- fit height -->
-          <div class="uw_shortcuts_line">
-            <div class="uw_shortcuts_label">Fit to height</div>
-            <input type='checkbox' id="_kbd_fith_ctrlKey"  > Ctrl + 
-            <input type='checkbox' id="_kbd_fith_shiftKey" > Shift + 
-            <input type='checkbox' id="_kbd_fith_altKey"   > Alt +
-            <input type='text'     id="_kbd_fith_lettr" maxlength='1' class='shortcut_input'>
-          </div>
-          
-          <!-- reset -->
-          <div class="uw_shortcuts_line">
-            <div class="uw_shortcuts_label">Reset</div>
-            <input type='checkbox' id="_kbd_reset_ctrlKey"  > Ctrl + 
-            <input type='checkbox' id="_kbd_reset_shiftKey" > Shift + 
-            <input type='checkbox' id="_kbd_reset_altKey"   > Alt +
-            <input type='text'     id="_kbd_reset_lettr" maxlength='1' class='shortcut_input'>
-          </div>
-          
-          <!-- force 21:9 -->
-          <div class="uw_shortcuts_line">
-            <div class="uw_shortcuts_label">Force 21:9</div>
-            <input type='checkbox' id="_kbd_char_219_ctrlKey"  > Ctrl + 
-            <input type='checkbox' id="_kbd_char_219_shiftKey" > Shift + 
-            <input type='checkbox' id="_kbd_char_219_altKey"   > Alt +
-            <input type='text'     id="_kbd_char_219_lettr" maxlength='1' class='shortcut_input'>
-          </div>
-          
-          <!-- force 2:1 -->
-          <div class="uw_shortcuts_line">
-            <div class="uw_shortcuts_label">Force 2:1 (18:9)</div>
-            <input type='checkbox' id="_kbd_char_189_ctrlKey"  > Ctrl + 
-            <input type='checkbox' id="_kbd_char_189_shiftKey" > Shift + 
-            <input type='checkbox' id="_kbd_char_189_altKey"   > Alt +
-            <input type='text'     id="_kbd_char_189_lettr" maxlength='1' class='shortcut_input'>
-          </div>
-          
-          <!-- force 16:9 -->
-          <div class="uw_shortcuts_line">
-            <div class="uw_shortcuts_label">Force 16:9</div>
-            <input type='checkbox' id="_kbd_char_169_ctrlKey"  > Ctrl + 
-            <input type='checkbox' id="_kbd_char_169_shiftKey" > Shift + 
-            <input type='checkbox' id="_kbd_char_169_altKey"   > Alt +
-            <input type='text'     id="_kbd_char_169_lettr" maxlength='1' class='shortcut_input'>
-          </div>
-          
-        <!-- END FORM -->
-        </form>
-        <div class="buttonbar"><div class="button" id="kb_cancel">Cancel</div><div class="button" id="kb_save">Save</div></div>
-        <div id="errbox"></div>
-        <div><small><b>Note:</b> keyboard shortcut conflicts aren't handled by this extension. You must know your shortcuts.<br/><b>Pro tip:</b> If you don't want to have a keybind for a shortcut, just uncheck all boxes for the action and remove the letter</small></div>
       </div>
-    </div> 
-  
+    </div>     
 
     <!-- ABOUT -->
 
