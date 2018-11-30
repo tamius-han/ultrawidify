@@ -81,7 +81,7 @@
 
         <div class="row">
           <div class="label">Default stretch mode</div>
-          <div class="button-row" id="_general_extension_global_alignment">
+          <div class="button-row" id="_general_extension_global_stretch">
           </div>
           <span class="description">
             <b>None:</b> do not stretch the video at all. This is the default option, for men of culture.<br/>
@@ -96,7 +96,7 @@
               Thin border treshold (%):
             </div>
             <div class="flex flex-input">
-              <input type="number">
+              <input id="_general_extension_global_stretch_thin_borders_input" type="number">
             </div>
           </div>
         </div>
@@ -106,108 +106,101 @@
     <!-- AUTOMATIC DETECTION SETTINGS -->
 
     <div id="autoar_settings">
-
-      <div class="row">
-        <span class="label">Enable autodetection:</span>
-        <!-- Buttons go here -->
-        <div class="button-row" id="_general_autoar_global_settings">
-          
-        </div>
-        <span class="description">
-          <b>Always</b> enables autodetection on every site you visit that you didn't blacklist.<br/>
-          <b>On whitelisted sites</b> enables autodetection only on sites you explicitly whitelisted.<br/> 
-          <b>Never</b> disables autodetection on all sites, even on those you whitelisted.
-        </span>
-      </div>
-      
-      <div class="flex flex-row">
-        <div class="flex flex-column flex-auto">
-          <div class="label">Whitelisted sites</div>
-          <div class="description">List of whitelisted sites. One per line.</div>
-          <textarea id="_general_autoar_whitelist"></textarea>
-        </div>
-        <div class="flex flex-column flex-auto">
-          <div class="label">Blacklisted sites</div>
-          <div class="description">List of blacklisted sites. One per line.</div>
-          <textarea id="_general_autoar_blacklist"></textarea>
-        </div>
-      </div>
-
-      <h2>Advanced automatic detection options</h2>
-
-      <div class="row">
-        <div class="label">Aspect ratio check frequency</div>
-        <div class="description">
-          <p>Options here decide how often the extension will check for changes in aspect ratio of a given video.</p>
-          <p>Values are given in milliseconds. Longer intervals increase delay between aspect ratio changing and extension re-correcting for the change. Using shorter intervals than the default ones can cause lage and <i>immense</i> RAM usage.</p>
-        </div>
-        <div class="flex flex-column">
-          <div class="flex flex-row">
-            <div class="flex flex-input-label">
-              Check frequency when video is playing (ms):
-            </div>
-            <div class="flex flex-input">
-              <input type="number">
-            </div>
+      <div class="content">
+        <div class="row">
+          <span class="label">Enable autodetection:</span>
+          <!-- Buttons go here -->
+          <div class="button-row" id="_autoar_global_settings">
+            
           </div>
-          <div class="flex flex-row">
-            <div class="flex flex-input-label">
-              Check frequency when video is paused (ms):
-            </div>
-            <div class="flex flex-input">
-              <input type="number">
-            </div>
+          <span class="description">
+            <b>Always</b> enables autodetection on every site you visit that you didn't blacklist.<br/>
+            <b>On whitelisted sites</b> enables autodetection only on sites you explicitly whitelisted.<br/> 
+            <b>Never</b> disables autodetection on all sites, even on those you whitelisted.
+          </span>
+        </div>
+        
+        <div class="flex flex-row">
+          <div class="flex flex-column flex-auto">
+            <div class="label">Whitelisted sites</div>
+            <div class="description">List of whitelisted sites. One per line.</div>
+            <textarea id="_autoar_whitelist"></textarea>
           </div>
-          <div class="flex flex-row">
-            <div class="flex flex-input-label">
-              Recheck delay on error (ms):
-            </div>
-            <div class="flex flex-input">
-              <input type="number">
-            </div>
+          <div class="flex flex-column flex-auto">
+            <div class="label">Blacklisted sites</div>
+            <div class="description">List of blacklisted sites. One per line.</div>
+            <textarea id="_autoar_blacklist"></textarea>
           </div>
         </div>
-        <!-- <div>
-          When video is playing: <input id="_input_autoAr_timer" class="_autoAr _autoAr_timer" type="number" min="5" max="10000"> ms
-        <div>
-        <div>
-          When video is paused: <input id="_input_autoAr_timer_pause" class="_autoAr _autoAr_timer_pause" type="number" min="5" max="10000"> ms
-        <div>
-        <div>
-          On error: <input id="_input_autoAr_timer_error" class="_autoAr _autoAr_timer_error" type="number" min="5" max="10000"> ms
-        <div> -->
-      </div>
 
-      <div id="_autoar_fallback_mode_top" class="row">
-        <div class="label">Fallback mode</div>
-        <div class="description">
-          <p>In order for autodetection to work, the extension grabs a frame of the video you're watching and takes a look at it.
-          Some websites use DRM, which prevents you from using the HTML5-blessed way of getting a frame from a video.
-          Some browsers offer some features that can be used to circumvent DRM protection.
-          With this option enabled, the extension will use said features to basically do that. 
-          </p>
-          <p>At the moment, Firefox is the only browser to support this.</p>
-          <div>
-            This browser doesn't support fallback mode. 
+        <h2>Advanced automatic detection options</h2>
+
+        <div class="row">
+          <div class="label">Aspect ratio check frequency</div>
+          <div class="description">
+            <p>Options here decide how often the extension will check for changes in aspect ratio of a given video.</p>
+            <p>Values are given in milliseconds. Longer intervals increase delay between aspect ratio changing and extension re-correcting for the change. Using shorter intervals than the default ones can cause lage and <i>immense</i> RAM usage.</p>
+          </div>
+          <div class="flex flex-column">
+            <div class="flex flex-row">
+              <div class="flex flex-input-label">
+                Check frequency when video is playing (ms):
+              </div>
+              <div class="flex flex-input">
+                <input id="_autoar_checkFrequency_playing" type="number">
+              </div>
+            </div>
+            <div class="flex flex-row">
+              <div class="flex flex-input-label">
+                Check frequency when video is paused (ms):
+              </div>
+              <div class="flex flex-input">
+                <input id="_autoar_checkFrequency_paused" type="number">
+              </div>
+            </div>
+            <div class="flex flex-row">
+              <div class="flex flex-input-label">
+                Recheck delay on error (ms):
+              </div>
+              <div class="flex flex-input">
+                <input id="_autoar_checkFrequency_error" type="number">
+              </div>
+            </div>
           </div>
         </div>
-        <div class="">Enable fallback mode</div>
-      </div>
 
+        <div id="_autoar_fallback_mode_top" class="row">
+          <div class="label">Fallback mode</div>
+          <div class="description">
+            <p>In order for autodetection to work, the extension grabs a frame of the video you're watching and takes a look at it.
+            Some websites use DRM, which prevents you from using the HTML5-blessed way of getting a frame from a video.
+            Some browsers offer some features that can be used to circumvent DRM protection.
+            With this option enabled, the extension will use said features to basically do that. 
+            </p>
+            <p>At the moment, Firefox is the only browser to support this.</p>
+            <div>
+              This browser doesn't support fallback mode. 
+            </div>
+          </div>
+          <div class="">Enable fallback mode</div>
+        </div>
+
+      </div>
     </div>
-
 
     <!-- CUSTOMIZATION (INTERFACE AND SHORTCUTS) -->
 
     <div id="interface_shortcut_settings">
-      <div class="label">Actions</div>
-      <div class="description">
-        <p>In this sections, you can define custom actions, add or change keyboard shortcut or hide buttons from the popup.</p>
-      </div>
-      <div class="flex flex-column" id="_customization_action_list">
+      <div class="content">
+        <div class="label">Actions</div>
+        <div class="description">
+          <p>In this sections, you can define custom actions, add or change keyboard shortcut or hide buttons from the popup.</p>
+        </div>
+        <div class="flex flex-column" id="_customization_action_list">
 
-      </div>
-    </div>     
+        </div>
+      </div>     
+    </div>
 
     <!-- ABOUT -->
 
@@ -229,7 +222,6 @@
         <p>Special thanks to me for making this extension. You're welcome.</p>
       </div>
     </div>
-    </div>
     
     <script src="../../js/conf/Debug.js"></script>
     
@@ -240,6 +232,7 @@
     
     <!-- ui libs -->
     <script src="../../js/lib/libghettoui/BaseElement.js"></script>
+    <script src="./js/settingsvars.js"></script>
     <script src="./js/settings.js"></script>
   </body>
 </html>
