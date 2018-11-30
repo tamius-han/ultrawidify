@@ -40,7 +40,7 @@ var ui = {
 
   // Customization settings
   customization: {
-    actionList: BaseElement.fromExisting(document.getElementById('_customization_actions')),
+    actionList: BaseElement.fromExisting(document.getElementById('_customization_action_list')),
     actionItems: [],
   }
 }
