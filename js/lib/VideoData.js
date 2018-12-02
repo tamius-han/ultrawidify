@@ -22,6 +22,8 @@ class VideoData {
     if (Debug.init) {
       console.log("[VideoData::ctor] Created videoData with vdid", this.vdid,"\nextension mode:", this.extensionMode);
     }
+
+    this.pageInfo.initMouseActionHandler(this);
   }
 
   firstTimeArdInit(){
@@ -148,7 +150,7 @@ class VideoData {
     this.resizer.setLastAr('original');
   }
 
-  panHandler(event) {
+  panHandler(event, forcePan) {
     if(this.destroyed) {
       throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
     }
@@ -156,7 +158,7 @@ class VideoData {
       this.destroy();
       return;
     }
-    this.resizer.panHandler(event);
+    this.resizer.panHandler(event, forcePan);
   }
 
   setPanMode(mode) {

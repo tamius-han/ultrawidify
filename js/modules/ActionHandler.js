@@ -68,11 +68,22 @@ class ActionHandler {
     document.addEventListener('keydown',  (event) => ths.handleKeydown(event) );
     document.addEventListener('keyup', (event) => ths.handleKeyup(event) );
 
-
+    this.pageInfo.setActionHandler(this);
     if (Debug.debug) {
       console.log("[ActionHandler::init] initialization complete");
     }
   }
+
+  registerHandleMouse(videoData) {
+    if (Debug.debug) {
+      console.log("[ActionHandler::registerHandleMouse] registering handle mouse for videodata:", videoData)
+    }
+    var ths = this;
+    if (videoData.player && videoData.player.element) {
+      videoData.player.element.addEventListener('mousemove', (event) => ths.handleMouseMove(event, videoData));
+    }
+  }
+
 
   preventAction() {
     var activeElement = document.activeElement;
@@ -96,9 +107,11 @@ class ActionHandler {
       Debug.debug = true; // undisable
     }
 
-    if (PlayerData.isFullScreen()) {
-      return false;
-    }
+    // lately youtube has allowed you to read and write comments while watching video in
+    // fullscreen mode. We can no longer do this.
+    // if (PlayerData.isFullScreen()) {
+    //   return false;
+    // }
     if (this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1) {
       return true;
     } 
@@ -119,7 +132,7 @@ class ActionHandler {
            shortcut.shiftKey === event.shiftKey
   }
 
-  execAction(actions, event, shortcutIndex) {
+  execAction(actions, event, shortcutIndex, videoData) {
     if(Debug.debug  && Debug.keyboard ){
       console.log("%c[ActionHandler::execAction] Trying to find and execute action for event. Actions/event: ", "color: #ff0", actions, event);
     }
@@ -144,15 +157,17 @@ class ActionHandler {
           } else if (cmd.action === "toggle-pan") {
             this.pageInfo.setPanMode(cmd.arg)
           } else if (cmd.action === "pan") {
-            // todo: handle this
+            if (videoData) {
+              videoData.panHandler(event, true);
+            }
           }
-
         }
 
         return;
       }
     }
   }
+
 
   handleKeyup(event) {
     if(Debug.debug  && Debug.keyboard ){
@@ -182,6 +197,14 @@ class ActionHandler {
     }
 
     this.execAction(this.keyDownActions, event, 0);
+  }
+
+  handleMouseMove(event, videoData) {
+    if (Debug.debug && Debug.mousemove) {
+      console.log("[ActionHandler::handleMouseMove] mouse move is being handled.\nevent:", event, "\nvideo data:", videoData);
+    }
+    videoData.panHandler(event);
+    this.execAction(this.mouseMoveActions, event, undefined, videoData)
   }
 
 }

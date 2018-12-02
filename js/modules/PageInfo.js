@@ -7,6 +7,7 @@ class PageInfo {
     this.siteDisabled = false;
     this.videos = [];
     this.settings = settings;
+    this.actionHandlerInitQueue = [];
 
     this.lastUrl = window.location.href;
     this.extensionMode = extensionMode;
@@ -39,6 +40,22 @@ class PageInfo {
       video.destroy();
     }
     this.rescan(RescanReason.MANUAL);
+  }
+
+  initMouseActionHandler(videoData) {
+    if (this.actionHandler) {
+      this.actionHandler.registerHandleMouse(videoData);
+    } else {
+      this.actionHandlerInitQueue.push(videoData);
+    }
+  }
+
+  setActionHandler(actionHandler) {
+    this.actionHandler = actionHandler;
+    for (var item of this.actionHandlerInitQueue) {
+      this.actionHandler.registerHandleMouse(item);
+    }
+    this.actionHandlerInitQueue = [];
   }
 
   rescan(rescanReason){
@@ -247,7 +264,6 @@ class PageInfo {
       }
     }
   }
-
 
 
   startArDetection(playingOnly){
