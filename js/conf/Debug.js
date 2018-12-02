@@ -18,6 +18,7 @@ Debug = {
   playerDetectDebug: true,
   periodic: true,
   videoRescan: true,
+  mousemove: true,
   arDetect: {
     edgeDetect: true
   },

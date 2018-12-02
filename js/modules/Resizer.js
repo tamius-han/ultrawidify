@@ -151,20 +151,25 @@ if(Debug.debug)
     this.restore();
   }
 
-  panHandler(event) {
+  panHandler(event, forcePan) {
     // console.log("this.conf.canPan:", this.conf.canPan)
-    if (this.canPan) {
-      // console.log("event?", event)
-      // console.log("this?", this)
-
+    if (this.canPan || forcePan) {
       if(!this.conf.player || !this.conf.player.element) {
         return;
       }
+      // dont allow weird floats
+      this.videoFloat = 'center';
+
       const player = this.conf.player.element;
 
       const relativeX = (event.pageX - player.offsetLeft) / player.offsetWidth;
       const relativeY = (event.pageY - player.offsetTop) / player.offsetHeight;
       
+      if (Debug.debug && Debug.mousemove) {
+        console.log("[Resizer::panHandler] mousemove.pageX, pageY:", event.pageX, event.pageY,
+        "\nrelativeX/Y:", relativeX, relativeY)
+      }
+
       this.setPan(relativeX, relativeY);
     }
   }
@@ -324,8 +329,8 @@ if(Debug.debug)
       if(wdiff < 0 && hdiff < 0) {
         return translate;
       }
-      translate.x = wdiff * this.pan.relativeOffsetX / this.zoom.scale;
-      translate.y = hdiff * this.pan.relativeOffsetY / this.zoom.scale;
+      translate.x = wdiff * this.pan.relativeOffsetX * this.zoom.scale;
+      translate.y = hdiff * this.pan.relativeOffsetY * this.zoom.scale;
     } else {
       if (this.videoFloat == "left") {
         translate.x += wdiffAfterzoom * 0.5;
