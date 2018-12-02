@@ -102,11 +102,12 @@ var ExtensionConf = {
     maxLogZoom: 3,
     announceDebounce: 200     // we wait this long before announcing new zoom
   },
-  miscFullscreenSettings: {
+  miscSettings: {
     videoFloat: "center",
     mousePan: {
       enabled: false
     },
+    mousePanReverseMouse: false,
     defaultAr: "original",
   },
   stretch: {
