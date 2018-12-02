@@ -344,7 +344,7 @@ class Settings {
     if (site.defaultAr) {
       return site.defaultAr;
     }
-    return this.active.miscFullscreenSettings.defaultAr;
+    return this.active.miscSettings.defaultAr;
   }
 
   getDefaultStretchMode(site) {
@@ -362,6 +362,6 @@ class Settings {
     if (site.videoAlignment) {
       return site.videoAlignment;
     }
-    return this.active.miscFullscreenSettings.videoFloat;
+    return this.active.miscSettings.videoFloat;
   }
 }

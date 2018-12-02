@@ -35,8 +35,8 @@ if(Debug.debug)
     this.resizerId = (Math.random(99)*100).toFixed(0);
 
     if (this.settings.active.pan) {
-      console.log("can pan:", this.settings.active.miscFullscreenSettings.mousePan.enabled, "(default:", this.settings.active.miscFullscreenSettings.mousePan.enabled, ")")
-      this.canPan = this.settings.active.miscFullscreenSettings.mousePan.enabled;
+      console.log("can pan:", this.settings.active.miscSettings.mousePan.enabled, "(default:", this.settings.active.miscSettings.mousePan.enabled, ")")
+      this.canPan = this.settings.active.miscSettings.mousePan.enabled;
     } else {
       this.canPan = false;
     }
@@ -181,9 +181,13 @@ if(Debug.debug)
       this.pan = {};
     }
 
-    this.pan.relativeOffsetX = -(relativeMousePosX * 1.1) + 0.55;
-    this.pan.relativeOffsetY = -(relativeMousePosY * 1.1) + 0.55;
-
+    if (this.settings.active.miscSettings.mousePanReverseMouse) {
+      this.pan.relativeOffsetX = (relativeMousePosX * 1.1) - 0.55;
+      this.pan.relativeOffsetY = (relativeMousePosY * 1.1) - 0.55;
+    } else {
+      this.pan.relativeOffsetX = -(relativeMousePosX * 1.1) + 0.55;
+      this.pan.relativeOffsetY = -(relativeMousePosY * 1.1) + 0.55;
+    }
     // if(Debug.debug){
     //   console.log("[Resizer::setPan] relative cursor pos:", relativeMousePosX, ",",relativeMousePosY, " | new pan obj:", this.pan)
     // }
@@ -311,14 +315,15 @@ if(Debug.debug)
   computeOffsets(stretchFactors){
 
     if (Debug.debug) {
-      console.log("[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.settings.active.miscFullscreenSettings.videoFloat);
+      console.log("[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.settings.active.miscSettings.videoFloat);
     }
 
     const wdiff = this.conf.player.dimensions.width - this.conf.video.offsetWidth;
     const hdiff = this.conf.player.dimensions.height - this.conf.video.offsetHeight;
 
-    const wdiffAfterzoom = this.conf.video.offsetWidth * stretchFactors.xFactor - this.conf.player.dimensions.width;
-
+    const wdiffAfterZoom = this.conf.video.offsetWidth * stretchFactors.xFactor - this.conf.player.dimensions.width;
+    const hdiffAfterZoom = this.conf.video.offsetHeight * stretchFactors.yFactor - this.conf.player.dimensions.height;
+    
     var translate = {
       x: wdiff * 0.5,
       y: hdiff * 0.5,
@@ -326,17 +331,17 @@ if(Debug.debug)
 
     if (this.pan) {
       // don't offset when video is smaller than player
-      if(wdiff < 0 && hdiff < 0) {
+      if(wdiffAfterZoom < 0 && hdiffAfterZoom < 0) {
         return translate;
       }
-      translate.x = wdiff * this.pan.relativeOffsetX * this.zoom.scale;
-      translate.y = hdiff * this.pan.relativeOffsetY * this.zoom.scale;
+      translate.x += wdiffAfterZoom * this.pan.relativeOffsetX * this.zoom.scale;
+      translate.y += hdiffAfterZoom * this.pan.relativeOffsetY * this.zoom.scale;
     } else {
       if (this.videoFloat == "left") {
-        translate.x += wdiffAfterzoom * 0.5;
+        translate.x += wdiffAfterZoom * 0.5;
       }
       else if (this.videoFloat == "right") {
-        translate.x -= wdiffAfterzoom * 0.5;
+        translate.x -= wdiffAfterZoom * 0.5;
       }
     }
 
