@@ -36,6 +36,7 @@ class PlayerData {
     this.extensionMode = videoData.extensionMode;
     this.element = undefined;
     this.dimensions = undefined;
+    this.overlayNode = undefined;
 
     if (this.extensionMode === ExtensionMode.Full) {
       this.getPlayerDimensions();
@@ -66,6 +67,23 @@ class PlayerData {
   }
   stopChangeDetection(){
     clearTimeout(this.watchTimeout);
+  }
+
+  markPlayer(name, color) {
+    console.log("PLAYERDATA — MARKING PLAYER!")
+    var overlay = document.createElement('div');
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.innerHTML = `<div style="background-color: ${color}; color: #fff; position: absolute; top: 0; left: 0">${name}</div>`;
+
+    this.overlayNode = overlay;
+    this.element.appendChild(overlay);
+  }
+
+  unmarkPlayer() {
+    if (this.overlayNode) {
+      this.overlayNode.remove();
+    }
   }
 
   scheduleGhettoWatcher(timeout, force_reset) {

@@ -419,6 +419,19 @@ class PageInfo {
     }
   }
 
+  markPlayer(name, color) { 
+    console.log("PAGEINFO — MARKING PLAYER!")
+
+    for (var vd of this.videos) {
+      vd.markPlayer(name,color);
+    }
+  }
+  unmarkPlayer() {
+    for (var vd of this.video) {
+      vd.unmarkPlayer();
+    }
+  }
+
   announceZoom(scale) {
     if (this.announceZoomTimeout) {
       clearTimeout(this.announceZoom);
