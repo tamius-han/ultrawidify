@@ -102,6 +102,13 @@ function loadFrames(videoTab) {
     
     tablist['siteSettings'].tab.insertSubitem(newItem);
     tablist['videoSettings'].tab.insertSubitem(newItem);
+
+    port.postMessage({
+      cmd: 'mark-player',
+      targetFrame: videoTab.frames[frame].id,
+      name: videoTab.frames[frame].id,
+      color: '#fa6'
+    });
   }
 
   if (! selectedSubitem.siteSettings || !tablist['siteSettings'].tab.existsSubitem(selectedSubitem.siteSettings)) {

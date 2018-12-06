@@ -189,6 +189,16 @@ class VideoData {
     this.pageInfo.announceZoom(scale);
   }
 
+  markPlayer(name, color) {
+    console.log("VIDEO DATA — MARKING PLAYER!")
+    if (this.player) {
+      this.player.markPlayer(name, color)
+    }
+  }
+  unmarkPlayer() {
+    this.player.unmarkPlayer();
+  }
+
   isPlaying() {
 
     console.log("is playing? video:", this.video, "ctime:", this.video.currentTime, 

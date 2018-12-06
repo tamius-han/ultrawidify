@@ -86,6 +86,10 @@ class CommsClient {
       this.pageInfo.resumeProcessing(message.autoArStatus, message.playing);
     } else if (message.cmd === 'set-zoom') {
       this.pageInfo.setZoom(message.zoom, true, message.playing);
+    } else if (message.cmd === 'mark-player') {
+      console.log("COMMS CLIENT MARKING PLAYER!")
+
+      this.pageInfo.markPlayer(message.name, message.color);
     }
   }
 
@@ -343,6 +347,8 @@ class CommsServer {
       this.server.registerVideo(port.sender);
     } else if (message.cmd === 'noVideo') {
       this.server.unregisterVideo(port.sender);
+    } else if (message.cmd === 'mark-player') {
+      this.sendToFrame(message, this.tab, message.targetFrame);
     }
   }
 
