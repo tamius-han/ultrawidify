@@ -70,10 +70,13 @@ class PlayerData {
   }
 
   markPlayer(name, color) {
-    console.log("PLAYERDATA — MARKING PLAYER!")
     var overlay = document.createElement('div');
     overlay.style.width = '100%';
     overlay.style.height = '100%';
+    overlay.style.position = 'absolute';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.zIndex = '1000000000';
     overlay.innerHTML = `<div style="background-color: ${color}; color: #fff; position: absolute; top: 0; left: 0">${name}</div>`;
 
     this.overlayNode = overlay;

@@ -105,6 +105,7 @@ function loadFrames(videoTab) {
 
     port.postMessage({
       cmd: 'mark-player',
+      targetTab: videoTab.id,
       targetFrame: videoTab.frames[frame].id,
       name: videoTab.frames[frame].id,
       color: '#fa6'
