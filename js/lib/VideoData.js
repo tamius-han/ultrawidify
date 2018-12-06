@@ -190,7 +190,6 @@ class VideoData {
   }
 
   markPlayer(name, color) {
-    console.log("VIDEO DATA — MARKING PLAYER!")
     if (this.player) {
       this.player.markPlayer(name, color)
     }
