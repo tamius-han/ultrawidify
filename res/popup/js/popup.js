@@ -20,6 +20,9 @@ var _changeAr_button_shortcuts = { "autoar":"none", "reset":"none", "219":"none"
 var comms = new Comms();
 var settings = new Settings(undefined, () => updateConfig());
 
+var frameStore = {};
+var frameStoreCount = 0;
+
 var site = undefined;
 
 // aside from hostname, this can have two additional values:
@@ -103,13 +106,26 @@ function loadFrames(videoTab) {
     tablist['siteSettings'].tab.insertSubitem(newItem);
     tablist['videoSettings'].tab.insertSubitem(newItem);
 
-    port.postMessage({
-      cmd: 'mark-player',
-      targetTab: videoTab.id,
-      targetFrame: videoTab.frames[frame].id,
-      name: videoTab.frames[frame].id,
-      color: '#fa6'
-    });
+
+
+    if (frame && !frameStore[frame]) {
+      var fs = {
+        name: frameStoreCount++,
+        color: this.getRandomColor()
+      }
+
+      frameStore[frame] = fs;
+
+      port.postMessage({
+        cmd: 'mark-player',
+        targetTab: videoTab.id,
+        targetFrame: frame,
+        name: fs.name,
+        color: fs.color
+      });
+    }
+
+    
   }
 
   if (! selectedSubitem.siteSettings || !tablist['siteSettings'].tab.existsSubitem(selectedSubitem.siteSettings)) {
@@ -201,6 +217,9 @@ function configurePopupTabs(site) {
   return;
 }
 
+function getRandomColor() {
+  return `rgb(${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)})`;
+}
 
 
 function basicCommandHandler(cmdArray, scope) {
@@ -277,7 +296,6 @@ function selectButton(action, arg, buttons) {
   if (buttons[cmd]) {
     buttons[cmd].select();
   }
-  console.log("SSSSSSSSSSSSSSSSSSS\nselecting button:", cmd, "\nbuttons", buttons)
 }
 
 function configureGlobalTab() {
