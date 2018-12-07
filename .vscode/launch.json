@@ -5,10 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "node",
-            "request": "launch",
-            "name": "Launch Program",
-            "program": "${file}"
+            "name": "Launch addon",
+            "type": "firefox",
+            "request": "attach",
+            "port":6000,
+            // "reAttach": true,
+            "addonType": "webExtension",
+            "addonPath": "${workspaceFolder}"
         }
-    ]
+    ],
+    "firefox": {
+        "executable": "/usr/bin/firefox-developer-edition"
+    }
 }
