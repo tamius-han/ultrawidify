@@ -88,6 +88,8 @@ class CommsClient {
       this.pageInfo.setZoom(message.zoom, true, message.playing);
     } else if (message.cmd === 'mark-player') {
       this.pageInfo.markPlayer(message.name, message.color);
+    } else if (message.cmd === 'unmark-player') {
+      this.pageInfo.unmarkPlayer();
     }
   }
 
@@ -347,6 +349,8 @@ class CommsServer {
       this.server.unregisterVideo(port.sender);
     } else if (message.cmd === 'mark-player') {
       this.sendToFrame(message, message.targetTab, message.targetFrame);
+    } else if (message.cmd === 'unmark-player') {
+      this.sendToAll(message);
     }
   }
 

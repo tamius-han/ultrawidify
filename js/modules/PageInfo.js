@@ -425,7 +425,7 @@ class PageInfo {
     }
   }
   unmarkPlayer() {
-    for (var vd of this.video) {
+    for (var vd of this.videos) {
       vd.unmarkPlayer();
     }
   }
