@@ -78,7 +78,7 @@ function loadFrames(videoTab) {
     port.postMessage({cmd: 'popup-set-selected-tab', selectedMenu: selectedMenu, selectedSubitem: item});
   }
 
-  for (var option of [{id: '__playing', label: 'Currently playing'}, {id: '__all', label: 'All'}]) {
+  for (var option of [{id: '__all', label: 'All'},{id: '__playing', label: 'Currently playing'}]) {
     const id = option.id;
     var newItem = new TabItem(
       undefined,
@@ -568,20 +568,6 @@ document.addEventListener("click", (e) => {
       command.cmd = 'set-zoom';
       command.zoom = 1;
       return command;
-    }
-    //#endregion
-    //#region show/hide custom ar
-    if (e.target.classList.contains("_changeAr_show_customAr")) {
-      VideoPanel.misc.customArChanger.classList.remove("hidden");
-      VideoPanel.buttons.changeAr.showCustomAr.classList.add("hidden");
-      VideoPanel.buttons.changeAr.hideCustomAr.classList.remove("hidden");
-      return;
-    }
-    if (e.target.classList.contains("_changeAr_hide_customAr")) {
-      VideoPanel.misc.customArChanger.classList.add("hidden");
-      VideoPanel.buttons.changeAr.showCustomAr.classList.remove("hidden");
-      VideoPanel.buttons.changeAr.hideCustomAr.classList.add("hidden");
-      return;
     }
     //#endregion
   }
