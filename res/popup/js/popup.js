@@ -94,19 +94,6 @@ function loadFrames(videoTab) {
 
 
   for (var frame in videoTab.frames) {
-    const nid = `${videoTab.id}-${videoTab.frames[frame].id}`;
-    var newItem = new TabItem(
-      undefined,
-      nid,
-      videoTab.frames[frame].host,
-      videoTab.frames[frame].url != videoTab.url,
-      (click) => onTabitemClick(nid)
-    );
-    
-    tablist['siteSettings'].tab.insertSubitem(newItem);
-    tablist['videoSettings'].tab.insertSubitem(newItem);
-
-
 
     if (frame && !frameStore[frame]) {
       var fs = {
@@ -124,6 +111,23 @@ function loadFrames(videoTab) {
         color: fs.color
       });
     }
+
+    const nid = `${videoTab.id}-${videoTab.frames[frame].id}`;
+    var newItem = new TabItem(
+      undefined,
+      nid,
+      videoTab.frames[frame].host,
+      videoTab.frames[frame].url != videoTab.url,
+      (click) => onTabitemClick(nid),
+      frameStore[frame]
+    );
+    
+    tablist['siteSettings'].tab.insertSubitem(newItem);
+    tablist['videoSettings'].tab.insertSubitem(newItem);
+
+
+
+
 
     
   }
@@ -630,3 +634,9 @@ async function popup_init() {
 }
 
 popup_init();
+window.addEventListener("unload", () => {
+  console.log("SENDING UNMARK COMMAND")
+  port.postMessage({
+    cmd: 'unmark-player',
+  });
+});

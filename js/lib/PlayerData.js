@@ -60,6 +60,7 @@ class PlayerData {
 
   destroy() {
     this.stopChangeDetection();
+    this.destroyOverlay();
   }
 
   startChangeDetection(){
@@ -69,7 +70,11 @@ class PlayerData {
     clearTimeout(this.watchTimeout);
   }
 
-  markPlayer(name, color) {
+  makeOverlay() {
+    if (!this.overlayNode) {
+      this.destroyOverlay();
+    }
+
     var overlay = document.createElement('div');
     overlay.style.width = '100%';
     overlay.style.height = '100%';
@@ -78,16 +83,43 @@ class PlayerData {
     overlay.style.left = '0';
     overlay.style.zIndex = '1000000000';
     overlay.style.pointerEvents = 'none';
-    overlay.innerHTML = `<div style="background-color: ${color}; color: #fff; position: absolute; top: 0; left: 0">${name}</div>`;
 
     this.overlayNode = overlay;
     this.element.appendChild(overlay);
   }
 
-  unmarkPlayer() {
+  destroyOverlay() {
+    if(this.playerIdElement) {
+      this.playerIdElement.remove();
+      this.playerIdElement = undefined;
+    }
     if (this.overlayNode) {
       this.overlayNode.remove();
+      this.overlayNode = undefined;
     }
+  }
+
+  markPlayer(name, color) {
+    if (!this.overlayNode) {
+      this.makeOverlay();
+    }
+    if (this.playerIdElement) {
+      this.playerIdElement.remove();
+    }
+    this.playerIdElement = document.createElement('div');
+    this.playerIdElement.innerHTML = `<div style="background-color: ${color}; color: #fff; position: absolute; top: 0; left: 0">${name}</div>`;
+
+    this.overlayNode.appendChild(this.playerIdElement);
+  }
+
+  unmarkPlayer() {
+    if (Debug.debug) {
+      console.log("[PlayerData::unmarkPlayer] unmarking player!")
+    }
+    if (this.playerIdElement) {
+      this.playerIdElement.remove();
+    }
+    this.playerIdElement = undefined;
   }
 
   scheduleGhettoWatcher(timeout, force_reset) {
@@ -266,9 +298,11 @@ class PlayerData {
         fullscreen: true
       }
       const ths = this;
-      if(this.element) {
+
+      if (this.element != element) {
+        this.element = element;
+        this.makeOverlay()
       }
-      this.element = element;
     } else {
       this.dimensions = {
         width: candidate_width,
@@ -276,9 +310,10 @@ class PlayerData {
         fullscreen: isFullScreen
       };
       const ths = this;
-      if(this.element) {
+      if(this.element != playerCandidateNode) {
+        this.element = playerCandidateNode;
+        this.makeOverlay();
       }
-      this.element = playerCandidateNode;
     }
   }
 
