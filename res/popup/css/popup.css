@@ -40,6 +40,7 @@ html, body {
   padding-top: 5px;
   padding-bottom: 5px;
   font-variant: small-caps;
+  border-left: transparent 5px solid;
 }
 
 .suboption {
@@ -62,17 +63,26 @@ html, body {
   padding-top: 0.5em;
 }
 
+#tablist .selected {
+  background-color: initial;
+  border-left: #f18810 5px solid;
+}
+
 .tabitem {
   font-variant: normal;
   font-size: 0.69em;
   margin-left: 1em;
+  border-left: transparent 3px solid;
+  padding-left: 12px;
+  margin-left: -10px;
 }
 
 .tabitem-selected {
   color: #fff !important;
+  background-color: initial;
+  border-left: #f0c089 3px solid !important;
 }
 .tabitem-selected::before {
-  content: "⦿";
   padding-right: 0.5em;
 }
 
