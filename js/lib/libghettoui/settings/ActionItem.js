@@ -1,39 +1,36 @@
 class ActionItem extends BaseElement {
   constructor(id, action, onClick) {
-    super(id, undefined, onClick);
-    this.element.classList.add("action-list-item", "flex", "flex-row");
+    super(id, undefined, onClick, undefined, document.createElement('tr'));
+    this.element.classList.add("action-list-item");
     
-    // action list item looks like this
-    // [  action.label          | shortcut | visibility checkboxes ]
-
-    var cmd = document.createElement('div')
-    var label = document.createElement('div');
-    var shortcut = document.createElement('div');
-    var popupVideoCb = document.createElement('div');
-    var popupSiteCb = document.createElement('div');
-    var popupGlobalCb = document.createElement('div');
-    var playerUi = document.createElement('div');
-    
-    cmd.classList.add('cmd', 'flex');
-    label.classList.add('label', 'flex');
-    shortcut.classList.add('shortcut', 'flex');
-    popupVideoCb.classList.add('checkbox', 'flex');
-    popupSiteCb.classList.add('checkbox', 'flex');
-    popupGlobalCb.classList.add('checkbox', 'flex');
-    playerUi.classList.add('checkbox', 'flex');
-
+    let cmd = "";
     for (var c in action.cmd) {
-      cmd.textContent += `${c > 0 ? '; ' : ''}${action.cmd[0].action} ${action.cmd[0].arg}`
+      cmd += `${c > 0 ? '; ' : ''}${action.cmd[0].action} ${action.cmd[0].arg}`
     }
-    label.textContent = action.label;
-    shortcut.textContent = action.parsedShortcut;
 
-    this.element.appendChild(label);
-    this.element.appendChild(cmd);
-    this.element.appendChild(shortcut);
-    this.element.appendChild(popupVideoCb);
-    this.element.appendChild(popupSiteCb);
-    this.element.appendChild(popupGlobalCb);
-    this.element.appendChild(playerUi);
+    this.element.innerHTML = `
+      <td class="cmd monospace">${cmd}</td>
+      <td class="label">${action.label ? action.label : ""}</td>
+      <td class="shortcut">${action.parsedShortcut ? action.parsedShortcut : ""}</td>
+      <td class="checkbox">
+        <input type="checkbox" disabled ${
+          action.shortcut && action.shortcut.length && (action.shortcut[0].onMouseMove || action.shortcut[0].onClick || action.shortcut[0].onScroll)  ?
+          "checked" : ""
+        }>
+      </td>
+      <td class="checkbox">
+        <input type="checkbox" disabled ${action.popup_global ? "checked" : ""}>
+      </td>
+      <td class="checkbox">
+        <input type="checkbox" disabled ${action.popup_site ? "checked" : ""}>
+      </td>
+      <td class="checkbox">
+        <input type="checkbox" disabled ${action.popup_ ? "checked" : ""}>
+      </td>
+      <td class="checkbox">
+        <input type="checkbox" disabled ${action.ui ? "checked" : ""}>
+      </td>
+      <td>${action.ui_path ? action.ui_path : ""}</td>
+    `;
   }
 }

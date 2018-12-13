@@ -3,7 +3,7 @@ if(Debug.debug)
 
 var ExtensionConf = {
   basicExtensionMode: "blacklist",
-  extensionMode: "whitelist", // how should this extension work? 
+  extensionMode: "blacklist", // how should this extension work? 
                               //       'blacklist' - work everywhere except blacklist
                               //       'whitelist' - only work on whitelisted sites
                               //       'disabled'  - work nowhere
@@ -209,6 +209,7 @@ var ExtensionConf = {
     popup_site: false,  // optional, false by default
     popup_global: false,// optional, false by default
     ui: true,
+    ui_path: 'crop',
     label: 'Automatic'
   },{
     cmd: [{
@@ -226,6 +227,7 @@ var ExtensionConf = {
     }],
     popup: true,
     ui: true,
+    ui_path: 'crop',
     label: 'Reset',
   },{
     cmd: [{
@@ -243,6 +245,7 @@ var ExtensionConf = {
     }],
     popup: true,
     ui: true,
+    ui_path: 'crop',
     label: 'Fit width',
   },{
     cmd: [{
@@ -260,6 +263,7 @@ var ExtensionConf = {
     }],
     popup: true,
     ui: true,
+    ui_path: 'crop',
     label: 'Fit height',
   },{
     cmd: [{
@@ -277,6 +281,7 @@ var ExtensionConf = {
     }],
     popup: true,
     ui: true,
+    ui_path: 'crop',
     label: '16:9',
   },{
     cmd: [{
@@ -294,6 +299,7 @@ var ExtensionConf = {
     }],
     popup: true,
     ui: true,
+    ui_path: 'crop',
     label: '21:9'
   },{
     cmd: [{
@@ -311,6 +317,7 @@ var ExtensionConf = {
     }],
     popup: true,
     ui: true,
+    ui_path: 'crop',
     label: '2.35',
   },{
     cmd: [{
@@ -328,6 +335,7 @@ var ExtensionConf = {
     }],
     popup: true,
     ui: true,
+    ui_path: 'crop',
     label: '18:9'
   },{
     cmd: [{
@@ -345,6 +353,7 @@ var ExtensionConf = {
     }],
     popup: false,
     ui: false,
+    ui_path: 'crop',
     label: 'Zoom',
   },{
     cmd: [{
@@ -379,6 +388,7 @@ var ExtensionConf = {
     }],
     popup: true,
     ui: true,
+    ui_path: 'crop',
     label: 'Toggle panning mode',
   },{
     cmd: [{
@@ -396,6 +406,7 @@ var ExtensionConf = {
     }],
     popup: false,
     ui: false,
+    ui_path: 'crop',
     label: 'Pan (hold)'
   },
   //
@@ -420,6 +431,7 @@ var ExtensionConf = {
     popup_site: true,
     popup_global: true,
     ui: true,
+    ui_path: 'stretch',
     label: 'Basic'
   },{
     cmd: [{
@@ -430,6 +442,7 @@ var ExtensionConf = {
     popup_site: true,
     popup_global: true,
     ui: true,
+    ui_path: 'stretch',
     label: 'Hybrid'
   },{
     cmd: [{
@@ -440,6 +453,7 @@ var ExtensionConf = {
     popup_site: true,
     popup_global: true,
     ui: true,
+    ui_path: 'stretch',
     label: 'Thin borders'
   },{
     cmd: [{
@@ -464,6 +478,7 @@ var ExtensionConf = {
     popup_site: true,
     popup_global: true,
     ui: true,
+    ui_path: 'align',
     label: 'Left',
   },{
     cmd: [{
@@ -474,6 +489,7 @@ var ExtensionConf = {
     popup_site: true,
     popup_global: true,
     ui: true,
+    ui_path: 'align',
     label: 'Center',
   },{
     cmd: [{
@@ -484,6 +500,7 @@ var ExtensionConf = {
     popup_site: true,
     popup_global: true,
     ui: true,
+    ui_path: 'align',
     label: 'Right',
   },{
     cmd: [{
@@ -511,6 +528,7 @@ var ExtensionConf = {
     popup_global: true,
     popup_site: false,
     ui: true,
+    ui_path: 'settings/global',
     label: 'Enable'
   },{
     cmd: [{
@@ -522,6 +540,7 @@ var ExtensionConf = {
     popup_global: true,
     popup_site: false,
     ui: true,
+    ui_path: 'settings/global',
     label: 'On whitelisted only'
   },{
     cmd: [{
@@ -533,6 +552,7 @@ var ExtensionConf = {
     popup_global: true,
     popup_site: false,
     ui: true,
+    ui_path: 'settings/global',
     label: 'Disabled'
   },{
     // site-only
@@ -545,6 +565,7 @@ var ExtensionConf = {
     popup_global: false,
     popup_site: true,
     ui: true,
+    ui_path: 'settings/site',
     label: 'Enable'
   },{
     cmd: [{
@@ -556,6 +577,7 @@ var ExtensionConf = {
     popup_global: false,
     popup_site: true,
     ui: true,
+    ui_path: 'settings/site',
     label: 'Use default option'
   },{
     cmd: [{
@@ -567,6 +589,7 @@ var ExtensionConf = {
     popup_global: false,
     popup_site: true,
     ui: true,
+    ui_path: 'settings/site',
     label: 'Disable'
   },{ // extension options:
       // global
@@ -579,6 +602,7 @@ var ExtensionConf = {
     popup_global: true,
     popup_site: false,
     ui: true,
+    ui_path: 'settings/global',
     label: 'Enable'
   },{
     cmd: [{
@@ -590,6 +614,7 @@ var ExtensionConf = {
     popup_global: true,
     popup_site: false,
     ui: true,
+    ui_path: 'settings/global',
     label: 'On whitelisted only'
   },{
     cmd: [{
@@ -601,6 +626,7 @@ var ExtensionConf = {
     popup_global: true,
     popup_site: false,
     ui: true,
+    ui_path: 'settings/global',
     label: 'Disabled'
   },{
     // site-only
@@ -613,6 +639,7 @@ var ExtensionConf = {
     popup_global: false,
     popup_site: true,
     ui: true,
+    ui_path: 'settings/global',
     label: 'Enable'
   },{
     
@@ -625,6 +652,7 @@ var ExtensionConf = {
     popup_global: false,
     popup_site: true,
     ui: true,
+    ui_path: 'settings/global',
     label: 'Use default option'
   },{
     cmd: [{
@@ -636,6 +664,7 @@ var ExtensionConf = {
     popup_global: false,
     popup_site: true,
     ui: true,
+    ui_path: 'settings/site', 
     label: 'Disable'
   },],
   // -----------------------------------------
