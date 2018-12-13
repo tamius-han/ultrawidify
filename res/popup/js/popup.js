@@ -72,11 +72,17 @@ function loadFrames(videoTab) {
     }
   }
 
+  if (videoTab.frames.length < 2) {
+    return;
+  }
+
   function onTabitemClick(item) {
     tablist[selectedMenu].tab.selectSubitem(item);
     selectedSubitem[selectedMenu] = item;
     port.postMessage({cmd: 'popup-set-selected-tab', selectedMenu: selectedMenu, selectedSubitem: item});
   }
+
+
 
   for (var option of [{id: '__all', label: 'All'},{id: '__playing', label: 'Currently playing'}]) {
     const id = option.id;

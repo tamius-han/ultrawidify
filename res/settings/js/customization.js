@@ -30,10 +30,20 @@ function loadActions() {
     zoomPanActions.indexOf(action) === -1 )
   );
 
+  ActionItemCategoryHeaderProcessor.addCategoryName(ui.customization.actionList.element, "Crop actions");
+  ActionItemCategoryHeaderProcessor.addTableHeader(ui.customization.actionList.element);
   loadActionSection(cropActions, ui.customization.actionList);
+  ActionItemCategoryHeaderProcessor.addCategoryName(ui.customization.actionList.element, "Stretch actions");
+  ActionItemCategoryHeaderProcessor.addTableHeader(ui.customization.actionList.element);
   loadActionSection(stretchActions, ui.customization.actionList);
+  ActionItemCategoryHeaderProcessor.addCategoryName(ui.customization.actionList.element, "Alignment actions");
+  ActionItemCategoryHeaderProcessor.addTableHeader(ui.customization.actionList.element);
   loadActionSection(alignActions, ui.customization.actionList);
+  ActionItemCategoryHeaderProcessor.addCategoryName(ui.customization.actionList.element, "Zoom actions");
+  ActionItemCategoryHeaderProcessor.addTableHeader(ui.customization.actionList.element);
   loadActionSection(zoomPanActions, ui.customization.actionList);
+  ActionItemCategoryHeaderProcessor.addCategoryName(ui.customization.actionList.element, "Other actions");
+  ActionItemCategoryHeaderProcessor.addTableHeader(ui.customization.actionList.element);
   loadActionSection(otherActions, ui.customization.actionList);
 
   ui.customization.actionItems.push(cropActions);
@@ -43,6 +53,10 @@ function loadActions() {
   ui.customization.actionItems.push(otherActions);
 
   console.log("ui.customization:", ui.customization)
+}
+
+function loadSectionHeader(title) {
+
 }
 
 function loadActionSection(actions, container) {
