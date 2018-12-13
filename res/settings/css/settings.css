@@ -6,7 +6,7 @@ body {
   background-size: 75px;
   background-color: #000000;
   color: #ddd;
-  font-family: 'overpass', serif;
+  font-family: 'Overpass', sans-serif;
   font-size: 1.2em;
   width: 100%;
   border: 0px;
@@ -163,6 +163,14 @@ input[type=text]{
   height: 1.7em;
 }
 
+.monospace {
+  font-family: 'Overpass Mono', monospace
+}
+
+.center-text {
+  text-align: center;
+}
+
 /** site options css **/
 .site_name {
   padding-left: 1em;
@@ -199,4 +207,66 @@ input[type=text]{
 }
 .inline_button:hover {
   color: #fff;
+}
+
+.checkbox-center {
+  text-align: center;
+}
+
+
+.checkbox-container {
+  display: inline-block;
+  position: relative;
+  padding-left: 35px;
+  margin-bottom: 12px;
+  /* cursor: pointer; */
+  font-size: 22px;
+  /* -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none; */
+}
+
+.checkbox {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 25px;
+  width: 25px;
+}
+
+.checkbox-checked {
+  position: absolute;
+  left: 9px;
+  top: 5px;
+  width: 5px;
+  height: 10px;
+  border: solid rgb(245, 145, 63);
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+}
+
+/* ACTION TABLE STYLES */
+
+.action-item-category-label {
+  color: rgb(245, 145, 63);
+  font-size: 2em;
+  font-weight: 200;
+  margin-bottom: 0px;
+  padding-bottom: 0px;
+  padding-top: 1em;
+}
+
+.action-item-table-header {
+  color: rgb(245, 145, 63);
+}
+
+.action-item-table-header-small {
+  color: rgb(245, 145, 63);
+  font-size: 0.85em !important;
+  font-weight: 300 !important;
+}
+
+.action-list-item:hover {
+  background-color: rgba(254, 146, 63, 0.15);
 }
