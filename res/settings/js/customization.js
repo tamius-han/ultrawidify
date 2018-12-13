@@ -60,11 +60,11 @@ function loadSectionHeader(title) {
 }
 
 function loadActionSection(actions, container) {
-  for(action of actions) {
+  for(const action of actions) {
     if (action.shortcut && action.shortcut[0].key) {
       action.parsedShortcut = KeyboardShortcutParser.parseShortcut(action.shortcut[0])
     }
-    var actionIndex = settings.active.actions.indexOf(action);
+    const actionIndex = settings.active.actions.indexOf(action);
     var newAction = new ActionItem(
       undefined,
       action,

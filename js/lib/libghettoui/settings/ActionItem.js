@@ -11,24 +11,34 @@ class ActionItem extends BaseElement {
     this.element.innerHTML = `
       <td class="cmd monospace">${cmd}</td>
       <td class="label">${action.label ? action.label : ""}</td>
-      <td class="shortcut">${action.parsedShortcut ? action.parsedShortcut : ""}</td>
-      <td class="checkbox">
-        <input type="checkbox" disabled ${
-          action.shortcut && action.shortcut.length && (action.shortcut[0].onMouseMove || action.shortcut[0].onClick || action.shortcut[0].onScroll)  ?
-          "checked" : ""
-        }>
+      <td class="shortcut center-text">${action.parsedShortcut ? action.parsedShortcut : ""}</td>
+      <td class="center-text">
+        <div class="checkbox-container">
+          <span class="checkbox ${
+            action.shortcut && action.shortcut.length && (action.shortcut[0].onMouseMove || action.shortcut[0].onClick || action.shortcut[0].onScroll)  ?
+            "checkbox-checked" : ""
+          }"></span>
+        </div>
       </td>
-      <td class="checkbox">
-        <input type="checkbox" disabled ${action.popup_global ? "checked" : ""}>
+      <td class="center-text">
+        <div class="checkbox-container">
+          <span class="checkbox ${action.popup_global ? "checkbox-checked" : ""}"></span>
+        </div>
       </td>
-      <td class="checkbox">
-        <input type="checkbox" disabled ${action.popup_site ? "checked" : ""}>
+      <td class="center-text">
+        <div class="checkbox-container">
+          <span class="checkbox ${action.popup_site ? "checkbox-checked" : ""}"></span>
+          </div>
+        </td>
+      <td class="center-text">
+        <div class="checkbox-container">
+          <span class="checkbox ${action.popup ? "checkbox-checked" : ""}"></span>
+        </div>
       </td>
-      <td class="checkbox">
-        <input type="checkbox" disabled ${action.popup_ ? "checked" : ""}>
-      </td>
-      <td class="checkbox">
-        <input type="checkbox" disabled ${action.ui ? "checked" : ""}>
+      <td class="center-text">
+        <div class="checkbox-container">
+          <span class="checkbox ${action.ui ? "checkbox-checked" : ""}"></span>
+        </div>
       </td>
       <td>${action.ui_path ? action.ui_path : ""}</td>
     `;
