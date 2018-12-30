@@ -56,15 +56,6 @@
 
   "background": {
     "scripts": [
-      "ext/conf/Debug.js",
-      "ext/conf/BrowserDetect.js",
-      "ext/conf/ExtensionConf.js",
-      "ext/lib/Comms.js",
-      "ext/lib/ObjectCopy.js",
-      
-      "ext/lib/Settings.js",
-      "ext/modules/ActionHandler.js",
-
       "ext/uw-bg.js"
     ]
   },

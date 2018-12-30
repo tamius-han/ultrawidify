@@ -11,6 +11,7 @@ const config = {
   mode: process.env.NODE_ENV,
   context: __dirname + '/src',
   entry: {
+    'ext/uw': './ext/uw.js',
     'ext/uw-bg': './ext/uw-bg.js',
     'popup/popup': './popup/popup.js',
     'options/options': './options/options.js',
@@ -72,7 +73,6 @@ const config = {
       { from: 'icons', to: 'icons', ignore: ['icon.xcf'] },
       { from: 'popup/popup.html', to: 'popup/popup.html', transform: transformHtml },
       { from: 'options/options.html', to: 'options/options.html', transform: transformHtml },
-     
       {
         from: 'manifest.json',
         to: 'manifest.json',

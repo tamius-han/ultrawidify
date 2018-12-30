@@ -1,6 +1,4 @@
-if (Debug.debug) {
-  console.log("Loading: ActionHandler.js");
-}
+import Debug from '../conf/Debug';
 
 class ActionHandler {
 
@@ -208,3 +206,5 @@ class ActionHandler {
   }
 
 }
+
+export default ActionHandler;
