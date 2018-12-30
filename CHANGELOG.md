@@ -1,16 +1,29 @@
 # Changelog
 
-## v3.x
+## v4.x 
 
-### v3.3.0
+### v4.0.0 (upcoming)
 
-This will probably get promoted to 4.0, continuing the trend of version something.3 not happening. Eulul
-
+* Using vue for popup and settings page
+* Editable shortcuts
+* Per-site controls 
 * Basic mode added
 * Per-site controls in popup (to control embedded videos)
 * Rewrote keyboard shortcuts and changed how they're handled. Massively.
 
-### v3.2.2
+## v3.x
+
+### v3.3.0
+
+~~This will probably get promoted to 4.0, continuing the trend of version something.3 not happening. Eulul~~
+
+* ~~Basic mode added~~
+* ~~Per-site controls in popup (to control embedded videos)~~
+* ~~Rewrote keyboard shortcuts and changed how they're handled. Massively.~~
+
+Never happened, got bumped to 4.0.0.
+
+### v3.2.2 (current)
 
 * Pan event listener now gets properly unbound
 * Fixed 'reset zoom' button in popup
