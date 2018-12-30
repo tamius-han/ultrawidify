@@ -1,3 +1,9 @@
+import Debug from './conf/Debug.js';
+import BrowserDetect from './conf/BrowserDetect';
+import CommsServer from './lib/comms/CommsServer';
+import Settings from './lib/Settings';
+
+
 var BgVars = {
   arIsActive: true,
   hasVideos: false,
@@ -30,9 +36,9 @@ class UWServer {
     this.comms = new CommsServer(this);
 
     var ths = this;
-    if(window.currentBrowser.firefox) {
+    if(BrowserDetect.firefox) {
       browser.tabs.onActivated.addListener(function(m) {ths.onTabSwitched(m)});  
-    } else if (window.currentBrowser.chrome) {
+    } else if (BrowserDetect.chrome) {
       chrome.tabs.onActivated.addListener(function(m) {ths.onTabSwitched(m)});
     }
 
@@ -92,9 +98,9 @@ class UWServer {
       this.currentTabId = activeInfo.tabId;   // just for readability
 
       var tab;
-      if (window.currentBrowser.firefox) {
+      if (BrowserDetect.firefox) {
         var tab = await browser.tabs.get(this.currentTabId);
-      } else if (window.currentBrowser.chrome) {
+      } else if (BrowserDetect.chrome) {
         var tab = await this._promisifyTabsGet(chrome, this.currentTabId);
       }
 
@@ -118,9 +124,9 @@ class UWServer {
     // does "garbage collection" on frames
     let frames;
     
-    if (window.currentBrowser.firefox) {
+    if (BrowserDetect.firefox) {
       frames = await browser.webNavigation.getAllFrames({tabId: this.currentTabId});
-    } else if (window.currentBrowser.chrome) {
+    } else if (BrowserDetect.chrome) {
       frames = await new Promise( (resolve, reject) => {
         chrome.webNavigation.getAllFrames({tabId: this.currentTabId}, (data) => resolve(data) );
       });
