@@ -1,0 +1,43 @@
+{
+  "name": "ultravidify-vue",
+  "version": "1.0.0",
+  "description": "Ultrawidify but with vue settings and popup",
+  "author": "Tamius Han <tamius.han@gmail.com>",
+  "scripts": {
+    "build": "cross-env NODE_ENV=production webpack --hide-modules",
+    "build:dev": "cross-env NODE_ENV=development webpack --hide-modules",
+    "build-zip": "node scripts/build-zip.js",
+    "watch": "npm run build -- --watch",
+    "watch:dev": "cross-env HMR=true npm run build:dev -- --watch"
+  },
+  "dependencies": {
+    "@types/core-js": "^2.5.0",
+    "@types/es6-promise": "^3.3.0",
+    "vue": "^2.5.17",
+    "vuex": "^3.0.1",
+    "vuex-webextensions": "^1.2.6",
+    "webextension-polyfill": "^0.3.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.1.2",
+    "@babel/plugin-proposal-optional-chaining": "^7.0.0",
+    "@babel/preset-env": "^7.1.0",
+    "archiver": "^3.0.0",
+    "babel-loader": "^8.0.2",
+    "copy-webpack-plugin": "^4.5.3",
+    "cross-env": "^5.2.0",
+    "css-loader": "^0.28.11",
+    "ejs": "^2.6.1",
+    "file-loader": "^1.1.11",
+    "mini-css-extract-plugin": "^0.4.4",
+    "node-sass": "^4.9.3",
+    "sass-loader": "^7.1.0",
+    "vue-loader": "^15.4.2",
+    "vue-template-compiler": "^2.5.17",
+    "web-ext-types": "^2.1.0",
+    "webpack": "^4.20.2",
+    "webpack-chrome-extension-reloader": "^0.8.3",
+    "webpack-cli": "^3.1.2",
+    "webpack-shell-plugin": "^0.5.0"
+  }
+}

@@ -1,0 +1,256 @@
+@import "../res/css/font/overpass.css";
+@import "../res/css/font/overpass-mono.css";
+@import "../res/css/colors.scss";
+@import "../res/css/common.scss";
+
+body {
+  background-image: url('/res/img/settings/bg_random2.png');
+  background-size: 25em;
+  
+  text-align: center;
+  z-index: -1000;
+}
+
+/*
+ +
+ + BASIC LAYOUT
+ +
+ */
+
+.header {
+  width: 42rem;
+  height: 100vh;
+  position: fixed;
+}
+
+.content-area {
+  width: 100%;
+  padding-left: 42rem;
+  text-align: center;
+}
+
+
+.text-sink-anchor {
+  position: relative;
+}
+
+.text-sink {
+  position: absolute;
+  bottom: 0px;
+}
+.title-sink-pad {
+  padding-bottom: 1.69rem;
+}
+
+/*
+ +
+ + SIDE MENU
+ +
+ */
+
+.extension-name {
+  font-size: 4.20rem;
+  height: 7.7rem;
+  text-align: center;
+}
+
+.menu {
+  font-size: 1.9rem;
+  font-variant: small-caps;
+}
+
+/*
+ +
+ + TAB PANEL
+ +
+ */
+
+.content-title {
+  font-size: 3.3rem;
+  height: 7.7rem;
+}
+
+.content-content {
+  width: 100%;
+  max-width: 96rem;
+  display: inline-block;
+  margin: 0 auto;
+  text-align: left;
+}
+
+
+.block {
+  display: inline-block;
+  margin-left: 1em;
+  margin-right: 1em;
+}
+.tabline {
+  background-color: #000;
+  width: 100%;
+  margin-bottom: 1.5em;
+  padding-top: 0.3em;
+  padding-bottom: 0.4em;
+  z-index: -200;
+}
+
+.dup_keybinds{
+  background-color: #720 !important;
+}
+input[type=text]{
+  font-size: 1em;
+  padding-left: 0.6em;
+  margin-left: 1em;
+  width: 2em;
+  background-color: #000;
+  border: 1px #442 solid;
+}
+.uw_shortcuts_line{
+  padding-top: 0.25em;
+  padding-left: 5em;
+}
+.uw_shortcuts_label{
+  display: inline-block;
+  color: #fff;
+  width: 17.5em;
+}
+.uw_options_line{
+  margin-top: 0.75em;
+  font-size: 1.1em;
+  width: 80%;
+  margin-left: 5%;
+}
+.uw_options_option{
+  margin-left: 5%;
+}
+.uw_suboption{
+  margin-left: 5em;
+  margin-top: 0.75em;
+  font-size: 0.85em;
+}
+.uw_options_desc, .uw_suboption_desc{
+  margin-top: 0.33em;
+  font-size: 0.69em;
+  color: #aaa;
+}
+.uw_suboption_desc{
+  margin-left: 5em;
+}
+
+.buttonbar{
+/*       width: 100%; */
+  padding-left: 20em;
+  margin-bottom: 2em;
+}
+.button {
+  display: inline-block;
+  margin-left: 1em;
+  margin-right: 1em;
+  padding-left: 1em;
+  padding-right: 1em;
+  padding-top: 0.4em;
+  width: 4em;
+  text-align: center;
+  background-color: rgba(0,0,0,0.66);
+  color: #ffc;
+  height: 1.7em;
+}
+
+.monospace {
+  font-family: 'Overpass Mono', monospace
+}
+
+.center-text {
+  text-align: center;
+}
+
+/** site options css **/
+.site_name {
+  padding-left: 1em;
+  padding-bottom: 0.3em;
+  color: #fff;
+  font-size: 1.1em;
+  height: 13em !important;
+  
+}
+.site_details {
+  font-size: 0.8em;
+}
+.site_title_ebox {
+  width: 10em !important;
+  font-size: 1.5em !important;
+  background-color: rgba(0,0,0,0) !important;
+  margin-left: 0px !important;
+  border: 0px !important;
+  color: #ffc !important;
+}
+.details_ebox {
+  width: 12em !important;
+  background-color: rgba(0,0,0,0) !important;
+  border: 0px !important;      
+  color: #ffc !important;
+  margin-left: 0em !important;
+}
+.details_ebox:disabled {
+  color: #aaa !important;
+}
+
+.checkbox-center {
+  text-align: center;
+}
+
+.checkbox-container {
+  display: inline-block;
+  position: relative;
+  padding-left: 35px;
+  margin-bottom: 12px;
+  /* cursor: pointer; */
+  font-size: 22px;
+  /* -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none; */
+}
+
+.checkbox {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 25px;
+  width: 25px;
+}
+
+.checkbox-checked {
+  position: absolute;
+  left: 9px;
+  top: 5px;
+  width: 5px;
+  height: 10px;
+  border: solid rgb(245, 145, 63);
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+}
+
+/* ACTION TABLE STYLES */
+
+.action-item-category-label {
+  color: rgb(245, 145, 63);
+  font-size: 2em;
+  font-weight: 200;
+  margin-bottom: 0px;
+  padding-bottom: 0px;
+  padding-top: 1em;
+}
+
+.action-item-table-header {
+  color: rgb(245, 145, 63);
+}
+
+.action-item-table-header-small {
+  color: rgb(245, 145, 63);
+  font-size: 0.85em !important;
+  font-weight: 300 !important;
+}
+
+.action-list-item:hover {
+  background-color: rgba(254, 146, 63, 0.15);
+}

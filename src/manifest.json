@@ -1,0 +1,97 @@
+{
+  "manifest_version": 2,
+  "name": "Ultrawidify",
+  "description": "Aspect ratio fixer for youtube that works around some people's disability to properly encode 21:9 (and sometimes, 16:9) videos.",
+  "version": "4.0.0-a1",
+  "applications": {
+    "gecko": {
+      "id": "{cf02b1a7-a01a-4e37-a609-516a283f1ed3}"
+    }
+  },
+  "icons": {
+    "32":"res/icons/uw-32.png",
+    "64":"res/icons/uw-64.png"
+  },
+  "browser_action": {
+    "default_title": "Ultrawidify",
+    "default_popup": "popup/popup.html"
+  },
+
+  "content_scripts": [{
+    "matches": ["*://*/*"],
+    "js": [ 
+      "js/conf/Debug.js",
+      "js/lib/enums.js",
+
+      "js/lib/BrowserDetect.js",
+      "js/conf/ExtensionConf.js",    
+      
+      "js/lib/ObjectCopy.js",
+      "js/lib/Settings.js",
+
+      "js/lib/Comms.js",
+
+      "js/lib/EdgeDetect.js",
+      "js/lib/GuardLine.js",
+      
+      
+      
+      "js/modules/PageInfo.js",
+      "js/modules/DebugCanvas.js",
+      "js/modules/ArDetect.js",
+      "js/modules/Zoom.js", 
+      "js/modules/Scaler.js",
+      "js/modules/Stretcher.js",
+
+      "js/modules/Resizer.js",   
+      "js/lib/PlayerData.js", 
+      "js/lib/VideoData.js",
+
+      "js/modules/ActionHandler.js",
+      
+      "js/uw.js" 
+    ], 
+    "all_frames": true
+  }],
+
+  "background": {
+    "scripts": [
+      "ext/conf/Debug.js",
+      "ext/conf/BrowserDetect.js",
+      "ext/conf/ExtensionConf.js",
+      "ext/lib/Comms.js",
+      "ext/lib/ObjectCopy.js",
+      
+      "ext/lib/Settings.js",
+      "ext/modules/ActionHandler.js",
+
+      "ext/uw-bg.js"
+    ]
+  },
+  
+  "options_ui": {
+    "page": "options/options.html",
+    "browser_style": false,
+    "open_in_tab": true
+  },
+
+
+  "web_accessible_resources": [
+    "./*",
+    "ext/*",
+    "res/fonts/*",
+    "res/css/*",
+    
+    "res/img/ytplayer-icons/zoom.png",
+    "res/img/ytplayer-icons/unzoom.png",
+    "res/img/ytplayer-icons/fitw.png",
+    "res/img/ytplayer-icons/fith.png",
+    "res/img/ytplayer-icons/reset.png",
+    "res/img/ytplayer-icons/settings.png",
+    
+    "res/img/settings/about-bg.png"
+  ],
+  "permissions": [
+    "tabs", "storage",  "activeTab", "<all_urls>", "webNavigation"
+  ]
+}

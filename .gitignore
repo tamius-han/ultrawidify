@@ -1,4 +1,7 @@
-ultrawidify.zip
-ultrawidify-git.zip
 old/
 build/
+/node_modules
+/*.log
+/dist
+/dist-zip
+ 
