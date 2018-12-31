@@ -57,16 +57,16 @@
     </div>
     <div class="flex flex-row button-box">
       <Button label="Left" 
-              :selected="settings.active.miscSettings.videoFloat === 'left'"
-              @click.native="setDefaultVideoFloat('left')"> 
+              :selected="settings.active.miscSettings.videoAlignment === 'left'"
+              @click.native="setDefaultvideoAlignment('left')"> 
       </Button>
       <Button label="Center"
-              :selected="settings.active.miscSettings.videoFloat === 'center'"
-              @click.native="setDefaultVideoFloat('center')">
+              :selected="settings.active.miscSettings.videoAlignment === 'center'"
+              @click.native="setDefaultvideoAlignment('center')">
       </Button>
       <Button label="Right"
-              :selected="settings.active.miscSettings.videoFloat === 'right'"
-              @click.native="setDefaultVideoFloat('right')">
+              :selected="settings.active.miscSettings.videoAlignment === 'right'"
+              @click.native="setDefaultvideoAlignment('right')">
       </Button>
     </div>
 
@@ -146,8 +146,8 @@ export default {
       this.settings.active.extensionMode = mode;
       this.settings.save();
     },
-    setDefaultVideoFloat(mode) {
-      this.settings.active.videoFloat = mode;
+    setDefaultvideoAlignment(mode) {
+      this.settings.active.videoAlignment = mode;
       this.settings.save();
     },
     setDefaultStretchingMode(mode) {

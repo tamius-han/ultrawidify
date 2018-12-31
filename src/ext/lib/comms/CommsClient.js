@@ -67,7 +67,7 @@ class CommsClient {
     if (message.cmd === "set-ar") {
       this.pageInfo.setAr(message.arg, message.playing);
     } else if (message.cmd === 'set-alignment') {
-      this.pageInfo.setVideoFloat(message.arg, message.playing);
+      this.pageInfo.setvideoAlignment(message.arg, message.playing);
       this.pageInfo.restoreAr();
     } else if (message.cmd === "set-stretch") {
       this.pageInfo.setStretchMode(message.arg, message.playing);
@@ -143,9 +143,14 @@ class CommsClient {
     if (Debug.debug && Debug.comms) {
       console.log(`[CommsClient::registerVideo] <${this.commsId}>`, "Registering video for current page.");
     }
-    if (this.pageInfo.videos.length) { 
-      this.port.postMessage({cmd: "has-video"});
+    if (this.pageInfo) {
+      if (this.pageInfo.videos.length) { 
+        this.port.postMessage({cmd: "has-video"});
+      }
+    } else {
+      // this.port.postMessage({cmd: "has-video"});
     }
+    
   }
 
   unregisterVideo(){

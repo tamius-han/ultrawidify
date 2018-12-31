@@ -322,7 +322,7 @@ function configureGlobalTab() {
   processButtonsForPopupCategory(GlobalPanel.elements.alignmentSettings, alignButtons);
 
   selectButton('set-stretch', settings.active.stretch.initialMode, GlobalPanel.elements.stretchSettings.buttons);
-  selectButton('set-alignment', settings.active.miscSettings.videoFloat, GlobalPanel.elements.alignmentSettings.buttons);
+  selectButton('set-alignment', settings.active.miscSettings.videoAlignment, GlobalPanel.elements.alignmentSettings.buttons);
 
   selectButton('set-extension-mode', settings.active.extensionMode, GlobalPanel.elements.extensionSettings.buttons);
   selectButton('set-extension-mode', settings.active.arDetect.mode, GlobalPanel.elements.autoarSettings.buttons);

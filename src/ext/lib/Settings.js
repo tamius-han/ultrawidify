@@ -376,7 +376,7 @@ class Settings {
     if (site.videoAlignment) {
       return site.videoAlignment;
     }
-    return this.active.miscSettings.videoFloat;
+    return this.active.miscSettings.videoAlignment;
   }
 }
 

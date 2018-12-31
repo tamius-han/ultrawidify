@@ -166,9 +166,6 @@ class CommsServer {
       this.sendToFrame(message, message.targetFrame);
     } else if (message.cmd === 'set-ar') {
       this.sendToFrame(message, message.targetFrame);
-    } else if (message.cmd === 'set-custom-ar') {
-      this.settings.active.keyboard.shortcuts.q.arg = message.arg;
-      this.settings.save();
     } else if (message.cmd === 'set-alignment') {
       this.sendToFrame(message, message.targetFrame);
     } else if (message.cmd === 'autoar-start') {
