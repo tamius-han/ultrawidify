@@ -51,7 +51,7 @@ var ActionList = {
       page: true,
     }
   },
-  'align': {
+  'set-alignment': {
     name: 'Set video alignment',
     args: [{
       name: 'Left',
@@ -68,7 +68,101 @@ var ActionList = {
       scopes: {
         site: true,
       }
-    }]
+    }],
+    scopes: {
+      global: true,
+      site: true,
+      page: true,
+    }
+  },
+  'pan': {
+    name: 'Pan',
+    args: [{
+      name: '',
+      arg: 'toggle'
+    }],
+    scopes: {
+      page: true,
+    }
+  },
+  'toggle-pan': {
+    name: 'Toggle panning mode',
+    args: [{
+      name: 'Toggle',
+      arg: 'toggle',
+    },{
+      name: 'Enable',
+      arg: 'enable',
+    },{
+      name: 'Disable',
+      arg: 'disable'
+    }],
+    scopes: {
+      page: true
+    }
+  },
+  'set-zoom': {
+    name: 'Zoom',
+    args: [{
+      name: 'Zoom level increase/decrease',
+      customArg: true,
+      hintHTML: '<small>Positive values zoom in, negative values zoom out. Increases/decreases are logarithmic: value of \'1\' will double the zoom, value of \'-1\' will halve it.</small>'
+    }],
+    scopes: {
+      page: true,
+    }
+  },
+  'set-extension-mode': {
+    name: 'Set extension mode',
+    args: [{
+      name: 'Enable',
+      arg: 'blacklist',
+    },{
+      name: 'On whitelisted only',
+      arg: 'whitelist',
+      scopes: {
+        global: true,
+      }
+    },{
+      name: 'Default',
+      arg: 'default',
+      scopes: {
+        page: true,
+      }
+    },{
+      name: 'Disable',
+      arg: 'disabled'
+    }],
+    scopes: {
+      global: true,
+      site: true,
+    }
+  },
+  'set-autoar-mode': {
+    name: 'Set automatic aspect ratio detection mode',
+    args: [{
+      name: 'Enable',
+      arg: 'blacklist',
+    },{
+      name: 'On whitelisted only',
+      arg: 'whitelist',
+      scopes: {
+        global: true,
+      }
+    },{
+      name: 'Default',
+      arg: 'default',
+      scopes: {
+        page: true,
+      }
+    },{
+      name: 'Disable',
+      arg: 'disabled'
+    }],
+    scopes: {
+      global: true,
+      site: true,
+    }
   }
 };
 

@@ -106,7 +106,7 @@ var ExtensionConf = {
     announceDebounce: 200     // we wait this long before announcing new zoom
   },
   miscSettings: {
-    videoFloat: "center",
+    videoAlignment: "center",
     mousePan: {
       enabled: false
     },

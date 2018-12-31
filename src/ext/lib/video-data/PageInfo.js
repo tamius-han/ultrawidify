@@ -343,16 +343,16 @@ class PageInfo {
     }
   }
   
-  setVideoFloat(videoFloat, playingOnly) {
+  setvideoAlignment(videoAlignment, playingOnly) {
     if (playingOnly) {
       for(var vd of this.videos) {
         if (vd.isPlaying()) { 
-          vd.setVideoFloat(videoFloat)
+          vd.setvideoAlignment(videoAlignment)
         }
       }
     } else {
       for(var vd of this.videos) {
-        vd.setVideoFloat(videoFloat)
+        vd.setvideoAlignment(videoAlignment)
       }
     }
   }

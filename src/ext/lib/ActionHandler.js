@@ -1,5 +1,6 @@
 import Debug from '../conf/Debug';
-import PlayerData from './video-data/PlayerData'
+import PlayerData from './video-data/PlayerData';
+import Comms from './comms/Comms';
 
 class ActionHandler {
 
@@ -36,31 +37,69 @@ class ActionHandler {
       actions = this.settings.active.actions;
     }
 
+    console.log("----ACTIONS----", actions)
+
     for (var action of actions) {
-      if(! action.shortcut) {
+      console.log("----ACTION:", action);
+      if (!action.scopes) {
         continue;
       }
-      var shortcut = action.shortcut[0];
-      if (shortcut.onKeyDown) {
-        this.keyDownActions.push(action);
-      }
-      if (shortcut.onKeyUp) {
-        this.keyUpActions.push(action);
-      }
-      if (shortcut.onScrollUp) {
-        this.mouseScrollUpActions.push(action);
-      }
-      if (shortcut.onScrollDown) {
-        this.mouseScrollDownActions.push(action);
-      }
-      if (shortcut.onMouseEnter) {
-        this.mouseEnterActions.push(action);
-      }
-      if (shortcut.onMouseLeave) {
-        this.mouseLeaveActions.push(action);
-      }
-      if (shortcut.onMouseMove) {
-        this.mouseMoveActions.push(action);
+      for (var scope in action.scopes) {
+        console.log("----ACTION - scope:", action.scopes[scope]);
+        if (! action.scopes[scope].shortcut) {
+          continue;
+        }
+
+        var shortcut = action.scopes[scope].shortcut[0];
+        if (shortcut.onKeyDown) {
+          this.keyDownActions.push({
+            shortcut: shortcut,
+            cmd: action.cmd,
+            scope: scope,
+          });
+        }
+        if (shortcut.onKeyUp) {
+          this.keyUpActions.push({
+            shortcut: shortcut,
+            cmd: action.cmd,
+            scope: scope,
+          });
+        }
+        if (shortcut.onScrollUp) {
+          this.mouseScrollUpActions.push({
+            shortcut: shortcut,
+            cmd: action.cmd,
+            scope: scope,
+          });
+        }
+        if (shortcut.onScrollDown) {
+          this.mouseScrollDownActions.push({
+            shortcut: shortcut,
+            cmd: action.cmd,
+            scope: scope,
+          });
+        }
+        if (shortcut.onMouseEnter) {
+          this.mouseEnterActions.push({
+            shortcut: shortcut,
+            cmd: action.cmd,
+            scope: scope,
+          });
+        }
+        if (shortcut.onMouseLeave) {
+          this.mouseLeaveActions.push({
+            shortcut: shortcut,
+            cmd: action.cmd,
+            scope: scope,
+          });
+        }
+        if (shortcut.onMouseMove) {
+          this.mouseMoveActions.push({
+            shortcut: shortcut,
+            cmd: action.cmd,
+            scope: scope,
+          });
+        }
       }
     }
 
@@ -131,34 +170,54 @@ class ActionHandler {
            shortcut.shiftKey === event.shiftKey
   }
 
-  execAction(actions, event, shortcutIndex, videoData) {
+  execAction(actions, event, videoData) {
     if(Debug.debug  && Debug.keyboard ){
       console.log("%c[ActionHandler::execAction] Trying to find and execute action for event. Actions/event: ", "color: #ff0", actions, event);
     }
 
-    if (!shortcutIndex) {
-      shortcutIndex = 0;
-    }
-
     for (var action of actions) {
-      if (this.isActionMatch(action.shortcut[shortcutIndex], event)) {
+      if (this.isActionMatch(action.shortcut, event)) {
         if(Debug.debug  && Debug.keyboard ){
           console.log("%c[ActionHandler::execAction] found an action associated with keypress/event: ", "color: #ff0", action);
         }
 
         for (var cmd of action.cmd) {
-          if (cmd.action === "set-ar") {
-            this.pageInfo.setAr(cmd.arg);
-          } else if (cmd.action === "set-zoom") {
-            this.pageInfo.zoomStep(cmd.arg);
-          } else if (cmd.action === "set-stretch") {
-            this.pageInfo.setStretchMode(cmd.arg);
-          } else if (cmd.action === "toggle-pan") {
-            this.pageInfo.setPanMode(cmd.arg)
-          } else if (cmd.action === "pan") {
-            if (videoData) {
-              videoData.panHandler(event, true);
+          if (action.scope === 'page') {
+            if (cmd.action === "set-ar") {
+              this.pageInfo.setAr(cmd.arg);
+            } else if (cmd.action === "set-zoom") {
+              this.pageInfo.zoomStep(cmd.arg);
+            } else if (cmd.action === "set-stretch") {
+              this.pageInfo.setStretchMode(cmd.arg);
+            } else if (cmd.action === "toggle-pan") {
+              this.pageInfo.setPanMode(cmd.arg)
+            } else if (cmd.action === "pan") {
+              if (videoData) {
+                videoData.panHandler(event, true);
+              }
             }
+          } else if (action.scope === 'site') {
+            if (cmd.action === "set-stretch") {
+              this.settings.active.sites[window.location.host].stretch = cmd.arg;
+            } else if (cmd.action === "set-alignment") {
+              this.settings.active.sites[window.location.host].videoAlignment = cmd.arg;
+            } else if (cmd.action === "set-extension-mode") {
+              this.settings.active.sites[window.location.host].status = cmd.arg;
+            } else if (cmd.action === "set-autoar-mode") {
+              this.settings.active.sites[window.location.host].arStatus = cmd.arg;
+            }
+            this.settings.save();
+          } else if (action.scope === 'global') {
+            if (cmd.action === "set-stretch") {
+              this.settings.active.stretch.initialMode = cmd.arg;
+            } else if (cmd.action === "set-alignment") {
+              this.settings.active.miscSettings.videoAlignment = cmd.arg;
+            } else if (cmd.action === "set-extension-mode") {
+              this.settings.active.extensionMode = cmd.arg;
+            } else if (cmd.action === "set-autoar-mode") {
+              this.settings.active.arDetect.mode.arStatus = cmd.arg;
+            }
+            this.settings.save();
           }
         }
 
@@ -170,7 +229,7 @@ class ActionHandler {
 
   handleKeyup(event) {
     if(Debug.debug  && Debug.keyboard ){
-      console.log("%c[ActionHandler::handleKeyup] we pressed a key: ", "color: #ff0", event.key , " | keydown: ", event.keyup, "event:", event);
+      console.log("%c[ActionHandler::handleKeyup] we pressed a key: ", "color: #ff0", event.key , " | keyup: ", event.keyup, "event:", event);
     }
 
     if (this.preventAction()) {
@@ -180,7 +239,7 @@ class ActionHandler {
       return;
     }
 
-    this.execAction(this.keyUpActions, event, 0);
+    this.execAction(this.keyUpActions, event);
   }
 
   handleKeydown(event) {
@@ -195,7 +254,7 @@ class ActionHandler {
       return;
     }
 
-    this.execAction(this.keyDownActions, event, 0);
+    this.execAction(this.keyDownActions, event);
   }
 
   handleMouseMove(event, videoData) {
@@ -203,7 +262,7 @@ class ActionHandler {
       console.log("[ActionHandler::handleMouseMove] mouse move is being handled.\nevent:", event, "\nvideo data:", videoData);
     }
     videoData.panHandler(event);
-    this.execAction(this.mouseMoveActions, event, undefined, videoData)
+    this.execAction(this.mouseMoveActions, event, videoData)
   }
 
 }

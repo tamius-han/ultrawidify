@@ -37,7 +37,7 @@ class Resizer {
 
     
     this.lastAr = this.settings.getDefaultAr();                 // this is the aspect ratio we start with
-    this.videoFloat = this.settings.getDefaultVideoAlignment(); // this is initial video alignment
+    this.videoAlignment = this.settings.getDefaultVideoAlignment(); // this is initial video alignment
     this.destroyed = false;
 
     this.resizerId = (Math.random(99)*100).toFixed(0);
@@ -166,7 +166,7 @@ class Resizer {
         return;
       }
       // dont allow weird floats
-      this.videoFloat = 'center';
+      this.videoAlignment = 'center';
 
       const player = this.conf.player.element;
 
@@ -202,8 +202,8 @@ class Resizer {
     this.restore();
   }
 
-  setVideoFloat(videoFloat) {
-    this.videoFloat = videoFloat;
+  setvideoAlignment(videoAlignment) {
+    this.videoAlignment = videoAlignment;
     this.restore();
   }
 
@@ -323,7 +323,7 @@ class Resizer {
   computeOffsets(stretchFactors){
 
     if (Debug.debug) {
-      console.log("[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.settings.active.miscSettings.videoFloat);
+      console.log("[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.settings.active.miscSettings.videoAlignment);
     }
 
     const wdiff = this.conf.player.dimensions.width - this.conf.video.offsetWidth;
@@ -345,10 +345,10 @@ class Resizer {
       translate.x += wdiffAfterZoom * this.pan.relativeOffsetX * this.zoom.scale;
       translate.y += hdiffAfterZoom * this.pan.relativeOffsetY * this.zoom.scale;
     } else {
-      if (this.videoFloat == "left") {
+      if (this.videoAlignment == "left") {
         translate.x += wdiffAfterZoom * 0.5;
       }
-      else if (this.videoFloat == "right") {
+      else if (this.videoAlignment == "right") {
         translate.x -= wdiffAfterZoom * 0.5;
       }
     }
