@@ -19,3 +19,5 @@ class KeyboardShortcutParser {
     return shortcutCombo;
   }
 }
+
+export default KeyboardShortcutParser;

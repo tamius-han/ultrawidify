@@ -1,7 +1,15 @@
+import Debug from '../../conf/Debug';
+import Scaler from './Scaler';
+import Stretcher from './Stretcher';
+import Zoom from './Zoom';
+import PlayerData from '../video-data/PlayerData';
+import ExtensionMode from '../../../common/enums/extension-mode';
+import StretchMode from '../../../common/enums/stretch-mode';
+
 if(Debug.debug)
   console.log("Loading: Resizer.js");
 
-  class Resizer {
+class Resizer {
   
   constructor(videoData) {
     this.conf = videoData;
@@ -491,3 +499,5 @@ if(Debug.debug)
     }
   }
 }
+
+export default Resizer;

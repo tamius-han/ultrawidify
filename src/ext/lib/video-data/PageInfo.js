@@ -1,3 +1,7 @@
+import Debug from '../../conf/Debug';
+import VideoData from './VideoData';
+import RescanReason from './enums/RescanReason';
+
 if(Debug.debug)
   console.log("Loading: PageInfo.js");
 
@@ -444,8 +448,4 @@ class PageInfo {
   }
 }
 
-var RescanReason = {
-  PERIODIC: 0,
-  URL_CHANGE: 1,
-  MANUAL: 2
-}
+export default PageInfo;

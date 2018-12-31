@@ -1,3 +1,11 @@
+import Debug from './conf/Debug';
+import BrowserDetect from './conf/BrowserDetect';
+import ExtensionMode from '../common/enums/extension-mode'
+import Settings from './lib/Settings';
+import ActionHandler from './lib/ActionHandler';
+import CommsClient from './lib/comms/CommsClient';
+import PageInfo from './lib/video-data/PageInfo';
+
 if(Debug.debug){
   console.log("\n\n\n\n\n\n           ———    Sᴛλʀᴛɪɴɢ  Uʟᴛʀᴀᴡɪᴅɪꜰʏ    ———\n               <<   ʟᴏᴀᴅɪɴɢ ᴍᴀɪɴ ꜰɪʟᴇ   >>\n\n\n\n");
   try {

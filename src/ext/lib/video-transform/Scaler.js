@@ -1,3 +1,5 @@
+import Debug from '../../conf/Debug';
+
 // računa velikost videa za približevanje/oddaljevanje
 // does video size calculations for zooming/cropping
 
@@ -146,3 +148,5 @@ class Scaler {
     return videoDimensions;
   }
 }
+
+export default Scaler;

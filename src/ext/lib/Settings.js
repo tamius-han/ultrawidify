@@ -1,7 +1,7 @@
 import Debug from '../conf/Debug';
 import currentBrowser from '../conf/BrowserDetect';
 import ExtensionConf from '../conf/ExtensionConf';
-
+import ExtensionMode from '../../common/enums/extension-mode';
 
 class Settings {
 

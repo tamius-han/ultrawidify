@@ -19,37 +19,8 @@
 
   "content_scripts": [{
     "matches": ["*://*/*"],
-    "js": [ 
-      "js/conf/Debug.js",
-      "js/lib/enums.js",
-
-      "js/lib/BrowserDetect.js",
-      "js/conf/ExtensionConf.js",    
-      
-      "js/lib/ObjectCopy.js",
-      "js/lib/Settings.js",
-
-      "js/lib/Comms.js",
-
-      "js/lib/EdgeDetect.js",
-      "js/lib/GuardLine.js",
-      
-      
-      
-      "js/modules/PageInfo.js",
-      "js/modules/DebugCanvas.js",
-      "js/modules/ArDetect.js",
-      "js/modules/Zoom.js", 
-      "js/modules/Scaler.js",
-      "js/modules/Stretcher.js",
-
-      "js/modules/Resizer.js",   
-      "js/lib/PlayerData.js", 
-      "js/lib/VideoData.js",
-
-      "js/modules/ActionHandler.js",
-      
-      "js/uw.js" 
+    "js": [      
+      "ext/uw.js" 
     ], 
     "all_frames": true
   }],
