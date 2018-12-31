@@ -1,3 +1,6 @@
+import Debug from '../../conf/Debug';
+import ExtensionMode from '../../../common/enums/extension-mode'
+
 if(Debug.debug)
   console.log("Loading: PlayerData.js");
 
@@ -381,3 +384,4 @@ class PlayerData {
   }
 }
 
+export default PlayerData;

@@ -1,12 +1,7 @@
-var EdgeDetectPrimaryDirection = {
-  VERTICAL: 0,
-  HORIZONTAL: 1
-}
-
-var EdgeDetectQuality = {
-  FAST: 0,
-  IMPROVED: 1
-}
+import Debug from '../../../conf/Debug';
+import EdgeStatus from './enums/EdgeStatusEnum';
+import EdgeDetectQuality from './enums/EdgeDetectQualityEnum';
+import EdgeDetectPrimaryDirection from './enums/EdgeDetectPrimaryDirectionEnum';
 
 class EdgeDetect{
 
@@ -40,7 +35,7 @@ class EdgeDetect{
 
       // }
     } else {
-      bars = this.pillarTest(image) ? {status: 'ar_known'} : {status: 'ar_unknown'};
+      bars = this.pillarTest(image) ? {status: EdgeStatus.AR_KNOWN} : {status: EdgeStatus.AR_UNKNOWN};
     }
 
     return bars;
@@ -290,7 +285,7 @@ class EdgeDetect{
                             edgesTop[0].distance : edgesBottom[0].distance;
         
         return {
-          status: "ar_known",
+          status: EdgeStatus.AR_KNOWN,
           blackbarWidth: blackbarWidth,
           guardLineTop: edgesTop[0].distance,
           guardLineBottom: edgesBottom[0].absolute,
@@ -321,7 +316,7 @@ class EdgeDetect{
                                   edgesTop[i].distance : edgesBottom[0].distance;
               
               return {
-                status: "ar_known",
+                status: EdgeStatus.AR_KNOWN,
                 blackbarWidth: blackbarWidth,
                 guardLineTop: edgesTop[i].distance,
                 guardLineBottom: edgesBottom[0].absolute,
@@ -349,7 +344,7 @@ class EdgeDetect{
                                   edgesBottom[i].distance : edgesTop[0].distance;
               
               return {
-                status: "ar_known",
+                status: EdgeStatus.AR_KNOWN,
                 blackbarWidth: blackbarWidth,
                 guardLineTop: edgesTop[0].distance,
                 guardLineBottom: edgesBottom[0].absolute,
@@ -374,7 +369,7 @@ class EdgeDetect{
         for(var edge of edgesBottom){
           if(edge.count >= edgeDetectionTreshold)
             return {
-              status: "ar_known", 
+              status: EdgeStatus.AR_KNOWN, 
               blackbarWidth: edge.distance,
               guardLineTop: null,
               guardLineBottom: edge.bottom,
@@ -388,7 +383,7 @@ class EdgeDetect{
         for(var edge of edgesTop){
           if(edge.count >= edgeDetectionTreshold)
             return {
-              status: "ar_known",
+              status: EdgeStatus.AR_KNOWN,
               blackbarWidth: edge.distance,
               guardLineTop: edge.top,
               guardLineBottom: null,
@@ -401,7 +396,7 @@ class EdgeDetect{
     }
     // če pridemo do sem, nam ni uspelo nič. Razmerje stranic ni znano
     // if we reach this bit, we have failed in determining aspect ratio. It remains unknown.
-    return {status: "ar_unknown"}
+    return {status: EdgeStatus.AR_UNKNOWN}
   }
   
   pillarTest(image){
@@ -647,3 +642,5 @@ class EdgeDetect{
   }
 
 }
+
+export default EdgeDetect;

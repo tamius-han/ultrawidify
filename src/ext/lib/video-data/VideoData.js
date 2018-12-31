@@ -1,3 +1,8 @@
+import Debug from '../../conf/Debug';
+import PlayerData from './PlayerData';
+import Resizer from '../video-transform/Resizer';
+import ArDetector from '../ar-detect/ArDetector';
+
 class VideoData {
   
   constructor(video, settings, pageInfo){
@@ -207,3 +212,5 @@ class VideoData {
     return this.video && this.video.currentTime > 0 && !this.video.paused && !this.video.ended;
   }
 }
+
+export default VideoData;

@@ -1,3 +1,11 @@
+import Debug from '../../conf/Debug';
+import EdgeDetect from './edge-detect/EdgeDetect';
+import EdgeStatus from './edge-detect/enums/EdgeStatusEnum';
+import EdgeDetectPrimaryDirection from './edge-detect/enums/EdgeDetectPrimaryDirectionEnum';
+import EdgeDetectQuality from './edge-detect/enums/EdgeDetectQualityEnum';
+import GuardLine from './GuardLine';
+import DebugCanvas from './DebugCanvas';
+
 class ArDetector {
 
   constructor(videoData){
@@ -34,7 +42,7 @@ class ArDetector {
     if(Debug.debug || Debug.init) {
       console.log(`[ArDetect::destroy] <arid:${this.arid}>`)
     }
-    this.debugCanvas.destroy();
+    // this.debugCanvas.destroy();
     this.stop();
   }
 
@@ -42,7 +50,7 @@ class ArDetector {
     
     this.guardLine = new GuardLine(this);
     this.edgeDetector = new EdgeDetect(this);
-    this.debugCanvas = new DebugCanvas(this);
+    // this.debugCanvas = new DebugCanvas(this);
 
     if(Debug.debug || Debug.init) {
       console.log("[ArDetect::setup] Starting autodetection setup. arid:", this.arid);
@@ -169,7 +177,7 @@ class ArDetector {
     }
   
     if(Debug.debugCanvas.enabled){
-      this.debugCanvas.init({width: cwidth, height: cheight});
+      // this.debugCanvas.init({width: cwidth, height: cheight});
       // DebugCanvas.draw("test marker","test","rect", {x:5, y:5}, {width: 5, height: 5});
     }
 
@@ -276,7 +284,7 @@ class ArDetector {
 
   postFrameCheck(){
     if(Debug.debugCanvas.enabled){
-      this.debugCanvas.update();
+      // this.debugCanvas.update();
     }
   }
 
@@ -520,7 +528,7 @@ class ArDetector {
     var image = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
     
     if(Debug.debugCanvas.enabled){
-      this.debugCanvas.setBuffer(image);
+      // this.debugCanvas.setBuffer(image);
     }
 
     //#region black level detection
@@ -709,7 +717,7 @@ class ArDetector {
     }
     //   console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:", this.blackLevel, "tresh:", this.blackLevel + this.settings.active.arDetect.blackbarTreshold);
     
-    if(edgePost.status == "ar_known"){
+    if(edgePost.status == EdgeStatus.AR_KNOWN){
 
       // zaznali smo rob — vendar pa moramo pred obdelavo še preveriti, ali ni "rob" slučajno besedilo. Če smo kot rob pofočkali
       // besedilo, potem to ni veljaven rob. Razmerja stranic se zato ne bomo pipali.
@@ -789,97 +797,95 @@ class ArDetector {
   }
 
 }
-if(Debug.debug)
-  console.log("Loading: ArDetect");
 
 var _ard_console_stop = "background: #000; color: #f41";
 var _ard_console_start = "background: #000; color: #00c399";
 
+// var textLineTest = function(image, row){
+//   // preverimo, če vrstica vsebuje besedilo na črnem ozadju. Če ob pregledu vrstice naletimo na veliko sprememb
+//   // iz črnega v ne-črno, potem obstaja možnost, da gledamo besedilo. Prisotnost take vrstice je lahko znak, da 
+//   // zaznano razmerje stranic ni veljavno
+//   //
+//   // vrne 'true' če zazna text, 'false' drugače.
+//   //
+//   // 
+//   // check if line contains any text. If line scan reveals a lot of changes from black to non-black there's a 
+//   // chance we're looking at text on a black background. If we detect text near what we think is an edge of the
+//   // video, there's a good chance we're about to incorrectly adjust the aspect ratio.
+//   // 
+//   // returns 'true' if text is detected, 'false' otherwise
 
-var textLineTest = function(image, row){
-  // preverimo, če vrstica vsebuje besedilo na črnem ozadju. Če ob pregledu vrstice naletimo na veliko sprememb
-  // iz črnega v ne-črno, potem obstaja možnost, da gledamo besedilo. Prisotnost take vrstice je lahko znak, da 
-  // zaznano razmerje stranic ni veljavno
-  //
-  // vrne 'true' če zazna text, 'false' drugače.
-  //
-  // 
-  // check if line contains any text. If line scan reveals a lot of changes from black to non-black there's a 
-  // chance we're looking at text on a black background. If we detect text near what we think is an edge of the
-  // video, there's a good chance we're about to incorrectly adjust the aspect ratio.
-  // 
-  // returns 'true' if text is detected, 'false' otherwise
+//   var blackbarTreshold = this.blackLevel + this.settings.active.arDetect.blackbarTreshold;
+//   var nontextTreshold = this.canvas.width * this.settings.active.arDetect.textLineTest.nonTextPulse;
 
-  var blackbarTreshold = this.blackLevel + this.settings.active.arDetect.blackbarTreshold;
-  var nontextTreshold = this.canvas.width * this.settings.active.arDetect.textLineTest.nonTextPulse;
+//   var rowStart = (row * this.canvas.width) << 2;
+//   var rowEnd = rowStart + (this.canvas.width << 2);
 
-  var rowStart = (row * this.canvas.width) << 2;
-  var rowEnd = rowStart + (this.canvas.width << 2);
+//   var pulse = false;
+//   var currentPulseLength = 0, pulseCount = 0;
+//   var pulses = [];
+//   var longestBlack = 0;
 
-  var pulse = false;
-  var currentPulseLength = 0, pulseCount = 0;
-  var pulses = [];
-  var longestBlack = 0;
-
-  // preglejmo vrstico
-  // analyse the row
-  for(var i = rowStart; i < rowEnd; i+= 4){
-    if(pulse){
-      if(image[i] < blackbarTreshold || image[i+1] < blackbarTreshold || image[i+2] < blackbarTreshold){
-        // pulses.push(currentPulseLength);
-        pulseCount++;
-        pulse = false;
-        currentPulseLength = 0;
-      }
-      else{
-        currentPulseLength++;
+//   // preglejmo vrstico
+//   // analyse the row
+//   for(var i = rowStart; i < rowEnd; i+= 4){
+//     if(pulse){
+//       if(image[i] < blackbarTreshold || image[i+1] < blackbarTreshold || image[i+2] < blackbarTreshold){
+//         // pulses.push(currentPulseLength);
+//         pulseCount++;
+//         pulse = false;
+//         currentPulseLength = 0;
+//       }
+//       else{
+//         currentPulseLength++;
         
-        // če najdemo dovolj dolgo zaporedje ne-črnih točk, potem vrnemo 'false' — dobili smo legitimen rob
-        // if we find long enough uninterrupted line of non-black point, we fail the test. We found a legit edge.
-        if(currentPulseLength > nontextTreshold){
-          return false;
-        }
-      }
-    }
-    else{
-      if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
-        if(currentPulseLength > longestBlack){
-          longestBlack = currentPulseLength;
-        }
-        pulse = true;
-        currentPulseLength = 0;
-      }
-      else{
-        currentPulseLength++;
-      }
-    }
-  }
-  if(pulse){
-    pulseCount++;
-    // pulses.push(currentPulseLength);
-  }
+//         // če najdemo dovolj dolgo zaporedje ne-črnih točk, potem vrnemo 'false' — dobili smo legitimen rob
+//         // if we find long enough uninterrupted line of non-black point, we fail the test. We found a legit edge.
+//         if(currentPulseLength > nontextTreshold){
+//           return false;
+//         }
+//       }
+//     }
+//     else{
+//       if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
+//         if(currentPulseLength > longestBlack){
+//           longestBlack = currentPulseLength;
+//         }
+//         pulse = true;
+//         currentPulseLength = 0;
+//       }
+//       else{
+//         currentPulseLength++;
+//       }
+//     }
+//   }
+//   if(pulse){
+//     pulseCount++;
+//     // pulses.push(currentPulseLength);
+//   }
 
-  // pregledamo rezultate:
-  // analyse the results
-  // console.log("pulse test:\n\npulses:", pulseCount, "longest black:", longestBlack);
+//   // pregledamo rezultate:
+//   // analyse the results
+//   // console.log("pulse test:\n\npulses:", pulseCount, "longest black:", longestBlack);
 
-  // če smo zaznali dovolj pulzov, potem vrnemo res
-  // if we detected enough pulses, we return true
-  if(pulseCount > this.settings.active.arDetect.textLineTest.pulsesToConfirm){
-    return true;
-  }
+//   // če smo zaznali dovolj pulzov, potem vrnemo res
+//   // if we detected enough pulses, we return true
+//   if(pulseCount > this.settings.active.arDetect.textLineTest.pulsesToConfirm){
+//     return true;
+//   }
 
-  // če je najdaljša neprekinjena črta črnih pikslov širša od polovice širine je merilo za zaznavanje
-  // besedila rahlo milejše
-  // if the longest uninterrupted line of black pixels is wider than half the width, we use a more
-  // forgiving standard for determining if we found text
-  if( longestBlack > (this.canvas.width >> 1) && 
-      pulseCount   > this.settings.active.arDetect.textLineTest.pulsesToConfirmIfHalfBlack ){
-    return true;
-  }
+//   // če je najdaljša neprekinjena črta črnih pikslov širša od polovice širine je merilo za zaznavanje
+//   // besedila rahlo milejše
+//   // if the longest uninterrupted line of black pixels is wider than half the width, we use a more
+//   // forgiving standard for determining if we found text
+//   if( longestBlack > (this.canvas.width >> 1) && 
+//       pulseCount   > this.settings.active.arDetect.textLineTest.pulsesToConfirmIfHalfBlack ){
+//     return true;
+//   }
 
-  // če pridemo do sem, potem besedilo ni bilo zaznano
-  // if we're here, no text was detected
-  return false;
-}
+//   // če pridemo do sem, potem besedilo ni bilo zaznano
+//   // if we're here, no text was detected
+//   return false;
+// }
 
+export default ArDetector;

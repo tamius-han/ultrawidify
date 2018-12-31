@@ -116,7 +116,7 @@ class DebugCanvas {
 }
 
 DebugCanvasClasses = {
-  VIOLATION: {color: '#ff0000', colorRgb: [255, 00, 0], text: 'violation (general)'},
+  VIOLATION: {color: '#ff0000', colorRgb: [255, 0, 0], text: 'violation (general)'},
   WARN: {color: '#d0d039', colorRgb: [208, 208, 57], text: 'lesser violation (general)'},
   GUARDLINE_BLACKBAR: {color: '#3333FF', colorRgb: [51, 51, 255], text: 'guardline/blackbar (expected value)'},
   GUARDLINE_IMAGE: {color: '#000088', colorRgb: [0, 0, 136], text: 'guardline/image (expected value)'},

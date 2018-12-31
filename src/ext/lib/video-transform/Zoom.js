@@ -1,10 +1,9 @@
-// računa približevanje ter računa/popravlja odmike videa
+import Debug from '../../conf/Debug';
 
+// računa približevanje ter računa/popravlja odmike videa
+// calculates zooming and video offsets/panning
 
 class Zoom {
-  // internal variables
-
-
   // functions
   constructor(videoData) {
     this.scale = 1;
@@ -60,3 +59,5 @@ class Zoom {
     stretchFactors.yFactor *= this.scale;
   }
 }
+
+export default Zoom;

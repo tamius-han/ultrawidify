@@ -1,3 +1,5 @@
+import Debug from '../../conf/Debug';
+
 class GuardLine {
   
   // ardConf — reference to ArDetector that has current GuardLine instance
@@ -302,3 +304,5 @@ class GuardLine {
     return false;
   }
 }
+
+export default GuardLine;
