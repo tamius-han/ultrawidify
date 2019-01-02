@@ -1,5 +1,5 @@
 import Debug from '../../conf/Debug';
-import BrowserDetect from '../../conf/Debug';
+import BrowserDetect from '../../conf/BrowserDetect';
 
 class CommsServer {
   constructor(server) {
@@ -9,12 +9,14 @@ class CommsServer {
 
     var ths = this;
 
+    console.log("[CommsServer::ctor] INIT! are we in ff?", BrowserDetect.firefox, "BrowserDetect says ...", BrowserDetect)
+
     if (BrowserDetect.firefox) {
       browser.runtime.onConnect.addListener(p => ths.onConnect(p));
       browser.runtime.onMessage.addListener(m => ths.processReceivedMessage_nonpersistent_ff(m));
     } else {
       chrome.runtime.onConnect.addListener(p => ths.onConnect(p));
-      chrome.runtime.onMessage.addListener((msg, sender, callback) => ths.processReceivedMessage_nonpersistent_chrome(m, sender, callback));
+      chrome.runtime.onMessage.addListener((m, sender, callback) => ths.processReceivedMessage_nonpersistent_chrome(m, sender, callback));
     }
   }
 
@@ -136,7 +138,15 @@ class CommsServer {
 
   async processReceivedMessage(message, port){
     if (Debug.debug && Debug.comms) {
-      console.log("[CommsServer.js::processMessage] Received message from background script!", message, "port", port, "\nsettings and server:", this.settings,this.server);
+      console.log("[CommsServer.js::processReceivedMessage] Received message from popup/content script!", message, "port", port, "\nsettings and server:", this.settings,this.server);
+    }
+
+    if (message.forwardToContentScript) {
+      if (Debug.debug && Debug.comms) {
+        console.log("[CommsServer.js::processReceivedMessage] Message has 'forward to content script' flag set. Forwarding message as is. Message:", message);
+      }
+
+      this.sendToFrame(message, message.targetFrame);
     }
 
     if (message.cmd === 'announce-zoom') {
@@ -162,38 +172,25 @@ class CommsServer {
         console.log("CommsServer: received get-config. Active settings?", this.settings.active, "\n(settings:", this.settings, ")")
       }
       port.postMessage({cmd: "set-config", conf: this.settings.active, site: this.server.currentSite})
-    } else if (message.cmd === 'set-stretch') {
-      this.sendToFrame(message, message.targetFrame);
-    } else if (message.cmd === 'set-ar') {
-      this.sendToFrame(message, message.targetFrame);
-    } else if (message.cmd === 'set-alignment') {
-      this.sendToFrame(message, message.targetFrame);
-    } else if (message.cmd === 'autoar-start') {
-      this.sendToFrame(message, message.targetFrame);
-    } else if (message.cmd === "autoar-disable") {  // LEGACY - can be removed prolly
-      this.settings.active.arDetect.mode = "disabled";
-      if(message.reason){
-        this.settings.active.arDetect.disabledReason = message.reason;
-      } else {
-        this.settings.active.arDetect.disabledReason = 'User disabled';
-      }
-      this.settings.save();
-    } else if (message.cmd === 'set-zoom') {
-      this.sendToFrame(message, message.targetFrame);      
     } else if (message.cmd === 'has-video') {
       this.server.registerVideo(port.sender);
     } else if (message.cmd === 'noVideo') {
       this.server.unregisterVideo(port.sender);
-    } else if (message.cmd === 'mark-player') {
-      this.sendToFrame(message, message.targetTab, message.targetFrame);
-    } else if (message.cmd === 'unmark-player') {
-      this.sendToAll(message);
-    }
+    } 
   }
 
   processReceivedMessage_nonpersistent_ff(message, sender){
     if (Debug.debug && Debug.comms) {
       console.log("%c[CommsServer.js::processMessage_nonpersistent_ff] Received message from background script!", "background-color: #11D; color: #aad", message, sender);
+    }
+
+    if (message.forwardToContentScript) {
+      if (Debug.debug && Debug.comms) {
+        console.log("[CommsServer.js::processMessage_nonpersistent_ff] Message has 'forward to content script' flag set. Forwarding message as is. Message:", message);
+        console.log("[CommsServer.js::processMessage_nonpersistent_ff] (btw we probably shouldn't be seeing this. This should prolly happen in persistent connection?");
+      }
+
+      this.sendToFrame(message, message.targetFrame);
     }
 
     if (message.cmd === 'get-config') {
@@ -236,6 +233,10 @@ class CommsServer {
   processReceivedMessage_nonpersistent_chrome(message, sender, sendResponse){
     if (Debug.debug && Debug.comms) {
       console.log("[CommsServer.js::processMessage_nonpersistent_chrome] Received message from background script!", message);
+      
+      if (BrowserDetect.firefox) {
+        throw "WHAT THE FUCK WHY IS THIS RUNNING, THIS ISNT SUPPOSED TO BE RUNNING RN"
+      }
     }
 
     if(message.cmd === 'get-config') {

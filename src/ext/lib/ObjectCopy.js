@@ -1,3 +1,5 @@
+import Debug from '../conf/Debug';
+
 class ObjectCopy {
   static addNew(existing, target){
     

@@ -1,0 +1,133 @@
+<template>
+  <div>
+    <div v-if="true">
+      <div class="label">Cropping mode:</div>
+      <div class="flex flex-row">
+        <template v-for="action of settings.active.actions">
+          <ShortcutButton v-if="action.scopes.page && action.scopes.page.show && action.cmd.length === 1 && action.cmd[0].action === 'set-ar'"
+                          class=""
+                          :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
+                          :shortcut="parseShortcut(action)"
+                          @click.native="execAction(action)"
+                          >
+          </ShortcutButton>
+        </template>
+      </div>
+    </div>
+
+    <div v-if="true">
+      <div class="label">Zooming and panning</div>
+      <div class="row">
+        <!--
+          min, max and value need to be implemented in js as this slider 
+          should use logarithmic scale
+        -->
+        <input id="_input_zoom_slider" class="w100"
+                type="range"
+                step="any"
+                />
+        <div style="overflow: auto">
+          <div class="inline-block float-left medium-small x-pad-1em">
+            Zoom: <span id="_label_zoom_level">100</span>%
+          </div>
+          <div class="inline-block float-right medium-small">
+            <a class="_zoom_reset x-pad-1em" @click="resetZoom()">reset</a>
+          </div> 
+        </div>
+
+        <div class="m-t-0-33em w100 display-block">
+          <input id="_input_zoom_site_allow_pan"
+                  type="checkbox" 
+                  />
+          Pan with mouse
+        </div>
+      </div>
+    </div>
+
+    <div v-if="true">
+      <div class="label">Stretching mode:</div>
+      <div class="flex flex-row">
+        <template v-for="action of settings.active.actions">
+          <ShortcutButton v-if="action.scopes.page && action.scopes.page.show && action.cmd.length === 1 && action.cmd[0].action === 'set-stretch'"
+                          class=""
+                          :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
+                          :shortcut="parseShortcut(action)"
+                          @click.native="execAction(action)"
+                          >
+          </ShortcutButton>
+        </template>
+      </div>
+    </div>
+
+    <div v-if="true">
+      <div class="label">Video alignment:</div>
+      <div class="flex flex-row">
+        <template v-for="action of settings.active.actions">
+          <ShortcutButton v-if="action.scopes.page && action.scopes.page.show && action.cmd.length === 1 && action.cmd[0].action === 'set-alignment'"
+                          class=""
+                          :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
+                          :shortcut="parseShortcut(action)"
+                          @click.native="execAction(action)"
+                          >
+          </ShortcutButton>
+        </template>
+      </div>
+    </div>
+
+    <div v-if="true">
+      <div class="label">Multi-command actions:</div>
+      <div class="flex flex-row">
+        <template v-for="action of settings.active.actions">
+          <ShortcutButton v-if="action.scopes.page && action.scopes.page.show && action.cmd.length > 1"
+                          class=""
+                          :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
+                          :shortcut="parseShortcut(action)"
+                          @click.native="execAction(action)"
+                          >
+          </ShortcutButton>
+        </template>
+      </div>
+    </div>
+
+  </div>
+</template>
+
+<script>
+import ExecAction from '../js/ExecAction'
+import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser'
+import ShortcutButton from '../../common/components/shortcut-button'
+
+export default {
+  data() {
+    return { }
+  },
+  props: [
+    'settings',
+    'frame'
+  ],
+  created() {
+    this.exec = new ExecAction(this.settings);
+  },
+  components: {
+    ShortcutButton,
+  },
+  methods: {
+    execAction(action) { 
+      this.exec.exec(action, 'page', this.frame);
+    },
+    parseShortcut(action) {
+      if (! action.scopes.page.shortcut) {
+        return '';
+      }
+      return KeyboardShortcutParser.parseShortcut(action.scopes.page.shortcut[0]);
+    },
+    resetZoom() {
+
+    }
+  }
+}
+</script>
+
+<style>
+
+</style>

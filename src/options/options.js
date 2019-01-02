@@ -1,8 +1,6 @@
 // console.log("global browser", browser, global.browser)
 // global.browser = require('webextension-polyfill')
 
-
-
 import Vue from 'vue'
 import App from './App'
 

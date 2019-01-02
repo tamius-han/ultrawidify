@@ -13,11 +13,11 @@ var Debug = {
   // comms: false,
   comms: true,
   // showArDetectCanvas: true,
-  flushStoredSettings: true,
-  // flushStoredSettings: false,
+  // flushStoredSettings: true,
+  flushStoredSettings: false,
   playerDetectDebug: true,
   periodic: true,
-  videoRescan: true,
+  // videoRescan: true,
   mousemove: true,
   arDetect: {
     edgeDetect: true
@@ -47,8 +47,6 @@ function __disableAllDebug(obj) {
     }
   }
 }
-
-Debug = Debug;
 
 if(Debug.debug)
   console.log("Guess we're debugging ultrawidify then. Debug.js must always load first, and others must follow.\nLoading: Debug.js");
