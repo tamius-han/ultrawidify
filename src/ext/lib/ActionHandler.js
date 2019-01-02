@@ -1,6 +1,5 @@
 import Debug from '../conf/Debug';
 import PlayerData from './video-data/PlayerData';
-import Comms from './comms/Comms';
 
 class ActionHandler {
 
@@ -221,6 +220,8 @@ class ActionHandler {
           }
         }
 
+        // če smo našli dejanje za to tipko, potem ne preiskujemo naprej
+        // if we found an action for this key, we stop searching for a match
         return;
       }
     }
