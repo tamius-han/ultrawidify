@@ -101,12 +101,23 @@ var ActionList = {
       page: true
     }
   },
-  'set-zoom': {
+  'change-zoom': {
     name: 'Zoom',
     args: [{
       name: 'Zoom level increase/decrease',
       customArg: true,
       hintHTML: '<small>Positive values zoom in, negative values zoom out. Increases/decreases are logarithmic: value of \'1\' will double the zoom, value of \'-1\' will halve it.</small>'
+    }],
+    scopes: {
+      page: true,
+    }
+  },
+  'set-zoom': {
+    name: 'Set zoom level',
+    args: [{
+      name: 'Zoom level increase/decrease',
+      customArg: true,
+      hintHTML: '<small>Examples: 0.5 sets zoom to 50%, 1 sets zoom to 100%, 2 sets zoom to 200%. Don\'t use negative values unless you want to experience Australian youtube.</small>'
     }],
     scopes: {
       page: true,

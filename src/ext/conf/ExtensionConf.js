@@ -329,7 +329,7 @@ var ExtensionConf = {
     name: 'Zoom in',
     label: 'Zoom',
     cmd: [{
-      action: 'set-zoom',
+      action: 'change-zoom',
       arg: 0.1
     }],
     scopes: {
@@ -353,7 +353,7 @@ var ExtensionConf = {
     name: 'Zoom out',
     label: 'Unzoom',
     cmd: [{
-      action: 'set-zoom',
+      action: 'change-zoom',
       arg: -0.1
     }],
     scopes: {

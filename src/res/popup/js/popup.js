@@ -28,7 +28,7 @@ var site = undefined;
 // aside from hostname, this can have two additional values:
 //   __playing — commands get sent to all frames with videos of status 'playing'
 //   __all     — commands get sent to all frames
-var selectedFrame = '__playing';
+var selectedFrame = '__all';
 
 var port = browser.runtime.connect({name: 'popup-port'});
 port.onMessage.addListener( (m,p) => processReceivedMessage(m,p));

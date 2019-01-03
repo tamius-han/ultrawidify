@@ -43,6 +43,7 @@
       </div>
       <template v-for="(action, index) of settings.active.actions">
         <ActionAlt v-if="action.cmd.length === 1 && (
+                            action.cmd[0].action === 'change-zoom' ||
                             action.cmd[0].action === 'set-zoom' ||
                             action.cmd[0].action === 'set-pan' || 
                             action.cmd[0].action === 'pan' ||
@@ -59,6 +60,7 @@
       </div>
       <template v-for="(action, index) of settings.active.actions">
         <ActionAlt v-if="action.cmd.length > 1 || (
+                            action.cmd[0].action !== 'change-zoom' &&
                             action.cmd[0].action !== 'set-zoom' &&
                             action.cmd[0].action !== 'set-pan' &&
                             action.cmd[0].action !== 'pan' &&

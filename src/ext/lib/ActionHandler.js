@@ -184,8 +184,10 @@ class ActionHandler {
           if (action.scope === 'page') {
             if (cmd.action === "set-ar") {
               this.pageInfo.setAr(cmd.arg);
-            } else if (cmd.action === "set-zoom") {
+            } else if (cmd.action === "change-zoom") {
               this.pageInfo.zoomStep(cmd.arg);
+            } else if (cmd.action === "set-zoom") {
+              this.pageInfo.setZoom(cmd.arg);
             } else if (cmd.action === "set-stretch") {
               this.pageInfo.setStretchMode(cmd.arg);
             } else if (cmd.action === "toggle-pan") {
