@@ -39,10 +39,14 @@ class Zoom {
   }
 
   setZoom(scale, no_announce){
+    if (Debug.debug) {
+      console.log("[Zoom::setZoom] Setting zoom to", scale, "!");
+    }
+
     // NOTE: SCALE IS NOT LOGARITHMIC
-    if(scale < Math.pow(this.minScale)) {
+    if(scale < Math.pow(2, this.minScale)) {
       scale = this.minScale;
-    } else if (scale > Math.pow(this.maxScale)) {
+    } else if (scale > Math.pow(2, this.maxScale)) {
       scale = this.maxScale;
     }
 
@@ -55,8 +59,16 @@ class Zoom {
   }
 
   applyZoom(stretchFactors){
+    if (Debug.debug) {
+      console.log("[Zoom::setZoom] Applying zoom. Stretch factors pre:", stretchFactors, " —> scale:", this.scale);
+    }
+
     stretchFactors.xFactor *= this.scale;
     stretchFactors.yFactor *= this.scale;
+
+    if (Debug.debug) {
+      console.log("[Zoom::setZoom] Applying zoom. Stretch factors post:", stretchFactors);
+    }
   }
 }
 

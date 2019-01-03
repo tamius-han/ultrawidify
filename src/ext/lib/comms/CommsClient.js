@@ -84,7 +84,9 @@ class CommsClient {
       // todo: autoArStatus
       this.pageInfo.resumeProcessing(message.autoArStatus, message.playing);
     } else if (message.cmd === 'set-zoom') {
-      this.pageInfo.setZoom(message.zoom, true, message.playing);
+      this.pageInfo.setZoom(message.arg, true, message.playing);
+    } else if (message.cmd === 'change-zoom') {
+      this.pageInfo.zoomStep(message.arg, message.playing);
     } else if (message.cmd === 'mark-player') {
       this.pageInfo.markPlayer(message.name, message.color);
     } else if (message.cmd === 'unmark-player') {

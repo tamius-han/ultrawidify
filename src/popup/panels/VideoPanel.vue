@@ -2,10 +2,10 @@
   <div>
     <div v-if="true">
       <div class="label">Cropping mode:</div>
-      <div class="flex flex-row">
+      <div class="flex flex-row flex-wrap">
         <template v-for="action of settings.active.actions">
           <ShortcutButton v-if="action.scopes.page && action.scopes.page.show && action.cmd.length === 1 && action.cmd[0].action === 'set-ar'"
-                          class=""
+                          class="flex b3 button"
                           :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
                           :shortcut="parseShortcut(action)"
                           @click.native="execAction(action)"
@@ -25,10 +25,14 @@
         <input id="_input_zoom_slider" class="w100"
                 type="range"
                 step="any"
+                min="-1"
+                max="4"
+                :value="logarithmicZoom"
+                @input="changeZoom($event.target.value)"
                 />
         <div style="overflow: auto">
           <div class="inline-block float-left medium-small x-pad-1em">
-            Zoom: <span id="_label_zoom_level">100</span>%
+            Zoom: {{(zoom * 100).toFixed()}}%
           </div>
           <div class="inline-block float-right medium-small">
             <a class="_zoom_reset x-pad-1em" @click="resetZoom()">reset</a>
@@ -46,10 +50,10 @@
 
     <div v-if="true">
       <div class="label">Stretching mode:</div>
-      <div class="flex flex-row">
+      <div class="flex flex-row flex-wrap">
         <template v-for="action of settings.active.actions">
           <ShortcutButton v-if="action.scopes.page && action.scopes.page.show && action.cmd.length === 1 && action.cmd[0].action === 'set-stretch'"
-                          class=""
+                          class="flex b3 button"
                           :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
                           :shortcut="parseShortcut(action)"
                           @click.native="execAction(action)"
@@ -61,10 +65,10 @@
 
     <div v-if="true">
       <div class="label">Video alignment:</div>
-      <div class="flex flex-row">
+      <div class="flex flex-row flex-wrap">
         <template v-for="action of settings.active.actions">
           <ShortcutButton v-if="action.scopes.page && action.scopes.page.show && action.cmd.length === 1 && action.cmd[0].action === 'set-alignment'"
-                          class=""
+                          class="flex b3 button"
                           :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
                           :shortcut="parseShortcut(action)"
                           @click.native="execAction(action)"
@@ -76,10 +80,10 @@
 
     <div v-if="true">
       <div class="label">Multi-command actions:</div>
-      <div class="flex flex-row">
+      <div class="flex flex-row flex-wrap">
         <template v-for="action of settings.active.actions">
           <ShortcutButton v-if="action.scopes.page && action.scopes.page.show && action.cmd.length > 1"
-                          class=""
+                          class="flex b3 button"
                           :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
                           :shortcut="parseShortcut(action)"
                           @click.native="execAction(action)"
@@ -99,17 +103,24 @@ import ShortcutButton from '../../common/components/shortcut-button'
 
 export default {
   data() {
-    return { }
+    return {
+    }
   },
   props: [
     'settings',
-    'frame'
+    'frame',
+    'zoom'
   ],
   created() {
     this.exec = new ExecAction(this.settings);
   },
   components: {
     ShortcutButton,
+  },
+  computed: {
+    logarithmicZoom: function(){
+      return Math.log2(this.zoom);
+    }
   },
   methods: {
     execAction(action) { 
@@ -122,12 +133,25 @@ export default {
       return KeyboardShortcutParser.parseShortcut(action.scopes.page.shortcut[0]);
     },
     resetZoom() {
-
+      this.zoom = 1;
+    },
+    changeZoom(nz) {
+      nz = Math.pow(2, nz);
+      this.$emit('zoom-change', nz); 
+      this.exec.exec(
+        {cmd: [{action: 'set-zoom', arg: nz}]},
+        'page',
+        this.frame
+      );
     }
   }
 }
 </script>
 
 <style>
-
+.b3 {
+  width: 9rem;
+  padding-left: 0.33rem;
+  padding-right: 0.33rem;
+}
 </style>
