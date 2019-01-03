@@ -1,9 +1,9 @@
 <template>
-  <div>
-    <div class="w100">
+  <div class="flex flex-column">
+    <div class="flex w100">
       {{label}}
     </div>
-    <div class="w100 dark">
+    <div class="flex w100 dark">
       <small>
         {{shortcut ? `(${shortcut})` : ''}}
       </small>
@@ -21,7 +21,6 @@ export default {
 </script>
 
 <style>
-
 .dark {
   opacity: 50%;
 }
