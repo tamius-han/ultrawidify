@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <div v-if="true">
+  <div class="w100">
+    <div v-if="true" class="w100">
       <div class="label">Cropping mode:</div>
       <div class="flex flex-row flex-wrap">
         <template v-for="action of settings.active.actions">
@@ -15,14 +15,16 @@
       </div>
     </div>
 
-    <div v-if="true">
+    <div v-if="true" class="w100">
       <div class="label">Zooming and panning</div>
-      <div class="row">
+      <div class="row w100"
+      >
         <!--
           min, max and value need to be implemented in js as this slider 
           should use logarithmic scale
         -->
-        <input id="_input_zoom_slider" class="w100"
+        <input id="_input_zoom_slider" 
+                class="w100"
                 type="range"
                 step="any"
                 min="-1"
@@ -30,11 +32,11 @@
                 :value="logarithmicZoom"
                 @input="changeZoom($event.target.value)"
                 />
-        <div style="overflow: auto">
-          <div class="inline-block float-left medium-small x-pad-1em">
+        <div style="overflow: auto" class="flex flex-row">
+          <div class="flex flex-grow medium-small x-pad-1em">
             Zoom: {{(zoom * 100).toFixed()}}%
           </div>
-          <div class="inline-block float-right medium-small">
+          <div class="flex flex-nogrow flex-noshrink medium-small">
             <a class="_zoom_reset x-pad-1em" @click="resetZoom()">reset</a>
           </div> 
         </div>

@@ -1,9 +1,9 @@
 <template>
-  <div class="flex flex-column">
-    <div class="flex w100">
+  <div class="flex flex-column flex-center">
+    <div class="flex flex-self-center">
       {{label}}
     </div>
-    <div class="flex w100 dark">
+    <div class="flex dark flex-self-center">
       <small>
         {{shortcut ? `(${shortcut})` : ''}}
       </small>
@@ -20,7 +20,10 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
+.center-text {
+  text-align: center;
+}
 .dark {
   opacity: 50%;
 }

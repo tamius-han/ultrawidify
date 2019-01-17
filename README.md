@@ -246,11 +246,18 @@ However, I do plan on implementing this feature. Hopefully by the end of the yea
 
 ### Installing the current, github version
 
+Requirements: npm, yarn.
+
 1. Clone this repo
+2. run `yarn install`
+3. run `npm run watch:dev`
+
+TODO: see if #3 already loads the extension in FF
+
 2. Open up Firefox
 3. Go to `about:debugging`
 4. Add temporary addon
-5. Browse to wherever you saved it and select manifest.json
+5. Select `${ultrawidify_folder}/dist/manifest.json`
 
 
 # Edge-specific limitations (IMPORTANT!)
@@ -265,6 +272,8 @@ As a result, you'll have to download the extension and install it manually. This
 2. Certain WebExtension APIs that I rely on are outright broken in Edge. This bug would cause global extension settings (tab: Extension settings) and per-site settings (tab: Site settings) to reset to default values every time you'd open the popup. As a result, _Extension settings_ and _Site settings_ tabs are disabled in Edge:
 ![Feast on dem popup](https://user-images.githubusercontent.com/12505802/46113923-d1693180-c1df-11e8-82f0-ad64cbc57558.png)
 Unfortunate consequence of this is that you won't be able to enable this extension for sites other than Youtube and Netflix, but then again. Let's be honest. You're only using Edge for Netflix, so that's probably no big deal for you.
+
+**It's also worth noting that I'm not  actively maintaining the Edge fork, so it's a few versions behind.** 
 
 ## Installing Ultrawidify in M$ Edge
 

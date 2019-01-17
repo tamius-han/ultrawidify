@@ -1,77 +1,79 @@
 <template>
-  <div>
+  <div class="popup">
     <div class="header">
       <span class="smallcaps">Ultrawidify</span>: <small>Quick settings</small>
     </div>
 
-     <!-- TABS/SIDEBAR -->
-    <div id="tablist" class="left-side">
-      <div class="menu-item"
-           :class="{'selected-tab': selectedTab === 'extension'}"
-           @click="selectTab('extension')"
-      >
-        <div class="">
-          Extension settings
+    <div class="flex flex-row">
+      <!-- TABS/SIDEBAR -->
+      <div id="tablist" class="flex flex-column flex-nogrow flex-noshrink">
+        <div class="menu-item"
+            :class="{'selected-tab': selectedTab === 'extension'}"
+            @click="selectTab('extension')"
+        >
+          <div class="">
+            Extension settings
+          </div>
+          <div class="">
+          </div>
         </div>
-        <div class="">
+        <div class="menu-item"
+            :class="{'selected-tab': selectedTab === 'site'}"
+            @click="selectTab('site')"
+        >
+          <div class="">
+            Site settings
+          </div>
+          <div class="">
+          </div>
         </div>
-      </div>
-      <div class="menu-item"
-           :class="{'selected-tab': selectedTab === 'site'}"
-           @click="selectTab('site')"
-      >
-        <div class="">
-          Site settings
+        <div class="menu-item"
+            :class="{'selected-tab': selectedTab === 'video'}"
+            @click="selectTab('video')"
+        >
+          <div class="">
+            Video settings
+          </div>
+          <div class="">
+          </div>
+          <div class="">
+            <div v-for="frame of activeFrames">
+            </div>
+          </div>
         </div>
+        <div class="menu-item"
+            :class="{'selected-tab': selectedTab === 'about'}"
+            @click="selectTab('about')"
+        >
         <div class="">
+            About
+          </div>
+          <div class="">
+          </div>
         </div>
-      </div>
-      <div class="menu-item"
-           :class="{'selected-tab': selectedTab === 'video'}"
-           @click="selectTab('video')"
-      >
-        <div class="">
-          Video settings
-        </div>
-        <div class="">
-        </div>
-        <div class="">
-          <div v-for="frame of activeFrames">
+        <div class="menu-item"
+            :class="{'selected-tab': selectedTab === 'beggathon'}"
+            @click="selectTab('beggathon')"
+        >
+          <div class="">
+            Donate
+          </div>
+          <div class="">
           </div>
         </div>
       </div>
-      <div class="menu-item"
-           :class="{'selected-tab': selectedTab === 'about'}"
-           @click="selectTab('about')"
-      >
-       <div class="">
-          About
-        </div>
-        <div class="">
-        </div>
-      </div>
-      <div class="menu-item"
-           :class="{'selected-tab': selectedTab === 'beggathon'}"
-           @click="selectTab('beggathon')"
-      >
-        <div class="">
-          Donate
-        </div>
-        <div class="">
-        </div>
-      </div>
-    </div>
 
-     <!-- PANELS/CONTENT -->
-    <div id="tab-content" class="right-side">
-      <VideoPanel v-if="settings && settings.active && selectedTab === 'video'"
-                  class=""
-                  :settings="settings"
-                  :frame="selectedFrame"
-                  :zoom="currentZoom"
-                  @zoom-change="updateZoom($event)"
-      >
-      </VideoPanel>
+      <!-- PANELS/CONTENT -->
+      <div id="tab-content" class="flex-grow" style="max-width: 480px !important;">
+        <VideoPanel v-if="settings && settings.active && selectedTab === 'video'"
+                    class=""
+                    :settings="settings"
+                    :frame="selectedFrame"
+                    :zoom="currentZoom"
+                    @zoom-change="updateZoom($event)"
+        >
+        </VideoPanel>
+      </div>
     </div>
   </div>
 </template>
@@ -82,13 +84,13 @@ import BrowserDetect from '../ext/conf/BrowserDetect';
 import Comms from '../ext/lib/comms/Comms';
 import VideoPanel from './panels/VideoPanel';
 import Settings from '../ext/lib/Settings';
+import ExecAction from './js/ExecAction.js';
 
 export default {
   data () {
     return {
       selectedTab: 'video',
       selectedFrame: '__all',
-      settings: {},
       activeFrames: [],
       port: BrowserDetect.firefox ? browser.runtime.connect({name: 'popup-port'}) : chrome.runtime.connect({name: 'popup-port'}),
       comms: new Comms(),
@@ -96,13 +98,14 @@ export default {
       frameStoreCount: 0,
       site: null,
       currentZoom: 1,
+      execAction: new ExecAction(),
+      settings: new Settings(undefined, () => this.updateConfig()),
     }
   },
   async created() {
-    const ns = new Settings(undefined, () => this.updateConfig());
-    await ns.init();
-    this.settings = ns;
+    this.settings.init();
     this.port.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
+    this.execAction.setSettings(this.settings);
   },
   components: {
     VideoPanel,
@@ -113,6 +116,9 @@ export default {
     },
     selectFrame(frame) {
       this.selectedFrame = frame;
+    },
+    async updateConfig() {
+
     },
     processReceivedMessage(message, port) {
       if (Debug.debug) {
@@ -156,13 +162,18 @@ export default {
 
 <style lang="scss" scoped>
 html, body {
-  width: 780px !important;
+  width: 800px !important;
   max-width: 800px !important;
   padding: 0px;
   margin: 0px;
 }
 
+#tablist {
+  min-width: 275px;
+}
+
 .header {
+  overflow: hidden;
   background-color: #7f1416;
   color: #fff;
   margin: 0px;
@@ -246,5 +257,11 @@ html, body {
 .tabitem-iframe::after {
   content: "</>";
   padding-left: 0.33em;
+}
+
+.popup {
+  max-width: 780px;
+  // width: 800px;
+  height: 600px;
 }
 </style>
