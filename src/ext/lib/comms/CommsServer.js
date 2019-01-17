@@ -20,6 +20,17 @@ class CommsServer {
     }
   }
 
+  async toObject(obj) {
+    console.log("CLONING OBJECT", obj);
+    try {
+      const r = JSON.parse(JSON.stringify(obj));
+      return r;
+    } catch (e) {
+      console.log("ERROR WHILE CLONING", obj);
+      return obj;
+    }
+  }
+
   async getCurrentTabHostname() {
     const activeTab = await this._getActiveTab();
 
@@ -41,6 +52,7 @@ class CommsServer {
   }
 
   sendToAll(message){
+    message = JSON.parse(JSON.stringify(message)); // vue quirk. We should really use vue store instead
     for(var p of this.ports){
       for(var frame in p){
         p[frame].postMessage(message);
@@ -61,7 +73,7 @@ class CommsServer {
   }
 
   async sendToFrame(message, tab, frame) {
-
+    message = JSON.parse(JSON.stringify(message)); // vue quirk. We should really use vue store instead
     if(Debug.debug && Debug.comms){
       console.log(`%c[CommsServer::sendToFrame] attempting to send message to tab ${tab}, frame ${frame}`, "background: #dda; color: #11D", message);
     }
@@ -92,6 +104,8 @@ class CommsServer {
   }
 
   async sendToActive(message) {
+    message = JSON.parse(JSON.stringify(message)); // vue quirk. We should really use vue store instead
+
     if(Debug.debug && Debug.comms){
       console.log("%c[CommsServer::sendToActive] trying to send a message to active tab. Message:", "background: #dda; color: #11D", message);
     }
@@ -152,7 +166,7 @@ class CommsServer {
     if (message.cmd === 'announce-zoom') {
       // forward off to the popup, no use for this here
       try {
-        this.popupPort.postMessage({cmd: 'set-current-zoom', zoom: message.zoom});
+        this.popupPort.postMessage(this.toObject({cmd: 'set-current-zoom', zoom: message.zoom}));
       } catch (e) {
         // can't forward stuff to popup if it isn't open
       }
@@ -161,17 +175,28 @@ class CommsServer {
     }
 
     if (message.cmd === 'get-current-site') {
-      port.postMessage({cmd: 'set-current-site', site: this.server.getVideoTab(), tabHostname: await this.getCurrentTabHostname()});
+      console.log("CCCCC - ss");
+      console.log("[find server] set-current-site — getting site", this.server.getVideoTab(), this.toObject(this.server.getVideoTab()))
+      port.postMessage(this.toObject({
+        cmd: 'set-current-site',
+        site: this.server.getVideoTab(),
+        tabHostname: await this.getCurrentTabHostname()
+      }));
+      console.log("CCCCC -s as")
     }
     if (message.cmd === 'popup-set-selected-tab') {
+      console.log("CCCCaa")
       this.server.setSelectedTab(message.selectedMenu, message.selectedSubitem);
+      console.log("CCCCbb")
     }
 
     if (message.cmd === 'get-config') {
       if(Debug.debug) {
         console.log("CommsServer: received get-config. Active settings?", this.settings.active, "\n(settings:", this.settings, ")")
       }
-      port.postMessage({cmd: "set-config", conf: this.settings.active, site: this.server.currentSite})
+      port.postMessage(this.toObject(
+        {cmd: "set-config", conf: this.settings.active, site: this.server.currentSite}
+      ));
     } else if (message.cmd === 'has-video') {
       this.server.registerVideo(port.sender);
     } else if (message.cmd === 'noVideo') {

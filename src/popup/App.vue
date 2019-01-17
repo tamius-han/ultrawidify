@@ -32,12 +32,15 @@
             @click="selectTab('video')"
         >
           <div class="">
-            Video settings
+            Video settings ({{activeFrames.length}})
           </div>
           <div class="">
           </div>
           <div class="">
-            <div v-for="frame of activeFrames">
+            <div v-for="frame of activeFrames"
+                 :key="frame.id"
+            >
+              {{frame.label}}
             </div>
           </div>
         </div>
@@ -106,11 +109,46 @@ export default {
     this.settings.init();
     this.port.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
     this.execAction.setSettings(this.settings);
+
+    // get info about current site from background script
+    while (true) {
+      this.getSite();
+      await this.sleep(5000);
+    } 
+    // ensure we'll clean player markings on popup close
+    window.addEventListener("unload", () => {
+      port.postMessage({
+        cmd: 'unmark-player',
+      });
+    });
   },
   components: {
     VideoPanel,
   },
   methods: {
+    async sleep(t) {
+      return new Promise( (resolve,reject) => {
+        setTimeout(() => resolve(), t);
+      });
+    },
+    toObject(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    },
+    getSite() {
+      try {
+        if (Debug.debug) {
+          console.log("[popup.js] requesting current site");
+        }
+        this.port.postMessage({cmd: 'get-current-site'});
+      } catch (e) {
+        if (Debug.debug) {
+          console.log("[popup::getSite] sending get-current-site failed for some reason. Reason:", e)
+        }
+      }
+    },
+    getRandomColor() {
+      return `rgb(${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)})`;
+    },
     selectTab(tab) {
       this.selectedTab = tab;
     },
@@ -122,7 +160,7 @@ export default {
     },
     processReceivedMessage(message, port) {
       if (Debug.debug) {
-        console.log("[popup.js] received message", message);
+        console.log("[popup.js] received message set-c", message);
       }
 
       if(message.cmd === 'set-current-site'){
@@ -136,11 +174,47 @@ export default {
           this.port.postMessage({cmd: 'get-current-zoom'});
         }
         this.site = message.site;
-        // loadConfig(site.host);
-        // loadFrames(site);
+        // loadConfig(site.host); TODO
+        this.loadFrames(this.site);
       } else if (message.cmd === 'set-current-zoom') {
-        setCurrentZoom(message.zoom);
+        this.setCurrentZoom(message.zoom);
       }
+    },
+    loadFrames(videoTab) {
+      console.log('set-c loading frames', videoTab)
+      if (videoTab.selected) {
+        this.selectedSubitem = videoTab.selected;
+        // selectedSubitemLoaded = true;
+      }
+
+      this.activeFrames = [];
+
+      if (site.frames.length < 2) {
+        this.selectedFrame = '__all';
+        return;
+      }
+
+      for (const frame in videoTab.frames) {
+
+        if (frame && !this.frameStore[frame]) {
+          const fs = {
+            name: this.frameStoreCount++,
+            color: this.getRandomColor()
+          }
+
+          this.frameStore[frame] = fs;
+
+          port.postMessage(this.toObject({
+            cmd: 'mark-player',
+            targetTab: videoTab.id,
+            targetFrame: frame,
+            name: fs.name,
+            color: fs.color
+          }));
+        }
+      }
+      this.activeFrames = [{id: '__all', label: 'All'},{id: '__playing', label: 'Currently playing'}].concat(videoTab.frames);
+      console.log("set-c", this.activeFrames)
     },
     getRandomColor() {
       return `rgb(${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)})`;

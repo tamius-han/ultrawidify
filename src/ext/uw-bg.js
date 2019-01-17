@@ -209,10 +209,13 @@ class UWServer {
   }
 
   setSelectedTab(menu, subitem) {
+    console.log("CCCC1")
     if (Debug.debug && Debug.comms) {
       console.log("[uw-bg::setSelectedTab] saving selected tab for", menu, ":", subitem)
     }
+    console.log("CCCC2")
     this.selectedSubitem[menu] = subitem;
+    console.log("CCCC3")
   }
 
   getVideoTab() {
