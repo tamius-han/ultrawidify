@@ -1,5 +1,5 @@
 import Debug from '../../conf/Debug';
-import ExtensionMode from '../../../common/enums/extension-mode'
+import ExtensionMode from '../../../common/enums/extension-mode.enum'
 
 if(Debug.debug)
   console.log("Loading: PlayerData.js");
