@@ -9,7 +9,7 @@ class CommsServer {
 
     var ths = this;
 
-    console.log("[CommsServer::ctor] INIT! are we in ff?", BrowserDetect.firefox, "BrowserDetect says ...", BrowserDetect)
+    // console.log("[CommsServer::ctor] INIT! are we in ff?", BrowserDetect.firefox, "BrowserDetect says ...", BrowserDetect)
 
     if (BrowserDetect.firefox) {
       browser.runtime.onConnect.addListener(p => ths.onConnect(p));
@@ -21,14 +21,14 @@ class CommsServer {
   }
 
   async toObject(obj) {
-    console.log("CLONING OBJECT", obj);
-    try {
-      const r = JSON.parse(JSON.stringify(obj));
-      return r;
-    } catch (e) {
-      console.log("ERROR WHILE CLONING", obj);
+    // console.log("(not actually) CLONING OBJECT", obj);
+    // try {
+      // const r = JSON.parse(JSON.stringify(obj));
+      // return r;
+    // } catch (e) {
+      // console.log("ERROR WHILE CLONING", obj);
       return obj;
-    }
+    // }
   }
 
   async getCurrentTabHostname() {
@@ -166,7 +166,7 @@ class CommsServer {
     if (message.cmd === 'announce-zoom') {
       // forward off to the popup, no use for this here
       try {
-        this.popupPort.postMessage(this.toObject({cmd: 'set-current-zoom', zoom: message.zoom}));
+        this.popupPort.postMessage({cmd: 'set-current-zoom', zoom: message.zoom});
       } catch (e) {
         // can't forward stuff to popup if it isn't open
       }
@@ -177,11 +177,11 @@ class CommsServer {
     if (message.cmd === 'get-current-site') {
       console.log("CCCCC - ss");
       console.log("[find server] set-current-site — getting site", this.server.getVideoTab(), this.toObject(this.server.getVideoTab()))
-      port.postMessage(this.toObject({
+      port.postMessage({
         cmd: 'set-current-site',
         site: this.server.getVideoTab(),
         tabHostname: await this.getCurrentTabHostname()
-      }));
+      });
       console.log("CCCCC -s as")
     }
     if (message.cmd === 'popup-set-selected-tab') {
@@ -194,9 +194,9 @@ class CommsServer {
       if(Debug.debug) {
         console.log("CommsServer: received get-config. Active settings?", this.settings.active, "\n(settings:", this.settings, ")")
       }
-      port.postMessage(this.toObject(
+      port.postMessage(
         {cmd: "set-config", conf: this.settings.active, site: this.server.currentSite}
-      ));
+      );
     } else if (message.cmd === 'has-video') {
       this.server.registerVideo(port.sender);
     } else if (message.cmd === 'noVideo') {
