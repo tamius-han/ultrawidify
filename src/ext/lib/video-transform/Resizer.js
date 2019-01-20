@@ -3,7 +3,7 @@ import Scaler from './Scaler';
 import Stretcher from './Stretcher';
 import Zoom from './Zoom';
 import PlayerData from '../video-data/PlayerData';
-import ExtensionMode from '../../../common/enums/extension-mode';
+import ExtensionMode from '../../../common/enums/extension-mode.enum';
 import StretchMode from '../../../common/enums/stretch.enum';
 
 if(Debug.debug)

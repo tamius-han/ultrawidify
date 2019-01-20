@@ -1,6 +1,6 @@
 import Debug from './conf/Debug';
 import BrowserDetect from './conf/BrowserDetect';
-import ExtensionMode from '../common/enums/extension-mode'
+import ExtensionMode from '../common/enums/extension-mode.enum'
 import Settings from './lib/Settings';
 import ActionHandler from './lib/ActionHandler';
 import CommsClient from './lib/comms/CommsClient';
