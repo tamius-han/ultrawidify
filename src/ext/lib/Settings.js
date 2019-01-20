@@ -237,22 +237,22 @@ class Settings {
     try {
       // if site-specific settings don't exist for the site, we use default mode:
       if (! this.active.sites[site]) {
-        if (this.active.sites['@global'] === "blacklist") {
+        if (this.active.sites['@global'] === ExtensionMode.Enable) {
           return ExtensionMode.Enabled;
         } else {
-          return this.active.basicExtensionMode === "blacklist" ? ExtensionMode.Basic : ExtensionMode.Disabled;
+          return this.active.basicExtensionMode === ExtensionMode.Enable ? ExtensionMode.Basic : ExtensionMode.Disabled;
         }
       }
 
-      if (this.active.sites[site].status === 'enabled') {
+      if (this.active.sites[site].mode === ExtensionMode.Enabled) {
         return ExtensionMode.Enabled;
-      } else if (this.active.sites[site].status === 'basic') {
+      } else if (this.active.sites[site].mode === ExtensionMode.Basic) {
         return ExtensionMode.Basic;
-      } else if (this.active.sites[site].status === 'default') {
-        if (this.active.sites['@global'] === "blacklist") {
+      } else if (this.active.sites[site].mode === ExtensionMode.Default) {
+        if (this.active.sites['@global'] === ExtensionMode.Enable) {
           return ExtensionMode.Enabled;
         } else {
-          return this.active.basicExtensionMode === "blacklist" ? ExtensionMode.Basic : ExtensionMode.Disabled;
+          return this.active.basicExtensionMode === ExtensionMode.Enable ? ExtensionMode.Basic : ExtensionMode.Disabled;
         }
       } else {
         return ExtensionMode.Disabled;
@@ -289,13 +289,13 @@ class Settings {
     try{
     // if site is not defined, we use default mode:
     if (! this.active.sites[site]) {
-      return this.active.sites['@global'] === "blacklist";
+      return this.active.sites['@global'] === ExtensionMode.Enable;
     }
 
-    if(this.active.sites['@global'] === "blacklist") {
-      return this.active.sites[site].status !== "disabled";
-    } else if (this.active.sites['@global'] === "whitelist") {
-      return this.active.sites[site].status === "enabled";
+    if(this.active.sites['@global'] === ExtensionMode.Enable) {
+      return this.active.sites[site].mode !== ExtensionMode.Disabled;
+    } else if (this.active.sites['@global'] === ExtensionMode.Whitelist) {
+      return this.active.sites[site].mode === ExtensionMode.Enabled;
     } else {
       return false;
     }
@@ -308,7 +308,7 @@ class Settings {
   }
 
   extensionEnabled(){
-    return this.active.sites['@global'] !== 'disabled'
+    return this.active.sites['@global'] !== ExtensionMode.Disabled
   }
 
   extensionEnabledForSite(site) {
@@ -341,13 +341,13 @@ class Settings {
 
     // if site is not defined, we use default mode:    
     if (! this.active.sites[site]) {
-      return this.active.sites['@global'].autoar === "blacklist";
+      return this.active.sites['@global'].autoar === ExtensionMode.Enable;
     }
 
-    if (this.active.sites['@global'].autoar === "blacklist") {
-      return this.active.sites[site].arStatus !== "disabled";
-    } else if (this.active.sites['@global'].autoar === "whitelist") {
-      return this.active.sites[site].arStatus === "enabled";
+    if (this.active.sites['@global'].autoar === ExtensionMode.Enable) {
+      return this.active.sites[site].autoar !== ExtensionMode.Disabled;
+    } else if (this.active.sites['@global'].autoar === ExtensionMode.Whitelist) {
+      return this.active.sites[site].autoar === ExtensionMode.Enable;
     } else {
       return false;
     }

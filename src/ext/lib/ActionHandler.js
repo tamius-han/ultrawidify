@@ -210,13 +210,13 @@ class ActionHandler {
             this.settings.save();
           } else if (action.scope === 'global') {
             if (cmd.action === "set-stretch") {
-              this.settings.active.site['@global'].stretch = cmd.arg;
+              this.settings.active.stretch.initialMode = cmd.arg;
             } else if (cmd.action === "set-alignment") {
-              this.settings.active.site['@global'].videoAlignment = cmd.arg;
+              this.settings.active.miscSettings.videoAlignment = cmd.arg;
             } else if (cmd.action === "set-extension-mode") {
               this.settings.active.sites['@global'] = cmd.arg;
             } else if (cmd.action === "set-autoar-mode") {
-              this.settings.active.site['@global'].autoar.arStatus = cmd.arg;
+              this.settings.active.arDetect.mode.arStatus = cmd.arg;
             }
             this.settings.save();
           }
