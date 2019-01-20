@@ -33,13 +33,13 @@ class ExecAction {
         this.settings.save();
       } else if (scope === 'global') {
         if (cmd.action === "set-stretch") {
-          this.settings.active.site['@global'].stretch = cmd.arg;
+          this.settings.active.sites['@global'].stretch = cmd.arg;
         } else if (cmd.action === "set-alignment") {
-          this.settings.active.site['@global'].videoAlignment = cmd.arg;
+          this.settings.active.sites['@global'].videoAlignment = cmd.arg;
         } else if (cmd.action === "set-extension-mode") {
           this.settings.active.sites['@global'] = cmd.arg;
         } else if (cmd.action === "set-autoar-mode") {
-          this.settings.active.site['@global'].autoar.arStatus = cmd.arg;
+          this.settings.active.sites['@global'].autoar.arStatus = cmd.arg;
         }
         this.settings.save();
       }

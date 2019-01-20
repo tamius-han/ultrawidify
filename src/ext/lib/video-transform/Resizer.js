@@ -323,7 +323,7 @@ class Resizer {
   computeOffsets(stretchFactors){
 
     if (Debug.debug) {
-      console.log("[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.settings.active.site['@global'].videoAlignment);
+      console.log("[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.settings.active.sites['@global'].videoAlignment);
     }
 
     const wdiff = this.conf.player.dimensions.width - this.conf.video.offsetWidth;
