@@ -3,8 +3,7 @@ import BrowserDetect from '../../conf/BrowserDetect';
 
 class Comms {
   static async sendMessage(message){
-    message = JSON.parse(JSON.stringify(message)); // vue quirk. We should really use vue store instead
-    
+
     if(BrowserDetect.firefox){
       return browser.runtime.sendMessage(message)
     } else {

@@ -125,7 +125,7 @@ export default {
     }
   },
   methods: {
-    execAction(action) { 
+    execAction(action) {
       this.exec.exec(action, 'page', this.frame);
     },
     parseShortcut(action) {

@@ -32,15 +32,18 @@
             @click="selectTab('video')"
         >
           <div class="">
-            Video settings ({{activeFrames.length}})
+            Video settings
           </div>
           <div class="">
           </div>
           <div class="">
-            <div v-for="frame of activeFrames"
+            <div class=""
+                 :class="{'tabitem-selected': selectedFrame === frame.id}"
+                 v-for="frame of activeFrames"
                  :key="frame.id"
+                 @click="selectFrame(frame.id)"
             >
-              {{frame.label}}
+              {{frame.label}} {{frame.id}}
             </div>
           </div>
         </div>
@@ -180,13 +183,8 @@ export default {
       } else if (message.cmd === 'set-current-zoom') {
         this.setCurrentZoom(message.zoom);
       }
-
-
-      console.log("this?", this, "this.site:", JSON.parse(JSON.stringify(this.site)));
     },
     loadFrames(videoTab) {
-      console.log("set-c loading frames \n\n\n------------------------------------------------------------------\n\n\n1\n\n")
-      console.log('set-c loading frames', videoTab, JSON.parse(JSON.stringify(videoTab)))
       if (videoTab.selected) {
         this.selectedSubitem = videoTab.selected;
         // selectedSubitemLoaded = true;
@@ -196,47 +194,37 @@ export default {
 
       if (videoTab.frames.length < 2 || Object.keys(videoTab.frames).length < 2) {
         this.selectedFrame = '__all';
-        console.log("set-c NOT ENOUGH FRAMES ______________________________________\n", videoTab.frames.length,  Object.keys(videoTab.frames),  Object.keys(videoTab.frames).length )
         return;
       }
-      console.log("set-c loading frames \n\n\n------------------------------------------------------------------\n\n\n2\n\n")
+      for (const frame in videoTab.frames) {
 
-      try {
-        for (const frame in videoTab.frames) {
-
-          if (frame && !this.frameStore[frame]) {
-            const fs = {
-              name: this.frameStoreCount++,
-              color: this.getRandomColor()
-            }
-
-            this.frameStore[frame] = fs;
-
-            this.port.postMessage(this.toObject({
-              cmd: 'mark-player',
-              targetTab: videoTab.id,
-              targetFrame: frame,
-              name: fs.name,
-              color: fs.color
-            }));
+        if (frame && !this.frameStore[frame]) {
+          const fs = {
+            name: this.frameStoreCount++,
+            color: this.getRandomColor()
           }
-        console.log("set-c loading frames \n\n\n------------------------------------------------------------------\n\n\n22\n\n")
-        }
-      } catch (e) {
-        console.log("set-c loading frames \n\n\n------------------------------------------------------------------\n\n\ne", e, "\n\n")
 
+          this.frameStore[frame] = fs;
+
+          this.port.postMessage({
+            cmd: 'mark-player',
+            targetTab: videoTab.id,
+            targetFrame: frame,
+            name: fs.name,
+            color: fs.color
+          });
+        }
       }
-      console.log("set-c loading frames \n\n\n------------------------------------------------------------------\n\n\n3\n\n")
 
       this.activeFrames = [{id: '__all', label: 'All'},{id: '__playing', label: 'Currently playing'}];
+
       for (const frame in videoTab.frames) {
         this.activeFrames.push({
+          id: `${this.site.id}-${frame}`,
           label: videoTab.frames[frame].host,
           ...this.frameStore[frame],
         })
       }
-
-      console.log("set-c active frmaes", this.activeFrames, JSON.parse(JSON.stringify(this.activeFrames)))
     },
     getRandomColor() {
       return `rgb(${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)})`;
@@ -246,6 +234,9 @@ export default {
     },
     updateZoom(nz){
       this.currentZoom = nz;
+    },
+    selectFrame(id){
+      this.selectedFrame = id;
     }
   }
 }

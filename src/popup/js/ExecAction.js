@@ -15,6 +15,7 @@ class ExecAction {
         const message = {
           forwardToContentScript: true,
           targetFrame: frame,
+          frame: frame,
           cmd: cmd.action,
           arg: cmd.arg
         }

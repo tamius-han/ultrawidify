@@ -73,7 +73,7 @@ class CommsServer {
   }
 
   async sendToFrame(message, tab, frame) {
-    message = JSON.parse(JSON.stringify(message)); // vue quirk. We should really use vue store instead
+    // message = JSON.parse(JSON.stringify(message)); // vue quirk. We should really use vue store instead
     if(Debug.debug && Debug.comms){
       console.log(`%c[CommsServer::sendToFrame] attempting to send message to tab ${tab}, frame ${frame}`, "background: #dda; color: #11D", message);
     }
