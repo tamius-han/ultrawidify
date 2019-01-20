@@ -281,19 +281,6 @@ html, body {
   font-variant: normal;
 }
 
-.left-side {
-  display: inline-block;
-  width: 39%;
-  float: left;
-  font-size: 1.6em;
-}
-
-.right-side {
-  display: inline-block;
-  width: 60%;
-  float: right;
-}
-
 .menu-item {
   padding-left: 15px;
   padding-top: 5px;

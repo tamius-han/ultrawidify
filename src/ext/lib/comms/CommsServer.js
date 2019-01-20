@@ -225,14 +225,14 @@ class CommsServer {
       }
       Promise.resolve(ret);
     } else if (message.cmd === "autoar-enable") {
-      this.settings.active.arDetect.mode = "blacklist";
+      this.settings.active.site['@global'].autoar = "blacklist";
       this.settings.save();
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
       if(Debug.debug){
         console.log("[uw-bg] autoar set to enabled (blacklist). evidenz:", this.settings.active);
       }
     } else if (message.cmd === "autoar-disable") {
-      this.settings.active.arDetect.mode = "disabled";
+      this.settings.active.site['@global'].autoar = "disabled";
       if(message.reason){
         this.settings.active.arDetect.disabledReason = message.reason;
       } else {
@@ -268,14 +268,14 @@ class CommsServer {
       sendResponse({extensionConf: JSON.stringify(this.settings.active), site: this.getCurrentTabHostname()});
       // return true;
     } else if (message.cmd === "autoar-enable") {
-      this.settings.active.arDetect.mode = "blacklist";
+      this.settings.active.site['@global'].autoar = "blacklist";
       this.settings.save();
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
       if(Debug.debug){
         console.log("[uw-bg] autoar set to enabled (blacklist). evidenz:", this.settings.active);
       }
     } else if (message.cmd === "autoar-disable") {
-      this.settings.active.arDetect.mode = "disabled";
+      this.settings.active.site['@global'].autoar = "disabled";
       if(message.reason){
         this.settings.active.arDetect.disabledReason = message.reason;
       } else {

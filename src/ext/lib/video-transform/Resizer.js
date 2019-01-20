@@ -4,7 +4,7 @@ import Stretcher from './Stretcher';
 import Zoom from './Zoom';
 import PlayerData from '../video-data/PlayerData';
 import ExtensionMode from '../../../common/enums/extension-mode';
-import StretchMode from '../../../common/enums/stretch-mode';
+import StretchMode from '../../../common/enums/stretch.enum';
 
 if(Debug.debug)
   console.log("Loading: Resizer.js");
@@ -88,7 +88,7 @@ class Resizer {
       }
     }
 
-    if (this.extensionMode !== ExtensionMode.Full && !PlayerData.isFullScreen() && ar !== 'reset') {
+    if (this.extensionMode !== ExtensionMode.Enabled && !PlayerData.isFullScreen() && ar !== 'reset') {
       // don't actually apply or calculate css when using basic mode if not in fullscreen
       //  ... unless we're resetting the aspect ratio to original
       return; 
@@ -99,21 +99,21 @@ class Resizer {
       this.videoData.destroy();
     }
 
-    if (this.extensionMode !== ExtensionMode.Full || PlayerData.isFullScreen()) {
+    if (this.extensionMode !== ExtensionMode.Enabled || PlayerData.isFullScreen()) {
       this.startCssWatcher();
     }
     this.cssWatcherIncreasedFrequencyCounter = 20;
 
     // // pause AR on basic stretch, unpause when using other mdoes
     // fir sine reason unpause doesn't unpause. investigate that later
-    // if (this.stretcher.mode === StretchMode.BASIC) {
+    // if (this.stretcher.mode === StretchMode.Basic) {
     //   this.conf.arDetector.pause();
     // } else {
     //   this.conf.arDetector.unpause();
     // }
 
     // do stretch thingy
-    if (this.stretcher.mode === StretchMode.NO_STRETCH || this.stretcher.mode === StretchMode.CONDITIONAL){
+    if (this.stretcher.mode === StretchMode.NoStretch || this.stretcher.mode === StretchMode.Conditional){
       var stretchFactors = this.scaler.calculateCrop(ar);
 
       if(! stretchFactors || stretchFactors.error){
@@ -125,12 +125,12 @@ class Resizer {
         }
         return;
       }
-      if(this.stretcher.mode === StretchMode.CONDITIONAL){
+      if(this.stretcher.mode === StretchMode.Conditional){
          this.stretcher.applyConditionalStretch(stretchFactors, ar);
       }
-    } else if (this.stretcher.mode === StretchMode.HYBRID) {
+    } else if (this.stretcher.mode === StretchMode.Hybrid) {
       var stretchFactors = this.stretcher.calculateStretch(ar);
-    } else if (this.stretcher.mode === StretchMode.BASIC) {
+    } else if (this.stretcher.mode === StretchMode.Basic) {
       var stretchFactors = this.stretcher.calculateBasicStretch();
     }
 
@@ -225,7 +225,7 @@ class Resizer {
   }
   
   scheduleCssWatcher(timeout, force_reset) {
-    if (this.destroyed || (this.extensionMode !== ExtensionMode.Full && !PlayerData.isFullScreen())) {
+    if (this.destroyed || (this.extensionMode !== ExtensionMode.Enabled && !PlayerData.isFullScreen())) {
       return;
     }
 
@@ -275,7 +275,7 @@ class Resizer {
   }
 
   reset(){
-    this.setStretchMode(StretchMode.NO_STRETCH);
+    this.setStretchMode(StretchMode.NoStretch);
     this.zoom.setZoom(1);
     this.resetPan();
     this.setAr('reset');
@@ -313,7 +313,7 @@ class Resizer {
   }
 
   resetStretch(){
-    this.stretcher.mode = StretchMode.NO_STRETCH;
+    this.stretcher.mode = StretchMode.NoStretch;
     this.restore();
   }
 
@@ -323,7 +323,7 @@ class Resizer {
   computeOffsets(stretchFactors){
 
     if (Debug.debug) {
-      console.log("[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.settings.active.miscSettings.videoAlignment);
+      console.log("[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.settings.active.site['@global'].videoAlignment);
     }
 
     const wdiff = this.conf.player.dimensions.width - this.conf.video.offsetWidth;

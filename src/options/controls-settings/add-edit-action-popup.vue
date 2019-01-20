@@ -99,7 +99,7 @@
 </template>
 
 <script>
-import StretchMode from '../../common/enums/stretch-mode';
+import StretchMode from '../../common/enums/stretch.enum';
 import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
 import CommandChain from './command-builder/command-chain';
 import CommandAddEdit from './command-builder/command-add-edit';

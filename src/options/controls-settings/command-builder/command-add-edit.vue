@@ -78,7 +78,7 @@
 
 <script>
 import ActionList from '../../../ext/conf/ActionList';
-import StretchMode from '../../../common/enums/stretch-mode';
+import StretchMode from '../../../common/enums/stretch.enum';
 
 export default {
   data () {
