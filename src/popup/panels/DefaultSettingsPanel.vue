@@ -11,7 +11,7 @@
           <ShortcutButton v-if="action.cmd.length === 1 && action.cmd[0].action === 'set-extension-mode'"
                           class="flex button"
                           :class="{'setting-selected': getDefault('set-extension-mode') === action.cmd[0].arg}"
-                          :label="(action.scopes[this.scope] && action.scopes[this.scope].label) ? action.scopes[this.scope].label : action.label"
+                          :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
                           :shortcut="parseShortcut(action)"
                           @click.native="execAction(action)"
           >
@@ -31,7 +31,7 @@
           <ShortcutButton v-if="action.cmd.length === 1 && action.cmd[0].action === 'set-autoar-mode'"
                           class="flex button"
                           :class="{'setting-selected': getDefault('set-autoar-mode') === action.cmd[0].arg}"
-                          :label="(action.scopes[this.scope] && action.scopes[this.scope].label) ? action.scopes[this.scope].label : action.label"
+                          :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
                           :shortcut="parseShortcut(action)"
                           @click.native="execAction(action)"
           >
@@ -48,7 +48,7 @@
           <ShortcutButton v-if="action.cmd.length === 1 && action.cmd[0].action === 'set-stretch'"
                           class="flex b3 button"
                           :class="{'setting-selected': getDefault('set-stretch') === action.cmd[0].arg}"
-                          :label="(action.scopes[this.scope] && action.scopes[this.scope].label) ? action.scopes[this.scope].label : action.label"
+                          :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
                           :shortcut="parseShortcut(action)"
                           @click.native="execAction(action)"
           >
@@ -61,10 +61,10 @@
       <div class="label">Video alignment:</div>
       <div class="flex flex-row flex-wrap">
         <template v-for="action of settings.active.actions">
-          <ShortcutButton v-if="action.scopes[this.scope] && action.scopes[this.scope].show && action.cmd.length === 1 && action.cmd[0].action === 'set-alignment'"
+          <ShortcutButton v-if="action.scopes[scope] && action.scopes[scope].show && action.cmd.length === 1 && action.cmd[0].action === 'set-alignment'"
                           class="flex b3 button"
                           :class="{'setting-selected': getDefault('set-alignment') === action.cmd[0].arg}"
-                          :label="(action.scopes[this.scope] && action.scopes[this.scope].label) ? action.scopes[this.scope].label : action.label"
+                          :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
                           :shortcut="parseShortcut(action)"
                           @click.native="execAction(action)"
                           >
@@ -77,9 +77,9 @@
       <div class="label">Multi-command actions:</div>
       <div class="flex flex-row flex-wrap">
         <template v-for="action of settings.active.actions">
-          <ShortcutButton v-if="action.scopes[this.scope] && action.scopes[this.scope].show && action.cmd.length > 1"
+          <ShortcutButton v-if="action.scopes[scope] && action.scopes[scope].show && action.cmd.length > 1"
                           class="flex b3 button"
-                          :label="(action.scopes[this.scope] && action.scopes[this.scope].label) ? action.scopes[this.scope].label : action.label"
+                          :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
                           :shortcut="parseShortcut(action)"
                           @click.native="execAction(action)"
                           >
@@ -102,7 +102,6 @@ export default {
   },
   props: [
     'settings',
-    'frame',
     'scope',
   ],
   created() {
@@ -118,7 +117,7 @@ export default {
   },
   methods: {
     execAction(action) {
-      this.exec.exec(action, this.scope, this.frame);
+      this.exec.exec(action, this.scope);
     },
     getDefault(action) {
 
