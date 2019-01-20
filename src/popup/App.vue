@@ -8,8 +8,8 @@
       <!-- TABS/SIDEBAR -->
       <div id="tablist" class="flex flex-column flex-nogrow flex-noshrink">
         <div class="menu-item"
-            :class="{'selected-tab': selectedTab === 'extension'}"
-            @click="selectTab('extension')"
+            :class="{'selected-tab': selectedTab === 'global'}"
+            @click="selectTab('global')"
         >
           <div class="">
             Extension settings
@@ -33,7 +33,6 @@
         >
           <div class="">
             Video settings
-            
           </div>
           <div v-if="selectedTab === 'video' && this.activeFrames.length > 0"
                class=""
@@ -81,8 +80,12 @@
                     :frame="selectedFrame"
                     :zoom="currentZoom"
                     @zoom-change="updateZoom($event)"
-        >
-        </VideoPanel>
+        />
+        <DefaultSettingsPanel v-if="settings && settings.active && (selectedTab === 'site' || selectedTab === 'global')"
+                              class=""
+                              :settings="settings"
+                              :scope="selectedTab"
+        />
       </div>
     </div>
   </div>
@@ -95,6 +98,7 @@ import Comms from '../ext/lib/comms/Comms';
 import VideoPanel from './panels/VideoPanel';
 import Settings from '../ext/lib/Settings';
 import ExecAction from './js/ExecAction.js';
+import DefaultSettingsPanel from './panels/DefaultSettingsPanel'
 
 export default {
   data () {
@@ -131,6 +135,7 @@ export default {
   },
   components: {
     VideoPanel,
+    DefaultSettingsPanel,
   },
   methods: {
     async sleep(t) {
