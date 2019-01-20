@@ -33,17 +33,21 @@
         >
           <div class="">
             Video settings
+            
           </div>
-          <div class="">
-          </div>
-          <div class="">
-            <div class=""
-                 :class="{'tabitem-selected': selectedFrame === frame.id}"
-                 v-for="frame of activeFrames"
-                 :key="frame.id"
-                 @click="selectFrame(frame.id)"
-            >
-              {{frame.label}} {{frame.id}}
+          <div v-if="selectedTab === 'video' && this.activeFrames.length > 0"
+               class=""
+          >
+            <small>Select embedded frame to control:</small>
+            <div class="">
+              <div v-for="frame of activeFrames"
+                   class="tabitem"
+                   :class="{'tabitem-selected': selectedFrame === frame.id}"
+                   :key="frame.id"
+                   @click="selectFrame(frame.id)"
+              >
+                {{frame.label}} <span v-if="frame.name !== undefined && frame.color" :style="{'background-color': frame.color}">[{{frame.name}}]</span>
+              </div>
             </div>
           </div>
         </div>
@@ -325,7 +329,7 @@ html, body {
 
 .tabitem {
   font-variant: normal;
-  font-size: 0.69em;
+  // font-size: 0.69em;
   margin-left: 1em;
   border-left: transparent 3px solid;
   padding-left: 12px;
