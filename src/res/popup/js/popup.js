@@ -321,11 +321,11 @@ function configureGlobalTab() {
   processButtonsForPopupCategory(GlobalPanel.elements.stretchSettings, stretchButtons);
   processButtonsForPopupCategory(GlobalPanel.elements.alignmentSettings, alignButtons);
 
-  selectButton('set-stretch', settings.active.site['@global'].stretch, GlobalPanel.elements.stretchSettings.buttons);
-  selectButton('set-alignment', settings.active.site['@global'].videoAlignment, GlobalPanel.elements.alignmentSettings.buttons);
+  selectButton('set-stretch', settings.active.sites['@global'].stretch, GlobalPanel.elements.stretchSettings.buttons);
+  selectButton('set-alignment', settings.active.sites['@global'].videoAlignment, GlobalPanel.elements.alignmentSettings.buttons);
 
   selectButton('set-extension-mode', settings.active.sites['@global'], GlobalPanel.elements.extensionSettings.buttons);
-  selectButton('set-extension-mode', settings.active.site['@global'].autoar, GlobalPanel.elements.autoarSettings.buttons);
+  selectButton('set-extension-mode', settings.active.sites['@global'].autoar, GlobalPanel.elements.autoarSettings.buttons);
 }
 
 function configureSitesTab(site) {

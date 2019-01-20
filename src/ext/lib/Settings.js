@@ -334,19 +334,19 @@ class Settings {
 
       console.log("[Settings::canStartAutoAr] ----------------\nCAN WE START THIS EXTENSION ON SITE", site,
                   "?\n\nsettings.active.sites[site]=", this.active.sites[site],
-                  "\nExtension mode?", this.active.site['@global'].autoar,
+                  "\nExtension mode?", this.active.sites['@global'].autoar,
                   "\nCan extension be started?", csar
                  );
     }
 
     // if site is not defined, we use default mode:    
     if (! this.active.sites[site]) {
-      return this.active.site['@global'].autoar === "blacklist";
+      return this.active.sites['@global'].autoar === "blacklist";
     }
 
-    if (this.active.site['@global'].autoar === "blacklist") {
+    if (this.active.sites['@global'].autoar === "blacklist") {
       return this.active.sites[site].arStatus !== "disabled";
-    } else if (this.active.site['@global'].autoar === "whitelist") {
+    } else if (this.active.sites['@global'].autoar === "whitelist") {
       return this.active.sites[site].arStatus === "enabled";
     } else {
       return false;
@@ -368,7 +368,7 @@ class Settings {
     if (site.stretch) {
       return site.stretch;
     }
-    return this.active.site['@global'].stretch;
+    return this.active.sites['@global'].stretch;
   }
 
   getDefaultVideoAlignment(site) {
@@ -377,7 +377,7 @@ class Settings {
     if (site.videoAlignment) {
       return site.videoAlignment;
     }
-    return this.active.site['@global'].videoAlignment;
+    return this.active.sites['@global'].videoAlignment;
   }
 }
 

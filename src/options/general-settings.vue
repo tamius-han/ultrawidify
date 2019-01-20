@@ -31,15 +31,15 @@
     </div>
     <div class="flex flex-row button-box">
       <Button label="Always" 
-              :selected="settings.active.site['@global'].autoar === ExtensionMode.Enabled"
+              :selected="settings.active.sites['@global'].autoar === ExtensionMode.Enabled"
               @click.native="setDefaultAutodetectionMode(ExtensionMode.Enabled)"> 
       </Button>
       <Button label="On whitelisted sites"
-              :selected="settings.active.site['@global'].autoar === ExtensionMode.Whitelist"
+              :selected="settings.active.sites['@global'].autoar === ExtensionMode.Whitelist"
               @click.native="setDefaultAutodetectionMode(ExtensionMode.Whitelist)">
       </Button>
       <Button label="Never"
-              :selected="settings.active.site['@global'].autoar === ExtensionMode.Disabled"
+              :selected="settings.active.sites['@global'].autoar === ExtensionMode.Disabled"
               @click.native="setDefaultAutodetectionMode('never')">
       </Button>
     </div>
@@ -57,15 +57,15 @@
     </div>
     <div class="flex flex-row button-box">
       <Button label="Left" 
-              :selected="settings.active.site['@global'].videoAlignment === VideoAlignment.Left"
+              :selected="settings.active.sites['@global'].videoAlignment === VideoAlignment.Left"
               @click.native="setDefaultvideoAlignment(VideoAlignment.Left)"> 
       </Button>
       <Button label="Center"
-              :selected="settings.active.site['@global'].videoAlignment === VideoAlignment.Center"
+              :selected="settings.active.sites['@global'].videoAlignment === VideoAlignment.Center"
               @click.native="setDefaultvideoAlignment(VideoAlignment.Center)">
       </Button>
       <Button label="Right"
-              :selected="settings.active.site['@global'].videoAlignment === VideoAlignment.Right"
+              :selected="settings.active.sites['@global'].videoAlignment === VideoAlignment.Right"
               @click.native="setDefaultvideoAlignment(VideoAlignment.Right)">
       </Button>
     </div>
@@ -75,19 +75,19 @@
     </div>
     <div class="flex flex-row button-box">
       <Button label="Don't stretch"
-              :selected="settings.active.site['@global'].stretch === StretchMode.NoStretch"
+              :selected="settings.active.sites['@global'].stretch === StretchMode.NoStretch"
               @click.native="setDefaultStretchingMode(StretchMode.NoStretch)"> 
       </Button>
       <Button label="Basic stretch"
-              :selected="settings.active.site['@global'].stretch === StretchMode.Basic"
+              :selected="settings.active.sites['@global'].stretch === StretchMode.Basic"
               @click.native="setDefaultStretchingMode(StretchMode.Basic)">
       </Button>
       <Button label="Hybrid stretch"
-              :selected="settings.active.site['@global'].stretch === StretchMode.Hybrid"
+              :selected="settings.active.sites['@global'].stretch === StretchMode.Hybrid"
               @click.native="setDefaultStretchingMode(StretchMode.Hybrid)">
       </Button>
       <Button label="Thin borders only"
-              :selected="settings.active.site['@global'].stretch === StretchMode.Conditional"
+              :selected="settings.active.sites['@global'].stretch === StretchMode.Conditional"
               @click.native="setDefaultStretchingMode(StretchMode.Conditional)"
       >
       </Button>
@@ -143,7 +143,7 @@ export default {
   },
   methods: {
     setDefaultAutodetectionMode(mode) {
-      this.settings.active.site['@global'].autoar = mode;
+      this.settings.active.sites['@global'].autoar = mode;
       this.settings.save();
     },
     setDefaultExtensionMode(mode) {
@@ -155,7 +155,7 @@ export default {
       this.settings.save();
     },
     setDefaultStretchingMode(mode) {
-      this.settings.active.site['@global'].stretch = mode;
+      this.settings.active.sites['@global'].stretch = mode;
       this.settings.save();
     },
     updateStretchTreshold(newTreshold) {
