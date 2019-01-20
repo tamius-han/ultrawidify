@@ -81,7 +81,7 @@
 
 <script>
 import Button from '../../common/components/button';
-import StretchMode from '../../common/enums/stretch-mode';
+import StretchMode from '../../common/enums/stretch.enum';
 import ActionAlt from '../../common/components/action-alt';
 
 export default {

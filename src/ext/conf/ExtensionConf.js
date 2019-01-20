@@ -1,20 +1,14 @@
 import Debug from './Debug';
 import currentBrowser from './BrowserDetect';
+import VideoAlignment from '../../common/enums/video-alignment.enum';
+import Stretch from '../../common/enums/stretch.enum';
+import ExtensionMode from '../../common/enums/extension-mode.enum';
 
 if(Debug.debug)
   console.log("Loading: ExtensionConf.js");
 
 var ExtensionConf = {
-  basicExtensionMode: "blacklist",
-  extensionMode: "blacklist", // how should this extension work? 
-                              //       'blacklist' - work everywhere except blacklist
-                              //       'whitelist' - only work on whitelisted sites
-                              //       'disabled'  - work nowhere
   arDetect: {
-    mode: "blacklist",        // how should autodetection work?
-                              //       'blacklist' - work by default, problem sites need to be blocked
-                              //       'whitelist' - only work if site has been specifically approved
-                              //       'disabled'  - don't work at all 
     disabledReason: "",       // if automatic aspect ratio has been disabled, show reason
     allowedMisaligned: 0.05,  // top and bottom letterbox thickness can differ by this much. 
                               // Any more and we don't adjust ar.
@@ -60,7 +54,6 @@ var ExtensionConf = {
       edgeTolerancePercent: null  // unused. same as above, except use % of canvas height instead of pixels
     },
     fallbackMode: {
-      enabled: true,
       safetyBorderPx: 5,        // determines the thickness of safety border in fallback mode
       noTriggerZonePx: 8        // if we detect edge less than this many pixels thick, we don't correct.
     },
@@ -106,15 +99,12 @@ var ExtensionConf = {
     announceDebounce: 200     // we wait this long before announcing new zoom
   },
   miscSettings: {
-    videoAlignment: "center",
     mousePan: {
       enabled: false
     },
     mousePanReverseMouse: false,
-    defaultAr: "original",
   },
   stretch: {
-    initialMode: 0,                     // 0 - no stretch, 1 - basic, 2 - hybrid, 3 - conditional
     conditionalDifferencePercent: 0.05  // black bars less than this wide will trigger stretch
                                         // if mode is set to '1'. 1.0=100%
   },
@@ -129,11 +119,6 @@ var ExtensionConf = {
       urlCheck: 200,
       rescan: 1500
     }
-  },
-  colors:{
-    //     criticalFail: "background: #fa2; color: #000"
-  },
-  keyboard: {
   },
   // -----------------------------------------
   //             ::: ACTIONS :::
@@ -427,7 +412,7 @@ var ExtensionConf = {
     label: 'Don\'t stretch',
     cmd: [{
       action: 'set-stretch',
-      arg: 0,
+      arg: Stretch.NoStretch,
     }],
     scopes: {
       global: {
@@ -452,7 +437,7 @@ var ExtensionConf = {
     label: 'Basic stretch',
     cmd: [{
       action: 'set-stretch',
-      arg: 1,
+      arg: Stretch.Basic,
     }],
     scopes: {
       global: {
@@ -477,7 +462,7 @@ var ExtensionConf = {
     label: 'Hybrid stretch',
     cmd: [{
       action: 'set-stretch',
-      arg: 2,
+      arg: Stretch.Hybrid,
     }],
     scopes: {
       global: {
@@ -502,7 +487,7 @@ var ExtensionConf = {
     label: 'Thin borders only',
     cmd: [{
       action: 'set-stretch',
-      arg: 3,
+      arg: Stretch.Conditional,
     }],
     scopes: {
       global: {
@@ -527,7 +512,7 @@ var ExtensionConf = {
     label: 'Default',
     cmd: [{
       action: 'set-stretch',
-      arg: -1,
+      arg: Stretch.Default,
     }],
     scopes: {
       site: {
@@ -543,7 +528,7 @@ var ExtensionConf = {
     label: 'Left',
     cmd: [{
       action: 'set-alignment',
-      arg: 'left'
+      arg: VideoAlignment.Left,
     }],
     scopes: {
       global: {
@@ -565,7 +550,7 @@ var ExtensionConf = {
     label: 'Center',
     cmd: [{
       action: 'set-alignment',
-      arg: 'center'
+      arg: VideoAlignment.Center,
     }],
     scopes: {
       global: {
@@ -587,7 +572,7 @@ var ExtensionConf = {
     label: 'Right',
     cmd: [{
       action: 'set-alignment',
-      arg: 'right'
+      arg: VideoAlignment.Right
     }],
     scopes: {
       global: {
@@ -609,7 +594,7 @@ var ExtensionConf = {
     label: 'Default',
     cmd: [{
       action: 'set-alignment',
-      arg: 'default'
+      arg: VideoAlignment.Default
     }],
     scopes: {
       site: {
@@ -626,7 +611,7 @@ var ExtensionConf = {
     label: 'Enable',
     cmd: [{
       action: 'set-extension-mode',
-      arg: 'blacklist',
+      arg: ExtensionMode.Enabled,
       persistent: true,
     }],
     scopes: {
@@ -642,7 +627,7 @@ var ExtensionConf = {
     label: 'On whitelist only',
     cmd: [{
       action: 'set-extension-mode',
-      arg: 'whitelist',
+      arg: ExtensionMode.Whitelist,
       persistent: true,
     }],
     scopes: {
@@ -655,7 +640,7 @@ var ExtensionConf = {
     label: 'Default',
     cmd: [{
       action: 'set-extension-mode',
-      arg: 'default',
+      arg: ExtensionMode.Default,
       persistent: true,
     }],
     scopes: {
@@ -668,7 +653,7 @@ var ExtensionConf = {
     label: 'Disable',
     cmd: [{
       action: 'set-extension-mode',
-      arg: 'disabled',
+      arg: ExtensionMode.Disabled,
       persistent: true,
     }],
     scopes: {
@@ -684,7 +669,7 @@ var ExtensionConf = {
     label: 'Enabled',
     cmd: [{
       action: 'set-autoar-mode',
-      arg: 'blacklist',
+      arg: ExtensionMode.Enabled,
       persistent: true,
     }],
     scopes: {
@@ -700,7 +685,7 @@ var ExtensionConf = {
     label: 'On whitelist only',
     cmd: [{
       action: 'set-autoar-mode',
-      arg: 'whitelist',
+      arg: ExtensionMode.Whitelist,
       persistent: true,
     }],
     scopes: {
@@ -713,7 +698,7 @@ var ExtensionConf = {
     label: 'Default',
     cmd: [{
       action: 'set-autoar-mode',
-      arg: 'default',
+      arg: ExtensionMode.Default,
       persistent: true,
     }],
     scopes: {
@@ -726,7 +711,7 @@ var ExtensionConf = {
     label: 'Disable',
     cmd: [{
       action: 'set-autoar-mode',
-      arg: 'disabled',
+      arg: ExtensionMode.Disabled,
       persistent: true,
     }],
     scopes: {
@@ -770,18 +755,36 @@ var ExtensionConf = {
   //    * disabled    — never allow
   // 
   sites: {
+    "@global": {                        // global defaults. Possible options will state site-only options in order
+                                        // to avoid writing this multiple times. Tags:
+                                        //      #g — only available in @global
+                                        //      #s   — only available for specific site
+      mode: ExtensionMode.Enabled,      //  How should extension work:
+                                        //       'enabled'   - work everywhere except blacklist
+                                        //       'whitelist' - only work on whitelisted sites (#g)
+                                        //       'disabled'  - work nowhere
+                                        //       'basic'     - (Possible future use)
+                                        //       'default'   - follow global rules (#s)
+      autoar: ExtensionMode.Enabled,    //  Should we try to automatically detect aspect ratio? 
+                                        //  Options: 'enabled', 'whitelist' (#g), 'default' (#s), 'disabled'
+      autoarFallback: currentBrowser.firefox ?     // if autoAr fails, try fallback mode?
+                       ExtensionMode.Enabled :     // Options same as in autoar.
+                       ExtensionMode.Disabled,     // if autoar is disabled, this setting is irrelevant
+      stretch: Stretch.NoStretch,                  // Default stretch mode. 
+      videoAlignment: VideoAlignment.Center,       // Video alignment
+
+    },
     "www.youtube.com" : {
-      status: "enabled",                // should extension work on this site?
-      arStatus: "default",              // should we enable autodetection
-      statusEmbedded: "enabled",        // should extension work for this site when embedded on other sites?
+      mode: ExtensionMode.Enabled,
+      autoar: ExtensionMode.Enabled,
+      autoarFallback: ExtensionMode.Enabled,
       override: false,                  // ignore value localStorage in favour of this
       type: 'official',                 // is officially supported? (Alternatives are 'community' and 'user-defined')
       actions: null,                    // overrides global keyboard shortcuts and button configs. Is array, is optional.
     },
     "www.netflix.com" : {
-      status: "enabled",
-      arStatus: currentBrowser.firefox ? "default" : "disabled",
-      statusEmbedded: "enabled",
+      mode: ExtensionMode.Enabled,
+      autoar: currentBrowser.firefox ? ExtensionMode.Enabled : ExtensionMode.Disabled,     
       override: false,
       type: 'official'
     },

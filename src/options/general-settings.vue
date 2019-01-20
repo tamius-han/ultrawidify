@@ -5,18 +5,18 @@
     </div>
     <div class="flex flex-row button-box">
       <Button label="Always"
-              :selected="settings.active.extensionMode === 'blacklist'"
-              @click.native="setDefaultExtensionMode('blacklist')"
+              :selected="settings.active.sites['@global'] === ExtensionMode.Enabled"
+              @click.native="setDefaultExtensionMode(ExtensionMode.Enabled)"
       > 
       </Button>
       <Button label="On whitelisted sites"
-              :selected="settings.active.extensionMode === 'whitelist'"
-              @click.native="setDefaultExtensionMode('whitelist')"
+              :selected="settings.active.sites['@global'] === ExtensionMode.Whitelist"
+              @click.native="setDefaultExtensionMode(ExtensionMode.Whitelist)"
       >
       </Button>
       <Button label="Never"
-              :selected="settings.active.extensionMode === 'disabled'"
-              @click.native="setDefaultExtensionMode('disabled')"
+              :selected="settings.active.sites['@global'] === ExtensionMode.Disabled"
+              @click.native="setDefaultExtensionMode(ExtensionMode.Disabled)"
       >
       </Button>
     </div>
@@ -31,15 +31,15 @@
     </div>
     <div class="flex flex-row button-box">
       <Button label="Always" 
-              :selected="settings.active.arDetect.mode === 'blacklist'"
-              @click.native="setDefaultAutodetectionMode('blacklist')"> 
+              :selected="settings.active.site['@global'].autoar === ExtensionMode.Enabled"
+              @click.native="setDefaultAutodetectionMode(ExtensionMode.Enabled)"> 
       </Button>
       <Button label="On whitelisted sites"
-              :selected="settings.active.arDetect.mode === 'whitelist'"
-              @click.native="setDefaultAutodetectionMode('whitelist')">
+              :selected="settings.active.site['@global'].autoar === ExtensionMode.Whitelist"
+              @click.native="setDefaultAutodetectionMode(ExtensionMode.Whitelist)">
       </Button>
       <Button label="Never"
-              :selected="settings.active.arDetect.mode === 'disabled'"
+              :selected="settings.active.site['@global'].autoar === ExtensionMode.Disabled"
               @click.native="setDefaultAutodetectionMode('never')">
       </Button>
     </div>
@@ -57,16 +57,16 @@
     </div>
     <div class="flex flex-row button-box">
       <Button label="Left" 
-              :selected="settings.active.miscSettings.videoAlignment === 'left'"
-              @click.native="setDefaultvideoAlignment('left')"> 
+              :selected="settings.active.site['@global'].videoAlignment === VideoAlignment.Left"
+              @click.native="setDefaultvideoAlignment(VideoAlignment.Left)"> 
       </Button>
       <Button label="Center"
-              :selected="settings.active.miscSettings.videoAlignment === 'center'"
-              @click.native="setDefaultvideoAlignment('center')">
+              :selected="settings.active.site['@global'].videoAlignment === VideoAlignment.Center"
+              @click.native="setDefaultvideoAlignment(VideoAlignment.Center)">
       </Button>
       <Button label="Right"
-              :selected="settings.active.miscSettings.videoAlignment === 'right'"
-              @click.native="setDefaultvideoAlignment('right')">
+              :selected="settings.active.site['@global'].videoAlignment === VideoAlignment.Right"
+              @click.native="setDefaultvideoAlignment(VideoAlignment.Right)">
       </Button>
     </div>
 
@@ -75,20 +75,20 @@
     </div>
     <div class="flex flex-row button-box">
       <Button label="Don't stretch"
-              :selected="settings.active.stretch.initialMode === StretchMode.NO_STRETCH"
-              @click.native="setDefaultStretchingMode(StretchMode.NO_STRETCH)"> 
+              :selected="settings.active.site['@global'].stretch === StretchMode.NoStretch"
+              @click.native="setDefaultStretchingMode(StretchMode.NoStretch)"> 
       </Button>
       <Button label="Basic stretch"
-              :selected="settings.active.stretch.initialMode === StretchMode.BASIC"
-              @click.native="setDefaultStretchingMode(StretchMode.BASIC)">
+              :selected="settings.active.site['@global'].stretch === StretchMode.Basic"
+              @click.native="setDefaultStretchingMode(StretchMode.Basic)">
       </Button>
       <Button label="Hybrid stretch"
-              :selected="settings.active.stretch.initialMode === StretchMode.HYBRID"
-              @click.native="setDefaultStretchingMode(StretchMode.HYBRID)">
+              :selected="settings.active.site['@global'].stretch === StretchMode.Hybrid"
+              @click.native="setDefaultStretchingMode(StretchMode.Hybrid)">
       </Button>
       <Button label="Thin borders only"
-              :selected="settings.active.stretch.initialMode === StretchMode.CONDITIONAL"
-              @click.native="setDefaultStretchingMode(StretchMode.CONDITIONAL)"
+              :selected="settings.active.site['@global'].stretch === StretchMode.Conditional"
+              @click.native="setDefaultStretchingMode(StretchMode.Conditional)"
       >
       </Button>
     </div>
@@ -120,7 +120,9 @@
 
 <script>
 import Button from '../common/components/button';
-import StretchMode from '../common/enums/stretch-mode';
+import StretchMode from '../common/enums/stretch.enum';
+import ExtensionMode from '../common/enums/extension-mode.enum';
+import VideoAlignment from '../common/enums/video-alignment.enum';
 
 export default {
   components: {
@@ -129,6 +131,8 @@ export default {
   data () {
     return {
       StretchMode: StretchMode,
+      ExtensionMode: ExtensionMode,
+      VideoAlignment: VideoAlignment,
       stretchThreshold: 0,
     }
   },
@@ -139,11 +143,11 @@ export default {
   },
   methods: {
     setDefaultAutodetectionMode(mode) {
-      this.settings.active.arDetect.mode = mode;
+      this.settings.active.site['@global'].autoar = mode;
       this.settings.save();
     },
     setDefaultExtensionMode(mode) {
-      this.settings.active.extensionMode = mode;
+      this.settings.active.sites['@global'] = mode;
       this.settings.save();
     },
     setDefaultvideoAlignment(mode) {
@@ -151,7 +155,7 @@ export default {
       this.settings.save();
     },
     setDefaultStretchingMode(mode) {
-      this.settings.active.stretch.initialMode = mode;
+      this.settings.active.site['@global'].stretch = mode;
       this.settings.save();
     },
     updateStretchTreshold(newTreshold) {

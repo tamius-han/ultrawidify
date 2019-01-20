@@ -1,3 +1,7 @@
+import VideoAlignment from '../../common/enums/video-alignment.enum';
+import Stretch from '../../common/enums/stretch.enum';
+import ExtensionMode from '../../common/enums/extension-mode.enum';
+
 var ActionList = {
   'set-ar': {
     name: 'Set aspect ratio',
@@ -24,22 +28,22 @@ var ActionList = {
       page: true,
     }
   },
-  'stretch': {
+  'set-stretch': {
     name: 'Set stretch',
     args: [{
       name: 'Normal',
-      arg: 0
+      arg: Stretch.NoStretch
     },{
       name: 'Basic',
-      arg: 1,
+      arg: Stretch.Basic,
     },{
       name: 'Hybrid',
-      arg: 2,
+      arg: Stretch.Hybrid,
     },{
       name: 'Thin borders',
-      arg: 3,
+      arg: Stretch.Conditional,
     },{
-      name: 'Default',
+      name: Stretch.Default,
       arg: -1,
       scopes: {
         site: true
@@ -55,16 +59,16 @@ var ActionList = {
     name: 'Set video alignment',
     args: [{
       name: 'Left',
-      arg: 'left',
+      arg: VideoAlignment.Left,
     },{
       name: 'Center',
-      arg: 'center',
+      arg: VideoAlignment.Center,
     },{
       name: 'Right',
-      arg: 'right'
+      arg: VideoAlignment.Right
     },{
       name: 'Default',
-      arg: 'default',
+      arg: VideoAlignment.Default,
       scopes: {
         site: true,
       }
@@ -127,22 +131,22 @@ var ActionList = {
     name: 'Set extension mode',
     args: [{
       name: 'Enable',
-      arg: 'blacklist',
+      arg: ExtensionMode.Enabled,
     },{
       name: 'On whitelisted only',
-      arg: 'whitelist',
+      arg: ExtensionMode.Whitelist,
       scopes: {
         global: true,
       }
     },{
       name: 'Default',
-      arg: 'default',
+      arg: ExtensionMode.Default,
       scopes: {
         page: true,
       }
     },{
       name: 'Disable',
-      arg: 'disabled'
+      arg: ExtensionMode.Default
     }],
     scopes: {
       global: true,
@@ -153,22 +157,22 @@ var ActionList = {
     name: 'Set automatic aspect ratio detection mode',
     args: [{
       name: 'Enable',
-      arg: 'blacklist',
+      arg: ExtensionMode.Enabled,
     },{
       name: 'On whitelisted only',
-      arg: 'whitelist',
+      arg: ExtensionMode.Whitelist,
       scopes: {
         global: true,
       }
     },{
       name: 'Default',
-      arg: 'default',
+      arg: ExtensionMode.Default,
       scopes: {
         page: true,
       }
     },{
       name: 'Disable',
-      arg: 'disabled'
+      arg: ExtensionMode.Disabled
     }],
     scopes: {
       global: true,

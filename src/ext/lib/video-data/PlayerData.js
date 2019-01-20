@@ -41,7 +41,7 @@ class PlayerData {
     this.dimensions = undefined;
     this.overlayNode = undefined;
 
-    if (this.extensionMode === ExtensionMode.Full) {
+    if (this.extensionMode === ExtensionMode.Enabled) {
       this.getPlayerDimensions();
     }
     this.startChangeDetection();
@@ -213,7 +213,7 @@ class PlayerData {
   }
 
   ghettoWatcher(){
-    if (this.extensionMode === ExtensionMode.Full) {
+    if (this.extensionMode === ExtensionMode.Enabled) {
       this.ghettoWatcherFull();
       this.scheduleGhettoWatcher();
     } else if (this.extensionMode === ExtensionMode.Basic) {

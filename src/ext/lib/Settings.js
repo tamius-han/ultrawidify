@@ -237,20 +237,20 @@ class Settings {
     try {
       // if site-specific settings don't exist for the site, we use default mode:
       if (! this.active.sites[site]) {
-        if (this.active.extensionMode === "blacklist") {
-          return ExtensionMode.Full;
+        if (this.active.sites['@global'] === "blacklist") {
+          return ExtensionMode.Enabled;
         } else {
           return this.active.basicExtensionMode === "blacklist" ? ExtensionMode.Basic : ExtensionMode.Disabled;
         }
       }
 
       if (this.active.sites[site].status === 'enabled') {
-        return ExtensionMode.Full;
+        return ExtensionMode.Enabled;
       } else if (this.active.sites[site].status === 'basic') {
         return ExtensionMode.Basic;
       } else if (this.active.sites[site].status === 'default') {
-        if (this.active.extensionMode === "blacklist") {
-          return ExtensionMode.Full;
+        if (this.active.sites['@global'] === "blacklist") {
+          return ExtensionMode.Enabled;
         } else {
           return this.active.basicExtensionMode === "blacklist" ? ExtensionMode.Basic : ExtensionMode.Disabled;
         }
@@ -289,12 +289,12 @@ class Settings {
     try{
     // if site is not defined, we use default mode:
     if (! this.active.sites[site]) {
-      return this.active.extensionMode === "blacklist";
+      return this.active.sites['@global'] === "blacklist";
     }
 
-    if(this.active.extensionMode === "blacklist") {
+    if(this.active.sites['@global'] === "blacklist") {
       return this.active.sites[site].status !== "disabled";
-    } else if (this.active.extensionMode === "whitelist") {
+    } else if (this.active.sites['@global'] === "whitelist") {
       return this.active.sites[site].status === "enabled";
     } else {
       return false;
@@ -308,7 +308,7 @@ class Settings {
   }
 
   extensionEnabled(){
-    return this.active.extensionMode !== 'disabled'
+    return this.active.sites['@global'] !== 'disabled'
   }
 
   extensionEnabledForSite(site) {
@@ -334,19 +334,19 @@ class Settings {
 
       console.log("[Settings::canStartAutoAr] ----------------\nCAN WE START THIS EXTENSION ON SITE", site,
                   "?\n\nsettings.active.sites[site]=", this.active.sites[site],
-                  "\nExtension mode?", this.active.arDetect.mode,
+                  "\nExtension mode?", this.active.site['@global'].autoar,
                   "\nCan extension be started?", csar
                  );
     }
 
     // if site is not defined, we use default mode:    
     if (! this.active.sites[site]) {
-      return this.active.arDetect.mode === "blacklist";
+      return this.active.site['@global'].autoar === "blacklist";
     }
 
-    if (this.active.arDetect.mode === "blacklist") {
+    if (this.active.site['@global'].autoar === "blacklist") {
       return this.active.sites[site].arStatus !== "disabled";
-    } else if (this.active.arDetect.mode === "whitelist") {
+    } else if (this.active.site['@global'].autoar === "whitelist") {
       return this.active.sites[site].arStatus === "enabled";
     } else {
       return false;
@@ -368,7 +368,7 @@ class Settings {
     if (site.stretch) {
       return site.stretch;
     }
-    return this.active.stretch.initialMode;
+    return this.active.site['@global'].stretch;
   }
 
   getDefaultVideoAlignment(site) {
@@ -377,7 +377,7 @@ class Settings {
     if (site.videoAlignment) {
       return site.videoAlignment;
     }
-    return this.active.miscSettings.videoAlignment;
+    return this.active.site['@global'].videoAlignment;
   }
 }
 
