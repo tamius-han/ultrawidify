@@ -5,17 +5,17 @@
     </div>
     <div class="flex flex-row button-box">
       <Button label="Always"
-              :selected="settings.active.sites['@global'] === ExtensionMode.Enabled"
+              :selected="settings.active.sites['@global'].mode === ExtensionMode.Enabled"
               @click.native="setDefaultExtensionMode(ExtensionMode.Enabled)"
       > 
       </Button>
       <Button label="On whitelisted sites"
-              :selected="settings.active.sites['@global'] === ExtensionMode.Whitelist"
+              :selected="settings.active.sites['@global'].mode === ExtensionMode.Whitelist"
               @click.native="setDefaultExtensionMode(ExtensionMode.Whitelist)"
       >
       </Button>
       <Button label="Never"
-              :selected="settings.active.sites['@global'] === ExtensionMode.Disabled"
+              :selected="settings.active.sites['@global'].mode === ExtensionMode.Disabled"
               @click.native="setDefaultExtensionMode(ExtensionMode.Disabled)"
       >
       </Button>
@@ -40,7 +40,7 @@
       </Button>
       <Button label="Never"
               :selected="settings.active.sites['@global'].autoar === ExtensionMode.Disabled"
-              @click.native="setDefaultAutodetectionMode('never')">
+              @click.native="setDefaultAutodetectionMode(ExtensionMode.Disabled)">
       </Button>
     </div>
     <div class="description">
@@ -115,6 +115,15 @@
       </div>
     </div>
 
+    <div class="label">
+      Reset settings
+    </div>
+    <div class="flex flex-row button-box">
+      <Button label="Reset settings"
+              @click.native="resetSettings()"
+      >
+      </Button>
+    </div>
   </div>
 </template>
 
@@ -128,6 +137,9 @@ export default {
   components: {
     Button,
   },
+  props: {
+    settings: Object
+  },
   data () {
     return {
       StretchMode: StretchMode,
@@ -138,20 +150,18 @@ export default {
   },
   created () {
   },
-  props: {
-    settings: Object
-  },
   methods: {
     setDefaultAutodetectionMode(mode) {
       this.settings.active.sites['@global'].autoar = mode;
       this.settings.save();
     },
     setDefaultExtensionMode(mode) {
-      this.settings.active.sites['@global'] = mode;
+      this.settings.active.sites['@global'].mode = mode;
       this.settings.save();
+
     },
     setDefaultvideoAlignment(mode) {
-      this.settings.active.videoAlignment = mode;
+      this.settings.active.sites['@global'].videoAlignment = mode;
       this.settings.save();
     },
     setDefaultStretchingMode(mode) {
@@ -163,6 +173,10 @@ export default {
         return;
       }
       this.settings.active.stretch.conditionalDifferencePercent = newTreshold;
+      this.settings.save();
+    },
+    resetSettings() {
+      this.settings.active = JSON.parse(JSON.stringify(this.settings.default));
       this.settings.save();
     }
   }

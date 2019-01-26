@@ -24,6 +24,8 @@
             Ultrawidify Vue
           </div>
         </div>
+
+        <!-- MENU ITEMS HERE -->
         <div class="flex flex-column menu">
           <div class="menu-item"
               :class="{'selected-tab': selectedTab === 'general'}"
@@ -64,6 +66,8 @@
             {{selectedTabTitle}}
           </div>
         </div>
+
+        <!-- MAIN PAGE HERE -->
         <div class="content-content">
           <GeneralSettings v-if="settingsInitialized && selectedTab === 'general'"
                            :settings="settings"
@@ -80,6 +84,11 @@
           </ControlsSettings>
 
           <!-- Vice City/beggathon reference: https://youtu.be/Mn3YEJTSYs8?t=770 -->
+          <div style="margin-top: 160px;">
+            TODO  - remove this whne releasing, this is only for debug info.<br/>
+            Selected tab: {{selectedTab}} <small>Title: {{selectedTabTitle}}</small><br/>
+            Any  open popups: {{anyOpenedPopups}}
+          </div>
         </div>
       </div>
     </div>
@@ -115,9 +124,10 @@ export default {
       anyOpenedPopups: false,
     }
   },
-  created () {
+  async created () {
     this.settings = new Settings(undefined, this.updateSettings);
-    this.settings.init();
+    await this.settings.init();
+    this.settingsInitialized = true;
   },
   components: {
     GeneralSettings,
