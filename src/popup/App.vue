@@ -85,6 +85,7 @@
                               class=""
                               :settings="settings"
                               :scope="selectedTab"
+                              :site="site.host"
         />
       </div>
     </div>

@@ -13,10 +13,16 @@ var ExtensionConf = {
     allowedMisaligned: 0.05,  // top and bottom letterbox thickness can differ by this much. 
                               // Any more and we don't adjust ar.
     allowedArVariance: 0.075, // amount by which old ar can differ from the new (1 = 100%)
-    timer_playing: 666,       // we trigger ar this often (in ms) under this conditions
-    timer_paused: 3000,
-    timer_error: 3000,
-    timer_minimumTimeout: 5,  // but regardless of above, we wait this many msec before retriggering
+    timers: {                 // autodetection frequency
+      playing: 666,           // while playing
+      paused: 3000,           // while paused
+      error: 3000,            // after error
+      minimumTimeout: 5,
+    },
+    // timer_playing: 666,       // we trigger ar this often (in ms) under this conditions
+    // timer_paused: 3000,
+    // timer_error: 3000,
+    // timer_minimumTimeout: 5,  // but regardless of above, we wait this many msec before retriggering
     autoDisable: {            // settings for automatically disabling the extension
       maxExecutionTime: 6000, // if execution time of main autodetect loop exceeds this many milliseconds,
                               // we disable it.
@@ -25,14 +31,27 @@ var ExtensionConf = {
       // FOR FUTURE USE
       consecutiveArResets: 5       // if aspect ratio reverts immediately after AR change is applied, we disable everything
     },
+    sampleCanvasSize: {       // size of image sample for detecting aspect ratio. Bigger size means more accurate results,
+                              // at the expense of performance
+      width: 640,
+      height: 360,
+    },
     hSamples: 640,
     vSamples: 360,
     // samplingInterval: 10,     // we sample at columns at (width/this) * [ 1 .. this - 1] 
-    blackLevel_default: 10,   // everything darker than 10/255 across all RGB components is considered black by
+    blackbar: {
+      blackLevel: 10,         // everything darker than 10/255 across all RGB components is considered black by
                               // default. blackLevel can decrease if we detect darker black.
-    blackbarTreshold: 16,     // if pixel is darker than blackLevel + blackbarTreshold, we count it as black
+      treshold: 16,           // if pixel is darker than the sum of black level and this value, we count it as black
                               // on 0-255. Needs to be fairly high (8 might not cut it) due to compression
                               // artifacts in the video itself
+      imageTreshold: 16,      // in order to detect pixel as "not black", the pixel must be brighter than
+                              // the sum of black level, treshold and this value.
+      gradientTreshold: 2,    // When trying to determine thickness of the black bars, we take 2 values: position of
+                              // the last pixel that's darker than our treshold, and position of the first pixel that's
+                              // brighter than our image treshold. If positions are more than this many pixels apart,
+                              // we assume we aren't looking at letterbox and thus don't correct the aspect ratio.
+    },
     variableBlackbarTresholdOptions: {    // In case of poor bitrate videos, jpeg artifacts may cause us issues
       // FOR FUTURE USE
       enabled: true,                      // allow increasing blackbar threshold
@@ -41,9 +60,11 @@ var ExtensionConf = {
       thresholdStep: 8,                   // when failing to set aspect ratio, increase treshold by this much
       increaseAfterConsecutiveResets: 2   // increase if AR resets this many times in a row
     },
-    staticSampleCols: 9,      // we take a column at [0-n]/n-th parts along the width and sample it
-    randomSampleCols: 0,      // we add this many randomly selected columns to the static columns
-    staticSampleRows: 9,      // forms grid with staticSampleCols. Determined in the same way. For black frame checks
+    sampling: {
+      staticCols: 9,      // we take a column at [0-n]/n-th parts along the width and sample it
+      randomCols: 0,      // we add this many randomly selected columns to the static columns
+      staticRows: 9,      // forms grid with staticSampleCols. Determined in the same way. For black frame checks
+    },
     guardLine: {              // all pixels on the guardline need to be black, or else we trigger AR recalculation 
                               // (if AR fails to be recalculated, we reset AR)
       enabled: true,
@@ -54,6 +75,7 @@ var ExtensionConf = {
       edgeTolerancePercent: null  // unused. same as above, except use % of canvas height instead of pixels
     },
     fallbackMode: {
+      enabled: true,
       safetyBorderPx: 5,        // determines the thickness of safety border in fallback mode
       noTriggerZonePx: 8        // if we detect edge less than this many pixels thick, we don't correct.
     },
@@ -64,18 +86,18 @@ var ExtensionConf = {
     edgeDetection: {
       sampleWidth: 8,        // we take a sample this wide for edge detection
       detectionTreshold: 4,  // sample needs to have this many non-black pixels to be a valid edge
+      confirmationTreshold: 0,  // 
       singleSideConfirmationTreshold: 0.3,   // we need this much edges (out of all samples, not just edges) in order
                                              // to confirm an edge in case there's no edges on top or bottom (other
                                             // than logo, of course)
       logoTreshold: 0.15,     // if edge candidate sits with count greater than this*all_samples, it can't be logo
                               // or watermark.
-      edgeTolerancePx: 2,          // we check for black edge violation this far from detection point
+      edgeTolerancePx: 1,          // we check for black edge violation this far from detection point
       edgeTolerancePercent: null,  // we check for black edge detection this % of height from detection point. unused
       middleIgnoredArea: 0.2,      // we ignore this % of canvas height towards edges while detecting aspect ratios
       minColsForSearch: 0.5,       // if we hit the edge of blackbars for all but this many columns (%-wise), we don't
                                    // continue with search. It's pointless, because black edge is higher/lower than we
                                    // are now. (NOTE: keep this less than 1 in case we implement logo detection)
-      edgeTolerancePx: 1,          // tests for edge detection are performed this far away from detected row 
     },
     pillarTest: {
       ignoreThinPillarsPx: 5, // ignore pillars that are less than this many pixels thick. 
@@ -89,9 +111,6 @@ var ExtensionConf = {
                                      // is over 50% of the canvas width
       testRowOffset: 0.02     // we test this % of height from detected edge
     }
-  },
-  arChange: {
-    samenessTreshold: 0.025,  // if aspect ratios are within 2.5% within each other, don't resize
   },
   zoom: {
     minLogZoom: -1,
@@ -780,12 +799,16 @@ var ExtensionConf = {
       override: false,                  // ignore value localStorage in favour of this
       type: 'official',                 // is officially supported? (Alternatives are 'community' and 'user-defined')
       actions: null,                    // overrides global keyboard shortcuts and button configs. Is array, is optional.
+      stretch: Stretch.Default,
+      videoAlignment: VideoAlignment.Default,
     },
     "www.netflix.com" : {
       mode: ExtensionMode.Enabled,
       autoar: currentBrowser.firefox ? ExtensionMode.Enabled : ExtensionMode.Disabled,     
       override: false,
-      type: 'official'
+      type: 'official',
+      stretch: Stretch.Default,
+      videoAlignment: VideoAlignment.Default,
     },
   }
 }
