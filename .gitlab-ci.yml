@@ -1,0 +1,16 @@
+stages:
+  - prep
+  - build
+  - pack
+
+install deps:
+  stage: prep
+  script: yarn install
+
+build:
+  stage: build
+  script: npm run build
+
+create zip:
+  stage: pack
+  script: npm run build-zip
