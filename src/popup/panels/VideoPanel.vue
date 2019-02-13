@@ -5,7 +5,7 @@
       <div class="flex flex-row flex-wrap">
         <template v-for="action of settings.active.actions">
           <ShortcutButton v-if="action.scopes.page && action.scopes.page.show && action.cmd.length === 1 && action.cmd[0].action === 'set-ar'"
-                          class="flex b3 button"
+                          class="flex b3 flex-grow button"
                           :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
                           :shortcut="parseShortcut(action)"
                           @click.native="execAction(action)"
@@ -55,7 +55,7 @@
       <div class="flex flex-row flex-wrap">
         <template v-for="action of settings.active.actions">
           <ShortcutButton v-if="action.scopes.page && action.scopes.page.show && action.cmd.length === 1 && action.cmd[0].action === 'set-stretch'"
-                          class="flex b3 button"
+                          class="flex b3 flex-grow button"
                           :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
                           :shortcut="parseShortcut(action)"
                           @click.native="execAction(action)"
