@@ -9,7 +9,7 @@
       <div class="flex flex-row flex-wrap">
         <template v-for="action of siteActions">
           <ShortcutButton v-if="action.cmd.length === 1 && action.cmd[0].action === 'set-extension-mode'"
-                          class="flex button"
+                          class="flex flex-grow button"
                           :class="{'setting-selected': getDefault('set-extension-mode') === action.cmd[0].arg}"
                           :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
                           :shortcut="parseShortcut(action)"
@@ -25,11 +25,10 @@
          class="w100"
     >
       <div class="label">Enable autodetection {{scope === 'site' ? 'for this site' : ''}}:</div>
-      <div class="warning"><small>Note: some sites implement restrictions that make autodetection a fair bit less reliable in Firefox and outright impossible in anything else.</small></div>
       <div class="flex flex-row flex-wrap">
         <template v-for="action of siteActions">
           <ShortcutButton v-if="action.cmd.length === 1 && action.cmd[0].action === 'set-autoar-mode'"
-                          class="flex button"
+                          class="flex flex-grow button"
                           :class="{'setting-selected': getDefault('set-autoar-mode') === action.cmd[0].arg}"
                           :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
                           :shortcut="parseShortcut(action)"
@@ -37,6 +36,7 @@
           >
           </ShortcutButton>
         </template>
+      <div class="info"><small>Note: some sites implement restrictions that make autodetection a fair bit less reliable in Firefox and outright impossible in anything else.</small></div>
       </div>
     </div>
 
@@ -46,7 +46,7 @@
       <div class="flex flex-row flex-wrap">
         <template v-for="action of siteActions">
           <ShortcutButton v-if="action.cmd.length === 1 && action.cmd[0].action === 'set-stretch'"
-                          class="flex b3 button"
+                          class="flex b3 flex-grow button"
                           :class="{'setting-selected': getDefault('set-stretch') === action.cmd[0].arg}"
                           :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
                           :shortcut="parseShortcut(action)"
@@ -62,7 +62,7 @@
       <div class="flex flex-row flex-wrap">
         <template v-for="action of settings.active.actions">
           <ShortcutButton v-if="action.scopes[scope] && action.scopes[scope].show && action.cmd.length === 1 && action.cmd[0].action === 'set-alignment'"
-                          class="flex b3 button"
+                          class="flex b3 flex-grow button"
                           :class="{'setting-selected': getDefault('set-alignment') === action.cmd[0].arg}"
                           :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
                           :shortcut="parseShortcut(action)"
@@ -78,7 +78,7 @@
       <div class="flex flex-row flex-wrap">
         <template v-for="action of settings.active.actions">
           <ShortcutButton v-if="action.scopes[scope] && action.scopes[scope].show && action.cmd.length > 1"
-                          class="flex b3 button"
+                          class="flex b3 flex-grow button"
                           :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
                           :shortcut="parseShortcut(action)"
                           @click.native="execAction(action)"

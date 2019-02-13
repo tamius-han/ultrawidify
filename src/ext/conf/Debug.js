@@ -14,7 +14,7 @@ var Debug = {
   comms: true,
   // showArDetectCanvas: true,
   // flushStoredSettings: true,
-  flushStoredSettings: false,
+  flushStoredSettings: true,
   playerDetectDebug: true,
   periodic: true,
   // videoRescan: true,
