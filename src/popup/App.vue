@@ -74,6 +74,15 @@
 
       <!-- PANELS/CONTENT -->
       <div id="tab-content" class="flex-grow" style="max-width: 480px !important;">
+        <b>This is some debug stuff. Please remove before release.</b> Site: {{site.host}}<br/>
+        <small>NOTE: in case you're using nightly builds, this extension could be completely broken.
+        It's also possible that everything is getting logged excessively, which may result in 
+        degraded performance. If settings don't persist, check whether Debug.flushStorageSettings is set to true.</small>
+        <ShortcutButton class="button" 
+                    @click.native="settings.setDefaultSettings()"
+                    label="Wipe settings"
+         /> 
+    
         <VideoPanel v-if="settings && settings.active && selectedTab === 'video'"
                     class=""
                     :settings="settings"
@@ -118,7 +127,7 @@ export default {
     }
   },
   async created() {
-    this.settings.init();
+    await this.settings.init();
     this.port.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
     this.execAction.setSettings(this.settings);
 
