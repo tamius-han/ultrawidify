@@ -1,3 +1,10 @@
+image: node:6.10.0
+
+cache:
+  paths:
+  - node_modules/
+  - .yarn
+
 stages:
   - prep
   - build
