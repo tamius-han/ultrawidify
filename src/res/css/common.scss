@@ -166,7 +166,7 @@ small {
 /* COLORS */
 
     
-.selected{
+.selected {
   color: #ffddaa !important;
   background-color: #433221 !important;
 }
@@ -213,11 +213,11 @@ small {
 }
 
 .button {
-  /* display: inline-block; */
+  /*display: inline-block;*/
   // padding-top: 8px;
   // padding-bottom: 3px;
-  // padding-left: 20px;
-  // padding-right: 20px;
+  //padding-left: 5px;
+  //padding-right: 5px;
   border: 1px solid #444;
   margin-top: 3px;
   margin-bottom: 3px;
@@ -227,7 +227,7 @@ small {
 
 .button:hover {
   color: #fff;
-  background-color: #433221;
+  background-color: $primary-color;
 }
 
 
@@ -249,6 +249,20 @@ small {
   padding-right: 10px;
 }
 
+.info {
+  color: $info-color;
+  padding-left: 35px;
+  float: right;
+}
+
+.info::before {
+  content: "ⓘ";
+  display: inline-block;
+  font-weight: bold;
+  margin-left: -35px;
+  padding-right: 10px;
+}
+
 .experimental::after {
   content: "Experimental";
   background-color: #ffde12;
@@ -260,5 +274,3 @@ small {
   padding-right: 5px;
   margin-left: 10px;
 }
-
-

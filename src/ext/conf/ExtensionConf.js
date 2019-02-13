@@ -685,7 +685,7 @@ var ExtensionConf = {
     }
   },{
     name: 'Enable automatic aspect ratio detection',
-    label: 'Enabled',
+    label: 'Enable',
     cmd: [{
       action: 'set-autoar-mode',
       arg: ExtensionMode.Enabled,
