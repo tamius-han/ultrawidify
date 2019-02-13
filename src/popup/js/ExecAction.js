@@ -1,12 +1,16 @@
 import Comms from '../../ext/lib/comms/Comms';
 
 class ExecAction {
-  constructor(settings) {
+  constructor(settings, site) {
     this.settings = settings;
+    this.site = site;
   }
 
   setSettings(settings) {
     this.settings = settings;
+  }
+  setSite(site) {
+    this.site = site;
   }
 
   exec(action, scope, frame) {
@@ -21,14 +25,24 @@ class ExecAction {
         }
         Comms.sendMessage(message);
       } else if (scope === 'site') {
+
+        let site = this.site;
+        if (!this.site) {
+          site = window.location.host;
+        }
+
+        if (!this.settings.active.sites[site]) {
+          this.settings.active.sites[site] = this.settings.getDefaultOption();
+        }
+
         if (cmd.action === "set-stretch") {
-          this.settings.active.sites[window.location.host].stretch = cmd.arg;
+          this.settings.active.sites[site].stretch = cmd.arg;
         } else if (cmd.action === "set-alignment") {
-          this.settings.active.sites[window.location.host].videoAlignment = cmd.arg;
+          this.settings.active.sites[site].videoAlignment = cmd.arg;
         } else if (cmd.action === "set-extension-mode") {
-          this.settings.active.sites[window.location.host].status = cmd.arg;
+          this.settings.active.sites[site].mode = cmd.arg;
         } else if (cmd.action === "set-autoar-mode") {
-          this.settings.active.sites[window.location.host].arStatus = cmd.arg;
+          this.settings.active.sites[site].autoar = cmd.arg;
         }
         this.settings.save();
       } else if (scope === 'global') {
@@ -37,9 +51,9 @@ class ExecAction {
         } else if (cmd.action === "set-alignment") {
           this.settings.active.sites['@global'].videoAlignment = cmd.arg;
         } else if (cmd.action === "set-extension-mode") {
-          this.settings.active.sites['@global'] = cmd.arg;
+          this.settings.active.sites['@global'].mode = cmd.arg;
         } else if (cmd.action === "set-autoar-mode") {
-          this.settings.active.sites['@global'].autoar.arStatus = cmd.arg;
+          this.settings.active.sites['@global'].autoar = cmd.arg;
         }
         this.settings.save();
       }

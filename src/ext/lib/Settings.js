@@ -3,6 +3,8 @@ import currentBrowser from '../conf/BrowserDetect';
 import ExtensionConf from '../conf/ExtensionConf';
 import ExtensionMode from '../../common/enums/extension-mode.enum';
 import ObjectCopy from '../lib/ObjectCopy';
+import Stretch from '../../common/enums/stretch.enum';
+import VideoAlignment from '../../common/enums/video-alignment.enum';
 
 class Settings {
 
@@ -12,14 +14,6 @@ class Settings {
     this.useSync = false;
     this.version = undefined;
     this.updateCallback = updateCallback;
-
-
-    console.log("chrome object:", chrome)
-    console.log("browser.storage", browser.storage)
-    console.log("browser object:", browser)
-    console.log("window.browser", window.browser)
-    console.log("ExtensionConf", ExtensionConf)
-
 
     const ths = this;
 
@@ -351,6 +345,22 @@ class Settings {
     } else {
       return false;
     }
+  }
+
+  getDefaultOption(option) {
+    const allDefault = {
+      mode: ExtensionMode.Default,
+      autoar: ExtensionMode.Default,
+      autoarFallback: ExtensionMode.Default,
+      stretch: Stretch.Default,
+      videoAlignment: VideoAlignment.Default,
+    };
+
+    if (!option || allDefault[option] === undefined) {
+      return allDefault;
+    }
+    
+    return allDefault[option];
   }
 
   getDefaultAr(site) {
