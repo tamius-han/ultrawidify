@@ -78,10 +78,7 @@
         <small>NOTE: in case you're using nightly builds, this extension could be completely broken.
         It's also possible that everything is getting logged excessively, which may result in 
         degraded performance. If settings don't persist, check whether Debug.flushStorageSettings is set to true.</small>
-        <ShortcutButton class="button" 
-                    @click.native="settings.setDefaultSettings()"
-                    label="Wipe settings"
-         /> 
+        
     
         <VideoPanel v-if="settings && settings.active && selectedTab === 'video'"
                     class=""

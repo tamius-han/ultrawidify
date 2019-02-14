@@ -5,7 +5,7 @@ const _prod = false;
 var Debug = {
   init: true,
   debug: true,
-  keyboard: true,
+  // keyboard: true,
   debugResizer: true,
   debugArDetect: true,
   // debugStorage: false,
@@ -18,7 +18,7 @@ var Debug = {
   playerDetectDebug: true,
   periodic: true,
   // videoRescan: true,
-  mousemove: true,
+  // mousemove: true,
   arDetect: {
     edgeDetect: true
   },

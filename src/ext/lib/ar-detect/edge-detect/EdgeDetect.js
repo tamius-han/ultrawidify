@@ -22,7 +22,7 @@ class EdgeDetect{
     
   }
 
-  findBars(image, sampleCols, direction = EdgeDetectPrimaryDirection.VERTICAL, quality = EdgeDetectQuality.IMPROVED, guardLineOut){
+  findBars(image, sampleCols, direction = EdgeDetectPrimaryDirection.VERTICAL, quality = EdgeDetectQuality.IMPROVED, guardLineOut, blackLevelAnalysis){
     var fastCandidates, edgeCandidates, bars;
     if (direction == EdgeDetectPrimaryDirection.VERTICAL) {
       fastCandidates = this.findCandidates(image, sampleCols, guardLineOut);

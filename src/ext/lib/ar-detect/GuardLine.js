@@ -53,7 +53,8 @@ class GuardLine {
   check(image, fallbackMode){
     // izračunaj enkrat in shrani na objekt
     // calculate once and save object-instance-wide
-    this.blackbarTreshold = this.conf.blackLevel + this.settings.active.arDetect.blackbarTreshold;
+    this.blackbarTreshold = this.conf.blackLevel + this.settings.active.arDetect.blackbar.treshold;
+    this.imageTreshold = this.blackbarTreshold + this.settings.active.arDetect.blackbar.imageTreshold;
 
     // dejansko testiranje
     // actual checks
@@ -100,7 +101,6 @@ class GuardLine {
     var offset = parseInt(this.conf.canvas.width * this.settings.active.arDetect.guardLine.ignoreEdgeMargin) << 2;
     
     var offenders = [];
-    var firstOffender = -1;
     var offenderCount = -1; // doing it this way means first offender has offenderCount==0. Ez index.
     
     // TODO: implement logo check.
@@ -163,7 +163,7 @@ class GuardLine {
     if(!this.imageBar.top || !this.imageBar.bottom)
       return { success: false };
         
-    var offset = parseInt(this.conf.canvas.width * this.settings.active.arDetect.guardLine.ignoreEdgeMargin) << 2;
+    var offset = (this.conf.canvas.width * this.settings.active.arDetect.guardLine.ignoreEdgeMargin) << 2;
       
     // TODO: implement logo check.
     
@@ -184,7 +184,7 @@ class GuardLine {
     // robu (eden izmed robov je lahko v celoti črn)
     // how many non-black pixels we need to consider this check a success. We only need to detect enough pixels
     // on one edge (one of the edges can be black as long as both aren't)
-    var successTreshold = parseInt(this.conf.canvas.width * this.settings.active.arDetect.guardLine.imageTestTreshold);
+    var successTreshold = (this.conf.canvas.width * this.settings.active.arDetect.guardLine.imageTestTreshold);
     var rowStart, rowEnd;
     
     
@@ -279,7 +279,7 @@ class GuardLine {
 
   _ti_checkRow(image, rowStart, rowEnd, successTreshold) {
     for(var i = rowStart; i < rowEnd; i+=4){
-      if(image[i] > this.blackbarTreshold || image[i+1] > this.blackbarTreshold || image[i+2] > this.blackbarTreshold){
+      if(image[i] > this.imageTreshold || image[i+1] > this.imageTreshold || image[i+2] > this.imageTreshold){
         if(successTreshold --<= 0){
           return true;
         }
@@ -291,7 +291,7 @@ class GuardLine {
 
   _ti_debugCheckRow(image, rowStart, rowEnd, successTreshold) {
     for(var i = rowStart; i < rowEnd; i+=4){
-      if(image[i] > this.blackbarTreshold || image[i+1] > this.blackbarTreshold || image[i+2] > this.blackbarTreshold){
+      if(image[i] > this.imageTreshold || image[i+1] > this.imageTreshold || image[i+2] > this.imageTreshold){
         this.conf.debugCanvas.trace(i, DebugCanvasClasses.GUARDLINE_IMAGE);
         if(successTreshold --<= 0){
           return true;

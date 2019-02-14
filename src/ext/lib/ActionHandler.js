@@ -36,15 +36,12 @@ class ActionHandler {
       actions = this.settings.active.actions;
     }
 
-    console.log("----ACTIONS----", actions)
 
     for (var action of actions) {
-      console.log("----ACTION:", action);
       if (!action.scopes) {
         continue;
       }
       for (var scope in action.scopes) {
-        console.log("----ACTION - scope:", action.scopes[scope]);
         if (! action.scopes[scope].shortcut) {
           continue;
         }
@@ -112,7 +109,7 @@ class ActionHandler {
   }
 
   registerHandleMouse(videoData) {
-    if (Debug.debug) {
+    if (Debug.debug && Debug.mousemove) {
       console.log("[ActionHandler::registerHandleMouse] registering handle mouse for videodata:", videoData)
     }
     var ths = this;
