@@ -22,7 +22,7 @@ class EdgeDetect{
     
   }
 
-  findBars(image, sampleCols, direction = EdgeDetectPrimaryDirection.VERTICAL, quality = EdgeDetectQuality.IMPROVED, guardLineOut, blackLevelAnalysis){
+  findBars(image, sampleCols, direction = EdgeDetectPrimaryDirection.VERTICAL, quality = EdgeDetectQuality.IMPROVED, guardLineOut, blackFrameAnalysis){
     var fastCandidates, edgeCandidates, bars;
     if (direction == EdgeDetectPrimaryDirection.VERTICAL) {
       fastCandidates = this.findCandidates(image, sampleCols, guardLineOut);
@@ -60,7 +60,7 @@ class EdgeDetect{
     if(this.colsTreshold == 0)
       this.colsTreshold = 1;
     
-    this.blackbarTreshold = this.conf.blackLevel + this.settings.active.arDetect.blackbarTreshold;
+    this.blackbarTreshold = this.conf.blackLevel + this.settings.active.arDetect.blackbar.treshold;
     
     
     // if guardline didn't fail and imageDetect did, we don't have to check the upper few pixels
@@ -94,8 +94,8 @@ class EdgeDetect{
       lower_bottom = this.conf.canvas.height - 1;
     }
 
-    if(Debug.debug){
-      console.log("[EdgeDetect::findCandidates] searching for candidates on ranges", upper_top, "<->", upper_bottom, ";", lower_top, "<->", lower_bottom)
+    if(Debug.debug && Debug.debugArDetect){
+      console.log("[EdgeDetect::findCandidates] searching for candidates on ranges", upper_top, "<->", upper_bottom, ";", lower_top, "<->", lower_bottom);
     }
     
     var upper_top_corrected = upper_top * this.conf.canvasImageDataRowLength;
@@ -111,6 +111,10 @@ class EdgeDetect{
       this._columnTest(image, lower_top_corrected, lower_bottom_corrected, cols_b, res_bottom, true);
     }
     
+    if(Debug.debug && Debug.debugArDetect){
+      console.log("[EdgeDetect::findCandidates] candidates found", {res_top: res_top, res_bottom: res_bottom});
+    }
+
     return {res_top: res_top, res_bottom: res_bottom};
   }
 
@@ -408,7 +412,7 @@ class EdgeDetect{
     // we also return true if we detect too much black
   
     var blackbarTreshold, upper, lower;
-    blackbarTreshold = this.conf.blackLevel + this.settings.active.arDetect.blackbarTreshold;
+    blackbarTreshold = this.conf.blackLevel + this.settings.active.arDetect.blackbar.treshold;
   
   
     var middleRowStart = (this.conf.canvas.height >> 1) * this.conf.canvas.width;
