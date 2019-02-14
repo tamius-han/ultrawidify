@@ -1,5 +1,9 @@
 <template>
   <div class="w100 flex flex-column">
+    <ShortcutButton class="button" 
+                    @click.native="settings.setDefaultSettings()"
+                    label="Wipe settings"
+    /> 
     <div v-if="settings && true"
          class="w100"
     >

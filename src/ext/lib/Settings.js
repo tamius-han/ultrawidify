@@ -231,7 +231,7 @@ class Settings {
     try {
       // if site-specific settings don't exist for the site, we use default mode:
       if (! this.active.sites[site]) {
-        if (this.active.sites['@global'] === ExtensionMode.Enable) {
+        if (this.active.sites['@global'] === ExtensionMode.Enabled) {
           return ExtensionMode.Enabled;
         } else {
           return this.active.basicExtensionMode === ExtensionMode.Enable ? ExtensionMode.Basic : ExtensionMode.Disabled;
@@ -243,7 +243,7 @@ class Settings {
       } else if (this.active.sites[site].mode === ExtensionMode.Basic) {
         return ExtensionMode.Basic;
       } else if (this.active.sites[site].mode === ExtensionMode.Default) {
-        if (this.active.sites['@global'] === ExtensionMode.Enable) {
+        if (this.active.sites['@global'] === ExtensionMode.Enabled) {
           return ExtensionMode.Enabled;
         } else {
           return this.active.basicExtensionMode === ExtensionMode.Enable ? ExtensionMode.Basic : ExtensionMode.Disabled;
@@ -283,10 +283,10 @@ class Settings {
     try{
     // if site is not defined, we use default mode:
     if (! this.active.sites[site]) {
-      return this.active.sites['@global'] === ExtensionMode.Enable;
+      return this.active.sites['@global'] === ExtensionMode.Enabled;
     }
 
-    if(this.active.sites['@global'] === ExtensionMode.Enable) {
+    if(this.active.sites['@global'] === ExtensionMode.Enabled) {
       return this.active.sites[site].mode !== ExtensionMode.Disabled;
     } else if (this.active.sites['@global'] === ExtensionMode.Whitelist) {
       return this.active.sites[site].mode === ExtensionMode.Enabled;
@@ -310,10 +310,12 @@ class Settings {
   }
 
   canStartAutoAr(site) {
+    console.log("SITE:", site)
     if (!site) {
-      site = window.location.hostname;
+      site = window.location.host;
 
       if (!site) {
+        console.log("site should be window.location.host")
         return false;
       }
     }
@@ -326,23 +328,26 @@ class Settings {
       const csar = this.canStartAutoAr(site);
       Debug.debug = true;
 
-      console.log("[Settings::canStartAutoAr] ----------------\nCAN WE START THIS EXTENSION ON SITE", site,
-                  "?\n\nsettings.active.sites[site]=", this.active.sites[site],
-                  "\nExtension mode?", this.active.sites['@global'].autoar,
-                  "\nCan extension be started?", csar
+      console.log("[Settings::canStartAutoAr] ----------------\nCAN WE START AUTOAR ON SITE", site,
+                  "?\n\nsettings.active.sites[site]=", this.active.sites[site], "settings.active.sites[@global]=", this.active.sites['@global'],
+                  "\nAutoar mode (global)?", this.active.sites['@global'].autoar,
+                  `\nAutoar mode (${site})`, this.active.sites[site] ? this.active.sites[site].autoar : '<not defined>',
+                  "\nCan autoar be started?", csar
                  );
     }
 
     // if site is not defined, we use default mode:    
     if (! this.active.sites[site]) {
-      return this.active.sites['@global'].autoar === ExtensionMode.Enable;
+      return this.active.sites['@global'].autoar === ExtensionMode.Enabled;
     }
 
-    if (this.active.sites['@global'].autoar === ExtensionMode.Enable) {
+    if (this.active.sites['@global'].autoar === ExtensionMode.Enabled) {
       return this.active.sites[site].autoar !== ExtensionMode.Disabled;
     } else if (this.active.sites['@global'].autoar === ExtensionMode.Whitelist) {
-      return this.active.sites[site].autoar === ExtensionMode.Enable;
+      console.log("canStartAutoAr — can(not) start csar because extension is in whitelist mode, and this site is (not) equal to", ExtensionMode.Enabled)
+      return this.active.sites[site].autoar === ExtensionMode.Enabled;
     } else {
+      console.log("canStartAutoAr — cannot start csar because extension is globally disabled")
       return false;
     }
   }

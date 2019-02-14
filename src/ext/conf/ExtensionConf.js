@@ -18,11 +18,8 @@ var ExtensionConf = {
       paused: 3000,           // while paused
       error: 3000,            // after error
       minimumTimeout: 5,
+      tickrate: 100,          // 1 tick every this many milliseconds
     },
-    // timer_playing: 666,       // we trigger ar this often (in ms) under this conditions
-    // timer_paused: 3000,
-    // timer_error: 3000,
-    // timer_minimumTimeout: 5,  // but regardless of above, we wait this many msec before retriggering
     autoDisable: {            // settings for automatically disabling the extension
       maxExecutionTime: 6000, // if execution time of main autodetect loop exceeds this many milliseconds,
                               // we disable it.
@@ -31,14 +28,27 @@ var ExtensionConf = {
       // FOR FUTURE USE
       consecutiveArResets: 5       // if aspect ratio reverts immediately after AR change is applied, we disable everything
     },
-    sampleCanvasSize: {       // size of image sample for detecting aspect ratio. Bigger size means more accurate results,
-                              // at the expense of performance
-      width: 640,
-      height: 360,
+    canvasDimensions: {
+      blackframeCanvas: {   // smaller than sample canvas, blackframe canvas is used to recon for black frames
+                            // it's not used to detect aspect ratio by itself, so it can be tiny af
+        width: 16,
+        height: 9,
+      },
+      sampleCanvas: {   // size of image sample for detecting aspect ratio. Bigger size means more accurate results,
+                            // at the expense of performance
+        width: 640,
+        height: 360,
+      },
     },
-    hSamples: 640,
-    vSamples: 360,
+
     // samplingInterval: 10,     // we sample at columns at (width/this) * [ 1 .. this - 1] 
+    blackframe: {
+      cumulativeTreshold: 2560,  // if we add values of all pixels together and get more than this, the frame is bright enough.
+                                 // (note: blackframe is 16x9 px -> 144px total. cumulative treshold can be reached fast)
+      blackPixelsCondition: 0.6, // How much pixels must be black (1 all, 0 none) before we consider frame as black. Takes
+                                 // precedence over cumulative treshold: if blackPixelsCondition is met, the frame is dark
+                                 // regardless of whether cumulative treshold has been reached.
+    },
     blackbar: {
       blackLevel: 10,         // everything darker than 10/255 across all RGB components is considered black by
                               // default. blackLevel can decrease if we detect darker black.
