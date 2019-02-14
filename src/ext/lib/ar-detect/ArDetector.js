@@ -557,17 +557,14 @@ class ArDetector {
       // da je letterbox izginil.
       // If we don't detect letterbox, we reset aspect ratio to aspect ratio of the video file. The aspect ratio could
       // have been corrected manually. It's also possible that letterbox (that was there before) disappeared.
-      this.conf.resizer.reset();
+      console.log("FAST LETTERBOX PRESENCE TEST FAILED, CALLING RESET")
+      this.conf.resizer.reset({type: "auto", ar: null});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
       return;
     }
 
-    if(Debug.debug && Debug.debugArDetect){
-      console.log(`%c[ArDetect::_ard_vdraw] edge was detected. Here are stats:\ncurrentMaxVal: ${currentMaxVal}\nBlack level (+ treshold):${this.blackLevel} (${this.blackLevel + this.settings.active.arDetect.blackbarTreshold})\n---diff test---\nmaxVal-minVal: ${ (currentMaxVal - currentMinVal)}\ntreshold: ${this.settings.active.arDetect.blackbarTreshold}`, "color: #afa");
-    }
-    
     // Če preverjamo naprej, potem moramo postaviti to vrednost nazaj na 'false'. V nasprotnem primeru se bo
     // css resetiral enkrat na video/pageload namesto vsakič, ko so za nekaj časa obrobe odstranejene
     // if we look further we need to reset this value back to false. Otherwise we'll only get CSS reset once
@@ -600,7 +597,7 @@ class ArDetector {
     // (since the new letterbox edge isn't present in our sample due to technical
     // limitations)
     if (this.fallbackMode && guardLineOut.blackbarFail) {
-      this.conf.resizer.reset();
+      this.conf.resizer.reset({type: "auto", ar: null});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
@@ -619,14 +616,14 @@ class ArDetector {
     // that we will cut too much, we rather avoid doing anything at all. There's gonna be a next chance.
     try{
       if(guardLineOut.blackbarFail || guardLineOut.imageFail){
-        if(this.edgeDetector.findBars(image, null, EdgeDetectPrimaryDirection.HORIZONTAL).status === 'ar_known'){
+        if(this.edgeDetector.findBars(imageData, null, EdgeDetectPrimaryDirection.HORIZONTAL).status === 'ar_known'){
 
           if(Debug.debug && guardLineOut.blackbarFail){
             console.log("[ArDetect::_ard_vdraw] Detected blackbar violation and pillarbox. Resetting to default aspect ratio.");
           }
 
           if(guardLineOut.blackbarFail){
-            this.conf.resizer.reset();
+            this.conf.resizer.reset({type: "auto", ar: null});
             this.guardLine.reset();
           }
 
@@ -648,12 +645,12 @@ class ArDetector {
     
     // blackSamples -> {res_top, res_bottom}
    
-    var edgePost = this.edgeDetector.findBars(image, sampleCols, EdgeDetectPrimaryDirection.VERTICAL, EdgeDetectQuality.IMPROVED, guardLineOut, blanalysis);
+    var edgePost = this.edgeDetector.findBars(imageData, sampleCols, EdgeDetectPrimaryDirection.VERTICAL, EdgeDetectQuality.IMPROVED, guardLineOut, bfanalysis);
     
     if(Debug.debug && Debug.debugArDetect){
       console.log(`%c[ArDetect::_ard_vdraw] edgeDetector returned this\n`,  "color: #aaf", edgePost);
     }
-    //   console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:", this.blackLevel, "tresh:", this.blackLevel + this.settings.active.arDetect.blackbarTreshold);
+    //   console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:", this.blackLevel, "tresh:", this.blackLevel + this.settings.active.arDetect.blackbar.treshold);
     
     if (edgePost.status !== EdgeStatus.AR_KNOWN){
       // rob ni bil zaznan, zato ne naredimo ničesar.
@@ -787,11 +784,12 @@ class ArDetector {
 
       currentMax = Math.max(
         imageData[colOffset_r],  imageData[colOffset_g],  imageData[colOffset_b],
-        imageData[colOffset_rb], imageData[colOffset_gb], imageData[colOffset_bb],
+        // imageData[colOffset_rb], imageData[colOffset_gb], imageData[colOffset_bb],
         currentMax
       );
 
       if (currentMax > this.blackLevel + bltreshold) {
+        console.log("CURRENT MAX:", currentMax, "BLACK LEVEL, treshold, bl+t", this.blackLevel, bltreshold, this.blackLevel+bltreshold)
         // we search no further
         if (currentMin < this.blackLevel) {
           this.blackLevel = currentMin;
@@ -800,8 +798,7 @@ class ArDetector {
       }
 
       currentMin = Math.min(
-        imageData[colOffset_r],  imageData[colOffset_g],  imageData[colOffset_b],
-        imageData[colOffset_rb], imageData[colOffset_gb], imageData[colOffset_bb],
+        currentMax,
         currentMin
       );
     }

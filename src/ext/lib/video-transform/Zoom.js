@@ -59,6 +59,9 @@ class Zoom {
   }
 
   applyZoom(stretchFactors){
+    if (!stretchFactors) {
+      return;
+    }
     if (Debug.debug) {
       console.log("[Zoom::setZoom] Applying zoom. Stretch factors pre:", stretchFactors, " —> scale:", this.scale);
     }
