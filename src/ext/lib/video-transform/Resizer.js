@@ -5,6 +5,7 @@ import Zoom from './Zoom';
 import PlayerData from '../video-data/PlayerData';
 import ExtensionMode from '../../../common/enums/extension-mode.enum';
 import StretchMode from '../../../common/enums/stretch.enum';
+import VideoAlignment from '../../../common/enums/video-alignment.enum';
 
 if(Debug.debug)
   console.log("Loading: Resizer.js");
@@ -88,7 +89,7 @@ class Resizer {
       }
     }
 
-    if (this.extensionMode !== ExtensionMode.Enabled && !PlayerData.isFullScreen() && ar !== 'reset') {
+    if (this.extensionMode === ExtensionMode.Basic && !PlayerData.isFullScreen() && ar !== 'reset') {
       // don't actually apply or calculate css when using basic mode if not in fullscreen
       //  ... unless we're resetting the aspect ratio to original
       return; 
@@ -99,18 +100,20 @@ class Resizer {
       this.videoData.destroy();
     }
 
-    if (this.extensionMode !== ExtensionMode.Enabled || PlayerData.isFullScreen()) {
+    if (this.extensionMode === ExtensionMode.Enabled || PlayerData.isFullScreen()) {
       this.startCssWatcher();
     }
     this.cssWatcherIncreasedFrequencyCounter = 20;
 
     // // pause AR on basic stretch, unpause when using other mdoes
     // fir sine reason unpause doesn't unpause. investigate that later
-    // if (this.stretcher.mode === StretchMode.Basic) {
-    //   this.conf.arDetector.pause();
-    // } else {
-    //   this.conf.arDetector.unpause();
-    // }
+    if (this.stretcher.mode === StretchMode.Basic) {
+      this.conf.arDetector.pause();
+    } else {
+      if (this.lastAr.type === 'auto') {
+        this.conf.arDetector.unpause();
+      }
+    }
 
     // do stretch thingy
     if (this.stretcher.mode === StretchMode.NoStretch || this.stretcher.mode === StretchMode.Conditional){
@@ -128,10 +131,26 @@ class Resizer {
       if(this.stretcher.mode === StretchMode.Conditional){
          this.stretcher.applyConditionalStretch(stretchFactors, ar);
       }
+
+      if (Debug.debug) {
+        console.log("[Resizer::setAr] Processed stretch factors for ", this.stretcher.mode === StretchMode.NoStretch ? 'stretch-free crop.' : 'crop with conditional stretch.', 'Stretch factors are:', stretchFactors);
+      }
+
     } else if (this.stretcher.mode === StretchMode.Hybrid) {
       var stretchFactors = this.stretcher.calculateStretch(ar);
+      if (Debug.debug) {
+        console.log('[Resizer::setAr] Processed stretch factors for hybrid stretch/crop. Stretch factors are:', stretchFactors);
+      }
     } else if (this.stretcher.mode === StretchMode.Basic) {
       var stretchFactors = this.stretcher.calculateBasicStretch();
+      if (Debug.debug) {
+        console.log('[Resizer::setAr] Processed stretch factors for basic stretch. Stretch factors are:', stretchFactors);
+      }
+    } else {
+      var stretchFactors = {xFactor: 1, yFactor: 1}
+      if (Debug.debug) {
+        console.log('[Resizer::setAr] Okay wtf happened? If you see this, something has gone wrong', stretchFactors,"\n------[ i n f o   d u m p ]------\nstretcher:", this.stretcher);
+      }
     }
 
     this.zoom.applyZoom(stretchFactors);
@@ -323,7 +342,7 @@ class Resizer {
   computeOffsets(stretchFactors){
 
     if (Debug.debug) {
-      console.log("[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.settings.active.sites['@global'].videoAlignment);
+      console.log("[Resizer::computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.settings.active.sites['@global'].videoAlignment);
     }
 
     const wdiff = this.conf.player.dimensions.width - this.conf.video.offsetWidth;
@@ -345,10 +364,10 @@ class Resizer {
       translate.x += wdiffAfterZoom * this.pan.relativeOffsetX * this.zoom.scale;
       translate.y += hdiffAfterZoom * this.pan.relativeOffsetY * this.zoom.scale;
     } else {
-      if (this.videoAlignment == "left") {
+      if (this.videoAlignment == VideoAlignment.Left) {
         translate.x += wdiffAfterZoom * 0.5;
       }
-      else if (this.videoAlignment == "right") {
+      else if (this.videoAlignment == VideoAlignment.Right) {
         translate.x -= wdiffAfterZoom * 0.5;
       }
     }
@@ -364,7 +383,8 @@ class Resizer {
 
     if (! this.video) {
       if(Debug.debug) {
-        console.log("[Resizer::_res_applyCss] <rid:"+this.resizerId+"> Video went missing, doing nothing.");
+        console.log("[Resizer::applyCss] <rid:"+this.resizerId+"> Video went missing, doing nothing.");
+
       }
 
       this.conf.destroy();

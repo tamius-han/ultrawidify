@@ -197,15 +197,6 @@ class Settings {
   //    * default     — allow if default is to allow, block if default is to block
   //    * disabled    — never allow
 
-  getSiteSettings(site) {
-    if (!site) {
-      site = window.location.hostname;
-    }
-    if (!site || !this.active.sites[site]) {
-      return {};
-    }
-    return this.active.sites[site];
-  }
 
   getActionsForSite(site) {
     if (!site) {
@@ -369,29 +360,27 @@ class Settings {
   }
 
   getDefaultAr(site) {
-    site = this.getSiteSettings(site);
+    // site = this.getSiteSettings(site);
 
-    if (site.defaultAr) {
-      return site.defaultAr;
-    }
+    // if (site.defaultAr) {
+    //   return site.defaultAr;
+    // }
     return this.active.miscSettings.defaultAr;
   }
 
   getDefaultStretchMode(site) {
-    site = this.getSiteSettings(site);
-
-    if (site.stretch) {
-      return site.stretch;
+    if (site && this.active.sites[site] && this.active.sites[site].stretch !== StretchMode.Default) {
+      return this.active.sites[site].stretch;
     }
+
     return this.active.sites['@global'].stretch;
   }
 
   getDefaultVideoAlignment(site) {
-    site = this.getSiteSettings(site);
-
-    if (site.videoAlignment) {
-      return site.videoAlignment;
+    if (site && this.active.sites[site] && this.active.sites[site].videoAlignment !== VideoAlignment.Default) {
+      return this.active.sites[site].videoAlignment;
     }
+
     return this.active.sites['@global'].videoAlignment;
   }
 }

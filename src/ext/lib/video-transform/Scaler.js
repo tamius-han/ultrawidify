@@ -74,7 +74,7 @@ class Scaler {
     // če je 'ar' string, potem bomo z njim opravili v legacy wrapperju. Seveda obstaja izjema
     // if 'ar' is string, we'll handle that in legacy wrapper, with one exception
 
-    if(mode === 'reset'){
+    if (mode === 'reset'){
       return {xFactor: 1, yFactor: 1}
     }
 
