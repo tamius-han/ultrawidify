@@ -240,7 +240,7 @@ class ArDetector {
       return;
     }
 
-    const exitedRetries = 10;
+    let exitedRetries = 10;
 
     while (!this._exited && exitedRetries --> 0) {
       if (Debug.debug) {
@@ -457,21 +457,23 @@ class ArDetector {
       // ali je sprememba v mejah dovoljenega? Če da -> fertik
       // is ar variance within acceptable levels? If yes -> we done
       if(Debug.debug && Debug.debugArDetect)
-        console.log("%c[ArDetect::_ard_processAr] new aspect ratio varies from the old one by this much:\n","color: #aaf","old Ar", lastAr.ar, "current ar", trueAr, "arDiff (absolute):",arDiff,"ar diff (relative to new ar)", arDiff_percent);
+        console.log("%c[ArDetect::processAr] new aspect ratio varies from the old one by this much:\n","color: #aaf","old Ar", lastAr.ar, "current ar", trueAr, "arDiff (absolute):",arDiff,"ar diff (relative to new ar)", arDiff_percent);
       
       if (arDiff < trueAr * this.settings.active.arDetect.allowedArVariance){
         if(Debug.debug && Debug.debugArDetect)
-          console.log("%c[ArDetect::_ard_processAr] aspect ratio change denied — diff %:", "background: #740; color: #fa2", arDiff_percent)
+          console.log("%c[ArDetect::processAr] aspect ratio change denied — diff %:", "background: #740; color: #fa2", arDiff_percent)
           
         return;
       }
       else if(Debug.debug && Debug.debugArDetect){
-        console.log("%c[ArDetect::_ard_processAr] aspect ratio change accepted — diff %:", "background: #153; color: #4f9", arDiff_percent)
+        console.log("%c[ArDetect::processAr] aspect ratio change accepted — diff %:", "background: #153; color: #4f9", arDiff_percent)
       }
     }
     
-    if(Debug.debug)
-      console.log("[ArDetect::_ard_processAr] attempting to fix aspect ratio. New aspect ratio: ", trueAr);
+    if(Debug.debug) {
+      
+      console.log("%c[ArDetect::processAr] Triggering aspect ratio change. New aspect ratio: ", _ard_console_change, trueAr);
+    }
     
     this.conf.resizer.setAr(trueAr, {type: "auto", ar: trueAr});
   }
@@ -479,7 +481,7 @@ class ArDetector {
   frameCheck(){
     if(! this.video){
       if(Debug.debug || Debug.warnings_critical)
-        console.log("[ArDetect::_ard_vdraw] Video went missing. Destroying current instance of videoData.")
+        console.log("[ArDetect::frameCheck] Video went missing. Destroying current instance of videoData.")
       this.conf.destroy();
       return;
     }
@@ -495,7 +497,7 @@ class ArDetector {
       this.fallbackMode = false;
     } catch (e) {
       if(Debug.debug && Debug.debugArDetect) {
-        console.log(`%c[ArDetect::_ard_vdraw] can't draw image on canvas. ${this.canDoFallbackMode ? 'Trying canvas.drawWindow instead' : 'Doing nothing as browser doesn\'t support fallback mode.'}`, "color:#000; backgroud:#f51;", e);
+        console.log(`%c[ArDetect::frameCheck] can't draw image on canvas. ${this.canDoFallbackMode ? 'Trying canvas.drawWindow instead' : 'Doing nothing as browser doesn\'t support fallback mode.'}`, "color:#000; backgroud:#f51;", e);
       }
       // nothing to see here, really, if fallback mode isn't supported by browser
       if (! this.canDoFallbackMode) {
@@ -527,14 +529,14 @@ class ArDetector {
       try {
         this.context.drawWindow(window, this.canvasDrawWindowHOffset, 0, this.canvas.width, this.canvas.height, "rgba(0,0,128,1)");
       } catch (e) {
-        console.log(`%c[ArDetect::_ard_vdraw] can't draw image on canvas with fallback mode either. This error is prolly only temporary.`, "color:#000; backgroud:#f51;", e);
+        console.log(`%c[ArDetect::frameCheck] can't draw image on canvas with fallback mode either. This error is prolly only temporary.`, "color:#000; backgroud:#f51;", e);
         return; // it's prolly just a fluke, so we do nothing special here
       }
       // draw blackframe sample from our main sample:
       this.blackframeContext.drawImage(this.canvas, this.blackframeCanvas.width, this.blackframeCanvas.height)
 
       if (Debug.debug) {
-        console.log("%c[ArDetect::_ard_vdraw] canvas.drawImage seems to have worked", "color:#000; backgroud:#2f5;");
+        console.log("%c[ArDetect::frameCheck] canvas.drawImage seems to have worked", "color:#000; backgroud:#2f5;");
       }
     }
 
@@ -579,7 +581,7 @@ class ArDetector {
     // if both succeed, then aspect ratio hasn't changed.    
     if (!guardLineOut.imageFail && !guardLineOut.blackbarFail) {
       if(Debug.debug && Debug.debugArDetect){
-        console.log(`%c[ArDetect::_ard_vdraw] guardLine tests were successful. (no imagefail and no blackbarfail)\n`, "color: #afa", guardLineOut);
+        console.log(`%c[ArDetect::frameCheck] guardLine tests were successful. (no imagefail and no blackbarfail)\n`, "color: #afa", guardLineOut);
       }
 
       return;
@@ -619,7 +621,7 @@ class ArDetector {
         if(this.edgeDetector.findBars(imageData, null, EdgeDetectPrimaryDirection.HORIZONTAL).status === 'ar_known'){
 
           if(Debug.debug && guardLineOut.blackbarFail){
-            console.log("[ArDetect::_ard_vdraw] Detected blackbar violation and pillarbox. Resetting to default aspect ratio.");
+            console.log("[ArDetect::frameCheck] Detected blackbar violation and pillarbox. Resetting to default aspect ratio.");
           }
 
           if(guardLineOut.blackbarFail){
@@ -648,7 +650,7 @@ class ArDetector {
     var edgePost = this.edgeDetector.findBars(imageData, sampleCols, EdgeDetectPrimaryDirection.VERTICAL, EdgeDetectQuality.IMPROVED, guardLineOut, bfanalysis);
     
     if(Debug.debug && Debug.debugArDetect){
-      console.log(`%c[ArDetect::_ard_vdraw] edgeDetector returned this\n`,  "color: #aaf", edgePost);
+      console.log(`%c[ArDetect::frameCheck] edgeDetector returned this\n`,  "color: #aaf", edgePost);
     }
     //   console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:", this.blackLevel, "tresh:", this.blackLevel + this.settings.active.arDetect.blackbar.treshold);
     
@@ -676,7 +678,7 @@ class ArDetector {
     // }
       
     if(Debug.debug && Debug.debugArDetect){
-      console.log(`%c[ArDetect::_ard_vdraw] Triggering aspect ration change! new ar: ${newAr}`, "color: #aaf");
+      console.log(`%c[ArDetect::frameCheck] Triggering aspect ration change! new ar: ${newAr}`, "color: #aaf");
     }
     this.processAr(newAr);
   
@@ -714,7 +716,7 @@ class ArDetector {
   blackframeTest() {
     if (! this.blackLevel) {
       if (Debug.debug && Debug.debugArDetect) {
-        console.log("[ArDetect::_ard_vdraw] black level undefined, resetting");
+        console.log("[ArDetect::frameCheck] black level undefined, resetting");
       }
       
       this.resetBlackLevel();
@@ -813,5 +815,6 @@ class ArDetector {
 
 var _ard_console_stop = "background: #000; color: #f41";
 var _ard_console_start = "background: #000; color: #00c399";
+var _ard_console_change = "background: #000; color: #ff8";
 
 export default ArDetector;
