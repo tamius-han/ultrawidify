@@ -37,7 +37,8 @@ class Resizer {
     this.cssWatcherIncreasedFrequencyCounter = 0;
 
     
-    this.lastAr = this.settings.getDefaultAr();                 // this is the aspect ratio we start with
+    // this.lastAr = this.settings.getDefaultAr();                 // this is the aspect ratio we start with
+    this.lastAr = {type: 'original'};
     this.videoAlignment = this.settings.getDefaultVideoAlignment(); // this is initial video alignment
     this.destroyed = false;
 
@@ -107,12 +108,16 @@ class Resizer {
 
     // // pause AR on basic stretch, unpause when using other mdoes
     // fir sine reason unpause doesn't unpause. investigate that later
-    if (this.stretcher.mode === StretchMode.Basic) {
-      this.conf.arDetector.pause();
-    } else {
-      if (this.lastAr.type === 'auto') {
-        this.conf.arDetector.unpause();
+    try {
+      if (this.stretcher.mode === StretchMode.Basic) {
+        this.conf.arDetector.pause();
+      } else {
+        if (this.lastAr.type === 'auto') {
+          this.conf.arDetector.unpause();
+        }
       }
+    } catch (e) {   // resizer starts before arDetector. this will do nothing but fail if arDetector isn't setup
+
     }
 
     // do stretch thingy
@@ -294,7 +299,7 @@ class Resizer {
   }
 
   reset(){
-    this.setStretchMode(StretchMode.NoStretch);
+    this.setStretchMode(this.settings.active.sites[window.location.hostname] ? this.settings.active.sites[window.location.hostname].stretch : this.settings.active.sites['@global'].stretch);
     this.zoom.setZoom(1);
     this.resetPan();
     this.setAr('reset');

@@ -22,6 +22,13 @@ class VideoData {
     this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
     // player dimensions need to be in:
     // this.player.dimensions
+
+    // apply default align and stretch
+    if (Debug.init) {
+      console.log("%c[VideoData::ctor] Initial resizer reset!", {background: '#afd', color: '#132'});
+    }
+    this.resizer.reset();
+
     
     this.vdid = (Math.random()*100).toFixed();
     if (Debug.init) {
@@ -144,7 +151,7 @@ class VideoData {
       this.arDetector.setManualTick(manualTick);
     }
   }
-  
+
   tick() {
     if(this.arDetector){
       this.arDetector.tick();
