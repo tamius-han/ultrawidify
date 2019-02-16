@@ -18,7 +18,6 @@ class ArDetector {
 
     this.sampleCols = [];
 
-    // todo: dynamically detect the following two
     this.canFallback = true;
     this.fallbackMode = false;
 
@@ -60,7 +59,7 @@ class ArDetector {
         throw "Settings prevent autoar from starting"
       }
     } catch (e) {
-      console.log("[ArDetect::init] INITIALIZATION FAILED!\n", e);
+      console.log("%c[ArDetect::init] INITIALIZATION FAILED!\n", _ard_console_stop, e);
     }
   }
 
@@ -72,7 +71,7 @@ class ArDetector {
     this.stop();
   }
 
-  setup(cwidth, cheight, forceStart){
+  setup(cwidth, cheight){
     if(Debug.debug || Debug.init) {
       console.log("[ArDetect::setup] Starting autodetection setup. arid:", this.arid);
     }
@@ -237,7 +236,6 @@ class ArDetector {
     // (we are running when _halted is neither true nor undefined)
     if (this._halted === false) {
       this._paused = true;
-      // this.conf.resizer.resetLastAr();
     }
   }
 
