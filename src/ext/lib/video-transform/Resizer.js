@@ -279,7 +279,7 @@ class Resizer {
 
   restore() {
     if(Debug.debug){
-      console.log("[Resizer::restore] <rid:"+this.resizerId+"> attempting to restore aspect ratio. this & settings:", {'this': this, "settings": this.settings} );
+      console.log("[Resizer::restore] <rid:"+this.resizerId+"> attempting to restore aspect ratio. this & settings:", {'a_lastAr': this.lastAr, 'this': this, "settings": this.settings} );
     }
     
     // this is true until we verify that css has actually been applied
@@ -414,7 +414,7 @@ class Resizer {
             styleArray[i].startsWith("top:") ||
             styleArray[i].startsWith("left:") ||
             styleArray[i].startsWith("right:") ||
-            styleArray[i].startsWith("bottom") ){
+            styleArray[i].startsWith("bottom:") ){
           delete styleArray[i];
         }
       }
@@ -487,7 +487,7 @@ class Resizer {
     
     // this means video went missing. videoData will be re-initialized when the next video is found
     if(! this.video){
-      if(Debug.debug) {
+      if(Debug.debug && Debug.debugResizer) {
         console.log("[Resizer::cssCheck] <rid:"+this.resizerId+"> no video detecting, issuing destroy command");
       }
       this.conf.destroy();
@@ -495,7 +495,7 @@ class Resizer {
     }
     
     if(this.destroyed) {
-      if(Debug.debug) {
+      if(Debug.debug && Debug.debugResizer) {
         console.log("[Resizer::cssCheck] <rid:"+this.resizerId+"> destroyed flag is set, we shouldnt be running");
       }
       this.stopCssWatcher();
@@ -507,6 +507,9 @@ class Resizer {
     // first, a quick test:
     // if (this.currentVideoSettings.validFor == this.conf.player.dimensions ){
     if (this.currentStyleString !== styleString){
+      if(Debug.debug && Debug.debugResizer) {
+        console.log(`%c[Resizer::cssCheck] <rid:${this.resizerId}> something touched our style string. We need to re-apply the style.`, {background: '#ddf', color: '#007'});
+      }
       this.restore();
       this.scheduleCssWatcher(10);
       return;

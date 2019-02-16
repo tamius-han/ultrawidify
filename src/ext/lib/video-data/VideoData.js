@@ -139,6 +139,18 @@ class VideoData {
     }
   }
 
+  setManualTick(manualTick) {
+    if(this.arDetector){
+      this.arDetector.setManualTick(manualTick);
+    }
+  }
+  
+  tick() {
+    if(this.arDetector){
+      this.arDetector.tick();
+    }
+  }
+
   setLastAr(lastAr){
     this.resizer.setLastAr(lastAr);
   }

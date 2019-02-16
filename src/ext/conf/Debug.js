@@ -3,24 +3,26 @@
 const _prod = false; 
 
 var Debug = {
+  performanceMetrics: true, // should not be affected by debug.debug in order to allow benchmarking of the impact logging in console has
   init: true,
   debug: true,
+  // debug: false,
   // keyboard: true,
   debugResizer: true,
   debugArDetect: true,
   // debugStorage: false,
-  debugStorage: true,
+  // debugStorage: true,
   // comms: false,
-  comms: true,
+  // comms: true,
   // showArDetectCanvas: true,
   // flushStoredSettings: true,
   flushStoredSettings: false,
-  playerDetectDebug: true,
+  // playerDetectDebug: true,
   periodic: true,
   // videoRescan: true,
   // mousemove: true,
   arDetect: {
-    edgeDetect: true
+    // edgeDetect: true
   },
   canvas: {
     debugDetection: true
