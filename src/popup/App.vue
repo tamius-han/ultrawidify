@@ -50,6 +50,21 @@
             </div>
           </div>
         </div>
+
+         <div 
+             class="menu-item"
+             :class="{'selected-tab': selectedTab === 'performance-metrics'}"
+             @click="selectTab('performance-metrics')"
+        >
+          <div class="">
+            Performance debug
+          </div>
+          <div class="">
+          </div>
+        </div>
+
+
+
         <div class="menu-item"
             :class="{'selected-tab': selectedTab === 'about'}"
             @click="selectTab('about')"
@@ -93,6 +108,8 @@
                               :scope="selectedTab"
                               :site="site.host"
         />
+        <PerformancePanel v-if="selectedTab === 'performance-metrics'" 
+                          :performance="performance" />
       </div>
     </div>
   </div>
@@ -103,6 +120,7 @@ import Debug from '../ext/conf/Debug';
 import BrowserDetect from '../ext/conf/BrowserDetect';
 import Comms from '../ext/lib/comms/Comms';
 import VideoPanel from './panels/VideoPanel';
+import PerformancePanel from './panels/PerformancePanel';
 import Settings from '../ext/lib/Settings';
 import ExecAction from './js/ExecAction.js';
 import DefaultSettingsPanel from './panels/DefaultSettingsPanel'
@@ -117,6 +135,7 @@ export default {
       comms: new Comms(),
       frameStore: {},
       frameStoreCount: 0,
+      performance: {},
       site: null,
       currentZoom: 1,
       execAction: new ExecAction(),
@@ -143,6 +162,8 @@ export default {
   components: {
     VideoPanel,
     DefaultSettingsPanel,
+    PerformancePanel,
+    Debug,
   },
   methods: {
     async sleep(t) {
@@ -198,6 +219,10 @@ export default {
         this.loadFrames(this.site);
       } else if (message.cmd === 'set-current-zoom') {
         this.setCurrentZoom(message.zoom);
+      } else if (message.cmd === 'performance-update') {
+        for (let key in message.message) {
+          this.performance[key] = message.message[key];
+        }
       }
     },
     loadFrames(videoTab) {

@@ -91,6 +91,10 @@ class CommsClient {
       this.pageInfo.markPlayer(message.name, message.color);
     } else if (message.cmd === 'unmark-player') {
       this.pageInfo.unmarkPlayer();
+    } else if (message.cmd === 'autoar-set-manual-tick') {
+      this.pageInfo.setManualTick(message.arg);
+    } else if (message.cmd === 'autoar-tick') {
+      this.pageInfo.tick();
     }
   }
 
@@ -154,7 +158,10 @@ class CommsClient {
     } else {
       // this.port.postMessage({cmd: "has-video"});
     }
-    
+  }
+
+  sendPerformanceUpdate(message){
+    this.port.postMessage({cmd: 'performance-update', message: message});
   }
 
   unregisterVideo(){

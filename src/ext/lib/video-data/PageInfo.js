@@ -443,6 +443,24 @@ class PageInfo {
     this.announceZoomTimeout = setTimeout(() => ths.comms.announceZoom(scale), this.settings.active.zoom.announceDebounce);
   }
 
+  setManualTick(manualTick) {
+    for(var vd of this.videos) {
+      vd.setManualTick();
+    }
+  }
+
+  tick() {
+    for(var vd of this.videos) {
+      vd.tick();
+    }
+  }
+
+  sendPerformanceUpdate(performanceUpdate) {
+    if(this.comms) {
+      this.comms.sendPerformanceUpdate(performanceUpdate);
+    }
+  }
+
   requestCurrentZoom() {
     this.comms.announceZoom(this.currentZoomScale);
   }

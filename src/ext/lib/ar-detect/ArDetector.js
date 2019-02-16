@@ -30,10 +30,22 @@ class ArDetector {
     this._halted = true;
     this._exited = true;
 
+    // we can tick manually, for debugging
+    this._manualTicks = false;
+    this._nextTick = false;
+
     this.canDoFallbackMode = false; 
     if (Debug.init) {
       console.log("[ArDetector::ctor] creating new ArDetector. arid:", this.arid);
     }
+  }
+
+  setManualTick(manualTick) {
+    this._manualTicks = manualTick;
+  }
+
+  tick() {
+    this._nextTick = true;
   }
 
   init(){
@@ -42,7 +54,11 @@ class ArDetector {
     }
 
     try {
-      this.setup();
+      if (this.settings.canStartAutoAr()) {
+        this.setup();
+      } else {
+        throw "Settings prevent autoar from starting"
+      }
     } catch (e) {
       console.log("[ArDetect::init] INITIALIZATION FAILED!\n", e);
     }
@@ -182,7 +198,7 @@ class ArDetector {
     this.canvasImageDataRowLength = cwidth << 2;
     this.noLetterboxCanvasReset = false;
     
-    if(forceStart || this.settings.canStartAutoAr() ) {
+    if (this.settings.canStartAutoAr() ) {
       this.start();
     }
   
@@ -194,11 +210,14 @@ class ArDetector {
     this.conf.arSetupComplete = true;
   }
 
-  start(){
+  start() {
     if (Debug.debug) {
       console.log("%c[ArDetect::setup] Starting automatic aspect ratio detection.", _ard_console_start);
     }
-    this.conf.resizer.resetLastAr();
+    if (this.conf.resizer.lastAr.type === 'auto') {
+      // ensure first autodetection will run in any case
+      this.conf.resizer.setLastAr({type: 'auto', ar: null});
+    }
 
     // launch main() if it's currently not running:
     this.main();
@@ -218,7 +237,7 @@ class ArDetector {
     // (we are running when _halted is neither true nor undefined)
     if (this._halted === false) {
       this._paused = true;
-      this.conf.resizer.resetLastAr();
+      // this.conf.resizer.resetLastAr();
     }
   }
 
@@ -227,7 +246,7 @@ class ArDetector {
       console.log("%c[ArDetect::_ard_stop] Stopping automatic aspect ratio detection", _ard_console_stop);    
     }
     this._halted = true;
-    this.conf.resizer.resetLastAr();
+    // this.conf.resizer.resetLastAr();
   }
 
   async main() {
@@ -266,15 +285,32 @@ class ArDetector {
     // set initial timestamps so frame check will trigger the first time we run the loop
     let lastFrameCheckStartTime = Date.now() - (this.settings.active.arDetect.timers.playing << 1);
 
+    //
+    console.log("MAIN: BLACKFRAME CONTEXT:", this.blackframeContext)
+
+    const frameCheckTimes = new Array(10).fill(-1);
+    let frameCheckBufferIndex = 0;
+    let fcstart, fctime;
+
     while (this && !this._halted) {
       // NOTE: we separated tickrate and inter-check timeouts so that when video switches
       // state from 'paused' to 'playing', we don't need to wait for the rest of the longer
       // paused state timeout to finish.
 
-      if (this.canTriggerFrameCheck(lastFrameCheckStartTime)) {
-        lastFrameCheckStartTime = Date.now();
+      if ( (!this._manualTicks && this.canTriggerFrameCheck(lastFrameCheckStartTime)) || this._nextTick) {
+        this._nextTick = false;
 
+        lastFrameCheckStartTime = Date.now();
+        fcstart = performance.now();
+        
         this.frameCheck();
+
+        if (Debug.performanceMetrics) {
+          fctime = performance.now() - fcstart;
+          frameCheckTimes[frameCheckBufferIndex % frameCheckTimes.length] = fctime;
+          this.conf.pageInfo.sendPerformanceUpdate({frameCheckTimes: frameCheckTimes, lastFrameCheckTime: fctime});
+          ++frameCheckBufferIndex;
+        }
       }
 
       await this.sleep(this.settings.active.arDetect.timers.tickrate);
@@ -484,6 +520,11 @@ class ArDetector {
         console.log("[ArDetect::frameCheck] Video went missing. Destroying current instance of videoData.")
       this.conf.destroy();
       return;
+    }
+
+    if (!this.blackframeContext) {
+      console.log("BLACKFRAME CONTEXT IS NOT DEFINED", this.blackframeContext);
+      this.init();
     }
     
     var startTime = performance.now();
