@@ -99,7 +99,7 @@
 </template>
 
 <script>
-import StretchMode from '../../common/enums/stretch.enum';
+import Stretch from '../../common/enums/stretch.enum';
 import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
 import CommandChain from './command-builder/command-chain';
 import CommandAddEdit from './command-builder/command-add-edit';
@@ -111,7 +111,7 @@ export default {
   },
   data () {
     return {
-      StretchMode: StretchMode,
+      Stretch: Stretch,
       action: {
         name: 'New action',
         label: 'New action',

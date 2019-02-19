@@ -78,12 +78,12 @@
 
 <script>
 import ActionList from '../../../ext/conf/ActionList';
-import StretchMode from '../../../common/enums/stretch.enum';
+import Stretch from '../../../common/enums/stretch.enum';
 
 export default {
   data () {
     return {
-      StretchMode: StretchMode,
+      Stretch: Stretch,
       ActionList: ActionList,
       selectedAction: this.action ? action.action : undefined,
       selectedArgument: this.action ? {

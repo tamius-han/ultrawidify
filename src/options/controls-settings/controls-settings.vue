@@ -81,7 +81,7 @@
 
 <script>
 import Button from '../../common/components/button';
-import StretchMode from '../../common/enums/stretch.enum';
+import Stretch from '../../common/enums/stretch.enum';
 import ActionAlt from '../../common/components/action-alt';
 
 export default {
@@ -91,7 +91,7 @@ export default {
   },
   data () {
     return {
-      StretchMode: StretchMode,
+      Stretch: Stretch,
       tableVisibility: {
         crop: true,
       }
