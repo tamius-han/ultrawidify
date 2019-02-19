@@ -1,4 +1,5 @@
 import Debug from '../../conf/Debug';
+import Stretch from '../../../common/enums/stretch.enum';
 
 // računa vrednosti za transform-scale (x, y)
 // transform: scale(x,y) se uporablja za raztegovanje videa, ne pa za približevanje
@@ -13,7 +14,15 @@ class Stretcher {
   constructor(videoData) {
     this.conf = videoData;
     this.settings = videoData.settings;
-    this.mode = this.settings.getDefaultStretchMode();
+    this.mode = this.settings.getDefaultStretchMode(window.location.hostname);
+  }
+
+  setStretchMode(stretchMode) {
+    if (stretchMode === Stretch.Default) {
+      this.mode = this.settings.getDefaultStretchMode(window.location.hostname);
+    } else {
+      this.mode = stretchMode;
+    }
   }
 
   applyConditionalStretch(stretchFactors, actualAr){

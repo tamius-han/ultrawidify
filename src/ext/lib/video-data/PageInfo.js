@@ -5,6 +5,8 @@ import RescanReason from './enums/RescanReason';
 if(Debug.debug)
   console.log("Loading: PageInfo.js");
 
+
+
 class PageInfo {
   constructor(comms, settings, extensionMode){
     this.hasVideos = false;

@@ -75,20 +75,20 @@
     </div>
     <div class="flex flex-row button-box">
       <Button label="Don't stretch"
-              :selected="settings.active.sites['@global'].stretch === StretchMode.NoStretch"
-              @click.native="setDefaultStretchingMode(StretchMode.NoStretch)"> 
+              :selected="settings.active.sites['@global'].stretch === Stretch.NoStretch"
+              @click.native="setDefaultStretchingMode(Stretch.NoStretch)"> 
       </Button>
       <Button label="Basic stretch"
-              :selected="settings.active.sites['@global'].stretch === StretchMode.Basic"
-              @click.native="setDefaultStretchingMode(StretchMode.Basic)">
+              :selected="settings.active.sites['@global'].stretch === Stretch.Basic"
+              @click.native="setDefaultStretchingMode(Stretch.Basic)">
       </Button>
       <Button label="Hybrid stretch"
-              :selected="settings.active.sites['@global'].stretch === StretchMode.Hybrid"
-              @click.native="setDefaultStretchingMode(StretchMode.Hybrid)">
+              :selected="settings.active.sites['@global'].stretch === Stretch.Hybrid"
+              @click.native="setDefaultStretchingMode(Stretch.Hybrid)">
       </Button>
       <Button label="Thin borders only"
-              :selected="settings.active.sites['@global'].stretch === StretchMode.Conditional"
-              @click.native="setDefaultStretchingMode(StretchMode.Conditional)"
+              :selected="settings.active.sites['@global'].stretch === Stretch.Conditional"
+              @click.native="setDefaultStretchingMode(Stretch.Conditional)"
       >
       </Button>
     </div>
@@ -129,7 +129,7 @@
 
 <script>
 import Button from '../common/components/button';
-import StretchMode from '../common/enums/stretch.enum';
+import Stretch from '../common/enums/stretch.enum';
 import ExtensionMode from '../common/enums/extension-mode.enum';
 import VideoAlignment from '../common/enums/video-alignment.enum';
 
@@ -142,7 +142,7 @@ export default {
   },
   data () {
     return {
-      StretchMode: StretchMode,
+      Stretch: Stretch,
       ExtensionMode: ExtensionMode,
       VideoAlignment: VideoAlignment,
       stretchThreshold: 0,

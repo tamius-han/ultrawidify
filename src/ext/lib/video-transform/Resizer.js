@@ -4,7 +4,7 @@ import Stretcher from './Stretcher';
 import Zoom from './Zoom';
 import PlayerData from '../video-data/PlayerData';
 import ExtensionMode from '../../../common/enums/extension-mode.enum';
-import StretchMode from '../../../common/enums/stretch.enum';
+import Stretch from '../../../common/enums/stretch.enum';
 import VideoAlignment from '../../../common/enums/video-alignment.enum';
 
 if(Debug.debug)
@@ -39,7 +39,7 @@ class Resizer {
     
     // this.lastAr = this.settings.getDefaultAr();                 // this is the aspect ratio we start with
     this.lastAr = {type: 'original'};
-    this.videoAlignment = this.settings.getDefaultVideoAlignment(); // this is initial video alignment
+    this.videoAlignment = this.settings.getDefaultVideoAlignment(window.location.hostname); // this is initial video alignment
     this.destroyed = false;
 
     this.resizerId = (Math.random(99)*100).toFixed(0);
@@ -109,7 +109,7 @@ class Resizer {
     // // pause AR on basic stretch, unpause when using other mdoes
     // fir sine reason unpause doesn't unpause. investigate that later
     try {
-      if (this.stretcher.mode === StretchMode.Basic) {
+      if (this.stretcher.mode === Stretch.Basic) {
         this.conf.arDetector.pause();
       } else {
         if (this.lastAr.type === 'auto') {
@@ -121,7 +121,7 @@ class Resizer {
     }
 
     // do stretch thingy
-    if (this.stretcher.mode === StretchMode.NoStretch || this.stretcher.mode === StretchMode.Conditional){
+    if (this.stretcher.mode === Stretch.NoStretch || this.stretcher.mode === Stretch.Conditional){
       var stretchFactors = this.scaler.calculateCrop(ar);
 
       if(! stretchFactors || stretchFactors.error){
@@ -133,20 +133,20 @@ class Resizer {
         }
         return;
       }
-      if(this.stretcher.mode === StretchMode.Conditional){
+      if(this.stretcher.mode === Stretch.Conditional){
          this.stretcher.applyConditionalStretch(stretchFactors, ar);
       }
 
       if (Debug.debug) {
-        console.log("[Resizer::setAr] Processed stretch factors for ", this.stretcher.mode === StretchMode.NoStretch ? 'stretch-free crop.' : 'crop with conditional stretch.', 'Stretch factors are:', stretchFactors);
+        console.log("[Resizer::setAr] Processed stretch factors for ", this.stretcher.mode === Stretch.NoStretch ? 'stretch-free crop.' : 'crop with conditional stretch.', 'Stretch factors are:', stretchFactors);
       }
 
-    } else if (this.stretcher.mode === StretchMode.Hybrid) {
+    } else if (this.stretcher.mode === Stretch.Hybrid) {
       var stretchFactors = this.stretcher.calculateStretch(ar);
       if (Debug.debug) {
         console.log('[Resizer::setAr] Processed stretch factors for hybrid stretch/crop. Stretch factors are:', stretchFactors);
       }
-    } else if (this.stretcher.mode === StretchMode.Basic) {
+    } else if (this.stretcher.mode === Stretch.Basic) {
       var stretchFactors = this.stretcher.calculateBasicStretch();
       if (Debug.debug) {
         console.log('[Resizer::setAr] Processed stretch factors for basic stretch. Stretch factors are:', stretchFactors);
@@ -179,7 +179,7 @@ class Resizer {
   }
 
   setStretchMode(stretchMode){
-    this.stretcher.mode = stretchMode;
+    this.stretcher.setStretchMode(stretchMode);
     this.restore();
   }
 
@@ -190,7 +190,7 @@ class Resizer {
         return;
       }
       // dont allow weird floats
-      this.videoAlignment = 'center';
+      this.videoAlignment = VideoAlignment.Center;
 
       const player = this.conf.player.element;
 
@@ -337,7 +337,7 @@ class Resizer {
   }
 
   resetStretch(){
-    this.stretcher.mode = StretchMode.NoStretch;
+    this.stretcher.setStretchMode(Stretch.NoStretch);
     this.restore();
   }
 

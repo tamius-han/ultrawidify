@@ -301,12 +301,10 @@ class Settings {
   }
 
   canStartAutoAr(site) {
-    console.log("SITE:", site)
     if (!site) {
       site = window.location.host;
 
       if (!site) {
-        console.log("site should be window.location.host")
         return false;
       }
     }
@@ -369,7 +367,7 @@ class Settings {
   }
 
   getDefaultStretchMode(site) {
-    if (site && this.active.sites[site] && this.active.sites[site].stretch !== StretchMode.Default) {
+    if (site && this.active.sites[site] && this.active.sites[site].stretch !== Stretch.Default) {
       return this.active.sites[site].stretch;
     }
 
