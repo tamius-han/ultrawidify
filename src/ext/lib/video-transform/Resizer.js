@@ -7,8 +7,9 @@ import ExtensionMode from '../../../common/enums/extension-mode.enum';
 import Stretch from '../../../common/enums/stretch.enum';
 import VideoAlignment from '../../../common/enums/video-alignment.enum';
 
-if(Debug.debug)
+if(Debug.debug) {
   console.log("Loading: Resizer.js");
+}
 
 class Resizer {
   
@@ -78,6 +79,10 @@ class Resizer {
   
     if(Debug.debug){
       console.log('[Resizer::setAr] <rid:'+this.resizerId+'> trying to set ar. New ar:', ar)
+    }
+
+    if (ar === null) {
+      return;
     }
 
     if(lastAr) {
@@ -294,6 +299,10 @@ class Resizer {
       this.setAr('reset');
     }
     else {
+      if (this.lastAr && this.lastAr.ar === null) {
+        console.log("[Resizer::restore] LAST AR IS NULL")
+        throw "Last ar is null!"
+      }
       this.setAr(this.lastAr.ar, this.lastAr)
     }
   }
