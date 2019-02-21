@@ -548,7 +548,7 @@ class EdgeDetect{
                 image[tmpI + 1] > this.blackbarTreshold ||
                 image[tmpI + 2] > this.blackbarTreshold ){
               
-              colsOut[c].black = (i / this.conf.canvasImageDataRowLength);
+              colsOut[c].black = (i / this.conf.canvasImageDataRowLength) - 1;
               colsOut[c].col = colsIn[c].value;
               colsIn[c].blackFound = 1;
               console.log("BLACK FOUND AT COL:", colsIn[c].value, '|', colsOut[c].col, "LINE:", colsOut[c].black, colsOut, colsOut[c])
