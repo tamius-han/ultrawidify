@@ -3,6 +3,7 @@ import currentBrowser from './BrowserDetect';
 import VideoAlignment from '../../common/enums/video-alignment.enum';
 import Stretch from '../../common/enums/stretch.enum';
 import ExtensionMode from '../../common/enums/extension-mode.enum';
+import AntiGradientMode from '../../common/enums/anti-gradient-mode.enum';
 
 if(Debug.debug)
   console.log("Loading: ExtensionConf.js");
@@ -61,6 +62,8 @@ var ExtensionConf = {
                               // the last pixel that's darker than our treshold, and position of the first pixel that's
                               // brighter than our image treshold. If positions are more than this many pixels apart,
                               // we assume we aren't looking at letterbox and thus don't correct the aspect ratio.
+      gradientSampleSize: 8,  // How far do we look to find the gradient
+      antiGradientMode: AntiGradientMode.Strict,
     },
     variableBlackbarTresholdOptions: {    // In case of poor bitrate videos, jpeg artifacts may cause us issues
       // FOR FUTURE USE

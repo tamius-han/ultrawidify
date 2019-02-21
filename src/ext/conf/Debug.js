@@ -9,7 +9,7 @@ var Debug = {
   // debug: false,
   // keyboard: true,
   // debugResizer: true,
-  debugArDetect: true,
+  // debugArDetect: true,
   // debugStorage: false,
   // debugStorage: true,
   // comms: false,
@@ -18,7 +18,7 @@ var Debug = {
   // flushStoredSettings: true,
   flushStoredSettings: false,
   // playerDetectDebug: true,
-  periodic: true,
+  // periodic: true,
   // videoRescan: true,
   // mousemove: true,
   arDetect: {
