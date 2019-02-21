@@ -140,19 +140,29 @@ class EdgeDetect{
     const res_bottom = [];
 
     for (let item of res_top_preliminary) {
-      if (!item.image) {
-        continue;
-      }
-      if (item.image > -1 && item.image <= item.black + this.settings.active.arDetect.blackbar.gradientTreshold) {
+      if (this.settings.active.arDetect.blackbar.antiGradientMode === AntiGradientMode.Disabled) {
         res_top.push({top: item.image, col: item.col});
+      } else if (this.settings.active.arDetect.blackbar.antiGradientMode === AntiGradientMode.Lax) {
+        if (item.image === undefined || item.image <= item.black + this.settings.active.arDetect.blackbar.gradientTreshold) {
+          res_top.push({top: item.image, col: item.col});
+        }
+      } else {
+        if ( item.image !== undefined && item.image <= item.black + this.settings.active.arDetect.blackbar.gradientTreshold) {
+          res_top.push({top: item.image, col: item.col});
+        }
       }
     }
     for (let item of res_bottom_preliminary) {
       if (!item.image) {
         continue;
       }
-      if (item.image >= item.black - this.settings.active.arDetect.blackbar.gradientTreshold) {
+      if (this.settings.active.arDetect.blackbar.antiGradientMode === AntiGradientMode.Disabled) {
         res_bottom.push({bottom: item.image, col: item.col});
+      } else {
+        if ( (item.image !== undefined || this.settings.active.arDetect.blackbar.antiGradientMode === AntiGradientMode.Lax)
+            && item.image >= item.black - this.settings.active.arDetect.blackbar.gradientTreshold) {
+          res_bottom.push({bottom: item.image, col: item.col});
+        }
       }
     }
 
@@ -551,7 +561,6 @@ class EdgeDetect{
               colsOut[c].black = (i / this.conf.canvasImageDataRowLength) - 1;
               colsOut[c].col = colsIn[c].value;
               colsIn[c].blackFound = 1;
-              console.log("BLACK FOUND AT COL:", colsIn[c].value, '|', colsOut[c].col, "LINE:", colsOut[c].black, colsOut, colsOut[c])
 
               // prisili, da se zanka izvede še enkrat ter preveri,
               // ali trenuten piksel preseže tudi imageTreshold
@@ -562,7 +571,7 @@ class EdgeDetect{
               continue;
             }
           } else {
-            if (colsIn[c].blackFound++ > this.settings.active.arDetect.blackbar.gradientTreshold) {
+            if (colsIn[c].blackFound++ > this.settings.active.arDetect.blackbar.gradientSampleSize) {
               colsIn[c].imageFound = true;
               continue;
             }
@@ -605,7 +614,6 @@ class EdgeDetect{
               colsOut[c].black = (i / this.conf.canvasImageDataRowLength);
               colsOut[c].col = colsIn[c].value;
               colsIn[c].blackFound = true;
-              console.log("BLACK FOUND AT COL:", colsIn[c].value, '|', colsOut[c].col, "LINE:", colsOut[c].black, colsOut, colsOut[c])
 
               // prisili, da se zanka izvede še enkrat ter preveri,
               // ali trenuten piksel preseže tudi imageTreshold
@@ -616,7 +624,7 @@ class EdgeDetect{
               continue;
             }
           } else {
-            if (colsIn[c].blackFound++ > this.settings.active.arDetect.blackbar.gradientTreshold) {
+            if (colsIn[c].blackFound++ > this.settings.active.arDetect.blackbar.gradientSampleSize) {
               colsIn[c].imageFound = true;
               continue;
             }
