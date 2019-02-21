@@ -4,4 +4,4 @@ var AntiGradientMode = Object.freeze({
   Strict: 2
 });
 
-export default EdgeDetectPrimaryDirection;
+export default AntiGradientMode;
