@@ -110,6 +110,8 @@ import GeneralSettings from './general-settings';
 import ControlsSettings from './controls-settings/controls-settings';
 import AddEditActionPopup from './controls-settings/add-edit-action-popup';
 
+import AutodetectionSettings  from './autodetection-settings';
+
 
 export default {
   name: "Ultrawidify",
@@ -133,6 +135,7 @@ export default {
     GeneralSettings,
     ControlsSettings,
     AddEditActionPopup,
+    AutodetectionSettings,
   },
   methods: {
     setSelectedTab(newTab) {
