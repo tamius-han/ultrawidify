@@ -3,6 +3,10 @@ import EdgeStatus from './enums/EdgeStatusEnum';
 import EdgeDetectQuality from './enums/EdgeDetectQualityEnum';
 import EdgeDetectPrimaryDirection from './enums/EdgeDetectPrimaryDirectionEnum';
 
+if (Debug.debug) {
+  console.log("Loading EdgeDetect.js");
+}
+
 class EdgeDetect{
 
   constructor(ardConf){
@@ -42,26 +46,35 @@ class EdgeDetect{
   }
 
   findCandidates(image, sampleCols, guardLineOut){
-    var upper_top, upper_bottom, lower_top, lower_bottom;
-    var blackbarTreshold;
+    try {
+    let upper_top, upper_bottom, lower_top, lower_bottom;
     
-    var cols_a = sampleCols.slice(0);
-    var cols_b = cols_a.slice(0);
+    // const cols_a = sampleCols.slice(0);
+    const cols_a = new Array(sampleCols.length);
+    const res_top_preliminary = new Array(sampleCols.length);
     
-    // todo: cloning can be done better. check array.splice or whatever
-    for(var i in sampleCols){
-      cols_b[i] = cols_a[i] + 0;
+    for (let i = 0; i < cols_a.length; i++) {
+      cols_a[i] = {
+        id: i,
+        value: sampleCols[i],
+        blackFound: false,
+        imageFound: false,
+      };
+      res_top_preliminary[i] = {col: undefined, image: undefined, black: undefined};
     }
+
+    const cols_b = cols_a.slice(0);
+    const res_bottom_preliminary = res_top_preliminary.slice(0);
     
-    var res_top = [];
-    var res_bottom = [];
+    console.log("[EdgeDetect::findCandidates] cols a, b:", cols_a, cols_b);
+
     
     this.colsTreshold = sampleCols.length * this.settings.active.arDetect.edgeDetection.minColsForSearch;
-    if(this.colsTreshold == 0)
+    if (this.colsTreshold == 0)
       this.colsTreshold = 1;
     
     this.blackbarTreshold = this.conf.blackLevel + this.settings.active.arDetect.blackbar.treshold;
-    
+    this.imageTreshold = this.blackbarTreshold + this.settings.active.arDetect.blackbar.imageTreshold;
     
     // if guardline didn't fail and imageDetect did, we don't have to check the upper few pixels
     // but only if upper and lower edge are defined. If they're not, we need to check full height
@@ -103,19 +116,58 @@ class EdgeDetect{
     var lower_top_corrected = lower_top * this.conf.canvasImageDataRowLength;
     var lower_bottom_corrected = lower_bottom * this.conf.canvasImageDataRowLength;
     
-    if(Debug.debugCanvas.enabled){
-      this._columnTest_dbgc(image, upper_top_corrected, upper_bottom_corrected, cols_a, res_top, false);
-      this._columnTest_dbgc(image, lower_top_corrected, lower_bottom_corrected, cols_b, res_bottom, true);
-    } else {
-      this._columnTest(image, upper_top_corrected, upper_bottom_corrected, cols_a, res_top, false);
-      this._columnTest(image, lower_top_corrected, lower_bottom_corrected, cols_b, res_bottom, true);
-    }
+    // if(Debug.debugCanvas.enabled){
+      // this._columnTest_dbgc(image, upper_top_corrected, upper_bottom_corrected, cols_a, res_top_preliminary, false);
+      // this._columnTest_dbgc(image, lower_top_corrected, lower_bottom_corrected, cols_b, res_bottom_preliminary, true);
+    // } else {
+      // this._columnTest(image, upper_top_corrected, upper_bottom_corrected, cols_a, res_top_preliminary, false);
+      // this._columnTest(image, lower_top_corrected, lower_bottom_corrected, cols_b, res_bottom_preliminary, true);
+      this._columnTest2(image, upper_top_corrected, upper_bottom_corrected, cols_a, res_top_preliminary, false);
+      this._columnTest2(image, lower_top_corrected, lower_bottom_corrected, cols_b, res_bottom_preliminary, true);
+    // }
     
     if(Debug.debug && Debug.debugArDetect){
-      console.log("[EdgeDetect::findCandidates] candidates found", {res_top: res_top, res_bottom: res_bottom});
+      console.log("[EdgeDetect::findCandidates] candidates found -->", {res_top: res_top_preliminary, res_bottom: res_bottom_preliminary});
     }
 
+    // preglejmo, kateri kandidati so neprimerni. (Neprimerni so tisti, pri katerih se
+    // 'black' in 'image' razlikujeta za več kot settings.arDetect.blackbar.gradientTreshold)
+    // 
+    // let's check which candidates are suitable. Suitable candidates have 'black' and 'image'
+    // components differ by less than settings.arDetect.blackbar.gradientTreshold
+
+    const res_top = [];
+    const res_bottom = [];
+
+    for (let item of res_top_preliminary) {
+      if (!item.image) {
+        continue;
+      }
+      if (item.image > -1 && item.image <= item.black + this.settings.active.arDetect.blackbar.gradientTreshold) {
+        res_top.push({top: item.image, col: item.col});
+      }
+    }
+    for (let item of res_bottom_preliminary) {
+      if (!item.image) {
+        continue;
+      }
+      if (item.image >= item.black - this.settings.active.arDetect.blackbar.gradientTreshold) {
+        res_bottom.push({bottom: item.image, col: item.col});
+      }
+    }
+
+    // const res_top = res_top_preliminary;
+    // const res_bottom = res_bottom_preliminary;
+
+    if(Debug.debug && Debug.debugArDetect){
+      console.log("[EdgeDetect::findCandidates] candidates after processing -->", {res_top: res_top, res_bottom: res_bottom});
+    }
+    
     return {res_top: res_top, res_bottom: res_bottom};
+  
+    } catch (e) {
+      console.log("[EdgeDetect::findCandidates] there was an error", e);
+    }
   }
 
 
@@ -474,6 +526,122 @@ class EdgeDetect{
 
   // pomožne funkcije
   // helper functions
+
+
+  _columnTest2(image, top, bottom, colsIn, colsOut, reverseSearchDirection) {
+    let tmpI;
+    let edgeDetectCount = 0;
+    if(reverseSearchDirection){
+      for(var i = bottom - this.conf.canvasImageDataRowLength; i >= top; i-= this.conf.canvasImageDataRowLength){
+        for(let c = 0; c < colsIn.length; c++){
+          if (colsIn[c].blackFound && colsIn[c].imageFound) {
+            // če smo našli obe točki, potem ne pregledujemo več.
+            // if we found both points, we don't continue anymore
+            continue;
+          }
+          tmpI = i + (colsIn[c].value << 2);
+
+          // najprej  preverimo, če je piksel presegel mejo črnega robu
+          // first we check whether blackbarTreshold was exceeded
+          if(! colsIn[c].blackFound) {
+            if( image[tmpI]     > this.blackbarTreshold || 
+                image[tmpI + 1] > this.blackbarTreshold ||
+                image[tmpI + 2] > this.blackbarTreshold ){
+              
+              colsOut[c].black = (i / this.conf.canvasImageDataRowLength);
+              colsOut[c].col = colsIn[c].value;
+              colsIn[c].blackFound = 1;
+              console.log("BLACK FOUND AT COL:", colsIn[c].value, '|', colsOut[c].col, "LINE:", colsOut[c].black, colsOut, colsOut[c])
+
+              // prisili, da se zanka izvede še enkrat ter preveri,
+              // ali trenuten piksel preseže tudi imageTreshold
+              //
+              // force the loop to repeat this step and check whether
+              // current pixel exceeds imageTreshold as well
+              c--;
+              continue;
+            }
+          } else {
+            if (colsIn[c].blackFound++ > this.settings.active.arDetect.blackbar.gradientTreshold) {
+              colsIn[c].imageFound = true;
+              continue;
+            }
+            // zatem preverimo, če je piksel presegel mejo, po kateri sklepamo, da 
+            // predstavlja sliko. Preverimo samo, če smo v stolpcu že presegli 
+            // blackTreshold
+            //
+            // then we check whether pixel exceeded imageTreshold
+            if (image[tmpI]     > this.imageTreshold || 
+                image[tmpI + 1] > this.imageTreshold ||
+                image[tmpI + 2] > this.imageTreshold ){
+            
+              colsOut[c].image = (i / this.conf.canvasImageDataRowLength)
+              colsIn[c].imageFound = true;
+              edgeDetectCount++;
+            }
+          }
+        }
+        if(edgeDetectCount >= this.colsTreshold) {
+          break;
+        }
+      }
+    } else {
+      for(var i = top; i < bottom; i+= this.conf.canvasImageDataRowLength){
+        for(let c = 0; c < colsIn.length; c++){
+          if (colsIn[c].blackFound && colsIn[c].imageFound) {
+            // če smo našli obe točki, potem ne pregledujemo več.
+            // if we found both points, we don't continue anymore
+            continue;
+          }
+          tmpI = i + (colsIn[c].value << 2);
+
+          // najprej  preverimo, če je piksel presegel mejo črnega robu
+          // first we check whether blackbarTreshold was exceeded
+          if(! colsIn[c].blackFound) {
+            if( image[tmpI]     > this.blackbarTreshold || 
+                image[tmpI + 1] > this.blackbarTreshold ||
+                image[tmpI + 2] > this.blackbarTreshold ){
+              
+              colsOut[c].black = (i / this.conf.canvasImageDataRowLength);
+              colsOut[c].col = colsIn[c].value;
+              colsIn[c].blackFound = true;
+              console.log("BLACK FOUND AT COL:", colsIn[c].value, '|', colsOut[c].col, "LINE:", colsOut[c].black, colsOut, colsOut[c])
+
+              // prisili, da se zanka izvede še enkrat ter preveri,
+              // ali trenuten piksel preseže tudi imageTreshold
+              //
+              // force the loop to repeat this step and check whether
+              // current pixel exceeds imageTreshold as well
+              c--;
+              continue;
+            }
+          } else {
+            if (colsIn[c].blackFound++ > this.settings.active.arDetect.blackbar.gradientTreshold) {
+              colsIn[c].imageFound = true;
+              continue;
+            }
+            // zatem preverimo, če je piksel presegel mejo, po kateri sklepamo, da 
+            // predstavlja sliko. Preverimo samo, če smo v stolpcu že presegli 
+            // blackTreshold
+            //
+            // then we check whether pixel exceeded imageTreshold
+            if (image[tmpI]     > this.imageTreshold || 
+                image[tmpI + 1] > this.imageTreshold ||
+                image[tmpI + 2] > this.imageTreshold ){
+            
+              colsOut[c].image = (i / this.conf.canvasImageDataRowLength)
+              colsIn[c].imageFound = true;
+              edgeDetectCount++;
+            }
+          }
+        }
+        if(edgeDetectCount >= this.colsTreshold) {
+          break;
+        }
+      }
+    }
+
+  }
 
   _columnTest(image, top, bottom, colsIn, colsOut, reverseSearchDirection){
     var tmpI;

@@ -55,7 +55,7 @@ var ExtensionConf = {
       treshold: 16,           // if pixel is darker than the sum of black level and this value, we count it as black
                               // on 0-255. Needs to be fairly high (8 might not cut it) due to compression
                               // artifacts in the video itself
-      imageTreshold: 16,      // in order to detect pixel as "not black", the pixel must be brighter than
+      imageTreshold: 8,       // in order to detect pixel as "not black", the pixel must be brighter than
                               // the sum of black level, treshold and this value.
       gradientTreshold: 2,    // When trying to determine thickness of the black bars, we take 2 values: position of
                               // the last pixel that's darker than our treshold, and position of the first pixel that's
