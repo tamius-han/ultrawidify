@@ -691,7 +691,7 @@ class ArDetector {
     if(Debug.debug && Debug.debugArDetect){
       console.log(`%c[ArDetect::frameCheck] edgeDetector returned this\n`,  "color: #aaf", edgePost);
     }
-    //   console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:", this.blackLevel, "tresh:", this.blackLevel + this.settings.active.arDetect.blackbar.treshold);
+    //   console.log("SAMPLES:", blackbarSamples, "candidates:", edgeCandidates, "post:", edgePost,"\n\nblack level:", this.blackLevel, "tresh:", this.blackLevel + this.settings.active.arDetect.blackbar.threshold);
     
     if (edgePost.status !== EdgeStatus.AR_KNOWN){
       // rob ni bil zaznan, zato ne naredimo ničesar.
@@ -798,7 +798,7 @@ class ArDetector {
     }
 
     return {
-      isBlack: (blackPixelCount/(cols * rows) > this.settings.active.arDetect.blackframe.blackPixelsCondition) ? true : cumulativeValue < this.settings.active.arDetect.blackframe.cumulativeTreshold,
+      isBlack: (blackPixelCount/(cols * rows) > this.settings.active.arDetect.blackframe.blackPixelsCondition) ? true : cumulativeValue < this.settings.active.arDetect.blackframe.cumulativeThreshold,
       rowMax: rowMax,
       colMax: colMax,
     };
@@ -811,9 +811,9 @@ class ArDetector {
 
     // If we detect anything darker than blackLevel, we modify blackLevel to the new lowest value
     const rowOffset = this.canvas.width * (this.canvas.height - 1);
-    let currentMin = 255, currentMax = 0, colOffset_r, colOffset_g, colOffset_b, colOffset_rb, colOffset_gb, colOffset_bb, bltreshold = this.settings.active.arDetect.blackbar.treshold;
+    let currentMin = 255, currentMax = 0, colOffset_r, colOffset_g, colOffset_b, colOffset_rb, colOffset_gb, colOffset_bb, blthreshold = this.settings.active.arDetect.blackbar.threshold;
   
-    // detect black level. if currentMax comes above blackbar + blackbar treshold, we know we aren't letterboxed
+    // detect black level. if currentMax comes above blackbar + blackbar threshold, we know we aren't letterboxed
 
     for (var i = 0; i < sampleCols.length; ++i){
       colOffset_r = sampleCols[i] << 2;
@@ -829,8 +829,8 @@ class ArDetector {
         currentMax
       );
 
-      if (currentMax > this.blackLevel + bltreshold) {
-        console.log("CURRENT MAX:", currentMax, "BLACK LEVEL, treshold, bl+t", this.blackLevel, bltreshold, this.blackLevel+bltreshold)
+      if (currentMax > this.blackLevel + blthreshold) {
+        console.log("CURRENT MAX:", currentMax, "BLACK LEVEL, threshold, bl+t", this.blackLevel, blthreshold, this.blackLevel+blthreshold)
         // we search no further
         if (currentMin < this.blackLevel) {
           this.blackLevel = currentMin;

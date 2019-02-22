@@ -53,8 +53,8 @@ class GuardLine {
   check(image, fallbackMode){
     // izračunaj enkrat in shrani na objekt
     // calculate once and save object-instance-wide
-    this.blackbarTreshold = this.conf.blackLevel + this.settings.active.arDetect.blackbar.treshold;
-    this.imageTreshold = this.blackbarTreshold + this.settings.active.arDetect.blackbar.imageTreshold;
+    this.blackbarThreshold = this.conf.blackLevel + this.settings.active.arDetect.blackbar.threshold;
+    this.imageThreshold = this.blackbarThreshold + this.settings.active.arDetect.blackbar.imageThreshold;
 
     // dejansko testiranje
     // actual checks
@@ -184,7 +184,7 @@ class GuardLine {
     // robu (eden izmed robov je lahko v celoti črn)
     // how many non-black pixels we need to consider this check a success. We only need to detect enough pixels
     // on one edge (one of the edges can be black as long as both aren't)
-    var successTreshold = (this.conf.canvas.width * this.settings.active.arDetect.guardLine.imageTestTreshold);
+    var successThreshold = (this.conf.canvas.width * this.settings.active.arDetect.guardLine.imageTestThreshold);
     var rowStart, rowEnd;
     
     
@@ -196,9 +196,9 @@ class GuardLine {
     var res = false;
     
     if(Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine){
-      res = this._ti_debugCheckRow(image, rowStart, rowEnd, successTreshold);
+      res = this._ti_debugCheckRow(image, rowStart, rowEnd, successThreshold);
     } else {
-      res = this._ti_checkRow(image, rowStart, rowEnd,successTreshold);
+      res = this._ti_checkRow(image, rowStart, rowEnd,successThreshold);
     }
     
     if(res)
@@ -212,9 +212,9 @@ class GuardLine {
     
 
     if(Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine){
-      res = this._ti_debugCheckRow(image, rowStart, rowEnd, successTreshold);
+      res = this._ti_debugCheckRow(image, rowStart, rowEnd, successThreshold);
     } else {
-      res = this._ti_checkRow(image, rowStart, rowEnd,successTreshold);
+      res = this._ti_checkRow(image, rowStart, rowEnd,successThreshold);
     }
     
     return {success: res};
@@ -230,7 +230,7 @@ class GuardLine {
       
       // we track sections that go over what's supposed to be a black line, so we can suggest more 
       // columns to sample
-      if(image[i] > this.blackbarTreshold || image[i+1] > this.blackbarTreshold || image[i+2] > this.blackbarTreshold){
+      if(image[i] > this.blackbarThreshold || image[i+1] > this.blackbarThreshold || image[i+2] > this.blackbarThreshold){
         if(firstOffender < 0){
           firstOffender = (i - rowStart) >> 2;
           offenderCount++;
@@ -255,7 +255,7 @@ class GuardLine {
       
       // we track sections that go over what's supposed to be a black line, so we can suggest more 
       // columns to sample
-      if(image[i] > this.blackbarTreshold || image[i+1] > this.blackbarTreshold || image[i+2] > this.blackbarTreshold){
+      if(image[i] > this.blackbarThreshold || image[i+1] > this.blackbarThreshold || image[i+2] > this.blackbarThreshold){
         this.conf.debugCanvas.trace(i, DebugCanvasClasses.VIOLATION);      
         if(firstOffender < 0){
           firstOffender = (i - rowStart) >> 2;
@@ -277,10 +277,10 @@ class GuardLine {
     return offenderCount;
   }
 
-  _ti_checkRow(image, rowStart, rowEnd, successTreshold) {
+  _ti_checkRow(image, rowStart, rowEnd, successThreshold) {
     for(var i = rowStart; i < rowEnd; i+=4){
-      if(image[i] > this.imageTreshold || image[i+1] > this.imageTreshold || image[i+2] > this.imageTreshold){
-        if(successTreshold --<= 0){
+      if(image[i] > this.imageThreshold || image[i+1] > this.imageThreshold || image[i+2] > this.imageThreshold){
+        if(successThreshold --<= 0){
           return true;
         }
       }    
@@ -289,11 +289,11 @@ class GuardLine {
     return false;
   }
 
-  _ti_debugCheckRow(image, rowStart, rowEnd, successTreshold) {
+  _ti_debugCheckRow(image, rowStart, rowEnd, successThreshold) {
     for(var i = rowStart; i < rowEnd; i+=4){
-      if(image[i] > this.imageTreshold || image[i+1] > this.imageTreshold || image[i+2] > this.imageTreshold){
+      if(image[i] > this.imageThreshold || image[i+1] > this.imageThreshold || image[i+2] > this.imageThreshold){
         this.conf.debugCanvas.trace(i, DebugCanvasClasses.GUARDLINE_IMAGE);
-        if(successTreshold --<= 0){
+        if(successThreshold --<= 0){
           return true;
         }
       } else {

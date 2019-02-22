@@ -17,7 +17,7 @@ var ui = {
     stretchSettings: {
       buttonContainer: BaseElement.fromExisting(document.getElementById('_general_extension_global_stretch')),
       buttons: [],
-      thinBordersTresholdInput: document.getElementById('_general_extension_global_stretch_thin_borders_treshold_input')
+      thinBordersThresholdInput: document.getElementById('_general_extension_global_stretch_thin_borders_threshold_input')
     }
   },
 
