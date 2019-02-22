@@ -277,14 +277,6 @@
       </div>
     </div>
 
-    <div class="label">Edge detection</div>
-    <div class="description">
-      alan pls add
-    </div>
-    <div class="indent">
-
-    </div>
-
     <div v-if="showAdvancedOptions">
       <div class="label">Black frame detection</div>
       <div class="description">
@@ -334,6 +326,131 @@
                    v-model="settings.active.arDetect.blackframe.blackPixelsCondition"
             />
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="label">Edge detection</div>
+    <div class="description">
+      Options in this section govern edge detection.<br/>
+      <b>Sample width</b> — In a bid to detect "false" edges, we take two samples this many pixels wide near the point of our potential edge. One sample must be completely black, the other must contain a set 
+      amount of non-black pixels.<br/>
+      <b>Detection treshold</b> — non-black sample mentioned above needs to contain at least this many non-black pixels.<br/>
+      <b>Single side confirmation treshold</b> — quorum needed to establish aspect ratio in case we manage to detect an edge only on one side of the video. (0-0.5)<br/>
+      <b>Logo threshold</b> — if edge candidate sits with count greater than this*all_samples, it can't be a logo or a watermark.<br/>
+      <b>Ignore middle area</b> — When trying to detect area, ignore area between middle and canvasHeight * {this value} pixels towards the edge.<br/>
+      <b>Detect limit</b> — stop search after finding a potential candidate in this many sample columns (%, 0-1)<br/>
+    </div>
+    <div class="indent">
+      <div class="flex flex-row row-padding">
+        <div class="flex label-secondary">
+          Sample width:
+        </div>
+        <div class="flex flex-input">
+          <input type="number"
+                 v-model="settings.active.arDetect.edgeDetection.sampleWidth"
+          />
+        </div>
+      </div>
+      <div class="flex flex-row row-padding">
+        <div class="flex label-secondary">
+          Detection treshold (px):
+        </div>
+        <div class="flex flex-input">
+          <input type="number"
+                 v-model="settings.active.arDetect.edgeDetection.detectionTreshold"
+          />
+        </div>
+      </div>
+      <div class="flex flex-row row-padding">
+        <div class="flex label-secondary">
+          Single side confirmation treshold:
+        </div>
+        <div class="flex flex-input">
+          <input 
+                 v-model="settings.active.arDetect.edgeDetection.singleSideConfirmationTreshold"
+          />
+        </div>
+      </div>
+      <div class="flex flex-row row-padding" v-if="showAdvancedOptions">
+        <div class="flex label-secondary">
+          Logo treshold:
+        </div>
+        <div class="flex flex-input">
+          <input 
+                 v-model="settings.active.arDetect.edgeDetection.logoTreshold"
+          />
+        </div>
+      </div>
+      <div class="flex flex-row row-padding" v-if="showAdvancedOptions">
+        <div class="flex label-secondary">
+          Ignore middle area:
+        </div>
+        <div class="flex flex-input">
+          <input 
+                 v-model="settings.active.arDetect.edgeDetection.middleIgnoreArea"
+          />
+        </div>
+      </div>
+      <div class="flex flex-row row-padding" v-if="showAdvancedOptions">
+        <div class="flex label-secondary">
+          Detect limit:
+        </div>
+        <div class="flex flex-input">
+          <input 
+                 v-model="settings.active.arDetect.edgeDetection.minColsForSearch"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="label">Guard line</div>
+    <div class="description">
+      Quick test to determine whether aspect ratio hasn't changed. Test is performed by taking two samples on each edge of the image — 
+      one in the last row of the letterbox (blackbar), and one in the first row of the video (image).<br/>
+      <b>Ignore edge margin:</b> We don't take blackbar and image samples {width * this} many pixels from left and right edge.<br/>
+      <b>Image treshold:</b> If all pixels in blackbar are black and this fraction (0-1) of pixels in image are non-black, we presume that aspect ratio hasn't changed.<br/>
+      <b>Edge tolerance (px):<b> I lied. Blackbar test happens this many pixels away from the last row of the letterbox.
+    </div>
+    <div class="indent">
+      <div class="flex flex-row row-padding">
+        <div class="flex label-secondary">
+
+        </div>
+        <div class="flex flex-input">
+          <input type="checkbox"
+                 v-model="settings.active.arDetect.guardLine.enabled"
+          /> Enable guardline</span>
+        </div>
+      </div>
+      <div class="flex flex-row row-padding">
+        <div class="flex label-secondary">
+          Ignore edge margin:
+        </div>
+        <div class="flex flex-input">
+          <input type="number"
+                 v-model="settings.active.arDetect.guardLine.ignoreEdgeMargin"
+          />
+        </div>
+      </div>
+      <div class="flex flex-row row-padding">
+        <div class="flex label-secondary">
+          Image threshold:
+        </div>
+        <div class="flex flex-input">
+          <input type="number"
+                 v-model="settings.active.arDetect.canvasDimensions.guardLine.imageTestTreshold"
+          />
+        </div>
+      </div>
+      <div class="flex flex-row row-padding">
+        <div class="flex label-secondary">
+          Edge tolerance (px):
+        </div>
+        <div class="flex flex-input">
+          <input type="number"
+                 v-model="settings.active.arDetect.guardLine.edgeTolerancePx"
+          />
         </div>
       </div>
     </div>
