@@ -16,7 +16,7 @@ class EdgeDetect{
     this.sampleWidthBase = this.settings.active.arDetect.edgeDetection.sampleWidth << 2; // corrected so we can work on imageData
     this.halfSample = this.sampleWidthBase >> 1; 
 
-    this.detectionTreshold = this.settings.active.arDetect.edgeDetection.detectionTreshold;
+    this.detectionThreshold = this.settings.active.arDetect.edgeDetection.detectionThreshold;
 
     this.init(); // initiate things that can change
   }
@@ -69,12 +69,12 @@ class EdgeDetect{
     console.log("[EdgeDetect::findCandidates] cols a, b:", cols_a, cols_b);
 
     
-    this.colsTreshold = sampleCols.length * this.settings.active.arDetect.edgeDetection.minColsForSearch;
-    if (this.colsTreshold == 0)
-      this.colsTreshold = 1;
+    this.colsThreshold = sampleCols.length * this.settings.active.arDetect.edgeDetection.minColsForSearch;
+    if (this.colsThreshold == 0)
+      this.colsThreshold = 1;
     
-    this.blackbarTreshold = this.conf.blackLevel + this.settings.active.arDetect.blackbar.treshold;
-    this.imageTreshold = this.blackbarTreshold + this.settings.active.arDetect.blackbar.imageTreshold;
+    this.blackbarThreshold = this.conf.blackLevel + this.settings.active.arDetect.blackbar.threshold;
+    this.imageThreshold = this.blackbarThreshold + this.settings.active.arDetect.blackbar.imageThreshold;
     
     // if guardline didn't fail and imageDetect did, we don't have to check the upper few pixels
     // but only if upper and lower edge are defined. If they're not, we need to check full height
@@ -131,10 +131,10 @@ class EdgeDetect{
     }
 
     // preglejmo, kateri kandidati so neprimerni. (Neprimerni so tisti, pri katerih se
-    // 'black' in 'image' razlikujeta za več kot settings.arDetect.blackbar.gradientTreshold)
+    // 'black' in 'image' razlikujeta za več kot settings.arDetect.blackbar.gradientThreshold)
     // 
     // let's check which candidates are suitable. Suitable candidates have 'black' and 'image'
-    // components differ by less than settings.arDetect.blackbar.gradientTreshold
+    // components differ by less than settings.arDetect.blackbar.gradientThreshold
 
     const res_top = [];
     const res_bottom = [];
@@ -143,11 +143,11 @@ class EdgeDetect{
       if (this.settings.active.arDetect.blackbar.antiGradientMode === AntiGradientMode.Disabled) {
         res_top.push({top: item.image, col: item.col});
       } else if (this.settings.active.arDetect.blackbar.antiGradientMode === AntiGradientMode.Lax) {
-        if (item.image === undefined || item.image <= item.black + this.settings.active.arDetect.blackbar.gradientTreshold) {
+        if (item.image === undefined || item.image <= item.black + this.settings.active.arDetect.blackbar.gradientThreshold) {
           res_top.push({top: item.image, col: item.col});
         }
       } else {
-        if ( item.image !== undefined && item.image <= item.black + this.settings.active.arDetect.blackbar.gradientTreshold) {
+        if ( item.image !== undefined && item.image <= item.black + this.settings.active.arDetect.blackbar.gradientThreshold) {
           res_top.push({top: item.image, col: item.col});
         }
       }
@@ -160,7 +160,7 @@ class EdgeDetect{
         res_bottom.push({bottom: item.image, col: item.col});
       } else {
         if ( (item.image !== undefined || this.settings.active.arDetect.blackbar.antiGradientMode === AntiGradientMode.Lax)
-            && item.image >= item.black - this.settings.active.arDetect.blackbar.gradientTreshold) {
+            && item.image >= item.black - this.settings.active.arDetect.blackbar.gradientThreshold) {
           res_bottom.push({bottom: item.image, col: item.col});
         }
       }
@@ -365,7 +365,7 @@ class EdgeDetect{
       // it could be watermark. It could be a dark frame. Let's check for watermark first.
       if( edgesTop[0].distance < edgesBottom[0].distance &&
           edgesTop[0].count    < edgesBottom[0].count    &&
-          edgesTop[0].count    < this.conf.sampleCols.length * this.settings.active.arDetect.edgeDetection.logoTreshold){
+          edgesTop[0].count    < this.conf.sampleCols.length * this.settings.active.arDetect.edgeDetection.logoThreshold){
         // možno, da je watermark zgoraj. Preverimo, če se kateri od drugih potencialnih robov na zgornjem robu
         // ujema s prvim spodnjim (+/- variance). Če je temu tako, potem bo verjetno watermark. Logo mora imeti
         // manj vzorcev kot navaden rob.
@@ -396,7 +396,7 @@ class EdgeDetect{
       }
       if( edgesBottom[0].distance < edgesTop[0].distance &&
           edgesBottom[0].count    < edgesTop[0].count    &&
-          edgesBottom[0].count    <this.conf.sampleCols.length * this.settings.active.arDetect.edgeDetection.logoTreshold){
+          edgesBottom[0].count    <this.conf.sampleCols.length * this.settings.active.arDetect.edgeDetection.logoThreshold){
         
         if(edgesBottom[0].length > 1){
           var lowMargin = edgesTop[0].distance - alignMargin;
@@ -429,11 +429,11 @@ class EdgeDetect{
       // either the top or the bottom edge remains undetected, but we have one more trick that we
       // can try. It also tries to work around logos.
       
-      var edgeDetectionTreshold = this.conf.sampleCols.length * this.settings.active.arDetect.edgeDetection.singleSideConfirmationTreshold;
+      var edgeDetectionThreshold = this.conf.sampleCols.length * this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold;
       
       if(edges.edgeCandidatesTopCount == 0 && edges.edgeCandidatesBottomCount != 0){
         for(var edge of edgesBottom){
-          if(edge.count >= edgeDetectionTreshold)
+          if(edge.count >= edgeDetectionThreshold)
             return {
               status: EdgeStatus.AR_KNOWN, 
               blackbarWidth: edge.distance,
@@ -447,7 +447,7 @@ class EdgeDetect{
       }
       if(edges.edgeCandidatesTopCount != 0 && edges.edgeCandidatesBottomCount == 0){
         for(var edge of edgesTop){
-          if(edge.count >= edgeDetectionTreshold)
+          if(edge.count >= edgeDetectionThreshold)
             return {
               status: EdgeStatus.AR_KNOWN,
               blackbarWidth: edge.distance,
@@ -473,8 +473,8 @@ class EdgeDetect{
     // roughly centered, we return true. Otherwise we return false.
     // we also return true if we detect too much black
   
-    var blackbarTreshold, upper, lower;
-    blackbarTreshold = this.conf.blackLevel + this.settings.active.arDetect.blackbar.treshold;
+    var blackbarThreshold, upper, lower;
+    blackbarThreshold = this.conf.blackLevel + this.settings.active.arDetect.blackbar.threshold;
   
   
     var middleRowStart = (this.conf.canvas.height >> 1) * this.conf.canvas.width;
@@ -489,7 +489,7 @@ class EdgeDetect{
     // preverimo na levi strani
     // let's check for edge on the left side
     for(var i = rowStart; i < midpoint; i+=4){
-      if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
+      if(image[i] > blackbarThreshold || image[i+1] > blackbarThreshold || image[i+2] > blackbarThreshold){
         edge_left = (i - rowStart) >> 2;
         break;
       }
@@ -498,7 +498,7 @@ class EdgeDetect{
     // preverimo na desni strani
     // check on the right
     for(var i = rowEnd; i > midpoint; i-= 4){
-      if(image[i] > blackbarTreshold || image[i+1] > blackbarTreshold || image[i+2] > blackbarTreshold){
+      if(image[i] > blackbarThreshold || image[i+1] > blackbarThreshold || image[i+2] > blackbarThreshold){
         edge_right =  this.conf.canvas.width - ((i - rowStart) >> 2);
         break;
       }
@@ -552,21 +552,21 @@ class EdgeDetect{
           tmpI = i + (colsIn[c].value << 2);
 
           // najprej  preverimo, če je piksel presegel mejo črnega robu
-          // first we check whether blackbarTreshold was exceeded
+          // first we check whether blackbarThreshold was exceeded
           if(! colsIn[c].blackFound) {
-            if( image[tmpI]     > this.blackbarTreshold || 
-                image[tmpI + 1] > this.blackbarTreshold ||
-                image[tmpI + 2] > this.blackbarTreshold ){
+            if( image[tmpI]     > this.blackbarThreshold || 
+                image[tmpI + 1] > this.blackbarThreshold ||
+                image[tmpI + 2] > this.blackbarThreshold ){
               
               colsOut[c].black = (i / this.conf.canvasImageDataRowLength) - 1;
               colsOut[c].col = colsIn[c].value;
               colsIn[c].blackFound = 1;
 
               // prisili, da se zanka izvede še enkrat ter preveri,
-              // ali trenuten piksel preseže tudi imageTreshold
+              // ali trenuten piksel preseže tudi imageThreshold
               //
               // force the loop to repeat this step and check whether
-              // current pixel exceeds imageTreshold as well
+              // current pixel exceeds imageThreshold as well
               c--;
               continue;
             }
@@ -577,12 +577,12 @@ class EdgeDetect{
             }
             // zatem preverimo, če je piksel presegel mejo, po kateri sklepamo, da 
             // predstavlja sliko. Preverimo samo, če smo v stolpcu že presegli 
-            // blackTreshold
+            // blackThreshold
             //
-            // then we check whether pixel exceeded imageTreshold
-            if (image[tmpI]     > this.imageTreshold || 
-                image[tmpI + 1] > this.imageTreshold ||
-                image[tmpI + 2] > this.imageTreshold ){
+            // then we check whether pixel exceeded imageThreshold
+            if (image[tmpI]     > this.imageThreshold || 
+                image[tmpI + 1] > this.imageThreshold ||
+                image[tmpI + 2] > this.imageThreshold ){
             
               colsOut[c].image = (i / this.conf.canvasImageDataRowLength)
               colsIn[c].imageFound = true;
@@ -590,7 +590,7 @@ class EdgeDetect{
             }
           }
         }
-        if(edgeDetectCount >= this.colsTreshold) {
+        if(edgeDetectCount >= this.colsThreshold) {
           break;
         }
       }
@@ -605,21 +605,21 @@ class EdgeDetect{
           tmpI = i + (colsIn[c].value << 2);
 
           // najprej  preverimo, če je piksel presegel mejo črnega robu
-          // first we check whether blackbarTreshold was exceeded
+          // first we check whether blackbarThreshold was exceeded
           if(! colsIn[c].blackFound) {
-            if( image[tmpI]     > this.blackbarTreshold || 
-                image[tmpI + 1] > this.blackbarTreshold ||
-                image[tmpI + 2] > this.blackbarTreshold ){
+            if( image[tmpI]     > this.blackbarThreshold || 
+                image[tmpI + 1] > this.blackbarThreshold ||
+                image[tmpI + 2] > this.blackbarThreshold ){
               
               colsOut[c].black = (i / this.conf.canvasImageDataRowLength);
               colsOut[c].col = colsIn[c].value;
               colsIn[c].blackFound = true;
 
               // prisili, da se zanka izvede še enkrat ter preveri,
-              // ali trenuten piksel preseže tudi imageTreshold
+              // ali trenuten piksel preseže tudi imageThreshold
               //
               // force the loop to repeat this step and check whether
-              // current pixel exceeds imageTreshold as well
+              // current pixel exceeds imageThreshold as well
               c--;
               continue;
             }
@@ -630,12 +630,12 @@ class EdgeDetect{
             }
             // zatem preverimo, če je piksel presegel mejo, po kateri sklepamo, da 
             // predstavlja sliko. Preverimo samo, če smo v stolpcu že presegli 
-            // blackTreshold
+            // blackThreshold
             //
-            // then we check whether pixel exceeded imageTreshold
-            if (image[tmpI]     > this.imageTreshold || 
-                image[tmpI + 1] > this.imageTreshold ||
-                image[tmpI + 2] > this.imageTreshold ){
+            // then we check whether pixel exceeded imageThreshold
+            if (image[tmpI]     > this.imageThreshold || 
+                image[tmpI + 1] > this.imageThreshold ||
+                image[tmpI + 2] > this.imageThreshold ){
             
               colsOut[c].image = (i / this.conf.canvasImageDataRowLength)
               colsIn[c].imageFound = true;
@@ -643,7 +643,7 @@ class EdgeDetect{
             }
           }
         }
-        if(edgeDetectCount >= this.colsTreshold) {
+        if(edgeDetectCount >= this.colsThreshold) {
           break;
         }
       }
@@ -658,9 +658,9 @@ class EdgeDetect{
         for(var col of colsIn){
           tmpI = i + (col << 2);
           
-          if( image[tmpI]     > this.blackbarTreshold || 
-              image[tmpI + 1] > this.blackbarTreshold ||
-              image[tmpI + 2] > this.blackbarTreshold ){
+          if( image[tmpI]     > this.blackbarThreshold || 
+              image[tmpI + 1] > this.blackbarThreshold ||
+              image[tmpI + 2] > this.blackbarThreshold ){
             
             var bottom = (i / this.conf.canvasImageDataRowLength) + 1;
             colsOut.push({
@@ -670,7 +670,7 @@ class EdgeDetect{
             colsIn.splice(colsIn.indexOf(col), 1);
           }
         }
-        if(colsIn.length < this.colsTreshold)
+        if(colsIn.length < this.colsThreshold)
           break;
       }
     } else {
@@ -678,9 +678,9 @@ class EdgeDetect{
         for(var col of colsIn){
           tmpI = i + (col << 2);
           
-          if( image[tmpI]     > this.blackbarTreshold || 
-              image[tmpI + 1] > this.blackbarTreshold ||
-              image[tmpI + 2] > this.blackbarTreshold ){
+          if( image[tmpI]     > this.blackbarThreshold || 
+              image[tmpI + 1] > this.blackbarThreshold ||
+              image[tmpI + 2] > this.blackbarThreshold ){
           
             colsOut.push({
               col: col,
@@ -689,7 +689,7 @@ class EdgeDetect{
             colsIn.splice(colsIn.indexOf(col), 1);
           }
         }
-        if(colsIn.length < this.colsTreshold)
+        if(colsIn.length < this.colsThreshold)
           break;
       }
     }
@@ -702,9 +702,9 @@ class EdgeDetect{
         for(var col of colsIn){
           tmpI = i + (col << 2);
           
-          if( image[tmpI]     > this.blackbarTreshold || 
-              image[tmpI + 1] > this.blackbarTreshold ||
-              image[tmpI + 2] > this.blackbarTreshold ){
+          if( image[tmpI]     > this.blackbarThreshold || 
+              image[tmpI + 1] > this.blackbarThreshold ||
+              image[tmpI + 2] > this.blackbarThreshold ){
             
             var bottom = (i / this.conf.canvasImageDataRowLength) + 1;
             colsOut.push({
@@ -718,7 +718,7 @@ class EdgeDetect{
             this.conf.debugCanvas.trace(tmpI, DebugCanvasClasses.EDGEDETECT_ONBLACK);
           }
         }
-        if(colsIn.length < this.colsTreshold)
+        if(colsIn.length < this.colsThreshold)
           break;
       }
     } else {
@@ -726,9 +726,9 @@ class EdgeDetect{
         for(var col of colsIn){
           tmpI = i + (col << 2);
           
-          if( image[tmpI]     > this.blackbarTreshold || 
-              image[tmpI + 1] > this.blackbarTreshold ||
-              image[tmpI + 2] > this.blackbarTreshold ){
+          if( image[tmpI]     > this.blackbarThreshold || 
+              image[tmpI + 1] > this.blackbarThreshold ||
+              image[tmpI + 2] > this.blackbarThreshold ){
           
             colsOut.push({
               col: col,
@@ -746,7 +746,7 @@ class EdgeDetect{
             this.conf.debugCanvas.trace(tmpI, DebugCanvasClasses.EDGEDETECT_ONBLACK);
           }
         }
-        if(colsIn.length < this.colsTreshold)
+        if(colsIn.length < this.colsThreshold)
           break;
       }
     }
@@ -754,9 +754,9 @@ class EdgeDetect{
 
   _blackbarTest(image, start, end){
     for(var i = start; i < end; i += 4){
-      if( image[i  ] > this.blackbarTreshold ||
-          image[i+1] > this.blackbarTreshold ||
-          image[i+2] > this.blackbarTreshold ){
+      if( image[i  ] > this.blackbarThreshold ||
+          image[i+1] > this.blackbarThreshold ||
+          image[i+2] > this.blackbarThreshold ){
         return true;
       }
     }
@@ -765,9 +765,9 @@ class EdgeDetect{
 
   _blackbarTest_dbg(image, start, end){
     for(var i = start; i < end; i += 4){
-      if( image[i  ] > this.blackbarTreshold ||
-          image[i+1] > this.blackbarTreshold ||
-          image[i+2] > this.blackbarTreshold ){
+      if( image[i  ] > this.blackbarThreshold ||
+          image[i+1] > this.blackbarThreshold ||
+          image[i+2] > this.blackbarThreshold ){
         
         this.conf.debugCanvas.trace(i, DebugCanvasClasses.VIOLATION)
         return true;
@@ -782,13 +782,13 @@ class EdgeDetect{
     var detections = 0;
 
     for(var i = start; i < end; i += 4){
-      if( image[i  ] > this.blackbarTreshold ||
-          image[i+1] > this.blackbarTreshold ||
-          image[i+2] > this.blackbarTreshold ){
+      if( image[i  ] > this.blackbarThreshold ||
+          image[i+1] > this.blackbarThreshold ||
+          image[i+2] > this.blackbarThreshold ){
         ++detections;
         }
     }
-    if(detections >= this.detectionTreshold){
+    if(detections >= this.detectionThreshold){
       if(edgeCandidates[sampleOffset] != undefined)
         edgeCandidates[sampleOffset].count++;
       else{
@@ -802,16 +802,16 @@ class EdgeDetect{
     var detections = 0;
 
     for(var i = start; i < end; i += 4){
-      if( image[i  ] > this.blackbarTreshold ||
-        image[i+1] > this.blackbarTreshold ||
-        image[i+2] > this.blackbarTreshold ){
+      if( image[i  ] > this.blackbarThreshold ||
+        image[i+1] > this.blackbarThreshold ||
+        image[i+2] > this.blackbarThreshold ){
         ++detections;
         this.conf.debugCanvas.trace(i, DebugCanvasClasses.EDGEDETECT_IMAGE);
       } else {
         this.conf.debugCanvas.trace(i, DebugCanvasClasses.WARN);
       }
     }
-    if(detections >= this.detectionTreshold){
+    if(detections >= this.detectionThreshold){
       if(edgeCandidates[sampleOffset] != undefined)
         edgeCandidates[sampleOffset].count++;
       else{

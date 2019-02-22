@@ -118,14 +118,14 @@
       </div>
     </div>
 
-    <div class="label">Letterbox misallignment treshold</div>
+    <div class="label">Letterbox misallignment threshold</div>
     <div class="description">
       If top and bottom bar differ by more than this (0 — 0%, 1 — 100%), we do not correct aspect ratio.
     </div>
     <div class="indent">
       <div class="flex flex-row row-padding">
         <div class="flex label-secondary">
-          Letterbox misalignment treshold
+          Letterbox misalignment threshold
         </div>
         <div class="flex flex-input">
           <input type=""
@@ -203,15 +203,15 @@
       <b>Black level:</b> 0-255, where 0 is black. Anything below this number across all RGB components is considered black.
       Black level can decrease if we detect darker blacks in the video. Lower values —> more accurate edge detection;
       higher values —> detection is more forgiving to videos with less-than-ideal contrast ratios.<br/>
-      <b>Treshold:</b> If pixel is darker than the sum of black level and this value, it's considered black. In theory, lower -> better.
+      <b>Threshold:</b> If pixel is darker than the sum of black level and this value, it's considered black. In theory, lower -> better.
       In practice, this value needs to be kept surprisingly high (8 might not be high enough), otherwise compression artifacts in videos
       start having an adverse effect on quality of automatic detection.
       <b>Gradient detection:</b> Attempt to discriminate between hard edges and gradients. 'Strict' and 'Lax' prevent aspect ratio
       changes if we detected gradients instead of a legit edge. This results in fewer false positives, but may cause aspect ratio
       detection to not work on darker frames.<br/>
-      <b>Image treshold:</b> When gradient detection is enabled, everything that's brighter than the sum of black level, treshold and
+      <b>Image threshold:</b> When gradient detection is enabled, everything that's brighter than the sum of black level, threshold and
       ths is considered to be non-black.<br/>
-      <b>Gradient treshold:</b> If the distance between last black pixel and the first non-black pixel in a given column is more than this value,
+      <b>Gradient threshold:</b> If the distance between last black pixel and the first non-black pixel in a given column is more than this value,
       we're looking at a gradient. If this happens while gradient detection is on, we don't change aspect ratio.<br/>
       <b>Gradient sample size:</b> This option is really only relevant when using 'lax' gradient detection. If we don't find a non-black pixel
       within this distance after last known black pixel when scanning a column, we presume we're not on a gradient.
@@ -229,11 +229,11 @@
       </div>
       <div class="flex flex-row row-padding">
         <div class="flex label-secondary">
-          Treshold:
+          Threshold:
         </div>
         <div class="flex flex-input">
           <input type="number"
-                 v-model="settings.active.arDetect.blackbar.treshold"
+                 v-model="settings.active.arDetect.blackbar.threshold"
           />
         </div>
       </div>
@@ -247,21 +247,21 @@
       </div>
       <div v-if="showAdvancedOptions" class="flex flex-row row-padding">
         <div class="flex label-secondary">
-          Image treshold
+          Image threshold
         </div>
         <div class="flex flex-input">
           <input type="number"
-                 v-model="settings.active.arDetect.blackbar.imageTreshold"
+                 v-model="settings.active.arDetect.blackbar.imageThreshold"
           />
         </div>
       </div>
       <div v-if="showAdvancedOptions" class="flex flex-row row-padding">
         <div class="flex label-secondary">
-          Gradient treshold:
+          Gradient threshold:
         </div>
         <div class="flex flex-input">
           <input type="number"
-                 v-model="settings.active.arDetect.blackbar.gradientTreshold"
+                 v-model="settings.active.arDetect.blackbar.gradientThreshold"
           />
         </div>
       </div>
@@ -283,8 +283,8 @@
         Black frame detection is a quick test that tries to determine whether we're looking at a black frame. This test prevents
         us from wasting precious time trying to detect aspect ratio on frames that are too dark for reliable aspect ratio detection.<br/>
         <b>Sample width, height:</b> Sample size. Since we're checking <i>every</i> pixel in this sample, dimensions should be kept small.<br/>
-        <b>Cumulative treshold:</b> If we add the maximum of red, green, blue values of every pixel in the sample and they total more than this, the frame is bright enough.<br/>
-        <b>Black pixel treshold:</b> If more than this fraction of pixels from the sample are "black", we consider the frame black. This overrules cumulative treshold.
+        <b>Cumulative threshold:</b> If we add the maximum of red, green, blue values of every pixel in the sample and they total more than this, the frame is bright enough.<br/>
+        <b>Black pixel threshold:</b> If more than this fraction of pixels from the sample are "black", we consider the frame black. This overrules cumulative threshold.
       </div>
       <div class="indent">
         <div class="flex flex-row row-padding">
@@ -309,17 +309,17 @@
         </div>
         <div class="flex flex-row row-padding">
           <div class="flex label-secondary">
-            Cumulative treshold:
+            Cumulative threshold:
           </div>
           <div class="flex flex-input">
             <input type="number"
-                   v-model="settings.active.arDetect.blackframe.cumulativeTreshold"
+                   v-model="settings.active.arDetect.blackframe.cumulativeThreshold"
             />
           </div>
         </div>
         <div class="flex flex-row row-padding">
           <div class="flex label-secondary">
-            Black pixel treshold:
+            Black pixel threshold:
           </div>
           <div class="flex flex-input">
             <input type=""
@@ -335,8 +335,8 @@
       Options in this section govern edge detection.<br/>
       <b>Sample width</b> — In a bid to detect "false" edges, we take two samples this many pixels wide near the point of our potential edge. One sample must be completely black, the other must contain a set 
       amount of non-black pixels.<br/>
-      <b>Detection treshold</b> — non-black sample mentioned above needs to contain at least this many non-black pixels.<br/>
-      <b>Single side confirmation treshold</b> — quorum needed to establish aspect ratio in case we manage to detect an edge only on one side of the video. (0-0.5)<br/>
+      <b>Detection threshold</b> — non-black sample mentioned above needs to contain at least this many non-black pixels.<br/>
+      <b>Single side confirmation threshold</b> — quorum needed to establish aspect ratio in case we manage to detect an edge only on one side of the video. (0-0.5)<br/>
       <b>Logo threshold</b> — if edge candidate sits with count greater than this*all_samples, it can't be a logo or a watermark.<br/>
       <b>Ignore middle area</b> — When trying to detect area, ignore area between middle and canvasHeight * {this value} pixels towards the edge.<br/>
       <b>Detect limit</b> — stop search after finding a potential candidate in this many sample columns (%, 0-1)<br/>
@@ -354,31 +354,31 @@
       </div>
       <div class="flex flex-row row-padding">
         <div class="flex label-secondary">
-          Detection treshold (px):
+          Detection threshold (px):
         </div>
         <div class="flex flex-input">
           <input type="number"
-                 v-model="settings.active.arDetect.edgeDetection.detectionTreshold"
+                 v-model="settings.active.arDetect.edgeDetection.detectionThreshold"
           />
         </div>
       </div>
       <div class="flex flex-row row-padding">
         <div class="flex label-secondary">
-          Single side confirmation treshold:
+          Single side confirmation threshold:
         </div>
         <div class="flex flex-input">
           <input 
-                 v-model="settings.active.arDetect.edgeDetection.singleSideConfirmationTreshold"
+                 v-model="settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold"
           />
         </div>
       </div>
       <div class="flex flex-row row-padding" v-if="showAdvancedOptions">
         <div class="flex label-secondary">
-          Logo treshold:
+          Logo threshold:
         </div>
         <div class="flex flex-input">
           <input 
-                 v-model="settings.active.arDetect.edgeDetection.logoTreshold"
+                 v-model="settings.active.arDetect.edgeDetection.logoThreshold"
           />
         </div>
       </div>
@@ -409,7 +409,7 @@
       Quick test to determine whether aspect ratio hasn't changed. Test is performed by taking two samples on each edge of the image — 
       one in the last row of the letterbox (blackbar), and one in the first row of the video (image).<br/>
       <b>Ignore edge margin:</b> We don't take blackbar and image samples {width * this} many pixels from left and right edge.<br/>
-      <b>Image treshold:</b> If all pixels in blackbar are black and this fraction (0-1) of pixels in image are non-black, we presume that aspect ratio hasn't changed.<br/>
+      <b>Image threshold:</b> If all pixels in blackbar are black and this fraction (0-1) of pixels in image are non-black, we presume that aspect ratio hasn't changed.<br/>
       <b>Edge tolerance (px):<b> I lied. Blackbar test happens this many pixels away from the last row of the letterbox.
     </div>
     <div class="indent">
@@ -439,7 +439,7 @@
         </div>
         <div class="flex flex-input">
           <input type="number"
-                 v-model="settings.active.arDetect.canvasDimensions.guardLine.imageTestTreshold"
+                 v-model="settings.active.arDetect.canvasDimensions.guardLine.imageTestThreshold"
           />
         </div>
       </div>
@@ -456,14 +456,14 @@
     </div>
 
     <div v-if="showAdvancedOptions">
-      <div class="label">Aspect ratio change treshold</div>
+      <div class="label">Aspect ratio change threshold</div>
       <div class="description">
         New and old aspect ratio must differ by at least this much (%, 1=100%) before we trigger aspect ratio correction.
       </div>
       <div class="indent">
         <div class="flex flex-row row-padding">
           <div class="flex label-secondary">
-            Aspect ratio change treshold.
+            Aspect ratio change threshold.
           </div>
           <div class="flex flex-input">
             <input type=""

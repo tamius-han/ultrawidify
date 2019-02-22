@@ -98,18 +98,18 @@
       <b>Hybrid:</b> stretches the video to fit the player, but only if cropping didn't completely remove the black bars.<br/>
       <b>Thin borders:</b> stretches only if the width of black borders after cropping is thin.
       <br/>
-      Treshold for thin borders can be defined below.
+      Threshold for thin borders can be defined below.
     </div>
     <div class="indent">
       <div class="flex flex-row row-padding">
         <div class="flex label-secondary">
-          Thin border treshold:
+          Thin border threshold:
         </div>
         <div class="flex flex-input">
           <input type="number"
                 step="any"
                 :value="settings.active.stretch.conditionalDifferencePercent"
-                @input="updateStretchTreshold($event.target.value)"
+                @input="updateStretchThreshold($event.target.value)"
                 >
         </div>
       </div>
@@ -168,11 +168,11 @@ export default {
       this.settings.active.sites['@global'].stretch = mode;
       this.settings.save();
     },
-    updateStretchTreshold(newTreshold) {
-      if (!newTreshold || isNaN(newTreshold)) {
+    updateStretchThreshold(newThreshold) {
+      if (!newThreshold || isNaN(newThreshold)) {
         return;
       }
-      this.settings.active.stretch.conditionalDifferencePercent = newTreshold;
+      this.settings.active.stretch.conditionalDifferencePercent = newThreshold;
       this.settings.save();
     },
     resetSettings() {
