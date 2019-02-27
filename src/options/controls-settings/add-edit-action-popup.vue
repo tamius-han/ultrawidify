@@ -58,49 +58,27 @@
       </div>
 
       <div class="flex flex-row">
-        <b>Scopes:</b>
+        <b>Show this action in the following tabs:</b>
       </div>
 
-      <div class="flex flex-row">
-        Global:
-      </div>
+      <ScopeSettings :scopeOptions="globalScopeOptions"
+                     @show="updateScopes('global', 'show', $event)"
+                     @set-label="updateScopes('global', 'label', $event)"
+                     @set-shortcut="updateScopes('global', 'shortcut', $event)"
+      />
+      <ScopeSettings :scopeOptions="siteScopeOptions"
+                     @show="updateScopes('site', 'show', $event)"
+                     @set-label="updateScopes('site', 'label', $event)"
+                     @set-shortcut="updateScopes('site', 'shortcut', $event)"
+      />
+      <ScopeSettings :scopeOptions="pageScopeOptions"
+                     @show="updateScopes('page', 'show', $event)"
+                     @set-label="updateScopes('page', 'label', $event)"
+                     @set-shortcut="updateScopes('page', 'shortcut', $event)"
+      />
 
-      <div class="flex flex-row">
-        <div class="flex label-secondary form-label">
-          <span class="w100">
-            Show in popup
-          </span>
-        </div>
-        <div class="flex flex-input">
-          <input type="checkbox"
-                 :value="actionIndex < 0  ? true : settings.active.actions[actionIndex].scopes.global && settings.active.actions[actionIndex].scopes.global.show"
-                 @input="updateScopes('global', 'show', $event.target.value)"
-          >
-        </div>
-      </div>
-      <div class="flex flex-row">
-        <div class="flex label-secondary form-label">
-          <span class="w100">
-            Label <span class="hint"><small>(leave empty for default)</small></span>:
-          </span>
-        </div>
-        <div class="flex flex-input flex-grow">
-          <input type="text"
-                 class="w100"
-                 @input="updateScopes('global', 'label', $event.target.value)"
-                 >
-        </div>
-      </div>
-      <div class="flex flex-row">
-        <div class="flex label-secondary form-label">
-          <span class="w100">
-            Shortcut:
-          </span>
-        </div>
-        <div class="flex flex-input flex-grow">
-          TODO: insert shortcut changing component
-        </div>
-      </div>
+      
+      
     </div>
   </div>
 </template>
@@ -110,11 +88,17 @@ import Stretch from '../../common/enums/stretch.enum';
 import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
 import CommandChain from './command-builder/command-chain';
 import CommandAddEdit from './command-builder/command-add-edit';
+import ScopeSettings from './scope-settings-component/scope-settings';
 
 export default {
+  props: {
+    settings: Object,
+    actionIndex: Number,
+  },
   components: {
     CommandChain: CommandChain,
     CommandAddEdit: CommandAddEdit,
+    ScopeSettings,
   },
   data () {
     return {
@@ -123,6 +107,9 @@ export default {
         name: 'New action',
         label: 'New action',
         cmd: [],
+        scopes: {
+
+        }
       },
       addEditCommand: false,
       currentCmdIndex: -1,
@@ -130,9 +117,28 @@ export default {
   },
   created () {
   },
-  props: {
-    settings: Object,
-    actionIndex: Number,
+  computed: {
+    globalScopeOptions: function() {
+      return {
+        show: this.action.scopes.global && this.action.scopes.global.show || false,
+        label: (this.action.scopes.global && this.action.scopes.global.label) ? this.action.scopes.global.label : '',
+        shortcut: this.action.scopes.global && this.action.scopes.global.shortcut
+      }
+    },
+    siteScopeOptions: function() {
+      return {
+        show: this.action.scopes.site && this.action.scopes.site.show || false,
+        label: (this.action.scopes.site && this.action.scopes.site.label) ? this.action.scopes.site.label : '',
+        shortcut: this.action.scopes.site && this.action.scopes.site.shortcut
+      }
+    },
+    pageScopeOptions: function() {
+      return {
+        show: this.action.scopes.page && this.action.scopes.page.show || false,
+        label: (this.action.scopes.page && this.action.scopes.page.label) ? this.action.scopes.page.label : '',
+        shortcut: this.action.scopes.page && this.action.scopes.page.shortcut
+      }
+    }
   },
   methods: {
     parseActionShortcut(action) {
