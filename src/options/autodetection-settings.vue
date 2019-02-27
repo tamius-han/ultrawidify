@@ -439,7 +439,7 @@
         </div>
         <div class="flex flex-input">
           <input type="number"
-                 v-model="settings.active.arDetect.canvasDimensions.guardLine.imageTestThreshold"
+                 v-model="settings.active.arDetect.guardLine.imageTestThreshold"
           />
         </div>
       </div>
