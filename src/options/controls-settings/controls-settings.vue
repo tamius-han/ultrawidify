@@ -8,6 +8,7 @@
       </div>
       <template v-for="(action, index) of settings.active.actions">
         <ActionAlt v-if="action.cmd.length === 1 && action.cmd[0].action === 'set-ar'"
+                   :key="index"
                    :action="action"
                    @edit="changeShortcut(index)"
         >
@@ -20,6 +21,7 @@
       </div>
       <template v-for="(action, index) of settings.active.actions">
         <ActionAlt v-if="action.cmd.length === 1 && action.cmd[0].action === 'set-stretch'"
+                   :key="index"
                    :action="action"
                    @edit="changeShortcut(index)"
         >
@@ -32,6 +34,7 @@
       </div>
       <template v-for="(action, index) of settings.active.actions">
         <ActionAlt v-if="action.cmd.length === 1 && action.cmd[0].action === 'set-alignment'"
+                   :key="index"
                    :action="action"
                    @edit="changeShortcut(index)"
         >
@@ -49,6 +52,7 @@
                             action.cmd[0].action === 'pan' ||
                             action.cmd[0].action === 'set-pan'
                         )"
+                   :key="index"
                    :action="action"
                    @edit="changeShortcut(index)"
         >
@@ -69,6 +73,7 @@
                             action.cmd[0].action !== 'set-stretch' &&
                             action.cmd[0].action !== 'set-ar'
                         )"
+                   :key="index"
                    :action="action"
                    @edit="changeShortcut(index)"
         >

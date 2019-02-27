@@ -12,9 +12,16 @@
                     @new-command="addNewCommand()"
       >
       </CommandChain>
+      <pre>
+        Action:
+        {{action}}
+        ----
+      </pre>
       <CommandAddEdit class="w100"
                       v-if="addEditCommand"
                       :command="currentCmd"
+                      @set-command="updateCommand"
+                      @close-popup="addEditCommand=false"
       >
       </CommandAddEdit>
 
@@ -118,7 +125,7 @@ export default {
         cmd: [],
       },
       addEditCommand: false,
-      currentCmd: {},
+      currentCmdIndex: -1,
     }
   },
   created () {
@@ -148,8 +155,23 @@ export default {
 
     },
     addNewCommand() {
-      this.currentCmd = {};
+      this.currentCmdIndex = -1;
       this.addEditCommand = true;
+      console.log("adding command")
+    },
+    updateCommand(action, arg) {
+      this.addEditCommand = false;
+      if (this.currentCmdIndex < 0) {
+        this.action.cmd.push({
+          cmd: action,
+          arg: arg,
+        });
+      } else {
+        this.action.cmd[this.currentCmdIndex] = {
+          cmd: action,
+          arg: arg,
+        };
+      }
     }
   }
 }

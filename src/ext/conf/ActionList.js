@@ -43,8 +43,8 @@ var ActionList = {
       name: 'Thin borders',
       arg: Stretch.Conditional,
     },{
-      name: Stretch.Default,
-      arg: -1,
+      name: 'Default',
+      arg: Stretch.Default,
       scopes: {
         site: true
       }

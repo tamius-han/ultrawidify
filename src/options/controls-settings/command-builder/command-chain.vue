@@ -1,7 +1,9 @@
 <template>
   <div class="">
+    {{command}}
     <div class="flex flex-row">
       <CommandBlock v-for="(cmd, index) of command"
+                    :key="index"
                     :command="cmd"
                     first
                     last

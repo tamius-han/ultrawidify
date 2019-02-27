@@ -1,6 +1,10 @@
 <template>
   <div class="">
+    Values:
     <div class="window-content">
+      <pre>{{action}}</pre>
+      <pre>{{selectedAction}}</pre>
+      <pre>{{selectedArgument}}</pre>
 
       <!-- ACTION SELECT -->
       <div class="flex flex-row">
@@ -15,6 +19,7 @@
           >
             <option v-for="(action, key) in ActionList"
                     :value="key"
+                    :key="key"
             >
               {{action.name}}
             </option>
@@ -31,17 +36,18 @@
           </span>
         </div>
         <div class="flex flex-grow flex-input">
-          <select @change="setArgument($event.target.value)">
-            <option v-for="arg of ActionList[selectedAction].args"
-                    :value="arg"
+          <select class=""
+                  @change="setArgument($event.target.value)"
+          >
+            <option v-for="(arg, key) of ActionList[selectedAction].args"
+                    :key="key"
+                    :value="key"
             >
               {{arg.name}}
             </option>
           </select>
         </div>
       </div>
-
-
 
       <!-- CUSTOM ARGUMENT INPUT -->
       <div v-if="selectedArgument && selectedArgument.customArg"
@@ -111,8 +117,7 @@ export default {
       this.customArgumentValue = undefined;
     },
     setArgument(arg) {
-      console.log("SETTING ARGUMENT", cmd);
-      this.selectedArgument = arg;
+      this.selectedArgument = ActionList[this.selectedAction].args[arg];
       this.customArgumentValue = undefined;
     },
     emitCommand() {
