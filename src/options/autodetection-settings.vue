@@ -410,7 +410,7 @@
       one in the last row of the letterbox (blackbar), and one in the first row of the video (image).<br/>
       <b>Ignore edge margin:</b> We don't take blackbar and image samples {width * this} many pixels from left and right edge.<br/>
       <b>Image threshold:</b> If all pixels in blackbar are black and this fraction (0-1) of pixels in image are non-black, we presume that aspect ratio hasn't changed.<br/>
-      <b>Edge tolerance (px):<b> I lied. Blackbar test happens this many pixels away from the last row of the letterbox.
+      <b>Edge tolerance (px):</b> I lied. Blackbar test happens this many pixels away from the last row of the letterbox.
     </div>
     <div class="indent">
       <div class="flex flex-row row-padding">
