@@ -21,10 +21,9 @@
           Frequency while playing:
         </div>
         <div class="flex flex-input">
-          <input type="number"
-                step="any"
+          <input type="text"
                 v-model="settings.active.arDetect.timers.playing"
-                >
+                />
         </div>
       </div>
       <div class="flex flex-row row-padding">
@@ -32,10 +31,9 @@
           Frequency while paused:
         </div>
         <div class="flex flex-input">
-          <input type="number"
-                step="any"
+          <input type="text"
                 v-model="settings.active.arDetect.timers.paused"
-                >
+                />
         </div>
       </div>
       <div v-if="showAdvancedOptions" class="flex flex-row row-padding">
@@ -43,10 +41,9 @@
           Error timeout:
         </div>
         <div class="flex flex-input">
-          <input type="number"
-                step="any"
+          <input type="text"
                 v-model="settings.active.arDetect.timers.error"
-                >
+                />
         </div>
       </div>
     </div>
@@ -63,10 +60,9 @@
           Tick rate:
         </div>
         <div class="flex flex-input">
-          <input type="number"
-                step="any"
+          <input type="text"
                 v-model="settings.active.arDetect.timers.tickrate"
-                >
+                />
         </div>
       </div>
     </div>
@@ -99,10 +95,9 @@
           Safety border thickness (in px)
         </div>
         <div class="flex flex-input">
-          <input type="number"
-                step="any"
+          <input type="text"
                 v-model="settings.active.arDetect.fallbackMode.safetyBorderPx"
-                >
+                />
         </div>
       </div>
       <div v-if="showAdvancedOptions" class="flex flex-row row-padding">
@@ -110,10 +105,9 @@
           Don't react if detected edge is less than this many pixels thick:
         </div>
         <div class="flex flex-input">
-          <input type="number"
-                step="any"
+          <input type="text"
                 v-model="settings.active.arDetect.fallbackMode.noTriggerZonePx"
-                >
+                />
         </div>
       </div>
     </div>
@@ -128,7 +122,7 @@
           Letterbox misalignment threshold
         </div>
         <div class="flex flex-input">
-          <input type=""
+          <input type="text"
                  v-model="settings.active.arDetect.allowedMisaligned"
           />
         </div>
@@ -150,7 +144,7 @@
           Static sample columns:
         </div>
         <div class="flex flex-input">
-          <input type="number"
+          <input type="text"
                  v-model="settings.active.arDetect.sampling.staticCols"
           />
         </div>
@@ -160,7 +154,7 @@
           Random sample columns:
         </div>
         <div class="flex flex-input">
-          <input type="number"
+          <input type="text"
                  v-model="settings.active.arDetect.sampling.randomCols"
           />
         </div>
@@ -170,7 +164,7 @@
           Static rows:
         </div>
         <div class="flex flex-input">
-          <input type="number"
+          <input type="text"
                  v-model="settings.active.arDetect.sampling.staticRows"
           />
         </div>
@@ -180,7 +174,7 @@
           Sample width:
         </div>
         <div class="flex flex-input">
-          <input type="number"
+          <input type="text"
                  v-model="settings.active.arDetect.canvasDimensions.sampleCanvas.width"
           />
         </div>
@@ -190,7 +184,7 @@
           Static rows:
         </div>
         <div class="flex flex-input">
-          <input type="number"
+          <input type="text"
                  v-model="settings.active.arDetect.canvasDimensions.sampleCanvas.height"
           />
         </div>
@@ -222,7 +216,7 @@
           Black level:
         </div>
         <div class="flex flex-input">
-          <input type="number"
+          <input type="text"
                  v-model="settings.active.arDetect.blackbar.blackLevel"
           />
         </div>
@@ -232,7 +226,7 @@
           Threshold:
         </div>
         <div class="flex flex-input">
-          <input type="number"
+          <input type="text"
                  v-model="settings.active.arDetect.blackbar.threshold"
           />
         </div>
@@ -250,7 +244,7 @@
           Image threshold
         </div>
         <div class="flex flex-input">
-          <input type="number"
+          <input type="text"
                  v-model="settings.active.arDetect.blackbar.imageThreshold"
           />
         </div>
@@ -260,7 +254,7 @@
           Gradient threshold:
         </div>
         <div class="flex flex-input">
-          <input type="number"
+          <input type="text"
                  v-model="settings.active.arDetect.blackbar.gradientThreshold"
           />
         </div>
@@ -270,7 +264,7 @@
           Gradient sample size:
         </div>
         <div class="flex flex-input">
-          <input type="number"
+          <input type="text"
                  v-model="settings.active.arDetect.blackbar.gradientSampleSize"
           />
         </div>
@@ -292,7 +286,7 @@
             Blackframe sample width:
           </div>
           <div class="flex flex-input">
-            <input type="number"
+            <input type="text"
                   v-model="settings.active.arDetect.canvasDimensions.blackframeCanvas.width"
             />
           </div>
@@ -302,7 +296,7 @@
             Blackframe sample height:
           </div>
           <div class="flex flex-input">
-            <input type="number"
+            <input type="text"
                    v-model="settings.active.arDetect.canvasDimensions.blackframeCanvas.height"
             />
           </div>
@@ -312,7 +306,7 @@
             Cumulative threshold:
           </div>
           <div class="flex flex-input">
-            <input type="number"
+            <input type="text"
                    v-model="settings.active.arDetect.blackframe.cumulativeThreshold"
             />
           </div>
@@ -347,7 +341,7 @@
           Sample width:
         </div>
         <div class="flex flex-input">
-          <input type="number"
+          <input type="text"
                  v-model="settings.active.arDetect.edgeDetection.sampleWidth"
           />
         </div>
@@ -357,7 +351,7 @@
           Detection threshold (px):
         </div>
         <div class="flex flex-input">
-          <input type="number"
+          <input type="text"
                  v-model="settings.active.arDetect.edgeDetection.detectionThreshold"
           />
         </div>
@@ -428,7 +422,7 @@
           Ignore edge margin:
         </div>
         <div class="flex flex-input">
-          <input type="number"
+          <input type="text"
                  v-model="settings.active.arDetect.guardLine.ignoreEdgeMargin"
           />
         </div>
@@ -438,7 +432,7 @@
           Image threshold:
         </div>
         <div class="flex flex-input">
-          <input type="number"
+          <input type="text"
                  v-model="settings.active.arDetect.guardLine.imageTestThreshold"
           />
         </div>
@@ -448,7 +442,7 @@
           Edge tolerance (px):
         </div>
         <div class="flex flex-input">
-          <input type="number"
+          <input type="text"
                  v-model="settings.active.arDetect.guardLine.edgeTolerancePx"
           />
         </div>
