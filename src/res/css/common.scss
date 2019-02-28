@@ -85,13 +85,15 @@ body {
 
 /* INPUT FORMATTING */
 
-input[type="number"] {
-  // border: 1px solid #322;
-  background-color: transparent;
+input[type="number"], input[type="text"], input {
+  outline: none;
+  background-color: $input-background;
+  color: $text-normal;
   padding: 0.1rem;
-  padding-top: 0.1rem;
+  padding-top: 0.2rem;
   padding-bottom: 0.1rem;
   margin-left: 1rem;
+  border: 1px solid $input-border;
 }
 
 
