@@ -107,9 +107,7 @@ export default {
         name: 'New action',
         label: 'New action',
         cmd: [],
-        scopes: {
-
-        }
+        scopes: {}
       },
       addEditCommand: false,
       currentCmdIndex: -1,
@@ -158,7 +156,13 @@ export default {
       this.action.label = newLabel;
     },
     updateScopes(scope, prop, value) {
+      if(!this.action.scopes[scope]) {
+        this.action.scopes[scope] = {};
+      }
+      this.action.scopes[scope][prop] = value;
 
+      // TODO: remove for release
+      this.action = JSON.parse(JSON.stringify(this.action))
     },
     addNewCommand() {
       this.currentCmdIndex = -1;
