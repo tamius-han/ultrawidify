@@ -18,7 +18,7 @@
       <div class="flex flex-input flex-grow">
         <input type="text"
                v-model="scopeOptions.label"
-               @input="setLabel"
+               @input="setLabel($event.target.value)"
         />
       </div>
     </div>
@@ -50,11 +50,10 @@ export default {
   },
   methods: {
     setLabel(label) {
-      console.log("label")
       if (label.trim() === '') {
         label = undefined;
       }
-      this.$emit(label.trim())
+      this.$emit('set-label', label.trim())
     }
   }
 }

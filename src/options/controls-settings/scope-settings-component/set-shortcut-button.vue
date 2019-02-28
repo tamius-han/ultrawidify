@@ -1,11 +1,13 @@
 <template>
   <div class="w100">
     <input type="text"
+           class="shortcut-change-input"
+           ref="input"
            :value="shortcutText"
            @focus="initiateKeypress"
            @keyup="processKeyup"
     />
-
+    <span v-if="shortcut" @click="$emit('set-shortcut')">(Clear shortcut)</span>
   </div>
 </template>
 
@@ -34,8 +36,7 @@ export default {
     },
     processKeyup(event) {
       if (this.waitingForPress) {
-        console.log("PROCESSING KEY UP", event)
-        $emit('set-shortcut', {
+        const shortcut = {
           key: event.key,
           ctrlKey: event.ctrlKey,
           metaKey: event.metaKey,
@@ -43,7 +44,10 @@ export default {
           shiftKey: event.shiftKey,
           onKeyUp: true,
           onKeyDown: false,
-        });
+        };
+        this.$emit('set-shortcut', shortcut)
+        this.$refs.input.blur();
+        this.shortcutText = KeyboardShortcutParser.parseShortcut(shortcut);
       }
       this.waitingForPress = false;
     }
@@ -51,6 +55,11 @@ export default {
 }
 </script>
 
-<style>
-
+<style style="scss" scoped>
+.shortcut-change-input {
+  background-color: transparent;
+  border: 0px solid transparent;
+  text-align: center;
+  width: 100%;
+}
 </style>
