@@ -8,22 +8,26 @@
       </div>
 
       <CommandChain class="w100"
-                    :command="action.command"
+                    :command="action.cmd"
                     @new-command="addNewCommand()"
+                    @edit="editCommand"
+                    @delete="deleteCommand"
       >
       </CommandChain>
-      <pre>
-        Action:
-        {{action}}
-        ----
-      </pre>
       <CommandAddEdit class="w100"
                       v-if="addEditCommand"
-                      :command="currentCmd"
+                      :action="currentCmd"
                       @set-command="updateCommand"
                       @close-popup="addEditCommand=false"
       >
       </CommandAddEdit>
+
+      <pre>
+        ----- [ raw action data ] -----
+        Action:
+        {{action}}
+        --- [ end raw action data ] ---
+      </pre>
 
       <div class="flex flex-column">
         <div class="flex flex-row">
@@ -138,6 +142,11 @@ export default {
       }
     }
   },
+  watch: {
+    action: {
+      deep: true,
+    }
+  },
   methods: {
     parseActionShortcut(action) {
       return KeyboardShortcutParser.parseShortcut(action.shortcut[0]);
@@ -166,8 +175,18 @@ export default {
     },
     addNewCommand() {
       this.currentCmdIndex = -1;
+      this.currentCmd = undefined;
       this.addEditCommand = true;
       console.log("adding command")
+    },
+    editCommand(index) {
+      this.currentCmdIndex = index;
+      this.currentCmd = this.action.cmd[index];
+      this.addEditCommand = true;
+      console.log("EDITING COMMAND")
+    },
+    deleteCommand(index) {
+      this.action.cmd.splice(index,1);
     },
     updateCommand(action, arg) {
       this.addEditCommand = false;
@@ -182,6 +201,9 @@ export default {
           arg: arg,
         };
       }
+      this.action = JSON.parse(JSON.stringify(this.action));
+
+      // this.$nextTick(function() {this.$forceUpdate()});
     }
   }
 }

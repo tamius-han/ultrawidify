@@ -1,40 +1,38 @@
 <template>
   <div class="block-main">
-
-    <div v-if="!first"
-         class="prev"
-         @click="emit('move-left')"
-    >
-      &lt;
-    </div>
-
     <div class="button-main">
       <div class="button-action-display">
-        {{ActionList[action.action].name}}: {{
-          ActionList[action.action].args.find(x => x.arg === action.arg) || action.arg
+        {{ActionList[action.cmd].name}}:&nbsp;{{
+          /*ActionList[action.cmd].args.find(x => x.arg === action.arg).arg ||*/ action.arg
         }}
       </div>
-      <div class="actions flex flex-row">
-        <div class="flex flex-grow"
+      <div class="actions flex flex-row flex-center flex-cross-center">
+        <div v-if="!first || true"
+            class="flex order-button"
+            @click="$emit('move-left')"
+        >
+          &lt;
+        </div>
+        <div class="flex flex-grow command-action"
              @click="$emit('delete')"
         >
           🗙
         </div>
-        <div class="flex flex-grow"
+        <div class="flex flex-grow command-action"
              @click="$emit('edit')"
         >
           🖉
         </div>
+        <div v-if="!last || true"
+            class="flex order-button"
+            @click="$emit('move-right')"
+        >
+          &gt;
+        </div>
       </div>
     </div>
 
-    <div v-if="!last"
-         class="next"
-         @click="$emit('move-right')"
-    >
-      &gt;
-    </div>
-
+   
   </div>
 </template>
 
@@ -57,7 +55,9 @@ export default {
   },
   methods: {
     parseActionShortcut(action) {
-      return KeyboardShortcutParser.parseShortcut(action.shortcut[0]);
+      if (action.shortcut) {
+        return KeyboardShortcutParser.parseShortcut(action.shortcut[0]);
+      }
     },
     setAction(cmd) {
       console.log("SETTING ACTION", cmd);
@@ -70,13 +70,36 @@ export default {
       this.selectedArgument = arg;
       this.customArgumentValue = undefined;
     },
-    emitCommand() {
-      this.$emit(
-        'set-command',
-        this.selectedAction,
-        this.customArgumentValue ? this.customArgumentValue : this.selectedArgument.arg
-      );
-    }
+    // emitCommand() {
+    //   this.$emit(
+    //     'set-command',
+    //     this.selectedAction,
+    //     this.customArgumentValue ? this.customArgumentValue : this.selectedArgument.arg
+    //   );
+    // }
   }
 }
 </script>
+
+<style lang="scss" scoped>
+@import './../../../res/css/colors';
+
+.block-main {
+  border: 1px solid $primary-color;
+  min-width: 10rem;
+  padding-top: 0.1rem;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.button-action-display, .command-action, .order-button {
+  display: block;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  text-align: center;
+}
+.button-action-display {
+  padding-top: 0.1rem;
+}
+
+</style>
