@@ -2,6 +2,7 @@ import Debug from '../../../conf/Debug';
 import EdgeStatus from './enums/EdgeStatusEnum';
 import EdgeDetectQuality from './enums/EdgeDetectQualityEnum';
 import EdgeDetectPrimaryDirection from './enums/EdgeDetectPrimaryDirectionEnum';
+import AntiGradientMode from '../../../../common/enums/anti-gradient-mode.enum'; 
 
 if (Debug.debug) {
   console.log("Loading EdgeDetect.js");
@@ -30,7 +31,7 @@ class EdgeDetect{
     var fastCandidates, edgeCandidates, bars;
     if (direction == EdgeDetectPrimaryDirection.VERTICAL) {
       fastCandidates = this.findCandidates(image, sampleCols, guardLineOut);
-
+      
       // if(quality == EdgeDetectQuality.FAST){
       //   edges = fastCandidates; // todo: processing
       // } else {

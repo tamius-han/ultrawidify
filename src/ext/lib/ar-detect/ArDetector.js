@@ -476,7 +476,7 @@ class ArDetector {
     // poglejmo, če se je razmerje stranic spremenilo
     // check if aspect ratio is changed:
     var lastAr = this.conf.resizer.getLastAr();
-    if( lastAr.type === AspectRatio.Automatic && lastAr.ar != null){
+    if( lastAr.type === AspectRatio.Automatic && lastAr.ratio !== null){
       // spremembo lahko zavrnemo samo, če uporabljamo avtomatski način delovanja in če smo razmerje stranic
       // že nastavili.
       //
@@ -600,7 +600,7 @@ class ArDetector {
       // If we don't detect letterbox, we reset aspect ratio to aspect ratio of the video file. The aspect ratio could
       // have been corrected manually. It's also possible that letterbox (that was there before) disappeared.
       console.log("FAST LETTERBOX PRESENCE TEST FAILED, CALLING RESET")
-      this.conf.resizer.reset({type: AspectRatio.Automatic, ar: null});
+      this.conf.resizer.reset({type: AspectRatio.Automatic, ratio: null});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
@@ -639,7 +639,7 @@ class ArDetector {
     // (since the new letterbox edge isn't present in our sample due to technical
     // limitations)
     if (this.fallbackMode && guardLineOut.blackbarFail) {
-      this.conf.resizer.reset({type: AspectRatio.Automatic, ar: null});
+      this.conf.resizer.reset({type: AspectRatio.Automatic, ratio: null});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
@@ -665,7 +665,7 @@ class ArDetector {
           }
 
           if(guardLineOut.blackbarFail){
-            this.conf.resizer.reset({type: AspectRatio.Automatic, ar: null});
+            this.conf.resizer.reset({type: AspectRatio.Automatic, ratio: null});
             this.guardLine.reset();
           }
 
