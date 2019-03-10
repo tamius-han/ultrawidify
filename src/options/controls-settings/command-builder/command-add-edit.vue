@@ -1,11 +1,6 @@
 <template>
   <div class="">
-    Values:
     <div class="window-content">
-      <pre>{{action}}</pre>
-      <pre>{{selectedAction}}</pre>
-      <pre>{{selectedArgument}}</pre>
-
       <!-- ACTION SELECT -->
       <div class="flex flex-row">
         <div class="flex label-secondary form-label">
@@ -15,8 +10,10 @@
         </div>
         <div class="flex flex-grow flex-input">
           <select class=""
+                  :value="selectedAction"
                   @change="setAction($event.target.value)"
           >
+            <option :value="undefined" selected disabled>Select ...</option>
             <option v-for="(action, key) in ActionList"
                     :value="key"
                     :key="key"
@@ -37,8 +34,10 @@
         </div>
         <div class="flex flex-grow flex-input">
           <select class=""
+                  :value="selectedArgument ? selectedArgument.arg : undefined"
                   @change="setArgument($event.target.value)"
           >
+            <option :value="undefined" selected disabled>Select ...</option>
             <option v-for="(arg, key) of ActionList[selectedAction].args"
                     :key="key"
                     :value="key"
@@ -79,6 +78,20 @@
         Save
       </div>
     </div>
+    <pre>
+    ----- [ COMMAND DATA ] -----
+    
+    :: Action:
+    {{action}}
+
+    :: Selected Action:
+    {{selectedAction}}
+    
+    :: Selected Argumennt:
+    {{selectedArgument}}
+    --- [ END COMMAND DATA ] ---  
+  </pre>
+
   </div>
 </template>
 
@@ -91,19 +104,28 @@ export default {
     return {
       Stretch: Stretch,
       ActionList: ActionList,
-      selectedAction: this.action ? action.action : undefined,
-      selectedArgument: this.action ? {
-        name: ActionList[action.action].args.find(x => x.arg === action.arg) || ActionList[action.action].args.find(x => x.customArg),
-        arg: action.arg
-      } : undefined,
-      customArgumentValue: this.action ? action.arg : undefined
+      selectedAction: undefined,
+      selectedArgument: undefined,
+      customArgumentValue: undefined
     }
   },
   created () {
-    console.log("this.actionList", ActionList, this.ActionList)
-    for(const a in ActionList) {
-      console.log(a);
+    if (this.action) {
+      this.selectedAction = this.action.cmd;
+      this.selectedArgument = {
+        name: ActionList[this.action.cmd].args.find(x => x.arg === this.action.arg) || ActionList[this.action.cmd].args.find(x => x.customArg),
+        arg: this.action.arg
+      }
+      this.customArgumentValue = this.action.arg;
     }
+    
+    // console.log("this.actionList", ActionList, this.ActionList)
+    // for(const a in ActionList) {
+    //   console.log(a);
+    // }
+  },
+  mounted() {
+    
   },
   props: {
     action: Object,

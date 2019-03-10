@@ -25,7 +25,7 @@ export default {
     }
   },
   created(){
-    if (shortcut) {
+    if (this.shortcut) {
       this.shortcutText = KeyboardShortcutParser.parseShortcut(shortcut);
     }
   },
