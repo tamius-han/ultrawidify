@@ -6,6 +6,7 @@ import PlayerData from '../video-data/PlayerData';
 import ExtensionMode from '../../../common/enums/extension-mode.enum';
 import Stretch from '../../../common/enums/stretch.enum';
 import VideoAlignment from '../../../common/enums/video-alignment.enum';
+import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 
 if(Debug.debug) {
   console.log("Loading: Resizer.js");
@@ -39,7 +40,7 @@ class Resizer {
 
     
     // this.lastAr = this.settings.getDefaultAr();                 // this is the aspect ratio we start with
-    this.lastAr = {type: 'original'};
+    this.lastAr = {type: AspectRatio.Initial};
     this.videoAlignment = this.settings.getDefaultVideoAlignment(window.location.hostname); // this is initial video alignment
     this.destroyed = false;
 
@@ -71,6 +72,61 @@ class Resizer {
     this.stopCssWatcher();
   }
 
+  calculateRatioForLegacyOptions(ar){
+    // also present as modeToAr in Scaler.js
+    if (ar.ratio) {
+      return ar.ratio;
+    }
+    // Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". 
+    // Približevanje opuščeno.
+    // handles "legacy" options, such as 'fit to widht', 'fit to height' and AspectRatio.Reset. No zoom tho
+    var ratioOut;
+
+    if (!this.conf.video) {
+      if(Debug.debug){
+        console.log("[Scaler.js::modeToAr] No video??",this.conf.video, "killing videoData");
+      }
+      this.conf.destroy();
+      return null;
+    }
+
+    
+    if(! this.conf.player.dimensions ){
+      ratioOut = screen.width / screen.height;
+    }
+    else {
+      ratioOut = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
+    }
+    
+    // POMEMBNO: lastAr je potrebno nastaviti šele po tem, ko kličemo _res_setAr(). _res_setAr() predvideva,
+    // da želimo nastaviti statično (type: 'static') razmerje stranic — tudi, če funkcijo kličemo tu oz. v ArDetect.
+    //
+    // IMPORTANT NOTE: lastAr needs to be set after _res_setAr() is called, as _res_setAr() assumes we're
+    // setting a static aspect ratio (even if the function is called from here or ArDetect). 
+    
+    var fileAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
+      
+    if (ar.type === AspectRatio.FitWidth){
+      ratioOut > fileAr ? ratioOut : fileAr
+      ar.ratio = ratioOut;
+      return ratioOut;
+    }
+    else if(ar.type === AspectRatio.FitHeight){
+      ratioOut < fileAr ? ratioOut : fileAr
+      ar.ratio = ratioOut;
+      return ratioOut;
+    }
+    else if(ar.type === AspectRatio.Reset){
+      if(Debug.debug){
+        console.log("[Scaler.js::modeToAr] Using original aspect ratio -", fileAr)
+      }
+      ar.ar = fileAr;
+      return fileAr;
+    }
+
+    return null;
+  }
+
 
   setAr(ar, lastAr){
     if (this.destroyed) {
@@ -81,7 +137,7 @@ class Resizer {
       console.log('[Resizer::setAr] <rid:'+this.resizerId+'> trying to set ar. New ar:', ar)
     }
 
-    if (ar === null) {
+    if (ar == null) {
       return;
     }
 
@@ -89,13 +145,16 @@ class Resizer {
       this.lastAr = lastAr;
     } else {
       if(isNaN(ar)){
-        this.lastAr = {type: 'legacy', ar: ar}
+        // NOTE: "fitw" "fith" and "reset" should ignore ar.ratio bit, but
+        // I'm not sure whether they do. Check that.
+        this.lastAr = {type: ar.type, ratio: ar.ratio}
+        this.calculateRatioForLegacyOptions(ar);
       } else {
-        this.lastAr = {type: 'static', ar: ar};
+        throw 'Ar was passed as a number rather than an object. You missed one.'
       }
     }
 
-    if (this.extensionMode === ExtensionMode.Basic && !PlayerData.isFullScreen() && ar !== 'reset') {
+    if (this.extensionMode === ExtensionMode.Basic && !PlayerData.isFullScreen() && ar.type !== AspectRatio.Reset) {
       // don't actually apply or calculate css when using basic mode if not in fullscreen
       //  ... unless we're resetting the aspect ratio to original
       return; 
@@ -117,7 +176,7 @@ class Resizer {
       if (this.stretcher.mode === Stretch.Basic) {
         this.conf.arDetector.pause();
       } else {
-        if (this.lastAr.type === 'auto') {
+        if (this.lastAr.type === AspectRatio.Automatic) {
           this.conf.arDetector.unpause();
         }
       }
@@ -139,7 +198,7 @@ class Resizer {
         return;
       }
       if(this.stretcher.mode === Stretch.Conditional){
-         this.stretcher.applyConditionalStretch(stretchFactors, ar);
+         this.stretcher.applyConditionalStretch(stretchFactors, ar.ratio);
       }
 
       if (Debug.debug) {
@@ -147,7 +206,7 @@ class Resizer {
       }
 
     } else if (this.stretcher.mode === Stretch.Hybrid) {
-      var stretchFactors = this.stretcher.calculateStretch(ar);
+      var stretchFactors = this.stretcher.calculateStretch(ar.ratio);
       if (Debug.debug) {
         console.log('[Resizer::setAr] Processed stretch factors for hybrid stretch/crop. Stretch factors are:', stretchFactors);
       }
@@ -172,7 +231,7 @@ class Resizer {
   }
 
   resetLastAr() {
-    this.lastAr = {type: 'original'};
+    this.lastAr = {type: AspectRatio.Initial};
   }
 
   setLastAr(override){
@@ -259,7 +318,6 @@ class Resizer {
     }
 
     if(timeout === undefined) {
-      console.log("?")
       this.cssCheck(); // no timeout = one-off
       return;
     }
@@ -282,7 +340,9 @@ class Resizer {
   }
 
   stopCssWatcher() {
-    if(Debug.debug) console.log("[Resizer.js] STOPPING CSS WATCHER!")
+    if (Debug.debug) {
+      console.log("[Resizer.js] STOPPING CSS WATCHER!")
+    }
 
     clearInterval(this.cssWatcherTimeout);
   }
@@ -295,15 +355,15 @@ class Resizer {
     // this is true until we verify that css has actually been applied
     this.restore_wd = true;
     
-    if(this.lastAr.type === 'original'){
-      this.setAr('reset');
+    if(this.lastAr.type === AspectRatio.Initial){
+      this.setAr({type: AspectRatio.Reset});
     }
     else {
-      if (this.lastAr && this.lastAr.ar === null) {
+      if (this.lastAr && this.lastAr.ratio === null) {
         console.log("[Resizer::restore] LAST AR IS NULL")
         throw "Last ar is null!"
       }
-      this.setAr(this.lastAr.ar, this.lastAr)
+      this.setAr(this.lastAr, this.lastAr)
     }
   }
 
@@ -311,7 +371,7 @@ class Resizer {
     this.setStretchMode(this.settings.active.sites[window.location.hostname] ? this.settings.active.sites[window.location.hostname].stretch : this.settings.active.sites['@global'].stretch);
     this.zoom.setZoom(1);
     this.resetPan();
-    this.setAr('reset');
+    this.setAr({type: AspectRatio.Reset});
   }
 
   setPanMode(mode) {
@@ -342,7 +402,7 @@ class Resizer {
   }
 
   resetCrop(){
-    this.setAr('reset');
+    this.setAr({type: AspectRatio.Reset});
   }
 
   resetStretch(){

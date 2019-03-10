@@ -4,6 +4,7 @@ import VideoAlignment from '../../common/enums/video-alignment.enum';
 import Stretch from '../../common/enums/stretch.enum';
 import ExtensionMode from '../../common/enums/extension-mode.enum';
 import AntiGradientMode from '../../common/enums/anti-gradient-mode.enum';
+import AspectRatio from '../../common/enums/aspect-ratio.enum';
 
 if(Debug.debug)
   console.log("Loading: ExtensionConf.js");
@@ -163,7 +164,7 @@ var ExtensionConf = {
     label: 'Automatic',                     // name displayed in ui (can be overriden in scope/playerUi)
     cmd: [{
       action: 'set-ar',
-      arg: 'auto',
+      arg: AspectRatio.Automatic,
       persistent: false, // optional, false by default. If true, change doesn't take effect immediately.
                          // Instead, this action saves stuff to settings
     }],
@@ -197,7 +198,7 @@ var ExtensionConf = {
     label: 'Reset',
     cmd: [{
       action: 'set-ar',
-      arg: 'reset',
+      arg: AspectRatio.Reset,
     }],
     scopes: {
       page: {
@@ -222,7 +223,7 @@ var ExtensionConf = {
     label: 'Fit width',
     cmd: [{
       action: 'set-ar',
-      arg: 'fitw',
+      arg: AspectRatio.FitWidth,
     }],
     scopes: {
       page: {
@@ -247,7 +248,7 @@ var ExtensionConf = {
     label: 'Fit height',
     cmd: [{
       action: 'set-ar',
-      arg: 'fith',
+      arg: AspectRatio.FitHeight
     }],
     scopes: {
       page: {
@@ -272,7 +273,8 @@ var ExtensionConf = {
     label: '16:9',
     cmd: [{
       action: 'set-ar',
-      arg: 1.78,
+      arg: AspectRatio.Fixed,
+      customArg: 1.78,
     }],
     scopes: {
       page: {
@@ -297,7 +299,8 @@ var ExtensionConf = {
     label: '21:9',
     cmd: [{
       action: 'set-ar',
-      arg: 2.39,
+      arg: AspectRatio.Fixed,
+      customArg: 2.39
     }],
     scopes: {
       page: {
@@ -322,7 +325,8 @@ var ExtensionConf = {
     label: '18:9',
     cmd: [{
       action: 'set-ar',
-      arg: 2.0,
+      arg: AspectRatio.Fixed,
+      customArg: 2.0,
     }],
     scopes: {
       page: {

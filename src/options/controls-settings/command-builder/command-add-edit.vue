@@ -38,9 +38,9 @@
                   @change="setArgument($event.target.value)"
           >
             <option :value="undefined" selected disabled>Select ...</option>
-            <option v-for="(arg, key) of ActionList[selectedAction].args"
-                    :key="key"
-                    :value="key"
+            <option v-for="arg of ActionList[selectedAction].args"
+                    :key="arg.arg"
+                    :value="arg.arg"
             >
               {{arg.name}}
             </option>
@@ -116,7 +116,7 @@ export default {
         name: ActionList[this.action.cmd].args.find(x => x.arg === this.action.arg) || ActionList[this.action.cmd].args.find(x => x.customArg),
         arg: this.action.arg
       }
-      this.customArgumentValue = this.action.arg;
+      this.customArgumentValue = this.action.customArg;
     }
     
     // console.log("this.actionList", ActionList, this.ActionList)
@@ -139,14 +139,16 @@ export default {
       this.customArgumentValue = undefined;
     },
     setArgument(arg) {
-      this.selectedArgument = ActionList[this.selectedAction].args[arg];
+      console.log("SETTING ARG:", arg)
+      this.selectedArgument = ActionList[this.selectedAction].args.find(x => x.arg === arg);
       this.customArgumentValue = undefined;
     },
     emitCommand() {
       this.$emit(
         'set-command',
         this.selectedAction,
-        this.customArgumentValue ? this.customArgumentValue : this.selectedArgument.arg
+        this.selectedArgument.arg,
+        this.customArgumentValue
       );
     }
   }

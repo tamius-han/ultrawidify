@@ -1,24 +1,26 @@
 import VideoAlignment from '../../common/enums/video-alignment.enum';
 import Stretch from '../../common/enums/stretch.enum';
 import ExtensionMode from '../../common/enums/extension-mode.enum';
+import AspectRatio from '../../common/enums/aspect-ratio.enum';
 
 var ActionList = {
   'set-ar': {
     name: 'Set aspect ratio',
     args: [{
       name: 'Automatic',
-      arg: 'auto',
+      arg: AspectRatio.Automatic,
     },{
       name: 'Fit width',
-      arg: 'fitw'
+      arg: AspectRatio.FitWidth,
     },{
       name: 'Fit height',
-      arg: 'fith',
+      arg: AspectRatio.FitHeight,
     },{
       name: 'Reset',
-      arg: 'reset',
+      arg: AspectRatio.Reset,
     },{
-      name: 'Ratio',
+      name: 'Manually specify ratio',
+      arg: AspectRatio.Fixed,
       customArg: true,
       hintHTML: '',
     }],

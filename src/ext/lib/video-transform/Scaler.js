@@ -1,4 +1,5 @@
 import Debug from '../../conf/Debug';
+import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 
 // računa velikost videa za približevanje/oddaljevanje
 // does video size calculations for zooming/cropping
@@ -11,12 +12,15 @@ class Scaler {
   constructor(videoData) {
     this.conf = videoData;
   }
-
-  modeToAr(mode){
+  
+  modeToAr(ar){
+    if (ar.ratio) {
+      return ar.ratio; 
+    }
     // Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". 
     // Približevanje opuščeno.
-    // handles "legacy" options, such as 'fit to widht', 'fit to height' and 'reset'. No zoom tho
-    var ar;
+    // handles "legacy" options, such as 'fit to widht', 'fit to height' and AspectRatio.Reset. No zoom tho
+    var ratioOut;
 
     if (!this.conf.video) {
       if(Debug.debug){
@@ -28,10 +32,10 @@ class Scaler {
 
     
     if(! this.conf.player.dimensions ){
-      ar = screen.width / screen.height;
+      ratioOut = screen.width / screen.height;
     }
     else {
-      ar = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
+      ratioOut = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
     }
     
     // POMEMBNO: lastAr je potrebno nastaviti šele po tem, ko kličemo _res_setAr(). _res_setAr() predvideva,
@@ -42,26 +46,28 @@ class Scaler {
     
     var fileAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
       
-    if (mode == "fitw"){
-      return ar > fileAr ? ar : fileAr;
+    if (ar.type === AspectRatio.FitWidth){
+      ratioOut > fileAr ? ratioOut : fileAr
+      ar.ratio = ratioOut;
+      return ratioOut;
     }
-    else if(mode == "fith"){
-      return ar < fileAr ? ar : fileAr;
+    else if(ar.type === AspectRatio.FitHeight){
+      ratioOut < fileAr ? ratioOut : fileAr
+      ar.ratio = ratioOut;
+      return ratioOut;
     }
-    else if(mode == "reset"){
+    else if(ar.type === AspectRatio.Reset){
       if(Debug.debug){
         console.log("[Scaler.js::modeToAr] Using original aspect ratio -", fileAr)
       }
-
+      ar.ar = fileAr;
       return fileAr;
     }
 
     return null;
   }
 
-  calculateCrop(mode) {
-    
-  
+  calculateCrop(ar) {
     if(!this.conf.video || this.conf.video.videoWidth == 0 || this.conf.video.videoHeight == 0){
       if(Debug.debug)
         console.log("[Scaler::calculateCrop] ERROR — no video detected.");
@@ -74,27 +80,21 @@ class Scaler {
     // če je 'ar' string, potem bomo z njim opravili v legacy wrapperju. Seveda obstaja izjema
     // if 'ar' is string, we'll handle that in legacy wrapper, with one exception
 
-    if (mode === 'reset'){
+    if (ar.type === AspectRatio.Reset){
       return {xFactor: 1, yFactor: 1}
     }
 
-
-    var ar = 0;
-    if(isNaN(mode)){
-      ar = this.modeToAr(mode);
-    } else {
-      ar = mode;
-    }
+    var ratio = this.modeToAr(ar);
 
     // handle fuckie-wuckies
-    if (! ar){
+    if (! ratio){
       if(Debug.debug)
-        console.log("[Scaler::calculateCrop] no ar?", ar, " -- we were given this mode:", mode);
-      return {error: "no_ar", ar: ar};
+        console.log("[Scaler::calculateCrop] no ar?", ratio, " -- we were given this mode:", ar);
+      return {error: "no_ar", ratio: ratio};
     }
 
     if(Debug.debug)
-      console.log("[Scaler::calculateCrop] trying to set ar. args are: ar->",ar,"; this.conf.player.dimensions->",this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
+      console.log("[Scaler::calculateCrop] trying to set ar. args are: ar->",ratio,"; this.conf.player.dimensions->",this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
 
     if( (! this.conf.player.dimensions) || this.conf.player.dimensions.width === 0 || this.conf.player.dimensions.height === 0 ){
       if(Debug.debug)
@@ -105,18 +105,17 @@ class Scaler {
     // zdaj lahko končno začnemo računati novo velikost videa
     // we can finally start computing required video dimensions now:
 
-
     // Dejansko razmerje stranic datoteke/<video> značke
     // Actual aspect ratio of the file/<video> tag
     var fileAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
     var playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
 
-    if(mode == "default" || !ar)
-      ar = fileAr;
+    if(ar.type == AspectRatio.Initial || !ratio)
+      ratio = fileAr;
 
   
     if(Debug.debug)
-      console.log("[Scaler::calculateCrop] ar is " ,ar, ", file ar is", fileAr, ", this.conf.player.dimensions are ", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
+      console.log("[Scaler::calculateCrop] ar is " ,ratio, ", file ar is", fileAr, ", this.conf.player.dimensions are ", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
     
     var videoDimensions = {
       xFactor: 1,
@@ -129,15 +128,15 @@ class Scaler {
     //   console.log("[Scaler::calculateCrop] Player dimensions?", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
     // }
   
-    if( fileAr < ar ){
+    if( fileAr < ratio ){
       // imamo letterbox zgoraj in spodaj -> spremenimo velikost videa (a nikoli širše od ekrana)
       // letterbox -> change video size (but never to wider than monitor width)
 
-        videoDimensions.xFactor = Math.min(ar, playerAr) / fileAr;
+        videoDimensions.xFactor = Math.min(ratio, playerAr) / fileAr;
         videoDimensions.yFactor = videoDimensions.xFactor;
     }
     else {
-        videoDimensions.xFactor = fileAr / Math.min(ar, playerAr);
+        videoDimensions.xFactor = fileAr / Math.min(ratio, playerAr);
         videoDimensions.yFactor = videoDimensions.xFactor;
     }
     

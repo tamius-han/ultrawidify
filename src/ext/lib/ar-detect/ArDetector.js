@@ -6,6 +6,7 @@ import EdgeDetectQuality from './edge-detect/enums/EdgeDetectQualityEnum';
 import GuardLine from './GuardLine';
 import DebugCanvas from './DebugCanvas';
 import VideoAlignment from '../../../common/enums/video-alignment.enum';
+import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 
 class ArDetector {
 
@@ -192,7 +193,7 @@ class ArDetector {
     this.resetBlackLevel();
 
     // if we're restarting ArDetect, we need to do this in order to force-recalculate aspect ratio
-    this.conf.resizer.setLastAr({type: "auto", ar: null});
+    this.conf.resizer.setLastAr({type: AspectRatio.Automatic, ratio: null});
 
     this.canvasImageDataRowLength = cwidth << 2;
     this.noLetterboxCanvasReset = false;
@@ -213,9 +214,9 @@ class ArDetector {
     if (Debug.debug) {
       console.log("%c[ArDetect::setup] Starting automatic aspect ratio detection.", _ard_console_start);
     }
-    if (this.conf.resizer.lastAr.type === 'auto') {
+    if (this.conf.resizer.lastAr.type === AspectRatio.Automatic) {
       // ensure first autodetection will run in any case
-      this.conf.resizer.setLastAr({type: 'auto', ar: null});
+      this.conf.resizer.setLastAr({type: AspectRatio.Automatic, ratio: null});
     }
 
     // launch main() if it's currently not running:
@@ -475,7 +476,7 @@ class ArDetector {
     // poglejmo, če se je razmerje stranic spremenilo
     // check if aspect ratio is changed:
     var lastAr = this.conf.resizer.getLastAr();
-    if( lastAr.type == "auto" && lastAr.ar != null){
+    if( lastAr.type === AspectRatio.Automatic && lastAr.ar != null){
       // spremembo lahko zavrnemo samo, če uporabljamo avtomatski način delovanja in če smo razmerje stranic
       // že nastavili.
       //
@@ -509,7 +510,7 @@ class ArDetector {
       console.log("%c[ArDetect::processAr] Triggering aspect ratio change. New aspect ratio: ", _ard_console_change, trueAr);
     }
     
-    this.conf.resizer.setAr(trueAr, {type: "auto", ar: trueAr});
+    this.conf.resizer.setAr({type: AspectRatio.Automatic, ratio: trueAr}, {type: AspectRatio.Automatic, ratio: trueAr});
   }
 
   frameCheck(){
@@ -599,7 +600,7 @@ class ArDetector {
       // If we don't detect letterbox, we reset aspect ratio to aspect ratio of the video file. The aspect ratio could
       // have been corrected manually. It's also possible that letterbox (that was there before) disappeared.
       console.log("FAST LETTERBOX PRESENCE TEST FAILED, CALLING RESET")
-      this.conf.resizer.reset({type: "auto", ar: null});
+      this.conf.resizer.reset({type: AspectRatio.Automatic, ar: null});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
@@ -638,7 +639,7 @@ class ArDetector {
     // (since the new letterbox edge isn't present in our sample due to technical
     // limitations)
     if (this.fallbackMode && guardLineOut.blackbarFail) {
-      this.conf.resizer.reset({type: "auto", ar: null});
+      this.conf.resizer.reset({type: AspectRatio.Automatic, ar: null});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
@@ -664,7 +665,7 @@ class ArDetector {
           }
 
           if(guardLineOut.blackbarFail){
-            this.conf.resizer.reset({type: "auto", ar: null});
+            this.conf.resizer.reset({type: AspectRatio.Automatic, ar: null});
             this.guardLine.reset();
           }
 
