@@ -1,6 +1,7 @@
 import Debug from '../../conf/Debug';
 import VideoData from './VideoData';
 import RescanReason from './enums/RescanReason';
+import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 
 if(Debug.debug)
   console.log("Loading: PageInfo.js");
@@ -308,7 +309,7 @@ class PageInfo {
       console.log('[PageInfo::setAr] aspect ratio:', ar, "playing only?", playingOnly)
     }
 
-    if (ar !== 'auto') {
+    if (ar.type !== AspectRatio.Automatic) {
       this.stopArDetection(playingOnly);
     } else {
       if (Debug.debug) {
@@ -330,7 +331,7 @@ class PageInfo {
     }
 
     // TODO: find a way to only change aspect ratio for one video
-    if (ar === 'reset') {
+    if (ar === AspectRatio.Reset) {
       for (var vd of this.videos) {
         if (!playingOnly || vd.isPlaying()) {
           vd.resetAr();

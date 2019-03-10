@@ -1,5 +1,6 @@
 import Debug from '../../conf/Debug';
 import ExtensionMode from '../../../common/enums/extension-mode.enum'
+import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 
 if(Debug.debug)
   console.log("Loading: PlayerData.js");
@@ -199,7 +200,7 @@ class PlayerData {
 
         this.videoData.resizer.restore();
 
-        if (lastAr.type === 'original' || lastAr.type === 'auto') {
+        if (lastAr.type === 'original' || lastAr.type === AspectRatio.Automatic) {
           this.videoData.rebootArDetection();
         }
       } else {

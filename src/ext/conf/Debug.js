@@ -7,7 +7,7 @@ var Debug = {
   init: true,
   debug: true,
   // debug: false,
-  // keyboard: true,
+  keyboard: true,
   // debugResizer: true,
   // debugArDetect: true,
   // debugStorage: false,

@@ -154,7 +154,7 @@ export default {
     parseCommand(cmd) {
       let cmdstring = '';
       for(const c of cmd) {
-        cmdstring += `${c.action} ${c.arg}${c.persistent ? ' persistent' : ''}; `;
+        cmdstring += `${c.action} ${c.arg} ${c.customArg ? '' : c.customArg} | ${c.persistent ? ' persistent' : ''}; `;
       }
       return cmdstring;
     },
@@ -188,22 +188,22 @@ export default {
     deleteCommand(index) {
       this.action.cmd.splice(index,1);
     },
-    updateCommand(action, arg) {
+    updateCommand(action, arg, customArg) {
       this.addEditCommand = false;
       if (this.currentCmdIndex < 0) {
         this.action.cmd.push({
           cmd: action,
           arg: arg,
+          customArg: customArg,
         });
       } else {
         this.action.cmd[this.currentCmdIndex] = {
           cmd: action,
           arg: arg,
+          customArg: customArg,
         };
       }
       this.action = JSON.parse(JSON.stringify(this.action));
-
-      // this.$nextTick(function() {this.$forceUpdate()});
     }
   }
 }

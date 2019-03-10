@@ -180,7 +180,7 @@ class ActionHandler {
         for (var cmd of action.cmd) {
           if (action.scope === 'page') {
             if (cmd.action === "set-ar") {
-              this.pageInfo.setAr(cmd.arg);
+              this.pageInfo.setAr({type: cmd.arg, ratio: cmd.customArg});
             } else if (cmd.action === "change-zoom") {
               this.pageInfo.zoomStep(cmd.arg);
             } else if (cmd.action === "set-zoom") {
