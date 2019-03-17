@@ -159,6 +159,7 @@ export default {
     showEditActionPopup(event) {
       console.log("SHOW EDIT ACTION/APP:", event)
       this.editActionPopupVisible = true;
+      this.editActionIndex = event;
       this.anyOpenedPopups = true;
     },
     closePopups(){

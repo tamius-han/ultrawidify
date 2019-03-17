@@ -26,6 +26,7 @@ import CommandAddEdit from './command-add-edit';
 
 export default {
   created () {
+    console.log("Initializing command chain. Command:", JSON.parse(JSON.stringify(this.command)))
   },
   components: {
     CommandBlock,
