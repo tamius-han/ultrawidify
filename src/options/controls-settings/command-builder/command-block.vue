@@ -2,8 +2,8 @@
   <div class="block-main">
     <div class="button-main">
       <div class="button-action-display">
-        {{ActionList[action.cmd].name}}:&nbsp;{{
-          /*ActionList[action.cmd].args.find(x => x.arg === action.arg).arg ||*/ action.arg
+        {{ActionList[action.action].name}}:&nbsp;{{
+          (ActionList[action.action].args.find(x => x.arg === action.arg) || action).arg
         }}
       </div>
       <div class="actions flex flex-row flex-center flex-cross-center">
@@ -47,6 +47,7 @@ export default {
     }
   },
   created () {
+    console.log("Creating command block for action:", JSON.parse(JSON.stringify(this.action)), JSON.parse(JSON.stringify(ActionList)))
   },
   props: {
     action: Object,

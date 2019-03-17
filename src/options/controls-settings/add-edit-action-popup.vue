@@ -118,6 +118,12 @@ export default {
     }
   },
   created () {
+    console.log("Opening action edit popup. Action index:", this.actionIndex, "\nAction:", this.settings.active.actions[this.actionIndex]);
+    if (this.actionIndex >= 0) {
+      // this.currentCmdIndex = this.actionIndex;
+      this.action = this.settings.active.actions[this.actionIndex];
+      this.currentCmdIndex = this.actionIndex;
+    }
   },
   computed: {
     globalScopeOptions: function() {
@@ -145,6 +151,9 @@ export default {
   watch: {
     action: {
       deep: true,
+      handler: function(val) {
+        this.action = val;
+      }
     }
   },
   methods: {

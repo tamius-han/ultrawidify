@@ -16,7 +16,7 @@ import KeyboardShortcutParser from '../../../common/js/KeyboardShortcutParser'
 
 export default {
   props: {
-    shortcut: Object,
+    shortcut: Array, // note: array in unlikely case we ever try to implement choords
     waitingForPress: false,
   },
   data() {
@@ -25,8 +25,8 @@ export default {
     }
   },
   created(){
-    if (this.shortcut) {
-      this.shortcutText = KeyboardShortcutParser.parseShortcut(shortcut);
+    if (this.shortcut && this.shortcut.length) {
+      this.shortcutText = KeyboardShortcutParser.parseShortcut(this.shortcut[0]);
     }
   },
   methods: {
@@ -45,7 +45,7 @@ export default {
           onKeyUp: true,
           onKeyDown: false,
         };
-        this.$emit('set-shortcut', shortcut)
+        this.$emit('set-shortcut', [shortcut])
         this.$refs.input.blur();
         this.shortcutText = KeyboardShortcutParser.parseShortcut(shortcut);
       }
