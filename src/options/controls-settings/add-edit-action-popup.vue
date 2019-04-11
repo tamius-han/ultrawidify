@@ -81,13 +81,23 @@
                      @set-shortcut="updateScopes('page', 'shortcut', $event)"
       />
 
-      
+      <div class="flex flex-row flex-end">
+        <ShortcutButton class="flex b3 button"
+                        label="Save"
+                        @click.native="saveSettings()"
+        />
+        <ShortcutButton class="flex b3 button"
+                        label="Cancel"
+                        @click.native="cancel()"
+        />
+      </div>
       
     </div>
   </div>
 </template>
 
 <script>
+import ShortcutButton from '../../common/components/shortcut-button.vue' 
 import Stretch from '../../common/enums/stretch.enum';
 import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
 import CommandChain from './command-builder/command-chain';
@@ -103,6 +113,7 @@ export default {
     CommandChain: CommandChain,
     CommandAddEdit: CommandAddEdit,
     ScopeSettings,
+    ShortcutButton
   },
   data () {
     return {
@@ -186,21 +197,17 @@ export default {
       this.currentCmdIndex = -1;
       this.currentCmd = undefined;
       this.addEditCommand = true;
-      console.log("adding command")
     },
     editCommand(index) {
       this.currentCmdIndex = index;
       this.currentCmd = this.action.cmd[index];
       this.addEditCommand = true;
-      console.log("EDITING COMMAND")
     },
     deleteCommand(index) {
       this.action.cmd.splice(index,1);
     },
     updateCommand(action, arg, customArg) {
       this.addEditCommand = false;
-
-      console.log("update command received. args:", {action, arg, customArg})
 
       if (this.currentCmdIndex < 0) {
         this.action.cmd.push({
@@ -216,6 +223,17 @@ export default {
         };
       }
       this.action = JSON.parse(JSON.stringify(this.action));
+    },
+    saveSettings() {
+      this.settings.save();
+      this.close();
+    },
+    cancel() {
+      this.settings.rollback();
+      this.close();
+    },
+    close() {
+      this.$emit('close');
     }
   }
 }
@@ -264,6 +282,19 @@ export default {
 
 .w100 {
   width: 100%;
+}
+
+.button {
+  margin-left: 1em;
+  margin-right: 1em;
+  padding-left: 1em;
+  padding-right: 1em;
+  padding-top: 0.4em;
+  width: 4em;
+  text-align: center;
+  background-color: rgba(0,0,0,0.66);
+  color: #ffc;
+  height: 1.7em;
 }
 
 
