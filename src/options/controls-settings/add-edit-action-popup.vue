@@ -205,12 +205,12 @@ export default {
       if (this.currentCmdIndex < 0) {
         this.action.cmd.push({
           action: action,
-          arg: arg.arg,
+          arg: arg,
           customArg: customArg,
         });
       } else {
         this.action.cmd[this.currentCmdIndex] = {
-          cmd: action,
+          action: action,
           arg: arg,
           customArg: customArg,
         };

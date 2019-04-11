@@ -111,9 +111,10 @@ export default {
   },
   created () {
     if (this.action) {
-      this.selectedAction = this.action.cmd;
+      this.selectedAction = this.action.action;
+      console.log("THIS:ACTION", this.action)
       this.selectedArgument = {
-        name: ActionList[this.action.cmd].args.find(x => x.arg === this.action.arg) || ActionList[this.action.cmd].args.find(x => x.customArg),
+        name: ActionList[this.action.action].args.find(x => x.arg === this.action.arg) || ActionList[this.action.action].args.find(x => x.customArg),
         arg: this.action.arg
       }
       this.customArgumentValue = this.action.customArg;
