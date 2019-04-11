@@ -168,6 +168,10 @@ class Settings {
     this.set(this.active);
   }
 
+  async rollback() {
+    this.active = await this.get();
+  }
+
   getDefaultSettings() {
     return JSON.parse(JSON.stringify(this.default));
   }
