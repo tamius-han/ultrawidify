@@ -22,7 +22,7 @@
       >
       </CommandAddEdit>
 
-      <pre>
+      <pre style="height: 500px; overflow-y: scroll; overflow-x: hidden">
         ----- [ raw action data ] -----
         Action:
         {{action}}
@@ -199,10 +199,13 @@ export default {
     },
     updateCommand(action, arg, customArg) {
       this.addEditCommand = false;
+
+      console.log("update command received. args:", {action, arg, customArg})
+
       if (this.currentCmdIndex < 0) {
         this.action.cmd.push({
-          cmd: action,
-          arg: arg,
+          action: action,
+          arg: arg.arg,
           customArg: customArg,
         });
       } else {

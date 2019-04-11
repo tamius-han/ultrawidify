@@ -140,7 +140,7 @@ export default {
     },
     setArgument(arg) {
       console.log("SETTING ARG:", arg)
-      this.selectedArgument = ActionList[this.selectedAction].args.find(x => x.arg === arg);
+      this.selectedArgument = ActionList[this.selectedAction].args.find(x => x.arg == arg);
       this.customArgumentValue = undefined;
     },
     emitCommand() {
