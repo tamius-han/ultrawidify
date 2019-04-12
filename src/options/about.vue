@@ -1,7 +1,7 @@
 <template>
   <div>
     <h2>Ultrawidify - an aspect ratio fixer for youtube <small>(and netflix and various other sites)</small></h2>
-      <p>Ultrawidify version: {{}}. Created by Tamius Han (me).</p>
+      <p>Ultrawidify version: {{addonVersion}}. Created by Tamius Han (me).</p>
       <p><b>Having an issue?</b> Report <strike>undocumented features</strike> bugs using one of the following options:
         <ul>
           <li> <a target="_blank" href="https://github.com/xternal7/ultrawidify/issues"><b>Github</b></a> <b>(strongly preferred)</b><br/></li>
@@ -33,5 +33,10 @@
 
 <script>
 export default {
+  data() {
+    return {
+      addonVersion: browser.runtime.getManifest().version || chrome.runtime.getManifest().version,
+    }
+  }
 }
 </script>

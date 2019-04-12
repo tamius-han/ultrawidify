@@ -15,8 +15,10 @@
 </template>
 <script>
 export default {
-  props: {
-    'addonVersion': String
+  data() {
+    return {
+      addonVersion: browser.runtime.getManifest().version || chrome.runtime.getManifest().version,
+    }
   }
 }
 </script>

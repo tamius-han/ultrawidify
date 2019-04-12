@@ -110,6 +110,7 @@
         />
         <PerformancePanel v-if="selectedTab === 'performance-metrics'" 
                           :performance="performance" />
+        <AboutPanel />
       </div>
     </div>
   </div>
@@ -123,7 +124,8 @@ import VideoPanel from './panels/VideoPanel';
 import PerformancePanel from './panels/PerformancePanel';
 import Settings from '../ext/lib/Settings';
 import ExecAction from './js/ExecAction.js';
-import DefaultSettingsPanel from './panels/DefaultSettingsPanel'
+import DefaultSettingsPanel from './panels/DefaultSettingsPanel';
+import AboutPanel from './panels/AboutPanel';
 
 export default {
   data () {
@@ -164,6 +166,7 @@ export default {
     DefaultSettingsPanel,
     PerformancePanel,
     Debug,
+    AboutPanel,
   },
   methods: {
     async sleep(t) {

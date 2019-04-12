@@ -15,7 +15,7 @@ var hasVideos = false;
 var zoom_videoScale = 1;
 
 var _config; 
-var _changeAr_button_shortcuts = { "autoar":"none", AspectRatio.Reset:"none", "219":"none", "189":"none", "169":"none", "custom":"none" }
+var _changeAr_button_shortcuts = { "autoar":"none", 'reset':"none", "219":"none", "189":"none", "169":"none", "custom":"none" }
 
 var comms = new Comms();
 var settings = new Settings(undefined, () => updateConfig());
