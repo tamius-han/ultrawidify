@@ -88,7 +88,8 @@
                             @remove-event="showRemoveActionPopup($event)"
           >
           </ControlsSettings>
-
+          <About v-if="selectedTab === 'about'">
+          </About>
           <!-- Vice City/beggathon reference: https://youtu.be/Mn3YEJTSYs8?t=770 -->
         </div>
       </div>
@@ -111,6 +112,7 @@ import GeneralSettings from './general-settings';
 import ControlsSettings from './controls-settings/controls-settings';
 import AddEditActionPopup from './controls-settings/add-edit-action-popup';
 import ConfirmPopup from './common/ConfirmationPopup';
+import About from './about'
 
 import AutodetectionSettings  from './autodetection-settings';
 
@@ -141,6 +143,7 @@ export default {
     GeneralSettings,
     ControlsSettings,
     AddEditActionPopup,
+    About,
     AutodetectionSettings,
     ConfirmPopup,
   },
@@ -152,7 +155,7 @@ export default {
       } else if (newTab === 'autoar') {
         this.selectedTabTitle = 'Advanced autodetection settings';
       } else if (newTab === 'controls') {
-        this.selectedTabTitle = 'Controls';
+        this.selectedTabTitle = 'Actions';
       } else if (newTab === 'about') {
         this.selectedTabTitle = 'About';
       } else if (newTab === 'donate') {
