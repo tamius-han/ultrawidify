@@ -6,7 +6,7 @@
 
       </div>
       <div class="flex action-name">
-        <span class="icon" @click="deleteAction()">🗙</span>
+        <span class="icon" @click="removeAction()">🗙</span>
         <span class="icon" @click="editAction()">🖉</span> {{action.name}}
       </div>
     </div>

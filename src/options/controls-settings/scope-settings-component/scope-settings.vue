@@ -7,7 +7,7 @@
       <div class="flex flex-input flex-grow">
         <input type="checkbox"
                :checked="scopeOptions.show"
-               @input="$emit('show', $event.target.value)"
+               @input="$emit('show', $event.target.checked)"
         />
       </div>
     </div>

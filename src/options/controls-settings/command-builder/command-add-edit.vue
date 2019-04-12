@@ -78,20 +78,6 @@
         Save
       </div>
     </div>
-    <pre>
-    ----- [ COMMAND DATA ] -----
-    
-    :: Action:
-    {{action}}
-
-    :: Selected Action:
-    {{selectedAction}}
-    
-    :: Selected Argumennt:
-    {{selectedArgument}}
-    --- [ END COMMAND DATA ] ---  
-  </pre>
-
   </div>
 </template>
 

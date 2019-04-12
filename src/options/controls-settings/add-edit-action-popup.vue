@@ -1,6 +1,6 @@
 <template>
   <div class="full-screen"
-       @click="$emit('close')"
+       @click="cancel()"
   >
     <div class="dialog-box flex flex-column" @click="$event.stopPropagation()">
       <div class="window-title">
@@ -21,13 +21,6 @@
                       @close-popup="addEditCommand=false"
       >
       </CommandAddEdit>
-
-      <pre style="height: 500px; overflow-y: scroll; overflow-x: hidden">
-        ----- [ raw action data ] -----
-        Action:
-        {{action}}
-        --- [ end raw action data ] ---
-      </pre>
 
       <div class="flex flex-column">
         <div class="flex flex-row">
@@ -185,13 +178,14 @@ export default {
       this.action.label = newLabel;
     },
     updateScopes(scope, prop, value) {
-      if(!this.action.scopes[scope]) {
+      console.log("updating scope", scope, "for prop", prop, ". New value:", value)
+      if(this.action.scopes[scope] === undefined) {
         this.action.scopes[scope] = {};
       }
       this.action.scopes[scope][prop] = value;
 
       // TODO: remove for release
-      this.action = JSON.parse(JSON.stringify(this.action))
+      // this.action = JSON.parse(JSON.stringify(this.action))
     },
     addNewCommand() {
       this.currentCmdIndex = -1;
@@ -245,7 +239,7 @@ export default {
   background-color: rgba(0,0,0,0.5);
   display: flex;
   align-items: center;
-  justify-items: center;
+  justify-content: center;
   width: 100%;
   height: 100%;
   position: absolute;

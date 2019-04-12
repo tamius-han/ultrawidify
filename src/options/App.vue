@@ -11,6 +11,11 @@
                           @close="closePopups()"
       >
       </AddEditActionPopup>
+      <ConfirmPopup v-if="confirmationDialogText"
+                    :dialogText="confirmationDialogText"
+                    @close="closePopups()"
+                    @confirm="confirm()"
+      />
     </div>
 
     <!-- ACTUAL PAGE -->
@@ -21,7 +26,7 @@
       <div class="header flex flex-column">
         <div class="flex extension-name text-sink-anchor">
           <div class="text-sink title-sink-pad w100 text-center">
-            Ultrawidify Vue
+            Ultrawidify
           </div>
         </div>
 
@@ -39,11 +44,11 @@
               >
               Autodetection
           </div>
-          <div class="menu-item"
+          <div class="menu-item experimental"
               :class="{'selected-tab': selectedTab === 'controls'}"
               @click="setSelectedTab('controls')"
               >
-              Controls
+              Actions
           </div>
           <div class="menu-item"
               :class="{'selected-tab': selectedTab === 'about'}"
@@ -80,15 +85,11 @@
           <ControlsSettings v-if="selectedTab === 'controls'"
                             :settings="settings"
                             @edit-event="showEditActionPopup($event)"
+                            @remove-event="showRemoveActionPopup($event)"
           >
           </ControlsSettings>
 
           <!-- Vice City/beggathon reference: https://youtu.be/Mn3YEJTSYs8?t=770 -->
-          <div style="margin-top: 160px;">
-            TODO  - remove this whne releasing, this is only for debug info.<br/>
-            Selected tab: {{selectedTab}} <small>Title: {{selectedTabTitle}}</small><br/>
-            Any  open popups: {{anyOpenedPopups}}
-          </div>
         </div>
       </div>
     </div>
@@ -109,6 +110,7 @@ import Settings from '../ext/lib/Settings.js';
 import GeneralSettings from './general-settings';
 import ControlsSettings from './controls-settings/controls-settings';
 import AddEditActionPopup from './controls-settings/add-edit-action-popup';
+import ConfirmPopup from './common/ConfirmationPopup';
 
 import AutodetectionSettings  from './autodetection-settings';
 
@@ -124,6 +126,10 @@ export default {
       editActionPopupVisible: false,
       editActionIndex: -1,
       anyOpenedPopups: false,
+      removeConfirmationDialog: '',
+      messages: {
+        removeAction: "Are you sure you want to remove this action?"
+      },
     }
   },
   async created () {
@@ -136,6 +142,7 @@ export default {
     ControlsSettings,
     AddEditActionPopup,
     AutodetectionSettings,
+    ConfirmPopup,
   },
   methods: {
     setSelectedTab(newTab) {
@@ -162,9 +169,24 @@ export default {
       this.editActionIndex = event;
       this.anyOpenedPopups = true;
     },
+    showRemoveActionPopup(indexToRemove) {
+      this.editActionIndex = indexToRemove;
+      this.anyOpenedPopups = true;
+      this.confirmationDialogText = this.messages.removeAction;
+    },
     closePopups(){
       this.anyOpenedPopups = false;
       this.editActionPopupVisible = false;
+      this.confirmationDialogText = '';
+    },
+    confirm(){
+      if (this.confirmationDialogText === this.messages.removeAction) {
+        this.settings.active.actions.splice(this.editActionIndex, 1);
+        this.settings.save();
+      }
+
+
+      this.closePopups();
     }
   }
 };
@@ -182,6 +204,9 @@ export default {
   width: 100%;
   height: 100%;
   z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-content: center;
 }
 
 .blur {
