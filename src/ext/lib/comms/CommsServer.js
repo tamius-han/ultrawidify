@@ -160,7 +160,19 @@ class CommsServer {
         console.log("[CommsServer.js::processReceivedMessage] Message has 'forward to content script' flag set. Forwarding message as is. Message:", message);
       }
 
-      this.sendToFrame(message, message.targetFrame);
+      this.sendToFrame(message, message.targetTab, message.targetFrame);
+    }
+    if (message.forwardToAll) {
+      if (Debug.debug && Debug.comms) {
+        console.log("[CommsServer.js::processReceivedMessage] Message has 'forward to all' flag set. Forwarding message as is. Message:", message);
+      }
+      this.sendToAll(message);
+    }
+    if (message.forwardToActive) {
+      if (Debug.debug && Debug.comms) {
+        console.log("[CommsServer.js::processReceivedMessage] Message has 'forward to active' flag set. Forwarding message as is. Message:", message);
+      }
+      this.sendToActive(message)
     }
 
     if (message.cmd === 'announce-zoom') {
@@ -175,19 +187,14 @@ class CommsServer {
     }
 
     if (message.cmd === 'get-current-site') {
-      console.log("CCCCC - ss");
-      console.log("[find server] set-current-site — getting site", this.server.getVideoTab(), this.toObject(this.server.getVideoTab()))
       port.postMessage({
         cmd: 'set-current-site',
         site: this.server.getVideoTab(),
         tabHostname: await this.getCurrentTabHostname()
       });
-      console.log("CCCCC -s as")
     }
     if (message.cmd === 'popup-set-selected-tab') {
-      console.log("CCCCaa")
       this.server.setSelectedTab(message.selectedMenu, message.selectedSubitem);
-      console.log("CCCCbb")
     }
 
     if (message.cmd === 'get-config') {
