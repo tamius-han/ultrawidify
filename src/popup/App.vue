@@ -89,7 +89,7 @@
 
       <!-- PANELS/CONTENT -->
       <div id="tab-content" class="flex-grow" style="max-width: 480px !important;">
-        <b>This is some debug stuff. Please remove before release.</b> Site: {{site.host}}<br/>
+        <b>This is some debug stuff. Please remove before release.</b> Site: {{site && site.host}}<br/>
         <small>NOTE: in case you're using nightly builds, this extension could be completely broken.
         It's also possible that everything is getting logged excessively, which may result in 
         degraded performance. If settings don't persist, check whether Debug.flushStorageSettings is set to true.</small>
@@ -106,11 +106,11 @@
                               class=""
                               :settings="settings"
                               :scope="selectedTab"
-                              :site="site.host"
+                              :site="site && site.host"
         />
         <PerformancePanel v-if="selectedTab === 'performance-metrics'" 
                           :performance="performance" />
-        <AboutPanel />
+        <AboutPanel v-if="selectedTab === 'about'" />
       </div>
     </div>
   </div>
@@ -146,20 +146,28 @@ export default {
   },
   async created() {
     await this.settings.init();
+    console.log("\n\n\n\n\n\n\nset init")
     this.port.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
     this.execAction.setSettings(this.settings);
 
-    // get info about current site from background script
-    while (true) {
-      this.getSite();
-      await this.sleep(5000);
-    } 
     // ensure we'll clean player markings on popup close
     window.addEventListener("unload", () => {
-      port.postMessage({
+      console.log("UNLOAD!!das!!")
+      this.port.postMessage({
         cmd: 'unmark-player',
+        forwardToAll: true,
       });
     });
+
+    // get info about current site from background script
+    while (true) {
+      try {
+        this.getSite();
+      } catch (e) {
+
+      }
+      await this.sleep(5000);
+    } 
   },
   components: {
     VideoPanel,
@@ -252,6 +260,7 @@ export default {
 
           this.port.postMessage({
             cmd: 'mark-player',
+            forwardToContentScript: true,
             targetTab: videoTab.id,
             targetFrame: frame,
             name: fs.name,
