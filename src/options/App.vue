@@ -108,9 +108,9 @@ import ObjectCopy from '../ext/lib/ObjectCopy.js';
 
 import Settings from '../ext/lib/Settings.js';
 
-import GeneralSettings from './general-settings';
+import GeneralSettings from './GeneralSettings';
 import ControlsSettings from './controls-settings/controls-settings';
-import AddEditActionPopup from './controls-settings/add-edit-action-popup';
+import AddEditActionPopup from './controls-settings/AddEditActionPopup';
 import ConfirmPopup from './common/ConfirmationPopup';
 import About from './about'
 

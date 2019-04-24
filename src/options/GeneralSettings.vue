@@ -128,7 +128,7 @@
 </template>
 
 <script>
-import Button from '../common/components/button';
+import Button from '../common/components/Button';
 import Stretch from '../common/enums/stretch.enum';
 import ExtensionMode from '../common/enums/extension-mode.enum';
 import VideoAlignment from '../common/enums/video-alignment.enum';

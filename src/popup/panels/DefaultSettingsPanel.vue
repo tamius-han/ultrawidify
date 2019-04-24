@@ -96,7 +96,7 @@
 <script>
 import ExecAction from '../js/ExecAction'
 import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser'
-import ShortcutButton from '../../common/components/shortcut-button'
+import ShortcutButton from '../../common/components/ShortcutButton'
 
 export default {
   data() {

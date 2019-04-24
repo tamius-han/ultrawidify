@@ -21,8 +21,8 @@
 </template>
 
 <script>
-import CommandBlock from './command-block';
-import CommandAddEdit from './command-add-edit';
+import CommandBlock from './CommandBlock';
+import CommandAddEdit from './CommandAddEdit';
 
 export default {
   created () {
