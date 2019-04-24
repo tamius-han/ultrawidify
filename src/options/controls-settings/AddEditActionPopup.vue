@@ -90,12 +90,12 @@
 </template>
 
 <script>
-import ShortcutButton from '../../common/components/shortcut-button.vue' 
+import ShortcutButton from '../../common/components/ShortcutButton.vue' 
 import Stretch from '../../common/enums/stretch.enum';
 import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
-import CommandChain from './command-builder/command-chain';
-import CommandAddEdit from './command-builder/command-add-edit';
-import ScopeSettings from './scope-settings-component/scope-settings';
+import CommandChain from './command-builder/CommandChain';
+import CommandAddEdit from './command-builder/CommandAddEdit';
+import ScopeSettings from './ScopeSettings-component/ScopeSettings';
 
 export default {
   props: {

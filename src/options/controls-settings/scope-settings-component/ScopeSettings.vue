@@ -39,14 +39,15 @@
 </template>
 
 <script>
-import SetShortcutButton from './set-shortcut-button';
+import SetShortcutButton from './SetShortcutButton.vue';
+
 
 export default {
+  components: {
+    SetShortcutButton
+  },
   props: {
     scopeOptions: Object,
-  },
-  components: {
-    SetShortcutButton,
   },
   methods: {
     setLabel(label) {

@@ -112,9 +112,9 @@
 </template>
 
 <script>
-import Button from '../../common/components/button';
+import Button from '../../common/components/Button';
 import Stretch from '../../common/enums/stretch.enum';
-import ActionAlt from '../../common/components/action-alt';
+import ActionAlt from '../../common/components/ActionAlt';
 
 export default {
   components: {
