@@ -109,12 +109,12 @@ import ObjectCopy from '../ext/lib/ObjectCopy.js';
 import Settings from '../ext/lib/Settings.js';
 
 import GeneralSettings from './GeneralSettings';
-import ControlsSettings from './controls-settings/controls-settings';
+import ControlsSettings from './controls-settings/ControlsSettings';
 import AddEditActionPopup from './controls-settings/AddEditActionPopup';
 import ConfirmPopup from './common/ConfirmationPopup';
 import About from './about'
 
-import AutodetectionSettings  from './autodetection-settings';
+import AutodetectionSettings  from './AutodetectionSettings';
 
 
 export default {

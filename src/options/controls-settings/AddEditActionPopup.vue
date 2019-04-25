@@ -95,7 +95,7 @@ import Stretch from '../../common/enums/stretch.enum';
 import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
 import CommandChain from './command-builder/CommandChain';
 import CommandAddEdit from './command-builder/CommandAddEdit';
-import ScopeSettings from './ScopeSettings-component/ScopeSettings';
+import ScopeSettings from './scope-settings-component/ScopeSettings';
 
 export default {
   props: {
