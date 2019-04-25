@@ -76,25 +76,19 @@ class Scaler {
       return {error: "no_video"};
     }
 
-
-    // če je 'ar' string, potem bomo z njim opravili v legacy wrapperju. Seveda obstaja izjema
-    // if 'ar' is string, we'll handle that in legacy wrapper, with one exception
-
     if (ar.type === AspectRatio.Reset){
       return {xFactor: 1, yFactor: 1}
     }
 
-    var ratio = this.modeToAr(ar);
-
     // handle fuckie-wuckies
-    if (! ratio){
+    if (! ar.ratio){
       if(Debug.debug)
-        console.log("[Scaler::calculateCrop] no ar?", ratio, " -- we were given this mode:", ar);
-      return {error: "no_ar", ratio: ratio};
+        console.log("[Scaler::calculateCrop] no ar?", ar.ratio, " -- we were given this mode:", ar);
+      return {error: "no_ar", ratio: ar.ratio};
     }
 
     if(Debug.debug)
-      console.log("[Scaler::calculateCrop] trying to set ar. args are: ar->",ratio,"; this.conf.player.dimensions->",this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
+      console.log("[Scaler::calculateCrop] trying to set ar. args are: ar->",ar.ratio,"; this.conf.player.dimensions->",this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
 
     if( (! this.conf.player.dimensions) || this.conf.player.dimensions.width === 0 || this.conf.player.dimensions.height === 0 ){
       if(Debug.debug)
@@ -110,12 +104,12 @@ class Scaler {
     var fileAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
     var playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
 
-    if(ar.type == AspectRatio.Initial || !ratio)
-      ratio = fileAr;
+    if(ar.type === AspectRatio.Initial || !ar.ratio)
+      ar.ratio = fileAr;
 
   
     if(Debug.debug)
-      console.log("[Scaler::calculateCrop] ar is " ,ratio, ", file ar is", fileAr, ", this.conf.player.dimensions are ", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
+      console.log("[Scaler::calculateCrop] ar is " ,ar.ratio, ", file ar is", fileAr, ", this.conf.player.dimensions are ", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
     
     var videoDimensions = {
       xFactor: 1,
@@ -128,15 +122,15 @@ class Scaler {
     //   console.log("[Scaler::calculateCrop] Player dimensions?", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
     // }
   
-    if( fileAr < ratio ){
+    if( fileAr < ar.ratio ){
       // imamo letterbox zgoraj in spodaj -> spremenimo velikost videa (a nikoli širše od ekrana)
       // letterbox -> change video size (but never to wider than monitor width)
 
-        videoDimensions.xFactor = Math.min(ratio, playerAr) / fileAr;
+        videoDimensions.xFactor = Math.min(ar.ratio, playerAr) / fileAr;
         videoDimensions.yFactor = videoDimensions.xFactor;
     }
     else {
-        videoDimensions.xFactor = fileAr / Math.min(ratio, playerAr);
+        videoDimensions.xFactor = fileAr / Math.min(ar.ratio, playerAr);
         videoDimensions.yFactor = videoDimensions.xFactor;
     }
     

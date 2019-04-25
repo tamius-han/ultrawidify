@@ -8,7 +8,7 @@ var Debug = {
   debug: true,
   // debug: false,
   keyboard: true,
-  // debugResizer: true,
+  debugResizer: true,
   // debugArDetect: true,
   // debugStorage: false,
   // debugStorage: true,
