@@ -75,7 +75,7 @@ class Resizer {
   calculateRatioForLegacyOptions(ar){
     // also present as modeToAr in Scaler.js
     if (ar.ratio) {
-      return ar.ratio;
+      return ar;
     }
     // Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". 
     // Približevanje opuščeno.
@@ -83,7 +83,7 @@ class Resizer {
     var ratioOut;
 
     if (!this.conf.video) {
-      if(Debug.debug){
+      if (Debug.debug) {
         console.log("[Scaler.js::modeToAr] No video??",this.conf.video, "killing videoData");
       }
       this.conf.destroy();
@@ -91,10 +91,9 @@ class Resizer {
     }
 
     
-    if(! this.conf.player.dimensions ){
+    if (! this.conf.player.dimensions) {
       ratioOut = screen.width / screen.height;
-    }
-    else {
+    } else {
       ratioOut = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
     }
     
@@ -107,24 +106,21 @@ class Resizer {
     var fileAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
       
     if (ar.type === AspectRatio.FitWidth){
-      ratioOut > fileAr ? ratioOut : fileAr
-      ar.ratio = ratioOut;
-      return ratioOut;
+      ar.ratio = ratioOut > fileAr ? ratioOut : fileAr;
     }
     else if(ar.type === AspectRatio.FitHeight){
-      ratioOut < fileAr ? ratioOut : fileAr
-      ar.ratio = ratioOut;
-      return ratioOut;
+      ar.ratio = ratioOut < fileAr ? ratioOut : fileAr;
     }
     else if(ar.type === AspectRatio.Reset){
       if(Debug.debug){
-        console.log("[Scaler.js::modeToAr] Using original aspect ratio -", fileAr)
+        console.log("[Scaler.js::modeToAr] Using original aspect ratio -", fileAr);
       }
-      ar.ar = fileAr;
-      return fileAr;
+      ar.ratio = fileAr;
+    } else {
+      return null;
     }
 
-    return null;
+    return ar;
   }
 
 
@@ -141,17 +137,19 @@ class Resizer {
       return;
     }
 
-    if(lastAr) {
+    if (lastAr) {
       this.lastAr = lastAr;
     } else {
-      if(isNaN(ar)){
-        // NOTE: "fitw" "fith" and "reset" should ignore ar.ratio bit, but
-        // I'm not sure whether they do. Check that.
-        this.lastAr = {type: ar.type, ratio: ar.ratio}
-        this.calculateRatioForLegacyOptions(ar);
-      } else {
-        throw 'Ar was passed as a number rather than an object. You missed one.'
+      // NOTE: "fitw" "fith" and "reset" should ignore ar.ratio bit, but
+      // I'm not sure whether they do. Check that.
+      ar = this.calculateRatioForLegacyOptions(ar);
+      if (! ar) {
+        if (Debug.debug && Debug.debugResizer) {
+          console.log(`[Resizer::setAr] <${this.resizerId}> Something wrong with ar or the player. Doing nothing.`);
+        }
+        return;
       }
+      this.lastAr = {type: ar.type, ratio: ar.ratio}
     }
 
     if (this.extensionMode === ExtensionMode.Basic && !PlayerData.isFullScreen() && ar.type !== AspectRatio.Reset) {

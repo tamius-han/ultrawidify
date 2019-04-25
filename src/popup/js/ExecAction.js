@@ -21,7 +21,8 @@ class ExecAction {
           targetFrame: frame,
           frame: frame,
           cmd: cmd.action,
-          arg: cmd.arg
+          arg: cmd.arg,
+          customArg: cmd.customArg
         }
         Comms.sendMessage(message);
       } else if (scope === 'site') {
