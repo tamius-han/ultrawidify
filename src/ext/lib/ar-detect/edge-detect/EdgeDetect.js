@@ -539,60 +539,300 @@ class EdgeDetect{
   // helper functions
 
 
-  _columnTest2(image, top, bottom, colsIn, colsOut, reverseSearchDirection) {
-    let tmpI;
-    let edgeDetectCount = 0;
-    if(reverseSearchDirection){
-      for(var i = bottom - this.conf.canvasImageDataRowLength; i >= top; i-= this.conf.canvasImageDataRowLength){
-        for(let c = 0; c < colsIn.length; c++){
-          if (colsIn[c].blackFound && colsIn[c].imageFound) {
-            // če smo našli obe točki, potem ne pregledujemo več.
-            // if we found both points, we don't continue anymore
+  // Column tests
+  // Here's a fun thing. I reckon this bit of code could potentially run often enough that L1/L2 cache misses
+  // could really start to add up (especially if I figure the RAM usage problem which causes insane RAM usage
+  // if you run this 30-60 times a second)
+  // 
+  // so here's two functions. _columnTest3_cross has some optimization that tries to minimize cache misses, 
+  // but the problem is that I don't actually know 100% what I'm doing so it might be pointless. It scans the
+  // image array line-by-line, rather than column-by-column. This has some advantages (e.g. we can end the
+  // search for letterbox early), and some disadvantages (the code is a mess)
+  //
+  // some time later down the line, I might actually implement _columnTest3_singleCol, which does shit in the
+  // opposite direction (column-by-column rather than row-by-row)
+  _columnTest3_cross(image, top, bottom, colsIn, colsOut, reverseSearchDirection) {
+    // this function is such a /r/badcode bait.
+    //
+    // this is the shit we do to avoid function calls and one extra if sentence/code repetition
+    // pretend I was drunk when I wrote this
+    let tmpi, lastTmpI = 0, edgeDetectCount = 0, edgeDetectColsLeft = colsIn.length;
+    let tmpVal = 0;
+    let increment, arrayStart, arrayEnd;
+
+    let loopCond, loopComparator, loopIndex; 
+
+    if (reverseSearchDirection) {
+      increment = -this.conf.canvasImageDataRowLength;
+      arrayStart = bottom - this.conf.canvasImageDataRowLength;
+      arrayEnd = top;
+
+      // this is a hack so we get pointer-like things rather than values
+      loopCond = {compare: {i: arrayEnd}, index: {i: 0}}
+      loopComparator = loopCond.index;
+      loopIndex = loopCond.compare;
+    } else {
+      increment = this.conf.canvasImageDataRowLength;
+      arrayStart = top;
+      arrayEnd = bottom;
+
+      // this is a hack so we get pointer-like things rather than values
+      loopCond = {compare: {i: arrayEnd}, index: {i: 0}}
+      loopComparator = loopCond.compare;
+      loopIndex = loopCond.index;
+    }
+
+    // keep temporary column data in a separate column array:
+    const colsTmp = new Array(colsIn.length);
+    for (let i = 0; i < colsTmp.length; i++) {
+      colsTmp[i] = {
+        blackFound: false,
+        imageFound: false,    // misleading name — also true if we ran over gradientSampleSize pixels from image
+                              // whether that actually count as an image depends on how aggressive gradientDetection is
+        lastValue: -1,
+        diffIndex: 0,
+        diffs: new Array(this.settings.active.arDetect.blackbar.gradientSampleSize).fill(0)
+      }
+    }
+
+    // Things to keep in mind: loopCond.index.i is always index.
+    // loopIndex.i could actually be loopCond.compare.i (comparator) and
+    // loopComparator.i could actually be loopCond.index.i (real index)
+    for (loopCond.index.i = arrayStart; loopIndex.i < loopComparator.i; loopCond.index.i += increment) {
+      
+      // če smo našli toliko mejnih točk, da s preostalimi stolpci ne moremo doseči naše meje, potem prenehamo
+      // if we found enough edge points so that we couldn't top that limit with remaining columns, then we stop
+      // searching forward
+      edgeDetectColsLeft -= edgeDetectCount;
+      if (edgeDetectColsLeft < this.colsThreshold || edgeDetectCount >= this.colsThreshold) {
+        break;
+      }
+      edgeDetectCount = 0; 
+
+
+      // če v eni vrstici dobimo dovolj točk, ki grejo čez našo mejo zaznavanja, potem bomo nehali
+      // the first line that goes over our detection treshold wins
+      for (let c = 0; c < colsIn.length; c++) {
+
+        // there's really no point in checking this column if we already found image point
+        if (colsTmp[c].imageFound) {
+          continue;
+        }
+
+        tmpI = loopCond.index.i + (colsIn[c].value << 2);
+
+        // najprej  preverimo, če je piksel presegel mejo črnega robu
+        // first we check whether blackbarThreshold was exceeded
+        if (! colsTmp[c].blackFound) {
+          if( image[tmpI]     > this.blackbarThreshold || 
+              image[tmpI + 1] > this.blackbarThreshold ||
+              image[tmpI + 2] > this.blackbarThreshold ){
+          
+            colsOut[c].black = ~~(i / this.conf.canvasImageDataRowLength); // note — this value is off by one
+            colsOut[c].col = colsIn[c].value;
+            colsTmp[c].blackFound = true;
+
+            // prisili, da se zanka izvede še enkrat ter preveri,
+            // ali trenuten piksel preseže tudi imageThreshold
+            //
+            // force the loop to repeat this step and check whether
+            // current pixel exceeds imageThreshold as well
+            c--;
             continue;
           }
-          tmpI = i + (colsIn[c].value << 2);
+        } else {
+          // če smo dobili piksel, ki presega blackbar, preverimo do gradientSampleSize dodatnih pikslov.
+          // ko dobimo piksel čez imageTreshold oz. gradientSampleSize, nastavimo imageFound. Ali je to veljavno
+          // bomo preverili v koraku analize, ki sledi kasneje
+          //
+          // if we found a pixel that exceeds blackbar, we check up to gradientSampleSize additional pixels.
+          // when we get a pixel over imageTreshold or gradientSampleSize, we flip the imageFound. We'll bother
+          // with whether that's legit in analysis step, which will follow soon (tm)
 
-          // najprej  preverimo, če je piksel presegel mejo črnega robu
-          // first we check whether blackbarThreshold was exceeded
-          if(! colsIn[c].blackFound) {
-            if( image[tmpI]     > this.blackbarThreshold || 
-                image[tmpI + 1] > this.blackbarThreshold ||
-                image[tmpI + 2] > this.blackbarThreshold ){
-              
-              colsOut[c].black = (i / this.conf.canvasImageDataRowLength) - 1;
-              colsOut[c].col = colsIn[c].value;
-              colsIn[c].blackFound = 1;
+          if (image[tmpI]     > this.imageThreshold || 
+              image[tmpI + 1] > this.imageThreshold ||
+              image[tmpI + 2] > this.imageThreshold ){
+          
+            colsOut[c].image = ~~(i / this.conf.canvasImageDataRowLength)
 
-              // prisili, da se zanka izvede še enkrat ter preveri,
-              // ali trenuten piksel preseže tudi imageThreshold
-              //
-              // force the loop to repeat this step and check whether
-              // current pixel exceeds imageThreshold as well
-              c--;
-              continue;
-            }
-          } else {
-            if (colsIn[c].blackFound++ > this.settings.active.arDetect.blackbar.gradientSampleSize) {
-              colsIn[c].imageFound = true;
-              continue;
-            }
-            // zatem preverimo, če je piksel presegel mejo, po kateri sklepamo, da 
-            // predstavlja sliko. Preverimo samo, če smo v stolpcu že presegli 
-            // blackThreshold
-            //
-            // then we check whether pixel exceeded imageThreshold
-            if (image[tmpI]     > this.imageThreshold || 
-                image[tmpI + 1] > this.imageThreshold ||
-                image[tmpI + 2] > this.imageThreshold ){
             
-              colsOut[c].image = (i / this.conf.canvasImageDataRowLength)
-              colsIn[c].imageFound = true;
-              edgeDetectCount++;
+            colsTmp[c].imageFound = true;
+            edgeDetectCount++;
+          }
+
+          // v vsakem primeru shranimo razliko med prejšnjim in trenutnim pikslom za kasnejšo analizo
+          // in any case, save the difference between the current and the previous pixel for later analysis
+
+          colsTmp[c].lastValue = image[tmpI] + image[tmpI+1] + image[tmpI+2];
+          if (colsTmp[c].diffIndex !== 0) {
+            colsTmp[c].diffs[colsTmp.diffIndex] = colsTmp[c].lastValue - colsTmp[c].diffs[diffIndex - 1];
+          }
+
+          cols[c].diffIndex++;
+          if (colsTmp[c].diffIndex > this.settings.active.arDetect.blackbar.gradientSampleSize) {
+            colsTmp[c].imageFound = true;
+            continue;
+          }
+          
+        }
+      }
+    }
+
+    
+  }
+
+  _columnTest3_singleCol(image, top, bottom, colsIn, colsOut, reverseSearchDirection) {
+
+  }
+
+  _columnTest2(image, top, bottom, colsIn, colsOut, reverseSearchDirection) {
+    let tmpI;
+    let lastTmpI = 0;
+    let edgeDetectCount = 0;
+    for(const c in colsOut) {
+      c.diffs = [];
+    }
+    if (reverseSearchDirection) {
+      if (this.settings.active.arDetect.blackbar.antiGradientMode === AntiGradientMode.Disabled) {
+        // todo: remove gradient detection code from this branch
+        for(var i = bottom - this.conf.canvasImageDataRowLength; i >= top; i-= this.conf.canvasImageDataRowLength){
+          for(let c = 0; c < colsIn.length; c++){
+            if (colsIn[c].blackFound && colsIn[c].imageFound) {
+              // če smo našli obe točki, potem ne pregledujemo več.
+              // if we found both points, we don't continue anymore
+              continue;
+            }
+            tmpI = i + (colsIn[c].value << 2);
+  
+            // najprej  preverimo, če je piksel presegel mejo črnega robu
+            // first we check whether blackbarThreshold was exceeded
+            if(! colsIn[c].blackFound) {
+              if( image[tmpI]     > this.blackbarThreshold || 
+                  image[tmpI + 1] > this.blackbarThreshold ||
+                  image[tmpI + 2] > this.blackbarThreshold ){
+                
+                colsOut[c].black = (i / this.conf.canvasImageDataRowLength) - 1;
+                colsOut[c].col = colsIn[c].value;
+                colsIn[c].blackFound = 1;
+  
+                // prisili, da se zanka izvede še enkrat ter preveri,
+                // ali trenuten piksel preseže tudi imageThreshold
+                //
+                // force the loop to repeat this step and check whether
+                // current pixel exceeds imageThreshold as well
+                c--;
+                continue;
+              }
+            } else {
+              if (colsIn[c].blackFound++ > this.settings.active.arDetect.blackbar.gradientSampleSize) {
+                colsIn[c].imageFound = true;
+                continue;
+              }
+              // zatem preverimo, če je piksel presegel mejo, po kateri sklepamo, da 
+              // predstavlja sliko. Preverimo samo, če smo v stolpcu že presegli 
+              // blackThreshold
+              //
+              // then we check whether pixel exceeded imageThreshold
+              if (image[tmpI]     > this.imageThreshold || 
+                  image[tmpI + 1] > this.imageThreshold ||
+                  image[tmpI + 2] > this.imageThreshold ){
+              
+                colsOut[c].image = (i / this.conf.canvasImageDataRowLength)
+                colsIn[c].imageFound = true;
+                edgeDetectCount++;
+              }
             }
           }
+          if(edgeDetectCount >= this.colsThreshold) {
+            break;
+          }
         }
-        if(edgeDetectCount >= this.colsThreshold) {
-          break;
+      } else {
+        // anti-gradient detection
+        for(var i = bottom - this.conf.canvasImageDataRowLength; i >= top; i-= this.conf.canvasImageDataRowLength){
+          for(let c = 0; c < colsIn.length; c++){
+            if (colsIn[c].blackFound && colsIn[c].imageFound) {
+              // če smo našli obe točki, potem ne pregledujemo več.
+              // if we found both points, we don't continue anymore.
+
+              if (colsIn[c].analysisDone) {
+                continue;
+              }
+
+              if (colsOut[c].diffs.length < 5) {
+                colsIn[c].analysisDone = true;
+              }
+
+              // average analysis — if steps between pixels are roughly equal, we're looking at a gradient
+              let sum_avg = 0;
+              for (let i = 2; i <= colsOut[c].diffs; i++) {
+                sum_avg += colsOut[c].diffs[i-1] - colsOut[c].diffs[i];
+              }
+              sum_avg /= colsOut[c].diffs.length - 2;
+              
+              for (let i = 2; i <= colsOut[c].diffs; i++) {
+                sum_avg += colsOut[c].diffs[i-1] - colsOut[c].diffs[i];
+              }
+
+              continue;
+            }
+
+            tmpI = i + (colsIn[c].value << 2);
+  
+            // najprej  preverimo, če je piksel presegel mejo črnega robu
+            // first we check whether blackbarThreshold was exceeded
+            if(! colsIn[c].blackFound) {
+              if( image[tmpI]     > this.blackbarThreshold || 
+                  image[tmpI + 1] > this.blackbarThreshold ||
+                  image[tmpI + 2] > this.blackbarThreshold ){
+                
+                colsOut[c].black = (i / this.conf.canvasImageDataRowLength) - 1;
+                colsOut[c].col = colsIn[c].value;
+                colsIn[c].blackFound = 1;
+  
+                // prisili, da se zanka izvede še enkrat ter preveri,
+                // ali trenuten piksel preseže tudi imageThreshold
+                //
+                // force the loop to repeat this step and check whether
+                // current pixel exceeds imageThreshold as well
+                c--;
+                colsOut[c].lastImageValue = image[tmpI] + image[tmpI+1] + image[tmpI+2];
+                continue;
+              }
+            } else {
+              // če smo dobili piksel, ki presega blackbar, preverimo do gradientSampleSize dodatnih pikslov.
+              // ko dobimo piksel čez imageTreshold oz. gradientSampleSize, izračunamo ali gre za gradient.
+              if (colsIn[c].blackFound++ > this.settings.active.arDetect.blackbar.gradientSampleSize) {
+                colsIn[c].imageFound = true;
+                continue;
+              }
+              // zatem preverimo, če je piksel presegel mejo, po kateri sklepamo, da 
+              // predstavlja sliko. Preverimo samo, če smo v stolpcu že presegli 
+              // blackThreshold
+              //
+              // then we check whether pixel exceeded imageThreshold
+              if (image[tmpI]     > this.imageThreshold || 
+                  image[tmpI + 1] > this.imageThreshold ||
+                  image[tmpI + 2] > this.imageThreshold ){
+              
+                colsOut[c].image = (i / this.conf.canvasImageDataRowLength)
+
+                
+                colsIn[c].imageFound = true;
+                edgeDetectCount++;
+              }
+
+
+              // shranimo razliko med prejšnjim in trenutnim pikslom za kasnejšo analizo
+              // save difference between current and previous pixel for later analysis
+              const imageValue = image[tmpI] + image[tmpI+1] + image[tmpI+2];
+              colsOut[c].diffs.push(imageValue - colsOut[c].lastImage);
+              colsOut[c].lastImageValue = imageValue;
+            }
+          }
+          if(edgeDetectCount >= this.colsThreshold) {
+            break;
+          }
         }
       }
     } else {
