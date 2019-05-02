@@ -128,12 +128,12 @@ class Settings {
       }
     } else if (currentBrowser.chrome) {
       const ret = new Promise( (resolve, reject) => {
-        chrome.storage.sync.get('uwSettings', (res) => resolve(res));
+        chrome.storage.local.get('uwSettings', (res) => resolve(res));
       });
       return ret['uwSettings'];
     } else if (currentBrowser.edge) {
       const ret = new Promise( (resolve, reject) => {
-        browser.storage.sync.get('uwSettings', (res) => resolve(res));
+        browser.storage.local.get('uwSettings', (res) => resolve(res));
       });
       return ret['uwSettings'];
     }
@@ -146,9 +146,9 @@ class Settings {
 
     if (currentBrowser.firefox || currentBrowser.edge) {
       extensionConf.version = this.version;
-      return this.useSync ? browser.storage.sync.set( {'uwSettings': JSON.stringify(extensionConf)}): browser.storage.local.set( {'uwSettings': JSON.stringify(extensionConf)});
+      return this.useSync ? browser.storage.local.set( {'uwSettings': JSON.stringify(extensionConf)}): browser.storage.local.set( {'uwSettings': JSON.stringify(extensionConf)});
     } else if (currentBrowser.chrome) {
-      return chrome.storage.sync.set( {'uwSettings': JSON.stringify(extensionConf)});
+      return chrome.storage.local.set( {'uwSettings': JSON.stringify(extensionConf)});
     }
   }
 
