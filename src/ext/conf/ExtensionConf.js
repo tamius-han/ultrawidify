@@ -45,7 +45,13 @@ var ExtensionConf = {
 
     // samplingInterval: 10,     // we sample at columns at (width/this) * [ 1 .. this - 1] 
     blackframe: {
-      cumulativeThreshold: 2560,  // if we add values of all pixels together and get more than this, the frame is bright enough.
+      sufficientColorVariance: 0.05,  // calculate difference between average intensity and pixel, for every pixel for every color
+                                      // component. Average intensity is normalized to where 0 is black and 1 is biggest value for
+                                      // that component. If sum of differences between normalized average intensity and normalized
+                                      // component varies more than this % between color components, we can afford to use less strict
+                                      // cummulative treshold.
+      cumulativeTresholdLax: 1600,    
+      cumulativeThresholdStrict: 2560,// if we add values of all pixels together and get more than this, the frame is bright enough.
                                  // (note: blackframe is 16x9 px -> 144px total. cumulative threshold can be reached fast)
       blackPixelsCondition: 0.6, // How much pixels must be black (1 all, 0 none) before we consider frame as black. Takes
                                  // precedence over cumulative threshold: if blackPixelsCondition is met, the frame is dark

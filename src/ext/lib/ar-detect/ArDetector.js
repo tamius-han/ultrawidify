@@ -515,14 +515,14 @@ class ArDetector {
 
   frameCheck(){
     if(! this.video){
-      if(Debug.debug || Debug.warnings_critical)
+      if(Debug.debug || Debug.warnings_critical) {
         console.log("[ArDetect::frameCheck] Video went missing. Destroying current instance of videoData.")
+      }
       this.conf.destroy();
       return;
     }
 
     if (!this.blackframeContext) {
-      console.log("BLACKFRAME CONTEXT IS NOT DEFINED", this.blackframeContext);
       this.init();
     }
     
@@ -581,11 +581,15 @@ class ArDetector {
     }
 
     const bfanalysis = this.blackframeTest();
-
     if (bfanalysis.isBlack) {
       // we don't do any corrections on frames confirmed black
+      if (Debug.debug && Debug.arDetect) {
+        console.log("%c[ArDetect::frameCheck] Black frame analysis suggests this frame is black or too dark. Doing nothing,", "color: #fa3", bfanalysis);
+      }
       return;
     }
+
+    
 
     // if we are in fallback mode, then frame has already been drawn to the main canvas.
     // if we are in normal mode though, the frame has yet to be drawn
@@ -599,11 +603,14 @@ class ArDetector {
       // da je letterbox izginil.
       // If we don't detect letterbox, we reset aspect ratio to aspect ratio of the video file. The aspect ratio could
       // have been corrected manually. It's also possible that letterbox (that was there before) disappeared.
-      console.log("FAST LETTERBOX PRESENCE TEST FAILED, CALLING RESET")
       this.conf.resizer.reset({type: AspectRatio.Automatic, ratio: null});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
+
+      if (Debug.debug && Debug.arDetect) {
+        console.log("%c[ArDetect::frameCheck] Letterbox not detected in fast test. Letterbox is either gone or we manually corrected aspect ratio. Nothing will be done.", "color: #fa3");
+      }
       return;
     }
 
@@ -697,6 +704,11 @@ class ArDetector {
     if (edgePost.status !== EdgeStatus.AR_KNOWN){
       // rob ni bil zaznan, zato ne naredimo ničesar.
       // no edge was detected. Let's leave things as they were
+
+      if (Debug.debug && Debug.arDetect) {
+        console.log("%c[ArDetect::frameCheck] Edge wasn't detected with findBars", "color: #fa3", edgePost, "EdgeStatus.AR_KNOWN:", EdgeStatus.AR_KNOWN);
+      }
+
       return;
     }
 
@@ -764,6 +776,12 @@ class ArDetector {
 
     const rows = this.blackframeCanvas.height;
     const cols = this.blackframeCanvas.width;
+    const pixels = rows * cols;
+    let cumulative_r = 0, cumulative_g = 0, cumulative_b = 0;
+    let max_r = 0, max_g = 0, max_b = 0;
+    let avg_r, avg_g, avg_b;
+    let var_r = 0, var_g = 0, var_b = 0;
+
     let pixelMax = 0;
     let cumulativeValue = 0;
     let blackPixelCount = 0;
@@ -777,17 +795,26 @@ class ArDetector {
 
     let r, c;
 
+
     for (let i = 0; i < bfImageData.length; i+= 4) {
       pixelMax = Math.max(bfImageData[i], bfImageData[i+1], bfImageData[i+2]);
+      bfImageData[i+3] = pixelMax;
 
       if (pixelMax < this.blackLevel) {
         this.blackLevel = pixelMax;
         blackPixelCount++;
       } else {
         cumulativeValue += pixelMax;
+        cumulative_r += bfImageData[i];
+        cumulative_g += bfImageData[i+1];
+        cumulative_b += bfImageData[i+2];
+
+        max_r = max_r > bfImageData[i]   ? max_r : bfImageData[i];
+        max_g = max_g > bfImageData[i+1] ? max_g : bfImageData[i+1];
+        max_b = max_b > bfImageData[i+2] ? max_b : bfImageData[i+2];
       }
       
-      r = Math.floor(i/rows);
+      r = ~~(i/rows);
       c = i % cols;
 
       if (pixelMax > rowMax[r]) {
@@ -798,8 +825,69 @@ class ArDetector {
       }
     }
 
+    max_r = 1 / (max_r || 1);
+    max_g = 1 / (max_g || 1);
+    max_b = 1 / (max_b || 1);
+
+    const imagePixels = pixels - blackPixelCount;
+    // calculate averages and normalize them
+    avg_r = (cumulative_r / imagePixels) * max_r;
+    avg_g = (cumulative_g / imagePixels) * max_g;
+    avg_b = (cumulative_b / imagePixels) * max_b;
+
+    // second pass for color variance
+    for (let i = 0; i < bfImageData.length; i+= 4) {
+      if (bfImageData[i+3] >= this.blackLevel) {
+        var_r += Math.abs(avg_r - bfImageData[i] * max_r);
+        var_g += Math.abs(avg_g - bfImageData[i+1] * max_g);
+        var_b += Math.abs(avg_b - bfImageData[i+1] * max_b);
+      }
+    }
+
+    const hasSufficientVariance = Math.abs(var_r - var_g) / Math.max(var_r, var_g, 1) > this.settings.active.arDetect.blackframe.sufficientColorVariance
+                                  || Math.abs(var_r - var_b) / Math.max(var_r, var_b, 1) > this.settings.active.arDetect.blackframe.sufficientColorVariance
+                                  || Math.abs(var_b - var_g) / Math.max(var_b, var_g, 1) > this.settings.active.arDetect.blackframe.sufficientColorVariance
+
+    let isBlack = (blackPixelCount/(cols * rows) > this.settings.active.arDetect.blackframe.blackPixelsCondition);
+
+    if (! isBlack) {
+      if (hasSufficientVariance) {
+        isBlack = cumulativeValue < this.settings.active.arDetect.blackframe.cumulativeThresholdLax;
+      } else {
+        isBlack = cumulativeValue < this.settings.active.arDetect.blackframe.cumulativeThresholdStrict;
+      }
+    }
+
+    if (Debug.debug) {
+      return {
+        isBlack: isBlack,
+        blackPixelCount: blackPixelCount,
+        blackPixelRatio: (blackPixelCount/(cols * rows)),
+        cumulativeValue: cumulativeValue,
+        hasSufficientVariance: hasSufficientVariance,
+        variances: {
+          raw: {
+            r: var_r, g: var_g, b: var_b
+          },
+          relative: {
+            rg: Math.abs(var_r - var_g) / Math.max(var_r, var_g, 1),
+            rb: Math.abs(var_r - var_b) / Math.max(var_r, var_b, 1),
+            gb: Math.abs(var_b - var_g) / Math.max(var_b, var_g, 1),
+          },
+          relativePercent: {
+            rg: Math.abs(var_r - var_g) / Math.max(var_r, var_g, 1) / this.settings.active.arDetect.blackframe.sufficientColorVariance,
+            rb: Math.abs(var_r - var_b) / Math.max(var_r, var_b, 1) / this.settings.active.arDetect.blackframe.sufficientColorVariance,
+            gb: Math.abs(var_b - var_g) / Math.max(var_b, var_g, 1) / this.settings.active.arDetect.blackframe.sufficientColorVariance,
+          },
+          varianceLimit: this.settings.active.arDetect.blackframe.sufficientColorVariance,
+        },
+        cumulativeValuePercent: cumulativeValue / (hasSufficientVariance ? this.settings.active.arDetect.blackframe.cumulativeThresholdLax : this.settings.active.arDetect.blackframe.cumulativeThresholdStrict),
+        rowMax: rowMax,
+        colMax: colMax,
+      };
+    }
     return {
-      isBlack: (blackPixelCount/(cols * rows) > this.settings.active.arDetect.blackframe.blackPixelsCondition) ? true : cumulativeValue < this.settings.active.arDetect.blackframe.cumulativeThreshold,
+      isBlack: isBlack,
       rowMax: rowMax,
       colMax: colMax,
     };
