@@ -9,7 +9,7 @@ var Debug = {
   // debug: false,
   keyboard: true,
   debugResizer: true,
-  // debugArDetect: true,
+  debugArDetect: true,
   // debugStorage: false,
   // debugStorage: true,
   // comms: false,
