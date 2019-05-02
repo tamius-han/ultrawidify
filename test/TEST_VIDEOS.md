@@ -39,4 +39,6 @@ https://www.youtube.com/watch?v=tXTFdDrd7pA
 
 For situations that would be _really_ hard to fix (if fix is even possible)
 
-https://www.youtube.com/watch?v=hg25ONutphA
+#### Gradient incorrectly triggers aspect ratio correction
+
+IGN: Hollow Knight Review | https://www.youtube.com/watch?v=hg25ONutphA
