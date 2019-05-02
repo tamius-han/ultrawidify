@@ -28,7 +28,7 @@ class EdgeDetect{
   }
 
   findBars(image, sampleCols, direction = EdgeDetectPrimaryDirection.VERTICAL, quality = EdgeDetectQuality.IMPROVED, guardLineOut, blackFrameAnalysis){
-    var fastCandidates, edgeCandidates, bars;
+    let fastCandidates, edgeCandidates, bars;
     if (direction == EdgeDetectPrimaryDirection.VERTICAL) {
       fastCandidates = this.findCandidates(image, sampleCols, guardLineOut);
       
@@ -36,7 +36,9 @@ class EdgeDetect{
       //   edges = fastCandidates; // todo: processing
       // } else {
         edgeCandidates = this.edgeDetect(image, fastCandidates);
+        console.log("edge candidates:", edgeCandidates)
         bars = this.edgePostprocess(edgeCandidates, this.conf.canvas.height);
+        console.log("bars:", bars)
 
       // }
     } else {
@@ -52,22 +54,19 @@ class EdgeDetect{
     
     // const cols_a = sampleCols.slice(0);
     const cols_a = new Array(sampleCols.length);
-    const res_top_preliminary = new Array(sampleCols.length);
+    const res_top = [];
     
     for (let i = 0; i < cols_a.length; i++) {
       cols_a[i] = {
         id: i,
         value: sampleCols[i],
-        blackFound: false,
-        imageFound: false,
       };
-      res_top_preliminary[i] = {col: undefined, image: undefined, black: undefined};
     }
 
     const cols_b = cols_a.slice(0);
-    const res_bottom_preliminary = res_top_preliminary.slice(0);
+    const res_bottom = [];
     
-    console.log("[EdgeDetect::findCandidates] cols a, b:", cols_a, cols_b);
+    // console.log("[EdgeDetect::findCandidates] cols a, b (initial):", cols_a, cols_b);
 
     
     this.colsThreshold = sampleCols.length * this.settings.active.arDetect.edgeDetection.minColsForSearch;
@@ -118,62 +117,18 @@ class EdgeDetect{
     var lower_bottom_corrected = lower_bottom * this.conf.canvasImageDataRowLength;
     
     // if(Debug.debugCanvas.enabled){
-      // this._columnTest_dbgc(image, upper_top_corrected, upper_bottom_corrected, cols_a, res_top_preliminary, false);
-      // this._columnTest_dbgc(image, lower_top_corrected, lower_bottom_corrected, cols_b, res_bottom_preliminary, true);
+      // this._columnTest_dbgc(image, upper_top_corrected, upper_bottom_corrected, cols_a, res_top, false);
+      // this._columnTest_dbgc(image, lower_top_corrected, lower_bottom_corrected, cols_b, res_bottom, true);
     // } else {
-      // this._columnTest(image, upper_top_corrected, upper_bottom_corrected, cols_a, res_top_preliminary, false);
-      // this._columnTest(image, lower_top_corrected, lower_bottom_corrected, cols_b, res_bottom_preliminary, true);
-      this._columnTest2(image, upper_top_corrected, upper_bottom_corrected, cols_a, res_top_preliminary, false);
-      this._columnTest2(image, lower_top_corrected, lower_bottom_corrected, cols_b, res_bottom_preliminary, true);
+      this._columnTest3_cross(image, upper_top_corrected, upper_bottom_corrected, cols_a, res_top, false);
+      this._columnTest3_cross(image, lower_top_corrected, lower_bottom_corrected, cols_b, res_bottom, true);
     // }
     
-    if(Debug.debug && Debug.debugArDetect){
-      console.log("[EdgeDetect::findCandidates] candidates found -->", {res_top: res_top_preliminary, res_bottom: res_bottom_preliminary});
+    if (Debug.debug && Debug.debugArDetect){
+      console.log("[EdgeDetect::findCandidates] candidates found -->", {res_top: res_top, res_bottom: res_bottom});
     }
 
-    // preglejmo, kateri kandidati so neprimerni. (Neprimerni so tisti, pri katerih se
-    // 'black' in 'image' razlikujeta za več kot settings.arDetect.blackbar.gradientThreshold)
-    // 
-    // let's check which candidates are suitable. Suitable candidates have 'black' and 'image'
-    // components differ by less than settings.arDetect.blackbar.gradientThreshold
-
-    const res_top = [];
-    const res_bottom = [];
-
-    for (let item of res_top_preliminary) {
-      if (this.settings.active.arDetect.blackbar.antiGradientMode === AntiGradientMode.Disabled) {
-        res_top.push({top: item.image, col: item.col});
-      } else if (this.settings.active.arDetect.blackbar.antiGradientMode === AntiGradientMode.Lax) {
-        if (item.image === undefined || item.image <= item.black + this.settings.active.arDetect.blackbar.gradientThreshold) {
-          res_top.push({top: item.image, col: item.col});
-        }
-      } else {
-        if ( item.image !== undefined && item.image <= item.black + this.settings.active.arDetect.blackbar.gradientThreshold) {
-          res_top.push({top: item.image, col: item.col});
-        }
-      }
-    }
-    for (let item of res_bottom_preliminary) {
-      if (!item.image) {
-        continue;
-      }
-      if (this.settings.active.arDetect.blackbar.antiGradientMode === AntiGradientMode.Disabled) {
-        res_bottom.push({bottom: item.image, col: item.col});
-      } else {
-        if ( (item.image !== undefined || this.settings.active.arDetect.blackbar.antiGradientMode === AntiGradientMode.Lax)
-            && item.image >= item.black - this.settings.active.arDetect.blackbar.gradientThreshold) {
-          res_bottom.push({bottom: item.image, col: item.col});
-        }
-      }
-    }
-
-    // const res_top = res_top_preliminary;
-    // const res_bottom = res_bottom_preliminary;
-
-    if(Debug.debug && Debug.debugArDetect){
-      console.log("[EdgeDetect::findCandidates] candidates after processing -->", {res_top: res_top, res_bottom: res_bottom});
-    }
-    
+   
     return {res_top: res_top, res_bottom: res_bottom};
   
     } catch (e) {
@@ -200,10 +155,9 @@ class EdgeDetect{
     
     var topEdgeCount = 0;
     var bottomEdgeCount = 0;
-    
-    var sample;
-    
-    for(sample of samples.res_top){
+      
+    try {
+    for (const sample of samples.res_top){
       blackEdgeViolation = false; // reset this
       
       // determine our bounds. Note that sample.col is _not_ corrected for imageData, but halfSample is
@@ -217,8 +171,8 @@ class EdgeDetect{
         sampleEnd = this.conf.canvasImageDataRowLength;
       
       // calculate row offsets for imageData array
-      sampleRow_black = (sample.top - this.settings.active.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
-      sampleRow_color = (sample.top + 1 + this.settings.active.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
+      sampleRow_black = (sample.black - this.settings.active.arDetect.edgeDetection.edgeTolerancePx - 1) * this.conf.canvasImageDataRowLength;
+      sampleRow_color = (sample.black + this.settings.active.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
       
       // že ena kršitev črnega roba pomeni, da kandidat ni primeren
       // even a single black edge violation means the candidate is not an edge
@@ -232,20 +186,21 @@ class EdgeDetect{
 
       // če je bila črna črta skrunjena, preverimo naslednjega kandidata
       // if we failed, we continue our search with the next candidate
-      if(blackEdgeViolation)
+      if (blackEdgeViolation) {
         continue;
+      }
       
       detections = 0;
       loopEnd = sampleRow_color + sampleEnd;
 
       if(Debug.debugCanvas.enabled) {
-        this._imageTest_dbg(image, sampleRow_color + sampleStart, loopEnd, sample.top, edgeCandidatesTop)
+        this._imageTest_dbg(image, sampleRow_color + sampleStart, loopEnd, sample.black, edgeCandidatesTop)
       } else {
-        this._imageTest(image, sampleRow_color + sampleStart, loopEnd, sample.top, edgeCandidatesTop)
+        this._imageTest(image, sampleRow_color + sampleStart, loopEnd, sample.black, edgeCandidatesTop);
       }
     }
     
-    for(sample of samples.res_bottom){
+    for (const sample of samples.res_bottom){
       blackEdgeViolation = false; // reset this
       
       // determine our bounds. Note that sample.col is _not_ corrected for imageData, but this.halfSample is
@@ -259,8 +214,8 @@ class EdgeDetect{
         sampleEnd = this.conf.canvasImageDataRowLength;
       
       // calculate row offsets for imageData array
-      sampleRow_black = (sample.bottom + this.settings.active.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
-      sampleRow_color = (sample.bottom - 1 - this.settings.active.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
+      sampleRow_black = (sample.black + this.settings.active.arDetect.edgeDetection.edgeTolerancePx + 1) * this.conf.canvasImageDataRowLength;
+      sampleRow_color = (sample.black - this.settings.active.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
       
       // že ena kršitev črnega roba pomeni, da kandidat ni primeren
       // even a single black edge violation means the candidate is not an edge
@@ -274,18 +229,29 @@ class EdgeDetect{
       
       // če je bila črna črta skrunjena, preverimo naslednjega kandidata
       // if we failed, we continue our search with the next candidate
-      if(blackEdgeViolation)
+      if (blackEdgeViolation) {
         continue;
+      }
       
       detections = 0;
       loopEnd = sampleRow_color + sampleEnd;
 
       if(Debug.debugCanvas.enabled) {
-        this._imageTest_dbg(image, sampleRow_color + sampleStart, loopEnd, sample.bottom, edgeCandidatesBottom);
+        this._imageTest_dbg(image, sampleRow_color + sampleStart, loopEnd, sample.black, edgeCandidatesBottom);
       } else {
-        this._imageTest(image, sampleRow_color + sampleStart, loopEnd, sample.bottom, edgeCandidatesBottom);
+        this._imageTest(image, sampleRow_color + sampleStart, loopEnd, sample.black, edgeCandidatesBottom);
       }
     }
+    } catch (e) {
+      console.log("\n\nuwu fucky wucky:", e, "\n\n")
+    }
+
+    console.log("----------- returning: ", {
+      edgeCandidatesTop: edgeCandidatesTop,
+      edgeCandidatesTopCount: edgeCandidatesTop.count,
+      edgeCandidatesBottom: edgeCandidatesBottom,
+      edgeCandidatesBottomCount: edgeCandidatesBottom.count
+    });
     
     return {
       edgeCandidatesTop: edgeCandidatesTop,
@@ -556,7 +522,7 @@ class EdgeDetect{
     //
     // this is the shit we do to avoid function calls and one extra if sentence/code repetition
     // pretend I was drunk when I wrote this
-    let tmpi, lastTmpI = 0, edgeDetectCount = 0, edgeDetectColsLeft = colsIn.length;
+    let tmpI, edgeDetectCount = 0, edgeDetectColsLeft = colsIn.length;
     let tmpVal = 0;
     let increment, arrayStart, arrayEnd;
 
@@ -586,9 +552,12 @@ class EdgeDetect{
     const colsTmp = new Array(colsIn.length);
     for (let i = 0; i < colsTmp.length; i++) {
       colsTmp[i] = {
+        col: -1,
         blackFound: false,
         imageFound: false,    // misleading name — also true if we ran over gradientSampleSize pixels from image
                               // whether that actually count as an image depends on how aggressive gradientDetection is
+        blackRow: -1,
+        imageRow: -1,
         lastValue: -1,
         diffIndex: 0,
         diffs: new Array(this.settings.active.arDetect.blackbar.gradientSampleSize).fill(0)
@@ -628,9 +597,9 @@ class EdgeDetect{
               image[tmpI + 1] > this.blackbarThreshold ||
               image[tmpI + 2] > this.blackbarThreshold ){
           
-            colsOut[c].black = ~~(i / this.conf.canvasImageDataRowLength); // note — this value is off by one
-            colsOut[c].col = colsIn[c].value;
+            colsTmp[c].col = colsIn[c].value;
             colsTmp[c].blackFound = true;
+            colsTmp[c].blackRow = ~~(loopCond.index.i / this.conf.canvasImageDataRowLength); 
 
             // prisili, da se zanka izvede še enkrat ter preveri,
             // ali trenuten piksel preseže tudi imageThreshold
@@ -653,7 +622,7 @@ class EdgeDetect{
               image[tmpI + 1] > this.imageThreshold ||
               image[tmpI + 2] > this.imageThreshold ){
           
-            colsOut[c].image = ~~(i / this.conf.canvasImageDataRowLength)
+            colsTmp[c].imageRow = ~~(loopCond.index.i / this.conf.canvasImageDataRowLength)
 
             
             colsTmp[c].imageFound = true;
@@ -665,10 +634,10 @@ class EdgeDetect{
 
           colsTmp[c].lastValue = image[tmpI] + image[tmpI+1] + image[tmpI+2];
           if (colsTmp[c].diffIndex !== 0) {
-            colsTmp[c].diffs[colsTmp.diffIndex] = colsTmp[c].lastValue - colsTmp[c].diffs[diffIndex - 1];
+            colsTmp[c].diffs[colsTmp[c].diffIndex] = colsTmp[c].lastValue - colsTmp[c].diffs[colsTmp[c].diffIndex - 1];
           }
 
-          cols[c].diffIndex++;
+          colsTmp[c].diffIndex++;
           if (colsTmp[c].diffIndex > this.settings.active.arDetect.blackbar.gradientSampleSize) {
             colsTmp[c].imageFound = true;
             continue;
@@ -678,7 +647,87 @@ class EdgeDetect{
       }
     }
 
-    
+    // sprocesirajmo rezultate
+    // let's process our results
+    for (const c of colsTmp) {
+      if (c.blackFound) {
+        if (this.settings.active.arDetect.blackbar.antiGradientMode === AntiGradientMode.Disabled) {
+          // if gradient detection is disabled, we treat such columns as detections/not gradient
+        }
+        if (c.imageFound) {
+          if (c.imageRow - c.blackRow <= this.settings.active.arDetect.blackbar.gradientThreshold) {
+            // this is within our margin of error. Colums like this are auto-accepted
+            colsOut.push({
+              col: c.col,
+              black: c.blackRow
+            });
+            continue;
+          } else {
+            tmpVal = 0;
+
+            let i;
+            // if we detected gradient, we'll analyse whether gradient is legit
+            for (i = 0; i < c.diffIndex; i++) {
+              tmpVal += c.diffs[i];
+              
+              // if difference is negative, we aren't looking at a gradient
+              if (c.diffs[i] < this.settings.active.arDetect.blackbar.gradientNegativeTreshold) {
+                colsOut.push({
+                  col: c.col,
+                  black: c.blackRow
+                });
+                break;
+              }
+
+              // if difference is too big, we assume we aren't looking at a gradient
+              if (c.diffs[i] > this.settings.active.arDetect.blackbar.maxGradient) {
+                colsOut.push({
+                  col: c.col,
+                  black: c.blackRow
+                });
+                break;
+              }
+
+              // in case neither of the previous options happens, we might have a gradient. 
+              // Since this column is sus af, we don't include it for further examination/
+              // determining aspect ratio
+            }
+
+            // if we didn't find any "not a gradient" diffs, we check for standard deviation
+            if (i >= c.diffIndex && c.diffIndex > 1) {
+              tmpVal /= c.diffIndex;  // tmpVal is now average
+              let squareSum = 0, stdev = 0;
+              for (i = 0; i < c.diffIndex; i++) {
+                squareSum += Math.pow((c.diffs[i] - tmpVal), 2)
+              }
+              stdev = Math.sqrt((squareSum / (c.diffIndex - 1)));
+
+              // if standard deviation is too big, we're not on a gradient (prolly)
+              if (stdev > this.settings.active.arDetect.blackbar.gradientMaxSD) {
+                colsOut.push({
+                  col: c.col,
+                  black: c.blackRow
+                });
+                continue;
+              }
+            } else {
+              continue;
+            }
+          }
+        } else {
+          // we have blackbar but we haven't found a point that goes over imageTreshold.
+          // how these cases are handled is determiend by what antiGradientMode we're using.
+          // strict mode — treat as gradient. Lax mode — treat as not gradient
+          if (this.settings.active.arDetect.blackbar.antiGradientMode === AntiGradientMode.Lax) {
+            colsOut.push({
+              col: c.col,
+              black: c.blackRow
+            });
+            continue;
+          }
+        }
+      }
+    }
   }
 
   _columnTest3_singleCol(image, top, bottom, colsIn, colsOut, reverseSearchDirection) {
@@ -1022,8 +1071,8 @@ class EdgeDetect{
   _imageTest(image, start, end, sampleOffset, edgeCandidates){
     var detections = 0;
 
-    for(var i = start; i < end; i += 4){
-      if( image[i  ] > this.blackbarThreshold ||
+    for (var i = start; i < end; i += 4){
+      if (image[i  ] > this.blackbarThreshold ||
           image[i+1] > this.blackbarThreshold ||
           image[i+2] > this.blackbarThreshold ){
         ++detections;

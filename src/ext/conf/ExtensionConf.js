@@ -54,17 +54,21 @@ var ExtensionConf = {
     blackbar: {
       blackLevel: 10,         // everything darker than 10/255 across all RGB components is considered black by
                               // default. blackLevel can decrease if we detect darker black.
-      threshold: 16,           // if pixel is darker than the sum of black level and this value, we count it as black
+      threshold: 16,          // if pixel is darker than the sum of black level and this value, we count it as black
                               // on 0-255. Needs to be fairly high (8 might not cut it) due to compression
                               // artifacts in the video itself
-      imageThreshold: 4,       // in order to detect pixel as "not black", the pixel must be brighter than
+      imageThreshold: 16,     // in order to detect pixel as "not black", the pixel must be brighter than
                               // the sum of black level, threshold and this value.
-      gradientThreshold: 2,    // When trying to determine thickness of the black bars, we take 2 values: position of
+      gradientThreshold: 2,   // When trying to determine thickness of the black bars, we take 2 values: position of
                               // the last pixel that's darker than our threshold, and position of the first pixel that's
                               // brighter than our image threshold. If positions are more than this many pixels apart,
                               // we assume we aren't looking at letterbox and thus don't correct the aspect ratio.
-      gradientSampleSize: 8,  // How far do we look to find the gradient
-      antiGradientMode: AntiGradientMode.Strict,
+      gradientSampleSize: 16, // How far do we look to find the gradient
+      maxGradient: 6,         // if two neighbouring pixels in gradientSampleSize differ by more than this, then we aren't
+                              // looking at a gradient
+      gradientNegativeTreshold: -2,
+      gradientMaxSD: 6,    // reserved for future use
+      antiGradientMode: AntiGradientMode.Lax,
     },
     variableBlackbarThresholdOptions: {    // In case of poor bitrate videos, jpeg artifacts may cause us issues
       // FOR FUTURE USE
