@@ -2,18 +2,27 @@
 
 ## v4.x 
 
+### Plans for the future
+
+* Allow users to set autodetection sensitivity
+* Settings page looks ugly af right now. Maybe fix it some time later
+
 ### v4.0.0 (upcoming)
 
 * Using vue for popup and settings page
 * Editable shortcuts
-* Per-site controls 
+* Per-site controls
+* You can now select which specific video on the page you control, provided each video is in its separate iframe 
 * Basic mode added
-* Per-site controls in popup (to control embedded videos)
 * Rewrote keyboard shortcuts and changed how they're handled. Massively.
+* Fixed the bug where saving settings wouldn't work
+* Fixed the bug where autodetection didn't calculate aspect ratio correctly. This bug would manifest in this extension cropping too much video even in cases where edge between letterbox and video was clearly defined.
+* Implemented/improved black frame detection
+* Autodetection now differentiates between legitimate letterbox and linear gradients. This should prevent incorrect auto-cropping on videos that look similar to IGN's [Hollow Knight](https://www.youtube.com/watch?v=hg25ONutphA) review.
 
 ## v3.x
 
-### v3.3.0
+~~### v3.3.0~~
 
 ~~This will probably get promoted to 4.0, continuing the trend of version something.3 not happening. Eulul~~
 
