@@ -10,6 +10,7 @@ var Debug = {
   keyboard: true,
   debugResizer: true,
   debugArDetect: true,
+  scaler: true,
   // debugStorage: false,
   // debugStorage: true,
   // comms: false,

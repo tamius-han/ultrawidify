@@ -45,7 +45,7 @@ var ExtensionConf = {
 
     // samplingInterval: 10,     // we sample at columns at (width/this) * [ 1 .. this - 1] 
     blackframe: {
-      sufficientColorVariance: 0.09,  // calculate difference between average intensity and pixel, for every pixel for every color
+      sufficientColorVariance: 0.10,  // calculate difference between average intensity and pixel, for every pixel for every color
                                       // component. Average intensity is normalized to where 0 is black and 1 is biggest value for
                                       // that component. If sum of differences between normalized average intensity and normalized
                                       // component varies more than this % between color components, we can afford to use less strict
