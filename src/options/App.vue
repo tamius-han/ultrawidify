@@ -129,6 +129,7 @@ export default {
       editActionIndex: -1,
       anyOpenedPopups: false,
       removeConfirmationDialog: '',
+      confirmationDialogText: '',
       messages: {
         removeAction: "Are you sure you want to remove this action?"
       },
