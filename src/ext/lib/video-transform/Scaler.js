@@ -143,7 +143,7 @@ class Scaler {
         videoDimensions.yFactor = videoDimensions.xFactor;
     }
     
-    if(Debug.debug){
+    if (Debug.debug && Debug.scaler) {
       console.log("[Scaler::calculateCrop] Crop factor calculated — ", videoDimensions.xFactor);
     }
 
