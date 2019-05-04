@@ -219,6 +219,9 @@ export default {
       this.action = JSON.parse(JSON.stringify(this.action));
     },
     saveSettings() {
+      if (this.currentCmdIndex < 0) {
+        this.settings.active.actions.push(this.action);
+      }
       this.settings.save();
       this.close();
     },
