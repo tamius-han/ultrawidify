@@ -45,12 +45,12 @@ var ExtensionConf = {
 
     // samplingInterval: 10,     // we sample at columns at (width/this) * [ 1 .. this - 1] 
     blackframe: {
-      sufficientColorVariance: 0.05,  // calculate difference between average intensity and pixel, for every pixel for every color
+      sufficientColorVariance: 0.09,  // calculate difference between average intensity and pixel, for every pixel for every color
                                       // component. Average intensity is normalized to where 0 is black and 1 is biggest value for
                                       // that component. If sum of differences between normalized average intensity and normalized
                                       // component varies more than this % between color components, we can afford to use less strict
                                       // cummulative treshold.
-      cumulativeTresholdLax: 1600,    
+      cumulativeThresholdLax: 1600,    
       cumulativeThresholdStrict: 2560,// if we add values of all pixels together and get more than this, the frame is bright enough.
                                  // (note: blackframe is 16x9 px -> 144px total. cumulative threshold can be reached fast)
       blackPixelsCondition: 0.6, // How much pixels must be black (1 all, 0 none) before we consider frame as black. Takes
@@ -63,6 +63,7 @@ var ExtensionConf = {
       threshold: 16,          // if pixel is darker than the sum of black level and this value, we count it as black
                               // on 0-255. Needs to be fairly high (8 might not cut it) due to compression
                               // artifacts in the video itself
+      frameThreshold: 4,      // treshold, but when doing blackframe test
       imageThreshold: 16,     // in order to detect pixel as "not black", the pixel must be brighter than
                               // the sum of black level, threshold and this value.
       gradientThreshold: 2,   // When trying to determine thickness of the black bars, we take 2 values: position of

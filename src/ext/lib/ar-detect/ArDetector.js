@@ -587,6 +587,8 @@ class ArDetector {
         console.log("%c[ArDetect::frameCheck] Black frame analysis suggests this frame is black or too dark. Doing nothing,", "color: #fa3", bfanalysis);
       }
       return;
+    } else {
+      console.log("%c[ArDetect::frameCheck] Black frame analysis suggests this frame is not completely black. Doing further analysis,", "color: #3fa", bfanalysis);
     }
 
     
@@ -766,7 +768,7 @@ class ArDetector {
   }
 
   blackframeTest() {
-    if (! this.blackLevel) {
+    if (this.blackLevel === undefined) {
       if (Debug.debug && Debug.debugArDetect) {
         console.log("[ArDetect::frameCheck] black level undefined, resetting");
       }
@@ -786,6 +788,7 @@ class ArDetector {
     let cumulativeValue = 0;
     let blackPixelCount = 0;
     const bfImageData = this.blackframeContext.getImageData(0, 0, cols, rows).data;
+    const blackTreshold = this.blackLevel + this.settings.active.arDetect.blackbar.frameTreshold;
     
 
     // we do some recon for letterbox and pillarbox. While this can't determine whether letterbox/pillarbox exists
@@ -800,8 +803,10 @@ class ArDetector {
       pixelMax = Math.max(bfImageData[i], bfImageData[i+1], bfImageData[i+2]);
       bfImageData[i+3] = pixelMax;
 
-      if (pixelMax < this.blackLevel) {
-        this.blackLevel = pixelMax;
+      if (pixelMax < blackTreshold) {
+        if (pixelMax < this.blackLevel) {
+          this.blackLevel = pixelMax;
+        }
         blackPixelCount++;
       } else {
         cumulativeValue += pixelMax;
@@ -865,6 +870,7 @@ class ArDetector {
         blackPixelRatio: (blackPixelCount/(cols * rows)),
         cumulativeValue: cumulativeValue,
         hasSufficientVariance: hasSufficientVariance,
+        blackLevel: this.blackLevel,
         variances: {
           raw: {
             r: var_r, g: var_g, b: var_b

@@ -32,6 +32,9 @@ class EdgeDetect{
     if (direction == EdgeDetectPrimaryDirection.VERTICAL) {
       fastCandidates = this.findCandidates(image, sampleCols, guardLineOut);
       
+      if (! this.isValidSample(fastCandidates)) {
+        return {status: EdgeStatus.AR_UNKNOWN};
+      }
       // if(quality == EdgeDetectQuality.FAST){
       //   edges = fastCandidates; // todo: processing
       // } else {
@@ -140,6 +143,88 @@ class EdgeDetect{
 
   // dont call the following outside of this class
 
+  isValidSample(samples) {
+    // NOTE: this is very simple and will need to be reworked in case we ever
+    //       go for quorum-based edge detection. (Probably not gonna happen)
+    const topPoint = {
+      row:  this.conf.canvas.height,
+      gradient: false,        // does current row have a gradient sample
+      noGradient: false,      // does current row have 100% confirmed edge sample
+    }
+    const bottomPoint = {
+      row:  0,
+      gradient: false,
+      noGradient: false,
+    }
+
+    // process the top row
+    for (let i = 0; i < samples.res_top.length; i++) {
+      // if we find new highest point, we reset gradient and noGradient
+      if (samples.res_top[i].black < topPoint.row) {
+        topPoint.row = samples.res_top[i].black;
+        topPoint.gradient = false;
+        topPoint.noGradient = false;
+      }
+
+      // if we're in the top row, we update gradient/no gradient
+      // we track gradient and nogradient points separately
+      if (samples.res_top[i].black === topPoint.row) {
+        if (samples.res_top[i].hasGradient) {
+          topPoint.gradient = true;
+        } else {
+          topPoint.noGradient = true;
+        }
+      }
+    }
+
+    // process the bottom row
+    for (let i = 0; i < samples.res_top.length; i++) {
+      // if we find new highest point, we reset gradient and noGradient
+      if (samples.res_top[i].black > bottomPoint.row) {
+        bottomPoint.row = samples.res_top[i].black;
+        bottomPoint.gradient = false;
+        bottomPoint.noGradient = false;
+      }
+
+      // if we're in the top row, we update gradient/no gradient
+      // we track gradient and nogradient points separately
+      if (samples.res_top[i].black === bottomPoint.row) {
+        if (samples.res_top[i].hasGradient) {
+          bottomPoint.gradient = true;
+        } else {
+          bottomPoint.noGradient = true;
+        }
+      }
+    }
+
+    if (topPoint.noGradient && bottomPoint.noGradient) {
+      return true;
+    }
+
+    
+    if (! topPoint.noGradient) {
+      if (! bottomPoint.noGradient) {
+        // top sample in both is a gradient with no solid sample present in that row
+        // this means validation failed:
+        return false;
+      } else {
+        // if top gradient-only sample is closer to the edge than the bottom sample,
+        // validation also fails. Otherwise, we can assume success.
+        return (topPoint.row >= this.conf.canvas.height - bottomPoint.row);
+      }
+    }
+
+    // this is the only combination that we have to handle at this point. Because we're
+    // here, we know that the top row is reasonably gradient-free. We only need to check
+    // whether gradient-only result of bottom row is closer to the edge than than the top
+    // sample.
+    if (! bottomPoint.noGradient) {
+      return (topPoint.row < this.conf.canvas.height - bottomPoint.row);
+    }
+
+    return false;
+  }
+
   edgeDetect(image, samples){
     var edgeCandidatesTop = {count: 0};
     var edgeCandidatesBottom = {count: 0};
@@ -245,13 +330,6 @@ class EdgeDetect{
     } catch (e) {
       console.log("\n\nuwu fucky wucky:", e, "\n\n")
     }
-
-    console.log("----------- returning: ", {
-      edgeCandidatesTop: edgeCandidatesTop,
-      edgeCandidatesTopCount: edgeCandidatesTop.count,
-      edgeCandidatesBottom: edgeCandidatesBottom,
-      edgeCandidatesBottomCount: edgeCandidatesBottom.count
-    });
     
     return {
       edgeCandidatesTop: edgeCandidatesTop,
@@ -556,6 +634,7 @@ class EdgeDetect{
         blackFound: false,
         imageFound: false,    // misleading name — also true if we ran over gradientSampleSize pixels from image
                               // whether that actually count as an image depends on how aggressive gradientDetection is
+        hasGradient: false,
         blackRow: -1,
         imageRow: -1,
         lastValue: -1,
@@ -709,8 +788,25 @@ class EdgeDetect{
                   black: c.blackRow
                 });
                 continue;
+              } else {
+                // this means we're on a gradient. We still push an object to colsOut — this is 
+                // important. While "bad" detection doesn't help us with determining the aspect
+                // ratio, bad detections can prevent us from setting aspect ratio incorrectly.
+                // for example, if we detect a gradient closer to the frame edge than a proper
+                // edge, we still know that cropping based on the confirmed edges would crop too
+                // much of the frame. In situations like this, we must ignore the results — and
+                // since results are handled outside of this function, we need to pass an
+                // additional parameter that allows us to distinguish real results from noise.
+                colsOut.push({
+                  col: c.col,
+                  black: c.blackRow,
+                  hasGradient: true,
+                });
+                continue;
               }
             } else {
+              // in this case, we aren't looking at a gradient. We also aren't looking at a 
+              // valid column
               continue;
             }
           }
@@ -722,6 +818,13 @@ class EdgeDetect{
             colsOut.push({
               col: c.col,
               black: c.blackRow
+            });
+            continue;
+          } else {
+            colsOut.push({
+              col: c.col,
+              black: c.blackRow,
+              hasGradient: true,
             });
             continue;
           }
