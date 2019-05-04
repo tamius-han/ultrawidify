@@ -30,25 +30,33 @@ class EdgeDetect{
   findBars(image, sampleCols, direction = EdgeDetectPrimaryDirection.VERTICAL, quality = EdgeDetectQuality.IMPROVED, guardLineOut, blackFrameAnalysis){
     let fastCandidates, edgeCandidates, bars;
     if (direction == EdgeDetectPrimaryDirection.VERTICAL) {
-      fastCandidates = this.findCandidates(image, sampleCols, guardLineOut);
-      
-      if (! this.isValidSample(fastCandidates)) {
-        return {status: EdgeStatus.AR_UNKNOWN};
-      }
-      // if(quality == EdgeDetectQuality.FAST){
-      //   edges = fastCandidates; // todo: processing
-      // } else {
-        edgeCandidates = this.edgeDetect(image, fastCandidates);
-        console.log("edge candidates:", edgeCandidates)
-        bars = this.edgePostprocess(edgeCandidates, this.conf.canvas.height);
-        console.log("bars:", bars)
+      try {
+        fastCandidates = this.findCandidates(image, sampleCols, guardLineOut);
+        
+        if (! this.isValidSample(fastCandidates)) {
+          return {status: EdgeStatus.AR_UNKNOWN};
+        }
+        // if(quality == EdgeDetectQuality.FAST){
+        //   edges = fastCandidates; // todo: processing
+        // } else {
+          edgeCandidates = this.edgeDetect(image, fastCandidates);
+          console.log("edge candidates:", edgeCandidates)
+          bars = this.edgePostprocess(edgeCandidates, this.conf.canvas.height);
+          console.log("bars:", bars)
 
-      // }
+        // }
+      } catch (e) {
+        if (Debug.debug) {
+          console.log("%c[EdgeDetect::findBars] find bars failed.", "background: #f00, color: #000", e);
+        }
+        return {status: EdgeStatus.AR_UNKNOWN}
+      }
     } else {
       bars = this.pillarTest(image) ? {status: EdgeStatus.AR_KNOWN} : {status: EdgeStatus.AR_UNKNOWN};
     }
 
     return bars;
+    
   }
 
   findCandidates(image, sampleCols, guardLineOut){

@@ -284,9 +284,6 @@ class ArDetector {
     // set initial timestamps so frame check will trigger the first time we run the loop
     let lastFrameCheckStartTime = Date.now() - (this.settings.active.arDetect.timers.playing << 1);
 
-    //
-    console.log("MAIN: BLACKFRAME CONTEXT:", this.blackframeContext)
-
     const frameCheckTimes = new Array(10).fill(-1);
     let frameCheckBufferIndex = 0;
     let fcstart, fctime;
@@ -302,7 +299,13 @@ class ArDetector {
         lastFrameCheckStartTime = Date.now();
         fcstart = performance.now();
         
-        this.frameCheck();
+        try {
+          this.frameCheck();
+        } catch (e) {
+          if (Debug.debug) {
+            console.log("%c[ArDetector::main] Frame check failed:", "color: #000, background: #f00", e);
+          }
+        }
 
         if (Debug.performanceMetrics) {
           fctime = performance.now() - fcstart;
@@ -428,14 +431,37 @@ class ArDetector {
     if(edges.top === undefined){
       edges.top = 0;
       edges.bottom = 0;
-      edge.left = 0;
-      edges.right = 0;
+      edges.left = 0;     // RESERVED FOR FUTURE — CURRENTLY UNUSED
+      edges.right = 0;    // THIS FUNCTION CAN PRESENTLY ONLY HANDLE LETTERBOX
     }
 
-    let zoomFactor = 1;
-    var letterbox = edges.top + edges.bottom;
+    const letterbox = edges.top + edges.bottom;
+    
+
+    if (! this.fallbackMode) {
+      // Since video is stretched to fit the canvas, we need to take that into account when calculating target
+      // aspect ratio and correct our calculations to account for that     
+
+      const fileAr = this.video.videoWidth / this.video.videoHeight;
+      const canvasAr = this.canvas.width / this.canvas.height;
+      let widthCorrected;
+
+      if (edges.top && edges.bottom) {
+        // in case of letterbox, we take canvas height as canon and assume width got stretched or squished
+
+        if (fileAr != canvasAr) {
+          widthCorrected = this.canvas.height * fileAr;
+        } else {
+          widthCorrected = this.canvas.width;
+        }
+
+        return widthCorrected / (this.canvas.height - letterbox);
+      }
+    } else {
+      // fallback mode behaves a wee bit differently
+
+      let zoomFactor = 1;
    
-    if (this.fallbackMode) {
       // there's stuff missing from the canvas. We need to assume canvas' actual height is bigger by a factor x, where
       //   x = [video.zoomedHeight] / [video.unzoomedHeight]
       //
@@ -446,11 +472,9 @@ class ArDetector {
       
       zoomFactor = vbr.height / this.video.clientHeight;
       letterbox += vbr.height - this.video.clientHeight;
-    }
 
-    var trueHeight = this.canvas.height * zoomFactor - letterbox;
+      var trueHeight = this.canvas.height * zoomFactor - letterbox;
 
-    if(this.fallbackMode){
       if(edges.top > 1 && edges.top <= this.settings.active.arDetect.fallbackMode.noTriggerZonePx ){
         if(Debug.debug && Debug.debugArDetect) {
           console.log("Edge is in the no-trigger zone. Aspect ratio change is not triggered.")
@@ -463,10 +487,9 @@ class ArDetector {
       // safety border so we can detect aspect ratio narrowing (21:9 -> 16:9).
       // x2 because safetyBorderPx is for one side.
       trueHeight += (this.settings.active.arDetect.fallbackMode.safetyBorderPx << 1);
+
+      return this.canvas.width * zoomFactor / trueHeight;
     }
-
-
-    return this.canvas.width * zoomFactor / trueHeight;
   }
 
   processAr(trueAr){
@@ -476,7 +499,7 @@ class ArDetector {
     // poglejmo, če se je razmerje stranic spremenilo
     // check if aspect ratio is changed:
     var lastAr = this.conf.resizer.getLastAr();
-    if( lastAr.type === AspectRatio.Automatic && lastAr.ratio !== null){
+    if (lastAr.type === AspectRatio.Automatic && lastAr.ratio !== null){
       // spremembo lahko zavrnemo samo, če uporabljamo avtomatski način delovanja in če smo razmerje stranic
       // že nastavili.
       //
