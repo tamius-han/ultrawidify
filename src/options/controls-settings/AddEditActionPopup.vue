@@ -58,16 +58,25 @@
         <b>Show this action in the following tabs:</b>
       </div>
 
-      <ScopeSettings :scopeOptions="globalScopeOptions"
-                     @show="updateScopes('global', 'show', $event)"
-                     @set-label="updateScopes('global', 'label', $event)"
-                     @set-shortcut="updateScopes('global', 'shortcut', $event)"
-      />
-      <ScopeSettings :scopeOptions="siteScopeOptions"
-                     @show="updateScopes('site', 'show', $event)"
-                     @set-label="updateScopes('site', 'label', $event)"
-                     @set-shortcut="updateScopes('site', 'shortcut', $event)"
-      />
+      <template v-if="action && action.cmd[0] && action.cmd[0].action !== 'set-ar'">
+        <div>Extension settings (global)</div>
+        <ScopeSettings :scopeOptions="globalScopeOptions"
+                      @show="updateScopes('global', 'show', $event)"
+                      @set-label="updateScopes('global', 'label', $event)"
+                      @set-shortcut="updateScopes('global', 'shortcut', $event)"
+        />
+      </template>
+
+      <template v-if="action && action.cmd[0] && action.cmd[0].action !== 'set-ar'">
+        <div>Site settings (site)</div>
+        <ScopeSettings :scopeOptions="siteScopeOptions"
+                      @show="updateScopes('site', 'show', $event)"
+                      @set-label="updateScopes('site', 'label', $event)"
+                      @set-shortcut="updateScopes('site', 'shortcut', $event)"
+        />
+      </template>
+
+      <div>Video settings (page)</div>
       <ScopeSettings :scopeOptions="pageScopeOptions"
                      @show="updateScopes('page', 'show', $event)"
                      @set-label="updateScopes('page', 'label', $event)"
