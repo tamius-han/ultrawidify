@@ -42,3 +42,11 @@ For situations that would be _really_ hard to fix (if fix is even possible)
 #### Gradient incorrectly triggers aspect ratio correction
 
 IGN: Hollow Knight Review | https://www.youtube.com/watch?v=hg25ONutphA
+
+### Bugs
+
+#### Incorrect crops
+
+Incorrect crop when fixing vertical videos with letterbox: https://www.youtube.com/watch?v=9DP0TbOQcOw — [Issue 48](https://github.com/xternal7/ultrawidify/issues/48)
+
+Incorrect crop on 4:3 in certain circumstances: https://www.reddit.com/r/videos/comments/a137pj/daily_reminder_that_shelly_miscavige_wife_of/ (embedded) — [Issue 54](https://github.com/xternal7/ultrawidify/issues/54)
