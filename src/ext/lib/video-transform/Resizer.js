@@ -24,6 +24,8 @@ class Resizer {
     this.stretcher = new Stretcher(this.conf); 
     this.zoom = new Zoom(this.conf);
 
+    this.cssCheckDisabled = false;
+
     // load up default values
     this.correctedVideoDimensions = {};
     this.currentCss = {};
@@ -74,7 +76,7 @@ class Resizer {
 
   calculateRatioForLegacyOptions(ar){
     // also present as modeToAr in Scaler.js
-    if (ar.ratio) {
+    if (ar.type !== AspectRatio.FitWidth && ar.type !== AspectRatio.FitHeight && ar.ratio) {
       return ar;
     }
     // Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". 
@@ -94,6 +96,9 @@ class Resizer {
     if (! this.conf.player.dimensions) {
       ratioOut = screen.width / screen.height;
     } else {
+      if (Debug.debug && Debug.debugResizer) {
+        console.log(`[Resizer::calculateRatioForLegacyOptions] <rid:${this.resizerId}> Player dimensions:`, this.conf.player.dimensions.width ,'x', this.conf.player.dimensions.height,'aspect ratio:', this.conf.player.dimensions.width / this.conf.player.dimensions.height)
+      }
       ratioOut = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
     }
     
@@ -138,7 +143,8 @@ class Resizer {
     }
 
     if (lastAr) {
-      this.lastAr = lastAr;
+      this.lastAr = this.calculateRatioForLegacyOptions(lastAr);
+      ar = this.calculateRatioForLegacyOptions(ar);
     } else {
       // NOTE: "fitw" "fith" and "reset" should ignore ar.ratio bit, but
       // I'm not sure whether they do. Check that.
@@ -190,10 +196,20 @@ class Resizer {
         if(Debug.debug){
           console.log("[Resizer::setAr] <rid:"+this.resizerId+"> failed to set AR due to problem with calculating crop. Error:", (stretchFactors ? stretchFactors.error : stretchFactors));
         }
-        if(stretchFactors.error === 'no_video'){
+        if (stretchFactors.error === 'no_video'){
           this.conf.destroy();
         }
+        if (stretchFactors.error === 'illegal_video_dimensions') {
+          if(Debug.debug){
+            console.log("[Resizer::setAr] <rid:"+this.resizerId+"> Illegal video dimensions found. We will pause everything.");
+          }
+          // if we get illegal video dimensions, cssWatcher goes nuts. This is harmful,
+          // so we stop it until that sorts itself out
+          this.stopCssWatcher();
+        }
         return;
+      } else {
+        this.startCssWatcher();
       }
       if(this.stretcher.mode === Stretch.Conditional){
          this.stretcher.applyConditionalStretch(stretchFactors, ar.ratio);
@@ -301,7 +317,8 @@ class Resizer {
       return;
     }
 
-    // this.haltCssWatcher = false;
+    this.cssCheckDisabled = false;
+
     if(!this.cssWatcherTimer){
       this.scheduleCssWatcher(1);
     } else {
@@ -320,6 +337,11 @@ class Resizer {
       return;
     }
 
+    // one extra check to ensure we don't run css checks when we aren't supposed to
+    if (this.cssCheckDisabled) {
+      return;
+    }
+
     if(this.cssWatcherTimeout) {
       clearTimeout(this.cssWatcherTimer);
     }
@@ -328,7 +350,9 @@ class Resizer {
     this.cssWatcherTimer = setTimeout(function () {
         ths.cssWatcherTimer = null;
         try {
-          ths.cssCheck();
+          if (! ths.cssCheckDisabled) {
+            ths.cssCheck();
+          }
         } catch (e) {
           if(Debug.debug) {
             console.log("[Resizer.js::scheduleCssWatcher] Css check failed. Error:", e);
@@ -339,9 +363,9 @@ class Resizer {
 
   stopCssWatcher() {
     if (Debug.debug) {
-      console.log("[Resizer.js] STOPPING CSS WATCHER!")
+      console.log(`[Resizer.js] <${this.resizerId}> STOPPING CSS WATCHER!`)
     }
-
+    this.cssCheckDisabled = true;
     clearInterval(this.cssWatcherTimeout);
   }
 
@@ -551,6 +575,10 @@ class Resizer {
   }
 
   cssCheck(){
+    if (this.cssCheckDisabled) {
+      throw "fucking dont"
+      return;
+    }
     // this means we haven't set our CSS yet, or that we changed video.
     // if(! this.currentCss.tranform) {
     //   this.scheduleCssWatcher(200);      
@@ -584,11 +612,10 @@ class Resizer {
       }
       this.restore();
       this.scheduleCssWatcher(10);
-      return;
     }
     if (this.cssWatcherIncreasedFrequencyCounter > 0) {
       --this.cssWatcherIncreasedFrequencyCounter;
-      this.scheduleCssWatcher(20);
+        this.scheduleCssWatcher(20);
     } else {
       this.scheduleCssWatcher(1000);    
     }

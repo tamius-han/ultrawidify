@@ -18,7 +18,7 @@ class Scaler {
   // Približevanje opuščeno.
   // handles "legacy" options, such as 'fit to widht', 'fit to height' and AspectRatio.Reset. No zoom tho
   modeToAr (ar) {
-    if (ar.ratio) {
+    if (ar.type !== AspectRatio.FitWidth && ar.type !== AspectRatio.FitHeight && ar.ratio) {
       return ar.ratio; 
     }
 
@@ -70,13 +70,22 @@ class Scaler {
   }
 
   calculateCrop(ar) {
-    if(!this.conf.video || this.conf.video.videoWidth == 0 || this.conf.video.videoHeight == 0){
+    if(!this.conf.video){
       if (Debug.debug) {
-        console.log("[Scaler::calculateCrop] ERROR — no video detected.");
+        console.log("[Scaler::calculateCrop] ERROR — no video detected. Conf:", this.conf, "video:", this.conf.video, "video dimensions:", this.conf.video && this.conf.video.videoWidth, '×', this.conf.video && this.conf.video.videoHeight);
       }
       
       this.conf.destroy();
       return {error: "no_video"};
+    }
+    if (this.conf.video.videoWidth == 0 || this.conf.video.videoHeight == 0) {
+      // that's illegal, but not illegal enough to just blast our shit to high hell
+      // mr officer will let you go with a warning this time around
+      if (Debug.debug) {
+        console.log("[Scaler::calculateCrop] Video has illegal dimensions. Video dimensions:", this.conf.video && this.conf.video.videoWidth, '×', this.conf.video && this.conf.video.videoHeight);
+      }
+
+      return {error: "illegal_video_dimensions"};
     }
 
     if (ar.type === AspectRatio.Reset){
