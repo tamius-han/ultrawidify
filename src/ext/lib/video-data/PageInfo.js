@@ -113,12 +113,11 @@ class PageInfo {
       if (videoExists) {
         continue;
       } else {
-        if(Debug.debug && Debug.periodic && Debug.videoRescan){
+        if (Debug.debug && Debug.periodic && Debug.videoRescan) {
           console.log("[PageInfo::rescan] found new video candidate:", video, "NOTE:: Video initialization starts here:\n--------------------------------\n")
         }
         v = new VideoData(video, this.settings, this);
         // console.log("[PageInfo::rescan] v is:", v)
-        // debugger;
         v.initArDetection();
         this.videos.push(v);
 
@@ -148,8 +147,21 @@ class PageInfo {
       }
     }
 
-    }catch(e){
-      console.log("rescan error:",e)
+    } catch(e) {
+      // če pride do zajeba, potem lahko domnevamo da na strani ni nobenega videa. Uničimo vse objekte videoData
+      // da preprečimo večkratno inicializacijo. Če smo se z našim ugibom zmotili, potem se bodo vsi videi ponovno
+      // našli ob naslednjem preiskovanju
+      //
+      // if we encounter a fuckup, we can assume that no videos were found on the page. We destroy all videoData
+      // objects to prevent multiple initalization (which happened, but I don't know why). No biggie if we destroyed
+      // videoData objects in error — they'll be back in the next rescan
+      if (Debug.debug) {
+        console.log("rescan error: — destroying all videoData objects",e);
+      }
+      for (const v of this.videos) {
+        v.destroy();
+      }
+      return;
     }
 
     if(rescanReason == RescanReason.PERIODIC){
