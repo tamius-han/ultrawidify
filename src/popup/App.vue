@@ -235,6 +235,8 @@ export default {
           this.performance[key] = message.message[key];
         }
       }
+
+      return true;
     },
     loadFrames(videoTab) {
       if (videoTab.selected) {
