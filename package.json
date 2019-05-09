@@ -4,19 +4,27 @@
   "description": "Ultrawidify but with vue settings and popup",
   "author": "Tamius Han <tamius.han@gmail.com>",
   "scripts": {
-    "build": "cross-env NODE_ENV=production webpack --hide-modules",
-    "build:dev": "cross-env NODE_ENV=development webpack --hide-modules",
+    "build": "cross-env NODE_ENV=production BROWSER=firefox webpack --hide-modules",
+    "build-chrome": "cross-env NODE_ENV=production BROWSER=chrome webpack --hide-modules",
+    "build-edge": "cross-env NODE_ENV=production BROWSER=edge webpack --hide-modules",
+    "build:dev": "cross-env NODE_ENV=development BROWSER=firefox webpack --hide-modules",
+    "build-chrome:dev": "cross-env NODE_ENV=development BROWSER=chrome webpack --hide-modules",
+    "build-edge:dev": "cross-env NODE_ENV=development BROWSER=edge webpack --hide-modules",
     "build-zip": "node scripts/build-zip.js",
     "watch": "npm run build -- --watch",
-    "watch:dev": "cross-env HMR=true npm run build:dev -- --watch"
+    "watch-chrome": "npm run build-chrome-- --watch",
+    "watch-edge": "npm run build-edge -- --watch",
+    "watch:dev": "cross-env HMR=true npm run build:dev -- --watch",
+    "watch-chrome:dev": "cross-env HMR=true npm run build-chrome:dev -- --watch",
+    "watch-edge:dev": "cross-env HMR=true npm run build-edge:dev -- --watch"
   },
   "dependencies": {
     "@types/core-js": "^2.5.0",
     "@types/es6-promise": "^3.3.0",
+    "fs-extra": "^7.0.1",
     "vue": "^2.5.17",
     "vuex": "^3.0.1",
-    "vuex-webextensions": "^1.2.6",
-    "webextension-polyfill": "^0.3.1"
+    "vuex-webextensions": "^1.2.6"
   },
   "devDependencies": {
     "@babel/core": "^7.1.2",
