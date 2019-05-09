@@ -53,7 +53,6 @@ class UWServer {
   }
 
   scheduleGc(timeout) {
-    console.log("scheduling gcframe")
     if (this._gctimeout) {
       return;
     }
@@ -122,19 +121,22 @@ class UWServer {
 
   async gcFrames() {
     // does "garbage collection" on frames
+
     let frames;
     
     if (BrowserDetect.firefox) {
       frames = await browser.webNavigation.getAllFrames({tabId: this.currentTabId});
     } else if (BrowserDetect.chrome) {
       frames = await new Promise( (resolve, reject) => {
-        chrome.webNavigation.getAllFrames({tabId: this.currentTabId}, (data) => resolve(data) );
+        chrome.webNavigation.getAllFrames({tabId: this.currentTabId}, (data) => {resolve(data); return true});
       });
     }
 
-    for (let key in this.videoTabs[this.currentTabId].frames) {
-      if (! frames.find(x => x.frameId == key)) {
-        delete this.videoTabs[this.currentTabId].frames[key];
+    if (this.videoTabs[this.currentTabId]) {
+      for (let key in this.videoTabs[this.currentTabId].frames) {
+        if (! frames.find(x => x.frameId == key)) {
+          delete this.videoTabs[this.currentTabId].frames[key];
+        }
       }
     }
   }
