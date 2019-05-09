@@ -127,15 +127,15 @@ class Settings {
         return undefined;
       }
     } else if (currentBrowser.chrome) {
-      const ret = new Promise( (resolve, reject) => {
+      const ret = await new Promise( (resolve, reject) => {
         chrome.storage.local.get('uwSettings', (res) => resolve(res));
       });
-      return ret['uwSettings'];
+      return JSON.parse(ret['uwSettings']);
     } else if (currentBrowser.edge) {
-      const ret = new Promise( (resolve, reject) => {
+      const ret = await new Promise( (resolve, reject) => {
         browser.storage.local.get('uwSettings', (res) => resolve(res));
       });
-      return ret['uwSettings'];
+      return JSON.parse(ret['uwSettings']);
     }
   }
 
