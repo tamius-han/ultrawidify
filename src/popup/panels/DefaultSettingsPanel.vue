@@ -1,7 +1,7 @@
 <template>
   <div class="w100 flex flex-column">
     <ShortcutButton class="button" 
-                    @click.native="settings.setDefaultSettings()"
+                    @click.native="wipeSettings()"
                     label="Wipe settings"
     /> 
     <div v-if="settings && true"
@@ -163,6 +163,10 @@ export default {
       }
       return KeyboardShortcutParser.parseShortcut(action.scopes[this.scope].shortcut[0]);
     },
+    wipeSettings() {
+      console.log("WIPING SETTINGS");
+      settings.setDefaultSettings();
+    }
   }
 }
 </script>
