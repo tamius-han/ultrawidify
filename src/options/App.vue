@@ -51,6 +51,12 @@
               Actions
           </div>
           <div class="menu-item"
+              :class="{'selected-tab': selectedTab === 'txtconf'}"
+              @click="setSelectedTab('txtconf')"
+              >
+              Super advanced settings
+          </div>
+          <div class="menu-item"
               :class="{'selected-tab': selectedTab === 'about'}"
               @click="setSelectedTab('about')"
               >
@@ -88,6 +94,9 @@
                             @remove-event="showRemoveActionPopup($event)"
           >
           </ControlsSettings>
+          <SuperAdvancedSettings v-if="selectedTab === 'txtconf'"
+                                 :settings="settings"
+          ></SuperAdvancedSettings>
           <About v-if="selectedTab === 'about'">
           </About>
           <!-- Vice City/beggathon reference: https://youtu.be/Mn3YEJTSYs8?t=770 -->
@@ -99,6 +108,7 @@
 </template>
 
 <script>
+import SuperAdvancedSettings from './SuperAdvancedSettings.vue';
 import Debug from '../ext/conf/Debug.js';
 import BrowserDetect from '../ext/conf/BrowserDetect.js';
 
@@ -115,7 +125,7 @@ import ConfirmPopup from './common/ConfirmationPopup';
 import About from './about'
 
 import AutodetectionSettings  from './AutodetectionSettings';
-
+// import SuperAdvancedSettings from './'
 
 export default {
   name: "Ultrawidify",
@@ -147,6 +157,7 @@ export default {
     About,
     AutodetectionSettings,
     ConfirmPopup,
+    SuperAdvancedSettings,
   },
   methods: {
     setSelectedTab(newTab) {
