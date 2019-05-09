@@ -13,10 +13,10 @@ class CommsServer {
 
     if (BrowserDetect.firefox) {
       browser.runtime.onConnect.addListener(p => ths.onConnect(p));
-      browser.runtime.onMessage.addListener(m => ths.processReceivedMessage_nonpersistent_ff(m));
+      browser.runtime.onMessage.addListener(m => ths.processReceivedMessage_nonpersistent(m));
     } else {
       chrome.runtime.onConnect.addListener(p => ths.onConnect(p));
-      chrome.runtime.onMessage.addListener((m, sender, callback) => ths.processReceivedMessage_nonpersistent_chrome(m, sender, callback));
+      chrome.runtime.onMessage.addListener((m, sender, callback) => ths.processReceivedMessage_nonpersistent(m, sender, callback));
     }
   }
 
@@ -67,6 +67,7 @@ class CommsServer {
       return await new Promise( (resolve, reject) => {
         chrome.tabs.query({lastFocusedWindow: true, active: true}, function (res) {
           resolve(res);
+          return true;
         });
       });
     }
@@ -113,10 +114,9 @@ class CommsServer {
     var tabs = await this._getActiveTab();
 
     if(Debug.debug && Debug.comms){
-      console.log("[CommsServer::_sendToActive_ff] currently active tab(s)?", tabs);
+      console.log("[CommsServer::_sendToActive] currently active tab(s)?", tabs);
       for (var key in this.ports[tabs[0].id]) {
         console.log("key?", key, this.ports[tabs[0].id]);
-        // this.ports[tabs[0].id][key].postMessage(message);
       }
     }
 
@@ -126,6 +126,9 @@ class CommsServer {
   }
 
   onConnect(port){
+    
+    console.log("[processmessage] \nb\n\n\n\n\nonConnect\n\n\n\n\n\}\n")
+    
     var ths = this;
     
     // poseben primer | special case
@@ -211,69 +214,31 @@ class CommsServer {
     } 
   }
 
-  processReceivedMessage_nonpersistent_ff(message, sender){
+  processReceivedMessage_nonpersistent(message, sender, sendResponse){
     if (Debug.debug && Debug.comms) {
-      console.log("%c[CommsServer.js::processMessage_nonpersistent_ff] Received message from background script!", "background-color: #11D; color: #aad", message, sender);
+      console.log("%c[CommsServer.js::processMessage_nonpersistent] Received message from background script!", "background-color: #11D; color: #aad", message, sender);
     }
 
     if (message.forwardToContentScript) {
       if (Debug.debug && Debug.comms) {
-        console.log("[CommsServer.js::processMessage_nonpersistent_ff] Message has 'forward to content script' flag set. Forwarding message as is. Message:", message);
-        console.log("[CommsServer.js::processMessage_nonpersistent_ff] (btw we probably shouldn't be seeing this. This should prolly happen in persistent connection?");
+        console.log("[CommsServer.js::processMessage_nonpersistent] Message has 'forward to content script' flag set. Forwarding message as is. Message:", message);
+        console.log("[CommsServer.js::processMessage_nonpersistent] (btw we probably shouldn't be seeing this. This should prolly happen in persistent connection?");
       }
 
       this.sendToFrame(message, message.targetFrame);
     }
 
     if (message.cmd === 'get-config') {
-      var ret = {extensionConf: JSON.stringify(this.settings.active)};
-      if (Debug.debug && Debug.comms) {
-        console.log("%c[CommsServer.js::processMessage_nonpersistent_ff] Returning this:", "background-color: #11D; color: #aad", ret);
-      }
-      Promise.resolve(ret);
-    } else if (message.cmd === "autoar-enable") {
-      this.settings.active.sites['@global'].autoar = "blacklist";
-      this.settings.save();
-      this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
-      if(Debug.debug){
-        console.log("[uw-bg] autoar set to enabled (blacklist). evidenz:", this.settings.active);
-      }
-    } else if (message.cmd === "autoar-disable") {
-      this.settings.active.sites['@global'].autoar = "disabled";
-      if(message.reason){
-        this.settings.active.arDetect.disabledReason = message.reason;
-      } else {
-        this.settings.active.arDetect.disabledReason = 'User disabled';
-      }
-      this.settings.save();
-      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
-      if(Debug.debug){
-        console.log("[uw-bg] autoar set to disabled. evidenz:", this.settings.active);
-      }
-    } else if (message.cmd === "autoar-set-interval") {
-      if(Debug.debug)
-        console.log("[uw-bg] trying to set new interval for autoAr. New interval is",message.timeout,"ms");
-
-      // set fairly liberal limit
-      var timeout = message.timeout < 4 ? 4 : message.timeout;
-      this.settings.active.arDetect.timer_playing = timeout;
-      this.settings.save();
-      this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
-    }
-  }
-
-  processReceivedMessage_nonpersistent_chrome(message, sender, sendResponse){
-    if (Debug.debug && Debug.comms) {
-      console.log("[CommsServer.js::processMessage_nonpersistent_chrome] Received message from background script!", message);
-      
       if (BrowserDetect.firefox) {
-        throw "WHAT THE FUCK WHY IS THIS RUNNING, THIS ISNT SUPPOSED TO BE RUNNING RN"
+        var ret = {extensionConf: JSON.stringify(this.settings.active)};
+        if (Debug.debug && Debug.comms) {
+          console.log("%c[CommsServer.js::processMessage_nonpersistent] Returning this:", "background-color: #11D; color: #aad", ret);
+        }
+        Promise.resolve(ret);
+      } else {
+        sendResponse({extensionConf: JSON.stringify(this.settings.active)});
+        return true;
       }
-    }
-
-    if(message.cmd === 'get-config') {
-      sendResponse({extensionConf: JSON.stringify(this.settings.active), site: this.getCurrentTabHostname()});
-      // return true;
     } else if (message.cmd === "autoar-enable") {
       this.settings.active.sites['@global'].autoar = "blacklist";
       this.settings.save();
@@ -294,9 +259,9 @@ class CommsServer {
         console.log("[uw-bg] autoar set to disabled. evidenz:", this.settings.active);
       }
     } else if (message.cmd === "autoar-set-interval") {
-      if(Debug.debug)
+      if (Debug.debug) {
         console.log("[uw-bg] trying to set new interval for autoAr. New interval is",message.timeout,"ms");
-
+      }
       // set fairly liberal limit
       var timeout = message.timeout < 4 ? 4 : message.timeout;
       this.settings.active.arDetect.timer_playing = timeout;
@@ -304,6 +269,7 @@ class CommsServer {
       this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
     }
   }
+
 }
 
 export default CommsServer;
