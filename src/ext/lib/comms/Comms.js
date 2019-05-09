@@ -19,6 +19,7 @@ class Comms {
               // Chrome/js shittiness mitigation — remove this line and an empty array will be returned
               var r = response; 
               resolve(r);
+              return true;
             });
           }
         }
