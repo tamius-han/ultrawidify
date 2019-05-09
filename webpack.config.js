@@ -85,6 +85,10 @@ const config = {
             jsonContent['content_security_policy'] = "script-src 'self' 'unsafe-eval'; object-src 'self'";
           }
 
+          if (process.env.BROWSER !== 'firefox') {
+            jsonContent.version = jsonContent.version.replace(/[a-zA-Z-]/g, '');
+          }
+
           return JSON.stringify(jsonContent, null, 2);
         },
       },
@@ -92,6 +96,9 @@ const config = {
     new WebpackShellPlugin({
       onBuildEnd: ['node scripts/remove-evals.js'],
     }),
+    new webpack.DefinePlugin({
+      'process.env.BROWSER': JSON.stringify(process.env.BROWSER)
+    })
   ],
 };
 
@@ -101,7 +108,7 @@ if (config.mode === 'production') {
       'process.env': {
         NODE_ENV: '"production"',
       },
-    }),
+    })
   ]);
 }
 
