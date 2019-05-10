@@ -119,23 +119,24 @@ class Settings {
   }
 
   async get() {
+    let ret;
+    
     if (currentBrowser.firefox) {
-      const ret = await browser.storage.local.get('uwSettings');
-      try {
-        return JSON.parse(ret.uwSettings);
-      } catch(e) {
-        return undefined;
-      }
+      ret = await browser.storage.local.get('uwSettings');
     } else if (currentBrowser.chrome) {
-      const ret = await new Promise( (resolve, reject) => {
+      ret = await new Promise( (resolve, reject) => {
         chrome.storage.local.get('uwSettings', (res) => resolve(res));
       });
-      return JSON.parse(ret['uwSettings']);
     } else if (currentBrowser.edge) {
-      const ret = await new Promise( (resolve, reject) => {
+      ret = await new Promise( (resolve, reject) => {
         browser.storage.local.get('uwSettings', (res) => resolve(res));
       });
-      return JSON.parse(ret['uwSettings']);
+    }
+
+    try {
+      return JSON.parse(ret.uwSettings);
+    } catch(e) {
+      return undefined;
     }
   }
 
