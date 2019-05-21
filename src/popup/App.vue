@@ -126,13 +126,11 @@ export default {
   },
   async created() {
     await this.settings.init();
-    console.log("\n\n\n\n\n\n\nset init")
     this.port.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
     this.execAction.setSettings(this.settings);
 
     // ensure we'll clean player markings on popup close
     window.addEventListener("unload", () => {
-      console.log("UNLOAD!!das!!")
       this.port.postMessage({
         cmd: 'unmark-player',
         forwardToAll: true,

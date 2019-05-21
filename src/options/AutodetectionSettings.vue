@@ -488,7 +488,7 @@ export default {
       ctx.drawWindow(window,0, 0, 10, 10, "rgba(0,0,0,0)");
       this.fallbackModeAvailable = true;
     } catch (e) {
-      console.log("DrawWindow failed:", e)
+      // console.log("DrawWindow failed:", e)
       this.fallbackModeAvailable = false;
     }
   },

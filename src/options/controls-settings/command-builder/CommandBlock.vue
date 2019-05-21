@@ -47,7 +47,6 @@ export default {
     }
   },
   created () {
-    console.log("Creating command block for action:", JSON.parse(JSON.stringify(this.action)), JSON.parse(JSON.stringify(ActionList)))
   },
   props: {
     action: Object,
@@ -61,13 +60,11 @@ export default {
       }
     },
     setAction(cmd) {
-      console.log("SETTING ACTION", cmd);
       this.selectedAction = cmd;
       this.selectedArgument = undefined;
       this.customArgumentValue = undefined;
     },
     setArgument(arg) {
-      console.log("SETTING ARGUMENT", cmd);
       this.selectedArgument = arg;
       this.customArgumentValue = undefined;
     },

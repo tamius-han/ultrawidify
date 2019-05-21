@@ -164,7 +164,6 @@ export default {
       return KeyboardShortcutParser.parseShortcut(action.scopes[this.scope].shortcut[0]);
     },
     wipeSettings() {
-      console.log("WIPING SETTINGS");
       settings.setDefaultSettings();
     }
   }
