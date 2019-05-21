@@ -98,7 +98,6 @@ export default {
   created () {
     if (this.action) {
       this.selectedAction = this.action.action;
-      console.log("THIS:ACTION", this.action)
       this.selectedArgument = {
         name: ActionList[this.action.action].args.find(x => x.arg === this.action.arg) || ActionList[this.action.action].args.find(x => x.customArg),
         arg: this.action.arg
@@ -120,13 +119,11 @@ export default {
   },
   methods: {
     setAction(cmd) {
-      console.log("SETTING ACTION", cmd);
       this.selectedAction = cmd;
       this.selectedArgument = undefined;
       this.customArgumentValue = undefined;
     },
     setArgument(arg) {
-      console.log("SETTING ARG:", arg)
       this.selectedArgument = ActionList[this.selectedAction].args.find(x => x.arg == arg);
       this.customArgumentValue = undefined;
     },

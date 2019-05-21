@@ -181,7 +181,6 @@ export default {
       this.settingsInitialized = true;
     },
     showEditActionPopup(event) {
-      console.log("SHOW EDIT ACTION/APP:", event)
       this.editActionPopupVisible = true;
       this.editActionIndex = event;
       this.anyOpenedPopups = true;

@@ -134,7 +134,6 @@ export default {
   },
   watch: {
     settings: (newVal, oldVal) => {
-      console.log("this.settings", this.settings, newVal, oldVal)
       this.settings = newVal;
     }
   },
