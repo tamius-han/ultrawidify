@@ -172,10 +172,4 @@ export default {
 </script>
 
 <style>
-.button-selected {
-  background-color: "#fff"
-}
-.setting-selected {
-  background-color: #ffa;
-}
 </style>

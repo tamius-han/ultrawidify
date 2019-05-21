@@ -168,6 +168,8 @@ export default {
         this.selectedTabTitle = 'Advanced autodetection settings';
       } else if (newTab === 'controls') {
         this.selectedTabTitle = 'Actions';
+      } else if (newTab === 'txtconf') {
+        this.selectedTabTitle = 'Super advanced settings';
       } else if (newTab === 'about') {
         this.selectedTabTitle = 'About';
       } else if (newTab === 'donate') {

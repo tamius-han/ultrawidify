@@ -37,8 +37,6 @@
         >
         </ActionAlt>
       </template>
-
-      
       <div class="action-item-category-header">
         Stretch actions
       </div>
