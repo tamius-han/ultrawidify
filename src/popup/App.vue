@@ -51,20 +51,6 @@
           </div>
         </div>
 
-         <div 
-             class="menu-item"
-             :class="{'selected-tab': selectedTab === 'performance-metrics'}"
-             @click="selectTab('performance-metrics')"
-        >
-          <div class="">
-            Performance debug
-          </div>
-          <div class="">
-          </div>
-        </div>
-
-
-
         <div class="menu-item"
             :class="{'selected-tab': selectedTab === 'about'}"
             @click="selectTab('about')"
@@ -89,12 +75,6 @@
 
       <!-- PANELS/CONTENT -->
       <div id="tab-content" class="flex-grow" style="max-width: 480px !important;">
-        <b>This is some debug stuff. Please remove before release.</b> Site: {{site && site.host}}<br/>
-        <small>NOTE: in case you're using nightly builds, this extension could be completely broken.
-        It's also possible that everything is getting logged excessively, which may result in 
-        degraded performance. If settings don't persist, check whether Debug.flushStorageSettings is set to true.</small>
-        
-    
         <VideoPanel v-if="settings && settings.active && selectedTab === 'video'"
                     class=""
                     :settings="settings"
