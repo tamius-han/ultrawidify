@@ -1,6 +1,8 @@
 @import "colors.scss";
 @import "/res/css/font/overpass.css";
 @import "/res/css/font/overpass-mono.css";
+@import "/res/css/flex.css";
+// @import "form.scss";
 
 body {
   background-color: $background-primary;
@@ -81,6 +83,13 @@ body {
 .row-padding {
   padding-top: 0.69rem;
   padding-bottom: 0.69rem;
+}
+
+a, a:visited {
+  color: $primary-color;
+}
+a:hover {
+  color: lighten($primary-color, 10%);
 }
 
 /* INPUT FORMATTING */
@@ -164,13 +173,45 @@ small {
 
 
 
+.invalid-input {
+  border: 1px solid #720 !important;
+  background-color: #410 !important;
+}
 
-/* COLORS */
+.button {
+  /*display: inline-block;*/
+  // padding-top: 8px;
+  // padding-bottom: 3px;
+  //padding-left: 5px;
+  //padding-right: 5px;
+  border: 1px solid rgb(39, 39, 39);
+  margin-top: 3px;
+  margin-bottom: 3px;
+  color: $text-dim;
+  text-align: center;
+}
 
     
-.selected {
-  color: #ffddaa !important;
-  background-color: #433221 !important;
+.selected, .setting-selected {
+  color: $selected-color;
+  background-color: $background-selected;
+}
+
+.selected-tab {
+  color: $selected-color;
+}
+
+.setting-selected {
+  border: 1px solid shade($selected-color, 25%);
+}
+
+.button:hover {
+  color: lighten($selected-color, 10%);
+  background-color: lighten($background-selected, 10%);
+}
+
+.button {
+  cursor: pointer !important;
 }
 
 .disabled {
@@ -207,31 +248,6 @@ small {
 }
 
 
-/* BUTTONS AND INPUTS */
-
-.invalid-input {
-  border: 1px solid #720 !important;
-  background-color: #410 !important;
-}
-
-.button {
-  /*display: inline-block;*/
-  // padding-top: 8px;
-  // padding-bottom: 3px;
-  //padding-left: 5px;
-  //padding-right: 5px;
-  border: 1px solid #444;
-  margin-top: 3px;
-  margin-bottom: 3px;
-  color: #dbb;
-  text-align: center;
-}
-
-.button:hover {
-  color: #fff;
-  background-color: $primary-color;
-}
-
 
 
 /** misc **/
@@ -266,13 +282,28 @@ small {
 }
 
 .experimental::after {
-  content: "Experimental";
-  background-color: #ffde12;
-  color: #1f1f1f;
+  // content: "Experimental";
+  content: "Ⓔ";
+  color: #ffde12;
+  // background-color: #1f1f1f;
   display: inline-block;
   font-size: .75em;
   font-variant: small-caps;
   padding-left: 5px;
   padding-right: 5px;
   margin-left: 10px;
+  margin-top: -4px;
+}
+.experimental:hover::after {
+   content: "Ⓔ Experimental";
+  //  content: "";
+   color: #ffde12;
+  //  background-color: #1f1f1f;
+   display: inline-block;
+   font-size: .75em;
+   font-variant: small-caps;
+   padding-left: 5px;
+   padding-right: 5px;
+   margin-left: 10px;
+   margin-top: -4px;
 }

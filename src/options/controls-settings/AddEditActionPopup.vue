@@ -7,22 +7,24 @@
         {{actionIndex < 0 ? 'Add new action' : 'Edit action'}}
       </div>
 
-      <CommandChain class="w100"
-                    :command="action.cmd"
-                    @new-command="addNewCommand()"
-                    @edit="editCommand"
-                    @delete="deleteCommand"
-      >
-      </CommandChain>
-      <CommandAddEdit class="w100"
-                      v-if="addEditCommand"
-                      :action="currentCmd"
-                      @set-command="updateCommand"
-                      @close-popup="addEditCommand=false"
-      >
-      </CommandAddEdit>
+      <div class="command-chain-border">
+        <CommandChain class="w100"
+                      :command="action.cmd"
+                      @new-command="addNewCommand()"
+                      @edit="editCommand"
+                      @delete="deleteCommand"
+        >
+        </CommandChain>
+        <CommandAddEdit class="w100 cae-margin"
+                        v-if="addEditCommand"
+                        :action="currentCmd"
+                        @set-command="updateCommand"
+                        @close-popup="addEditCommand=false"
+        >
+        </CommandAddEdit>
+      </div>
 
-      <div class="flex flex-column">
+      <div class="flex flex-column section-pad">
         <div class="flex flex-row">
           <div class="flex label-secondary form-label">
             <span class="w100">
@@ -54,12 +56,12 @@
 
       </div>
 
-      <div class="flex flex-row">
+      <div class="flex flex-row section-pad">
         <b>Show this action in the following tabs:</b>
       </div>
 
       <template v-if="action && action.cmd[0] && action.cmd[0].action !== 'set-ar'">
-        <div>Extension settings (global)</div>
+        <div class="tab-title">Extension settings (global)</div>
         <ScopeSettings :scopeOptions="globalScopeOptions"
                       @show="updateScopes('global', 'show', $event)"
                       @set-label="updateScopes('global', 'label', $event)"
@@ -68,7 +70,7 @@
       </template>
 
       <template v-if="action && action.cmd[0] && action.cmd[0].action !== 'set-ar'">
-        <div>Site settings (site)</div>
+        <div class="tab-title">Site settings (site)</div>
         <ScopeSettings :scopeOptions="siteScopeOptions"
                       @show="updateScopes('site', 'show', $event)"
                       @set-label="updateScopes('site', 'label', $event)"
@@ -76,7 +78,7 @@
         />
       </template>
 
-      <div>Video settings (page)</div>
+      <div class="tab-title">Video settings (page)</div>
       <ScopeSettings :scopeOptions="pageScopeOptions"
                      @show="updateScopes('page', 'show', $event)"
                      @set-label="updateScopes('page', 'label', $event)"
@@ -246,6 +248,11 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '../../res/css/colors';
+
+.cae-margin {
+  margin-top: 20px;
+}
 
 .full-screen {
   background-color: rgba(0,0,0,0.5);
@@ -276,10 +283,17 @@ export default {
 
 .form-label {
   width: 16rem;
-  text-align: right;
+  text-align: left;
+  // text-align: right;
   vertical-align: baseline;
 }
 
+.tab-title {
+  font-size: 1.2em;
+  color: lighten($primary-color, 25%);
+  padding-top: 20px;
+  padding-bottom: 10px;
+}
 
 .hint {
   opacity: 50% !important;
@@ -303,5 +317,15 @@ export default {
   height: 1.7em;
 }
 
+.command-chain-border {
+  border: 1px dotted lighten($selected-color, 10%);
+  padding: 10px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.section-pad {
+  padding-top: 35px;
+}
 
 </style>

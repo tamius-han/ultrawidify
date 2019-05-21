@@ -16,7 +16,7 @@
     </div>
 
     <div v-if="true" class="w100">
-      <div class="label">Zooming and panning</div>
+      <div class="label experimental">Zooming and panning</div>
       <div class="row w100"
       >
         <!--

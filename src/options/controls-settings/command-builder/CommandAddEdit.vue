@@ -66,7 +66,7 @@
 
     </div>
 
-    <div class="window-footer">
+    <div class="flex flex-row flex-end close-save-button-margin">
       <div class="button"
             @click="$emit('close-popup')"
       >
@@ -141,3 +141,17 @@ export default {
   }
 }
 </script>
+
+<style>
+.form-label {
+  width: 15rem;
+  text-align: left;
+  /* text-align: right; */
+  vertical-align: baseline;
+}
+
+.close-save-button-margin {
+  padding-top: 25px;
+}
+
+</style>

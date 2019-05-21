@@ -6,11 +6,12 @@
 
       </div>
       <div class="flex action-name">
-        <span class="icon" @click="removeAction()">🗙</span>
-        <span class="icon" @click="editAction()">🖉</span> {{action.name}}
+        <span class="icon red" @click="removeAction()">🗙</span> &nbsp; &nbsp;
+        <span class="icon" @click="editAction()">🖉</span> &nbsp; &nbsp;
+        {{action.name}}
       </div>
     </div>
-    <div class="flex flex-row">
+    <div class="flex flex-row command-details">
       <div class="flex flex-column cmd-container">
         <div class="flex bold">
           Command: 
@@ -152,6 +153,20 @@ export default {
   cursor: pointer;
 }
 
+.action .command-details {
+  height: 0px;
+  max-height: 0px;
+  transition: max-height 0.5s ease;
+  overflow: hidden;
+  transition: height 0.5s ease;
+}
+
+.action:hover .command-details {
+  height: auto;
+  max-height: 200px;
+  transition: max-height 0.5s ease;
+}
+
 .action-name-cmd-container {
   padding: 1rem;
 }
@@ -159,7 +174,14 @@ export default {
 .action-name {
   font-size: 1.5rem;
   font-weight: 300;
-  color: $primary-color;
+  color: $text-normal;
+}
+.action-name:hover {
+  color: lighten($primary-color, 20%);
+}
+
+.red {
+  color: $primary-color !important;
 }
 
 .cmd-container {

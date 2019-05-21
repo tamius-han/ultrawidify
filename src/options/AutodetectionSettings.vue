@@ -17,7 +17,7 @@
 
     <div class="indent">
       <div class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Frequency while playing:
         </div>
         <div class="flex flex-input">
@@ -27,7 +27,7 @@
         </div>
       </div>
       <div class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Frequency while paused:
         </div>
         <div class="flex flex-input">
@@ -37,7 +37,7 @@
         </div>
       </div>
       <div v-if="showAdvancedOptions" class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Error timeout:
         </div>
         <div class="flex flex-input">
@@ -48,15 +48,9 @@
       </div>
     </div>
 
-    <div class="info">Setting values under 100 milliseconds will have no effect unless you also reduce the tickrate.
-      <a href="#"
-         @click="showAdvancedOptions = true"
-      >Show advanced options</a>
-    </div> 
-
     <div class="indent">
       <div class="flex flex-row row-padding"  v-if="showAdvancedOptions">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Tick rate:
         </div>
         <div class="flex flex-input">
@@ -66,6 +60,12 @@
         </div>
       </div>
     </div>
+
+    <div class="info">Setting values under 100 milliseconds will have no effect unless you also reduce the tickrate.
+      <a href="#"
+         @click="showAdvancedOptions = true"
+      >Show advanced options</a>
+    </div> 
 
     <div class="label">Fallback mode</div>
     <div class="description">
@@ -91,7 +91,7 @@
       </div>
 
       <div v-if="showAdvancedOptions" class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Safety border thickness (in px)
         </div>
         <div class="flex flex-input">
@@ -101,7 +101,7 @@
         </div>
       </div>
       <div v-if="showAdvancedOptions" class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Don't react if detected edge is less than this many pixels thick:
         </div>
         <div class="flex flex-input">
@@ -118,7 +118,7 @@
     </div>
     <div class="indent">
       <div class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Letterbox misalignment threshold
         </div>
         <div class="flex flex-input">
@@ -140,7 +140,7 @@
     </div>
     <div class="indent">
       <div class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Static sample columns:
         </div>
         <div class="flex flex-input">
@@ -150,7 +150,7 @@
         </div>
       </div>
       <div v-if="showAdvancedOptions" class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Random sample columns:
         </div>
         <div class="flex flex-input">
@@ -160,7 +160,7 @@
         </div>
       </div>
       <div v-if="showAdvancedOptions" class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Static rows:
         </div>
         <div class="flex flex-input">
@@ -170,7 +170,7 @@
         </div>
       </div>
       <div v-if="showAdvancedOptions" class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Sample width:
         </div>
         <div class="flex flex-input">
@@ -180,7 +180,7 @@
         </div>
       </div>
       <div v-if="showAdvancedOptions" class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Static rows:
         </div>
         <div class="flex flex-input">
@@ -212,7 +212,7 @@
     </div>
     <div class="indent">
       <div class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Black level:
         </div>
         <div class="flex flex-input">
@@ -222,7 +222,7 @@
         </div>
       </div>
       <div class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Threshold:
         </div>
         <div class="flex flex-input">
@@ -232,7 +232,7 @@
         </div>
       </div>
       <div class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Gradient detection:
         </div>
         <div class="flex flex-input">
@@ -240,7 +240,7 @@
         </div>
       </div>
       <div v-if="showAdvancedOptions" class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Image threshold
         </div>
         <div class="flex flex-input">
@@ -250,7 +250,7 @@
         </div>
       </div>
       <div v-if="showAdvancedOptions" class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Gradient threshold:
         </div>
         <div class="flex flex-input">
@@ -260,7 +260,7 @@
         </div>
       </div>
       <div v-if="showAdvancedOptions" class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Gradient sample size:
         </div>
         <div class="flex flex-input">
@@ -282,7 +282,7 @@
       </div>
       <div class="indent">
         <div class="flex flex-row row-padding">
-          <div class="flex label-secondary">
+          <div class="flex label-secondary form-label">
             Blackframe sample width:
           </div>
           <div class="flex flex-input">
@@ -292,7 +292,7 @@
           </div>
         </div>
         <div class="flex flex-row row-padding">
-          <div class="flex label-secondary">
+          <div class="flex label-secondary form-label">
             Blackframe sample height:
           </div>
           <div class="flex flex-input">
@@ -302,7 +302,7 @@
           </div>
         </div>
         <div class="flex flex-row row-padding">
-          <div class="flex label-secondary">
+          <div class="flex label-secondary form-label">
             Cumulative threshold:
           </div>
           <div class="flex flex-input">
@@ -312,7 +312,7 @@
           </div>
         </div>
         <div class="flex flex-row row-padding">
-          <div class="flex label-secondary">
+          <div class="flex label-secondary form-label">
             Black pixel threshold:
           </div>
           <div class="flex flex-input">
@@ -337,7 +337,7 @@
     </div>
     <div class="indent">
       <div class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Sample width:
         </div>
         <div class="flex flex-input">
@@ -347,7 +347,7 @@
         </div>
       </div>
       <div class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Detection threshold (px):
         </div>
         <div class="flex flex-input">
@@ -357,7 +357,7 @@
         </div>
       </div>
       <div class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Single side confirmation threshold:
         </div>
         <div class="flex flex-input">
@@ -367,7 +367,7 @@
         </div>
       </div>
       <div class="flex flex-row row-padding" v-if="showAdvancedOptions">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Logo threshold:
         </div>
         <div class="flex flex-input">
@@ -377,7 +377,7 @@
         </div>
       </div>
       <div class="flex flex-row row-padding" v-if="showAdvancedOptions">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Ignore middle area:
         </div>
         <div class="flex flex-input">
@@ -387,7 +387,7 @@
         </div>
       </div>
       <div class="flex flex-row row-padding" v-if="showAdvancedOptions">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Detect limit:
         </div>
         <div class="flex flex-input">
@@ -408,7 +408,7 @@
     </div>
     <div class="indent">
       <div class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary ">
 
         </div>
         <div class="flex flex-input">
@@ -418,7 +418,7 @@
         </div>
       </div>
       <div class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Ignore edge margin:
         </div>
         <div class="flex flex-input">
@@ -428,7 +428,7 @@
         </div>
       </div>
       <div class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Image threshold:
         </div>
         <div class="flex flex-input">
@@ -438,7 +438,7 @@
         </div>
       </div>
       <div class="flex flex-row row-padding">
-        <div class="flex label-secondary">
+        <div class="flex label-secondary form-label">
           Edge tolerance (px):
         </div>
         <div class="flex flex-input">
@@ -456,7 +456,7 @@
       </div>
       <div class="indent">
         <div class="flex flex-row row-padding">
-          <div class="flex label-secondary">
+          <div class="flex label-secondary form-label">
             Aspect ratio change threshold.
           </div>
           <div class="flex flex-input">
@@ -497,3 +497,11 @@ export default {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.form-label {
+  width: 20rem;
+  text-align: right;
+  vertical-align: baseline;
+}
+</style>
