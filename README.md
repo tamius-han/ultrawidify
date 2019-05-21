@@ -15,7 +15,6 @@ If you own an ultrawide monitor, you have probably noticed that sometimes videos
 ## Known issues
 
 * Netflix autodetection not working in Chrome, wontfix as issue is fundamentally unfixable.
-* Keyboard shortcut for automatic detection (A) doesn't really work for some reason.
 * Everything reported in [issues](https://github.com/xternal7/ultrawidify/issues)
 
 ### Limitations
