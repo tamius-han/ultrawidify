@@ -435,7 +435,7 @@ class ArDetector {
       edges.right = 0;    // THIS FUNCTION CAN PRESENTLY ONLY HANDLE LETTERBOX
     }
 
-    const letterbox = edges.top + edges.bottom;
+    let letterbox = edges.top + edges.bottom;
     
 
     if (! this.fallbackMode) {
