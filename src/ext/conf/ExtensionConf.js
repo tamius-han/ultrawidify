@@ -818,7 +818,6 @@ var ExtensionConf = {
                        ExtensionMode.Disabled,     // if autoar is disabled, this setting is irrelevant
       stretch: Stretch.NoStretch,                  // Default stretch mode. 
       videoAlignment: VideoAlignment.Center,       // Video alignment
-
     },
     "www.youtube.com" : {
       mode: ExtensionMode.Enabled,
@@ -837,6 +836,19 @@ var ExtensionConf = {
       type: 'official',
       stretch: Stretch.Default,
       videoAlignment: VideoAlignment.Default,
+      autoarPreventConditions: {        // prevents autoar on following conditions
+        videoStyleString: {             // if video style string thing does anything of what follows
+          containsProperty: {           // if video style string has any of these properties (listed as keys)
+            'height': {                 // if 'height' property is present in style attribute, we prevent autoar from running
+              allowedValues: [          // unless attribute is equal to anything in here. Optional.
+                '100%'
+              ]
+            }
+            // 'width': true            // this would prevent aard from runing if <video> had a 'width' property in style, regardless of value
+                                        // could also be an empty object, in theory.
+          }
+        }
+      }
     },
   }
 }
