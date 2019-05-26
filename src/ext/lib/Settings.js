@@ -306,6 +306,7 @@ class Settings {
   }
 
   canStartAutoAr(site) {
+    // 'site' argument is only ever used when calling this function recursively for debugging
     if (!site) {
       site = window.location.host;
 
