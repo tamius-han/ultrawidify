@@ -386,10 +386,11 @@ class EdgeDetect{
     edgesTop = edgesTop.sort((a,b) => {return a.distance - b.distance});
     edgesBottom = edgesBottom.sort((a,b) => {return a.distance - b.distance});
 
+   
     // če za vsako stran (zgoraj in spodaj) poznamo vsaj enega kandidata, potem lahko preverimo nekaj
     // stvari
     
-    if(! missingEdge ){
+    if (!missingEdge){
     // predvidevamo, da je logo zgoraj ali spodaj, nikakor pa ne na obeh straneh hkrati.
     // če kanal logotipa/watermarka ni vključil v video, potem si bosta razdaliji (edge.distance) prvih ključev
     // zgornjega in spodnjega roba približno enaki  
@@ -403,80 +404,86 @@ class EdgeDetect{
         var blackbarWidth = edgesTop[0].distance > edgesBottom[0].distance ? 
                             edgesTop[0].distance : edgesBottom[0].distance;
         
-        return {
-          status: EdgeStatus.AR_KNOWN,
-          blackbarWidth: blackbarWidth,
-          guardLineTop: edgesTop[0].distance,
-          guardLineBottom: edgesBottom[0].absolute,
+        if (edgesTop[0].count + edgesBottom[0].count > this.settings.active.arDetect.edgeDetection.detectionThreshold) {
+          return {
+            status: EdgeStatus.AR_KNOWN,
+            blackbarWidth: blackbarWidth,
+            guardLineTop: edgesTop[0].distance,
+            guardLineBottom: edgesBottom[0].absolute,
 
-          top: edgesTop[0].distance,
-          bottom: edgesBottom[0].distance
-        };
+            top: edgesTop[0].distance,
+            bottom: edgesBottom[0].distance
+          };
+        }
       }
     
       // torej, lahko da je na sliki watermark. Lahko, da je slika samo ornh črna. Najprej preverimo za watermark
       // it could be watermark. It could be a dark frame. Let's check for watermark first.
-      if( edgesTop[0].distance < edgesBottom[0].distance &&
+      if (edgesTop[0].distance < edgesBottom[0].distance &&
           edgesTop[0].count    < edgesBottom[0].count    &&
           edgesTop[0].count    < this.conf.sampleCols.length * this.settings.active.arDetect.edgeDetection.logoThreshold){
         // možno, da je watermark zgoraj. Preverimo, če se kateri od drugih potencialnih robov na zgornjem robu
         // ujema s prvim spodnjim (+/- variance). Če je temu tako, potem bo verjetno watermark. Logo mora imeti
         // manj vzorcev kot navaden rob.
         
-        if(edgesTop[0].length > 1){
+        if (edgesTop[0].length > 1){
           var lowMargin = edgesBottom[0].distance - alignMargin;
           var highMargin = edgesBottom[0].distance + alignMargin;
           
-          for(var i = 1; i < edgesTop.length; i++){
+          for (var i = 1; i < edgesTop.length; i++){
             if(edgesTop[i].distance >= lowMargin && edgesTop[i].distance <= highMargin){
               // dobili smo dejanski rob. vrnimo ga
               // we found the actual edge. let's return that.
               var blackbarWidth = edgesTop[i].distance > edgesBottom[0].distance ? 
                                   edgesTop[i].distance : edgesBottom[0].distance;
-              
-              return {
-                status: EdgeStatus.AR_KNOWN,
-                blackbarWidth: blackbarWidth,
-                guardLineTop: edgesTop[i].distance,
-                guardLineBottom: edgesBottom[0].absolute,
-              
-                top: edgesTop[i].distance,
-                bottom: edgesBottom[0].distance
-              };
+
+              if (edgesTop[i].count + edgesBottom[0].count > this.settings.active.arDetect.edgeDetection.detectionThreshold) {
+                return {
+                  status: EdgeStatus.AR_KNOWN,
+                  blackbarWidth: blackbarWidth,
+                  guardLineTop: edgesTop[i].distance,
+                  guardLineBottom: edgesBottom[0].absolute,
+                
+                  top: edgesTop[i].distance,
+                  bottom: edgesBottom[0].distance
+                };
+              }
             }
           }
         }
       }
-      if( edgesBottom[0].distance < edgesTop[0].distance &&
+      if (edgesBottom[0].distance < edgesTop[0].distance &&
           edgesBottom[0].count    < edgesTop[0].count    &&
-          edgesBottom[0].count    <this.conf.sampleCols.length * this.settings.active.arDetect.edgeDetection.logoThreshold){
+          edgesBottom[0].count    < this.conf.sampleCols.length * this.settings.active.arDetect.edgeDetection.logoThreshold){
         
         if(edgesBottom[0].length > 1){
           var lowMargin = edgesTop[0].distance - alignMargin;
           var highMargin = edgesTop[0].distance + alignMargin;
           
           for(var i = 1; i < edgesBottom.length; i++){
-            if(edgesBottom[i].distance >= lowMargin && edgesTop[i].distance <= highMargin){
+            if (edgesBottom[i].distance >= lowMargin && edgesTop[i].distance <= highMargin) {
               // dobili smo dejanski rob. vrnimo ga
               // we found the actual edge. let's return that.
               var blackbarWidth = edgesBottom[i].distance > edgesTop[0].distance ? 
                                   edgesBottom[i].distance : edgesTop[0].distance;
               
-              return {
-                status: EdgeStatus.AR_KNOWN,
-                blackbarWidth: blackbarWidth,
-                guardLineTop: edgesTop[0].distance,
-                guardLineBottom: edgesBottom[0].absolute,
+              if (edgesTop[0].count + edgesBottom[i].count > this.settings.active.arDetect.edgeDetection.detectionThreshold) {
+                return {
+                  status: EdgeStatus.AR_KNOWN,
+                  blackbarWidth: blackbarWidth,
+                  guardLineTop: edgesTop[0].distance,
+                  guardLineBottom: edgesBottom[i].absolute,
 
-                top: edgesTop[0].distance,
-                bottom: edgesBottom[i].distance
-              };
+                  top: edgesTop[0].distance,
+                  bottom: edgesBottom[i].distance
+                };
+              }
             }
           }
         }
       }
     }
-    else{
+    else {
       // zgornjega ali spodnjega roba nismo zaznali. Imamo še en trik, s katerim lahko poskusimo 
       // določiti razmerje stranic
       // either the top or the bottom edge remains undetected, but we have one more trick that we
@@ -484,7 +491,7 @@ class EdgeDetect{
       
       var edgeDetectionThreshold = this.conf.sampleCols.length * this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold;
       
-      if(edges.edgeCandidatesTopCount == 0 && edges.edgeCandidatesBottomCount != 0){
+      if (edges.edgeCandidatesTopCount == 0 && edges.edgeCandidatesBottomCount != 0){
         for(var edge of edgesBottom){
           if(edge.count >= edgeDetectionThreshold)
             return {
@@ -498,7 +505,7 @@ class EdgeDetect{
             }
         }
       }
-      if(edges.edgeCandidatesTopCount != 0 && edges.edgeCandidatesBottomCount == 0){
+      if (edges.edgeCandidatesTopCount != 0 && edges.edgeCandidatesBottomCount == 0){
         for(var edge of edgesTop){
           if(edge.count >= edgeDetectionThreshold)
             return {
