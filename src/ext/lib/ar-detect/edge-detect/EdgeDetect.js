@@ -404,7 +404,8 @@ class EdgeDetect{
         var blackbarWidth = edgesTop[0].distance > edgesBottom[0].distance ? 
                             edgesTop[0].distance : edgesBottom[0].distance;
         
-        if (edgesTop[0].count + edgesBottom[0].count > this.settings.active.arDetect.edgeDetection.detectionThreshold) {
+        if (edgesTop[0].count + edgesBottom[0].count > this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold
+           || ( edgesTop[0].count > this.settings.active.arDetect.edgeDetection.confirmationThreshold && edgesBottom[0].count > this.settings.active.arDetect.edgeDetection.confirmationThreshold) ){
           return {
             status: EdgeStatus.AR_KNOWN,
             blackbarWidth: blackbarWidth,
@@ -437,7 +438,8 @@ class EdgeDetect{
               var blackbarWidth = edgesTop[i].distance > edgesBottom[0].distance ? 
                                   edgesTop[i].distance : edgesBottom[0].distance;
 
-              if (edgesTop[i].count + edgesBottom[0].count > this.settings.active.arDetect.edgeDetection.detectionThreshold) {
+              if (edgesTop[i].count + edgesBottom[0].count > this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold
+                 || (edgesTop[i].count > this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold && edgesBottom[0].count > this.settings.active.arDetect.edgeDetection.confirmationThreshold) ) {
                 return {
                   status: EdgeStatus.AR_KNOWN,
                   blackbarWidth: blackbarWidth,
@@ -467,7 +469,8 @@ class EdgeDetect{
               var blackbarWidth = edgesBottom[i].distance > edgesTop[0].distance ? 
                                   edgesBottom[i].distance : edgesTop[0].distance;
               
-              if (edgesTop[0].count + edgesBottom[i].count > this.settings.active.arDetect.edgeDetection.detectionThreshold) {
+              if (edgesTop[0].count + edgesBottom[i].count > this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold
+                  || (edgesTop[0].count > this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold && edgesBottom[i].count > this.settings.active.arDetect.edgeDetection.confirmationThreshold)) {
                 return {
                   status: EdgeStatus.AR_KNOWN,
                   blackbarWidth: blackbarWidth,
@@ -489,7 +492,7 @@ class EdgeDetect{
       // either the top or the bottom edge remains undetected, but we have one more trick that we
       // can try. It also tries to work around logos.
       
-      var edgeDetectionThreshold = this.conf.sampleCols.length * this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold;
+      const edgeDetectionThreshold = this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold;
       
       if (edges.edgeCandidatesTopCount == 0 && edges.edgeCandidatesBottomCount != 0){
         for(var edge of edgesBottom){
