@@ -111,8 +111,8 @@ var ExtensionConf = {
     edgeDetection: {
       sampleWidth: 8,        // we take a sample this wide for edge detection
       detectionThreshold: 4,  // sample needs to have this many non-black pixels to be a valid edge
-      confirmationThreshold: 0,  // 
-      singleSideConfirmationThreshold: 0.3,   // we need this much edges (out of all samples, not just edges) in order
+      confirmationThreshold: 1,  // 
+      singleSideConfirmationThreshold: 4,    // we need this much edges (out of all samples, not just edges) in order
                                              // to confirm an edge in case there's no edges on top or bottom (other
                                             // than logo, of course)
       logoThreshold: 0.15,     // if edge candidate sits with count greater than this*all_samples, it can't be logo

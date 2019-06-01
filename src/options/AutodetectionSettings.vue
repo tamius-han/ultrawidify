@@ -330,10 +330,11 @@
       <b>Sample width</b> — In a bid to detect "false" edges, we take two samples this many pixels wide near the point of our potential edge. One sample must be completely black, the other must contain a set 
       amount of non-black pixels.<br/>
       <b>Detection threshold</b> — non-black sample mentioned above needs to contain at least this many non-black pixels.<br/>
-      <b>Single side confirmation threshold</b> — quorum needed to establish aspect ratio in case we manage to detect an edge only on one side of the video. (0-0.5)<br/>
+      <b>Thickness quorum (per edge)</b> — amount of samples that agree on the thincknes of the blackbar that we need in order to establish aspect ratio. Every edge needs to have at least this many. Values higher than {{~~(settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold / 2)}} (quorum (total)/2) are pointless.<br/>
+      <b>Thickness quorum (total)</b> — amount of samples that agree on the thinckess of the blackbar that we need in order to establish aspect ratio in case one of the edges doesn't contain enough samples to achieve quorum.<br/>
       <b>Logo threshold</b> — if edge candidate sits with count greater than this*all_samples, it can't be a logo or a watermark.<br/>
       <b>Ignore middle area</b> — When trying to detect area, ignore area between middle and canvasHeight * {this value} pixels towards the edge.<br/>
-      <b>Detect limit</b> — stop search after finding a potential candidate in this many sample columns (%, 0-1)<br/>
+      <b>Detect limit</b> — stop search after finding a potential candidate in this many sample columns<br/>
     </div>
     <div class="indent">
       <div class="flex flex-row row-padding">
@@ -358,7 +359,17 @@
       </div>
       <div class="flex flex-row row-padding">
         <div class="flex label-secondary form-label">
-          Single side confirmation threshold:
+          Thickness quorum (per edge):
+        </div>
+        <div class="flex flex-input">
+          <input 
+                 v-model="settings.active.arDetect.edgeDetection.confirmationThreshold"
+          />
+        </div>
+      </div>
+      <div class="flex flex-row row-padding">
+        <div class="flex label-secondary form-label">
+          Thicnkess quorum (total):
         </div>
         <div class="flex flex-input">
           <input 
