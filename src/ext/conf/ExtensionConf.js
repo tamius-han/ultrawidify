@@ -20,7 +20,7 @@ var ExtensionConf = {
       paused: 3000,           // while paused
       error: 3000,            // after error
       minimumTimeout: 5,
-      tickrate: 100,          // 1 tick every this many milliseconds
+      tickrate: 10,          // 1 tick every this many milliseconds
     },
     autoDisable: {            // settings for automatically disabling the extension
       maxExecutionTime: 6000, // if execution time of main autodetect loop exceeds this many milliseconds,
@@ -769,7 +769,73 @@ var ExtensionConf = {
         show: true,
       }
     }
-  },],
+  },
+  //
+  //
+  // Enable/disable keyboard shortcuts
+  //
+  { 
+    name: 'Enable keyboard shortcuts',
+    label: 'Enable',
+    cmd: [{
+      action: 'set-keyboard',
+      arg: ExtensionMode.Enabled,
+    }],
+    scopes: {
+      global: {
+        show: true,
+      },
+      site: {
+        show: true,
+      },
+      page: {
+        show: true,
+      }
+    }
+  },{
+    name: 'Enable keyboard shortcuts on whitelisted sites only',
+    label: 'On whitelist only',
+    cmd: [{
+      action: 'set-keyboard',
+      arg: ExtensionMode.Whitelist,
+    }],
+    scopes: {
+      global: {
+        show: true
+      },
+    }
+  },{
+    name: 'Keyboard shortcuts mode: use default settings',
+    label: 'Default',
+    cmd: [{
+      action: 'set-keyboard',
+      arg: ExtensionMode.Default,
+    }],
+    scopes: {
+      site: {
+        show: true
+      }
+    }
+  },{
+    name: 'Disable keyboard shortcuts',
+    label: 'Disable',
+    cmd: [{
+      action: 'set-keyboard',
+      arg: ExtensionMode.Disabled,
+    }],
+    scopes: {
+      global: {
+        show: true,
+      },
+      site: {
+        show: true,
+      },
+      page: {
+        show: true,
+      }
+    }
+  },
+],
   // -----------------------------------------
   //       ::: SITE CONFIGURATION :::
   // -----------------------------------------
@@ -818,6 +884,7 @@ var ExtensionConf = {
                        ExtensionMode.Disabled,     // if autoar is disabled, this setting is irrelevant
       stretch: Stretch.NoStretch,                  // Default stretch mode. 
       videoAlignment: VideoAlignment.Center,       // Video alignment
+      keyboardShortcutsEnabled: ExtensionMode.Enabled,
     },
     "www.youtube.com" : {
       mode: ExtensionMode.Enabled,
@@ -828,6 +895,7 @@ var ExtensionConf = {
       actions: null,                    // overrides global keyboard shortcuts and button configs. Is array, is optional.
       stretch: Stretch.Default,
       videoAlignment: VideoAlignment.Default,
+      keyboardShortcutsEnabled: ExtensionMode.Default,
     },
     "www.netflix.com" : {
       mode: ExtensionMode.Enabled,
@@ -836,6 +904,7 @@ var ExtensionConf = {
       type: 'official',
       stretch: Stretch.Default,
       videoAlignment: VideoAlignment.Default,
+      keyboardShortcutsEnabled: ExtensionMode.Default,
       autoarPreventConditions: {        // prevents autoar on following conditions
         videoStyleString: {             // if video style string thing does anything of what follows
           containsProperty: {           // if video style string has any of these properties (listed as keys)
