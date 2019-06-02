@@ -2,27 +2,29 @@
   <div>
     <h2>Quick settings</h2>
 
-    <div class="flex label-secondary form-label">
+    <div class="flex label-secondary">
       How often should autodetection check for changes?
     </div>
     <div class="description">
       Shorter intervals (left side of the slider) are more responsive to changes in aspect ratio detections,
-      but requires more system resources. 
+      but requires more system resources. Slider is logarithmic.
     </div>
     <div class="indent">
       <div class="flex flex-row row-padding">
         <div class="flex flex-input">
+          More often&nbsp;<small>(~60/s)</small>
           <input type="range"
                  :value="Math.log(settings.active.arDetect.timers.playing)"
                  @change="setArCheckFrequency($event.target.value)"
                  min="2.3"
                  max="9.3"
                  step="any"
-                />
+          />
+          &nbsp; Less often&nbsp;<small>(~1/10s)</small>
         </div>
       </div>
     </div>
-    <div class="flex label-secondary form-label">
+    <div class="flex label-secondary">
       How sensitive should aspect ratio detection be?
     </div>
     <div class="description">
@@ -56,13 +58,13 @@
       />
     </div>    
 
-    <h2>Autodetection settings in detail</h2>
-    <div>
+    <h2 style="padding-top: 150px">Autodetection settings in detail</h2>
+    <!-- <div>
       <input type="checkbox"
              v-model="showAdvancedOptions"
       />
       Show advanced options
-    </div>
+    </div> -->
 
     <div class="label">Autodetection frequency</div>
     <div class="description">
@@ -71,6 +73,13 @@
       Less frequent aspect ratio checks result in bigger delay between aspect ratio change and correction.
       Delays are given in milliseconds.
     </div>
+
+    <div class="info">Note that tick rate must be smaller than check frequency.
+      <!-- <a v-if="!showAdvancedOptions" 
+         href="#"
+         @click="showAdvancedOptions = true"
+      >Show advanced options</a> -->
+    </div> 
 
     <div class="indent">
       <div class="flex flex-row row-padding">
@@ -118,11 +127,7 @@
       </div>
     </div>
 
-    <div class="info">Setting values under 100 milliseconds will have no effect unless you also reduce the tickrate.
-      <a href="#"
-         @click="showAdvancedOptions = true"
-      >Show advanced options</a>
-    </div> 
+    
 
     <div class="label">Fallback mode</div>
     <div class="description">
@@ -256,7 +261,7 @@
       higher values —> detection is more forgiving to videos with less-than-ideal contrast ratios.<br/>
       <b>Threshold:</b> If pixel is darker than the sum of black level and this value, it's considered black. In theory, lower -> better.
       In practice, this value needs to be kept surprisingly high (8 might not be high enough), otherwise compression artifacts in videos
-      start having an adverse effect on quality of automatic detection.
+      start having an adverse effect on quality of automatic detection.<br/>
       <b>Gradient detection:</b> Attempt to discriminate between hard edges and gradients. 'Strict' and 'Lax' prevent aspect ratio
       changes if we detected gradients instead of a legit edge. This results in fewer false positives, but may cause aspect ratio
       detection to not work on darker frames.<br/>
@@ -293,7 +298,11 @@
           Gradient detection:
         </div>
         <div class="flex flex-input">
-          TODO: insert select here
+          <select v-model="settings.active.arDetect.blackbar.antiGradientMode">
+            <option :value="0">Disabled</option>
+            <option :value="1">Lax</option>
+            <option :value="2">Strict</option>
+          </select>
         </div>
       </div>
       <div v-if="showAdvancedOptions" class="flex flex-row row-padding">
@@ -334,7 +343,13 @@
         Black frame detection is a quick test that tries to determine whether we're looking at a black frame. This test prevents
         us from wasting precious time trying to detect aspect ratio on frames that are too dark for reliable aspect ratio detection.<br/>
         <b>Sample width, height:</b> Sample size. Since we're checking <i>every</i> pixel in this sample, dimensions should be kept small.<br/>
-        <b>Cumulative threshold:</b> If we add the maximum of red, green, blue values of every pixel in the sample and they total more than this, the frame is bright enough.<br/>
+        <b>Color variance treshold:</b> In videos (such as movie trailers), any text that appears on the black background is usually of
+        a roughly the same color, while dark movie footage is not. This allows us to trigger autodetection on dark movie footage and 
+        to not trigger autodetection when movie trailer flashes some text on black background. If color variance is greater than this value,
+        blackframe detection will use 'lax' (lower) cummulative threshold to determine whether the frame is black or not. If color variance
+        is less than this value, 'strict' (higher) cummulative threshold will be used to determine whether the frame is black or not instead.<br/>
+        <b>Cumulative threshold:</b> If we add the maximum of red, green, blue values of every pixel in the sample and they total more than this, the frame is bright enough.
+        Comes in 'lax' and 'strict' versions. See 'color variance threshold' description for details about 'lax' and 'strict.'<br/>
         <b>Black pixel threshold:</b> If more than this fraction of pixels from the sample are "black", we consider the frame black. This overrules cumulative threshold.
       </div>
       <div class="indent">
@@ -360,11 +375,31 @@
         </div>
         <div class="flex flex-row row-padding">
           <div class="flex label-secondary form-label">
-            Cumulative threshold:
+            Color variance treshold:
           </div>
           <div class="flex flex-input">
             <input type="text"
-                   v-model="settings.active.arDetect.blackframe.cumulativeThreshold"
+                   v-model="settings.active.arDetect.blackframe.sufficientColorVariance"
+            />
+          </div>
+        </div>
+        <div class="flex flex-row row-padding">
+          <div class="flex label-secondary form-label">
+            Cumulative threshold (lax mode):
+          </div>
+          <div class="flex flex-input">
+            <input type="text"
+                   v-model="settings.active.arDetect.blackframe.cumulativeThresholdLax"
+            />
+          </div>
+        </div>
+        <div class="flex flex-row row-padding">
+          <div class="flex label-secondary form-label">
+            Cumulative threshold (strict mode):
+          </div>
+          <div class="flex flex-input">
+            <input type="text"
+                   v-model="settings.active.arDetect.blackframe.cumulativeThresholdStrict"
             />
           </div>
         </div>
@@ -450,7 +485,7 @@
         </div>
         <div class="flex flex-input">
           <input 
-                 v-model="settings.active.arDetect.edgeDetection.middleIgnoreArea"
+                 v-model="settings.active.arDetect.edgeDetection.middleIgnoredArea"
           />
         </div>
       </div>
@@ -559,7 +594,7 @@ export default {
   props: ['settings'],
   data() {
     return {
-      showAdvancedOptions: false,
+      showAdvancedOptions: true,
       fallbackModeAvailable: false,
       sensitivity: 'sensitive',
     }

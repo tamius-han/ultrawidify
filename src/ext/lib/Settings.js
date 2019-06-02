@@ -279,17 +279,17 @@ class Settings {
     try{
     // if site is not defined, we use default mode:
     if (! this.active.sites[site]) {
-      return this.active.sites['@global'] === ExtensionMode.Enabled;
+      return this.active.sites['@global'].mode === ExtensionMode.Enabled;
     }
 
-    if(this.active.sites['@global'] === ExtensionMode.Enabled) {
+    if(this.active.sites['@global'].mode === ExtensionMode.Enabled) {
       return this.active.sites[site].mode !== ExtensionMode.Disabled;
-    } else if (this.active.sites['@global'] === ExtensionMode.Whitelist) {
+    } else if (this.active.sites['@global'].mode === ExtensionMode.Whitelist) {
       return this.active.sites[site].mode === ExtensionMode.Enabled;
     } else {
       return false;
     }
-    }catch(e){
+    } catch(e){
       if(Debug.debug){
         console.log("[Settings.js::canStartExtension] Something went wrong — are settings defined/has init() been called?\nSettings object:", this)
       }
