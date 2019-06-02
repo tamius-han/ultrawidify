@@ -25,14 +25,16 @@ class ExecAction {
           customArg: cmd.customArg
         }
         Comms.sendMessage(message);
-      } else if (scope === 'site') {
+      } else {
 
         let site = this.site;
-        if (!this.site) {
+        if (scope === 'global') {
+          site = '@global';
+        } else if (!this.site) {
           site = window.location.host;
         }
 
-        if (!this.settings.active.sites[site]) {
+        if (scope === 'site' && !this.settings.active.sites[site]) {
           this.settings.active.sites[site] = this.settings.getDefaultOption();
         }
 
@@ -45,16 +47,7 @@ class ExecAction {
         } else if (cmd.action === "set-autoar-mode") {
           this.settings.active.sites[site].autoar = cmd.arg;
         }
-        this.settings.save();
-      } else if (scope === 'global') {
-        if (cmd.action === "set-stretch") {
-          this.settings.active.sites['@global'].stretch = cmd.arg;
-        } else if (cmd.action === "set-alignment") {
-          this.settings.active.sites['@global'].videoAlignment = cmd.arg;
-        } else if (cmd.action === "set-extension-mode") {
-          this.settings.active.sites['@global'].mode = cmd.arg;
-        } else if (cmd.action === "set-autoar-mode") {
-          this.settings.active.sites['@global'].autoar = cmd.arg;
+          this.settings.active.sites[site].keyboardShortcutsEnabled = cmd.arg;
         }
         this.settings.save();
       }
