@@ -1,5 +1,62 @@
 <template>
   <div>
+    <h2>Quick settings</h2>
+
+    <div class="flex label-secondary form-label">
+      How often should autodetection check for changes?
+    </div>
+    <div class="description">
+      Shorter intervals (left side of the slider) are more responsive to changes in aspect ratio detections,
+      but requires more system resources. 
+    </div>
+    <div class="indent">
+      <div class="flex flex-row row-padding">
+        <div class="flex flex-input">
+          <input type="range"
+                 :value="Math.log(settings.active.arDetect.timers.playing)"
+                 @change="setArCheckFrequency($event.target.value)"
+                 min="2.3"
+                 max="9.3"
+                 step="any"
+                />
+        </div>
+      </div>
+    </div>
+    <div class="flex label-secondary form-label">
+      How sensitive should aspect ratio detection be?
+    </div>
+    <div class="description">
+      Sensitive preset will allow the extension to correct aspect ratio even when letterbox isn't clearly defined. This 
+      can result in aspect ratio detection correcting aspect ratio when it shouldn't.
+      Accurate preset will take a more conservative approach to determining aspect ratio, correcting aspect ratio only when
+      it's absolutely sure that the aspect ratio needs changing. This option results in fewer incorrect aspect ratio corrections,
+      but can also result in extension not correcting aspect ratio when it should.
+      Strict preset is 'accurate' on stereoids.
+    </div>
+
+    <div class="flex flex-row row-padding">
+      <Button label="Sensitive"
+              :selected="sensitivity === 'sensitive'"
+              @click.native="setConfirmationThresholds('sensitive')"
+      />
+      <Button label="Balanced"
+              :selected="sensitivity === 'balanced'"
+              @click.native="setConfirmationThresholds('balanced')"
+      />
+      <Button label="Accurate"
+              :selected="getSensitivity() === 'accurate'"
+              @click.native="setConfirmationThresholds('accurate')"
+      />
+      <Button label="Strict"
+              :selected="getSensitivity() === 'strict'"
+              @click.native="setConfirmationThresholds('strict')"
+      />
+      <Button label="Custom (changed below)"
+              :selected="getSensitivity() === 'user-defined'"
+      />
+    </div>    
+
+    <h2>Autodetection settings in detail</h2>
     <div>
       <input type="checkbox"
              v-model="showAdvancedOptions"
@@ -482,15 +539,23 @@
 </template>
 
 <script>
+import Button from '../common/components/Button.vue';
 export default {
+  components: {
+    Button,
+  },
+
   props: ['settings'],
   data() {
     return {
       showAdvancedOptions: false,
       fallbackModeAvailable: false,
+      sensitivity: 'sensitive',
     }
   },
   created() {
+    this.sensitivity = this.getSensitivity();
+
     const canvas = document.createElement('canvas');
     canvas.width = 10;
     canvas.height = 10;
@@ -504,7 +569,42 @@ export default {
     }
   },
   methods: {
+    setArCheckFrequency(event) {
+      this.settings.active.arDetect.timers.playing = Math.floor(Math.pow(Math.E, event));
+    },
+    getSensitivity() {
+      if (this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold === 3 && this.settings.active.arDetect.edgeDetection.confirmationThreshold === 1) {
+        return 'sensitive';
+      }
+      if (this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold === 5 && this.settings.active.arDetect.edgeDetection.confirmationThreshold === 2) {
+        return 'balanced';
+      }
+      if (this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold === 7 && this.settings.active.arDetect.edgeDetection.confirmationThreshold === 3) {
+        return 'accurate';
+      }
+      if (this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold === 16 && this.settings.active.arDetect.edgeDetection.confirmationThreshold === 8) {
+        return 'strict';
+      }
+      return 'user-defined';
+    },
+    setConfirmationThresholds(sens) {
+      console.log("setting conf treshold", sens)
+      if (sens === 'sensitive') {
+        this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold = 3;
+        this.settings.active.arDetect.edgeDetection.confirmationThreshold = 1;
+      } else if (sens === 'balanced') {
+        this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold = 5;
+        this.settings.active.arDetect.edgeDetection.confirmationThreshold = 2;
+      } else if (sens === 'accurate') {
+        this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold = 7;
+        this.settings.active.arDetect.edgeDetection.confirmationThreshold = 3;
+      } else if (sens === 'strict') {
+        this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold = 16;
+        this.settings.active.arDetect.edgeDetection.confirmationThreshold = 8;
+      }
 
+      this.sensitivity = this.getSensitivity();
+    } 
   }
 }
 </script>
