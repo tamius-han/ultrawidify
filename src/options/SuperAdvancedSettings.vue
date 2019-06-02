@@ -16,7 +16,9 @@
          contenteditable="true"
          @input="updateSettings"
     >{{parsedSettings}}</div>
-    <div class="flex flex-row button-box">
+
+
+    <div class="flex flex-row button-box sticky-bottom">
       <Button label="Cancel"
               @click.native="cancel()"
       > 
