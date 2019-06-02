@@ -479,6 +479,10 @@ class PageInfo {
   requestCurrentZoom() {
     this.comms.announceZoom(this.currentZoomScale);
   }
+
+  setKeyboardShortcutsEnabled(state) {
+    this.actionHandler.setKeybordLocal(state);
+  }
 }
 
 export default PageInfo;

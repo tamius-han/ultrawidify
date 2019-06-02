@@ -1,5 +1,6 @@
 import Debug from '../conf/Debug';
 import PlayerData from './video-data/PlayerData';
+import ExtensionMode from '../../common/enums/extension-mode.enum';
 
 class ActionHandler {
 
@@ -8,6 +9,7 @@ class ActionHandler {
     this.settings = pageInfo.settings;
     
     this.inputs = ['input', 'select', 'button', 'textarea'];
+    this.keyboardLocalDisabled = false;
   }
 
   init() {
@@ -119,6 +121,15 @@ class ActionHandler {
   }
 
 
+  setKeyboardLocal(state) {
+    if (state === ExtensionMode.Enabled) {
+      this.keyboardLocalDisabled = false;
+    } else if (state === ExtensionMode.Disabled) {
+      this.keyboardLocalDisabled = true;
+    }
+    // don't do shit on invalid value of state
+  }
+
   preventAction() {
     var activeElement = document.activeElement;
 
@@ -130,6 +141,8 @@ class ActionHandler {
       "\nis tag one of defined inputs? (yes->prevent):", this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1,
       "\nis role = textbox? (yes -> prevent):", activeElement.getAttribute("role") === "textbox",
       "\nis type === 'text'? (yes -> prevent):", activeElement.getAttribute("type") === "text",
+      "\nis keyboard local disabled? (yes -> prevent):", this.keyboardLocalDisabled,
+      "\nis keyboard enabled in settings? (no -> prevent)", this.settings.keyboardShortcutsEnabled(window.location.hostname),
       "\nwill the action be prevented? (yes -> prevent)", this.preventAction(),
       "\n-----------------{ extra debug info }-------------------",
       "\ntag name? (lowercase):", activeElement.tagName, activeElement.tagName.toLocaleLowerCase(),
@@ -146,6 +159,13 @@ class ActionHandler {
     // if (PlayerData.isFullScreen()) {
     //   return false;
     // }
+
+    if (this.keyboardLocalDisabled) {
+      return true;
+    }
+    if (!this.settings.keyboardShortcutsEnabled(window.location.hostname)) {
+      return true;
+    }
     if (this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1) {
       return true;
     } 
@@ -193,27 +213,22 @@ class ActionHandler {
               if (videoData) {
                 videoData.panHandler(event, true);
               }
+            } else if (cmd.action === 'set-keyboard') {
+              this.setKeyboardLocal(cmd.arg);
             }
-          } else if (action.scope === 'site') {
+          } else {
+            let site = action.scope === 'site' ? window.location.host : '@global';
+
             if (cmd.action === "set-stretch") {
-              this.settings.active.sites[window.location.host].stretch = cmd.arg;
+              this.settings.active.sites[site].stretch = cmd.arg;
             } else if (cmd.action === "set-alignment") {
-              this.settings.active.sites[window.location.host].videoAlignment = cmd.arg;
+              this.settings.active.sites[site].videoAlignment = cmd.arg;
             } else if (cmd.action === "set-extension-mode") {
-              this.settings.active.sites[window.location.host].status = cmd.arg;
+              this.settings.active.sites[site].status = cmd.arg;
             } else if (cmd.action === "set-autoar-mode") {
-              this.settings.active.sites[window.location.host].arStatus = cmd.arg;
-            }
-            this.settings.save();
-          } else if (action.scope === 'global') {
-            if (cmd.action === "set-stretch") {
-              this.settings.active.stretch.initialMode = cmd.arg;
-            } else if (cmd.action === "set-alignment") {
-              this.settings.active.miscSettings.videoAlignment = cmd.arg;
-            } else if (cmd.action === "set-extension-mode") {
-              this.settings.active.sites['@global'] = cmd.arg;
-            } else if (cmd.action === "set-autoar-mode") {
-              this.settings.active.arDetect.mode.arStatus = cmd.arg;
+              this.settings.active.sites[site].arStatus = cmd.arg;
+            } else if (cmd.action === 'set-keyboard') {
+              this.settings.active.sites[site].keyboardShortcutsEnabled = cmd.arg;
             }
             this.settings.save();
           }

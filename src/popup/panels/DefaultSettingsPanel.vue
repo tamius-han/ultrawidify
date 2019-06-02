@@ -57,6 +57,19 @@
         </ShortcutButton>
       </div>
     </div>
+
+    <div v-if="keyboardActions.length">
+      <div class="label experimental">Enable/disable keyboard shortcuts</div>
+      <div class="flex flex-row flex-wrap">
+        <ShortcutButton v-for="(action, index) of keyboardActions"
+                        class="flex b3 flex-grow button"
+                        :class="{'setting-selected': getCurrent('keyboardShortcutsEnabled') === action.cmd[0].arg}"
+                        :key="index"
+                        :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
+                        :shortcut="parseShortcut(action)"
+                        @click.native="execAction(action)"
+                        >
+        </ShortcutButton>
       </div>
     </div>
 

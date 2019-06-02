@@ -297,6 +297,30 @@ class Settings {
     }
   }
 
+  keyboardShortcutsEnabled(site) {
+    if (!site) {
+      site = window.location.hostname;
+    }
+    if (!site) {
+      return false;
+    }
+
+    try {
+      if (!this.active.sites[site] 
+          || this.active.sites[site].keyboardShortcutsEnabled === undefined
+          || this.active.sites[site].keyboardShortcutsEnabled === ExtensionMode.Default) {
+        return this.keyboardShortcutsEnabled('@global');
+      } else {
+        return this.active.sites[site].keyboardShortcutsEnabled === ExtensionMode.Enabled;
+      }
+    } catch (e) {
+      if (Debug.debug) {
+        console.error("[Settings.js::keyboardDisabled] something went wrong:", e);
+      }
+      return false;
+    }
+  }
+
   extensionEnabled(){
     return this.active.sites['@global'] !== ExtensionMode.Disabled
   }

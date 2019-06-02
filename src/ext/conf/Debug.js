@@ -7,10 +7,10 @@ var Debug = {
   init: true,
   debug: true,
   // debug: false,
-  // keyboard: true,
-  debugResizer: true,
-  debugArDetect: true,
-  scaler: true,
+  keyboard: true,
+  // debugResizer: true,
+  // debugArDetect: true,
+  // scaler: true,
   // debugStorage: false,
   // debugStorage: true,
   // comms: false,
@@ -18,15 +18,15 @@ var Debug = {
   // showArDetectCanvas: true,
   // flushStoredSettings: true,
   // flushStoredSettings: false,
-  playerDetectDebug: true,
-  periodic: true,
-  videoRescan: true,
+  // playerDetectDebug: true,
+  // periodic: true,
+  // videoRescan: true,
   // mousemove: true,
-  arDetect: {
+  // arDetect: {
     // edgeDetect: true
-  },
+  // },
   canvas: {
-    debugDetection: true
+    // debugDetection: true
   },
   debugCanvas: {
     // enabled: true,
