@@ -6,6 +6,8 @@ import ObjectCopy from '../lib/ObjectCopy';
 import Stretch from '../../common/enums/stretch.enum';
 import VideoAlignment from '../../common/enums/video-alignment.enum';
 
+
+
 class Settings {
 
   constructor(activeSettings, updateCallback) {
@@ -103,16 +105,16 @@ class Settings {
 
     // if extension has been updated, update existing settings with any options added in the
     // new version. In addition to that, we remove old keys that are no longer used.
-    const patched = ObjectCopy.addNew(settings, this.default);
-    if(Debug.debug) {
-      console.log("[Settings.init] Results from ObjectCopy.addNew()?", patched, "\n\nSettings from storage", settings, "\ndefault?", this.default,);
-    }
+    // const patched = ObjectCopy.addNew(settings, this.default);
+    // if(Debug.debug) {
+      // console.log("[Settings.init] Results from ObjectCopy.addNew()?", patched, "\n\nSettings from storage", settings, "\ndefault?", this.default,);
+    // }
 
-    if(patched){
-      this.active = patched;
-    } else {
+    // if(patched){
+      // this.active = patched;
+    // } else {
       this.active = JSON.parse(JSON.stringify(this.default));
-    }
+    // }
 
     this.set(this.active);
     return this.active;
