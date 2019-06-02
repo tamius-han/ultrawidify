@@ -62,8 +62,8 @@
           </div>
         </div>
         <div class="menu-item"
-            :class="{'selected-tab': selectedTab === 'beggathon'}"
-            @click="selectTab('beggathon')"
+            :class="{'selected-tab': selectedTab === 'donate'}"
+            @click="selectTab('donate')"
         >
           <div class="">
             Donate
@@ -91,12 +91,14 @@
         <PerformancePanel v-if="selectedTab === 'performance-metrics'" 
                           :performance="performance" />
         <AboutPanel v-if="selectedTab === 'about'" />
+        <Donate v-if="selectedTab === 'donate'" />
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import Donate from '../common/misc/Donate.vue';
 import Debug from '../ext/conf/Debug';
 import BrowserDetect from '../ext/conf/BrowserDetect';
 import Comms from '../ext/lib/comms/Comms';
@@ -153,6 +155,7 @@ export default {
     PerformancePanel,
     Debug,
     AboutPanel,
+    Donate,
   },
   methods: {
     async sleep(t) {
