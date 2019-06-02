@@ -99,6 +99,7 @@
           ></SuperAdvancedSettings>
           <About v-if="selectedTab === 'about'">
           </About>
+          <Donate v-if="selectedTab === 'donate'" />
           <!-- Vice City/beggathon reference: https://youtu.be/Mn3YEJTSYs8?t=770 -->
         </div>
       </div>
@@ -108,6 +109,7 @@
 </template>
 
 <script>
+import Donate from '../common/misc/Donate.vue';
 import SuperAdvancedSettings from './SuperAdvancedSettings.vue';
 import Debug from '../ext/conf/Debug.js';
 import BrowserDetect from '../ext/conf/BrowserDetect.js';
@@ -158,6 +160,7 @@ export default {
     AutodetectionSettings,
     ConfirmPopup,
     SuperAdvancedSettings,
+    Donate,
   },
   methods: {
     setSelectedTab(newTab) {
