@@ -193,8 +193,8 @@ small {
 
     
 .selected, .setting-selected {
-  color: $selected-color;
-  background-color: $background-selected;
+  color: $selected-color !important;
+  background-color: $background-selected !important;
 }
 
 .selected-tab {

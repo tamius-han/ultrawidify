@@ -1,6 +1,6 @@
 <template>
   <div class="button center-text flex" 
-       :class="{'selected': selected, 'w24': fixedWidth, 'flex-auto': !fixedWidth }"
+       :class="{'setting-selected': selected, 'w24': fixedWidth, 'flex-auto': !fixedWidth }"
        >
     {{label}}
   </div>
