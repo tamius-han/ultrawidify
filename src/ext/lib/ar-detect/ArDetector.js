@@ -611,7 +611,9 @@ class ArDetector {
       }
       return;
     } else {
-      console.log("%c[ArDetect::frameCheck] Black frame analysis suggests this frame is not completely black. Doing further analysis,", "color: #3fa", bfanalysis);
+      // if (Debug.debug && Debug.arDetect) {
+      //   console.log("%c[ArDetect::frameCheck] Black frame analysis suggests this frame is not completely black. Doing further analysis,", "color: #3fa", bfanalysis);
+      // }
     }
 
     
