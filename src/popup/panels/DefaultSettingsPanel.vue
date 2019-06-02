@@ -1,108 +1,110 @@
 <template>
-  <div class="w100 flex flex-column">
-    <ShortcutButton class="button" 
+  <div class="w100 flex flex-column" style="padding-bottom: 20px">
+    <!-- <ShortcutButton class="button" 
                     @click.native="wipeSettings()"
                     label="Wipe settings"
-    /> 
-    <div v-if="settings && true"
-         class="w100"
-    >
+    />  -->
+    
       <!-- ENABLE EXTENSION -->
-      <div class="label">Enable extension {{scope === 'site' ? 'for this site' : ''}}:</div>
+    <div v-if="settings && extensionActions.length"
+          class="w100"
+    >
+    <div class="label">Enable extension {{scope === 'site' ? 'for this site' : ''}}:</div>
       <div class="flex flex-row flex-wrap">
-        <template v-for="action of siteActions">
-          <ShortcutButton v-if="action.cmd.length === 1 && action.cmd[0].action === 'set-extension-mode'"
-                          class="flex flex-grow button"
-                          :class="{'setting-selected': getCurrent('mode') === action.cmd[0].arg }"
-                          :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
-                          :shortcut="parseShortcut(action)"
-                          @click.native="execAction(action)"
-          >
-          </ShortcutButton>
-        </template>
+        <ShortcutButton v-for="(action, index) of extensionActions"
+                        class="flex flex-grow button"
+                        :key="index"
+                        :class="{'setting-selected': getCurrent('mode') === action.cmd[0].arg }"
+                        :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
+                        :shortcut="parseShortcut(action)"
+                        @click.native="execAction(action)"
+        >
+        </ShortcutButton>
       </div>
     </div>
 
     <!-- ENABLE AUTODETECTION -->
-    <div v-if="true"
+    <div v-if="aardActions.length"
          class="w100"
     >
       <div class="label">Enable autodetection {{scope === 'site' ? 'for this site' : ''}}:</div>
       <div class="flex flex-row flex-wrap">
-        <template v-for="action of siteActions">
-          <ShortcutButton v-if="action.cmd.length === 1 && action.cmd[0].action === 'set-autoar-mode'"
-                          class="flex flex-grow button"
-                          :class="{'setting-selected': getCurrent('autoar') === action.cmd[0].arg}"
-                          :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
-                          :shortcut="parseShortcut(action)"
-                          @click.native="execAction(action)"
-          >
-          </ShortcutButton>
-        </template>
+        <ShortcutButton v-for="(action, index) of aardActions"
+                        class="flex flex-grow button"
+                        :class="{'setting-selected': getCurrent('autoar') === action.cmd[0].arg}"
+                        :key="index"
+                        :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
+                        :shortcut="parseShortcut(action)"
+                        @click.native="execAction(action)"
+        >
+        </ShortcutButton>
       <div class="info"><small>Note: some sites implement restrictions that make autodetection a fair bit less reliable in Firefox and outright impossible in anything else.</small></div>
       </div>
     </div>
 
     <!-- DEFAULT SETTINGS -->
-    <div v-if="true">
+    <div v-if="stretchActions.length">
       <div class="label">Default stretching mode:</div>
       <div class="flex flex-row flex-wrap">
-        <template v-for="action of siteActions">
-          <ShortcutButton v-if="action.cmd.length === 1 && action.cmd[0].action === 'set-stretch'"
-                          class="flex b3 flex-grow button"
-                          :class="{'setting-selected': getCurrent('stretch') === action.cmd[0].arg}"
-                          :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
-                          :shortcut="parseShortcut(action)"
-                          @click.native="execAction(action)"
-          >
-          </ShortcutButton>
-        </template>
+        <ShortcutButton v-for="(action, index) of stretchActions"
+                        class="flex b3 flex-grow button"
+                        :class="{'setting-selected': getCurrent('stretch') === action.cmd[0].arg}"
+                        :key="index"
+                        :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
+                        :shortcut="parseShortcut(action)"
+                        @click.native="execAction(action)"
+        >
+        </ShortcutButton>
+      </div>
+    </div>
       </div>
     </div>
 
-    <div v-if="true">
+    <div v-if="alignmentActions.length">
       <div class="label">Video alignment:</div>
       <div class="flex flex-row flex-wrap">
-        <template v-for="action of settings.active.actions">
-          <ShortcutButton v-if="action.scopes[scope] && action.scopes[scope].show && action.cmd.length === 1 && action.cmd[0].action === 'set-alignment'"
-                          class="flex b3 flex-grow button"
-                          :class="{'setting-selected': getCurrent('videoAlignment') === action.cmd[0].arg}"
-                          :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
-                          :shortcut="parseShortcut(action)"
-                          @click.native="execAction(action)"
-                          >
-          </ShortcutButton>
-        </template>
+        <ShortcutButton v-for="(action, index) of alignmentActions"
+                        class="flex b3 flex-grow button"
+                        :class="{'setting-selected': getCurrent('videoAlignment') === action.cmd[0].arg}"
+                        :key="index"
+                        :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
+                        :shortcut="parseShortcut(action)"
+                        @click.native="execAction(action)"
+                        >
+        </ShortcutButton>
       </div>
     </div>
 
-    <div v-if="true">
-      <div class="label">Multi-command actions:</div>
+    <div v-if="otherActions.length">
+      <div class="label">Other actions:</div>
       <div class="flex flex-row flex-wrap">
-        <template v-for="action of settings.active.actions">
-          <ShortcutButton v-if="action.scopes[scope] && action.scopes[scope].show && action.cmd.length > 1"
-                          class="flex b3 flex-grow button"
-                          :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
-                          :shortcut="parseShortcut(action)"
-                          @click.native="execAction(action)"
-                          >
-          </ShortcutButton>
-        </template>
-      </div>
+        <ShortcutButton v-for="(action, index) of otherActions"
+                        class="flex b3 flex-grow button"
+                        :key="index"
+                        :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
+                        :shortcut="parseShortcut(action)"
+                        @click.native="execAction(action)"
+                        >
+        </ShortcutButton>
+      </div> 
     </div>
   </div>
 </template>
 
 <script>
-import ExecAction from '../js/ExecAction'
-import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser'
-import ShortcutButton from '../../common/components/ShortcutButton'
+import ExecAction from '../js/ExecAction';
+import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
+import ShortcutButton from '../../common/components/ShortcutButton';
+import ComputeActionsMixin from '../../common/mixins/ComputeActionsMixin';
 
 export default {
   data() {
     return {
     }
   },
+  mixins: [
+    ComputeActionsMixin
+  ],
   props: {
     settings: Object,
     scope: String,
@@ -114,11 +116,7 @@ export default {
   components: {
     ShortcutButton,
   },
-  computed: {
-    siteActions: function() {
-      return this.settings.active.actions.filter(x => x.scopes[this.scope] && x.scopes[this.scope].show);
-    }
-  },
+  
   watch: {
     settings: {
       deep: true,

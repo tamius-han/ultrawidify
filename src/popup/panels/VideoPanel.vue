@@ -1,21 +1,23 @@
 <template>
-  <div class="w100">
-    <div v-if="true" class="w100">
+  <div class="w100" style="padding-bottom: 20px">
+    <div v-if="aspectRatioActions.length"
+         class="w100"
+    >
       <div class="label">Cropping mode:</div>
       <div class="flex flex-row flex-wrap">
-        <template v-for="action of settings.active.actions">
-          <ShortcutButton v-if="action.scopes.page && action.scopes.page.show && action.cmd.length === 1 && action.cmd[0].action === 'set-ar'"
-                          class="flex b3 flex-grow button"
-                          :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
-                          :shortcut="parseShortcut(action)"
-                          @click.native="execAction(action)"
-                          >
-          </ShortcutButton>
-        </template>
+        <ShortcutButton v-for="(action, index) of aspectRatioActions"
+                        class="flex b3 flex-grow button"
+                        :key="index"
+                        :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
+                        :shortcut="parseShortcut(action)"
+                        @click.native="execAction(action)"
+                        >
+        </ShortcutButton>
       </div>
     </div>
 
-    <div v-if="true" class="w100">
+    <div v-if="true"
+         class="w100">
       <div class="label experimental">Zooming and panning</div>
       <div class="row w100"
       >
@@ -50,48 +52,46 @@
       </div>
     </div>
 
-    <div v-if="true">
+    <div v-if="stretchActions.length">
       <div class="label">Stretching mode:</div>
       <div class="flex flex-row flex-wrap">
-        <template v-for="action of settings.active.actions">
-          <ShortcutButton v-if="action.scopes.page && action.scopes.page.show && action.cmd.length === 1 && action.cmd[0].action === 'set-stretch'"
-                          class="flex b3 flex-grow button"
-                          :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
-                          :shortcut="parseShortcut(action)"
-                          @click.native="execAction(action)"
-                          >
-          </ShortcutButton>
-        </template>
+        <ShortcutButton v-for="(action, index) of stretchActions"
+                        class="flex b3 flex-grow button"
+                        :key="index"
+                        :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
+                        :shortcut="parseShortcut(action)"
+                        @click.native="execAction(action)"
+                        >
+        </ShortcutButton>
       </div>
     </div>
 
     <div v-if="true">
+    <div v-if="alignmentActions.length">
       <div class="label">Video alignment:</div>
       <div class="flex flex-row flex-wrap">
-        <template v-for="action of settings.active.actions">
-          <ShortcutButton v-if="action.scopes.page && action.scopes.page.show && action.cmd.length === 1 && action.cmd[0].action === 'set-alignment'"
-                          class="flex b3 button"
-                          :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
-                          :shortcut="parseShortcut(action)"
-                          @click.native="execAction(action)"
-                          >
-          </ShortcutButton>
-        </template>
+        <ShortcutButton v-for="(action, index) of alignmentActions"
+                        class="flex b3 button"
+                        :key="index"
+                        :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
+                        :shortcut="parseShortcut(action)"
+                        @click.native="execAction(action)"
+                        >
+        </ShortcutButton>
       </div>
     </div>
 
-    <div v-if="true">
-      <div class="label">Multi-command actions:</div>
+    <div v-if="otherActions.length">
+      <div class="label">Other actions:</div>
       <div class="flex flex-row flex-wrap">
-        <template v-for="action of settings.active.actions">
-          <ShortcutButton v-if="action.scopes.page && action.scopes.page.show && action.cmd.length > 1"
-                          class="flex b3 button"
-                          :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
-                          :shortcut="parseShortcut(action)"
-                          @click.native="execAction(action)"
-                          >
-          </ShortcutButton>
-        </template>
+        <ShortcutButton v-for="(action, index) of otherActions"
+                        class="flex b3 button"
+                        :key="index"
+                        :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
+                        :shortcut="parseShortcut(action)"
+                        @click.native="execAction(action)"
+                        >
+        </ShortcutButton>
       </div>
     </div>
 
@@ -99,15 +99,20 @@
 </template>
 
 <script>
-import ExecAction from '../js/ExecAction'
-import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser'
-import ShortcutButton from '../../common/components/ShortcutButton'
+import ExecAction from '../js/ExecAction';
+import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
+import ShortcutButton from '../../common/components/ShortcutButton';
+import ComputeActionsMixin from '../../common/mixins/ComputeActionsMixin';
 
 export default {
   data() {
     return {
+      scope: 'page',
     }
   },
+  mixins: [
+    ComputeActionsMixin
+  ],
   props: [
     'settings',
     'frame',
