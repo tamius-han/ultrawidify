@@ -1,13 +1,13 @@
 // Set prod to true when releasing
-//_prod = true; 
-const _prod = false; 
+const _prod = true; 
+// const _prod = false; 
 
 var Debug = {
   // performanceMetrics: true, // should not be affected by debug.debug in order to allow benchmarking of the impact logging in console has
-  init: true,
-  debug: true,
+  // init: true,
+  // debug: true,
   // debug: false,
-  keyboard: true,
+  // keyboard: true,
   // debugResizer: true,
   // debugArDetect: true,
   // scaler: true,
@@ -25,15 +25,15 @@ var Debug = {
   // arDetect: {
     // edgeDetect: true
   // },
-  canvas: {
+  // canvas: {
     // debugDetection: true
-  },
-  debugCanvas: {
+  // },
+  // debugCanvas: {
     // enabled: true,
     // guardLine: true
-    enabled: false,
-    guardLine: false
-  }
+    // enabled: false,
+    // guardLine: false
+  // }
 }
 
 if(_prod){
