@@ -40,10 +40,7 @@ class EdgeDetect{
         //   edges = fastCandidates; // todo: processing
         // } else {
           edgeCandidates = this.edgeDetect(image, fastCandidates);
-          console.log("edge candidates:", edgeCandidates)
           bars = this.edgePostprocess(edgeCandidates, this.conf.canvas.height);
-          console.log("bars:", bars)
-
         // }
       } catch (e) {
         if (Debug.debug) {
