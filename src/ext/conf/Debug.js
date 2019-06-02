@@ -28,12 +28,12 @@ var Debug = {
   // canvas: {
     // debugDetection: true
   // },
-  // debugCanvas: {
+  debugCanvas: {
     // enabled: true,
     // guardLine: true
     // enabled: false,
     // guardLine: false
-  // }
+  }
 }
 
 if(_prod){
@@ -41,12 +41,14 @@ if(_prod){
 }
 
 function __disableAllDebug(obj) {
-  for(key in obj) {
+  for(let key in obj) {
     if (obj.hasOwnProperty(key) ){
-      if(obj[key] instanceof Object)
+      if(obj[key] instanceof Object) {
         __disableAllDebug(obj[key]);
-      else
+      }
+      else {
         obj[key] = false;
+      }
     }
   }
 }

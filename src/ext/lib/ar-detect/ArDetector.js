@@ -60,7 +60,9 @@ class ArDetector {
         throw "Settings prevent autoar from starting"
       }
     } catch (e) {
-      console.log("%c[ArDetect::init] INITIALIZATION FAILED!\n", _ard_console_stop, e);
+      if (Debug.debug) {
+        console.log("%c[ArDetect::init] INITIALIZATION FAILED!\n", _ard_console_stop, e);
+      }
     }
   }
 
