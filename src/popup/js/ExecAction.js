@@ -46,7 +46,7 @@ class ExecAction {
           this.settings.active.sites[site].mode = cmd.arg;
         } else if (cmd.action === "set-autoar-mode") {
           this.settings.active.sites[site].autoar = cmd.arg;
-        }
+        } else if (cmd.action === 'set-keyboard') {
           this.settings.active.sites[site].keyboardShortcutsEnabled = cmd.arg;
         }
         this.settings.save();

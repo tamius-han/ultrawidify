@@ -180,6 +180,32 @@ var ActionList = {
       global: true,
       site: true,
     }
+  },
+  'set-keyboard': {
+    name: 'Keyboard shortcuts',
+    args: [{
+      name: 'Enable',
+      arg: ExtensionMode.Enabled,
+    },{
+      name: 'On whitelisted only',
+      arg: ExtensionMode.Whitelist,
+      scopes: {
+        global: true,
+      }
+    },{
+      name: 'Default',
+      arg: ExtensionMode.Default,
+      scopes: {
+        page: true,
+      }
+    },{
+      name: 'Disable',
+      arg: ExtensionMode.Disabled
+    }],
+    scopes: {
+      global: true,
+      site: true,
+    }
   }
 };
 

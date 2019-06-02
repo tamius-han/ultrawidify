@@ -65,8 +65,21 @@
         </ShortcutButton>
       </div>
     </div>
+    
+    <!-- <div v-if="keyboardActions.length">
+      <div class="label">Keyboard shortcuts:</div>
+      <div class="flex flex-row flex-wrap">
+        <ShortcutButton v-for="(action, index) of keyboardActions"
+                        class="flex b3 button"
+                        :key="index"
+                        :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
+                        :shortcut="parseShortcut(action)"
+                        @click.native="execAction(action)"
+                        >
+        </ShortcutButton>
+      </div>
+    </div> -->
 
-    <div v-if="true">
     <div v-if="alignmentActions.length">
       <div class="label">Video alignment:</div>
       <div class="flex flex-row flex-wrap">
