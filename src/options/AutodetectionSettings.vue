@@ -193,7 +193,7 @@
 
     <div class="label">Sampling options</div>
     <div class="description">
-      Various sampling related options. Some options may be hidden behind <a href="#" @click="showAdvancedOptions = true">advanced options</a><br/>
+      Various sampling related options.<br/>
       <b>Static columns:</b> Image is sampled in this many columns, spaced at regular intervals between both edges.<br/>
       <b>Random columns:</b> (ADVANCED; NOT IMPLEMENTED/PLANNED) In addition to static colums, sample image at this many random columns.<br/>
       <b>Static rows:</b> (ADVANCED) Image is sampled in this many rows, spaced at regular intervals between both edges.<br/>
