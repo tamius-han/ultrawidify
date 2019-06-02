@@ -16,7 +16,7 @@ var ExtensionConf = {
                               // Any more and we don't adjust ar.
     allowedArVariance: 0.075, // amount by which old ar can differ from the new (1 = 100%)
     timers: {                 // autodetection frequency
-      playing: 666,           // while playing
+      playing: 333,           // while playing
       paused: 3000,           // while paused
       error: 3000,            // after error
       minimumTimeout: 5,

@@ -307,3 +307,11 @@ small {
    margin-left: 10px;
    margin-top: -4px;
 }
+
+.sticky-bottom {
+  width: 100%;
+  position: sticky;
+  // position: fixed;
+  bottom: 0px;
+  background-color: rgba($background-primary, 0.7);
+}

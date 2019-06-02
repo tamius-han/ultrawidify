@@ -535,6 +535,17 @@
         </div>
       </div>
     </div>
+
+    <div class="flex flex-row button-box sticky-bottom">
+      <Button label="Cancel"
+              @click.native="cancel()"
+      > 
+      </Button>
+      <Button label="Save settings"
+              @click.native="saveManual()"
+      >
+      </Button>
+    </div>
   </div>
 </template>
 
@@ -604,7 +615,23 @@ export default {
       }
 
       this.sensitivity = this.getSensitivity();
-    } 
+    },
+    saveManual(){
+      this.settings.save();
+      // this.parsedSettings = JSON.stringify(this.settings.active, null, 2);
+      // this.lastSettings = JSON.parse(JSON.stringify(this.settings.active));
+      const ths = this;
+      this.$nextTick( () => {
+        ths.parsedSettings = JSON.stringify(ths.lastSettings, null, 2) 
+        ths.lastSettings = JSON.parse(JSON.stringify(ths.settings.active))
+      });
+    },
+    cancel(){
+      this.parsedSettings = '';
+      this.settings.rollback();
+      const ths = this;
+      this.$nextTick( () => ths.parsedSettings = JSON.stringify(ths.lastSettings, null, 2) );
+    }
   }
 }
 </script>
