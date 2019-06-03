@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Ultrawidify",
-  "description": "Aspect ratio fixer for youtube that works around some people's disability to properly encode 21:9 (and sometimes, 16:9) videos.",
+  "description": "Aspect ratio fixer for Youtube, Netflix and possibly more. Supports automatic aspect ratio detection on certain sites.",
   "version": "4.0.0",
   "applications": {
     "gecko": {
