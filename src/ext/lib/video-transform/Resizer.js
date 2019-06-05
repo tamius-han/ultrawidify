@@ -150,7 +150,7 @@ class Resizer {
       const siteSettings = this.settings.active.sites[window.location.host];
       if (siteSettings && siteSettings.autoarPreventConditions) {
         if (siteSettings.autoarPreventConditions.videoStyleString) {
-          const styleString = this.video.getAttribute('style').split(';');
+          const styleString = (this.video.getAttribute('style') || '').split(';');
 
           if (siteSettings.autoarPreventConditions.videoStyleString.containsProperty) {
             const bannedProperties = siteSettings.autoarPreventConditions.videoStyleString.containsProperty;
