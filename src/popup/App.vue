@@ -198,7 +198,7 @@ export default {
 
       if(message.cmd === 'set-current-site'){
         if (this.site) {
-          if (!site.host) {
+          if (!this.site.host) {
             // dunno why this fix is needed, but sometimes it is
             this.site.host = site.tabHostname;
           }

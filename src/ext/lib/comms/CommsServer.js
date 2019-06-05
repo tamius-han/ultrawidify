@@ -126,9 +126,6 @@ class CommsServer {
   }
 
   onConnect(port){
-    
-    console.log("[processmessage] \nb\n\n\n\n\nonConnect\n\n\n\n\n\}\n")
-    
     var ths = this;
     
     // poseben primer | special case
