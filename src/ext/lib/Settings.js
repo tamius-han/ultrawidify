@@ -84,6 +84,14 @@ class Settings {
       return this.active;
     }
 
+    // if last saved settings was for version prior to 4.x, we reset settings to default
+    // it's not like people will notice cos that version didn't preserve settings at all
+    if (settings.version && !settings.version.startsWith('4')) {
+      this.setDefaultSettings();
+      this.active = this.getDefaultSettings();
+      return this.active;
+    }
+
     // if there's settings, set saved object as active settings
     this.active = settings;
 
@@ -105,16 +113,16 @@ class Settings {
 
     // if extension has been updated, update existing settings with any options added in the
     // new version. In addition to that, we remove old keys that are no longer used.
-    // const patched = ObjectCopy.addNew(settings, this.default);
-    // if(Debug.debug) {
-      // console.log("[Settings.init] Results from ObjectCopy.addNew()?", patched, "\n\nSettings from storage", settings, "\ndefault?", this.default,);
-    // }
+    const patched = ObjectCopy.addNew(settings, this.default);
+    if(Debug.debug) {
+      console.log("[Settings.init] Results from ObjectCopy.addNew()?", patched, "\n\nSettings from storage", settings, "\ndefault?", this.default,);
+    }
 
-    // if(patched){
-      // this.active = patched;
-    // } else {
+    if(patched){
+      this.active = patched;
+    } else {
       this.active = JSON.parse(JSON.stringify(this.default));
-    // }
+    }
 
     this.set(this.active);
     return this.active;
@@ -229,30 +237,22 @@ class Settings {
     try {
       // if site-specific settings don't exist for the site, we use default mode:
       if (! this.active.sites[site]) {
-        if (this.active.sites['@global'] === ExtensionMode.Enabled) {
-          return ExtensionMode.Enabled;
-        } else {
-          return this.active.basicExtensionMode === ExtensionMode.Enable ? ExtensionMode.Basic : ExtensionMode.Disabled;
-        }
+        return this.getExtensionMode('@global');
       }
 
       if (this.active.sites[site].mode === ExtensionMode.Enabled) {
         return ExtensionMode.Enabled;
       } else if (this.active.sites[site].mode === ExtensionMode.Basic) {
-        return ExtensionMode.Basic;
-      } else if (this.active.sites[site].mode === ExtensionMode.Default) {
-        if (this.active.sites['@global'] === ExtensionMode.Enabled) {
-          return ExtensionMode.Enabled;
-        } else {
-          return this.active.basicExtensionMode === ExtensionMode.Enable ? ExtensionMode.Basic : ExtensionMode.Disabled;
-        }
+        return ExtensionMode.Basic;            
+      } else if (this.active.sites[site].mode === ExtensionMode.Default && site !== '@global') {
+        return this.getExtensionMode('@global');
       } else {
         return ExtensionMode.Disabled;
       }
   
     } catch(e){
       if(Debug.debug){
-        console.log("[Settings.js::canStartExtension] Something went wrong — are settings defined/has init() been called?\nSettings object:", this)
+        console.log("[Settings.js::canStartExtension] Something went wrong — are settings defined/has init() been called?\n\nerror:", e, "\n\nSettings object:", this)
       }
       return ExtensionMode.Disabled;
     }
