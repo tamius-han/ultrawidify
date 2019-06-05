@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Ultrawidify",
   "description": "Aspect ratio fixer for Youtube, Netflix and possibly more. Supports automatic aspect ratio detection on certain sites.",
-  "version": "4.0.1a1",
+  "version": "4.0.2b0",
   "applications": {
     "gecko": {
       "id": "{cf02b1a7-a01a-4e37-a609-516a283f1ed3}"
