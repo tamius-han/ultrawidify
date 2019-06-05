@@ -1,0 +1,59 @@
+{
+  "manifest_version": 2,
+  "name": "Ultrawidify",
+  "description": "Aspect ratio fixer for Youtube, Netflix and possibly more. Supports automatic aspect ratio detection on certain sites.",
+  "version": "4.0.1a1",
+  "applications": {
+    "gecko": {
+      "id": "{cf02b1a7-a01a-4e37-a609-516a283f1ed3}"
+    }
+  },
+  "icons": {
+    "32":"res/icons/uw-32.png",
+    "64":"res/icons/uw-64.png"
+  },
+  "browser_action": {
+    "default_title": "Ultrawidify",
+    "default_popup": "popup/popup.html"
+  },
+
+  "content_scripts": [{
+    "matches": ["*://*/*"],
+    "js": [      
+      "ext/uw.js" 
+    ], 
+    "all_frames": true
+  }],
+
+  "background": {
+    "scripts": [
+      "ext/uw-bg.js"
+    ]
+  },
+  
+  "options_ui": {
+    "page": "options/options.html",
+    "browser_style": false,
+    "open_in_tab": true
+  },
+
+
+  "web_accessible_resources": [
+    "./*",
+    "ext/*",
+    "res/fonts/*",
+    "res/css/*",
+    
+    "res/img/ytplayer-icons/zoom.png",
+    "res/img/ytplayer-icons/unzoom.png",
+    "res/img/ytplayer-icons/fitw.png",
+    "res/img/ytplayer-icons/fith.png",
+    "res/img/ytplayer-icons/reset.png",
+    "res/img/ytplayer-icons/settings.png",
+    
+    "res/img/settings/about-bg.png"
+  ],
+  "permissions": [
+    "tabs", "storage",  "activeTab", "<all_urls>", "webNavigation"
+  ]
+}
