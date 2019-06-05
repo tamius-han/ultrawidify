@@ -5,10 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "node",
+            "name": "Launch addon",
+            "type": "firefox",
             "request": "launch",
-            "name": "Launch Program",
-            "program": "${file}"
+            "port":6000,
+            "reAttach": true,
+            "addonType": "webExtension",
+            "addonPath": "${workspaceFolder}/dist",
         }
-    ]
+    ],
+    "firefox": {
+        "executable": "/usr/bin/firefox-developer-edition",
+        "firefoxArgs": [
+            "--start-debugger-server"
+        ]
+    }
 }
