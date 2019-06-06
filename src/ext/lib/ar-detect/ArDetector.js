@@ -952,7 +952,6 @@ class ArDetector {
       );
 
       if (currentMax > this.blackLevel + blthreshold) {
-        console.log("CURRENT MAX:", currentMax, "BLACK LEVEL, threshold, bl+t", this.blackLevel, blthreshold, this.blackLevel+blthreshold)
         // we search no further
         if (currentMin < this.blackLevel) {
           this.blackLevel = currentMin;
