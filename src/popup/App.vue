@@ -24,7 +24,20 @@
           <div class="">
             Site settings
           </div>
-          <div class="">
+          <div v-if="selectedTab === 'site' && this.activeFrames.length > 1"
+               class=""
+          >
+            <small>Select site to control:</small>
+            <div class="">
+              <div v-for="site of activeSites"
+                  :key="site.host"
+                  class="tabitem"
+                  :class="{'tabitem-selected': site.host === selectedSite}"
+                  @click="selectSite(site.host)"
+              >
+                {{site.host}}
+              </div>
+            </div>
           </div>
         </div>
         <div class="menu-item"
@@ -86,7 +99,7 @@
                               class=""
                               :settings="settings"
                               :scope="selectedTab"
-                              :site="site && site.host"
+                              :site="selectedSite"
         />
         <PerformancePanel v-if="selectedTab === 'performance-metrics'" 
                           :performance="performance" />
@@ -114,7 +127,9 @@ export default {
     return {
       selectedTab: 'video',
       selectedFrame: '__all',
+      selectedSite: '',
       activeFrames: [],
+      activeSites: [],
       port: BrowserDetect.firefox ? browser.runtime.connect({name: 'popup-port'}) : chrome.runtime.connect({name: 'popup-port'}),
       comms: new Comms(),
       frameStore: {},
@@ -207,6 +222,18 @@ export default {
           this.port.postMessage({cmd: 'get-current-zoom'});
         }
         this.site = message.site;
+
+        // update activeSites
+        // this.activeSites = this.activeSites.filter(x => x.host !== message.site);
+
+        // add current site
+        // this.activeSites = unshift({
+        //   host: message.site.host,
+        //   isIFrame: false,  // currently unused
+        // });
+        this.selectedSite = message.site.host.host;
+
+
         // loadConfig(site.host); TODO
         this.loadFrames(this.site);
       } else if (message.cmd === 'set-current-zoom') {
@@ -224,8 +251,6 @@ export default {
         this.selectedSubitem = videoTab.selected;
         // selectedSubitemLoaded = true;
       }
-
-      this.activeFrames = [];
 
       if (videoTab.frames.length < 2 || Object.keys(videoTab.frames).length < 2) {
         this.selectedFrame = '__all';
@@ -253,6 +278,11 @@ export default {
       }
 
       this.activeFrames = [{id: '__all', label: 'All'},{id: '__playing', label: 'Currently playing'}];
+      this.activeSites = [{
+        host: this.site.host,
+        isIFrame: false,  // not used tho. Maybe one day
+      }];
+      this.selectedSite = this.site.host;
 
       for (const frame in videoTab.frames) {
         this.activeFrames.push({
@@ -260,6 +290,14 @@ export default {
           label: videoTab.frames[frame].host,
           ...this.frameStore[frame],
         })
+
+        // only add each host once at most
+        if (!this.activeSites.find(x => x.host === videoTab.frames[frame].host)) {
+          this.activeSites.push({
+            host: videoTab.frames[frame].host,
+            isIFrame: undefined // maybe one day
+          });
+        }
       }
     },
     getRandomColor() {
@@ -273,6 +311,9 @@ export default {
     },
     selectFrame(id){
       this.selectedFrame = id;
+    },
+    selectSite(host) {
+      this.selectedSite = host;
     }
   }
 }
