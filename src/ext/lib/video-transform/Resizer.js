@@ -511,7 +511,7 @@ class Resizer {
       }
     }
 
-    if(Debug.debug) {
+    // if(Debug.debug) {
       console.log("[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> calculated offsets:\n\n",
       '---- data in ----\n',
       'player dimensions:', {w: this.conf.player.dimensions.width, h: this.conf.player.dimensions.height},
@@ -520,7 +520,7 @@ class Resizer {
       'pan & zoom:       ', this.pan, this.zoom,
       '\n\n---- data out ----\n',
       'translate:', translate);
-    }
+    // }
 
     return translate; 
   }
