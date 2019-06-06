@@ -426,7 +426,6 @@ class Resizer {
     }
     else {
       if (this.lastAr && this.lastAr.ratio === null) {
-        console.log("[Resizer::restore] LAST AR IS NULL")
         throw "Last ar is null!"
       }
       this.setAr(this.lastAr, this.lastAr)
