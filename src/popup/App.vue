@@ -24,7 +24,7 @@
           <div class="">
             Site settings
           </div>
-          <div v-if="selectedTab === 'site' && this.activeFrames.length > 1"
+          <div v-if="selectedTab === 'site' && this.activeSites.length > 1"
                class=""
           >
             <small>Select site to control:</small>
@@ -59,6 +59,30 @@
                    @click="selectFrame(frame.id)"
               >
                 {{frame.label}} <span v-if="frame.name !== undefined && frame.color" :style="{'background-color': frame.color}">[{{frame.name}}]</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-item"
+            :class="{'selected-tab': selectedTab === 'site-details'}"
+            @click="selectTab('site-details')"
+        >
+          <div class="">
+            Video and player detection
+          </div>
+          <div v-if="selectedTab === 'site-details' && this.activeSites.length > 1"
+               class=""
+          >
+            <small>Select site to control:</small>
+            <div class="">
+              <div v-for="site of activeSites"
+                  :key="site.host"
+                  class="tabitem"
+                  :class="{'tabitem-selected': site.host === selectedSite}"
+                  @click="selectSite(site.host)"
+              >
+                {{site.host}}
               </div>
             </div>
           </div>
@@ -101,6 +125,11 @@
                               :scope="selectedTab"
                               :site="selectedSite"
         />
+        <SiteDetailsPanel v-if="settings && settings.active && selectedTab === 'site-details' "
+                              class=""
+                              :settings="settings"
+                              :site="selectedSite"
+        />
         <PerformancePanel v-if="selectedTab === 'performance-metrics'" 
                           :performance="performance" />
         <AboutPanel v-if="selectedTab === 'about'" />
@@ -111,6 +140,7 @@
 </template>
 
 <script>
+import SiteDetailsPanel from './panels/SiteDetailsPanel.vue';
 import Donate from '../common/misc/Donate.vue';
 import Debug from '../ext/conf/Debug';
 import BrowserDetect from '../ext/conf/BrowserDetect';
@@ -171,6 +201,7 @@ export default {
     Debug,
     AboutPanel,
     Donate,
+    SiteDetailsPanel,
   },
   methods: {
     async sleep(t) {
@@ -231,8 +262,7 @@ export default {
         //   host: message.site.host,
         //   isIFrame: false,  // currently unused
         // });
-        this.selectedSite = message.site.host.host;
-
+        this.selectedSite = this.selectedSite || message.site.host;
 
         // loadConfig(site.host); TODO
         this.loadFrames(this.site);
@@ -282,7 +312,7 @@ export default {
         host: this.site.host,
         isIFrame: false,  // not used tho. Maybe one day
       }];
-      this.selectedSite = this.site.host;
+      this.selectedSite = this.selectedSite || this.site.host;
 
       for (const frame in videoTab.frames) {
         this.activeFrames.push({
