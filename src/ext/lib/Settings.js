@@ -143,6 +143,14 @@ class Settings {
       });
     }
 
+    if (Debug.debug && Debug.debugStorage) {
+      try {
+        console.log("[Settings::get] Got settings:", JSON.parse(ret.uwSettings));
+      } catch (e) {
+        console.log("[Settings::get] No settings.")
+      }
+    }
+
     try {
       return JSON.parse(ret.uwSettings);
     } catch(e) {
@@ -151,7 +159,7 @@ class Settings {
   }
 
   async set(extensionConf) {
-    if (Debug.debug) {
+    if (Debug.debug && Debug.debugStorage) {
       console.log("[Settings::set] setting new settings:", extensionConf)
     }
 
@@ -172,7 +180,7 @@ class Settings {
   }
 
   async save() {
-    if (Debug.debug) {
+    if (Debug.debug && Debug.storage) {
       console.log("[Settings::save] Saving active settings:", this.active);
     }
 
