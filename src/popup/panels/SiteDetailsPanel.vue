@@ -20,6 +20,15 @@
                @blur="updateVideoQuerySelector"
         />
       </div>
+      <div class="flex flex-column">
+        <div class="flex label-secondary form-label">Additional css</div>
+        <input type="text"
+               v-model="videoCss"
+               @change="updateVideoCss"
+               @blur="updateVideoCss"
+        />
+      </div>
+
     </div>
 
     <div class="label">
@@ -63,6 +72,14 @@
                 type="number" 
          />
       </div>
+      <div class="flex flex-column">
+        <div class="flex label-secondary form-label">Additional css</div>
+        <input type="text"
+               v-model="playerCss"
+               @change="updatePlayerCss"
+               @blur="updatePlayerCss"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -80,8 +97,10 @@ export default {
     return {
       videoManualQs: false,
       videoQs: '',
+      videoCss: '',
       playerManualQs: false,
       playerQs: '',
+      playerCss: '',
       playerByNodeIndex: false,
       playerParentNodeIndex: undefined,
     };
@@ -94,6 +113,7 @@ export default {
     try {
       this.videoManualQs = settings.active.sites[this.site].DOM.video.manual || this.videoManualQs;
       this.videoQs = settings.active.sites[this.site].DOM.video.querySelectors;
+      this.videoCss = settings.active.sites[this.site].DOM.video.additionalCss;
     } catch (e) {
       // that's here just in case relevant settings for this site don't exist yet
     }
@@ -101,6 +121,7 @@ export default {
     try {
       this.playerManualQs = settings.active.sites[this.site].DOM.player.manual || this.playerManualQs;
       this.playerQs = settings.active.sites[this.site].DOM.player.querySelectors;
+      this.playerCss = settings.active.sites[this.site].DOM.player.additionalCss;
       this.playerByNodeIndex = settings.active.sites[this.site].DOM.player.useRelativeAncestor;
       this.playerParentNodeIndex = settings.active.sites[this.site].DOM.player.videoAncestor;
     } catch (e) {
@@ -126,6 +147,7 @@ export default {
         this.settings.active.sites[this.site].DOM[scope] = {
           manual: false,
           querySelectors: '',
+          additionalCss: '',
           useRelativeAncestor: scope === 'player' ? false : undefined,
           videoAncestor: undefined,
           playerNodeCss: scope === 'player' ? '' : undefined,
@@ -137,9 +159,19 @@ export default {
       this.settings.active.sites[this.site].DOM.video.querySelectors = this.videoQs;
       this.settings.save();
     },
+    updateVideoCss() {
+      this.ensureSettings('video');
+      this.settings.active.sites[this.site].DOM.video.additionalCss = this.videoCss;
+      this.settings.save();
+    },
     updatePlayerQuerySelector() {
       this.ensureSettings('player');
       this.settings.active.sites[this.site].DOM.player.querySelectors = this.playerQs;
+      this.settings.save();
+    },
+    updateVideoCss() {
+      this.ensureSettings('player');
+      this.settings.active.sites[this.site].DOM.player.additionalCss = this.playerCss;
       this.settings.save();
     },
     updatePlayerParentNodeIndex() {
