@@ -511,7 +511,7 @@ class Resizer {
       }
     }
 
-    // if(Debug.debug) {
+    if(Debug.debug) {
       console.log("[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> calculated offsets:\n\n",
       '---- data in ----\n',
       'player dimensions:', {w: this.conf.player.dimensions.width, h: this.conf.player.dimensions.height},
@@ -520,13 +520,14 @@ class Resizer {
       'pan & zoom:       ', this.pan, this.zoom,
       '\n\n---- data out ----\n',
       'translate:', translate);
-    // }
+    }
 
     return translate; 
   }
   
   applyCss(stretchFactors, translate){
-
+    // apply extra CSS here. In case of duplicated properties, extraCss overrides 
+    // default styleString
     if (! this.video) {
       if(Debug.debug) {
         console.log("[Resizer::applyCss] <rid:"+this.resizerId+"> Video went missing, doing nothing.");
@@ -545,13 +546,34 @@ class Resizer {
     }
 
     var styleArrayStr = this.video.getAttribute('style');
-    var styleArrayObj = window.getComputedStyle(this.video);
 
 
     if (styleArrayStr) {
       var styleArray = styleArrayStr.split(";");
-      for(var i in styleArray){
-        
+
+      try {
+        const extraCss = this.settings.active.sites[window.location.host].DOM.video.additionalCss.split(';');
+        let dup = false;
+
+        for (const ecss of extraCss) {
+          for (let i in styleString) {
+            if (ecss.split(':')[0].trim() === styleString[i].split(':')[0].trim()) {
+              dup = true;
+              styleString[i] = ecss;
+            }
+            if (dup) {
+              dup = false;
+              continue;
+            }
+            styleString.push(ecss);
+          }
+        }
+      } catch (e) {
+        // do nothing. We just want to catch cases where things like that aren't defined
+        // for the current video
+      }
+  
+      for (var i in styleArray) {
         styleArray[i] = styleArray[i].trim();
         
         // some sites do 'top: 50%; left: 50%; transform: <transform>' to center videos. 
@@ -568,19 +590,20 @@ class Resizer {
       var styleArray = [];
     }
     
-
     // add remaining elements
     
-    if(stretchFactors){
+    if (stretchFactors) {
       styleArray.push(`transform: translate(${translate.x}px, ${translate.y}px) scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor})`);
       styleArray.push("top: 0px; left: 0px; bottom: 0px; right: 0px");
     }
 
     // build style string back
     var styleString = "";
-    for(var i in styleArray)
-      if(styleArray[i])
+    for(var i in styleArray) {
+      if(styleArray[i]) {
         styleString += styleArray[i] + "; ";
+      }
+    }
     
     this.setStyleString(styleString);
   }

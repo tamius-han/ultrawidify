@@ -931,13 +931,14 @@ var ExtensionConf = {
         video: {
           manual: false,
           querySelectors: '',
+          additionalCss: '',
         },
         player: {
           manual: true,
           useRelativeAncestor: true,
           querySelectors: '',
           videoAncestor: 1,
-          playerNodeCss: '',
+          additionalCss: '',
         }
       }
       // videoElement: {        // extra stuff for video tag
