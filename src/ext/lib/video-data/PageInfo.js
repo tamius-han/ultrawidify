@@ -65,11 +65,30 @@ class PageInfo {
     this.actionHandlerInitQueue = [];
   }
 
+  getVideos(host) {
+    if (this.settings.active.sites[host]
+        && this.settings.active.sites[host].DOM
+        && this.settings.active.sites[host].DOM.video
+        && this.settings.active.sites[host].DOM.video.manual
+        && this.settings.active.sites[host].DOM.video.querySelector){
+      const videos = document.querySelectorAll(this.settings.active.sites[host].DOM.video.querySelector);
+
+      if (videos.length) {
+        return videos;
+      } else {
+        if (Debug.debug) {
+          console.log("[PageInfo::getVideos] Finding videos by querySelector failed. Trying fallback mode as well.");
+        }
+      }
+    }
+    return document.getElementsByTagName('video');
+  }
+
   rescan(rescanReason){
     const oldVideoCount = this.videos.length;
 
     try{
-    var vids = document.getElementsByTagName('video');
+    var vids = this.getVideos(window.location.host);
 
     if(!vids || vids.length == 0){
       this.hasVideos = false;

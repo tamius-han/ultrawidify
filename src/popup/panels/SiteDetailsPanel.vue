@@ -1,94 +1,69 @@
 <template>
   <div class="w100 flex flex-column" style="padding-bottom: 20px">
-    <div class="label">Video detection settings<br/><small>for {{site}}</small></div>
+    <div class="label">
+      Video detection settings<br/><small>for {{site}}</small>
+    </div>
     <div class="description">Video is just the moving picture bit without the player.</div>
-    <div class="indent">
-      <div class="flex flex-row row-padding">
-        <div class="flex label-secondary form-label">Manually specify video element</div>
-        <div class="flex flex-input">
-          <input :checked="videoManualQs"
-                 @change="toggleVideoManualQs"
-                 type="checkbox" 
-                  />
-        </div>
+    <div class="">
+      <div class="">
+        <input :checked="!videoManualQs"
+                @change="toggleVideoManualQs"
+                type="checkbox" 
+        /> Detect automatically
       </div>
-
       <div class="flex flex-column">
         <div class="flex label-secondary form-label">Query selectors</div>
-        <QuerySelectorSetting v-for="(qs, index) of siteVideoQuerySelectors"
-                              :disabled="!videoManualQs"
-                              :key="index"
-                              @update="updateQuerySelector('video', index, $event)"
-                              @delete="deleteQuerySelector('video', index)"
-        />
-        <div class="flex label-secondary form-label">Add new:</div>
-        <QuerySelectorSetting v-if="videoManualQs"
-                              adding
-                              @create="addQuerySelector('video', $event)"        
+        <input type="text"
+               v-model="videoQs"
+               :disabled="!videoManualQs"
+               @change="updateVideoQuerySelector"
+               @blur="updateVideoQuerySelector"
         />
       </div>
     </div>
 
-    <div class="label">Player detection settings<br/><small>for {{site}}</small></div>
-    <div class="description">Player is the frame around the video. Extension crops/stretches the video to fit the player.</div>
-    <div class="indent">
-      <div class="flex flex-row">
-        <div class="flex label-secondary form-label">Detect automatically</div>
-        <div class="flex flex-input">
-          <input :checked="playerManualQs"
-                 @change="togglePlayerManualQs"
-                 type="checkbox" 
-                  />
-        </div>
-      </div>
-      <div class="flex flex-row">
-        <div class="flex label-secondary form-label">Specify player node parent index instead of query selector</div>
-        <div class="flex flex-input">
-          <input :checked="playerByNodeIndex"
-                 @change="toggleByNodeIndex"
-                 type="checkbox" 
-                  />
-        </div>
+    <div class="label">
+      Player detection settings<br/><small>for {{site}}</small>
+    </div>
+    <div class="description">
+      Player is the frame around the video. Extension crops/stretches the video to fit the player.
+    </div>
+    <div class="">
+      <div class="">
+        <input :checked="!playerManualQs"
+                @change="togglePlayerManualQs"
+                type="checkbox" 
+        /> Detect automatically
       </div>
 
       <div class="flex flex-column">
-        <div class="flex label-secondary form-label">Query selectors</div>
-        <QuerySelectorSetting v-for="(qs, index) of sitePlayerQuerySelectors"
-                              :disabled="!playerManualQs || playerByNodeIndex"
-                              :key="index"
-                              @update="updateQuerySelector('video', index, $event)"
-                              @delete="deleteQuerySelector('video', index)"
-        />
-        <div class="flex label-secondary form-label">Add new:</div>
-        <QuerySelectorSetting v-if="videoManualQs"
-                              adding
-                              @create="addQuerySelector('video', $event)"        
+        <div class="">Query selectors:</div>
+        <input type="text"
+               v-model="playerQs"
+               @change="updatePlayerQuerySelector"
+               @blur="updatePlayerQuerySelector"
+               :disabled="playerByNodeIndex || !playerManualQs"
         />
       </div>
 
-      
-      <div v-if="playerByNodeIndex">
-        <div class="flex flex-row row-padding">
-          <div class="flex label-secondary form-label">Player node parent index</div>
-          <div class="flex flex-input">
-            <input :value="playerByNodeIndex"
-                   @change="toggleByNodeIndex"
-                   type="number" 
-                    />
-          </div>
-        </div>
-        <div class="flex flex-row row-padding">
-          <div class="flex label-secondary form-label">Player node css</div>
-          <div class="flex flex-input">
-            <input :value="playerByNodeIndex"
-                   @change="toggleByNodeIndex"
-                   type="number" 
-                    />
-          </div>
-        </div>
+      <div class="">
+        <input :checked="playerByNodeIndex"
+               :disabled="!playerManualQs"
+                @change="toggleByNodeIndex"
+                type="checkbox" 
+        /> Specify player node parent index instead
+      </div>
+
+      <div class="flex flex-column">
+        <div class="">Player node parent index:</div>
+         <input v-model="playerParentNodeIndex"
+                :disabled="!playerByNodeIndex || !playerManualQs"
+                @change="updatePlayerParentNodeIndex"
+                @blur="updatePlayerParentNodeIndex"
+                type="number" 
+         />
       </div>
     </div>
-
   </div>
 </template>
 
@@ -103,64 +78,33 @@ export default {
   },
   data() {
     return {
-
+      videoManualQs: false,
+      videoQs: '',
+      playerManualQs: false,
+      playerQs: '',
+      playerByNodeIndex: false,
+      playerParentNodeIndex: undefined,
     };
   },
   props: {
     site: String,
     settings: Object,
   },
-  computed: {
-    siteVideoQuerySelectors() {
-      try {
-        return settings.active.sites[this.site].DOM.video.querySelectors;
-      } catch (e) {
-        return [];
-      }
-    },
-    sitePlayerQuerySelectors() {
-      try {
-        return settings.active.sites[this.site].DOM.player.querySelectors;
-      } catch (e) {
-        return [];
-      }
-    },
-    videoManualQs: function() {
-      try {
-        console.log("this.settings.active.sites[this.site].DOM.video.enabled", this.settings.active.sites[this.site].DOM.video.enabled)
-        return this.settings.active.sites[this.site].DOM.video.enabled
-      } catch (e) {
-        console.log("e",e)
-        return false;
-      }
-    },
-    playerManualQs() {
-      try {
-        return this.settings.active.sites[this.site].DOM.player.enabled
-      } catch (e) {
-        return false;
-      }
-    },
-    playerByNodeIndex() {
-      try {
-        return this.settings.active.sites[this.site].DOM.player.byNodeIndex
-      } catch (e) {
-        return false;
-      }
-    },
-    playerNodeIndex() {
-      try {
-        return this.settings.active.sites[this.site].DOM.player.nodeIndex
-      } catch (e) {
-        return undefined;
-      }
-    },
-    playerNodeIndexCss() {
-      try {
-        return this.settings.active.sites[this.site].DOM.player.nodeIndexCss
-      } catch (e) {
-        return undefined;
-      }
+  created() {
+    try {
+      this.videoManualQs = settings.active.sites[this.site].DOM.video.manual || this.videoManualQs;
+      this.videoQs = settings.active.sites[this.site].DOM.video.querySelectors;
+    } catch (e) {
+      // that's here just in case relevant settings for this site don't exist yet
+    }
+    
+    try {
+      this.playerManualQs = settings.active.sites[this.site].DOM.player.manual || this.playerManualQs;
+      this.playerQs = settings.active.sites[this.site].DOM.player.querySelectors;
+      this.playerByNodeIndex = settings.active.sites[this.site].DOM.player.useRelativeAncestor;
+      this.playerParentNodeIndex = settings.active.sites[this.site].DOM.player.videoAncestor;
+    } catch (e) {
+      // that's here just in case relevant settings for this site don't exist yet
     }
   },
   methods: {
@@ -180,39 +124,45 @@ export default {
       }
       if (! this.settings.active.sites[this.site].DOM[scope]) {
         this.settings.active.sites[this.site].DOM[scope] = {
-          enabled: false,
-          querySelectors: [],
-          byNodeIndex: scope === 'player' ? false : undefined,
-          nodeIndex: undefined,
-          nodeIndexCss: scope === 'player' ? '' : undefined,
+          manual: false,
+          querySelectors: '',
+          useRelativeAncestor: scope === 'player' ? false : undefined,
+          videoAncestor: undefined,
+          playerNodeCss: scope === 'player' ? '' : undefined,
         }
       }
     },
-    updateQuerySelector(scope, index, $event) {
-      this.ensureSettings(scope);
-      this.settings.active.sites[this.site].DOM[scope].querySelectors[index] = $event;
+    updateVideoQuerySelector() {
+      this.ensureSettings('video');
+      this.settings.active.sites[this.site].DOM.video.querySelectors = this.videoQs;
       this.settings.save();
     },
-    addQuerySelector(scope, index, $event) {
-      this.ensureSettings(scope);
-      this.settings.active.sites[this.site].DOM[scope].querySelectors.push($event);
+    updatePlayerQuerySelector() {
+      this.ensureSettings('player');
+      this.settings.active.sites[this.site].DOM.player.querySelectors = this.playerQs;
+      this.settings.save();
     },
-    deleteQuerySelector(scope, index) {
-      this.settings.active.sites[this.site].DOM[scope].querySelectors.splice(index, 1);
+    updatePlayerParentNodeIndex() {
+      this.ensureSettings('player');
+      this.settings.active.sites[this.site].DOM.player.videoAncestor = this.playerParentNodeIndex;
+      this.settings.save();
     },
-    toggleVideoManualQs($event) {
+    toggleVideoManualQs() {
       this.ensureSettings('video');
       this.settings.active.sites[this.site].DOM.video.enabled = !this.settings.active.sites[this.site].DOM.video.enabled;
+      this.videoManualQs = !this.videoManualQs;
       this.settings.save();
     },
-    togglePlayerManualQs($event) {
+    togglePlayerManualQs() {
       this.ensureSettings('player');
       this.settings.active.sites[this.site].DOM.player.enabled = !this.settings.active.sites[this.site].DOM.player.enabled;
+      this.playerManualQs = !this.playerManualQs;
       this.settings.save();
     },
-    toggleByNodeIndex($event) {
+    toggleByNodeIndex() {
       this.ensureSettings('player');
-      this.settings.active.sites[this.site].DOM.player.byNodeIndex = !this.settings.active.sites[this.site].DOM.player.byNodeIndex;
+      this.settings.active.sites[this.site].DOM.player.useRelativeAncestor = !this.settings.active.sites[this.site].DOM.player.useRelativeAncestor;
+      this.playerByNodeIndex = !this.playerByNodeIndex;
       this.settings.save();
     },
   }

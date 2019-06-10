@@ -236,8 +236,10 @@ class Settings {
       site = window.location.hostname;
 
       if (!site) {
-        console.log("[Settings::canStartExtension] window.location.hostname is null or undefined:", window.location.hostname)
-        console.log("active settings:", this.active)
+        if (Debug.debug) {
+          console.log("[Settings::canStartExtension] window.location.hostname is null or undefined:", window.location.hostname)
+          console.log("active settings:", this.active)
+        }
         return ExtensionMode.Disabled;
       }
     }
@@ -288,17 +290,17 @@ class Settings {
     // }
     try{
     // if site is not defined, we use default mode:
-    if (! this.active.sites[site]) {
-      return this.active.sites['@global'].mode === ExtensionMode.Enabled;
-    }
+      if (! this.active.sites[site]) {
+        return this.active.sites['@global'].mode === ExtensionMode.Enabled;
+      }
 
-    if(this.active.sites['@global'].mode === ExtensionMode.Enabled) {
-      return this.active.sites[site].mode !== ExtensionMode.Disabled;
-    } else if (this.active.sites['@global'].mode === ExtensionMode.Whitelist) {
-      return this.active.sites[site].mode === ExtensionMode.Enabled;
-    } else {
-      return false;
-    }
+      if(this.active.sites['@global'].mode === ExtensionMode.Enabled) {
+        return this.active.sites[site].mode !== ExtensionMode.Disabled;
+      } else if (this.active.sites['@global'].mode === ExtensionMode.Whitelist) {
+        return this.active.sites[site].mode === ExtensionMode.Enabled;
+      } else {
+        return false;
+      }
     } catch(e){
       if(Debug.debug){
         console.log("[Settings.js::canStartExtension] Something went wrong — are settings defined/has init() been called?\nSettings object:", this)

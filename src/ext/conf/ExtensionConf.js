@@ -927,7 +927,30 @@ var ExtensionConf = {
       stretch: Stretch.Default,
       videoAlignment: VideoAlignment.Default,
       keyboardShortcutsEnabled: ExtensionMode.Default,
-      
+      DOM: {
+        video: {
+          manual: false,
+          querySelectors: '',
+        },
+        player: {
+          manual: true,
+          useRelativeAncestor: true,
+          querySelectors: '',
+          videoAncestor: 1,
+          playerNodeCss: '',
+        }
+      }
+      // videoElement: {        // extra stuff for video tag
+      //   querySelectors: [],    // array of strings with css selectors
+      //   userCss: [],         // additional styles that user can define for video element
+      // },
+      // playerElement: {
+        // querySelectors: [],    // array of strings with css selectors
+        // videoAncestor: 1,       // if not falsey, the number represents how far up the DOM (in nodes)
+                                // from video the player lies. Can also be object (valid properties are
+                                // 'fullscreen', 'embed' and 'normal')
+        // userCss: [],
+      // }
     },
   }
 }
