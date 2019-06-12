@@ -30,6 +30,7 @@ class Resizer {
     this.correctedVideoDimensions = {};
     this.currentCss = {};
     this.currentStyleString = "";
+    this.currentPlayerStyleString = "";
     this.currentCssValidFor = {};
 
     // restore watchdog. While true, applyCss() tries to re-apply new css until this value becomes false again
@@ -96,7 +97,7 @@ class Resizer {
     if (! this.conf.player.dimensions) {
       ratioOut = screen.width / screen.height;
     } else {
-      if (Debug.debug && Debug.debugResizer) {
+      if (Debug.debug && Debug.resizer) {
         console.log(`[Resizer::calculateRatioForLegacyOptions] <rid:${this.resizerId}> Player dimensions:`, this.conf.player.dimensions.width ,'x', this.conf.player.dimensions.height,'aspect ratio:', this.conf.player.dimensions.width / this.conf.player.dimensions.height)
       }
       ratioOut = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
@@ -194,7 +195,7 @@ class Resizer {
       // I'm not sure whether they do. Check that.
       ar = this.calculateRatioForLegacyOptions(ar);
       if (! ar) {
-        if (Debug.debug && Debug.debugResizer) {
+        if (Debug.debug && Debug.resizer) {
           console.log(`[Resizer::setAr] <${this.resizerId}> Something wrong with ar or the player. Doing nothing.`);
         }
         return;
@@ -525,6 +526,59 @@ class Resizer {
     return translate; 
   }
   
+  buildStyleArray(existingStyleString, extraStyleString) {
+    if (existingStyleString) {
+      const styleArray = existingStyleString.split(";");
+
+      if (extraStyleString) {
+        const extraCss = extraStyleString.split(';');
+        let dup = false;
+
+        for (const ecss of extraCss) {
+          for (let i in styleArray) {
+            if (ecss.split(':')[0].trim() === styleArray[i].split(':')[0].trim()) {
+              dup = true;
+              styleArray[i] = ecss;
+            }
+            if (dup) {
+              dup = false;
+              continue;
+            }
+            styleArray.push(ecss);
+          }
+        }
+      }
+  
+      for (var i in styleArray) {
+        styleArray[i] = styleArray[i].trim();   
+        // some sites do 'top: 50%; left: 50%; transform: <transform>' to center videos. 
+        // we dont wanna, because we already center videos on our own
+        if (styleArray[i].startsWith("transform:") ||
+            styleArray[i].startsWith("top:") ||
+            styleArray[i].startsWith("left:") ||
+            styleArray[i].startsWith("right:") ||
+            styleArray[i].startsWith("bottom:") ){
+          delete styleArray[i];
+        }
+      }
+      return styleArray;
+    }
+
+    return [];
+  }
+
+  buildStyleString(styleArray) {
+    let styleString = '';
+
+    for(var i in styleArray) {
+      if(styleArray[i]) {
+        styleString += styleArray[i] + "; ";
+      }
+    }
+
+    return styleString;
+  }
+
   applyCss(stretchFactors, translate){
     // apply extra CSS here. In case of duplicated properties, extraCss overrides 
     // default styleString
@@ -537,6 +591,10 @@ class Resizer {
       this.conf.destroy();
       return;
     }
+
+    if (Debug.debug && Debug.resizer) {
+      console.log("[Resizer::applyCss] <rid:"+this.resizerId+"> will apply css.", {stretchFactors, translate});
+    }
     
     // save stuff for quick tests (before we turn numbers into css values):
     this.currentVideoSettings = {
@@ -545,78 +603,54 @@ class Resizer {
       // videoHeight: dimensions.height
     }
 
-    var styleArrayStr = this.video.getAttribute('style');
-
-
-    if (styleArrayStr) {
-      var styleArray = styleArrayStr.split(";");
-
-      try {
-        const extraCss = this.settings.active.sites[window.location.host].DOM.video.additionalCss.split(';');
-        let dup = false;
-
-        for (const ecss of extraCss) {
-          for (let i in styleString) {
-            if (ecss.split(':')[0].trim() === styleString[i].split(':')[0].trim()) {
-              dup = true;
-              styleString[i] = ecss;
-            }
-            if (dup) {
-              dup = false;
-              continue;
-            }
-            styleString.push(ecss);
-          }
-        }
-      } catch (e) {
-        // do nothing. We just want to catch cases where things like that aren't defined
-        // for the current video
-      }
-  
-      for (var i in styleArray) {
-        styleArray[i] = styleArray[i].trim();
-        
-        // some sites do 'top: 50%; left: 50%; transform: <transform>' to center videos. 
-        // we dont wanna, because we already center videos on our own
-        if (styleArray[i].startsWith("transform:") ||
-            styleArray[i].startsWith("top:") ||
-            styleArray[i].startsWith("left:") ||
-            styleArray[i].startsWith("right:") ||
-            styleArray[i].startsWith("bottom:") ){
-          delete styleArray[i];
-        }
-      }
-    }else {
-      var styleArray = [];
+    const styleArrayString = this.video.getAttribute('style');
+    let extraStyleString;
+    try {
+      extraStyleString = this.settings.active.sites[window.location.host].DOM.video.additionalCss;
+    } catch (e) {
+      // do nothing. It's ok if no special settings are defined for this site, we'll just do defaults
     }
-    
+
+    const styleArray = this.buildStyleArray(styleArrayString, extraStyleString)
+
     // add remaining elements
     
     if (stretchFactors) {
       styleArray.push(`transform: translate(${translate.x}px, ${translate.y}px) scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor})`);
       styleArray.push("top: 0px; left: 0px; bottom: 0px; right: 0px");
     }
+    const styleString = this.buildStyleString(styleArray);
+
+    // see if we have any extra css for the player element:
+    let playerStyleString;
+    try {
+      playerStyleString = this.settings.active.sites[window.location.host].DOM.player.additionalCss;
+      if (playerStyleString) {
+        const playerStyleArrayString = this.player.eleemnt.getAttribute('style');
+        const playerStyleArray = this.buildStyleArray(playerStyleString, playerStyleString);
+        playerStyleString = this.buildStyleString(playerStyleArray);
+      }
+    } catch (e) {
+      // do nothing. It's ok if there's no special settings for the player element
+    }
 
     // build style string back
-    var styleString = "";
-    for(var i in styleArray) {
-      if(styleArray[i]) {
-        styleString += styleArray[i] + "; ";
-      }
-    }
-    
-    this.setStyleString(styleString);
+    this.setStyleString(styleString, playerStyleString);
   }
 
-  setStyleString (styleString, count = 0) {
+  setStyleString (styleString, playerStyleString) {
     this.video.setAttribute("style", styleString);
+    this.currentStyleString = styleString;
 
-    this.currentStyleString = this.video.getAttribute('style');
+    if (playerStyleString) {
+      this.player.element.setAttribute('style', styleString);
+      this.currentPlayerStyleString = playerStyleString;
+    }
+
     this.currentCssValidFor = this.conf.player.dimensions;
     
-    if(this.restore_wd){
-  
-      if(! this.video){
+    if (this.restore_wd) {
+      if (!this.video){
         if(Debug.debug)
           console.log("[Resizer::_res_setStyleString] <rid:"+this.resizerId+"> Video element went missing, nothing to do here.")
         return;
@@ -659,8 +693,8 @@ class Resizer {
     // }
     
     // this means video went missing. videoData will be re-initialized when the next video is found
-    if(! this.video){
-      if(Debug.debug && Debug.debugResizer) {
+    if (!this.video){
+      if(Debug.debug && Debug.resizer) {
         console.log("[Resizer::cssCheck] <rid:"+this.resizerId+"> no video detecting, issuing destroy command");
       }
       this.conf.destroy();
@@ -668,23 +702,35 @@ class Resizer {
     }
     
     if(this.destroyed) {
-      if(Debug.debug && Debug.debugResizer) {
+      if(Debug.debug && Debug.resizer) {
         console.log("[Resizer::cssCheck] <rid:"+this.resizerId+"> destroyed flag is set, we shouldnt be running");
       }
       this.stopCssWatcher();
       return;
     }
 
-    var styleString = this.video.getAttribute('style');
+    let cssValid = true;
 
     // first, a quick test:
-    // if (this.currentVideoSettings.validFor == this.conf.player.dimensions ){
-    if (this.currentStyleString !== styleString){
-      if(Debug.debug && Debug.debugResizer) {
+    cssValid &= this.currentVideoSettings.validFor.width === this.conf.player.dimensions.width;
+    cssValid &= this.currentVideoSettings.validFor.height === this.conf.player.dimensions.height;
+
+    if (cssValid) {
+      const styleString = this.video.getAttribute('style');
+      cssValid &= this.currentStyleString === styleString;
+    }
+    if (cssValid && this.currentPlayerStyleString) {  // only check for changes to player element if we applied them before
+      const playerStyleString = this.player.element.getAttribute('style'); 
+      cssValid &= this.currentPlayerStyleString === playerStyleString;
+    }
+    if (!cssValid){
+      if(Debug.debug && Debug.resizer) {
         console.log(`%c[Resizer::cssCheck] <rid:${this.resizerId}> something touched our style string. We need to re-apply the style.`, {background: '#ddf', color: '#007'});
       }
       this.restore();
       this.scheduleCssWatcher(10);
+
+      return;
     }
     if (this.cssWatcherIncreasedFrequencyCounter > 0) {
       --this.cssWatcherIncreasedFrequencyCounter;

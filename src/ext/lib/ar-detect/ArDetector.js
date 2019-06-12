@@ -572,8 +572,8 @@ class ArDetector {
         // this means canvas needs to be resized, so we'll just re-run setup with all those new parameters
         this.stop();
           
-        var newCanvasWidth = window.innerHeight * (this.video.videoWidth / this.video.videoHeight);
-        var newCanvasHeight = window.innerHeight;
+        let newCanvasWidth = window.innerHeight * (this.video.videoWidth / this.video.videoHeight);
+        let newCanvasHeight = window.innerHeight;
         
         if (this.conf.resizer.videoAlignment === VideoAlignment.Center) {
           this.canvasDrawWindowHOffset = Math.round((window.innerWidth - newCanvasWidth) * 0.5);

@@ -233,7 +233,7 @@ class PlayerData {
     return false;
   }
 
-  getPlayer() {
+  getPlayer(isFullScreen) {
     const host = window.location.host;
     let element = this.video.parentNode;
 
@@ -322,28 +322,28 @@ class PlayerData {
       element = element.parentNode;
     }
 
-    return element;
+
+
+    return playerCandidateNode;
   }
 
 
   getPlayerDimensions(){
-    let element = this.getPlayer();
+    const isFullScreen = PlayerData.isFullScreen();
+
+    const element = this.getPlayer(isFullScreen);
 
     if(! element ){
       if(Debug.debug) {
-        console.log("[PlayerDetect::_pd_getPlayer] element is not valid, doing nothing.", element)
-      }
-      if(this.element) {
-        const ths = this;
+        console.log("[PlayerDetect::getPlayerDimensions] element is not valid, doing nothing.", element)
       }
       this.element = undefined;
       this.dimensions = undefined;
       return;
     }
 
-    var isFullScreen = PlayerData.isFullScreen();
           
-    if (isFullScreen && playerCandidateNode == element) {
+    if (isFullScreen) {
       this.dimensions = {
         width: window.innerWidth,
         height: window.innerHeight,
@@ -356,7 +356,7 @@ class PlayerData {
     } else {
       this.dimensions = {
         width: element.offsetWidth,
-        height: element.offsetWidth,
+        height: element.offsetHeight,
         fullscreen: isFullScreen
       };
       if(this.element != element) {
@@ -376,7 +376,7 @@ class PlayerData {
         // return true;
       // }
 
-      if(this.dimensions && this.dimensions.fullscreen){
+      if (this.dimensions && this.dimensions.fullscreen){
         if(! PlayerData.isFullScreen()){
           console.log("[PlayerDetect] player size changed. reason: exited fullscreen");
         }
@@ -387,7 +387,7 @@ class PlayerData {
       if ( this.element && 
            ( this.dimensions.width != this.element.offsetWidth ||
              this.dimensions.height != this.element.offsetHeight )
-      ){
+      ) {
         console.log("[PlayerDetect] player size changed. reason: dimension change. Old dimensions?", this.dimensions.width, this.dimensions.height, "new dimensions:", this.element.offsetWidth, this.element.offsetHeight);
       }
     }
