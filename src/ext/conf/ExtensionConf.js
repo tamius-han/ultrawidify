@@ -940,7 +940,8 @@ var ExtensionConf = {
           videoAncestor: 1,
           // additionalCss: '',
         }
-      }
+      },
+      css: '',
       // videoElement: {        // extra stuff for video tag
       //   querySelectors: [],    // array of strings with css selectors
       //   userCss: [],         // additional styles that user can define for video element
