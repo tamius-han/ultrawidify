@@ -118,28 +118,33 @@ export default {
     settings: Object,
   },
   created() {
+    console.log("created!")
     try {
-      this.videoManualQs = settings.active.sites[this.site].DOM.video.manual || this.videoManualQs;
-      this.videoQs = settings.active.sites[this.site].DOM.video.querySelectors;
-      this.videoCss = settings.active.sites[this.site].DOM.video.additionalCss;
+      this.videoManualQs = this.settings.active.sites[this.site].DOM.video.manual || this.videoManualQs;
+      this.videoQs = this.settings.active.sites[this.site].DOM.video.querySelectors;
+      this.videoCss = this.settings.active.sites[this.site].DOM.video.additionalCss;
     } catch (e) {
       // that's here just in case relevant settings for this site don't exist yet
+      console.log("failed to load settings for the site — for video stuff")
     }
     
     try {
-      this.playerManualQs = settings.active.sites[this.site].DOM.player.manual || this.playerManualQs;
-      this.playerQs = settings.active.sites[this.site].DOM.player.querySelectors;
-      this.playerByNodeIndex = settings.active.sites[this.site].DOM.player.useRelativeAncestor || this.playerByNodeIndex;
-      this.playerParentNodeIndex = settings.active.sites[this.site].DOM.player.videoAncestor;
+      this.playerManualQs = this.settings.active.sites[this.site].DOM.player.manual || this.playerManualQs;
+      this.playerQs = this.settings.active.sites[this.site].DOM.player.querySelectors;
+      this.playerByNodeIndex = this.settings.active.sites[this.site].DOM.player.useRelativeAncestor || this.playerByNodeIndex;
+      this.playerParentNodeIndex = this.settings.active.sites[this.site].DOM.player.videoAncestor;
     } catch (e) {
       // that's here just in case relevant settings for this site don't exist yet
+      console.log("failed to load settings for the site — for video stuff")
     }
 
     try {
-      this.playerCss = settings.active.sites[this.site].css || '';
+      this.playerCss = this.settings.active.sites[this.site].css || '';
     } catch (e) {
       // that's here just in case relevant settings for this site don't exist yet
+      console.log("failed to load settings for the site — for video stuff")
     }
+    console.log("created — got settings:", this.settings)
   },
   methods: {
     ensureSettings(scope) {
