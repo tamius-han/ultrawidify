@@ -936,23 +936,33 @@ var ExtensionConf = {
         player: {
           manual: true,
           useRelativeAncestor: true,
-          // querySelectors: '',
           videoAncestor: 1,
-          // additionalCss: '',
         }
       },
       css: '',
-      // videoElement: {        // extra stuff for video tag
-      //   querySelectors: [],    // array of strings with css selectors
-      //   userCss: [],         // additional styles that user can define for video element
-      // },
-      // playerElement: {
-        // querySelectors: [],    // array of strings with css selectors
-        // videoAncestor: 1,       // if not falsey, the number represents how far up the DOM (in nodes)
-                                // from video the player lies. Can also be object (valid properties are
-                                // 'fullscreen', 'embed' and 'normal')
-        // userCss: [],
-      // }
+    },
+    "vimeo.com": {
+      mode: 3,
+      autoar: 3,
+      type: 'official',
+      stretch: -1,
+      videoAlignment: -1,
+      keyboardShortcutsEnabled: 0,
+      DOM: {
+        player: {
+          manual: true,
+          querySelectors: ".player_outro_area",
+          useRelativeAncestor: false,
+        },
+      },
+      css: ".player_outro_area {\n  width: 100% !important;\n  display: flex !important;\n  justify-content: center !important;\n}\n\n.player_container, .player {\n  width: 100% !important; \n}"
+    },
+    "imgur.com": {
+      mode: -1,
+      autoar: -1,
+      autoarFallback: 0,
+      stretch: -1,
+      videoAlignment: 1
     },
   }
 }
