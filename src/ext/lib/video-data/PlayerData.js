@@ -225,8 +225,8 @@ class PlayerData {
   }
 
   collectionHas(collection, element) {
-    for (let i = 0, len = a.length; i < len; i++) {
-      if (a[i] == b) {
+    for (let i = 0, len = collection.length; i < len; i++) {
+      if (collection[i] == element) {
         return true;
       }
     }

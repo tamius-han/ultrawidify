@@ -99,10 +99,6 @@ class PageInfo {
 
       if (videos.length) {
         return videos;
-      } else {
-        if (Debug.debug) {
-          console.log("[PageInfo::getVideos] Finding videos by querySelector failed. Trying fallback mode as well.");
-        }
       }
     }
     return document.getElementsByTagName('video');
@@ -118,6 +114,9 @@ class PageInfo {
       this.hasVideos = false;
   
       if(rescanReason == RescanReason.PERIODIC){
+        if (Debug.debug && Debug.videoRescan && Debug.periodic) {
+          console.log("[PageInfo::rescan] Scheduling normal rescan:")
+        }
         this.scheduleRescan(RescanReason.PERIODIC);
       }
       return;
@@ -229,12 +228,11 @@ class PageInfo {
 
       var ths = this;
       
-      
-      this.rescanTimer = setTimeout(function(rr){
+      this.rescanTimer = setTimeout(function(rescanReason){
         ths.rescanTimer = null;
-        ths.rescan(rr);
+        ths.rescan(rescanReason);
         ths = null;
-      }, rescanReason === this.settings.active.pageInfo.timeouts.rescan, RescanReason.PERIODIC)
+      }, this.settings.active.pageInfo.timeouts.rescan, RescanReason.PERIODIC)
     } catch(e) {
       if(Debug.debug){
         console.log("[PageInfo::scheduleRescan] scheduling rescan failed. Here's why:",e)
@@ -255,16 +253,16 @@ class PageInfo {
       ths.ghettoUrlCheck();
       ths = null;
     }, this.settings.active.pageInfo.timeouts.urlCheck)
-    }catch(e){
+    } catch(e){
       if(Debug.debug){
-        console.log("[PageInfo::scheduleUrlCheck] scheduling URL check failed. Here's why:",e)
+        console.error("[PageInfo::scheduleUrlCheck] scheduling URL check failed. Here's why:",e)
       }
     }
   }
 
   ghettoUrlCheck() {
     if (this.lastUrl != window.location.href){
-      if(Debug.debug){
+      if(Debug.debug && Debug.periodic){
         console.log("[PageInfo::ghettoUrlCheck] URL has changed. Triggering a rescan!");
       }
       

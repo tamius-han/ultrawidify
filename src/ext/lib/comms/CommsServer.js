@@ -214,7 +214,8 @@ class CommsServer {
   processReceivedMessage_nonpersistent(message, sender, sendResponse){
     if (Debug.debug && Debug.comms) {
       console.log("%c[CommsServer.js::processMessage_nonpersistent] Received message from background script!", "background-color: #11D; color: #aad", message, sender);
-
+    }
+    
     if (message.cmd === 'inject-css') {
       this.server.injectCss(message.cssString, sender);
       return;
