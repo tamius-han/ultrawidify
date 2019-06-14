@@ -1,25 +1,25 @@
 // Set prod to true when releasing
-// const _prod = true; 
-const _prod = false; 
+const _prod = true; 
+// const _prod = false; 
 
 var Debug = {
   // performanceMetrics: true, // should not be affected by debug.debug in order to allow benchmarking of the impact logging in console has
-  init: true,
-  debug: true,
-  keyboard: true,
-  resizer: true,
-  debugArDetect: true,
-  scaler: true,
+  // init: true,
+  // debug: true,
+  // keyboard: true,
+  // resizer: true,
+  // debugArDetect: true,
+  // scaler: true,
   // debugStorage: false,
-  debugStorage: true,
+  // debugStorage: true,
   // comms: false,
-  comms: true,
+  // comms: true,
   // showArDetectCanvas: true,
   // flushStoredSettings: true,
   // flushStoredSettings: false,
-  playerDetect: true,
+  // playerDetect: true,
   // periodic: true,
-  videoRescan: true,
+  // videoRescan: true,
   // mousemove: true,
   // arDetect: {
     // edgeDetect: true
