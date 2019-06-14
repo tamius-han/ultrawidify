@@ -93,7 +93,7 @@
             @click="selectTab('about')"
         >
         <div class="">
-            About
+            Report a problem
           </div>
           <div class="">
           </div>
