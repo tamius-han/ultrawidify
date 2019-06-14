@@ -72,15 +72,23 @@
                 type="number" 
          />
       </div>
-      <div class="flex flex-column">
-        <div class="flex label-secondary form-label">Additional css</div>
-        <input type="text"
+      
+    </div>
+
+    <div class="label">
+      Additional css<br/><small>for {{site}}</small>
+    </div>
+    <div class="description">
+      This css will be inserted into webpage every time it loads.
+    </div>
+    <div class="flex flex-column">
+        <textarea
                v-model="playerCss"
                @change="updatePlayerCss"
                @blur="updatePlayerCss"
-        />
+        >
+        </textarea>
       </div>
-    </div>
   </div>
 </template>
 
@@ -121,9 +129,14 @@ export default {
     try {
       this.playerManualQs = settings.active.sites[this.site].DOM.player.manual || this.playerManualQs;
       this.playerQs = settings.active.sites[this.site].DOM.player.querySelectors;
-      this.playerCss = settings.active.sites[this.site].DOM.player.additionalCss;
-      this.playerByNodeIndex = settings.active.sites[this.site].DOM.player.useRelativeAncestor;
+      this.playerByNodeIndex = settings.active.sites[this.site].DOM.player.useRelativeAncestor || this.playerByNodeIndex;
       this.playerParentNodeIndex = settings.active.sites[this.site].DOM.player.videoAncestor;
+    } catch (e) {
+      // that's here just in case relevant settings for this site don't exist yet
+    }
+
+    try {
+      this.playerCss = settings.active.sites[this.site].css || '';
     } catch (e) {
       // that's here just in case relevant settings for this site don't exist yet
     }
@@ -169,9 +182,9 @@ export default {
       this.settings.active.sites[this.site].DOM.player.querySelectors = this.playerQs;
       this.settings.save();
     },
-    updateVideoCss() {
+    updatePlayerCss() {
       this.ensureSettings('player');
-      this.settings.active.sites[this.site].DOM.player.additionalCss = this.playerCss;
+      this.settings.active.sites[this.site].css = this.playerCss;
       this.settings.save();
     },
     updatePlayerParentNodeIndex() {
@@ -181,20 +194,20 @@ export default {
     },
     toggleVideoManualQs() {
       this.ensureSettings('video');
-      this.settings.active.sites[this.site].DOM.video.enabled = !this.settings.active.sites[this.site].DOM.video.enabled;
       this.videoManualQs = !this.videoManualQs;
+      this.settings.active.sites[this.site].DOM.video.enabled = this.videoManualQs;
       this.settings.save();
     },
     togglePlayerManualQs() {
       this.ensureSettings('player');
-      this.settings.active.sites[this.site].DOM.player.enabled = !this.settings.active.sites[this.site].DOM.player.enabled;
       this.playerManualQs = !this.playerManualQs;
+      this.settings.active.sites[this.site].DOM.player.enabled = this.playerManualQs;
       this.settings.save();
     },
     toggleByNodeIndex() {
       this.ensureSettings('player');
-      this.settings.active.sites[this.site].DOM.player.useRelativeAncestor = !this.settings.active.sites[this.site].DOM.player.useRelativeAncestor;
       this.playerByNodeIndex = !this.playerByNodeIndex;
+      this.settings.active.sites[this.site].DOM.player.useRelativeAncestor = this.playerByNodeIndex;
       this.settings.save();
     },
   }

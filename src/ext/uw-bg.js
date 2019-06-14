@@ -52,6 +52,30 @@ class UWServer {
     });
   }
 
+  async injectCss(css, sender) {
+    try {
+      if (Debug.debug) {
+        console.log("[uwbg::injectCss] Injecting CSS:", css, sender);
+      }
+      if (BrowserDetect.firefox || BrowserDetect.edge) {
+        await browser.tabs.insertCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
+      } else if (BrowserDetect.chrome) {
+        chrome.tabs.insertCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
+      }
+    } catch (e) {
+      if (Debug.debug) {
+        console.error("Error while injecting css:", {error: e, css, sender});
+      }
+    }
+  }
+  removetCss(css, sender) {
+    if (BrowserDetect.firefox || BrowserDetect.edge) {
+      browser.tabs.removeCSS(sender.tab.idd, {code: css, cssOrigin: 'user', frameId: sender.frameId});
+    } else if (BrowserDetect.chrome) {
+      chrome.tabs.removeCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
+    }
+  }
+
   scheduleGc(timeout) {
     if (this._gctimeout) {
       return;

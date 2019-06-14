@@ -621,31 +621,13 @@ class Resizer {
     }
     const styleString = this.buildStyleString(styleArray);
 
-    // see if we have any extra css for the player element:
-    let playerStyleString;
-    try {
-      playerStyleString = this.settings.active.sites[window.location.host].DOM.player.additionalCss;
-      if (playerStyleString) {
-        const playerStyleArrayString = this.player.eleemnt.getAttribute('style');
-        const playerStyleArray = this.buildStyleArray(playerStyleString, playerStyleString);
-        playerStyleString = this.buildStyleString(playerStyleArray);
-      }
-    } catch (e) {
-      // do nothing. It's ok if there's no special settings for the player element
-    }
-
     // build style string back
-    this.setStyleString(styleString, playerStyleString);
+    this.setStyleString(styleString);
   }
 
-  setStyleString (styleString, playerStyleString) {
+  setStyleString (styleString) {
     this.video.setAttribute("style", styleString);
     this.currentStyleString = styleString;
-
-    if (playerStyleString) {
-      this.player.element.setAttribute('style', styleString);
-      this.currentPlayerStyleString = playerStyleString;
-    }
 
     this.currentCssValidFor = this.conf.player.dimensions;
     
@@ -713,7 +695,6 @@ class Resizer {
 
     // first, a quick test:
     cssValid &= this.currentVideoSettings.validFor.width === this.conf.player.dimensions.width;
-    cssValid &= this.currentVideoSettings.validFor.height === this.conf.player.dimensions.height;
 
     if (cssValid) {
       const styleString = this.video.getAttribute('style');

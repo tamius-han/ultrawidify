@@ -27,6 +27,18 @@ class PageInfo {
     this.scheduleUrlCheck();
 
     this.currentZoomScale = 1;
+
+    try {
+      const playerStyleString = this.settings.active.sites[window.location.host].css;
+      if (playerStyleString) {
+        this.comms.sendMessage({
+          cmd: 'inject-css',
+          cssString: playerStyleString
+        });
+      }
+    } catch (e) {
+      // do nothing. It's ok if there's no special settings for the player element
+    }
   }
 
   destroy() {
@@ -39,6 +51,18 @@ class PageInfo {
     for (var video of this.videos) {
       this.comms.unregisterVideo(video.id)
       video.destroy();
+    }
+
+    try {
+      playerStyleString = this.settings.active.sites[window.location.host].css;
+      if (playerStyleString) {
+        this.comms.sendMessage({
+          cmd: 'remove-css',
+          cssString: playerStyleString
+        });
+      }
+    } catch (e) {
+      // do nothing. It's ok if there's no special settings for the player element
     }
   }
 
