@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Ultrawidify",
-  "description": "Aspect ratio fixer for Youtube, Netflix and possibly more. Supports automatic aspect ratio detection on certain sites.",
+  "description": "Removes black bars on ultrawide videos and offers advanced options to fix aspect ratio.",
   "version": "4.0.2b0",
   "applications": {
     "gecko": {
