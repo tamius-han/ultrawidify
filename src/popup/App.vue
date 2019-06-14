@@ -89,6 +89,17 @@
         </div>
 
         <div class="menu-item"
+            :class="{'selected-tab': selectedTab === 'whats-new'}"
+            @click="selectTab('whats-new')"
+        >
+        <div class="">
+            What's new?
+          </div>
+          <div class="">
+          </div>
+        </div>
+
+        <div class="menu-item"
             :class="{'selected-tab': selectedTab === 'about'}"
             @click="selectTab('about')"
         >
@@ -132,6 +143,7 @@
         />
         <PerformancePanel v-if="selectedTab === 'performance-metrics'" 
                           :performance="performance" />
+        <WhatsNewPanel v-if="selectedTab === 'whats-new'" />
         <AboutPanel v-if="selectedTab === 'about'" />
         <Donate v-if="selectedTab === 'donate'" />
       </div>
@@ -140,6 +152,7 @@
 </template>
 
 <script>
+import WhatsNewPanel from './panels/WhatsNewPanel.vue';
 import SiteDetailsPanel from './panels/SiteDetailsPanel.vue';
 import Donate from '../common/misc/Donate.vue';
 import Debug from '../ext/conf/Debug';
@@ -202,6 +215,7 @@ export default {
     AboutPanel,
     Donate,
     SiteDetailsPanel,
+    WhatsNewPanel,
   },
   methods: {
     async sleep(t) {
