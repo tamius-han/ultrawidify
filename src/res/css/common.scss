@@ -93,7 +93,6 @@ a:hover {
 }
 
 /* INPUT FORMATTING */
-
 input[type="number"], input[type="text"], input {
   outline: none;
   background-color: $input-background;
@@ -105,6 +104,10 @@ input[type="number"], input[type="text"], input {
   border: 1px solid $input-border;
 }
 
+input:disabled {
+  background: #444444;
+  color: darken($text-normal, 50%);
+}
 
 /* ELEMENT POSITIONING */
 

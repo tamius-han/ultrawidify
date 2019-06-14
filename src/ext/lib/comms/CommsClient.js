@@ -151,6 +151,10 @@ class CommsClient {
     return Promise.resolve(true);
   }
 
+  async sendMessage(message) {
+    await this.sendMessage_nonpersistent(message);
+  }
+
   registerVideo(){
     if (Debug.debug && Debug.comms) {
       console.log(`[CommsClient::registerVideo] <${this.commsId}>`, "Registering video for current page.");

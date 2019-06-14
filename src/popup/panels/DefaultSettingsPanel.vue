@@ -9,7 +9,7 @@
     <div v-if="settings && extensionActions.length"
           class="w100"
     >
-    <div class="label">Enable extension {{scope === 'site' ? 'for this site' : ''}}:</div>
+    <div class="label">Enable extension <template v-if="scope === 'site'">for {{site}}</template>:</div>
       <div class="flex flex-row flex-wrap">
         <ShortcutButton v-for="(action, index) of extensionActions"
                         class="flex flex-grow button"
@@ -27,7 +27,7 @@
     <div v-if="aardActions.length"
          class="w100"
     >
-      <div class="label">Enable autodetection {{scope === 'site' ? 'for this site' : ''}}:</div>
+      <div class="label">Enable autodetection <template v-if="scope === 'site'">for {{site}}</template>:</div>
       <div class="flex flex-row flex-wrap">
         <ShortcutButton v-for="(action, index) of aardActions"
                         class="flex flex-grow button"

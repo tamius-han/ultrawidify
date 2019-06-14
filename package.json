@@ -4,6 +4,7 @@
   "description": "Aspect ratio fixer for youtube that works around some people's disability to properly encode 21:9 (and sometimes, 16:9) videos.",
   "author": "Tamius Han <tamius.han@gmail.com>",
   "scripts": {
+    "start": "cross-env HMR=true npm run build:dev -- --watch",
     "build": "cross-env NODE_ENV=production BROWSER=firefox webpack --hide-modules",
     "build-chrome": "cross-env NODE_ENV=production BROWSER=chrome webpack --hide-modules",
     "build-edge": "cross-env NODE_ENV=production BROWSER=edge webpack --hide-modules",

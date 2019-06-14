@@ -224,16 +224,23 @@ class PlayerData {
 
   }
 
+  collectionHas(collection, element) {
+    for (let i = 0, len = collection.length; i < len; i++) {
+      if (collection[i] == element) {
+        return true;
+      }
+    }
+    return false;
+  }
 
-  getPlayerDimensions(elementNames){
-    // element names — reserved for future use. If element names are provided, this function should return first element that
-    // has classname or id that matches at least one in the elementNames array.
-    var element = this.video.parentNode;
+  getPlayer(isFullScreen) {
+    const host = window.location.host;
+    let element = this.video.parentNode;
 
     if(! element ){
-      if(Debug.debug)
-        console.log("[PlayerDetect::_pd_getPlayerDimensions] element is not valid, doing nothing.", element)
-      
+      if(Debug.debug) {
+        console.log("[PlayerDetect::_pd_getPlayer] element is not valid, doing nothing.", element)
+      }
       if(this.element) {
         const ths = this;
       }
@@ -242,8 +249,32 @@ class PlayerData {
       return;
     }
 
-    var isFullScreen = PlayerData.isFullScreen();
-  
+    if (this.settings.active.sites[host]
+        && this.settings.active.sites[host].DOM
+        && this.settings.active.sites[host].DOM.player
+        && this.settings.active.sites[host].DOM.player.manual) {
+      if (this.settings.active.sites[host].DOM.player.useRelativeAncestor
+          && this.settings.active.sites[host].DOM.player.videoAncestor) {
+
+        let parentsLeft = this.settings.active.sites[host].DOM.player.videoAncestor - 1;
+        while (parentsLeft --> 0) {
+          element = element.parentNode;
+        }
+        if (element) {
+          return element;
+        }
+      } else if (this.settings.active.sites[host].DOM.player.querySelectors) {
+        const allSelectors = document.querySelectorAll(this.settings.active.sites[host].DOM.player.querySelectors);
+        while (element && !this.collectionHas(allSelectors, element)) {
+          element = element.parentNode;
+        }
+        if (element) {
+          return element;
+        }
+      }
+    }
+
+
     var trustCandidateAfterGrows = 2; // if candidate_width or candidate_height increases in either dimensions this many
                                       // times, we say we found our player. (This number ignores weird elements)
     // in case our <video> is bigger than player in one dimension but smaller in the other
@@ -252,70 +283,84 @@ class PlayerData {
     var candidate_height = Math.max(element.offsetHeight, window.innerHeight);
     var playerCandidateNode = element;
 
-    try {
-      var grows = trustCandidateAfterGrows;
-      while(element != undefined){    
-        // odstranimo čudne elemente, ti bi pokvarili zadeve
-        // remove weird elements, those would break our stuff
-        if ( element.offsetWidth == 0 || element.offsetHeight == 0){
-          element = element.parentNode;
-          continue;
-        }
-    
-        if ( element.offsetHeight <= candidate_height &&
-             element.offsetWidth  <= candidate_width  ){
-          
-          // if we're in fullscreen, we only consider elements that are exactly as big as the monitor.
-          if( ! isFullScreen || 
-              (element.offsetWidth == window.innerWidth && element.offsetHeight == window.innerHeight) ){
-          
-            playerCandidateNode = element;
-            candidate_width = element.offsetWidth;
-            candidate_height = element.offsetHeight;
-          
-            grows = trustCandidateAfterGrows;
-          
-            if(Debug.debug){
-              console.log("Found new candidate for player. Dimensions: w:", candidate_width, "h:",candidate_height, "node:", playerCandidateNode);
-            }
-          }
-        }
-        else if(grows --<= 0){
-          
-          if(Debug.debug && Debug.playerDetect){
-            console.log("Current element grew in comparrison to the child. We probably found the player. breaking loop, returning current result");
-          }
-          break;
-        }
-        
+    // if we haven't found element using fancy methods, we resort to the good old fashioned way
+    var grows = trustCandidateAfterGrows;
+    while(element != undefined){    
+      // odstranimo čudne elemente, ti bi pokvarili zadeve
+      // remove weird elements, those would break our stuff
+      if ( element.offsetWidth == 0 || element.offsetHeight == 0){
         element = element.parentNode;
+        continue;
       }
+  
+      if ( element.offsetHeight <= candidate_height &&
+           element.offsetWidth  <= candidate_width  ){
+        
+        // if we're in fullscreen, we only consider elements that are exactly as big as the monitor.
+        if( ! isFullScreen || 
+            (element.offsetWidth == window.innerWidth && element.offsetHeight == window.innerHeight) ){
+        
+          playerCandidateNode = element;
+          candidate_width = element.offsetWidth;
+          candidate_height = element.offsetHeight;
+        
+          grows = trustCandidateAfterGrows;
+        
+          if(Debug.debug){
+            console.log("Found new candidate for player. Dimensions: w:", candidate_width, "h:",candidate_height, "node:", playerCandidateNode);
+          }
+        }
+      }
+      else if(grows --<= 0){
+        
+        if(Debug.debug && Debug.playerDetect){
+          console.log("Current element grew in comparrison to the child. We probably found the player. breaking loop, returning current result");
+        }
+        break;
+      }
+      
+      element = element.parentNode;
     }
-    catch (e) {
-      console.log("pdeeee,",e);
+
+
+
+    return playerCandidateNode;
+  }
+
+
+  getPlayerDimensions(){
+    const isFullScreen = PlayerData.isFullScreen();
+
+    const element = this.getPlayer(isFullScreen);
+
+    if(! element ){
+      if(Debug.debug) {
+        console.log("[PlayerDetect::getPlayerDimensions] element is not valid, doing nothing.", element)
+      }
+      this.element = undefined;
+      this.dimensions = undefined;
+      return;
     }
+
           
-    if (isFullScreen && playerCandidateNode == element) {
+    if (isFullScreen) {
       this.dimensions = {
         width: window.innerWidth,
         height: window.innerHeight,
         fullscreen: true
       }
-      const ths = this;
-
       if (this.element != element) {
         this.element = element;
         this.makeOverlay()
       }
     } else {
       this.dimensions = {
-        width: candidate_width,
-        height: candidate_height,
+        width: element.offsetWidth,
+        height: element.offsetHeight,
         fullscreen: isFullScreen
       };
-      const ths = this;
-      if(this.element != playerCandidateNode) {
-        this.element = playerCandidateNode;
+      if(this.element != element) {
+        this.element = element;
         this.makeOverlay();
       }
     }
@@ -331,7 +376,7 @@ class PlayerData {
         // return true;
       // }
 
-      if(this.dimensions && this.dimensions.fullscreen){
+      if (this.dimensions && this.dimensions.fullscreen){
         if(! PlayerData.isFullScreen()){
           console.log("[PlayerDetect] player size changed. reason: exited fullscreen");
         }
@@ -342,7 +387,7 @@ class PlayerData {
       if ( this.element && 
            ( this.dimensions.width != this.element.offsetWidth ||
              this.dimensions.height != this.element.offsetHeight )
-      ){
+      ) {
         console.log("[PlayerDetect] player size changed. reason: dimension change. Old dimensions?", this.dimensions.width, this.dimensions.height, "new dimensions:", this.element.offsetWidth, this.element.offsetHeight);
       }
     }

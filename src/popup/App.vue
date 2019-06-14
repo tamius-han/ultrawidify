@@ -24,7 +24,20 @@
           <div class="">
             Site settings
           </div>
-          <div class="">
+          <div v-if="selectedTab === 'site' && this.activeSites.length > 1"
+               class=""
+          >
+            <small>Select site to control:</small>
+            <div class="">
+              <div v-for="site of activeSites"
+                  :key="site.host"
+                  class="tabitem"
+                  :class="{'tabitem-selected': site.host === selectedSite}"
+                  @click="selectSite(site.host)"
+              >
+                {{site.host}}
+              </div>
+            </div>
           </div>
         </div>
         <div class="menu-item"
@@ -51,12 +64,47 @@
           </div>
         </div>
 
+        <div class="menu-item experimental"
+            :class="{'selected-tab': selectedTab === 'site-details'}"
+            @click="selectTab('site-details')"
+        >
+          <div class="">
+            Video and player detection
+          </div>
+          <div v-if="selectedTab === 'site-details' && this.activeSites.length > 1"
+               class=""
+          >
+            <small>Select site to control:</small>
+            <div class="">
+              <div v-for="site of activeSites"
+                  :key="site.host"
+                  class="tabitem"
+                  :class="{'tabitem-selected': site.host === selectedSite}"
+                  @click="selectSite(site.host)"
+              >
+                {{site.host}}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-item"
+            :class="{'selected-tab': selectedTab === 'whats-new'}"
+            @click="selectTab('whats-new')"
+        >
+        <div class="">
+            What's new?
+          </div>
+          <div class="">
+          </div>
+        </div>
+
         <div class="menu-item"
             :class="{'selected-tab': selectedTab === 'about'}"
             @click="selectTab('about')"
         >
         <div class="">
-            About
+            Report a problem
           </div>
           <div class="">
           </div>
@@ -86,10 +134,16 @@
                               class=""
                               :settings="settings"
                               :scope="selectedTab"
-                              :site="site && site.host"
+                              :site="selectedSite"
+        />
+        <SiteDetailsPanel v-if="settings && settings.active && selectedTab === 'site-details' "
+                              class=""
+                              :settings="settings"
+                              :site="selectedSite"
         />
         <PerformancePanel v-if="selectedTab === 'performance-metrics'" 
                           :performance="performance" />
+        <WhatsNewPanel v-if="selectedTab === 'whats-new'" />
         <AboutPanel v-if="selectedTab === 'about'" />
         <Donate v-if="selectedTab === 'donate'" />
       </div>
@@ -98,6 +152,8 @@
 </template>
 
 <script>
+import WhatsNewPanel from './panels/WhatsNewPanel.vue';
+import SiteDetailsPanel from './panels/SiteDetailsPanel.vue';
 import Donate from '../common/misc/Donate.vue';
 import Debug from '../ext/conf/Debug';
 import BrowserDetect from '../ext/conf/BrowserDetect';
@@ -114,7 +170,9 @@ export default {
     return {
       selectedTab: 'video',
       selectedFrame: '__all',
+      selectedSite: '',
       activeFrames: [],
+      activeSites: [],
       port: BrowserDetect.firefox ? browser.runtime.connect({name: 'popup-port'}) : chrome.runtime.connect({name: 'popup-port'}),
       comms: new Comms(),
       frameStore: {},
@@ -156,6 +214,8 @@ export default {
     Debug,
     AboutPanel,
     Donate,
+    SiteDetailsPanel,
+    WhatsNewPanel,
   },
   methods: {
     async sleep(t) {
@@ -207,6 +267,17 @@ export default {
           this.port.postMessage({cmd: 'get-current-zoom'});
         }
         this.site = message.site;
+
+        // update activeSites
+        // this.activeSites = this.activeSites.filter(x => x.host !== message.site);
+
+        // add current site
+        // this.activeSites = unshift({
+        //   host: message.site.host,
+        //   isIFrame: false,  // currently unused
+        // });
+        this.selectedSite = this.selectedSite || message.site.host;
+
         // loadConfig(site.host); TODO
         this.loadFrames(this.site);
       } else if (message.cmd === 'set-current-zoom') {
@@ -224,8 +295,6 @@ export default {
         this.selectedSubitem = videoTab.selected;
         // selectedSubitemLoaded = true;
       }
-
-      this.activeFrames = [];
 
       if (videoTab.frames.length < 2 || Object.keys(videoTab.frames).length < 2) {
         this.selectedFrame = '__all';
@@ -253,6 +322,11 @@ export default {
       }
 
       this.activeFrames = [{id: '__all', label: 'All'},{id: '__playing', label: 'Currently playing'}];
+      this.activeSites = [{
+        host: this.site.host,
+        isIFrame: false,  // not used tho. Maybe one day
+      }];
+      this.selectedSite = this.selectedSite || this.site.host;
 
       for (const frame in videoTab.frames) {
         this.activeFrames.push({
@@ -260,6 +334,14 @@ export default {
           label: videoTab.frames[frame].host,
           ...this.frameStore[frame],
         })
+
+        // only add each host once at most
+        if (!this.activeSites.find(x => x.host === videoTab.frames[frame].host)) {
+          this.activeSites.push({
+            host: videoTab.frames[frame].host,
+            isIFrame: undefined // maybe one day
+          });
+        }
       }
     },
     getRandomColor() {
@@ -273,6 +355,9 @@ export default {
     },
     selectFrame(id){
       this.selectedFrame = id;
+    },
+    selectSite(host) {
+      this.selectedSite = host;
     }
   }
 }
