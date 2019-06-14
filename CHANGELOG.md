@@ -4,10 +4,18 @@
 
 ### Plans for the future
 
-* Allow users to set autodetection sensitivity
 * Settings page looks ugly af right now. Maybe fix it some time later
 
-### v4.0.1 (current) 
+
+### v4.1.0 (current)
+
+* Added ability to add custom CSS to page
+* Fixed video alignment issues on old.reddit. Disabled extension on imgur by default. 
+* Extension now works on vimeo again
+* **UX:** Renamed 'about' to 'report a problem' in order to make contact info more discoverable
+
+
+### v4.0.1
 
 * Fixed bug where sites using 'default' option in 'Extension mode' settings would be disabled, even if extension was not. 
 * Fixed bug where extension sometimes wouldn't work on Netflix.
@@ -21,12 +29,11 @@
  * Black frame detection has been implemented and improved. Some cases (but not all) of text on black background causing aspect ratio corrections have also been fixed.
  * Autodetection frequency increased from roughly once every 0.6 seconds to about 3 checks per second.
  * Fixed the bug where autodetectin didn't calculate aspect ratio correctly. This bug would manifest in extension cropping too much even though the edge was clearly defined. It most commonly occured in videos of aspect ratio <1 that contained letterbox. [ex 1]( https://www.youtube.com/watch?v=9DP0TbOQcOw), [ex 2](https://www.reddit.com/r/videos/comments/a137pj/daily_reminder_that_shelly_miscavige_wife_of/)
- * Black frame detection has been implemented and improved. Some cases (but not all) of text on black background causing aspect ratio corrections have also been fixed.
 * **Settings page was re-added**
   * This includes a page for adding new aspect ratios and keyboard shortcuts. This feature is experimental.
-  * It's possible to tweak autodetection sensitivity and frequency.
+  * It's possible to tweak autodetection sensitivity and frequency — in slightly more user-friendly way as well
   * It's also possible to tweak autodetection settings in detail.
-  * It's now possible to reset settings to default  
+  * It's now possible to reset settings to default
 * Rewrote keyboard shortcuts and changed how they're handled. Massively.
 * You can now select which specific video on the page you control, provided each video is in its separate iframe
 * While I wasn't looking, Netflix started supporting ultrawide monitors on its own. Netflix' implementation clashes with my own, though, so I've decided to disable autodetection on videos that netflix already cropped on their own. Manual aspect ratio changes are still possible, but they're off. You've been warned.
@@ -35,7 +42,7 @@
 
 ~~### v3.3.0~~
 
-~~This will probably get promoted to 4.0, continuing the trend of version something.3 not happening. Eulul~~
+~~This will probably get promoted to 4.0, continuing the trend of version something. 3 not happening. Eulul~~
 
 * ~~Basic mode added~~
 * ~~Per-site controls in popup (to control embedded videos)~~
