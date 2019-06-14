@@ -13,7 +13,7 @@ class CommsServer {
 
     if (BrowserDetect.firefox) {
       browser.runtime.onConnect.addListener(p => ths.onConnect(p));
-      browser.runtime.onMessage.addListener(m => ths.processReceivedMessage_nonpersistent(m));
+      browser.runtime.onMessage.addListener((m, sender) => ths.processReceivedMessage_nonpersistent(m, sender));
     } else {
       chrome.runtime.onConnect.addListener(p => ths.onConnect(p));
       chrome.runtime.onMessage.addListener((m, sender, callback) => ths.processReceivedMessage_nonpersistent(m, sender, callback));
@@ -214,6 +214,15 @@ class CommsServer {
   processReceivedMessage_nonpersistent(message, sender, sendResponse){
     if (Debug.debug && Debug.comms) {
       console.log("%c[CommsServer.js::processMessage_nonpersistent] Received message from background script!", "background-color: #11D; color: #aad", message, sender);
+    }
+    
+    if (message.cmd === 'inject-css') {
+      this.server.injectCss(message.cssString, sender);
+      return;
+    }
+    if (message.cmd === 'remove-css') {
+      this.server.removeCss(message.cssString, sender);
+      return;
     }
 
     if (message.forwardToContentScript) {

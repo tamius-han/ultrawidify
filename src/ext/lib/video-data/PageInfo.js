@@ -27,6 +27,18 @@ class PageInfo {
     this.scheduleUrlCheck();
 
     this.currentZoomScale = 1;
+
+    try {
+      const playerStyleString = this.settings.active.sites[window.location.host].css;
+      if (playerStyleString) {
+        this.comms.sendMessage({
+          cmd: 'inject-css',
+          cssString: playerStyleString
+        });
+      }
+    } catch (e) {
+      // do nothing. It's ok if there's no special settings for the player element
+    }
   }
 
   destroy() {
@@ -39,6 +51,18 @@ class PageInfo {
     for (var video of this.videos) {
       this.comms.unregisterVideo(video.id)
       video.destroy();
+    }
+
+    try {
+      playerStyleString = this.settings.active.sites[window.location.host].css;
+      if (playerStyleString) {
+        this.comms.sendMessage({
+          cmd: 'remove-css',
+          cssString: playerStyleString
+        });
+      }
+    } catch (e) {
+      // do nothing. It's ok if there's no special settings for the player element
     }
   }
 
@@ -65,16 +89,34 @@ class PageInfo {
     this.actionHandlerInitQueue = [];
   }
 
+  getVideos(host) {
+    if (this.settings.active.sites[host]
+        && this.settings.active.sites[host].DOM
+        && this.settings.active.sites[host].DOM.video
+        && this.settings.active.sites[host].DOM.video.manual
+        && this.settings.active.sites[host].DOM.video.querySelector){
+      const videos = document.querySelectorAll(this.settings.active.sites[host].DOM.video.querySelector);
+
+      if (videos.length) {
+        return videos;
+      }
+    }
+    return document.getElementsByTagName('video');
+  }
+
   rescan(rescanReason){
     const oldVideoCount = this.videos.length;
 
     try{
-    var vids = document.getElementsByTagName('video');
+    var vids = this.getVideos(window.location.host);
 
     if(!vids || vids.length == 0){
       this.hasVideos = false;
   
       if(rescanReason == RescanReason.PERIODIC){
+        if (Debug.debug && Debug.videoRescan && Debug.periodic) {
+          console.log("[PageInfo::rescan] Scheduling normal rescan:")
+        }
         this.scheduleRescan(RescanReason.PERIODIC);
       }
       return;
@@ -186,12 +228,11 @@ class PageInfo {
 
       var ths = this;
       
-      
-      this.rescanTimer = setTimeout(function(rr){
+      this.rescanTimer = setTimeout(function(rescanReason){
         ths.rescanTimer = null;
-        ths.rescan(rr);
+        ths.rescan(rescanReason);
         ths = null;
-      }, rescanReason === this.settings.active.pageInfo.timeouts.rescan, RescanReason.PERIODIC)
+      }, this.settings.active.pageInfo.timeouts.rescan, RescanReason.PERIODIC)
     } catch(e) {
       if(Debug.debug){
         console.log("[PageInfo::scheduleRescan] scheduling rescan failed. Here's why:",e)
@@ -212,16 +253,16 @@ class PageInfo {
       ths.ghettoUrlCheck();
       ths = null;
     }, this.settings.active.pageInfo.timeouts.urlCheck)
-    }catch(e){
+    } catch(e){
       if(Debug.debug){
-        console.log("[PageInfo::scheduleUrlCheck] scheduling URL check failed. Here's why:",e)
+        console.error("[PageInfo::scheduleUrlCheck] scheduling URL check failed. Here's why:",e)
       }
     }
   }
 
   ghettoUrlCheck() {
     if (this.lastUrl != window.location.href){
-      if(Debug.debug){
+      if(Debug.debug && Debug.periodic){
         console.log("[PageInfo::ghettoUrlCheck] URL has changed. Triggering a rescan!");
       }
       
