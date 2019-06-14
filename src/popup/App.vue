@@ -64,7 +64,7 @@
           </div>
         </div>
 
-        <div class="menu-item"
+        <div class="menu-item experimental"
             :class="{'selected-tab': selectedTab === 'site-details'}"
             @click="selectTab('site-details')"
         >
