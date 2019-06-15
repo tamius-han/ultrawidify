@@ -294,7 +294,7 @@ class Settings {
         return this.active.sites['@global'].mode === ExtensionMode.Enabled;
       }
 
-      if(this.active.sites['@global'].mode === ExtensionMode.Enabled) {
+      if (this.active.sites['@global'].mode === ExtensionMode.Enabled) {
         return this.active.sites[site].mode !== ExtensionMode.Disabled;
       } else if (this.active.sites['@global'].mode === ExtensionMode.Whitelist) {
         return this.active.sites[site].mode === ExtensionMode.Enabled;
