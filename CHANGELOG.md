@@ -7,7 +7,11 @@
 * Settings page looks ugly af right now. Maybe fix it some time later
 
 
-### v4.1.0 (current)
+### v4.1.1 (current)
+
+* Disabled gfycat
+
+### v4.1.0
 
 * Added ability to add custom CSS to page
 * Fixed video alignment issues on old.reddit. Disabled extension on imgur by default. 
