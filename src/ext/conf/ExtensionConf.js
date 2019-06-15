@@ -964,6 +964,20 @@ var ExtensionConf = {
       stretch: -1,
       videoAlignment: 1
     },
+    "gfycat.com": {
+      mode: -1,
+      autoar: -1,
+      autoarFallback: 0,
+      stretch: -1,
+      videoAlignment: 1
+    },
+    "giant.gfycat.com": {
+      mode: -1,
+      autoar: -1,
+      autoarFallback: 0,
+      stretch: -1,
+      videoAlignment: 1
+    },
   }
 }
 
