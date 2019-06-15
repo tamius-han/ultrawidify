@@ -18,7 +18,7 @@
           </div>
         </div>
         <div class="menu-item"
-            :class="{'selected-tab': selectedTab === 'site'}"
+            :class="{'selected-tab': selectedTab === 'site', 'disabled': siteTabDisabled}"
             @click="selectTab('site')"
         >
           <div class="">
@@ -32,7 +32,10 @@
               <div v-for="site of activeSites"
                   :key="site.host"
                   class="tabitem"
-                  :class="{'tabitem-selected': site.host === selectedSite}"
+                  :class="{
+                    'tabitem-selected': site.host === selectedSite,
+                    'tabitem-disabled': !settings.canStartExtension(site.host)
+                  }"
                   @click="selectSite(site.host)"
               >
                 {{site.host}}
@@ -41,11 +44,11 @@
           </div>
         </div>
         <div class="menu-item"
-            :class="{'selected-tab': selectedTab === 'video'}"
+            :class="{'selected-tab': selectedTab === 'video', 'disabled': !canShowVideoTab.canShow}"
             @click="selectTab('video')"
         >
           <div class="">
-            Video settings
+            Video settings <span v-if="canShowVideoTab.canShow && canShowVideoTab.warning" class="warning-color">⚠</span>
           </div>
           <div v-if="selectedTab === 'video' && this.activeFrames.length > 0"
                class=""
@@ -54,7 +57,10 @@
             <div class="">
               <div v-for="frame of activeFrames"
                    class="tabitem"
-                   :class="{'tabitem-selected': selectedFrame === frame.id}"
+                   :class="{
+                     'tabitem-selected': selectedFrame === frame.id,
+                     'disabled': !isDefaultFrame(frame.id) && !settings.canStartExtension(frame.label)
+                   }"
                    :key="frame.id"
                    @click="selectFrame(frame.id)"
               >
@@ -164,6 +170,7 @@ import Settings from '../ext/lib/Settings';
 import ExecAction from './js/ExecAction.js';
 import DefaultSettingsPanel from './panels/DefaultSettingsPanel';
 import AboutPanel from './panels/AboutPanel';
+import ExtensionMode from '../common/enums/extension-mode.enum';
 
 export default {
   data () {
@@ -182,6 +189,30 @@ export default {
       currentZoom: 1,
       execAction: new ExecAction(),
       settings: new Settings(undefined, () => this.updateConfig()),
+      siteTabDisabled: false,
+      videoTabDisabled: false,
+    }
+  },
+  computed: {
+    canShowVideoTab() {
+      let canShow = false;
+      let warning = false;
+      let t;
+
+      if (!this.settings) {
+        return {canShow: true, warning: false};
+      }
+      for (const site of this.activeSites) {
+        t = this.settings.canStartExtension(site.host);
+        canShow = canShow || t;
+        warning = warning || !t;
+      }
+      if (t === undefined) {
+        // something isn't the way it should be. Show sites.
+        return {canShow: true, warning: true};
+      }
+
+      return {canShow, warning}
     }
   },
   async created() {
@@ -251,12 +282,12 @@ export default {
 
     },
     processReceivedMessage(message, port) {
-      if (Debug.debug) {
+      if (Debug.debug && Debug.comms) {
         console.log("[popup.js] received message set-c", message);
         console.log("[popup.js] message cloned set-c", JSON.parse(JSON.stringify(message)));
       }
 
-      if(message.cmd === 'set-current-site'){
+      if (message.cmd === 'set-current-site'){
         if (this.site) {
           if (!this.site.host) {
             // dunno why this fix is needed, but sometimes it is
@@ -280,6 +311,7 @@ export default {
 
         // loadConfig(site.host); TODO
         this.loadFrames(this.site);
+        this.showFirstTab(this.site);
       } else if (message.cmd === 'set-current-zoom') {
         this.setCurrentZoom(message.zoom);
       } else if (message.cmd === 'performance-update') {
@@ -288,7 +320,48 @@ export default {
         }
       }
 
-      return true;
+return true;
+    },
+    showFirstTab(videoTab) {
+      // determine which tab to show.
+      // Extension global disabled — show 'extension settings'
+      // Extension site disabled, no embedded videos — show 'site settings'
+      // Extension site disabled, embedded videos from non-blacklisted hosts — show video settings
+      // Extension site enabled — show vido settings
+
+      if (! this.settings.canStartExtension('@global')) {
+        if (this.selectedTab === 'video' || this.selectedTab === 'site') {
+          this.selectTab('global');
+        }
+        this.siteTabDisabled = true;
+        this.videoTabDisabled = true;
+        return;
+      }
+
+      this.siteTabDisabled = false;;
+      if (! this.settings.canStartExtension(this.site.host)) {
+        if (videoTab.frames.length > 1) {
+          for (const frame of videoTab.frames) {
+            if (this.settings.canStartExtension(frame.host)) {
+              this.videoTabDisabled = false;
+              // video is selected by default, so no need to reselect it
+              // and if video is not selected, the popup would switch to 'video'
+              // tab once every 5 seconds. We don't want that.
+              // this.selectTab('video');
+              return;
+            }
+          }
+        }
+        this.videoTabDisabled = true;
+        if (this.selectedTab === 'video') {
+          this.selectTab('site');
+        }
+        return;
+      }
+      this.videoTabDisabled = false;
+    },
+    isDefaultFrame(frameId) {
+      return frameId === '__playing' || frameId === '__all';
     },
     loadFrames(videoTab) {
       if (videoTab.selected) {
@@ -447,6 +520,10 @@ html, body {
 }
 .tabitem-selected::before {
   padding-right: 0.5em;
+}
+
+.tabitem-disabled {
+  color: #cc3b0f !important;
 }
 
 .tabitem-iframe::after {
