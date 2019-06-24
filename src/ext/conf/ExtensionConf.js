@@ -941,6 +941,28 @@ var ExtensionConf = {
       },
       css: '',
     },
+    "www.reddit.com" : {
+      mode: ExtensionMode.Enabled,
+      autoar: currentBrowser.firefox ? ExtensionMode.Enabled : ExtensionMode.Disabled,     
+      override: false,
+      type: 'official',
+      stretch: Stretch.Default,
+      videoAlignment: VideoAlignment.Default,
+      keyboardShortcutsEnabled: ExtensionMode.Default,
+      DOM: {
+        video: {
+          manual: false,
+          querySelectors: '',
+          additionalCss: '',
+        },
+        player: {
+          manual: true,
+          useRelativeAncestor: true,
+          videoAncestor: 1,
+        }
+      },
+      css: '',
+    },
     "vimeo.com": {
       mode: 3,
       autoar: 3,
