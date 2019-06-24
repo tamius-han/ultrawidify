@@ -200,13 +200,13 @@ export default {
     toggleVideoManualQs() {
       this.ensureSettings('video');
       this.videoManualQs = !this.videoManualQs;
-      this.settings.active.sites[this.site].DOM.video.enabled = this.videoManualQs;
+      this.settings.active.sites[this.site].DOM.video.manual = this.videoManualQs;
       this.settings.save();
     },
     togglePlayerManualQs() {
       this.ensureSettings('player');
       this.playerManualQs = !this.playerManualQs;
-      this.settings.active.sites[this.site].DOM.player.enabled = this.playerManualQs;
+      this.settings.active.sites[this.site].DOM.player.manual = this.playerManualQs;
       this.settings.save();
     },
     toggleByNodeIndex() {

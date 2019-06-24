@@ -7,7 +7,12 @@
 * Settings page looks ugly af right now. Maybe fix it some time later
 
 
-### v4.1.1 (current)
+### v4.1.2 (current)
+
+* Fixed video alignment issues on www.reddit as well (for people who use old reddit without going to old.reddit)
+* Fixed bug with 'player detection' tab
+
+### v4.1.1
 
 * Disabled gfycat
 
