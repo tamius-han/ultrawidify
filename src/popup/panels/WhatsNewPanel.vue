@@ -2,6 +2,11 @@
   <div>
     <h2>What's new</h2>
     <p>Full changelog for older versions <a href="https://github.com/xternal7/ultrawidify/blob/master/CHANGELOG.md">is available here</a>.</p>
+    <p class="label">4.1.1 & 4.1.2</p>
+    <ul>
+      <li>Disabled extension on gfycat.</li>
+      <li>Fix for old.reddit.com applied to www.reddit.com</li>
+    </ul>
     <p class="label">4.1.0</p>
     <ul>
       <li>This</li>
