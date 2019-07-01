@@ -1,8 +1,6 @@
 <template>
-  <div class="w100" style="padding-bottom: 20px">
-    <div v-if="aspectRatioActions.length"
-         class="w100"
-    >
+  <div class="" style="padding-bottom: 20px">
+    <div v-if="aspectRatioActions.length">
       <div class="label">Cropping mode:</div>
       <div class="flex flex-row flex-wrap">
         <ShortcutButton v-for="(action, index) of aspectRatioActions"
@@ -17,16 +15,16 @@
     </div>
 
     <div v-if="true"
-         class="w100">
+         class="">
       <div class="label experimental">Zooming and panning</div>
-      <div class="row w100"
+      <div class="row"
       >
         <!--
           min, max and value need to be implemented in js as this slider 
           should use logarithmic scale
         -->
         <input id="_input_zoom_slider" 
-                class="w100"
+                class="input-slider"
                 type="range"
                 step="any"
                 min="-1"
@@ -43,7 +41,7 @@
           </div> 
         </div>
 
-        <div class="m-t-0-33em w100 display-block">
+        <div class="m-t-0-33em display-block">
           <input id="_input_zoom_site_allow_pan"
                   type="checkbox" 
                   />
@@ -173,5 +171,8 @@ export default {
   width: 9rem;
   padding-left: 0.33rem;
   padding-right: 0.33rem;
+}
+.input-slider {
+  width: 480px;
 }
 </style>

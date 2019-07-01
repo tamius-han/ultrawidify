@@ -1,12 +1,12 @@
 <template>
-  <div class="popup">
-    <div class="header">
+  <div class="popup flex flex-column">
+    <div class="header flex-row flex-nogrow flex-noshrink">
       <span class="smallcaps">Ultrawidify</span>: <small>Quick settings</small>
     </div>
 
-    <div class="flex flex-row">
+    <div class="flex flex-row body no-overflow-y flex-grow">
       <!-- TABS/SIDEBAR -->
-      <div id="tablist" class="flex flex-column flex-nogrow flex-noshrink">
+      <div id="tablist" class="flex flex-column flex-nogrow flex-noshrink h100">
         <div class="menu-item"
             :class="{'selected-tab': selectedTab === 'global'}"
             @click="selectTab('global')"
@@ -28,7 +28,7 @@
                class=""
           >
             <small>Select site to control:</small>
-            <div class="">
+            <div class="site-list overflow-y-auto scrollbar-darker">
               <div v-for="site of activeSites"
                   :key="site.host"
                   class="tabitem"
@@ -54,7 +54,7 @@
                class=""
           >
             <small>Select embedded frame to control:</small>
-            <div class="">
+            <div class="site-list overflow-y-auto scrollbar-darker">
               <div v-for="frame of activeFrames"
                    class="tabitem"
                    :class="{
@@ -81,7 +81,7 @@
                class=""
           >
             <small>Select site to control:</small>
-            <div class="">
+            <div class="site-list overflow-y-auto scrollbar-darker">
               <div v-for="site of activeSites"
                   :key="site.host"
                   class="tabitem"
@@ -93,29 +93,31 @@
             </div>
           </div>
         </div>
-
-        <div class="menu-item"
+        <div class="flex flex-grow">
+          <!-- this is spacer -->
+        </div>
+        <div class="menu-item menu-item-darker"
             :class="{'selected-tab': selectedTab === 'whats-new'}"
             @click="selectTab('whats-new')"
         >
-        <div class="">
+          <div class="">
             What's new?
           </div>
           <div class="">
           </div>
         </div>
 
-        <div class="menu-item"
+        <div class="menu-item menu-item-darker"
             :class="{'selected-tab': selectedTab === 'about'}"
             @click="selectTab('about')"
         >
-        <div class="">
+          <div class="">
             Report a problem
           </div>
           <div class="">
           </div>
         </div>
-        <div class="menu-item"
+        <div class="menu-item menu-item-darker"
             :class="{'selected-tab': selectedTab === 'donate'}"
             @click="selectTab('donate')"
         >
@@ -128,7 +130,7 @@
       </div>
 
       <!-- PANELS/CONTENT -->
-      <div id="tab-content" class="flex-grow" style="max-width: 480px !important;">
+      <div id="tab-content" class="flex-grow h100 overflow-y-auto">
         <VideoPanel v-if="settings && settings.active && selectedTab === 'video'"
                     class=""
                     :settings="settings"
@@ -465,6 +467,7 @@ html, body {
   font-size: 2.7em;
 }
 
+
 .menu-item-inline-desc{
   font-size: 0.60em;
   font-weight: 300;
@@ -472,11 +475,18 @@ html, body {
 }
 
 .menu-item {
+  flex-grow: 0;
   padding-left: 15px;
   padding-top: 5px;
   padding-bottom: 5px;
   font-variant: small-caps;
   border-left: transparent 5px solid;
+  cursor: pointer;
+  user-select: none;
+}
+
+.menu-item-darker {
+  color: #999;
 }
 
 .suboption {
@@ -513,6 +523,10 @@ html, body {
   margin-left: -10px;
 }
 
+.site-list {
+  max-height: 200px;
+}
+
 .tabitem-selected {
   color: #fff !important;
   background-color: initial;
@@ -532,7 +546,7 @@ html, body {
 }
 
 .popup {
-  max-width: 780px;
+  // max-width: 780px;
   // width: 800px;
   height: 600px;
 }

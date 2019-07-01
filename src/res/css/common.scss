@@ -40,6 +40,21 @@ body {
   padding-right: 1em;
 }
 
+/* overflow stuff */
+.overflow-y-auto {
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba($primary-color, 0.7) $background-primary;
+}
+.scrollbar-darker {
+  scrollbar-color: rgba($primary-color, 0.5) $background-primary;
+}
+
+
+.no-overflow-y {
+  overflow: hidden;
+}
+
 /* .SELECTED CLASSES */
 
 .selected-tab {
