@@ -40,6 +40,8 @@ body {
   padding-right: 1em;
 }
 
+
+
 /* overflow stuff */
 .overflow-y-auto {
   overflow: auto;
@@ -51,8 +53,29 @@ body {
 }
 
 
-.no-overflow-y {
+/* scrollbars for chrome/webkit */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 3px;
+}
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: $background-primary;
+}
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba($primary-color, 0.7);
+}
+.overflow-y-auto::-webkit-scrollbar-button {
+  display: none;
+}
+.scrollbar-darker::-webkit-scrollbar-thumb {
+  background: rgba($primary-color, 0.5);
+}
+
+.no-overflow {
   overflow: hidden;
+}
+
+.no-overflow-y {
+  overflow-y: hidden;
 }
 
 /* .SELECTED CLASSES */

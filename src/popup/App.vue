@@ -1,10 +1,10 @@
 <template>
-  <div class="popup flex flex-column">
+  <div class="popup flex flex-column no-overflow">
     <div class="header flex-row flex-nogrow flex-noshrink">
       <span class="smallcaps">Ultrawidify</span>: <small>Quick settings</small>
     </div>
 
-    <div class="flex flex-row body no-overflow-y flex-grow">
+    <div class="flex flex-row body no-overflow flex-grow">
       <!-- TABS/SIDEBAR -->
       <div id="tablist" class="flex flex-column flex-nogrow flex-noshrink h100">
         <div class="menu-item"
@@ -517,7 +517,7 @@ html, body {
 .tabitem {
   font-variant: normal;
   // font-size: 0.69em;
-  margin-left: 1em;
+  // margin-left: 16px;
   border-left: transparent 3px solid;
   padding-left: 12px;
   margin-left: -10px;
@@ -533,7 +533,7 @@ html, body {
   border-left: #f0c089 3px solid !important;
 }
 .tabitem-selected::before {
-  padding-right: 0.5em;
+  padding-right: 8px;
 }
 
 .tabitem-disabled {
