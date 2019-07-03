@@ -896,6 +896,15 @@ var ExtensionConf = {
       stretch: Stretch.Default,
       videoAlignment: VideoAlignment.Default,
       keyboardShortcutsEnabled: ExtensionMode.Default,
+      DOM: {
+        player: {
+          manual: true,
+          querySelectors: "#movie_player",
+          additionalCss: "",
+          useRelativeAncestor: false,
+          playerNodeCss: "",
+        }
+      }
     },
     "www.netflix.com" : {
       mode: ExtensionMode.Enabled,
@@ -916,6 +925,24 @@ var ExtensionConf = {
             // 'width': true            // this would prevent aard from runing if <video> had a 'width' property in style, regardless of value
                                         // could also be an empty object, in theory.
           }
+        }
+      }
+    },
+    "www.twitch.tv": {
+      mode: ExtensionMode.Enabled,
+      autoar: currentBrowser.firefox ? ExtensionMode.Enabled : ExtensionMode.Disabled,     
+      override: true,
+      type: 'official',
+      stretch: Stretch.Default,
+      videoAlignment: VideoAlignment.Default,
+      keyboardShortcutsEnabled: ExtensionMode.Default,
+      DOM: {
+        player: {
+          manual: true,
+          querySelectors: ".video-player__container.player",
+          additionalCss: "",
+          useRelativeAncestor: false,
+          playerNodeCss: ""
         }
       }
     },
