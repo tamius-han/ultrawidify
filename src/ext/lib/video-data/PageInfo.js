@@ -9,7 +9,7 @@ if(Debug.debug)
 
 
 class PageInfo {
-  constructor(comms, settings, extensionMode){
+  constructor(comms, settings, extensionMode, readOnly = false){
     this.hasVideos = false;
     this.siteDisabled = false;
     this.videos = [];
@@ -28,6 +28,8 @@ class PageInfo {
     this.scheduleUrlCheck();
 
     this.currentZoomScale = 1;
+
+    console.log("PAGEINFO: STARTING IN READ ONLY MODE?", readOnly)
   }
 
   destroy() {
@@ -93,6 +95,11 @@ class PageInfo {
     return document.getElementsByTagName('video');
   }
 
+  hasVideo() {
+    console.log("DO WE HAVE VIDEO?", this.readOnly ? this.hasVideos : this.videos.length)
+    return this.readOnly ? this.hasVideos : this.videos.length;
+  }
+
   rescan(rescanReason){
     const oldVideoCount = this.videos.length;
 
@@ -124,6 +131,17 @@ class PageInfo {
       // if video lacks either of the two properties, we skip all further checks cos pointless
       if(video.offsetWidth && video.offsetHeight){
         this.hasVideos = true;
+
+        if (this.readOnly) {
+          console.log("FOUDN A VIDEO")
+          // in lite mode, we're done. This is all the info we want, but we want to actually start doing 
+          // things that interfere with the website. We still want to be runnig a rescan, tho.
+
+          if(rescanReason == RescanReason.PERIODIC){
+            this.scheduleRescan(RescanReason.PERIODIC);
+          }
+          return;
+        }
       } else {
         continue;
       }
@@ -147,6 +165,7 @@ class PageInfo {
         if (Debug.debug && Debug.periodic && Debug.videoRescan) {
           console.log("[PageInfo::rescan] found new video candidate:", video, "NOTE:: Video initialization starts here:\n--------------------------------\n")
         }
+        
         v = new VideoData(video, this.settings, this);
         // console.log("[PageInfo::rescan] v is:", v)
         v.initArDetection();

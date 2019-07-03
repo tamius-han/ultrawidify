@@ -65,15 +65,23 @@ class UW {
       console.log("[uw::init] Extension mode:" + (extensionMode < 0 ? "disabled" : extensionMode == '1' ? 'basic' : 'full'));
     }
 
-    if(extensionMode === ExtensionMode.Disabled){
-      if(Debug.debug) {
+    const isSiteDisabled = extensionMode === ExtensionMode.Disabled
+
+    if (isSiteDisabled) {
+      if (this.settings.getExtensionMode('@global') === ExtensionMode.Disabled) {
+        if (Debug.debug) {
+          console.log("[uw::init] EXTENSION DISABLED, THEREFORE WONT BE STARTED")
+        }
         console.log("[uw::init] EXTENSION DISABLED, THEREFORE WONT BE STARTED")
+        return;
       }
-      return;
     }
   
     try {
-      this.pageInfo = new PageInfo(this.comms, this.settings, extensionMode);
+      if (isSiteDisabled) {
+        console.log("STARTING EXTENSION IN READ ONLY MODE")
+      }
+      this.pageInfo = new PageInfo(this.comms, this.settings, extensionMode, isSiteDisabled);
       if(Debug.debug){
         console.log("[uw.js::setup] pageInfo initialized. Here's the object:", this.pageInfo);
       }
@@ -83,11 +91,14 @@ class UW {
         console.log("[uw.js::setup] will try to initate ActionHandler. Settings are:", this.settings, this.settings.active)
       }
 
-      this.actionHandler = new ActionHandler(this.pageInfo);
-      this.actionHandler.init();
-      
-      if(Debug.debug) {
-        console.log("[uw.js::setup] ActionHandler initiated:", this.actionHandler);
+      // start action handler only if extension is enabled for this site
+      if (!isSiteDisabled) {
+        this.actionHandler = new ActionHandler(this.pageInfo);
+        this.actionHandler.init();
+        
+        if(Debug.debug) {
+          console.log("[uw.js::setup] ActionHandler initiated:", this.actionHandler);
+        }
       }
 
     } catch (e) {
