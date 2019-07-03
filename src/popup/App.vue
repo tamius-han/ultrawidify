@@ -133,6 +133,7 @@
       <div id="tab-content" class="flex-grow h100 overflow-y-auto">
         <VideoPanel v-if="settings && settings.active && selectedTab === 'video'"
                     class=""
+                    :someSitesDisabledWarning="canShowVideoTab.warning"
                     :settings="settings"
                     :frame="selectedFrame"
                     :zoom="currentZoom"
@@ -193,28 +194,7 @@ export default {
       settings: new Settings(undefined, () => this.updateConfig()),
       siteTabDisabled: false,
       videoTabDisabled: false,
-    }
-  },
-  computed: {
-    canShowVideoTab() {
-      let canShow = false;
-      let warning = false;
-      let t;
-
-      if (!this.settings) {
-        return {canShow: true, warning: false};
-      }
-      for (const site of this.activeSites) {
-        t = this.settings.canStartExtension(site.host);
-        canShow = canShow || t;
-        warning = warning || !t;
-      }
-      if (t === undefined) {
-        // something isn't the way it should be. Show sites.
-        return {canShow: true, warning: true};
-      }
-
-      return {canShow, warning}
+      canShowVideoTab: {canShow: true, warning: true},
     }
   },
   async created() {
@@ -282,6 +262,29 @@ export default {
     },
     async updateConfig() {
 
+      // when this runs, a site could have been enabled or disabled
+      // this means we must update canShowVideoTab
+      this.updateCanShowVideoTab();
+    },
+    updateCanShowVideoTab() {
+      let canShow = false;
+      let warning = false;
+      let t;
+
+      if (!this.settings) {
+        this.canShowVideoTab = {canShow: true, warning: false};
+      }
+      for (const site of this.activeSites) {
+        t = this.settings.canStartExtension(site.host);
+        canShow = canShow || t;
+        warning = warning || !t;
+      }
+      if (t === undefined) {
+        // something isn't the way it should be. Show sites.
+        this.canShowVideoTab = {canShow: true, warning: true};
+      }
+
+      this.canShowVideoTab = {canShow: canShow, warning: warning};
     },
     processReceivedMessage(message, port) {
       if (Debug.debug && Debug.comms) {
@@ -418,6 +421,9 @@ return true;
           });
         }
       }
+
+      // update whether video tab can be shown
+      this.updateCanShowVideoTab();
     },
     getRandomColor() {
       return `rgb(${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)})`;

@@ -1,5 +1,8 @@
 <template>
   <div class="" style="padding-bottom: 20px">
+    <div v-if="someSitesDisabledWarning" class="warning-lite">
+      Some sites embedded on this page are disabled. Extension will not work on videos embedded from disabled sites.
+    </div>
     <div v-if="aspectRatioActions.length">
       <div class="label">Cropping mode:</div>
       <div class="flex flex-row flex-wrap">
@@ -127,7 +130,8 @@ export default {
   props: [
     'settings',
     'frame',
-    'zoom'
+    'zoom',
+    'someSitesDisabledWarning'
   ],
   created() {
     this.exec = new ExecAction(this.settings);
@@ -175,4 +179,10 @@ export default {
 .input-slider {
   width: 480px;
 }
+.warning-lite {
+  padding-right: 16px;
+  padding-bottom: 16px;
+  padding-top: 8px;
+}
+
 </style>
