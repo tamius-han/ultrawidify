@@ -7,6 +7,12 @@
 * Settings page looks ugly af right now. Maybe fix it some time later
 
 
+### v4.2.0
+
+* Player detection: youtube and twitch now have manual player element detection, with strictly defined players. 
+* Improved design (thanks, _INSERT CREDIT HERE_)
+* Improved enabling/disabling of embedded videos
+
 ### v4.1.2 (current)
 
 * Fixed video alignment issues on www.reddit as well (for people who use old reddit without going to old.reddit)
