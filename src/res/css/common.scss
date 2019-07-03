@@ -297,15 +297,17 @@ small {
   color: #d6ba4a;
 }
 
-.warning {
+.warning, .warning-lite {
   color: #d6ba4a;
   padding-left: 35px;
   float: right;
 }
 
-.warning::before {
+.warning::before, .warning-lite::before {
   content: "⚠ ";
   display: inline-block;
+}
+.warning::before {
   font-weight: bold;
   font-size: 2.5em;
   margin-left: -35px;

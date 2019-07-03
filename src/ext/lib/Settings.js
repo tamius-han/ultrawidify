@@ -290,7 +290,7 @@ class Settings {
     // }
     try{
     // if site is not defined, we use default mode:
-      if (! this.active.sites[site]) {
+      if (! this.active.sites[site] || this.active.sites[site].mode === ExtensionMode.Default) {
         return this.active.sites['@global'].mode === ExtensionMode.Enabled;
       }
 
