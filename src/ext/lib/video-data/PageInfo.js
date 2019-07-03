@@ -18,8 +18,9 @@ class PageInfo {
 
     this.lastUrl = window.location.href;
     this.extensionMode = extensionMode;
+    this.readOnly = readOnly;
 
-    if(comms){ 
+    if (comms){ 
       this.comms = comms;
     }
 
@@ -27,18 +28,6 @@ class PageInfo {
     this.scheduleUrlCheck();
 
     this.currentZoomScale = 1;
-
-    try {
-      const playerStyleString = this.settings.active.sites[window.location.host].css;
-      if (playerStyleString) {
-        this.comms.sendMessage({
-          cmd: 'inject-css',
-          cssString: playerStyleString
-        });
-      }
-    } catch (e) {
-      // do nothing. It's ok if there's no special settings for the player element
-    }
   }
 
   destroy() {
