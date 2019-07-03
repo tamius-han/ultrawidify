@@ -28,8 +28,6 @@ class PageInfo {
     this.scheduleUrlCheck();
 
     this.currentZoomScale = 1;
-
-    console.log("PAGEINFO: STARTING IN READ ONLY MODE?", readOnly)
   }
 
   destroy() {
@@ -96,7 +94,6 @@ class PageInfo {
   }
 
   hasVideo() {
-    console.log("DO WE HAVE VIDEO?", this.readOnly ? this.hasVideos : this.videos.length)
     return this.readOnly ? this.hasVideos : this.videos.length;
   }
 
@@ -133,7 +130,6 @@ class PageInfo {
         this.hasVideos = true;
 
         if (this.readOnly) {
-          console.log("FOUDN A VIDEO")
           // in lite mode, we're done. This is all the info we want, but we want to actually start doing 
           // things that interfere with the website. We still want to be runnig a rescan, tho.
 
