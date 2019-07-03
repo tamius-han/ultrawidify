@@ -72,15 +72,11 @@ class UW {
         if (Debug.debug) {
           console.log("[uw::init] EXTENSION DISABLED, THEREFORE WONT BE STARTED")
         }
-        console.log("[uw::init] EXTENSION DISABLED, THEREFORE WONT BE STARTED")
         return;
       }
     }
   
     try {
-      if (isSiteDisabled) {
-        console.log("STARTING EXTENSION IN READ ONLY MODE")
-      }
       this.pageInfo = new PageInfo(this.comms, this.settings, extensionMode, isSiteDisabled);
       if(Debug.debug){
         console.log("[uw.js::setup] pageInfo initialized. Here's the object:", this.pageInfo);
