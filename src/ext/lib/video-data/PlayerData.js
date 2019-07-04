@@ -381,9 +381,10 @@ class PlayerData {
           console.log("[PlayerDetect] player size changed. reason: exited fullscreen");
         }
       }
-      if(! this.element)
+      if(! this.element && Debug.debug && Debug.playerDetect) {
         console.log("[PlayerDetect] player element isnt defined");
-        
+      }
+
       if ( this.element && 
            ( this.dimensions.width != this.element.offsetWidth ||
              this.dimensions.height != this.element.offsetHeight )

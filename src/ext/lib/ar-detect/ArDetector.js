@@ -195,7 +195,7 @@ class ArDetector {
     this.resetBlackLevel();
 
     // if we're restarting ArDetect, we need to do this in order to force-recalculate aspect ratio
-    this.conf.resizer.setLastAr({type: AspectRatio.Automatic, ratio: null});
+    this.conf.resizer.setLastAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
 
     this.canvasImageDataRowLength = cwidth << 2;
     this.noLetterboxCanvasReset = false;
@@ -218,7 +218,7 @@ class ArDetector {
     }
     if (this.conf.resizer.lastAr.type === AspectRatio.Automatic) {
       // ensure first autodetection will run in any case
-      this.conf.resizer.setLastAr({type: AspectRatio.Automatic, ratio: null});
+      this.conf.resizer.setLastAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
     }
 
     // launch main() if it's currently not running:
@@ -247,7 +247,7 @@ class ArDetector {
       console.log("%c[ArDetect::_ard_stop] Stopping automatic aspect ratio detection", _ard_console_stop);    
     }
     this._halted = true;
-    // this.conf.resizer.resetLastAr();
+    // this.conf.resizer.setArLastAr();
   }
 
   async main() {
@@ -427,6 +427,10 @@ class ArDetector {
     return baseTimeout;
   }
   //#endregion
+
+  getDefaultAr() {
+    return this.video.videoWidth / this.video.videoHeight;
+  }
 
   calculateArFromEdges(edges) {
     // if we don't specify these things, they'll have some default values.
@@ -632,7 +636,7 @@ class ArDetector {
       // da je letterbox izginil.
       // If we don't detect letterbox, we reset aspect ratio to aspect ratio of the video file. The aspect ratio could
       // have been corrected manually. It's also possible that letterbox (that was there before) disappeared.
-      this.conf.resizer.reset({type: AspectRatio.Automatic, ratio: null});
+      this.conf.resizer.setAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
@@ -675,7 +679,7 @@ class ArDetector {
     // (since the new letterbox edge isn't present in our sample due to technical
     // limitations)
     if (this.fallbackMode && guardLineOut.blackbarFail) {
-      this.conf.resizer.reset({type: AspectRatio.Automatic, ratio: null});
+      this.conf.resizer.setAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
@@ -701,7 +705,7 @@ class ArDetector {
           }
 
           if(guardLineOut.blackbarFail){
-            this.conf.resizer.reset({type: AspectRatio.Automatic, ratio: null});
+            this.conf.resizer.setAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
             this.guardLine.reset();
           }
 
