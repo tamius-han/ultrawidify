@@ -9,9 +9,12 @@
 
 ### v4.2.0
 
+* Slightly improved popup design. (Design change suggested by PortaTrekos)
 * Player detection: youtube and twitch now have manual player element detection, with strictly defined players. 
-* Improved design (thanks, _INSERT CREDIT HERE_)
-* Improved enabling/disabling of embedded videos
+* Improved site settings control in extension popup. It's possible to enable extension for previously disabled embedded sites.
+* Improved incompatibilities with reddit, where videos would be vertically misaligned when not using RES
+* Fixed imcompatibilities with Iridium. Flicker when clicking play/pause or switching between big and popup player is caused by either Youtube or Iridium trying to apply their styles over mine.
+* Issues with inconsistent alignment that some people reported are potentially fixed
 
 ### v4.1.2 (current)
 
