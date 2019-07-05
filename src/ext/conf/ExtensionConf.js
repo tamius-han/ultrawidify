@@ -899,7 +899,7 @@ var ExtensionConf = {
       DOM: {
         player: {
           manual: true,
-          querySelectors: "#movie_player",
+          querySelectors: "#movie_player, #player",
           additionalCss: "",
           useRelativeAncestor: false,
           playerNodeCss: "",
