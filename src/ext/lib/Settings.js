@@ -5,6 +5,7 @@ import ExtensionMode from '../../common/enums/extension-mode.enum';
 import ObjectCopy from '../lib/ObjectCopy';
 import Stretch from '../../common/enums/stretch.enum';
 import VideoAlignment from '../../common/enums/video-alignment.enum';
+import ExtensionConfPatch from '../conf/ExtConfPatches';
 
 
 
@@ -108,6 +109,7 @@ class Settings {
       if(Debug.debug) {
         console.log("[Settings::init] extension was saved with current version of ultrawidify (", this.version, "). Returning object as-is.");
       }
+
       return this.active;
     }
 
@@ -123,6 +125,9 @@ class Settings {
     } else {
       this.active = JSON.parse(JSON.stringify(this.default));
     }
+
+    // in case settings in previous version contained a fucky wucky, we overwrite existing settings with a patch
+    ObjectCopy.overwrite(this.active, ExtensionConfPatch['4.2.0']);
 
     this.set(this.active);
     return this.active;
