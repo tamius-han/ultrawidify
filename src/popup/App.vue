@@ -75,7 +75,7 @@
             @click="selectTab('site-details')"
         >
           <div class="">
-            Video and player detection
+            Advanced settings
           </div>
           <div v-if="selectedTab === 'site-details' && this.activeSites.length > 1"
                class=""
