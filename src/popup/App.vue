@@ -28,10 +28,10 @@
                class=""
           >
             <small>Select site to control:</small>
-            <div class="site-list overflow-y-auto scrollbar-darker">
+            <div class="site-list overflow-y-auto scrollbar-darker rtl no-overflow-x">
               <div v-for="site of activeSites"
                   :key="site.host"
-                  class="tabitem"
+                  class="tabitem ltr"
                   :class="{
                     'tabitem-selected': site.host === selectedSite,
                     'tabitem-disabled': !settings.canStartExtension(site.host)
@@ -54,9 +54,9 @@
                class=""
           >
             <small>Select embedded frame to control:</small>
-            <div class="site-list overflow-y-auto scrollbar-darker">
+            <div class="site-list overflow-y-auto scrollbar-darker rtl no-overflow-x">
               <div v-for="frame of activeFrames"
-                   class="tabitem"
+                   class="tabitem ltr"
                    :class="{
                      'tabitem-selected': selectedFrame === frame.id,
                      'disabled': !isDefaultFrame(frame.id) && !settings.canStartExtension(frame.label)
@@ -81,10 +81,10 @@
                class=""
           >
             <small>Select site to control:</small>
-            <div class="site-list overflow-y-auto scrollbar-darker">
+            <div class="site-list overflow-y-auto scrollbar-darker rtl no-overflow-x">
               <div v-for="site of activeSites"
                   :key="site.host"
-                  class="tabitem"
+                  class="tabitem ltr"
                   :class="{'tabitem-selected': site.host === selectedSite}"
                   @click="selectSite(site.host)"
               >

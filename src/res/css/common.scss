@@ -74,6 +74,10 @@ body {
   overflow: hidden;
 }
 
+.no-overflow-x {
+  overflow-x: hidden;
+}
+
 .no-overflow-y {
   overflow-y: hidden;
 }
@@ -361,4 +365,12 @@ small {
   // position: fixed;
   bottom: 0px;
   background-color: rgba($background-primary, 0.7);
+}
+
+.rtl {
+  direction: rtl;
+}
+
+.ltr {
+  direction: ltr;
 }
