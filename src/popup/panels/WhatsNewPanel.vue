@@ -2,9 +2,10 @@
   <div>
     <h2>What's new</h2>
     <p>Full changelog for older versions <a href="https://github.com/xternal7/ultrawidify/blob/master/CHANGELOG.md">is available here</a>.</p>
-    <p class="label">4.2.0</p>
+    <p class="label">4.2.0 and 4.2.1</p>
     <ul>
-      <li>Slightly improved popup design. (Design change suggested by PortaTrekos)
+      <li>Fixed the issue where user-defined CSS didn't get applied to websites. Issue mainly affected vimeo.</li>
+      <li>Slightly improved popup design. (Design change suggested by PortaTrekos)</li>
       <li>Improved site settings control in extension popup. It's possible to enable extension for previously disabled embedded sites.</li>
       <li>Improved incompatibilities with reddit, where videos would be vertically misaligned when not using RES</li>
       <li>Fixed imcompatibilities with Iridium. Flicker when clicking play/pause or switching between big and popup player is caused by either Youtube or Iridium trying to apply their styles over mine.</li>
