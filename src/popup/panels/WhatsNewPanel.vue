@@ -2,34 +2,20 @@
   <div>
     <h2>What's new</h2>
     <p>Full changelog for older versions <a href="https://github.com/xternal7/ultrawidify/blob/master/CHANGELOG.md">is available here</a>.</p>
-    <p class="label">4.1.1 & 4.1.2</p>
+    <p class="label">4.2.0</p>
     <ul>
-      <li>Disabled extension on gfycat.</li>
-      <li>Fix for old.reddit.com applied to www.reddit.com</li>
+      <li>Slightly improved popup design. (Design change suggested by PortaTrekos)
+      <li>Improved site settings control in extension popup. It's possible to enable extension for previously disabled embedded sites.</li>
+      <li>Improved incompatibilities with reddit, where videos would be vertically misaligned when not using RES</li>
+      <li>Fixed imcompatibilities with Iridium. Flicker when clicking play/pause or switching between big and popup player is caused by either Youtube or Iridium trying to apply their styles over mine.</li>
+      <li>Youtube, reddit and twitch players are now determined by a query string (instead of less accurate automatic detection)</li>
+      <li>Some people reported issues with inconsistent video alignment on youtube. While I've not been able to make that bug happen to me,
+        (which means I haven't been able to fix it either), reports describe behaviour similar to what was going on with Iridium. Examining
+        the Iridium issue revealed an issue that could be potentially blamed for this behaviour. That issue was fixed. Since I've never been able to make this problem
+        happen to me, I'm not being able to verify whether that issue is gone. <b>If you're still experiencing issues with inconsistent video alignment,
+          please contact me via github, reddit or email.</b> See 'Report a problem' tab for more details.</li>
     </ul>
-    <p class="label">4.1.0</p>
-    <ul>
-      <li>This</li>
-      <li>(Experimental) You can specify custom CSS for the page.</li>
-      <li>(Experimental) You can manually specify how player element is detected</li>
-      <li>Fixed old.reddit and vimeo for that. Disabled extension on imgur by default.</li>
-    </ul>
-    <p class="label">4.0.0</p>
-    <p>
-      <ul>
-        <li>Fixed the bug where settings wouldn't be saved.</li>
-        <li><b>Autodetection improvements:</b><ul>
-          <li>Implemented gradient detection. Changing aspect ratio will only happen if hard edge is detected</li>
-          <li>Improved black frame detection. Some (but not all) issues about autodetection triggering on dark frames were resolved</li>
-          <li>Increased autodetection frequency from 0.6s to 0.3s. <b>This isn't likely to happen, but if you notice this
-             extension using excessive amounts of RAM (2+ GB), this is why. If you experience this issue, please contact me (see 'Report a problem' tab).</b>
-          </li>
-      </ul></li>
-      <li>Settings page for extension added.</li>
-      <li>(Experimental) You can define custom keyboard shortcuts in settings. See 'actions' menu.</li>
-    </ul>
-      For more detailed info, see <a href="https://github.com/xternal7/ultrawidify/blob/master/CHANGELOG.md">full changelog</a>.
-    </p>
+
     
   </div>
 </template>

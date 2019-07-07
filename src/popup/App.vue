@@ -1,12 +1,12 @@
 <template>
-  <div class="popup">
-    <div class="header">
+  <div class="popup flex flex-column no-overflow">
+    <div class="header flex-row flex-nogrow flex-noshrink">
       <span class="smallcaps">Ultrawidify</span>: <small>Quick settings</small>
     </div>
 
-    <div class="flex flex-row">
+    <div class="flex flex-row body no-overflow flex-grow">
       <!-- TABS/SIDEBAR -->
-      <div id="tablist" class="flex flex-column flex-nogrow flex-noshrink">
+      <div id="tablist" class="flex flex-column flex-nogrow flex-noshrink h100">
         <div class="menu-item"
             :class="{'selected-tab': selectedTab === 'global'}"
             @click="selectTab('global')"
@@ -18,7 +18,7 @@
           </div>
         </div>
         <div class="menu-item"
-            :class="{'selected-tab': selectedTab === 'site'}"
+            :class="{'selected-tab': selectedTab === 'site', 'disabled': siteTabDisabled}"
             @click="selectTab('site')"
         >
           <div class="">
@@ -28,11 +28,14 @@
                class=""
           >
             <small>Select site to control:</small>
-            <div class="">
+            <div class="site-list overflow-y-auto scrollbar-darker rtl no-overflow-x">
               <div v-for="site of activeSites"
                   :key="site.host"
-                  class="tabitem"
-                  :class="{'tabitem-selected': site.host === selectedSite}"
+                  class="tabitem ltr"
+                  :class="{
+                    'tabitem-selected': site.host === selectedSite,
+                    'tabitem-disabled': !settings.canStartExtension(site.host)
+                  }"
                   @click="selectSite(site.host)"
               >
                 {{site.host}}
@@ -41,20 +44,23 @@
           </div>
         </div>
         <div class="menu-item"
-            :class="{'selected-tab': selectedTab === 'video'}"
+            :class="{'selected-tab': selectedTab === 'video', 'disabled': !canShowVideoTab.canShow}"
             @click="selectTab('video')"
         >
           <div class="">
-            Video settings
+            Video settings <span v-if="canShowVideoTab.canShow && canShowVideoTab.warning" class="warning-color">⚠</span>
           </div>
           <div v-if="selectedTab === 'video' && this.activeFrames.length > 0"
                class=""
           >
             <small>Select embedded frame to control:</small>
-            <div class="">
+            <div class="site-list overflow-y-auto scrollbar-darker rtl no-overflow-x">
               <div v-for="frame of activeFrames"
-                   class="tabitem"
-                   :class="{'tabitem-selected': selectedFrame === frame.id}"
+                   class="tabitem ltr"
+                   :class="{
+                     'tabitem-selected': selectedFrame === frame.id,
+                     'disabled': !isDefaultFrame(frame.id) && !settings.canStartExtension(frame.label)
+                   }"
                    :key="frame.id"
                    @click="selectFrame(frame.id)"
               >
@@ -69,16 +75,16 @@
             @click="selectTab('site-details')"
         >
           <div class="">
-            Video and player detection
+            Advanced settings
           </div>
           <div v-if="selectedTab === 'site-details' && this.activeSites.length > 1"
                class=""
           >
             <small>Select site to control:</small>
-            <div class="">
+            <div class="site-list overflow-y-auto scrollbar-darker rtl no-overflow-x">
               <div v-for="site of activeSites"
                   :key="site.host"
-                  class="tabitem"
+                  class="tabitem ltr"
                   :class="{'tabitem-selected': site.host === selectedSite}"
                   @click="selectSite(site.host)"
               >
@@ -87,29 +93,32 @@
             </div>
           </div>
         </div>
-
-        <div class="menu-item"
+        <div class="flex flex-grow">
+          <!-- this is spacer -->
+        </div>
+        <div class="menu-item menu-item-darker"
             :class="{'selected-tab': selectedTab === 'whats-new'}"
             @click="selectTab('whats-new')"
         >
-        <div class="">
+          <div :class="{'new': !settings.active.whatsNewChecked}"
+            >
             What's new?
           </div>
           <div class="">
           </div>
         </div>
 
-        <div class="menu-item"
+        <div class="menu-item menu-item-darker"
             :class="{'selected-tab': selectedTab === 'about'}"
             @click="selectTab('about')"
         >
-        <div class="">
+          <div class="">
             Report a problem
           </div>
           <div class="">
           </div>
         </div>
-        <div class="menu-item"
+        <div class="menu-item menu-item-darker"
             :class="{'selected-tab': selectedTab === 'donate'}"
             @click="selectTab('donate')"
         >
@@ -122,9 +131,10 @@
       </div>
 
       <!-- PANELS/CONTENT -->
-      <div id="tab-content" class="flex-grow" style="max-width: 480px !important;">
+      <div id="tab-content" class="flex-grow h100 overflow-y-auto">
         <VideoPanel v-if="settings && settings.active && selectedTab === 'video'"
                     class=""
+                    :someSitesDisabledWarning="canShowVideoTab.warning"
                     :settings="settings"
                     :frame="selectedFrame"
                     :zoom="currentZoom"
@@ -164,6 +174,7 @@ import Settings from '../ext/lib/Settings';
 import ExecAction from './js/ExecAction.js';
 import DefaultSettingsPanel from './panels/DefaultSettingsPanel';
 import AboutPanel from './panels/AboutPanel';
+import ExtensionMode from '../common/enums/extension-mode.enum';
 
 export default {
   data () {
@@ -182,6 +193,9 @@ export default {
       currentZoom: 1,
       execAction: new ExecAction(),
       settings: new Settings(undefined, () => this.updateConfig()),
+      siteTabDisabled: false,
+      videoTabDisabled: false,
+      canShowVideoTab: {canShow: true, warning: true},
     }
   },
   async created() {
@@ -243,20 +257,47 @@ export default {
     },
     selectTab(tab) {
       this.selectedTab = tab;
+      if (tab === 'whats-new') {
+        this.settings.active.whatsNewChecked = true;
+        this.settings.save();
+      }
     },
     selectFrame(frame) {
       this.selectedFrame = frame;
     },
     async updateConfig() {
 
+      // when this runs, a site could have been enabled or disabled
+      // this means we must update canShowVideoTab
+      this.updateCanShowVideoTab();
+    },
+    updateCanShowVideoTab() {
+      let canShow = false;
+      let warning = false;
+      let t;
+
+      if (!this.settings) {
+        this.canShowVideoTab = {canShow: true, warning: false};
+      }
+      for (const site of this.activeSites) {
+        t = this.settings.canStartExtension(site.host);
+        canShow = canShow || t;
+        warning = warning || !t;
+      }
+      if (t === undefined) {
+        // something isn't the way it should be. Show sites.
+        this.canShowVideoTab = {canShow: true, warning: true};
+      }
+
+      this.canShowVideoTab = {canShow: canShow, warning: warning};
     },
     processReceivedMessage(message, port) {
-      if (Debug.debug) {
+      if (Debug.debug && Debug.comms) {
         console.log("[popup.js] received message set-c", message);
         console.log("[popup.js] message cloned set-c", JSON.parse(JSON.stringify(message)));
       }
 
-      if(message.cmd === 'set-current-site'){
+      if (message.cmd === 'set-current-site'){
         if (this.site) {
           if (!this.site.host) {
             // dunno why this fix is needed, but sometimes it is
@@ -280,6 +321,7 @@ export default {
 
         // loadConfig(site.host); TODO
         this.loadFrames(this.site);
+        this.showFirstTab(this.site);
       } else if (message.cmd === 'set-current-zoom') {
         this.setCurrentZoom(message.zoom);
       } else if (message.cmd === 'performance-update') {
@@ -288,7 +330,48 @@ export default {
         }
       }
 
-      return true;
+return true;
+    },
+    showFirstTab(videoTab) {
+      // determine which tab to show.
+      // Extension global disabled — show 'extension settings'
+      // Extension site disabled, no embedded videos — show 'site settings'
+      // Extension site disabled, embedded videos from non-blacklisted hosts — show video settings
+      // Extension site enabled — show vido settings
+
+      if (! this.settings.canStartExtension('@global')) {
+        if (this.selectedTab === 'video' || this.selectedTab === 'site') {
+          this.selectTab('global');
+        }
+        this.siteTabDisabled = true;
+        this.videoTabDisabled = true;
+        return;
+      }
+
+      this.siteTabDisabled = false;;
+      if (! this.settings.canStartExtension(this.site.host)) {
+        if (videoTab.frames.length > 1) {
+          for (const frame of videoTab.frames) {
+            if (this.settings.canStartExtension(frame.host)) {
+              this.videoTabDisabled = false;
+              // video is selected by default, so no need to reselect it
+              // and if video is not selected, the popup would switch to 'video'
+              // tab once every 5 seconds. We don't want that.
+              // this.selectTab('video');
+              return;
+            }
+          }
+        }
+        this.videoTabDisabled = true;
+        if (this.selectedTab === 'video') {
+          this.selectTab('site');
+        }
+        return;
+      }
+      this.videoTabDisabled = false;
+    },
+    isDefaultFrame(frameId) {
+      return frameId === '__playing' || frameId === '__all';
     },
     loadFrames(videoTab) {
       if (videoTab.selected) {
@@ -343,6 +426,9 @@ export default {
           });
         }
       }
+
+      // update whether video tab can be shown
+      this.updateCanShowVideoTab();
     },
     getRandomColor() {
       return `rgb(${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)})`;
@@ -392,6 +478,7 @@ html, body {
   font-size: 2.7em;
 }
 
+
 .menu-item-inline-desc{
   font-size: 0.60em;
   font-weight: 300;
@@ -399,11 +486,18 @@ html, body {
 }
 
 .menu-item {
+  flex-grow: 0;
   padding-left: 15px;
   padding-top: 5px;
   padding-bottom: 5px;
   font-variant: small-caps;
   border-left: transparent 5px solid;
+  cursor: pointer;
+  user-select: none;
+}
+
+.menu-item-darker {
+  color: #999;
 }
 
 .suboption {
@@ -434,10 +528,14 @@ html, body {
 .tabitem {
   font-variant: normal;
   // font-size: 0.69em;
-  margin-left: 1em;
+  // margin-left: 16px;
   border-left: transparent 3px solid;
   padding-left: 12px;
   margin-left: -10px;
+}
+
+.site-list {
+  max-height: 200px;
 }
 
 .tabitem-selected {
@@ -446,7 +544,11 @@ html, body {
   border-left: #f0c089 3px solid !important;
 }
 .tabitem-selected::before {
-  padding-right: 0.5em;
+  padding-right: 8px;
+}
+
+.tabitem-disabled {
+  color: #cc3b0f !important;
 }
 
 .tabitem-iframe::after {
@@ -455,7 +557,7 @@ html, body {
 }
 
 .popup {
-  max-width: 780px;
+  // max-width: 780px;
   // width: 800px;
   height: 600px;
 }

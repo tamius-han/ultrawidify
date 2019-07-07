@@ -18,6 +18,9 @@ https://streamable.com/vrb4w
 
 https://clips.twitch.tv/DirtyHotLampOpieOP
 
+Also full stream — minor aspect ratio corrections are being triggered after the intro: https://www.twitch.tv/videos/330639009
+Gets especially bad during WoW segment: https://www.twitch.tv/videos/330639009?t=1h49m20s
+
 ## Youtube
 
 ### Variable aspect ratio
