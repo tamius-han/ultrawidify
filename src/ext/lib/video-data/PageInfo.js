@@ -24,6 +24,17 @@ class PageInfo {
       this.comms = comms;
     }
 
+    // request inject css immediately
+    try {
+      const playerStyleString = this.settings.active.sites[window.location.host].css.replace('\\n', '');
+      this.comms.sendMessage({
+        cmd: 'inject-css',
+        cssString: playerStyleString
+      });
+    } catch (e) {
+      // do nothing. It's ok if there's no special settings for the player element
+    }
+
     this.rescan(RescanReason.PERIODIC);
     this.scheduleUrlCheck();
 
