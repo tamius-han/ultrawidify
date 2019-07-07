@@ -100,7 +100,8 @@
             :class="{'selected-tab': selectedTab === 'whats-new'}"
             @click="selectTab('whats-new')"
         >
-          <div class="">
+          <div :class="{'new': !settings.active.whatsNewChecked}"
+            >
             What's new?
           </div>
           <div class="">
@@ -256,6 +257,10 @@ export default {
     },
     selectTab(tab) {
       this.selectedTab = tab;
+      if (tab === 'whats-new') {
+        this.settings.active.whatsNewChecked = true;
+        this.settings.save();
+      }
     },
     selectFrame(frame) {
       this.selectedFrame = frame;
