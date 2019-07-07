@@ -6,8 +6,10 @@
 
 * Settings page looks ugly af right now. Maybe fix it some time later
 
+### v4.2.1 (current)
+* Fixed bug where custom CSS didn't get applied to pages
 
-### v4.2.0 (current)
+### v4.2.0 
 
 * Slightly improved popup design. (Design change suggested by PortaTrekos)
 * Player detection: youtube and twitch now have manual player element detection, with strictly defined players. 
