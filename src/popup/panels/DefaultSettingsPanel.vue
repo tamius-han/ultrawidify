@@ -1,5 +1,5 @@
 <template>
-  <div class="w100 flex flex-column" style="padding-bottom: 20px">
+  <div class="flex flex-column" style="padding-bottom: 20px">
     <!-- <ShortcutButton class="button" 
                     @click.native="wipeSettings()"
                     label="Wipe settings"

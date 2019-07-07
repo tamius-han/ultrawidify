@@ -46,6 +46,32 @@ class ObjectCopy {
     return out;
   }
 
+  static overwrite(existing, target){
+    for(var k in target) {
+      // if current key exist, replace it with existing value. Take no action otherwise.
+      if (existing[k]) {
+
+        // Types and constructors of objects must match. If they don't, we always use the new value.
+        if (typeof target[k] === typeof existing[k] && target[k].constructor === existing[k].constructor) {
+          
+          // objects are special, we need to check them recursively.
+          if(existing[k] && typeof existing[k] === 'object' && existing[k].constructor === Object ) {
+            if(Debug.debug && Debug.settings) {
+              console.log("[ObjectCopy::addNew] current key contains an object. Recursing!")
+            }
+
+            existing[k] = this.overwrite(existing[k], target[k]);
+          } else {
+            existing[k] = target[k];       
+          }
+        } else {
+          existing[k] = target[k];
+        }
+      }
+    }
+    return existing;
+  }
+
   static pruneUnused(existing, target, ignoreKeys) {
     // TODO: implement at some other date
     // existing: object that we have.

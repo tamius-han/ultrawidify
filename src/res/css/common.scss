@@ -40,6 +40,48 @@ body {
   padding-right: 1em;
 }
 
+
+
+/* overflow stuff */
+.overflow-y-auto {
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba($primary-color, 0.7) $background-primary;
+}
+.scrollbar-darker {
+  scrollbar-color: rgba($primary-color, 0.5) $background-primary;
+}
+
+
+/* scrollbars for chrome/webkit */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 3px;
+}
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: $background-primary;
+}
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba($primary-color, 0.7);
+}
+.overflow-y-auto::-webkit-scrollbar-button {
+  display: none;
+}
+.scrollbar-darker::-webkit-scrollbar-thumb {
+  background: rgba($primary-color, 0.5);
+}
+
+.no-overflow {
+  overflow: hidden;
+}
+
+.no-overflow-x {
+  overflow-x: hidden;
+}
+
+.no-overflow-y {
+  overflow-y: hidden;
+}
+
 /* .SELECTED CLASSES */
 
 .selected-tab {
@@ -255,15 +297,21 @@ small {
 
 /** misc **/
 
-.warning {
+.warning-color {
+  color: #d6ba4a;
+}
+
+.warning, .warning-lite {
   color: #d6ba4a;
   padding-left: 35px;
   float: right;
 }
 
-.warning::before {
+.warning::before, .warning-lite::before {
   content: "⚠ ";
   display: inline-block;
+}
+.warning::before {
   font-weight: bold;
   font-size: 2.5em;
   margin-left: -35px;
@@ -281,6 +329,18 @@ small {
   display: inline-block;
   font-weight: bold;
   margin-left: -35px;
+  padding-right: 10px;
+}
+
+.new {
+  color: #fff;
+}
+
+.new::after {
+  content: "ⓘ";
+  color: $info-color !important;
+  display: inline-block;
+  font-weight: bold;
   padding-right: 10px;
 }
 
@@ -317,4 +377,12 @@ small {
   // position: fixed;
   bottom: 0px;
   background-color: rgba($background-primary, 0.7);
+}
+
+.rtl {
+  direction: rtl;
+}
+
+.ltr {
+  direction: ltr;
 }

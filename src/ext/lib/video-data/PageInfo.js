@@ -9,7 +9,7 @@ if(Debug.debug)
 
 
 class PageInfo {
-  constructor(comms, settings, extensionMode){
+  constructor(comms, settings, extensionMode, readOnly = false){
     this.hasVideos = false;
     this.siteDisabled = false;
     this.videos = [];
@@ -18,8 +18,9 @@ class PageInfo {
 
     this.lastUrl = window.location.href;
     this.extensionMode = extensionMode;
+    this.readOnly = readOnly;
 
-    if(comms){ 
+    if (comms){ 
       this.comms = comms;
     }
 
@@ -27,18 +28,6 @@ class PageInfo {
     this.scheduleUrlCheck();
 
     this.currentZoomScale = 1;
-
-    try {
-      const playerStyleString = this.settings.active.sites[window.location.host].css;
-      if (playerStyleString) {
-        this.comms.sendMessage({
-          cmd: 'inject-css',
-          cssString: playerStyleString
-        });
-      }
-    } catch (e) {
-      // do nothing. It's ok if there's no special settings for the player element
-    }
   }
 
   destroy() {
@@ -104,6 +93,10 @@ class PageInfo {
     return document.getElementsByTagName('video');
   }
 
+  hasVideo() {
+    return this.readOnly ? this.hasVideos : this.videos.length;
+  }
+
   rescan(rescanReason){
     const oldVideoCount = this.videos.length;
 
@@ -135,6 +128,16 @@ class PageInfo {
       // if video lacks either of the two properties, we skip all further checks cos pointless
       if(video.offsetWidth && video.offsetHeight){
         this.hasVideos = true;
+
+        if (this.readOnly) {
+          // in lite mode, we're done. This is all the info we want, but we want to actually start doing 
+          // things that interfere with the website. We still want to be runnig a rescan, tho.
+
+          if(rescanReason == RescanReason.PERIODIC){
+            this.scheduleRescan(RescanReason.PERIODIC);
+          }
+          return;
+        }
       } else {
         continue;
       }
@@ -158,6 +161,7 @@ class PageInfo {
         if (Debug.debug && Debug.periodic && Debug.videoRescan) {
           console.log("[PageInfo::rescan] found new video candidate:", video, "NOTE:: Video initialization starts here:\n--------------------------------\n")
         }
+        
         v = new VideoData(video, this.settings, this);
         // console.log("[PageInfo::rescan] v is:", v)
         v.initArDetection();

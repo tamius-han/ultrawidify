@@ -836,6 +836,7 @@ var ExtensionConf = {
     }
   },
 ],
+whatsNewChecked: true,
   // -----------------------------------------
   //       ::: SITE CONFIGURATION :::
   // -----------------------------------------
@@ -896,6 +897,15 @@ var ExtensionConf = {
       stretch: Stretch.Default,
       videoAlignment: VideoAlignment.Default,
       keyboardShortcutsEnabled: ExtensionMode.Default,
+      DOM: {
+        player: {
+          manual: true,
+          querySelectors: "#movie_player, #player",
+          additionalCss: "",
+          useRelativeAncestor: false,
+          playerNodeCss: "",
+        }
+      }
     },
     "www.netflix.com" : {
       mode: ExtensionMode.Enabled,
@@ -919,49 +929,23 @@ var ExtensionConf = {
         }
       }
     },
-    "old.reddit.com" : {
+    "www.twitch.tv": {
       mode: ExtensionMode.Enabled,
       autoar: currentBrowser.firefox ? ExtensionMode.Enabled : ExtensionMode.Disabled,     
-      override: false,
+      override: true,
       type: 'official',
       stretch: Stretch.Default,
       videoAlignment: VideoAlignment.Default,
       keyboardShortcutsEnabled: ExtensionMode.Default,
       DOM: {
-        video: {
-          manual: false,
-          querySelectors: '',
-          additionalCss: '',
-        },
         player: {
           manual: true,
-          useRelativeAncestor: true,
-          videoAncestor: 1,
+          querySelectors: ".video-player__container.player",
+          additionalCss: "",
+          useRelativeAncestor: false,
+          playerNodeCss: ""
         }
-      },
-      css: '',
-    },
-    "www.reddit.com" : {
-      mode: ExtensionMode.Enabled,
-      autoar: currentBrowser.firefox ? ExtensionMode.Enabled : ExtensionMode.Disabled,     
-      override: false,
-      type: 'official',
-      stretch: Stretch.Default,
-      videoAlignment: VideoAlignment.Default,
-      keyboardShortcutsEnabled: ExtensionMode.Default,
-      DOM: {
-        video: {
-          manual: false,
-          querySelectors: '',
-          additionalCss: '',
-        },
-        player: {
-          manual: true,
-          useRelativeAncestor: true,
-          videoAncestor: 1,
-        }
-      },
-      css: '',
+      }
     },
     "vimeo.com": {
       mode: 3,
@@ -979,26 +963,63 @@ var ExtensionConf = {
       },
       css: ".player_outro_area {\n  width: 100% !important;\n  display: flex !important;\n  justify-content: center !important;\n}\n\n.player_container, .player {\n  width: 100% !important; \n}"
     },
+    "old.reddit.com" : {
+      mode: ExtensionMode.Enabled,
+      autoar: currentBrowser.firefox ? ExtensionMode.Enabled : ExtensionMode.Disabled,     
+      override: false,
+      type: 'testing',
+      stretch: Stretch.Default,
+      videoAlignment: VideoAlignment.Default,
+      keyboardShortcutsEnabled: ExtensionMode.Default,
+      DOM: {
+        player: {
+          manual: true,
+          useRelativeAncestor: false,
+          querySelectors: '.media-preview-content'
+        }
+      },
+      css: '',
+    },
+    "www.reddit.com" : {
+      mode: ExtensionMode.Enabled,
+      autoar: currentBrowser.firefox ? ExtensionMode.Enabled : ExtensionMode.Disabled,     
+      override: false,
+      type: 'testing',
+      stretch: Stretch.Default,
+      videoAlignment: VideoAlignment.Default,
+      keyboardShortcutsEnabled: ExtensionMode.Default,
+      DOM: {
+        player: {
+          manual: true,
+          useRelativeAncestor: false,
+          querySelectors: '.media-preview-content'
+        }
+      },
+      css: '',
+    },
     "imgur.com": {
       mode: -1,
       autoar: -1,
       autoarFallback: 0,
       stretch: -1,
-      videoAlignment: 1
+      videoAlignment: 1,
+      type: 'official',
     },
     "gfycat.com": {
       mode: -1,
       autoar: -1,
       autoarFallback: 0,
       stretch: -1,
-      videoAlignment: 1
+      videoAlignment: 1,
+      type: 'official,'
     },
     "giant.gfycat.com": {
       mode: -1,
       autoar: -1,
       autoarFallback: 0,
       stretch: -1,
-      videoAlignment: 1
+      videoAlignment: 1,
+      type: 'official',
     },
   }
 }

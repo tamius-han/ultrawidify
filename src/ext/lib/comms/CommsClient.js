@@ -160,7 +160,7 @@ class CommsClient {
       console.log(`[CommsClient::registerVideo] <${this.commsId}>`, "Registering video for current page.");
     }
     if (this.pageInfo) {
-      if (this.pageInfo.videos.length) { 
+      if (this.pageInfo.hasVideo()) { 
         this.port.postMessage({cmd: "has-video"});
       }
     } else {
