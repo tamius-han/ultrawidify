@@ -7,7 +7,7 @@
 * Settings page looks ugly af right now. Maybe fix it some time later
 
 
-### v4.2.0
+### v4.2.0 (current)
 
 * Slightly improved popup design. (Design change suggested by PortaTrekos)
 * Player detection: youtube and twitch now have manual player element detection, with strictly defined players. 
@@ -16,7 +16,7 @@
 * Fixed imcompatibilities with Iridium. Flicker when clicking play/pause or switching between big and popup player is caused by either Youtube or Iridium trying to apply their styles over mine.
 * Issues with inconsistent alignment that some people reported are potentially fixed
 
-### v4.1.2 (current)
+### v4.1.2 
 
 * Fixed video alignment issues on www.reddit as well (for people who use old reddit without going to old.reddit)
 * Fixed bug with 'player detection' tab
