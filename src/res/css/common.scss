@@ -332,6 +332,18 @@ small {
   padding-right: 10px;
 }
 
+.new {
+  color: #fff;
+}
+
+.new::after {
+  content: "ⓘ";
+  color: $info-color !important;
+  display: inline-block;
+  font-weight: bold;
+  padding-right: 10px;
+}
+
 .experimental::after {
   // content: "Experimental";
   content: "Ⓔ";

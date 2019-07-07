@@ -836,6 +836,7 @@ var ExtensionConf = {
     }
   },
 ],
+whatsNewChecked: true,
   // -----------------------------------------
   //       ::: SITE CONFIGURATION :::
   // -----------------------------------------

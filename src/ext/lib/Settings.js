@@ -129,6 +129,9 @@ class Settings {
     // in case settings in previous version contained a fucky wucky, we overwrite existing settings with a patch
     ObjectCopy.overwrite(this.active, ExtensionConfPatch['4.2.0']);
 
+    // set 'whatsNewChecked' flag to false when updating
+    this.active.whatsNewChecked = false;
+
     this.set(this.active);
     return this.active;
   }
