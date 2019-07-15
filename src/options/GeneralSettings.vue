@@ -119,7 +119,12 @@
       Import, export, reset settings
     </div>
     <div class="flex flex-column">
-      <div v-if="corruptedSettingsWarning"
+      <div v-if="downloadPermissionError"
+          class="w100 center-text warning-lite"
+      >
+        Exporting settings requires the 'downloads' permission. (If you want to export settings without granting 'downloads' permission, you can copy-paste settings from 'Super advanced settings' tab)
+      </div>
+      <div v-if="corruptedSettingsError"
           class="w100 center-text warning-lite"
       >
         Settings import failed. The settings file is probably corrupted.
@@ -165,7 +170,8 @@ export default {
       ExtensionMode: ExtensionMode,
       VideoAlignment: VideoAlignment,
       stretchThreshold: 0,
-      corruptedSettingsWarning: false,
+      corruptedSettingsError: false,
+      downloadPermissionError: false,
     }
   },
   created () {
@@ -199,23 +205,46 @@ export default {
       this.settings.active = JSON.parse(JSON.stringify(this.settings.default));
       this.settings.save();
     },
-    exportSettings() {
-      browser.permissions.request({permissions: ['downloads']});
+    async exportSettings() {
+      this.downloadPermissionError = false;
+
       const blob = new Blob([JSON.stringify(this.settings.active)], {type: 'application/json'});
       const fileUrl = URL.createObjectURL(blob);
-      if (BrowserDetect.firefox) {
-        browser.downloads.download({saveAs: true, filename: 'ultrawidify-settings.json', url: fileUrl});
+      
+      try {
+        if (BrowserDetect.firefox) {
+          await browser.permissions.request({permissions: ['downloads']});
+          browser.downloads.download({saveAs: true, filename: 'ultrawidify-settings.json', url: fileUrl});
+        } else if (BrowserDetect.chrome) {
+          const ths = this;
+          
+          chrome.permissions.request(
+            {permissions: ['downloads']},
+            (granted) => {
+              if (granted) {
+                ths.exportSettingsChrome(fileUrl);
+              } else {
+                ths.downloadPermissionError = true
+              }
+            } 
+          )
+        }
+      } catch (e) {
+        this.downloadPermissionError = true;
       }
+    },
+    exportSettingsChrome(fileUrl){
+      chrome.downloads.download({saveAs: true, filename: 'ultrawidify-settings.json', url: fileUrl});
     },
     async importSettings($event) {
       let file, text, settingsObj;
-      this.corruptedSettingsWarning = false;
+      this.corruptedSettingsError = false;
       
       try {
         file = $event.target.files[0];
       } catch (e) {
         console.error("error grabbing a file!");
-        this.corruptedSettingsWarning = true;
+        this.corruptedSettingsError = true;
         return;
       }
 
@@ -224,7 +253,7 @@ export default {
         settingsObj = JSON.parse(text);
       } catch (e) {
         console.error("error parsing file to json");
-        this.corruptedSettingsWarning = true;
+        this.corruptedSettingsError = true;
         return;
       }
 
@@ -232,7 +261,7 @@ export default {
       for (const key in this.settings.default) {
         if (!settingsObj[key]) {
           console.error("corrupted settings!")
-          this.corruptedSettingsWarning = true;
+          this.corruptedSettingsError = true;
           return;
         }
       }
