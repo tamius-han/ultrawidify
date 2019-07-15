@@ -55,5 +55,8 @@
   ],
   "permissions": [
     "tabs", "storage",  "activeTab", "<all_urls>", "webNavigation"
+  ],
+  "optional_permissions": [
+    "downloads"
   ]
 }

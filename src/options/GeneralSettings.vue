@@ -116,13 +116,31 @@
     </div>
 
     <div class="label">
-      Reset settings
+      Import, export, reset settings
     </div>
-    <div class="flex flex-row button-box">
-      <Button label="Reset settings"
-              @click.native="resetSettings()"
+    <div class="flex flex-column">
+      <div v-if="corruptedSettingsWarning"
+          class="w100 center-text warning-lite"
       >
-      </Button>
+        Settings import failed. The settings file is probably corrupted.
+      </div>
+      <div class="flex flex-row button-box">
+        <div class="button center-text flex flex-auto">
+          <label for="file-upload" class="w100 h100 block">
+            Import settings
+          </label>
+          <input id="file-upload" 
+                type="file"
+                @input="importSettings"       
+          />
+        </div>
+        <Button label="Export settings"
+                @click.native="exportSettings()"
+        />
+        <Button label="Reset settings"
+                @click.native="resetSettings()"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -132,6 +150,7 @@ import Button from '../common/components/Button';
 import Stretch from '../common/enums/stretch.enum';
 import ExtensionMode from '../common/enums/extension-mode.enum';
 import VideoAlignment from '../common/enums/video-alignment.enum';
+import BrowserDetect from '../ext/conf/BrowserDetect';
 
 export default {
   components: {
@@ -146,6 +165,7 @@ export default {
       ExtensionMode: ExtensionMode,
       VideoAlignment: VideoAlignment,
       stretchThreshold: 0,
+      corruptedSettingsWarning: false,
     }
   },
   created () {
@@ -178,8 +198,54 @@ export default {
     resetSettings() {
       this.settings.active = JSON.parse(JSON.stringify(this.settings.default));
       this.settings.save();
+    },
+    exportSettings() {
+      browser.permissions.request({permissions: ['downloads']});
+      const blob = new Blob([JSON.stringify(this.settings.active)], {type: 'application/json'});
+      const fileUrl = URL.createObjectURL(blob);
+      if (BrowserDetect.firefox) {
+        browser.downloads.download({saveAs: true, filename: 'ultrawidify-settings.json', url: fileUrl});
+      }
+    },
+    async importSettings($event) {
+      let file, text, settingsObj;
+      this.corruptedSettingsWarning = false;
+      
+      try {
+        file = $event.target.files[0];
+      } catch (e) {
+        console.error("error grabbing a file!");
+        this.corruptedSettingsWarning = true;
+        return;
+      }
+
+      try {
+        text = await file.text();
+        settingsObj = JSON.parse(text);
+      } catch (e) {
+        console.error("error parsing file to json");
+        this.corruptedSettingsWarning = true;
+        return;
+      }
+
+      // validate settings 
+      for (const key in this.settings.default) {
+        if (!settingsObj[key]) {
+          console.error("corrupted settings!")
+          this.corruptedSettingsWarning = true;
+          return;
+        }
+      }
+
+      this.settings.active = settingsObj;
+      this.settings.save();
     }
   }
 }
 </script>
 
+<style lang="scss" scoped>
+input[type="file"] {
+    display: none;
+}
+</style>
