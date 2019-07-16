@@ -39,10 +39,26 @@ class Logger {
     return logfileStr;
   }
 
+  canLog(component) {
+    if (component.length) {
+      for (const c in component) {
+        if (this.conf.fileOptions[component]) {
+          return this.conf.fileOptions[component];
+        }
+      }
+    } 
+    return this.conf.fileOptions[component];
+  }
+
   // level is unused as of now, but this may change in the future
+  // levels: 'info', 'warn', 'error'
   log(level, component, ...message) {
+
+    if (!this.conf) {
+      return;
+    }
     if (this.conf.logToFile) {
-      if (this.conf.fileOptions[component]) {
+      if (this.canLog(component)) {
         let ts = performance.now();
         if (ts <= this.history[this.history.length - 1]) {
           ts = this.history[this.history.length - 1] + 0.00001;
@@ -55,7 +71,7 @@ class Logger {
       }
     }
     if (this.conf.logToConsole) {
-      if (this.conf.consoleOptions[component]) {
+      if (this.canLog(component)) {
         console.log(...message);
       }
     }
