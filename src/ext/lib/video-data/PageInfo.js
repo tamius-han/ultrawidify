@@ -9,7 +9,7 @@ if(Debug.debug)
 
 
 class PageInfo {
-  constructor(comms, settings, extensionMode, readOnly = false){
+  constructor(comms, settings, logger, extensionMode, readOnly = false){
     this.hasVideos = false;
     this.siteDisabled = false;
     this.videos = [];
@@ -19,6 +19,8 @@ class PageInfo {
     this.lastUrl = window.location.href;
     this.extensionMode = extensionMode;
     this.readOnly = readOnly;
+
+    this.logger = logger;
 
     if (comms){ 
       this.comms = comms;
@@ -42,9 +44,7 @@ class PageInfo {
   }
 
   destroy() {
-    if(Debug.debug || Debug.init){
-      console.log("[PageInfo::destroy] destroying all videos!")
-    }
+    this.logger.log('info', ['debug', 'init'], "[PageInfo::destroy] destroying all videos!")
     if(this.rescanTimer){
       clearTimeout(this.rescanTimer);
     }
@@ -118,9 +118,7 @@ class PageInfo {
       this.hasVideos = false;
   
       if(rescanReason == RescanReason.PERIODIC){
-        if (Debug.debug && Debug.videoRescan && Debug.periodic) {
-          console.log("[PageInfo::rescan] Scheduling normal rescan:")
-        }
+        this.logger.log('info', 'videoRescan', "[PageInfo::rescan] Scheduling normal rescan.")
         this.scheduleRescan(RescanReason.PERIODIC);
       }
       return;
@@ -169,18 +167,14 @@ class PageInfo {
       if (videoExists) {
         continue;
       } else {
-        if (Debug.debug && Debug.periodic && Debug.videoRescan) {
-          console.log("[PageInfo::rescan] found new video candidate:", video, "NOTE:: Video initialization starts here:\n--------------------------------\n")
-        }
+        this.logger.log('info', 'videoRescan', "[PageInfo::rescan] found new video candidate:", video, "NOTE:: Video initialization starts here:\n--------------------------------\n")
         
-        v = new VideoData(video, this.settings, this);
+        v = new VideoData(video, this.settings, this, logger);
         // console.log("[PageInfo::rescan] v is:", v)
         v.initArDetection();
         this.videos.push(v);
 
-        if(Debug.debug && Debug.periodic && Debug.videoRescan){
-          console.log("[PageInfo::rescan] END VIDEO INITIALIZATION\n\n\n-------------------------------------\nvideos[] is now this:", this.videos,"\n\n\n\n\n\n\n\n")
-        }
+        this.logger.log('info', 'videoRescan', "END VIDEO INITIALIZATION\n\n\n-------------------------------------\nvideos[] is now this:", this.videos,"\n\n\n\n\n\n\n\n")
       }
     }
 
@@ -212,9 +206,7 @@ class PageInfo {
       // if we encounter a fuckup, we can assume that no videos were found on the page. We destroy all videoData
       // objects to prevent multiple initalization (which happened, but I don't know why). No biggie if we destroyed
       // videoData objects in error — they'll be back in the next rescan
-      if (Debug.debug) {
-        console.log("rescan error: — destroying all videoData objects",e);
-      }
+      this.logger.log('error', 'debug', "rescan error: — destroying all videoData objects",e);
       for (const v of this.videos) {
         v.destroy();
       }
@@ -249,9 +241,7 @@ class PageInfo {
         ths = null;
       }, this.settings.active.pageInfo.timeouts.rescan, RescanReason.PERIODIC)
     } catch(e) {
-      if(Debug.debug){
-        console.log("[PageInfo::scheduleRescan] scheduling rescan failed. Here's why:",e)
-      }
+      this.logger.log('error', 'debug', "[PageInfo::scheduleRescan] scheduling rescan failed. Here's why:",e)
     }
   }
 
@@ -269,17 +259,13 @@ class PageInfo {
       ths = null;
     }, this.settings.active.pageInfo.timeouts.urlCheck)
     } catch(e){
-      if(Debug.debug){
-        console.error("[PageInfo::scheduleUrlCheck] scheduling URL check failed. Here's why:",e)
-      }
+      this.logger.log('error', 'debug', "[PageInfo::scheduleUrlCheck] scheduling URL check failed. Here's why:",e)
     }
   }
 
   ghettoUrlCheck() {
     if (this.lastUrl != window.location.href){
-      if(Debug.debug && Debug.periodic){
-        console.log("[PageInfo::ghettoUrlCheck] URL has changed. Triggering a rescan!");
-      }
+      this.logger.log('error', 'videoRescan', "[PageInfo::ghettoUrlCheck] URL has changed. Triggering a rescan!");
       
       this.rescan(RescanReason.URL_CHANGE);
       this.lastUrl = window.location.href;
@@ -343,7 +329,7 @@ class PageInfo {
 
   startArDetection(playingOnly){
     if (Debug.debug) {
-      console.log('[PageInfo::startArDetection()] starting automatic ar detection!')
+      this.logger.log('info', 'debug', '[PageInfo::startArDetection()] starting automatic ar detection!')
     }
     if (playingOnly) {
       for(var vd of this.videos){
@@ -373,16 +359,12 @@ class PageInfo {
   }
 
   setAr(ar, playingOnly){
-    if (Debug.debug) {
-      console.log('[PageInfo::setAr] aspect ratio:', ar, "playing only?", playingOnly)
-    }
+    this.logger.log('info', 'debug', '[PageInfo::setAr] aspect ratio:', ar, "playing only?", playingOnly)
 
     if (ar.type !== AspectRatio.Automatic) {
       this.stopArDetection(playingOnly);
     } else {
-      if (Debug.debug) {
-        console.log('[PageInfo::setAr] aspect ratio is auto');
-      }
+      this.logger.log('info', 'debug', '[PageInfo::setAr] aspect ratio is auto');
 
       try {
         for (var vd of this.videos) {
@@ -391,7 +373,7 @@ class PageInfo {
           }
         }
       } catch (e) {
-        console.log("???", e);
+        this.logger.log('error', 'debug', "???", e);
       }
       this.initArDetection(playingOnly);
       this.startArDetection(playingOnly);

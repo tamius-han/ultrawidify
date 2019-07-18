@@ -915,6 +915,7 @@ whatsNewChecked: true,
       stretch: Stretch.Default,
       videoAlignment: VideoAlignment.Default,
       keyboardShortcutsEnabled: ExtensionMode.Default,
+      arPersistence: true,              // persist aspect ratio between different videos
       autoarPreventConditions: {        // prevents autoar on following conditions
         videoStyleString: {             // if video style string thing does anything of what follows
           containsProperty: {           // if video style string has any of these properties (listed as keys)

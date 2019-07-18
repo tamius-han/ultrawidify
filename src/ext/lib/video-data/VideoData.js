@@ -5,35 +5,31 @@ import ArDetector from '../ar-detect/ArDetector';
 
 class VideoData {
   
-  constructor(video, settings, pageInfo){
+  constructor(video, settings, pageInfo, logger){
     this.arSetupComplete = false;
     this.video = video;
     this.destroyed = false;
     this.settings = settings;
     this.pageInfo = pageInfo;
     this.extensionMode = pageInfo.extensionMode;
-
+    this.logger = logger;
 
     // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
     // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)    
-    this.player = new PlayerData(this);
-    this.resizer = new Resizer(this);
+    this.player = new PlayerData(this, logger);
+    this.resizer = new Resizer(this, logger);
 
-    this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
+    this.arDetector = new ArDetector(this, logger);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
     // player dimensions need to be in:
     // this.player.dimensions
 
     // apply default align and stretch
-    if (Debug.init) {
-      console.log("%c[VideoData::ctor] Initial resizer reset!", {background: '#afd', color: '#132'});
-    }
+    this.logger.log('info', 'debug', "%c[VideoData::ctor] Initial resizer reset!", {background: '#afd', color: '#132'});
     this.resizer.reset();
 
     
     this.vdid = (Math.random()*100).toFixed();
-    if (Debug.init) {
-      console.log("[VideoData::ctor] Created videoData with vdid", this.vdid,"\nextension mode:", this.extensionMode);
-    }
+    this.logger.log('info', 'init', "[VideoData::ctor] Created videoData with vdid", this.vdid,"\nextension mode:", this.extensionMode);
 
     this.pageInfo.initMouseActionHandler(this);
   }
@@ -61,9 +57,7 @@ class VideoData {
   }
   
   startArDetection() {
-    if (Debug.debug) {
-      console.log("[VideoData::startArDetection] starting AR detection")
-    }
+    this.logger.log('info', 'debug', "[VideoData::startArDetection] starting AR detection")
     if(this.destroyed) {
       throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
     }
@@ -87,9 +81,7 @@ class VideoData {
   }
 
   destroy() {
-    if(Debug.debug || Debug.init){ 
-      console.log(`[VideoData::destroy] <vdid:${this.vdid}> received destroy command`);
-    }
+    this.logger.log('info', ['debug', 'init'], `[VideoData::destroy] <vdid:${this.vdid}> received destroy command`);
 
     this.pause();
     this.destroyed = true;
@@ -133,9 +125,7 @@ class VideoData {
         this.player.start();
       }
     } catch (e) {
-      if(Debug.debug){
-        console.log("[VideoData.js::resume] cannot resume for reasons. Will destroy videoData. Error here:", e);
-      }
+      this.logger.log('error', 'debug', "[VideoData.js::resume] cannot resume for reasons. Will destroy videoData. Error here:", e);
       this.destroy();
     }
   }

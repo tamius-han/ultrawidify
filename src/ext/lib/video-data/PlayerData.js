@@ -33,7 +33,7 @@ if(Debug.debug)
 */
 
 class PlayerData {
-  constructor(videoData) {
+  constructor(videoData, logger) {
     this.videoData = videoData;
     this.video = videoData.video;
     this.settings = videoData.settings;
@@ -41,6 +41,7 @@ class PlayerData {
     this.element = undefined;
     this.dimensions = undefined;
     this.overlayNode = undefined;
+    this.logger = logger;
 
     if (this.extensionMode === ExtensionMode.Enabled) {
       this.getPlayerDimensions();
@@ -117,9 +118,7 @@ class PlayerData {
   }
 
   unmarkPlayer() {
-    if (Debug.debug) {
-      console.log("[PlayerData::unmarkPlayer] unmarking player!")
-    }
+    this.logger.log('info', 'debug', "[PlayerData::unmarkPlayer] unmarking player!")
     if (this.playerIdElement) {
       this.playerIdElement.remove();
     }
@@ -146,9 +145,7 @@ class PlayerData {
         try{
           ths.ghettoWatcher();
         } catch(e) {
-          if (Debug.debug) {
-            console.log("[PlayerData::scheduleGhettoWatcher] Scheduling failed. Error:",e)
-          }
+          this.logger.log('info', 'debug', "[PlayerData::scheduleGhettoWatcher] Scheduling failed. Error:",e)
 
           ths.scheduleGhettoWatcher(1000);
         }
@@ -160,9 +157,7 @@ class PlayerData {
 
   ghettoWatcherFull() {
     if(this.checkPlayerSizeChange()){
-      if(Debug.debug){
-        console.log("[uw::ghettoOnChange] change detected");
-      }
+      this.logger.log('info', 'debug', "[uw::ghettoOnChange] change detected");
 
       this.getPlayerDimensions();
       if(! this.element ){
@@ -179,9 +174,7 @@ class PlayerData {
     // trick it into doing that
 
     if(this.dimensions.fullscreen != PlayerData.isFullScreen()) {
-      if(Debug.debug){
-        console.log("[PlayerData::ghettoWatcher] fullscreen switch detected (basic change detection failed)");
-      }
+      this.logger.log('info', 'debug', "[PlayerData::ghettoWatcher] fullscreen switch detected (basic change detection failed)");
 
       this.getPlayerDimensions();
 
@@ -238,9 +231,7 @@ class PlayerData {
     let element = this.video.parentNode;
 
     if(! element ){
-      if(Debug.debug) {
-        console.log("[PlayerDetect::_pd_getPlayer] element is not valid, doing nothing.", element)
-      }
+      this.logger.log('info', 'debug', "[PlayerDetect::_pd_getPlayer] element is not valid, doing nothing.", element)
       if(this.element) {
         const ths = this;
       }
@@ -306,16 +297,11 @@ class PlayerData {
         
           grows = trustCandidateAfterGrows;
         
-          if(Debug.debug){
-            console.log("Found new candidate for player. Dimensions: w:", candidate_width, "h:",candidate_height, "node:", playerCandidateNode);
-          }
+          this.logger.log('info', 'debug', "Found new candidate for player. Dimensions: w:", candidate_width, "h:",candidate_height, "node:", playerCandidateNode);
         }
       }
       else if(grows --<= 0){
-        
-        if(Debug.debug && Debug.playerDetect){
-          console.log("Current element grew in comparrison to the child. We probably found the player. breaking loop, returning current result");
-        }
+        this.logger.log('info', 'playerDetect', "Current element grew in comparrison to the child. We probably found the player. breaking loop, returning current result");
         break;
       }
       
@@ -334,9 +320,7 @@ class PlayerData {
     const element = this.getPlayer(isFullScreen);
 
     if(! element ){
-      if(Debug.debug) {
-        console.log("[PlayerDetect::getPlayerDimensions] element is not valid, doing nothing.", element)
-      }
+      this.logger.log('error', 'debug', "[PlayerDetect::getPlayerDimensions] element is not valid, doing nothing.", element)
       this.element = undefined;
       this.dimensions = undefined;
       return;
@@ -367,7 +351,7 @@ class PlayerData {
   }
 
   checkPlayerSizeChange(){
-    if(Debug.debug){
+    if (this.logger.canLog('debug')){
       if(this.element == undefined){
         // return true;
       }
@@ -378,18 +362,18 @@ class PlayerData {
 
       if (this.dimensions && this.dimensions.fullscreen){
         if(! PlayerData.isFullScreen()){
-          console.log("[PlayerDetect] player size changed. reason: exited fullscreen");
+          this.logger.log('info', 'debug', "[PlayerDetect] player size changed. reason: exited fullscreen");
         }
       }
-      if(! this.element && Debug.debug && Debug.playerDetect) {
-        console.log("[PlayerDetect] player element isnt defined");
+      if(! this.element) {
+        this.logger.log('info', 'playerDetect', "[PlayerDetect] player element isnt defined");
       }
 
       if ( this.element && 
            ( this.dimensions.width != this.element.offsetWidth ||
              this.dimensions.height != this.element.offsetHeight )
       ) {
-        console.log("[PlayerDetect] player size changed. reason: dimension change. Old dimensions?", this.dimensions.width, this.dimensions.height, "new dimensions:", this.element.offsetWidth, this.element.offsetHeight);
+        this.logger.log('info', 'debug', "[PlayerDetect] player size changed. reason: dimension change. Old dimensions?", this.dimensions.width, this.dimensions.height, "new dimensions:", this.element.offsetWidth, this.element.offsetHeight);
       }
     }
     
@@ -417,9 +401,7 @@ class PlayerData {
       return false;
     }
 
-    if(Debug.debug) {
-      console.log("[PlayerData::checkFullscreenChange] this.dimensions is not defined. Assuming fs change happened and setting default values.")
-    }
+    this.logger.log('info', 'debug', "[PlayerData::checkFullscreenChange] this.dimensions is not defined. Assuming fs change happened and setting default values.")
 
     this.dimensions = {
       fullscreen: isFs,
