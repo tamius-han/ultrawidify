@@ -1,4 +1,3 @@
-import Debug from '../../conf/Debug';
 import Stretch from '../../../common/enums/stretch.enum';
 
 // računa vrednosti za transform-scale (x, y)
@@ -11,10 +10,11 @@ class Stretcher {
 
 
   // functions
-  constructor(videoData) {
+  constructor(videoData, logger) {
     this.conf = videoData;
     this.settings = videoData.settings;
     this.mode = this.settings.getDefaultStretchMode(window.location.hostname);
+    this.logger = logger;
   }
 
   setStretchMode(stretchMode) {
@@ -120,9 +120,7 @@ class Stretcher {
         stretchFactors.xFactor = playerAr / videoAr;
         stretchFactors.yFactor = actualAr / videoAr;
 
-        if(Debug.debug){
-          console.log("[Stretcher.js::calculateStretch] stretching strategy 1")
-        }
+        this.logger.log('info', 'stretcher', "[Stretcher.js::calculateStretch] stretching strategy 1")
       } else if ( actualAr >= videoAr) {
         // VERIFIED WORKS
 
@@ -132,18 +130,14 @@ class Stretcher {
         stretchFactors.xFactor = playerAr / videoAr;
         stretchFactors.yFactor = actualAr / videoAr;
 
-        if(Debug.debug){
-          console.log("[Stretcher.js::calculateStretch] stretching strategy 2")
-        }
+        this.logger.log('info', 'stretcher', "[Stretcher.js::calculateStretch] stretching strategy 2")
       } else {
         // NEEDS CHECKING
         // player > video > actual — double pillarbox
         stretchFactors.xFactor = actualAr /  playerAr;
         stretchFactors.yFactor = 1;
         
-        if(Debug.debug){
-          console.log("[Stretcher.js::calculateStretch] stretching strategy 3")
-        }
+        this.logger.log('info', 'stretcher', "[Stretcher.js::calculateStretch] stretching strategy 3")
       }
     } else {
       // player adds LETTERBOX
@@ -156,9 +150,7 @@ class Stretcher {
         stretchFactors.xFactor = actualAr / playerAr;
         stretchFactors.yFactor = videoAr / playerAr;
 
-        if(Debug.debug){
-          console.log("[Stretcher.js::calculateStretch] stretching strategy 4")
-        }
+        this.logger.log('info', 'stretcher', "[Stretcher.js::calculateStretch] stretching strategy 4")
       } else if ( actualAr < videoAr ) {
         // NEEDS CHECKING 
 
@@ -168,9 +160,7 @@ class Stretcher {
         stretchFactors.xFactor =  actualAr / playerAr;
         stretchFActors.yFactor = actualAr / playerAr;
 
-        if(Debug.debug){
-          console.log("[Stretcher.js::calculateStretch] stretching strategy 5")
-        }
+        this.logger.log('info', 'stretcher', "[Stretcher.js::calculateStretch] stretching strategy 5")
       } else {
         // VERIFIED CORRECT
 
@@ -179,9 +169,7 @@ class Stretcher {
         stretchFactors.xFactor = 1;
         stretchFactors.yFactor = actualAr / playerAr;
 
-        if(Debug.debug){
-          console.log("[Stretcher.js::calculateStretch] stretching strategy 6")
-        }
+        this.logger.log('info', 'stretcher', "[Stretcher.js::calculateStretch] stretching strategy 6")
       }
     }
 

@@ -5,6 +5,7 @@ import Settings from './lib/Settings';
 import ActionHandler from './lib/ActionHandler';
 import CommsClient from './lib/comms/CommsClient';
 import PageInfo from './lib/video-data/PageInfo';
+import Logger from './lib/Logger';
 
 if(Debug.debug){
   console.log("\n\n\n\n\n\n           ———    Sᴛλʀᴛɪɴɢ  Uʟᴛʀᴀᴡɪᴅɪꜰʏ    ———\n               <<   ʟᴏᴀᴅɪɴɢ ᴍᴀɪɴ ꜰɪʟᴇ   >>\n\n\n\n");
@@ -30,6 +31,7 @@ class UW {
     this.comms = undefined;
     this.settings = undefined;
     this.actionHandler = undefined;
+    this.logger = undefined;
   }
 
   async init(){
@@ -39,9 +41,8 @@ class UW {
   
     // init() is re-run any time settings change
     if (this.pageInfo) {
-      if(Debug.debug){
-        console.log("[uw::init] Destroying existing pageInfo", this.pageInfo);
-      }
+      // if this executes, logger must have been initiated at some point before this point
+      this.logger.log('info', 'debug', "[uw::init] Destroying existing pageInfo", this.pageInfo);
       this.pageInfo.destroy();
     }
     if (this.comms) {
@@ -54,51 +55,45 @@ class UW {
       await this.settings.init();
     }
   
-    this.comms = new CommsClient('content-client-port', this.settings);
+    if (!this.logger) {
+      this.logger = new Logger(this.settings.getLoggingOptions);
+    }
+
+    this.comms = new CommsClient('content-client-port', this.settings, this.logger);
   
     // če smo razširitev onemogočili v nastavitvah, ne naredimo ničesar
     // If extension is soft-disabled, don't do shit
 
     var extensionMode = this.settings.getExtensionMode();
 
-    if(Debug.debug) {
-      console.log("[uw::init] Extension mode:" + (extensionMode < 0 ? "disabled" : extensionMode == '1' ? 'basic' : 'full'));
-    }
+    this.logger.log('info', 'debug', "[uw::init] Extension mode:" + (extensionMode < 0 ? "disabled" : extensionMode == '1' ? 'basic' : 'full'));
 
     const isSiteDisabled = extensionMode === ExtensionMode.Disabled
 
     if (isSiteDisabled) {
       if (this.settings.getExtensionMode('@global') === ExtensionMode.Disabled) {
-        if (Debug.debug) {
-          console.log("[uw::init] EXTENSION DISABLED, THEREFORE WONT BE STARTED")
-        }
+        this.logger.log('info', 'debug', "[uw::init] EXTENSION DISABLED, THEREFORE WONT BE STARTED")
         return;
       }
     }
   
     try {
-      this.pageInfo = new PageInfo(this.comms, this.settings, extensionMode, isSiteDisabled);
-      if(Debug.debug){
-        console.log("[uw.js::setup] pageInfo initialized. Here's the object:", this.pageInfo);
-      }
+      this.pageInfo = new PageInfo(this.comms, this.settings, this.logger, extensionMode, isSiteDisabled);
+      this.logger.log('info', 'debug', "[uw.js::setup] pageInfo initialized. Here's the object:", this.pageInfo);
       this.comms.setPageInfo(this.pageInfo);
   
-      if(Debug.debug) {
-        console.log("[uw.js::setup] will try to initate ActionHandler. Settings are:", this.settings, this.settings.active)
-      }
+      this.logger.log('info', 'debug', "[uw.js::setup] will try to initate ActionHandler. Settings are:", this.settings, this.settings.active)
 
       // start action handler only if extension is enabled for this site
       if (!isSiteDisabled) {
-        this.actionHandler = new ActionHandler(this.pageInfo);
+        this.actionHandler = new ActionHandler(this.pageInfo, this.logger);
         this.actionHandler.init();
         
-        if(Debug.debug) {
-          console.log("[uw.js::setup] ActionHandler initiated:", this.actionHandler);
-        }
+        this.logger.log('info', 'debug', "[uw.js::setup] ActionHandler initiated:", this.actionHandler);
       }
 
     } catch (e) {
-      console.log("[uw::init] FAILED TO START EXTENSION. Error:", e);
+      this.logger.log('error', 'debug', "[uw::init] FAILED TO START EXTENSION. Error:", e);
     }
   
     

@@ -5,13 +5,14 @@ import Debug from '../../conf/Debug';
 
 class Zoom {
   // functions
-  constructor(videoData) {
+  constructor(videoData, logger) {
     this.scale = 1;
     this.logScale = 0;
     this.scaleStep = 0.1;
     this.minScale = -1;  // 50% (log2(0.5) = -1)
     this.maxScale = 3;   // 800% (log2(8) = 3)
     this.conf = videoData;
+    this.logger = logger;
   }
 
   reset(){
@@ -30,18 +31,14 @@ class Zoom {
   
     this.scale = Math.pow(2, this.logScale);
 
-    if (Debug.debug) {
-      console.log("[Zoom::zoomStep] changing zoom by", amount, ". New zoom level:", this.scale);
-    }
+    this.logger.log('info', 'debug', "[Zoom::zoomStep] changing zoom by", amount, ". New zoom level:", this.scale);
 
     this.conf.restoreAr();
     this.conf.announceZoom(this.scale);
   }
 
   setZoom(scale, no_announce){
-    if (Debug.debug) {
-      console.log("[Zoom::setZoom] Setting zoom to", scale, "!");
-    }
+    this.logger.log('info', 'debug', "[Zoom::setZoom] Setting zoom to", scale, "!");
 
     // NOTE: SCALE IS NOT LOGARITHMIC
     if(scale < Math.pow(2, this.minScale)) {
@@ -62,16 +59,12 @@ class Zoom {
     if (!stretchFactors) {
       return;
     }
-    if (Debug.debug) {
-      console.log("[Zoom::setZoom] Applying zoom. Stretch factors pre:", stretchFactors, " —> scale:", this.scale);
-    }
+    this.logger.log('info', 'debug', "[Zoom::setZoom] Applying zoom. Stretch factors pre:", stretchFactors, " —> scale:", this.scale);
 
     stretchFactors.xFactor *= this.scale;
     stretchFactors.yFactor *= this.scale;
 
-    if (Debug.debug) {
-      console.log("[Zoom::setZoom] Applying zoom. Stretch factors post:", stretchFactors);
-    }
+    this.logger.log('info', 'debug', "[Zoom::setZoom] Applying zoom. Stretch factors post:", stretchFactors);
   }
 }
 

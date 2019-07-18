@@ -3,6 +3,7 @@ class Logger {
     this.conf = conf;
     this.history = [];
     this.startTime = performance.now();
+    this.temp_disable = false;
   }
 
   clear() {
@@ -39,7 +40,34 @@ class Logger {
     return logfileStr;
   }
 
+  pause() {
+    this.temp_disable = true;
+  }
+  resume() {
+    this.temp_disable = false;
+  }
+
   canLog(component) {
+    return this.canLogFile(component) || this.canLogConsole(component);
+  }
+
+  canLogFile(component) {
+    if (!this.conf.fileOptions.enabled || this.temp_disable) {
+      return false;
+    }
+    if (component.length ) {
+      for (const c in component) {
+        if (this.conf.fileOptions[component]) {
+          return this.conf.fileOptions[component];
+        }
+      }
+    } 
+    return this.conf.fileOptions[component];
+  }
+  canLogConsole(component) {
+    if (!this.conf.consoleOptions.enabled || this.temp_disable) {
+      return false;
+    }
     if (component.length) {
       for (const c in component) {
         if (this.conf.fileOptions[component]) {
@@ -58,7 +86,7 @@ class Logger {
       return;
     }
     if (this.conf.logToFile) {
-      if (this.canLog(component)) {
+      if (this.canLogFile(component)) {
         let ts = performance.now();
         if (ts <= this.history[this.history.length - 1]) {
           ts = this.history[this.history.length - 1] + 0.00001;
@@ -71,7 +99,7 @@ class Logger {
       }
     }
     if (this.conf.logToConsole) {
-      if (this.canLog(component)) {
+      if (this.canLogConsole(component)) {
         console.log(...message);
       }
     }
