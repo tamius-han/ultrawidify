@@ -6,7 +6,16 @@
 
 * Settings page looks ugly af right now. Maybe fix it some time later
 
-### v4.2.1 (current)
+### v4.3.0 (future release)
+
+* Added user-friendly way to export/import settings
+* Reworked logging
+
+### v4.2.2 (current)
+
+* Fixed player detection on reddit (for videos from v.reddit)
+
+### v4.2.1
 * Fixed bug where custom CSS didn't get applied to pages
 
 ### v4.2.0 
