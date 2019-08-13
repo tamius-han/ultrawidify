@@ -11,8 +11,10 @@
 
       <div class="flex flex-row flex-wrap">
         <div class="pp_video flex flex-nogrow"><code>&lt;video&gt;</code>&nbsp;element</div>
-        <div class="pp_current flex flex-nogrow">Selected element</div>
-        <div class="pp_matched flex flex-nogrow">Matched by query string</div>
+        <div class="pp_current flex flex-nogrow">Selected and not matched</div>
+        <div class="pp_matched flex flex-nogrow">Elements that match query selector</div>
+        <div class="pp_current_matched">Selected and matched, selector ok</div>
+        <div class="pp_match_children">Selected and matched, selector too vague</div>
       </div>
 
       <div class="flex flex-row">
@@ -259,7 +261,7 @@ export default {
 .pp_video {
   margin: 2px;
   padding: 5px;
-  border: 1px solid red;
+  border: 1px solid #00f;
 }
 .pp_current {
   margin: 2px;
@@ -270,5 +272,15 @@ export default {
   margin: 2px;
   padding: 5px;
   border: 1px dashed #fd2;
+}
+.pp_current_matched {
+  margin: 2px;
+  padding: 2px;
+  border: 2px solid #027a5c;
+}
+.pp_match_children {
+  margin: 2px;
+  padding: 2px;
+  border: 2px solid #f00;
 }
 </style>
