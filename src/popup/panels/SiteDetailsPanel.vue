@@ -1,5 +1,36 @@
 <template>
   <div class="flex flex-column" style="padding-bottom: 20px">
+    <div class="">
+      <div class="label">Player picker</div>
+      <div class="desc">
+        If extension doesn't detect player correctly, you can override it.
+        <small>(NOTE: this currently doesn't work for embedded videos)</small>
+      </div>
+      
+      <div>Meaning of outlines:</div>
+
+      <div class="flex flex-row flex-wrap">
+        <div class="pp_video flex flex-nogrow"><code>&lt;video&gt;</code>&nbsp;element</div>
+        <div class="pp_current flex flex-nogrow">Selected element</div>
+        <div class="pp_matched flex flex-nogrow">Matched by query string</div>
+      </div>
+
+      <div class="flex flex-row">
+        <ShortcutButton label="Move up"
+        />
+        <ShortcutButton label="Move down"
+        />
+      </div>
+      <div class="flex flex-row flex-wrap">
+        <QsElement selector="#test_id" />
+        <QsElement selector=".test_class" />
+        <template v-for="qse of currentElementQs" >
+          <QsElement :selector="qse" :key="qse" />
+        </template>
+      </div>
+
+
+    </div>
     <div class="label">
       Video detection settings<br/><small>for {{site}}</small>
     </div>
@@ -93,6 +124,8 @@
 </template>
 
 <script>
+import ShortcutButton from '../../common/components/ShortcutButton.vue';
+import QsElement from '../../common/components/QsElement.vue';
 import QuerySelectorSetting from '../../common/components/QuerySelectorSetting.vue';
 import ExtensionMode from '../../common/enums/extension-mode.enum';
 import VideoAlignment from '../../common/enums/video-alignment.enum';
@@ -100,6 +133,8 @@ import Stretch from '../../common/enums/stretch.enum';
 export default {
   components: {
     QuerySelectorSetting,
+    ShortcutButton,
+    QsElement,
   },
   data() {
     return {
@@ -221,5 +256,19 @@ export default {
 </script>
 
 <style>
-
+.pp_video {
+  margin: 2px;
+  padding: 5px;
+  border: 1px solid red;
+}
+.pp_current {
+  margin: 2px;
+  padding: 5px;
+  border: 1px solid #88f;
+}
+.pp_matched {
+  margin: 2px;
+  padding: 5px;
+  border: 1px dashed #fd2;
+}
 </style>
