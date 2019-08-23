@@ -70,7 +70,7 @@ class UWServer {
   }
   removetCss(css, sender) {
     if (BrowserDetect.firefox || BrowserDetect.edge) {
-      browser.tabs.removeCSS(sender.tab.idd, {code: css, cssOrigin: 'user', frameId: sender.frameId});
+      browser.tabs.removeCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
     } else if (BrowserDetect.chrome) {
       chrome.tabs.removeCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
     }

@@ -55,6 +55,9 @@ class Resizer {
     } else {
       this.canPan = false;
     }
+
+    this.userCss = '';
+    this.userCssClassName = videoData.userCssClassName; 
   }
   
   start(){
@@ -65,6 +68,18 @@ class Resizer {
 
   stop(){
     this.stopCssWatcher();
+  }
+
+  injectCss(css) {
+    this.conf.pageInfo.injectCss(css);
+  }
+  
+  ejectCss(css) {
+    this.conf.pageInfo.ejectCss(css);
+  }
+
+  prepareCss(css) {
+    return `.${this.userCssClassName} {${css}}`;
   }
 
   destroy(){
@@ -211,7 +226,7 @@ class Resizer {
 
     if (! this.video) {
       // console.log("No video detected.")
-      this.videoData.destroy();
+      this.conf.destroy();
     }
 
     if (this.extensionMode === ExtensionMode.Enabled || PlayerData.isFullScreen()) {
@@ -572,7 +587,7 @@ class Resizer {
 
     for(var i in styleArray) {
       if(styleArray[i]) {
-        styleString += styleArray[i] + "; ";
+        styleString += styleArray[i] + " !important; ";
       }
     }
 
@@ -593,7 +608,7 @@ class Resizer {
     }
 
     if (Debug.debug && Debug.resizer) {
-      console.log("[Resizer::applyCss] <rid:"+this.resizerId+"> will apply css.", {stretchFactors, translate});
+      console.log("[Resizer::applyCss] <rid:"+this.resizerId+"> will apply css.", {stretchFactors, translate, video: this.video});
     }
     
     // save stuff for quick tests (before we turn numbers into css values):
@@ -603,7 +618,6 @@ class Resizer {
       // videoHeight: dimensions.height
     }
 
-    const styleArrayString = this.video.getAttribute('style');
     let extraStyleString;
     try {
       extraStyleString = this.settings.active.sites[window.location.host].DOM.video.additionalCss;
@@ -611,51 +625,42 @@ class Resizer {
       // do nothing. It's ok if no special settings are defined for this site, we'll just do defaults
     }
 
-    const styleArray = this.buildStyleArray(styleArrayString, extraStyleString)
+    const styleArray = this.buildStyleArray('', extraStyleString)
 
     // add remaining elements
-    
     if (stretchFactors) {
       styleArray.push(`transform: translate(${translate.x}px, ${translate.y}px) scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor})`);
-      styleArray.push("top: 0px; left: 0px; bottom: 0px; right: 0px");
+      styleArray.push("top: 0px !important; left: 0px !important; bottom: 0px !important; right: 0px");
     }
-    const styleString = this.buildStyleString(styleArray);
+    const styleString = `${this.buildStyleString(styleArray)}${extraStyleString || ''}`; // string returned by buildStyleString() should end with ; anyway
 
     // build style string back
     this.setStyleString(styleString);
   }
 
   setStyleString (styleString) {
-    this.video.setAttribute("style", styleString);
-    this.currentStyleString = styleString;
+    // this.video.setAttribute("style", styleString);
 
+    // remove old CSS
+    if (this.userCss) {
+      this.ejectCss(this.userCss);
+    }
+
+    // this.currentStyleString = styleString;
     this.currentCssValidFor = this.conf.player.dimensions;
-    
+    this.userCss = this.prepareCss(styleString);
+
+    // inject new CSS
+    this.injectCss(this.userCss);
+    this.video.classList.add(this.userCssClassName);
+
     if (this.restore_wd) {
       if (!this.video){
         if(Debug.debug)
           console.log("[Resizer::_res_setStyleString] <rid:"+this.resizerId+"> Video element went missing, nothing to do here.")
         return;
       }
-      
-      // if(
-      //   styleString.indexOf("width: " + this.video.style.width) == -1 ||
-      //   styleString.indexOf("height: " + this.video.style.height) == -1) {
-      //   // css ni nastavljen?
-      //   // css not set?
-      //   if(Debug.debug)
-      //     console.log("[Resizer::_res_setStyleString] Style string not set ???");
-        
-      //   if(count < settings.active.resizer.setStyleString.maxRetries){
-      //     setTimeout( this.setStyleString, settings.active.resizer.setStyleString.retryTimeout, count + 1);
-      //   }
-      //   else if(Debug.debug){
-      //     console.log("[Resizer::_res_setStyleString] we give up. css string won't be set");
-      //   }
-      // }
-      // else{
-        this.restore_wd = false;
-      // }
+      this.restore_wd = false;
     }
     else{
       if(Debug.debug)
@@ -697,8 +702,7 @@ class Resizer {
     cssValid &= this.currentVideoSettings.validFor.width === this.conf.player.dimensions.width;
 
     if (cssValid) {
-      const styleString = this.video.getAttribute('style');
-      cssValid &= this.currentStyleString === styleString;
+      cssValid &= this.video.classList.contains(this.userCssClassName);
     }
     if (cssValid && this.currentPlayerStyleString) {  // only check for changes to player element if we applied them before
       const playerStyleString = this.player.element.getAttribute('style'); 

@@ -13,6 +13,8 @@ class VideoData {
     this.pageInfo = pageInfo;
     this.extensionMode = pageInfo.extensionMode;
 
+    this.vdid = (Math.random()*100).toFixed();
+    this.userCssClassName = `uw-fuck-you-and-do-what-i-tell-you_${this.vdid}`;
 
     // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
     // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)    
@@ -30,12 +32,13 @@ class VideoData {
     this.resizer.reset();
 
     
-    this.vdid = (Math.random()*100).toFixed();
     if (Debug.init) {
       console.log("[VideoData::ctor] Created videoData with vdid", this.vdid,"\nextension mode:", this.extensionMode);
     }
 
     this.pageInfo.initMouseActionHandler(this);
+
+    this.video.classList.add(this.userCssClassName);
   }
 
   firstTimeArdInit(){
