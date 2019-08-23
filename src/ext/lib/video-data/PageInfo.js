@@ -55,6 +55,14 @@ class PageInfo {
     });
   }
 
+  replaceCss(oldCssString, newCssString) {
+    this.comms.sendMessage({
+      cmd: 'replace-css',
+      newCssString,
+      oldCssString
+    });
+  }
+
   destroy() {
     if(Debug.debug || Debug.init){
       console.log("[PageInfo::destroy] destroying all videos!")

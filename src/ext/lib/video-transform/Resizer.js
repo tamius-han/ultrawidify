@@ -77,6 +77,10 @@ class Resizer {
   ejectCss(css) {
     this.conf.pageInfo.ejectCss(css);
   }
+  
+  replaceCss(oldCss, newCss) {
+    this.conf.pageInfo.replaceCss(oldCss, newCss);
+  }
 
   prepareCss(css) {
     return `.${this.userCssClassName} {${css}}`;
@@ -639,20 +643,21 @@ class Resizer {
   }
 
   setStyleString (styleString) {
-    // this.video.setAttribute("style", styleString);
+    this.currentCssValidFor = this.conf.player.dimensions;
+    const newCssString = this.prepareCss(styleString);
 
-    // remove old CSS
-    if (this.userCss) {
-      this.ejectCss(this.userCss);
+    // inject new CSS or replace existing one
+    if (!this.userCss) {
+      this.injectCss(newCssString);
+      this.userCss = newCssString;
+    } else {
+      this.replaceCss(this.userCss, newCssString);
+      this.userCss = newCssString;
     }
 
-    // this.currentStyleString = styleString;
-    this.currentCssValidFor = this.conf.player.dimensions;
-    this.userCss = this.prepareCss(styleString);
-
-    // inject new CSS
-    this.injectCss(this.userCss);
-    this.video.classList.add(this.userCssClassName);
+    // browser checks and ignores duplicate classes, so no point in checking whether we've already
+    // added the extra class ourselves on top of that. Twice the work, but not much benefit
+    this.video.classList.add(this.userCssClassName); 
 
     if (this.restore_wd) {
       if (!this.video){

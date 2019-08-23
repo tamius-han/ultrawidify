@@ -224,6 +224,9 @@ class CommsServer {
       this.server.removeCss(message.cssString, sender);
       return;
     }
+    if (message.cmd === 'replace-css') {
+      this.server.replaceCss(message.oldCssString, message.newCssString, sender);
+    }
 
     if (message.forwardToContentScript) {
       if (Debug.debug && Debug.comms) {
