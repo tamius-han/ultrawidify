@@ -1,6 +1,6 @@
 // Set prod to true when releasing
-const _prod = true; 
-// const _prod = false; 
+// const _prod = true; 
+const _prod = false; 
 
 var Debug = {
   // performanceMetrics: true, // should not be affected by debug.debug in order to allow benchmarking of the impact logging in console has
@@ -19,7 +19,7 @@ var Debug = {
   // flushStoredSettings: false,
   // playerDetect: true,
   // periodic: true,
-  // videoRescan: true,
+  // // videoRescan: true,
   // mousemove: true,
   // arDetect: {
     // edgeDetect: true

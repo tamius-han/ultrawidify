@@ -41,6 +41,20 @@ class PageInfo {
     this.currentZoomScale = 1;
   }
 
+  injectCss(cssString) {
+    this.comms.sendMessage({
+      cmd: 'inject-css',
+      cssString: cssString
+    });
+  }
+
+  ejectCss(cssString) {
+    this.comms.sendMessage({
+      cmd: 'eject-css',
+      cssString: cssString
+    });
+  }
+
   destroy() {
     if(Debug.debug || Debug.init){
       console.log("[PageInfo::destroy] destroying all videos!")
