@@ -58,7 +58,7 @@ class UWServer {
         console.log("[uwbg::injectCss] Injecting CSS:", css, sender);
       }
       if (BrowserDetect.firefox || BrowserDetect.edge) {
-        await browser.tabs.insertCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
+        browser.tabs.insertCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
       } else if (BrowserDetect.chrome) {
         chrome.tabs.insertCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
       }
@@ -68,12 +68,17 @@ class UWServer {
       }
     }
   }
-  removetCss(css, sender) {
+  async removeCss(css, sender) {
     if (BrowserDetect.firefox || BrowserDetect.edge) {
       browser.tabs.removeCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
     } else if (BrowserDetect.chrome) {
       chrome.tabs.removeCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
     }
+  }
+
+  async replaceCss(oldCss, newCss, sender) {
+    this.injectCss(newCss, sender);
+    this.removeCss(oldCss, sender);
   }
 
   scheduleGc(timeout) {
