@@ -69,16 +69,21 @@ class UWServer {
     }
   }
   async removeCss(css, sender) {
-    if (BrowserDetect.firefox || BrowserDetect.edge) {
-      browser.tabs.removeCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
-    } else if (BrowserDetect.chrome) {
-      chrome.tabs.removeCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
-    }
+    try {
+      if (BrowserDetect.firefox || BrowserDetect.edge) {
+        browser.tabs.removeCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
+      } else if (BrowserDetect.chrome) {
+        // this doesn't work currently, but hopefully chrome will get this feature in the future
+        chrome.tabs.removeCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
+      }
+    } catch (e) { }
   }
 
   async replaceCss(oldCss, newCss, sender) {
-    this.injectCss(newCss, sender);
-    this.removeCss(oldCss, sender);
+    if (oldCss !== newCss) {
+      this.injectCss(newCss, sender);
+      this.removeCss(oldCss, sender);
+    }
   }
 
   scheduleGc(timeout) {
