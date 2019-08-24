@@ -247,91 +247,91 @@ class EdgeDetect{
     var bottomEdgeCount = 0;
       
     try {
-    for (const sample of samples.res_top){
-      blackEdgeViolation = false; // reset this
-      
-      // determine our bounds. Note that sample.col is _not_ corrected for imageData, but halfSample is
-      sampleStart = (sample.col << 2) - this.halfSample;
-      
-      if(sampleStart < 0)
-        sampleStart = 0;
-      
-      sampleEnd = sampleStart + this.sampleWidthBase;
-      if(sampleEnd > this.conf.canvasImageDataRowLength)
-        sampleEnd = this.conf.canvasImageDataRowLength;
-      
-      // calculate row offsets for imageData array
-      sampleRow_black = (sample.black - this.settings.active.arDetect.edgeDetection.edgeTolerancePx - 1) * this.conf.canvasImageDataRowLength;
-      sampleRow_color = (sample.black + this.settings.active.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
-      
-      // že ena kršitev črnega roba pomeni, da kandidat ni primeren
-      // even a single black edge violation means the candidate is not an edge
-      loopEnd = sampleRow_black + sampleEnd;
+      for (const sample of samples.res_top){
+        blackEdgeViolation = false; // reset this
+        
+        // determine our bounds. Note that sample.col is _not_ corrected for imageData, but halfSample is
+        sampleStart = (sample.col << 2) - this.halfSample;
+        
+        if(sampleStart < 0)
+          sampleStart = 0;
+        
+        sampleEnd = sampleStart + this.sampleWidthBase;
+        if (sampleEnd > this.conf.canvasImageDataRowLength)
+          sampleEnd = this.conf.canvasImageDataRowLength;
+        
+        // calculate row offsets for imageData array
+        sampleRow_black = (sample.black - this.settings.active.arDetect.edgeDetection.edgeTolerancePx - 1) * this.conf.canvasImageDataRowLength;
+        sampleRow_color = (sample.black + this.settings.active.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
+        
+        // že ena kršitev črnega roba pomeni, da kandidat ni primeren
+        // even a single black edge violation means the candidate is not an edge
+        loopEnd = sampleRow_black + sampleEnd;
 
-      if(Debug.debugCanvas.enabled){
-        blackEdgeViolation = this._blackbarTest_dbg(image, sampleRow_black + sampleStart, loopEnd);
-      } else {
-        blackEdgeViolation = this._blackbarTest(image, sampleRow_black + sampleStart, loopEnd);
-      }
+        if (Debug.debugCanvas.enabled){
+          blackEdgeViolation = this._blackbarTest_dbg(image, sampleRow_black + sampleStart, loopEnd);
+        } else {
+          blackEdgeViolation = this._blackbarTest(image, sampleRow_black + sampleStart, loopEnd);
+        }
 
-      // če je bila črna črta skrunjena, preverimo naslednjega kandidata
-      // if we failed, we continue our search with the next candidate
-      if (blackEdgeViolation) {
-        continue;
-      }
-      
-      detections = 0;
-      loopEnd = sampleRow_color + sampleEnd;
+        // če je bila črna črta skrunjena, preverimo naslednjega kandidata
+        // if we failed, we continue our search with the next candidate
+        if (blackEdgeViolation) {
+          continue;
+        }
+        
+        detections = 0;
+        loopEnd = sampleRow_color + sampleEnd;
 
-      if(Debug.debugCanvas.enabled) {
-        this._imageTest_dbg(image, sampleRow_color + sampleStart, loopEnd, sample.black, edgeCandidatesTop)
-      } else {
-        this._imageTest(image, sampleRow_color + sampleStart, loopEnd, sample.black, edgeCandidatesTop);
-      }
-    }
-    
-    for (const sample of samples.res_bottom){
-      blackEdgeViolation = false; // reset this
-      
-      // determine our bounds. Note that sample.col is _not_ corrected for imageData, but this.halfSample is
-      sampleStart = (sample.col << 2) - this.halfSample;
-      
-      if(sampleStart < 0)
-        sampleStart = 0;
-      
-      sampleEnd = sampleStart + this.sampleWidthBase;
-      if(sampleEnd > this.conf.canvasImageDataRowLength)
-        sampleEnd = this.conf.canvasImageDataRowLength;
-      
-      // calculate row offsets for imageData array
-      sampleRow_black = (sample.black + this.settings.active.arDetect.edgeDetection.edgeTolerancePx + 1) * this.conf.canvasImageDataRowLength;
-      sampleRow_color = (sample.black - this.settings.active.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
-      
-      // že ena kršitev črnega roba pomeni, da kandidat ni primeren
-      // even a single black edge violation means the candidate is not an edge
-      loopEnd = sampleRow_black + sampleEnd;
-      
-      if(Debug.debugCanvas.enabled){
-        blackEdgeViolation = this._blackbarTest_dbg(image, sampleRow_black + sampleStart, loopEnd);
-      } else {
-        blackEdgeViolation = this._blackbarTest(image, sampleRow_black + sampleStart, loopEnd);
+        if (Debug.debugCanvas.enabled) {
+          this._imageTest_dbg(image, sampleRow_color + sampleStart, loopEnd, sample.black, edgeCandidatesTop)
+        } else {
+          this._imageTest(image, sampleRow_color + sampleStart, loopEnd, sample.black, edgeCandidatesTop);
+        }
       }
       
-      // če je bila črna črta skrunjena, preverimo naslednjega kandidata
-      // if we failed, we continue our search with the next candidate
-      if (blackEdgeViolation) {
-        continue;
-      }
-      
-      detections = 0;
-      loopEnd = sampleRow_color + sampleEnd;
+      for (const sample of samples.res_bottom){
+        blackEdgeViolation = false; // reset this
+        
+        // determine our bounds. Note that sample.col is _not_ corrected for imageData, but this.halfSample is
+        sampleStart = (sample.col << 2) - this.halfSample;
+        
+        if(sampleStart < 0)
+          sampleStart = 0;
+        
+        sampleEnd = sampleStart + this.sampleWidthBase;
+        if(sampleEnd > this.conf.canvasImageDataRowLength)
+          sampleEnd = this.conf.canvasImageDataRowLength;
+        
+        // calculate row offsets for imageData array
+        sampleRow_black = (sample.black + this.settings.active.arDetect.edgeDetection.edgeTolerancePx + 1) * this.conf.canvasImageDataRowLength;
+        sampleRow_color = (sample.black - this.settings.active.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
+        
+        // že ena kršitev črnega roba pomeni, da kandidat ni primeren
+        // even a single black edge violation means the candidate is not an edge
+        loopEnd = sampleRow_black + sampleEnd;
+        
+        if(Debug.debugCanvas.enabled){
+          blackEdgeViolation = this._blackbarTest_dbg(image, sampleRow_black + sampleStart, loopEnd);
+        } else {
+          blackEdgeViolation = this._blackbarTest(image, sampleRow_black + sampleStart, loopEnd);
+        }
+        
+        // če je bila črna črta skrunjena, preverimo naslednjega kandidata
+        // if we failed, we continue our search with the next candidate
+        if (blackEdgeViolation) {
+          continue;
+        }
+        
+        detections = 0;
+        loopEnd = sampleRow_color + sampleEnd;
 
-      if(Debug.debugCanvas.enabled) {
-        this._imageTest_dbg(image, sampleRow_color + sampleStart, loopEnd, sample.black, edgeCandidatesBottom);
-      } else {
-        this._imageTest(image, sampleRow_color + sampleStart, loopEnd, sample.black, edgeCandidatesBottom);
+        if(Debug.debugCanvas.enabled) {
+          this._imageTest_dbg(image, sampleRow_color + sampleStart, loopEnd, sample.black, edgeCandidatesBottom);
+        } else {
+          this._imageTest(image, sampleRow_color + sampleStart, loopEnd, sample.black, edgeCandidatesBottom);
+        }
       }
-    }
     } catch (e) {
       console.log("\n\nuwu fucky wucky:", e, "\n\n")
     }
@@ -623,7 +623,9 @@ class EdgeDetect{
 
     if (reverseSearchDirection) {
       increment = -this.conf.canvasImageDataRowLength;
-      arrayStart = bottom - this.conf.canvasImageDataRowLength;
+      // don't subtract this.conf.canvasImageDataRowLength — it has already been accounted for
+      // when we calculated bottom and top
+      arrayStart = bottom; 
       arrayEnd = top;
 
       // this is a hack so we get pointer-like things rather than values
