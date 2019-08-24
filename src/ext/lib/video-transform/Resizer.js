@@ -650,7 +650,8 @@ class Resizer {
     if (!this.userCss) {
       this.injectCss(newCssString);
       this.userCss = newCssString;
-    } else {
+    } else if (newCssString !== this.userCss) {
+      // we only replace css if it
       this.replaceCss(this.userCss, newCssString);
       this.userCss = newCssString;
     }
