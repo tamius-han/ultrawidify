@@ -24,8 +24,6 @@ class Resizer {
     this.stretcher = new Stretcher(this.conf); 
     this.zoom = new Zoom(this.conf);
 
-    this.cssCheckDisabled = false;
-
     // load up default values
     this.correctedVideoDimensions = {};
     this.currentCss = {};
@@ -33,16 +31,6 @@ class Resizer {
     this.currentPlayerStyleString = "";
     this.currentCssValidFor = {};
 
-    // restore watchdog. While true, applyCss() tries to re-apply new css until this value becomes false again
-    // value becomes false when width and height of <video> tag match with what we want to set. Only necessary when
-    // calling _res_restore() for some weird reason.
-    this.restore_wd = false;
-
-    // CSS watcher will trigger _very_ often for this many iterations
-    this.cssWatcherIncreasedFrequencyCounter = 0;
-
-    
-    // this.lastAr = this.settings.getDefaultAr();                 // this is the aspect ratio we start with
     this.lastAr = {type: AspectRatio.Initial};
     this.videoAlignment = this.settings.getDefaultVideoAlignment(window.location.hostname); // this is initial video alignment
     this.destroyed = false;
@@ -50,7 +38,7 @@ class Resizer {
     this.resizerId = (Math.random(99)*100).toFixed(0);
 
     if (this.settings.active.pan) {
-      console.log("can pan:", this.settings.active.miscSettings.mousePan.enabled, "(default:", this.settings.active.miscSettings.mousePan.enabled, ")")
+      // console.log("can pan:", this.settings.active.miscSettings.mousePan.enabled, "(default:", this.settings.active.miscSettings.mousePan.enabled, ")")
       this.canPan = this.settings.active.miscSettings.mousePan.enabled;
     } else {
       this.canPan = false;
@@ -60,16 +48,6 @@ class Resizer {
     this.userCssClassName = videoData.userCssClassName; 
   }
   
-  start(){
-    if(!this.destroyed) {
-      this.startCssWatcher();
-    }
-  }
-
-  stop(){
-    this.stopCssWatcher();
-  }
-
   injectCss(css) {
     this.conf.pageInfo.injectCss(css);
   }
@@ -91,7 +69,6 @@ class Resizer {
       console.log(`[Resizer::destroy] <rid:${this.resizerId}> received destroy command.`);
     }
     this.destroyed = true;
-    this.stopCssWatcher();
   }
 
   calculateRatioForLegacyOptions(ar){
@@ -233,11 +210,6 @@ class Resizer {
       this.conf.destroy();
     }
 
-    if (this.extensionMode === ExtensionMode.Enabled || PlayerData.isFullScreen()) {
-      this.startCssWatcher();
-    }
-    this.cssWatcherIncreasedFrequencyCounter = 20;
-
     // // pause AR on basic stretch, unpause when using other mdoes
     // fir sine reason unpause doesn't unpause. investigate that later
     try {
@@ -267,13 +239,8 @@ class Resizer {
           if(Debug.debug){
             console.log("[Resizer::setAr] <rid:"+this.resizerId+"> Illegal video dimensions found. We will pause everything.");
           }
-          // if we get illegal video dimensions, cssWatcher goes nuts. This is harmful,
-          // so we stop it until that sorts itself out
-          this.stopCssWatcher();
         }
         return;
-      } else {
-        this.startCssWatcher();
       }
       if(this.stretcher.mode === Stretch.Conditional){
          this.stretcher.applyConditionalStretch(stretchFactors, ar.ratio);
@@ -373,74 +340,12 @@ class Resizer {
     this.restore();
   }
 
-  startCssWatcher(){
-    if(Debug.debug) {
-      console.log("[Resizer.js::startCssWatcher] starting css watcher. Is resizer destroyed?", this.destroyed);
-    }
-    if (this.destroyed) {
-      return;
-    }
-
-    this.cssCheckDisabled = false;
-
-    if(!this.cssWatcherTimer){
-      this.scheduleCssWatcher(1);
-    } else {
-      clearTimeout(this.cssWatcherTimer);
-      this.scheduleCssWatcher(1);
-    }
-  }
-  
-  scheduleCssWatcher(timeout, force_reset) {
-    if (this.destroyed || (this.extensionMode !== ExtensionMode.Enabled && !PlayerData.isFullScreen())) {
-      return;
-    }
-
-    if(timeout === undefined) {
-      this.cssCheck(); // no timeout = one-off
-      return;
-    }
-
-    // one extra check to ensure we don't run css checks when we aren't supposed to
-    if (this.cssCheckDisabled) {
-      return;
-    }
-
-    if(this.cssWatcherTimeout) {
-      clearTimeout(this.cssWatcherTimer);
-    }
-
-    var ths = this;
-    this.cssWatcherTimer = setTimeout(function () {
-        ths.cssWatcherTimer = null;
-        try {
-          if (! ths.cssCheckDisabled) {
-            ths.cssCheck();
-          }
-        } catch (e) {
-          if(Debug.debug) {
-            console.log("[Resizer.js::scheduleCssWatcher] Css check failed. Error:", e);
-          }
-        }
-      }, timeout);
-  }
-
-  stopCssWatcher() {
-    if (Debug.debug) {
-      console.log(`[Resizer.js] <${this.resizerId}> STOPPING CSS WATCHER!`)
-    }
-    this.cssCheckDisabled = true;
-    clearInterval(this.cssWatcherTimeout);
-  }
-
   restore() {
     if(Debug.debug){
       console.log("[Resizer::restore] <rid:"+this.resizerId+"> attempting to restore aspect ratio. this & settings:", {'a_lastAr': this.lastAr, 'this': this, "settings": this.settings} );
     }
     
     // this is true until we verify that css has actually been applied
-    this.restore_wd = true;
-    
     if(this.lastAr.type === AspectRatio.Initial){
       this.setAr({type: AspectRatio.Reset});
     }
@@ -654,80 +559,6 @@ class Resizer {
       // we only replace css if it
       this.replaceCss(this.userCss, newCssString);
       this.userCss = newCssString;
-    }
-
-    // browser checks and ignores duplicate classes, so no point in checking whether we've already
-    // added the extra class ourselves on top of that. Twice the work, but not much benefit
-    this.video.classList.add(this.userCssClassName); 
-
-    if (this.restore_wd) {
-      if (!this.video){
-        if(Debug.debug)
-          console.log("[Resizer::_res_setStyleString] <rid:"+this.resizerId+"> Video element went missing, nothing to do here.")
-        return;
-      }
-      this.restore_wd = false;
-    }
-    else{
-      if(Debug.debug)
-        console.log("[Resizer::_res_setStyleString] <rid:"+this.resizerId+"> css applied. Style string:", styleString);
-    }
-  }
-
-  cssCheck(){
-    if (this.cssCheckDisabled) {
-      throw "fucking dont"
-      return;
-    }
-    // this means we haven't set our CSS yet, or that we changed video.
-    // if(! this.currentCss.tranform) {
-    //   this.scheduleCssWatcher(200);      
-    //   return;
-    // }
-    
-    // this means video went missing. videoData will be re-initialized when the next video is found
-    if (!this.video){
-      if(Debug.debug && Debug.resizer) {
-        console.log("[Resizer::cssCheck] <rid:"+this.resizerId+"> no video detecting, issuing destroy command");
-      }
-      this.conf.destroy();
-      return;
-    }
-    
-    if(this.destroyed) {
-      if(Debug.debug && Debug.resizer) {
-        console.log("[Resizer::cssCheck] <rid:"+this.resizerId+"> destroyed flag is set, we shouldnt be running");
-      }
-      this.stopCssWatcher();
-      return;
-    }
-
-    let cssValid = true;
-
-    // first, a quick test:
-    cssValid &= this.currentVideoSettings.validFor.width === this.conf.player.dimensions.width;
-
-    if (cssValid) {
-      cssValid &= this.video.classList.contains(this.userCssClassName);
-    }
-    if (cssValid && this.currentPlayerStyleString) {  // only check for changes to player element if we applied them before
-      const playerStyleString = this.player.element.getAttribute('style'); 
-      cssValid &= this.currentPlayerStyleString === playerStyleString;
-    }
-    if (!cssValid){
-      if(Debug.debug && Debug.resizer) {
-        console.log(`%c[Resizer::cssCheck] <rid:${this.resizerId}> something touched our style string. We need to re-apply the style.`, {background: '#ddf', color: '#007'});
-      }
-      this.restore();
-      this.scheduleCssWatcher(10);
-
-      return;
-    }
-    if (this.cssWatcherIncreasedFrequencyCounter > 0) {
-      --this.cssWatcherIncreasedFrequencyCounter;
-        this.scheduleCssWatcher(20);
-    } else {
-      this.scheduleCssWatcher(1000);    
     }
   }
 }
