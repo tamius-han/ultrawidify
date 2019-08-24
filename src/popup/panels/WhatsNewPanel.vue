@@ -2,22 +2,28 @@
   <div>
     <h2>What's new</h2>
     <p>Full changelog for older versions <a href="https://github.com/xternal7/ultrawidify/blob/master/CHANGELOG.md">is available here</a>.</p>
-    <p class="label">4.2.2</p>
+    <p class="label">4.2.3</p>
     <ul>
-      <li>Fixed alignment issues for reddit on videos from v.reddit</li>
-      <li>Some people reported issues with inconsistent video alignment on youtube. While I've not been able to make that bug happen to me,
-        (which means I haven't been able to fix it either), reports describe behaviour similar to what was going on with Iridium. Examining
-        the Iridium issue revealed an issue that could be potentially blamed for this behaviour. That issue was fixed. Since I've never been able to make this problem
-        happen to me, I'm not being able to verify whether that issue is gone. <b>If you're still experiencing issues with inconsistent video alignment,
-          please contact me via github, reddit or email.</b> See 'Report a problem' tab for more details.</li>
+      <li>Fixed twitchy behaviour on Twitch, Facebook and Twatter. Here's a <a href="https://stuff.tamius.net/sacred-texts/2019/08/24/ultrawidify-the-twitchy-twitch-problem/" target="_blank">blog post</a> that covers the issue in more detail.</li>
+      <li>Cropping now uses user styles (as opposed to modifying element's style attribute)</li>
+      <li>Fixed the issue where one-pixel letterbox would result in constant aspect ratio corrections.</li>
+      <li>Started using mutation observers to watch for anything modifying the size of our video.</li>
     </ul>
-
-    
+    <p>As you can tell, I don't leave reddit and youtube much. To be fair, the twitching issue was intermittent on twitch.</p>
+    <p v-if="BrowserDetect.Chrome"><b>Chrome users:</b> as a result of Chrome's shortcomings, there now exists one potential performance issue.
+    If you notice any performance issues, please contact me via github, email or reddit (see: 'report a problem' tab
+    of this popup).</p>
   </div>
 </template>
 <script>
-export default {
+import BrowserDetect from '../../ext/conf/BrowserDetect';
 
+export default {
+  data () {
+    return {
+      BrowserDetect: BrowserDetect
+    }
+  }
 }
 </script>
 

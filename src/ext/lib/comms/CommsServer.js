@@ -220,9 +220,12 @@ class CommsServer {
       this.server.injectCss(message.cssString, sender);
       return;
     }
-    if (message.cmd === 'remove-css') {
+    if (message.cmd === 'remove-css' || message.cmd === 'eject-css') {
       this.server.removeCss(message.cssString, sender);
       return;
+    }
+    if (message.cmd === 'replace-css') {
+      this.server.replaceCss(message.oldCssString, message.newCssString, sender);
     }
 
     if (message.forwardToContentScript) {

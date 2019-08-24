@@ -517,7 +517,7 @@
         <div class="flex flex-input">
           <input type="checkbox"
                  v-model="settings.active.arDetect.guardLine.enabled"
-          /> Enable guardline</span>
+          /> Enable guardline
         </div>
       </div>
       <div class="flex flex-row row-padding">
