@@ -16,8 +16,14 @@
   </div>
 </template>
 <script>
-export default {
+import BrowserDetect from '../../ext/conf/BrowserDetect';
 
+export default {
+  data () {
+    return {
+      BrowserDetect: BrowserDetect
+    }
+  }
 }
 </script>
 

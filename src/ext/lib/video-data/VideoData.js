@@ -14,6 +14,19 @@ class VideoData {
     this.extensionMode = pageInfo.extensionMode;
     this.logger = logger;
 
+    this.vdid = (Math.random()*100).toFixed();
+    this.userCssClassName = `uw-fuck-you-and-do-what-i-tell-you_${this.vdid}`;
+
+
+    // We'll replace cssWatcher (in resizer) with mutationObserver
+    const observerConf = {
+      attributes: true,
+      // attributeFilter: ['style', 'class'],
+      attributeOldValue: true,
+    };
+    this.observer = new MutationObserver(this.onVideoDimensionsChanged);
+    this.observer.observe(video, observerConf);
+
     // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
     // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)    
     this.player = new PlayerData(this, logger);
@@ -28,10 +41,38 @@ class VideoData {
     this.resizer.reset();
 
     
-    this.vdid = (Math.random()*100).toFixed();
-    this.logger.log('info', 'init', "[VideoData::ctor] Created videoData with vdid", this.vdid,"\nextension mode:", this.extensionMode);
+    if (Debug.init) {
+      console.log("[VideoData::ctor] Created videoData with vdid", this.vdid,"\nextension mode:", this.extensionMode);
+    }
 
     this.pageInfo.initMouseActionHandler(this);
+
+    this.video.classList.add(this.userCssClassName); // this also needs to be applied BEFORE we initialize resizer!
+  }
+
+  onVideoDimensionsChanged(mutationList, observer) {
+    for (let mutation of mutationList) {
+      if (mutation.type === 'attributes') {
+        console.log("video attributes were changed:", mutation)
+        if (mutation.attributeName === 'class') {
+          if (!this.video.classList.contains(this.userCssClassName)) {
+            console.log("class changed!")
+            // force the page to include our class in classlist, if the classlist has been removed
+            this.video.classList.add(this.userCssClassName);
+
+          // } else if () {
+            // this bug should really get 
+          } else {
+              this.restoreAr();
+          }
+        } else if (mutation.attributeName === 'style' && mutation.attributeOldValue !== this.video.getAttribute('style')) {
+          console.log("style changed")
+          // if size of the video has changed, this may mean we need to recalculate/reapply
+          // last calculated aspect ratio
+          this.restoreAr();
+        }
+      }
+    }
   }
 
   firstTimeArdInit(){
