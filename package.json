@@ -1,6 +1,6 @@
 {
   "name": "ultravidify",
-  "version": "4.2.1",
+  "version": "4.2.3",
   "description": "Aspect ratio fixer for youtube that works around some people's disability to properly encode 21:9 (and sometimes, 16:9) videos.",
   "author": "Tamius Han <tamius.han@gmail.com>",
   "scripts": {
@@ -13,7 +13,7 @@
     "build-edge:dev": "cross-env NODE_ENV=development BROWSER=edge webpack --hide-modules",
     "build-zip": "node scripts/build-zip.js",
     "watch": "npm run build -- --watch",
-    "watch-chrome": "npm run build-chrome-- --watch",
+    "watch-chrome": "npm run build-chrome -- --watch",
     "watch-edge": "npm run build-edge -- --watch",
     "watch:dev": "cross-env HMR=true npm run build:dev -- --watch",
     "watch-chrome:dev": "cross-env HMR=true npm run build-chrome:dev -- --watch",
