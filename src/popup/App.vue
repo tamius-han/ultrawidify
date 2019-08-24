@@ -34,7 +34,7 @@
                   class="tabitem ltr"
                   :class="{
                     'tabitem-selected': site.host === selectedSite,
-                    'tabitem-disabled': !settings.canStartExtension(site.host)
+                    'tabitem-disabled': (settings && !settings.canStartExtension(site.host))
                   }"
                   @click="selectSite(site.host)"
               >
@@ -59,7 +59,7 @@
                    class="tabitem ltr"
                    :class="{
                      'tabitem-selected': selectedFrame === frame.id,
-                     'disabled': !isDefaultFrame(frame.id) && !settings.canStartExtension(frame.label)
+                     'disabled': !isDefaultFrame(frame.id) && (settings && !settings.canStartExtension(frame.label))
                    }"
                    :key="frame.id"
                    @click="selectFrame(frame.id)"
@@ -100,7 +100,7 @@
             :class="{'selected-tab': selectedTab === 'whats-new'}"
             @click="selectTab('whats-new')"
         >
-          <div :class="{'new': !settings.active.whatsNewChecked}"
+          <div :class="{'new': settings && settings.active && !settings.active.whatsNewChecked}"
             >
             What's new?
           </div>
@@ -196,6 +196,7 @@ export default {
       siteTabDisabled: false,
       videoTabDisabled: false,
       canShowVideoTab: {canShow: true, warning: true},
+      showWhatsNew: false,
     }
   },
   async created() {
@@ -266,7 +267,6 @@ export default {
       this.selectedFrame = frame;
     },
     async updateConfig() {
-
       // when this runs, a site could have been enabled or disabled
       // this means we must update canShowVideoTab
       this.updateCanShowVideoTab();
@@ -278,6 +278,7 @@ export default {
 
       if (!this.settings) {
         this.canShowVideoTab = {canShow: true, warning: false};
+        return;
       }
       for (const site of this.activeSites) {
         t = this.settings.canStartExtension(site.host);
@@ -287,8 +288,8 @@ export default {
       if (t === undefined) {
         // something isn't the way it should be. Show sites.
         this.canShowVideoTab = {canShow: true, warning: true};
+        return;
       }
-
       this.canShowVideoTab = {canShow: canShow, warning: warning};
     },
     processReceivedMessage(message, port) {
@@ -330,7 +331,7 @@ export default {
         }
       }
 
-return true;
+      return true;
     },
     showFirstTab(videoTab) {
       // determine which tab to show.
@@ -381,6 +382,11 @@ return true;
 
       if (videoTab.frames.length < 2 || Object.keys(videoTab.frames).length < 2) {
         this.selectedFrame = '__all';
+        this.activeSites = [{
+          host: this.site.host,
+          isIFrame: false,  // not used tho. Maybe one day
+        }];
+        this.updateCanShowVideoTab(); // update whether video tab can be shown
         return;
       }
       for (const frame in videoTab.frames) {

@@ -120,6 +120,12 @@ class ActionHandler {
     }
   }
 
+  unregisterHandleMouse(videoData) {
+    var ths = this;
+    if (videoData.player && videoData.player.element) {
+      videoData.player.element.removeEventListener('mousemove', (event) => ths.handleMouseMove(event, videoData));
+    }
+  }
 
   setKeyboardLocal(state) {
     if (state === ExtensionMode.Enabled) {

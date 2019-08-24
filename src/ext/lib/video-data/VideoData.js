@@ -52,12 +52,16 @@ class VideoData {
   }
 
   onVideoDimensionsChanged(mutationList, observer) {
+    if (!mutationList || this.video === undefined) {  // something's wrong
+      if (observer && this.video) {
+        observer.disconnect();
+      }
+      return;
+    }
     for (let mutation of mutationList) {
       if (mutation.type === 'attributes') {
-        console.log("video attributes were changed:", mutation)
         if (mutation.attributeName === 'class') {
           if (!this.video.classList.contains(this.userCssClassName)) {
-            console.log("class changed!")
             // force the page to include our class in classlist, if the classlist has been removed
             this.video.classList.add(this.userCssClassName);
 
@@ -71,6 +75,13 @@ class VideoData {
           // if size of the video has changed, this may mean we need to recalculate/reapply
           // last calculated aspect ratio
           this.restoreAr();
+        } else if (mutation.attribute = 'src' && mutation.attributeOldValue !== this.video.getAttribute('src')) {
+          // try fixing alignment issue on video change
+          try {
+            this.restoreAr();
+          } catch (e) {
+            console.error("[VideoData::onVideoDimensionsChanged] There was an error when handling src change.", e);
+          }
         }
       }
     }
@@ -78,7 +89,8 @@ class VideoData {
 
   firstTimeArdInit(){
     if(this.destroyed) {
-      throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
+      // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
+      return;
     }
     if(! this.arSetupComplete){
       this.arDetector = new ArDetector(this);
@@ -87,7 +99,8 @@ class VideoData {
 
   initArDetection() {
     if(this.destroyed) {
-      throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
+      // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
+      return;
     }
     if(this.arDetector){
       this.arDetector.init();
@@ -103,7 +116,8 @@ class VideoData {
       console.log("[VideoData::startArDetection] starting AR detection")
     }
     if(this.destroyed) {
-      throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
+      // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
+      return;
     }
     if(!this.arDetector) {
       this.arDetector.init();
@@ -113,7 +127,8 @@ class VideoData {
 
   rebootArDetection() {
     if(this.destroyed) {
-      throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
+      // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
+      return;
     }
     this.arDetector.init();
   }
@@ -131,29 +146,37 @@ class VideoData {
 
     this.pause();
     this.destroyed = true;
-    if(this.arDetector){
-      this.arDetector.stop();
-      this.arDetector.destroy();
+    if (this.arDetector){
+      try {
+        this.arDetector.stop();
+        this.arDetector.destroy();
+      } catch (e) {}
     }
-    this.arDetector = null;
-    if(this.resizer){
-      this.resizer.destroy();
+    this.arDetector = undefined;
+    if (this.resizer){
+      try {
+       this.resizer.destroy();
+      } catch (e) {}
     }
-    this.resizer = null;
-    if(this.player){
-      this.player.destroy();
+    this.resizer = undefined;
+    if (this.player){
+      try {
+        this.player.destroy();
+      } catch (e) {}
     }
-    this.player = null;
-    this.video = null;
+    if (this.observer) {
+      try {
+        this.observer.disconnect();
+      } catch (e) {}
+    }
+    this.player = undefined;
+    this.video = undefined;
   }
 
   pause(){
     this.paused = true;
     if(this.arDetector){
       this.arDetector.stop();
-    }
-    if(this.resizer){
-      this.resizer.stop();
     }
     if(this.player){
       this.player.stop();
@@ -162,7 +185,8 @@ class VideoData {
 
   resume(){
     if(this.destroyed) {
-      throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
+      // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
+      return;
     }
     this.paused = false;
     try {
@@ -214,7 +238,8 @@ class VideoData {
 
   panHandler(event, forcePan) {
     if(this.destroyed) {
-      throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
+      // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
+      return;
     }
     if(!this.resizer) {
       this.destroy();
