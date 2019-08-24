@@ -705,18 +705,31 @@ class ArDetector {
   
     // we also know edges for guardline, so set them.
     // we need to be mindful of fallbackMode though
-    if (!this.fallbackMode) {
-      this.guardLine.setBlackbar({top: edgePost.guardLineTop, bottom: edgePost.guardLineBottom});
-    } else {
-      if (this.conf.player.dimensions){
-        this.guardLine.setBlackbarManual({
-          top: this.settings.active.arDetect.fallbackMode.noTriggerZonePx,
-          bottom: this.conf.player.dimensions.height - this.settings.active.arDetect.fallbackMode.noTriggerZonePx - 1
-        },{
-          top: edgePost.guardLineTop + this.settings.active.arDetect.guardLine.edgeTolerancePx,
-          bottom: edgePost.guardLineBottom - this.settings.active.arDetect.guardLine.edgeTolerancePx
-        })
+    // if edges are okay and not invalid, we also 
+    // allow automatic aspect ratio correction. If edges
+    // are bogus, we remain aspect ratio unchanged.
+    try {
+      if (!this.fallbackMode) {
+        // throws error if top/bottom are invalid
+        this.guardLine.setBlackbar({top: edgePost.guardLineTop, bottom: edgePost.guardLineBottom});
+      } else {
+        if (this.conf.player.dimensions){
+          this.guardLine.setBlackbarManual({
+            top: this.settings.active.arDetect.fallbackMode.noTriggerZonePx,
+            bottom: this.conf.player.dimensions.height - this.settings.active.arDetect.fallbackMode.noTriggerZonePx - 1
+          },{
+            top: edgePost.guardLineTop + this.settings.active.arDetect.guardLine.edgeTolerancePx,
+            bottom: edgePost.guardLineBottom - this.settings.active.arDetect.guardLine.edgeTolerancePx
+          })
+        }
       }
+
+      this.processAr(newAr);
+    } catch (e) {
+      // edges weren't gucci, so we'll just reset 
+      // the aspect ratio to defaults
+      this.guardline.reset();
+      this.conf.resizer.setAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
     }
 
     // }
