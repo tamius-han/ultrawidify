@@ -71,8 +71,12 @@ class PageInfo {
       clearTimeout(this.rescanTimer);
     }
     for (var video of this.videos) {
-      this.comms.unregisterVideo(video.id)
-      video.destroy();
+      try {
+        this.comms.unregisterVideo(video.id)
+        video.destroy();
+      } catch (e) {
+        console.log("unabel to destroy video!", e)
+      }
     }
 
     try {

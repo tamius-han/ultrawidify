@@ -14,6 +14,7 @@ class Settings {
   constructor(activeSettings, updateCallback) {
     this.active = activeSettings ? activeSettings : undefined;
     this.default = ExtensionConf;
+    this.default['version'] = this.getExtensionVersion();
     this.useSync = false;
     this.version = undefined;
     this.updateCallback = updateCallback;
@@ -63,11 +64,26 @@ class Settings {
     }
   }
 
+  getExtensionVersion() {
+    if (currentBrowser.firefox) {
+      return browser.runtime.getManifest().version;
+    } else if (currentBrowser.chrome) {
+      return chrome.runtime.getManifest().version;
+    } else if (currentBrowser.edge) {
+      return browser.runtime.getManifest().version;
+    }
+  }
+
   async init() {
     const settings = await this.get();
+    const oldVersion = settings.version;
+    const currentVersion = this.getExtensionVersion();
 
     if(Debug.debug) {
-      console.log("[Settings::init] Configuration fetched from storage:", settings);
+      console.log("[Settings::init] Configuration fetched from storage:", settings,
+                  "\nlast saved with:", settings.version,
+                  "\ncurrent version:", currentVersion
+                  );
 
       if (Debug.flushStoredSettings) {
         console.log("%c[Settings::init] Debug.flushStoredSettings is true. Using default settings", "background: #d00; color: #ffd");
@@ -96,18 +112,17 @@ class Settings {
     // if there's settings, set saved object as active settings
     this.active = settings;
 
-    // check if extension has been updated. If not, return settings as they were retreived
-    if (currentBrowser.firefox) {
-      this.version = browser.runtime.getManifest().version;
-    } else if (currentBrowser.chrome) {
-      this.version = chrome.runtime.getManifest().version;
-    } else if (currentBrowser.edge) {
-      this.version = browser.runtime.getManifest().version;
+    // from some point to 4.2.3.1, settings version wasn't saved. Fix that.
+    if (!settings.version) {
+      this.active.version = currentVersion;
     }
 
-    if(settings.version === this.version) {
+    // check if extension has been updated. If not, return settings as they were retreived
+    
+
+    if(oldVersion === currentVersion) {
       if(Debug.debug) {
-        console.log("[Settings::init] extension was saved with current version of ultrawidify (", this.version, "). Returning object as-is.");
+        console.log("[Settings::init] extension was saved with current version of ultrawidify. Returning object as-is.");
       }
 
       return this.active;
@@ -131,6 +146,8 @@ class Settings {
 
     // set 'whatsNewChecked' flag to false when updating
     this.active.whatsNewChecked = false;
+    // update settings version to current
+    this.active.version = currentVersion; 
 
     this.set(this.active);
     return this.active;
