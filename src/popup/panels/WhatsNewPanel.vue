@@ -23,7 +23,7 @@ export default {
     return {
       BrowserDetect: BrowserDetect
     }
-  }
+  },
 }
 </script>
 
