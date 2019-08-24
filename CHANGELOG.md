@@ -6,7 +6,19 @@
 
 * Settings page looks ugly af right now. Maybe fix it some time later
 
-### v4.2.1 (current)
+### v4.2.3 / 4.2.3.1
+
+* Fixed twitchy behaviour on Twitch, Facebook and Twatter. Here's a [blog post](https://stuff.tamius.net/sacred-texts/2019/08/24/ultrawidify-the-twitchy-twitch-problem/) that covers the issue in more detail.
+* Cropping now uses user styles (as opposed to modifying element's style attribute)
+* Fixed the issue where one-pixel letterbox would result in constant aspect ratio corrections.
+* Started using mutation observers to watch for anything modifying the size of our video.
+* **[4.2.3.1]** fixed some bugs in popup.
+
+### v4.2.2 
+* Fixed alignment issues for reddit on videos from v.reddit
+* Some people reported issues with inconsistent video alignment on youtube. While I've not been able to make that bug happen to me, (which means I haven't been able to fix it either), reports describe behaviour similar to what was going on with Iridium. Examining the Iridium issue revealed an issue that could be potentially blamed for this behaviour. That issue was fixed. Since I've never been able to make this problem happen to me, I'm not being able to verify whether that issue is gone. If you're still experiencing issues with inconsistent video alignment, please contact me via github, reddit or email. See 'Report a problem' tab for more details.
+
+### v4.2.1
 * Fixed bug where custom CSS didn't get applied to pages
 
 ### v4.2.0 
