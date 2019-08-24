@@ -11,6 +11,14 @@
 * Added user-friendly way to export/import settings
 * Reworked logging
 
+### v4.2.3 / 4.2.3.1
+
+* Fixed twitchy behaviour on Twitch, Facebook and Twatter. Here's a [blog post](https://stuff.tamius.net/sacred-texts/2019/08/24/ultrawidify-the-twitchy-twitch-problem/) that covers the issue in more detail.
+* Cropping now uses user styles (as opposed to modifying element's style attribute)
+* Fixed the issue where one-pixel letterbox would result in constant aspect ratio corrections.
+* Started using mutation observers to watch for anything modifying the size of our video.
+* **[4.2.3.1]** fixed some bugs in popup.
+
 ### v4.2.2 (current)
 
 * Fixed player detection on reddit (for videos from v.reddit)
