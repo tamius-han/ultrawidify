@@ -43,6 +43,8 @@ class PlayerData {
     this.overlayNode = undefined;
     this.logger = logger;
 
+    this.observer = new MutationObserver(this.onPlayerDimensionsChanged);
+
     if (this.extensionMode === ExtensionMode.Enabled) {
       this.getPlayerDimensions();
     }
@@ -51,6 +53,22 @@ class PlayerData {
 
   static isFullScreen(){
     return ( window.innerHeight == window.screen.height && window.innerWidth == window.screen.width);
+  }
+
+  // player size observer may not be strictly necessary here
+  onPlayerDimensionsChanged(mutationList, observer) {
+    if (!mutationList || this.element === undefined) {  // something's wrong
+      return;
+    }
+    for (let mutation of mutationList) {
+      if (mutation.type === 'attributes') {
+        if (mutation.attributeName === 'style' && this.checkPlayerSizeChange()) {
+          // if size of the player has changed, this may mean we need to recalculate/reapply
+          // last calculated aspect ratio
+          this.videoData.resizer.restore();
+        } 
+      }
+    }
   }
 
 
@@ -69,10 +87,23 @@ class PlayerData {
   }
 
   startChangeDetection(){
-    this.scheduleGhettoWatcher();
+    const isFullScreen = PlayerData.isFullScreen();
+    const element = this.getPlayer(isFullScreen);
+    
+    if (!element) {
+      return;
+    }
+
+    const observerConf = {
+      attributes: true,
+      // attributeFilter: ['style', 'class'],
+      attributeOldValue: true,
+    };
+    
+    this.observer.observe(element, observerConf);
   }
   stopChangeDetection(){
-    clearTimeout(this.watchTimeout);
+    this.observer.disconnect();
   }
 
   makeOverlay() {
@@ -123,98 +154,6 @@ class PlayerData {
       this.playerIdElement.remove();
     }
     this.playerIdElement = undefined;
-  }
-
-  scheduleGhettoWatcher(timeout, force_reset) {
-    if(! timeout){
-      timeout = 100;
-    }
-    if(this.halted){
-      return;
-    }
-
-    // don't allow more than 1 instance
-    if(this.watchTimeout){ 
-      clearTimeout(this.watchTimeout);
-    }
-    
-    var ths = this;
-
-    this.watchTimeout = setTimeout(function(){
-        ths.watchTimeout = null;
-        try{
-          ths.ghettoWatcher();
-        } catch(e) {
-          this.logger.log('info', 'debug', "[PlayerData::scheduleGhettoWatcher] Scheduling failed. Error:",e)
-
-          ths.scheduleGhettoWatcher(1000);
-        }
-        ths = null;
-      },
-      timeout
-    );
-  }
-
-  ghettoWatcherFull() {
-    if(this.checkPlayerSizeChange()){
-      this.logger.log('info', 'debug', "[uw::ghettoOnChange] change detected");
-
-      this.getPlayerDimensions();
-      if(! this.element ){
-        return;
-      }
-
-      this.videoData.resizer.restore(); // note: this returns true if change goes through, false otherwise.
-      return;
-    }
-
-    // sem ter tja, checkPlayerSizeChange() ne zazna prehoda v celozaslonski način (in iz njega). Zato moramo
-    // uporabiti dodatne trike.
-    // sometimes, checkPlayerSizeChange might not detect a change to fullscreen. This means we need to 
-    // trick it into doing that
-
-    if(this.dimensions.fullscreen != PlayerData.isFullScreen()) {
-      this.logger.log('info', 'debug', "[PlayerData::ghettoWatcher] fullscreen switch detected (basic change detection failed)");
-
-      this.getPlayerDimensions();
-
-      if(! this.element ){
-        return;
-      }
-
-      this.videoData.resizer.restore();
-    }
-  }
-
-  ghettoWatcherBasic() {
-    if (this.checkFullscreenChange()) {
-      if (PlayerData.isFullScreen()) {
-        const lastAr = this.videoData.resizer.getLastAr();    // save last ar for restore later
-
-        this.videoData.resizer.restore();
-
-        if (lastAr.type === 'original' || lastAr.type === AspectRatio.Automatic) {
-          this.videoData.rebootArDetection();
-        }
-      } else {
-        const lastAr = this.videoData.resizer.getLastAr();    // save last ar for restore later
-        this.videoData.resizer.reset();
-        this.videoData.resizer.stop();
-        this.videoData.stopArDetection();
-        this.videoData.resizer.setLastAr(lastAr);
-      }
-    }
-  }
-
-  ghettoWatcher(){
-    if (this.extensionMode === ExtensionMode.Enabled) {
-      this.ghettoWatcherFull();
-      this.scheduleGhettoWatcher();
-    } else if (this.extensionMode === ExtensionMode.Basic) {
-      this.ghettoWatcherBasic();
-      this.scheduleGhettoWatcher();
-    }
-
   }
 
   collectionHas(collection, element) {
@@ -314,7 +253,7 @@ class PlayerData {
   }
 
 
-  getPlayerDimensions(){
+  getPlayerDimensions() {
     const isFullScreen = PlayerData.isFullScreen();
 
     const element = this.getPlayer(isFullScreen);
@@ -351,15 +290,9 @@ class PlayerData {
   }
 
   checkPlayerSizeChange(){
+    // this 'if' is just here for debugging — real code starts later. It's safe to collapse and
+    // ignore the contents of this if (unless we need to change how logging works)
     if (this.logger.canLog('debug')){
-      if(this.element == undefined){
-        // return true;
-      }
-      
-      // if(!this.dimensions) {
-        // return true;
-      // }
-
       if (this.dimensions && this.dimensions.fullscreen){
         if(! PlayerData.isFullScreen()){
           this.logger.log('info', 'debug', "[PlayerDetect] player size changed. reason: exited fullscreen");
@@ -377,7 +310,7 @@ class PlayerData {
       }
     }
     
-    if(this.element == undefined){
+    if (this.element == undefined){
       return true;
     } else if(this.dimensions.width != this.element.offsetWidth || this.dimensions.height != this.element.offsetHeight ){
       return true;
