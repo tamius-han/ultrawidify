@@ -70,7 +70,6 @@ class VideoData {
               this.restoreAr();
           }
         } else if (mutation.attributeName === 'style' && mutation.attributeOldValue !== this.video.getAttribute('style')) {
-          console.log("style changed")
           // if size of the video has changed, this may mean we need to recalculate/reapply
           // last calculated aspect ratio
           this.restoreAr();
