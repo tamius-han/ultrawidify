@@ -55,8 +55,36 @@ class UW {
       await this.settings.init();
     }
   
+    try {
     if (!this.logger) {
-      this.logger = new Logger(this.settings.getLoggingOptions);
+      const loggingOptions = {
+        logToFile: false,
+        logToConsole: true,
+        fileOptions: {
+          // really the same stuff as consoleOptions
+        },
+        consoleOptions: {
+          enabled: true, // if logging is enabled at all
+          'debug': true,
+          'init': true,
+          'keyboard': false,
+          'mousemove': false,
+          'actionHandler': false,
+          'comms': true,
+          'playerDetect': true,
+          'resizer': true,
+          'scaler': true,
+          'stretcher': true,
+          'videoRescan': false,
+          'arDetect': false,
+          'arDetect_verbose': false,
+        }
+      };      
+      // this.logger = new Logger(this.settings.getLoggingOptions);
+      this.logger = new Logger(loggingOptions);
+    }
+    } catch (e) {
+      console.error("logger init failed!", e)
     }
 
     this.comms = new CommsClient('content-client-port', this.settings, this.logger);

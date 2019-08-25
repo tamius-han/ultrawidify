@@ -4,16 +4,14 @@ const _prod = false;
 
 var Debug = {
   // performanceMetrics: true, // should not be affected by debug.debug in order to allow benchmarking of the impact logging in console has
-  // init: true,
-  // debug: true,
+  init: true,
+  debug: true,
   // keyboard: true,
-  // resizer: true,
+  resizer: true,
   // debugArDetect: true,
   // scaler: true,
-  // debugStorage: false,
   // debugStorage: true,
-  // comms: false,
-  // comms: true,
+  comms: true,
   // showArDetectCanvas: true,
   // flushStoredSettings: true,
   // flushStoredSettings: false,

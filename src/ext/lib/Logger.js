@@ -68,20 +68,19 @@ class Logger {
     if (!this.conf.consoleOptions.enabled || this.temp_disable) {
       return false;
     }
-    if (component.length) {
+    if (Array.isArray(component) && component.length) {
       for (const c in component) {
-        if (this.conf.fileOptions[component]) {
-          return this.conf.fileOptions[component];
+        if (this.conf.consoleOptions[component]) {
+          return this.conf.consoleOptions[component];
         }
       }
     } 
-    return this.conf.fileOptions[component];
+    return this.conf.consoleOptions[component];
   }
 
   // level is unused as of now, but this may change in the future
   // levels: 'info', 'warn', 'error'
   log(level, component, ...message) {
-
     if (!this.conf) {
       return;
     }

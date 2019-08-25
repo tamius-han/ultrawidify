@@ -22,6 +22,8 @@ class PageInfo {
 
     this.logger = logger;
 
+    console.log("this.logger:", logger, this.logger)
+
     if (comms){ 
       this.comms = comms;
     }
@@ -138,7 +140,7 @@ class PageInfo {
     const oldVideoCount = this.videos.length;
 
     try{
-    var vids = this.getVideos(window.location.host);
+      var vids = this.getVideos(window.location.host);
 
     if(!vids || vids.length == 0){
       this.hasVideos = false;
@@ -195,7 +197,7 @@ class PageInfo {
       } else {
         this.logger.log('info', 'videoRescan', "[PageInfo::rescan] found new video candidate:", video, "NOTE:: Video initialization starts here:\n--------------------------------\n")
         
-        v = new VideoData(video, this.settings, this, logger);
+        v = new VideoData(video, this.settings, this, this.logger);
         // console.log("[PageInfo::rescan] v is:", v)
         v.initArDetection();
         this.videos.push(v);
