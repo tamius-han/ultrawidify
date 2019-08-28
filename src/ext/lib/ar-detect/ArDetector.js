@@ -1,3 +1,4 @@
+
 import Debug from '../../conf/Debug';
 import EdgeDetect from './edge-detect/EdgeDetect';
 import EdgeStatus from './edge-detect/enums/EdgeStatusEnum';
@@ -221,16 +222,22 @@ class ArDetector {
       this.conf.resizer.setLastAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
     }
 
+
+    
     // launch main() if it's currently not running:
     this.main();
+    // automatic detection starts halted. If halted=false when main first starts, extension won't run
+    // this._paused is undefined the first time we run this function, which is effectively the same thing
+    // as false. Still, we'll explicitly fix this here.
+    this._paused = false;  
     this._halted = false;
-    this._paused = false;
-
   }
 
   unpause() {
-    if(this._paused){ // resume only if we explicitly paused
-      this.start();
+    // pause only if we were running before. Don't pause if we aren't running
+    // (we are running when _halted is neither true nor undefined)
+    if (this._paused && this._halted === false) {
+      this._paused = true;
     }
   }
 
@@ -251,12 +258,14 @@ class ArDetector {
   }
 
   async main() {
-    if (this.paused) {
+    if (this._paused) {
       // unpause if paused
       this._paused = false;
+      return; // main loop still keeps executing. Return is needed to avoid a million instances of autodetection
     }
     if (!this._halted) { 
       // we are already running, don't run twice
+      // this would have handled the 'paused' from before, actually.
       return;
     }
 
@@ -794,12 +803,6 @@ class ArDetector {
       this.guardline.reset();
       this.conf.resizer.setAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
     }
-
-    // }
-    // else{
-    //   console.log("detected text on edges, dooing nothing")
-    // }
-
   }
 
   resetBlackLevel(){
