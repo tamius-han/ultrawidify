@@ -76,7 +76,9 @@ class Settings {
 
   async init() {
     const settings = await this.get();
-    const oldVersion = settings.version;
+
+    //                 |—> on first setup, settings is undefined & settings.version is haram
+    const oldVersion = (settings && settings.version) || '0.0.0';
     const currentVersion = this.getExtensionVersion();
 
     if(Debug.debug) {
