@@ -75,10 +75,12 @@ class VideoData {
           console.log("style changed")
           // if size of the video has changed, this may mean we need to recalculate/reapply
           // last calculated aspect ratio
+          this.player.forceRefreshPlayerElement();
           this.restoreAr();
         } else if (mutation.attribute = 'src' && mutation.attributeOldValue !== this.video.getAttribute('src')) {
           // try fixing alignment issue on video change
           try {
+            this.player.forceRefreshPlayerElement();
             this.restoreAr();
           } catch (e) {
             console.error("[VideoData::onVideoDimensionsChanged] There was an error when handling src change.", e);
