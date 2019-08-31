@@ -49,6 +49,7 @@ class VideoData {
     this.pageInfo.initMouseActionHandler(this);
 
     this.video.classList.add(this.userCssClassName); // this also needs to be applied BEFORE we initialize resizer!
+
   }
 
   onVideoDimensionsChanged(mutationList, observer) {
@@ -143,6 +144,8 @@ class VideoData {
     if(Debug.debug || Debug.init){ 
       console.log(`[VideoData::destroy] <vdid:${this.vdid}> received destroy command`);
     }
+
+    this.video.classList.remove(this.userCssClassName);
 
     this.pause();
     this.destroyed = true;
