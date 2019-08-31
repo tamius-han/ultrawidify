@@ -10,16 +10,14 @@ var Debug = {
   // resizer: true,
   // debugArDetect: true,
   // scaler: true,
-  // debugStorage: false,
   // debugStorage: true,
   // comms: false,
   // comms: true,
   // showArDetectCanvas: true,
   // flushStoredSettings: true,
-  // flushStoredSettings: false,
   // playerDetect: true,
   // periodic: true,
-  // // videoRescan: true,
+  // videoRescan: true,
   // mousemove: true,
   // arDetect: {
     // edgeDetect: true
