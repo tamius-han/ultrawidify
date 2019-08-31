@@ -236,6 +236,7 @@ class PlayerData {
   getPlayer(isFullScreen) {
     const host = window.location.host;
     let element = this.video.parentNode;
+    const videoWidth = this.video.offsetWidth, videoHeight = this.video.offsetHeight;
 
     if(! element ){
       if(Debug.debug) {
@@ -274,18 +275,11 @@ class PlayerData {
       }
     }
 
+    const elementQ = [];
+    let scorePenalty = 0;
+    let score;
 
-    var trustCandidateAfterGrows = 2; // if candidate_width or candidate_height increases in either dimensions this many
-                                      // times, we say we found our player. (This number ignores weird elements)
-    // in case our <video> is bigger than player in one dimension but smaller in the other
-    // if site is coded properly, player can't be wider than that
-    var candidate_width = Math.max(element.offsetWidth, window.innerWidth);
-    var candidate_height = Math.max(element.offsetHeight, window.innerHeight);
-    var playerCandidateNode = element;
-
-    // if we haven't found element using fancy methods, we resort to the good old fashioned way
-    var grows = trustCandidateAfterGrows;
-    while(element != undefined){    
+    while (element != undefined){    
       // odstranimo čudne elemente, ti bi pokvarili zadeve
       // remove weird elements, those would break our stuff
       if ( element.offsetWidth == 0 || element.offsetHeight == 0){
@@ -293,40 +287,47 @@ class PlayerData {
         continue;
       }
   
-      if ( element.offsetHeight <= candidate_height &&
-           element.offsetWidth  <= candidate_width  ){
+      // element je player, če je ena stranica enako velika kot video, druga pa večja ali enaka. 
+      // za enakost dovolimo mala odstopanja
+      // element is player, if one of the sides is as long as the video and the other bigger (or same)
+      // we allow for tiny variations when checking for equality
+      if ( (element.offsetWidth >= videoWidth && this.equalish(element.offsetHeight, videoHeight, 2))
+           || (element.offsetHeight >= videoHeight && this.equalish(element.offsetWidth, videoHeight, 2))) {
         
-        // if we're in fullscreen, we only consider elements that are exactly as big as the monitor.
-        if( ! isFullScreen || 
-            (element.offsetWidth == window.innerWidth && element.offsetHeight == window.innerHeight) ){
+        // todo — in case the match is only equalish and not exact, take difference into account when 
+        // calculating score
         
-          playerCandidateNode = element;
-          candidate_width = element.offsetWidth;
-          candidate_height = element.offsetHeight;
-        
-          grows = trustCandidateAfterGrows;
-        
-          if(Debug.debug){
-            console.log("Found new candidate for player. Dimensions: w:", candidate_width, "h:",candidate_height, "node:", playerCandidateNode);
-          }
+        score = 100;
+
+        if (element.id.indexOf('player') !== -1) { // prefer elements with 'player' in id
+          score += 75;
         }
-      }
-      else if(grows --<= 0){
-        
-        if(Debug.debug && Debug.playerDetect){
-          console.log("Current element grew in comparrison to the child. We probably found the player. breaking loop, returning current result");
+        if (element.classList.toString().indexOf('player') !== -1) {  // prefer elements with 'player' in classlist, but a bit less than id
+          score += 50;
         }
-        break;
+        score -= scorePenalty++; // prefer elements closer to <video>
+        
+        elementQ.push({
+          element: element,
+          score: score,
+        });
       }
       
       element = element.parentNode;
     }
 
+    if (elementQ.length) {
+      // return element with biggest score
+      return elementQ.sort( (a,b) => b.score - a.score)[0].element;
+    }
 
-
-    return playerCandidateNode;
+    // if no candidates were found, return parent node
+    return this.video.parentNode;
   }
 
+  equalish(a,b, tolerance) {
+    return a > b - tolerance && a < b + tolerance;
+  }
 
   getPlayerDimensions(){
     const isFullScreen = PlayerData.isFullScreen();
@@ -366,6 +367,10 @@ class PlayerData {
     }
   }
 
+  forceRefreshPlayerElement() {
+    this.getPlayerDimensions();
+  }
+
   checkPlayerSizeChange(){
     if(Debug.debug){
       if(this.element == undefined){
@@ -394,8 +399,10 @@ class PlayerData {
     }
     
     if(this.element == undefined){
+      this.element = this.getPlayer();
       return true;
     } else if(this.dimensions.width != this.element.offsetWidth || this.dimensions.height != this.element.offsetHeight ){
+      this.element = this.getPlayer();
       return true;
     }
 
