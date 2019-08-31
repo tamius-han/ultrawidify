@@ -317,8 +317,8 @@ class PlayerData {
     }
 
     if (elementQ.length) {
-      // return biggest score
-      return elementQ.sort( (a,b) => b.score - a.score)[0];
+      // return element with biggest score
+      return elementQ.sort( (a,b) => b.score - a.score)[0].element;
     }
 
     // if no candidates were found, return parent node
@@ -367,6 +367,10 @@ class PlayerData {
     }
   }
 
+  forceRefreshPlayerElement() {
+    this.getPlayerDimensions();
+  }
+
   checkPlayerSizeChange(){
     if(Debug.debug){
       if(this.element == undefined){
@@ -395,8 +399,10 @@ class PlayerData {
     }
     
     if(this.element == undefined){
+      this.element = this.getPlayer();
       return true;
     } else if(this.dimensions.width != this.element.offsetWidth || this.dimensions.height != this.element.offsetHeight ){
+      this.element = this.getPlayer();
       return true;
     }
 
