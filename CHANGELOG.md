@@ -6,12 +6,14 @@
 
 * Settings page looks ugly af right now. Maybe fix it some time later
 
-### v4.2.4
+### v4.2.4 / 4.2.4.x
 
-* Improvements to player detection. More details in the [blog post](https://stuff.tamius.net/sacred-texts/2019/08/31/ultrawidify-and-the-improper-cropping/).</li>
+* Improvements to player detection. More details in the [blog post](https://stuff.tamius.net/sacred-texts/2019/08/31/ultrawidify-and-the-improper-cropping/).
+* **[4.2.4.1]** Fixed default video settings for reddit
+* **[4.2.4.1]** Manually specified query selectors will also be checked for compliance with player detection rules.
 
 
-### v4.2.3 / 4.2.3.1
+### v4.2.3 / 4.2.3.x
 
 * Fixed twitchy behaviour on Twitch, Facebook and Twatter. Here's a [blog post](https://stuff.tamius.net/sacred-texts/2019/08/24/ultrawidify-the-twitchy-twitch-problem/) that covers the issue in more detail.
 * Cropping now uses user styles (as opposed to modifying element's style attribute)
