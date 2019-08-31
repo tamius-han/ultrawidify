@@ -975,7 +975,7 @@ whatsNewChecked: true,
         player: {
           manual: true,
           useRelativeAncestor: false,
-          querySelectors: '.media-preview-content'
+          querySelectors: '.reddit-video-player-root, .media-preview-content'
         }
       },
       css: '',
@@ -992,7 +992,7 @@ whatsNewChecked: true,
         player: {
           manual: true,
           useRelativeAncestor: false,
-          querySelectors: '.media-preview-content'
+          querySelectors: '.reddit-video-player-root, .media-preview-content'
         }
       },
       css: '',
