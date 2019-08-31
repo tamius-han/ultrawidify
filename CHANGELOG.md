@@ -6,6 +6,11 @@
 
 * Settings page looks ugly af right now. Maybe fix it some time later
 
+### v4.2.4
+
+* Improvements to player detection. More details in the [blog post](https://stuff.tamius.net/sacred-texts/2019/08/31/ultrawidify-and-the-improper-cropping/).</li>
+
+
 ### v4.2.3 / 4.2.3.1
 
 * Fixed twitchy behaviour on Twitch, Facebook and Twatter. Here's a [blog post](https://stuff.tamius.net/sacred-texts/2019/08/24/ultrawidify-the-twitchy-twitch-problem/) that covers the issue in more detail.
