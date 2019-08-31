@@ -7,6 +7,10 @@
 * Settings page looks ugly af right now. Maybe fix it some time later
 
 ### v4.3.0 (future release)
+### v4.2.4
+
+* Improvements to player detection. More details in the [blog post](https://stuff.tamius.net/sacred-texts/2019/08/31/ultrawidify-and-the-improper-cropping/).</li>
+
 
 * Added user-friendly way to export/import settings
 * Reworked logging

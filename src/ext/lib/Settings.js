@@ -78,7 +78,9 @@ class Settings {
     const settings = await this.get();
 
     //                 |—> on first setup, settings is undefined & settings.version is haram
-    const oldVersion = (settings && settings.version) || '0.0.0';
+    //                 |   since new installs ship with updates by default, no patching is
+    //                 |   needed. In this case, we assume we're on the current version
+    const oldVersion = (settings && settings.version) || this.getExtensionVersion();
     const currentVersion = this.getExtensionVersion();
 
     if(Debug.debug) {
@@ -90,43 +92,43 @@ class Settings {
       if (Debug.flushStoredSettings) {
         console.log("%c[Settings::init] Debug.flushStoredSettings is true. Using default settings", "background: #d00; color: #ffd");
         Debug.flushStoredSettings = false; // don't do it again this session
-        this.setDefaultSettings();
         this.active = this.getDefaultSettings();
+        this.active.version = currentVersion;
+        this.set(this.active);
         return this.active;
       }
     }
 
     // if there's no settings saved, return default settings.
     if(! settings || (Object.keys(settings).length === 0 && settings.constructor === Object)) {
-      this.setDefaultSettings();
       this.active = this.getDefaultSettings();
+      this.active.version = currentVersion;
+      this.set(this.active);
       return this.active;
     }
 
     // if last saved settings was for version prior to 4.x, we reset settings to default
     // it's not like people will notice cos that version didn't preserve settings at all
     if (settings.version && !settings.version.startsWith('4')) {
-      this.setDefaultSettings();
       this.active = this.getDefaultSettings();
+      this.active.version = currentVersion;
+      this.set(this.active);
       return this.active;
     }
+
+    // in every case, we'll update the version number:
+    settings.version = currentVersion;
 
     // if there's settings, set saved object as active settings
     this.active = settings;
 
-    // from some point to 4.2.3.1, settings version wasn't saved. Fix that.
-    if (!settings.version) {
-      this.active.version = currentVersion;
-    }
-
     // check if extension has been updated. If not, return settings as they were retreived
     
 
-    if(oldVersion === currentVersion) {
+    if (oldVersion == currentVersion) {
       if(Debug.debug) {
         console.log("[Settings::init] extension was saved with current version of ultrawidify. Returning object as-is.");
       }
-
       return this.active;
     }
 
@@ -223,6 +225,7 @@ class Settings {
   }
 
   setDefaultSettings() {
+    this.default.version = this.getExtensionVersion();
     this.set(this.default);
   }
 
