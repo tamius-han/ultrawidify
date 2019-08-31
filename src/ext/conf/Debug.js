@@ -14,10 +14,9 @@ var Debug = {
   comms: true,
   // showArDetectCanvas: true,
   // flushStoredSettings: true,
-  // flushStoredSettings: false,
   // playerDetect: true,
   // periodic: true,
-  // // videoRescan: true,
+  // videoRescan: true,
   // mousemove: true,
   // arDetect: {
     // edgeDetect: true

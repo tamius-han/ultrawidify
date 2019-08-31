@@ -48,6 +48,7 @@ class VideoData {
     this.pageInfo.initMouseActionHandler(this);
 
     this.video.classList.add(this.userCssClassName); // this also needs to be applied BEFORE we initialize resizer!
+
   }
 
   onVideoDimensionsChanged(mutationList, observer) {
@@ -72,10 +73,12 @@ class VideoData {
         } else if (mutation.attributeName === 'style' && mutation.attributeOldValue !== this.video.getAttribute('style')) {
           // if size of the video has changed, this may mean we need to recalculate/reapply
           // last calculated aspect ratio
+          this.player.forceRefreshPlayerElement();
           this.restoreAr();
         } else if (mutation.attribute = 'src' && mutation.attributeOldValue !== this.video.getAttribute('src')) {
           // try fixing alignment issue on video change
           try {
+            this.player.forceRefreshPlayerElement();
             this.restoreAr();
           } catch (e) {
             console.error("[VideoData::onVideoDimensionsChanged] There was an error when handling src change.", e);
@@ -137,6 +140,8 @@ class VideoData {
 
   destroy() {
     this.logger.log('info', ['debug', 'init'], `[VideoData::destroy] <vdid:${this.vdid}> received destroy command`);
+
+    this.video.classList.remove(this.userCssClassName);
 
     this.pause();
     this.destroyed = true;
