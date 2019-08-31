@@ -237,6 +237,9 @@ class PlayerData {
     const host = window.location.host;
     let element = this.video.parentNode;
     const videoWidth = this.video.offsetWidth, videoHeight = this.video.offsetHeight;
+    const elementQ = [];
+    let scorePenalty = 0;
+    let score;
 
     if(! element ){
       if(Debug.debug) {
@@ -266,18 +269,41 @@ class PlayerData {
         }
       } else if (this.settings.active.sites[host].DOM.player.querySelectors) {
         const allSelectors = document.querySelectorAll(this.settings.active.sites[host].DOM.player.querySelectors);
-        while (element && !this.collectionHas(allSelectors, element)) {
+
+        // actually we'll also score this branch in a similar way we score the regular, auto branch
+        while (element !== undefined) {
+
+          // Let's see how this works
+          if (this.collectionHas(allSelectors, element)) {
+            score = 100; // every matching element gets a baseline 100 points
+            
+            // elements that match the size get a hefty bonus
+            if ( (element.offsetWidth >= videoWidth && this.equalish(element.offsetHeight, videoHeight, 2))
+              || (element.offsetHeight >= videoHeight && this.equalish(element.offsetWidth, videoHeight, 2))) {
+                score += 75;
+            }
+
+            // elements farther away from the video get a penalty
+            score -= (scorePenalty++) * 20;
+
+            // push the element on the queue/stack:
+            elementQ.push({
+              score: score,
+              element: element,
+            });
+          }
+
           element = element.parentNode;
         }
-        if (element) {
-          return element;
+        if (elementQ.length) {
+          // return element with biggest score
+          // if video player has not been found, proceed to automatic detection
+          return elementQ.sort( (a,b) => b.score - a.score)[0].element;
         }
       }
     }
 
-    const elementQ = [];
-    let scorePenalty = 0;
-    let score;
+    
 
     while (element != undefined){    
       // odstranimo čudne elemente, ti bi pokvarili zadeve
