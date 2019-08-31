@@ -10,7 +10,7 @@ const ExtensionConfPatch = {
           player: {
             manual: true,
             useRelativeAncestor: false,
-            querySelectors: '.media-preview-content, .reddit-video-player-root'
+            querySelectors: '.reddit-video-player-root, .media-preview-content'
           }
         },
         css: '',
@@ -21,7 +21,7 @@ const ExtensionConfPatch = {
           player: {
             manual: true,
             useRelativeAncestor: false,
-            querySelectors: '.media-preview-content, .reddit-video-player-root'
+            querySelectors: '.reddit-video-player-root, .media-preview-content'
           }
         },
         css: '',
