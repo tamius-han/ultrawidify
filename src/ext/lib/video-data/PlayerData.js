@@ -271,7 +271,7 @@ class PlayerData {
         const allSelectors = document.querySelectorAll(this.settings.active.sites[host].DOM.player.querySelectors);
 
         // actually we'll also score this branch in a similar way we score the regular, auto branch
-        while (element !== undefined) {
+        while (element) {
 
           // Let's see how this works
           if (this.collectionHas(allSelectors, element)) {
@@ -305,7 +305,7 @@ class PlayerData {
 
     
 
-    while (element != undefined){    
+    while (element){    
       // odstranimo čudne elemente, ti bi pokvarili zadeve
       // remove weird elements, those would break our stuff
       if ( element.offsetWidth == 0 || element.offsetHeight == 0){
