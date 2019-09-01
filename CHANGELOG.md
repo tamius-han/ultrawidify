@@ -11,7 +11,7 @@
 * Improvements to player detection. More details in the [blog post](https://stuff.tamius.net/sacred-texts/2019/08/31/ultrawidify-and-the-improper-cropping/).
 * **[4.2.4.1]** Fixed default video settings for reddit
 * **[4.2.4.1]** Manually specified query selectors will also be checked for compliance with player detection rules.
-
+* **[4.2.4.2]** Additional bugfixes. Updated/fixed default settings.
 
 ### v4.2.3 / 4.2.3.x
 
