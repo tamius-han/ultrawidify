@@ -11,13 +11,18 @@ import ExtensionConfPatch from '../conf/ExtConfPatches';
 
 class Settings {
 
-  constructor(activeSettings, updateCallback) {
+  constructor(options) {
+    // Options: activeSettings, updateCallback, logger
+    const activeSettings = options.activeSettings;
+    const updateCallback = options.updateCallback;
+
     this.active = activeSettings ? activeSettings : undefined;
     this.default = ExtensionConf;
     this.default['version'] = this.getExtensionVersion();
     this.useSync = false;
     this.version = undefined;
     this.updateCallback = updateCallback;
+    this.logger = options.logger;
 
     const ths = this;
 
@@ -72,6 +77,50 @@ class Settings {
     } else if (currentBrowser.edge) {
       return browser.runtime.getManifest().version;
     }
+  }
+
+  compareExtensionVersions(a, b) {
+    aa = a.forVersion.split['.'];
+    bb = b.forVersion.split['.'];
+    
+    if (+aa[0] !== +bb[0]) {
+      // difference on first digit
+      return ++aa[0] - ++bb[0];
+    } if (+aa[1] !== +bb[1]) {
+      // first digit same, difference on second digit
+      return  ++aa[1] - ++bb[1];
+    } if (+aa[2] !== +bb[2]) {
+      return  ++aa[2] - ++bb[2];
+      // first two digits the same, let's check the third digit
+    } else {
+      // fourth digit is optional. When not specified, 0 is implied
+      // btw, ++(aa[3] || 0) - ++(bb[3] || 0) doesn't work
+      return (aa[3] ? ++aa[3] : 0) - (bb[3] ? ++bb[3] : 0);
+    }
+  }
+  sortConfPatches(patchesIn) {
+    return patchesIn.sort( (a, b) => this.compareExtensionVersions(a, b));
+  }
+
+  findFirstNecessaryPatch(version, extconfPatches) {
+    const sorted = this.sortConfPatches(extconfPatches);
+    return sorted.findIndexOf(x => this.compareExtensionVersions(x.forVersion, version) > 0);
+  }
+
+
+  applySettingsPatches(oldVersion, patches) {
+    let index = this.findFirstNecessaryPatch(oldVersion, patches);
+    if (index === -1) {
+      // this.logger.log('info','settings','[Settings::applySettingsPatches] There are no pending conf patches.');
+      return;
+    }
+
+    // apply all remaining patches
+    // this.logger.log('info', 'settings', `[Settings::applySettingsPatches] There are ${patches.length - index} settings patches to apply`);
+    while (index --< patches.length) {
+      delete patches[index].forVersion;
+      ObjectCopy.overwrite(this.active, patches[index]);
+    } 
   }
 
   async init() {
@@ -146,9 +195,9 @@ class Settings {
     }
 
     // in case settings in previous version contained a fucky wucky, we overwrite existing settings with a patch
-    ObjectCopy.overwrite(this.active, ExtensionConfPatch['4.2.0']);
+    this.applySettingsPatches(oldVersion, ExtensionConfPatch);
 
-    // set 'whatsNewChecked' flag to false when updating
+    // set 'whatsNewChecked' flag to false when updating, always
     this.active.whatsNewChecked = false;
     // update settings version to current
     this.active.version = currentVersion; 
