@@ -104,11 +104,6 @@ export default {
       }
       this.customArgumentValue = this.action.customArg;
     }
-    
-    // console.log("this.actionList", ActionList, this.ActionList)
-    // for(const a in ActionList) {
-    //   console.log(a);
-    // }
   },
   mounted() {
     

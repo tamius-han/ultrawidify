@@ -12,6 +12,7 @@ class EdgeDetect{
 
   constructor(ardConf){
     this.conf = ardConf;
+    this.logger = ardConf.logger;
     this.settings = ardConf.settings;
 
     this.sampleWidthBase = this.settings.active.arDetect.edgeDetection.sampleWidth << 2; // corrected so we can work on imageData
@@ -43,9 +44,7 @@ class EdgeDetect{
           bars = this.edgePostprocess(edgeCandidates, this.conf.canvas.height);
         // }
       } catch (e) {
-        if (Debug.debug) {
-          console.log("%c[EdgeDetect::findBars] find bars failed.", "background: #f00, color: #000", e);
-        }
+        this.logger.log('error', 'arDetect', '%c[EdgeDetect::findBars] find bars failed.', 'background: #f00, color: #000', e);
         return {status: EdgeStatus.AR_UNKNOWN}
       }
     } else {
@@ -58,89 +57,80 @@ class EdgeDetect{
 
   findCandidates(image, sampleCols, guardLineOut){
     try {
-    let upper_top, upper_bottom, lower_top, lower_bottom;
-    
-    // const cols_a = sampleCols.slice(0);
-    const cols_a = new Array(sampleCols.length);
-    const res_top = [];
-    
-    for (let i = 0; i < cols_a.length; i++) {
-      cols_a[i] = {
-        id: i,
-        value: sampleCols[i],
-      };
-    }
+      let upper_top, upper_bottom, lower_top, lower_bottom;
+      
+      // const cols_a = sampleCols.slice(0);
+      const cols_a = new Array(sampleCols.length);
+      const res_top = [];
+      
+      for (let i = 0; i < cols_a.length; i++) {
+        cols_a[i] = {
+          id: i,
+          value: sampleCols[i],
+        };
+      }
 
-    const cols_b = cols_a.slice(0);
-    const res_bottom = [];
-    
-    // console.log("[EdgeDetect::findCandidates] cols a, b (initial):", cols_a, cols_b);
-
-    
-    this.colsThreshold = sampleCols.length * this.settings.active.arDetect.edgeDetection.minColsForSearch;
-    if (this.colsThreshold == 0)
-      this.colsThreshold = 1;
-    
-    this.blackbarThreshold = this.conf.blackLevel + this.settings.active.arDetect.blackbar.threshold;
-    this.imageThreshold = this.blackbarThreshold + this.settings.active.arDetect.blackbar.imageThreshold;
-    
-    // if guardline didn't fail and imageDetect did, we don't have to check the upper few pixels
-    // but only if upper and lower edge are defined. If they're not, we need to check full height
-    if(guardLineOut){
-      if(guardLineOut.imageFail && !guardLineOut.blackbarFail && this.conf.guardLine.blackbar.top) {
-        upper_top = this.conf.guardLine.blackbar.top;
-        upper_bottom = this.conf.canvas.height >> 1;
-        lower_top = upper_bottom;
-        lower_bottom = this.conf.guardLine.blackbar.bottom;
-      } else if (! guardLineOut.imageFail && !guardLineOut.blackbarFail && this.conf.guardLine.blackbar.top) {
-        // ta primer se lahko zgodi tudi zaradi kakšnega logotipa. Ker nočemo, da nam en jeben
-        // logotip vsili reset razmerja stranic, se naredimo hrvata in vzamemo nekaj varnostnega 
-        // pasu preko točke, ki jo označuje guardLine.blackbar. Recimo 1/8 višine platna na vsaki strani.
-        // a logo could falsely trigger this case, so we need to add some extra margins past
-        // the point marked by guardLine.blackbar. Let's say 1/8 of canvas height on either side.
-        upper_top = 0;
-        upper_bottom = this.conf.guardLine.blackbar.top + (this.conf.canvas.height >> 3);
-        lower_top = this.conf.guardLine.blackbar.bottom - (this.conf.canvas.height >> 3);
-        lower_bottom = this.conf.canvas.height - 1;
-      } else {
+      const cols_b = cols_a.slice(0);
+      const res_bottom = [];
+      
+      this.colsThreshold = sampleCols.length * this.settings.active.arDetect.edgeDetection.minColsForSearch;
+      if (this.colsThreshold == 0)
+        this.colsThreshold = 1;
+      
+      this.blackbarThreshold = this.conf.blackLevel + this.settings.active.arDetect.blackbar.threshold;
+      this.imageThreshold = this.blackbarThreshold + this.settings.active.arDetect.blackbar.imageThreshold;
+      
+      // if guardline didn't fail and imageDetect did, we don't have to check the upper few pixels
+      // but only if upper and lower edge are defined. If they're not, we need to check full height
+      if(guardLineOut){
+        if(guardLineOut.imageFail && !guardLineOut.blackbarFail && this.conf.guardLine.blackbar.top) {
+          upper_top = this.conf.guardLine.blackbar.top;
+          upper_bottom = this.conf.canvas.height >> 1;
+          lower_top = upper_bottom;
+          lower_bottom = this.conf.guardLine.blackbar.bottom;
+        } else if (! guardLineOut.imageFail && !guardLineOut.blackbarFail && this.conf.guardLine.blackbar.top) {
+          // ta primer se lahko zgodi tudi zaradi kakšnega logotipa. Ker nočemo, da nam en jeben
+          // logotip vsili reset razmerja stranic, se naredimo hrvata in vzamemo nekaj varnostnega 
+          // pasu preko točke, ki jo označuje guardLine.blackbar. Recimo 1/8 višine platna na vsaki strani.
+          // a logo could falsely trigger this case, so we need to add some extra margins past
+          // the point marked by guardLine.blackbar. Let's say 1/8 of canvas height on either side.
+          upper_top = 0;
+          upper_bottom = this.conf.guardLine.blackbar.top + (this.conf.canvas.height >> 3);
+          lower_top = this.conf.guardLine.blackbar.bottom - (this.conf.canvas.height >> 3);
+          lower_bottom = this.conf.canvas.height - 1;
+        } else {
+          upper_top = 0;
+          upper_bottom = (this.conf.canvas.height >> 1) /*- parseInt(this.conf.canvas.height * this.settings.active.arDetect.edgeDetection.middleIgnoredArea);*/
+          lower_top = (this.conf.canvas.height >> 1) /*+ parseInt(this.conf.canvas.height * this.settings.active.arDetect.edgeDetection.middleIgnoredArea);*/
+          lower_bottom = this.conf.canvas.height - 1;
+        }
+      } else{
         upper_top = 0;
         upper_bottom = (this.conf.canvas.height >> 1) /*- parseInt(this.conf.canvas.height * this.settings.active.arDetect.edgeDetection.middleIgnoredArea);*/
         lower_top = (this.conf.canvas.height >> 1) /*+ parseInt(this.conf.canvas.height * this.settings.active.arDetect.edgeDetection.middleIgnoredArea);*/
         lower_bottom = this.conf.canvas.height - 1;
       }
-    } else{
-      upper_top = 0;
-      upper_bottom = (this.conf.canvas.height >> 1) /*- parseInt(this.conf.canvas.height * this.settings.active.arDetect.edgeDetection.middleIgnoredArea);*/
-      lower_top = (this.conf.canvas.height >> 1) /*+ parseInt(this.conf.canvas.height * this.settings.active.arDetect.edgeDetection.middleIgnoredArea);*/
-      lower_bottom = this.conf.canvas.height - 1;
-    }
 
-    if(Debug.debug && Debug.debugArDetect){
-      console.log("[EdgeDetect::findCandidates] searching for candidates on ranges", upper_top, "<->", upper_bottom, ";", lower_top, "<->", lower_bottom);
-    }
+      this.logger.log('info', 'arDetect', '[EdgeDetect::findCandidates] searching for candidates on ranges', upper_top, '<->', upper_bottom, ';', lower_top, '<->', lower_bottom);
+      
+      var upper_top_corrected = upper_top * this.conf.canvasImageDataRowLength;
+      var upper_bottom_corrected = upper_bottom * this.conf.canvasImageDataRowLength;
+      var lower_top_corrected = lower_top * this.conf.canvasImageDataRowLength;
+      var lower_bottom_corrected = lower_bottom * this.conf.canvasImageDataRowLength;
+      
+      // if(Debug.debugCanvas.enabled){
+        // this._columnTest_dbgc(image, upper_top_corrected, upper_bottom_corrected, cols_a, res_top, false);
+        // this._columnTest_dbgc(image, lower_top_corrected, lower_bottom_corrected, cols_b, res_bottom, true);
+      // } else {
+        this._columnTest3_cross(image, upper_top_corrected, upper_bottom_corrected, cols_a, res_top, false);
+        this._columnTest3_cross(image, lower_top_corrected, lower_bottom_corrected, cols_b, res_bottom, true);
+      // }
+      
+      this.logger.log('info', 'arDetect', '[EdgeDetect::findCandidates] candidates found -->', {res_top: res_top, res_bottom: res_bottom});
     
-    var upper_top_corrected = upper_top * this.conf.canvasImageDataRowLength;
-    var upper_bottom_corrected = upper_bottom * this.conf.canvasImageDataRowLength;
-    var lower_top_corrected = lower_top * this.conf.canvasImageDataRowLength;
-    var lower_bottom_corrected = lower_bottom * this.conf.canvasImageDataRowLength;
-    
-    // if(Debug.debugCanvas.enabled){
-      // this._columnTest_dbgc(image, upper_top_corrected, upper_bottom_corrected, cols_a, res_top, false);
-      // this._columnTest_dbgc(image, lower_top_corrected, lower_bottom_corrected, cols_b, res_bottom, true);
-    // } else {
-      this._columnTest3_cross(image, upper_top_corrected, upper_bottom_corrected, cols_a, res_top, false);
-      this._columnTest3_cross(image, lower_top_corrected, lower_bottom_corrected, cols_b, res_bottom, true);
-    // }
-    
-    if (Debug.debug && Debug.debugArDetect){
-      console.log("[EdgeDetect::findCandidates] candidates found -->", {res_top: res_top, res_bottom: res_bottom});
-    }
-
-   
-    return {res_top: res_top, res_bottom: res_bottom};
-  
+      return {res_top: res_top, res_bottom: res_bottom};
     } catch (e) {
-      console.log("[EdgeDetect::findCandidates] there was an error", e);
+      this.logger.log('error', 'debug', '[EdgeDetect::findCandidates] there was an error while finding candidates:', e);
     }
   }
 
@@ -333,7 +323,7 @@ class EdgeDetect{
         }
       }
     } catch (e) {
-      console.log("\n\nuwu fucky wucky:", e, "\n\n")
+      this.logger.log('error', 'debug', '[EdgeDetect::edgeDetect] There was an error:', e);
     }
     
     return {

@@ -155,14 +155,12 @@ export default {
     settings: Object,
   },
   created() {
-    console.log("created!")
     try {
       this.videoManualQs = this.settings.active.sites[this.site].DOM.video.manual || this.videoManualQs;
       this.videoQs = this.settings.active.sites[this.site].DOM.video.querySelectors;
       this.videoCss = this.settings.active.sites[this.site].DOM.video.additionalCss;
     } catch (e) {
       // that's here just in case relevant settings for this site don't exist yet
-      console.log("failed to load settings for the site — for video stuff")
     }
     
     try {
@@ -172,16 +170,13 @@ export default {
       this.playerParentNodeIndex = this.settings.active.sites[this.site].DOM.player.videoAncestor;
     } catch (e) {
       // that's here just in case relevant settings for this site don't exist yet
-      console.log("failed to load settings for the site — for video stuff")
     }
 
     try {
       this.playerCss = this.settings.active.sites[this.site].css || '';
     } catch (e) {
       // that's here just in case relevant settings for this site don't exist yet
-      console.log("failed to load settings for the site — for video stuff")
     }
-    console.log("created — got settings:", this.settings)
   },
   methods: {
     ensureSettings(scope) {

@@ -253,9 +253,7 @@ class ActionHandler {
   }
 
   handleKeydown(event) {
-    if(Debug.debug  && Debug.keyboard ){
-      console.log("%c[ActionHandler::handleKeydown] we pressed a key: ", "color: #ff0", event.key , " | keydown: ", event.keydown, "event:", event);
-    }
+    this.logger.log('info', 'keyboard', "%c[ActionHandler::handleKeydown] we pressed a key: ", "color: #ff0", event.key , " | keydown: ", event.keydown, "event:", event)
 
     if (this.preventAction()) {
       this.logger.log('info', 'keyboard', "[ActionHandler::handleKeydown] we are in a text box or something. Doing nothing.");

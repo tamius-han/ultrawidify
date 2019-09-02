@@ -22,8 +22,6 @@ class PageInfo {
 
     this.logger = logger;
 
-    console.log("this.logger:", logger, this.logger)
-
     if (comms){ 
       this.comms = comms;
     }
@@ -77,7 +75,7 @@ class PageInfo {
         this.comms.unregisterVideo(video.id)
         video.destroy();
       } catch (e) {
-        console.log("unabel to destroy video!", e)
+        this.logger.log('error', ['debug', 'init'], '[PageInfo::destroy] unable to destroy video! Error:', e);
       }
     }
 
@@ -197,8 +195,7 @@ class PageInfo {
       } else {
         this.logger.log('info', 'videoRescan', "[PageInfo::rescan] found new video candidate:", video, "NOTE:: Video initialization starts here:\n--------------------------------\n")
         
-        v = new VideoData(video, this.settings, this, this.logger);
-        // console.log("[PageInfo::rescan] v is:", v)
+        v = new VideoData(video, this.settings, this);
         v.initArDetection();
         this.videos.push(v);
 
@@ -213,9 +210,6 @@ class PageInfo {
     //
     // if we're left withotu videos on the current page, we unregister the page.
     // if we have videos, we call register.
-    // if(Debug.debug) {
-    //   console.log("[PageInfo::rescan] Comms:", this.comms, "\nvideos.length:", this.videos.length, "\nold video count:", oldVideoCount)
-    // }
     if (this.comms) {
       if (this.videos.length != oldVideoCount) { // only if number of videos changed, tho
         if (this.videos.length > 0) {

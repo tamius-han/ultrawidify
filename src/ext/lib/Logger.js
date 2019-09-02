@@ -1,9 +1,34 @@
+import currentBrowser from '../conf/BrowserDetect';
+
 class Logger {
   constructor(conf) {
-    this.conf = conf;
+    this.initLogger();
+    if (conf) {
+      this.conf = conf;
+    }
     this.history = [];
     this.startTime = performance.now();
     this.temp_disable = false;
+  }
+
+  initLogger() {
+    const ths = this;
+    const br = currentBrowser.firefox ? browser : chrome;
+    br.storage.onChanged.addListener( (changes, area) => {
+      if (Debug.debug && Debug.debugStorage) {
+        console.log("[Logger::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
+        if (changes['uwLogger'] && changes['uwLogger'].newValue) {
+          console.log("[Logger::<storage/on change>] new settings object:", JSON.parse(changes.uwLogger.newValue));
+        }
+      }
+      if(changes['uwLogger'] && changes['uwLogger'].newValue) {
+        ths.conf = JSON.parse(changes.uwLogger.newValue);
+      }
+    });
+  }
+
+  async init() {
+    this.conf = await this.getSaved();
   }
 
   clear() {
@@ -12,8 +37,46 @@ class Logger {
   }
 
   setConf(conf) {
-    this.conf = conf;
+    this.conf = conf;  // effective immediately
+    // also persist settings:
+    if (currentBrowser.firefox || currentBrowser.edge) {
+      extensionConf.version = this.version;
+      return browser.storage.local.set( {'uwLogger': JSON.stringify(this.conf)});
+    } else if (currentBrowser.chrome) {
+      return chrome.storage.local.set( {'uwLogger': JSON.stringify(this.logger)});
+    }
   }
+
+  async getSaved() {
+    let ret;
+    
+    if (currentBrowser.firefox) {
+      ret = await browser.storage.local.get('uwLogger');
+    } else if (currentBrowser.chrome) {
+      ret = await new Promise( (resolve, reject) => {
+        chrome.storage.local.get('uwLogger', (res) => resolve(res));
+      });
+    } else if (currentBrowser.edge) {
+      ret = await new Promise( (resolve, reject) => {
+        browser.storage.local.get('uwLogger', (res) => resolve(res));
+      });
+    }
+
+    if (Debug.debug && Debug.debugStorage) {
+      try {
+        console.log("[Logger::getSaved] Got settings:", JSON.parse(ret.uwLogger));
+      } catch (e) {
+        console.log("[Logger::getSaved] No settings.")
+      }
+    }
+
+    try {
+      return JSON.parse(ret.uwLogger);
+    } catch(e) {
+      return {logToFile: false, logToConsole: false, consoleOptions: {}, fileOptions: {}};
+    }
+  }
+
 
   // allow syncing of start times between bg and page scripts.
   // may result in negative times in the log file, but that doesn't 
