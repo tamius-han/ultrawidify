@@ -40,7 +40,6 @@ class Resizer {
     this.resizerId = (Math.random(99)*100).toFixed(0);
 
     if (this.settings.active.pan) {
-      // console.log("can pan:", this.settings.active.miscSettings.mousePan.enabled, "(default:", this.settings.active.miscSettings.mousePan.enabled, ")")
       this.canPan = this.settings.active.miscSettings.mousePan.enabled;
     } else {
       this.canPan = false;
@@ -192,7 +191,6 @@ class Resizer {
     }
 
     if (! this.video) {
-      // console.log("No video detected.")
       this.conf.destroy();
     }
 
@@ -215,14 +213,12 @@ class Resizer {
       var stretchFactors = this.scaler.calculateCrop(ar);
 
       if(! stretchFactors || stretchFactors.error){
-        this.logger.log('error', 'debug', "[Resizer::setAr] <rid:"+this.resizerId+"> failed to set AR due to problem with calculating crop. Error:", (stretchFactors ? stretchFactors.error : stretchFactors));
+        this.logger.log('error', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> failed to set AR due to problem with calculating crop. Error:`, (stretchFactors ? stretchFactors.error : stretchFactors));
         if (stretchFactors.error === 'no_video'){
           this.conf.destroy();
         }
         if (stretchFactors.error === 'illegal_video_dimensions') {
-          if(Debug.debug){
-            console.log("[Resizer::setAr] <rid:"+this.resizerId+"> Illegal video dimensions found. We will pause everything.");
-          }
+          this.loggger.log('error', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> Illegal video dimensions found. We will pause everything.`)
         }
         return;
       }
@@ -269,7 +265,6 @@ class Resizer {
   }
 
   panHandler(event, forcePan) {
-    // console.log("this.conf.canPan:", this.conf.canPan)
     if (this.canPan || forcePan) {
       if(!this.conf.player || !this.conf.player.element) {
         return;

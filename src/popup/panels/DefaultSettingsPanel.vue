@@ -161,7 +161,6 @@ export default {
         }
         site = this.site;
       }
-      // console.log("SETTINGS FOR SITE", site, "option", option, JSON.parse(JSON.stringify(this.settings.active.sites)))
       if (this.settings.active.sites[site]) {
         return this.settings.active.sites[site][option];
       } else {

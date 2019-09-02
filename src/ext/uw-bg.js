@@ -30,8 +30,11 @@ class UWServer {
   }
 
   async setup() {
-    this.settings = new Settings();
+    // logger is the first thing that goes up
+    this.logger = new Logger();
+    await this.logger.init();
 
+    this.settings = new Settings({logger: this.logger});
     await this.settings.init();
     this.comms = new CommsServer(this);
 
@@ -42,7 +45,6 @@ class UWServer {
       chrome.tabs.onActivated.addListener(function(m) {ths.onTabSwitched(m)});
     }
 
-    console.log("will schedule gcframe")
     this.scheduleGc();
   }
 
@@ -54,18 +56,13 @@ class UWServer {
 
   async injectCss(css, sender) {
     try {
-      if (Debug.debug) {
-        console.log("[uwbg::injectCss] Injecting CSS:", css, sender);
-      }
       if (BrowserDetect.firefox || BrowserDetect.edge) {
         browser.tabs.insertCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
       } else if (BrowserDetect.chrome) {
         chrome.tabs.insertCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
       }
     } catch (e) {
-      if (Debug.debug) {
-        console.error("Error while injecting css:", {error: e, css, sender});
-      }
+      this.logger.log('error','debug', '[UwServer::injectCss] Error while injecting css:', {error: e, css, sender});
     }
   }
   async removeCss(css, sender) {
@@ -76,7 +73,9 @@ class UWServer {
         // this doesn't work currently, but hopefully chrome will get this feature in the future
         chrome.tabs.removeCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
       }
-    } catch (e) { }
+    } catch (e) { 
+      this.logger.log('error','debug', '[UwServer::injectCss] Error while removing css:', {error: e, css, sender});
+    }
   }
 
   async replaceCss(oldCss, newCss, sender) {
@@ -98,7 +97,6 @@ class UWServer {
     setTimeout( () => {
       clearTimeout(ths._gctimeout);
       ths.gcFrames();
-
 
       ths._gctimeoutgcTimeout = ths.scheduleGc(5000);
     }, timeout);
@@ -124,26 +122,20 @@ class UWServer {
   async onTabSwitched(activeInfo){
     this.hasVideos = false;
 
-    if(Debug.debug)
-      console.log("[uw-bg::onTabSwitched] TAB CHANGED, GETTING INFO FROM MAIN TAB");
-
     try {
       this.currentTabId = activeInfo.tabId;   // just for readability
 
-      var tab;
+      let tab;
       if (BrowserDetect.firefox) {
-        var tab = await browser.tabs.get(this.currentTabId);
+        tab = await browser.tabs.get(this.currentTabId);
       } else if (BrowserDetect.chrome) {
-        var tab = await this._promisifyTabsGet(chrome, this.currentTabId);
+        tab = await this._promisifyTabsGet(chrome, this.currentTabId);
       }
 
       this.currentSite = this.extractHostname(tab.url);
+      this.logger.log('info', 'debug', '[UwServer::onTabSwitched] user switched tab. New site:', this.currentSite);
     } catch(e) {
-      console.log(e);
-    }
-
-    if(Debug.debug) {
-      console.log("TAB SWITCHED!", this.currentSite)
+      this.logger.log('error', 'debug', '[UwServer::onTabSwitched] there was a problem getting currnet site:', e)
     }
 
     this.selectedSubitem = {
@@ -176,9 +168,7 @@ class UWServer {
   }
 
   registerVideo(sender) {
-    if (Debug.debug && Debug.comms) {
-      console.log("[UWServer::registerVideo] registering video.\nsender:", sender);
-    }
+    this.logger.log('info', 'comms', '[UWServer::registerVideo] Registering video.\nsender:', sender);
 
     const tabHostname = this.extractHostname(sender.tab.url);
     const frameHostname = this.extractHostname(sender.url);
@@ -221,15 +211,11 @@ class UWServer {
       }
     }
 
-    if (Debug.debug && Debug.comms) {
-      console.log("[UWServer::registerVideo] video registered. current videoTabs:", this.videoTabs);
-    }
+    this.logger.log('info', 'comms', '[UWServer::registerVideo] Video registered. current videoTabs:', this.videoTabs);
   }
 
   unregisterVideo(sender) {
-    if (Debug.debug && Debug.comms) {
-      console.log("[UWServer::unregisterVideo] unregistering video.\nsender:", sender);
-    }
+    this.logger.log('info', 'comms', '[UwServer::unregisterVideo] Unregistering video.\nsender:', sender);
     if (this.videoTabs[sender.tab.id]) {
       if ( Object.keys(this.videoTabs[sender.tab.id].frames).length <= 1) {
         delete this.videoTabs[sender.tab.id]
@@ -239,15 +225,11 @@ class UWServer {
         }
       }
     }
-    if (Debug.debug && Debug.comms) {
-      console.log("[UWServer::ungisterVideo] video unregistered. current videoTabs:", this.videoTabs);
-    }
+    this.logger.log('info', 'comms', '[UwServer::unregisterVideo] Video has been unregistered. Current videoTabs:', this.videoTabs);
   }
 
   setSelectedTab(menu, subitem) {
-    if (Debug.debug && Debug.comms) {
-      console.log("[uw-bg::setSelectedTab] saving selected tab for", menu, ":", subitem)
-    }
+    this.logger.log('info', 'comms', '[UwServer::setSelectedTab] saving selected tab for', menu, ':', subitem);
     this.selectedSubitem[menu] = subitem;
   }
 

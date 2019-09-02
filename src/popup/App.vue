@@ -1,5 +1,7 @@
 <template>
-  <div class="popup flex flex-column no-overflow">
+  <div v-if="settingsInitialized" 
+       class="popup flex flex-column no-overflow"
+  >
     <div class="header flex-row flex-nogrow flex-noshrink">
       <span class="smallcaps">Ultrawidify</span>: <small>Quick settings</small>
     </div>
@@ -178,6 +180,8 @@ import ExtensionMode from '../common/enums/extension-mode.enum';
 
 export default {
   data () {
+    const logger = new Logger();
+
     return {
       selectedTab: 'video',
       selectedFrame: '__all',
@@ -192,7 +196,9 @@ export default {
       site: null,
       currentZoom: 1,
       execAction: new ExecAction(),
-      settings: new Settings(undefined, () => this.updateConfig()),
+      settings: {},
+      settingsInitialized: false,
+      logger: {},
       siteTabDisabled: false,
       videoTabDisabled: false,
       canShowVideoTab: {canShow: true, warning: true},
@@ -200,7 +206,13 @@ export default {
     }
   },
   async created() {
+    this.logger = new Logger();
+    await this.logger.init();
+
+    this.settings = new Settings({updateCallback: () => this.updateConfig(), logger: logger});
     await this.settings.init();
+    this.settingsInitialized = true;
+
     this.port.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
     this.execAction.setSettings(this.settings);
 
@@ -243,14 +255,10 @@ export default {
     },
     getSite() {
       try {
-        if (Debug.debug) {
-          console.log("[popup.js] requesting current site");
-        }
+        this.logger.log('info','popup', '[popup::getSite] Requesting current site ...')
         this.port.postMessage({cmd: 'get-current-site'});
       } catch (e) {
-        if (Debug.debug) {
-          console.log("[popup::getSite] sending get-current-site failed for some reason. Reason:", e)
-        }
+        this.logger.log('error','popup','[popup::getSite] sending get-current-site failed for some reason. Reason:', e);
       }
     },
     getRandomColor() {
@@ -293,10 +301,7 @@ export default {
       this.canShowVideoTab = {canShow: canShow, warning: warning};
     },
     processReceivedMessage(message, port) {
-      if (Debug.debug && Debug.comms) {
-        console.log("[popup.js] received message set-c", message);
-        console.log("[popup.js] message cloned set-c", JSON.parse(JSON.stringify(message)));
-      }
+      this.logger.log('info', 'popup', '[popup::processReceivedMessage] received message:', message)
 
       if (message.cmd === 'set-current-site'){
         if (this.site) {

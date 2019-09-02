@@ -389,14 +389,8 @@ class ArDetector {
     if( execTime > this.settings.active.arDetect.autoDisable.maxExecutionTime ){
       //  this.detectionTimeoutEventCount++;
   
-      // if(Debug.debug){
-        // console.log("[ArDetect::getTimeout] Exec time exceeded maximum allowed execution time. This has now happened " +  this.detectionTimeoutEventCount + " times in a row.");
-      // }
   
       // if( this.detectionTimeoutEventCount >= this.settings.active.arDetect.autoDisable.consecutiveTimeoutCount ){
-      //   if (Debug.debug){
-      //     console.log("[ArDetect::getTimeout] Maximum execution time was exceeded too many times. Automatic aspect ratio detection has been disabled.");
-      //   }
   
       //   Comms.sendToBackgroundScript({cmd: 'disable-autoar', reason: 'Automatic aspect ratio detection was taking too much time and has been automatically disabled in order to avoid lag.'});
       //   _ard_stop();
@@ -581,10 +575,6 @@ class ArDetector {
       // we don't do any corrections on frames confirmed black
       this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Black frame analysis suggests this frame is black or too dark. Doing nothing.`, "color: #fa3", bfanalysis);
       return;
-    } else {
-      // if (Debug.debug && Debug.arDetect) {
-      //   console.log("%c[ArDetect::frameCheck] Black frame analysis suggests this frame is not completely black. Doing further analysis,", "color: #3fa", bfanalysis);
-      // }
     }
 
     

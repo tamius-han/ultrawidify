@@ -610,7 +610,6 @@ export default {
       ctx.drawWindow(window,0, 0, 10, 10, "rgba(0,0,0,0)");
       this.fallbackModeAvailable = true;
     } catch (e) {
-      // console.log("DrawWindow failed:", e)
       this.fallbackModeAvailable = false;
     }
   },
@@ -634,7 +633,6 @@ export default {
       return 'user-defined';
     },
     setConfirmationThresholds(sens) {
-      console.log("setting conf treshold", sens)
       if (sens === 'sensitive') {
         this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold = 3;
         this.settings.active.arDetect.edgeDetection.confirmationThreshold = 1;

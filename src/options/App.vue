@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="settingsInitialized">
 
     <!-- POPUPS -->
     <div v-if="anyOpenedPopups"
@@ -136,6 +136,7 @@ export default {
       selectedTab: "general",
       selectedTabTitle: "General settings",
       settings: {},
+      logger: {},
       settingsInitialized: false,
       editActionPopupVisible: false,
       editActionIndex: -1,
@@ -148,8 +149,12 @@ export default {
     }
   },
   async created () {
-    this.settings = new Settings(undefined, this.updateSettings);
+    this.logger = new Logger();
+    await this.logger.init();
+
+    this.settings = new Settings({updateCallback: this.updateSettings, logger: this.logger});
     await this.settings.init();
+    
     this.settingsInitialized = true;
   },
   components: {

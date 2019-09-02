@@ -5,14 +5,14 @@ import ArDetector from '../ar-detect/ArDetector';
 
 class VideoData {
   
-  constructor(video, settings, pageInfo, logger){
+  constructor(video, settings, pageInfo){
     this.arSetupComplete = false;
     this.video = video;
     this.destroyed = false;
     this.settings = settings;
     this.pageInfo = pageInfo;
     this.extensionMode = pageInfo.extensionMode;
-    this.logger = logger;
+    this.logger = pageInfo.logger;
 
     this.vdid = (Math.random()*100).toFixed();
     this.userCssClassName = `uw-fuck-you-and-do-what-i-tell-you_${this.vdid}`;
@@ -40,15 +40,10 @@ class VideoData {
     this.logger.log('info', 'debug', "%c[VideoData::ctor] Initial resizer reset!", {background: '#afd', color: '#132'});
     this.resizer.reset();
 
-    
-    if (Debug.init) {
-      console.log("[VideoData::ctor] Created videoData with vdid", this.vdid,"\nextension mode:", this.extensionMode);
-    }
+    this.logger.log('info', ['debug', 'init'], '[VideoData::ctor] Created videoData with vdid', this.vdid, '\nextension mode:', this.extensionMode)
 
     this.pageInfo.initMouseActionHandler(this);
-
     this.video.classList.add(this.userCssClassName); // this also needs to be applied BEFORE we initialize resizer!
-
   }
 
   onVideoDimensionsChanged(mutationList, observer) {
@@ -283,10 +278,6 @@ class VideoData {
   }
 
   isPlaying() {
-    // console.log("is playing? video:", this.video, "ctime:", this.video.currentTime, 
-    // "paused/ended:", this.video.paused, this.video.ended,
-    // "is playing?", this.video && this.video.currentTime > 0 && !this.video.paused && !this.video.ended);
-
     return this.video && this.video.currentTime > 0 && !this.video.paused && !this.video.ended;
   }
 }
