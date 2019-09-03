@@ -65,8 +65,8 @@ class UW {
             'arDetect_verbose': false,
           }
         };      
-        // this.logger = new Logger(this.settings.getLoggingOptions);
         this.logger = new Logger(loggingOptions);
+        // await this.logger.init();  // not needed if logging options are provided at creation
       }
     } catch (e) {
       console.error("logger init failed!", e)

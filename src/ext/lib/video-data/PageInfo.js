@@ -10,6 +10,7 @@ if(Debug.debug)
 
 class PageInfo {
   constructor(comms, settings, logger, extensionMode, readOnly = false){
+    this.logger = logger;
     this.hasVideos = false;
     this.siteDisabled = false;
     this.videos = [];
@@ -20,7 +21,6 @@ class PageInfo {
     this.extensionMode = extensionMode;
     this.readOnly = readOnly;
 
-    this.logger = logger;
 
     if (comms){ 
       this.comms = comms;

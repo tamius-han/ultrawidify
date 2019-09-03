@@ -34,6 +34,7 @@ if(Debug.debug)
 
 class PlayerData {
   constructor(videoData) {
+    this.logger = videoData.logger;
     this.videoData = videoData;
     this.video = videoData.video;
     this.settings = videoData.settings;
@@ -41,7 +42,6 @@ class PlayerData {
     this.element = undefined;
     this.dimensions = undefined;
     this.overlayNode = undefined;
-    this.logger = videoData.logger;
 
     this.observer = new MutationObserver(this.onPlayerDimensionsChanged);
 

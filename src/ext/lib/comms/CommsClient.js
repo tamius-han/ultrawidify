@@ -3,6 +3,7 @@ import BrowserDetect from '../../conf/BrowserDetect';
 
 class CommsClient {
   constructor(name, settings, logger) {
+    this.logger = logger;
     if (BrowserDetect.firefox) {
       this.port = browser.runtime.connect({name: name});
     } else if (BrowserDetect.chrome) {
@@ -18,7 +19,6 @@ class CommsClient {
     this.settings = settings;
     this.pageInfo = undefined;
     this.commsId = (Math.random() * 20).toFixed(0);
-    this.logger = logger;
   }
   
   destroy() {

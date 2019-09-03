@@ -6,13 +6,13 @@ import ArDetector from '../ar-detect/ArDetector';
 class VideoData {
   
   constructor(video, settings, pageInfo){
+    this.logger = pageInfo.logger;
     this.arSetupComplete = false;
     this.video = video;
     this.destroyed = false;
     this.settings = settings;
     this.pageInfo = pageInfo;
     this.extensionMode = pageInfo.extensionMode;
-    this.logger = pageInfo.logger;
 
     this.vdid = (Math.random()*100).toFixed();
     this.userCssClassName = `uw-fuck-you-and-do-what-i-tell-you_${this.vdid}`;
