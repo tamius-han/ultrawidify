@@ -11,8 +11,8 @@ import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 
 class ArDetector {
 
-  constructor(videoData, logger){
-    this.logger = logger;
+  constructor(videoData){
+    this.logger = videoData.logger;
     this.conf = videoData;
     this.video = videoData.video;
     this.settings = videoData.settings;

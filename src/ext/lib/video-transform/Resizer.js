@@ -14,13 +14,13 @@ if(Debug.debug) {
 
 class Resizer {
   
-  constructor(videoData, logger) {
+  constructor(videoData) {
     this.conf = videoData;
     this.video = videoData.video;
     this.settings = videoData.settings;
     this.extensionMode = videoData.extensionMode;
 
-    this.logger = logger;
+    this.logger = videoData.logger;
 
     this.scaler = new Scaler(this.conf, logger);
     this.stretcher = new Stretcher(this.conf, logger); 
