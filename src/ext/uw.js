@@ -119,7 +119,7 @@ class UW {
 
       // start action handler only if extension is enabled for this site
       if (!isSiteDisabled) {
-        this.actionHandler = new ActionHandler(this.pageInfo, this.logger);
+        this.actionHandler = new ActionHandler(this.pageInfo);
         this.actionHandler.init();
         
         this.logger.log('info', 'debug', "[uw.js::setup] ActionHandler initiated:", this.actionHandler);
