@@ -9,9 +9,9 @@ class Scaler {
   // internal variables
 
   // functions
-  constructor(videoData, logger) {
+  constructor(videoData) {
     this.conf = videoData;
-    this.logger = logger;
+    this.logger = videoData.logger;
   }
   
 

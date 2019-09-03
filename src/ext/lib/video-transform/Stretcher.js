@@ -10,11 +10,11 @@ class Stretcher {
 
 
   // functions
-  constructor(videoData, logger) {
+  constructor(videoData) {
     this.conf = videoData;
     this.settings = videoData.settings;
     this.mode = this.settings.getDefaultStretchMode(window.location.hostname);
-    this.logger = logger;
+    this.logger = videoData.logger;
   }
 
   setStretchMode(stretchMode) {

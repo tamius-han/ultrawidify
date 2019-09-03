@@ -22,9 +22,9 @@ class Resizer {
 
     this.logger = videoData.logger;
 
-    this.scaler = new Scaler(this.conf, logger);
-    this.stretcher = new Stretcher(this.conf, logger); 
-    this.zoom = new Zoom(this.conf, logger);
+    this.scaler = new Scaler(this.conf);
+    this.stretcher = new Stretcher(this.conf); 
+    this.zoom = new Zoom(this.conf);
 
     // load up default values
     this.correctedVideoDimensions = {};

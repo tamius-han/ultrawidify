@@ -4,13 +4,13 @@ import ExtensionMode from '../../common/enums/extension-mode.enum';
 
 class ActionHandler {
 
-  constructor(pageInfo, logger) {
+  constructor(pageInfo) {
     this.pageInfo = pageInfo;
     this.settings = pageInfo.settings;
     
     this.inputs = ['input', 'select', 'button', 'textarea'];
     this.keyboardLocalDisabled = false;
-    this.logger = logger;
+    this.logger = pageInfo.logger;
   }
 
   init() {
