@@ -702,8 +702,6 @@ class ArDetector {
       
     this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Triggering aspect ration change! new ar: ${newAr}`, "color: #aaf");
 
-    this.processAr(newAr);
-  
     // we also know edges for guardline, so set them.
     // we need to be mindful of fallbackMode though
     // if edges are okay and not invalid, we also 
