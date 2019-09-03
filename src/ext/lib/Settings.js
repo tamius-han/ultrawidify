@@ -28,11 +28,9 @@ class Settings {
 
     if(currentBrowser.firefox) {
       browser.storage.onChanged.addListener( (changes, area) => {
-        if (Debug.debug && Debug.debugStorage) {
-          console.log("[Settings::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
-          if (changes['uwSettings'] && changes['uwSettings'].newValue) {
-            console.log("[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));
-          }
+        this.logger.log('info', 'Settings', "[Settings::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
+        if (changes['uwSettings'] && changes['uwSettings'].newValue) {
+          this.logger.log('info', 'Settings',"[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));
         }
         if(changes['uwSettings'] && changes['uwSettings'].newValue) {
           ths.setActive(JSON.parse(changes.uwSettings.newValue));
@@ -42,17 +40,15 @@ class Settings {
           try {
             updateCallback(ths);
           } catch (e) {
-            console.log("[Settings] CALLING UPDATE CALLBACK FAILED.")
+            this.logger.log('error', 'Settings', "[Settings] CALLING UPDATE CALLBACK FAILED.")
           }
         }
       });
     } else if (currentBrowser.chrome) {
       chrome.storage.onChanged.addListener( (changes, area) => {
-        if (Debug.debug && Debug.debugStorage) {
-          console.log("[Settings::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
-          if (changes['uwSettings'] && changes['uwSettings'].newValue) {
-            console.log("[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));
-          }
+        this.logger.log('info', 'Settings', "[Settings::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
+        if (changes['uwSettings'] && changes['uwSettings'].newValue) {
+          this.logger.log('info', 'Settings',"[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));
         }
         if(changes['uwSettings'] && changes['uwSettings'].newValue) {
           ths.setActive(JSON.parse(changes.uwSettings.newValue));
@@ -62,7 +58,7 @@ class Settings {
           try {
             updateCallback(ths);
           } catch (e) {
-            console.log("[Settings] CALLING UPDATE CALLBACK FAILED.")
+            this.logger.log('error', 'Settings',"[Settings] CALLING UPDATE CALLBACK FAILED.")
           }
         }
       });
@@ -133,13 +129,13 @@ class Settings {
     const currentVersion = this.getExtensionVersion();
 
     if(Debug.debug) {
-      console.log("[Settings::init] Configuration fetched from storage:", settings,
-                  "\nlast saved with:", settings.version,
-                  "\ncurrent version:", currentVersion
-                  );
+      this.logger.log('info', 'Settings', "[Settings::init] Configuration fetched from storage:", settings,
+                                          "\nlast saved with:", settings.version,
+                                          "\ncurrent version:", currentVersion
+      );
 
       if (Debug.flushStoredSettings) {
-        console.log("%c[Settings::init] Debug.flushStoredSettings is true. Using default settings", "background: #d00; color: #ffd");
+        this.logger.log('info', 'Settings', "%c[Settings::init] Debug.flushStoredSettings is true. Using default settings", "background: #d00; color: #ffd");
         Debug.flushStoredSettings = false; // don't do it again this session
         this.active = this.getDefaultSettings();
         this.active.version = currentVersion;
@@ -175,18 +171,14 @@ class Settings {
     
 
     if (oldVersion == currentVersion) {
-      if(Debug.debug) {
-        console.log("[Settings::init] extension was saved with current version of ultrawidify. Returning object as-is.");
-      }
+      this.logger.log('info', 'Settings', "[Settings::init] extension was saved with current version of ultrawidify. Returning object as-is.");
       return this.active;
     }
 
     // if extension has been updated, update existing settings with any options added in the
     // new version. In addition to that, we remove old keys that are no longer used.
     const patched = ObjectCopy.addNew(settings, this.default);
-    if(Debug.debug) {
-      console.log("[Settings.init] Results from ObjectCopy.addNew()?", patched, "\n\nSettings from storage", settings, "\ndefault?", this.default,);
-    }
+    this.logger.log('info', 'Settings',"[Settings.init] Results from ObjectCopy.addNew()?", patched, "\n\nSettings from storage", settings, "\ndefault?", this.default);
 
     if(patched){
       this.active = patched;
@@ -221,13 +213,7 @@ class Settings {
       });
     }
 
-    if (Debug.debug && Debug.debugStorage) {
-      try {
-        console.log("[Settings::get] Got settings:", JSON.parse(ret.uwSettings));
-      } catch (e) {
-        console.log("[Settings::get] No settings.")
-      }
-    }
+    this.logger.log('info', 'Settings', 'Got settings:', ret && ret.uwSettings && JSON.parse(ret.uwSettings));
 
     try {
       return JSON.parse(ret.uwSettings);
@@ -237,9 +223,7 @@ class Settings {
   }
 
   async set(extensionConf) {
-    if (Debug.debug && Debug.debugStorage) {
-      console.log("[Settings::set] setting new settings:", extensionConf)
-    }
+    this.logger.log('info', 'Settings', "[Settings::set] setting new settings:", extensionConf)
 
     if (currentBrowser.firefox || currentBrowser.edge) {
       extensionConf.version = this.version;
@@ -315,10 +299,7 @@ class Settings {
       site = window.location.hostname;
 
       if (!site) {
-        if (Debug.debug) {
-          console.log("[Settings::canStartExtension] window.location.hostname is null or undefined:", window.location.hostname)
-          console.log("active settings:", this.active)
-        }
+        this.logger.log('info', 'Settings', `[Settings::canStartExtension] window.location.hostname is null or undefined: ${window.location.hostname} \nactive settings:`, this.active);
         return ExtensionMode.Disabled;
       }
     }
@@ -340,9 +321,8 @@ class Settings {
       }
   
     } catch(e){
-      if(Debug.debug){
-        console.log("[Settings.js::canStartExtension] Something went wrong — are settings defined/has init() been called?\n\nerror:", e, "\n\nSettings object:", this)
-      }
+      this.logger.log('error', 'Settings', "[Settings.js::canStartExtension] Something went wrong — are settings defined/has init() been called?\n\nerror:", e, "\n\nSettings object:", this)
+
       return ExtensionMode.Disabled;
     }
   }
@@ -353,8 +333,7 @@ class Settings {
       site = window.location.hostname;
 
       if (!site) {
-        console.log("[Settings::canStartExtension] window.location.hostname is null or undefined:", window.location.hostname)
-        console.log("active settings:", this.active)
+        this.logger.log('info', 'Settings', `[Settings::canStartExtension] window.location.hostname is null or undefined: ${window.location.hostname} \nactive settings:`, this.active);
         return false;
       }
     }
@@ -380,10 +359,8 @@ class Settings {
       } else {
         return false;
       }
-    } catch(e){
-      if(Debug.debug){
-        console.log("[Settings.js::canStartExtension] Something went wrong — are settings defined/has init() been called?\nSettings object:", this)
-      }
+    } catch(e) {
+      this.logger.log('error', 'Settings', "[Settings.js::canStartExtension] Something went wrong — are settings defined/has init() been called?\nSettings object:", this);
       return false;
     }
   }
@@ -405,9 +382,7 @@ class Settings {
         return this.active.sites[site].keyboardShortcutsEnabled === ExtensionMode.Enabled;
       }
     } catch (e) {
-      if (Debug.debug) {
-        console.error("[Settings.js::keyboardDisabled] something went wrong:", e);
-      }
+      this.logger.log('info', 'Settings',"[Settings.js::keyboardDisabled] something went wrong:", e);
       return false;
     }
   }
@@ -438,12 +413,12 @@ class Settings {
       const csar = this.canStartAutoAr(site);
       Debug.debug = true;
 
-      console.log("[Settings::canStartAutoAr] ----------------\nCAN WE START AUTOAR ON SITE", site,
-                  "?\n\nsettings.active.sites[site]=", this.active.sites[site], "settings.active.sites[@global]=", this.active.sites['@global'],
-                  "\nAutoar mode (global)?", this.active.sites['@global'].autoar,
-                  `\nAutoar mode (${site})`, this.active.sites[site] ? this.active.sites[site].autoar : '<not defined>',
-                  "\nCan autoar be started?", csar
-                 );
+      this.logger.log('info', 'Settings', "[Settings::canStartAutoAr] ----------------\nCAN WE START AUTOAR ON SITE", site,
+                                          "?\n\nsettings.active.sites[site]=", this.active.sites[site], "settings.active.sites[@global]=", this.active.sites['@global'],
+                                          "\nAutoar mode (global)?", this.active.sites['@global'].autoar,
+                                          `\nAutoar mode (${site})`, this.active.sites[site] ? this.active.sites[site].autoar : '<not defined>',
+                                          "\nCan autoar be started?", csar
+      );
     }
 
     // if site is not defined, we use default mode:    
@@ -454,10 +429,10 @@ class Settings {
     if (this.active.sites['@global'].autoar === ExtensionMode.Enabled) {
       return this.active.sites[site].autoar !== ExtensionMode.Disabled;
     } else if (this.active.sites['@global'].autoar === ExtensionMode.Whitelist) {
-      console.log("canStartAutoAr — can(not) start csar because extension is in whitelist mode, and this site is (not) equal to", ExtensionMode.Enabled)
+      this.logger.log('info', 'Settings', "canStartAutoAr — can(not) start csar because extension is in whitelist mode, and this site is (not) equal to", ExtensionMode.Enabled)
       return this.active.sites[site].autoar === ExtensionMode.Enabled;
     } else {
-      console.log("canStartAutoAr — cannot start csar because extension is globally disabled")
+      this.logger.log('info', 'Settings', "canStartAutoAr — cannot start csar because extension is globally disabled")
       return false;
     }
   }
