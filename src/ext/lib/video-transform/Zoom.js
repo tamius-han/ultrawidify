@@ -6,13 +6,14 @@ import Debug from '../../conf/Debug';
 class Zoom {
   // functions
   constructor(videoData) {
+    this.conf = videoData;
+    this.logger = videoData.logger;
+
     this.scale = 1;
     this.logScale = 0;
     this.scaleStep = 0.1;
     this.minScale = -1;  // 50% (log2(0.5) = -1)
     this.maxScale = 3;   // 800% (log2(8) = 3)
-    this.conf = videoData;
-    this.logger = videoData.logger;
   }
 
   reset(){

@@ -16,11 +16,11 @@ class Resizer {
   
   constructor(videoData) {
     this.conf = videoData;
+    this.logger = videoData.logger;
     this.video = videoData.video;
     this.settings = videoData.settings;
     this.extensionMode = videoData.extensionMode;
 
-    this.logger = videoData.logger;
 
     this.scaler = new Scaler(this.conf);
     this.stretcher = new Stretcher(this.conf); 

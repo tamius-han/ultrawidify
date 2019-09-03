@@ -13,6 +13,7 @@ class Settings {
 
   constructor(options) {
     // Options: activeSettings, updateCallback, logger
+    this.logger = options.logger;
     const activeSettings = options.activeSettings;
     const updateCallback = options.updateCallback;
 
@@ -22,7 +23,6 @@ class Settings {
     this.useSync = false;
     this.version = undefined;
     this.updateCallback = updateCallback;
-    this.logger = options.logger;
 
     const ths = this;
 
