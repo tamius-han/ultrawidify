@@ -6,6 +6,7 @@ import ArDetector from '../ar-detect/ArDetector';
 class VideoData {
   
   constructor(video, settings, pageInfo){
+    this.vdid = (Math.random()*100).toFixed();
     this.logger = pageInfo.logger;
     this.arSetupComplete = false;
     this.video = video;
@@ -14,7 +15,6 @@ class VideoData {
     this.pageInfo = pageInfo;
     this.extensionMode = pageInfo.extensionMode;
 
-    this.vdid = (Math.random()*100).toFixed();
     this.userCssClassName = `uw-fuck-you-and-do-what-i-tell-you_${this.vdid}`;
 
 
@@ -244,8 +244,8 @@ class VideoData {
     this.resizer.setPanMode(mode);
   }
 
-  setvideoAlignment(videoAlignment) {
-    this.resizer.setvideoAlignment(videoAlignment);
+  setVideoAlignment(videoAlignment) {
+    this.resizer.setVideoAlignment(videoAlignment);
   }
 
   restoreAr(){
