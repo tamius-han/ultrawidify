@@ -15,6 +15,7 @@ if(Debug.debug) {
 class Resizer {
   
   constructor(videoData) {
+    this.resizerId = (Math.random(99)*100).toFixed(0);
     this.conf = videoData;
     this.logger = videoData.logger;
     this.video = videoData.video;
@@ -37,7 +38,6 @@ class Resizer {
     this.videoAlignment = this.settings.getDefaultVideoAlignment(window.location.hostname); // this is initial video alignment
     this.destroyed = false;
 
-    this.resizerId = (Math.random(99)*100).toFixed(0);
 
     if (this.settings.active.pan) {
       this.canPan = this.settings.active.miscSettings.mousePan.enabled;
@@ -194,8 +194,8 @@ class Resizer {
       this.conf.destroy();
     }
 
-    // // pause AR on basic stretch, unpause when using other mdoes
-    // fir sine reason unpause doesn't unpause. investigate that later
+    // pause AR on basic stretch, unpause when using other modes
+    // for sine reason unpause doesn't unpause. investigate that later
     try {
       if (this.stretcher.mode === Stretch.Basic) {
         this.conf.arDetector.pause();
@@ -218,7 +218,7 @@ class Resizer {
           this.conf.destroy();
         }
         if (stretchFactors.error === 'illegal_video_dimensions') {
-          this.loggger.log('error', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> Illegal video dimensions found. We will pause everything.`)
+          this.logger.log('error', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> Illegal video dimensions found. We will pause everything.`)
         }
         return;
       }
@@ -300,7 +300,7 @@ class Resizer {
     this.restore();
   }
 
-  setvideoAlignment(videoAlignment) {
+  setVideoAlignment(videoAlignment) {
     this.videoAlignment = videoAlignment;
     this.restore();
   }

@@ -62,7 +62,7 @@ class CommsClient {
     if (message.cmd === "set-ar") {
       this.pageInfo.setAr({type: message.arg, ratio: message.customArg}, message.playing);
     } else if (message.cmd === 'set-alignment') {
-      this.pageInfo.setvideoAlignment(message.arg, message.playing);
+      this.pageInfo.setVideoAlignment(message.arg, message.playing);
       this.pageInfo.restoreAr();
     } else if (message.cmd === "set-stretch") {
       this.pageInfo.setStretchMode(message.arg, message.playing);
