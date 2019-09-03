@@ -29,10 +29,10 @@ class VideoData {
 
     // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
     // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)    
-    this.player = new PlayerData(this, logger);
-    this.resizer = new Resizer(this, logger);
+    this.player = new PlayerData(this, this.logger);
+    this.resizer = new Resizer(this, this.logger);
 
-    this.arDetector = new ArDetector(this, logger);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
+    this.arDetector = new ArDetector(this, this.logger);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
     // player dimensions need to be in:
     // this.player.dimensions
 

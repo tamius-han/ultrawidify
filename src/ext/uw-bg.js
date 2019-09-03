@@ -2,7 +2,7 @@ import Debug from './conf/Debug.js';
 import BrowserDetect from './conf/BrowserDetect';
 import CommsServer from './lib/comms/CommsServer';
 import Settings from './lib/Settings';
-
+import Logger from './lib/Logger';
 
 var BgVars = {
   arIsActive: true,

@@ -1,3 +1,4 @@
+import Debug from '../conf/Debug';
 import currentBrowser from '../conf/BrowserDetect';
 
 class Logger {

@@ -177,11 +177,10 @@ import ExecAction from './js/ExecAction.js';
 import DefaultSettingsPanel from './panels/DefaultSettingsPanel';
 import AboutPanel from './panels/AboutPanel';
 import ExtensionMode from '../common/enums/extension-mode.enum';
+import Logger from '../ext/lib/Logger';
 
 export default {
   data () {
-    const logger = new Logger();
-
     return {
       selectedTab: 'video',
       selectedFrame: '__all',
@@ -209,7 +208,7 @@ export default {
     this.logger = new Logger();
     await this.logger.init();
 
-    this.settings = new Settings({updateCallback: () => this.updateConfig(), logger: logger});
+    this.settings = new Settings({updateCallback: () => this.updateConfig(), logger: this.logger});
     await this.settings.init();
     this.settingsInitialized = true;
 
