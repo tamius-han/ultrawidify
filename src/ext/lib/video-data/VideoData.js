@@ -24,7 +24,8 @@ class VideoData {
       // attributeFilter: ['style', 'class'],
       attributeOldValue: true,
     };
-    this.observer = new MutationObserver(this.onVideoDimensionsChanged);
+    const ths = this;
+    this.observer = new MutationObserver( (m, o) => this.onVideoDimensionsChanged(m, o, ths));
     this.observer.observe(video, observerConf);
 
     // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
@@ -46,9 +47,9 @@ class VideoData {
     this.video.classList.add(this.userCssClassName); // this also needs to be applied BEFORE we initialize resizer!
   }
 
-  onVideoDimensionsChanged(mutationList, observer) {
-    if (!mutationList || this.video === undefined) {  // something's wrong
-      if (observer && this.video) {
+  onVideoDimensionsChanged(mutationList, observer, context) {
+    if (!mutationList || context.video === undefined) {  // something's wrong
+      if (observer && context.video) {
         observer.disconnect();
       }
       return;
@@ -56,25 +57,25 @@ class VideoData {
     for (let mutation of mutationList) {
       if (mutation.type === 'attributes') {
         if (mutation.attributeName === 'class') {
-          if (!this.video.classList.contains(this.userCssClassName)) {
+          if (!context.video.classList.contains(this.userCssClassName)) {
             // force the page to include our class in classlist, if the classlist has been removed
-            this.video.classList.add(this.userCssClassName);
+            context.video.classList.add(this.userCssClassName);
 
           // } else if () {
             // this bug should really get 
           } else {
-              this.restoreAr();
+              context.restoreAr();
           }
-        } else if (mutation.attributeName === 'style' && mutation.attributeOldValue !== this.video.getAttribute('style')) {
+        } else if (mutation.attributeName === 'style' && mutation.attributeOldValue !== context.video.getAttribute('style')) {
           // if size of the video has changed, this may mean we need to recalculate/reapply
           // last calculated aspect ratio
-          this.player.forceRefreshPlayerElement();
-          this.restoreAr();
+          context.player.forceRefreshPlayerElement();
+          context.restoreAr();
         } else if (mutation.attribute = 'src' && mutation.attributeOldValue !== this.video.getAttribute('src')) {
           // try fixing alignment issue on video change
           try {
-            this.player.forceRefreshPlayerElement();
-            this.restoreAr();
+            context.player.forceRefreshPlayerElement();
+            context.restoreAr();
           } catch (e) {
             console.error("[VideoData::onVideoDimensionsChanged] There was an error when handling src change.", e);
           }

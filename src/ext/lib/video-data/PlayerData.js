@@ -39,14 +39,12 @@ class PlayerData {
     this.video = videoData.video;
     this.settings = videoData.settings;
     this.extensionMode = videoData.extensionMode;
-    this.element = undefined;
+    this.element = this.getPlayer();
     this.dimensions = undefined;
     this.overlayNode = undefined;
 
-    this.observer = new MutationObserver(this.onPlayerDimensionsChanged);
-
     if (this.extensionMode === ExtensionMode.Enabled) {
-      this.getPlayerDimensions();
+      this.checkPlayerSizeChange();
     }
     this.startChangeDetection();
   }
@@ -56,18 +54,9 @@ class PlayerData {
   }
 
   // player size observer may not be strictly necessary here
-  onPlayerDimensionsChanged(mutationList, observer) {
-    if (!mutationList || this.element === undefined) {  // something's wrong
-      return;
-    }
-    for (let mutation of mutationList) {
-      if (mutation.type === 'attributes') {
-        if (mutation.attributeName === 'style' && this.checkPlayerSizeChange()) {
-          // if size of the player has changed, this may mean we need to recalculate/reapply
-          // last calculated aspect ratio
-          this.videoData.resizer.restore();
-        } 
-      }
+  onPlayerDimensionsChanged(mutationList, observer, context) {
+    if (context.checkPlayerSizeChange()) {
+      context.videoData.resizer.restore();
     }
   }
 
@@ -82,15 +71,19 @@ class PlayerData {
   }
 
   destroy() {
+    console.log("PLAYER DIMENSION — DSTROYING")
     this.stopChangeDetection();
     this.destroyOverlay();
   }
 
   startChangeDetection(){
+    const ths = this;
+    this.observer = new MutationObserver((m,o) => this.onPlayerDimensionsChanged(m,o,ths));
+
     const isFullScreen = PlayerData.isFullScreen();
-    const element = this.getPlayer(isFullScreen);
+    this.element = this.getPlayer(isFullScreen);
     
-    if (!element) {
+    if (!this.element) {
       return;
     }
 
@@ -100,7 +93,7 @@ class PlayerData {
       attributeOldValue: true,
     };
     
-    this.observer.observe(element, observerConf);
+    this.observer.observe(this.element, observerConf);
   }
   stopChangeDetection(){
     this.observer.disconnect();
@@ -285,60 +278,26 @@ class PlayerData {
     return a > b - tolerance && a < b + tolerance;
   }
 
-  getPlayerDimensions(){
-    const isFullScreen = PlayerData.isFullScreen();
-
-    const element = this.getPlayer(isFullScreen);
-
-    if(! element ){
-      this.logger.log('error', 'debug', "[PlayerDetect::getPlayerDimensions] element is not valid, doing nothing.", element)
-      this.element = undefined;
-      this.dimensions = undefined;
-      return;
-    }
-
-          
-    if (isFullScreen) {
-      this.dimensions = {
-        width: window.innerWidth,
-        height: window.innerHeight,
-        fullscreen: true
-      }
-      if (this.element != element) {
-        this.element = element;
-        this.makeOverlay()
-      }
-    } else {
-      this.dimensions = {
-        width: element.offsetWidth,
-        height: element.offsetHeight,
-        fullscreen: isFullScreen
-      };
-      if(this.element != element) {
-        this.element = element;
-        this.makeOverlay();
-      }
-    }
-  }
-
   forceRefreshPlayerElement() {
-    this.getPlayerDimensions();
+    this.checkPlayerSizeChange();
   }
 
   checkPlayerSizeChange(){
     // this 'if' is just here for debugging — real code starts later. It's safe to collapse and
     // ignore the contents of this if (unless we need to change how logging works)
     if (this.logger.canLog('debug')){
-      if (this.dimensions && this.dimensions.fullscreen){
+      if (!this.dimensions) {
+
+      } else if (this.dimensions && this.dimensions.fullscreen){
         if(! PlayerData.isFullScreen()){
           this.logger.log('info', 'debug', "[PlayerDetect] player size changed. reason: exited fullscreen");
         }
       }
       if(! this.element) {
-        this.logger.log('info', 'playerDetect', "[PlayerDetect] player element isnt defined");
+        this.logger.log('info', 'playerDetect', "[PlayerDetect] player element isn't defined");
       }
 
-      if ( this.element && 
+      if ( this.element && this.dimensions &&
            ( this.dimensions.width != this.element.offsetWidth ||
              this.dimensions.height != this.element.offsetHeight )
       ) {
@@ -346,11 +305,26 @@ class PlayerData {
       }
     }
     
-    if(this.element == undefined){
-      this.element = this.getPlayer();
-      return true;
-    } else if(this.dimensions.width != this.element.offsetWidth || this.dimensions.height != this.element.offsetHeight ){
-      this.element = this.getPlayer();
+    // if size doesn't match, update & return true
+    if (!this.dimensions
+        || this.dimensions.width != this.element.offsetWidth 
+        || this.dimensions.height != this.element.offsetHeight ){
+      
+      const isFullScreen = PlayerData.isFullScreen();
+
+      if (isFullScreen) {
+        this.dimensions = {
+          width: window.innerWidth,
+          height: window.innerHeight,
+          fullscreen: true
+        }
+      } else {
+        this.dimensions = {
+          width: this.element.offsetWidth,
+          height: this.element.offsetHeight,
+          fullscreen: isFullScreen
+        };
+      }
       return true;
     }
 
