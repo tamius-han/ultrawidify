@@ -3,6 +3,8 @@
     "ardetector",
     "autodetection",
     "blackbar",
+    "blackframe",
+    "canvas",
     "equalish",
     "insta",
     "recursing",
@@ -16,6 +18,11 @@
     "autoar",
     "cheight",
     "cwidth",
+    "fcstart",
+    "fctime",
+    "ncol",
+    "nrow",
+    "tickrate",
     "undisable",
     "vdid"
   ]
