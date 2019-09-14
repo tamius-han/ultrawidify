@@ -386,22 +386,6 @@ class ArDetector {
   getTimeout(baseTimeout, startTime){
     var execTime = (performance.now() - startTime);
     
-    if( execTime > this.settings.active.arDetect.autoDisable.maxExecutionTime ){
-      //  this.detectionTimeoutEventCount++;
-  
-  
-      // if( this.detectionTimeoutEventCount >= this.settings.active.arDetect.autoDisable.consecutiveTimeoutCount ){
-  
-      //   Comms.sendToBackgroundScript({cmd: 'disable-autoar', reason: 'Automatic aspect ratio detection was taking too much time and has been automatically disabled in order to avoid lag.'});
-      //   _ard_stop();
-      //   return 999999;
-      // }
-      
-    } else {
-       this.detectionTimeoutEventCount = 0;
-    } 
-  //   return baseTimeout > this.settings.active.arDetect.minimumTimeout ? baseTimeout : this.settings.active.arDetect.minimumTimeout;
-    
     return baseTimeout;
   }
   //#endregion
@@ -684,21 +668,6 @@ class ArDetector {
     }
 
     var newAr = this.calculateArFromEdges(edgePost);
-
-    // if (this.fallbackMode
-    //     && (!guardLineOut.blackbarFail && guardLineOut.imageFail)
-    //     && newAr < this.conf.resizer.getLastAr().ar
-    // ) {
-    //   // V primeru nesmiselnih rezultatov tudi ne naredimo ničesar.
-    //   // v fallback mode se lahko naredi, da je novo razmerje stranice ožje kot staro, kljub temu da je šel
-    //   // blackbar test skozi. Spremembe v tem primeru ne dovolimo.
-    //   //
-    //   // (Pravilen fix? Popraviti je treba računanje robov. V fallback mode je treba upoštevati, da obrobe,
-    //   // ki smo jih obrezali, izginejo is canvasa)
-    //   //
-    //   // NOTE: pravilen fix je bil implementiran
-    //   return;
-    // }
       
     this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Triggering aspect ration change! new ar: ${newAr}`, "color: #aaf");
 
