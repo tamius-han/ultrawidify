@@ -727,7 +727,12 @@ class ArDetector {
     } catch (e) {
       // edges weren't gucci, so we'll just reset 
       // the aspect ratio to defaults
-      this.guardline.reset();
+      try {
+        this.guardline.reset();
+      } catch (e) {
+        // guardline wasn't gucci either, but we'll just ignore
+        // that and reset the aspect ratio anyway
+      }
       this.conf.resizer.setAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
     }
   }
