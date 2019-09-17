@@ -41,7 +41,6 @@ class Logger {
     this.conf = conf;  // effective immediately
     // also persist settings:
     if (currentBrowser.firefox || currentBrowser.edge) {
-      extensionConf.version = this.version;
       return browser.storage.local.set( {'uwLogger': JSON.stringify(this.conf)});
     } else if (currentBrowser.chrome) {
       return chrome.storage.local.set( {'uwLogger': JSON.stringify(this.logger)});
