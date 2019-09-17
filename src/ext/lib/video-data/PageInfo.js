@@ -197,7 +197,11 @@ class PageInfo {
           
           try {
             v = new VideoData(video, this.settings, this);
-            v.initArDetection();
+            if (!v.invalid) {
+              v.initArDetection();
+            } else {
+              this.logger.log('error', 'debug', 'Video is invalid. Aard not started.', video);
+            }
             this.videos.push(v);
           } catch (e) {
             this.logger.log('error', 'debug', "rescan error: failed to initialize videoData. Skipping this video.",e);
