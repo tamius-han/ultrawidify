@@ -17,13 +17,13 @@ class VideoData {
 
     this.userCssClassName = `uw-fuck-you-and-do-what-i-tell-you_${this.vdid}`;
 
-
-    // We'll replace cssWatcher (in resizer) with mutationObserver
+    // We only init observers once player is confirmed valid
     const observerConf = {
       attributes: true,
       // attributeFilter: ['style', 'class'],
       attributeOldValue: true,
     };
+
     const ths = this;
     this.observer = new MutationObserver( (m, o) => this.onVideoDimensionsChanged(m, o, ths));
     this.observer.observe(video, observerConf);
@@ -31,8 +31,14 @@ class VideoData {
     // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
     // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)    
     this.player = new PlayerData(this);
-    this.resizer = new Resizer(this);
+    if (this.player.invalid) {
+      this.invalid = true;
+      return;
+    }
 
+    
+
+    this.resizer = new Resizer(this);
     this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
     // player dimensions need to be in:
     // this.player.dimensions
@@ -55,37 +61,66 @@ class VideoData {
       return;
     }
     for (let mutation of mutationList) {
-      if (mutation.type === 'attributes') {
-        if (mutation.attributeName === 'class') {
-          if (!context.video.classList.contains(this.userCssClassName)) {
-            // force the page to include our class in classlist, if the classlist has been removed
-            context.video.classList.add(this.userCssClassName);
-
-          // } else if () {
-            // this bug should really get 
-          } else {
-              context.restoreAr();
-          }
-        } else if (mutation.attributeName === 'style' && mutation.attributeOldValue !== context.video.getAttribute('style')) {
-          // if size of the video has changed, this may mean we need to recalculate/reapply
-          // last calculated aspect ratio
-          context.player.forceRefreshPlayerElement();
-          context.restoreAr();
-        } else if (mutation.attribute = 'src' && mutation.attributeOldValue !== this.video.getAttribute('src')) {
-          // try fixing alignment issue on video change
-          try {
-            context.player.forceRefreshPlayerElement();
-            context.restoreAr();
-          } catch (e) {
-            console.error("[VideoData::onVideoDimensionsChanged] There was an error when handling src change.", e);
-          }
-        }
+      if (mutation.type === 'attributes' 
+          && mutation.attributeName === 'class'
+          && !context.video.classList.contains(this.userCssClassName) ) {
+        // force the page to include our class in classlist, if the classlist has been removed
+        // while classList.add() doesn't duplicate classes (does nothing if class is already added),
+        // we still only need to make sure we're only adding our class to classlist if it has been
+        // removed. classList.add() will _still_ trigger mutation (even if classlist wouldn't change).
+        // This is a problem because INFINITE RECURSION TIME, and we _really_ don't want that.
+      
+        context.video.classList.add(this.userCssClassName);  
+        break;
       }
+    }
+
+    // adding player observer taught us that if element size gets triggered by a class, then
+    // the 'style' attributes don't necessarily trigger. This means we also need to trigger
+    // restoreAr here, in case video size was changed this way
+    context.player.forceRefreshPlayerElement();
+    context.restoreAr();
+
+    // sometimes something fucky wucky happens and mutations aren't detected correctly, so we
+    // try to get around that
+    setTimeout( () => {
+      context.validateVideoOffsets();
+    }, 100);
+  }
+
+  validateVideoOffsets() {
+    // THIS BREAKS PANNING
+    const cs = window.getComputedStyle(this.video);
+    const pcs = window.getComputedStyle(this.player.element);
+
+    try {
+      const transformMatrix = cs.transform.split(')')[0].split(',');
+      const translateX = +transformMatrix[4];
+      const translateY = +transformMatrix[5];
+      const vh = +(cs.height.split('px')[0]);
+      const vw = +(cs.width.split('px')[0]);
+      const ph = +(pcs.height.split('px')[0]);
+      const pw = +(pcs.width.split('px')[0]);
+
+      // TODO: check & account for panning and alignment
+      if (this.isWithin(vh, (ph - (translateY / 2)), 2)
+          && this.isWithin(vw, (pw - (translateX / 2)), 2)) {
+      } else {
+        this.player.forceRefreshPlayerElement();
+        this.restoreAr();
+      }
+      
+    } catch(e) {
+      // do nothing on fail
     }
   }
 
+  isWithin(a, b, diff) {
+    return a < b + diff && a > b - diff
+  }
+
   firstTimeArdInit(){
-    if(this.destroyed) {
+    if(this.destroyed || this.invalid) {
       // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
       return;
     }
@@ -95,7 +130,7 @@ class VideoData {
   }
 
   initArDetection() {
-    if(this.destroyed) {
+    if(this.destroyed || this.invalid) {
       // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
       return;
     }
@@ -110,7 +145,7 @@ class VideoData {
   
   startArDetection() {
     this.logger.log('info', 'debug', "[VideoData::startArDetection] starting AR detection")
-    if(this.destroyed) {
+    if(this.destroyed || this.invalid) {
       // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
       return;
     }
@@ -121,7 +156,7 @@ class VideoData {
   }
 
   rebootArDetection() {
-    if(this.destroyed) {
+    if(this.destroyed || this.invalid) {
       // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
       return;
     }
@@ -179,7 +214,7 @@ class VideoData {
   }
 
   resume(){
-    if(this.destroyed) {
+    if(this.destroyed || this.invalid) {
       // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
       return;
     }
@@ -214,22 +249,37 @@ class VideoData {
   }
 
   setLastAr(lastAr){
+    if (this.invalid) {
+      return;
+    }
     this.resizer.setLastAr(lastAr);
   }
 
   setAr(ar, lastAr){
+    if (this.invalid) {
+      return;
+    }
     this.resizer.setAr(ar, lastAr);
   }
 
   resetAr() {
+    if (this.invalid) {
+      return;
+    }
     this.resizer.reset();
   }
 
   resetLastAr() {
+    if (this.invalid) {
+      return;
+    }
     this.resizer.setLastAr('original');
   }
 
   panHandler(event, forcePan) {
+    if (this.invalid) {
+      return;
+    }
     if(this.destroyed) {
       // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
       return;
@@ -242,34 +292,58 @@ class VideoData {
   }
 
   setPanMode(mode) {
+    if (this.invalid) {
+      return;
+    }
     this.resizer.setPanMode(mode);
   }
 
   setVideoAlignment(videoAlignment) {
+    if (this.invalid) {
+      return;
+    }
     this.resizer.setVideoAlignment(videoAlignment);
   }
 
   restoreAr(){
+    if (this.invalid) {
+      return;
+    }
     this.resizer.restore();
   }
 
   setStretchMode(stretchMode){
+    if (this.invalid) {
+      return;
+    }
     this.resizer.setStretchMode(stretchMode);
   }
 
   setZoom(zoomLevel, no_announce){
+    if (this.invalid) {
+      return;
+    }
     this.resizer.setZoom(zoomLevel, no_announce);
   }
 
   zoomStep(step){
+    if (this.invalid) {
+      return;
+    }
     this.resizer.zoomStep(step);
   }
 
   announceZoom(scale){
+    if (this.invalid) {
+      return;
+    }
     this.pageInfo.announceZoom(scale);
   }
 
   markPlayer(name, color) {
+    if (this.invalid) {
+      return;
+    }
     if (this.player) {
       this.player.markPlayer(name, color)
     }

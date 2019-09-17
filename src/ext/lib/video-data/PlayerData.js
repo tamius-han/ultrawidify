@@ -39,9 +39,16 @@ class PlayerData {
     this.video = videoData.video;
     this.settings = videoData.settings;
     this.extensionMode = videoData.extensionMode;
+    this.invalid = false;
     this.element = this.getPlayer();
     this.dimensions = undefined;
     this.overlayNode = undefined;
+
+    // this happens when we don't find a matching player element
+    if (!this.element) {
+      this.invalid = true;
+      return;
+    }
 
     if (this.extensionMode === ExtensionMode.Enabled) {
       this.checkPlayerSizeChange();
@@ -76,15 +83,11 @@ class PlayerData {
   }
 
   startChangeDetection(){
-    const ths = this;
-    this.observer = new MutationObserver((m,o) => this.onPlayerDimensionsChanged(m,o,ths));
-
-    const isFullScreen = PlayerData.isFullScreen();
-    this.element = this.getPlayer(isFullScreen);
-    
-    if (!this.element) {
+    if (this.invalid) {
       return;
     }
+    const ths = this;
+    this.observer = new MutationObserver((m,o) => this.onPlayerDimensionsChanged(m,o,ths));
 
     const observerConf = {
       attributes: true,
@@ -157,7 +160,7 @@ class PlayerData {
     return false;
   }
 
-  getPlayer(isFullScreen) {
+  getPlayer() {
     const host = window.location.host;
     let element = this.video.parentNode;
     const videoWidth = this.video.offsetWidth, videoHeight = this.video.offsetHeight;
@@ -165,112 +168,119 @@ class PlayerData {
     let scorePenalty = 0;
     let score;
 
-    if(! element ){
-      this.logger.log('info', 'debug', "[PlayerDetect::_pd_getPlayer] element is not valid, doing nothing.", element)
-      if(this.element) {
-        const ths = this;
+    try {
+      if(! element ){
+        this.logger.log('info', 'debug', "[PlayerDetect::_pd_getPlayer] element is not valid, doing nothing.", element)
+        if(this.element) {
+          const ths = this;
+        }
+        this.element = undefined;
+        this.dimensions = undefined;
+        return;
       }
-      this.element = undefined;
-      this.dimensions = undefined;
-      return;
-    }
 
-    if (this.settings.active.sites[host]
-        && this.settings.active.sites[host].DOM
-        && this.settings.active.sites[host].DOM.player
-        && this.settings.active.sites[host].DOM.player.manual) {
-      if (this.settings.active.sites[host].DOM.player.useRelativeAncestor
-          && this.settings.active.sites[host].DOM.player.videoAncestor) {
+      if (this.settings.active.sites[host]
+          && this.settings.active.sites[host].DOM
+          && this.settings.active.sites[host].DOM.player
+          && this.settings.active.sites[host].DOM.player.manual) {
+        if (this.settings.active.sites[host].DOM.player.useRelativeAncestor
+            && this.settings.active.sites[host].DOM.player.videoAncestor) {
 
-        let parentsLeft = this.settings.active.sites[host].DOM.player.videoAncestor - 1;
-        while (parentsLeft --> 0) {
-          element = element.parentNode;
-        }
-        if (element) {
-          return element;
-        }
-      } else if (this.settings.active.sites[host].DOM.player.querySelectors) {
-        const allSelectors = document.querySelectorAll(this.settings.active.sites[host].DOM.player.querySelectors);
+          let parentsLeft = this.settings.active.sites[host].DOM.player.videoAncestor - 1;
+          while (parentsLeft --> 0) {
+            element = element.parentNode;
+          }
+          if (element) {
+            return element;
+          }
+        } else if (this.settings.active.sites[host].DOM.player.querySelectors) {
+          const allSelectors = document.querySelectorAll(this.settings.active.sites[host].DOM.player.querySelectors);
+          // actually we'll also score this branch in a similar way we score the regular, auto branch
+          while (element) {
 
-        // actually we'll also score this branch in a similar way we score the regular, auto branch
-        while (element) {
+            // Let's see how this works
+            if (this.collectionHas(allSelectors, element)) {
+              score = 100; // every matching element gets a baseline 100 points
+              
+              // elements that match the size get a hefty bonus
+              if ( (element.offsetWidth >= videoWidth && this.equalish(element.offsetHeight, videoHeight, 2))
+                || (element.offsetHeight >= videoHeight && this.equalish(element.offsetWidth, videoHeight, 2))) {
+                  score += 75;
+              }
 
-          // Let's see how this works
-          if (this.collectionHas(allSelectors, element)) {
-            score = 100; // every matching element gets a baseline 100 points
-            
-            // elements that match the size get a hefty bonus
-            if ( (element.offsetWidth >= videoWidth && this.equalish(element.offsetHeight, videoHeight, 2))
-              || (element.offsetHeight >= videoHeight && this.equalish(element.offsetWidth, videoHeight, 2))) {
-                score += 75;
+              // elements farther away from the video get a penalty
+              score -= (scorePenalty++) * 20;
+
+              // push the element on the queue/stack:
+              elementQ.push({
+                score: score,
+                element: element,
+              });
             }
 
-            // elements farther away from the video get a penalty
-            score -= (scorePenalty++) * 20;
-
-            // push the element on the queue/stack:
-            elementQ.push({
-              score: score,
-              element: element,
-            });
+            element = element.parentNode;
           }
 
+          if (elementQ.length) {
+            // return element with biggest score
+            // if video player has not been found, proceed to automatic detection
+            return elementQ.sort( (a,b) => b.score - a.score)[0].element;
+          }
+        }
+      }
+
+      // try to find element the old fashioned way
+
+      while (element){    
+        // odstranimo čudne elemente, ti bi pokvarili zadeve
+        // remove weird elements, those would break our stuff
+        if ( element.offsetWidth == 0 || element.offsetHeight == 0){
           element = element.parentNode;
+          continue;
         }
-        if (elementQ.length) {
-          // return element with biggest score
-          // if video player has not been found, proceed to automatic detection
-          return elementQ.sort( (a,b) => b.score - a.score)[0].element;
-        }
-      }
-    }
-
     
+        // element je player, če je ena stranica enako velika kot video, druga pa večja ali enaka. 
+        // za enakost dovolimo mala odstopanja
+        // element is player, if one of the sides is as long as the video and the other bigger (or same)
+        // we allow for tiny variations when checking for equality
+        if ( (element.offsetWidth >= videoWidth && this.equalish(element.offsetHeight, videoHeight, 2))
+            || (element.offsetHeight >= videoHeight && this.equalish(element.offsetWidth, videoHeight, 2))) {
+          
+          // todo — in case the match is only equalish and not exact, take difference into account when 
+          // calculating score
+          
+          score = 100;
 
-    while (element){    
-      // odstranimo čudne elemente, ti bi pokvarili zadeve
-      // remove weird elements, those would break our stuff
-      if ( element.offsetWidth == 0 || element.offsetHeight == 0){
+          if (element.id.indexOf('player') !== -1) { // prefer elements with 'player' in id
+            score += 75;
+          }
+          if (element.classList.toString().indexOf('player') !== -1) {  // prefer elements with 'player' in classlist, but a bit less than id
+            score += 50;
+          }
+          score -= scorePenalty++; // prefer elements closer to <video>
+          
+          elementQ.push({
+            element: element,
+            score: score,
+          });
+        }
+        
         element = element.parentNode;
-        continue;
       }
-  
-      // element je player, če je ena stranica enako velika kot video, druga pa večja ali enaka. 
-      // za enakost dovolimo mala odstopanja
-      // element is player, if one of the sides is as long as the video and the other bigger (or same)
-      // we allow for tiny variations when checking for equality
-      if ( (element.offsetWidth >= videoWidth && this.equalish(element.offsetHeight, videoHeight, 2))
-           || (element.offsetHeight >= videoHeight && this.equalish(element.offsetWidth, videoHeight, 2))) {
-        
-        // todo — in case the match is only equalish and not exact, take difference into account when 
-        // calculating score
-        
-        score = 100;
 
-        if (element.id.indexOf('player') !== -1) { // prefer elements with 'player' in id
-          score += 75;
-        }
-        if (element.classList.toString().indexOf('player') !== -1) {  // prefer elements with 'player' in classlist, but a bit less than id
-          score += 50;
-        }
-        score -= scorePenalty++; // prefer elements closer to <video>
-        
-        elementQ.push({
-          element: element,
-          score: score,
-        });
+      if (elementQ.length) {
+        // return element with biggest score
+        return elementQ.sort( (a,b) => b.score - a.score)[0].element;
       }
-      
-      element = element.parentNode;
-    }
 
-    if (elementQ.length) {
-      // return element with biggest score
-      return elementQ.sort( (a,b) => b.score - a.score)[0].element;
+      // if no candidates were found, something is obviously very, _very_ wrong.
+      // we return nothing. Player will be marked as invalid and setup will stop.
+      // VideoData should check for that before starting anything.
+      this.logger.log('warn', 'debug', '[PlayerData::getPlayer] no matching player was found for video', this.video, 'Extension cannot work on this site.');
+      return;
+    } catch (e) {
+      this.logger.log('crit', 'debug', '[PlayerData::getPlayer] something went wrong while detecting player:', e, 'Shutting down extension for this page');
     }
-
-    // if no candidates were found, return parent node
-    return this.video.parentNode;
   }
 
   equalish(a,b, tolerance) {
