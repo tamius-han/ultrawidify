@@ -493,7 +493,15 @@ class Resizer {
     // add remaining elements
     if (stretchFactors) {
       styleArray.push(`transform: translate(${translate.x}px, ${translate.y}px) scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor})`);
-      styleArray.push("top: 0px !important; left: 0px !important; bottom: 0px !important; right: 0px");
+
+      // important — guarantees video will be properly aligned
+      styleArray.push("top: 0px !important; left: 0px !important; bottom: 0px !important; right: 0px;"); 
+
+      // important — some websites (cough reddit redesign cough) may impose some dumb max-width and max-height
+      // restrictions. If site has dumb shit like 'max-width: 100%' and 'max-height: 100vh' in their CSS, that
+      // shit will prevent us from applying desired crop. This means we need to tell websites to fuck off with
+      // that crap. We know better.
+      styleArray.push("max-width: none !important; max-height: none !important;");
     }
     const styleString = `${this.buildStyleString(styleArray)}${extraStyleString || ''}`; // string returned by buildStyleString() should end with ; anyway
 
