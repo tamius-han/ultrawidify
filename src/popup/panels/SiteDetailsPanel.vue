@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-column" style="padding-bottom: 20px">
-    <div class="">
+    <!-- <div class="">
       <div class="label">Player picker</div>
       <div class="desc">
         If extension doesn't detect player correctly, you can override it.
@@ -32,37 +32,7 @@
       </div>
 
 
-    </div>
-    <div class="label">
-      Video detection settings<br/><small>for {{site}}</small>
-    </div>
-    <div class="description">Video is just the moving picture bit without the player.</div>
-    <div class="">
-      <div class="">
-        <input :checked="!videoManualQs"
-                @change="toggleVideoManualQs"
-                type="checkbox" 
-        /> Detect automatically
-      </div>
-      <div class="flex flex-column">
-        <div class="flex label-secondary form-label">Query selectors</div>
-        <input type="text"
-               v-model="videoQs"
-               :disabled="!videoManualQs"
-               @change="updateVideoQuerySelector"
-               @blur="updateVideoQuerySelector"
-        />
-      </div>
-      <div class="flex flex-column">
-        <div class="flex label-secondary form-label">Additional css</div>
-        <input type="text"
-               v-model="videoCss"
-               @change="updateVideoCss"
-               @blur="updateVideoCss"
-        />
-      </div>
-
-    </div>
+    </div> -->
 
     <div class="label">
       Player detection settings<br/><small>for {{site}}</small>
@@ -121,7 +91,38 @@
                @blur="updatePlayerCss"
         >
         </textarea>
+    </div>
+    
+    <div class="label">
+      Video detection settings<br/><small>for {{site}}</small>
+    </div>
+    <div class="description">Video is just the moving picture bit without the player.</div>
+    <div class="">
+      <div class="">
+        <input :checked="!videoManualQs"
+                @change="toggleVideoManualQs"
+                type="checkbox" 
+        /> Detect automatically
       </div>
+      <div class="flex flex-column">
+        <div class="flex label-secondary form-label">Query selectors</div>
+        <input type="text"
+               v-model="videoQs"
+               :disabled="!videoManualQs"
+               @change="updateVideoQuerySelector"
+               @blur="updateVideoQuerySelector"
+        />
+      </div>
+      <div class="flex flex-column">
+        <div class="flex label-secondary form-label">Additional css</div>
+        <input type="text"
+               v-model="videoCss"
+               @change="updateVideoCss"
+               @blur="updateVideoCss"
+        />
+      </div>
+
+    </div>
   </div>
 </template>
 
