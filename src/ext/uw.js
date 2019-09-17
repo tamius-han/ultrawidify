@@ -44,7 +44,7 @@ class UW {
       if (!this.logger) {
         const loggingOptions = {
           logToFile: false,
-          logToConsole: true,
+          logToConsole: false,
           fileOptions: {
             // really the same stuff as consoleOptions
           },
@@ -52,14 +52,15 @@ class UW {
             enabled: true, // if logging is enabled at all
             'debug': true,
             'init': true,
+            'settings': true,
             'keyboard': false,
             'mousemove': false,
             'actionHandler': false,
-            'comms': true,
-            'playerDetect': true,
-            'resizer': true,
-            'scaler': true,
-            'stretcher': true,
+            'comms': false,
+            'playerDetect': false,
+            // 'resizer': true,
+            // 'scaler': true,
+            // 'stretcher': true,
             'videoRescan': false,
             'arDetect': false,
             'arDetect_verbose': false,
@@ -86,7 +87,7 @@ class UW {
 
     if (!this.settings) {
       var ths = this;
-      this.settings = new Settings({updateCallback: () => ths.init(), logger: this.logger});
+      this.settings = new Settings({updateCallback: (s) => {console.log("settings callback — ", s); ths.init()}, logger: this.logger});
       await this.settings.init();
     }
   
