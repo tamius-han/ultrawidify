@@ -15,10 +15,12 @@ QoL improvements for me:
 ### v4.3.0 (current)
 
 * Fixed some issues with incorrect alignment after window resize
+* Fixed for videos hosted on v.reddit for new reddit
+* Fixed the issue where setting extension to 'whitelist only' would disable 'site settings' in popup.
 * Added user-friendly way to export/import settings (export requires 'download' permissions)
 * Reworked logging
 * Started using mutation observers to watch for changes in player size as well.
-* Implemented/improved/fixed settings patching 
+* Implemented/improved/fixed settings patching
 
 ### v4.2.4 / 4.2.4.x
 
