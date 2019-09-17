@@ -5,14 +5,22 @@
 ### Plans for the future
 
 * Settings page looks ugly af right now. Maybe fix it some time later
+* rework keyboard shortcuts so things like russian layouts don't mess thigns up
+* other bug fixes
 
-### v4.3.0 (future release)
+QoL improvements for me:
 
-* Added user-friendly way to export/import settings
+* logging: allow to enable logging at will and export said logs to a file
+
+### v4.3.0 (current)
+
+* Fixed some issues with incorrect alignment after window resize
+* Added user-friendly way to export/import settings (export requires 'download' permissions)
 * Reworked logging
 * Started using mutation observers to watch for changes in player size as well.
+* Implemented/improved/fixed settings patching 
 
-### v4.2.4 / 4.2.4.x (current)
+### v4.2.4 / 4.2.4.x
 
 * Improvements to player detection. More details in the [blog post](https://stuff.tamius.net/sacred-texts/2019/08/31/ultrawidify-and-the-improper-cropping/).
 * **[4.2.4.1]** Fixed default video settings for reddit
