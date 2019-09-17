@@ -71,7 +71,6 @@ class PlayerData {
   }
 
   destroy() {
-    console.log("PLAYER DIMENSION — DSTROYING")
     this.stopChangeDetection();
     this.destroyOverlay();
   }
