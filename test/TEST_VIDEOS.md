@@ -10,6 +10,7 @@ https://vimeo.com/channels/staffpicks/169599296
 
 https://redd.it/9rfg84
 https://www.reddit.com/r/Minecraft/comments/cvnh9d/had_no_idea_this_was_possible/
+https://old.reddit.com/r/Guildwars2/comments/cxtf9r/the_rytlock_and_bangar_teaser/
 
 ## Streamable
 
