@@ -33,7 +33,7 @@
       Accurate preset will take a more conservative approach to determining aspect ratio, correcting aspect ratio only when
       it's absolutely sure that the aspect ratio needs changing. This option results in fewer incorrect aspect ratio corrections,
       but can also result in extension not correcting aspect ratio when it should.
-      Strict preset is 'accurate' on stereoids.
+      Strict preset is 'accurate' on steroids.
     </div>
 
     <div class="flex flex-row row-padding">
