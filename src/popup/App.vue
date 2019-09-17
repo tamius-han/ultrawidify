@@ -205,7 +205,10 @@ export default {
     }
   },
   async created() {
-    this.logger = new Logger();
+    this.logger = new Logger({
+        logToFile: false,
+        logToConsole: false
+    });
     await this.logger.init();
 
     this.settings = new Settings({updateCallback: () => this.updateConfig(), logger: this.logger});

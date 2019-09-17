@@ -29,7 +29,9 @@ class Logger {
   }
 
   async init() {
-    this.conf = await this.getSaved();
+    if (!this.conf) {
+      this.conf = await this.getSaved();
+    }
   }
 
   clear() {

@@ -31,7 +31,10 @@ class UWServer {
 
   async setup() {
     // logger is the first thing that goes up
-    this.logger = new Logger();
+    this.logger = new Logger({
+        logToFile: false,
+        logToConsole: false
+    });
     await this.logger.init();
 
     this.settings = new Settings({logger: this.logger});
