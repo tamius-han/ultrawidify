@@ -347,13 +347,21 @@ export default {
       // Extension site disabled, embedded videos from non-blacklisted hosts — show video settings
       // Extension site enabled — show vido settings
 
+      // note: this if statement is ever so slightly unnecessary
       if (! this.settings.canStartExtension('@global')) {
-        if (this.selectedTab === 'video' || this.selectedTab === 'site') {
-          this.selectTab('global');
+        // canStartExtension and getExtensionMode return disabled/false for non-whitelisted
+        // sites, even if extension mode is set to "whitelist only." This is problematic
+        // because in order to whitelist a given site, we need to set extension to global-
+        // enabled, whitelist the site, and then set extension to whitelist only. This makes
+        // for a bad user experience, so let's fix this.
+        if (this.settings.active.sites['@global'].mode === ExtensionMode.Disabled) {
+          if (this.selectedTab === 'video' || this.selectedTab === 'site') {
+            this.selectTab('global');
+          }
+          this.siteTabDisabled = true;
+          this.videoTabDisabled = true;
+          return;
         }
-        this.siteTabDisabled = true;
-        this.videoTabDisabled = true;
-        return;
       }
 
       this.siteTabDisabled = false;;
