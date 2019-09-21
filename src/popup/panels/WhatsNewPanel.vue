@@ -8,7 +8,7 @@
       <li>Fixed for videos hosted on v.reddit for new reddit</li>
       <li>Fixed the issue where setting extension to 'whitelist only' would disable 'site settings' in popup.</li>
       <li>User-friendly way of importing-exporting settings (exporting settings requires 'download' permission)</li>
-      <li>Started using mutation observers to watch for changes in player size as well.</li>
+      <li>Started using mutation observers to watch for changes in player size as well, but with some caveats.</li>
       <li>Mutation observers are now used to detect both video and player size changes.</li>
       <li>Settings patching has been reworked. Settings can now be patched incrementally.</li>
     </ul>

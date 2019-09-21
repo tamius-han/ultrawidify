@@ -19,7 +19,7 @@ QoL improvements for me:
 * Fixed the issue where setting extension to 'whitelist only' would disable 'site settings' in popup.
 * Added user-friendly way to export/import settings (export requires 'download' permissions)
 * Reworked logging
-* Started using mutation observers to watch for changes in player size as well.
+* Started using mutation observers to watch for changes in player size as well. Since mutation observers aren't entirely reliable, old way of doing things is still somewhat present as a backup way, but runs less frequently.
 * Implemented/improved/fixed settings patching
 
 ### v4.2.4 / 4.2.4.x
