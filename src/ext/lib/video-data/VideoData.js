@@ -36,8 +36,6 @@ class VideoData {
       return;
     }
 
-    
-
     this.resizer = new Resizer(this);
     this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
     // player dimensions need to be in:
@@ -51,7 +49,22 @@ class VideoData {
 
     this.pageInfo.initMouseActionHandler(this);
     this.video.classList.add(this.userCssClassName); // this also needs to be applied BEFORE we initialize resizer!
+
+    // start fallback video/player size detection
+    this.fallbackChangeDetection();
   }
+
+  async fallbackChangeDetection() {
+    while (!this.destroyed && !this.invalid) {
+      await this.sleep(1000);
+      this.validateVideoOffsets();
+    }
+  }
+
+  async sleep(timeout) {
+    return new Promise( (resolve, reject) => setTimeout(() => resolve(), timeout));
+  }
+
 
   onVideoDimensionsChanged(mutationList, observer, context) {
     if (!mutationList || context.video === undefined) {  // something's wrong
