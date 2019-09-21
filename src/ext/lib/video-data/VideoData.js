@@ -36,6 +36,11 @@ class VideoData {
       return;
     }
 
+    this.dimensions = {
+      width: this.video.offsetWidth,
+      height: this.video.offsetHeight,
+    };
+
     this.resizer = new Resizer(this);
     this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
     // player dimensions need to be in:
@@ -56,7 +61,7 @@ class VideoData {
 
   async fallbackChangeDetection() {
     while (!this.destroyed && !this.invalid) {
-      await this.sleep(1000);
+      await this.sleep(500);
       this.validateVideoOffsets();
     }
   }
@@ -367,6 +372,37 @@ class VideoData {
 
   isPlaying() {
     return this.video && this.video.currentTime > 0 && !this.video.paused && !this.video.ended;
+  }
+
+  checkVideoSizeChange(){
+    const videoWidth = this.video.offsetWidth;
+    const videoHeight = this.video.offsetHeight;
+    // this 'if' is just here for debugging — real code starts later. It's safe to collapse and
+    // ignore the contents of this if (unless we need to change how logging works)
+    if (this.logger.canLog('debug')){
+      if(! this.video) {
+        this.logger.log('info', 'videoDetect', "[VideoDetect] player element isn't defined");
+      }
+      if ( this.video && this.dimensions &&
+           ( this.dimensions.width != videoWidth ||
+             this.dimensions.height != videoHeight )
+      ) {
+        this.logger.log('info', 'debug', "[VideoDetect] player size changed. reason: dimension change. Old dimensions?", this.dimensions.width, this.dimensions.height, "new dimensions:", this.video.offsetWidth, this.video.offsetHeight);
+      }
+    }
+    
+    // if size doesn't match, update & return true
+    if (!this.dimensions
+        || this.dimensions.width != videoWidth
+        || this.dimensions.height != videoHeight ){
+      this.dimensions = {
+        width: videoWidth,
+        height: videoHeight,
+      };
+      return true;
+    }
+
+    return false;
   }
 }
 

@@ -86,6 +86,7 @@ class PlayerData {
     if (this.invalid) {
       return;
     }
+
     const ths = this;
     this.observer = new MutationObserver((m,o) => this.onPlayerDimensionsChanged(m,o,ths));
 
@@ -96,7 +97,21 @@ class PlayerData {
     };
     
     this.observer.observe(this.element, observerConf);
+
+    // legacy mode still exists, but acts as a fallback for observers and is triggered less
+    // frequently in order to avoid too many pointless checks
+    this.legacyChangeDetection();
   }
+
+  async legacyChangeDetection() {
+    while (!this.halted) {
+      await this.sleep(1000);
+      if (this.checkPlayerSizeChange()) {
+        this.videoData.restore();
+      }
+    }
+  }
+
   stopChangeDetection(){
     this.observer.disconnect();
   }
