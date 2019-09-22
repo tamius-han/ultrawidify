@@ -21,6 +21,7 @@ QoL improvements for me:
 * Reworked logging
 * Started using mutation observers to watch for changes in player size as well. Since mutation observers aren't entirely reliable, old way of doing things is still somewhat present as a backup way, but runs less frequently.
 * Implemented/improved/fixed settings patching
+* **[4.3.0.1]** Removed some console.logs that I missed the first time around.
 
 ### v4.2.4 / 4.2.4.x
 

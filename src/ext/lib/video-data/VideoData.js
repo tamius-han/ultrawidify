@@ -112,12 +112,10 @@ class VideoData {
     // validate if current video still exists. If not, we destroy current object
     try {
       if (! document.body.contains(this.video)) {
-        console.log("this video is having a bit of a hiatus:", this.video)
         this.destroy();
         return;
       }
     } catch (e) {
-      console.log("e", e)
     }
     // THIS BREAKS PANNING
     const cs = window.getComputedStyle(this.video);
