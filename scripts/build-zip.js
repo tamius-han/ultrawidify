@@ -7,8 +7,9 @@ const archiver = require('archiver');
 const DEST_DIR = path.join(__dirname, '../dist');
 const DEST_ZIP_DIR = path.join(__dirname, '../dist-zip'); 
 
+
 const extractExtensionData = () => {
-  const extPackageJson = require('../package.json');
+  const extPackageJson = require('../src/manifest.json');
 
   return {
     name: extPackageJson.name,
@@ -40,8 +41,10 @@ const buildZip = (src, dist, zipFilename) => {
 };
 
 const main = () => {
+  const browser = process.argv[2];
+
   const {name, version} = extractExtensionData();
-  const zipFilename = `${name}-v${version}.zip`;
+  const zipFilename = `${name}-${version}-${browser}.zip`;
   
   makeDestZipDirIfNotExists();
 
