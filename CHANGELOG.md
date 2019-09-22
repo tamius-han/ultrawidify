@@ -5,6 +5,22 @@
 ### Plans for the future
 
 * Settings page looks ugly af right now. Maybe fix it some time later
+* rework keyboard shortcuts so things like russian layouts don't mess thigns up
+* other bug fixes
+
+QoL improvements for me:
+
+* logging: allow to enable logging at will and export said logs to a file
+
+### v4.3.0 (current)
+
+* Fixed some issues with incorrect alignment after window resize
+* Fixed all sorts of issues for videos hosted on v.reddit for new (and old) reddit
+* Fixed the issue where setting extension to 'whitelist only' would disable 'site settings' in popup.
+* Added user-friendly way to export/import settings (export requires 'download' permissions)
+* Reworked logging
+* Started using mutation observers to watch for changes in player size as well. Since mutation observers aren't entirely reliable, old way of doing things is still somewhat present as a backup way, but runs less frequently.
+* Implemented/improved/fixed settings patching
 
 ### v4.2.4 / 4.2.4.x
 
@@ -14,7 +30,6 @@
 * **[4.2.4.2]** Additional bugfixes. Updated/fixed default settings.
 
 ### v4.2.3 / 4.2.3.x
-
 * Fixed twitchy behaviour on Twitch, Facebook and Twatter. Here's a [blog post](https://stuff.tamius.net/sacred-texts/2019/08/24/ultrawidify-the-twitchy-twitch-problem/) that covers the issue in more detail.
 * Cropping now uses user styles (as opposed to modifying element's style attribute)
 * Fixed the issue where one-pixel letterbox would result in constant aspect ratio corrections.
@@ -22,8 +37,8 @@
 * **[4.2.3.1]** fixed some bugs in popup.
 
 ### v4.2.2 
-* Fixed alignment issues for reddit on videos from v.reddit
-* Some people reported issues with inconsistent video alignment on youtube. While I've not been able to make that bug happen to me, (which means I haven't been able to fix it either), reports describe behaviour similar to what was going on with Iridium. Examining the Iridium issue revealed an issue that could be potentially blamed for this behaviour. That issue was fixed. Since I've never been able to make this problem happen to me, I'm not being able to verify whether that issue is gone. If you're still experiencing issues with inconsistent video alignment, please contact me via github, reddit or email. See 'Report a problem' tab for more details.
+
+* Fixed player detection on reddit (for videos from v.reddit)
 
 ### v4.2.1
 * Fixed bug where custom CSS didn't get applied to pages

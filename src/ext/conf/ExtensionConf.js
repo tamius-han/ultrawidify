@@ -915,6 +915,7 @@ whatsNewChecked: true,
       stretch: Stretch.Default,
       videoAlignment: VideoAlignment.Default,
       keyboardShortcutsEnabled: ExtensionMode.Default,
+      arPersistence: true,              // persist aspect ratio between different videos
       autoarPreventConditions: {        // prevents autoar on following conditions
         videoStyleString: {             // if video style string thing does anything of what follows
           containsProperty: {           // if video style string has any of these properties (listed as keys)
@@ -973,12 +974,12 @@ whatsNewChecked: true,
       keyboardShortcutsEnabled: ExtensionMode.Default,
       DOM: {
         player: {
-          manual: true,
+          manual: false,
           useRelativeAncestor: false,
           querySelectors: '.reddit-video-player-root, .media-preview-content'
         }
       },
-      css: '',
+      css: 'video {\n  width: 100% !important;\n  height: 100% !important;\n}',
     },
     "www.reddit.com" : {
       mode: ExtensionMode.Enabled,
@@ -990,12 +991,12 @@ whatsNewChecked: true,
       keyboardShortcutsEnabled: ExtensionMode.Default,
       DOM: {
         player: {
-          manual: true,
+          manual: false,
           useRelativeAncestor: false,
           querySelectors: '.reddit-video-player-root, .media-preview-content'
         }
       },
-      css: '',
+      css: 'video {\n  width: 100% !important;\n  height: 100% !important;\n}',
     },
     "imgur.com": {
       mode: -1,

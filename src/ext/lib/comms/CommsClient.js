@@ -2,7 +2,8 @@ import Debug from '../../conf/Debug';
 import BrowserDetect from '../../conf/BrowserDetect';
 
 class CommsClient {
-  constructor(name, settings) {
+  constructor(name, settings, logger) {
+    this.logger = logger;
     if (BrowserDetect.firefox) {
       this.port = browser.runtime.connect({name: name});
     } else if (BrowserDetect.chrome) {
@@ -32,9 +33,7 @@ class CommsClient {
 
     this.pageInfo = pageInfo;
 
-    if(Debug.debug) {
-      console.log(`[CommsClient::setPageInfo] <${this.commsId}>`, "SETTING PAGEINFO —", this.pageInfo, this)
-    }
+    this.logger.log('info', 'debug', `[CommsClient::setPageInfo] <${this.commsId}>`, "SETTING PAGEINFO —", this.pageInfo, this)
 
     var ths = this;
     this._listener = m => ths.processReceivedMessage(m);
@@ -46,17 +45,13 @@ class CommsClient {
   }
 
   processReceivedMessage(message){
-    if(Debug.debug && Debug.comms){
-      console.log(`[CommsClient.js::processMessage] <${this.commsId}> Received message from background script!`, message);
-    }
+    this.logger.log('info', 'comms', `[CommsClient.js::processMessage] <${this.commsId}> Received message from background script!`, message);
 
     if (!this.pageInfo || !this.settings.active) {
-      if(Debug.debug && Debug.comms){
-        console.log(`[CommsClient.js::processMessage] <${this.commsId}> this.pageInfo (or settings) not defined. Extension is probably disabled for this site.\npageInfo:`, this.pageInfo,
-                    "\nsettings.active:", this.settings.active,
-                    "\nnobj:", this
-        );
-      }
+      this.logger.log('info', 'comms', `[CommsClient.js::processMessage] <${this.commsId}> this.pageInfo (or settings) not defined. Extension is probably disabled for this site.\npageInfo:`, this.pageInfo,
+                      "\nsettings.active:", this.settings.active,
+                      "\nnobj:", this
+      );
       return;
     }
 
@@ -67,7 +62,7 @@ class CommsClient {
     if (message.cmd === "set-ar") {
       this.pageInfo.setAr({type: message.arg, ratio: message.customArg}, message.playing);
     } else if (message.cmd === 'set-alignment') {
-      this.pageInfo.setvideoAlignment(message.arg, message.playing);
+      this.pageInfo.setVideoAlignment(message.arg, message.playing);
       this.pageInfo.restoreAr();
     } else if (message.cmd === "set-stretch") {
       this.pageInfo.setStretchMode(message.arg, message.playing);
@@ -135,13 +130,11 @@ class CommsClient {
   }
 
   async requestSettings(){
-    if(Debug.debug){
-      console.log("%c[CommsClient::requestSettings] sending request for congif!", "background: #11D; color: #aad");
-    }
+    this.logger.log('info', 'comms', "%c[CommsClient::requestSettings] sending request for congif!", "background: #11D; color: #aad");
+   
     var response = await this.sendMessage_nonpersistent({cmd: 'get-config'});
-    if(Debug.debug){
-      console.log("%c[CommsClient::requestSettings] received settings response!", "background: #11D; color: #aad", response);
-    }
+   
+    this.logger.log('info', 'comms', "%c[CommsClient::requestSettings] received settings response!", "background: #11D; color: #aad", response);
 
     if(! response || response.extensionConf){
       return Promise.resolve(false);
@@ -156,9 +149,7 @@ class CommsClient {
   }
 
   registerVideo(){
-    if (Debug.debug && Debug.comms) {
-      console.log(`[CommsClient::registerVideo] <${this.commsId}>`, "Registering video for current page.");
-    }
+    this.logger.log('info', 'comms', `[CommsClient::registerVideo] <${this.commsId}>`, "Registering video for current page.");
     if (this.pageInfo) {
       if (this.pageInfo.hasVideo()) { 
         this.port.postMessage({cmd: "has-video"});
@@ -173,9 +164,7 @@ class CommsClient {
   }
 
   unregisterVideo(){
-    if (Debug.debug && Debug.comms) {
-      console.log(`[CommsClient::unregisterVideo] <${this.commsId}>`, "Unregistering video for current page.");
-    }
+    this.logger.log('info', 'comms', `[CommsClient::unregisterVideo] <${this.commsId}>`, "Unregistering video for current page.");
     this.port.postMessage({cmd: "noVideo"});  // ayymd
   }
 

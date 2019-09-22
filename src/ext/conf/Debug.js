@@ -11,7 +11,6 @@ var Debug = {
   // debugArDetect: true,
   // scaler: true,
   // debugStorage: true,
-  // comms: false,
   // comms: true,
   // showArDetectCanvas: true,
   // flushStoredSettings: true,

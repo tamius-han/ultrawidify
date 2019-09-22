@@ -2,16 +2,20 @@
   <div>
     <h2>What's new</h2>
     <p>Full changelog for older versions <a href="https://github.com/xternal7/ultrawidify/blob/master/CHANGELOG.md">is available here</a>.</p>
-    <p class="label">4.2.4</p>
+    <p class="label">4.3.0</p>
     <ul>
-      <li>Improvements to player detection. More details in the <a href="https://stuff.tamius.net/sacred-texts/2019/08/31/ultrawidify-and-the-improper-cropping/" target="_blank">blog post</a>.</li>
-      <li><b>[4.2.4.1]</b> Fixed default settings for reddit</li>
-      <li><b>[4.2.4.1]</b> Manually specified query selectors are now also checked for compliance with player detection rules.</li>
-      <li><b>[4.2.4.2]</b> Additional bugfixes. Updated/fixed default settings.</li>
+      <li>Fixed an issue where videos would get incorrectly aligned following a window resize.</li>
+      <li>Fixed all sorts of issues for videos hosted on v.reddit for new (and old) reddit</li>
+      <li>Fixed the issue where setting extension to 'whitelist only' would disable 'site settings' in popup.</li>
+      <li>User-friendly way of importing-exporting settings (exporting settings requires 'download' permission)</li>
+      <li>Started using mutation observers to watch for changes in player size as well, but with some caveats.</li>
+      <li>Mutation observers are now used to detect both video and player size changes.</li>
+      <li>Settings patching has been reworked. Settings can now be patched incrementally.</li>
     </ul>
-    <p v-if="BrowserDetect.chrome"><b>Chrome users:</b> as a result of Chrome's shortcomings, there now exists one potential performance issue.
-    If you notice any performance issues, please contact me via github, email or reddit (see: 'report a problem' tab
-    of this popup).</p>
+    <p>I'm also laying ground for some features that will make my life easier:</p>
+    <ul>
+      <li>Reworked how logging works internally, but this point still needs some work.</li>
+    </ul>
   </div>
 </template>
 <script>

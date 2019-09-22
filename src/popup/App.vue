@@ -1,5 +1,7 @@
 <template>
-  <div class="popup flex flex-column no-overflow">
+  <div v-if="settingsInitialized" 
+       class="popup flex flex-column no-overflow"
+  >
     <div class="header flex-row flex-nogrow flex-noshrink">
       <span class="smallcaps">Ultrawidify</span>: <small>Quick settings</small>
     </div>
@@ -175,6 +177,7 @@ import ExecAction from './js/ExecAction.js';
 import DefaultSettingsPanel from './panels/DefaultSettingsPanel';
 import AboutPanel from './panels/AboutPanel';
 import ExtensionMode from '../common/enums/extension-mode.enum';
+import Logger from '../ext/lib/Logger';
 
 export default {
   data () {
@@ -192,7 +195,9 @@ export default {
       site: null,
       currentZoom: 1,
       execAction: new ExecAction(),
-      settings: new Settings(undefined, () => this.updateConfig()),
+      settings: {},
+      settingsInitialized: false,
+      logger: {},
       siteTabDisabled: false,
       videoTabDisabled: false,
       canShowVideoTab: {canShow: true, warning: true},
@@ -200,7 +205,16 @@ export default {
     }
   },
   async created() {
+    this.logger = new Logger({
+        logToFile: false,
+        logToConsole: false
+    });
+    await this.logger.init();
+
+    this.settings = new Settings({updateCallback: () => this.updateConfig(), logger: this.logger});
     await this.settings.init();
+    this.settingsInitialized = true;
+
     this.port.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
     this.execAction.setSettings(this.settings);
 
@@ -243,14 +257,10 @@ export default {
     },
     getSite() {
       try {
-        if (Debug.debug) {
-          console.log("[popup.js] requesting current site");
-        }
+        this.logger.log('info','popup', '[popup::getSite] Requesting current site ...')
         this.port.postMessage({cmd: 'get-current-site'});
       } catch (e) {
-        if (Debug.debug) {
-          console.log("[popup::getSite] sending get-current-site failed for some reason. Reason:", e)
-        }
+        this.logger.log('error','popup','[popup::getSite] sending get-current-site failed for some reason. Reason:', e);
       }
     },
     getRandomColor() {
@@ -293,10 +303,7 @@ export default {
       this.canShowVideoTab = {canShow: canShow, warning: warning};
     },
     processReceivedMessage(message, port) {
-      if (Debug.debug && Debug.comms) {
-        console.log("[popup.js] received message set-c", message);
-        console.log("[popup.js] message cloned set-c", JSON.parse(JSON.stringify(message)));
-      }
+      this.logger.log('info', 'popup', '[popup::processReceivedMessage] received message:', message)
 
       if (message.cmd === 'set-current-site'){
         if (this.site) {
@@ -340,13 +347,21 @@ export default {
       // Extension site disabled, embedded videos from non-blacklisted hosts — show video settings
       // Extension site enabled — show vido settings
 
+      // note: this if statement is ever so slightly unnecessary
       if (! this.settings.canStartExtension('@global')) {
-        if (this.selectedTab === 'video' || this.selectedTab === 'site') {
-          this.selectTab('global');
+        // canStartExtension and getExtensionMode return disabled/false for non-whitelisted
+        // sites, even if extension mode is set to "whitelist only." This is problematic
+        // because in order to whitelist a given site, we need to set extension to global-
+        // enabled, whitelist the site, and then set extension to whitelist only. This makes
+        // for a bad user experience, so let's fix this.
+        if (this.settings.active.sites['@global'].mode === ExtensionMode.Disabled) {
+          if (this.selectedTab === 'video' || this.selectedTab === 'site') {
+            this.selectTab('global');
+          }
+          this.siteTabDisabled = true;
+          this.videoTabDisabled = true;
+          return;
         }
-        this.siteTabDisabled = true;
-        this.videoTabDisabled = true;
-        return;
       }
 
       this.siteTabDisabled = false;;

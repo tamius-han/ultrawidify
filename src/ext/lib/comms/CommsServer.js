@@ -4,12 +4,11 @@ import BrowserDetect from '../../conf/BrowserDetect';
 class CommsServer {
   constructor(server) {
     this.server = server;
+    this.logger = server.logger;
     this.settings = server.settings;
     this.ports = [];
 
     var ths = this;
-
-    // console.log("[CommsServer::ctor] INIT! are we in ff?", BrowserDetect.firefox, "BrowserDetect says ...", BrowserDetect)
 
     if (BrowserDetect.firefox) {
       browser.runtime.onConnect.addListener(p => ths.onConnect(p));
@@ -20,20 +19,8 @@ class CommsServer {
     }
   }
 
-  async toObject(obj) {
-    // console.log("(not actually) CLONING OBJECT", obj);
-    // try {
-      // const r = JSON.parse(JSON.stringify(obj));
-      // return r;
-    // } catch (e) {
-      // console.log("ERROR WHILE CLONING", obj);
-      return obj;
-    // }
-  }
-
   async getCurrentTabHostname() {
     const activeTab = await this._getActiveTab();
-
     const url = activeTab[0].url;
 
     var hostname;
@@ -52,7 +39,6 @@ class CommsServer {
   }
 
   sendToAll(message){
-    message = JSON.parse(JSON.stringify(message)); // vue quirk. We should really use vue store instead
     for(var p of this.ports){
       for(var frame in p){
         p[frame].postMessage(message);
@@ -74,10 +60,7 @@ class CommsServer {
   }
 
   async sendToFrame(message, tab, frame) {
-    // message = JSON.parse(JSON.stringify(message)); // vue quirk. We should really use vue store instead
-    if(Debug.debug && Debug.comms){
-      console.log(`%c[CommsServer::sendToFrame] attempting to send message to tab ${tab}, frame ${frame}`, "background: #dda; color: #11D", message);
-    }
+    this.logger.log('info', 'CommsServer', `%c[CommsServer::sendToFrame] attempting to send message to tab ${tab}, frame ${frame}`, "background: #dda; color: #11D", message);
 
     if (isNaN(tab)) {
       if (tab === '__playing') {
@@ -91,33 +74,23 @@ class CommsServer {
       [tab, frame] = tab.split('-')
     }
 
-    if(Debug.debug && Debug.comms){
-      console.log(`%c[CommsServer::sendToFrame] attempting to send message to tab ${tab}, frame ${frame}`, "background: #dda; color: #11D", message);
-    }
+    this.logger.log('info', 'CommsServer', `%c[CommsServer::sendToFrame] attempting to send message to tab ${tab}, frame ${frame}`, "background: #dda; color: #11D", message);
 
     try {
       this.ports[tab][frame].postMessage(message);
     } catch (e) {
-      if(Debug.debug && Debug.comms){
-        console.log(`%c[CommsServer::sendToFrame] Sending message failed. Reason:`, "background: #dda; color: #11D", e);
-      }
+      this.logger.log('error', 'CommsServer', `%c[CommsServer::sendToFrame] Sending message failed. Reason:`, "background: #dda; color: #11D", e);
     }
   }
 
   async sendToActive(message) {
-    message = JSON.parse(JSON.stringify(message)); // vue quirk. We should really use vue store instead
-
-    if(Debug.debug && Debug.comms){
-      console.log("%c[CommsServer::sendToActive] trying to send a message to active tab. Message:", "background: #dda; color: #11D", message);
-    }
+    this.logger.log('info', 'CommsServer', "%c[CommsServer::sendToActive] trying to send a message to active tab. Message:", "background: #dda; color: #11D", message);
 
     var tabs = await this._getActiveTab();
 
-    if(Debug.debug && Debug.comms){
-      console.log("[CommsServer::_sendToActive] currently active tab(s)?", tabs);
-      for (var key in this.ports[tabs[0].id]) {
-        console.log("key?", key, this.ports[tabs[0].id]);
-      }
+    this.logger.log('info', 'CommsServer', "[CommsServer::_sendToActive] currently active tab(s)?", tabs);
+    for (var key in this.ports[tabs[0].id]) {
+      this.logger.log('info', 'CommsServer', "key?", key, this.ports[tabs[0].id]);
     }
 
     for (var key in this.ports[tabs[0].id]) {
@@ -151,27 +124,19 @@ class CommsServer {
   }
 
   async processReceivedMessage(message, port){
-    if (Debug.debug && Debug.comms) {
-      console.log("[CommsServer.js::processReceivedMessage] Received message from popup/content script!", message, "port", port, "\nsettings and server:", this.settings,this.server);
-    }
+    this.logger.log('info', 'CommsServer', "[CommsServer.js::processReceivedMessage] Received message from popup/content script!", message, "port", port, "\nsettings and server:", this.settings,this.server);
 
     if (message.forwardToContentScript) {
-      if (Debug.debug && Debug.comms) {
-        console.log("[CommsServer.js::processReceivedMessage] Message has 'forward to content script' flag set. Forwarding message as is. Message:", message);
-      }
+      this.logger.log('info', 'CommsServer', "[CommsServer.js::processReceivedMessage] Message has 'forward to content script' flag set. Forwarding message as is. Message:", message);
 
       this.sendToFrame(message, message.targetTab, message.targetFrame);
     }
     if (message.forwardToAll) {
-      if (Debug.debug && Debug.comms) {
-        console.log("[CommsServer.js::processReceivedMessage] Message has 'forward to all' flag set. Forwarding message as is. Message:", message);
-      }
+      this.logger.log('info', 'CommsServer', "[CommsServer.js::processReceivedMessage] Message has 'forward to all' flag set. Forwarding message as is. Message:", message);
       this.sendToAll(message);
     }
     if (message.forwardToActive) {
-      if (Debug.debug && Debug.comms) {
-        console.log("[CommsServer.js::processReceivedMessage] Message has 'forward to active' flag set. Forwarding message as is. Message:", message);
-      }
+      this.logger.log('info', 'CommsServer', "[CommsServer.js::processReceivedMessage] Message has 'forward to active' flag set. Forwarding message as is. Message:", message);
       this.sendToActive(message)
     }
 
@@ -198,9 +163,7 @@ class CommsServer {
     }
 
     if (message.cmd === 'get-config') {
-      if(Debug.debug) {
-        console.log("CommsServer: received get-config. Active settings?", this.settings.active, "\n(settings:", this.settings, ")")
-      }
+      this.logger.log('info', 'CommsServer', "CommsServer: received get-config. Active settings?", this.settings.active, "\n(settings:", this.settings, ")");
       port.postMessage(
         {cmd: "set-config", conf: this.settings.active, site: this.server.currentSite}
       );
@@ -212,9 +175,7 @@ class CommsServer {
   }
 
   processReceivedMessage_nonpersistent(message, sender, sendResponse){
-    if (Debug.debug && Debug.comms) {
-      console.log("%c[CommsServer.js::processMessage_nonpersistent] Received message from background script!", "background-color: #11D; color: #aad", message, sender);
-    }
+    this.logger.log('info', 'CommsServer', "%c[CommsServer.js::processMessage_nonpersistent] Received message from background script!", "background-color: #11D; color: #aad", message, sender);
     
     if (message.cmd === 'inject-css') {
       this.server.injectCss(message.cssString, sender);
@@ -229,10 +190,8 @@ class CommsServer {
     }
 
     if (message.forwardToContentScript) {
-      if (Debug.debug && Debug.comms) {
-        console.log("[CommsServer.js::processMessage_nonpersistent] Message has 'forward to content script' flag set. Forwarding message as is. Message:", message);
-        console.log("[CommsServer.js::processMessage_nonpersistent] (btw we probably shouldn't be seeing this. This should prolly happen in persistent connection?");
-      }
+      this.logger.log('info', 'CommsServer', "[CommsServer.js::processMessage_nonpersistent] Message has 'forward to content script' flag set. Forwarding message as is. Message:", message);
+      this.logger.log('info', 'CommsServer', "[CommsServer.js::processMessage_nonpersistent] (btw we probably shouldn't be seeing this. This should prolly happen in persistent connection?");
 
       this.sendToFrame(message, message.targetFrame);
     }
@@ -240,9 +199,7 @@ class CommsServer {
     if (message.cmd === 'get-config') {
       if (BrowserDetect.firefox) {
         var ret = {extensionConf: JSON.stringify(this.settings.active)};
-        if (Debug.debug && Debug.comms) {
-          console.log("%c[CommsServer.js::processMessage_nonpersistent] Returning this:", "background-color: #11D; color: #aad", ret);
-        }
+        this.logger.log('info', 'CommsServer', "%c[CommsServer.js::processMessage_nonpersistent] Returning this:", "background-color: #11D; color: #aad", ret);
         Promise.resolve(ret);
       } else {
         sendResponse({extensionConf: JSON.stringify(this.settings.active)});
@@ -252,9 +209,7 @@ class CommsServer {
       this.settings.active.sites['@global'].autoar = "blacklist";
       this.settings.save();
       this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
-      if(Debug.debug){
-        console.log("[uw-bg] autoar set to enabled (blacklist). evidenz:", this.settings.active);
-      }
+      this.logger.log('info', 'CommsServer', "[uw-bg] autoar set to enabled (blacklist). evidenz:", this.settings.active);
     } else if (message.cmd === "autoar-disable") {
       this.settings.active.sites['@global'].autoar = "disabled";
       if(message.reason){
@@ -264,13 +219,10 @@ class CommsServer {
       }
       this.settings.save();
       this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
-      if(Debug.debug){
-        console.log("[uw-bg] autoar set to disabled. evidenz:", this.settings.active);
-      }
+      this.logger.log('info', 'CommsServer', "[uw-bg] autoar set to disabled. evidenz:", this.settings.active);
     } else if (message.cmd === "autoar-set-interval") {
-      if (Debug.debug) {
-        console.log("[uw-bg] trying to set new interval for autoAr. New interval is",message.timeout,"ms");
-      }
+      this.logger.log('info', 'CommsServer', `[uw-bg] trying to set new interval for autoAr. New interval is, ${message.timeout} ms`);
+      
       // set fairly liberal limit
       var timeout = message.timeout < 4 ? 4 : message.timeout;
       this.settings.active.arDetect.timer_playing = timeout;
