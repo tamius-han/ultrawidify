@@ -11,6 +11,7 @@ class Scaler {
   // functions
   constructor(videoData) {
     this.conf = videoData;
+    this.logger = videoData.logger;
   }
   
 
@@ -25,9 +26,7 @@ class Scaler {
     var ratioOut;
 
     if (!this.conf.video) {
-      if(Debug.debug){
-        console.log("[Scaler.js::modeToAr] No video??",this.conf.video, "killing videoData");
-      }
+      this.logger.log('error', 'debug', "[Scaler.js::modeToAr] No video??",this.conf.video, "killing videoData");
       this.conf.destroy();
       return null;
     }
@@ -59,9 +58,7 @@ class Scaler {
       return ratioOut;
     }
     else if(ar.type === AspectRatio.Reset){
-      if(Debug.debug){
-        console.log("[Scaler.js::modeToAr] Using original aspect ratio -", fileAr)
-      }
+      this.logger.log('info', 'debug', "[Scaler.js::modeToAr] Using original aspect ratio -", fileAr)
       ar.ar = fileAr;
       return fileAr;
     }
@@ -71,9 +68,7 @@ class Scaler {
 
   calculateCrop(ar) {
     if(!this.conf.video){
-      if (Debug.debug) {
-        console.log("[Scaler::calculateCrop] ERROR — no video detected. Conf:", this.conf, "video:", this.conf.video, "video dimensions:", this.conf.video && this.conf.video.videoWidth, '×', this.conf.video && this.conf.video.videoHeight);
-      }
+      this.logger.log('info', 'debug', "[Scaler::calculateCrop] ERROR — no video detected. Conf:", this.conf, "video:", this.conf.video, "video dimensions:", this.conf.video && this.conf.video.videoWidth, '×', this.conf.video && this.conf.video.videoHeight);
       
       this.conf.destroy();
       return {error: "no_video"};
@@ -81,9 +76,7 @@ class Scaler {
     if (this.conf.video.videoWidth == 0 || this.conf.video.videoHeight == 0) {
       // that's illegal, but not illegal enough to just blast our shit to high hell
       // mr officer will let you go with a warning this time around
-      if (Debug.debug) {
-        console.log("[Scaler::calculateCrop] Video has illegal dimensions. Video dimensions:", this.conf.video && this.conf.video.videoWidth, '×', this.conf.video && this.conf.video.videoHeight);
-      }
+      this.logger.log('error', 'debug', "[Scaler::calculateCrop] Video has illegal dimensions. Video dimensions:", this.conf.video && this.conf.video.videoWidth, '×', this.conf.video && this.conf.video.videoHeight);
 
       return {error: "illegal_video_dimensions"};
     }
@@ -94,20 +87,14 @@ class Scaler {
 
     // handle fuckie-wuckies
     if (!ar.ratio){
-      if (Debug.debug && Debug.scaler) {
-        console.log("[Scaler::calculateCrop] no ar?", ar.ratio, " -- we were given this mode:", ar);
-      }
+      this.logger.log('error', 'scaler', "[Scaler::calculateCrop] no ar?", ar.ratio, " -- we were given this mode:", ar);
       return {error: "no_ar", ratio: ar.ratio};
     }
 
-    if (Debug.debug && Debug.scaler) {
-      console.log("[Scaler::calculateCrop] trying to set ar. args are: ar->",ar.ratio,"; this.conf.player.dimensions->",this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
-    }
+    this.logger.log('info', 'scaler', "[Scaler::calculateCrop] trying to set ar. args are: ar->",ar.ratio,"; this.conf.player.dimensions->",this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
 
     if( (! this.conf.player.dimensions) || this.conf.player.dimensions.width === 0 || this.conf.player.dimensions.height === 0 ){
-      if (Debug.debug && Debug.scaler) {
-        console.log("[Scaler::calculateCrop] ERROR — no (or invalid) this.conf.player.dimensions:",this.conf.player.dimensions);
-      }
+      this.logger.log('error', 'scaler', "[Scaler::calculateCrop] ERROR — no (or invalid) this.conf.player.dimensions:",this.conf.player.dimensions);
       return {error: "this.conf.player.dimensions_error"};
     }
 
@@ -124,9 +111,7 @@ class Scaler {
     }
 
   
-    if (Debug.debug && Debug.scaler) {
-      console.log("[Scaler::calculateCrop] ar is " ,ar.ratio, ", file ar is", fileAr, ", this.conf.player.dimensions are ", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
-    }
+    this.logger.log('info', 'scaler', "[Scaler::calculateCrop] ar is " ,ar.ratio, ", file ar is", fileAr, ", this.conf.player.dimensions are ", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
     
     var videoDimensions = {
       xFactor: 1,
@@ -135,16 +120,9 @@ class Scaler {
       actualHeight: 0,  // height of the video (excluding letterbox) when <video> tag height is equal to height
     }
   
-    // if(Debug.debug){
-    //   console.log("[Scaler::calculateCrop] Player dimensions?", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
-    // }
-  
     if (fileAr < ar.ratio){
       // imamo letterbox zgoraj in spodaj -> spremenimo velikost videa (a nikoli širše od ekrana)
       // letterbox -> change video size (but never to wider than monitor width)
-        // if (Debug.debug && Debug.scaler) {
-        //   console.log(`%c[Scaler::calculateCrop] Trying to determine scaling factors. Aspect ratios:\n      file: ${fileAr.toFixed(3)}\n    player: ${playerAr.toFixed(3)}\n    target: ${ar.ratio.toFixed(3)}\n-----------------------`, "color: #2ba");
-        // }
         videoDimensions.xFactor = Math.min(ar.ratio, playerAr) / fileAr;
         videoDimensions.yFactor = videoDimensions.xFactor;
     } else {
@@ -152,9 +130,7 @@ class Scaler {
         videoDimensions.yFactor = videoDimensions.xFactor;
     }
     
-    if (Debug.debug && Debug.scaler) {
-      console.log("[Scaler::calculateCrop] Crop factor calculated — ", videoDimensions.xFactor);
-    }
+    this.logger.log('info', 'scaler', "[Scaler::calculateCrop] Crop factor calculated — ", videoDimensions.xFactor);
 
     return videoDimensions;
   }

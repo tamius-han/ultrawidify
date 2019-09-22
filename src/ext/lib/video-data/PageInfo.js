@@ -9,7 +9,8 @@ if(Debug.debug)
 
 
 class PageInfo {
-  constructor(comms, settings, extensionMode, readOnly = false){
+  constructor(comms, settings, logger, extensionMode, readOnly = false){
+    this.logger = logger;
     this.hasVideos = false;
     this.siteDisabled = false;
     this.videos = [];
@@ -19,6 +20,7 @@ class PageInfo {
     this.lastUrl = window.location.href;
     this.extensionMode = extensionMode;
     this.readOnly = readOnly;
+
 
     if (comms){ 
       this.comms = comms;
@@ -64,9 +66,7 @@ class PageInfo {
   }
 
   destroy() {
-    if(Debug.debug || Debug.init){
-      console.log("[PageInfo::destroy] destroying all videos!")
-    }
+    this.logger.log('info', ['debug', 'init'], "[PageInfo::destroy] destroying all videos!")
     if(this.rescanTimer){
       clearTimeout(this.rescanTimer);
     }
@@ -75,7 +75,7 @@ class PageInfo {
         this.comms.unregisterVideo(video.id)
         video.destroy();
       } catch (e) {
-        console.log("unabel to destroy video!", e)
+        this.logger.log('error', ['debug', 'init'], '[PageInfo::destroy] unable to destroy video! Error:', e);
       }
     }
 
@@ -138,97 +138,95 @@ class PageInfo {
     const oldVideoCount = this.videos.length;
 
     try{
-    var vids = this.getVideos(window.location.host);
+      var vids = this.getVideos(window.location.host);
 
-    if(!vids || vids.length == 0){
+      if(!vids || vids.length == 0){
+        this.hasVideos = false;
+    
+        if(rescanReason == RescanReason.PERIODIC){
+          this.logger.log('info', 'videoRescan', "[PageInfo::rescan] Scheduling normal rescan.")
+          this.scheduleRescan(RescanReason.PERIODIC);
+        }
+        return;
+      }
+
+      // add new videos
       this.hasVideos = false;
-  
-      if(rescanReason == RescanReason.PERIODIC){
-        if (Debug.debug && Debug.videoRescan && Debug.periodic) {
-          console.log("[PageInfo::rescan] Scheduling normal rescan:")
-        }
-        this.scheduleRescan(RescanReason.PERIODIC);
-      }
-      return;
-    }
+      var videoExists = false;    
+      var video, v;
 
-    // add new videos
-    this.hasVideos = false;
-    var videoExists = false;    
-    var video, v;
+      for (video of vids) {
+        // če najdemo samo en video z višino in širino, to pomeni, da imamo na strani veljavne videe
+        // če trenutni video nima definiranih teh vrednostih, preskočimo vse nadaljnja preverjanja
+        // <===[:::::::]===>
+        // if we find even a single video with width and height, that means the page has valid videos
+        // if video lacks either of the two properties, we skip all further checks cos pointless
+        if(video.offsetWidth && video.offsetHeight){
+          this.hasVideos = true;
 
-    for (video of vids) {
-      // če najdemo samo en video z višino in širino, to pomeni, da imamo na strani veljavne videe
-      // če trenutni video nima definiranih teh vrednostih, preskočimo vse nadaljnja preverjanja
-      // <===[:::::::]===>
-      // if we find even a single video with width and height, that means the page has valid videos
-      // if video lacks either of the two properties, we skip all further checks cos pointless
-      if(video.offsetWidth && video.offsetHeight){
-        this.hasVideos = true;
+          if (this.readOnly) {
+            // in lite mode, we're done. This is all the info we want, but we want to actually start doing 
+            // things that interfere with the website. We still want to be runnig a rescan, tho.
 
-        if (this.readOnly) {
-          // in lite mode, we're done. This is all the info we want, but we want to actually start doing 
-          // things that interfere with the website. We still want to be runnig a rescan, tho.
-
-          if(rescanReason == RescanReason.PERIODIC){
-            this.scheduleRescan(RescanReason.PERIODIC);
+            if(rescanReason == RescanReason.PERIODIC){
+              this.scheduleRescan(RescanReason.PERIODIC);
+            }
+            return;
           }
-          return;
-        }
-      } else {
-        continue;
-      }
-
-      videoExists = false;
-
-      for (v of this.videos) {
-        if (v.destroyed) {
-          continue; //TODO: if destroyed video is same as current video, copy aspect ratio settings to current video
-        }
-
-        if (v.video == video) {
-          videoExists = true;
-          break;
-        }
-      }
-
-      if (videoExists) {
-        continue;
-      } else {
-        if (Debug.debug && Debug.periodic && Debug.videoRescan) {
-          console.log("[PageInfo::rescan] found new video candidate:", video, "NOTE:: Video initialization starts here:\n--------------------------------\n")
-        }
-        
-        v = new VideoData(video, this.settings, this);
-        // console.log("[PageInfo::rescan] v is:", v)
-        v.initArDetection();
-        this.videos.push(v);
-
-        if(Debug.debug && Debug.periodic && Debug.videoRescan){
-          console.log("[PageInfo::rescan] END VIDEO INITIALIZATION\n\n\n-------------------------------------\nvideos[] is now this:", this.videos,"\n\n\n\n\n\n\n\n")
-        }
-      }
-    }
-
-    this.removeDestroyed();
-
-    // če smo ostali brez videev, potem odregistriraj stran. 
-    // če nismo ostali brez videev, potem registriraj stran.
-    //
-    // if we're left withotu videos on the current page, we unregister the page.
-    // if we have videos, we call register.
-    // if(Debug.debug) {
-    //   console.log("[PageInfo::rescan] Comms:", this.comms, "\nvideos.length:", this.videos.length, "\nold video count:", oldVideoCount)
-    // }
-    if (this.comms) {
-      if (this.videos.length != oldVideoCount) { // only if number of videos changed, tho
-        if (this.videos.length > 0) {
-          this.comms.registerVideo({host: window.location.host, location: window.location});
         } else {
-          this.comms.unregisterVideo({host: window.location.host, location: window.location});
+          continue;
+        }
+
+        videoExists = false;
+
+        for (v of this.videos) {
+          if (v.destroyed) {
+            continue; //TODO: if destroyed video is same as current video, copy aspect ratio settings to current video
+          }
+
+          if (v.video == video) {
+            videoExists = true;
+            break;
+          }
+        }
+
+        if (videoExists) {
+          continue;
+        } else {
+          this.logger.log('info', 'videoRescan', "[PageInfo::rescan] found new video candidate:", video, "NOTE:: Video initialization starts here:\n--------------------------------\n")
+          
+          try {
+            v = new VideoData(video, this.settings, this);
+            if (!v.invalid) {
+              v.initArDetection();
+            } else {
+              this.logger.log('error', 'debug', 'Video is invalid. Aard not started.', video);
+            }
+            this.videos.push(v);
+          } catch (e) {
+            this.logger.log('error', 'debug', "rescan error: failed to initialize videoData. Skipping this video.",e);
+          }
+
+          this.logger.log('info', 'videoRescan', "END VIDEO INITIALIZATION\n\n\n-------------------------------------\nvideos[] is now this:", this.videos,"\n\n\n\n\n\n\n\n")
         }
       }
-    }
+
+      this.removeDestroyed();
+
+      // če smo ostali brez videev, potem odregistriraj stran. 
+      // če nismo ostali brez videev, potem registriraj stran.
+      //
+      // if we're left withotu videos on the current page, we unregister the page.
+      // if we have videos, we call register.
+      if (this.comms) {
+        if (this.videos.length != oldVideoCount) { // only if number of videos changed, tho
+          if (this.videos.length > 0) {
+            this.comms.registerVideo({host: window.location.host, location: window.location});
+          } else {
+            this.comms.unregisterVideo({host: window.location.host, location: window.location});
+          }
+        }
+      }
 
     } catch(e) {
       // če pride do zajeba, potem lahko domnevamo da na strani ni nobenega videa. Uničimo vse objekte videoData
@@ -238,9 +236,7 @@ class PageInfo {
       // if we encounter a fuckup, we can assume that no videos were found on the page. We destroy all videoData
       // objects to prevent multiple initalization (which happened, but I don't know why). No biggie if we destroyed
       // videoData objects in error — they'll be back in the next rescan
-      if (Debug.debug) {
-        console.log("rescan error: — destroying all videoData objects",e);
-      }
+      this.logger.log('error', 'debug', "rescan error: — destroying all videoData objects",e);
       for (const v of this.videos) {
         v.destroy();
       }
@@ -275,9 +271,7 @@ class PageInfo {
         ths = null;
       }, this.settings.active.pageInfo.timeouts.rescan, RescanReason.PERIODIC)
     } catch(e) {
-      if(Debug.debug){
-        console.log("[PageInfo::scheduleRescan] scheduling rescan failed. Here's why:",e)
-      }
+      this.logger.log('error', 'debug', "[PageInfo::scheduleRescan] scheduling rescan failed. Here's why:",e)
     }
   }
 
@@ -289,23 +283,19 @@ class PageInfo {
 
     var ths = this;
         
-    this.rescanTimer = setTimeout(function(){
-      ths.rescanTimer = null;
+    this.urlCheckTimer = setTimeout(function(){
+      ths.urlCheckTimer = null;
       ths.ghettoUrlCheck();
       ths = null;
     }, this.settings.active.pageInfo.timeouts.urlCheck)
     } catch(e){
-      if(Debug.debug){
-        console.error("[PageInfo::scheduleUrlCheck] scheduling URL check failed. Here's why:",e)
-      }
+      this.logger.log('error', 'debug', "[PageInfo::scheduleUrlCheck] scheduling URL check failed. Here's why:",e)
     }
   }
 
   ghettoUrlCheck() {
     if (this.lastUrl != window.location.href){
-      if(Debug.debug && Debug.periodic){
-        console.log("[PageInfo::ghettoUrlCheck] URL has changed. Triggering a rescan!");
-      }
+      this.logger.log('error', 'videoRescan', "[PageInfo::ghettoUrlCheck] URL has changed. Triggering a rescan!");
       
       this.rescan(RescanReason.URL_CHANGE);
       this.lastUrl = window.location.href;
@@ -369,7 +359,7 @@ class PageInfo {
 
   startArDetection(playingOnly){
     if (Debug.debug) {
-      console.log('[PageInfo::startArDetection()] starting automatic ar detection!')
+      this.logger.log('info', 'debug', '[PageInfo::startArDetection()] starting automatic ar detection!')
     }
     if (playingOnly) {
       for(var vd of this.videos){
@@ -399,16 +389,12 @@ class PageInfo {
   }
 
   setAr(ar, playingOnly){
-    if (Debug.debug) {
-      console.log('[PageInfo::setAr] aspect ratio:', ar, "playing only?", playingOnly)
-    }
+    this.logger.log('info', 'debug', '[PageInfo::setAr] aspect ratio:', ar, "playing only?", playingOnly)
 
     if (ar.type !== AspectRatio.Automatic) {
       this.stopArDetection(playingOnly);
     } else {
-      if (Debug.debug) {
-        console.log('[PageInfo::setAr] aspect ratio is auto');
-      }
+      this.logger.log('info', 'debug', '[PageInfo::setAr] aspect ratio is auto');
 
       try {
         for (var vd of this.videos) {
@@ -417,7 +403,7 @@ class PageInfo {
           }
         }
       } catch (e) {
-        console.log("???", e);
+        this.logger.log('error', 'debug', "???", e);
       }
       this.initArDetection(playingOnly);
       this.startArDetection(playingOnly);
@@ -440,16 +426,16 @@ class PageInfo {
     }
   }
   
-  setvideoAlignment(videoAlignment, playingOnly) {
+  setVideoAlignment(videoAlignment, playingOnly) {
     if (playingOnly) {
       for(var vd of this.videos) {
         if (vd.isPlaying()) { 
-          vd.setvideoAlignment(videoAlignment)
+          vd.setVideoAlignment(videoAlignment)
         }
       }
     } else {
       for(var vd of this.videos) {
-        vd.setvideoAlignment(videoAlignment)
+        vd.setVideoAlignment(videoAlignment)
       }
     }
   }

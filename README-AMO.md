@@ -2,17 +2,13 @@
 
 ## Build platform
 
-The extension is built on a PC running Manjaro Linux. Yarn is the package manager of choice. 
-
-Yarn version: 1.16.0
-Node version: v11.15.0
+The extension is built on a PC running Manjaro Linux. npm and node are installed from repositories/aur.
 
 
 ## Installing dependencies
 
-`yarn install --frozen-lockfile`
+Run `npm ci`
 
-According to Yarn documentation, that should install the exact version of dependencies that the extension is using.
 
 ## Reproducing build
 

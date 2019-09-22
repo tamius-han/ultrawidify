@@ -1,35 +1,38 @@
 <template>
   <div class="flex flex-column" style="padding-bottom: 20px">
-    <div class="label">
-      Video detection settings<br/><small>for {{site}}</small>
-    </div>
-    <div class="description">Video is just the moving picture bit without the player.</div>
-    <div class="">
-      <div class="">
-        <input :checked="!videoManualQs"
-                @change="toggleVideoManualQs"
-                type="checkbox" 
-        /> Detect automatically
+    <!-- <div class="">
+      <div class="label">Player picker</div>
+      <div class="desc">
+        If extension doesn't detect player correctly, you can override it.
+        <small>(NOTE: this currently doesn't work for embedded videos)</small>
       </div>
-      <div class="flex flex-column">
-        <div class="flex label-secondary form-label">Query selectors</div>
-        <input type="text"
-               v-model="videoQs"
-               :disabled="!videoManualQs"
-               @change="updateVideoQuerySelector"
-               @blur="updateVideoQuerySelector"
-        />
-      </div>
-      <div class="flex flex-column">
-        <div class="flex label-secondary form-label">Additional css</div>
-        <input type="text"
-               v-model="videoCss"
-               @change="updateVideoCss"
-               @blur="updateVideoCss"
-        />
+      
+      <div>Meaning of outlines:</div>
+
+      <div class="flex flex-row flex-wrap">
+        <div class="pp_video flex flex-nogrow"><code>&lt;video&gt;</code>&nbsp;element</div>
+        <div class="pp_current flex flex-nogrow">Selected and not matched</div>
+        <div class="pp_matched flex flex-nogrow">Elements that match query selector</div>
+        <div class="pp_current_matched">Selected and matched, selector ok</div>
+        <div class="pp_match_children">Selected and matched, selector too vague</div>
       </div>
 
-    </div>
+      <div class="flex flex-row">
+        <ShortcutButton label="Move up"
+        />
+        <ShortcutButton label="Move down"
+        />
+      </div>
+      <div class="flex flex-row flex-wrap">
+        <QsElement selector="#test_id" />
+        <QsElement selector=".test_class" />
+        <template v-for="qse of currentElementQs" >
+          <QsElement :selector="qse" :key="qse" />
+        </template>
+      </div>
+
+
+    </div> -->
 
     <div class="label">
       Player detection settings<br/><small>for {{site}}</small>
@@ -88,11 +91,44 @@
                @blur="updatePlayerCss"
         >
         </textarea>
+    </div>
+    
+    <div class="label">
+      Video detection settings<br/><small>for {{site}}</small>
+    </div>
+    <div class="description">Video is just the moving picture bit without the player.</div>
+    <div class="">
+      <div class="">
+        <input :checked="!videoManualQs"
+                @change="toggleVideoManualQs"
+                type="checkbox" 
+        /> Detect automatically
       </div>
+      <div class="flex flex-column">
+        <div class="flex label-secondary form-label">Query selectors</div>
+        <input type="text"
+               v-model="videoQs"
+               :disabled="!videoManualQs"
+               @change="updateVideoQuerySelector"
+               @blur="updateVideoQuerySelector"
+        />
+      </div>
+      <div class="flex flex-column">
+        <div class="flex label-secondary form-label">Additional css</div>
+        <input type="text"
+               v-model="videoCss"
+               @change="updateVideoCss"
+               @blur="updateVideoCss"
+        />
+      </div>
+
+    </div>
   </div>
 </template>
 
 <script>
+import ShortcutButton from '../../common/components/ShortcutButton.vue';
+import QsElement from '../../common/components/QsElement.vue';
 import QuerySelectorSetting from '../../common/components/QuerySelectorSetting.vue';
 import ExtensionMode from '../../common/enums/extension-mode.enum';
 import VideoAlignment from '../../common/enums/video-alignment.enum';
@@ -100,6 +136,8 @@ import Stretch from '../../common/enums/stretch.enum';
 export default {
   components: {
     QuerySelectorSetting,
+    ShortcutButton,
+    QsElement,
   },
   data() {
     return {
@@ -118,14 +156,12 @@ export default {
     settings: Object,
   },
   created() {
-    console.log("created!")
     try {
       this.videoManualQs = this.settings.active.sites[this.site].DOM.video.manual || this.videoManualQs;
       this.videoQs = this.settings.active.sites[this.site].DOM.video.querySelectors;
       this.videoCss = this.settings.active.sites[this.site].DOM.video.additionalCss;
     } catch (e) {
       // that's here just in case relevant settings for this site don't exist yet
-      console.log("failed to load settings for the site — for video stuff")
     }
     
     try {
@@ -135,16 +171,13 @@ export default {
       this.playerParentNodeIndex = this.settings.active.sites[this.site].DOM.player.videoAncestor;
     } catch (e) {
       // that's here just in case relevant settings for this site don't exist yet
-      console.log("failed to load settings for the site — for video stuff")
     }
 
     try {
       this.playerCss = this.settings.active.sites[this.site].css || '';
     } catch (e) {
       // that's here just in case relevant settings for this site don't exist yet
-      console.log("failed to load settings for the site — for video stuff")
     }
-    console.log("created — got settings:", this.settings)
   },
   methods: {
     ensureSettings(scope) {
@@ -221,5 +254,29 @@ export default {
 </script>
 
 <style>
-
+.pp_video {
+  margin: 2px;
+  padding: 5px;
+  border: 1px solid #00f;
+}
+.pp_current {
+  margin: 2px;
+  padding: 5px;
+  border: 1px solid #88f;
+}
+.pp_matched {
+  margin: 2px;
+  padding: 5px;
+  border: 1px dashed #fd2;
+}
+.pp_current_matched {
+  margin: 2px;
+  padding: 2px;
+  border: 2px solid #027a5c;
+}
+.pp_match_children {
+  margin: 2px;
+  padding: 2px;
+  border: 2px solid #f00;
+}
 </style>

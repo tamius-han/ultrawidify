@@ -33,7 +33,7 @@
       Accurate preset will take a more conservative approach to determining aspect ratio, correcting aspect ratio only when
       it's absolutely sure that the aspect ratio needs changing. This option results in fewer incorrect aspect ratio corrections,
       but can also result in extension not correcting aspect ratio when it should.
-      Strict preset is 'accurate' on stereoids.
+      Strict preset is 'accurate' on steroids.
     </div>
 
     <div class="flex flex-row row-padding">
@@ -610,7 +610,6 @@ export default {
       ctx.drawWindow(window,0, 0, 10, 10, "rgba(0,0,0,0)");
       this.fallbackModeAvailable = true;
     } catch (e) {
-      // console.log("DrawWindow failed:", e)
       this.fallbackModeAvailable = false;
     }
   },
@@ -634,7 +633,6 @@ export default {
       return 'user-defined';
     },
     setConfirmationThresholds(sens) {
-      console.log("setting conf treshold", sens)
       if (sens === 'sensitive') {
         this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold = 3;
         this.settings.active.arDetect.edgeDetection.confirmationThreshold = 1;

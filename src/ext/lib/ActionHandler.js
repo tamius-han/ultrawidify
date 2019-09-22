@@ -5,6 +5,7 @@ import ExtensionMode from '../../common/enums/extension-mode.enum';
 class ActionHandler {
 
   constructor(pageInfo) {
+    this.logger = pageInfo.logger;
     this.pageInfo = pageInfo;
     this.settings = pageInfo.settings;
     
@@ -13,9 +14,7 @@ class ActionHandler {
   }
 
   init() {
-    if (Debug.debug) {
-      console.log("[ActionHandler::init] starting init");
-    }
+    this.logger.log('info', 'debug', "[ActionHandler::init] starting init");
 
     this.keyUpActions = [];
     this.keyDownActions = [];
@@ -105,15 +104,13 @@ class ActionHandler {
     document.addEventListener('keyup', (event) => ths.handleKeyup(event) );
 
     this.pageInfo.setActionHandler(this);
-    if (Debug.debug) {
-      console.log("[ActionHandler::init] initialization complete");
-    }
+
+    this.logger.log('info', 'debug', "[ActionHandler::init] initialization complete");
   }
 
   registerHandleMouse(videoData) {
-    if (Debug.debug && Debug.mousemove) {
-      console.log("[ActionHandler::registerHandleMouse] registering handle mouse for videodata:", videoData)
-    }
+    this.logger.log('info', ['actionHandler', 'mousemove'], "[ActionHandler::registerHandleMouse] registering handle mouse for videodata:", videoData)
+
     var ths = this;
     if (videoData.player && videoData.player.element) {
       videoData.player.element.addEventListener('mousemove', (event) => ths.handleMouseMove(event, videoData));
@@ -139,10 +136,10 @@ class ActionHandler {
   preventAction() {
     var activeElement = document.activeElement;
 
-    if(Debug.debug && Debug.keyboard) {
-      Debug.debug = false; // temp disable to avoid recursing;
+    if(this.logger.canLog('keyboard')) {
+      this.logger.pause(); // temp disable to avoid recursing;
       
-      console.log("[ActionHandler::preventAction] Testing whether we're in a textbox or something. Detailed rundown of conditions:\n" +
+      this.logger.log('info', 'keyboard', "[ActionHandler::preventAction] Testing whether we're in a textbox or something. Detailed rundown of conditions:\n" +
       "is full screen? (yes->allow):", PlayerData.isFullScreen(),
       "\nis tag one of defined inputs? (yes->prevent):", this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1,
       "\nis role = textbox? (yes -> prevent):", activeElement.getAttribute("role") === "textbox",
@@ -157,7 +154,7 @@ class ActionHandler {
       "insta-fail inputs:", this.inputs
       );
 
-      Debug.debug = true; // undisable
+      this.logger.resume(); // undisable
     }
 
     // lately youtube has allowed you to read and write comments while watching video in
@@ -193,15 +190,11 @@ class ActionHandler {
   }
 
   execAction(actions, event, videoData) {
-    if(Debug.debug  && Debug.keyboard ){
-      console.log("%c[ActionHandler::execAction] Trying to find and execute action for event. Actions/event: ", "color: #ff0", actions, event);
-    }
+    this.logger.log('info', 'keyboard', "%c[ActionHandler::execAction] Trying to find and execute action for event. Actions/event: ", "color: #ff0", actions, event);
 
     for (var action of actions) {
       if (this.isActionMatch(action.shortcut, event)) {
-        if(Debug.debug  && Debug.keyboard ){
-          console.log("%c[ActionHandler::execAction] found an action associated with keypress/event: ", "color: #ff0", action);
-        }
+        this.logger.log('info', 'keyboard', "%c[ActionHandler::execAction] found an action associated with keypress/event: ", "color: #ff0", action);
 
         for (var cmd of action.cmd) {
           if (action.scope === 'page') {
@@ -249,14 +242,10 @@ class ActionHandler {
 
 
   handleKeyup(event) {
-    if(Debug.debug  && Debug.keyboard ){
-      console.log("%c[ActionHandler::handleKeyup] we pressed a key: ", "color: #ff0", event.key , " | keyup: ", event.keyup, "event:", event);
-    }
+    this.logger.log('info', 'keyboard', "%c[ActionHandler::handleKeyup] we pressed a key: ", "color: #ff0", event.key , " | keyup: ", event.keyup, "event:", event);
 
     if (this.preventAction()) {
-      if (Debug.debug && Debug.keyboard) {
-        console.log("[ActionHandler::handleKeyup] we are in a text box or something. Doing nothing.");
-      }
+      this.logger.log('info', 'keyboard', "[ActionHandler::handleKeyup] we are in a text box or something. Doing nothing.");
       return;
     }
 
@@ -264,14 +253,10 @@ class ActionHandler {
   }
 
   handleKeydown(event) {
-    if(Debug.debug  && Debug.keyboard ){
-      console.log("%c[ActionHandler::handleKeydown] we pressed a key: ", "color: #ff0", event.key , " | keydown: ", event.keydown, "event:", event);
-    }
+    this.logger.log('info', 'keyboard', "%c[ActionHandler::handleKeydown] we pressed a key: ", "color: #ff0", event.key , " | keydown: ", event.keydown, "event:", event)
 
     if (this.preventAction()) {
-      if (Debug.debug && Debug.keyboard) {
-        console.log("[ActionHandler::handleKeydown] we are in a text box or something. Doing nothing.");
-      }
+      this.logger.log('info', 'keyboard', "[ActionHandler::handleKeydown] we are in a text box or something. Doing nothing.");
       return;
     }
 
@@ -279,9 +264,7 @@ class ActionHandler {
   }
 
   handleMouseMove(event, videoData) {
-    if (Debug.debug && Debug.mousemove) {
-      console.log("[ActionHandler::handleMouseMove] mouse move is being handled.\nevent:", event, "\nvideo data:", videoData);
-    }
+    this.logger.log('info', 'keyboard', "[ActionHandler::handleMouseMove] mouse move is being handled.\nevent:", event, "\nvideo data:", videoData);
     videoData.panHandler(event);
     this.execAction(this.mouseMoveActions, event, videoData)
   }
