@@ -5,7 +5,7 @@
     <p class="label">4.3.0</p>
     <ul>
       <li>Fixed an issue where videos would get incorrectly aligned following a window resize.</li>
-      <li>Fixed for videos hosted on v.reddit for new reddit</li>
+      <li>Fixed all sorts of issues for videos hosted on v.reddit for new (and old) reddit</li>
       <li>Fixed the issue where setting extension to 'whitelist only' would disable 'site settings' in popup.</li>
       <li>User-friendly way of importing-exporting settings (exporting settings requires 'download' permission)</li>
       <li>Started using mutation observers to watch for changes in player size as well, but with some caveats.</li>
