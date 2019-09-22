@@ -34,27 +34,37 @@ if(Debug.debug)
 
 class PlayerData {
   constructor(videoData) {
-    this.logger = videoData.logger;
-    this.videoData = videoData;
-    this.video = videoData.video;
-    this.settings = videoData.settings;
-    this.extensionMode = videoData.extensionMode;
-    this.invalid = false;
-    this.element = this.getPlayer();
-    this.dimensions = undefined;
-    this.overlayNode = undefined;
+    try {
+      this.logger = videoData.logger;
+      this.videoData = videoData;
+      this.video = videoData.video;
+      this.settings = videoData.settings;
+      this.extensionMode = videoData.extensionMode;
+      this.invalid = false;
+      this.element = this.getPlayer();
+      this.dimensions = undefined;
+      this.overlayNode = undefined;
 
-    // this happens when we don't find a matching player element
-    if (!this.element) {
+      // this happens when we don't find a matching player element
+      if (!this.element) {
+        this.invalid = true;
+        return;
+      }
+
+      if (this.extensionMode === ExtensionMode.Enabled) {
+        this.checkPlayerSizeChange();
+      }
+      this.startChangeDetection();
+    } catch (e) {
+      console.error('[Ultrawidify::PlayerData::ctor] There was an error setting up player data. You should be never seeing this message. Error:', e);
       this.invalid = true;
-      return;
     }
-
-    if (this.extensionMode === ExtensionMode.Enabled) {
-      this.checkPlayerSizeChange();
-    }
-    this.startChangeDetection();
   }
+
+  async sleep(timeout) {
+    return new Promise( (resolve, reject) => setTimeout(() => resolve(), timeout));
+  }
+
 
   static isFullScreen(){
     return ( window.innerHeight == window.screen.height && window.innerWidth == window.screen.width);
@@ -87,6 +97,7 @@ class PlayerData {
       return;
     }
 
+    try {
     const ths = this;
     this.observer = new MutationObserver((m,o) => this.onPlayerDimensionsChanged(m,o,ths));
 
@@ -97,19 +108,28 @@ class PlayerData {
     };
     
     this.observer.observe(this.element, observerConf);
-
+  } catch (e) {
+    console.error("failed to set observer",e )
+  }
     // legacy mode still exists, but acts as a fallback for observers and is triggered less
     // frequently in order to avoid too many pointless checks
     this.legacyChangeDetection();
   }
 
   async legacyChangeDetection() {
+    console.log("starting legacy cd")
     while (!this.halted) {
+      console.log("loop")
       await this.sleep(1000);
-      if (this.checkPlayerSizeChange()) {
-        this.videoData.restore();
+      try {
+        if (this.checkPlayerSizeChange()) {
+          this.videoData.resizer.restore();
+        }
+      } catch (e) {
+        console.error('[playerdata::legacycd] this message is pretty high on the list of messages you shouldnt see', e);
       }
     }
+    console.log("HALTED - STOPPING CHANGE DETECTION FOR", this.element)
   }
 
   stopChangeDetection(){
@@ -266,7 +286,12 @@ class PlayerData {
           
           score = 100;
 
+          
           if (element.id.indexOf('player') !== -1) { // prefer elements with 'player' in id
+            score += 75;
+          }
+          // this has only been observed on steam
+          if (element.id.indexOf('movie') !== -1) {
             score += 75;
           }
           if (element.classList.toString().indexOf('player') !== -1) {  // prefer elements with 'player' in classlist, but a bit less than id
@@ -328,7 +353,8 @@ class PlayerData {
         this.logger.log('info', 'debug', "[PlayerDetect] player size changed. reason: dimension change. Old dimensions?", this.dimensions.width, this.dimensions.height, "new dimensions:", this.element.offsetWidth, this.element.offsetHeight);
       }
     }
-    
+
+
     // if size doesn't match, update & return true
     if (!this.dimensions
         || this.dimensions.width != this.element.offsetWidth 
@@ -351,7 +377,6 @@ class PlayerData {
       }
       return true;
     }
-
     return false;
   }
 
