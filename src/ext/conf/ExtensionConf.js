@@ -974,12 +974,12 @@ whatsNewChecked: true,
       keyboardShortcutsEnabled: ExtensionMode.Default,
       DOM: {
         player: {
-          manual: true,
+          manual: false,
           useRelativeAncestor: false,
           querySelectors: '.reddit-video-player-root, .media-preview-content'
         }
       },
-      css: '',
+      css: 'video {\n  width: 100% !important;\n  height: 100% !important;\n}',
     },
     "www.reddit.com" : {
       mode: ExtensionMode.Enabled,
@@ -991,12 +991,12 @@ whatsNewChecked: true,
       keyboardShortcutsEnabled: ExtensionMode.Default,
       DOM: {
         player: {
-          manual: true,
+          manual: false,
           useRelativeAncestor: false,
           querySelectors: '.reddit-video-player-root, .media-preview-content'
         }
       },
-      css: '',
+      css: 'video {\n  width: 100% !important;\n  height: 100% !important;\n}',
     },
     "imgur.com": {
       mode: -1,

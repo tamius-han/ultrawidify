@@ -24,9 +24,7 @@ class VideoData {
       attributeOldValue: true,
     };
 
-    const ths = this;
-    this.observer = new MutationObserver( (m, o) => this.onVideoDimensionsChanged(m, o, ths));
-    this.observer.observe(video, observerConf);
+    
 
     // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
     // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)    
@@ -35,6 +33,10 @@ class VideoData {
       this.invalid = true;
       return;
     }
+
+    const ths = this;
+    this.observer = new MutationObserver( (m, o) => this.onVideoDimensionsChanged(m, o, ths));
+    this.observer.observe(video, observerConf);
 
     this.dimensions = {
       width: this.video.offsetWidth,
@@ -107,6 +109,16 @@ class VideoData {
   }
 
   validateVideoOffsets() {
+    // validate if current video still exists. If not, we destroy current object
+    try {
+      if (! document.body.contains(this.video)) {
+        console.log("this video is having a bit of a hiatus:", this.video)
+        this.destroy();
+        return;
+      }
+    } catch (e) {
+      console.log("e", e)
+    }
     // THIS BREAKS PANNING
     const cs = window.getComputedStyle(this.video);
     const pcs = window.getComputedStyle(this.player.element);
@@ -190,33 +202,27 @@ class VideoData {
   destroy() {
     this.logger.log('info', ['debug', 'init'], `[VideoData::destroy] <vdid:${this.vdid}> received destroy command`);
 
-    this.video.classList.remove(this.userCssClassName);
+    if (this.video) {
+      this.video.classList.remove(this.userCssClassName);
+    }
 
     this.pause();
     this.destroyed = true;
-    if (this.arDetector){
-      try {
-        this.arDetector.stop();
-        this.arDetector.destroy();
-      } catch (e) {}
-    }
+    try {
+      this.arDetector.stop();
+      this.arDetector.destroy();
+    } catch (e) {}
     this.arDetector = undefined;
-    if (this.resizer){
-      try {
-       this.resizer.destroy();
-      } catch (e) {}
-    }
+    try {
+      this.resizer.destroy();
+    } catch (e) {}
     this.resizer = undefined;
-    if (this.player){
-      try {
-        this.player.destroy();
-      } catch (e) {}
-    }
-    if (this.observer) {
-      try {
-        this.observer.disconnect();
-      } catch (e) {}
-    }
+    try {
+      this.player.destroy();
+    } catch (e) {}
+    try {
+      this.observer.disconnect();
+    } catch (e) {}
     this.player = undefined;
     this.video = undefined;
   }

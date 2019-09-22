@@ -314,7 +314,9 @@ class Resizer {
     }
     else {
       if (this.lastAr && this.lastAr.ratio === null) {
-        throw "Last ar is null!"
+        // if this is the case, we do nothing as we have the correct aspect ratio
+        // throw "Last ar is null!"
+        return;
       }
       this.setAr(this.lastAr, this.lastAr)
     }
