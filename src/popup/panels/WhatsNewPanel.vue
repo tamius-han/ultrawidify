@@ -11,6 +11,7 @@
       <li>Started using mutation observers to watch for changes in player size as well, but with some caveats.</li>
       <li>Mutation observers are now used to detect both video and player size changes.</li>
       <li>Settings patching has been reworked. Settings can now be patched incrementally.</li>
+      <li>[4.3.0.1] Removed some stray, forgotten console.logs.</li>
     </ul>
     <p>I'm also laying ground for some features that will make my life easier:</p>
     <ul>

@@ -117,9 +117,7 @@ class PlayerData {
   }
 
   async legacyChangeDetection() {
-    console.log("starting legacy cd")
     while (!this.halted) {
-      console.log("loop")
       await this.sleep(1000);
       try {
         if (this.checkPlayerSizeChange()) {
@@ -129,7 +127,6 @@ class PlayerData {
         console.error('[playerdata::legacycd] this message is pretty high on the list of messages you shouldnt see', e);
       }
     }
-    console.log("HALTED - STOPPING CHANGE DETECTION FOR", this.element)
   }
 
   stopChangeDetection(){
