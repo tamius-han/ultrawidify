@@ -190,7 +190,14 @@ class Settings {
 
     // if there's no settings saved, return default settings.
     if(! settings || (Object.keys(settings).length === 0 && settings.constructor === Object)) {
-      this.logger.log('info', 'settings', '[Settings::init] settings don\'t exist. Using defaults.\n#keys:', Object.keys(settings).length, '\nsettings:', settings);
+      this.logger.log(
+        'info', 
+        'settings', 
+        '[Settings::init] settings don\'t exist. Using defaults.\n#keys:', 
+        settings ? Object.keys(settings).length : 0, 
+        '\nsettings:', 
+        settings
+      );
       this.active = this.getDefaultSettings();
       this.active.version = this.version;
       await this.save();
