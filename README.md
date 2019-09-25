@@ -245,16 +245,16 @@ However, I do plan on implementing this feature. Hopefully by the end of the yea
 
 ### Installing the current, github version
 
-Requirements: npm, yarn.
+Requirements: npm, node.
 
 1. Clone this repo
-2. run `yarn install`
-3. run `npm run watch:dev`
+2. run `npm install`
+3. If using **Firefox,** run: `npm run watch:dev`. If using **Chrome,** run: `npm run watch-chrome:dev`. If using Edge, run: `npm run watch-edge:dev`.
 
 TODO: see if #3 already loads the extension in FF
 
-2. Open up Firefox
-3. Go to `about:debugging`
+2. Open up Firefox (or Chrome)
+3. Go to `about:debugging` (or Chrome equivalent)
 4. Add temporary addon
 5. Select `${ultrawidify_folder}/dist/manifest.json`
 
