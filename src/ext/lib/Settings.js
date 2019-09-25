@@ -194,7 +194,7 @@ class Settings {
         'info', 
         'settings', 
         '[Settings::init] settings don\'t exist. Using defaults.\n#keys:', 
-        settings != null ? Object.keys(settings).length : 0, 
+        settings ? Object.keys(settings).length : 0, 
         '\nsettings:', 
         settings
       );
