@@ -48,7 +48,7 @@
               :class="{'selected-tab': selectedTab === 'controls'}"
               @click="setSelectedTab('controls')"
               >
-              Actions
+              Actions &amp; shortcuts
           </div>
           <div class="menu-item"
               :class="{'selected-tab': selectedTab === 'txtconf'}"

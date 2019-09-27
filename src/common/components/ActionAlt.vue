@@ -1,18 +1,18 @@
 <template>
-  <div class="action flex flex-column">
-
-    <div class="flex flex-row action-name-cmd-container">
+  <div class="action">
+    <div class="flex-row action-name-cmd-container">
       <div class="">
 
       </div>
       <div class="flex action-name">
-        <span class="icon red" @click="removeAction()">🗙</span> &nbsp; &nbsp;
+        <span v-if="action.cmd && action.cmd.length > 1 || action.cmd[0].action === 'set-ar' && action.cmd[0].arg === AspectRatio.Fixed" class="icon red" @click="removeAction()">🗙</span> &nbsp; &nbsp;
+        <span v-else class="icon transparent">🗙</span> &nbsp; &nbsp;
         <span class="icon" @click="editAction()">🖉</span> &nbsp; &nbsp;
         {{action.name}}
       </div>
     </div>
-    <div class="flex flex-row command-details">
-      <div class="flex flex-column cmd-container">
+    <div class="command-details">
+      <div class="flex flex-column cmd-container cd-pad">
         <div class="flex bold">
           Command: 
         </div>
@@ -22,8 +22,8 @@
       </div>
 
      <!-- SCOPES -->
-      <div class="flex flex-column scopes-container">
-        <div class="flex bold">Popup scopes:</div>
+      <div class="flex flex-column scopes-container cd-pad">
+        <div class="flex bold">Popup tabs:</div>
 
         <!-- global scope -->
         <div v-if="action.scopes.global"
@@ -109,13 +109,15 @@
 
 <script>
 import Stretch from '../enums/stretch.enum';
+import AspectRatio from '../enums/aspect-ratio.enum';
 import KeyboardShortcutParser from '../js/KeyboardShortcutParser';
 
 
 export default {
   data () {
     return {
-      Stretch: Stretch
+      Stretch: Stretch,
+      AspectRatio: AspectRatio,
     }
   },
   created () {
@@ -151,6 +153,8 @@ export default {
 
 .action {
   cursor: pointer;
+  position: relative;
+  box-sizing: border-box;
 }
 
 .action .command-details {
@@ -159,6 +163,10 @@ export default {
   transition: max-height 0.5s ease;
   overflow: hidden;
   transition: height 0.5s ease;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 50%;
 }
 
 .action:hover .command-details {
@@ -167,16 +175,29 @@ export default {
   transition: max-height 0.5s ease;
 }
 
-.action-name-cmd-container {
+.command-details {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 50%;
+}
+
+.action-name-cmd-container, .p1rem {
   padding: 1rem;
+}
+
+.cd-pad {
+  padding: 0.5em;
 }
 
 .action-name {
   font-size: 1.5rem;
   font-weight: 300;
   color: $text-normal;
+  width: 50%;
 }
-.action-name:hover {
+
+.action-name:hover, .action:hover .action-name {
   color: lighten($primary-color, 20%);
 }
 
@@ -220,5 +241,8 @@ export default {
   color: $text-normal;
 }
 
+.transparent {
+  opacity: 0;
+}
 
 </style>
