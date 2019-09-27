@@ -12,7 +12,12 @@ QoL improvements for me:
 
 * logging: allow to enable logging at will and export said logs to a file
 
-### v4.3.0 (current)
+### v4.3.1 (current)
+
+* Minor rework of settings page (actions & shortcuts section)
+* Fixed bug that prevented settings page from opening
+
+### v4.3.0
 
 * Fixed some issues with incorrect alignment after window resize
 * Fixed all sorts of issues for videos hosted on v.reddit for new (and old) reddit
