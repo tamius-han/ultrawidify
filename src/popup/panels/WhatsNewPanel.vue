@@ -2,21 +2,10 @@
   <div>
     <h2>What's new</h2>
     <p>Full changelog for older versions <a href="https://github.com/xternal7/ultrawidify/blob/master/CHANGELOG.md">is available here</a>.</p>
-    <p class="label">4.3.0.2</p>
+    <p class="label">4.3.1</p>
     <ul>
-      <li><b>[4.3.0.2]</b> Extension would not work for new users. (Special thanks to [ezzak](https://github.com/ezzak) for finding and submitting a patch)</li>
-      <li><b>[4.3.0.1]</b> Removed some stray, forgotten console.logs.</li>
-      <li>Fixed an issue where videos would get incorrectly aligned following a window resize.</li>
-      <li>Fixed all sorts of issues for videos hosted on v.reddit for new (and old) reddit</li>
-      <li>Fixed the issue where setting extension to 'whitelist only' would disable 'site settings' in popup.</li>
-      <li>User-friendly way of importing-exporting settings (exporting settings requires 'download' permission)</li>
-      <li>Started using mutation observers to watch for changes in player size as well, but with some caveats.</li>
-      <li>Mutation observers are now used to detect both video and player size changes.</li>
-      <li>Settings patching has been reworked. Settings can now be patched incrementally.</li>
-    </ul>
-    <p>I'm also laying ground for some features that will make my life easier:</p>
-    <ul>
-      <li>Reworked how logging works internally, but this point still needs some work.</li>
+      <li>Minor rework of settings page (actions & shortcuts section)</li>
+      <li>Fixed bug that prevented settings page from opening</li>
     </ul>
   </div>
 </template>
