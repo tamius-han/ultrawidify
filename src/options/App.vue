@@ -48,7 +48,7 @@
               :class="{'selected-tab': selectedTab === 'controls'}"
               @click="setSelectedTab('controls')"
               >
-              Actions
+              Actions &amp; shortcuts
           </div>
           <div class="menu-item"
               :class="{'selected-tab': selectedTab === 'txtconf'}"
@@ -113,21 +113,17 @@ import Donate from '../common/misc/Donate.vue';
 import SuperAdvancedSettings from './SuperAdvancedSettings.vue';
 import Debug from '../ext/conf/Debug.js';
 import BrowserDetect from '../ext/conf/BrowserDetect.js';
-
 import ExtensionConf from '../ext/conf/ExtensionConf.js';
-
 import ObjectCopy from '../ext/lib/ObjectCopy.js';
-
 import Settings from '../ext/lib/Settings.js';
-
 import GeneralSettings from './GeneralSettings';
 import ControlsSettings from './controls-settings/ControlsSettings';
 import AddEditActionPopup from './controls-settings/AddEditActionPopup';
 import ConfirmPopup from './common/ConfirmationPopup';
 import About from './about'
-
 import AutodetectionSettings  from './AutodetectionSettings';
 // import SuperAdvancedSettings from './'
+import Logger from '../ext/lib/Logger';
 
 export default {
   name: "Ultrawidify",
