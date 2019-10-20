@@ -158,7 +158,6 @@ class Settings {
     while (index < patches.length) {
       delete patches[index].forVersion;
       ObjectCopy.overwrite(this.active, patches[index]);
-      
       index++;
     }
   }

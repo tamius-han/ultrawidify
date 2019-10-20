@@ -1,12 +1,12 @@
 import Debug from '../conf/Debug';
 
 class ObjectCopy {
-  static addNew(existing, target){
+  static addNew(current, newValues){
     
     // clone target
-    var out = JSON.parse(JSON.stringify(target));
+    var out = JSON.parse(JSON.stringify(newValues));
 
-    if(! existing) {
+    if(! current) {
       if(Debug.debug) {
         console.log("[ObjectCopy::addNew] There's no existing value. Returning target value.");
       }
@@ -16,10 +16,10 @@ class ObjectCopy {
 
     for(var k in out) {
       // if current key exist, replace it with existing value. Take no action otherwise.
-      if(existing[k]) {
+      if(current[k]) {
 
         // Types and constructors of objects must match. If they don't, we always use the new value.
-        if(typeof out[k] === typeof existing[k] && out[k].constructor === existing[k].constructor) {
+        if(typeof out[k] === typeof current[k] && out[k].constructor === current[k].constructor) {
           
           // objects are special, we need to check them recursively.
           if(out[k] && typeof out[k] === 'object' && out[k].constructor === Object ) {
@@ -27,9 +27,9 @@ class ObjectCopy {
               console.log("[ObjectCopy::addNew] current key contains an object. Recursing!")
             }
 
-            out[k] = this.addNew(existing[k], out[k]);
+            out[k] = this.addNew(current[k], out[k]);
           } else {
-            out[k] = existing[k];       
+            out[k] = current[k];       
           }
         }
       }
@@ -37,39 +37,41 @@ class ObjectCopy {
 
     // add the values that would otherwise be deleted back to our object. (We need that so user-defined
     // sites don't get forgotten)
-    for(var k in existing) {
+    for(var k in current) {
       if (! out[k]) {
-        out[k] = existing[k];
+        out[k] = current[k];
       }
     }
 
     return out;
   }
 
-  static overwrite(existing, target){
-    for(var k in target) {
+  static overwrite(current, newValues){
+    for(var k in newValues) {
       // if current key exist, replace it with existing value. Take no action otherwise.
-      if (existing[k]) {
-
+      if (current[k] !== undefined) {
         // Types and constructors of objects must match. If they don't, we always use the new value.
-        if (typeof target[k] === typeof existing[k] && target[k].constructor === existing[k].constructor) {
+        if (typeof newValues[k] === typeof current[k] && newValues[k].constructor === current[k].constructor) {
           
           // objects are special, we need to check them recursively.
-          if(existing[k] && typeof existing[k] === 'object' && existing[k].constructor === Object ) {
+          if(current[k] && typeof current[k] === 'object' && current[k].constructor === Object ) {
             if(Debug.debug && Debug.settings) {
               console.log("[ObjectCopy::addNew] current key contains an object. Recursing!")
             }
 
-            existing[k] = this.overwrite(existing[k], target[k]);
+            current[k] = this.overwrite(current[k], newValues[k]);
           } else {
-            existing[k] = target[k];       
+            current[k] = newValues[k];       
           }
         } else {
-          existing[k] = target[k];
+          current[k] = newValues[k];
         }
       }
+      else if (newValues[k] !== undefined) {
+        current[k] = newValues[k];
+      }
     }
-    return existing;
+    return current;
   }
 
   static pruneUnused(existing, target, ignoreKeys) {
