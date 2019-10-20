@@ -103,7 +103,7 @@ const ExtensionConfPatch = [
       },
     }
   }, {
-    forVersion: '4.3.0.1',
+    forVersion: '4.3.1.1',
     sites: {
       'twitch.tv': {
         DOM: {
