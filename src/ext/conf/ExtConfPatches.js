@@ -102,6 +102,21 @@ const ExtensionConfPatch = [
         css: 'video {\n  width: 100% !important;\n  height: 100% !important;\n}',
       },
     }
+  }, {
+    forVersion: '4.3.0.1',
+    sites: {
+      'twitch.tv': {
+        DOM: {
+          player: {
+            manual: false,
+            querySelectors: "",
+            additionalCss: "",
+            useRelativeAncestor: false,
+            playerNodeCss: ""
+          }
+        }
+      }
+    }
   }
 ];
 
