@@ -105,7 +105,7 @@ const ExtensionConfPatch = [
   }, {
     forVersion: '4.3.1.1',
     sites: {
-      'twitch.tv': {
+      'www.twitch.tv': {
         DOM: {
           player: {
             manual: false,
