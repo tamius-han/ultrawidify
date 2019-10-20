@@ -940,8 +940,8 @@ whatsNewChecked: true,
       keyboardShortcutsEnabled: ExtensionMode.Default,
       DOM: {
         player: {
-          manual: true,
-          querySelectors: ".video-player__container.player",
+          manual: false,
+          querySelectors: "",
           additionalCss: "",
           useRelativeAncestor: false,
           playerNodeCss: ""
