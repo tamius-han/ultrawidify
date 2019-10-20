@@ -16,6 +16,7 @@ QoL improvements for me:
 
 * Minor rework of settings page (actions & shortcuts section)
 * Fixed bug that prevented settings page from opening
+* **[4.3.1.1]** quick patch for twitch.tv
 
 ### v4.3.0
 
