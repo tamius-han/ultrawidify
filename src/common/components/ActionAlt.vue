@@ -5,7 +5,7 @@
 
       </div>
       <div class="flex action-name">
-        <span v-if="action.cmd && action.cmd.length > 1 || action.cmd[0].action === 'set-ar' && action.cmd[0].arg === AspectRatio.Fixed" class="icon red" @click="removeAction()">🗙</span> &nbsp; &nbsp;
+        <span v-if="action.cmd && action.cmd.length > 1 || action.cmd[0].action === 'set-ar' && action.cmd[0].arg === AspectRatio.Fixed" class="icon red" @click="removeAction()">🗙</span>
         <span v-else class="icon transparent">🗙</span> &nbsp; &nbsp;
         <span class="icon" @click="editAction()">🖉</span> &nbsp; &nbsp;
         {{action.name}}
