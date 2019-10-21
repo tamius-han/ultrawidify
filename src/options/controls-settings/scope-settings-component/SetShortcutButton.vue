@@ -38,6 +38,7 @@ export default {
       if (this.waitingForPress) {
         const shortcut = {
           key: event.key,
+          keyCode: event.keyCode,
           ctrlKey: event.ctrlKey,
           metaKey: event.metaKey,
           altKey: event.altKey,

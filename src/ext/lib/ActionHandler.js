@@ -181,19 +181,40 @@ class ActionHandler {
     return false;
   }
 
-  isActionMatch(shortcut, event) {
+  isLatin(key) {
+    return 'abcdefghijklmnopqrstuvwxyz,.-+1234567890'.indexOf(key.toLocaleLowerCase()) !== -1;
+  }
+
+  isActionMatchStandard(shortcut, event) {
     return shortcut.key      === event.key     &&
            shortcut.ctrlKey  === event.ctrlKey &&
            shortcut.metaKey  === event.metaKey &&
            shortcut.altKey   === event.altKey  &&
            shortcut.shiftKey === event.shiftKey
   }
+  isActionMatchKeycode(shortcut, event) {
+    return shortcut.keyCode  === event.key     &&
+           shortcut.ctrlKey  === event.ctrlKey &&
+           shortcut.metaKey  === event.metaKey &&
+           shortcut.altKey   === event.altKey  &&
+           shortcut.shiftKey === event.shiftKey
+  }
+
+  isActionMatch(shortcut, event, isLatin = true) {
+    // ASCII and symbols fall back to keycode matching, because we don't know for sure that
+    // regular matching by key is going to work
+    return isLatin ? 
+      this.isActionMatchStandard(shortcut, event) : 
+      this.isActionMatchStandard(shortcut, event) || this.isActionMatchKeycode(shortcut, event);
+  }
 
   execAction(actions, event, videoData) {
     this.logger.log('info', 'keyboard', "%c[ActionHandler::execAction] Trying to find and execute action for event. Actions/event: ", "color: #ff0", actions, event);
 
+    const isLatin = this.isLatin(event.key);
+
     for (var action of actions) {
-      if (this.isActionMatch(action.shortcut, event)) {
+      if (this.isActionMatch(action.shortcut, event, isLatin)) {
         this.logger.log('info', 'keyboard', "%c[ActionHandler::execAction] found an action associated with keypress/event: ", "color: #ff0", action);
 
         for (var cmd of action.cmd) {
