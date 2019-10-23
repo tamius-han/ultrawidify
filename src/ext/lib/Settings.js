@@ -26,42 +26,28 @@ class Settings {
 
     const ths = this;
 
-    if(currentBrowser.firefox) {
-      browser.storage.onChanged.addListener( (changes, area) => {
-        this.logger.log('info', 'settings', "[Settings::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
-        if (changes['uwSettings'] && changes['uwSettings'].newValue) {
-          this.logger.log('info', 'settings',"[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));
-        }
-        if(changes['uwSettings'] && changes['uwSettings'].newValue) {
-          ths.setActive(JSON.parse(changes.uwSettings.newValue));
-        }
-
-        if(this.updateCallback) {
-          try {
-            updateCallback(ths);
-          } catch (e) {
-            this.logger.log('error', 'settings', "[Settings] CALLING UPDATE CALLBACK FAILED.")
-          }
-        }
-      });
+    if (currentBrowser.firefox) {
+      browser.storage.onChanged.addListener(this.storageChangeListener);
     } else if (currentBrowser.chrome) {
-      chrome.storage.onChanged.addListener( (changes, area) => {
-        this.logger.log('info', 'settings', "[Settings::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
-        if (changes['uwSettings'] && changes['uwSettings'].newValue) {
-          this.logger.log('info', 'settings',"[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));
-        }
-        if(changes['uwSettings'] && changes['uwSettings'].newValue) {
-          ths.setActive(JSON.parse(changes.uwSettings.newValue));
-        }
+      chrome.storage.onChanged.addListener(this.storageChangeListener);
+    }
+  }
 
-        if(this.updateCallback) {
-          try {
-            updateCallback(ths);
-          } catch (e) {
-            this.logger.log('error', 'settings',"[Settings] CALLING UPDATE CALLBACK FAILED.")
-          }
-        }
-      });
+  storageChangeListener(changes, area) {
+    this.logger.log('info', 'settings', "[Settings::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
+    if (changes['uwSettings'] && changes['uwSettings'].newValue) {
+      this.logger.log('info', 'settings',"[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));
+    }
+    if(changes['uwSettings'] && changes['uwSettings'].newValue) {
+      ths.setActive(JSON.parse(changes.uwSettings.newValue));
+    }
+
+    if(this.updateCallback) {
+      try {
+        updateCallback(ths);
+      } catch (e) {
+        this.logger.log('error', 'settings', "[Settings] CALLING UPDATE CALLBACK FAILED.")
+      }
     }
   }
 
@@ -305,6 +291,23 @@ class Settings {
     }
 
     await this.set(this.active);
+  }
+
+
+  async saveWithoutReload() {
+    if (currentBrowser.firefox) {
+      browser.storage.onChanged.removeListener(this.storageChangeListener);
+    } else if (currentBrowser.chrome) {
+      chrome.storage.onChanged.removeListener(this.storageChangeListener);
+    }
+
+    await this.save();
+
+    if(currentBrowser.firefox) {
+      browser.storage.onChanged.addListener(this.storageChangeListener);
+    } else if (currentBrowser.chrome) {
+      chrome.storage.onChanged.addListener(this.storageChangeListener);
+    }
   }
 
   async rollback() {
