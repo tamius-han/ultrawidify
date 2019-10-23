@@ -7,6 +7,7 @@ import ExtensionMode from '../../../common/enums/extension-mode.enum';
 import Stretch from '../../../common/enums/stretch.enum';
 import VideoAlignment from '../../../common/enums/video-alignment.enum';
 import AspectRatio from '../../../common/enums/aspect-ratio.enum';
+import CropModePersistance from '../../../common/enums/crop-mode-persistence.enum';
 
 if(Debug.debug) {
   console.log("Loading: Resizer.js");
@@ -119,7 +120,7 @@ class Resizer {
   }
 
 
-  setAr(ar, lastAr){
+  setAr(ar, lastAr) {
     if (this.destroyed) {
       return;
     }
@@ -130,26 +131,39 @@ class Resizer {
       return;
     }
 
+    const siteSettings = this.settings.active.sites[window.location.host];
+
+    // most everything that could go wrong went wrong by this stage, and returns can happen afterwards
+    // this means here's the optimal place to set or forget aspect ratio
+    if (siteSettings && siteSettings.cropModePersistance > CropModePersistance.Disabled) {
+      if (ar.type === AspectRatio.Automatic || 
+          ar.type === AspectRatio.Reset ||
+          ar.type === AspectRatio.Initial ) {
+        // reset/undo default 
+        this.conf.pageInfo.setDefaultCrop(undefined);
+      } else {
+        this.conf.pageInfo.setDefaultCrop(ar);
+      }
+    }
+
     if (ar.type === AspectRatio.Automatic || 
         ar.type === AspectRatio.Reset && this.lastAr.type === AspectRatio.Initial) {
       // some sites do things that interfere with our site (and aspect ratio setting in general)
       // first, we check whether video contains anything we don't like
-
-      const siteSettings = this.settings.active.sites[window.location.host];
       if (siteSettings && siteSettings.autoarPreventConditions) {
         if (siteSettings.autoarPreventConditions.videoStyleString) {
           const styleString = (this.video.getAttribute('style') || '').split(';');
-
+  
           if (siteSettings.autoarPreventConditions.videoStyleString.containsProperty) {
             const bannedProperties = siteSettings.autoarPreventConditions.videoStyleString.containsProperty;
             for (const prop in bannedProperties) {
               for (const s of styleString) {
                 if (s.trim().startsWith(prop)) {
-
+  
                   // check if css property has a list of allowed values:
                   if (bannedProperties[prop].allowedValues) {
                     const styleValue = s.split(':')[1].trim();
-
+  
                     // check if property value is on the list of allowed values
                     // if it's not, we aren't allowed to start aard
                     if (bannedProperties[prop].allowedValues.indexOf(styleValue) === -1) {
@@ -169,6 +183,8 @@ class Resizer {
         }
       }
     }
+
+    
 
     if (lastAr) {
       this.lastAr = this.calculateRatioForLegacyOptions(lastAr);

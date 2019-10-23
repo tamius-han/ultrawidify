@@ -2,6 +2,7 @@ import Debug from '../../conf/Debug';
 import VideoData from './VideoData';
 import RescanReason from './enums/RescanReason';
 import AspectRatio from '../../../common/enums/aspect-ratio.enum';
+import CropModePersistence from '../../../common/enums/crop-mode-persistence.enum';
 
 if(Debug.debug)
   console.log("Loading: PageInfo.js");
@@ -20,21 +21,26 @@ class PageInfo {
     this.lastUrl = window.location.href;
     this.extensionMode = extensionMode;
     this.readOnly = readOnly;
-
+    this.defaultCrop = undefined;
 
     if (comms){ 
       this.comms = comms;
     }
 
-    // request inject css immediately
     try {
+      // request inject css immediately
       const playerStyleString = this.settings.active.sites[window.location.host].css.replace('\\n', '');
       this.comms.sendMessage({
         cmd: 'inject-css',
         cssString: playerStyleString
       });
+
+      // try getting default crop immediately.
+      if (this.settings.active.sites[window.location.host].cropPersistence === CropModePersistence.Forever) {
+        this.defaultCrop = this.settings.active.sites[window.location.host].defaultCrop;
+      }
     } catch (e) {
-      // do nothing. It's ok if there's no special settings for the player element
+      // do nothing. It's ok if there's no special settings for the player element or crop persistence
     }
 
     this.rescan(RescanReason.PERIODIC);
@@ -197,11 +203,17 @@ class PageInfo {
           
           try {
             v = new VideoData(video, this.settings, this);
-            if (!v.invalid) {
-              v.initArDetection();
+
+            if (this.defaultCrop) {
+              if (!v.invalid) {
+                v.initArDetection();
+              } else {
+                this.logger.log('error', 'debug', 'Video is invalid. Aard not started.', video);
+              }
             } else {
-              this.logger.log('error', 'debug', 'Video is invalid. Aard not started.', video);
+              this.logger.log('info', 'debug', 'Default crop is specified for this site. Not starting aard.');
             }
+            
             this.videos.push(v);
           } catch (e) {
             this.logger.log('error', 'debug', "rescan error: failed to initialize videoData. Skipping this video.",e);
@@ -216,7 +228,7 @@ class PageInfo {
       // če smo ostali brez videev, potem odregistriraj stran. 
       // če nismo ostali brez videev, potem registriraj stran.
       //
-      // if we're left withotu videos on the current page, we unregister the page.
+      // if we're left without videos on the current page, we unregister the page.
       // if we have videos, we call register.
       if (this.comms) {
         if (this.videos.length != oldVideoCount) { // only if number of videos changed, tho
@@ -550,6 +562,22 @@ class PageInfo {
 
   setKeyboardShortcutsEnabled(state) {
     this.actionHandler.setKeybordLocal(state);
+  }
+
+  setDefaultCrop(ar) {
+    // This means crop persistance is disabled. If crop persistance is enabled, then settings for current
+    // site MUST exist (crop persistence mode is disabled by default)
+    if (!this.settings.active.sites[window.location.host] ||
+         this.settings.active.sites[window.location.host].cropPersistence === CropModePersistence.Disabled) {
+      return;
+    }
+
+    this.defaultCrop = ar;
+    
+    if (this.settings.active.sites[window.location.host].cropPersistence === CropModePersistence.Forever) {
+      this.settings.active.sites[window.location.host].defaultAr = ar;
+      this.settings.saveWithoutReload();
+    }
   }
 }
 
