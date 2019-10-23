@@ -44,6 +44,7 @@ class VideoData {
     };
 
     this.resizer = new Resizer(this);
+
     this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
     // player dimensions need to be in:
     // this.player.dimensions
@@ -59,6 +60,11 @@ class VideoData {
 
     // start fallback video/player size detection
     this.fallbackChangeDetection();
+
+    // force reload last aspect ratio (if default crop ratio exists)
+    if (this.pageInfo.defaultCrop) {
+      this.resizer.setAr(this.pageInfo.defaultCrop);
+    }
   }
 
   async fallbackChangeDetection() {
@@ -162,7 +168,7 @@ class VideoData {
       // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
       return;
     }
-    if(this.arDetector){
+    if (this.arDetector){
       this.arDetector.init();
     }
     else{
@@ -177,8 +183,8 @@ class VideoData {
       // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
       return;
     }
-    if(!this.arDetector) {
-      this.arDetector.init();
+    if (!this.arDetector) {
+      this.initArDetection();
     }
     this.arDetector.start();
   }
