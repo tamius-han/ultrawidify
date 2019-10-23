@@ -192,8 +192,8 @@ class ActionHandler {
            shortcut.altKey   === event.altKey  &&
            shortcut.shiftKey === event.shiftKey
   }
-  isActionMatchKeycode(shortcut, event) {
-    return shortcut.keyCode  === event.key     &&
+  isActionMatchKeyCode(shortcut, event) {
+    return shortcut.code     === event.code    &&
            shortcut.ctrlKey  === event.ctrlKey &&
            shortcut.metaKey  === event.metaKey &&
            shortcut.altKey   === event.altKey  &&
@@ -201,11 +201,11 @@ class ActionHandler {
   }
 
   isActionMatch(shortcut, event, isLatin = true) {
-    // ASCII and symbols fall back to keycode matching, because we don't know for sure that
+    // ASCII and symbols fall back to key code matching, because we don't know for sure that
     // regular matching by key is going to work
     return isLatin ? 
       this.isActionMatchStandard(shortcut, event) : 
-      this.isActionMatchStandard(shortcut, event) || this.isActionMatchKeycode(shortcut, event);
+      this.isActionMatchStandard(shortcut, event) || this.isActionMatchKeyCode(shortcut, event);
   }
 
   execAction(actions, event, videoData) {
