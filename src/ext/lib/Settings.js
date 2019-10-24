@@ -38,11 +38,12 @@ class Settings {
     if (changes['uwSettings'] && changes['uwSettings'].newValue) {
       this.logger.log('info', 'settings',"[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));
     }
+    const parsedSettings = JSON.parse(changes.uwSettings.newValue);
     if(changes['uwSettings'] && changes['uwSettings'].newValue) {
-      ths.setActive(JSON.parse(changes.uwSettings.newValue));
+      ths.setActive(parsedSettings);
     }
 
-    if(this.updateCallback) {
+    if(!parsedSettings.preventReload && this.updateCallback) {
       try {
         updateCallback(ths);
       } catch (e) {
@@ -289,25 +290,14 @@ class Settings {
     if (Debug.debug && Debug.storage) {
       console.log("[Settings::save] Saving active settings:", this.active);
     }
-
+    this.active.preventReload = undefined;
     await this.set(this.active);
   }
 
 
   async saveWithoutReload() {
-    if (currentBrowser.firefox) {
-      browser.storage.onChanged.removeListener(this.storageChangeListener);
-    } else if (currentBrowser.chrome) {
-      chrome.storage.onChanged.removeListener(this.storageChangeListener);
-    }
-
-    await this.save();
-
-    if(currentBrowser.firefox) {
-      browser.storage.onChanged.addListener(this.storageChangeListener);
-    } else if (currentBrowser.chrome) {
-      chrome.storage.onChanged.addListener(this.storageChangeListener);
-    }
+    this.active.preventReload = true;
+    await this.set(this.active);
   }
 
   async rollback() {
