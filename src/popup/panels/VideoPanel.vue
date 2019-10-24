@@ -5,6 +5,13 @@
     </div>
     <div v-if="aspectRatioActions.length">
       <div class="label">Cropping mode:</div>
+      <div v-if="cropModePersistence && cropModePersistence > CropModePersistence.Disabled" class="info">
+        Cropping mode will persist
+         <template v-if="cropModePersistence === CropModePersistence.UntilPageReload">until page reload (this includes page navigation!).</template>
+         <template v-if="cropModePersistence === CropModePersistence.CurrentSession">for current session.</template>
+         <template v-if="cropModePersistence === CropModePersistence.Forever">forever (or at least until you change aspect ratio manually).</template>
+        This can be changed in the 'site settings' or 'extension settings' tab.
+      </div>
       <div class="flex flex-row flex-wrap">
         <ShortcutButton v-for="(action, index) of aspectRatioActions"
                         class="flex b3 flex-grow button"
@@ -12,7 +19,7 @@
                         :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
                         :shortcut="parseShortcut(action)"
                         @click.native="execAction(action)"
-                        >
+        >
         </ShortcutButton>
       </div>
     </div>
@@ -117,11 +124,13 @@ import ExecAction from '../js/ExecAction';
 import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
 import ShortcutButton from '../../common/components/ShortcutButton';
 import ComputeActionsMixin from '../../common/mixins/ComputeActionsMixin';
+import CropModePersistence from '../../common/enums/crop-mode-persistence.enum';
 
 export default {
   data() {
     return {
       scope: 'page',
+      CropModePersistence: CropModePersistence,
     }
   },
   mixins: [
@@ -131,7 +140,8 @@ export default {
     'settings',
     'frame',
     'zoom',
-    'someSitesDisabledWarning'
+    'someSitesDisabledWarning',
+    'cropModePersistence',
   ],
   created() {
     this.exec = new ExecAction(this.settings);

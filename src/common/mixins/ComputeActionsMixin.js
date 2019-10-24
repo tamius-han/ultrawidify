@@ -12,6 +12,9 @@ export default {
     aspectRatioActions: function(){
       return this.scopeActions.filter(x => x.cmd.length === 1 && x.cmd[0].action === 'set-ar') || [];
     },
+    cropModePersistenceActions: function() {
+      return this.scopeActions.filter(x => x.cmd.length === 1 && x.cmd[0].action === 'set-ar-persistence') || [];
+    },
     stretchActions: function(){
       return this.scopeActions.filter(x => x.cmd.length === 1 && x.cmd[0].action === 'set-stretch') || [];
     },

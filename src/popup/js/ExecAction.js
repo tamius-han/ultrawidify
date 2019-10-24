@@ -13,7 +13,7 @@ class ExecAction {
     this.site = site;
   }
 
-  exec(action, scope, frame) {
+  async exec(action, scope, frame) {
     for (var cmd of action.cmd) {
       if (scope === 'page') {
         const message = {
@@ -26,6 +26,32 @@ class ExecAction {
         }
         Comms.sendMessage(message);
       } else {
+
+        // set-ar-persistence sends stuff to content scripts as well (!)
+        // it's important to do that BEFORE the save step
+        if (cmd === 'set-ar-persistence') {
+          let message;
+          if (scope === 'site') {
+            message = {
+              forwardToContentScript: true,
+              targetFrame: frame,
+              frame: frame,
+              cmd: cmd.action,
+              arg: cmd.arg,
+            }
+          } else {
+            message = {
+              forwardToAll: true,
+              targetFrame: frame,
+              frame: frame,
+              cmd: cmd.action,
+              arg: cmd.arg,
+            }
+          }
+          // this hopefully delays settings.save() until current crops are saved on the site
+          // and thus avoid any fucky-wuckies
+          await Comms.sendMessage(message);
+        }
 
         let site = this.site;
         if (scope === 'global') {
