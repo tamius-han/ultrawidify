@@ -135,7 +135,7 @@ class Resizer {
 
     // most everything that could go wrong went wrong by this stage, and returns can happen afterwards
     // this means here's the optimal place to set or forget aspect ratio
-    if (siteSettings && siteSettings.cropModePersistance > CropModePersistance.Disabled) {
+    if (this.settings.getDefaultCropPersistenceMode(window.location.host) > CropModePersistance.Disabled) {
       if (ar.type === AspectRatio.Automatic || 
           ar.type === AspectRatio.Reset ||
           ar.type === AspectRatio.Initial ) {

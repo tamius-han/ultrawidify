@@ -5,6 +5,7 @@ import Stretch from '../../common/enums/stretch.enum';
 import ExtensionMode from '../../common/enums/extension-mode.enum';
 import AntiGradientMode from '../../common/enums/anti-gradient-mode.enum';
 import AspectRatio from '../../common/enums/aspect-ratio.enum';
+import CropModePersistence from '../../common/enums/crop-mode-persistence.enum';
 
 if(Debug.debug)
   console.log("Loading: ExtensionConf.js");
@@ -363,6 +364,93 @@ var ExtensionConf = {
     playerUi: {
       show: true,
       path: 'crop',
+    }
+  }, {
+    name: 'Don\'t persist crop',
+    label: 'Never persist',
+    cmd: [{
+      action: 'set-ar-persistence',
+      arg: CropModePersistence.Never,
+    }],
+    scopes: {
+      site: {
+        show: true,
+      },
+      global: {
+        show: true,
+      }
+    },
+    playerUi: {
+      show: true,
+    }
+  }, {
+    name: 'Persist crop while on page',
+    label: 'While on page',
+    cmd: [{
+      action: 'set-ar-persistence',
+      arg: CropModePersistence.UntilPageReload,
+    }],
+    scopes: {
+      site: {
+        show: true,
+      },
+      global: {
+        show: true,
+      }
+    },
+    playerUi: {
+      show: true,
+    }
+  }, {
+    name: 'Persist crop for current session',
+    label: 'Always persist',
+    cmd: [{
+      action: 'set-ar-persistence',
+      arg: CropModePersistence.CurrentSession,
+    }],
+    scopes: {
+      site: {
+        show: true,
+      },
+      global: {
+        show: true,
+      }
+    },
+    playerUi: {
+      show: true,
+    }
+  }, {
+    name: 'Persist until manually reset',
+    label: 'Always persist',
+    cmd: [{
+      action: 'set-ar-persistence',
+      arg: CropModePersistence.Forever,
+    }],
+    scopes: {
+      site: {
+        show: true,
+      },
+      global: {
+        show: true,
+      }
+    },
+    playerUi: {
+      show: true,
+    }
+  }, {
+    name: 'Default persistence',
+    label: 'Default',
+    cmd: [{
+      action: 'set-ar-persistence',
+      arg: CropModePersistence.Default,
+    }],
+    scopes: {
+      site: {
+        show: true,
+      },
+    },
+    playerUi: {
+      show: true,
     }
   }, {
     name: 'Zoom in',
