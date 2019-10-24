@@ -31,7 +31,7 @@
       <div class="flex flex-row flex-wrap">
         <ShortcutButton v-for="(action, index) of aardActions"
                         class="flex flex-grow button"
-                        :class="{'setting-selected': getCurrent('autoar') === action.cmd[0].arg}"
+                        :class="{'setting-selected': getCurrent('cropModePersistence') === action.cmd[0].arg}"
                         :key="index"
                         :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
                         :shortcut="parseShortcut(action)"
@@ -42,9 +42,27 @@
       </div>
     </div>
 
+    <!-- CROP MODE PERSISTENCE -->
+    <div v-if="cropModePersistenceActions.length"
+         class="w100"
+    >
+      <div class="label">Persists crop mode <template v-if="scope === 'site'">for {{site}}</template>:</div>
+      <div class="flex flex-row flex-wrap">
+        <ShortcutButton v-for="(action, index) of cropModePersistenceActions"
+                        class="flex flex-grow button"
+                        :class="{'setting-selected': getCurrent('autoar') === action.cmd[0].arg}"
+                        :key="index"
+                        :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
+                        :shortcut="parseShortcut(action)"
+                        @click.native="execAction(action)"
+        >
+        </ShortcutButton>
+      </div>
+    </div>
+
     <!-- DEFAULT SETTINGS -->
     <div v-if="stretchActions.length">
-      <div class="label">Default stretching mode:</div>
+      <div class="label experimental">Default stretching mode:</div>
       <div class="flex flex-row flex-wrap">
         <ShortcutButton v-for="(action, index) of stretchActions"
                         class="flex b3 flex-grow button"

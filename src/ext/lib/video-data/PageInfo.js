@@ -574,6 +574,22 @@ class PageInfo {
     this.actionHandler.setKeybordLocal(state);
   }
 
+  setArPersistence(persistenceMode) {
+    if (persistenceMode === CropModePersistence.CurrentSession) {
+      sessionStorage.setItem('uw-crop-mode-session-persistence', JSON.stringify(this.currentCrop));
+    } else if (persistenceMode === CropModePersistence.Forever) {
+      if (this.settings.active.sites[window.location.host]) {
+        //                                              | key may be missing, so we do this
+        this.settings.active.sites[window.location.host]['defaultAr'] = this.currentCrop;
+      } else {
+        this.settings.active.sites[window.location.host] = this.settings.getDefaultOption();
+        this.settings.active.sites[window.location.host]['defaultAr'] = this.currentCrop;
+      }
+      
+      this.settings.saveWithoutReload();
+    }
+  }
+
   setDefaultCrop(ar) {
     this.currentCrop = ar;
     // This means crop persistance is disabled. If crop persistance is enabled, then settings for current
@@ -594,10 +610,8 @@ class PageInfo {
         //                                              | key may be missing, so we do this
         this.settings.active.sites[window.location.host]['defaultAr'] = ar;
       } else {
-        // add options for new site if they're missing!
-        this.settings.active.sites[window.location.host] = {
-          defaultAr: ar,
-        }
+        this.settings.active.sites[window.location.host] = this.settings.getDefaultOption();
+        this.settings.active.sites[window.location.host]['defaultAr'] = ar;
       }
       
       this.settings.saveWithoutReload();
