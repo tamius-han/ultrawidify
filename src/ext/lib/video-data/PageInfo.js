@@ -22,6 +22,7 @@ class PageInfo {
     this.extensionMode = extensionMode;
     this.readOnly = readOnly;
     this.defaultCrop = undefined;
+    this.currentCrop = undefined;
 
     if (comms){ 
       this.comms = comms;
@@ -34,14 +35,23 @@ class PageInfo {
         cmd: 'inject-css',
         cssString: playerStyleString
       });
+    } catch (e) {
+      // do nothing. It's ok if there's no special settings for the player element or crop persistence
+    }
 
-      // try getting default crop immediately.
-      if (this.settings.active.sites[window.location.host].cropPersistence === CropModePersistence.Forever) {
+    // try getting default crop immediately.
+    const cropModePersistence = this.settings.active.getDefaultCropPersistenceMode(window.location.host);
+
+    try {
+      if (cropModePersistence === CropModePersistence.Forever) {
         this.defaultCrop = this.settings.active.sites[window.location.host].defaultCrop;
+      } else if (cropModePersistence === CropModePersistence.CurrentSession) {
+        this.defaultCrop = JSON.parse(sessionStorage.getItem('uw-crop-mode-session-persistence'));
       }
     } catch (e) {
       // do nothing. It's ok if there's no special settings for the player element or crop persistence
     }
+    this.currentCrop = this.defaultCrop;
 
     this.rescan(RescanReason.PERIODIC);
     this.scheduleUrlCheck();
@@ -565,17 +575,31 @@ class PageInfo {
   }
 
   setDefaultCrop(ar) {
+    this.currentCrop = ar;
     // This means crop persistance is disabled. If crop persistance is enabled, then settings for current
     // site MUST exist (crop persistence mode is disabled by default)
-    if (!this.settings.active.sites[window.location.host] ||
-         this.settings.active.sites[window.location.host].cropPersistence === CropModePersistence.Disabled) {
+
+    const cropModePersistence = this.settings.active.getDefaultCropPersistenceMode(window.location.host);
+
+    if (cropModePersistence === CropModePersistence.Disabled) {
       return;
     }
 
     this.defaultCrop = ar;
     
-    if (this.settings.active.sites[window.location.host].cropPersistence === CropModePersistence.Forever) {
-      this.settings.active.sites[window.location.host].defaultAr = ar;
+    if (cropModePersistence === CropModePersistence.CurrentSession) {
+      sessionStorage.setItem('uw-crop-mode-session-persistence', JSON.stringify(ar));
+    } else if (cropModePersistence === CropModePersistence.Forever) {
+      if (this.settings.active.sites[window.location.host]) {
+        //                                              | key may be missing, so we do this
+        this.settings.active.sites[window.location.host]['defaultAr'] = ar;
+      } else {
+        // add options for new site if they're missing!
+        this.settings.active.sites[window.location.host] = {
+          defaultAr: ar,
+        }
+      }
+      
       this.settings.saveWithoutReload();
     }
   }

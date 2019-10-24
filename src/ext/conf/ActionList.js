@@ -2,6 +2,7 @@ import VideoAlignment from '../../common/enums/video-alignment.enum';
 import Stretch from '../../common/enums/stretch.enum';
 import ExtensionMode from '../../common/enums/extension-mode.enum';
 import AspectRatio from '../../common/enums/aspect-ratio.enum';
+import CropModePersistence from '../../common/enums/crop-mode-persistence.enum';
 
 var ActionList = {
   'set-ar': {
@@ -28,6 +29,33 @@ var ActionList = {
       global: false,
       site: false,
       page: true,
+    }
+  },
+  'set-ar-persistence': {
+    name: 'Set crop mode persistence',
+    args: [{
+      name: 'Never persist',
+      arg: CropModePersistence.Disabled,
+    },{
+      name: 'While on page',
+      arg: CropModePersistence.UntilPageReload,
+    },{
+      name: 'Current session',
+      arg: CropModePersistence.CurrentSession,
+    },{
+      name: 'Always persist',
+      arg: CropModePersistence.Forever,
+    }, {
+      name: 'Default',
+      arg: CropModePersistence.Default,
+      scopes: {
+        site: true,
+      }
+    }],
+    scopes: {
+      global: true,
+      site: true,
+      page: false,
     }
   },
   'set-stretch': {

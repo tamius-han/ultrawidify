@@ -6,6 +6,7 @@ import ObjectCopy from '../lib/ObjectCopy';
 import Stretch from '../../common/enums/stretch.enum';
 import VideoAlignment from '../../common/enums/video-alignment.enum';
 import ExtensionConfPatch from '../conf/ExtConfPatches';
+import CropModePersistence from '../../common/enums/crop-mode-persistence.enum';
 
 
 
@@ -513,6 +514,15 @@ class Settings {
     }
 
     return this.active.sites['@global'].stretch;
+  }
+
+  getDefaultCropPersistenceMode(site) {
+    if (site && this.active.sites[site] && this.active.sites[site].cropModePersistence !== Stretch.Default) {
+      return this.active.sites[site].cropModePersistence;
+    }
+
+    // persistence mode thing is missing from settings by default
+    return this.active.sites['@global'].cropModePersistence || CropModePersistence.Disabled;
   }
 
   getDefaultVideoAlignment(site) {
