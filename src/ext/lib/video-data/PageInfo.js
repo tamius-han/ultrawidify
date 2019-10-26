@@ -575,6 +575,9 @@ class PageInfo {
   }
 
   setArPersistence(persistenceMode) {
+    // name of this function is mildly misleading — we don't really _set_ ar persistence. (Ar persistence
+    // mode is set and saved via popup or keyboard shortcuts, if user defined them) We just save the current
+    // aspect ratio whenever aspect ratio persistence mode changes. 
     if (persistenceMode === CropModePersistence.CurrentSession) {
       sessionStorage.setItem('uw-crop-mode-session-persistence', JSON.stringify(this.currentCrop));
     } else if (persistenceMode === CropModePersistence.Forever) {
@@ -590,7 +593,7 @@ class PageInfo {
     }
   }
 
-  setDefaultCrop(ar) {
+  updateCurrentCrop(ar) {
     this.currentCrop = ar;
     // This means crop persistance is disabled. If crop persistance is enabled, then settings for current
     // site MUST exist (crop persistence mode is disabled by default)

@@ -92,6 +92,8 @@ class CommsClient {
       this.pageInfo.setManualTick(message.arg);
     } else if (message.cmd === 'autoar-tick') {
       this.pageInfo.tick();
+    } else if (message.cmd === 'set-ar-persistence') {
+      this.pageInfo.setArPersistence(message.arg);
     }
   }
 
