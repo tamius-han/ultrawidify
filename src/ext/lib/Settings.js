@@ -28,9 +28,9 @@ class Settings {
     const ths = this;
 
     if (currentBrowser.firefox) {
-      browser.storage.onChanged.addListener(this.storageChangeListener);
+      browser.storage.onChanged.addListener((changes, area) => {this.storageChangeListener(changes, area)});
     } else if (currentBrowser.chrome) {
-      chrome.storage.onChanged.addListener(this.storageChangeListener);
+      chrome.storage.onChanged.addListener((changes, area) => {this.storageChangeListener(changes, area)});
     }
   }
 
@@ -159,21 +159,21 @@ class Settings {
     //                 |   needed. In this case, we assume we're on the current version
     const oldVersion = (settings && settings.version) || this.version;
 
-    if(Debug.debug) {
+    if (settings) {
       this.logger.log('info', 'settings', "[Settings::init] Configuration fetched from storage:", settings,
                                           "\nlast saved with:", settings.version,
                                           "\ncurrent version:", this.version
       );
-
-      // if (Debug.flushStoredSettings) {
-      //   this.logger.log('info', 'settings', "%c[Settings::init] Debug.flushStoredSettings is true. Using default settings", "background: #d00; color: #ffd");
-      //   Debug.flushStoredSettings = false; // don't do it again this session
-      //   this.active = this.getDefaultSettings();
-      //   this.active.version = this.version;
-      //   this.set(this.active);
-      //   return this.active;
-      // }
     }
+
+    // if (Debug.flushStoredSettings) {
+    //   this.logger.log('info', 'settings', "%c[Settings::init] Debug.flushStoredSettings is true. Using default settings", "background: #d00; color: #ffd");
+    //   Debug.flushStoredSettings = false; // don't do it again this session
+    //   this.active = this.getDefaultSettings();
+    //   this.active.version = this.version;
+    //   this.set(this.active);
+    //   return this.active;
+    // }
 
     // if there's no settings saved, return default settings.
     if(! settings || (Object.keys(settings).length === 0 && settings.constructor === Object)) {

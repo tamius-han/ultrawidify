@@ -40,17 +40,17 @@ class PageInfo {
     }
 
     // try getting default crop immediately.
-    const cropModePersistence = this.settings.active.getDefaultCropPersistenceMode(window.location.host);
+    const cropModePersistence = this.settings.getDefaultCropPersistenceMode(window.location.host);
 
-    try {
-      if (cropModePersistence === CropModePersistence.Forever) {
-        this.defaultCrop = this.settings.active.sites[window.location.host].defaultCrop;
-      } else if (cropModePersistence === CropModePersistence.CurrentSession) {
-        this.defaultCrop = JSON.parse(sessionStorage.getItem('uw-crop-mode-session-persistence'));
-      }
-    } catch (e) {
-      // do nothing. It's ok if there's no special settings for the player element or crop persistence
-    }
+    // try {
+    //   if (cropModePersistence === CropModePersistence.Forever) {
+    //     this.defaultCrop = this.settings.active.sites[window.location.host].defaultCrop;
+    //   } else if (cropModePersistence === CropModePersistence.CurrentSession) {
+    //     this.defaultCrop = JSON.parse(sessionStorage.getItem('uw-crop-mode-session-persistence'));
+    //   }
+    // } catch (e) {
+    //   // do nothing. It's ok if there's no special settings for the player element or crop persistence
+    // }
     this.currentCrop = this.defaultCrop;
 
     this.rescan(RescanReason.PERIODIC);
@@ -598,7 +598,7 @@ class PageInfo {
     // This means crop persistance is disabled. If crop persistance is enabled, then settings for current
     // site MUST exist (crop persistence mode is disabled by default)
 
-    const cropModePersistence = this.settings.active.getDefaultCropPersistenceMode(window.location.host);
+    const cropModePersistence = this.settings.getDefaultCropPersistenceMode(window.location.host);
 
     if (cropModePersistence === CropModePersistence.Disabled) {
       return;

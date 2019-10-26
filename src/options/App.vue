@@ -109,8 +109,6 @@
 </template>
 
 <script>
-import ControlsSettings from './controls-settings/ControlsSettings';
-import GeneralSettings from './GeneralSettings';
 import Donate from '../common/misc/Donate.vue';
 import SuperAdvancedSettings from './SuperAdvancedSettings.vue';
 import Debug from '../ext/conf/Debug.js';
