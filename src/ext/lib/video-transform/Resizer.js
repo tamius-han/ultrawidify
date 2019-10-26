@@ -134,16 +134,16 @@ class Resizer {
     const siteSettings = this.settings.active.sites[window.location.host];
 
     // most everything that could go wrong went wrong by this stage, and returns can happen afterwards
-    // this means here's the optimal place to set or forget aspect ratio
-    if (this.settings.getDefaultCropPersistenceMode(window.location.host) > CropModePersistance.Disabled) {
-      if (ar.type === AspectRatio.Automatic || 
-          ar.type === AspectRatio.Reset ||
-          ar.type === AspectRatio.Initial ) {
-        // reset/undo default 
-        this.conf.pageInfo.setDefaultCrop(undefined);
-      } else {
-        this.conf.pageInfo.setDefaultCrop(ar);
-      }
+    // this means here's the optimal place to set or forget aspect ratio. Saving of current crop ratio
+    // is handled in pageInfo.updateCurrentCrop(), which also makes sure to persist aspect ratio if ar
+    // is set to persist between videos / through current session / until manual reset.
+    if (ar.type === AspectRatio.Automatic || 
+        ar.type === AspectRatio.Reset ||
+        ar.type === AspectRatio.Initial ) {
+      // reset/undo default 
+      this.conf.pageInfo.updateCurrentCrop(undefined);
+    } else {
+      this.conf.pageInfo.updateCurrentCrop(ar);
     }
 
     if (ar.type === AspectRatio.Automatic || 

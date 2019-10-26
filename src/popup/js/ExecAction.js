@@ -30,23 +30,14 @@ class ExecAction {
         // set-ar-persistence sends stuff to content scripts as well (!)
         // it's important to do that BEFORE the save step
         if (cmd === 'set-ar-persistence') {
-          let message;
-          if (scope === 'site') {
-            message = {
-              forwardToContentScript: true,
-              targetFrame: frame,
-              frame: frame,
-              cmd: cmd.action,
-              arg: cmd.arg,
-            }
-          } else {
-            message = {
-              forwardToAll: true,
-              targetFrame: frame,
-              frame: frame,
-              cmd: cmd.action,
-              arg: cmd.arg,
-            }
+          // even when setting global defaults, we only send message to the current tab in
+          // order to avoid problems related to 
+          const message = {
+            forwardToContentScript: true,
+            targetFrame: frame,
+            frame: frame,
+            cmd: cmd.action,
+            arg: cmd.arg,
           }
           // this hopefully delays settings.save() until current crops are saved on the site
           // and thus avoid any fucky-wuckies
