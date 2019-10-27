@@ -133,28 +133,32 @@ class ActionHandler {
     // don't do shit on invalid value of state
   }
 
-  preventAction() {
+  preventAction(event) {
     var activeElement = document.activeElement;
 
     if(this.logger.canLog('keyboard')) {
       this.logger.pause(); // temp disable to avoid recursing;
-      
+      const preventAction = this.preventAction();
+      this.logger.resume(); // undisable
+
       this.logger.log('info', 'keyboard', "[ActionHandler::preventAction] Testing whether we're in a textbox or something. Detailed rundown of conditions:\n" +
       "is full screen? (yes->allow):", PlayerData.isFullScreen(),
       "\nis tag one of defined inputs? (yes->prevent):", this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1,
       "\nis role = textbox? (yes -> prevent):", activeElement.getAttribute("role") === "textbox",
       "\nis type === 'text'? (yes -> prevent):", activeElement.getAttribute("type") === "text",
+      "\nevent.target.isContentEditable? (yes -> prevent):", event.target.isContentEditable,
       "\nis keyboard local disabled? (yes -> prevent):", this.keyboardLocalDisabled,
       "\nis keyboard enabled in settings? (no -> prevent)", this.settings.keyboardShortcutsEnabled(window.location.hostname),
-      "\nwill the action be prevented? (yes -> prevent)", this.preventAction(),
+      "\nwill the action be prevented? (yes -> prevent)", preventAction,
       "\n-----------------{ extra debug info }-------------------",
       "\ntag name? (lowercase):", activeElement.tagName, activeElement.tagName.toLocaleLowerCase(),
       "\nrole:", activeElement.getAttribute('role'),
       "\ntype:", activeElement.getAttribute('type'),
-      "insta-fail inputs:", this.inputs
+      "\ninsta-fail inputs:", this.inputs,
+      "\nevent:", event,
+      "\nevent.target:", event.target
       );
 
-      this.logger.resume(); // undisable
     }
 
     // lately youtube has allowed you to read and write comments while watching video in
@@ -173,6 +177,9 @@ class ActionHandler {
       return true;
     } 
     if (activeElement.getAttribute("role") === "textbox") {
+      return true;
+    }
+    if (event.target.isContentEditable) {
       return true;
     }
     if (activeElement.getAttribute("type") === "text") {
@@ -265,7 +272,7 @@ class ActionHandler {
   handleKeyup(event) {
     this.logger.log('info', 'keyboard', "%c[ActionHandler::handleKeyup] we pressed a key: ", "color: #ff0", event.key , " | keyup: ", event.keyup, "event:", event);
 
-    if (this.preventAction()) {
+    if (this.preventAction(event)) {
       this.logger.log('info', 'keyboard', "[ActionHandler::handleKeyup] we are in a text box or something. Doing nothing.");
       return;
     }
@@ -276,7 +283,7 @@ class ActionHandler {
   handleKeydown(event) {
     this.logger.log('info', 'keyboard', "%c[ActionHandler::handleKeydown] we pressed a key: ", "color: #ff0", event.key , " | keydown: ", event.keydown, "event:", event)
 
-    if (this.preventAction()) {
+    if (this.preventAction(event)) {
       this.logger.log('info', 'keyboard', "[ActionHandler::handleKeydown] we are in a text box or something. Doing nothing.");
       return;
     }
