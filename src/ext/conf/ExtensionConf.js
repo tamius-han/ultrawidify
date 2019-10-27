@@ -512,6 +512,8 @@ var ExtensionConf = {
     playerUi: {
       show: true,
       path: 'zoom'
+    },
+    scopes: {
     }
   }, {
     name: 'Hold to pan',
