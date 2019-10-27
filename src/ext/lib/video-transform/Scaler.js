@@ -120,14 +120,31 @@ class Scaler {
       actualHeight: 0,  // height of the video (excluding letterbox) when <video> tag height is equal to height
     }
   
-    if (fileAr < ar.ratio){
-      // imamo letterbox zgoraj in spodaj -> spremenimo velikost videa (a nikoli širše od ekrana)
-      // letterbox -> change video size (but never to wider than monitor width)
+    if (fileAr < playerAr) {
+      if (fileAr < ar.ratio){
+        // in this situation we have to crop letterbox on top/bottom of the player
+        // we cut it, but never more than the player
         videoDimensions.xFactor = Math.min(ar.ratio, playerAr) / fileAr;
         videoDimensions.yFactor = videoDimensions.xFactor;
+      } else {
+        // in this situation, we would be cutting pillarbox. Inside horizontal player.
+        // I don't think so. Except exceptions, we'll wait for bug reports.
+        videoDimensions.xFactor = 1;
+        videoDimensions.yFactor = 1;
+      }
     } else {
-        videoDimensions.xFactor = fileAr / Math.min(ar.ratio, playerAr);
-        videoDimensions.yFactor = videoDimensions.xFactor;
+      if (fileAr < ar.ratio){
+        // in this situation, we need to add extra letterbox on top of our letterbox
+        // this means we simply don't crop anything _at all_
+          videoDimensions.xFactor = 1;
+          videoDimensions.yFactor = 1;
+      } else {
+          // meant for handling pillarbox crop. not quite implemented.
+          // videoDimensions.xFactor = fileAr / Math.min(ar.ratio, playerAr);
+          // videoDimensions.yFactor = videoDimensions.xFactor;
+          videoDimensions.xFactor = Math.max(ar.ratio, playerAr) * fileAr;
+          videoDimensions.yFactor = videoDimensions.xFactor;
+      }
     }
     
     this.logger.log('info', 'scaler', "[Scaler::calculateCrop] Crop factor calculated — ", videoDimensions.xFactor);
