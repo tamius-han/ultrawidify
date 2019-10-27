@@ -214,7 +214,7 @@ class PageInfo {
           try {
             v = new VideoData(video, this.settings, this);
 
-            if (this.defaultCrop) {
+            if (!this.defaultCrop) {
               if (!v.invalid) {
                 v.initArDetection();
               } else {
