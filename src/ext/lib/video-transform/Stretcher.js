@@ -108,7 +108,7 @@ class Stretcher {
       yFactor: 1
     };
 
-    if(playerAr >= videoAr){
+    if (playerAr >= videoAr){
       // player adds PILLARBOX
 
       if(actualAr >= playerAr){
