@@ -137,8 +137,9 @@ class VideoData {
       const pw = +(pcs.width.split('px')[0]);
 
       // TODO: check & account for panning and alignment
-      if (this.isWithin(vh, (ph - (translateY / 2)), 2)
-          && this.isWithin(vw, (pw - (translateX / 2)), 2)) {
+      if (transformMatrix[0] !== 'none'
+          && this.isWithin(vh, (ph - (translateY * 2)), 2)
+          && this.isWithin(vw, (pw - (translateX * 2)), 2)) {
       } else {
         this.player.forceRefreshPlayerElement();
         this.restoreAr();
