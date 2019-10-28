@@ -29,11 +29,11 @@ class ExecAction {
 
         // set-ar-persistence sends stuff to content scripts as well (!)
         // it's important to do that BEFORE the save step
-        if (cmd === 'set-ar-persistence') {
+        if (cmd.action === 'set-ar-persistence') {
           // even when setting global defaults, we only send message to the current tab in
           // order to avoid problems related to 
           const message = {
-            forwardToContentScript: true,
+            forwardToActive: true,
             targetFrame: frame,
             frame: frame,
             cmd: cmd.action,
@@ -65,8 +65,14 @@ class ExecAction {
           this.settings.active.sites[site].autoar = cmd.arg;
         } else if (cmd.action === 'set-keyboard') {
           this.settings.active.sites[site].keyboardShortcutsEnabled = cmd.arg;
+        } else if (cmd.action === 'set-ar-persistence') {
+          this.settings.active.sites[site]['cropModePersistence'] = cmd.arg;
+          this.settings.saveWithoutReload();
         }
-        this.settings.save();
+
+        if (cmd.action !== 'set-ar-persistence') {
+          this.settings.save();
+        }
       }
     }
   }

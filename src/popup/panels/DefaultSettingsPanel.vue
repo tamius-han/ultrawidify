@@ -31,7 +31,7 @@
       <div class="flex flex-row flex-wrap">
         <ShortcutButton v-for="(action, index) of aardActions"
                         class="flex flex-grow button"
-                        :class="{'setting-selected': getCurrent('cropModePersistence') === action.cmd[0].arg}"
+                        :class="{'setting-selected': getCurrent('autoar') === action.cmd[0].arg}"
                         :key="index"
                         :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
                         :shortcut="parseShortcut(action)"
@@ -49,8 +49,8 @@
       <div class="label">Persists crop mode <template v-if="scope === 'site'">for {{site}}</template>:</div>
       <div class="flex flex-row flex-wrap">
         <ShortcutButton v-for="(action, index) of cropModePersistenceActions"
-                        class="flex flex-grow button"
-                        :class="{'setting-selected': getCurrent('autoar') === action.cmd[0].arg}"
+                        class="flex flex-grow button b3"
+                        :class="{'setting-selected': getCurrent('cropModePersistence') === action.cmd[0].arg}"
                         :key="index"
                         :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
                         :shortcut="parseShortcut(action)"

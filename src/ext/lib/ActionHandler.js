@@ -158,7 +158,6 @@ class ActionHandler {
       "\nevent:", event,
       "\nevent.target:", event.target
       );
-
     }
 
     // lately youtube has allowed you to read and write comments while watching video in
@@ -256,8 +255,15 @@ class ActionHandler {
               this.settings.active.sites[site].arStatus = cmd.arg;
             } else if (cmd.action === 'set-keyboard') {
               this.settings.active.sites[site].keyboardShortcutsEnabled = cmd.arg;
+            } else if (cmd.action === 'set-ar-persistence') {
+              this.settings.active.sites[site]['cropModePersistence'] = cmd.arg;
+              this.pageInfo.setArPersistence(cmd.arg);
+              this.settings.saveWithoutReload();
             }
-            this.settings.save();
+
+            if (cmd.action !== 'set-ar-persistence') {
+              this.settings.save();
+            }
           }
         }
 
