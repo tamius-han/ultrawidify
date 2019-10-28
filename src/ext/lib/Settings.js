@@ -41,7 +41,7 @@ class Settings {
     }
     const parsedSettings = JSON.parse(changes.uwSettings.newValue);
     if(changes['uwSettings'] && changes['uwSettings'].newValue) {
-      ths.setActive(parsedSettings);
+      this.setActive(parsedSettings);
     }
 
     if(!parsedSettings.preventReload && this.updateCallback) {

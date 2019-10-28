@@ -403,7 +403,7 @@ var ExtensionConf = {
     }
   }, {
     name: 'Persist crop for current session',
-    label: 'Always persist',
+    label: 'Current session',
     cmd: [{
       action: 'set-ar-persistence',
       arg: CropModePersistence.CurrentSession,
