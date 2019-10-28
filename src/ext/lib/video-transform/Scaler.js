@@ -133,17 +133,17 @@ class Scaler {
         videoDimensions.yFactor = 1;
       }
     } else {
-      if (fileAr < ar.ratio){
+      if (fileAr < ar.ratio || playerAr < ar.ratio){
         // in this situation, we need to add extra letterbox on top of our letterbox
         // this means we simply don't crop anything _at all_
-          videoDimensions.xFactor = 1;
-          videoDimensions.yFactor = 1;
+        videoDimensions.xFactor = 1;
+        videoDimensions.yFactor = 1;
       } else {
-          // meant for handling pillarbox crop. not quite implemented.
-          // videoDimensions.xFactor = fileAr / Math.min(ar.ratio, playerAr);
-          // videoDimensions.yFactor = videoDimensions.xFactor;
-          videoDimensions.xFactor = Math.max(ar.ratio, playerAr) * fileAr;
-          videoDimensions.yFactor = videoDimensions.xFactor;
+        // meant for handling pillarbox crop. not quite implemented.
+        videoDimensions.xFactor = fileAr / Math.min(ar.ratio, playerAr);
+        videoDimensions.yFactor = videoDimensions.xFactor;
+        // videoDimensions.xFactor = Math.max(ar.ratio, playerAr) * fileAr;
+        // videoDimensions.yFactor = videoDimensions.xFactor;
       }
     }
     
