@@ -34,7 +34,7 @@ class GuardLine {
     // to odstrani vse neveljavne nastavitve in vse možnosti, ki niso smiselne
     // this removes any configs with invalid values or values that dont make sense
     if (bbTop < 0 || bbBottom >= this.conf.canvas.height ){
-      throw "INVALID_SETTINGS_IN_GUARDLINE"
+      throw {error: "INVALID_SETTINGS_IN_GUARDLINE", bbTop, bbBottom}
     }
 
     this.blackbar = {
