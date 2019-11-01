@@ -2,7 +2,7 @@
   <div>
     <h2>What's new</h2>
     <p>Full changelog for older versions <a href="https://github.com/xternal7/ultrawidify/blob/master/CHANGELOG.md">is available here</a>.</p>
-    <p class="label">4.3.2</p>
+    <p class="label">4.4.0</p>
     <ul>
       <li>Russian users (and users of other non-latin keyboard layouts) can now use keyboard shortcuts by default, 
           without having to rebind them manually. <b>NOTE: Only applicable for new installs — existing users need to reset 
