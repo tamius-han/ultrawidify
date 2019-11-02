@@ -13,6 +13,8 @@
       <li>Changing aspect ratio now resets zooming and panning.</li>
       <li>Fixed bug where keyboard shortcuts would work while typing in certain text fields</li>
       <li>Fixed a minor bug with autodetection</li>
+      <li><b>[4.4.0.1]</b> — fixed mailto: and reddit compose links. When reporting bugs, email/reddit template now
+      automatically gathers browser, extension version and OS.</li>
     </ul>
   </div>
 </template>
