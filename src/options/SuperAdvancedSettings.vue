@@ -70,7 +70,7 @@ export default {
       if (this.hasError) {
         return;
       }
-      this.settings.save();
+      this.settings.save({forcePreserveVersion: true});
       // this.parsedSettings = JSON.stringify(this.settings.active, null, 2);
       // this.lastSettings = JSON.parse(JSON.stringify(this.settings.active));
       const ths = this;

@@ -18,6 +18,7 @@ class Zoom {
 
   reset(){
     this.scale = 1;
+    this.logScale = 0;
   }
 
   zoomStep(amount){
@@ -33,6 +34,8 @@ class Zoom {
     this.scale = Math.pow(2, this.logScale);
 
     this.logger.log('info', 'debug', "[Zoom::zoomStep] changing zoom by", amount, ". New zoom level:", this.scale);
+
+    this.conf.resizer.toFixedAr();
 
     this.conf.restoreAr();
     this.conf.announceZoom(this.scale);

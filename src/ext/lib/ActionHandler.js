@@ -133,28 +133,31 @@ class ActionHandler {
     // don't do shit on invalid value of state
   }
 
-  preventAction() {
+  preventAction(event) {
     var activeElement = document.activeElement;
 
     if(this.logger.canLog('keyboard')) {
       this.logger.pause(); // temp disable to avoid recursing;
-      
+      const preventAction = this.preventAction();
+      this.logger.resume(); // undisable
+
       this.logger.log('info', 'keyboard', "[ActionHandler::preventAction] Testing whether we're in a textbox or something. Detailed rundown of conditions:\n" +
       "is full screen? (yes->allow):", PlayerData.isFullScreen(),
       "\nis tag one of defined inputs? (yes->prevent):", this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1,
       "\nis role = textbox? (yes -> prevent):", activeElement.getAttribute("role") === "textbox",
       "\nis type === 'text'? (yes -> prevent):", activeElement.getAttribute("type") === "text",
+      "\nevent.target.isContentEditable? (yes -> prevent):", event.target.isContentEditable,
       "\nis keyboard local disabled? (yes -> prevent):", this.keyboardLocalDisabled,
       "\nis keyboard enabled in settings? (no -> prevent)", this.settings.keyboardShortcutsEnabled(window.location.hostname),
-      "\nwill the action be prevented? (yes -> prevent)", this.preventAction(),
+      "\nwill the action be prevented? (yes -> prevent)", preventAction,
       "\n-----------------{ extra debug info }-------------------",
       "\ntag name? (lowercase):", activeElement.tagName, activeElement.tagName.toLocaleLowerCase(),
       "\nrole:", activeElement.getAttribute('role'),
       "\ntype:", activeElement.getAttribute('type'),
-      "insta-fail inputs:", this.inputs
+      "\ninsta-fail inputs:", this.inputs,
+      "\nevent:", event,
+      "\nevent.target:", event.target
       );
-
-      this.logger.resume(); // undisable
     }
 
     // lately youtube has allowed you to read and write comments while watching video in
@@ -175,25 +178,49 @@ class ActionHandler {
     if (activeElement.getAttribute("role") === "textbox") {
       return true;
     }
+    if (event.target.isContentEditable) {
+      return true;
+    }
     if (activeElement.getAttribute("type") === "text") {
       return true;
     }
     return false;
   }
 
-  isActionMatch(shortcut, event) {
+  isLatin(key) {
+    return 'abcdefghijklmnopqrstuvwxyz,.-+1234567890'.indexOf(key.toLocaleLowerCase()) !== -1;
+  }
+
+  isActionMatchStandard(shortcut, event) {
     return shortcut.key      === event.key     &&
            shortcut.ctrlKey  === event.ctrlKey &&
            shortcut.metaKey  === event.metaKey &&
            shortcut.altKey   === event.altKey  &&
            shortcut.shiftKey === event.shiftKey
   }
+  isActionMatchKeyCode(shortcut, event) {
+    return shortcut.code     === event.code    &&
+           shortcut.ctrlKey  === event.ctrlKey &&
+           shortcut.metaKey  === event.metaKey &&
+           shortcut.altKey   === event.altKey  &&
+           shortcut.shiftKey === event.shiftKey
+  }
+
+  isActionMatch(shortcut, event, isLatin = true) {
+    // ASCII and symbols fall back to key code matching, because we don't know for sure that
+    // regular matching by key is going to work
+    return isLatin ? 
+      this.isActionMatchStandard(shortcut, event) : 
+      this.isActionMatchStandard(shortcut, event) || this.isActionMatchKeyCode(shortcut, event);
+  }
 
   execAction(actions, event, videoData) {
     this.logger.log('info', 'keyboard', "%c[ActionHandler::execAction] Trying to find and execute action for event. Actions/event: ", "color: #ff0", actions, event);
 
+    const isLatin = event.key ? this.isLatin(event.key) : true;
+
     for (var action of actions) {
-      if (this.isActionMatch(action.shortcut, event)) {
+      if (this.isActionMatch(action.shortcut, event, isLatin)) {
         this.logger.log('info', 'keyboard', "%c[ActionHandler::execAction] found an action associated with keypress/event: ", "color: #ff0", action);
 
         for (var cmd of action.cmd) {
@@ -228,8 +255,15 @@ class ActionHandler {
               this.settings.active.sites[site].arStatus = cmd.arg;
             } else if (cmd.action === 'set-keyboard') {
               this.settings.active.sites[site].keyboardShortcutsEnabled = cmd.arg;
+            } else if (cmd.action === 'set-ar-persistence') {
+              this.settings.active.sites[site]['cropModePersistence'] = cmd.arg;
+              this.pageInfo.setArPersistence(cmd.arg);
+              this.settings.saveWithoutReload();
             }
-            this.settings.save();
+
+            if (cmd.action !== 'set-ar-persistence') {
+              this.settings.save();
+            }
           }
         }
 
@@ -244,7 +278,7 @@ class ActionHandler {
   handleKeyup(event) {
     this.logger.log('info', 'keyboard', "%c[ActionHandler::handleKeyup] we pressed a key: ", "color: #ff0", event.key , " | keyup: ", event.keyup, "event:", event);
 
-    if (this.preventAction()) {
+    if (this.preventAction(event)) {
       this.logger.log('info', 'keyboard', "[ActionHandler::handleKeyup] we are in a text box or something. Doing nothing.");
       return;
     }
@@ -255,7 +289,7 @@ class ActionHandler {
   handleKeydown(event) {
     this.logger.log('info', 'keyboard', "%c[ActionHandler::handleKeydown] we pressed a key: ", "color: #ff0", event.key , " | keydown: ", event.keydown, "event:", event)
 
-    if (this.preventAction()) {
+    if (this.preventAction(event)) {
       this.logger.log('info', 'keyboard', "[ActionHandler::handleKeydown] we are in a text box or something. Doing nothing.");
       return;
     }

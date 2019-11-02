@@ -7,7 +7,7 @@
            @focus="initiateKeypress"
            @keyup="processKeyup"
     />
-    <span v-if="shortcut" @click="$emit('set-shortcut')">(Clear shortcut)</span>
+    <span v-if="shortcut" @click="clearShortcut()">(Clear shortcut)</span>
   </div>
 </template>
 
@@ -38,6 +38,7 @@ export default {
       if (this.waitingForPress) {
         const shortcut = {
           key: event.key,
+          code: event.code,
           ctrlKey: event.ctrlKey,
           metaKey: event.metaKey,
           altKey: event.altKey,
@@ -50,6 +51,11 @@ export default {
         this.shortcutText = KeyboardShortcutParser.parseShortcut(shortcut);
       }
       this.waitingForPress = false;
+    },
+    clearShortcut() {
+      this.shortcutText = '[click to add shortcut]';
+      this.shortcut = undefined;
+      this.$emit('set-shortcut');
     }
   }
 }

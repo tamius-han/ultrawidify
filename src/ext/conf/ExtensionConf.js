@@ -5,6 +5,7 @@ import Stretch from '../../common/enums/stretch.enum';
 import ExtensionMode from '../../common/enums/extension-mode.enum';
 import AntiGradientMode from '../../common/enums/anti-gradient-mode.enum';
 import AspectRatio from '../../common/enums/aspect-ratio.enum';
+import CropModePersistence from '../../common/enums/crop-mode-persistence.enum';
 
 if(Debug.debug)
   console.log("Loading: ExtensionConf.js");
@@ -191,6 +192,7 @@ var ExtensionConf = {
         label: 'Automatic',   // example override, takes precedence over default label
         shortcut: [{
           key: 'a',
+          code: 'KeyA',
           ctrlKey: false,
           metaKey: false,
           altKey: false, 
@@ -204,7 +206,7 @@ var ExtensionConf = {
       show: true,
       path: 'crop',
     },
-  },{
+  }, {
     name: 'Reset to default',
     label: 'Reset',
     cmd: [{
@@ -216,6 +218,7 @@ var ExtensionConf = {
         show: true,
         shortcut: [{
           key: 'r',
+          code: 'KeyR',
           ctrlKey: false,
           metaKey: false,
           altKey: false, 
@@ -229,7 +232,7 @@ var ExtensionConf = {
       show: true,
       path: 'crop'
     },
-  },{
+  }, {
     name: 'Fit to width',
     label: 'Fit width',
     cmd: [{
@@ -241,6 +244,7 @@ var ExtensionConf = {
         show: true,
         shortcut: [{
           key: 'w',
+          code: 'KeyW',
           ctrlKey: false,
           metaKey: false,
           altKey: false, 
@@ -254,7 +258,7 @@ var ExtensionConf = {
       show: true,
       path: 'crop'
     }
-  },{
+  }, {
     name: 'Fit to height',
     label: 'Fit height',
     cmd: [{
@@ -266,6 +270,7 @@ var ExtensionConf = {
         show: true,
         shortcut: [{
           key: 'e',
+          code: 'KeyE',
           ctrlKey: false,
           metaKey: false,
           altKey: false, 
@@ -279,7 +284,7 @@ var ExtensionConf = {
       show: true,
       path: 'crop'
     }
-  },{
+  }, {
     name: 'Set aspect ratio to 16:9',
     label: '16:9',
     cmd: [{
@@ -292,6 +297,7 @@ var ExtensionConf = {
         show: true,
         shortcut:  [{
           key: 's',
+          code: 'KeyS',
           ctrlKey: false,
           metaKey: false,
           altKey: false, 
@@ -305,7 +311,7 @@ var ExtensionConf = {
       show: true,
       path: 'crop'
     }
-  },{
+  }, {
     name: 'Set aspect ratio to 21:9 (2.39:1)',
     label: '21:9',
     cmd: [{
@@ -318,6 +324,7 @@ var ExtensionConf = {
         show: true,
         shortcut: [{
           key: 'd',
+          code: 'KeyD',
           ctrlKey: false,
           metaKey: false,
           altKey: false, 
@@ -331,7 +338,7 @@ var ExtensionConf = {
       show: true,
       path: 'crop'
     }
-  },{
+  }, {
     name: 'Set aspect ratio to 18:9',
     label: '18:9',
     cmd: [{
@@ -344,6 +351,7 @@ var ExtensionConf = {
         show: true,
         shortcut: [{
           key: 'x',
+          code: 'KeyX',
           ctrlKey: false,
           metaKey: false,
           altKey: false, 
@@ -357,7 +365,94 @@ var ExtensionConf = {
       show: true,
       path: 'crop',
     }
-  },{
+  }, {
+    name: 'Don\'t persist crop',
+    label: 'Never persist',
+    cmd: [{
+      action: 'set-ar-persistence',
+      arg: CropModePersistence.Never,
+    }],
+    scopes: {
+      site: {
+        show: true,
+      },
+      global: {
+        show: true,
+      }
+    },
+    playerUi: {
+      show: true,
+    }
+  }, {
+    name: 'Persist crop while on page',
+    label: 'Until page load',
+    cmd: [{
+      action: 'set-ar-persistence',
+      arg: CropModePersistence.UntilPageReload,
+    }],
+    scopes: {
+      site: {
+        show: true,
+      },
+      global: {
+        show: true,
+      }
+    },
+    playerUi: {
+      show: true,
+    }
+  }, {
+    name: 'Persist crop for current session',
+    label: 'Current session',
+    cmd: [{
+      action: 'set-ar-persistence',
+      arg: CropModePersistence.CurrentSession,
+    }],
+    scopes: {
+      site: {
+        show: true,
+      },
+      global: {
+        show: true,
+      }
+    },
+    playerUi: {
+      show: true,
+    }
+  }, {
+    name: 'Persist until manually reset',
+    label: 'Always persist',
+    cmd: [{
+      action: 'set-ar-persistence',
+      arg: CropModePersistence.Forever,
+    }],
+    scopes: {
+      site: {
+        show: true,
+      },
+      global: {
+        show: true,
+      }
+    },
+    playerUi: {
+      show: true,
+    }
+  }, {
+    name: 'Default crop persistence',
+    label: 'Default',
+    cmd: [{
+      action: 'set-ar-persistence',
+      arg: CropModePersistence.Default,
+    }],
+    scopes: {
+      site: {
+        show: true,
+      },
+    },
+    playerUi: {
+      show: true,
+    }
+  }, {
     name: 'Zoom in',
     label: 'Zoom',
     cmd: [{
@@ -369,6 +464,7 @@ var ExtensionConf = {
         show: false,
         shortcut: [{
           key: 'z',
+          code: 'KeyY',
           ctrlKey: false,
           metaKey: false,
           altKey: false, 
@@ -381,7 +477,7 @@ var ExtensionConf = {
     playerUi: {
       show: false,
     }
-  },{
+  }, {
     name: 'Zoom out',
     label: 'Unzoom',
     cmd: [{
@@ -393,6 +489,7 @@ var ExtensionConf = {
         show: false,
         shortcut: [{
           key: 'u',
+          code: 'KeyU',
           ctrlKey: false,
           metaKey: false,
           altKey: false, 
@@ -405,32 +502,20 @@ var ExtensionConf = {
     playerUi: {
       show: false
     }
-  },{
+  }, {
     name: 'Toggle panning mode',
     label: 'Toggle pan',
     cmd: [{
       action: 'toggle-pan',
       arg: 'toggle'
     }],
-    scopes: {
-      page: {
-        show: true,
-        shortcut: [{
-          key: 'p',
-          ctrlKey: false,
-          metaKey: false,
-          altKey: false, 
-          shiftKey: false,
-          onKeyUp: true,
-          onKeyDown: false,
-        }]
-      }
-    },
     playerUi: {
       show: true,
       path: 'zoom'
+    },
+    scopes: {
     }
-  },{
+  }, {
     name: 'Hold to pan',
     cmd: [{
       action: 'pan',
@@ -479,7 +564,7 @@ var ExtensionConf = {
       show: true,
       path: 'stretch'
     }
-  },{
+  }, {
     name: 'Set stretch to "basic"',
     label: 'Basic stretch',
     cmd: [{
@@ -504,7 +589,7 @@ var ExtensionConf = {
       show: true,
       path: 'stretch'
     }
-  },{
+  }, {
     name: 'Set stretch to "hybrid"',
     label: 'Hybrid stretch',
     cmd: [{
@@ -529,7 +614,7 @@ var ExtensionConf = {
       show: true,
       path: 'stretch'
     }
-  },{
+  }, {
     name: 'Stretch only to hide thin borders',
     label: 'Thin borders only',
     cmd: [{
@@ -554,7 +639,7 @@ var ExtensionConf = {
       show: true,
       path: 'stretch'
     }
-  },{
+  }, {
     name: 'Set stretch to default value',
     label: 'Default',
     cmd: [{
@@ -592,7 +677,7 @@ var ExtensionConf = {
       show: true,
       path: 'align'
     }
-  },{
+  }, {
     name: 'Align video to center',
     label: 'Center',
     cmd: [{
@@ -614,7 +699,7 @@ var ExtensionConf = {
       show: true,
       path: 'align'
     }
-  },{
+  }, {
     name: 'Align video to the right',
     label: 'Right',
     cmd: [{
@@ -636,7 +721,7 @@ var ExtensionConf = {
       show: true,
       path: 'align'
     }
-  },{
+  }, {
     name: 'Use default alignment',
     label: 'Default',
     cmd: [{
@@ -669,7 +754,7 @@ var ExtensionConf = {
         show: true,
       }
     }
-  },{
+  }, {
     name: 'Enable extension on whitelisted sites only',
     label: 'On whitelist only',
     cmd: [{
@@ -682,7 +767,7 @@ var ExtensionConf = {
         show: true
       }
     }
-  },{
+  }, {
     name: 'Extension mode: use default settings',
     label: 'Default',
     cmd: [{
@@ -695,7 +780,7 @@ var ExtensionConf = {
         show: true
       }
     }
-  },{
+  }, {
     name: 'Disable extension',
     label: 'Disable',
     cmd: [{
@@ -711,7 +796,7 @@ var ExtensionConf = {
         show: true,
       }
     }
-  },{
+  }, {
     name: 'Enable automatic aspect ratio detection',
     label: 'Enable',
     cmd: [{
@@ -727,7 +812,7 @@ var ExtensionConf = {
         show: true
       }
     }
-  },{
+  }, {
     name: 'Enable automatic aspect ratio detection on whitelisted sites only',
     label: 'On whitelist only',
     cmd: [{
@@ -740,7 +825,7 @@ var ExtensionConf = {
         show: true,
       }
     }
-  },{
+  }, {
     name: 'Use default settings for automatic aspect ratio detection',
     label: 'Default',
     cmd: [{
@@ -753,7 +838,7 @@ var ExtensionConf = {
         show: true,
       }
     }
-  },{
+  }, {
     name: 'Disable automatic aspect ratio detection',
     label: 'Disable',
     cmd: [{
@@ -792,7 +877,7 @@ var ExtensionConf = {
         show: true,
       }
     }
-  },{
+  }, {
     name: 'Enable keyboard shortcuts on whitelisted sites only',
     label: 'On whitelist only',
     cmd: [{
@@ -804,7 +889,7 @@ var ExtensionConf = {
         show: true
       },
     }
-  },{
+  }, {
     name: 'Keyboard shortcuts mode: use default settings',
     label: 'Default',
     cmd: [{
@@ -816,7 +901,7 @@ var ExtensionConf = {
         show: true
       }
     }
-  },{
+  }, {
     name: 'Disable keyboard shortcuts',
     label: 'Disable',
     cmd: [{

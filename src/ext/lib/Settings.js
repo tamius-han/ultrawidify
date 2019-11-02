@@ -6,6 +6,7 @@ import ObjectCopy from '../lib/ObjectCopy';
 import Stretch from '../../common/enums/stretch.enum';
 import VideoAlignment from '../../common/enums/video-alignment.enum';
 import ExtensionConfPatch from '../conf/ExtConfPatches';
+import CropModePersistence from '../../common/enums/crop-mode-persistence.enum';
 
 
 
@@ -26,42 +27,29 @@ class Settings {
 
     const ths = this;
 
-    if(currentBrowser.firefox) {
-      browser.storage.onChanged.addListener( (changes, area) => {
-        this.logger.log('info', 'settings', "[Settings::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
-        if (changes['uwSettings'] && changes['uwSettings'].newValue) {
-          this.logger.log('info', 'settings',"[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));
-        }
-        if(changes['uwSettings'] && changes['uwSettings'].newValue) {
-          ths.setActive(JSON.parse(changes.uwSettings.newValue));
-        }
-
-        if(this.updateCallback) {
-          try {
-            updateCallback(ths);
-          } catch (e) {
-            this.logger.log('error', 'settings', "[Settings] CALLING UPDATE CALLBACK FAILED.")
-          }
-        }
-      });
+    if (currentBrowser.firefox) {
+      browser.storage.onChanged.addListener((changes, area) => {this.storageChangeListener(changes, area)});
     } else if (currentBrowser.chrome) {
-      chrome.storage.onChanged.addListener( (changes, area) => {
-        this.logger.log('info', 'settings', "[Settings::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
-        if (changes['uwSettings'] && changes['uwSettings'].newValue) {
-          this.logger.log('info', 'settings',"[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));
-        }
-        if(changes['uwSettings'] && changes['uwSettings'].newValue) {
-          ths.setActive(JSON.parse(changes.uwSettings.newValue));
-        }
+      chrome.storage.onChanged.addListener((changes, area) => {this.storageChangeListener(changes, area)});
+    }
+  }
 
-        if(this.updateCallback) {
-          try {
-            updateCallback(ths);
-          } catch (e) {
-            this.logger.log('error', 'settings',"[Settings] CALLING UPDATE CALLBACK FAILED.")
-          }
-        }
-      });
+  storageChangeListener(changes, area) {
+    this.logger.log('info', 'settings', "[Settings::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
+    if (changes['uwSettings'] && changes['uwSettings'].newValue) {
+      this.logger.log('info', 'settings',"[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));
+    }
+    const parsedSettings = JSON.parse(changes.uwSettings.newValue);
+    if(changes['uwSettings'] && changes['uwSettings'].newValue) {
+      this.setActive(parsedSettings);
+    }
+
+    if(!parsedSettings.preventReload && this.updateCallback) {
+      try {
+        updateCallback(ths);
+      } catch (e) {
+        this.logger.log('error', 'settings', "[Settings] CALLING UPDATE CALLBACK FAILED.")
+      }
     }
   }
 
@@ -156,8 +144,23 @@ class Settings {
     // apply all remaining patches
     this.logger.log('info', 'settings', `[Settings::applySettingsPatches] There are ${patches.length - index} settings patches to apply`);
     while (index < patches.length) {
+      const updateFn = patches[index].updateFn;
       delete patches[index].forVersion;
-      ObjectCopy.overwrite(this.active, patches[index]);
+      delete patches[index].updateFn;
+      
+      if (Object.keys(patches[index]).length > 0) {
+        ObjectCopy.overwrite(this.active, patches[index]);
+      }
+      if (updateFn) {
+
+        try {
+          updateFn(this.active, this.getDefaultSettings());
+        } catch (e) {
+          console.log("!!!!", e)
+          this.logger.log('error', 'settings', '[Settings::applySettingsPatches] Failed to execute update function. Keeping settings object as-is. Error:', e);
+        }
+      }
+
       index++;
     }
   }
@@ -171,21 +174,21 @@ class Settings {
     //                 |   needed. In this case, we assume we're on the current version
     const oldVersion = (settings && settings.version) || this.version;
 
-    if(Debug.debug) {
+    if (settings) {
       this.logger.log('info', 'settings', "[Settings::init] Configuration fetched from storage:", settings,
                                           "\nlast saved with:", settings.version,
                                           "\ncurrent version:", this.version
       );
-
-      // if (Debug.flushStoredSettings) {
-      //   this.logger.log('info', 'settings', "%c[Settings::init] Debug.flushStoredSettings is true. Using default settings", "background: #d00; color: #ffd");
-      //   Debug.flushStoredSettings = false; // don't do it again this session
-      //   this.active = this.getDefaultSettings();
-      //   this.active.version = this.version;
-      //   this.set(this.active);
-      //   return this.active;
-      // }
     }
+
+    // if (Debug.flushStoredSettings) {
+    //   this.logger.log('info', 'settings', "%c[Settings::init] Debug.flushStoredSettings is true. Using default settings", "background: #d00; color: #ffd");
+    //   Debug.flushStoredSettings = false; // don't do it again this session
+    //   this.active = this.getDefaultSettings();
+    //   this.active.version = this.version;
+    //   this.set(this.active);
+    //   return this.active;
+    // }
 
     // if there's no settings saved, return default settings.
     if(! settings || (Object.keys(settings).length === 0 && settings.constructor === Object)) {
@@ -279,8 +282,10 @@ class Settings {
     }
   }
 
-  async set(extensionConf) {
-    extensionConf.version = this.version;
+  async set(extensionConf, options) {
+    if (!options || !options.forcePreserveVersion) {
+      extensionConf.version = this.version;
+    }
 
     this.logger.log('info', 'settings', "[Settings::set] setting new settings:", extensionConf)
 
@@ -299,11 +304,17 @@ class Settings {
     this.active[prop] = value;
   }
 
-  async save() {
+  async save(options) {
     if (Debug.debug && Debug.storage) {
       console.log("[Settings::save] Saving active settings:", this.active);
     }
+    this.active.preventReload = undefined;
+    await this.set(this.active, options);
+  }
 
+
+  async saveWithoutReload() {
+    this.active.preventReload = true;
     await this.set(this.active);
   }
 
@@ -520,6 +531,15 @@ class Settings {
     }
 
     return this.active.sites['@global'].stretch;
+  }
+
+  getDefaultCropPersistenceMode(site) {
+    if (site && this.active.sites[site] && this.active.sites[site].cropModePersistence !== Stretch.Default) {
+      return this.active.sites[site].cropModePersistence;
+    }
+
+    // persistence mode thing is missing from settings by default
+    return this.active.sites['@global'].cropModePersistence || CropModePersistence.Disabled;
   }
 
   getDefaultVideoAlignment(site) {

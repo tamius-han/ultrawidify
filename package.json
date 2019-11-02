@@ -1,6 +1,6 @@
 {
   "name": "ultravidify",
-  "version": "4.3.1",
+  "version": "4.4.0",
   "description": "Aspect ratio fixer for youtube that works around some people's disability to properly encode 21:9 (and sometimes, 16:9) videos.",
   "author": "Tamius Han <tamius.han@gmail.com>",
   "scripts": {

@@ -2,6 +2,7 @@ import Debug from '../../conf/Debug';
 import VideoData from './VideoData';
 import RescanReason from './enums/RescanReason';
 import AspectRatio from '../../../common/enums/aspect-ratio.enum';
+import CropModePersistence from '../../../common/enums/crop-mode-persistence.enum';
 
 if(Debug.debug)
   console.log("Loading: PageInfo.js");
@@ -20,22 +21,37 @@ class PageInfo {
     this.lastUrl = window.location.href;
     this.extensionMode = extensionMode;
     this.readOnly = readOnly;
-
+    this.defaultCrop = undefined;
+    this.currentCrop = undefined;
 
     if (comms){ 
       this.comms = comms;
     }
 
-    // request inject css immediately
     try {
+      // request inject css immediately
       const playerStyleString = this.settings.active.sites[window.location.host].css.replace('\\n', '');
       this.comms.sendMessage({
         cmd: 'inject-css',
         cssString: playerStyleString
       });
     } catch (e) {
-      // do nothing. It's ok if there's no special settings for the player element
+      // do nothing. It's ok if there's no special settings for the player element or crop persistence
     }
+
+    // try getting default crop immediately.
+    const cropModePersistence = this.settings.getDefaultCropPersistenceMode(window.location.host);
+
+    // try {
+    //   if (cropModePersistence === CropModePersistence.Forever) {
+    //     this.defaultCrop = this.settings.active.sites[window.location.host].defaultCrop;
+    //   } else if (cropModePersistence === CropModePersistence.CurrentSession) {
+    //     this.defaultCrop = JSON.parse(sessionStorage.getItem('uw-crop-mode-session-persistence'));
+    //   }
+    // } catch (e) {
+    //   // do nothing. It's ok if there's no special settings for the player element or crop persistence
+    // }
+    this.currentCrop = this.defaultCrop;
 
     this.rescan(RescanReason.PERIODIC);
     this.scheduleUrlCheck();
@@ -197,11 +213,17 @@ class PageInfo {
           
           try {
             v = new VideoData(video, this.settings, this);
-            if (!v.invalid) {
-              v.initArDetection();
+
+            if (!this.defaultCrop) {
+              if (!v.invalid) {
+                v.initArDetection();
+              } else {
+                this.logger.log('error', 'debug', 'Video is invalid. Aard not started.', video);
+              }
             } else {
-              this.logger.log('error', 'debug', 'Video is invalid. Aard not started.', video);
+              this.logger.log('info', 'debug', 'Default crop is specified for this site. Not starting aard.');
             }
+            
             this.videos.push(v);
           } catch (e) {
             this.logger.log('error', 'debug', "rescan error: failed to initialize videoData. Skipping this video.",e);
@@ -216,7 +238,7 @@ class PageInfo {
       // če smo ostali brez videev, potem odregistriraj stran. 
       // če nismo ostali brez videev, potem registriraj stran.
       //
-      // if we're left withotu videos on the current page, we unregister the page.
+      // if we're left without videos on the current page, we unregister the page.
       // if we have videos, we call register.
       if (this.comms) {
         if (this.videos.length != oldVideoCount) { // only if number of videos changed, tho
@@ -550,6 +572,53 @@ class PageInfo {
 
   setKeyboardShortcutsEnabled(state) {
     this.actionHandler.setKeybordLocal(state);
+  }
+
+  setArPersistence(persistenceMode) {
+    // name of this function is mildly misleading — we don't really _set_ ar persistence. (Ar persistence
+    // mode is set and saved via popup or keyboard shortcuts, if user defined them) We just save the current
+    // aspect ratio whenever aspect ratio persistence mode changes. 
+    if (persistenceMode === CropModePersistence.CurrentSession) {
+      sessionStorage.setItem('uw-crop-mode-session-persistence', JSON.stringify(this.currentCrop));
+    } else if (persistenceMode === CropModePersistence.Forever) {
+      if (this.settings.active.sites[window.location.host]) {
+        //                                              | key may be missing, so we do this
+        this.settings.active.sites[window.location.host]['defaultAr'] = this.currentCrop;
+      } else {
+        this.settings.active.sites[window.location.host] = this.settings.getDefaultOption();
+        this.settings.active.sites[window.location.host]['defaultAr'] = this.currentCrop;
+      }
+      
+      this.settings.saveWithoutReload();
+    }
+  }
+
+  updateCurrentCrop(ar) {
+    this.currentCrop = ar;
+    // This means crop persistance is disabled. If crop persistance is enabled, then settings for current
+    // site MUST exist (crop persistence mode is disabled by default)
+
+    const cropModePersistence = this.settings.getDefaultCropPersistenceMode(window.location.host);
+
+    if (cropModePersistence === CropModePersistence.Disabled) {
+      return;
+    }
+
+    this.defaultCrop = ar;
+    
+    if (cropModePersistence === CropModePersistence.CurrentSession) {
+      sessionStorage.setItem('uw-crop-mode-session-persistence', JSON.stringify(ar));
+    } else if (cropModePersistence === CropModePersistence.Forever) {
+      if (this.settings.active.sites[window.location.host]) {
+        //                                              | key may be missing, so we do this
+        this.settings.active.sites[window.location.host]['defaultAr'] = ar;
+      } else {
+        this.settings.active.sites[window.location.host] = this.settings.getDefaultOption();
+        this.settings.active.sites[window.location.host]['defaultAr'] = ar;
+      }
+      
+      this.settings.saveWithoutReload();
+    }
   }
 }
 

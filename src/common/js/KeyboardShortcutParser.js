@@ -1,6 +1,6 @@
 class KeyboardShortcutParser {
   static parseShortcut(keypress) {
-    var shortcutCombo = '';
+    let shortcutCombo = '';
   
     if (keypress.ctrlKey) {
       shortcutCombo += 'Ctrl + ';

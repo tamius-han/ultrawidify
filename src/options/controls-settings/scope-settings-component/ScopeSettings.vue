@@ -39,12 +39,11 @@
 </template>
 
 <script>
-import SetShortcutButton from './SetShortcutButton.vue';
-
+import SetShortcutButton from './SetShortcutButton';
 
 export default {
   components: {
-    SetShortcutButton
+    SetShortcutButton,
   },
   props: {
     scopeOptions: Object,
