@@ -20,6 +20,8 @@ QoL improvements for me:
 * Changing aspect ratio now resets zooming and panning.
 * Fixed bug where keyboard shortcuts would work while typing in certain text fields
 * Fixed minor bug with autodetection
+* **[4.4.0.1]** fixed mailto and reddit compose links. When reporting issues via e-mail or reddit, extension version, browser
+and OS are automatically included in email/reddit template.
 
 ### v4.3.1
 
