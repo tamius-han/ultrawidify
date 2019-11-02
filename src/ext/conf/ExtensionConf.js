@@ -385,7 +385,7 @@ var ExtensionConf = {
     }
   }, {
     name: 'Persist crop while on page',
-    label: 'While on page',
+    label: 'Until page load',
     cmd: [{
       action: 'set-ar-persistence',
       arg: CropModePersistence.UntilPageReload,
@@ -438,7 +438,7 @@ var ExtensionConf = {
       show: true,
     }
   }, {
-    name: 'Default persistence',
+    name: 'Default crop persistence',
     label: 'Default',
     cmd: [{
       action: 'set-ar-persistence',
