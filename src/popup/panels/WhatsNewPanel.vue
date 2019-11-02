@@ -5,8 +5,8 @@
     <p class="label">4.4.0</p>
     <ul>
       <li>Russian users (and users of other non-latin keyboard layouts) can now use keyboard shortcuts by default, 
-          without having to rebind them manually. <b>NOTE: Only applicable for new installs — existing users need to reset 
-          settings to default in extension settings</b></li>
+          without having to rebind them manually. <b>NOTE: this change will only be applied to users who have <i>NOT</i>
+          modified their keyboard shortcuts.</b></li>
       <li>NOTE: when using non-latin layouts, 'zoom' shortcut (`z` by default) uses the position of 'Y' on QWERTY layout.</li>
       <li>Ability to preserve aspect ratio between different videos (applies to current page and doesn't survive proper 
           page reloads)</li>
