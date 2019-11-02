@@ -10,6 +10,7 @@
       <li>NOTE: when using non-latin layouts, 'zoom' shortcut (`z` by default) uses the position of 'Y' on QWERTY layout.</li>
       <li>Ability to preserve aspect ratio between different videos (applies to current page and doesn't survive proper 
           page reloads)</li>
+      <li>Changing aspect ratio now resets zooming and panning.</li>
       <li>Fixed bug where keyboard shortcuts would work while typing in certain text fields</li>
       <li>Fixed a minor bug with autodetection</li>
     </ul>
