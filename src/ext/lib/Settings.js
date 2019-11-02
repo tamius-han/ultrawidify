@@ -166,7 +166,6 @@ class Settings {
   }
 
   async init() {
-    console.log("settngs init")
     const settings = await this.get();
     this.version = this.getExtensionVersion();
 
