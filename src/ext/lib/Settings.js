@@ -144,13 +144,29 @@ class Settings {
     // apply all remaining patches
     this.logger.log('info', 'settings', `[Settings::applySettingsPatches] There are ${patches.length - index} settings patches to apply`);
     while (index < patches.length) {
+      const updateFn = patches[index].updateFn;
       delete patches[index].forVersion;
-      ObjectCopy.overwrite(this.active, patches[index]);
+      delete patches[index].updateFn;
+      
+      if (Object.keys(patches[index]).length > 0) {
+        ObjectCopy.overwrite(this.active, patches[index]);
+      }
+      if (updateFn) {
+
+        try {
+          updateFn(this.active, this.getDefaultSettings());
+        } catch (e) {
+          console.log("!!!!", e)
+          this.logger.log('error', 'settings', '[Settings::applySettingsPatches] Failed to execute update function. Keeping settings object as-is. Error:', e);
+        }
+      }
+
       index++;
     }
   }
 
   async init() {
+    console.log("settngs init")
     const settings = await this.get();
     this.version = this.getExtensionVersion();
 
@@ -267,8 +283,10 @@ class Settings {
     }
   }
 
-  async set(extensionConf) {
-    extensionConf.version = this.version;
+  async set(extensionConf, options) {
+    if (!options || !options.forcePreserveVersion) {
+      extensionConf.version = this.version;
+    }
 
     this.logger.log('info', 'settings', "[Settings::set] setting new settings:", extensionConf)
 
@@ -287,12 +305,12 @@ class Settings {
     this.active[prop] = value;
   }
 
-  async save() {
+  async save(options) {
     if (Debug.debug && Debug.storage) {
       console.log("[Settings::save] Saving active settings:", this.active);
     }
     this.active.preventReload = undefined;
-    await this.set(this.active);
+    await this.set(this.active, options);
   }
 
 
