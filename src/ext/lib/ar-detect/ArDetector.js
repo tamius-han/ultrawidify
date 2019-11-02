@@ -492,6 +492,13 @@ class ArDetector {
     this.conf.resizer.setAr({type: AspectRatio.Automatic, ratio: trueAr}, {type: AspectRatio.Automatic, ratio: trueAr});
   }
 
+  clearImageData(id) {
+    if (ArrayBuffer.transfer) {
+      ArrayBuffer.transfer(id, 0);
+    }
+    id = undefined;
+  }
+
   frameCheck(){
     if(! this.video){
       this.logger.log('error', 'debug', `%c[ArDetect::frameCheck] <@${this.arid}>  Video went missing. Destroying current instance of videoData.`);
@@ -581,6 +588,7 @@ class ArDetector {
 
       this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Letterbox not detected in fast test. Letterbox is either gone or we manually corrected aspect ratio. Nothing will be done.`, "color: #fa3");
 
+      this.clearImageData(imageData);
       return;
     }
 
@@ -598,6 +606,7 @@ class ArDetector {
     // if both succeed, then aspect ratio hasn't changed.    
     if (!guardLineOut.imageFail && !guardLineOut.blackbarFail) {
       this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] guardLine tests were successful. (no imagefail and no blackbarfail)\n`, "color: #afa", guardLineOut);
+      this.clearImageData(imageData);
       return;
     }
 
@@ -617,6 +626,7 @@ class ArDetector {
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
+      this.clearImageData(imageData);
       return;
     }
          
@@ -643,6 +653,7 @@ class ArDetector {
 
           triggerTimeout = this.getTimeout(baseTimeout, startTime);
           this.scheduleFrameCheck(triggerTimeout);
+          this.clearImageData(imageData);
           return;
         }
       }
@@ -664,6 +675,8 @@ class ArDetector {
       // rob ni bil zaznan, zato ne naredimo ničesar.
       // no edge was detected. Let's leave things as they were
       this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Edge wasn't detected with findBars`, "color: #fa3", edgePost, "EdgeStatus.AR_KNOWN:", EdgeStatus.AR_KNOWN);
+
+      this.clearImageData(imageData);
       return;
     }
 
@@ -696,14 +709,16 @@ class ArDetector {
     } catch (e) {
       // edges weren't gucci, so we'll just reset 
       // the aspect ratio to defaults
-      try {
-        this.guardline.reset();
-      } catch (e) {
-        // guardline wasn't gucci either, but we'll just ignore
-        // that and reset the aspect ratio anyway
-      }
-      this.conf.resizer.setAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
+      this.logger.log('error', 'arDetect', `%c[ArDetect::frameCheck] There was a problem setting blackbar. Doing nothing. Error:`, e);
+      
+      this.guardline.reset();
+      // WE DO NOT RESET ASPECT RATIO HERE IN CASE OF PROBLEMS, CAUSES UNWARRANTED RESETS: 
+      // (eg. here: https://www.youtube.com/watch?v=nw5Z93Yt-UQ&t=410)
+      //
+      // this.conf.resizer.setAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
     }
+
+    this.clearImageData(imageData);
   }
 
   resetBlackLevel(){

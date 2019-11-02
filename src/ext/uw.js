@@ -44,26 +44,26 @@ class UW {
       if (!this.logger) {
         const loggingOptions = {
           logToFile: false,
-          logToConsole: false,
+          logToConsole: true,
           fileOptions: {
             // really the same stuff as consoleOptions
           },
           consoleOptions: {
             enabled: true, // if logging is enabled at all
-            'debug': true,
-            'init': true,
-            'settings': true,
-            'keyboard': false,
-            'mousemove': false,
-            'actionHandler': false,
-            'comms': false,
-            'playerDetect': false,
+            // 'debug': true,
+            // 'init': true,
+            // 'settings': true,
+            // 'keyboard': true,
+            // 'mousemove': false,
+            // 'actionHandler': false,
+            // 'comms': false,
+            // 'playerDetect': false,
             // 'resizer': true,
             // 'scaler': true,
             // 'stretcher': true,
-            'videoRescan': false,
-            'arDetect': false,
-            'arDetect_verbose': false,
+            // 'videoRescan': false,
+            // 'arDetect': true,
+            // 'arDetect_verbose': true,
           }
         };      
         this.logger = new Logger(loggingOptions);

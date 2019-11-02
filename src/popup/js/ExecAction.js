@@ -13,7 +13,7 @@ class ExecAction {
     this.site = site;
   }
 
-  exec(action, scope, frame) {
+  async exec(action, scope, frame) {
     for (var cmd of action.cmd) {
       if (scope === 'page') {
         const message = {
@@ -26,6 +26,23 @@ class ExecAction {
         }
         Comms.sendMessage(message);
       } else {
+
+        // set-ar-persistence sends stuff to content scripts as well (!)
+        // it's important to do that BEFORE the save step
+        if (cmd.action === 'set-ar-persistence') {
+          // even when setting global defaults, we only send message to the current tab in
+          // order to avoid problems related to 
+          const message = {
+            forwardToActive: true,
+            targetFrame: frame,
+            frame: frame,
+            cmd: cmd.action,
+            arg: cmd.arg,
+          }
+          // this hopefully delays settings.save() until current crops are saved on the site
+          // and thus avoid any fucky-wuckies
+          await Comms.sendMessage(message);
+        }
 
         let site = this.site;
         if (scope === 'global') {
@@ -48,8 +65,14 @@ class ExecAction {
           this.settings.active.sites[site].autoar = cmd.arg;
         } else if (cmd.action === 'set-keyboard') {
           this.settings.active.sites[site].keyboardShortcutsEnabled = cmd.arg;
+        } else if (cmd.action === 'set-ar-persistence') {
+          this.settings.active.sites[site]['cropModePersistence'] = cmd.arg;
+          this.settings.saveWithoutReload();
         }
-        this.settings.save();
+
+        if (cmd.action !== 'set-ar-persistence') {
+          this.settings.save();
+        }
       }
     }
   }

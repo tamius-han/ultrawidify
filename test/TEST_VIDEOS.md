@@ -1,6 +1,6 @@
 # List of test/sample videos
 
-A quick list of videos where letterbox is encoded in the file.
+A quick list of videos where letterbox is encoded in the file. Inclusion of a video on this list does not imply endorsement of the content expressed by the video or the views expressed by its creator.
 
 ## Vimeo:
 
@@ -34,10 +34,12 @@ https://www.youtube.com/watch?v=L_u97PqWX6g (also dark at the start)
 
 https://www.youtube.com/watch?v=Xr9Oubxw1gA (triggers autocorrection every now and then)
 https://www.youtube.com/watch?v=NaTGwlfRB_c (dark, triggers minor corrections)
+https://www.youtube.com/watch?v=nw5Z93Yt-UQ&t=410 (@ts, dark, resets aspect ratio for no reason within 15s)
 
 ### Watermark stopping AR
 
 https://www.youtube.com/watch?v=tXTFdDrd7pA
+
 
 ### HARD MODE 
 

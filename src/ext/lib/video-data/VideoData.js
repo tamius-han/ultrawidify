@@ -44,6 +44,7 @@ class VideoData {
     };
 
     this.resizer = new Resizer(this);
+
     this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
     // player dimensions need to be in:
     // this.player.dimensions
@@ -59,6 +60,11 @@ class VideoData {
 
     // start fallback video/player size detection
     this.fallbackChangeDetection();
+
+    // force reload last aspect ratio (if default crop ratio exists)
+    if (this.pageInfo.defaultCrop) {
+      this.resizer.setAr(this.pageInfo.defaultCrop);
+    }
   }
 
   async fallbackChangeDetection() {
@@ -80,19 +86,31 @@ class VideoData {
       }
       return;
     }
+    let confirmAspectRatioRestore = false;
+
     for (let mutation of mutationList) {
-      if (mutation.type === 'attributes' 
-          && mutation.attributeName === 'class'
-          && !context.video.classList.contains(this.userCssClassName) ) {
-        // force the page to include our class in classlist, if the classlist has been removed
-        // while classList.add() doesn't duplicate classes (does nothing if class is already added),
-        // we still only need to make sure we're only adding our class to classlist if it has been
-        // removed. classList.add() will _still_ trigger mutation (even if classlist wouldn't change).
-        // This is a problem because INFINITE RECURSION TIME, and we _really_ don't want that.
-      
-        context.video.classList.add(this.userCssClassName);  
-        break;
+      if (mutation.type === 'attributes') {
+        if (mutation.attributeName === 'class') {
+          if(!context.video.classList.contains(this.userCssClassName) ) {
+            // force the page to include our class in classlist, if the classlist has been removed
+            // while classList.add() doesn't duplicate classes (does nothing if class is already added),
+            // we still only need to make sure we're only adding our class to classlist if it has been
+            // removed. classList.add() will _still_ trigger mutation (even if classlist wouldn't change).
+            // This is a problem because INFINITE RECURSION TIME, and we _really_ don't want that.
+            context.video.classList.add(this.userCssClassName);  
+          }
+          // always trigger refresh on class changes, since change of classname might trigger change 
+          // of the player size as well.
+          confirmAspectRatioRestore = true;
+        }
+        if (mutation.attributeName === 'style') {
+          confirmAspectRatioRestore = true;
+        }
       }
+    }
+
+    if (!confirmAspectRatioRestore) {
+      return;
     }
 
     // adding player observer taught us that if element size gets triggered by a class, then
@@ -131,8 +149,9 @@ class VideoData {
       const pw = +(pcs.width.split('px')[0]);
 
       // TODO: check & account for panning and alignment
-      if (this.isWithin(vh, (ph - (translateY / 2)), 2)
-          && this.isWithin(vw, (pw - (translateX / 2)), 2)) {
+      if (transformMatrix[0] !== 'none'
+          && this.isWithin(vh, (ph - (translateY * 2)), 2)
+          && this.isWithin(vw, (pw - (translateX * 2)), 2)) {
       } else {
         this.player.forceRefreshPlayerElement();
         this.restoreAr();
@@ -162,7 +181,7 @@ class VideoData {
       // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
       return;
     }
-    if(this.arDetector){
+    if (this.arDetector){
       this.arDetector.init();
     }
     else{
@@ -177,8 +196,8 @@ class VideoData {
       // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
       return;
     }
-    if(!this.arDetector) {
-      this.arDetector.init();
+    if (!this.arDetector) {
+      this.initArDetection();
     }
     this.arDetector.start();
   }
