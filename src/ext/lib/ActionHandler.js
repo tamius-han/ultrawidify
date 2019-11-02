@@ -217,7 +217,7 @@ class ActionHandler {
   execAction(actions, event, videoData) {
     this.logger.log('info', 'keyboard', "%c[ActionHandler::execAction] Trying to find and execute action for event. Actions/event: ", "color: #ff0", actions, event);
 
-    const isLatin = this.isLatin(event.key);
+    const isLatin = event.key ? this.isLatin(event.key) : true;
 
     for (var action of actions) {
       if (this.isActionMatch(action.shortcut, event, isLatin)) {
