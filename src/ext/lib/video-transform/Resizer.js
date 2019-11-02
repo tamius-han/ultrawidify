@@ -133,6 +133,17 @@ class Resizer {
 
     const siteSettings = this.settings.active.sites[window.location.host];
 
+    // reset zoom, but only on aspect ratio switch. We also know that aspect ratio gets converted to
+    // AspectRatio.Fixed when zooming, so let's keep that in mind
+    if (ar.type !== AspectRatio.Fixed) {
+      this.zoom.reset();
+      this.resetPan();
+    } else if (ar.ratio !== this.lastAr.ratio) {
+      // we must check against this.lastAR.ratio because some calls provide same value for ar and lastAr
+      this.zoom.reset();
+      this.resetPan();
+    }
+
     // most everything that could go wrong went wrong by this stage, and returns can happen afterwards
     // this means here's the optimal place to set or forget aspect ratio. Saving of current crop ratio
     // is handled in pageInfo.updateCurrentCrop(), which also makes sure to persist aspect ratio if ar
@@ -263,6 +274,10 @@ class Resizer {
 
   }
 
+  toFixedAr() {
+    this.lastAr.type = AspectRatio.Fixed;
+  }
+
   resetLastAr() {
     this.lastAr = {type: AspectRatio.Initial};
   }
@@ -288,6 +303,9 @@ class Resizer {
       // dont allow weird floats
       this.videoAlignment = VideoAlignment.Center;
 
+      // because non-fixed aspect ratios reset panning:
+      this.toFixedAr();
+
       const player = this.conf.player.element;
 
       const relativeX = (event.pageX - player.offsetLeft) / player.offsetWidth;
@@ -297,6 +315,11 @@ class Resizer {
 
       this.setPan(relativeX, relativeY);
     }
+  }
+
+  resetPan() {
+    this.pan = {};
+    this.videoAlignment = this.settings.getDefaultVideoAlignment(window.location.host);
   }
 
   setPan(relativeMousePosX, relativeMousePosY){
