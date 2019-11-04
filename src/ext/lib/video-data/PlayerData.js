@@ -192,6 +192,16 @@ class PlayerData {
     return false;
   }
 
+  updatePlayerDimensions(element) {
+    const isFullScreen = PlayerData.isFullScreen();
+
+    this.dimensions = {
+      width: element.offsetWidth,
+      height: element.offsetHeight,
+      fullscreen: isFullScreen
+    };
+  }
+
   getPlayer() {
     const host = window.location.host;
     let element = this.video.parentNode;
@@ -223,6 +233,7 @@ class PlayerData {
             element = element.parentNode;
           }
           if (element) {
+            this.updatePlayerDimensions(element);
             return element;
           }
         } else if (this.settings.active.sites[host].DOM.player.querySelectors) {
@@ -256,7 +267,9 @@ class PlayerData {
           if (elementQ.length) {
             // return element with biggest score
             // if video player has not been found, proceed to automatic detection
-            return elementQ.sort( (a,b) => b.score - a.score)[0].element;
+            const playerElement = elementQ.sort( (a,b) => b.score - a.score)[0].element;
+            this.updatePlayerDimensions(playerElement);
+            return playerElement;
           }
         }
       }
@@ -283,17 +296,20 @@ class PlayerData {
           
           score = 100;
 
-          
-          if (element.id.indexOf('player') !== -1) { // prefer elements with 'player' in id
-            score += 75;
-          }
+          // This entire section is disabled because of some bullshit on vk and some shady CIS streaming sites.
+          // Possibly removal of this criteria is not necessary, because there was also a bug with force player
+          // 
+
+          // if (element.id.indexOf('player') !== -1) { // prefer elements with 'player' in id
+          //   score += 75;
+          // }
           // this has only been observed on steam
-          if (element.id.indexOf('movie') !== -1) {
-            score += 75;
-          }
-          if (element.classList.toString().indexOf('player') !== -1) {  // prefer elements with 'player' in classlist, but a bit less than id
-            score += 50;
-          }
+          // if (element.id.indexOf('movie') !== -1) {
+          //   score += 75;
+          // }
+          // if (element.classList.toString().indexOf('player') !== -1) {  // prefer elements with 'player' in classlist, but a bit less than id
+          //   score += 50;
+          // }
           score -= scorePenalty++; // prefer elements closer to <video>
           
           elementQ.push({
@@ -307,7 +323,9 @@ class PlayerData {
 
       if (elementQ.length) {
         // return element with biggest score
-        return elementQ.sort( (a,b) => b.score - a.score)[0].element;
+        const playerElement = elementQ.sort( (a,b) => b.score - a.score)[0].element;
+        this.updatePlayerDimensions(playerElement);
+        return playerElement;
       }
 
       // if no candidates were found, something is obviously very, _very_ wrong.
@@ -325,7 +343,7 @@ class PlayerData {
   }
 
   forceRefreshPlayerElement() {
-    this.checkPlayerSizeChange();
+    this.getPlayer();
   }
 
   checkPlayerSizeChange(){
