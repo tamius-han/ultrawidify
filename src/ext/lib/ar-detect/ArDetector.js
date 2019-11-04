@@ -489,7 +489,7 @@ class ArDetector {
     }
     this.logger.log('info', 'debug', `%c[ArDetect::processAr] <@${this.arid}>  Triggering aspect ratio change. New aspect ratio: ${trueAr}`, _ard_console_change);
     
-    this.conf.resizer.setAr({type: AspectRatio.Automatic, ratio: trueAr}, {type: AspectRatio.Automatic, ratio: trueAr});
+    this.conf.resizer.updateAr({type: AspectRatio.Automatic, ratio: trueAr}, {type: AspectRatio.Automatic, ratio: trueAr});
   }
 
   clearImageData(id) {
@@ -582,7 +582,7 @@ class ArDetector {
       // da je letterbox izginil.
       // If we don't detect letterbox, we reset aspect ratio to aspect ratio of the video file. The aspect ratio could
       // have been corrected manually. It's also possible that letterbox (that was there before) disappeared.
-      this.conf.resizer.setAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
+      this.conf.resizer.updateAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
