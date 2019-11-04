@@ -283,17 +283,20 @@ class PlayerData {
           
           score = 100;
 
-          
-          if (element.id.indexOf('player') !== -1) { // prefer elements with 'player' in id
-            score += 75;
-          }
+          // This entire section is disabled because of some bullshit on vk and some shady CIS streaming sites.
+          // Possibly removal of this criteria is not necessary, because there was also a bug with force player
+          // 
+
+          // if (element.id.indexOf('player') !== -1) { // prefer elements with 'player' in id
+          //   score += 75;
+          // }
           // this has only been observed on steam
-          if (element.id.indexOf('movie') !== -1) {
-            score += 75;
-          }
-          if (element.classList.toString().indexOf('player') !== -1) {  // prefer elements with 'player' in classlist, but a bit less than id
-            score += 50;
-          }
+          // if (element.id.indexOf('movie') !== -1) {
+          //   score += 75;
+          // }
+          // if (element.classList.toString().indexOf('player') !== -1) {  // prefer elements with 'player' in classlist, but a bit less than id
+          //   score += 50;
+          // }
           score -= scorePenalty++; // prefer elements closer to <video>
           
           elementQ.push({
@@ -325,7 +328,7 @@ class PlayerData {
   }
 
   forceRefreshPlayerElement() {
-    this.checkPlayerSizeChange();
+    this.getPlayer();
   }
 
   checkPlayerSizeChange(){
