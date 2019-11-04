@@ -437,15 +437,18 @@ class Resizer {
         translate.x -= wdiffAfterZoom * 0.5;
       }
     }
-
-    this.logger.log('info', 'debug', "[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> calculated offsets:\n\n",
-                    '---- data in ----\n',
-                    'player dimensions:', {w: this.conf.player.dimensions.width, h: this.conf.player.dimensions.height},
-                    'video dimensions: ', {w: this.conf.video.offsetWidth, h: this.conf.video.offsetHeight},
-                    'stretch factors:  ', stretchFactors,
-                    'pan & zoom:       ', this.pan, this.zoom,
+  
+    this.logger.log('info', ['debug', 'resizer'], "[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> calculated offsets:\n\n",
+                    '---- data in ----',
+                    '\nplayer dimensions:    ', {w: this.conf.player.dimensions.width, h: this.conf.player.dimensions.height},
+                    '\nvideo dimensions:     ', {w: this.conf.video.offsetWidth, h: this.conf.video.offsetHeight},
+                    '\nstretch factors:      ', stretchFactors,
+                    '\npan & zoom:           ', this.pan, this.zoom,
+                    '\nwdiff, hdiff:         ', wdiff, 'x', hdiff,
+                    '\nwdiff, hdiffAfterZoom:', wdiffAfterZoom, 'x', hdiffAfterZoom, 
                     '\n\n---- data out ----\n',
                     'translate:', translate);
+    console.trace();
 
     return translate; 
   }
@@ -513,7 +516,7 @@ class Resizer {
       return;
     }
 
-    this.logger.log('info', 'resizer', "[Resizer::applyCss] <rid:"+this.resizerId+"> will apply css.", {stretchFactors, translate});
+    this.logger.log('info', ['debug', 'resizer'], "[Resizer::applyCss] <rid:"+this.resizerId+"> will apply css.", {stretchFactors, translate});
     
     // save stuff for quick tests (before we turn numbers into css values):
     this.currentVideoSettings = {
