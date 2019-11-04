@@ -120,27 +120,29 @@ class Logger {
     if (!this.conf.fileOptions.enabled || this.temp_disable) {
       return false;
     }
-    if (component.length ) {
-      for (const c in component) {
-        if (this.conf.fileOptions[component]) {
-          return this.conf.fileOptions[component];
+    if (Array.isArray(component) && component.length ) {
+      for (const c of component) {
+        if (this.conf.fileOptions[c]) {
+          return this.conf.fileOptions[c];
         }
       }
-    } 
-    return this.conf.fileOptions[component];
+    } else {
+      return this.conf.fileOptions[component];
+    }
   }
   canLogConsole(component) {
     if (!this.conf.consoleOptions.enabled || this.temp_disable) {
       return false;
     }
     if (Array.isArray(component) && component.length) {
-      for (const c in component) {
-        if (this.conf.consoleOptions[component]) {
-          return this.conf.consoleOptions[component];
+      for (const c of component) {
+        if (this.conf.consoleOptions[c]) {
+          return this.conf.consoleOptions[c];
         }
       }
-    } 
-    return this.conf.consoleOptions[component];
+    } else {
+      return this.conf.consoleOptions[component];
+    }
   }
 
   // level is unused as of now, but this may change in the future
