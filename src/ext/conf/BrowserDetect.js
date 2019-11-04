@@ -4,6 +4,7 @@ const BrowserDetect = {
   firefox: process.env.BROWSER === 'firefox',
   chrome: process.env.BROWSER === 'chrome',
   edge: process.env.BROWSER === 'edge',
+  processEnvBrowser: process.env.BROWSER,
 } 
 
 if (Debug.debug) {

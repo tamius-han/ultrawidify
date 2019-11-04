@@ -5,8 +5,8 @@
       <p><b>Having an issue?</b> Report <strike>undocumented features</strike> bugs using one of the following options:
         <ul>
           <li> <a target="_blank" href="https://github.com/xternal7/ultrawidify/issues"><b>Github</b></a> <b>(strongly preferred)</b><br/></li>
-          <li>PM me on <a target="_blank" href="https://www.reddit.com/message/compose?to=xternal7&subject=[Ultrawidify]%20ENTER%20SUMMARY%20OF%20YOUR%20PROBLEM%20HERE&message=Describe+your+issue+in+more+detail.+Don%27t+forget+to+include%3A%0D%0A%2A+Extension+version%0D%0A%2A+Browser%0D%0A%2A+Operating+system%0D%0A%2A+Other+extensions+that+could+possibly+interfere%0D%0A%0D%0AIf+you%27re+reporting+an+issue+with+automatic+aspect+ratio+detection%2C+please+also+include+the+following+%28if+possible%29%3A%0D%0A%2A+model+and+make+of+your+CPU%0D%0A%2A+amount+of+RAM">reddit</a><br/></li>
-          <li>Email: <a target="_blank" href="mailto:tamius.han@gmail.com?subject=%5BUltrawidify%5D+ENTER+SUMMARY+OF+YOUR+ISSUE+HERE&body=Describe+your+issue+in+more+detail.+Don%27t+forget+to+include%3A%0D%0A%2A+Extension+version%0D%0A%2A+Browser%0D%0A%2A+Operating+system%0D%0A%2A+Other+extensions+that+could+possibly+interfere%0D%0A%0D%0AIf+you%27re+reporting+an+issue+with+automatic+aspect+ratio+detection%2C+please+also+include+the+following+%28if+possible%29%3A%0D%0A%2A+model+and+make+of+your+CPU%0D%0A%2A+amount+of+RAM">tamius.han@gmail.com</a></li>
+          <li>Email: <a target="_blank" :href="mailtoLink">tamius.han@gmail.com</a></li>
+          <li>PM me on <a target="_blank" :href="redditLink">reddit</a><br/></li>
           </ul>
       </p>
 
@@ -32,11 +32,34 @@
 
 
 <script>
+import BrowserDetect from '../ext/conf/BrowserDetect';
 export default {
   data() {
     return {
       addonVersion: browser.runtime.getManifest().version || chrome.runtime.getManifest().version,
+      mailtoLink: 'mailto:tamius.han@gmail.com',
+      redditLink: '',
     }
+  },
+  created() {
+    const messageTemplate = encodeURIComponent(
+`Describe your issue in more detail. In case of misaligned videos, please provide screenshots. When reporting\
+ issues with autodetection not detecting aspect ratio correctly, please provide a link with timestamp to the\
+ problematic video at the time where the problem happens. You may delete this paragraph, as it's only a template.
+
+
+Extension info (do not change or remove):
+* Extension version: ${this.addonVersion}
+* Browser (env): ${BrowserDetect.processEnvBrowser}
+
+Browser-related stuff (please ensure this section is correct):
+* User Agent string: ${window.navigator.userAgent}
+* vendor: ${window.navigator.vendor}
+* Operating system: ${window.navigator.platform}
+`
+      );
+    this.mailtoLink = `mailto:tamius.han@gmail.com?subject=%5BUltrawidify%5D%20ENTER%20SUMMARY%20OF%20YOUR%20ISSUE%20HERE&body=${messageTemplate}`;
+    this.redditLink = `https://www.reddit.com/message/compose?to=xternal7&subject=[Ultrawidify]%20ENTER%20SUMMARY%20OF%20YOUR%20PROBLEM%20HERE&message=${messageTemplate}`;
   }
 }
 </script>

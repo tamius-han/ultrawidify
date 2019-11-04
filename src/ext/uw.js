@@ -44,7 +44,7 @@ class UW {
       if (!this.logger) {
         const loggingOptions = {
           logToFile: false,
-          logToConsole: true,
+          logToConsole: false,
           fileOptions: {
             // really the same stuff as consoleOptions
           },

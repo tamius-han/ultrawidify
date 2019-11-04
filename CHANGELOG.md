@@ -12,7 +12,14 @@ QoL improvements for me:
 
 * logging: allow to enable logging at will and export said logs to a file
 
-### v.4.4.0 (current)
+### v.4.4.1 (current)
+
+* Changes to player detection that fix issues with vk
+* Extension tries to avoid setting aspect ratio pointlessly
+* (Hopefully) fixed mailto: and reddit compose links. 
+* When reporting bugs, email/reddit template now automatically gathers browser, extension version and OS.
+
+### v.4.4.0
 
 * Russian users (and users of other non-latin keyboard layouts) can now use keyboard shortcuts by default, without having to rebind them manually. (NOTE: if you've changed keyboard shortcuts manually, this change will ***NOT*** be applied to your configuration.)
 * NOTE: when using non-latin layouts, 'zoom' shortcut (`z` by default) uses the position of 'Y' on QWERTY layout.
@@ -20,6 +27,8 @@ QoL improvements for me:
 * Changing aspect ratio now resets zooming and panning.
 * Fixed bug where keyboard shortcuts would work while typing in certain text fields
 * Fixed minor bug with autodetection
+* **[4.4.0.1]** fixed mailto and reddit compose links. When reporting issues via e-mail or reddit, extension version, browser
+and OS are automatically included in email/reddit template.
 
 ### v4.3.1
 
