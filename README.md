@@ -2,7 +2,7 @@
 
 ## Super TL;DR: I'm just looking for the install links, thanks
 
-[Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/), [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi). 
+[Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/), [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi), [Edge](https://github.com/xternal7/ultrawidify#microsoft-edge) (Chromium-based only)
 
 ## TL;DR
 
@@ -51,7 +51,7 @@ You can download this extension from Firefox' and Chrome's extension stores:
 * [Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
 * [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
 
-This extension also has a version for Microsoft Edge, but that requires a bit more effort. [See notes first](#edge-speficic-limitations-important).
+Opera users and users of the new, Chromium-based Edge can install Ultrawidify from Chrome Web Store as well.
 
 # Beggathon (donations)
 
@@ -266,8 +266,10 @@ With the advent of the new Chromium-based Edge, this extension should work just 
 ## Chromium-based
 
 1. Visit [edge://extensions](edge://extensions/)
-2. In the lower right corner of the window, click 'allow extensions from other stores'
-3. Install the extension from the [Chrome Web Store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
+2. Go to [Chrome Web Store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
+3. Click 'Allow extensions from other stores' on the blue popup bar at the top of the screen
+4. Install Ultrawidify
+5. Enjoy
 
 I might reconsider publishing extension for Chromium-based Microsoft Edge once it's released. Releasing in MS Store appears to be impossible at current time as extension submissions don't appear to be open at all (unless you got a special invite or something).
 
