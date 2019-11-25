@@ -2,7 +2,7 @@
 
 ## Super TL;DR: I'm just looking for the install links, thanks
 
-[Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/), [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi), [Edge](#edge-speficic-limitations-important).
+[Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/), [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi). 
 
 ## TL;DR
 
@@ -259,26 +259,22 @@ TODO: see if #3 already loads the extension in FF
 5. Select `${ultrawidify_folder}/dist/manifest.json`
 
 
-# Edge-specific limitations (IMPORTANT!)
+# Microsoft Edge
 
-For various reasons — most notably, I refuse to pay Microsoft €14 for the privilege of developing shit for their outright broken browser (and in addition to that, the extension needs to go through review process as well) — this extension isn't going to appear on Microsoft Store. (And I do not permit anyone else to do that in my name either). Full rant on why I've made this decision can be found [here](https://github.com/xternal7/ultrawidify/issues/14#issuecomment-424903335).
+With the advent of the new Chromium-based Edge, this extension should work just fine. I don't actively test in Edge, though, so your mileage may vary.
 
-As a result, you'll have to download the extension and install it manually. This approach has some downsides.
+## Chromium-based
 
-1. You'll get this popup after starting Edge. If you've already opened Youtube or Netflix, **you will have to reload the page (or navigate to somewhere else) in order for extension to start.**
-![slika](https://user-images.githubusercontent.com/12505802/46114175-05912200-c1e1-11e8-91c7-2217f5bf79e3.png)
+1. Visit [edge://extensions](edge://extensions/)
+2. In the lower right corner of the window, click 'allow extensions from other stores'
+3. Install the extension from the [Chrome Web Store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
 
-2. Certain WebExtension APIs that I rely on are outright broken in Edge. This bug would cause global extension settings (tab: Extension settings) and per-site settings (tab: Site settings) to reset to default values every time you'd open the popup. As a result, _Extension settings_ and _Site settings_ tabs are disabled in Edge:
-![Feast on dem popup](https://user-images.githubusercontent.com/12505802/46113923-d1693180-c1df-11e8-82f0-ad64cbc57558.png)
-Unfortunate consequence of this is that you won't be able to enable this extension for sites other than Youtube and Netflix, but then again. Let's be honest. You're only using Edge for Netflix, so that's probably no big deal for you.
+I might reconsider publishing extension for Chromium-based Microsoft Edge once it's released. Releasing in MS Store appears to be impossible at current time as extension submissions don't appear to be open at all (unless you got a special invite or something).
 
-**It's also worth noting that I'm not  actively maintaining the Edge fork, so it's a few versions behind.** 
+## Old Edge
 
-## Installing Ultrawidify in M$ Edge
-
-1. Download the zip file from [here](https://github.com/xternal7/ultrawidify/tree/master/releases/edge)
-2. Extract contents of the zip file in some folder. It really doesn't matter where, just keep it somewhere that won't be in your way when using your computer.
-3. Follow the steps in [this guide](https://docs.microsoft.com/en-us/microsoft-edge/extensions/guides/adding-and-removing-extensions)
+1. Get [Chromium-based Edge](https://www.microsoftedgeinsider.com/en-us/)
+2. See steps above
 
 # Changelog
 
