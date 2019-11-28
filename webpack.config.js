@@ -84,6 +84,21 @@ const config = {
             jsonContent['content_security_policy'] = "script-src 'self' 'unsafe-eval'; object-src 'self'";
           }
 
+          if (process.env.CHANNEL === 'nightly') {
+            jsonContent.name = "Ultrawidify - nightly";
+            jsonContent.description = "NIGHTLY BUILD OF ULTRAWIDIFY -- FOR TESTING ONLY.";
+
+            // version numbers for nightly builds: YYMM.DD.BUILD_NUMBER
+            jsonContent.version = `${new Date()
+                                            .toISOString()     // YYYY-MM-DDTHH:MM:SS...
+                                            .split('T')[0]     // gives YYYY-MM-DD
+                                            .substr(2)         // YYYY -> YY
+                                            .replace('-', '')  // YY-MM-DD -> YYMM-DD
+                                            .replace('-', '.') // YYMM-DD -> YYMM.DD
+                                    }.${process.env.BUILD_NUMBER}`;
+            jsonContent.browser_action.default_title = "Ultrawidify Nightly";
+          }
+
           if (process.env.BROWSER !== 'firefox') {
             jsonContent.version = jsonContent.version.replace(/[a-zA-Z-]/g, '');
           }
