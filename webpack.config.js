@@ -97,6 +97,9 @@ const config = {
                                             .replace('-', '.') // YYMM-DD -> YYMM.DD
                                     }.${process.env.BUILD_NUMBER}`;
             jsonContent.browser_action.default_title = "Ultrawidify Nightly";
+            
+            // otherwise things will get fun!
+            delete jsonContent.applications;
           }
 
           if (process.env.BROWSER !== 'firefox') {
