@@ -86,7 +86,7 @@ const config = {
 
           if (process.env.CHANNEL === 'nightly') {
             jsonContent.name = "Ultrawidify - nightly";
-            jsonContent.description = "NIGHTLY BUILD OF ULTRAWIDIFY -- FOR TESTING ONLY.";
+            jsonContent.description = "FOR TESTING ONLY -- THIS BUILD USES ONLY THE FRESHEST COMMITS FROM GITHUB AND MAY THEREFORE BE COMPLETELY BROKEN";
 
             // version numbers for nightly builds: YYMM.DD.BUILD_NUMBER
             jsonContent.version = `${new Date()
