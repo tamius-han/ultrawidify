@@ -44,7 +44,7 @@ const main = () => {
   const browser = process.argv[2];
 
   const {name, version} = extractExtensionData();
-  const zipFilename = `${name}-${version}-${browser}.zip`;
+  const zipFilename = `${name.replace(/[ -]+/g, '')}-${version}-${browser}.zip`;
   
   makeDestZipDirIfNotExists();
 
