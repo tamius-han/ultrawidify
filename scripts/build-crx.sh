@@ -13,7 +13,7 @@ echo "entering dist-zip"
 cd ./dist-zip
 
 zip=`ls | grep chrome.zip`
-name="${name%.*}"
+name="${zip%.*}"
 crx="$name.crx"
 key="../keys/chrome-nightly.pem"
 pub="$name.pub"
