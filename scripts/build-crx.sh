@@ -40,3 +40,6 @@ sig_len_hex=$(byte_swap $(printf '%08x\n' $(ls -l "$sig" | awk '{print $5}')))
   cat "$pub" "$sig" "$zip"
 ) > "$crx"
 echo "Wrote $crx"
+
+echo "exiting dist-zip"
+cd ..
