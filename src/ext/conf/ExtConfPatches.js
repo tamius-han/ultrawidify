@@ -241,6 +241,17 @@ const ExtensionConfPatch = [
         }
       }
     }
+  }, {
+    forVersion: '4.4.1.1',
+    sites: {
+      "www.disneyplus.com": {
+        DOM: {
+          player: {
+            periodicallyRefreshPlayerElement: true,
+          }
+        }
+      },
+    }
   }
 ];
 

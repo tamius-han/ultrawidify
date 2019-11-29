@@ -1083,6 +1083,13 @@ whatsNewChecked: true,
       },
       css: 'video {\n  width: 100% !important;\n  height: 100% !important;\n}',
     },
+    "www.disneyplus.com": {
+      DOM: {
+        player: {
+          periodicallyRefreshPlayerElement: true,
+        }
+      }
+    },
     "imgur.com": {
       mode: -1,
       autoar: -1,

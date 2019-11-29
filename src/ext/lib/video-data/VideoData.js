@@ -2,6 +2,7 @@ import Debug from '../../conf/Debug';
 import PlayerData from './PlayerData';
 import Resizer from '../video-transform/Resizer';
 import ArDetector from '../ar-detect/ArDetector';
+import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 
 class VideoData {
   
@@ -300,6 +301,11 @@ class VideoData {
     if (this.invalid) {
       return;
     }
+    
+    if (ar.type === AspectRatio.Fixed || ar.type === AspectRatio.FitHeight || ar.type === AspectRatio.FitHeight) {
+      this.player.forceRefreshPlayerElement();
+    }
+
     this.resizer.setAr(ar, lastAr);
   }
 
