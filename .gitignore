@@ -7,3 +7,5 @@ build/
 /uw-git_keys 
 
 *.pem
+
+*.kate-swp
