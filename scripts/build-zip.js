@@ -17,9 +17,9 @@ const extractExtensionData = () => {
   }
 };
 
-const makeDestZipDirIfNotExists = () => {
-  if(!fs.existsSync(DEST_ZIP_DIR)) {
-    fs.mkdirSync(DEST_ZIP_DIR);
+const makeDirIfNotExists = (dir) => {
+  if(!fs.existsSync(dir)) {
+    fs.mkdirSync(dir);
   }
 }
 
@@ -42,13 +42,26 @@ const buildZip = (src, dist, zipFilename) => {
 
 const main = () => {
   const browser = process.argv[2];
+  const testingOrNightly = process.argv[3];
 
   const {name, version} = extractExtensionData();
-  const zipFilename = `${name.replace(/[ -]+/g, '')}-${version}-${browser}.zip`;
-  
-  makeDestZipDirIfNotExists();
 
-  buildZip(DEST_DIR, DEST_ZIP_DIR, zipFilename)
+  // collapse spaces and dashes into single dash
+  const baseFilename = `${name.replace(/[ -]+/g, '-')}-${version}`;
+
+  let realZipDir;
+  
+  if (!!testingOrNightly) {
+    realZipDir = path.join(DEST_ZIP_DIR, baseFilename);
+  } else {
+    realZipDir = DEST_ZIP_DIR;
+  }
+
+  const zipFilename = `${baseFilename}-${browser}.zip`;
+  
+  makeDirIfNotExists(realZipDir);
+
+  buildZip(DEST_DIR, realZipDir, zipFilename)
     .then(() => console.info('OK'))
     .catch(console.err); 
 };
