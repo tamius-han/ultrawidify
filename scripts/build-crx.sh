@@ -15,7 +15,7 @@ cd ./dist-zip
 zip=`ls | grep chrome.zip`
 name="${zip%.*}"
 crx="$name.crx"
-key="../keys/chrome-nightly.pem"
+key="../keys/chrome-nightly.pem"             # this is also good for testing build
 pub="$name.pub"
 sig="$name.sig"
 trap 'rm -f "$pub" "$sig" "$zip"' EXIT

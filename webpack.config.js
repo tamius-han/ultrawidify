@@ -100,6 +100,22 @@ const config = {
             
             // otherwise things will get fun!
             delete jsonContent.applications;
+          } else if (process.env.CHANNEL === 'testing') {
+            jsonContent.name = "Ultrawidify - testing";
+            jsonContent.description = "FOR TESTING ONLY -- this build is intended for testing a fix of certain bugs. It's not fit for normal use.";
+
+            // version numbers for nightly builds: YYMM.DD.BUILD_NUMBER
+            jsonContent.version = `${new Date()
+                                            .toISOString()     // YYYY-MM-DDTHH:MM:SS...
+                                            .split('T')[0]     // gives YYYY-MM-DD
+                                            .substr(2)         // YYYY -> YY
+                                            .replace('-', '')  // YY-MM-DD -> YYMM-DD
+                                            .replace('-', '.') // YYMM-DD -> YYMM.DD
+                                    }.${process.env.BUILD_NUMBER}`;
+            jsonContent.browser_action.default_title = "Ultrawidify Testing";
+            
+            // otherwise things will get fun!
+            delete jsonContent.applications;
           }
 
           if (process.env.BROWSER !== 'firefox') {
