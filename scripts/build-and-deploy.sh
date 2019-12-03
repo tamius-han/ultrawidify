@@ -14,13 +14,15 @@
 #     AMO_API_SECRET            -||-
 
 # don't build if nothing has changed, unless overriden via env variable
-if [ ! -z "$GIT_COMMIT" && ! -z "$GIT_PREVIOUS_COMMIT" ] ; then
-  if [ "$GIT_COMMIT" == "$GIT_PREVIOUS_COMMIT" ] ; then
-    if [ $FORCE_BUILD == "true" ] ; then
-      echo "--------------------------------------------"
-      echo "    Nothing has changed. Aborting build."
-      echo "--------------------------------------------"
-      exit 0;
+if [ ! -z "$GIT_COMMIT" ] ; then
+  if [ ! -z "$GIT_PREVIOUS_COMMIT" ] ; then
+    if [ "$GIT_COMMIT" == "$GIT_PREVIOUS_COMMIT" ] ; then
+      if [ $FORCE_BUILD == "true" ] ; then
+        echo "--------------------------------------------"
+        echo "    Nothing has changed. Aborting build."
+        echo "--------------------------------------------"
+        exit 0;
+      fi
     fi
   fi
 fi
@@ -70,5 +72,5 @@ scp -r ./build-zip/* "ultrawidify-uploader@${RELEASE_SERVER}:${RELEASE_DIRECTORY
 ######################################
 
 echo "--------------------------------------------"
-echo "    Nothing has changed. Aborting build."
+echo "       BUILD FINISHED SUCCESSFULLY"
 echo "--------------------------------------------"
