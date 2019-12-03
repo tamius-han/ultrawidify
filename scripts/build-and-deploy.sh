@@ -13,6 +13,16 @@
 #     AMO_API_KEY               needed if you want to sign and push extension to addons.mozilla.org
 #     AMO_API_SECRET            -||-
 
+echo "============= STARTING BUILD SCRIPT ============="
+pwd
+whoami
+echo " ::: env dump"
+echo "        -> FORCE_BUILD:             $FORCE_BUILD"
+echo "        -> BUILD_SCRIPT:            $BUILD_SCRIPT"
+echo "        -> RELEASE_SERVER:          $RELEASE_SERVER"
+echo "        -> RELEASE_DIRECTORY:       $RELEASE_DIRECTORY"
+echo "        -> BUILD_CHANNEL_DIRECTORY: $BUILD_CHANNEL_DIRECTORY"
+
 # don't build if nothing has changed, unless overriden via env variable
 if [ ! -z "$GIT_COMMIT" ] ; then
   if [ ! -z "$GIT_PREVIOUS_COMMIT" ] ; then
@@ -29,7 +39,7 @@ fi
 
 npm ci
 
-rm -rf /dist-zip || true   # no big deal if ./dist-zip doesn't exist
+rm -rf ./dist-zip || true   # no big deal if ./dist-zip doesn't exist
 
 #
 # build firefox
