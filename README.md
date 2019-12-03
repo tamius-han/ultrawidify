@@ -245,6 +245,12 @@ However, I do plan on implementing this feature. Hopefully by the end of the yea
 
 ### Installing the current, github version
 
+## Get pre-built version:
+
+TODO
+
+## Build from source
+
 Requirements: npm, node.
 
 1. Clone this repo
