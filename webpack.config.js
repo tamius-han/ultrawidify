@@ -98,7 +98,7 @@ const config = {
                                     }.${process.env.BUILD_NUMBER}`;
             jsonContent.browser_action.default_title = "Ultrawidify Nightly";
             
-            // otherwise things will get fun!
+            // because we don't want web-ext to submit this as proper release
             delete jsonContent.applications;
           } else if (process.env.CHANNEL === 'testing') {
             jsonContent.name = "Ultrawidify - testing";
@@ -114,7 +114,7 @@ const config = {
                                     }.${process.env.BUILD_NUMBER}`;
             jsonContent.browser_action.default_title = "Ultrawidify Testing";
             
-            // otherwise things will get fun!
+            // because we don't want web-ext to submit this as proper release
             delete jsonContent.applications;
           }
 
