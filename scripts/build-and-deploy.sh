@@ -27,7 +27,7 @@ echo "        -> BUILD_CHANNEL_DIRECTORY: $BUILD_CHANNEL_DIRECTORY"
 if [ ! -z "$GIT_COMMIT" ] ; then
   if [ ! -z "$GIT_PREVIOUS_COMMIT" ] ; then
     if [ "$GIT_COMMIT" == "$GIT_PREVIOUS_COMMIT" ] ; then
-      if [ $FORCE_BUILD == "true" ] ; then
+      if [ $FORCE_BUILD == true ] ; then
         echo "--------------------------------------------"
         echo "    Nothing has changed. Aborting build."
         echo "--------------------------------------------"
