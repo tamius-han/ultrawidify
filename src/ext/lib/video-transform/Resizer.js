@@ -242,7 +242,9 @@ class Resizer {
     }
 
     // do stretch thingy
-    if (this.stretcher.mode === Stretch.NoStretch || this.stretcher.mode === Stretch.Conditional){
+    if (this.stretcher.mode === Stretch.NoStretch 
+        || this.stretcher.mode === Stretch.Conditional 
+        || this.stretcher.mode === Stretch.FixedSource){
       var stretchFactors = this.scaler.calculateCrop(ar);
 
       if(! stretchFactors || stretchFactors.error){
@@ -255,15 +257,23 @@ class Resizer {
         }
         return;
       }
-      if(this.stretcher.mode === Stretch.Conditional){
-         this.stretcher.applyConditionalStretch(stretchFactors, ar.ratio);
-      }
 
-      this.logger.log('info', 'debug', "[Resizer::setAr] Processed stretch factors for ", this.stretcher.mode === Stretch.NoStretch ? 'stretch-free crop.' : 'crop with conditional stretch.', 'Stretch factors are:', stretchFactors);
+      if (this.stretcher.mode === Stretch.Conditional){
+        this.stretcher.applyConditionalStretch(stretchFactors, ar.ratio);
+      } else if (this.stretcher.mode === Stretch.FixedSource) {
+        this.stretcher.applyStretchFixedSource(stretchFactors);
+      }
+      this.logger.log('info', 'debug', "[Resizer::setAr] Processed stretch factors for ",
+                      this.stretcher.mode === Stretch.NoStretch ? 'stretch-free crop.' : 
+                        this.stretcher.mode === Stretch.Conditional ? 'crop with conditional stretch.' : 'crop with fixed stretch',
+                      'Stretch factors are:', stretchFactors
+      );
 
     } else if (this.stretcher.mode === Stretch.Hybrid) {
       var stretchFactors = this.stretcher.calculateStretch(ar.ratio);
       this.logger.log('info', 'debug', '[Resizer::setAr] Processed stretch factors for hybrid stretch/crop. Stretch factors are:', stretchFactors);
+    } else if (this.stretcher.mode === Stretch.Fixed) {
+      var stretchFactors = this.stretchFactors.calculateStretchFixed(ar.ratio)
     } else if (this.stretcher.mode === Stretch.Basic) {
       var stretchFactors = this.stretcher.calculateBasicStretch();
       this.logger.log('info', 'debug', '[Resizer::setAr] Processed stretch factors for basic stretch. Stretch factors are:', stretchFactors);
@@ -296,8 +306,8 @@ class Resizer {
     return this.lastAr;
   }
 
-  setStretchMode(stretchMode){
-    this.stretcher.setStretchMode(stretchMode);
+  setStretchMode(stretchMode, fixedStretchRatio){
+    this.stretcher.setStretchMode(stretchMode, fixedStretchRatio);
     this.restore();
   }
 
@@ -459,8 +469,6 @@ class Resizer {
                     '\nwdiff, hdiffAfterZoom:', wdiffAfterZoom, 'x', hdiffAfterZoom, 
                     '\n\n---- data out ----\n',
                     'translate:', translate);
-    console.trace();
-
     return translate; 
   }
   

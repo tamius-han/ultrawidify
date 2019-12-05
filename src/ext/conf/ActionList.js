@@ -73,6 +73,20 @@ var ActionList = {
       name: 'Thin borders',
       arg: Stretch.Conditional,
     },{
+      name: 'Fixed (source)',
+      arg: Stretch.FixedSource,
+      customArg: true,
+      scopes: {
+        page: true,
+      }
+    },{
+      name: 'Fixed (displayed)',
+      arg: Stretch.Fixed,
+      customArg: true,
+      scopes: {
+        page: true,
+      }
+    },{
       name: 'Default',
       arg: Stretch.Default,
       scopes: {
