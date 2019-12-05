@@ -359,11 +359,11 @@ class VideoData {
     this.resizer.restore();
   }
 
-  setStretchMode(stretchMode){
+  setStretchMode(stretchMode, fixedStretchRatio){
     if (this.invalid) {
       return;
     }
-    this.resizer.setStretchMode(stretchMode);
+    this.resizer.setStretchMode(stretchMode, fixedStretchRatio);
   }
 
   setZoom(zoomLevel, no_announce){

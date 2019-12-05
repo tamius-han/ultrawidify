@@ -15,12 +15,16 @@ class Stretcher {
     this.logger = videoData.logger;
     this.settings = videoData.settings;
     this.mode = this.settings.getDefaultStretchMode(window.location.hostname);
+    this.fixedStretchRatio = undefined;
   }
 
-  setStretchMode(stretchMode) {
+  setStretchMode(stretchMode, fixedStretchRatio) {
     if (stretchMode === Stretch.Default) {
       this.mode = this.settings.getDefaultStretchMode(window.location.hostname);
     } else {
+      if (stretchMode === Stretch.Fixed || stretchMode == Stretch.FixedSource) {
+        this.fixedStretchRatio = fixedStretchRatio;
+      }
       this.mode = stretchMode;
     }
   }
@@ -95,9 +99,43 @@ class Stretcher {
     };
   }
 
-  calculateStretch(actualAr) {
-    var playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
-    var videoAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
+  applyStretchFixedSource(postCropStretchFactors) {
+    const videoAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
+    const playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
+
+    const squezeFactor = this.fixedStretchRatio / videoAr;
+
+    // Whether squeezing happens on X or Y axis depends on whether required AR is wider or narrower than
+    // the player, in which the video is displayed
+    //     * we squeeze X axis, if target AR is narrower than player size
+    //     * we squeeze Y axis, if target AR is wider than the player size
+
+    this.logger.log('info', 'stretcher', `[Stretcher::applyStretchFixedSource] here's what we got:
+postCropStretchFactors: x=${postCropStretchFactors.xFactor} y=${postCropStretchFactors.yFactor}
+fixedStretchRatio:      ${this.fixedStretchRatio}
+videoAr:                ${videoAr}
+playerAr:               ${playerAr}
+squeezeFactor:          ${squezeFactor}`, '\nvideo', this.conf.video);
+
+
+    if (this.fixedStretchRatio < playerAr) {
+      postCropStretchFactors.xFactor *= squezeFactor;
+    } else {
+      postCropStretchFactors.yFactor *= squezeFactor; 
+    }
+
+    this.logger.log('info', 'stretcher', `[Stretcher::applyStretchFixedSource] here's what we'll apply:\npostCropStretchFactors: x=${postCropStretchFactors.x} y=${postCropStretchFactors.y}`);
+
+    return postCropStretchFactors;
+  }
+
+  calculateStretchFixed(actualAr) {
+    return this.calculateStretch(actualAr, this.fixedStretchRatio);
+  }
+
+  calculateStretch(actualAr, playerArOverride) {
+    const playerAr = playerArOverride || this.conf.player.dimensions.width / this.conf.player.dimensions.height;
+    const videoAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
 
     if (! actualAr){
       actualAr = playerAr;
@@ -158,7 +196,7 @@ class Stretcher {
         // video is letterboxed by player
         // actual is pillarboxed by video
         stretchFactors.xFactor =  actualAr / playerAr;
-        stretchFActors.yFactor = actualAr / playerAr;
+        stretchFactors.yFactor = actualAr / playerAr;
 
         this.logger.log('info', 'stretcher', "[Stretcher.js::calculateStretch] stretching strategy 5")
       } else {

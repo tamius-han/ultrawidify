@@ -229,7 +229,7 @@ export default {
     },
     saveSettings() {
       if (this.currentCmdIndex < 0) {
-        this.settings.active.actions.push(this.action);
+        this.settings.active.actions.push({...this.action, ...{userAdded: true}});
       }
       this.settings.save();
       this.close();
