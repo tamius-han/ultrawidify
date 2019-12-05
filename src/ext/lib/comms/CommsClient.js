@@ -65,7 +65,7 @@ class CommsClient {
       this.pageInfo.setVideoAlignment(message.arg, message.playing);
       this.pageInfo.restoreAr();
     } else if (message.cmd === "set-stretch") {
-      this.pageInfo.setStretchMode(message.arg, message.playing);
+      this.pageInfo.setStretchMode(message.arg, message.playing, message.customArg);
     } else if (message.cmd === 'set-keyboard') {
       this.pageInfo.setKeyboardShortcutsEnabled(message.arg)
     } else if (message.cmd === "autoar-start") {

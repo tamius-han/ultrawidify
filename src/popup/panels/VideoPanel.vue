@@ -22,6 +22,7 @@
         >
         </ShortcutButton>
       </div>
+      <div><small>You can change or add additional aspect ratios on <a href="#" @click="openOptionsPage()">the settings page</a> (in 'actions&shortcuts' menu).</small></div>
     </div>
 
     <div v-if="true"
@@ -155,6 +156,9 @@ export default {
     }
   },
   methods: {
+    async openOptionsPage() {
+      browser.runtime.openOptionsPage();
+    },
     execAction(action) {
       this.exec.exec(action, 'page', this.frame);
     },
