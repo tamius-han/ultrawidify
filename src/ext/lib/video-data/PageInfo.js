@@ -490,18 +490,18 @@ class PageInfo {
     }
   }
 
-  setStretchMode(sm, playingOnly){
+  setStretchMode(stretchMode, playingOnly, fixedStretchRatio){
     // TODO: find a way to only change aspect ratio for one video
 
     if (playingOnly) {
       for(var vd of this.videos){
         if (vd.isPlaying()) {
-          vd.setStretchMode(sm)
+          vd.setStretchMode(stretchMode, fixedStretchRatio)
         }
       }
     } else {
       for(var vd of this.videos){
-        vd.setStretchMode(sm)
+        vd.setStretchMode(stretchMode, fixedStretchRatio)
       }
     }
   }

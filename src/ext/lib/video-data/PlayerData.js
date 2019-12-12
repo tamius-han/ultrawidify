@@ -45,6 +45,13 @@ class PlayerData {
       this.dimensions = undefined;
       this.overlayNode = undefined;
 
+      this.periodicallyRefreshPlayerElement = false;
+      try {
+        this.periodicallyRefreshPlayerElement = this.settings.active.sites[window.location.host].DOM.player.periodicallyRefreshPlayerElement;
+      } catch (e) {
+        // no biggie — that means we don't have any special settings for this site.
+      }
+
       // this happens when we don't find a matching player element
       if (!this.element) {
         this.invalid = true;
@@ -98,19 +105,19 @@ class PlayerData {
     }
 
     try {
-    const ths = this;
-    this.observer = new MutationObserver((m,o) => this.onPlayerDimensionsChanged(m,o,ths));
+      const ths = this;
+      this.observer = new MutationObserver((m,o) => this.onPlayerDimensionsChanged(m,o,ths));
 
-    const observerConf = {
-      attributes: true,
-      // attributeFilter: ['style', 'class'],
-      attributeOldValue: true,
-    };
-    
-    this.observer.observe(this.element, observerConf);
-  } catch (e) {
-    console.error("failed to set observer",e )
-  }
+      const observerConf = {
+        attributes: true,
+        // attributeFilter: ['style', 'class'],
+        attributeOldValue: true,
+      };
+      
+      this.observer.observe(this.element, observerConf);
+    } catch (e) {
+      console.error("failed to set observer",e )
+    }
     // legacy mode still exists, but acts as a fallback for observers and is triggered less
     // frequently in order to avoid too many pointless checks
     this.legacyChangeDetection();
@@ -120,6 +127,9 @@ class PlayerData {
     while (!this.halted) {
       await this.sleep(1000);
       try {
+        if (this.periodicallyRefreshPlayerElement) {
+          this.forceRefreshPlayerElement();
+        }
         if (this.checkPlayerSizeChange()) {
           this.videoData.resizer.restore();
         }
