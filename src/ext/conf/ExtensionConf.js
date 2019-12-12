@@ -285,6 +285,7 @@ var ExtensionConf = {
       path: 'crop'
     }
   }, {
+    userAdded: true,
     name: 'Set aspect ratio to 16:9',
     label: '16:9',
     cmd: [{
@@ -312,6 +313,7 @@ var ExtensionConf = {
       path: 'crop'
     }
   }, {
+    userAdded: true,
     name: 'Set aspect ratio to 21:9 (2.39:1)',
     label: '21:9',
     cmd: [{
@@ -339,6 +341,7 @@ var ExtensionConf = {
       path: 'crop'
     }
   }, {
+    userAdded: true,
     name: 'Set aspect ratio to 18:9',
     label: '18:9',
     cmd: [{
@@ -651,6 +654,41 @@ var ExtensionConf = {
         show: true,
       }
     }
+  }, // NEW OPTIONS
+  { 
+    name: 'Stretch source to 4:3',
+    label: '4:3 stretch (src)',
+    cmd: [{
+      action: 'set-stretch',
+      arg: Stretch.FixedSource,
+      customArg: 1.33,
+    }],
+    scopes: {
+      page: {
+        show: true,
+      }
+    },
+    playerUi: {
+      show: true,
+      path: 'crop'
+    }
+  }, { 
+    name: 'Stretch source to 16:9',
+    label: '16:9 stretch (src)',
+    cmd: [{
+      action: 'set-stretch',
+      arg: Stretch.FixedSource,
+      customArg: 1.77,
+    }],
+    scopes: {
+      page: {
+        show: true,
+      }
+    },
+    playerUi: {
+      show: true,
+      path: 'crop'
+    }
   },
   //
   //    A L I G N M E N T
@@ -920,8 +958,8 @@ var ExtensionConf = {
       }
     }
   },
-],
-whatsNewChecked: true,
+  ],
+  whatsNewChecked: true,
   // -----------------------------------------
   //       ::: SITE CONFIGURATION :::
   // -----------------------------------------
@@ -1082,6 +1120,13 @@ whatsNewChecked: true,
         }
       },
       css: 'video {\n  width: 100% !important;\n  height: 100% !important;\n}',
+    },
+    "www.disneyplus.com": {
+      DOM: {
+        player: {
+          periodicallyRefreshPlayerElement: true,
+        }
+      }
     },
     "imgur.com": {
       mode: -1,

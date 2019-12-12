@@ -1,5 +1,6 @@
 // How to use:
 // version: {ExtensionConf object, but only properties that get overwritten}
+import Stretch from '../../common/enums/stretch.enum';
 
 const ExtensionConfPatch = [
   {
@@ -146,6 +147,7 @@ const ExtensionConfPatch = [
           show: true,
         }
       }, {
+        userAdded: true,
         name: 'Persist crop while on page',
         label: 'Until page load',
         cmd: [{
@@ -164,6 +166,7 @@ const ExtensionConfPatch = [
           show: true,
         }
       }, {
+        userAdded: true,
         name: 'Persist crop for current session',
         label: 'Current session',
         cmd: [{
@@ -239,6 +242,61 @@ const ExtensionConfPatch = [
         } catch (e) {
           continue;
         }
+      }
+    }
+  }, {
+    forVersion: '4.4.1.1',
+    sites: {
+      "www.disneyplus.com": {
+        DOM: {
+          player: {
+            periodicallyRefreshPlayerElement: true,
+          }
+        }
+      },
+    }
+  }, {
+    forVersion: '4.4.2',
+    updateFn: (userOptions, defaultOptions) => {
+      try {
+        userOptions.actions.push(
+          { 
+            name: 'Stretch source to 4:3',
+            label: '4:3 stretch (src)',
+            cmd: [{
+              action: 'set-stretch',
+              arg: Stretch.FixedSource,
+              customArg: 1.33,
+            }],
+            scopes: {
+              page: {
+                show: true
+              }
+            },
+            playerUi: {
+              show: true,
+              path: 'crop'
+            }
+          }, { 
+            name: 'Stretch source to 16:9',
+            label: '16:9 stretch (src)',
+            cmd: [{
+              action: 'set-stretch',
+              arg: Stretch.FixedSource,
+              customArg: 1.77,
+            }],
+            scopes: {
+              page: {
+                show: true,
+              }
+            },
+            playerUi: {
+              show: true,
+              path: 'crop'
+            }
+        });
+      } catch (e) {
+        console.error("PROBLEM APPLYING SETTINGS", e);
       }
     }
   }

@@ -84,6 +84,40 @@ const config = {
             jsonContent['content_security_policy'] = "script-src 'self' 'unsafe-eval'; object-src 'self'";
           }
 
+          if (process.env.CHANNEL === 'nightly') {
+            jsonContent.name = "Ultrawidify - nightly";
+            jsonContent.description = "FOR TESTING ONLY -- THIS BUILD USES ONLY THE FRESHEST COMMITS FROM GITHUB AND MAY THEREFORE BE COMPLETELY BROKEN";
+
+            // version numbers for nightly builds: YYMM.DD.BUILD_NUMBER
+            jsonContent.version = `${new Date()
+                                            .toISOString()     // YYYY-MM-DDTHH:MM:SS...
+                                            .split('T')[0]     // gives YYYY-MM-DD
+                                            .substr(2)         // YYYY -> YY
+                                            .replace('-', '')  // YY-MM-DD -> YYMM-DD
+                                            .replace('-', '.') // YYMM-DD -> YYMM.DD
+                                    }.${process.env.BUILD_NUMBER}`;
+            jsonContent.browser_action.default_title = "Ultrawidify Nightly";
+            
+            // because we don't want web-ext to submit this as proper release
+            delete jsonContent.applications;
+          } else if (process.env.CHANNEL === 'testing') {
+            jsonContent.name = "Ultrawidify - testing";
+            jsonContent.description = "FOR TESTING ONLY -- this build is intended for testing a fix of certain bugs. It's not fit for normal use.";
+
+            // version numbers for nightly builds: YYMM.DD.BUILD_NUMBER
+            jsonContent.version = `${new Date()
+                                            .toISOString()     // YYYY-MM-DDTHH:MM:SS...
+                                            .split('T')[0]     // gives YYYY-MM-DD
+                                            .substr(2)         // YYYY -> YY
+                                            .replace('-', '')  // YY-MM-DD -> YYMM-DD
+                                            .replace('-', '.') // YYMM-DD -> YYMM.DD
+                                    }.${process.env.BUILD_NUMBER}`;
+            jsonContent.browser_action.default_title = "Ultrawidify Testing";
+            
+            // because we don't want web-ext to submit this as proper release
+            delete jsonContent.applications;
+          }
+
           if (process.env.BROWSER !== 'firefox') {
             jsonContent.version = jsonContent.version.replace(/[a-zA-Z-]/g, '');
           }
