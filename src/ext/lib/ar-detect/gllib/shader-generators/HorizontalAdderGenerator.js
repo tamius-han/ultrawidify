@@ -1,7 +1,8 @@
 /**
  * Generates shader that makes a sample that adds values of pixels within sampleRadius
  * and calculates how much they deviate from the average. sum of pixels is stored in 
- * the red pixel and diff is stored in the green one. Blue and alpha pixel can be ignored.
+ * the red pixel and diff is stored in the green one. Blue component holds the grayscale
+ * average of the sample. Alpha component can be ignored.
  * @param {number} sampleRadius sample width
  * @param {number} pixelSizeX size of a pixel on the texture (should be 1 / frameWidth)
  */
@@ -53,7 +54,7 @@ export function generateHorizontalAdder(sampleRadius, pixelSizeX) {
     float sumGrayscale = (rowSum.r + rowSum.g + rowSum.b) / 3.0;
     float diffGrayscale = (diff.r + diff.g + diff.b) / 3.0;
 
-    gl_fragColor = vec4(sumGrayscale, diffGrayscale, 1.0, 1.0);
+    gl_fragColor = vec4(sumGrayscale, diffGrayscale, (average.r + average.g + average.b) / 3.0, 1.0);
   }
   `
   // btw don't forget: output "image" should be way smaller than input frame

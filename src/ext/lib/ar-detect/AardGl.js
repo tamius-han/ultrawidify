@@ -8,6 +8,8 @@ import GuardLine from './GuardLine';
 import DebugCanvas from './DebugCanvas';
 import VideoAlignment from '../../../common/enums/video-alignment.enum';
 import AspectRatio from '../../../common/enums/aspect-ratio.enum';
+import { generateHorizontalAdder } from './gllib/shader-generators/HorizontalAdderGenerator';
+import { getVertexShader } from './gllib/shaders/vertex-shader';
 
 /**
  * AardGl: Hardware accelerated aspect ratio detection script, based on WebGL
@@ -52,7 +54,7 @@ class AardGl {
   }
 
   init(){
-    this.logger.log('info', 'init', `[ArDetect::init] <@${this.arid}> Initializing autodetection.`);
+    this.logger.log('info', 'init', `[AardGl::init] <@${this.arid}> Initializing autodetection.`);
 
     try {
       if (this.settings.canStartAutoAr()) {
@@ -61,25 +63,25 @@ class AardGl {
         throw "Settings prevent autoar from starting"
       }
     } catch (e) {
-      this.logger.log('error', 'init', `%c[ArDetect::init] <@${this.arid}> Initialization failed.`, _ard_console_stop, e);
+      this.logger.log('error', 'init', `%c[AardGl::init] <@${this.arid}> Initialization failed.`, _ard_console_stop, e);
     }
   }
 
   destroy(){
-    this.logger.log('info', 'init', `%c[ArDetect::destroy] <@${this.arid}> Destroying aard.`, _ard_console_stop, e);
+    this.logger.log('info', 'init', `%c[AardGl::destroy] <@${this.arid}> Destroying aard.`, _ard_console_stop, e);
     // this.debugCanvas.destroy();
     this.stop();
   }
 
   setup(cwidth, cheight){
-    this.logger.log('info', 'init', `[ArDetect::setup] <@${this.arid}> Starting autodetection setup.`);
+    this.logger.log('info', 'init', `[AardGl::setup] <@${this.arid}> Starting autodetection setup.`);
     //
     // [-1] check for zero-width and zero-height videos. If we detect this, we kick the proverbial
     //      can some distance down the road. This problem will prolly fix itself soon. We'll also
     //      not do any other setup until this issue is fixed
     //
     if(this.video.videoWidth === 0 || this.video.videoHeight === 0 ){
-      this.logger.log('warn', 'debug', `[ArDetect::setup] <@${this.arid}> This video has zero width or zero height. Dimensions: ${this.video.videoWidth} × ${this.video.videoHeight}`);
+      this.logger.log('warn', 'debug', `[AardGl::setup] <@${this.arid}> This video has zero width or zero height. Dimensions: ${this.video.videoWidth} × ${this.video.videoHeight}`);
 
       this.scheduleInitRestart();
       return;
@@ -115,50 +117,61 @@ class AardGl {
     this.blackframeCanvas.height = this.settings.active.arDetect.canvasDimensions.blackframeCanvas.height;
 
     this.context = this.canvas.getContext("2d");
+
+
+    //
+    // [2] SETUP WEBGL STUFF —————————————————————————————————————————————————————————————————————————————————
+    //
+
     this.gl = this.canvas.getContext("webgl");
-    this.blackframeContext = this.blackframeCanvas.getContext("2d");
-    this.blackframeGl = this.blackframeCanvas.getContext("gl");
+
+    // load shaders and stuff. PixelSize for horizontalAdder should be 1/sample canvas width
+    const vertexShaderSrc = getBasicVertexShader();
+    const horizontalAdderShaderSrc = generateHorizontalAdder(10, 1 / cwidth); // todo: unhardcode 10 as radius
+
+    // compile shaders
+    const vertexShader = this.compileShader(this.gl, vertexShaderSrc, this.gl.VERTEX_SHADER);
+    const horizontalAdderShader = this.compileShader(this.gl, horizontalAdderShaderSrc, this.gl.FRAGMENT_SHADER);
+
+    // link shaders to program
+    const glProgram = this.compileProgram(this.gl, [vertexShader, horizontalAdderShader]);
+
+    // look up where the vertex data needs to go
+    const positionLocation = this.gl.getAttributeLocation(program, 'a_position');
+    const textureCoordsLocation = this.gl.getAttributeLocation(program, 'a_textureCoords');
+
+    // create buffers and bind them
+    const positionBuffer = this.gl.createBuffer();
+    const textureCoordsBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl, positionBuffer);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, textureCoordsBuffer);
+
+    // create a texture
+    const texture = this.gl.createTexture();
+    this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+
+    // set some parameters
+    // btw we don't need to set gl.TEXTURE_WRAP_[S|T], because it's set to repeat by default — which is what we want
+    this.gl.texParameteri(this.gl, this.gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    this.gl.texParameteri(this.gl, this.gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+
+    // we need a rectangle. This is output data, not texture. This means that the size of the rectangle should be
+    // [sample count] x height of the sample, as shader can sample frame at a different resolution than what gets
+    // rendered here. We don't need all horizontal pixels on our output. We do need all vertical pixels, though)
+    this.glSetRectangle(this.gl, this.settings.active.arDetect.sampling.staticCols, cheight);
 
     // do setup once
     // tho we could do it for every frame
     this.canvasScaleFactor = cheight / this.video.videoHeight;
 
 
-    //
-    // [2] determine places we'll use to sample our main frame
-    //
-
-    var ncol = this.settings.active.arDetect.sampling.staticCols;
-    var nrow = this.settings.active.arDetect.sampling.staticRows;
-    
-    var colSpacing = this.canvas.width / ncol;
-    var rowSpacing = (this.canvas.height << 2) / nrow;
-    
-    this.sampleLines = [];
-    this.sampleCols = [];
-
-    for(var i = 0; i < ncol; i++){
-      if(i < ncol - 1)
-        this.sampleCols.push(Math.round(colSpacing * i));
-      else{
-        this.sampleCols.push(Math.round(colSpacing * i) - 1);
-      }
-    }
-
-    for(var i = 0; i < nrow; i++){
-      if(i < ncol - 5)
-        this.sampleLines.push(Math.round(rowSpacing * i));
-      else{
-        this.sampleLines.push(Math.round(rowSpacing * i) - 4);
-      }
-    }
 
     //
     // [3] detect if we're in the fallback mode and reset guardline
     //
 
     if (this.fallbackMode) {
-      this.logger.log('warn', 'debug', `[ArDetect::setup] <@${this.arid}>  WARNING: CANVAS RESET DETECTED/we're in fallback mode - recalculating guardLine`, "background: #000; color: #ff2");
+      this.logger.log('warn', 'debug', `[AardGl::setup] <@${this.arid}>  WARNING: CANVAS RESET DETECTED/we're in fallback mode - recalculating guardLine`, "background: #000; color: #ff2");
       // blackbar, imagebar
       this.guardLine.reset();
     }
@@ -181,7 +194,7 @@ class AardGl {
     this.detectionTimeoutEventCount = 0;
     this.resetBlackLevel();
 
-    // if we're restarting ArDetect, we need to do this in order to force-recalculate aspect ratio
+    // if we're restarting AardGl, we need to do this in order to force-recalculate aspect ratio
     this.conf.resizer.setLastAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
 
     this.canvasImageDataRowLength = cwidth << 2;
@@ -199,8 +212,62 @@ class AardGl {
     this.conf.arSetupComplete = true;
   }
 
+  glSetRectangle(glContext, width, height) {
+    glContext.bufferData(glContext.ARRAY_BUFFER, new Float32Array([
+      0, 0,
+      width, 0,
+      0, height,
+      0, height,
+      width, 0,
+      width, height
+    ]), glContext.STATIC_DRAW);
+  }
+
+  /**
+   * Creates shader
+   * @param {*} glContext    — gl context
+   * @param {*} shaderSource — shader code (as returned by a shader generator, for example)
+   * @param {*} shaderType   — shader type (gl[context].FRAGMENT_SHADER or gl[context].VERTEX_SHADER)
+   */
+  compileShader(glContext, shaderSource, shaderType) {
+    const shader = glContext.createShader(shaderType);
+
+    // load source and compile shader
+    glContext.shaderSource(shader, shaderSource);
+    glContext.compileShader(shader);
+
+    // check if shader was compiled successfully
+    if (! glContext.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      glContext.deleteShader(shader);
+      this.logger.log('error', ['init', 'debug', 'arDetect'], `%c[AardGl::setupShader] <@${this.arid}> Failed to setup shader.`, _ard_console_stop);
+      return null;
+    }
+
+    return shader;
+  }
+
+  /**
+   * Creates gl program
+   * @param {*} glContext — gl context 
+   * @param {*} shaders   — shaders (previously compiled with setupShader())
+   */
+  compileProgram(glContext, shaders) {
+    const program = glContext.createProgram();
+    for (const shader of shadersr) {
+      glContext.attachShader(program, shader);
+    }
+    glContext.linkProgram(program);
+    if (! glContext.getProgramParameter(program, glContext.LINK_STATUS)) {
+      glContext.deleteShader(shader);
+      this.logger.log('error', ['init', 'debug', 'arDetect'], `%c[AardGl::setupProgram] <@${this.arid}> Failed to setup program.`, _ard_console_stop);
+      return null;
+    }
+
+    return program;
+  }
+
   start() {
-    this.logger.log('info', 'debug', `"%c[ArDetect::start] <@${this.arid}>  Starting automatic aspect ratio detection`, _ard_console_start);
+    this.logger.log('info', 'debug', `"%c[AardGl::start] <@${this.arid}>  Starting automatic aspect ratio detection`, _ard_console_start);
 
     if (this.conf.resizer.lastAr.type === AspectRatio.Automatic) {
       // ensure first autodetection will run in any case
@@ -236,7 +303,7 @@ class AardGl {
   }
 
   stop(){
-    this.logger.log('info', 'debug', `"%c[ArDetect::stop] <@${this.arid}>  Stopping automatic aspect ratio detection`, _ard_console_stop);
+    this.logger.log('info', 'debug', `"%c[AardGl::stop] <@${this.arid}>  Stopping automatic aspect ratio detection`, _ard_console_stop);
     this._halted = true;
     // this.conf.resizer.setArLastAr();
   }
@@ -256,15 +323,15 @@ class AardGl {
     let exitedRetries = 10;
 
     while (!this._exited && exitedRetries --> 0) {
-      this.logger.log('warn', 'debug', `[ArDetect::main] <@${this.arid}>  We are trying to start another instance of autodetection on current video, but the previous instance hasn't exited yet. Waiting for old instance to exit ...`);
+      this.logger.log('warn', 'debug', `[AardGl::main] <@${this.arid}>  We are trying to start another instance of autodetection on current video, but the previous instance hasn't exited yet. Waiting for old instance to exit ...`);
       await this.sleep(this.settings.active.arDetect.timers.tickrate);
     }
     if (!this._exited) {
-      this.logger.log('error', 'debug', `[ArDetect::main] <@${this.arid}>  Previous instance didn't exit in time. Not starting a new one.`);
+      this.logger.log('error', 'debug', `[AardGl::main] <@${this.arid}>  Previous instance didn't exit in time. Not starting a new one.`);
       return;
     }
 
-    this.logger.log('info', 'debug', `%c[ArDetect::main] <@${this.arid}>  Previous instance didn't exit in time. Not starting a new one.`);
+    this.logger.log('info', 'debug', `%c[AardGl::main] <@${this.arid}>  Previous instance didn't exit in time. Not starting a new one.`);
 
     // we need to unhalt:
     this._halted = false;
@@ -291,7 +358,7 @@ class AardGl {
         try {
           this.frameCheck();
         } catch (e) {
-          this.logger.log('error', 'debug', `%c[ArDetect::main] <@${this.arid}>  Frame check failed:`,  "color: #000, background: #f00", e);
+          this.logger.log('error', 'debug', `%c[AardGl::main] <@${this.arid}>  Frame check failed:`,  "color: #000, background: #f00", e);
         }
 
         if (Debug.performanceMetrics) {
@@ -305,7 +372,7 @@ class AardGl {
       await this.sleep(this.settings.active.arDetect.timers.tickrate);
     }
 
-    this.logger.log('info', 'debug', `%c[ArDetect::main] <@${this.arid}>  Main autodetection loop exited. Halted? ${this._halted}`,  _ard_console_stop);
+    this.logger.log('info', 'debug', `%c[AardGl::main] <@${this.arid}>  Main autodetection loop exited. Halted? ${this._halted}`,  _ard_console_stop);
     this._exited = true;
   }
 
@@ -378,7 +445,7 @@ class AardGl {
   }
 
   canvasReadyForDrawWindow(){
-    this.logger.log('info', 'debug', `%c[ArDetect::canvasReadyForDrawWindow] <@${this.arid}> canvas is ${this.canvas.height === window.innerHeight ? '' : 'NOT '}ready for drawWindow(). Canvas height: ${this.canvas.height}px; window inner height: ${window.innerHeight}px.`)
+    this.logger.log('info', 'debug', `%c[AardGl::canvasReadyForDrawWindow] <@${this.arid}> canvas is ${this.canvas.height === window.innerHeight ? '' : 'NOT '}ready for drawWindow(). Canvas height: ${this.canvas.height}px; window inner height: ${window.innerHeight}px.`)
 
     return this.canvas.height == window.innerHeight
   }
@@ -444,7 +511,7 @@ class AardGl {
       var trueHeight = this.canvas.height * zoomFactor - letterbox;
 
       if(edges.top > 1 && edges.top <= this.settings.active.arDetect.fallbackMode.noTriggerZonePx ){
-        this.logger.log('info', 'arDetect', `%c[ArDetect::calculateArFromEdges] <@${this.arid}>  Edge is in the no-trigger zone. Aspect ratio change is not triggered.`)
+        this.logger.log('info', 'arDetect', `%c[AardGl::calculateArFromEdges] <@${this.arid}>  Edge is in the no-trigger zone. Aspect ratio change is not triggered.`)
         return;
       }
       
@@ -479,15 +546,15 @@ class AardGl {
       
       // ali je sprememba v mejah dovoljenega? Če da -> fertik
       // is ar variance within acceptable levels? If yes -> we done
-      this.logger.log('info', 'arDetect', `%c[ArDetect::processAr] <@${this.arid}>  New aspect ratio varies from the old one by this much:\n`,"color: #aaf","old Ar", lastAr.ar, "current ar", trueAr, "arDiff (absolute):",arDiff,"ar diff (relative to new ar)", arDiff_percent);
+      this.logger.log('info', 'arDetect', `%c[AardGl::processAr] <@${this.arid}>  New aspect ratio varies from the old one by this much:\n`,"color: #aaf","old Ar", lastAr.ar, "current ar", trueAr, "arDiff (absolute):",arDiff,"ar diff (relative to new ar)", arDiff_percent);
 
       if (arDiff < trueAr * this.settings.active.arDetect.allowedArVariance){
-        this.logger.log('info', 'arDetect', `%c[ArDetect::processAr] <@${this.arid}>  Aspect ratio change denied — diff %: ${arDiff_percent}`, "background: #740; color: #fa2");
+        this.logger.log('info', 'arDetect', `%c[AardGl::processAr] <@${this.arid}>  Aspect ratio change denied — diff %: ${arDiff_percent}`, "background: #740; color: #fa2");
         return;
       }
-      this.logger.log('info', 'arDetect', `%c[ArDetect::processAr] <@${this.arid}>  aspect ratio change accepted — diff %: ${arDiff_percent}`, "background: #153; color: #4f9");
+      this.logger.log('info', 'arDetect', `%c[AardGl::processAr] <@${this.arid}>  aspect ratio change accepted — diff %: ${arDiff_percent}`, "background: #153; color: #4f9");
     }
-    this.logger.log('info', 'debug', `%c[ArDetect::processAr] <@${this.arid}>  Triggering aspect ratio change. New aspect ratio: ${trueAr}`, _ard_console_change);
+    this.logger.log('info', 'debug', `%c[AardGl::processAr] <@${this.arid}>  Triggering aspect ratio change. New aspect ratio: ${trueAr}`, _ard_console_change);
     
     this.conf.resizer.updateAr({type: AspectRatio.Automatic, ratio: trueAr}, {type: AspectRatio.Automatic, ratio: trueAr});
   }
@@ -501,7 +568,7 @@ class AardGl {
 
   frameCheck(){
     if(! this.video){
-      this.logger.log('error', 'debug', `%c[ArDetect::frameCheck] <@${this.arid}>  Video went missing. Destroying current instance of videoData.`);
+      this.logger.log('error', 'debug', `%c[AardGl::frameCheck] <@${this.arid}>  Video went missing. Destroying current instance of videoData.`);
       this.conf.destroy();
       return;
     }
@@ -520,7 +587,7 @@ class AardGl {
       this.blackframeContext.drawImage(this.video, 0, 0, this.blackframeCanvas.width, this.blackframeCanvas.height);
       this.fallbackMode = false;
     } catch (e) {
-      this.logger.log('error', 'arDetect', `%c[ArDetect::frameCheck] <@${this.arid}>  %c[ArDetect::frameCheck] can't draw image on canvas. ${this.canDoFallbackMode ? 'Trying canvas.drawWindow instead' : 'Doing nothing as browser doesn\'t support fallback mode.'}`, "color:#000; backgroud:#f51;", e);
+      this.logger.log('error', 'arDetect', `%c[AardGl::frameCheck] <@${this.arid}>  %c[AardGl::frameCheck] can't draw image on canvas. ${this.canDoFallbackMode ? 'Trying canvas.drawWindow instead' : 'Doing nothing as browser doesn\'t support fallback mode.'}`, "color:#000; backgroud:#f51;", e);
 
       // nothing to see here, really, if fallback mode isn't supported by browser
       if (! this.canDoFallbackMode) {
@@ -552,19 +619,19 @@ class AardGl {
       try {
         this.context.drawWindow(window, this.canvasDrawWindowHOffset, 0, this.canvas.width, this.canvas.height, "rgba(0,0,128,1)");
       } catch (e) {
-        this.logger.log('error', 'arDetect', `%c[ArDetect::frameCheck] can't draw image on canvas with fallback mode either. This error is prolly only temporary.`, "color:#000; backgroud:#f51;", e);
+        this.logger.log('error', 'arDetect', `%c[AardGl::frameCheck] can't draw image on canvas with fallback mode either. This error is prolly only temporary.`, "color:#000; backgroud:#f51;", e);
         return; // it's prolly just a fluke, so we do nothing special here
       }
       // draw blackframe sample from our main sample:
       this.blackframeContext.drawImage(this.canvas, this.blackframeCanvas.width, this.blackframeCanvas.height)
 
-      this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] canvas.drawImage seems to have worked`, "color:#000; backgroud:#2f5;");
+      this.logger.log('info', 'arDetect_verbose', `%c[AardGl::frameCheck] canvas.drawImage seems to have worked`, "color:#000; backgroud:#2f5;");
     }
 
     const bfanalysis = this.blackframeTest();
     if (bfanalysis.isBlack) {
       // we don't do any corrections on frames confirmed black
-      this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Black frame analysis suggests this frame is black or too dark. Doing nothing.`, "color: #fa3", bfanalysis);
+      this.logger.log('info', 'arDetect_verbose', `%c[AardGl::frameCheck] Black frame analysis suggests this frame is black or too dark. Doing nothing.`, "color: #fa3", bfanalysis);
       return;
     }
 
@@ -586,7 +653,7 @@ class AardGl {
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
-      this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Letterbox not detected in fast test. Letterbox is either gone or we manually corrected aspect ratio. Nothing will be done.`, "color: #fa3");
+      this.logger.log('info', 'arDetect_verbose', `%c[AardGl::frameCheck] Letterbox not detected in fast test. Letterbox is either gone or we manually corrected aspect ratio. Nothing will be done.`, "color: #fa3");
 
       this.clearImageData(imageData);
       return;
@@ -605,7 +672,7 @@ class AardGl {
     // če ni padla nobena izmed funkcij, potem se razmerje stranic ni spremenilo
     // if both succeed, then aspect ratio hasn't changed.    
     if (!guardLineOut.imageFail && !guardLineOut.blackbarFail) {
-      this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] guardLine tests were successful. (no imagefail and no blackbarfail)\n`, "color: #afa", guardLineOut);
+      this.logger.log('info', 'arDetect_verbose', `%c[AardGl::frameCheck] guardLine tests were successful. (no imagefail and no blackbarfail)\n`, "color: #afa", guardLineOut);
       this.clearImageData(imageData);
       return;
     }
@@ -646,7 +713,7 @@ class AardGl {
 
 
           if(guardLineOut.blackbarFail){
-            this.logger.log('info', 'arDetect', `[ArDetect::frameCheck] Detected blackbar violation and pillarbox. Resetting to default aspect ratio.`);
+            this.logger.log('info', 'arDetect', `[AardGl::frameCheck] Detected blackbar violation and pillarbox. Resetting to default aspect ratio.`);
             this.conf.resizer.setAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
             this.guardLine.reset();
           }
@@ -658,7 +725,7 @@ class AardGl {
         }
       }
     } catch(e) { 
-      this.logger.log('info', 'arDetect', `[ArDetect::frameCheck] something went wrong while checking for pillarbox. Error:\n`, e);
+      this.logger.log('info', 'arDetect', `[AardGl::frameCheck] something went wrong while checking for pillarbox. Error:\n`, e);
     }
 
     // pa poglejmo, kje se končajo črne letvice na vrhu in na dnu videa.
@@ -669,12 +736,12 @@ class AardGl {
    
     var edgePost = this.edgeDetector.findBars(imageData, sampleCols, EdgeDetectPrimaryDirection.VERTICAL, EdgeDetectQuality.IMPROVED, guardLineOut, bfanalysis);
     
-    this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] edgeDetector returned this\n`,  "color: #aaf", edgePost);
+    this.logger.log('info', 'arDetect_verbose', `%c[AardGl::frameCheck] edgeDetector returned this\n`,  "color: #aaf", edgePost);
     
     if (edgePost.status !== EdgeStatus.AR_KNOWN){
       // rob ni bil zaznan, zato ne naredimo ničesar.
       // no edge was detected. Let's leave things as they were
-      this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Edge wasn't detected with findBars`, "color: #fa3", edgePost, "EdgeStatus.AR_KNOWN:", EdgeStatus.AR_KNOWN);
+      this.logger.log('info', 'arDetect_verbose', `%c[AardGl::frameCheck] Edge wasn't detected with findBars`, "color: #fa3", edgePost, "EdgeStatus.AR_KNOWN:", EdgeStatus.AR_KNOWN);
 
       this.clearImageData(imageData);
       return;
@@ -682,7 +749,7 @@ class AardGl {
 
     var newAr = this.calculateArFromEdges(edgePost);
       
-    this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Triggering aspect ration change! new ar: ${newAr}`, "color: #aaf");
+    this.logger.log('info', 'arDetect_verbose', `%c[AardGl::frameCheck] Triggering aspect ration change! new ar: ${newAr}`, "color: #aaf");
 
     // we also know edges for guardline, so set them.
     // we need to be mindful of fallbackMode though
@@ -709,7 +776,7 @@ class AardGl {
     } catch (e) {
       // edges weren't gucci, so we'll just reset 
       // the aspect ratio to defaults
-      this.logger.log('error', 'arDetect', `%c[ArDetect::frameCheck] There was a problem setting blackbar. Doing nothing. Error:`, e);
+      this.logger.log('error', 'arDetect', `%c[AardGl::frameCheck] There was a problem setting blackbar. Doing nothing. Error:`, e);
       
       this.guardline.reset();
       // WE DO NOT RESET ASPECT RATIO HERE IN CASE OF PROBLEMS, CAUSES UNWARRANTED RESETS: 
@@ -731,7 +798,7 @@ class AardGl {
 
   blackframeTest() {
     if (this.blackLevel === undefined) {
-      this.logger.log('info', 'arDetect_verbose', "[ArDetect::blackframeTest] black level undefined, resetting");
+      this.logger.log('info', 'arDetect_verbose', "[AardGl::blackframeTest] black level undefined, resetting");
       this.resetBlackLevel();
     }
 
