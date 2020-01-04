@@ -299,6 +299,24 @@ const ExtensionConfPatch = [
         console.error("PROBLEM APPLYING SETTINGS", e);
       }
     }
+  }, {
+    forVersion: '4.4.3',
+    sites: {
+      "www.disneyplus.com": {
+        mode: ExtensionMode.Enabled,
+        autoar: ExtensionMode.Enabled,
+        autoarFallback: ExtensionMode.Enabled,
+        override: true,                  // ignore value localStorage in favour of this
+        stretch: Stretch.Default,
+        videoAlignment: VideoAlignment.Default,
+        keyboardShortcutsEnabled: ExtensionMode.Default,
+        DOM: {
+          player: {
+            periodicallyRefreshPlayerElement: true,
+          }
+        }
+      }
+    }
   }
 ];
 
