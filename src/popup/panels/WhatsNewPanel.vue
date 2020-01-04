@@ -2,7 +2,7 @@
   <div>
     <h2>What's new</h2>
     <p>Full changelog for older versions <a href="https://github.com/xternal7/ultrawidify/blob/master/CHANGELOG.md">is available here</a>.</p>
-    <p class="label">4.4.3</p>
+    <p class="label">4.4.3.1</p>
     This update mostly attempts to fix disney+ (again). Consider commenting <a href="https://github.com/xternal7/ultrawidify/issues/84">on this issue</a> if issues with disney+ persist.
     <ul>
       <li>Fixed conf patch for disney+ (hopefully)</li>
