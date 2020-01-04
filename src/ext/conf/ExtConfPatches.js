@@ -1,6 +1,8 @@
 // How to use:
 // version: {ExtensionConf object, but only properties that get overwritten}
 import Stretch from '../../common/enums/stretch.enum';
+import ExtensionMode from '../../common/enums/extension-mode.enum';
+import VideoAlignment from '../../common/enums/video-alignment.enum';
 
 const ExtensionConfPatch = [
   {
