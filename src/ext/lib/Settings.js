@@ -282,10 +282,35 @@ class Settings {
     }
   }
 
+  fixSitesSettings(sites) {
+    for (const site in sites) {
+      if (site === '@global') {
+        continue;
+      }
+      if (sites[site].mode === undefined) {
+        sites[site].mode = ExtensionMode.Default;
+      }
+      if (sites[site].autoar === undefined) {
+        sites[site].mode = ExtensionMode.Default;
+      }
+      if (sites[site].stretch === undefined) {
+        sites[site].mode = Stretch.Default;
+      }
+      if (sites[site].videoAlignment === undefined) {
+        sites[site].mode = VideoAlignment.Default;
+      }
+      if (sites[site].keyboardShortcutsEnabled === undefined) {
+        sites[site].mode = ExtensionMode.Default;
+      }
+    }
+  }
+
   async set(extensionConf, options) {
     if (!options || !options.forcePreserveVersion) {
       extensionConf.version = this.version;
     }
+
+    fixSitesSettings(sites);
 
     this.logger.log('info', 'settings', "[Settings::set] setting new settings:", extensionConf)
 
@@ -377,10 +402,14 @@ class Settings {
         return ExtensionMode.Enabled;
       } else if (this.active.sites[site].mode === ExtensionMode.Basic) {
         return ExtensionMode.Basic;            
-      } else if (this.active.sites[site].mode === ExtensionMode.Default && site !== '@global') {
-        return this.getExtensionMode('@global');
-      } else {
+      }  else if (this.active.sites[site].mode === ExtensionMode.Disabled) {
         return ExtensionMode.Disabled;
+      } else {
+        if (site !== '@global') {
+          return this.getExtensionMode('@global');
+        } else {
+          return ExtensionMode.Disabled;
+        }
       }
   
     } catch(e){
