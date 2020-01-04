@@ -4,22 +4,33 @@
 
 ### Plans for the future
 
+* WebGL
 * Settings page looks ugly af right now. Maybe fix it some time later
-* rework keyboard shortcuts so things like russian layouts don't mess thigns up
 * other bug fixes
 
 QoL improvements for me:
 
 * logging: allow to enable logging at will and export said logs to a file
 
-### v.4.4.1 (current)
+### v4.4.3 
+
+* Fixed conf patch for disney+ (hopefully)
+* `Settings.save()` adds missing values to site config when saving extension configuration.
+
+### v4.4.2
+
+* New stretching modes that squish video to a specified aspect ratio. One of the two modes correct aspect ratio before cropping, the other corrects after cropping.
+* Potential fix for disney+ — added an option that forces extension to force player re-detection.
+* Fixed bug where certain custom actions that should be removable weren't removable
+
+### v4.4.1
 
 * Changes to player detection that fix issues with vk
 * Extension tries to avoid setting aspect ratio pointlessly
 * (Hopefully) fixed mailto: and reddit compose links. 
 * When reporting bugs, email/reddit template now automatically gathers browser, extension version and OS.
 
-### v.4.4.0
+### v4.4.0
 
 * Russian users (and users of other non-latin keyboard layouts) can now use keyboard shortcuts by default, without having to rebind them manually. (NOTE: if you've changed keyboard shortcuts manually, this change will ***NOT*** be applied to your configuration.)
 * NOTE: when using non-latin layouts, 'zoom' shortcut (`z` by default) uses the position of 'Y' on QWERTY layout.
