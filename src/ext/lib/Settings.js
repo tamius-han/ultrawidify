@@ -310,7 +310,7 @@ class Settings {
       extensionConf.version = this.version;
     }
 
-    fixSitesSettings(sites);
+    this.fixSitesSettings(sites);
 
     this.logger.log('info', 'settings', "[Settings::set] setting new settings:", extensionConf)
 
