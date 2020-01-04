@@ -464,7 +464,7 @@ class ArDetector {
     // poglejmo, če se je razmerje stranic spremenilo
     // check if aspect ratio is changed:
     var lastAr = this.conf.resizer.getLastAr();
-    if (lastAr.type === AspectRatio.Automatic && lastAr.ratio !== null){
+    if (lastAr.type === AspectRatio.Automatic && lastAr.ratio !== null && lastAr.ratio !== undefined){
       // spremembo lahko zavrnemo samo, če uporabljamo avtomatski način delovanja in če smo razmerje stranic
       // že nastavili.
       //
