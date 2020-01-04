@@ -302,7 +302,7 @@ const ExtensionConfPatch = [
       }
     }
   }, {
-    forVersion: '4.4.3',
+    forVersion: '4.4.3.1',
     sites: {
       "www.disneyplus.com": {
         mode: ExtensionMode.Enabled,
