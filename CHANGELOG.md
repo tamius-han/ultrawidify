@@ -14,7 +14,7 @@ QoL improvements for me:
 
 ### v4.4.3 
 
-* Fixed conf patch for disney+ (hopefully)
+* Fixed conf patch for disney+ (hopefully) (v4.4.3.1: but for real)
 * `Settings.save()` adds missing values to site config when saving extension configuration.
 
 ### v4.4.2
