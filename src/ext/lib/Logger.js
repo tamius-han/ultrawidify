@@ -10,6 +10,7 @@ class Logger {
     this.history = [];
     this.startTime = performance.now();
     this.temp_disable = false;
+    this.stopTime = confTimeout ? performance.now() + (conf.timeout * 1000) : undefined;
   }
 
   initLogger() {
@@ -37,6 +38,7 @@ class Logger {
   clear() {
     this.log = [];
     this.startTime = performance.now();
+    this.stopTime = this.conf.timeout ? performance.now() + (this.conf.timeout * 1000) : undefined;
   }
 
   setConf(conf) {
@@ -94,15 +96,21 @@ class Logger {
     }
   }
 
-  getLogFileString() {
-    let logfileStr = '';
-    let logTs = '';       // number of seconds since extension started on a given page¸
-    for (let i = 0; i < this.history.length; i++) {
-      logTs = ((this.history[i].ts - Math.floor(this.performance.now)) / 3).toFixed(3);
-      logfileStr = `${logfileStr}[@${logTs}] -- ${this.history[i].message}\n`
-    }
+  // getLogFileString() {
+  //   let logfileStr = '';
+  //   let logTs = '';       // number of seconds since extension started on a given page¸
+  //   for (let i = 0; i < this.history.length; i++) {
+  //     logTs = ((this.history[i].ts - Math.floor(this.performance.now)) / 3).toFixed(3);
+  //     logfileStr = `${logfileStr}[@${logTs}] -- ${this.history[i].message}\n`
+  //   }
 
-    return logfileStr;
+  //   return logfileStr;
+  // }
+  getFileLogJSONString() {
+    return {
+      site: window && window.location,
+      log: JSON.toString(this.history),
+    }
   }
 
   pause() {
@@ -120,6 +128,9 @@ class Logger {
     if (!this.conf.fileOptions.enabled || this.temp_disable) {
       return false;
     }
+    if (performance.now() > this.stopTime) {
+      return false;
+    }
     if (Array.isArray(component) && component.length ) {
       for (const c of component) {
         if (this.conf.fileOptions[c]) {
@@ -132,6 +143,9 @@ class Logger {
   }
   canLogConsole(component) {
     if (!this.conf.consoleOptions.enabled || this.temp_disable) {
+      return false;
+    }
+    if (performance.now() > this.stopTime) {
       return false;
     }
     if (Array.isArray(component) && component.length) {
@@ -151,6 +165,7 @@ class Logger {
     if (!this.conf) {
       return;
     }
+    const error = new Error();
     if (this.conf.logToFile) {
       if (this.canLogFile(component)) {
         let ts = performance.now();
@@ -161,12 +176,13 @@ class Logger {
         this.history.push({
           ts: ts,
           message: JSON.stringify(message),
+          stack: error.stack,
         })
       }
     }
     if (this.conf.logToConsole) {
       if (this.canLogConsole(component)) {
-        console.log(...message);
+        console.log(...message, error.stack);
       }
     }
   }
