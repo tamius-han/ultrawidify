@@ -154,7 +154,7 @@ class CommsServer {
     if (message.cmd === 'get-current-site') {
       port.postMessage({
         cmd: 'set-current-site',
-        site: this.server.getVideoTab(),
+        site: await this.server.getVideoTab(),
         tabHostname: await this.getCurrentTabHostname()
       });
     }
