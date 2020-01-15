@@ -12,7 +12,11 @@ QoL improvements for me:
 
 * logging: allow to enable logging at will and export said logs to a file
 
-### v4.4.3 
+### v4.4.4
+
+* Tab detection in extension popup has been made more accurate
+
+### v4.4.3 (Current)
 
 * Fixed conf patch for disney+ (hopefully) (v4.4.3.1: but for real)
 * `Settings.save()` adds missing values to site config when saving extension configuration.
