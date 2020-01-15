@@ -33,7 +33,8 @@ class UWServer {
     // logger is the first thing that goes up
     this.logger = new Logger({
         logToFile: false,
-        logToConsole: false
+        logToConsole: true,
+        logAll: true,
     });
     await this.logger.init();
 
@@ -236,12 +237,33 @@ class UWServer {
     this.selectedSubitem[menu] = subitem;
   }
 
-  getVideoTab() {
+  async getCurrentTab() {
+    if (BrowserDetect.firefox) {
+      return (await browser.tabs.query({active: true, currentWindow: true}))[0];
+    } else if (BrowserDetect.chrome) {
+      return new Promise((resolve, reject) => chrome.tabs.query({active: true, currentWindow: true}, (x) => resolve(x[0])));
+    }
+  }
+
+  async getVideoTab() {
     // friendly reminder: if current tab doesn't have a video, 
     // there won't be anything in this.videoTabs[this.currentTabId]
-    if (this.videoTabs[this.currentTabId]) {
+
+    const ctab = await this.getCurrentTab();
+
+    console.log('Current tab:', ctab);
+
+    if (!ctab || !ctab.id) {
       return {
-        ...this.videoTabs[this.currentTabId],
+        host: 'INVALID SITE',
+        frames: [],
+      }
+    }
+
+    if (this.videoTabs[ctab.id]) {
+      return {
+        ...this.videoTabs[ctab.id],
+        host: this.extractHostname(ctab.url),
         selected: this.selectedSubitem 
       };
     }
@@ -249,7 +271,7 @@ class UWServer {
     // return something more or less empty if this tab doesn't have 
     // a video registered for it
     return {
-      host: this.currentSite,
+      host: this.extractHostname(ctab.url),
       frames: [],
       selected: this.selectedSubitem
     }
