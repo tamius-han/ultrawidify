@@ -7,10 +7,16 @@ class Logger {
     if (conf) {
       this.conf = conf;
     }
+    if (this.conf.consoleOptions === undefined) {
+      this.conf.consoleOptions = {};
+    }
+    if (!this.conf.fileOptions === undefined) {
+      this.conf.fileOptions = {};
+    }
     this.history = [];
     this.startTime = performance.now();
     this.temp_disable = false;
-    this.stopTime = confTimeout ? performance.now() + (conf.timeout * 1000) : undefined;
+    this.stopTime = conf.timeout ? performance.now() + (conf.timeout * 1000) : undefined;
   }
 
   initLogger() {
@@ -155,8 +161,10 @@ class Logger {
         }
       }
     } else {
-      return this.conf.consoleOptions[component];
+      return this.conf.consoleOptions[component] !== undefined ? this.conf.consoleOptions[component] : this.conf.logAll;
     }
+
+    return this.conf.logAll;
   }
 
   // level is unused as of now, but this may change in the future
