@@ -4,7 +4,7 @@
       <p>Ultrawidify version: {{addonVersion}}. Created by Tamius Han (me).</p>
       <p><b>Having an issue?</b> Report <strike>undocumented features</strike> bugs using one of the following options:
         <ul>
-          <li> <a target="_blank" href="https://github.com/xternal7/ultrawidify/issues"><b>Github</b></a> <b>(strongly preferred)</b><br/></li>
+          <li> <a target="_blank" href="https://github.com/tamius-han/ultrawidify/issues"><b>Github</b></a> <b>(strongly preferred)</b><br/></li>
           <li>Email: <a target="_blank" :href="mailtoLink">tamius.han@gmail.com</a></li>
           <li>PM me on <a target="_blank" :href="redditLink">reddit</a><br/></li>
           </ul>
@@ -12,7 +12,7 @@
 
     <p>&nbsp;</p>
 
-    <p>If you're curious about the source code, <a href="https://github.com/xternal7/ultrawidify">github's here</a>. It's available under sorta-you-can-look-but-you-can't-touch licence, meaning: you can look, I won't mind if you shoot me a pull request, but I will mind if you're just gonna reupload this extension to the AMO/Chrome store.</p>
+    <p>If you're curious about the source code, <a href="https://github.com/tamius-han/ultrawidify">github's here</a>. It's available under sorta-you-can-look-but-you-can't-touch licence, meaning: you can look, I won't mind if you shoot me a pull request, but I will mind if you're just gonna reupload this extension to the AMO/Chrome store.</p>
     <p>If you're looking at this page because you're bored and want to be bored some more, <a href="https://tamius.net">my website's here</a> and <a href="https://stuff.tamius.net/sacred-texts/">my blog is here</a>.</p>
     <p>I already have a 'donation' tab, but if you want to buy me a beer, <a href="https://paypal.me/tamius">my paypal's here</a>.</p>
     <h2>Plans for the future</h2>
