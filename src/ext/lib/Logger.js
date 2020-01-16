@@ -19,47 +19,24 @@ class Logger {
     this.stopTime = conf.timeout ? performance.now() + (conf.timeout * 1000) : undefined;
   }
 
-  initLogger() {
-    const ths = this;
+  static saveConfig(conf) {
+    if (currentBrowser.firefox || currentBrowser.edge) {
+      return browser.storage.local.set( {'uwLogger': JSON.stringify(conf)});
+    } else if (currentBrowser.chrome) {
+      return chrome.storage.local.set( {'uwLogger': JSON.stringify(conf)});
+    }
+  }
+
+  static syncConfig(callback) {
     const br = currentBrowser.firefox ? browser : chrome;
     br.storage.onChanged.addListener( (changes, area) => {
-      if (Debug.debug && Debug.debugStorage) {
-        console.log("[Logger::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
-        if (changes['uwLogger'] && changes['uwLogger'].newValue) {
-          console.log("[Logger::<storage/on change>] new settings object:", JSON.parse(changes.uwLogger.newValue));
-        }
-      }
-      if(changes['uwLogger'] && changes['uwLogger'].newValue) {
-        ths.conf = JSON.parse(changes.uwLogger.newValue);
-      }
+      callback(JSON.parse(changes.uwLogger.newValue));
     });
   }
 
-  async init() {
-    if (!this.conf) {
-      this.conf = await this.getSaved();
-    }
-  }
-
-  clear() {
-    this.log = [];
-    this.startTime = performance.now();
-    this.stopTime = this.conf.timeout ? performance.now() + (this.conf.timeout * 1000) : undefined;
-  }
-
-  setConf(conf) {
-    this.conf = conf;  // effective immediately
-    // also persist settings:
-    if (currentBrowser.firefox || currentBrowser.edge) {
-      return browser.storage.local.set( {'uwLogger': JSON.stringify(this.conf)});
-    } else if (currentBrowser.chrome) {
-      return chrome.storage.local.set( {'uwLogger': JSON.stringify(this.logger)});
-    }
-  }
-
-  async getSaved() {
+  static async getConfig() {
     let ret;
-    
+
     if (currentBrowser.firefox) {
       ret = await browser.storage.local.get('uwLogger');
     } else if (currentBrowser.chrome) {
@@ -85,6 +62,46 @@ class Logger {
     } catch(e) {
       return {logToFile: false, logToConsole: false, consoleOptions: {}, fileOptions: {}};
     }
+  }
+
+  initLogger() {
+    const ths = this;
+    const br = currentBrowser.firefox ? browser : chrome;
+    br.storage.onChanged.addListener( (changes, area) => {
+      if (Debug.debug && Debug.debugStorage) {
+        console.log("[Logger::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
+        if (changes['uwLogger'] && changes['uwLogger'].newValue) {
+          console.log("[Logger::<storage/on change>] new settings object:", JSON.parse(changes.uwLogger.newValue));
+        }
+      }
+      if(changes['uwLogger'] && changes['uwLogger'].newValue) {
+        ths.conf = JSON.parse(changes.uwLogger.newValue);
+      }
+    });
+
+    this.init();
+  }
+
+  async init() {
+    if (!this.conf) {
+      this.conf = await this.getSaved();
+    }
+  }
+
+  clear() {
+    this.log = [];
+    this.startTime = performance.now();
+    this.stopTime = this.conf.timeout ? performance.now() + (this.conf.timeout * 1000) : undefined;
+  }
+
+  setConf(conf) {
+    this.conf = conf;  // effective immediately
+    // also persist settings:
+    Logger.saveConfig(conf);
+  }
+
+  async getSaved() {
+    return Logger.getSaved();    
   }
 
 
@@ -127,7 +144,7 @@ class Logger {
   }
 
   canLog(component) {
-    return this.canLogFile(component) || this.canLogConsole(component);
+    return this.conf.allowLogging && (this.canLogFile(component) || this.canLogConsole(component));
   }
 
   canLogFile(component) {
@@ -135,6 +152,7 @@ class Logger {
       return false;
     }
     if (performance.now() > this.stopTime) {
+      this.conf.allowLogging = false;
       return false;
     }
     if (Array.isArray(component) && component.length ) {
@@ -152,6 +170,7 @@ class Logger {
       return false;
     }
     if (performance.now() > this.stopTime) {
+      this.conf.allowLogging = false;
       return false;
     }
     if (Array.isArray(component) && component.length) {
