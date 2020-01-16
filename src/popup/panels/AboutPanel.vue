@@ -6,7 +6,7 @@
     <div class="row">
     <span class="label">Having an issue?</span><br/> Report <strike>undocumented features</strike> bugs using one of the following options (in order of preference):
       <ul>
-        <li> <a target="_blank" href="https://github.com/xternal7/ultrawidify/issues"><b>Github (preferred)</b></a><br/></li>
+        <li> <a target="_blank" href="https://github.com/tamius-han/ultrawidify/issues"><b>Github (preferred)</b></a><br/></li>
         <li>Email: <a target="_blank" :href="mailtoLink">tamius.han@gmail.com</a></li>
         <li>PM me on <a target="_blank" :href="redditLink">reddit</a><br/></li>
       </ul>

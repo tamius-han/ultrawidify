@@ -14,4 +14,4 @@ todo
 
 #This extension asks for permission that isn't listed above.
 
-Sometimes (and by 'sometimes' I mean 'way too often') I forget to update README files. If there's a permission that I haven't wrote an explanation for, please [open an issue](https://github.com/xternal7/ultrawidify/issues).
+Sometimes (and by 'sometimes' I mean 'way too often') I forget to update README files. If there's a permission that I haven't wrote an explanation for, please [open an issue](https://github.com/tamius-han/ultrawidify/issues).
