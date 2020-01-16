@@ -206,6 +206,7 @@ export default {
   },
   async created() {
     this.logger = new Logger({
+        allowLogging: true,
         logToFile: false,
         logToConsole: false
     });

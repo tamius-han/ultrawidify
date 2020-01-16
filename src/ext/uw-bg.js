@@ -32,6 +32,7 @@ class UWServer {
   async setup() {
     // logger is the first thing that goes up
     this.logger = new Logger({
+        allowLogging: true,
         logToFile: false,
         logToConsole: true,
         logAll: true,
