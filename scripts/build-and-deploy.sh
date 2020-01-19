@@ -66,14 +66,8 @@ node scripts/build-zip.js chrome
 #        UPLOAD TO WEB SERVER 
 ######################################
 
-# # add ssh key, if not added
-# if [ -z "$SSH_AUTH_SOCK" ] ; then
-#     eval `ssh-agent -s`
-#     ssh-add
-# fi
-
-# # push all built stuff to the server
-# scp -r ./build-zip/* "ultrawidify-uploader@${RELEASE_SERVER}:${RELEASE_DIRECTORY}${BUILD_CHANNEL_DIRECTORY}"
+# push all built stuff to the server
+scp -i ~/.ssh/id_rsa -r ./build-zip/* "ultrawidify-uploader@${RELEASE_SERVER}:${RELEASE_DIRECTORY}${BUILD_CHANNEL_DIRECTORY}"
 
 
 
