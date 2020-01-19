@@ -52,9 +52,9 @@ const main = () => {
   let realZipDir;
   
   if (!!testingOrNightly) {
-    realZipDir = path.join(DEST_ZIP_DIR, baseFilename);
-  } else {
     realZipDir = path.join(DEST_ZIP_DIR, version);
+  } else {
+    realZipDir = path.join(DEST_ZIP_DIR);
   }
 
   const zipFilename = `${baseFilename}-${browser}.zip`;
