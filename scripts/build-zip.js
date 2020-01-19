@@ -59,7 +59,7 @@ const main = () => {
 
   const zipFilename = `${baseFilename}-${browser}.zip`;
   
-  makeDirIfNotExists(realZipDir);
+  makeDirIfNotExists(realZipDir, {recursive: true});
 
   buildZip(DEST_DIR, realZipDir, zipFilename)
     .then(() => console.info('OK'))
