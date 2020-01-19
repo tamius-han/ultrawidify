@@ -40,6 +40,7 @@ fi
 npm ci
 
 rm -rf ./dist-zip || true   # no big deal if ./dist-zip doesn't exist
+mkdir dist-zip              # create it back
 
 #
 # build firefox
