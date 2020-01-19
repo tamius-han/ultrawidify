@@ -27,7 +27,7 @@ echo "        -> BUILD_CHANNEL_DIRECTORY: $BUILD_CHANNEL_DIRECTORY"
 if [ ! -z "$GIT_COMMIT" ] ; then
   if [ ! -z "$GIT_PREVIOUS_COMMIT" ] ; then
     if [ "$GIT_COMMIT" == "$GIT_PREVIOUS_COMMIT" ] ; then
-      if [ $FORCE_BUILD == true ] ; then
+      if [ $FORCE_BUILD == false ] ; then
         echo "--------------------------------------------"
         echo "    Nothing has changed. Aborting build."
         echo "--------------------------------------------"
@@ -44,13 +44,13 @@ rm -rf ./dist-zip || true   # no big deal if ./dist-zip doesn't exist
 #
 # build firefox
 #
-npm run "${BUILD_SCRIPT}"
-node scripts/build-zip.js ff
-if [ ! -z "${AMO_API_KEY}" ] ; then
-  if [ ! -z "${AMO_API_SECRET}" ] ; then 
-    web-ext sign --source-dir ./dist --api-key "${AMO_API_KEY}" --api-secret "${AMO_API_SECRET}"
-  fi
-fi
+# npm run "${BUILD_SCRIPT}"
+# node scripts/build-zip.js ff
+# if [ ! -z "${AMO_API_KEY}" ] ; then
+#   if [ ! -z "${AMO_API_SECRET}" ] ; then 
+#     web-ext sign --source-dir ./dist --api-key "${AMO_API_KEY}" --api-secret "${AMO_API_SECRET}"
+#   fi
+# fi
 
 #
 # build chrome
