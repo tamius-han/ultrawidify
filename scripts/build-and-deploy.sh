@@ -67,7 +67,7 @@ node scripts/build-zip.js chrome
 ######################################
 
 # push all built stuff to the server
-scp -i ~/.ssh/id_rsa -r ./build-zip/* "ultrawidify-uploader@${RELEASE_SERVER}:${RELEASE_DIRECTORY}${BUILD_CHANNEL_DIRECTORY}"
+scp -i ~/.ssh/id_rsa -r ./dist-zip/* "ultrawidify-uploader@${RELEASE_SERVER}:${RELEASE_DIRECTORY}${BUILD_CHANNEL_DIRECTORY}"
 
 
 
