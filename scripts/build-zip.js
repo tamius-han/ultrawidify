@@ -59,8 +59,12 @@ const main = () => {
 
   const zipFilename = `${baseFilename}-${browser}.zip`;
   
-  makeDirIfNotExists(realZipDir, {recursive: true});
-
+  try {
+    makeDirIfNotExists(realZipDir, {recursive: true});
+  } catch (e) {
+    console.error('Failed to make directory.\nDirectory we wanted to make', realZipDir, '\nerror we got:\n', e)
+    return 1;
+  }
   buildZip(DEST_DIR, realZipDir, zipFilename)
     .then(() => console.info('OK'))
     .catch(console.err); 
