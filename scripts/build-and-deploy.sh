@@ -44,8 +44,8 @@ rm -rf ./dist-zip || true   # no big deal if ./dist-zip doesn't exist
 #
 # build firefox
 #
-# npm run "${BUILD_SCRIPT}"
-# node scripts/build-zip.js ff
+npm run "${BUILD_SCRIPT}"
+node scripts/build-zip.js ff
 # if [ ! -z "${AMO_API_KEY}" ] ; then
 #   if [ ! -z "${AMO_API_SECRET}" ] ; then 
 #     web-ext sign --source-dir ./dist --api-key "${AMO_API_KEY}" --api-secret "${AMO_API_SECRET}"
