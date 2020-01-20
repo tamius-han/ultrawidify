@@ -171,7 +171,8 @@ class CommsServer {
       this.server.registerVideo(port.sender);
     } else if (message.cmd === 'noVideo') {
       this.server.unregisterVideo(port.sender);
-    } 
+    }
+
   }
 
   processReceivedMessage_nonpersistent(message, sender, sendResponse){
@@ -228,6 +229,12 @@ class CommsServer {
       this.settings.active.arDetect.timer_playing = timeout;
       this.settings.save();
       this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
+    } else if (message.cmd === 'logging-stop-and-save') {
+      this.logger.log('info', 'CommsServer', "Received command to stop logging and export the received input");
+      this.logger.addLogAndExport(message.host, message.history);
+    } else if (message.cmd === 'logging-save') {
+      this.logger.log('info', 'CommsServer', `Received command to save log for site ${message.host} (tabId ${sender.tab.id}, frameId ${sender.frameId}`);
+      this.logger.addLogFromPage(message.host, sender.tab.id, sender.frameId, message.history);
     }
   }
 
