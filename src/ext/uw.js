@@ -47,6 +47,7 @@ class UW {
           logToFile: false,
           logToConsole: false,
           fileOptions: {
+            enabled: false,
             // really the same stuff as consoleOptions
           },
           consoleOptions: {
