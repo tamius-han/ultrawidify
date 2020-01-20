@@ -4,7 +4,7 @@ import currentBrowser from '../conf/BrowserDetect';
 class Logger {
   constructor(conf) {
     this.initLogger();
-    if (conf) {
+    if (conf && process.env.CHANNEL === 'dev') {
       this.conf = conf;
     }
     if (this.conf.consoleOptions === undefined) {
