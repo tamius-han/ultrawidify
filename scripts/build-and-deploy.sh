@@ -67,6 +67,11 @@ node scripts/build-zip.js chrome nightly
 #        UPLOAD TO WEB SERVER 
 ######################################
 
+echo "--------------------------------------------"
+echo "       files ready for upload"
+echo "--------------------------------------------"
+echo ""
+echo "Uploading to server ..."
 # push all built stuff to the server
 scp -i ~/.ssh/id_rsa -r ./dist-zip/* "ultrawidify-uploader@${RELEASE_SERVER}:${RELEASE_DIRECTORY}${BUILD_CHANNEL_DIRECTORY}"
 
@@ -75,7 +80,7 @@ scp -i ~/.ssh/id_rsa -r ./dist-zip/* "ultrawidify-uploader@${RELEASE_SERVER}:${R
 ######################################
 #       Build finished message
 ######################################
-
+echo ""
 echo "--------------------------------------------"
 echo "       BUILD FINISHED SUCCESSFULLY"
 echo "--------------------------------------------"
