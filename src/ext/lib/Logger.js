@@ -13,7 +13,9 @@ class Logger {
     if (!this.conf.fileOptions === undefined) {
       this.conf.fileOptions = {};
     }
+    this.isBackgroundPage = !!conf.isBackgroundPage;
     this.history = [];
+    this.globalHistory = {};
     this.startTime = performance.now();
     this.temp_disable = false;
     this.stopTime = conf.timeout ? performance.now() + (conf.timeout * 1000) : undefined;
@@ -250,7 +252,61 @@ class Logger {
     }
   }
 
+  addLogFromPage(host, tabId, frameId, pageHistory) {
+    if (! this.globalHistory[host]) {
+      this.globalHistory[host] = {};
+    }
+    if (! this.globalHistory[tabId || 'tab']) {
+      this.globalHistory[host][tabId || 'tab'] = {};
+    }
+    if (!this.globalHistory[frameId || 'top']) {
+      this.globalHistory[host][tabId || 'tab'][frameId || 'top'] = pageHistory;
+    } else {
+      this.globalHistory[host][tabId || 'tab'][frameId || 'top'].push(...pageHistory);
+    }
+  }
 
+  // export log file — only works on background page
+  async exportLogToFile() {
+    const exportObject = {'pageLogs': JSON.parse(JSON.stringify({...this.globalHistory}))};
+    exportObject['logger-settings'] = this.conf.fileOptions;
+    exportObject['backgroundLog'] = JSON.parse(JSON.stringify(this.history));
+    exportObject['popupLog'] = 'NOT IMPLEMENTED';
+
+    const blob = new Blob([JSON.stringify(exportObject)], {type: 'application/json'});
+    const fileUrl = URL.createObjectURL(blob);
+
+    try {
+      if (BrowserDetect.firefox) {
+        await browser.permissions.request({permissions: ['downloads']});
+        browser.downloads.download({saveAs: true, filename: 'extension-log.json', url: fileUrl});
+      } else if (BrowserDetect.chrome) {
+        const ths = this;
+        
+        chrome.permissions.request(
+          {permissions: ['downloads']},
+          (granted) => {
+            if (granted) {
+              chrome.downloads.download({saveAs: true, filename: 'extension-log.json', url: fileUrl});
+            } else {
+              ths.downloadPermissionError = true
+            }
+          } 
+        )
+      }
+      this.globalHistory = {};
+      this.history = [];
+    } catch (e) {
+      this.downloadPermissionError = true;
+    }
+  }
+
+  // used for instances where logging is limited to a single page and is timed
+  addLogAndExport(host, pageHistory) {
+    this.globalHistory = {};
+    this.globalHistory[host || 'no-host-provided'] = pageHistory;
+    this.exportLogToFile();
+  }
 }
 
 export default Logger;
