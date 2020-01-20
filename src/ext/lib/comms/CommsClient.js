@@ -19,6 +19,34 @@ class CommsClient {
     this.settings = settings;
     this.pageInfo = undefined;
     this.commsId = (Math.random() * 20).toFixed(0);
+
+    this.commands = {
+      'get-current-zoom': [() => this.pageInfo.requestCurrentZoom()],
+      'set-ar': [(message) => this.pageInfo.setAr({type: message.arg, ratio: message.customArg}, message.playing)],
+      'set-alignment': [(message) => {
+        this.pageInfo.setVideoAlignment(message.arg, message.playing);
+        this.pageInfo.restoreAr();
+      }],
+      'set-stretch': [(message) => this.pageInfo.setStretchMode(message.arg, message.playing, message.customArg)],
+      'set-keyboard': [(message) => this.pageInfo.setKeyboardShortcutsEnabled(message.arg)],
+      'autoar-start': [(message) => {
+        if (message.enabled !== false) {
+          this.pageInfo.initArDetection(message.playing);
+          this.pageInfo.startArDetection(message.playing);
+        } else {
+          this.pageInfo.stopArDetection(message.playing);
+        }
+      }],
+      'pause-processing': [(message) => this.pageInfo.pauseProcessing(message.playing)],
+      'resume-processing': [(message) => this.pageInfo.resumeProcessing(message.autoArStatus, message.playing)],
+      'set-zoom': [(message) => this.pageInfo.setZoom(message.arg, true, message.playing)],
+      'change-zoom': [(message) => this.pageInfo.zoomStep(message.arg, message.playing)],
+      'mark-player': [(message) => this.pageInfo.markPlayer(message.name, message.color)],
+      'unmark-player': [() => this.pageInfo.unmarkPlayer()],
+      'autoar-set-manual-tick': [(message) => this.pageInfo.setManualTick(message.arg)],
+      'autoar-tick': [() => this.pageInfo.tick()],
+      'set-ar-persistence': [() => this.pageInfo.setArPersistence(message.arg)], 
+    };
   }
   
   destroy() {
@@ -26,6 +54,14 @@ class CommsClient {
     this.settings = null;
     if (!BrowserDetect.edge) { // edge is a very special browser made by outright morons.
       this.port.onMessage.removeListener(this._listener);
+    }
+  }
+
+  subscribe(command, callback) {
+    if (!this.commands[command]) {
+      this.commands[command] = [callback];
+    } else {
+      this.commands[command].push(callback);
     }
   }
 
@@ -55,45 +91,10 @@ class CommsClient {
       return;
     }
 
-    if (message.cmd === 'get-current-zoom') {
-      this.pageInfo.requestCurrentZoom();
-    }
-
-    if (message.cmd === "set-ar") {
-      this.pageInfo.setAr({type: message.arg, ratio: message.customArg}, message.playing);
-    } else if (message.cmd === 'set-alignment') {
-      this.pageInfo.setVideoAlignment(message.arg, message.playing);
-      this.pageInfo.restoreAr();
-    } else if (message.cmd === "set-stretch") {
-      this.pageInfo.setStretchMode(message.arg, message.playing, message.customArg);
-    } else if (message.cmd === 'set-keyboard') {
-      this.pageInfo.setKeyboardShortcutsEnabled(message.arg)
-    } else if (message.cmd === "autoar-start") {
-      if (message.enabled !== false) {
-        this.pageInfo.initArDetection(message.playing);
-        this.pageInfo.startArDetection(message.playing);
-      } else {
-        this.pageInfo.stopArDetection(message.playing);
+    if (this.commands[message.cmd]) {
+      for (const c of this.commands[message.cmd]) {
+        c(message);
       }
-    } else if (message.cmd === "pause-processing") {
-      this.pageInfo.pauseProcessing(message.playing);
-    } else if (message.cmd === "resume-processing") {
-      // todo: autoArStatus
-      this.pageInfo.resumeProcessing(message.autoArStatus, message.playing);
-    } else if (message.cmd === 'set-zoom') {
-      this.pageInfo.setZoom(message.arg, true, message.playing);
-    } else if (message.cmd === 'change-zoom') {
-      this.pageInfo.zoomStep(message.arg, message.playing);
-    } else if (message.cmd === 'mark-player') {
-      this.pageInfo.markPlayer(message.name, message.color);
-    } else if (message.cmd === 'unmark-player') {
-      this.pageInfo.unmarkPlayer();
-    } else if (message.cmd === 'autoar-set-manual-tick') {
-      this.pageInfo.setManualTick(message.arg);
-    } else if (message.cmd === 'autoar-tick') {
-      this.pageInfo.tick();
-    } else if (message.cmd === 'set-ar-persistence') {
-      this.pageInfo.setArPersistence(message.arg);
     }
   }
 
