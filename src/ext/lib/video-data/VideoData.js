@@ -154,8 +154,12 @@ class VideoData {
           && this.isWithin(vh, (ph - (translateY * 2)), 2)
           && this.isWithin(vw, (pw - (translateX * 2)), 2)) {
       } else {
-        this.player.forceRefreshPlayerElement();
-        this.restoreAr();
+        if (this.player.forceDetectPlayerElementChange()) {
+          this.logger.log('info', 'debug', "Video dimensions changed. Triggering restoreAr()");
+          this.restoreAr();
+        } else {
+          this.logger.log('info', 'playerRescan', "Video dimensions didn't change.");
+        }
       }
       
     } catch(e) {
