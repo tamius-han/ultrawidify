@@ -52,23 +52,24 @@ class UW {
           },
           consoleOptions: {
             enabled: true, // if logging is enabled at all
-            // 'debug': true,
-            // 'init': true,
-            // 'settings': true,
-            // 'keyboard': true,
-            // 'mousemove': false,
-            // 'actionHandler': false,
-            // 'comms': false,
-            // 'playerDetect': false,
-            // 'resizer': true,
-            // 'scaler': true,
-            // 'stretcher': true,
-            // 'videoRescan': false,
-            // 'arDetect': true,
-            // 'arDetect_verbose': true,
+            'debug': true,
+            'init': true,
+            'settings': true,
+            'keyboard': true,
+            'mousemove': false,
+            'actionHandler': false,
+            'comms': false,
+            'playerDetect': false,
+            'resizer': true,
+            'scaler': true,
+            'stretcher': true,
+            'videoRescan': false,
+            'arDetect': true,
+            'arDetect_verbose': true,
           }
         };      
-        this.logger = new Logger(loggingOptions);
+        this.logger = new Logger();
+        await this.logger.init(loggingOptions);
         // await this.logger.init();  // not needed if logging options are provided at creation
       }
     } catch (e) {

@@ -31,13 +31,14 @@ class UWServer {
 
   async setup() {
     // logger is the first thing that goes up
-    this.logger = new Logger({
-        allowLogging: true,
-        logToFile: false,
-        logToConsole: true,
-        logAll: true,
-    });
-    await this.logger.init();
+    const loggingOptions = {
+      allowLogging: true,
+      logToFile: false,
+      logToConsole: true,
+      logAll: true,
+    };
+    this.logger = new Logger();
+    await this.logger.init(loggingOptions);
 
     this.settings = new Settings({logger: this.logger});
     await this.settings.init();
