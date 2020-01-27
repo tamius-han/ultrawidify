@@ -102,8 +102,6 @@ Browser-related stuff (please ensure this section is correct):
     loadLoggerSettings(conf) {
       this.loggingEnabled = conf.allowLogging;
       this.lastLoadedLoggerSettings = {
-        logToFile: conf.logToFile,
-        logToConsole: conf.logToConsole,
         fileOptions: conf.fileOptions,
         consoleOptions: conf.consoleOptions
       };
@@ -115,8 +113,6 @@ Browser-related stuff (please ensure this section is correct):
         const parsedSettings = JSON.parse(this.loggerSettings);
         Logger.saveConfig({
           allowLogging: allowLogging,
-          logToFile: parsedSettings.logToFile || false,
-          logToConsole: parsedSettings.logToConsole || false,
           fileOptions: parsedSettings.fileOptions || {},
           consoleOptions: parsedSettings.consoleOptions || {},
         });

@@ -33,8 +33,6 @@ class UWServer {
     // logger is the first thing that goes up
     const loggingOptions = {
       allowLogging: true,
-      logToFile: false,
-      logToConsole: true,
       logAll: true,
     };
     this.logger = new Logger();
