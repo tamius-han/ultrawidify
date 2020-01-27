@@ -3,22 +3,6 @@ import currentBrowser from '../conf/BrowserDetect';
 
 class Logger {
   constructor(conf) {
-    this.initLogger();
-    if (conf && process.env.CHANNEL === 'dev') {
-      this.conf = conf;
-    }
-    if (this.conf.consoleOptions === undefined) {
-      this.conf.consoleOptions = {};
-    }
-    if (!this.conf.fileOptions === undefined) {
-      this.conf.fileOptions = {};
-    }
-    this.isBackgroundPage = !!conf.isBackgroundPage;
-    this.history = [];
-    this.globalHistory = {};
-    this.startTime = performance.now();
-    this.temp_disable = false;
-    this.stopTime = conf.timeout ? performance.now() + (conf.timeout * 1000) : undefined;
   }
 
   static saveConfig(conf) {
@@ -66,7 +50,28 @@ class Logger {
     }
   }
 
-  initLogger() {
+  async init(conf) {
+    if (conf && process.env.CHANNEL === 'dev') {
+      this.conf = conf;
+    } else {
+      this.conf = await Logger.getConfig();
+    }
+    if (this.conf.consoleOptions === undefined) {
+      this.conf.consoleOptions = {};
+    }
+    if (!this.conf.fileOptions === undefined) {
+      this.conf.fileOptions = {};
+    }
+    // this is the only property that always gets passed via conf
+    // and doesn't get ignored even if the rest of the conf gets
+    // loaded from browser storage
+    this.isBackgroundPage = !!conf.isBackgroundPage;
+    this.history = [];
+    this.globalHistory = {};
+    this.startTime = performance.now();
+    this.temp_disable = false;
+    this.stopTime = conf.timeout ? performance.now() + (conf.timeout * 1000) : undefined;
+
     const ths = this;
     const br = currentBrowser.firefox ? browser : chrome;
     br.storage.onChanged.addListener( (changes, area) => {
@@ -81,14 +86,8 @@ class Logger {
       }
     });
 
-    this.init();
   }
 
-  async init() {
-    if (!this.conf) {
-      this.conf = await this.getSaved();
-    }
-  }
 
   clear() {
     this.log = [];
