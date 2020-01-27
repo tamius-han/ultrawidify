@@ -130,7 +130,8 @@ const config = {
       onBuildEnd: ['node scripts/remove-evals.js'],
     }),
     new webpack.DefinePlugin({
-      'process.env.BROWSER': JSON.stringify(process.env.BROWSER)
+      'process.env.BROWSER': JSON.stringify(process.env.BROWSER),
+      'process.env.CHANNEL': JSON.stringify(process.env.CHANNEL)
     })
   ],
 };
