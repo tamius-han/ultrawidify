@@ -215,7 +215,8 @@ class PlayerData {
   getPlayer() {
     const host = window.location.host;
     let element = this.video.parentNode;
-    const videoWidth = this.video.offsetWidth, videoHeight = this.video.offsetHeight;
+    const videoWidth = this.video.offsetWidth;
+    const videoHeight = this.video.offsetHeight;
     const elementQ = [];
     let scorePenalty = 0;
     let score;
@@ -350,6 +351,20 @@ class PlayerData {
 
   equalish(a,b, tolerance) {
     return a > b - tolerance && a < b + tolerance;
+  }
+
+  forceDetectPlayerElementChange() {
+    // save current dimensions before refreshing the player object
+    const oldDimensions = this.dimensions;
+    this.getPlayer();
+
+    // compare new player object dimensions with the old dimensions
+    // don't fucking trigger changes if nothing changed
+    if (this.dimensions.width === this.dimensions.width && this.dimensions.height === this.dimensions.height) {
+      return false;
+    } else {
+      return true;
+    }
   }
 
   forceRefreshPlayerElement() {
