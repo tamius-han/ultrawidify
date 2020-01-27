@@ -51,7 +51,6 @@ class Logger {
   }
 
   async init(conf) {
-    console.log("init logger with conf:", conf)
     if (conf && process.env.CHANNEL === 'dev') {
       this.conf = conf;
     } else {

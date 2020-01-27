@@ -63,7 +63,8 @@ class UW {
             'resizer': true,
             'scaler': true,
             'stretcher': true,
-            'videoRescan': false,
+            // 'videoRescan': true,
+            // 'playerRescan': true,
             'arDetect': true,
             'arDetect_verbose': true,
           }
@@ -85,8 +86,6 @@ class UW {
     if (this.comms) {
       this.comms.destroy();
     }
-  
-    
 
     if (!this.settings) {
       var ths = this;
@@ -94,8 +93,6 @@ class UW {
       await this.settings.init();
     }
   
-
-
     this.comms = new CommsClient('content-client-port', this.settings, this.logger);
   
     // če smo razširitev onemogočili v nastavitvah, ne naredimo ničesar

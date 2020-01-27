@@ -5,7 +5,7 @@
   "author": "Tamius Han <tamius.han@gmail.com>",
   "scripts": {
     "start": "cross-env HMR=true npm run build:dev -- --watch",
-    "build": "cross-env NODE_ENV=production BROWSER=firefox CHANNEEL=stable webpack --hide-modules",
+    "build": "cross-env NODE_ENV=production BROWSER=firefox CHANNEL=stable webpack --hide-modules",
     "build-chrome": "cross-env NODE_ENV=production BROWSER=chrome CHANNEL=stable webpack --hide-modules",
     "build-edge": "cross-env NODE_ENV=production BROWSER=edge CHANNEL=stable webpack --hide-modules",
     "build:dev": "cross-env NODE_ENV=development BROWSER=firefox CHANNEL=dev webpack --hide-modules",
