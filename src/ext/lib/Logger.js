@@ -46,11 +46,12 @@ class Logger {
     try {
       return JSON.parse(ret.uwLogger);
     } catch(e) {
-      return {logToFile: false, logToConsole: false, consoleOptions: {}, fileOptions: {}};
+      return {consoleOptions: {}, fileOptions: {}};
     }
   }
 
   async init(conf) {
+    console.log("init logger with conf:", conf)
     if (conf && process.env.CHANNEL === 'dev') {
       this.conf = conf;
     } else {
@@ -59,7 +60,7 @@ class Logger {
     if (this.conf.consoleOptions === undefined) {
       this.conf.consoleOptions = {};
     }
-    if (!this.conf.fileOptions === undefined) {
+    if (this.conf.fileOptions === undefined) {
       this.conf.fileOptions = {};
     }
     // this is the only property that always gets passed via conf
@@ -74,6 +75,7 @@ class Logger {
 
     const ths = this;
     const br = currentBrowser.firefox ? browser : chrome;
+
     br.storage.onChanged.addListener( (changes, area) => {
       if (Debug.debug && Debug.debugStorage) {
         console.log("[Logger::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
@@ -87,7 +89,6 @@ class Logger {
     });
 
   }
-
 
   clear() {
     this.log = [];
@@ -194,7 +195,7 @@ class Logger {
       return;
     }
     const error = new Error();
-    if (this.conf.logToFile) {
+    if (this.conf.fileOptions.enabled) {
       if (this.canLogFile(component)) {
         let ts = performance.now();
         if (ts <= this.history[this.history.length - 1]) {
@@ -208,9 +209,9 @@ class Logger {
         })
       }
     }
-    if (this.conf.logToConsole) {
+    if (this.conf.consoleOptions.enabled) {
       if (this.canLogConsole(component)) {
-        console.log(...message, error.stack);
+        console.log(...message, {stack: error});
       }
     }
   }
