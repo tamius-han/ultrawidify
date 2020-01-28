@@ -158,6 +158,7 @@ class Logger {
     stackInfo['aard'] = false;
     stackInfo['keyboard'] = false;
     stackInfo['popup'] = false;
+    stackInfo['mousemove'] = false;
 
     // here we check which source triggered the action. We know that only one of these
     // functions will appear in the trace at most once (and if more than one of these
@@ -179,33 +180,39 @@ class Logger {
       } else if (line.startsWith('processReceivedMessage')) {
         stackInfo['popup'] = true;
         break;
+      } else if (line.startsWith('handleMouseMove')) {
+        stackInfo['mousemove'] = true;
       }
     }
 
     return stackInfo;
   }
 
-  canLog(component, stackInfo) {
+  // test for blacklisted origin
+  isBlacklistedOrigin(stackInfo) {
+    if (stackInfo.periodicPlayerCheck) {
+      return !this.conf.allowBlacklistedOrigins?.periodicPlayerCheck;
+    }
+    if (stackInfo.periodicVideoStyleChangeCheck) {
+      return !this.conf.allowBlacklistedOrigins?.periodicVideoStyleChangeCheck;
+    }
+    if (stackInfo.mousemove) {
+      return !this.conf.allowBlacklistedOrigins?.handleMouseMove;
+    }
+
+    return false;
+  }
+
+  // NOTE: THIS FUNCTION IS NEVER USED INTERNALLY!
+  canLog(component) {
     if (!this.conf.allowLogging) {
       return false;
     }
 
-    // if we call this function from outside of logger,
-    // stackInfo may not be provided. Here's a fallback.
-    if (stackInfo === undefined) {
-      stackInfo = this.parseStack();
-    }
-
-    // check if log belongs to a blacklisted origin. If yes, then only allow content to be logged if the
-    // origin is explicitly whitelisted in the conf object
-    if (stackInfo) {
-      if (stackInfo.periodicPlayerCheck) {
-        return this.conf.allowBlacklistedOrigins && this.conf.allowBlacklistedOrigins.periodicPlayerCheck;
-      }
-      if (stackInfo.periodicVideoStyleChangeCheck) {
-        return this.conf.allowBlacklistedOrigins && this.conf.allowBlacklistedOrigins.periodicVideoStyleChangeCheck;
-      }
-    }
+    const stackInfo = this.parseStack();
+    if (this.isBlacklistedOrigin(stackInfo)) {
+      return false;
+    }    
 
     // if either of these two is true, we allow logging to happen (forbidden origins were checked above)
     return (this.canLogFile(component) || this.canLogConsole(component));
@@ -215,7 +222,8 @@ class Logger {
     if (!this.conf.fileOptions.enabled || this.temp_disable) {
       return false;
     }
-    if (performance.now() > this.stopTime) {
+    if (!this.stopTime || performance.now() > this.stopTime) {
+      this.logger.log('force', 'debug', '-----[ alloted time has run out. logging will stop ]-----');
       this.conf.allowLogging = false;
       return false;
     }
@@ -234,6 +242,7 @@ class Logger {
       return false;
     }
     if (performance.now() > this.stopTime) {
+      this.logger.log('force', 'debug', '-----[ alloted time has run out. logging will stop ]-----');
       this.conf.allowLogging = false;
       return false;
     }
@@ -251,15 +260,22 @@ class Logger {
   }
 
   // level is unused as of now, but this may change in the future
-  // levels: 'info', 'warn', 'error'
+  // levels: 'info', 'warn', 'error'.
+  // if level is `true` (bool), logging happens regardless of any other
+  // settings
   log(level, component, ...message) {
     if (!this.conf) {
       return;
     }
     const stackInfo = this.parseStack();
+
+    // don't log stuff from blacklisted origin (unless logger conf says otherwise)
+    if (this.isBlacklistedOrigin(stackInfo)) {
+      return;
+    }
     
     if (this.conf.fileOptions.enabled) {
-      if (this.canLogFile(component, stackInfo)) {
+      if (this.canLogFile(component) || level === 'force') {
         let ts = performance.now();
         if (ts <= this.history[this.history.length - 1]) {
           ts = this.history[this.history.length - 1] + 0.00001;
@@ -273,7 +289,7 @@ class Logger {
       }
     }
     if (this.conf.consoleOptions.enabled) {
-      if (this.canLogConsole(component, stackInfo)) {
+      if (this.canLogConsole(component) || level === 'force') {
         console.log(...message, {stack: stackInfo});
       }
     }

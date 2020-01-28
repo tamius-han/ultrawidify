@@ -71,8 +71,9 @@ class UW {
             // as well as logging to file. Exclusions happen because these functions — being periodic in
             // nature as well as doing a lot of work — usually clog console too fast without providing
             // any valuable info.
-            'periodicPlayerCheck': true,
-            'periodicVideoStyleChangeCheck': true,
+            // 'periodicPlayerCheck': true,
+            // 'periodicVideoStyleChangeCheck': true,
+            'handleMouseMove': false,
           }
         };
         this.logger = new Logger();
