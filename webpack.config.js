@@ -60,6 +60,11 @@ const config = {
           name: '[path][name].[ext]',
         },
       },
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        loader: "babel-loader"
+      },
     ],
   },
   plugins: [
