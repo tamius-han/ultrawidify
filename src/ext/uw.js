@@ -55,9 +55,9 @@ class UW {
             'settings': true,
             'keyboard': true,
             'mousemove': false,
-            'actionHandler': false,
-            'comms': false,
-            'playerDetect': false,
+            'actionHandler': true,
+            'comms': true,
+            'playerDetect': true,
             'resizer': true,
             'scaler': true,
             'stretcher': true,
@@ -65,8 +65,16 @@ class UW {
             // 'playerRescan': true,
             'arDetect': true,
             'arDetect_verbose': true,
+          },
+          allowBlacklistedOrigins: {
+            // logs that were called from functions named here will be excluded from both console logging
+            // as well as logging to file. Exclusions happen because these functions — being periodic in
+            // nature as well as doing a lot of work — usually clog console too fast without providing
+            // any valuable info.
+            'periodicPlayerCheck': true,
+            'periodicVideoStyleChangeCheck': true,
           }
-        };      
+        };
         this.logger = new Logger();
         await this.logger.init(loggingOptions);
         // await this.logger.init();  // not needed if logging options are provided at creation

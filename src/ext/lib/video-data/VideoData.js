@@ -71,8 +71,12 @@ class VideoData {
   async fallbackChangeDetection() {
     while (!this.destroyed && !this.invalid) {
       await this.sleep(500);
-      this.validateVideoOffsets();
+      this.doPeriodicFallbackChangeDetectionCheck();
     }
+  }
+
+  doPeriodicFallbackChangeDetectionCheck() {
+    this.validateVideoOffsets();
   }
 
   async sleep(timeout) {
