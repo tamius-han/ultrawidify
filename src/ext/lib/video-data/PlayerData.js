@@ -247,12 +247,9 @@ class PlayerData {
         this.logger.log('info', 'playerDetect', "\n\n[PlayerDetect::getPlayer()] element hierarchy (video->root)", logObj);
       }
 
-      if (this.settings.active.sites[host]
-          && this.settings.active.sites[host].DOM
-          && this.settings.active.sites[host].DOM.player
-          && this.settings.active.sites[host].DOM.player.manual) {
-        if (this.settings.active.sites[host].DOM.player.useRelativeAncestor
-            && this.settings.active.sites[host].DOM.player.videoAncestor) {
+      if (this.settings.active.sites[host]?.DOM?.player?.manual) {
+        if (this.settings.active.sites[host]?.DOM?.player?.useRelativeAncestor
+            && this.settings.active.sites[host]?.DOM?.player?.videoAncestor) {
 
           let parentsLeft = this.settings.active.sites[host].DOM.player.videoAncestor - 1;
           while (parentsLeft --> 0) {
@@ -262,7 +259,7 @@ class PlayerData {
             this.updatePlayerDimensions(element);
             return element;
           }
-        } else if (this.settings.active.sites[host].DOM.player.querySelectors) {
+        } else if (this.settings.active.sites[host]?.DOM?.player?.querySelectors) {
           const allSelectors = document.querySelectorAll(this.settings.active.sites[host].DOM.player.querySelectors);
           // actually we'll also score this branch in a similar way we score the regular, auto branch
           while (element) {
@@ -397,9 +394,7 @@ class PlayerData {
     // this 'if' is just here for debugging — real code starts later. It's safe to collapse and
     // ignore the contents of this if (unless we need to change how logging works)
     if (this.logger.canLog('debug')){
-      if (!this.dimensions) {
-
-      } else if (this.dimensions && this.dimensions.fullscreen){
+      if (this.dimensions?.fullscreen){
         if(! PlayerData.isFullScreen()){
           this.logger.log('info', 'debug', "[PlayerDetect] player size changed. reason: exited fullscreen");
         }
@@ -408,19 +403,17 @@ class PlayerData {
         this.logger.log('info', 'playerDetect', "[PlayerDetect] player element isn't defined");
       }
 
-      if ( this.element && this.dimensions &&
-           ( this.dimensions.width != this.element.offsetWidth ||
-             this.dimensions.height != this.element.offsetHeight )
+      if ( this.element &&
+           ( +this.dimensions?.width != +this.element?.offsetWidth ||
+             +this.dimensions?.height != +this.element?.offsetHeight )
       ) {
-        this.logger.log('info', 'debug', "[PlayerDetect] player size changed. reason: dimension change. Old dimensions?", this.dimensions.width, this.dimensions.height, "new dimensions:", this.element.offsetWidth, this.element.offsetHeight);
+        this.logger.log('info', 'debug', "[PlayerDetect] player size changed. reason: dimension change. Old dimensions?", this.dimensions?.width, this.dimensions?.height, "new dimensions:", this.element?.offsetWidth, this.element?.offsetHeight);
       }
     }
 
-
     // if size doesn't match, update & return true
-    if (!this.dimensions
-        || this.dimensions.width != this.element.offsetWidth 
-        || this.dimensions.height != this.element.offsetHeight ){
+    if (this.dimensions?.width != this.element.offsetWidth 
+        || this.dimensions?.height != this.element.offsetHeight ){
       
       const isFullScreen = PlayerData.isFullScreen();
 

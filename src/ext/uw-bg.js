@@ -179,16 +179,10 @@ class UWServer {
 
     // preveri za osirotele/zastarele vrednosti ter jih po potrebi izbriši
     // check for orphaned/outdated values and remove them if neccessary
-    if (this.videoTabs[sender.tab.id]) {
-      if (this.videoTabs[sender.tab.id].host != tabHostname) {
-        delete this.videoTabs[sender.tab.id]
-      } else {
-        if(this.videoTabs[sender.tab.id].frames[sender.frameId]) {
-          if (this.videoTabs[sender.tab.id].frames[sender.frameId].host != frameHostname) {
-            delete this.videoTabs[sender.tab.id].frames[sender.frameId];
-          }
-        }
-      }
+    if (this.videoTabs[sender.tab.id]?.host != tabHostname) {
+      delete this.videoTabs[sender.tab.id]
+    } else if(this.videoTabs[sender.tab.id]?.frames[sender.frameId]?.host != frameHostname) {
+      delete this.videoTabs[sender.tab.id].frames[sender.frameId];
     }
 
     if (this.videoTabs[sender.tab.id]) {
