@@ -127,14 +127,17 @@ class PlayerData {
     while (!this.halted) {
       await this.sleep(1000);
       try {
-        if (this.periodicallyRefreshPlayerElement) {
-          this.forceRefreshPlayerElement();
-        }
-        if (this.checkPlayerSizeChange()) {
-          this.videoData.resizer.restore();
-        }
+        this.doPeriodicPlayerElementChangeCheck();
       } catch (e) {
         console.error('[playerdata::legacycd] this message is pretty high on the list of messages you shouldnt see', e);
+      }
+    }
+  }
+
+  doPeriodicPlayerElementChangeCheck() {
+    if (this.periodicallyRefreshPlayerElement) {
+      if (this.forceDetectPlayerElementChange()) {
+        this.videoData.resizer.restore();
       }
     }
   }
@@ -232,6 +235,18 @@ class PlayerData {
         return;
       }
 
+      // log the entire hierarchy from <video> to root
+      if (this.logger.canLog('playerDetect')) {
+        const logObj = [];
+        logObj.push(`window size: ${window.innerWidth} x ${window.innerHeight}`);
+        let e = element;
+        while (e) {
+          logObj.push({offsetSize: {width: e.offsetWidth, height: e.offsetHeight}, clientSize: {width: e.clientWidth, height: e.clientHeight}, element: e});
+          e = e.parentNode;
+        }
+        this.logger.log('info', 'playerDetect', "\n\n[PlayerDetect::getPlayer()] element hierarchy (video->root)", logObj);
+      }
+
       if (this.settings.active.sites[host]
           && this.settings.active.sites[host].DOM
           && this.settings.active.sites[host].DOM.player
@@ -274,6 +289,9 @@ class PlayerData {
 
             element = element.parentNode;
           }
+
+          // log player candidates
+          this.logger.log('info', 'playerDetect', 'player detect via query selector: element queue and final element:', {queue: elementQ, bestCandidate: elementQ.length ? elementQ.sort( (a,b) => b.score - a.score)[0].element : 'n/a'});
 
           if (elementQ.length) {
             // return element with biggest score
@@ -332,9 +350,13 @@ class PlayerData {
         element = element.parentNode;
       }
 
+      // log player candidates
+      this.logger.log('info', 'playerDetect', 'player detect, auto/fallback: element queue and final element:', {queue: elementQ, bestCandidate: elementQ.length ? elementQ.sort( (a,b) => b.score - a.score)[0].element : 'n/a'});
+
       if (elementQ.length) {
         // return element with biggest score
         const playerElement = elementQ.sort( (a,b) => b.score - a.score)[0].element;
+        
         this.updatePlayerDimensions(playerElement);
         return playerElement;
       }

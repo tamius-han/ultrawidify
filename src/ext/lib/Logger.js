@@ -144,8 +144,71 @@ class Logger {
     this.temp_disable = false;
   }
 
-  canLog(component) {
-    return this.conf.allowLogging && (this.canLogFile(component) || this.canLogConsole(component));
+  parseStack() {
+    const trace = (new Error()).stack;
+
+    const stackInfo = {};
+    // we turn our stack into array and remove the "file::line" part of the trace,
+    // since that is useless because minification/webpack
+    stackInfo['stack'] = {trace: trace.split('\n').map(a => a.split('@')[0])};
+
+    // here's possible sources that led to this log entry
+    stackInfo['periodicPlayerCheck'] = false;
+    stackInfo['periodicVideoStyleChangeCheck'] = false;
+    stackInfo['aard'] = false;
+    stackInfo['keyboard'] = false;
+    stackInfo['popup'] = false;
+
+    // here we check which source triggered the action. We know that only one of these
+    // functions will appear in the trace at most once (and if more than one of these
+    // appears — e.g. frameCheck triggered by user toggling autodetection in popup —
+    // the most recent one will be the correct one 99% of the time)
+    for (const line of stackInfo.stack.trace) {
+      if (line.startsWith('doPeriodicPlayerElementChangeCheck')) {
+        stackInfo['periodicPlayerCheck'] = true;
+        break;
+      } else if (line.startsWith('doPeriodicFallbackChangeDetectionCheck')) {
+        stackInfo['periodicVideoStyleChangeCheck'] = true;
+        break;
+      } else if (line.startsWith('frameCheck')) {
+        stackInfo['aard'] = true;
+        break;
+      } else if (line.startsWith('execAction')) {
+        stackInfo['keyboard'] = true;
+        break;
+      } else if (line.startsWith('processReceivedMessage')) {
+        stackInfo['popup'] = true;
+        break;
+      }
+    }
+
+    return stackInfo;
+  }
+
+  canLog(component, stackInfo) {
+    if (!this.conf.allowLogging) {
+      return false;
+    }
+
+    // if we call this function from outside of logger,
+    // stackInfo may not be provided. Here's a fallback.
+    if (stackInfo === undefined) {
+      stackInfo = this.parseStack();
+    }
+
+    // check if log belongs to a blacklisted origin. If yes, then only allow content to be logged if the
+    // origin is explicitly whitelisted in the conf object
+    if (stackInfo) {
+      if (stackInfo.periodicPlayerCheck) {
+        return this.conf.allowBlacklistedOrigins && this.conf.allowBlacklistedOrigins.periodicPlayerCheck;
+      }
+      if (stackInfo.periodicVideoStyleChangeCheck) {
+        return this.conf.allowBlacklistedOrigins && this.conf.allowBlacklistedOrigins.periodicVideoStyleChangeCheck;
+      }
+    }
+
+    // if either of these two is true, we allow logging to happen (forbidden origins were checked above)
+    return (this.canLogFile(component) || this.canLogConsole(component));
   }
 
   canLogFile(component) {
@@ -193,9 +256,10 @@ class Logger {
     if (!this.conf) {
       return;
     }
-    const error = new Error();
+    const stackInfo = this.parseStack();
+    
     if (this.conf.fileOptions.enabled) {
-      if (this.canLogFile(component)) {
+      if (this.canLogFile(component, stackInfo)) {
         let ts = performance.now();
         if (ts <= this.history[this.history.length - 1]) {
           ts = this.history[this.history.length - 1] + 0.00001;
@@ -204,13 +268,13 @@ class Logger {
         this.history.push({
           ts: ts,
           message: JSON.stringify(message),
-          stack: error.stack,
+          stack: stackInfo,
         })
       }
     }
     if (this.conf.consoleOptions.enabled) {
-      if (this.canLogConsole(component)) {
-        console.log(...message, {stack: error});
+      if (this.canLogConsole(component, stackInfo)) {
+        console.log(...message, {stack: stackInfo});
       }
     }
   }
