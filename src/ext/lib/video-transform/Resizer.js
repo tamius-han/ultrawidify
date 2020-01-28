@@ -167,32 +167,30 @@ class Resizer {
         ar.type === AspectRatio.Reset && this.lastAr.type === AspectRatio.Initial) {
       // some sites do things that interfere with our site (and aspect ratio setting in general)
       // first, we check whether video contains anything we don't like
-      if (siteSettings && siteSettings.autoarPreventConditions) {
-        if (siteSettings.autoarPreventConditions.videoStyleString) {
-          const styleString = (this.video.getAttribute('style') || '').split(';');
-  
-          if (siteSettings.autoarPreventConditions.videoStyleString.containsProperty) {
-            const bannedProperties = siteSettings.autoarPreventConditions.videoStyleString.containsProperty;
-            for (const prop in bannedProperties) {
-              for (const s of styleString) {
-                if (s.trim().startsWith(prop)) {
-  
-                  // check if css property has a list of allowed values:
-                  if (bannedProperties[prop].allowedValues) {
-                    const styleValue = s.split(':')[1].trim();
-  
-                    // check if property value is on the list of allowed values
-                    // if it's not, we aren't allowed to start aard
-                    if (bannedProperties[prop].allowedValues.indexOf(styleValue) === -1) {
-                      this.logger.log('error', 'debug', "%c[Resizer::setAr] video style contains forbidden css property/value combo: ", "color: #900, background: #100", prop, " — we aren't allowed to start autoar.")
-                      return;
-                    }
-                  } else {
-                    // no allowed values, no problem. We have forbidden property
-                    // and this means aard can't start.
-                    this.logger.log('info', 'debug', "%c[Resizer::setAr] video style contains forbidden css property: ", "color: #900, background: #100", prop, " — we aren't allowed to start autoar.")
+      if (siteSettings?.autoarPreventConditions?.videoStyleString) {
+        const styleString = (this.video.getAttribute('style') || '').split(';');
+
+        if (siteSettings.autoarPreventConditions.videoStyleString.containsProperty) {
+          const bannedProperties = siteSettings.autoarPreventConditions.videoStyleString.containsProperty;
+          for (const prop in bannedProperties) {
+            for (const s of styleString) {
+              if (s.trim().startsWith(prop)) {
+
+                // check if css property has a list of allowed values:
+                if (bannedProperties[prop].allowedValues) {
+                  const styleValue = s.split(':')[1].trim();
+
+                  // check if property value is on the list of allowed values
+                  // if it's not, we aren't allowed to start aard
+                  if (bannedProperties[prop].allowedValues.indexOf(styleValue) === -1) {
+                    this.logger.log('error', 'debug', "%c[Resizer::setAr] video style contains forbidden css property/value combo: ", "color: #900, background: #100", prop, " — we aren't allowed to start autoar.")
                     return;
                   }
+                } else {
+                  // no allowed values, no problem. We have forbidden property
+                  // and this means aard can't start.
+                  this.logger.log('info', 'debug', "%c[Resizer::setAr] video style contains forbidden css property: ", "color: #900, background: #100", prop, " — we aren't allowed to start autoar.")
+                  return;
                 }
               }
             }
@@ -368,7 +366,7 @@ class Resizer {
       this.setAr({type: AspectRatio.Reset});
     }
     else {
-      if (this.lastAr && this.lastAr.ratio === null) {
+      if (this.lastAr?.ratio === null) {
         // if this is the case, we do nothing as we have the correct aspect ratio
         // throw "Last ar is null!"
         return;
@@ -378,7 +376,7 @@ class Resizer {
   }
 
   reset(){
-    this.setStretchMode(this.settings.active.sites[window.location.hostname] ? this.settings.active.sites[window.location.hostname].stretch : this.settings.active.sites['@global'].stretch);
+    this.setStretchMode(this.settings.active.sites[window.location.hostname]?.stretch ?? this.settings.active.sites['@global'].stretch);
     this.zoom.setZoom(1);
     this.resetPan();
     this.setAr({type: AspectRatio.Reset});
