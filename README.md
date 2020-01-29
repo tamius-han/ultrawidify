@@ -4,6 +4,8 @@
 
 [Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/), [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi), [Edge](https://github.com/tamius-han/ultrawidify#microsoft-edge) (Chromium-based only)
 
+There's also [nightly "builds"](https://stuff.lionsarch.tamius.net/ultrawidify/nightly/).
+
 ## TL;DR
 
 If you own an ultrawide monitor, you have probably noticed that sometimes videos aren't encoded properly — they feature black bars on all four sides. This could happen because someone was incompetent (note: as far as youtube is concerned, improperly rendered videos might be due to youtube's implementation of certain new features). The extension kinda fixes that by doing this:
@@ -49,9 +51,16 @@ I am not actively testing extension on other sites. You can try your luck and en
 You can download this extension from Firefox' and Chrome's extension stores:
 
 * [Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
-* [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
+* [Chrome, Opera, Chromium Edge](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
 
 Opera users and users of the new, Chromium-based Edge can install Ultrawidify from Chrome Web Store as well.
+
+### Nightly builds
+
+* Nightly builds can be downloaded [here](https://stuff.lionsarch.tamius.net/ultrawidify/) as an unpacked extension that can
+only be installed temporarily.
+
+If I did anything during the day, the nightly version will be sorta-built at whatever my VPS provider thinks is 4AM CE(S)T.
 
 # Beggathon (donations)
 
