@@ -6,6 +6,8 @@ class Logger {
   }
 
   static saveConfig(conf) {
+    console.info('Saving logger conf:', conf)
+
     if (currentBrowser.firefox || currentBrowser.edge) {
       return browser.storage.local.set( {'uwLogger': JSON.stringify(conf)});
     } else if (currentBrowser.chrome) {
@@ -39,11 +41,11 @@ class Logger {
       });
     }
 
-    if (Debug.debug && Debug.debugStorage) {
+    if (process.env.CHANNEL === 'dev') {
       try {
-        console.log("[Logger::getSaved] Got settings:", JSON.parse(ret.uwLogger));
+        console.info("[Logger::getSaved] Got settings:", JSON.parse(ret.uwLogger));
       } catch (e) {
-        console.log("[Logger::getSaved] No settings.")
+        console.info("[Logger::getSaved] No settings.")
       }
     }
 
@@ -55,7 +57,7 @@ class Logger {
   }
 
   async init(conf) {
-    if (conf && process.env.CHANNEL === 'dev') {
+    if (conf && process.env.CHANNEL === 'dev' && !conf.useConfFromStorage) {
       this.conf = conf;
     } else {
       this.conf = await Logger.getConfig();
@@ -74,7 +76,7 @@ class Logger {
     this.globalHistory = {};
     this.startTime = performance.now();
     this.temp_disable = false;
-    this.stopTime = conf.timeout ? performance.now() + (conf.timeout * 1000) : undefined;
+    this.stopTime = this.conf.timeout ? performance.now() + (this.conf.timeout * 1000) : undefined;
 
     const ths = this;
     const br = currentBrowser.firefox ? browser : chrome;
@@ -207,6 +209,17 @@ class Logger {
     return false;
   }
 
+  isTimeUp() {
+    if (this.stopTime && performance.now() > this.stopTime) {
+      if (this.conf.allowLogging) {
+        this.log('force', 'debug', '-----[ alloted time has run out. logging will stop ]-----');
+        this.conf.allowLogging = false;
+      }
+      return true;
+    }
+    return false;
+  }
+
   // NOTE: THIS FUNCTION IS NEVER USED INTERNALLY!
   canLog(component) {
     if (!this.conf.allowLogging) {
@@ -226,11 +239,6 @@ class Logger {
     if (!this.conf.fileOptions.enabled || this.temp_disable) {
       return false;
     }
-    if (!this.stopTime || performance.now() > this.stopTime) {
-      this.logger.log('force', 'debug', '-----[ alloted time has run out. logging will stop ]-----');
-      this.conf.allowLogging = false;
-      return false;
-    }
     if (Array.isArray(component) && component.length ) {
       for (const c of component) {
         if (this.conf.fileOptions[c]) {
@@ -242,12 +250,7 @@ class Logger {
     }
   }
   canLogConsole(component) {
-    if (!this.conf.consoleOptions.enabled || this.temp_disable) {
-      return false;
-    }
-    if (performance.now() > this.stopTime) {
-      this.logger.log('force', 'debug', '-----[ alloted time has run out. logging will stop ]-----');
-      this.conf.allowLogging = false;
+    if (!this.conf.consoleOptions?.enabled || this.temp_disable) {
       return false;
     }
     if (Array.isArray(component) && component.length) {
@@ -262,16 +265,48 @@ class Logger {
 
     return this.conf.logAll;
   }
+  
+  logToFile(message, stackInfo) {
+    let ts = performance.now();
+    if (ts <= this.history[this.history.length - 1]) {
+      ts = this.history[this.history.length - 1] + 0.00001;
+    }
+
+    this.history.push({
+      ts: ts,
+      message: JSON.stringify(message),
+      stack: stackInfo,
+    })
+  }
+
+  logToConsole(message, stackInfo) {
+    console.log(...message, {stack: stackInfo});
+  }
 
   // level is unused as of now, but this may change in the future
   // levels: 'info', 'warn', 'error'.
   // if level is `true` (bool), logging happens regardless of any other
   // settings
   log(level, component, ...message) {
-    if (!this.conf) {
+    if (!this.conf || !this.conf.allowLogging) {
       return;
     }
     const stackInfo = this.parseStack();
+    
+    // skip all checks if we force log
+    if (level === 'force') {
+      if (this.conf.fileOptions.enabled) {
+        this.logToFile(message, stackInfo);
+      }
+      if (this.conf.consoleOptions.enabled) {
+        this.logToConsole(message, stackInfo);
+      }
+      return; // don't check further — recursion-land ahead!
+    }
+
+    if (this.isTimeUp()) {
+      return;
+    }
 
     // don't log stuff from blacklisted origin (unless logger conf says otherwise)
     if (this.isBlacklistedOrigin(stackInfo)) {
@@ -279,25 +314,17 @@ class Logger {
     }
     
     if (this.conf.fileOptions.enabled) {
-      if (this.canLogFile(component) || level === 'force') {
-        let ts = performance.now();
-        if (ts <= this.history[this.history.length - 1]) {
-          ts = this.history[this.history.length - 1] + 0.00001;
-        }
-
-        this.history.push({
-          ts: ts,
-          message: JSON.stringify(message),
-          stack: stackInfo,
-        })
+      if (this.canLogFile(component)) {
+        this.logToFile(message, stackInfo);
       }
     }
     if (this.conf.consoleOptions.enabled) {
-      if (this.canLogConsole(component) || level === 'force') {
-        console.log(...message, {stack: stackInfo});
+      if (this.canLogConsole(component)) {
+        this.logToConsole(message, stackInfo);
       }
     }
   }
+
 
   // leaves a noticeable mark in the file log at the time it got triggered, as well as
   // at the intervals of 1s and .5s before the trigger moment
