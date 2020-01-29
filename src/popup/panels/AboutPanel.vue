@@ -63,7 +63,7 @@ export default {
   },
   data() {
     return {
-      loggingEnabled: undefined,
+      loggingEnabled: false,
       loggerSettings: '',
       loggerSettingsError: false,
       lastLoadedLoggerSettings: undefined,
@@ -105,7 +105,7 @@ Browser-related stuff (please ensure this section is correct):
         fileOptions: conf.fileOptions,
         consoleOptions: conf.consoleOptions
       };
-      this.loggerSettings = JSON.stringify(lastLoadedSettings, null, 2);
+      this.loggerSettings = JSON.stringify(lastLoadedLoggerSettings, null, 2);
     },
     async updateLoggerSettings(allowLogging) {
       this.loggingEnabled = allowLogging;
@@ -113,6 +113,7 @@ Browser-related stuff (please ensure this section is correct):
         const parsedSettings = JSON.parse(this.loggerSettings);
         Logger.saveConfig({
           allowLogging: allowLogging,
+          timeout: parsedSettings.timeout || undefined,
           fileOptions: parsedSettings.fileOptions || {},
           consoleOptions: parsedSettings.consoleOptions || {},
         });

@@ -44,12 +44,12 @@ class UW {
       if (!this.logger) {
         const loggingOptions = {
           allowLogging: true,
+          useConfFromStorage: true,
           fileOptions: {
-            enabled: false,
-            // really the same stuff as consoleOptions
+            enabled: false
           },
           consoleOptions: {
-            enabled: true, // if logging is enabled at all
+            enabled: true,
             'debug': true,
             'init': true,
             'settings': true,
@@ -64,16 +64,12 @@ class UW {
             // 'videoRescan': true,
             // 'playerRescan': true,
             'arDetect': true,
-            'arDetect_verbose': true,
+            'arDetect_verbose': true
           },
           allowBlacklistedOrigins: {
-            // logs that were called from functions named here will be excluded from both console logging
-            // as well as logging to file. Exclusions happen because these functions — being periodic in
-            // nature as well as doing a lot of work — usually clog console too fast without providing
-            // any valuable info.
-            // 'periodicPlayerCheck': true,
-            // 'periodicVideoStyleChangeCheck': true,
-            'handleMouseMove': false,
+            'periodicPlayerCheck': false,
+            'periodicVideoStyleChangeCheck': false,
+            'handleMouseMove': false
           }
         };
         this.logger = new Logger();
