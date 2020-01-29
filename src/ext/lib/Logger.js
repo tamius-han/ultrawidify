@@ -3,10 +3,17 @@ import currentBrowser from '../conf/BrowserDetect';
 
 class Logger {
   constructor(conf) {
+    this.onLogEndCallbacks = [];
+    this.history = [];
+    this.globalHistory = {};
+    this.isContentScript = false;
+    this.isBackgroundScript = true;
   }
 
   static saveConfig(conf) {
-    console.info('Saving logger conf:', conf)
+    if (process.env.CHANNEL === 'dev') {
+      console.info('Saving logger conf:', conf)
+    }
 
     if (currentBrowser.firefox || currentBrowser.edge) {
       return browser.storage.local.set( {'uwLogger': JSON.stringify(conf)});
@@ -20,7 +27,9 @@ class Logger {
     br.storage.onChanged.addListener( (changes, area) => {
       if (changes.uwLogger) {
         const newLoggerConf = JSON.parse(changes.uwLogger.newValue)
-        console.info('Logger settings reloaded. New conf:', conf);
+        if (process.env.CHANNEL === 'dev') {
+          console.info('Logger settings reloaded. New conf:', conf);
+        }
         callback(newLoggerConf);
       }
     });
@@ -57,6 +66,14 @@ class Logger {
   }
 
   async init(conf) {
+    // this is the only property that always gets passed via conf
+    // and doesn't get ignored even if the rest of the conf gets
+    // loaded from browser storage
+    if (conf.isContentScript) {
+      this.isContentScript = true;
+      this.isBackgroundScript = false;
+    }
+
     if (conf && process.env.CHANNEL === 'dev' && !conf.useConfFromStorage) {
       this.conf = conf;
     } else {
@@ -68,12 +85,7 @@ class Logger {
     if (this.conf.fileOptions === undefined) {
       this.conf.fileOptions = {};
     }
-    // this is the only property that always gets passed via conf
-    // and doesn't get ignored even if the rest of the conf gets
-    // loaded from browser storage
-    this.isBackgroundPage = !!conf.isBackgroundPage;
-    this.history = [];
-    this.globalHistory = {};
+    
     this.startTime = performance.now();
     this.temp_disable = false;
     this.stopTime = this.conf.timeout ? performance.now() + (this.conf.timeout * 1000) : undefined;
@@ -82,7 +94,7 @@ class Logger {
     const br = currentBrowser.firefox ? browser : chrome;
 
     br.storage.onChanged.addListener( (changes, area) => {
-      if (Debug.debug && Debug.debugStorage) {
+      if (process.env.CHANNEL === 'dev') {
         console.log("[Logger::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
         if (changes['uwLogger'] && changes['uwLogger'].newValue) {
           console.log("[Logger::<storage/on change>] new settings object:", JSON.parse(changes.uwLogger.newValue));
@@ -92,7 +104,6 @@ class Logger {
         ths.conf = JSON.parse(changes.uwLogger.newValue);
       }
     });
-
   }
 
   clear() {
@@ -148,6 +159,28 @@ class Logger {
   }
   resume() {
     this.temp_disable = false;
+  }
+
+  onLogEnd(callback) {
+    this.onLogEndCallbacks.push(callback);
+  }
+
+  // this should be used mostly in background page instance of logger, btw
+  addToGlobalHistory(key, log) {
+    this.globalHistory[key] = log;
+  }
+
+  finish() {
+    this.allowLogging = false;
+    if (!this.isBackgroundScript) {
+      const logJson = JSON.stringify(this.history);
+      for(const f of this.onLogEndCallbacks) {
+        f(logJson);
+      }
+    } else {
+      this.globalHistory['uw-bg'] = this.history;
+      return this.globalHistory;
+    }
   }
 
   parseStack() {
@@ -213,7 +246,7 @@ class Logger {
     if (this.stopTime && performance.now() > this.stopTime) {
       if (this.conf.allowLogging) {
         this.log('force', 'debug', '-----[ alloted time has run out. logging will stop ]-----');
-        this.conf.allowLogging = false;
+        this.finish();
       }
       return true;
     }
