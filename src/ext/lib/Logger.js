@@ -16,7 +16,11 @@ class Logger {
   static syncConfig(callback) {
     const br = currentBrowser.firefox ? browser : chrome;
     br.storage.onChanged.addListener( (changes, area) => {
-      callback(JSON.parse(changes.uwLogger.newValue));
+      if (changes.uwLogger) {
+        const newLoggerConf = JSON.parse(changes.uwLogger.newValue)
+        console.info('Logger settings reloaded. New conf:', conf);
+        callback(newLoggerConf);
+      }
     });
   }
 
