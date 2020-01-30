@@ -100,7 +100,7 @@ class Logger {
           console.log("[Logger::<storage/on change>] new settings object:", JSON.parse(changes.uwLogger.newValue));
         }
       }
-      if(changes['uwLogger'] && changes['uwLogger'].newValue) {
+      if (changes['uwLogger'] && changes['uwLogger'].newValue) {
         ths.conf = JSON.parse(changes.uwLogger.newValue);
       }
     });
@@ -166,20 +166,20 @@ class Logger {
   }
 
   // this should be used mostly in background page instance of logger, btw
+  // 
   addToGlobalHistory(key, log) {
     this.globalHistory[key] = log;
   }
 
   finish() {
-    this.allowLogging = false;
+    this.conf.allowLogging = false;
     if (!this.isBackgroundScript) {
       const logJson = JSON.stringify(this.history);
       for(const f of this.onLogEndCallbacks) {
         f(logJson);
       }
     } else {
-      this.globalHistory['uw-bg'] = this.history;
-      return this.globalHistory;
+      this.exportLogToFile();
     }
   }
 
@@ -324,6 +324,7 @@ class Logger {
     if (!this.conf || !this.conf.allowLogging) {
       return;
     }
+
     const stackInfo = this.parseStack();
     
     // skip all checks if we force log
@@ -411,6 +412,10 @@ class Logger {
 
   // export log file — only works on background page
   async exportLogToFile() {
+    // don't export log if logging to file is not enabled
+    if (!this.conf.fileOptions?.enabled) {
+      return;
+    }
     const exportObject = {'pageLogs': JSON.parse(JSON.stringify({...this.globalHistory}))};
     exportObject['logger-settings'] = this.conf.fileOptions;
     exportObject['backgroundLog'] = JSON.parse(JSON.stringify(this.history));
@@ -444,12 +449,7 @@ class Logger {
     }
   }
 
-  // used for instances where logging is limited to a single page and is timed
-  addLogAndExport(host, pageHistory) {
-    this.globalHistory = {};
-    this.globalHistory[host || 'no-host-provided'] = pageHistory;
-    this.exportLogToFile();
-  }
+ 
 }
 
 export default Logger;
