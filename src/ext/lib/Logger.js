@@ -1,5 +1,6 @@
-import Debug from '../conf/Debug';
 import currentBrowser from '../conf/BrowserDetect';
+import { decycle } from 'json-cyclic';
+import { sleep } from '../../common/js/utils';
 
 class Logger {
   constructor(conf) {
@@ -72,6 +73,9 @@ class Logger {
     if (conf.isContentScript) {
       this.isContentScript = true;
       this.isBackgroundScript = false;
+    } else if (conf.isBackgroundScript) {
+      this.isContentScript = false;
+      this.isBackgroundScript = true;
     }
 
     if (conf && process.env.CHANNEL === 'dev' && !conf.useConfFromStorage) {
@@ -169,12 +173,14 @@ class Logger {
   // 
   addToGlobalHistory(key, log) {
     this.globalHistory[key] = log;
+    this.log('info', 'debug', 'Added log for', key, 'to global history. Current history:', this.globalHistory);
   }
 
   finish() {
-    this.conf.allowLogging = false;
     if (!this.isBackgroundScript) {
-      const logJson = JSON.stringify(this.history);
+      this.conf.allowLogging = false;
+      const logJson = JSON.stringify(decycle(this.history));
+      this.log('force', 'debugr', 'Calling all log end callbacks. There\'s this many of them:', 1);
       for(const f of this.onLogEndCallbacks) {
         f(logJson);
       }
@@ -198,32 +204,51 @@ class Logger {
     stackInfo['keyboard'] = false;
     stackInfo['popup'] = false;
     stackInfo['mousemove'] = false;
+    stackInfo['exitLogs'] = false;
 
     // here we check which source triggered the action. We know that only one of these
     // functions will appear in the trace at most once (and if more than one of these
     // appears — e.g. frameCheck triggered by user toggling autodetection in popup —
     // the most recent one will be the correct one 99% of the time)
     for (const line of stackInfo.stack.trace) {
-      if (line.startsWith('doPeriodicPlayerElementChangeCheck')) {
+      if (line === 'doPeriodicPlayerElementChangeCheck') {
         stackInfo['periodicPlayerCheck'] = true;
         break;
-      } else if (line.startsWith('doPeriodicFallbackChangeDetectionCheck')) {
+      } else if (line === 'doPeriodicFallbackChangeDetectionCheck') {
         stackInfo['periodicVideoStyleChangeCheck'] = true;
         break;
-      } else if (line.startsWith('frameCheck')) {
+      } else if (line === 'frameCheck') {
         stackInfo['aard'] = true;
         break;
-      } else if (line.startsWith('execAction')) {
+      } else if (line === 'execAction') {
         stackInfo['keyboard'] = true;
         break;
-      } else if (line.startsWith('processReceivedMessage')) {
+      } else if (line === 'processReceivedMessage') {
         stackInfo['popup'] = true;
         break;
-      } else if (line.startsWith('handleMouseMove')) {
+      } else if (line === 'handleMouseMove') {
         stackInfo['mousemove'] = true;
+        break;
       }
     }
 
+    // exitLog overrides any other exclusions, so we look for it separately.
+    // we also remove some of the unnecessary messages ... except not cos 
+    // holy fuck, the performance
+    let i = stackInfo.stack.trace.length;
+    while (i --> 0) {
+      if (stackInfo.stack.trace[i] === 'finish') {
+        stackInfo['exitLogs'] = true;
+        break;
+      }
+      // if (stackInfo.stack.trace[i].indexOf('promise callback') !== -1
+      //     || stackInfo.stack.trace[i].indexOf('asyncGeneratorStep') !== -1
+      //     || stackInfo.stack.trace[i].indexOf('_asyncToGenerator') !== -1
+      //     || stackInfo.stack.trace[i].startsWith('_next')) {
+      //   stackInfo.stack.trace.splice(i,1);
+      // }
+    } 
+    
     return stackInfo;
   }
 
@@ -243,6 +268,10 @@ class Logger {
   }
 
   isTimeUp() {
+    // we don't do timeouts on background script
+    if (this.isBackgroundScript) {
+      return false;
+    }
     if (this.stopTime && performance.now() > this.stopTime) {
       if (this.conf.allowLogging) {
         this.log('force', 'debug', '-----[ alloted time has run out. logging will stop ]-----');
@@ -255,17 +284,18 @@ class Logger {
 
   // NOTE: THIS FUNCTION IS NEVER USED INTERNALLY!
   canLog(component) {
-    if (!this.conf.allowLogging) {
+    const stackInfo = this.parseStack();
+
+    if (!this.conf.allowLogging && !stackInfo.exitLogs) {
       return false;
     }
 
-    const stackInfo = this.parseStack();
     if (this.isBlacklistedOrigin(stackInfo)) {
       return false;
     }    
 
     // if either of these two is true, we allow logging to happen (forbidden origins were checked above)
-    return (this.canLogFile(component) || this.canLogConsole(component));
+    return (this.canLogFile(component) || this.canLogConsole(component) || stackInfo.exitLogs);
   }
 
   canLogFile(component) {
@@ -282,7 +312,8 @@ class Logger {
       return this.conf.fileOptions[component];
     }
   }
-  canLogConsole(component) {
+
+  canLogConsole(component, stackInfo) {
     if (!this.conf.consoleOptions?.enabled || this.temp_disable) {
       return false;
     }
@@ -307,13 +338,17 @@ class Logger {
 
     this.history.push({
       ts: ts,
-      message: JSON.stringify(message),
+      message: message,
       stack: stackInfo,
-    })
+    });
   }
 
   logToConsole(message, stackInfo) {
-    console.log(...message, {stack: stackInfo});
+    try {
+      console.log(...message, {stack: stackInfo});
+    } catch (e) {
+      console.error("Message too big to log. Error:", e, "stackinfo:", stackInfo);
+    }
   }
 
   // level is unused as of now, but this may change in the future
@@ -321,12 +356,12 @@ class Logger {
   // if level is `true` (bool), logging happens regardless of any other
   // settings
   log(level, component, ...message) {
-    if (!this.conf || !this.conf.allowLogging) {
+    const stackInfo = this.parseStack();
+
+    if (!this.conf || (!this.conf.allowLogging && !stackInfo.exitLogs)) {
       return;
     }
 
-    const stackInfo = this.parseStack();
-    
     // skip all checks if we force log
     if (level === 'force') {
       if (this.conf.fileOptions.enabled) {
@@ -338,7 +373,7 @@ class Logger {
       return; // don't check further — recursion-land ahead!
     }
 
-    if (this.isTimeUp()) {
+    if (this.isTimeUp() && !stackInfo.exitLogs) {
       return;
     }
 
@@ -348,12 +383,12 @@ class Logger {
     }
     
     if (this.conf.fileOptions.enabled) {
-      if (this.canLogFile(component)) {
+      if (this.canLogFile(component) || stackInfo.exitLogs) {
         this.logToFile(message, stackInfo);
       }
     }
     if (this.conf.consoleOptions.enabled) {
-      if (this.canLogConsole(component)) {
+      if (this.canLogConsole(component) || stackInfo.exitLogs) {
         this.logToConsole(message, stackInfo);
       }
     }
@@ -417,24 +452,36 @@ class Logger {
       return;
     }
     console.info("\n\n\n\n---------- Starting export of log to file ----------------");
+
+    const exportObject = {'pageLogs': JSON.stringify({...this.globalHistory})};
     exportObject['logger-settings'] = this.conf.fileOptions;
-    exportObject['backgroundLog'] = JSON.parse(JSON.stringify(this.history));
+    exportObject['backgroundLog'] = JSON.stringify(decycle(this.history));
     exportObject['popupLog'] = 'NOT IMPLEMENTED';
 
     console.info("[ ok ] ExportObject created");
+
+    const jsonString = JSON.stringify(exportObject);
+
     console.info("[info] json string for exportObject:", jsonString.length);
+
+    const blob = new Blob([jsonString], {type: 'application/json'});
+
     console.info("[ ok ] Blob created");
+
     const fileUrl = URL.createObjectURL(blob);
 
     console.info("[ ok ] fileUrl created");
+
     try {
       console.log("[info] inside try/catch block. BrowserDetect:", currentBrowser);
+      if (currentBrowser.firefox) {
         console.info("[info] we are using firefox");
         await browser.permissions.request({permissions: ['downloads']});
         console.info("[ ok ] download permissions ok");
         browser.downloads.download({saveAs: true, filename: 'extension-log.json', url: fileUrl});
-      } else if (BrowserDetect.chrome) {
+      } else if (currentBrowser.chrome) {
         console.info("[info] we are using chrome");
+
         const ths = this;
         
         chrome.permissions.request(
