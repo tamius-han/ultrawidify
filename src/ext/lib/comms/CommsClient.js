@@ -14,7 +14,14 @@ class CommsClient {
     }
 
     this.logger.onLogEnd(
-      (history) => this.port.postMessage({cmd: 'logging-stop-and-save', host: window.location.host, history})
+      (history) => {
+        this.logger.log('info', 'comms', 'Sending logging-stop-and-save to background script ...');
+        try {
+          this.port.postMessage({cmd: 'logging-stop-and-save', host: window.location.host, history})
+        } catch (e) {
+          this.logger.log('error', 'comms', 'Failed to send message to background script. Error:', e);
+        }
+      }
     );
 
     var ths = this;

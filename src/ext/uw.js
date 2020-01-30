@@ -43,6 +43,7 @@ class UW {
     try {
       if (!this.logger) {
         const loggingOptions = {
+          isContentScript: true,
           allowLogging: true,
           useConfFromStorage: true,
           fileOptions: {

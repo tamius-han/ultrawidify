@@ -416,19 +416,25 @@ class Logger {
     if (!this.conf.fileOptions?.enabled) {
       return;
     }
-    const exportObject = {'pageLogs': JSON.parse(JSON.stringify({...this.globalHistory}))};
+    console.info("\n\n\n\n---------- Starting export of log to file ----------------");
     exportObject['logger-settings'] = this.conf.fileOptions;
     exportObject['backgroundLog'] = JSON.parse(JSON.stringify(this.history));
     exportObject['popupLog'] = 'NOT IMPLEMENTED';
 
-    const blob = new Blob([JSON.stringify(exportObject)], {type: 'application/json'});
+    console.info("[ ok ] ExportObject created");
+    console.info("[info] json string for exportObject:", jsonString.length);
+    console.info("[ ok ] Blob created");
     const fileUrl = URL.createObjectURL(blob);
 
+    console.info("[ ok ] fileUrl created");
     try {
-      if (BrowserDetect.firefox) {
+      console.log("[info] inside try/catch block. BrowserDetect:", currentBrowser);
+        console.info("[info] we are using firefox");
         await browser.permissions.request({permissions: ['downloads']});
+        console.info("[ ok ] download permissions ok");
         browser.downloads.download({saveAs: true, filename: 'extension-log.json', url: fileUrl});
       } else if (BrowserDetect.chrome) {
+        console.info("[info] we are using chrome");
         const ths = this;
         
         chrome.permissions.request(
@@ -445,6 +451,7 @@ class Logger {
       this.globalHistory = {};
       this.history = [];
     } catch (e) {
+      console.error("[fail] error while saving file.", e);
       this.downloadPermissionError = true;
     }
   }
