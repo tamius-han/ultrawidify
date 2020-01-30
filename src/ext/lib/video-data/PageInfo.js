@@ -99,7 +99,7 @@ class PageInfo {
       playerStyleString = this.settings.active.sites[window.location.host].css;
       if (playerStyleString) {
         this.comms.sendMessage({
-          cmd: 'remove-css',
+          cmd: 'eject-css',
           cssString: playerStyleString
         });
       }
