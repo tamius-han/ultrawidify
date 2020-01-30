@@ -4,6 +4,7 @@ import BrowserDetect from '../../conf/BrowserDetect';
 class CommsClient {
   constructor(name, settings, logger) {
     this.logger = logger;
+
     if (BrowserDetect.firefox) {
       this.port = browser.runtime.connect({name: name});
     } else if (BrowserDetect.chrome) {
@@ -11,6 +12,10 @@ class CommsClient {
     } else if (BrowserDetect.edge) {
       this.port = browser.runtime.connect({name: name})
     }
+
+    this.logger.onLogEnd(
+      (history) => this.port.postMessage({cmd: 'logging-stop-and-save', host: window.location.host, history})
+    );
 
     var ths = this;
     this._listener = m => ths.processReceivedMessage(m);
@@ -175,6 +180,7 @@ class CommsClient {
     this.port.postMessage({cmd: "announce-zoom", zoom: scale});
     this.registerVideo()
   }
+
 
 }
 
