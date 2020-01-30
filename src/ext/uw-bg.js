@@ -32,8 +32,16 @@ class UWServer {
   async setup() {
     // logger is the first thing that goes up
     const loggingOptions = {
+      isBackgroundScript: true,
       allowLogging: true,
+      useConfFromStorage: true,
       logAll: true,
+      fileOptions: {
+        enabled: true,
+      },
+      consoleOptions: {
+        enabled: true
+      }
     };
     this.logger = new Logger();
     await this.logger.init(loggingOptions);
