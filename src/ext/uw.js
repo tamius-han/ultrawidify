@@ -7,6 +7,9 @@ import CommsClient from './lib/comms/CommsClient';
 import PageInfo from './lib/video-data/PageInfo';
 import Logger from './lib/Logger';
 
+import Vue from 'vue';
+import LoggerUi from '../csui/LoggerUi';
+
 if(Debug.debug){
   console.log("\n\n\n\n\n\n           ———    Sᴛλʀᴛɪɴɢ  Uʟᴛʀᴀᴡɪᴅɪꜰʏ    ———\n               <<   ʟᴏᴀᴅɪɴɢ ᴍᴀɪɴ ꜰɪʟᴇ   >>\n\n\n\n");
   try {
@@ -35,6 +38,7 @@ class UW {
   }
 
   async init(){
+    this.createUi();
     if (Debug.debug) {
       console.log("[uw::main] loading configuration ...");
     }
@@ -135,6 +139,28 @@ class UW {
     }
   
     
+  }
+
+  createUi() {
+    console.log("CREATING UI");
+    const random = Math.round(Math.random() * 69420);
+    const uwid = `uw-ui-root-${random}`;
+
+    const rootDiv = document.createElement('div');
+    rootDiv.setAttribute("style", "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999; background-color: #ff0000;");
+    rootDiv.setAttribute("id", uwid);
+
+    document.body.appendChild(rootDiv);
+
+    new Vue({
+      el: `#${uwid}`,
+      components: {
+        LoggerUi
+      },
+      render(h) {
+        return h('logger-ui');
+      }
+    })
   }
 }
 
