@@ -7,7 +7,13 @@ import CommsClient from './lib/comms/CommsClient';
 import PageInfo from './lib/video-data/PageInfo';
 import Logger from './lib/Logger';
 
+// vue dependency imports
 import Vue from 'vue';
+import Vuex from 'vuex';
+import VuexWebExtensions from 'vuex-webextensions';
+
+global.browser = require('webextension-polyfill');
+
 import LoggerUi from '../csui/LoggerUi';
 
 if(Debug.debug){
@@ -35,6 +41,7 @@ class UW {
     this.settings = undefined;
     this.actionHandler = undefined;
     this.logger = undefined;
+    this.store = {};
   }
 
   async init(){
@@ -77,7 +84,7 @@ class UW {
             'handleMouseMove': false
           }
         };
-        this.logger = new Logger();
+        this.logger = new Logger({vuexStore: this.store});
         await this.logger.init(loggingOptions);
         // await this.logger.init();  // not needed if logging options are provided at creation
       }
@@ -141,6 +148,33 @@ class UW {
     
   }
 
+  initVue() {
+    Vue.prototype.$browser = global.browser;
+    Vue.use(Vuex);
+    this.store = new Vuex.Store({
+      plugins: [VuexWebExtensions({
+        persistentStates: [
+          'uwLog'
+        ],
+      })],
+      state: {
+        uwLog: '',
+      },
+      mutations: {
+        'uw-set-log'(state, payload) {
+          console.info('setting state')
+          state['uwLog'] = payload;
+        }
+      },
+      actions: {
+        'uw-set-log' ({commit}, payload) {
+          console.info("comitting uw-set-log with payload", payload);
+          commit('uw-set-log', payload);
+        }
+      }
+    })
+  }
+
   createUi() {
     console.log("CREATING UI");
     const random = Math.round(Math.random() * 69420);
@@ -152,11 +186,13 @@ class UW {
 
     document.body.appendChild(rootDiv);
 
+   
     new Vue({
       el: `#${uwid}`,
       components: {
         LoggerUi
       },
+      store: this.store,
       render(h) {
         return h('logger-ui');
       }
@@ -165,4 +201,5 @@ class UW {
 }
 
 var main = new UW();
+main.initVue();
 main.init();

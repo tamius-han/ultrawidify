@@ -3,12 +3,14 @@ import { decycle } from 'json-cyclic';
 import { sleep } from '../../common/js/utils';
 
 class Logger {
-  constructor(conf) {
+  constructor(options) {
     this.onLogEndCallbacks = [];
     this.history = [];
     this.globalHistory = {};
     this.isContentScript = false;
     this.isBackgroundScript = true;
+
+    this.vuexStore = options?.vuexStore;
   }
 
   static saveConfig(conf) {
@@ -179,14 +181,15 @@ class Logger {
   finish() {
     if (!this.isBackgroundScript) {
       this.conf.allowLogging = false;
-      const logJson = JSON.stringify(decycle(this.history));
-      this.log('force', 'debugr', 'Calling all log end callbacks. There\'s this many of them:', 1);
-      for(const f of this.onLogEndCallbacks) {
-        f(logJson);
-      }
-    } else {
-      this.exportLogToFile();
+      // const logJson = JSON.stringify(decycle(this.history));
+      // this.log('force', 'debugr', 'Calling all log end callbacks. There\'s this many of them:', 1);
+      // for(const f of this.onLogEndCallbacks) {
+      //   f(logJson);
+      // }
+    // } else {
+      // this.exportLogToFile();
     }
+    this.saveToVuex();
   }
 
   parseStack() {
@@ -443,6 +446,29 @@ class Logger {
     } else {
       this.globalHistory[host][tabId || 'tab'][frameId || 'top'].push(...pageHistory);
     }
+  }
+
+  saveToVuex() {
+    console.info('[info] will attempt to save to vuex store.');
+    if (!this.conf?.fileOptions?.enabled || this.isBackgroundScript) {
+      console.info('[info] Logging to file is either disabled or we\'re not on the content script. Not saving.');
+      return;
+    }
+
+    if (!this.vuexStore) {
+      console.error("[info] No vue store. Log will not be exported.");
+      return;
+    }
+
+    console.info('[info] vuex store present. Parsing logs.');
+
+    const exportObject = {
+      pageLogs: JSON.stringify(decycle(this.history)),
+      backgroundLogs: JSON.stringify(decycle(this.globalHistory)),
+      loggerFileOptions: JSON.stringify(this.conf.fileOptions),
+    }
+
+    this.vuexStore.dispatch('uw-set-log', JSON.stringify(exportObject));
   }
 
   // export log file — only works on background page
