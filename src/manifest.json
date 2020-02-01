@@ -21,7 +21,10 @@
     "matches": ["*://*/*"],
     "js": [      
       "ext/uw.js" 
-    ], 
+    ],
+    "css": [
+      "ext/uw.css"
+    ],
     "all_frames": true
   }],
 
