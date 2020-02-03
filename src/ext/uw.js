@@ -41,11 +41,10 @@ class UW {
     this.settings = undefined;
     this.actionHandler = undefined;
     this.logger = undefined;
-    this.store = {};
+    this.vuexStore = {};
   }
 
   async init(){
-    this.createUi();
     if (Debug.debug) {
       console.log("[uw::main] loading configuration ...");
     }
@@ -84,9 +83,18 @@ class UW {
             'handleMouseMove': false
           }
         };
-        this.logger = new Logger({vuexStore: this.store});
+        this.logger = new Logger({vuexStore: this.vuexStore});
         await this.logger.init(loggingOptions);
-        // await this.logger.init();  // not needed if logging options are provided at creation
+
+        // show popup if logging to file is enabled
+        if (this.logger.isLoggingToFile()) {
+          console.info('[uw::init] Logging to file is enabled. Will show popup!');
+          try {
+            this.vuexStore.dispatch('uw-show-logger');
+          } catch (e) {
+            console.error('[uw::init] Failed to open popup!', e)
+          }
+        }
       }
     } catch (e) {
       console.error("logger init failed!", e)
@@ -109,6 +117,10 @@ class UW {
     }
   
     this.comms = new CommsClient('content-client-port', this.settings, this.logger);
+
+    // add showPopup, hidePopup listener to comms
+    this.comms.subscribe('show-logger', () => this.showLogger());
+    this.comms.subscribe('hide-logger', () => this.hideLogger());
   
     // če smo razširitev onemogočili v nastavitvah, ne naredimo ničesar
     // If extension is soft-disabled, don't do shit
@@ -144,38 +156,48 @@ class UW {
     } catch (e) {
       this.logger.log('error', 'debug', "[uw::init] FAILED TO START EXTENSION. Error:", e);
     }
-  
-    
   }
 
   initVue() {
     Vue.prototype.$browser = global.browser;
     Vue.use(Vuex);
-    this.store = new Vuex.Store({
+    this.vuexStore = new Vuex.Store({
       plugins: [VuexWebExtensions({
         persistentStates: [
-          'uwLog'
+          'uwLog',
+          'showLogger',
         ],
       })],
       state: {
         uwLog: '',
+        showLogger: false,
       },
       mutations: {
         'uw-set-log'(state, payload) {
-          console.info('setting state')
           state['uwLog'] = payload;
+        },
+        'uw-show-logger'(state) {
+          state['showLogger'] = true;
+        },
+        'uw-hide-logger'(state) {
+          state['showLogger'] = false;
         }
       },
       actions: {
         'uw-set-log' ({commit}, payload) {
-          console.info("comitting uw-set-log with payload", payload);
           commit('uw-set-log', payload);
+        },
+        'uw-show-logger'({commit}) {
+          commit('uw-show-logger');
+        },
+        'uw-hide-logger'({commit}) {
+          commit('uw-hide-logger');
         }
       }
     })
   }
 
-  createUi() {
+  initUi() {
     console.log("CREATING UI");
     const random = Math.round(Math.random() * 69420);
     const uwid = `uw-ui-root-${random}`;
@@ -192,14 +214,22 @@ class UW {
       components: {
         LoggerUi
       },
-      store: this.store,
+      store: this.vuexStore,
       render(h) {
         return h('logger-ui');
       }
     })
   }
+
+  showLogger() {
+    this.vuexStore.dispatch('uw-show-logger');
+  }
+  hideLogger() {
+    this.vuexStore.dispatch('uw-hide-logger');
+  }
 }
 
 var main = new UW();
 main.initVue();
+main.initUi();
 main.init();

@@ -1,8 +1,24 @@
 <template>
   <div v-if="showLoggerUi" class="root-window flex flex-column overflow-hidden">
     <div class="header">
-      <h1>{{header.header}}</h1>
-      <div>{{header.subheader}}</div>
+      <div class="header-top flex flex-row">
+        <div class="flex-grow">
+          <h1>{{header.header}}</h1>
+        </div>
+        <div class="button flex-noshrink button-header"
+            @click="hidePopup()"
+        >
+          Close
+        </div>
+        <!-- <div class="button flex-noshrink button-header"
+             @click="stopLogging()"
+        >
+          Stop logging
+        </div> -->
+      </div>
+      <div class="header-bottom">
+        <div>{{header.subheader}}</div>
+      </div>
     </div>
     <div class="content flex flex-row flex-grow overflow-hidden">
 
@@ -17,7 +33,7 @@
           <div ref="settingsEditArea"
             style="white-space: pre-wrap; border: 1px solid orange; padding: 10px;"
             class="monospace"
-            :class="{'jsonbg': !hasError, 'jsonbg-error': hasError}"
+            :class="{'jsonbg': !confHasError, 'jsonbg-error': confHasError}"
             contenteditable="true"
             @input="updateSettings"
           >{{parsedSettings}}</div>
@@ -29,15 +45,41 @@
         <div class="panel-top">
           <h2>Logger results</h2>
         </div>
-        <div class="panel-middle scrollable flex-grow">
-          <pre>
-            {{logStringified}}
-          </pre>
-        </div>
+        <template v-if="logStringified">
+          <div class="panel-middle scrollable flex-grow">
+            <pre>
+              {{logStringified}}
+            </pre>
+          </div>
+          <div class="flex-noshrink flex flex-row flex-end">
+            <div class="button">New log</div>
+            <div class="button">Export log</div>
+            <div class="button">Export & quit</div>
+          </div>
+        </template>
+        <template v-else>
+          <div class="panel-middle scrollable flex-grow">
+            <div v-if="!parsedSettings" class="text-center w100">
+              Please paste logger config into the text box to the left.
+              ←←←
+            </div>
+            <div v-else-if="confHasError" class="warn">
+              Logger configuration contains an error. Cannot start logging.
+            </div>
+            <div v-else-if="lastSettings && lastSettings.allowLogging && lastSettings.consoleOptions && lastSettings.consoleOptions.enabled">
+              Logging in progress ... 
+            </div>
+            <div v-else>
+              <div class="button">
+                Start logging
+              </div>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
     <div>
-      button row is here
+      button row is heres
     </div>
   </div>
 </template>
@@ -49,14 +91,14 @@ import Logger from '../ext/lib/Logger';
 export default {
   data() {
     return {
-      showLoggerUi: true,
+      showLoggerUi: false,
       header: {
         header: 'whoopsie daisy',
         subheader: 'you broke the header choosing script'
       },
       parsedSettings: '',
       lastSettings: {},
-      hasError: false,
+      confHasError: false,
       logStringified: '',
     }
   },
@@ -76,43 +118,50 @@ export default {
 
     this.lastSettings = await Logger.getConfig() || {};
     this.parsedSettings = JSON.stringify(this.lastSettings, null, 2) || '';
-
-    // this.$store.watch(
-    //   (state, getters) => {},
-    //   (newValue, oldValue) => {
-    //     console.log("$store.watch — updating from", oldValue, "to", newValue);
-    //   }
-    // )
   },
   computed: {
     ...mapState([
       'uwLog',
+      'showLogger'
     ]),
   },
   watch: {
     uwLog(newValue, oldValue)  {
-      console.log("updating status from", oldValue, "to", newValue);
       if (oldValue !== newValue) {
         this.logStringified = JSON.stringify(newValue, null, 2);
       }
+    },
+    showLogger(newValue) {
+      this.showLoggerUi = newValue;
     }
   },
   methods: {
     updateSettings(val) {
       try {
         // this.settings.active = JSON.parse(val.target.textContent);
-        this.hasError = false;
+        this.confHasError = false;
       } catch (e) {
-        this.hasError = true;
+        this.confHasError = true;
       }
     },
+    hidePopup() {
+      // this function only works as 'close' if logging has finished
+      if (this.logStringified) {
+        Logger.saveConfig({...this.lastSettings, allowLogging: false});
+      }
+      this.$store.dispatch('uw-hide-logger');
+    },
+    stopLogging() {
+      Logger.saveConfig({...this.lastSettings, allowLogging: false});
+      this.$store.dispatch('uw-hide-logger');
+    }
   }
 }
 </script>
 
 <style lang="scss" scoped>
-@import url('/res/css/colors.scss');
-@import url('/res/css/font/overpass.css');
+@import '../res/css/colors.scss';
+@import '../res/css/font/overpass.css';
 @import url('/res/css/font/overpass-mono.css');
 @import url('/res/css/common.scss');
 @import url('/res/css/flex.css');
@@ -124,11 +173,15 @@ export default {
   width: 90vw !important;
   height: 90vh !important;
   z-index: 999999 !important;
-  background-color: rgba(18,17,15,0.9) !important;
+  background-color: rgba( $page-background, 0.9) !important;
   color: #f1f1f1 !important;
   font-size: 14px !important;
 
   box-sizing: border-box !important;
+}
+
+div {
+  font-family: 'Overpass';
 }
 
 h1, h2 {
@@ -142,9 +195,19 @@ h2 {
 }
 
 .header {
-
-  * {
-    padding-left: 32px;
+  h1 {
+    margin-bottom: -0.20em;
+    margin-top: 0.0em;
+  }
+  .header-top, .header-bottom {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .header-top {
+    background-color: $popup-header-background !important;
+  }
+  .header-bottom {
+    font-size: 1.75em;
   }
 }
 .content {
@@ -177,18 +240,23 @@ h2 {
   overflow: hidden;
 }
 
+pre {
+  font-family: 'Overpass Mono';
+}
 
-.flex {
-  display: flex !important;
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-items: center;
+  padding-left: 2em;
+  padding-right: 2em;
 }
-.flex-column {
-  flex-flow: column !important;
+
+.button-header {
+  font-size: 2em;
+  padding-top: 0.1em;
+  padding-left: 1em;
+  padding-right: 1em;
 }
-.flex-row {
-  flex-flow: row !important;
-}
-.flex-noshrink {
-  flex-shrink: 0 !important;
-} 
 
 </style>
