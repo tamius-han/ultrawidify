@@ -244,7 +244,7 @@ class CommsServer {
   execCmd(message, portOrSender, sendResponse) {
     this.logger.log(
       'info', 'comms', '[CommsServer.js::execCmd] Received message', message,
-      ". Port/sender:", portOrSender, "sendResponse:", sendResponse, "\nThere is ", this.commands[message.cmd].length,
+      ". Port/sender:", portOrSender, "sendResponse:", sendResponse, "\nThere is ", this.commands[message.cmd]?.length ?? 0,
       " command(s) for action", message.cmd
     );
     for (const c of this.commands[message.cmd]) {
@@ -252,9 +252,7 @@ class CommsServer {
     }
   }
 
-  async processReceivedMessage(message, port){
-    this.logger.log('info', 'comms', "[CommsServer.js::processReceivedMessage] Received message from popup/content script!", message, "port", port, "\nsettings and server:", this.settings,this.server);
-
+  handleMessage(message, portOrSender, sendResponse) {
     if (message.forwardToContentScript) {
       this.logger.log('info', 'comms', "[CommsServer.js::processReceivedMessage] Message has 'forward to content script' flag set. Forwarding message as is. Message:", message);
       this.sendToFrame(message, message.targetTab, message.targetFrame);
@@ -271,23 +269,20 @@ class CommsServer {
       return;
     }
 
-    this.execCmd(message, port);
+    this.execCmd(message, portOrSender, sendResponse);
+  }
+
+  async processReceivedMessage(message, port){
+    this.logger.log('info', 'comms', "[CommsServer.js::processReceivedMessage] Received message from popup/content script!", message, "port", port);
+
+    this.handleMessage(message, port)
   }
 
   processReceivedMessage_nonpersistent(message, sender, sendResponse){
     this.logger.log('info', 'comms', "%c[CommsServer.js::processMessage_nonpersistent] Received message from background script!", "background-color: #11D; color: #aad", message, sender);
     
-    if (message.forwardToContentScript) {
-      this.logger.log('info', 'comms', "[CommsServer.js::processMessage_nonpersistent] Message has 'forward to content script' flag set. Forwarding message as is. Message:", message);
-      this.logger.log('info', 'comms', "[CommsServer.js::processMessage_nonpersistent] (btw we probably shouldn't be seeing this. This should prolly happen in persistent connection?");
-
-      this.sendToFrame(message, message.targetFrame);
-      return;
-    }
-
-    this.execCmd(message, sender, sendResponse);
+    this.handleMessage(message, sender, sendResponse);
   }
-
 }
 
 export default CommsServer;
