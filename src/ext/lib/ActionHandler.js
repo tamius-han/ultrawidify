@@ -109,7 +109,7 @@ class ActionHandler {
   }
 
   registerHandleMouse(videoData) {
-    this.logger.log('info', ['actionHandler', 'mousemove'], "[ActionHandler::registerHandleMouse] registering handle mouse for videodata:", videoData)
+    this.logger.log('info', ['actionHandler', 'mousemove'], "[ActionHandler::registerHandleMouse] registering handle mouse for videodata:", videoData.id)
 
     var ths = this;
     if (videoData.player && videoData.player.element) {
