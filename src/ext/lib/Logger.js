@@ -287,6 +287,10 @@ class Logger {
     return false;
   }
 
+  isLoggingToFile() {
+    return this.conf.allowLogging && this.conf.fileOptions?.enabled;
+  }
+
   // NOTE: THIS FUNCTION IS NEVER USED INTERNALLY!
   canLog(component) {
     const stackInfo = this.parseStack();
