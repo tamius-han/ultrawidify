@@ -128,17 +128,17 @@ class UW {
   
     try {
       this.pageInfo = new PageInfo(this.comms, this.settings, this.logger, extensionMode, isSiteDisabled);
-      this.logger.log('info', 'debug', "[uw.js::setup] pageInfo initialized. Here's the object:", this.pageInfo);
+      this.logger.log('info', 'debug', "[uw.js::setup] pageInfo initialized.");
       this.comms.setPageInfo(this.pageInfo);
   
-      this.logger.log('info', 'debug', "[uw.js::setup] will try to initate ActionHandler. Settings are:", this.settings, this.settings.active)
+      this.logger.log('info', 'debug', "[uw.js::setup] will try to initate ActionHandler.");
 
       // start action handler only if extension is enabled for this site
       if (!isSiteDisabled) {
         this.actionHandler = new ActionHandler(this.pageInfo);
         this.actionHandler.init();
         
-        this.logger.log('info', 'debug', "[uw.js::setup] ActionHandler initiated:", this.actionHandler);
+        this.logger.log('info', 'debug', "[uw.js::setup] ActionHandler initiated.");
       }
 
     } catch (e) {

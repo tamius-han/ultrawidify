@@ -81,7 +81,7 @@ class CommsClient {
 
     this.pageInfo = pageInfo;
 
-    this.logger.log('info', 'debug', `[CommsClient::setPageInfo] <${this.commsId}>`, "SETTING PAGEINFO —", this.pageInfo, this)
+    this.logger.log('info', 'debug', `[CommsClient::setPageInfo] <${this.commsId}>`, "setting pageinfo");
 
     var ths = this;
     this._listener = m => ths.processReceivedMessage(m);

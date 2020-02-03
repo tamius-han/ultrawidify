@@ -236,20 +236,22 @@ class Logger {
     }
 
     // exitLog overrides any other exclusions, so we look for it separately.
-    // we also remove some of the unnecessary messages ... except not cos 
-    // holy fuck, the performance
-    let i = stackInfo.stack.trace.length;
-    while (i --> 0) {
+    // we also remove some of the unnecessary messages to reduce log file size
+    for(let i = 0; i < stackInfo.stack.trace.length; i++) {
       if (stackInfo.stack.trace[i] === 'finish') {
         stackInfo['exitLogs'] = true;
         break;
       }
-      // if (stackInfo.stack.trace[i].indexOf('promise callback') !== -1
-      //     || stackInfo.stack.trace[i].indexOf('asyncGeneratorStep') !== -1
-      //     || stackInfo.stack.trace[i].indexOf('_asyncToGenerator') !== -1
-      //     || stackInfo.stack.trace[i].startsWith('_next')) {
-      //   stackInfo.stack.trace.splice(i,1);
-      // }
+
+      // if we hit one of these, we remove the rest of the array and call it a
+      // day. Chances are there's nothing of value past this point.
+      if (stackInfo.stack.trace[i].indexOf('promise callback') !== -1
+          || stackInfo.stack.trace[i].indexOf('asyncGeneratorStep') !== -1
+          || stackInfo.stack.trace[i].indexOf('_asyncToGenerator') !== -1
+          || stackInfo.stack.trace[i].startsWith('_next')) {
+        stackInfo.stack.trace.splice(i);
+        break;
+      }
     } 
     
     return stackInfo;
@@ -462,13 +464,27 @@ class Logger {
 
     console.info('[info] vuex store present. Parsing logs.');
 
-    const exportObject = {
-      pageLogs: JSON.stringify(decycle(this.history)),
-      backgroundLogs: JSON.stringify(decycle(this.globalHistory)),
-      loggerFileOptions: JSON.stringify(this.conf.fileOptions),
+    let exportObject; 
+    try {
+      exportObject = {
+        pageLogs: decycle(this.history),
+        backgroundLogs: decycle(this.globalHistory),
+        loggerFileOptions: this.conf.fileOptions,
+      }
+    } catch (e) {
+      console.error("[fail] error parsing logs!", e)
+      return;
     }
 
-    this.vuexStore.dispatch('uw-set-log', JSON.stringify(exportObject));
+    console.info('[info] Logs were parsed successfuly. Putting stuff to vuex ...');
+    try {
+      this.vuexStore.dispatch('uw-set-log', exportObject);
+    } catch (e) {
+      console.log("[fail] error saving to vuex", e);
+      return;
+    }
+
+    console.info('[info] Export object saved to vuex store.')
   }
 
   // export log file — only works on background page

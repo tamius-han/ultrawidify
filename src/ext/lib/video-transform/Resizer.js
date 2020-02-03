@@ -359,7 +359,7 @@ class Resizer {
   }
 
   restore() {
-    this.logger.log('info', 'debug', "[Resizer::restore] <rid:"+this.resizerId+"> attempting to restore aspect ratio. this & settings:", {'a_lastAr': this.lastAr, 'this': this, "settings": this.settings} );
+    this.logger.log('info', 'debug', "[Resizer::restore] <rid:"+this.resizerId+"> attempting to restore aspect ratio", {'a_lastAr': this.lastAr} );
     
     // this is true until we verify that css has actually been applied
     if(this.lastAr.type === AspectRatio.Initial){
@@ -462,7 +462,7 @@ class Resizer {
                     '\nplayer dimensions:    ', {w: this.conf.player.dimensions.width, h: this.conf.player.dimensions.height},
                     '\nvideo dimensions:     ', {w: this.conf.video.offsetWidth, h: this.conf.video.offsetHeight},
                     '\nstretch factors:      ', stretchFactors,
-                    '\npan & zoom:           ', this.pan, this.zoom,
+                    '\npan & zoom:           ', this.pan, this.zoom.scale,
                     '\nwdiff, hdiff:         ', wdiff, 'x', hdiff,
                     '\nwdiff, hdiffAfterZoom:', wdiffAfterZoom, 'x', hdiffAfterZoom, 
                     '\n\n---- data out ----\n',
