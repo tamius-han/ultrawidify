@@ -13,42 +13,29 @@
     </div>
     <div class="row">
       <span class="label">Swatter mode (logging)</span><br/>
-      <span class="info">
-        <small>
-          This requires 'download' permission. You will be prompted when saving file. Logger configuration may
-          attempt to automatically download the log after collecting relevant data. Logging will reload the tab
-          you're currently using. <b>Performance may be severely reduced while logging is active. Turn it on when
-          asked and then turn it off when you're done.</b>
-        </small>
-      </span>
-    </div>
-    <div class="row">
-      <b>Logger configuration:</b> <span v-if="loggerEnabled">ACTIVE!</span><br/>
-      <small v-if="loggerSettingsError"><b>Parsing settings failed — there is a problem with settings!</b></small>
-      <input type="textarea" v-model="loggerSettings"/>
     </div>
     <div class="flex flex-row">
       <ShortcutButton class="flex flex-grow button"
-                      label="Save settings & start logging"
+                      label="Show logger"
                       :active="loggingEnabled"
-                      @click.native="startLogging()"
+                      @click.native="showLogger()"
       ></ShortcutButton>
       <ShortcutButton class="flex flex-grow button"
                       label="Make a mark"
                       @click.native="sendMark()"
       ></ShortcutButton>
       <ShortcutButton class="flex flex-grow button"
-                      label="Stop logging"
-                      @click.native="stopLogging()"
+                      label="Hide logger"
+                      @click.native="hideLogger()"
       ></ShortcutButton>
     </div>
   </div>
 </template>
 
 <script>
+import Comms from '../../ext/lib/comms/Comms';
 import ShortcutButton from '../../common/components/ShortcutButton';
 import BrowserDetect from '../../ext/conf/BrowserDetect';
-import Logger from '../../ext/lib/Logger';
 
 export default {
   components: {
@@ -89,54 +76,31 @@ Browser-related stuff (please ensure this section is correct):
       );
     this.mailtoLink = `mailto:tamius.han@gmail.com?subject=%5BUltrawidify%5D%20ENTER%20SUMMARY%20OF%20YOUR%20ISSUE%20HERE&body=${messageTemplate}`;
     this.redditLink = `https://www.reddit.com/message/compose?to=xternal7&subject=[Ultrawidify]%20ENTER%20SUMMARY%20OF%20YOUR%20PROBLEM%20HERE&message=${messageTemplate}`;
-
-    const loggerSettingsAll = await Logger.getConfig();
-    
-    this.loadLoggerSettings(loggerSettingsAll);
-
-    // ensure that logger conf gets updated (in case of timed logger)
-    Logger.syncConfig(x => this.loadLoggerSettings(x));
-    
   },
   methods: {
-    loadLoggerSettings(conf) {
-      this.loggingEnabled = conf.allowLogging;
-      this.lastLoadedLoggerSettings = {
-        fileOptions: conf.fileOptions,
-        consoleOptions: conf.consoleOptions
-      };
-      this.loggerSettings = JSON.stringify(lastLoadedLoggerSettings, null, 2);
-    },
     async updateLoggerSettings(allowLogging) {
-      this.loggingEnabled = allowLogging;
-      if (allowLogging) {
-        const parsedSettings = JSON.parse(this.loggerSettings);
-        Logger.saveConfig({
-          allowLogging: allowLogging,
-          timeout: parsedSettings.timeout || undefined,
-          fileOptions: parsedSettings.fileOptions || {},
-          consoleOptions: parsedSettings.consoleOptions || {},
-        });
-      } else {
-        // we need to save logger settings because logging is triggered by allow logging
-        Logger.saveConfig({allowLogging: allowLogging, ...lastLoadedLoggerSettings});
-      }
+      // this.loggingEnabled = allowLogging;
+      // if (allowLogging) {
+      //   const parsedSettings = JSON.parse(this.loggerSettings);
+      //   Logger.saveConfig({
+      //     allowLogging: allowLogging,
+      //     timeout: parsedSettings.timeout || undefined,
+      //     fileOptions: parsedSettings.fileOptions || {},
+      //     consoleOptions: parsedSettings.consoleOptions || {},
+      //   });
+      // } else {
+      //   // we need to save logger settings because logging is triggered by allow logging
+      //   Logger.saveConfig({allowLogging: allowLogging, ...lastLoadedLoggerSettings});
+      // }
     },
-    startLogging() {
-      try {
-        JSON.parse(this.loggerSettings);
-        this.loggerSettingsError = false;
-        this.updateLoggerSettings(true);
-      } catch (e) {
-        console.error("Cannot parse logger config json!");
-        this.loggerSettingsError = true;
-      }
+    showLogger() {
+      Comms.sendMessage({cmd: 'show-logger', forwardToActive: true});
     },
     sendMark() {
 
     },
-    endLogging() {
-      updateLoggerSettings(false);
+    hideLogger() {
+      Comms.sendMessage({cmd: 'hide-logger', forwardToActive: true});
     }
   }
 }
