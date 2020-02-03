@@ -1,13 +1,13 @@
 <template>
-  <div v-if="showLoggerUi" class="root-window flex flex-column">
+  <div v-if="showLoggerUi" class="root-window flex flex-column overflow-hidden">
     <div class="header">
       <h1>{{header.header}}</h1>
       <div>{{header.subheader}}</div>
     </div>
-    <div class="content flex flex-row flex-grow">
+    <div class="content flex flex-row flex-grow overflow-hidden">
 
       <!-- LOGGER SETTINGS PANEL -->
-      <div class="settings-panel flex-column">
+      <div class="settings-panel flex flex-noshrink flex-column">
         <div class="panel-top">
           <h2>Logger configuration</h2>
           <p>Paste logger configuration in this box</p>
@@ -25,12 +25,14 @@
       </div>
 
       <!-- LOGGER OUTPUT/START LOGGING -->
-      <div class="results-panel">
+      <div class="results-panel flex flex-shrink flex-column overflow-hidden">
         <div class="panel-top">
           <h2>Logger results</h2>
         </div>
-        <div class="panel-middle scrollable">
-          {{logStringified}}
+        <div class="panel-middle scrollable flex-grow">
+          <pre>
+            {{logStringified}}
+          </pre>
         </div>
       </div>
     </div>
@@ -125,6 +127,8 @@ export default {
   background-color: rgba(18,17,15,0.9) !important;
   color: #f1f1f1 !important;
   font-size: 14px !important;
+
+  box-sizing: border-box !important;
 }
 
 h1, h2 {
@@ -144,14 +148,47 @@ h2 {
   }
 }
 .content {
+  box-sizing: border-box;
   padding: 8px 32px;
   width: 100%;
 }
 .settings-panel {
-  flex-grow: 2;
+  box-sizing: border-box;
+  padding-right: 8px;
+  flex-grow: 2 !important;
+  min-width: 30% !important;
+  flex-shrink: 0 !important;
+  height: inherit !important;
 }
 .results-panel {
-  flex-grow: 5;
+  box-sizing: border-box;
+  padding-left: 8px;
+  max-width: 70% !important;
+  flex-grow: 5 !important;
+  flex-shrink: 0 !important;
+  height: inherit !important;
 }
+
+.scrollable {
+  overflow: auto;
+}
+
+.overflow-hidden {
+  overflow: hidden;
+}
+
+
+.flex {
+  display: flex !important;
+}
+.flex-column {
+  flex-flow: column !important;
+}
+.flex-row {
+  flex-flow: row !important;
+}
+.flex-noshrink {
+  flex-shrink: 0 !important;
+} 
 
 </style>
