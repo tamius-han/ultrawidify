@@ -5,7 +5,7 @@ class Comms {
   static async sendMessage(message){
 
     if(BrowserDetect.firefox){
-      return browser.runtime.sendMessage(message)
+      return browser.runtime.sendMessage(message);
     } else {
       return new Promise((resolve, reject) => {
         try{
