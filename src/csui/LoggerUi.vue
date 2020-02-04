@@ -51,10 +51,22 @@
               {{logStringified}}
             </pre>
           </div>
-          <div class="flex-noshrink flex flex-row flex-end">
-            <div class="button">New log</div>
-            <div class="button">Export log</div>
-            <div class="button">Export & quit</div>
+          <div class="flex-noshrink flex flex-row flex-end p-t-025em">
+            <div class="button button-bar"
+                 @click="startLogging()"
+            >
+              New log
+            </div>
+            <div class="button button-bar"
+                 @click="exportLog()"
+            >
+              Export log
+            </div>
+            <div class="button button-bar button-primary"
+                 @click="exportAndQuit()"
+            >
+              Export & quit
+            </div>
           </div>
         </template>
         <template v-else>
@@ -66,11 +78,27 @@
             <div v-else-if="confHasError" class="warn">
               Logger configuration contains an error. Cannot start logging.
             </div>
-            <div v-else-if="lastSettings && lastSettings.allowLogging && lastSettings.consoleOptions && lastSettings.consoleOptions.enabled">
-              Logging in progress ... 
+            <div v-else-if="lastSettings && lastSettings.allowLogging && lastSettings.consoleOptions && lastSettings.consoleOptions.enabled"
+                 class="flex flex-column flex-center flex-cross-center w100 h100"
+            >
+              <p class="m-025em">
+                Logging in progress ...
+              </p>
+              <div class="button button-big button-primary"
+                   @click="stopLogging()"
+              >
+                Stop logging
+              </div>
+              <p v-if="lastSettings && lastSettings.timeout"
+                 class="m-025em"
+              >
+                ... or wait until logging ends.
+              </p>
             </div>
-            <div v-else>
-              <div class="button">
+            <div v-else class="flex flex-column flex-center flex-cross-center w100 h100">
+              <div class="button button-big button-primary"
+                   @click="startLogging()"
+              >
                 Start logging
               </div>
             </div>
@@ -78,15 +106,17 @@
         </template>
       </div>
     </div>
-    <div>
+    <!-- <div>
       button row is heres
-    </div>
+    </div> -->
   </div>
 </template>
 
 <script>
 import { mapState } from 'vuex';
 import Logger from '../ext/lib/Logger';
+import Comms from '../ext/lib/comms/Comms';
+import IO from '../common/js/IO';
 
 export default {
   data() {
@@ -128,11 +158,17 @@ export default {
   watch: {
     uwLog(newValue, oldValue)  {
       if (oldValue !== newValue) {
+        this.$store.dispatch('uw-show-logger');
         this.logStringified = JSON.stringify(newValue, null, 2);
       }
     },
-    showLogger(newValue) {
+    async showLogger(newValue) {
       this.showLoggerUi = newValue;
+
+      // update logger settings
+      if (newValue) {
+        this.lastSettings = await Logger.getConfig() || {};
+      }
     }
   },
   methods: {
@@ -144,16 +180,34 @@ export default {
         this.confHasError = true;
       }
     },
+    async startLogging(){
+      this.logStringified = undefined;
+      await Logger.saveConfig({...this.lastSettings, allowLogging: true});
+      window.location.reload();
+    },
     hidePopup() {
       // this function only works as 'close' if logging has finished
       if (this.logStringified) {
         Logger.saveConfig({...this.lastSettings, allowLogging: false});
+        this.logStringified = undefined;
       }
+      this.$store.dispatch('uw-hide-logger');
+    },
+    closePopupAndStopLogging() {
+      Logger.saveConfig({...this.lastSettings, allowLogging: false});
+      this.logStringified = undefined;
       this.$store.dispatch('uw-hide-logger');
     },
     stopLogging() {
       Logger.saveConfig({...this.lastSettings, allowLogging: false});
-      this.$store.dispatch('uw-hide-logger');
+    },
+    exportLog() {
+      IO.csStringToFile(this.logStringified);
+    },
+    exportAndQuit() {
+      this.exportLog();
+      this.logStringified = undefined;
+      this.closePopupAndStopLogging();
     }
   }
 }
@@ -244,12 +298,36 @@ pre {
   font-family: 'Overpass Mono';
 }
 
+.m-025em {
+  margin: 0.25em;
+}
+
+.p-t-025em {
+  padding-top: 0.25em;
+}
+
 .button {
   display: inline-flex;
   align-items: center;
   justify-items: center;
   padding-left: 2em;
   padding-right: 2em;
+}
+
+.button-primary {
+  background-color: $primary;
+  color: #fff;
+}
+
+.button-big {
+  font-size: 1.5em;
+  padding: 1.75em 3.25em;
+}
+
+.button-bar {
+  font-size: 1.25em;
+  padding: 0.25em 1.25em;
+  margin-left: 0.25em;
 }
 
 .button-header {
