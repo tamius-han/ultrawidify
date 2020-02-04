@@ -34,6 +34,7 @@
 
 .flex-center {
   align-content: center;
+  align-items: center;
 }
 
 .flex-end {
@@ -42,6 +43,7 @@
 
 .flex-cross-center {
   justify-content: center;
+  justify-items: center;
 }
 
 .flex-self-center {
