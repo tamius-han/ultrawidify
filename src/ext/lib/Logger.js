@@ -490,65 +490,6 @@ class Logger {
 
     console.info('[info] Export object saved to vuex store.')
   }
-
-  // export log file — only works on background page
-  async exportLogToFile() {
-    // don't export log if logging to file is not enabled
-    if (!this.conf.fileOptions?.enabled) {
-      return;
-    }
-    console.info("\n\n\n\n---------- Starting export of log to file ----------------");
-
-    const exportObject = {'pageLogs': JSON.stringify({...this.globalHistory})};
-    exportObject['logger-settings'] = this.conf.fileOptions;
-    exportObject['backgroundLog'] = JSON.stringify(decycle(this.history));
-    exportObject['popupLog'] = 'NOT IMPLEMENTED';
-
-    console.info("[ ok ] ExportObject created");
-
-    const jsonString = JSON.stringify(exportObject);
-
-    console.info("[info] json string for exportObject:", jsonString.length);
-
-    const blob = new Blob([jsonString], {type: 'application/json'});
-
-    console.info("[ ok ] Blob created");
-
-    const fileUrl = URL.createObjectURL(blob);
-
-    console.info("[ ok ] fileUrl created");
-
-    try {
-      console.log("[info] inside try/catch block. BrowserDetect:", currentBrowser);
-      if (currentBrowser.firefox) {
-        console.info("[info] we are using firefox");
-        await browser.permissions.request({permissions: ['downloads']});
-        console.info("[ ok ] download permissions ok");
-        browser.downloads.download({saveAs: true, filename: 'extension-log.json', url: fileUrl});
-      } else if (currentBrowser.chrome) {
-        console.info("[info] we are using chrome");
-
-        const ths = this;
-        
-        chrome.permissions.request(
-          {permissions: ['downloads']},
-          (granted) => {
-            if (granted) {
-              chrome.downloads.download({saveAs: true, filename: 'extension-log.json', url: fileUrl});
-            } else {
-              ths.downloadPermissionError = true
-            }
-          } 
-        )
-      }
-      this.globalHistory = {};
-      this.history = [];
-    } catch (e) {
-      console.error("[fail] error while saving file.", e);
-      this.downloadPermissionError = true;
-    }
-  }
-
 }
 
 export default Logger;
