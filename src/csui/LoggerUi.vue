@@ -24,29 +24,41 @@
 
       <!-- LOGGER SETTINGS PANEL -->
       <div class="settings-panel flex flex-noshrink flex-column">
-        <div class="panel-top">
+        <div class="panel-top flex-nogrow">
           <h2>Logger configuration</h2>
           <p>Paste logger configuration in this box</p>
         </div>
 
-        <div class="panel-middle">
+        <div class="panel-middle scrollable flex-grow p-t-025em">
           <div ref="settingsEditArea"
             style="white-space: pre-wrap; border: 1px solid orange; padding: 10px;"
-            class="monospace"
+            class="monospace h100"
             :class="{'jsonbg': !confHasError, 'jsonbg-error': confHasError}"
             contenteditable="true"
             @input="updateSettings"
-          >{{parsedSettings}}</div>
+          >
+            {{parsedSettings}}
+          </div>
+        </div>
+        <div class="flex-noshrink flex flex-row flex-cross-center p-t-025em">
+          <div class="button button-bar"
+               @click="restoreLoggerSettings()"
+          >
+            Revert logger config
+          </div>
         </div>
       </div>
 
       <!-- LOGGER OUTPUT/START LOGGING -->
       <div class="results-panel flex flex-shrink flex-column overflow-hidden">
-        <div class="panel-top">
+        <div class="panel-top flex-nogrow">
           <h2>Logger results</h2>
         </div>
         <template v-if="logStringified">
-          <div class="panel-middle scrollable flex-grow">
+          <div v-if="confHasError" class="warn">
+            Logger configuration contains an error. You can export current log, but you will be unable to record a new log.
+          </div>
+          <div class="panel-middle scrollable flex-grow p-t-025em">
             <pre>
               {{logStringified}}
             </pre>
@@ -146,8 +158,7 @@ export default {
 
     this.header = headerRotation[Math.floor(+Date.now() / (3600000*24)) % headerRotation.length] || this.header;
 
-    this.lastSettings = await Logger.getConfig() || {};
-    this.parsedSettings = JSON.stringify(this.lastSettings, null, 2) || '';
+    this.getLoggerSettings();
   },
   computed: {
     ...mapState([
@@ -165,20 +176,29 @@ export default {
     async showLogger(newValue) {
       this.showLoggerUi = newValue;
 
-      // update logger settings
+      // update logger settings (they could have changed while the popup was closed)
       if (newValue) {
-        this.lastSettings = await Logger.getConfig() || {};
+        this.getLoggerSettings();
       }
     }
   },
   methods: {
+    async getLoggerSettings() {
+      this.lastSettings = await Logger.getConfig() || {};
+      this.parsedSettings = JSON.stringify(this.lastSettings, null, 2) || '';
+    },
     updateSettings(val) {
       try {
-        // this.settings.active = JSON.parse(val.target.textContent);
+        this.parsedSettings = JSON.stringify(JSON.parse(val.target.textContent.trim()), null, 2);
+        // this.lastSettings = JSON.parse(val.target.textContent.trim());
         this.confHasError = false;
       } catch (e) {
         this.confHasError = true;
       }
+    },
+    restoreLoggerSettings() {
+      this.parsedSettings = JSON.stringify(this.lastSettings, null, 2);
+      this.confHasError = false;
     },
     async startLogging(){
       this.logStringified = undefined;
@@ -200,6 +220,7 @@ export default {
     },
     stopLogging() {
       Logger.saveConfig({...this.lastSettings, allowLogging: false});
+      this.lastSettings.allowLogging = false;
     },
     exportLog() {
       IO.csStringToFile(this.logStringified);
@@ -335,6 +356,13 @@ pre {
   padding-top: 0.1em;
   padding-left: 1em;
   padding-right: 1em;
+}
+
+.jsonbg {
+  background-color: #131313;
+}
+.jsonbg-error {
+  background-color: #884420;
 }
 
 </style>
