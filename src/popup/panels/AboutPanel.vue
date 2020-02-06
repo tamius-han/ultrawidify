@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="flex flex-column">
     <div class="row">
       <span class="label">Ultrawidify version:</span><br/> {{addonVersion}}
     </div>
@@ -14,6 +14,7 @@
     <div class="row">
       <span class="label">Swatter mode (logging)</span><br/>
     </div>
+    <div class="flex-grow"></div>
     <div class="flex flex-row">
       <ShortcutButton class="flex flex-grow button"
                       label="Show logger"
@@ -29,6 +30,7 @@
                       @click.native="hideLogger()"
       ></ShortcutButton>
     </div>
+    <div v-if="showEasterEgg">You've made plenty of marks, all in the wrong places!</div>
   </div>
 </template>
 
@@ -56,6 +58,7 @@ export default {
       lastLoadedLoggerSettings: undefined,
       mailtoLink: '',
       redditLink: '',
+      showEasterEgg: false,
     }
   },
   async created() {
@@ -97,7 +100,7 @@ Browser-related stuff (please ensure this section is correct):
       Comms.sendMessage({cmd: 'show-logger', forwardToActive: true});
     },
     sendMark() {
-
+      this.showEasterEgg = !this.showEasterEgg;
     },
     hideLogger() {
       Comms.sendMessage({cmd: 'hide-logger', forwardToActive: true});
