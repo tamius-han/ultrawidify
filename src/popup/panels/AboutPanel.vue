@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-column">
+  <div class="flex flex-column h100">
     <div class="row">
       <span class="label">Ultrawidify version:</span><br/> {{addonVersion}}
     </div>
@@ -11,10 +11,13 @@
         <li>PM me on <a target="_blank" :href="redditLink">reddit</a><br/></li>
       </ul>
     </div>
+
+    <div class="flex-grow"></div>
+
     <div class="row">
       <span class="label">Swatter mode (logging)</span><br/>
     </div>
-    <div class="flex-grow"></div>
+    <div v-if="showEasterEgg" class="center"><small>You've made plenty of marks, all in the wrong places!</small></div>
     <div class="flex flex-row">
       <ShortcutButton class="flex flex-grow button"
                       label="Show logger"
@@ -30,7 +33,6 @@
                       @click.native="hideLogger()"
       ></ShortcutButton>
     </div>
-    <div v-if="showEasterEgg">You've made plenty of marks, all in the wrong places!</div>
   </div>
 </template>
 
