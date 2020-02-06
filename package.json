@@ -1,7 +1,7 @@
 {
   "name": "ultravidify",
-  "version": "4.4.3",
-  "description": "Aspect ratio fixer for youtube that works around some people's disability to properly encode 21:9 (and sometimes, 16:9) videos.",
+  "version": "4.4.4",
+  "description": "Aspect ratio fixer for youtube and other sites, with automatic aspect ratio detection. Supports ultrawide and other ratios.",
   "author": "Tamius Han <tamius.han@gmail.com>",
   "scripts": {
     "start": "cross-env HMR=true npm run build:dev -- --watch",
