@@ -5,6 +5,8 @@
     <p class="label">4.4.4</p>
     <ul>
       <li>Tab detection in extension popup has been made more accurate</li>
+      <li>QoL: Added user-accessible logger (to make fixing sites I can't access a bit easier)</li>
+      <li>Changed links to reflect my github username change</li>
     </ul>
   </div>
 </template>
