@@ -191,14 +191,14 @@ export default {
     updateSettings(val) {
       try {
         this.parsedSettings = JSON.stringify(JSON.parse(val.target.textContent.trim()), null, 2);
-        // this.lastSettings = JSON.parse(val.target.textContent.trim());
+        this.lastSettings = JSON.parse(val.target.textContent.trim());
         this.confHasError = false;
       } catch (e) {
         this.confHasError = true;
       }
     },
     restoreLoggerSettings() {
-      this.parsedSettings = JSON.stringify(this.lastSettings, null, 2);
+      this.getLoggerSettings();
       this.confHasError = false;
     },
     async startLogging(){
