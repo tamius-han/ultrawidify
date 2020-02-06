@@ -96,7 +96,6 @@ class Logger {
     this.temp_disable = false;
     this.stopTime = this.conf.timeout ? performance.now() + (this.conf.timeout * 1000) : undefined;
 
-    const ths = this;
     const br = currentBrowser.firefox ? browser : chrome;
 
     br.storage.onChanged.addListener( (changes, area) => {
@@ -107,7 +106,11 @@ class Logger {
         }
       }
       if (changes['uwLogger'] && changes['uwLogger'].newValue) {
-        ths.conf = JSON.parse(changes.uwLogger.newValue);
+        const newConf = JSON.parse(changes.uwLogger.newValue);
+        if (this.isContentScript && this.conf.allowLogging && !newConf.allowLogging) {
+          this.saveToVuex();
+        }
+        this.conf = newConf;
       }
     });
   }
