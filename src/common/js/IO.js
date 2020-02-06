@@ -14,7 +14,7 @@ class IO {
     const a = document.createElement('a');
     a.style.display = 'none';
     a.href = fileUrl;
-    a.download = 'ultrawidify-log.json';
+    a.download = 'ultrawidify-log.log';
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(fileUrl);
