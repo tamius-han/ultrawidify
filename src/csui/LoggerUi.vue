@@ -238,9 +238,10 @@ export default {
 <style lang="scss" scoped>
 @import '../res/css/colors.scss';
 @import '../res/css/font/overpass.css';
-@import url('/res/css/font/overpass-mono.css');
-@import url('/res/css/common.scss');
-@import url('/res/css/flex.css');
+@import '../res/css/font/overpass-mono.css';
+@import '../res/css/common.scss';
+@import '../res/css/flex.css';
+
 
 .root-window {
   position: fixed !important;
