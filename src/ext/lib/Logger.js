@@ -1,6 +1,5 @@
 import currentBrowser from '../conf/BrowserDetect';
 import { decycle } from 'json-cyclic';
-import { sleep } from '../../common/js/utils';
 
 class Logger {
   constructor(options) {
@@ -376,10 +375,10 @@ class Logger {
 
     // skip all checks if we force log
     if (level === 'force') {
-      if (this.conf.fileOptions.enabled) {
+      if (this.conf.fileOptions?.enabled) {
         this.logToFile(message, stackInfo);
       }
-      if (this.conf.consoleOptions.enabled) {
+      if (this.conf.consoleOptions?.enabled) {
         this.logToConsole(message, stackInfo);
       }
       return; // don't check further — recursion-land ahead!
@@ -394,12 +393,12 @@ class Logger {
       return;
     }
     
-    if (this.conf.fileOptions.enabled) {
+    if (this.conf.fileOptions?.enabled) {
       if (this.canLogFile(component) || stackInfo.exitLogs) {
         this.logToFile(message, stackInfo);
       }
     }
-    if (this.conf.consoleOptions.enabled) {
+    if (this.conf.consoleOptions?.enabled) {
       if (this.canLogConsole(component) || stackInfo.exitLogs) {
         this.logToConsole(message, stackInfo);
       }
