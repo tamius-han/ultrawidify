@@ -5,6 +5,7 @@
 ### Plans for the future
 
 * WebGL
+* Native builds for Chromium Edge and Opera
 * Settings page looks ugly af right now. Maybe fix it some time later
 * other bug fixes
 
@@ -12,11 +13,13 @@ QoL improvements for me:
 
 * logging: allow to enable logging at will and export said logs to a file
 
-### v4.4.4
+### v4.4.4 (current)
 
 * Tab detection in extension popup has been made more accurate
+* QoL: Added user-accessible logger (to make fixing sites I can't access a bit easier)
+* Changed links to reflect my github username change
 
-### v4.4.3 (Current)
+### v4.4.3
 
 * Fixed conf patch for disney+ (hopefully) (v4.4.3.1: but for real)
 * `Settings.save()` adds missing values to site config when saving extension configuration.
