@@ -8,7 +8,8 @@
         <div class="button flex-noshrink button-header"
             @click="hidePopup()"
         >
-          Close
+          <template v-if="logStringified">Finish logging</template>
+          <template v-else>Hide popup</template>
         </div>
         <!-- <div class="button flex-noshrink button-header"
              @click="stopLogging()"
@@ -77,7 +78,7 @@
             <div class="button button-bar button-primary"
                  @click="exportAndQuit()"
             >
-              Export & quit
+              Export & finish
             </div>
           </div>
         </template>
