@@ -17,7 +17,7 @@ const config = {
     'options/options': './options/options.js',
   },
   output: {
-    path: __dirname + '/dist',
+    path: __dirname + `/dist-${process.node.BROWSER == 'firefox' ? 'ff' : process.node.BROWSER}`,
     filename: '[name].js',
   },
   resolve: {
