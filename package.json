@@ -28,6 +28,7 @@
   "dependencies": {
     "@types/core-js": "^2.5.0",
     "@types/es6-promise": "^3.3.0",
+    "concurrently": "^5.1.0",
     "fs-extra": "^7.0.1",
     "json-cyclic": "0.0.3",
     "vue": "^2.6.11",
