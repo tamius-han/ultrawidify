@@ -14,16 +14,9 @@
     "build-testing-chrome": "cross-env NODE_ENV=development BROWSER=chrome CHANNEL=testing webpack --hide-modules",
     "build-nightly-chrome": "cross-env NODE_ENV=development BROWSER=chrome CHANNEL=nightly webpack --hide-modules",
     "build-chrome:dev": "cross-env NODE_ENV=development BROWSER=chrome webpack --hide-modules",
-    "build-edge:dev": "cross-env NODE_ENV=development BROWSER=edge webpack --hide-modules",
     "build-all": "rm ./dist-zip/uw-amo-source.zip; mv ./dist-zip/*.zip ./dist-zip/old/; npm run build; node scripts/build-zip.js ff; npm run build-chrome; node scripts/build-zip.js chrome; ./scripts/prepare-amo-source.sh",
     "build-zip": "node scripts/build-zip.js",
-    "dev": "npm run build:dev -- --watch",
-    "watch": "npm run build:dev -- --watch",
-    "watch-chrome": "npm run build-chrome -- --watch",
-    "watch-edge": "npm run build-edge -- --watch",
-    "watch:dev": "cross-env HMR=true npm run build:dev -- --watch",
-    "watch-chrome:dev": "cross-env HMR=true npm run build-chrome:dev -- --watch",
-    "watch-edge:dev": "cross-env HMR=true npm run build-edge:dev -- --watch"
+    "dev": "concurrently \"cross-env NODE_ENV=development BROWSER=firefox CHANNEL=dev webpack --hide-modules\" \"cross-env NODE_ENV=development BROWSER=chrome CHANNEL=dev webpack --hide-modules\""
   },
   "dependencies": {
     "@types/core-js": "^2.5.0",
