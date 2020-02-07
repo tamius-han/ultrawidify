@@ -4,8 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const archiver = require('archiver');
 
-const extractExtensionData = () => {
-  const extPackageJson = require('../dist/manifest.json');
+const extractExtensionData = (browserPostfix) => {
+  const extPackageJson = require(`../dist-${browserPostfix}/manifest.json`);
 
   return {
     name: extPackageJson.name,
@@ -39,13 +39,13 @@ const buildZip = (src, dist, zipFilename) => {
 const main = () => {
   const browser = process.argv[2];
   const testingOrNightly = process.argv[3];
-  let distDir;
+  let browserPostfix;
   if (browser == 'firefox') {
-    distDir = '../dist-ff';
+    browserPostfix = 'ff';
   } else {
-    distDir = `../dist-${browser}`
+    browserPostfix = browser;
   }
-  const destDir = path.join(__dirname, distDir);
+  const destDir = path.join(__dirname, `../dist-${browserPostfix}`);
   const zipDir = path.join(__dirname, '../dist-zip'); 
   const {name, version} = extractExtensionData();
 

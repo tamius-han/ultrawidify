@@ -11,7 +11,7 @@
             "port":6000,
             "reAttach": true,
             "addonType": "webExtension",
-            "addonPath": "${workspaceFolder}/dist",
+            "addonPath": "${workspaceFolder}/dist-ff",
         }
     ],
     "firefox": {
