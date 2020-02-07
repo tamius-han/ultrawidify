@@ -138,6 +138,11 @@ class CommsServer {
 
   async getCurrentTabHostname() {
     const activeTab = await this._getActiveTab();
+
+    if (!activeTab || activeTab.length < 1) {
+      this.logger.log('warn', 'comms', 'There is no active tab for some reason. activeTab:', activeTab);
+    }
+
     const url = activeTab[0].url;
 
     var hostname;
@@ -180,11 +185,11 @@ class CommsServer {
     this.logger.log('info', 'comms', `%c[CommsServer::sendToFrame] attempting to send message to tab ${tab}, frame ${frame}`, "background: #dda; color: #11D", message);
 
     if (isNaN(tab)) {
-      if (tab === '__playing') {
+      if (frame === '__playing') {
         message['playing'] = true;
         this.sendToAll(message);
         return;
-      } else if (tab === '__all') {
+      } else if (frame === '__all') {
         this.sendToAll(message);
         return;
       }
