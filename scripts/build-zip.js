@@ -47,7 +47,7 @@ const main = () => {
   }
   const destDir = path.join(__dirname, `../dist-${browserPostfix}`);
   const zipDir = path.join(__dirname, '../dist-zip'); 
-  const {name, version} = extractExtensionData();
+  const {name, version} = extractExtensionData(browserPostfix);
 
   // collapse spaces and dashes into single dash
   const baseFilename = `${name.replace(/[ -]+/g, '-')}-${version}`;
