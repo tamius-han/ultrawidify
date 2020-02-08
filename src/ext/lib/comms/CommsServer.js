@@ -92,7 +92,6 @@ class CommsServer {
         () => {
           this.settings.active.sites['@global'].autoar = "blacklist";
           this.settings.save();
-          this.sendToAll({cmd: "reload-settings", sender: "uwbg"})
           this.logger.log('info', 'comms', "[uw-bg] autoar set to enabled (blacklist). evidenz:", this.settings.active);
         }
       ],
@@ -105,7 +104,6 @@ class CommsServer {
             this.settings.active.arDetect.disabledReason = 'User disabled';
           }
           this.settings.save();
-          this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
           this.logger.log('info', 'comms', "[uw-bg] autoar set to disabled. evidenz:", this.settings.active);
         }
       ],
@@ -117,7 +115,6 @@ class CommsServer {
           var timeout = message.timeout < 4 ? 4 : message.timeout;
           this.settings.active.arDetect.timer_playing = timeout;
           this.settings.save();
-          this.sendToAll({cmd: 'reload-settings', newConf: this.settings.active});
         }
       ],
       'logging-stop-and-save': [  // TODO: possibly never used/superseded — check
