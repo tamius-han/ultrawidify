@@ -18,6 +18,8 @@ QoL improvements for me:
 * Tab detection in extension popup has been made more accurate
 * QoL: Added user-accessible logger (to make fixing sites I can't access a bit easier)
 * Changed links to reflect my github username change
+* **[4.4.4.1]** Fix broken extension popup.
+* **[4.4.4.1]** Fix global/site settings not getting applied immediately/only getting applied after page reload.
 
 ### v4.4.3
 
