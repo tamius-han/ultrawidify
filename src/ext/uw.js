@@ -44,6 +44,11 @@ class UW {
     this.vuexStore = {};
   }
 
+  reloadSettings() {
+    this.logger.log('info', 'debug', 'Things happened in the popup. Will reload extension settings.');
+    this.init();
+  }
+
   async init(){
     if (Debug.debug) {
       console.log("[uw::main] loading configuration ...");
@@ -112,7 +117,10 @@ class UW {
 
     if (!this.settings) {
       var ths = this;
-      this.settings = new Settings({updateCallback: (s) => {console.log("settings callback — ", s); ths.init()}, logger: this.logger});
+      this.settings = new Settings({
+        onSettingsChanged: () => this.reloadSettings(),
+        logger: this.logger
+      });
       await this.settings.init();
     }
   
