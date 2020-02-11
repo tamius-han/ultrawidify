@@ -3,7 +3,7 @@
 const path = require('path');
 const fs = require('fs');
 
-const BUNDLE_DIR = path.join(__dirname, '../dist');
+const BUNDLE_DIR = path.join(__dirname, `../dist-${process.env.BROWSER === 'firefox' ? 'ff' : process.env.BROWSER}`);
 const bundles = [
   'popup/popup.js',
   'options/options.js',

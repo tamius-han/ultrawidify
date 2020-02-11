@@ -4,12 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const archiver = require('archiver');
 
-const DEST_DIR = path.join(__dirname, '../dist');
-const DEST_ZIP_DIR = path.join(__dirname, '../dist-zip'); 
-
-
-const extractExtensionData = () => {
-  const extPackageJson = require('../dist/manifest.json');
+const extractExtensionData = (browserPostfix) => {
+  const extPackageJson = require(`../dist-${browserPostfix}/manifest.json`);
 
   return {
     name: extPackageJson.name,
@@ -43,8 +39,15 @@ const buildZip = (src, dist, zipFilename) => {
 const main = () => {
   const browser = process.argv[2];
   const testingOrNightly = process.argv[3];
-
-  const {name, version} = extractExtensionData();
+  let browserPostfix;
+  if (browser == 'firefox') {
+    browserPostfix = 'ff';
+  } else {
+    browserPostfix = browser;
+  }
+  const destDir = path.join(__dirname, `../dist-${browserPostfix}`);
+  const zipDir = path.join(__dirname, '../dist-zip'); 
+  const {name, version} = extractExtensionData(browserPostfix);
 
   // collapse spaces and dashes into single dash
   const baseFilename = `${name.replace(/[ -]+/g, '-')}-${version}`;
@@ -52,9 +55,9 @@ const main = () => {
   let realZipDir;
   
   if (!!testingOrNightly) {
-    realZipDir = path.join(DEST_ZIP_DIR, version);
+    realZipDir = path.join(zipDir, version);
   } else {
-    realZipDir = path.join(DEST_ZIP_DIR);
+    realZipDir = path.join(zipDir);
   }
 
   const zipFilename = `${baseFilename}-${browser}.zip`;
@@ -65,7 +68,7 @@ const main = () => {
     console.error('Failed to make directory.\nDirectory we wanted to make', realZipDir, '\nerror we got:\n', e)
     return 1;
   }
-  buildZip(DEST_DIR, realZipDir, zipFilename)
+  buildZip(destDir, realZipDir, zipFilename)
     .then(() => console.info('OK'))
     .catch(console.err); 
 };
