@@ -109,7 +109,7 @@ class ActionHandler {
   }
 
   registerHandleMouse(videoData) {
-    this.logger.log('info', ['actionHandler', 'mousemove'], "[ActionHandler::registerHandleMouse] registering handle mouse for videodata:", videoData)
+    this.logger.log('info', ['actionHandler', 'mousemove'], "[ActionHandler::registerHandleMouse] registering handle mouse for videodata:", videoData.id)
 
     var ths = this;
     if (videoData.player && videoData.player.element) {
@@ -136,9 +136,9 @@ class ActionHandler {
   preventAction(event) {
     var activeElement = document.activeElement;
 
-    if(this.logger.canLog('keyboard')) {
+    if (this.logger.canLog('keyboard')) {
       this.logger.pause(); // temp disable to avoid recursing;
-      const preventAction = this.preventAction();
+      const preventAction = this.preventAction(event);
       this.logger.resume(); // undisable
 
       this.logger.log('info', 'keyboard', "[ActionHandler::preventAction] Testing whether we're in a textbox or something. Detailed rundown of conditions:\n" +

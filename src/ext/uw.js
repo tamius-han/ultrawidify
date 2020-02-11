@@ -7,6 +7,15 @@ import CommsClient from './lib/comms/CommsClient';
 import PageInfo from './lib/video-data/PageInfo';
 import Logger from './lib/Logger';
 
+// vue dependency imports
+import Vue from 'vue';
+import Vuex from 'vuex';
+import VuexWebExtensions from 'vuex-webextensions';
+
+global.browser = require('webextension-polyfill');
+
+import LoggerUi from '../csui/LoggerUi';
+
 if(Debug.debug){
   console.log("\n\n\n\n\n\n           ———    Sᴛλʀᴛɪɴɢ  Uʟᴛʀᴀᴡɪᴅɪꜰʏ    ———\n               <<   ʟᴏᴀᴅɪɴɢ ᴍᴀɪɴ ꜰɪʟᴇ   >>\n\n\n\n");
   try {
@@ -32,6 +41,7 @@ class UW {
     this.settings = undefined;
     this.actionHandler = undefined;
     this.logger = undefined;
+    this.vuexStore = {};
   }
 
   async init(){
@@ -43,31 +53,48 @@ class UW {
     try {
       if (!this.logger) {
         const loggingOptions = {
-          logToFile: false,
-          logToConsole: false,
+          isContentScript: true,
+          allowLogging: true,
+          useConfFromStorage: true,
           fileOptions: {
-            // really the same stuff as consoleOptions
+            enabled: false
           },
           consoleOptions: {
-            enabled: true, // if logging is enabled at all
-            // 'debug': true,
-            // 'init': true,
-            // 'settings': true,
-            // 'keyboard': true,
-            // 'mousemove': false,
-            // 'actionHandler': false,
-            // 'comms': false,
-            // 'playerDetect': false,
-            // 'resizer': true,
-            // 'scaler': true,
-            // 'stretcher': true,
-            // 'videoRescan': false,
-            // 'arDetect': true,
-            // 'arDetect_verbose': true,
+            enabled: true,
+            'debug': true,
+            'init': true,
+            'settings': true,
+            'keyboard': true,
+            'mousemove': false,
+            'actionHandler': true,
+            'comms': true,
+            'playerDetect': true,
+            'resizer': true,
+            'scaler': true,
+            'stretcher': true,
+            // 'videoRescan': true,
+            // 'playerRescan': true,
+            'arDetect': true,
+            'arDetect_verbose': true
+          },
+          allowBlacklistedOrigins: {
+            'periodicPlayerCheck': false,
+            'periodicVideoStyleChangeCheck': false,
+            'handleMouseMove': false
           }
-        };      
-        this.logger = new Logger(loggingOptions);
-        // await this.logger.init();  // not needed if logging options are provided at creation
+        };
+        this.logger = new Logger({vuexStore: this.vuexStore});
+        await this.logger.init(loggingOptions);
+
+        // show popup if logging to file is enabled
+        if (this.logger.isLoggingToFile()) {
+          console.info('[uw::init] Logging to file is enabled. Will show popup!');
+          try {
+            this.vuexStore.dispatch('uw-show-logger');
+          } catch (e) {
+            console.error('[uw::init] Failed to open popup!', e)
+          }
+        }
       }
     } catch (e) {
       console.error("logger init failed!", e)
@@ -82,8 +109,6 @@ class UW {
     if (this.comms) {
       this.comms.destroy();
     }
-  
-    
 
     if (!this.settings) {
       var ths = this;
@@ -91,9 +116,11 @@ class UW {
       await this.settings.init();
     }
   
-
-
     this.comms = new CommsClient('content-client-port', this.settings, this.logger);
+
+    // add showPopup, hidePopup listener to comms
+    this.comms.subscribe('show-logger', () => this.showLogger());
+    this.comms.subscribe('hide-logger', () => this.hideLogger());
   
     // če smo razširitev onemogočili v nastavitvah, ne naredimo ničesar
     // If extension is soft-disabled, don't do shit
@@ -113,26 +140,96 @@ class UW {
   
     try {
       this.pageInfo = new PageInfo(this.comms, this.settings, this.logger, extensionMode, isSiteDisabled);
-      this.logger.log('info', 'debug', "[uw.js::setup] pageInfo initialized. Here's the object:", this.pageInfo);
+      this.logger.log('info', 'debug', "[uw.js::setup] pageInfo initialized.");
       this.comms.setPageInfo(this.pageInfo);
   
-      this.logger.log('info', 'debug', "[uw.js::setup] will try to initate ActionHandler. Settings are:", this.settings, this.settings.active)
+      this.logger.log('info', 'debug', "[uw.js::setup] will try to initate ActionHandler.");
 
       // start action handler only if extension is enabled for this site
       if (!isSiteDisabled) {
         this.actionHandler = new ActionHandler(this.pageInfo);
         this.actionHandler.init();
         
-        this.logger.log('info', 'debug', "[uw.js::setup] ActionHandler initiated:", this.actionHandler);
+        this.logger.log('info', 'debug', "[uw.js::setup] ActionHandler initiated.");
       }
 
     } catch (e) {
       this.logger.log('error', 'debug', "[uw::init] FAILED TO START EXTENSION. Error:", e);
     }
-  
-    
+  }
+
+  initVue() {
+    Vue.prototype.$browser = global.browser;
+    Vue.use(Vuex);
+    this.vuexStore = new Vuex.Store({
+      plugins: [VuexWebExtensions({
+        persistentStates: [
+          'uwLog',
+          'showLogger',
+        ],
+      })],
+      state: {
+        uwLog: '',
+        showLogger: false,
+      },
+      mutations: {
+        'uw-set-log'(state, payload) {
+          state['uwLog'] = payload;
+        },
+        'uw-show-logger'(state) {
+          state['showLogger'] = true;
+        },
+        'uw-hide-logger'(state) {
+          state['showLogger'] = false;
+        }
+      },
+      actions: {
+        'uw-set-log' ({commit}, payload) {
+          commit('uw-set-log', payload);
+        },
+        'uw-show-logger'({commit}) {
+          commit('uw-show-logger');
+        },
+        'uw-hide-logger'({commit}) {
+          commit('uw-hide-logger');
+        }
+      }
+    })
+  }
+
+  initUi() {
+    console.log("CREATING UI");
+    const random = Math.round(Math.random() * 69420);
+    const uwid = `uw-ui-root-${random}`;
+
+    const rootDiv = document.createElement('div');
+    rootDiv.setAttribute("style", "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999; background-color: #ff0000;");
+    rootDiv.setAttribute("id", uwid);
+
+    document.body.appendChild(rootDiv);
+
+   
+    new Vue({
+      el: `#${uwid}`,
+      components: {
+        LoggerUi
+      },
+      store: this.vuexStore,
+      render(h) {
+        return h('logger-ui');
+      }
+    })
+  }
+
+  showLogger() {
+    this.vuexStore.dispatch('uw-show-logger');
+  }
+  hideLogger() {
+    this.vuexStore.dispatch('uw-hide-logger');
   }
 }
 
 var main = new UW();
+main.initVue();
+main.initUi();
 main.init();

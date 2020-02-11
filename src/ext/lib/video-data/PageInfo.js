@@ -99,7 +99,7 @@ class PageInfo {
       playerStyleString = this.settings.active.sites[window.location.host].css;
       if (playerStyleString) {
         this.comms.sendMessage({
-          cmd: 'remove-css',
+          cmd: 'eject-css',
           cssString: playerStyleString
         });
       }
@@ -132,11 +132,8 @@ class PageInfo {
   }
 
   getVideos(host) {
-    if (this.settings.active.sites[host]
-        && this.settings.active.sites[host].DOM
-        && this.settings.active.sites[host].DOM.video
-        && this.settings.active.sites[host].DOM.video.manual
-        && this.settings.active.sites[host].DOM.video.querySelector){
+    if (this.settings.active.sites[host]?.DOM?.video?.manual
+        && this.settings.active.sites[host]?.DOM?.video?.querySelector){
       const videos = document.querySelectorAll(this.settings.active.sites[host].DOM.video.querySelector);
 
       if (videos.length) {

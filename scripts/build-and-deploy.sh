@@ -27,7 +27,7 @@ echo "        -> BUILD_CHANNEL_DIRECTORY: $BUILD_CHANNEL_DIRECTORY"
 if [ ! -z "$GIT_COMMIT" ] ; then
   if [ ! -z "$GIT_PREVIOUS_COMMIT" ] ; then
     if [ "$GIT_COMMIT" == "$GIT_PREVIOUS_COMMIT" ] ; then
-      if [ $FORCE_BUILD == true ] ; then
+      if [ $FORCE_BUILD == false ] ; then
         echo "--------------------------------------------"
         echo "    Nothing has changed. Aborting build."
         echo "--------------------------------------------"
@@ -40,23 +40,24 @@ fi
 npm ci
 
 rm -rf ./dist-zip || true   # no big deal if ./dist-zip doesn't exist
+mkdir dist-zip              # create it back
 
 #
 # build firefox
 #
 npm run "${BUILD_SCRIPT}"
-node scripts/build-zip.js ff
-if [ ! -z "${AMO_API_KEY}" ] ; then
-  if [ ! -z "${AMO_API_SECRET}" ] ; then 
-    web-ext sign --source-dir ./dist --api-key "${AMO_API_KEY}" --api-secret "${AMO_API_SECRET}"
-  fi
-fi
+node scripts/build-zip.js ff nightly
+# if [ ! -z "${AMO_API_KEY}" ] ; then
+#   if [ ! -z "${AMO_API_SECRET}" ] ; then 
+#     web-ext sign --source-dir ./dist --api-key "${AMO_API_KEY}" --api-secret "${AMO_API_SECRET}"
+#   fi
+# fi
 
 #
 # build chrome
 #
 npm run "${BUILD_SCRIPT}-chrome"
-node scripts/build-zip.js chrome
+node scripts/build-zip.js chrome nightly
 
 #
 #./scripts/build-crx.sh
@@ -66,21 +67,20 @@ node scripts/build-zip.js chrome
 #        UPLOAD TO WEB SERVER 
 ######################################
 
-# # add ssh key, if not added
-# if [ -z "$SSH_AUTH_SOCK" ] ; then
-#     eval `ssh-agent -s`
-#     ssh-add
-# fi
-
-# # push all built stuff to the server
-# scp -r ./build-zip/* "ultrawidify-uploader@${RELEASE_SERVER}:${RELEASE_DIRECTORY}${BUILD_CHANNEL_DIRECTORY}"
+echo "--------------------------------------------"
+echo "       files ready for upload"
+echo "--------------------------------------------"
+echo ""
+echo "Uploading to server ..."
+# push all built stuff to the server
+scp -i ~/.ssh/id_rsa -r ./dist-zip/* "ultrawidify-uploader@${RELEASE_SERVER}:${RELEASE_DIRECTORY}${BUILD_CHANNEL_DIRECTORY}"
 
 
 
 ######################################
 #       Build finished message
 ######################################
-
+echo ""
 echo "--------------------------------------------"
 echo "       BUILD FINISHED SUCCESSFULLY"
 echo "--------------------------------------------"

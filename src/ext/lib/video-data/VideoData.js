@@ -71,8 +71,12 @@ class VideoData {
   async fallbackChangeDetection() {
     while (!this.destroyed && !this.invalid) {
       await this.sleep(500);
-      this.validateVideoOffsets();
+      this.doPeriodicFallbackChangeDetectionCheck();
     }
+  }
+
+  doPeriodicFallbackChangeDetectionCheck() {
+    this.validateVideoOffsets();
   }
 
   async sleep(timeout) {
@@ -154,8 +158,12 @@ class VideoData {
           && this.isWithin(vh, (ph - (translateY * 2)), 2)
           && this.isWithin(vw, (pw - (translateX * 2)), 2)) {
       } else {
-        this.player.forceRefreshPlayerElement();
-        this.restoreAr();
+        if (this.player.forceDetectPlayerElementChange()) {
+          this.logger.log('info', 'debug', "Video dimensions changed. Triggering restoreAr()");
+          this.restoreAr();
+        } else {
+          this.logger.log('info', 'playerRescan', "Video dimensions didn't change.");
+        }
       }
       
     } catch(e) {
@@ -412,18 +420,17 @@ class VideoData {
       if(! this.video) {
         this.logger.log('info', 'videoDetect', "[VideoDetect] player element isn't defined");
       }
-      if ( this.video && this.dimensions &&
-           ( this.dimensions.width != videoWidth ||
-             this.dimensions.height != videoHeight )
+      if ( this.video &&
+           ( this.dimensions?.width != videoWidth ||
+             this.dimensions?.height != videoHeight )
       ) {
         this.logger.log('info', 'debug', "[VideoDetect] player size changed. reason: dimension change. Old dimensions?", this.dimensions.width, this.dimensions.height, "new dimensions:", this.video.offsetWidth, this.video.offsetHeight);
       }
     }
     
     // if size doesn't match, update & return true
-    if (!this.dimensions
-        || this.dimensions.width != videoWidth
-        || this.dimensions.height != videoHeight ){
+    if (this.dimensions?.width != videoWidth
+        || this.dimensions?.height != videoHeight ){
       this.dimensions = {
         width: videoWidth,
         height: videoHeight,

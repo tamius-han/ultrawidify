@@ -2,7 +2,9 @@
 
 ## Super TL;DR: I'm just looking for the install links, thanks
 
-[Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/), [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi), [Edge](https://github.com/xternal7/ultrawidify#microsoft-edge) (Chromium-based only)
+[Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/), [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi), [Edge](https://github.com/tamius-han/ultrawidify#microsoft-edge) (Chromium-based only)
+
+There's also [nightly "builds"](https://stuff.lionsarch.tamius.net/ultrawidify/nightly/).
 
 ## TL;DR
 
@@ -15,7 +17,7 @@ If you own an ultrawide monitor, you have probably noticed that sometimes videos
 ## Known issues
 
 * Netflix autodetection not working in Chrome, wontfix as issue is fundamentally unfixable.
-* Everything reported in [issues](https://github.com/xternal7/ultrawidify/issues)
+* Everything reported in [issues](https://github.com/tamius-han/ultrawidify/issues)
 
 ### Limitations
 
@@ -49,9 +51,16 @@ I am not actively testing extension on other sites. You can try your luck and en
 You can download this extension from Firefox' and Chrome's extension stores:
 
 * [Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
-* [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
+* [Chrome, Opera, Chromium Edge](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
 
 Opera users and users of the new, Chromium-based Edge can install Ultrawidify from Chrome Web Store as well.
+
+### Nightly builds
+
+* Nightly builds can be downloaded [here](https://stuff.lionsarch.tamius.net/ultrawidify/) as an unpacked extension that can
+only be installed temporarily.
+
+If I did anything during the day, the nightly version will be sorta-built at whatever my VPS provider thinks is 4AM CE(S)T.
 
 # Beggathon (donations)
 
@@ -218,7 +227,7 @@ The keyboard shortcuts have already been listed, but let's list them all again i
 
 ### Rebinding keyboard shortcuts
 
-is currently not possible. Settings page for this extension has been disabled sometime with 2.0 release (because it [broke](https://github.com/xternal7/ultrawidify/issues/16)), and fixing the setting page has been very low priority as I've had more important issues to work on. 
+is currently not possible. Settings page for this extension has been disabled sometime with 2.0 release (because it [broke](https://github.com/tamius-han/ultrawidify/issues/16)), and fixing the setting page has been very low priority as I've had more important issues to work on. 
 
 However, I do plan on implementing this feature. Hopefully by the end of the year, but given how consistently I've been breaking self-imposed deadlines and goals for this extension don't hold your breath. After all, [Hofstadter's a bitch](https://en.wikipedia.org/wiki/Hofstadter%27s_law).
 

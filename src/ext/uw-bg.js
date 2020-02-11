@@ -31,11 +31,20 @@ class UWServer {
 
   async setup() {
     // logger is the first thing that goes up
-    this.logger = new Logger({
-        logToFile: false,
-        logToConsole: false
-    });
-    await this.logger.init();
+    const loggingOptions = {
+      isBackgroundScript: true,
+      allowLogging: true,
+      useConfFromStorage: true,
+      logAll: true,
+      fileOptions: {
+        enabled: true,
+      },
+      consoleOptions: {
+        enabled: true
+      }
+    };
+    this.logger = new Logger();
+    await this.logger.init(loggingOptions);
 
     this.settings = new Settings({logger: this.logger});
     await this.settings.init();
@@ -178,16 +187,10 @@ class UWServer {
 
     // preveri za osirotele/zastarele vrednosti ter jih po potrebi izbriši
     // check for orphaned/outdated values and remove them if neccessary
-    if (this.videoTabs[sender.tab.id]) {
-      if (this.videoTabs[sender.tab.id].host != tabHostname) {
-        delete this.videoTabs[sender.tab.id]
-      } else {
-        if(this.videoTabs[sender.tab.id].frames[sender.frameId]) {
-          if (this.videoTabs[sender.tab.id].frames[sender.frameId].host != frameHostname) {
-            delete this.videoTabs[sender.tab.id].frames[sender.frameId];
-          }
-        }
-      }
+    if (this.videoTabs[sender.tab.id]?.host != tabHostname) {
+      delete this.videoTabs[sender.tab.id]
+    } else if(this.videoTabs[sender.tab.id]?.frames[sender.frameId]?.host != frameHostname) {
+      delete this.videoTabs[sender.tab.id].frames[sender.frameId];
     }
 
     if (this.videoTabs[sender.tab.id]) {
@@ -236,12 +239,33 @@ class UWServer {
     this.selectedSubitem[menu] = subitem;
   }
 
-  getVideoTab() {
+  async getCurrentTab() {
+    if (BrowserDetect.firefox) {
+      return (await browser.tabs.query({active: true, currentWindow: true}))[0];
+    } else if (BrowserDetect.chrome) {
+      return new Promise((resolve, reject) => chrome.tabs.query({active: true, currentWindow: true}, (x) => resolve(x[0])));
+    }
+  }
+
+  async getVideoTab() {
     // friendly reminder: if current tab doesn't have a video, 
     // there won't be anything in this.videoTabs[this.currentTabId]
-    if (this.videoTabs[this.currentTabId]) {
+
+    const ctab = await this.getCurrentTab();
+
+    console.log('Current tab:', ctab);
+
+    if (!ctab || !ctab.id) {
       return {
-        ...this.videoTabs[this.currentTabId],
+        host: 'INVALID SITE',
+        frames: [],
+      }
+    }
+
+    if (this.videoTabs[ctab.id]) {
+      return {
+        ...this.videoTabs[ctab.id],
+        host: this.extractHostname(ctab.url),
         selected: this.selectedSubitem 
       };
     }
@@ -249,7 +273,7 @@ class UWServer {
     // return something more or less empty if this tab doesn't have 
     // a video registered for it
     return {
-      host: this.currentSite,
+      host: this.extractHostname(ctab.url),
       frames: [],
       selected: this.selectedSubitem
     }
