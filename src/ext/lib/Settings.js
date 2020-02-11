@@ -15,17 +15,12 @@ class Settings {
   constructor(options) {
     // Options: activeSettings, updateCallback, logger
     this.logger = options.logger;
-    const activeSettings = options.activeSettings;
-    const updateCallback = options.updateCallback;
-
-    this.active = activeSettings ? activeSettings : undefined;
+    this.onSettingsChanged = options.onSettingsChanged;
+    this.active = options.activeSettings ?? undefined;
     this.default = ExtensionConf;
     this.default['version'] = this.getExtensionVersion();
     this.useSync = false;
     this.version = undefined;
-    this.updateCallback = updateCallback;
-
-    const ths = this;
 
     if (currentBrowser.firefox) {
       browser.storage.onChanged.addListener((changes, area) => {this.storageChangeListener(changes, area)});
@@ -39,19 +34,20 @@ class Settings {
       return;
     }
     this.logger.log('info', 'settings', "[Settings::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
-    if (changes['uwSettings'] && changes['uwSettings'].newValue) {
-      this.logger.log('info', 'settings',"[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));
-    }
+    // if (changes['uwSettings'] && changes['uwSettings'].newValue) {
+    //   this.logger.log('info', 'settings',"[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));
+    // }
     const parsedSettings = JSON.parse(changes.uwSettings.newValue);
-    if(changes['uwSettings'] && changes['uwSettings'].newValue) {
-      this.setActive(parsedSettings);
-    }
+    this.setActive(parsedSettings);
 
-    if(!parsedSettings.preventReload && this.updateCallback) {
+    this.logger.log('info', 'debug', 'Does parsedSettings.preventReload exist?', parsedSettings.preventReload, "Does callback exist?", !!this.onSettingsChanged);
+
+    if (!parsedSettings.preventReload && this.onSettingsChanged) {
       try {
-        updateCallback(ths);
+        this.onSettingsChanged();
+        this.logger.log('info', 'settings', '[Settings] Update callback finished.')
       } catch (e) {
-        this.logger.log('error', 'settings', "[Settings] CALLING UPDATE CALLBACK FAILED.")
+        this.logger.log('error', 'settings', "[Settings] CALLING UPDATE CALLBACK FAILED. Reason:", e)
       }
     }
   }

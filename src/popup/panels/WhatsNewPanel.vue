@@ -7,6 +7,8 @@
       <li>Tab detection in extension popup has been made more accurate</li>
       <li>QoL: Added user-accessible logger (to make fixing sites I can't access a bit easier)</li>
       <li>Changed links to reflect my github username change</li>
+      <li><b>[4.4.4.1]</b> There were multiple reports about popup being broken. This issue should be resolved.</li>
+      <li><b>[4.4.4.1]</b> Setting global/site defaults should no longer require page reloads.</li>
     </ul>
   </div>
 </template>

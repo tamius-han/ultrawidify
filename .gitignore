@@ -2,8 +2,7 @@ old/
 build/
 /node_modules
 /*.log
-/dist
-/dist-zip
+/dist*
 /uw-git_keys 
 
 *.pem

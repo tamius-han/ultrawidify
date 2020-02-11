@@ -14,4 +14,4 @@ Run `npm ci`
 
 `npm run build`
 
-The compiled code pops up in /dist. 
+The compiled code pops up in /dist-ff. 
