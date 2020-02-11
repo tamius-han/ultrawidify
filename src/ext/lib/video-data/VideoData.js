@@ -28,12 +28,14 @@ class VideoData {
     
 
     // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
-    // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)    
+    // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)
     this.player = new PlayerData(this);
     if (this.player.invalid) {
       this.invalid = true;
       return;
     }
+
+    this.resizer = new Resizer(this);
 
     const ths = this;
     this.observer = new MutationObserver( (m, o) => this.onVideoDimensionsChanged(m, o, ths));
@@ -44,7 +46,6 @@ class VideoData {
       height: this.video.offsetHeight,
     };
 
-    this.resizer = new Resizer(this);
 
     this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
     // player dimensions need to be in:
@@ -158,12 +159,7 @@ class VideoData {
           && this.isWithin(vh, (ph - (translateY * 2)), 2)
           && this.isWithin(vw, (pw - (translateX * 2)), 2)) {
       } else {
-        if (this.player.forceDetectPlayerElementChange()) {
-          this.logger.log('info', 'debug', "Video dimensions changed. Triggering restoreAr()");
-          this.restoreAr();
-        } else {
-          this.logger.log('info', 'playerRescan', "Video dimensions didn't change.");
-        }
+        this.player.forceDetectPlayerElementChange();
       }
       
     } catch(e) {

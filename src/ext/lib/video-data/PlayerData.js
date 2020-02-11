@@ -136,9 +136,7 @@ class PlayerData {
 
   doPeriodicPlayerElementChangeCheck() {
     if (this.periodicallyRefreshPlayerElement) {
-      if (this.forceDetectPlayerElementChange()) {
-        this.videoData.resizer.restore();
-      }
+      this.forceDetectPlayerElementChange();
     }
   }
 
@@ -208,11 +206,22 @@ class PlayerData {
   updatePlayerDimensions(element) {
     const isFullScreen = PlayerData.isFullScreen();
 
-    this.dimensions = {
-      width: element.offsetWidth,
-      height: element.offsetHeight,
-      fullscreen: isFullScreen
-    };
+    if (element.offsetWidth !== this.dimensions?.width
+        || element.offsetHeight !== this.dimensions?.height
+        || isFullScreen !== this.dimensions?.fullscreen) {
+
+      // update dimensions only if they've changed, _before_ we do a restore (not after)
+      this.dimensions = {
+        width: element.offsetWidth,
+        height: element.offsetHeight,
+        fullscreen: isFullScreen
+      };
+
+      // actually re-calculate zoom when player size changes, but only if videoData.resizer
+      // is defined. Since resizer needs a PlayerData object to exist, videoData.resizer will
+      // be undefined the first time this function will run.
+      this.videoData.resizer?.restore();
+    }
   }
 
   getPlayer() {
@@ -373,17 +382,11 @@ class PlayerData {
   }
 
   forceDetectPlayerElementChange() {
-    // save current dimensions before refreshing the player object
-    const oldDimensions = this.dimensions;
+    // Player dimension changes get calculated every time updatePlayerDimensions is called (which happens
+    // every time getPlayer() detects an element). If updatePlayerDimension detects dimensions were changed,
+    // it will always re-apply current crop, rendering this function little more than a fancy alias for 
+    // getPlayer().
     this.getPlayer();
-
-    // compare new player object dimensions with the old dimensions
-    // don't fucking trigger changes if nothing changed
-    if (this.dimensions.width === this.dimensions.width && this.dimensions.height === this.dimensions.height) {
-      return false;
-    } else {
-      return true;
-    }
   }
 
   forceRefreshPlayerElement() {
