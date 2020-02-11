@@ -20,6 +20,7 @@ QoL improvements for me:
 * Changed links to reflect my github username change
 * **[4.4.4.1]** Fix broken extension popup.
 * **[4.4.4.1]** Fix global/site settings not getting applied immediately/only getting applied after page reload.
+* **[4.4.4.2]** Fix problem with video being offset while switching between full screen and non-fullscreen non-theater mode on Youtube
 
 ### v4.4.3
 

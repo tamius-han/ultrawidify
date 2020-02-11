@@ -77,8 +77,8 @@ class UW {
             "resizer": true,
             "scaler": true,
             "stretcher": true,
-            // 'videoRescan': true,
-            // 'playerRescan': true,
+            // "videoRescan": true,
+            // "playerRescan": true,
             "arDetect": true,
             "arDetect_verbose": true
           },
