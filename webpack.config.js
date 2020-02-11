@@ -60,6 +60,11 @@ const config = {
           name: '[path][name].[ext]',
         },
       },
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        loader: "babel-loader"
+      },
     ],
   },
   plugins: [
@@ -69,7 +74,7 @@ const config = {
     }),
     new CopyWebpackPlugin([
       { from: 'res', to: 'res'},
-      { from: 'ext', to: 'ext'},
+      { from: 'ext', to: 'ext', ignore: ['conf/*', 'lib/**']},
       { from: 'icons', to: 'icons', ignore: ['icon.xcf'] },
       { from: 'popup/popup.html', to: 'popup/popup.html', transform: transformHtml },
       { from: 'options/options.html', to: 'options/options.html', transform: transformHtml },
@@ -130,7 +135,8 @@ const config = {
       onBuildEnd: ['node scripts/remove-evals.js'],
     }),
     new webpack.DefinePlugin({
-      'process.env.BROWSER': JSON.stringify(process.env.BROWSER)
+      'process.env.BROWSER': JSON.stringify(process.env.BROWSER),
+      'process.env.CHANNEL': JSON.stringify(process.env.CHANNEL)
     })
   ],
 };

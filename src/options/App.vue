@@ -145,11 +145,10 @@ export default {
     }
   },
   async created () {
-    this.logger = new Logger({
-        logToFile: false,
-        logToConsole: false
+    this.logger = new Logger();
+    await this.logger.init({
+        allowLogging: true,
     });
-    await this.logger.init();
 
     this.settings = new Settings({updateCallback: this.updateSettings, logger: this.logger});
     await this.settings.init();

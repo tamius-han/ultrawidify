@@ -215,7 +215,9 @@ small {
   text-align: center;
   width: 100%;
 }
-
+.text-center {
+  text-align: center;
+}
 
 
 .invalid-input {
@@ -385,4 +387,7 @@ small {
 
 .ltr {
   direction: ltr;
+}
+.monospace {
+  font-family: 'Overpass Mono';
 }

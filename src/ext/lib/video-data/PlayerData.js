@@ -127,14 +127,17 @@ class PlayerData {
     while (!this.halted) {
       await this.sleep(1000);
       try {
-        if (this.periodicallyRefreshPlayerElement) {
-          this.forceRefreshPlayerElement();
-        }
-        if (this.checkPlayerSizeChange()) {
-          this.videoData.resizer.restore();
-        }
+        this.doPeriodicPlayerElementChangeCheck();
       } catch (e) {
         console.error('[playerdata::legacycd] this message is pretty high on the list of messages you shouldnt see', e);
+      }
+    }
+  }
+
+  doPeriodicPlayerElementChangeCheck() {
+    if (this.periodicallyRefreshPlayerElement) {
+      if (this.forceDetectPlayerElementChange()) {
+        this.videoData.resizer.restore();
       }
     }
   }
@@ -215,7 +218,8 @@ class PlayerData {
   getPlayer() {
     const host = window.location.host;
     let element = this.video.parentNode;
-    const videoWidth = this.video.offsetWidth, videoHeight = this.video.offsetHeight;
+    const videoWidth = this.video.offsetWidth;
+    const videoHeight = this.video.offsetHeight;
     const elementQ = [];
     let scorePenalty = 0;
     let score;
@@ -231,12 +235,21 @@ class PlayerData {
         return;
       }
 
-      if (this.settings.active.sites[host]
-          && this.settings.active.sites[host].DOM
-          && this.settings.active.sites[host].DOM.player
-          && this.settings.active.sites[host].DOM.player.manual) {
-        if (this.settings.active.sites[host].DOM.player.useRelativeAncestor
-            && this.settings.active.sites[host].DOM.player.videoAncestor) {
+      // log the entire hierarchy from <video> to root
+      if (this.logger.canLog('playerDetect')) {
+        const logObj = [];
+        logObj.push(`window size: ${window.innerWidth} x ${window.innerHeight}`);
+        let e = element;
+        while (e) {
+          logObj.push({offsetSize: {width: e.offsetWidth, height: e.offsetHeight}, clientSize: {width: e.clientWidth, height: e.clientHeight}, element: e});
+          e = e.parentNode;
+        }
+        this.logger.log('info', 'playerDetect', "\n\n[PlayerDetect::getPlayer()] element hierarchy (video->root)", logObj);
+      }
+
+      if (this.settings.active.sites[host]?.DOM?.player?.manual) {
+        if (this.settings.active.sites[host]?.DOM?.player?.useRelativeAncestor
+            && this.settings.active.sites[host]?.DOM?.player?.videoAncestor) {
 
           let parentsLeft = this.settings.active.sites[host].DOM.player.videoAncestor - 1;
           while (parentsLeft --> 0) {
@@ -246,7 +259,7 @@ class PlayerData {
             this.updatePlayerDimensions(element);
             return element;
           }
-        } else if (this.settings.active.sites[host].DOM.player.querySelectors) {
+        } else if (this.settings.active.sites[host]?.DOM?.player?.querySelectors) {
           const allSelectors = document.querySelectorAll(this.settings.active.sites[host].DOM.player.querySelectors);
           // actually we'll also score this branch in a similar way we score the regular, auto branch
           while (element) {
@@ -273,6 +286,9 @@ class PlayerData {
 
             element = element.parentNode;
           }
+
+          // log player candidates
+          this.logger.log('info', 'playerDetect', 'player detect via query selector: element queue and final element:', {queue: elementQ, bestCandidate: elementQ.length ? elementQ.sort( (a,b) => b.score - a.score)[0].element : 'n/a'});
 
           if (elementQ.length) {
             // return element with biggest score
@@ -331,9 +347,13 @@ class PlayerData {
         element = element.parentNode;
       }
 
+      // log player candidates
+      this.logger.log('info', 'playerDetect', 'player detect, auto/fallback: element queue and final element:', {queue: elementQ, bestCandidate: elementQ.length ? elementQ.sort( (a,b) => b.score - a.score)[0].element : 'n/a'});
+
       if (elementQ.length) {
         // return element with biggest score
         const playerElement = elementQ.sort( (a,b) => b.score - a.score)[0].element;
+        
         this.updatePlayerDimensions(playerElement);
         return playerElement;
       }
@@ -352,6 +372,20 @@ class PlayerData {
     return a > b - tolerance && a < b + tolerance;
   }
 
+  forceDetectPlayerElementChange() {
+    // save current dimensions before refreshing the player object
+    const oldDimensions = this.dimensions;
+    this.getPlayer();
+
+    // compare new player object dimensions with the old dimensions
+    // don't fucking trigger changes if nothing changed
+    if (this.dimensions.width === this.dimensions.width && this.dimensions.height === this.dimensions.height) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
   forceRefreshPlayerElement() {
     this.getPlayer();
   }
@@ -360,9 +394,7 @@ class PlayerData {
     // this 'if' is just here for debugging — real code starts later. It's safe to collapse and
     // ignore the contents of this if (unless we need to change how logging works)
     if (this.logger.canLog('debug')){
-      if (!this.dimensions) {
-
-      } else if (this.dimensions && this.dimensions.fullscreen){
+      if (this.dimensions?.fullscreen){
         if(! PlayerData.isFullScreen()){
           this.logger.log('info', 'debug', "[PlayerDetect] player size changed. reason: exited fullscreen");
         }
@@ -371,19 +403,17 @@ class PlayerData {
         this.logger.log('info', 'playerDetect', "[PlayerDetect] player element isn't defined");
       }
 
-      if ( this.element && this.dimensions &&
-           ( this.dimensions.width != this.element.offsetWidth ||
-             this.dimensions.height != this.element.offsetHeight )
+      if ( this.element &&
+           ( +this.dimensions?.width != +this.element?.offsetWidth ||
+             +this.dimensions?.height != +this.element?.offsetHeight )
       ) {
-        this.logger.log('info', 'debug', "[PlayerDetect] player size changed. reason: dimension change. Old dimensions?", this.dimensions.width, this.dimensions.height, "new dimensions:", this.element.offsetWidth, this.element.offsetHeight);
+        this.logger.log('info', 'debug', "[PlayerDetect] player size changed. reason: dimension change. Old dimensions?", this.dimensions?.width, this.dimensions?.height, "new dimensions:", this.element?.offsetWidth, this.element?.offsetHeight);
       }
     }
 
-
     // if size doesn't match, update & return true
-    if (!this.dimensions
-        || this.dimensions.width != this.element.offsetWidth 
-        || this.dimensions.height != this.element.offsetHeight ){
+    if (this.dimensions?.width != this.element.offsetWidth 
+        || this.dimensions?.height != this.element.offsetHeight ){
       
       const isFullScreen = PlayerData.isFullScreen();
 
