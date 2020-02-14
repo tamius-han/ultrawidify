@@ -139,6 +139,9 @@ const config = {
       'process.env.CHANNEL': JSON.stringify(process.env.CHANNEL)
     })
   ],
+  optimization: {
+    minimize: false,
+  }
 };
 
 if (config.mode === 'production') {
