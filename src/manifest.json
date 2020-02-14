@@ -57,7 +57,10 @@
     "res/img/settings/about-bg.png"
   ],
   "permissions": [
-    "tabs", "storage",  "activeTab", "<all_urls>", "webNavigation"
+    "storage",
+    "activeTab",
+    "<all_urls>",
+    "webNavigation"
   ],
   "optional_permissions": [
     "downloads"
