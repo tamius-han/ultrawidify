@@ -13,7 +13,6 @@ import Vuex from 'vuex';
 import VuexWebExtensions from 'vuex-webextensions';
 
 global.browser = require('webextension-polyfill');
-
 import LoggerUi from '../csui/LoggerUi';
 
 if(Debug.debug){
@@ -215,7 +214,6 @@ class UW {
     rootDiv.setAttribute("id", uwid);
 
     document.body.appendChild(rootDiv);
-
    
     new Vue({
       el: `#${uwid}`,
