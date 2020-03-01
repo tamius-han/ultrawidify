@@ -102,7 +102,7 @@ export default {
 
 <style src="../../res/css/font/overpass.css"></style>
 <style src="../../res/css/font/overpass-mono.css"></style>
-<style src="../../res/css/flex.css"></style>
+<style src="../../res/css/flex.scss"></style>
 <style src="../../res/css/common.scss"></style>
 
 <style lang="scss" scoped>
