@@ -290,16 +290,16 @@ class Settings {
         sites[site].mode = ExtensionMode.Default;
       }
       if (sites[site].autoar === undefined) {
-        sites[site].mode = ExtensionMode.Default;
+        sites[site].autoar = ExtensionMode.Default;
       }
       if (sites[site].stretch === undefined) {
-        sites[site].mode = Stretch.Default;
+        sites[site].stretch = Stretch.Default;
       }
       if (sites[site].videoAlignment === undefined) {
-        sites[site].mode = VideoAlignment.Default;
+        sites[site].videoAlignment = VideoAlignment.Default;
       }
       if (sites[site].keyboardShortcutsEnabled === undefined) {
-        sites[site].mode = ExtensionMode.Default;
+        sites[site].keyboardShortcutsEnabled = ExtensionMode.Default;
       }
     }
   }
