@@ -101,7 +101,7 @@ class Logger {
     br.storage.onChanged.addListener( (changes, area) => {
       if (process.env.CHANNEL === 'dev') {
         if (!changes.uwLogger) {
-          console.info('[Logger::<storage/on change> No new logger settings!');
+          // console.info('[Logger::<storage/on change> No new logger settings!');
         }
         if (changes['uwLogger'] && changes['uwLogger'].newValue) {
           console.log("[Logger::<storage/on change>] Logger have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
