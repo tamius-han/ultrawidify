@@ -15,7 +15,7 @@ const config = {
     'ext/uw-bg': './ext/uw-bg.js',
     'popup/popup': './popup/popup.js',
     'options/options': './options/options.js',
-    'install/first-time/first-time':'./install/first-time/first-time.js',
+    // 'install/first-time/first-time':'./install/first-time/first-time.js',
   },
   output: {
     path: __dirname + `/dist-${process.env.BROWSER == 'firefox' ? 'ff' : process.env.BROWSER}`,
