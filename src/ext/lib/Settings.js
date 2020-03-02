@@ -52,14 +52,15 @@ class Settings {
     }
   }
 
-  getExtensionVersion() {
+  static getExtensionVersion() {
     if (currentBrowser.firefox) {
       return browser.runtime.getManifest().version;
     } else if (currentBrowser.chrome) {
       return chrome.runtime.getManifest().version;
-    } else if (currentBrowser.edge) {
-      return browser.runtime.getManifest().version;
-    }
+    } 
+  }
+  getExtensionVersion() {
+    return Settings.getExtensionVersion(); 
   }
 
   compareExtensionVersions(a, b) {
