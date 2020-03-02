@@ -235,12 +235,13 @@ export default {
 }
 </script>
 
+<style scoped src="../res/css/flex.scss"></style> 
+
 <style lang="scss" scoped>
 @import '../res/css/colors.scss';
 @import '../res/css/font/overpass.css';
 @import '../res/css/font/overpass-mono.css';
 @import '../res/css/common.scss';
-@import '../res/css/flex.css';
 
 
 .root-window {

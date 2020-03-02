@@ -13,7 +13,13 @@ QoL improvements for me:
 
 * logging: allow to enable logging at will and export said logs to a file
 
-### v4.4.4 (current)
+### v4.4.5 (current)
+
+* Extension no longer requires `allTabs` and `webNavigation` permissions
+* Some CSS on the debugger popup was not scoped, causing issues with some sites.
+* Fix some additional issues with video alignment when changing video on autoplay
+
+### v4.4.4
 
 * Tab detection in extension popup has been made more accurate
 * QoL: Added user-accessible logger (to make fixing sites I can't access a bit easier)

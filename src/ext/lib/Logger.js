@@ -10,6 +10,7 @@ class Logger {
     this.isBackgroundScript = true;
 
     this.vuexStore = options?.vuexStore;
+    this.uwInstance = options?.uwInstance;
   }
 
   static saveConfig(conf) {
@@ -100,7 +101,7 @@ class Logger {
     br.storage.onChanged.addListener( (changes, area) => {
       if (process.env.CHANNEL === 'dev') {
         if (!changes.uwLogger) {
-          console.info('[Logger::<storage/on change> No new logger settings!');
+          // console.info('[Logger::<storage/on change> No new logger settings!');
         }
         if (changes['uwLogger'] && changes['uwLogger'].newValue) {
           console.log("[Logger::<storage/on change>] Logger have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
@@ -120,6 +121,10 @@ class Logger {
     });
   }
 
+  setVuexStore(store) {
+    this.vuexStore = store;
+  }
+  
   clear() {
     this.log = [];
     this.startTime = performance.now();
@@ -293,6 +298,10 @@ class Logger {
       return true;
     }
     return false;
+  }
+
+  isLoggingAllowed() {
+    return this.conf.allowLogging;
   }
 
   isLoggingToFile() {
@@ -470,8 +479,13 @@ class Logger {
     }
 
     if (!this.vuexStore) {
-      console.error("[info] No vue store. Log will not be exported.");
-      return;
+      console.error("[info] No vue store.");
+      if (!this.uwInstance) {
+        console.error('[info] no vue instance either. Not logging.');
+        return;
+      }
+      console.info("[info] Initializing vue and vuex instance ...");
+      this.uwInstance.initVue();
     }
 
     console.info('[info] vuex store present. Parsing logs.');

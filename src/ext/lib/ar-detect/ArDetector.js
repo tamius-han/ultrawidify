@@ -391,7 +391,11 @@ class ArDetector {
   //#endregion
 
   getDefaultAr() {
-    return this.video.videoWidth / this.video.videoHeight;
+    const ratio = this.video.videoWidth / this.video.videoHeight;
+    if (isNaN(ratio)) {
+      return undefined;
+    }
+    return ratio;
   }
 
   calculateArFromEdges(edges) {

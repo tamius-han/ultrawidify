@@ -33,10 +33,12 @@
 
 <script>
 import BrowserDetect from '../ext/conf/BrowserDetect';
+import Settings from '../ext/lib/Settings';
+
 export default {
   data() {
     return {
-      addonVersion: browser.runtime.getManifest().version || chrome.runtime.getManifest().version,
+      addonVersion: Settings.getVersion(),
       mailtoLink: 'mailto:tamius.han@gmail.com',
       redditLink: '',
     }

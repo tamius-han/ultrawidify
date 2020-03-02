@@ -48,12 +48,6 @@ export default {
   data() {
     return {
       addonVersion: browser.runtime.getManifest().version || chrome.runtime.getManifest().version,
-      mailtoLink: 'mailto:tamius.han@gmail.com',
-      redditLink: '',
-    }
-  },
-  data() {
-    return {
       loggingEnabled: false,
       loggerSettings: '',
       loggerSettingsError: false,

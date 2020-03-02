@@ -121,6 +121,19 @@ class Resizer {
 
 
   updateAr(ar) {
+    if (!ar) {
+      return;
+    }
+
+    // Some options require a bit more testing re: whether they make sense
+    // if they don't, we refuse to update aspect ratio until they do
+    if (ar.type === AspectRatio.Automatic || ar.type === AspectRatio.Fixed) {
+      if (!ar.ratio || isNaN(ar.ratio)) {
+        return;
+      }
+    }
+
+    // Only update aspect ratio if there's a difference between the old and the new state
     if (!this.lastAr || ar.type !== this.lastAr.type || ar.ratio !== this.lastAr.ratio) {
       this.setAr(ar);
     }
