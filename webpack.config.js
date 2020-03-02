@@ -15,6 +15,7 @@ const config = {
     'ext/uw-bg': './ext/uw-bg.js',
     'popup/popup': './popup/popup.js',
     'options/options': './options/options.js',
+    'install/first-time/first-time':'./install/first-time/first-time.js',
   },
   output: {
     path: __dirname + `/dist-${process.env.BROWSER == 'firefox' ? 'ff' : process.env.BROWSER}`,
@@ -78,6 +79,7 @@ const config = {
       { from: 'icons', to: 'icons', ignore: ['icon.xcf'] },
       { from: 'popup/popup.html', to: 'popup/popup.html', transform: transformHtml },
       { from: 'options/options.html', to: 'options/options.html', transform: transformHtml },
+      { from: 'install/first-time/first-time.html', to: 'install/first-time/first-time.html', transform: transformHtml},
       {
         from: 'manifest.json',
         to: 'manifest.json',
@@ -139,6 +141,9 @@ const config = {
       'process.env.CHANNEL': JSON.stringify(process.env.CHANNEL)
     })
   ],
+  optimization: {
+    minimize: false,
+  }
 };
 
 if (config.mode === 'production') {

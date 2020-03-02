@@ -13,7 +13,6 @@ import Vuex from 'vuex';
 import VuexWebExtensions from 'vuex-webextensions';
 
 global.browser = require('webextension-polyfill');
-
 import LoggerUi from '../csui/LoggerUi';
 
 if(Debug.debug){
@@ -42,6 +41,8 @@ class UW {
     this.actionHandler = undefined;
     this.logger = undefined;
     this.vuexStore = {};
+    this.uiInitiated = false;
+    this.vueInitiated = false;
   }
 
   reloadSettings() {
@@ -88,8 +89,15 @@ class UW {
             'handleMouseMove': false
           }
         };
-        this.logger = new Logger({vuexStore: this.vuexStore});
+        this.logger = new Logger();
         await this.logger.init(loggingOptions);
+
+        if (this.logger.isLoggingAllowed()) {
+          console.info("[uw::init] Logging is allowed! Initalizing vue and UI!");
+          this.initVue();
+          this.initUi();
+          this.logger.setVuexStore(this.vuexStore);
+        }
 
         // show popup if logging to file is enabled
         if (this.logger.isLoggingToFile()) {
@@ -215,7 +223,6 @@ class UW {
     rootDiv.setAttribute("id", uwid);
 
     document.body.appendChild(rootDiv);
-
    
     new Vue({
       el: `#${uwid}`,
@@ -230,14 +237,23 @@ class UW {
   }
 
   showLogger() {
+    if (! this.vueInitiated) {
+      this.initVue();
+    }
+    if (!this.uiInitiated) {
+      this.initUi();
+    }
+
     this.vuexStore.dispatch('uw-show-logger');
   }
   hideLogger() {
-    this.vuexStore.dispatch('uw-hide-logger');
+    // if either of these two is false, then we know that UI doesn't exist
+    // since UI doesn't exist, we don't need to dispatch uw-hide-logger
+    if (this.vueInitiated && this.uiInitiated) {
+      this.vuexStore.dispatch('uw-hide-logger');
+    }
   }
 }
 
 var main = new UW();
-main.initVue();
-main.initUi();
 main.init();
