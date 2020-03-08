@@ -7,49 +7,49 @@ import LoggerUi from '../csui/LoggerUi';
 
 class UwUi {
 
+  constructor() {
+    this.loggerUiInitiated = false;
+    this.playerUiInitiated = false;
+  }
+
   async init() {
     // initialize vuejs
-    try {
-      Vue.prototype.$browser = global.browser;
-      Vue.use(Vuex);
-      this.vuexStore = new Vuex.Store({
-        plugins: [VuexWebExtensions({
-          persistentStates: [
-            'uwLog',
-            'showLogger',
-          ],
-        })],
-        state: {
-          uwLog: '',
-          showLogger: false,
+    Vue.prototype.$browser = global.browser;
+    Vue.use(Vuex);
+    this.vuexStore = new Vuex.Store({
+      plugins: [VuexWebExtensions({
+        persistentStates: [
+          'uwLog',
+          'showLogger',
+        ],
+      })],
+      state: {
+        uwLog: '',
+        showLogger: false,
+      },
+      mutations: {
+        'uw-set-log'(state, payload) {
+          state['uwLog'] = payload;
         },
-        mutations: {
-          'uw-set-log'(state, payload) {
-            state['uwLog'] = payload;
-          },
-          'uw-show-logger'(state) {
-            state['showLogger'] = true;
-          },
-          'uw-hide-logger'(state) {
-            state['showLogger'] = false;
-          }
+        'uw-show-logger'(state) {
+          state['showLogger'] = true;
         },
-        actions: {
-          'uw-set-log' ({commit}, payload) {
-            commit('uw-set-log', payload);
-          },
-          'uw-show-logger'({commit}) {
-            commit('uw-show-logger');
-          },
-          'uw-hide-logger'({commit}) {
-            commit('uw-hide-logger');
-          }
+        'uw-hide-logger'(state) {
+          state['showLogger'] = false;
         }
-      });
-      console.log("successfully vued")
-    } catch (e) {
-      console.error("wasnt vued,", e);
-    }
+      },
+      actions: {
+        'uw-set-log' ({commit}, payload) {
+          commit('uw-set-log', payload);
+        },
+        'uw-show-logger'({commit}) {
+          commit('uw-show-logger');
+        },
+        'uw-hide-logger'({commit}) {
+          commit('uw-hide-logger');
+        }
+      }
+    });
 
     // setup logger
     try {
@@ -109,9 +109,23 @@ class UwUi {
       console.error("logger initialization failed");
     }
 
+    // we also need to know settings (there's UI-related things in the settings — or rather, there will be UI-related things
+    // in settings once in-player UI is implemented
+    // If comms exist, we need to destroy it
+    if (this.comms) {
+      this.comms.destroy();
+    }
+    if (!this.settings) {
+      this.settings = new Settings({
+        onSettingsChanged: () => this.reloadSettings(),
+        logger: this.logger
+      });
+      await this.settings.init();
+    }
 
-    await this.initLoggerUi();
-    this.showLogger();
+    this.comms = new CommsClient('content-ui-port', this.settings, this.logger);
+
+
   }
 
   async initLoggerUi() {
@@ -155,6 +169,23 @@ class UwUi {
   }
 }
 
-console.log("init ui")
-var uwui = new UwUi();
-uwui.init();
+// leave a mark, so this script won't get executed more than once on a given page
+const markerId = 'ultrawidify-marker-5aeaf521-7afe-447f-9a17-3428f62d0970';
+
+console.log("will init ui")
+
+
+if (! document.getElementById(markerId)) {
+  console.log("init hasn't happened before")
+  const markerDiv = document.createElement('div');
+  markerDiv.setAttribute("style", "display: none");
+  markerDiv.setAttribute('id', markerId);
+
+  document.body.appendChild(markerDiv);
+
+  var uwui = new UwUi();
+  uwui.init();
+} else {
+  console.info("UI has already been initiated once, so we aren't doing it again");
+}
+
