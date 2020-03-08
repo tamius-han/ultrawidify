@@ -107,8 +107,6 @@ class UwUi {
     }
 
     this.comms = new CommsClient('content-ui-port', this.logger, this.commsHandlers);
-
-    console.log("UI INIT COMPLETE ——————————————————————");
   }
 
   initVue() {
@@ -159,7 +157,6 @@ class UwUi {
   }
 
   async initLoggerUi() {
-    console.log("CREATING UI");
     const random = Math.round(Math.random() * 69420);
     const uwid = `uw-ui-root-${random}`;
 
@@ -188,7 +185,6 @@ class UwUi {
   }
 
   async showLogger() {
-    console.log("SHOWING LOGGER!")
     if (!this.loggerUiInitiated) {
       await this.initLoggerUi();
     }
