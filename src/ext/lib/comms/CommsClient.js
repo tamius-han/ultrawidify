@@ -56,10 +56,6 @@ class CommsClient {
     }
   }
 
-  async sleep(n){
-    return new Promise( (resolve, reject) => setTimeout(resolve, n) );
-  }
-
   async sendMessage_nonpersistent(message){
     message = JSON.parse(JSON.stringify(message)); // vue quirk. We should really use vue store instead
     
