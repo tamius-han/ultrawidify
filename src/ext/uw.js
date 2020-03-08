@@ -7,26 +7,9 @@ import CommsClient from './lib/comms/CommsClient';
 import PageInfo from './lib/video-data/PageInfo';
 import Logger from './lib/Logger';
 
-// vue dependency imports
-import Vue from 'vue';
-import Vuex from 'vuex';
-import VuexWebExtensions from 'vuex-webextensions';
-
-global.browser = require('webextension-polyfill');
-import LoggerUi from '../csui/LoggerUi';
 
 if(Debug.debug){
-  console.log("\n\n\n\n\n\n           ———    Sᴛλʀᴛɪɴɢ  Uʟᴛʀᴀᴡɪᴅɪꜰʏ    ———\n               <<   ʟᴏᴀᴅɪɴɢ ᴍᴀɪɴ ꜰɪʟᴇ   >>\n\n\n\n");
-  try {
-    if(window.self !== window.top){
-      console.log("%cWe aren't in an iframe.", "color: #afc, background: #174");
-    }
-    else{
-      console.log("%cWe are in an iframe!", "color: #fea, background: #d31", window.self, window.top);
-    }
-  } catch (e) {
-    console.log("%cWe are in an iframe!", "color: #fea, background: #d31");
-  }
+  console.log("Sᴛλʀᴛɪɴɢ  Uʟᴛʀᴀᴡɪᴅɪꜰʏ UI");
 }
 
 if (BrowserDetect.edge) {
@@ -40,9 +23,7 @@ class UW {
     this.settings = undefined;
     this.actionHandler = undefined;
     this.logger = undefined;
-    this.vuexStore = {};
     this.uiInitiated = false;
-    this.vueInitiated = false;
   }
 
   reloadSettings() {
@@ -51,9 +32,9 @@ class UW {
   }
 
   async init(){
-    if (Debug.debug) {
+    // if (Debug.debug) {
       console.log("[uw::main] loading configuration ...");
-    }
+    // }
   
     // logger init is the first thing that needs to run
     try {
@@ -114,17 +95,10 @@ class UW {
     }
 
     // init() is re-run any time settings change
-    if (this.pageInfo) {
-      // if this executes, logger must have been initiated at some point before this point
-      this.logger.log('info', 'debug', "[uw::init] Destroying existing pageInfo", this.pageInfo);
-      this.pageInfo.destroy();
-    }
     if (this.comms) {
       this.comms.destroy();
     }
-
     if (!this.settings) {
-      var ths = this;
       this.settings = new Settings({
         onSettingsChanged: () => this.reloadSettings(),
         logger: this.logger
@@ -132,12 +106,8 @@ class UW {
       await this.settings.init();
     }
   
-    this.comms = new CommsClient('content-client-port', this.settings, this.logger);
+    this.comms = new CommsClient('content-ui-port', this.settings, this.logger);
 
-    // add showPopup, hidePopup listener to comms
-    this.comms.subscribe('show-logger', () => this.showLogger());
-    this.comms.subscribe('hide-logger', () => this.hideLogger());
-  
     // če smo razširitev onemogočili v nastavitvah, ne naredimo ničesar
     // If extension is soft-disabled, don't do shit
 
@@ -172,87 +142,11 @@ class UW {
     } catch (e) {
       this.logger.log('error', 'debug', "[uw::init] FAILED TO START EXTENSION. Error:", e);
     }
+
+    console.log("....")
   }
 
-  initVue() {
-    Vue.prototype.$browser = global.browser;
-    Vue.use(Vuex);
-    this.vuexStore = new Vuex.Store({
-      plugins: [VuexWebExtensions({
-        persistentStates: [
-          'uwLog',
-          'showLogger',
-        ],
-      })],
-      state: {
-        uwLog: '',
-        showLogger: false,
-      },
-      mutations: {
-        'uw-set-log'(state, payload) {
-          state['uwLog'] = payload;
-        },
-        'uw-show-logger'(state) {
-          state['showLogger'] = true;
-        },
-        'uw-hide-logger'(state) {
-          state['showLogger'] = false;
-        }
-      },
-      actions: {
-        'uw-set-log' ({commit}, payload) {
-          commit('uw-set-log', payload);
-        },
-        'uw-show-logger'({commit}) {
-          commit('uw-show-logger');
-        },
-        'uw-hide-logger'({commit}) {
-          commit('uw-hide-logger');
-        }
-      }
-    })
-  }
-
-  initUi() {
-    console.log("CREATING UI");
-    const random = Math.round(Math.random() * 69420);
-    const uwid = `uw-ui-root-${random}`;
-
-    const rootDiv = document.createElement('div');
-    rootDiv.setAttribute("style", "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999; background-color: #ff0000;");
-    rootDiv.setAttribute("id", uwid);
-
-    document.body.appendChild(rootDiv);
-   
-    new Vue({
-      el: `#${uwid}`,
-      components: {
-        LoggerUi
-      },
-      store: this.vuexStore,
-      render(h) {
-        return h('logger-ui');
-      }
-    })
-  }
-
-  showLogger() {
-    if (! this.vueInitiated) {
-      this.initVue();
-    }
-    if (!this.uiInitiated) {
-      this.initUi();
-    }
-
-    this.vuexStore.dispatch('uw-show-logger');
-  }
-  hideLogger() {
-    // if either of these two is false, then we know that UI doesn't exist
-    // since UI doesn't exist, we don't need to dispatch uw-hide-logger
-    if (this.vueInitiated && this.uiInitiated) {
-      this.vuexStore.dispatch('uw-hide-logger');
-    }
-  }
+ 
 }
 
 var main = new UW();
