@@ -49,6 +49,7 @@ class UWServer {
     this.settings = new Settings({logger: this.logger});
     await this.settings.init();
     this.comms = new CommsServer(this);
+    this.comms.subscribe('show-logger', async () => await this.initUi());
 
     var ths = this;
     if(BrowserDetect.firefox) {
@@ -196,6 +197,26 @@ class UWServer {
   setSelectedTab(menu, subitem) {
     this.logger.log('info', 'comms', '[UwServer::setSelectedTab] saving selected tab for', menu, ':', subitem);
     this.selectedSubitem[menu] = subitem;
+  }
+
+  async initUi() {
+    try {
+      if (BrowserDetect.firefox) {
+        console.log("")
+        browser.tabs.executeScript({
+          file: '/ext/uw-ui.js',
+          allFrames: true,
+        });
+      } else if (BrowserDetect.chrome) {
+        chrome.tabs.executeScript({
+          file: '/ext/uw-ui.js',
+          allFrames: true,
+        });
+      }
+    } catch (e) {
+      console.error("UI initialization failed. Reason:", e);
+      this.logger.log('ERROR', 'uwbg', 'UI initialization failed. Reason:', e);
+    }
   }
 
   async getCurrentTab() {
