@@ -134,7 +134,6 @@ class CommsServer {
   }
 
   subscribe(command, callback) {
-    console.log("subscribing to command:", command, "with callback", callback)
     if (!this.commands[command]) {
       this.commands[command] = [callback];
     } else {
@@ -253,7 +252,6 @@ class CommsServer {
 
 
   async execCmd(message, portOrSender, sendResponse) {
-    console.log("got a command to exec:", message.cmd, message, this.commands[message.cmd], this.commands)
     this.logger.log(
       'info', 'comms', '[CommsServer.js::execCmd] Received message', message,
       ". Port/sender:", portOrSender, "sendResponse:", sendResponse, "\nThere is ", this.commands[message.cmd]?.length ?? 0,

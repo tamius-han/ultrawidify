@@ -156,7 +156,6 @@ class Settings {
         try {
           updateFn(this.active, this.getDefaultSettings());
         } catch (e) {
-          console.log("!!!!", e)
           this.logger.log('error', 'settings', '[Settings::applySettingsPatches] Failed to execute update function. Keeping settings object as-is. Error:', e);
         }
       }

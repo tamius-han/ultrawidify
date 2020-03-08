@@ -237,8 +237,6 @@ class UWServer {
 
     const ctab = await this.getCurrentTab();
 
-    console.log('Current tab:', ctab);
-
     if (!ctab || !ctab.id) {
       return {
         host: 'INVALID SITE',

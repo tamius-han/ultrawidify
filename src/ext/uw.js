@@ -60,9 +60,9 @@ class UW {
   }
 
   async init(){
-    // if (Debug.debug) {
+    if (Debug.debug) {
       console.log("[uw::main] loading configuration ...");
-    // }
+    }
   
     // logger init is the first thing that needs to run
     try {
