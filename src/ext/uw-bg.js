@@ -4,6 +4,8 @@ import CommsServer from './lib/comms/CommsServer';
 import Settings from './lib/Settings';
 import Logger from './lib/Logger';
 
+import sleep from '../common/js/utils';
+
 var BgVars = {
   arIsActive: true,
   hasVideos: false,
@@ -50,6 +52,8 @@ class UWServer {
     await this.settings.init();
     this.comms = new CommsServer(this);
     this.comms.subscribe('show-logger', async () => await this.initUi());
+    this.comms.subscribe('init-vue', async () => await this.initUi());
+
 
     var ths = this;
     if(BrowserDetect.firefox) {
@@ -202,19 +206,19 @@ class UWServer {
   async initUi() {
     try {
       if (BrowserDetect.firefox) {
-        console.log("")
-        browser.tabs.executeScript({
+        await browser.tabs.executeScript({
           file: '/ext/uw-ui.js',
           allFrames: true,
         });
       } else if (BrowserDetect.chrome) {
-        chrome.tabs.executeScript({
-          file: '/ext/uw-ui.js',
-          allFrames: true,
-        });
+        await new Promise( resolve => 
+          chrome.tabs.executeScript({
+            file: '/ext/uw-ui.js',
+            allFrames: true,
+          }, () => resolve())
+        );
       }
     } catch (e) {
-      console.error("UI initialization failed. Reason:", e);
       this.logger.log('ERROR', 'uwbg', 'UI initialization failed. Reason:', e);
     }
   }
