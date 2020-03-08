@@ -2,7 +2,7 @@ import Debug from '../../conf/Debug';
 import BrowserDetect from '../../conf/BrowserDetect';
 
 class CommsClient {
-  constructor(name, settings, logger) {
+  constructor(name, logger, commands) {
     this.logger = logger;
 
     if (BrowserDetect.firefox) {
@@ -24,46 +24,15 @@ class CommsClient {
       }
     );
 
-    var ths = this;
-    this._listener = m => ths.processReceivedMessage(m);
+    this._listener = m => this.processReceivedMessage(m);
     this.port.onMessage.addListener(this._listener);
 
-    this.settings = settings;
-    this.pageInfo = undefined;
     this.commsId = (Math.random() * 20).toFixed(0);
 
-    this.commands = {
-      'get-current-zoom': [() => this.pageInfo.requestCurrentZoom()],
-      'set-ar': [(message) => this.pageInfo.setAr({type: message.arg, ratio: message.customArg}, message.playing)],
-      'set-alignment': [(message) => {
-        this.pageInfo.setVideoAlignment(message.arg, message.playing);
-        this.pageInfo.restoreAr();
-      }],
-      'set-stretch': [(message) => this.pageInfo.setStretchMode(message.arg, message.playing, message.customArg)],
-      'set-keyboard': [(message) => this.pageInfo.setKeyboardShortcutsEnabled(message.arg)],
-      'autoar-start': [(message) => {
-        if (message.enabled !== false) {
-          this.pageInfo.initArDetection(message.playing);
-          this.pageInfo.startArDetection(message.playing);
-        } else {
-          this.pageInfo.stopArDetection(message.playing);
-        }
-      }],
-      'pause-processing': [(message) => this.pageInfo.pauseProcessing(message.playing)],
-      'resume-processing': [(message) => this.pageInfo.resumeProcessing(message.autoArStatus, message.playing)],
-      'set-zoom': [(message) => this.pageInfo.setZoom(message.arg, true, message.playing)],
-      'change-zoom': [(message) => this.pageInfo.zoomStep(message.arg, message.playing)],
-      'mark-player': [(message) => this.pageInfo.markPlayer(message.name, message.color)],
-      'unmark-player': [() => this.pageInfo.unmarkPlayer()],
-      'autoar-set-manual-tick': [(message) => this.pageInfo.setManualTick(message.arg)],
-      'autoar-tick': [() => this.pageInfo.tick()],
-      'set-ar-persistence': [() => this.pageInfo.setArPersistence(message.arg)], 
-    };
+    this.commands = commands;
   }
   
   destroy() {
-    this.pageInfo = null;
-    this.settings = null;
     if (!BrowserDetect.edge) { // edge is a very special browser made by outright morons.
       this.port.onMessage.removeListener(this._listener);
     }
@@ -77,31 +46,8 @@ class CommsClient {
     }
   }
 
-  setPageInfo(pageInfo){
-
-    this.pageInfo = pageInfo;
-
-    this.logger.log('info', 'debug', `[CommsClient::setPageInfo] <${this.commsId}>`, "setting pageinfo");
-
-    var ths = this;
-    this._listener = m => ths.processReceivedMessage(m);
-    if (!BrowserDetect.edge) {
-      this.port.onMessage.removeListener(this._listener);
-    }
-    this.port.onMessage.addListener(this._listener);
-    
-  }
-
   processReceivedMessage(message){
     this.logger.log('info', 'comms', `[CommsClient.js::processMessage] <${this.commsId}> Received message from background script!`, message);
-
-    if (!this.pageInfo || !this.settings.active) {
-      this.logger.log('info', 'comms', `[CommsClient.js::processMessage] <${this.commsId}> this.pageInfo (or settings) not defined. Extension is probably disabled for this site.\npageInfo:`, this.pageInfo,
-                      "\nsettings.active:", this.settings.active,
-                      "\nnobj:", this
-      );
-      return;
-    }
 
     if (this.commands[message.cmd]) {
       for (const c of this.commands[message.cmd]) {
@@ -165,13 +111,7 @@ class CommsClient {
 
   registerVideo(){
     this.logger.log('info', 'comms', `[CommsClient::registerVideo] <${this.commsId}>`, "Registering video for current page.");
-    if (this.pageInfo) {
-      if (this.pageInfo.hasVideo()) { 
-        this.port.postMessage({cmd: "has-video"});
-      }
-    } else {
-      // this.port.postMessage({cmd: "has-video"});
-    }
+    this.port.postMessage({cmd: "has-video"});
   }
 
   sendPerformanceUpdate(message){

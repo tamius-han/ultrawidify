@@ -24,6 +24,34 @@ class UW {
     this.actionHandler = undefined;
     this.logger = undefined;
     this.uiInitiated = false;
+
+    this.commsHandlers = {
+      'get-current-zoom': [() => this.pageInfo.requestCurrentZoom()],
+      'set-ar': [(message) => this.pageInfo.setAr({type: message.arg, ratio: message.customArg}, message.playing)],
+      'set-alignment': [(message) => {
+        this.pageInfo.setVideoAlignment(message.arg, message.playing);
+        this.pageInfo.restoreAr();
+      }],
+      'set-stretch': [(message) => this.pageInfo.setStretchMode(message.arg, message.playing, message.customArg)],
+      'set-keyboard': [(message) => this.pageInfo.setKeyboardShortcutsEnabled(message.arg)],
+      'autoar-start': [(message) => {
+        if (message.enabled !== false) {
+          this.pageInfo.initArDetection(message.playing);
+          this.pageInfo.startArDetection(message.playing);
+        } else {
+          this.pageInfo.stopArDetection(message.playing);
+        }
+      }],
+      'pause-processing': [(message) => this.pageInfo.pauseProcessing(message.playing)],
+      'resume-processing': [(message) => this.pageInfo.resumeProcessing(message.autoArStatus, message.playing)],
+      'set-zoom': [(message) => this.pageInfo.setZoom(message.arg, true, message.playing)],
+      'change-zoom': [(message) => this.pageInfo.zoomStep(message.arg, message.playing)],
+      'mark-player': [(message) => this.pageInfo.markPlayer(message.name, message.color)],
+      'unmark-player': [() => this.pageInfo.unmarkPlayer()],
+      'autoar-set-manual-tick': [(message) => this.pageInfo.setManualTick(message.arg)],
+      'autoar-tick': [() => this.pageInfo.tick()],
+      'set-ar-persistence': [() => this.pageInfo.setArPersistence(message.arg)], 
+    }
   }
 
   reloadSettings() {
@@ -106,7 +134,7 @@ class UW {
       await this.settings.init();
     }
   
-    this.comms = new CommsClient('content-ui-port', this.settings, this.logger);
+    this.comms = new CommsClient('content-ui-port', this.logger, this.commsHandlers);
 
     // če smo razširitev onemogočili v nastavitvah, ne naredimo ničesar
     // If extension is soft-disabled, don't do shit
@@ -127,7 +155,6 @@ class UW {
     try {
       this.pageInfo = new PageInfo(this.comms, this.settings, this.logger, extensionMode, isSiteDisabled);
       this.logger.log('info', 'debug', "[uw.js::setup] pageInfo initialized.");
-      this.comms.setPageInfo(this.pageInfo);
   
       this.logger.log('info', 'debug', "[uw.js::setup] will try to initate ActionHandler.");
 
