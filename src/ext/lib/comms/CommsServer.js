@@ -133,6 +133,15 @@ class CommsServer {
     }
   }
 
+  subscribe(command, callback) {
+    console.log("subscribing to command:", command, "with callback", callback)
+    if (!this.commands[command]) {
+      this.commands[command] = [callback];
+    } else {
+      this.commands[command].push(callback);
+    }
+  }
+
   async getCurrentTabHostname() {
     const activeTab = await this._getActiveTab();
 
@@ -243,35 +252,35 @@ class CommsServer {
   }
 
 
-  execCmd(message, portOrSender, sendResponse) {
+  async execCmd(message, portOrSender, sendResponse) {
+    console.log("got a command to exec:", message.cmd, message, this.commands[message.cmd], this.commands)
     this.logger.log(
       'info', 'comms', '[CommsServer.js::execCmd] Received message', message,
       ". Port/sender:", portOrSender, "sendResponse:", sendResponse, "\nThere is ", this.commands[message.cmd]?.length ?? 0,
       " command(s) for action", message.cmd
     );
-    for (const c of this.commands[message.cmd]) {
-      c(message, portOrSender, sendResponse);
+    if (this.commands[message.cmd]) {
+      for (const c of this.commands[message.cmd]) {
+        await c(message, portOrSender, sendResponse);
+      }
     }
   }
 
-  handleMessage(message, portOrSender, sendResponse) {
+  async handleMessage(message, portOrSender, sendResponse) {
+    await this.execCmd(message, portOrSender, sendResponse);
+    
     if (message.forwardToContentScript) {
       this.logger.log('info', 'comms', "[CommsServer.js::processReceivedMessage] Message has 'forward to content script' flag set. Forwarding message as is. Message:", message);
       this.sendToFrame(message, message.targetTab, message.targetFrame);
-      return;
     }
     if (message.forwardToAll) {
       this.logger.log('info', 'comms', "[CommsServer.js::processReceivedMessage] Message has 'forward to all' flag set. Forwarding message as is. Message:", message);
       this.sendToAll(message);
-      return;
     }
     if (message.forwardToActive) {
       this.logger.log('info', 'comms', "[CommsServer.js::processReceivedMessage] Message has 'forward to active' flag set. Forwarding message as is. Message:", message);
       this.sendToActive(message);
-      return;
     }
-
-    this.execCmd(message, portOrSender, sendResponse);
   }
 
   async processReceivedMessage(message, port){
