@@ -5,7 +5,7 @@ import EdgeStatus from './edge-detect/enums/EdgeStatusEnum';
 import EdgeDetectPrimaryDirection from './edge-detect/enums/EdgeDetectPrimaryDirectionEnum';
 import EdgeDetectQuality from './edge-detect/enums/EdgeDetectQualityEnum';
 import GuardLine from './GuardLine';
-import DebugCanvas from './DebugCanvas';
+// import DebugCanvas from './DebugCanvas';
 import VideoAlignment from '../../../common/enums/video-alignment.enum';
 import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 
