@@ -4,6 +4,16 @@ import CommsServer from './lib/comms/CommsServer';
 import Settings from './lib/Settings';
 import Logger from './lib/Logger';
 
+import { sleep } from '../common/js/utils';
+
+// we need vue in bg script, so we can get vuex.
+// and we need vuex so popup will be initialized 
+// after the first click without resorting to ugly,
+// dirty hacks
+import Vue from 'vue';
+import Vuex from 'vuex';
+import VuexWebExtensions from 'vuex-webextensions';
+
 var BgVars = {
   arIsActive: true,
   hasVideos: false,
@@ -27,6 +37,8 @@ class UWServer {
       'siteSettings': undefined,
       'videoSettings': undefined,
     }
+
+    this.uiLoggerInitialized = false;
   }
 
   async setup() {
@@ -49,12 +61,15 @@ class UWServer {
     this.settings = new Settings({logger: this.logger});
     await this.settings.init();
     this.comms = new CommsServer(this);
+    this.comms.subscribe('show-logger', async () => await this.initUiAndShowLogger());
+    this.comms.subscribe('init-vue', async () => await this.initUi());
+    this.comms.subscribe('uwui-vue-initialized', () => this.uiLoggerInitialized = true);
 
-    var ths = this;
+
     if(BrowserDetect.firefox) {
-      browser.tabs.onActivated.addListener(function(m) {ths.onTabSwitched(m)});  
+      browser.tabs.onActivated.addListener(function(m) {this.onTabSwitched(m)});  
     } else if (BrowserDetect.chrome) {
-      chrome.tabs.onActivated.addListener(function(m) {ths.onTabSwitched(m)});
+      chrome.tabs.onActivated.addListener(function(m) {this.onTabSwitched(m)});
     }
   }
 
@@ -98,6 +113,10 @@ class UWServer {
   extractHostname(url){
     var hostname;
     
+    if (!url) {
+      return "<no url>";
+    }
+
     // extract hostname  
     if (url.indexOf("://") > -1) {    //find & remove protocol (http, ftp, etc.) and get hostname
       hostname = url.split('/')[2];
@@ -198,6 +217,56 @@ class UWServer {
     this.selectedSubitem[menu] = subitem;
   }
 
+  async initUi() {
+    try {
+      if (BrowserDetect.firefox) {
+        await browser.tabs.executeScript({
+          file: '/ext/uw-ui.js',
+          allFrames: true,
+        });
+      } else if (BrowserDetect.chrome) {
+        await new Promise( resolve => 
+          chrome.tabs.executeScript({
+            file: '/ext/uw-ui.js',
+            allFrames: true,
+          }, () => resolve())
+        );
+      }
+      
+    } catch (e) {
+      this.logger.log('ERROR', 'uwbg', 'UI initialization failed. Reason:', e);
+    }
+  }
+
+  async initUiAndShowLogger() {
+    // this implementation is less than optimal and very hacky, but it should work
+    // just fine for our use case.
+    this.uiLoggerInitialized = false;
+
+    await this.initUi();
+
+    await new Promise( async (resolve, reject) => {
+      // if content script doesn't give us a response within 5 seconds, something is 
+      // obviously wrong and we stop waiting,
+
+      // oh and btw, resolve/reject do not break the loops, so we need to do that 
+      // ourselves:
+      // https://stackoverflow.com/questions/55207256/will-resolve-in-promise-loop-break-loop-iteration
+      let isRejected = false;
+      setTimeout( async () => {isRejected = true; reject()}, 5000);
+
+      // check whether UI has been initiated on the FE. If it was, we resolve the 
+      // promise and off we go
+      while (!isRejected) {
+        if (this.uiLoggerInitialized) {
+          resolve();
+          return;        // remember the bit about resolve() not breaking the loop?
+        }
+        await sleep(100);
+      }
+    })
+  }
+
   async getCurrentTab() {
     if (BrowserDetect.firefox) {
       return (await browser.tabs.query({active: true, currentWindow: true}))[0];
@@ -211,8 +280,6 @@ class UWServer {
     // there won't be anything in this.videoTabs[this.currentTabId]
 
     const ctab = await this.getCurrentTab();
-
-    console.log('Current tab:', ctab);
 
     if (!ctab || !ctab.id) {
       return {

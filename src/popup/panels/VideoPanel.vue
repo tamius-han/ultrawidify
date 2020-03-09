@@ -157,7 +157,7 @@ export default {
   },
   methods: {
     async openOptionsPage() {
-      browser.runtime.openOptionsPage();
+      (browser ?? chrome).runtime.openOptionsPage();
     },
     execAction(action) {
       this.exec.exec(action, 'page', this.frame);

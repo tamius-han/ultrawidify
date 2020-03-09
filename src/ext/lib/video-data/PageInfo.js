@@ -40,7 +40,7 @@ class PageInfo {
     }
 
     // try getting default crop immediately.
-    const cropModePersistence = this.settings.getDefaultCropPersistenceMode(window.location.host);
+    // const cropModePersistence = this.settings.getDefaultCropPersistenceMode(window.location.host);
 
     // try {
     //   if (cropModePersistence === CropModePersistence.Forever) {

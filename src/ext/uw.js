@@ -7,13 +7,6 @@ import CommsClient from './lib/comms/CommsClient';
 import PageInfo from './lib/video-data/PageInfo';
 import Logger from './lib/Logger';
 
-// vue dependency imports
-import Vue from 'vue';
-import Vuex from 'vuex';
-import VuexWebExtensions from 'vuex-webextensions';
-
-global.browser = require('webextension-polyfill');
-import LoggerUi from '../csui/LoggerUi';
 
 if(Debug.debug){
   console.log("\n\n\n\n\n\n           ———    Sᴛλʀᴛɪɴɢ  Uʟᴛʀᴀᴡɪᴅɪꜰʏ    ———\n               <<   ʟᴏᴀᴅɪɴɢ ᴍᴀɪɴ ꜰɪʟᴇ   >>\n\n\n\n");
@@ -40,9 +33,35 @@ class UW {
     this.settings = undefined;
     this.actionHandler = undefined;
     this.logger = undefined;
-    this.vuexStore = {};
     this.uiInitiated = false;
-    this.vueInitiated = false;
+
+    this.commsHandlers = {
+      'get-current-zoom': [() => this.pageInfo.requestCurrentZoom()],
+      'set-ar': [(message) => this.pageInfo.setAr({type: message.arg, ratio: message.customArg}, message.playing)],
+      'set-alignment': [(message) => {
+        this.pageInfo.setVideoAlignment(message.arg, message.playing);
+        this.pageInfo.restoreAr();
+      }],
+      'set-stretch': [(message) => this.pageInfo.setStretchMode(message.arg, message.playing, message.customArg)],
+      'set-keyboard': [(message) => this.pageInfo.setKeyboardShortcutsEnabled(message.arg)],
+      'autoar-start': [(message) => {
+        if (message.enabled !== false) {
+          this.pageInfo.initArDetection(message.playing);
+          this.pageInfo.startArDetection(message.playing);
+        } else {
+          this.pageInfo.stopArDetection(message.playing);
+        }
+      }],
+      'pause-processing': [(message) => this.pageInfo.pauseProcessing(message.playing)],
+      'resume-processing': [(message) => this.pageInfo.resumeProcessing(message.autoArStatus, message.playing)],
+      'set-zoom': [(message) => this.pageInfo.setZoom(message.arg, true, message.playing)],
+      'change-zoom': [(message) => this.pageInfo.zoomStep(message.arg, message.playing)],
+      'mark-player': [(message) => this.pageInfo.markPlayer(message.name, message.color)],
+      'unmark-player': [() => this.pageInfo.unmarkPlayer()],
+      'autoar-set-manual-tick': [(message) => this.pageInfo.setManualTick(message.arg)],
+      'autoar-tick': [() => this.pageInfo.tick()],
+      'set-ar-persistence': [() => this.pageInfo.setArPersistence(message.arg)], 
+    }
   }
 
   reloadSettings() {
@@ -94,9 +113,6 @@ class UW {
 
         if (this.logger.isLoggingAllowed()) {
           console.info("[uw::init] Logging is allowed! Initalizing vue and UI!");
-          this.initVue();
-          this.initUi();
-          this.logger.setVuexStore(this.vuexStore);
         }
 
         // show popup if logging to file is enabled
@@ -114,17 +130,10 @@ class UW {
     }
 
     // init() is re-run any time settings change
-    if (this.pageInfo) {
-      // if this executes, logger must have been initiated at some point before this point
-      this.logger.log('info', 'debug', "[uw::init] Destroying existing pageInfo", this.pageInfo);
-      this.pageInfo.destroy();
-    }
     if (this.comms) {
       this.comms.destroy();
     }
-
     if (!this.settings) {
-      var ths = this;
       this.settings = new Settings({
         onSettingsChanged: () => this.reloadSettings(),
         logger: this.logger
@@ -132,12 +141,8 @@ class UW {
       await this.settings.init();
     }
   
-    this.comms = new CommsClient('content-client-port', this.settings, this.logger);
+    this.comms = new CommsClient('content-main-port', this.logger, this.commsHandlers);
 
-    // add showPopup, hidePopup listener to comms
-    this.comms.subscribe('show-logger', () => this.showLogger());
-    this.comms.subscribe('hide-logger', () => this.hideLogger());
-  
     // če smo razširitev onemogočili v nastavitvah, ne naredimo ničesar
     // If extension is soft-disabled, don't do shit
 
@@ -157,7 +162,6 @@ class UW {
     try {
       this.pageInfo = new PageInfo(this.comms, this.settings, this.logger, extensionMode, isSiteDisabled);
       this.logger.log('info', 'debug', "[uw.js::setup] pageInfo initialized.");
-      this.comms.setPageInfo(this.pageInfo);
   
       this.logger.log('info', 'debug', "[uw.js::setup] will try to initate ActionHandler.");
 
@@ -174,85 +178,7 @@ class UW {
     }
   }
 
-  initVue() {
-    Vue.prototype.$browser = global.browser;
-    Vue.use(Vuex);
-    this.vuexStore = new Vuex.Store({
-      plugins: [VuexWebExtensions({
-        persistentStates: [
-          'uwLog',
-          'showLogger',
-        ],
-      })],
-      state: {
-        uwLog: '',
-        showLogger: false,
-      },
-      mutations: {
-        'uw-set-log'(state, payload) {
-          state['uwLog'] = payload;
-        },
-        'uw-show-logger'(state) {
-          state['showLogger'] = true;
-        },
-        'uw-hide-logger'(state) {
-          state['showLogger'] = false;
-        }
-      },
-      actions: {
-        'uw-set-log' ({commit}, payload) {
-          commit('uw-set-log', payload);
-        },
-        'uw-show-logger'({commit}) {
-          commit('uw-show-logger');
-        },
-        'uw-hide-logger'({commit}) {
-          commit('uw-hide-logger');
-        }
-      }
-    })
-  }
-
-  initUi() {
-    console.log("CREATING UI");
-    const random = Math.round(Math.random() * 69420);
-    const uwid = `uw-ui-root-${random}`;
-
-    const rootDiv = document.createElement('div');
-    rootDiv.setAttribute("style", "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999; background-color: #ff0000;");
-    rootDiv.setAttribute("id", uwid);
-
-    document.body.appendChild(rootDiv);
-   
-    new Vue({
-      el: `#${uwid}`,
-      components: {
-        LoggerUi
-      },
-      store: this.vuexStore,
-      render(h) {
-        return h('logger-ui');
-      }
-    })
-  }
-
-  showLogger() {
-    if (! this.vueInitiated) {
-      this.initVue();
-    }
-    if (!this.uiInitiated) {
-      this.initUi();
-    }
-
-    this.vuexStore.dispatch('uw-show-logger');
-  }
-  hideLogger() {
-    // if either of these two is false, then we know that UI doesn't exist
-    // since UI doesn't exist, we don't need to dispatch uw-hide-logger
-    if (this.vueInitiated && this.uiInitiated) {
-      this.vuexStore.dispatch('uw-hide-logger');
-    }
-  }
+ 
 }
 
 var main = new UW();
