@@ -9,7 +9,17 @@ import Logger from './lib/Logger';
 
 
 if(Debug.debug){
-  console.log("Sᴛλʀᴛɪɴɢ  Uʟᴛʀᴀᴡɪᴅɪꜰʏ UI");
+  console.log("\n\n\n\n\n\n           ———    Sᴛλʀᴛɪɴɢ  Uʟᴛʀᴀᴡɪᴅɪꜰʏ    ———\n               <<   ʟᴏᴀᴅɪɴɢ ᴍᴀɪɴ ꜰɪʟᴇ   >>\n\n\n\n");
+  try {
+    if(window.self !== window.top){
+      console.log("%cWe aren't in an iframe.", "color: #afc, background: #174");
+    }
+    else{
+      console.log("%cWe are in an iframe!", "color: #fea, background: #d31", window.self, window.top);
+    }
+  } catch (e) {
+    console.log("%cWe are in an iframe!", "color: #fea, background: #d31");
+  }
 }
 
 if (BrowserDetect.edge) {
