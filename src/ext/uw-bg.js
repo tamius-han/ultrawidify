@@ -66,11 +66,10 @@ class UWServer {
     this.comms.subscribe('uwui-vue-initialized', () => this.uiLoggerInitialized = true);
 
 
-    var ths = this;
     if(BrowserDetect.firefox) {
-      browser.tabs.onActivated.addListener(function(m) {ths.onTabSwitched(m)});  
+      browser.tabs.onActivated.addListener(function(m) {this.onTabSwitched(m)});  
     } else if (BrowserDetect.chrome) {
-      chrome.tabs.onActivated.addListener(function(m) {ths.onTabSwitched(m)});
+      chrome.tabs.onActivated.addListener(function(m) {this.onTabSwitched(m)});
     }
   }
 
