@@ -16,6 +16,7 @@
     "resizer",
     "textbox",
     "videodata",
+    "vuex",
     "youtube"
   ],
   "cSpell.ignoreWords": [
