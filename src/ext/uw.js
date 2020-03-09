@@ -134,7 +134,7 @@ class UW {
       await this.settings.init();
     }
   
-    this.comms = new CommsClient('content-ui-port', this.logger, this.commsHandlers);
+    this.comms = new CommsClient('content-main-port', this.logger, this.commsHandlers);
 
     // če smo razširitev onemogočili v nastavitvah, ne naredimo ničesar
     // If extension is soft-disabled, don't do shit
