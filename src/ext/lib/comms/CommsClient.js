@@ -119,7 +119,7 @@ class CommsClient {
 
   announceZoom(scale){
     this.port.postMessage({cmd: "announce-zoom", zoom: scale});
-    this.registerVideo()
+    this.registerVideo();
   }
 
 
