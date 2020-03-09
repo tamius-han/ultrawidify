@@ -9,14 +9,12 @@ class CommsServer {
     this.ports = [];
     this.popupPort = null;
 
-    var ths = this;
-
     if (BrowserDetect.firefox) {
       browser.runtime.onConnect.addListener(p => this.onConnect(p));
-      browser.runtime.onMessage.addListener((m, sender) => ths.processReceivedMessage_nonpersistent(m, sender));
+      browser.runtime.onMessage.addListener((m, sender) => this.processReceivedMessage_nonpersistent(m, sender));
     } else {
       chrome.runtime.onConnect.addListener(p => ths.onConnect(p));
-      chrome.runtime.onMessage.addListener((m, sender, callback) => ths.processReceivedMessage_nonpersistent(m, sender, callback));
+      chrome.runtime.onMessage.addListener((m, sender, callback) => this.processReceivedMessage_nonpersistent(m, sender, callback));
     }
 
     // commands — functions that handle incoming messages
@@ -230,7 +228,6 @@ class CommsServer {
 
     for (const frame in this.ports[tabs[0].id]) {
       this.sendToContentScripts(message, tabs[0].id, frame);
-      this.ports[tabs[0].id][frame].postMessage(message);
     }
   }
 
@@ -238,7 +235,7 @@ class CommsServer {
     // poseben primer | special case
     if (port.name === 'popup-port') {
       this.popupPort = port;
-      this.popupPort.onMessage.addListener( (m,p) => ths.processReceivedMessage(m,p));
+      this.popupPort.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
       return;
     }
 
@@ -251,10 +248,14 @@ class CommsServer {
       this.ports[tabId][frameId] = {};
     }
     this.ports[tabId][frameId][port.name] = port;
-    this.ports[tabId][frameId][port.name].onMessage.addListener( (m,p) => ths.processReceivedMessage(m, p));
+    this.ports[tabId][frameId][port.name].onMessage.addListener( (m,p) => this.processReceivedMessage(m, p));
 
-    this.ports[tabId][frameId][port.name].onDisconnect.addListener( (p) => { 
-      delete this.ports[p.sender.tab.id][p.sender.frameId][port.name]; 
+    this.ports[tabId][frameId][port.name].onDisconnect.addListener( (p) => {
+      try {
+        delete this.ports[p.sender.tab.id][p.sender.frameId][port.name]; 
+      } catch (e) {
+        // no biggie if the thing above doesn't exist. 
+      }
       if (Object.keys(this.ports[tabId][frameId].length === 0)) {
         delete this.ports[tabId][frameId];
         if(Object.keys(this.ports[p.sender.tab.id]).length === 0) {
@@ -273,7 +274,11 @@ class CommsServer {
     );
     if (this.commands[message.cmd]) {
       for (const c of this.commands[message.cmd]) {
-        await c(message, portOrSender, sendResponse);
+        try {
+          await c(message, portOrSender, sendResponse);
+        } catch (e) {
+          this.logger.log('error', 'debug', "[CommsServer.js::execCmd] failed to execute command.", e)
+        }
       }
     }
   }

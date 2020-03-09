@@ -8,6 +8,7 @@ import LoggerUi from '../csui/LoggerUi';
 import Logger from './lib/Logger';
 import Settings from './lib/Settings';
 import CommsClient from './lib/comms/CommsClient';
+import Comms from './lib/comms/Comms';
 
 class UwUi {
 
@@ -31,8 +32,8 @@ class UwUi {
     //     * if video/player is detected (which can only happen if extension is enabled
     //       for that particular site)
 
-    // initialize vuejs, but only once (check handled in initVue())
-    this.initVue();
+    // NOTE: we need to setup logger and comms _before_ initializing vue (unless we're starting)
+    // because logger settings say we should
 
     // setup logger
     try {
@@ -74,7 +75,7 @@ class UwUi {
         if (this.logger.isLoggingAllowed()) {
           console.info("[uw::init] Logging is allowed! Initalizing vue and UI!");
           this.initVue();
-          this.initUi();
+          this.initLoggerUi();
           this.logger.setVuexStore(this.vuexStore);
         }
 
@@ -107,11 +108,17 @@ class UwUi {
     }
 
     this.comms = new CommsClient('content-ui-port', this.logger, this.commsHandlers);
+
+    // initialize vuejs, but only once (check handled in initVue())
+    // we need to initialize this _after_ initializing comms.
+    this.initVue();
   }
 
   initVue() {
     // never init twice
     if (this.vueInitiated) {
+      // let background script know it can proceed with sending 'show-logger' command.
+      Comms.sendMessage({cmd: 'uwui-vue-initialized'});
       return;
     }
 
@@ -154,6 +161,9 @@ class UwUi {
 
     // make sure we don't init twice
     this.vueInitiated = true;
+
+    // let background script know it can proceed with sending 'show-logger' command.
+    Comms.sendMessage({cmd: 'uwui-vue-initialized'});
   }
 
   async initLoggerUi() {
@@ -188,6 +198,7 @@ class UwUi {
     if (!this.loggerUiInitiated) {
       await this.initLoggerUi();
     }
+
     
     try {
       this.vuexStore.dispatch('uw-show-logger');
@@ -215,5 +226,8 @@ if (! document.getElementById(markerId)) {
 
   const uwui = new UwUi();
   uwui.init();
+} else {
+  // let background script know it can proceed with sending 'show-logger' command.
+  Comms.sendMessage({cmd: 'uwui-vue-initialized'});
 }
 
