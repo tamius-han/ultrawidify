@@ -6,7 +6,8 @@
     <ul>
       <li>Ensured that Vue part of the content script (logger UI) only loads when necessary in order to fix breakage on certain sites (<a href="https://github.com/tamius-han/ultrawidify/issues/96">#96</a>).</li>
       <li>Disabling (or enabling, if running in whitelist-only mode) specific sites used to not work (<a href="https://github.com/tamius-han/ultrawidify/issues/91">#91</a>). This issue appears to have been fixed.</li>
-      <li>Default stretch mode for sites is now probably being observed, too (<a href="https://github.com/tamius-han/ultrawidify/issues/94">#94</a>). 
+      <li>Default stretch mode for sites is now probably being observed, too (<a href="https://github.com/tamius-han/ultrawidify/issues/94">#94</a>).</li>
+      <li>Fixed netflix (and possibly disney+ — please provide feedback for disney+ as I am unable to test it due to regional restrictions)</li>
     </ul>
 
     <template v-if="BrowserDetect.chrome">
