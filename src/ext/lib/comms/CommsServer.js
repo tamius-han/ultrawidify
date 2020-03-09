@@ -13,7 +13,7 @@ class CommsServer {
       browser.runtime.onConnect.addListener(p => this.onConnect(p));
       browser.runtime.onMessage.addListener((m, sender) => this.processReceivedMessage_nonpersistent(m, sender));
     } else {
-      chrome.runtime.onConnect.addListener(p => ths.onConnect(p));
+      chrome.runtime.onConnect.addListener(p => this.onConnect(p));
       chrome.runtime.onMessage.addListener((m, sender, callback) => this.processReceivedMessage_nonpersistent(m, sender, callback));
     }
 
