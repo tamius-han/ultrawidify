@@ -366,6 +366,16 @@ const ExtensionConfPatch = [
             }
           }
         }
+      } else {
+        userOptions.sites['wwww.disneyplus.com']['DOM'] = {
+          "player": {
+            "manual": true,
+            "querySelectors": ".btn-media-clients",
+            "additionalCss": "",
+            "useRelativeAncestor": false,
+            "playerNodeCss": ""
+          }
+        }
       }
     }
   }
