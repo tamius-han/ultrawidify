@@ -9,8 +9,6 @@ class CommsClient {
       this.port = browser.runtime.connect({name: name});
     } else if (BrowserDetect.chrome) {
       this.port = chrome.runtime.connect({name: name});
-    } else if (BrowserDetect.edge) {
-      this.port = browser.runtime.connect({name: name})
     }
 
     this.logger.onLogEnd(
