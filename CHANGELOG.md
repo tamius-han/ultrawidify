@@ -17,7 +17,8 @@ QoL improvements for me:
 
 * Ensured that Vue part of the content script (logger UI) only loads when necessary in order to fix breakage on certain sites (#96).
 * Disabling (or enabling, if running in whitelist-only mode) specific sites used to not work (#91). This issue appears to have been fixed.
-* Default stretch mode for sites is now probably being observed, too (#94). 
+* Default stretch mode for sites is now probably being observed, too (#94).
+* Fixed netflix (and possibly disney+ )
 * It's been almost a month and Chrome Web Store still hasn't finished the review of the 4.4.4.1 (and 4.4.4.2) revisions because when it comes to incompetence, it's hard to expect anything less from Google. I've did some proverbial yelling at the support in hopes that Chrome version will finally see an update (disclaimer: when I said yelling I really mean a polite request, because support staff doesn't deserve abuse because a different department is utter shite at doing their jobs).
 
 ### v4.4.5 
