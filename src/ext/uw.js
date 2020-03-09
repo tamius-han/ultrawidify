@@ -113,9 +113,6 @@ class UW {
 
         if (this.logger.isLoggingAllowed()) {
           console.info("[uw::init] Logging is allowed! Initalizing vue and UI!");
-          this.initVue();
-          this.initUi();
-          this.logger.setVuexStore(this.vuexStore);
         }
 
         // show popup if logging to file is enabled
@@ -179,8 +176,6 @@ class UW {
     } catch (e) {
       this.logger.log('error', 'debug', "[uw::init] FAILED TO START EXTENSION. Error:", e);
     }
-
-    console.log("....")
   }
 
  
