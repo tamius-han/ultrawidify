@@ -4,6 +4,7 @@ build/
 /*.log
 /dist*
 /uw-git_keys 
+/untracked-assets
 
 *.pem
 
