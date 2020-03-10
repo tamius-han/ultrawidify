@@ -46,14 +46,7 @@
     "ext/*",
     "res/fonts/*",
     "res/css/*",
-    
-    "res/img/ytplayer-icons/zoom.png",
-    "res/img/ytplayer-icons/unzoom.png",
-    "res/img/ytplayer-icons/fitw.png",
-    "res/img/ytplayer-icons/fith.png",
-    "res/img/ytplayer-icons/reset.png",
-    "res/img/ytplayer-icons/settings.png",
-    
+       
     "res/img/settings/about-bg.png"
   ],
   "permissions": [
