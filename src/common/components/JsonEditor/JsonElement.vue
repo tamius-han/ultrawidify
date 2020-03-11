@@ -2,12 +2,16 @@
   <div class="flex flex-row json-level-indent">
     <div>
       <b>
-        <span v-if="label" class="item-key">"{{label}}" </span>
-        :
+        <span v-if="label" class="item-key" 
+                           :class="{'item-key-boolean-false': typeof value_internal === 'boolean' && !value_internal}"
+        >
+          "{{label}}"
+        </span>
+        :&nbsp;
       </b>
     </div>
     <div v-if="typeof value_internal === 'boolean'"
-         class="json-value-boolean"
+         :class="{'json-value-boolean-true': value_internal, 'json-value-boolean-false': !value_internal}"
          @click="toggleBoolean"
     >
       <template v-if="value_internal">true</template>
@@ -20,24 +24,22 @@
           'json-value-string': typeof value_internal === 'string'
         }"
     >
-      <template v-if="editing">
+      <template v-if="typeof value_internal === 'string'">
+        "<div ref="element-edit-area"
+              contenteditable="true"
+              @keydown.enter="changeValue"
+        >
+          {{value_internal}}
+        </div>"
+      </template>
+      <template v-else>
         <div ref="element-edit-area"
-             :contenteditable="editing"
+              contenteditable="true"
+              @keydown.enter="changeValue"
         >
           {{value_internal}}
         </div>
-        <div class="btn" @click="changeValue">
-          ✔
-        </div>
-      </template>
-      <template v-else>
-        <template v-if="typeof value_internal === 'string'">
-          "{{value_internal}}"
-        </template>
-        <template v-else>
-          {{value_internal}}
-        </template>,
-      </template>
+      </template>,
     </div>
   </div>
 </template>
@@ -69,12 +71,13 @@ export default {
       this.$emit('change', this.value_internal);
     },
     changeValue() {
-      const newValue = this.$refs['element-edit-area'].textContent;
+      this.$refs['element-edit-area'].blur();
+      const newValue = this.$refs['element-edit-area'].textContent.replace(/\n/g, '');
       if (isNaN(newValue)) {
         this.value_internal = newValue;
         this.$emit('change', newValue);
       } else {
-        this.value_internal.value = +newValue;
+        this.value_internal = +newValue;
         this.$emit('change', +newValue);
       }
       this.editing = false;
