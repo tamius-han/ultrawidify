@@ -16,9 +16,6 @@
       <div v-for="(row, rowKey) of value_internal"
           :key="rowKey"
       >
-        <pre>
-          {label: {{rowKey}}, value: {{row}}}
-        </pre>
         <JsonArray v-if="Array.isArray(row)"
                   :value="row"
                   @change="changeItem(rowKey, $event)"
