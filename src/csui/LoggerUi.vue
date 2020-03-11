@@ -1,5 +1,9 @@
 <template>
-  <div v-if="showLoggerUi" class="root-window flex flex-column overflow-hidden">
+  <div v-if="showLoggerUi" class="root-window flex flex-column overflow-hidden"
+       @keyup.stop
+       @keydown.stop
+       @keypress.stop
+  >
     <div class="header">
       <div class="header-top flex flex-row">
         <div class="flex-grow">
