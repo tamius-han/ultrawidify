@@ -55,7 +55,7 @@
       </div>
 
       <div class="settings-panel flex flex-noshrink flex-column">
-        <JsonObject :value="currentSettings" key="logger-settings"></JsonObject>
+        <JsonObject :value="currentSettings" label="logger-settings" @change="updateSettingsUi"></JsonObject>
       </div>
 
       <!-- LOGGER OUTPUT/START LOGGING -->
@@ -210,6 +210,15 @@ export default {
         this.confHasError = false;
       } catch (e) {
         this.confHasError = true;
+      }
+    },
+    updateSettingsUi(val) {
+      try {
+        this.parsedSettings = JSON.stringify(val, null, 2);
+        this.lastSettings = val;
+        this.currentSettings = JSON.parse(JSON.stringify(this.lastSettings));
+      } catch (e) {
+        
       }
     },
     restoreLoggerSettings() {
