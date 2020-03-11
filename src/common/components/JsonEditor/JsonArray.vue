@@ -1,32 +1,34 @@
 <template>
   <div class="flex flex-column">
-    <div class="flex flex-row" @click="_expanded = !_expanded">
-      <div v-if="_value.key" class="item-key">
-        "{{_value.key}}" <b>:</b> 
-        <span v-if="!_expanded"><b> [</b> ... <b>]</b>,</span>
+    <div class="flex flex-row" @click="expanded_internal = !expanded_internal">
+      <div v-if="value_internal.key" class="item-key">
+        "{{value_internal.key}}" <b>:</b> 
+        <span v-if="!expanded_internal"><b> [</b> ... <b>]</b>,</span>
         <template v-else><b>[</b></template>
       </div>
     </div>
-    <div v-for="(row, key) of _value.value"
+    <div v-for="(row, key) of value_internal.value"
          :key="key"
     >
       <JsonArray v-if="Array.isArray(row)"
-                 value="{'key': key', 'value': row}"
-                 @change="changeItem(key, value)"
+                  :value="row"
+                  @change="changeItem(rowKey, $event)"
       >
       </JsonArray>
       <JsonObject v-else-if="typeof row === 'object' && row !== null"
-                  value="{'key': key, 'value': row}"
-                  @change="changeItem(key, value)"
+                  :value="row"
+                  :label="rowKey"
+                  @change="changeItem(rowKey, $event)"
       >
       </JsonObject>
       <JsonElement v-else
-                   value="{'key': key, 'value': row}"
-                   @change="changeItem(key, value)"
+                  :value="row"
+                  :label="rowKey"
+                  @change="changeItem(rowKey, $event)"
       >
       </JsonElement>
     </div>
-    <div v-if="expanded"><b>],</b>
+    <div v-if="expanded_internal"><b>],</b></div>
   </div>
 </template>
 
@@ -46,25 +48,34 @@ export default {
   },
   data() {
     return {
-      _value: undefined,
-      _expanded: true,
+      value_internal: undefined,
+      expanded_internal: true,
     }
+  },
+  created() {
+    this.value_internal = this.value;
   },
   watch: {
     value: function(val) {
-      this._value = val;
+      this.value_internal = val;
     },
     expanded: function(val) {
       if (val !== undefined && val !== null) {
-        this._expanded = !!val;
+        this.expanded_internal = !!val;
       }
     }
   },
   methods: {
     changeItem(key, value) {
-      this._value.value[key] = value;
-      this.$emit('change', this._value.value);
+      this.value_internal[key] = value;
+      this.$emit('change', this.value_internal);
     }
   }
 }
 </script>
+
+<style lang="scss" scoped>
+@import url('./json.scss');
+@import url('../../../res/css/flex.scss');
+
+</style>

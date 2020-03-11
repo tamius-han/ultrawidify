@@ -1,39 +1,42 @@
 <template>
-  <div class="flex flex-row">
-    <div v-if="_value.key" class="item-key">
-      "{{_value.key}}" <b>:</b>
+  <div class="flex flex-row json-level-indent">
+    <div>
+      <b>
+        <span v-if="label" class="item-key">"{{label}}" </span>
+        :
+      </b>
     </div>
-    <div v-if="typeof _value.value === 'boolean'"
+    <div v-if="typeof value_internal === 'boolean'"
          class="json-value-boolean"
          @click="toggleBoolean"
     >
-      <template v-if="_value.value">true</template>
+      <template v-if="value_internal">true</template>
       <template v-else>false</template>
     </div>
     <div v-else
         class="flex flex-row inline-edit"
         :class="{
-          'json-value-number': typeof _value.value === 'number',
-          'json-value-string': typeof _value.value === 'string'
+          'json-value-number': typeof value_internal === 'number',
+          'json-value-string': typeof value_internal === 'string'
         }"
     >
       <template v-if="editing">
         <div ref="element-edit-area"
              :contenteditable="editing"
         >
-          {{_value.value}}
+          {{value_internal}}
         </div>
         <div class="btn" @click="changeValue">
           ✔
         </div>
       </template>
       <template v-else>
-        <template v-if="typeof _value.value === 'string'">
-          "{{_value.value}}"
+        <template v-if="typeof value_internal === 'string'">
+          "{{value_internal}}"
         </template>
         <template v-else>
-          {{_value.value}}
-        </template>
+          {{value_internal}}
+        </template>,
       </template>
     </div>
   </div>
@@ -44,30 +47,34 @@ export default {
   name: 'json-element',
   props: [
     'value',
+    'label',
   ],
   data() {
     return {
-      _value: undefined,
+      value_internal: undefined,
       editing: false,
     }
   },
+  created() {
+    this.value_internal = this.value;
+  },
   watch: {
     value: function(val) {
-      this._value = val;
+      this.value_internal = val;
     }
   },
   methods: {
     toggleBoolean() {
-      this._value.value = !this._value.value;
-      this.$emit('change', this._value.value);
+      this.value_internal = !this.value_internal;
+      this.$emit('change', this.value_internal);
     },
     changeValue() {
       const newValue = this.$refs['element-edit-area'].textContent;
       if (isNaN(newValue)) {
-        this._value.value = newValue;
+        this.value_internal = newValue;
         this.$emit('change', newValue);
       } else {
-        this._value.value = +newValue;
+        this.value_internal.value = +newValue;
         this.$emit('change', +newValue);
       }
       this.editing = false;
@@ -75,3 +82,7 @@ export default {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+@import url('./json.scss');
+</style>
