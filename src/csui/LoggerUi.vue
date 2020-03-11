@@ -50,6 +50,10 @@
         </div>
       </div>
 
+      <div class="settings-panel flex flex-noshrink flex-column">
+        <JsonObject :value="currentSettings" key="logger-settings"></JsonObject>
+      </div>
+
       <!-- LOGGER OUTPUT/START LOGGING -->
       <div class="results-panel flex flex-shrink flex-column overflow-hidden">
         <div class="panel-top flex-nogrow">
@@ -130,8 +134,12 @@ import { mapState } from 'vuex';
 import Logger from '../ext/lib/Logger';
 import Comms from '../ext/lib/comms/Comms';
 import IO from '../common/js/IO';
+import JsonObject from '../common/components/JsonEditor/JsonObject';
 
 export default {
+  components: {
+    JsonObject,
+  },
   data() {
     return {
       showLoggerUi: false,
@@ -141,6 +149,7 @@ export default {
       },
       parsedSettings: '',
       lastSettings: {},
+      currentSettings: {},
       confHasError: false,
       logStringified: '',
     }
@@ -187,11 +196,13 @@ export default {
     async getLoggerSettings() {
       this.lastSettings = await Logger.getConfig() || {};
       this.parsedSettings = JSON.stringify(this.lastSettings, null, 2) || '';
+      this.currentSettings = JSON.parse(JSON.stringify(this.lastSettings));
     },
     updateSettings(val) {
       try {
         this.parsedSettings = JSON.stringify(JSON.parse(val.target.textContent.trim()), null, 2);
         this.lastSettings = JSON.parse(val.target.textContent.trim());
+        this.currentSettings = JSON.parse(JSON.stringify(this.lastSettings));
         this.confHasError = false;
       } catch (e) {
         this.confHasError = true;
@@ -366,6 +377,13 @@ pre {
 }
 .jsonbg-error {
   background-color: #884420;
+}
+
+.json-level-indent {
+  padding-left: 2em !important;
+}
+.item-key {
+  color: #fa6;
 }
 
 </style>
