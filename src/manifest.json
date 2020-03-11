@@ -23,7 +23,8 @@
       "ext/uw.js" 
     ],
     "css": [
-      "ext/uw.css"
+      "ext/uw.css",
+      "ext/uw-ui.css"
     ],
     "all_frames": true
   }],
