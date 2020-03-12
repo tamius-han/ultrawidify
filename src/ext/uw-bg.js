@@ -64,6 +64,7 @@ class UWServer {
     this.comms.subscribe('show-logger', async () => await this.initUiAndShowLogger());
     this.comms.subscribe('init-vue', async () => await this.initUi());
     this.comms.subscribe('uwui-vue-initialized', () => this.uiLoggerInitialized = true);
+    this.comms.subscribe('emit-logs', () => {});  // we don't need to do anything, this gets forwarded to UI content script as is
 
 
     if(BrowserDetect.firefox) {

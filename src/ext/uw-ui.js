@@ -22,6 +22,7 @@ class UwUi {
     this.commsHandlers = {
       'show-logger': [() => this.showLogger()],
       'hide-logger': [() => this.hideLogger()],
+      'emit-logs'  : [(message) => {console.log("emit logs received in uwui!", message); this.addLogs(message)}]
     }
   }
 
@@ -210,6 +211,10 @@ class UwUi {
     if (this.vueInitiated && this.vuexStore !== undefined) {
       this.vuexStore.dispatch('uw-hide-logger');
     }
+  }
+
+  addLogs(message) {
+    this.logger.appendLog(JSON.parse(message.payload));
   }
 }
 
