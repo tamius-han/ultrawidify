@@ -186,13 +186,21 @@ class CommsServer {
     }
   }
 
-  async sendToContentScripts(message, tab, frame) {
+  // if port is NOT defined, send to all content scripts of a given frame
+  // if port is defined, send just to that particular script of a given frame
+  async sendToFrameContentScripts(message, tab, frame, port) {
+    if (port !== undefined) {
+      // note: 'port' is _not_ shadowed here.
+      this.ports[tab][frame][port].postMessage(message);
+      return;
+    }
     for (const port in this.ports[tab][frame]) {
+      // note: 'port' is shadowed here!
       this.ports[tab][frame][port].postMessage(message);
     }
   }
 
-  async sendToFrame(message, tab, frame) {
+  async sendToFrame(message, tab, frame, port) {
     this.logger.log('info', 'comms', `%c[CommsServer::sendToFrame] attempting to send message to tab ${tab}, frame ${frame}`, "background: #dda; color: #11D", message);
 
     if (isNaN(tab)) {
@@ -210,9 +218,15 @@ class CommsServer {
     this.logger.log('info', 'comms', `%c[CommsServer::sendToFrame] attempting to send message to tab ${tab}, frame ${frame}`, "background: #dda; color: #11D", message);
 
     try {
-      this.sendToContentScripts(message, tab, frame);
+      this.sendToFrameContentScripts(message, tab, frame, port);
     } catch (e) {
       this.logger.log('error', 'comms', `%c[CommsServer::sendToFrame] Sending message failed. Reason:`, "background: #dda; color: #11D", e);
+    }
+  }
+
+  async sendToAllFrames(message, tab, port) {
+    for (const frame in this.ports[tab]) {
+      this.sendToFrameContentScripts(message, tab, frame, port);
     }
   }
 
@@ -227,7 +241,7 @@ class CommsServer {
     }
 
     for (const frame in this.ports[tabs[0].id]) {
-      this.sendToContentScripts(message, tabs[0].id, frame);
+      this.sendToFrameContentScripts(message, tabs[0].id, frame);
     }
   }
 
@@ -286,6 +300,9 @@ class CommsServer {
   async handleMessage(message, portOrSender, sendResponse) {
     await this.execCmd(message, portOrSender, sendResponse);
     
+    if (message.forwardToSameFramePort) {
+      this.sendToFrameContentScripts(message, portOrSender.tab.id, portOrSender.frameId, message.port)
+    }
     if (message.forwardToContentScript) {
       this.logger.log('info', 'comms', "[CommsServer.js::processReceivedMessage] Message has 'forward to content script' flag set. Forwarding message as is. Message:", message);
       this.sendToFrame(message, message.targetTab, message.targetFrame);
