@@ -16,24 +16,27 @@
       <div v-for="(row, rowKey) of value_internal"
           :key="rowKey"
       >
-        <JsonArray v-if="Array.isArray(row)"
-                  :value="row"
-                  @change="changeItem(rowKey, $event)"
-        >
-        </JsonArray>
-        <JsonObject v-else-if="typeof row === 'object' && row !== null"
+        <template v-if="(ignoreKeys || {})[rowKey] !== true">
+          <JsonArray v-if="Array.isArray(row)"
                     :value="row"
-                    :label="rowKey"
+                    :ignoreKeys="(ignoreKeys || {})[rowKey]"
                     @change="changeItem(rowKey, $event)"
-        >
-        </JsonObject>
-        <JsonElement v-else
-                    :value="row"
-                    :label="rowKey"
-                    @change="changeItem(rowKey, $event)"
-        >
-        </JsonElement>
-        
+          >
+          </JsonArray>
+          <JsonObject v-else-if="typeof row === 'object' && row !== null"
+                      :value="row"
+                      :label="rowKey"
+                      :ignoreKeys="(ignoreKeys || {})[rowKey]"
+                      @change="changeItem(rowKey, $event)"
+          >
+          </JsonObject>
+          <JsonElement v-else
+                      :value="row"
+                      :label="rowKey"
+                      @change="changeItem(rowKey, $event)"
+          >
+          </JsonElement>
+        </template>
       </div>
       <div><b>},</b></div>
     </template>
@@ -50,6 +53,7 @@ export default {
     'value',
     'label',
     'expanded',
+    'ignoreKeys',
   ],
   components: {
     JsonArray,

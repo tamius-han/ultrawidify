@@ -12,12 +12,14 @@
     >
       <JsonArray v-if="Array.isArray(row)"
                   :value="row"
+                  :ignoreKeys="ignoreKeys"
                   @change="changeItem(rowKey, $event)"
       >
       </JsonArray>
       <JsonObject v-else-if="typeof row === 'object' && row !== null"
                   :value="row"
                   :label="rowKey"
+                  :ignoreKeys="ignoreKeys"
                   @change="changeItem(rowKey, $event)"
       >
       </JsonObject>
@@ -41,6 +43,7 @@ export default {
   props: [
     'value',
     'expanded',
+    'ignoreKeys', // this prop is passthrough for JsonArray
   ],
   components: {
     JsonObject,
