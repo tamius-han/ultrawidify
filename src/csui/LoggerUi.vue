@@ -31,31 +31,46 @@
       <div class="settings-panel flex flex-noshrink flex-column">
         <div class="panel-top flex-nogrow">
           <h2>Logger configuration</h2>
-          <p>Paste logger configuration in this box</p>
         </div>
-
-        <div class="panel-middle scrollable flex-grow p-t-025em">
-          <div ref="settingsEditArea"
-            style="white-space: pre-wrap; border: 1px solid orange; padding: 10px;"
-            class="monospace h100"
-            :class="{'jsonbg': !confHasError, 'jsonbg-error': confHasError}"
-            contenteditable="true"
-            @input="updateSettings"
-          >
-            {{parsedSettings}}
+        <div class="flex flex-row flex-end w100">
+          <div v-if="!showTextMode" class="button" @click="showTextMode = true">
+            Paste config ...
+          </div>
+          <div v-else class="button" @click="showTextMode = false">
+            Back
           </div>
         </div>
-        <div class="flex-noshrink flex flex-row flex-cross-center p-t-025em">
-          <div class="button button-bar"
-               @click="restoreLoggerSettings()"
-          >
-            Revert logger config
+
+        <div class="panel-middle scrollable flex-grow log-config-margin">
+          <template v-if="showTextMode">
+            <div ref="settingsEditArea"
+              style="white-space: pre-wrap; border: 1px solid orange; padding: 10px;"
+              class="monospace h100"
+              :class="{'jsonbg': !confHasError, 'jsonbg-error': confHasError}"
+              contenteditable="true"
+              @input="updateSettings"
+            >
+              {{parsedSettings}}
+            </div>
+          </template>
+          <template v-else>
+            <JsonObject label="logger-settings" 
+                        :value="currentSettings" 
+                        :ignoreKeys="{'allowLogging': true}"
+                        @change="updateSettingsUi"
+            ></JsonObject>
+          </template>
+        </div>
+
+
+        <div class="flex flex-row flex-end">
+          <div class="button" @click="restoreLoggerSettings()">
+            Revert
+          </div>
+          <div class="button button-primary" @click="saveLoggerSettings()">
+            Save
           </div>
         </div>
-      </div>
-
-      <div class="settings-panel flex flex-noshrink flex-column">
-        <JsonObject :value="currentSettings" label="logger-settings" @change="updateSettingsUi"></JsonObject>
       </div>
 
       <!-- LOGGER OUTPUT/START LOGGING -->
@@ -110,11 +125,21 @@
               >
                 Stop logging
               </div>
-              <p v-if="lastSettings && lastSettings.timeout"
-                 class="m-025em"
+              <template v-if="lastSettings && lastSettings.timeout"
+                        class="m-025em"
               >
-                ... or wait until logging ends.
-              </p>
+                <p>
+                  ... or wait until logging ends.
+                </p>
+                <p>
+                  You can <a @click="hidePopup()">hide popup</a> — it will automatically re-appear when logging finishes.
+                </p>
+              </template>
+              <template v-else-if="lastSettings">
+                <p>
+                  You can <a @click="hidePopup()">hide popup</a> — the logging will continue until you re-open the popup and stop it.
+                </p>
+              </template>
             </div>
             <div v-else class="flex flex-column flex-center flex-cross-center w100 h100">
               <div class="button button-big button-primary"
@@ -156,6 +181,7 @@ export default {
       currentSettings: {},
       confHasError: false,
       logStringified: '',
+      showTextMode: false,
     }
   },
   async created() {
@@ -220,6 +246,9 @@ export default {
       } catch (e) {
         
       }
+    },
+    saveLoggerSettings() {
+      Logger.saveConfig({...this.lastSettings});
     },
     restoreLoggerSettings() {
       this.getLoggerSettings();
@@ -392,11 +421,9 @@ pre {
   background-color: #884420;
 }
 
-.json-level-indent {
-  padding-left: 2em !important;
-}
-.item-key {
-  color: #fa6;
+.log-config-margin {
+  margin-top: 3em;
+  margin-bottom: 3em;
 }
 
 </style>
