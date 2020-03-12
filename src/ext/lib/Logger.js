@@ -1,5 +1,6 @@
 import currentBrowser from '../conf/BrowserDetect';
 import { decycle } from 'json-cyclic';
+import Comms from './comms/Comms';
 
 class Logger {
   constructor(options) {
