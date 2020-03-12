@@ -1,8 +1,9 @@
 import Debug from './conf/Debug';
 import BrowserDetect from './conf/BrowserDetect';
-import ExtensionMode from '../common/enums/extension-mode.enum'
+import ExtensionMode from '../common/enums/extension-mode.enum';
 import Settings from './lib/Settings';
 import ActionHandler from './lib/ActionHandler';
+import Comms from './lib/comms/Comms';
 import CommsClient from './lib/comms/CommsClient';
 import PageInfo from './lib/video-data/PageInfo';
 import Logger from './lib/Logger';
@@ -111,18 +112,12 @@ class UW {
         this.logger = new Logger();
         await this.logger.init(loggingOptions);
 
-        if (this.logger.isLoggingAllowed()) {
-          console.info("[uw::init] Logging is allowed! Initalizing vue and UI!");
-        }
-
         // show popup if logging to file is enabled
-        if (this.logger.isLoggingToFile()) {
-          console.info('[uw::init] Logging to file is enabled. Will show popup!');
-          try {
-            this.vuexStore.dispatch('uw-show-logger');
-          } catch (e) {
-            console.error('[uw::init] Failed to open popup!', e)
-          }
+        if (this.logger.isLoggingAllowed() && this.logger.isLoggingToFile()) {
+          console.info("[uw::init] Logging is allowed! Initalizing vue and UI!");
+
+          // CommsClient is not initiated yet, so we use static comms to send the command
+          Comms.sendMessage({cmd: 'show-logger'});
         }
       }
     } catch (e) {
