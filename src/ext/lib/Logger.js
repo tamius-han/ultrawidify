@@ -1,14 +1,16 @@
 import currentBrowser from '../conf/BrowserDetect';
 import { decycle } from 'json-cyclic';
-import Comms from './comms/Comms';
 
 class Logger {
-  constructor() {
+  constructor(options) {
     this.onLogEndCallbacks = [];
     this.history = [];
     this.globalHistory = {};
     this.isContentScript = false;
     this.isBackgroundScript = true;
+
+    this.vuexStore = options?.vuexStore;
+    this.uwInstance = options?.uwInstance;
   }
 
   static saveConfig(conf) {
@@ -119,6 +121,9 @@ class Logger {
     });
   }
 
+  setVuexStore(store) {
+    this.vuexStore = store;
+  }
   
   clear() {
     this.log = [];
@@ -471,13 +476,23 @@ class Logger {
   }
 
   saveToVuex() {
-    console.info('[info] will attempt to save. Issuing "show-logger"');
+    console.info('[info] will attempt to save to vuex store.');
     if (!this.conf?.fileOptions?.enabled || this.isBackgroundScript) {
       console.info('[info] Logging to file is either disabled or we\'re not on the content script. Not saving.');
       return;
     }
 
-    Comms.sendMessage({cmd: 'show-logger', forwardToSameFramePort: true, port: 'content-ui-port'});
+    if (!this.vuexStore) {
+      console.error("[info] No vue store.");
+      if (!this.uwInstance) {
+        console.error('[info] no vue instance either. Not logging.');
+        return;
+      }
+      console.info("[info] Initializing vue and vuex instance ...");
+      this.uwInstance.initVue();
+    }
+
+    console.info('[info] vuex store present. Parsing logs.');
 
     let exportObject; 
     try {
@@ -491,11 +506,15 @@ class Logger {
       return;
     }
 
+    console.info('[info] Logs were parsed successfuly. Putting stuff to vuex ...');
     try {
-    Comms.sendMessage({cmd: 'emit-logs', payload: JSON.stringify(exportObject), forwardToSameFramePort: true, port: 'content-ui-port'})
+      this.vuexStore.dispatch('uw-set-log', exportObject);
     } catch (e) {
-      console.log("failed to send message")
+      console.log("[fail] error saving to vuex", e);
+      return;
     }
+
+    console.info('[info] Export object saved to vuex store.')
   }
 }
 
