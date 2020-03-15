@@ -105,8 +105,8 @@ class Logger {
           // console.info('[Logger::<storage/on change> No new logger settings!');
         }
         if (changes['uwLogger'] && changes['uwLogger'].newValue) {
-          console.log("[Logger::<storage/on change>] Logger have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
-          console.info("[Logger::<storage/on change>] new logger settings object (parsed):", JSON.parse(changes.uwLogger.newValue));
+          // console.log("[Logger::<storage/on change>] Logger have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
+          // console.info("[Logger::<storage/on change>] new logger settings object (parsed):", JSON.parse(changes.uwLogger.newValue));
         }
       }
       if (!changes['uwLogger']) {
