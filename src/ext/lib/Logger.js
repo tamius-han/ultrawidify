@@ -1,5 +1,6 @@
 import currentBrowser from '../conf/BrowserDetect';
 import { decycle } from 'json-cyclic';
+import Comms from './comms/Comms';
 
 class Logger {
   constructor(options) {
@@ -104,8 +105,8 @@ class Logger {
           // console.info('[Logger::<storage/on change> No new logger settings!');
         }
         if (changes['uwLogger'] && changes['uwLogger'].newValue) {
-          console.log("[Logger::<storage/on change>] Logger have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
-          console.info("[Logger::<storage/on change>] new logger settings object (parsed):", JSON.parse(changes.uwLogger.newValue));
+          // console.log("[Logger::<storage/on change>] Logger have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
+          // console.info("[Logger::<storage/on change>] new logger settings object (parsed):", JSON.parse(changes.uwLogger.newValue));
         }
       }
       if (!changes['uwLogger']) {
@@ -202,7 +203,7 @@ class Logger {
     // } else {
       // this.exportLogToFile();
     }
-    this.saveToVuex();
+    this.saveViaBgScript();
   }
 
   parseStack() {
@@ -457,6 +458,10 @@ class Logger {
     }
   }
 
+  appendLog(logs) {
+    this.history = this.history.concat(logs);
+  }
+
   addLogFromPage(host, tabId, frameId, pageHistory) {
     if (! this.globalHistory[host]) {
       this.globalHistory[host] = {};
@@ -468,6 +473,34 @@ class Logger {
       this.globalHistory[host][tabId || 'tab'][frameId || 'top'] = pageHistory;
     } else {
       this.globalHistory[host][tabId || 'tab'][frameId || 'top'].push(...pageHistory);
+    }
+  }
+
+  saveViaBgScript() {
+    console.info('[info] will attempt to save. Issuing "show-logger"');
+    if (!this.conf?.fileOptions?.enabled || this.isBackgroundScript) {
+      console.info('[info] Logging to file is either disabled or we\'re not on the content script. Not saving.');
+      return;
+    }
+
+    Comms.sendMessage({cmd: 'show-logger', forwardToSameFramePort: true, port: 'content-ui-port'});
+
+    let exportObject; 
+    try {
+      exportObject = {
+        pageLogs: decycle(this.history),
+        backgroundLogs: decycle(this.globalHistory),
+        loggerFileOptions: this.conf.fileOptions,
+      }
+    } catch (e) {
+      console.error("[fail] error parsing logs!", e)
+      return;
+    }
+
+    try {
+    Comms.sendMessage({cmd: 'emit-logs', payload: JSON.stringify(exportObject), forwardToSameFramePort: true, port: 'content-ui-port'})
+    } catch (e) {
+      console.log("failed to send message")
     }
   }
 
