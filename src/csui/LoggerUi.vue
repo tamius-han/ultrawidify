@@ -203,7 +203,8 @@ export default {
   computed: {
     ...mapState([
       'uwLog',
-      'showLogger'
+      'showLogger',
+      'loggingEnded',
     ]),
   },
   watch: {
@@ -219,6 +220,12 @@ export default {
       // update logger settings (they could have changed while the popup was closed)
       if (newValue) {
         this.getLoggerSettings();
+      }
+    },
+    loggingEnded(newValue) {
+      console.log("is loggign ended?", newValue)
+      if (newValue) {
+        this.stopLogging();
       }
     }
   },
