@@ -320,7 +320,7 @@ const ExtensionConfPatch = [
       }
     }
   }, {
-    forVersion: '4.4.6',
+    forVersion: '4.4.7',
     updateFn: (userOptions, defaultOptions) => {
       if (!userOptions.sites['www.netflix.com'].DOM) {
         userOptions.sites['www.netflix.com']['DOM'] = {
