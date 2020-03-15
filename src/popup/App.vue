@@ -484,6 +484,7 @@ html, body {
 
 #tablist {
   min-width: 275px;
+  max-width: 300px;
 }
 
 .header {
