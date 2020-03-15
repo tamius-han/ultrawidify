@@ -13,7 +13,12 @@ QoL improvements for me:
 
 * logging: allow to enable logging at will and export said logs to a file
 
-### v4.4.6 (current)
+### v4.4.7 (current)
+
+* Removed unnecessary font files and image files from the package.
+* LoggerUI is now functional.
+
+### v4.4.6
 
 * Ensured that Vue part of the content script (logger UI) only loads when necessary in order to fix breakage on certain sites (#96).
 * Disabling (or enabling, if running in whitelist-only mode) specific sites used to not work (#91). This issue appears to have been fixed.
