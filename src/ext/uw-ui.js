@@ -123,42 +123,54 @@ class UwUi {
       return;
     }
 
-    Vue.prototype.$browser = global.browser;
-    Vue.use(Vuex);
-    this.vuexStore = new Vuex.Store({
-      plugins: [VuexWebExtensions({
-        persistentStates: [
-          'uwLog',
-          'showLogger',
-        ],
-      })],
-      state: {
-        uwLog: '',
-        showLogger: false,
-      },
-      mutations: {
-        'uw-set-log'(state, payload) {
-          state['uwLog'] = payload;
+    try {
+      Vue.prototype.$browser = global.browser;
+      Vue.use(Vuex);
+      this.vuexStore = new Vuex.Store({
+        plugins: [VuexWebExtensions({
+          persistentStates: [
+            'uwLog',
+            'showLogger',
+            'loggingEnded',
+          ],
+        })],
+        state: {
+          uwLog: '',
+          showLogger: false,
+          loggingEnded: false,
         },
-        'uw-show-logger'(state) {
-          state['showLogger'] = true;
+        mutations: {
+          'uw-set-log'(state, payload) {
+            state['uwLog'] = payload;
+          },
+          'uw-show-logger'(state) {
+            state['showLogger'] = true;
+          },
+          'uw-hide-logger'(state) {
+            state['showLogger'] = false;
+          },
+          'uw-logging-ended'(state) {
+            state['loggingEnded'] = state;
+          }
         },
-        'uw-hide-logger'(state) {
-          state['showLogger'] = false;
+        actions: {
+          'uw-set-log' ({commit}, payload) {
+            commit('uw-set-log', payload);
+          },
+          'uw-show-logger'({commit}) {
+            commit('uw-show-logger');
+          },
+          'uw-hide-logger'({commit}) {
+            commit('uw-hide-logger');
+          },
+          'uw-logging-ended'({commit}, payload) {
+            commit('uw-logging-ended', payload);
+          }
         }
-      },
-      actions: {
-        'uw-set-log' ({commit}, payload) {
-          commit('uw-set-log', payload);
-        },
-        'uw-show-logger'({commit}) {
-          commit('uw-show-logger');
-        },
-        'uw-hide-logger'({commit}) {
-          commit('uw-hide-logger');
-        }
-      }
-    });
+      });
+    } catch (e) {
+      console.error("Ultrawidify failed to initialize vue. Error:", e);
+    }
 
     // make sure we don't init twice
     this.vueInitiated = true;
