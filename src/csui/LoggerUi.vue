@@ -223,7 +223,8 @@ export default {
       }
     },
     loggingEnded(newValue) {
-      console.log("is loggign ended?", newValue)
+      // note — the value of loggingEnded never actually matters. Even if this value is 'true'
+      // internally, vuexStore.dspatch() will still do its job and give us the signal we want
       if (newValue) {
         this.stopLogging();
       }
