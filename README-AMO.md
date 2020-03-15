@@ -14,4 +14,4 @@ Run `npm ci`
 
 `npm run build`
 
-The compiled code pops up in /dist-ff. 
+The compiled code pops up in /dist-ff (/dist-chrome for Chromium-based browsers).

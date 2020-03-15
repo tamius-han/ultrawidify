@@ -75,12 +75,12 @@ const config = {
       filename: '[name].css',
     }),
     new CopyWebpackPlugin([
-      { from: 'res', to: 'res'},
+      { from: 'res', to: 'res', ignore: ['css', 'css/**']},
       { from: 'ext', to: 'ext', ignore: ['conf/*', 'lib/**']},
       { from: 'icons', to: 'icons', ignore: ['icon.xcf'] },
       { from: 'popup/popup.html', to: 'popup/popup.html', transform: transformHtml },
       { from: 'options/options.html', to: 'options/options.html', transform: transformHtml },
-      { from: 'install/first-time/first-time.html', to: 'install/first-time/first-time.html', transform: transformHtml},
+      // { from: 'install/first-time/first-time.html', to: 'install/first-time/first-time.html', transform: transformHtml},
       {
         from: 'manifest.json',
         to: 'manifest.json',
@@ -128,6 +128,8 @@ const config = {
 
           if (process.env.BROWSER !== 'firefox') {
             jsonContent.version = jsonContent.version.replace(/[a-zA-Z-]/g, '');
+            delete jsonContent.applications;
+            delete jsonContent.options_ui.browser_style;
           }
 
           return JSON.stringify(jsonContent, null, 2);

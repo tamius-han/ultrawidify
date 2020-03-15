@@ -1,5 +1,9 @@
 <template>
-  <div v-if="showLoggerUi" class="root-window flex flex-column overflow-hidden">
+  <div v-if="showLoggerUi" class="root-window flex flex-column overflow-hidden"
+       @keyup.stop
+       @keydown.stop
+       @keypress.stop
+  >
     <div class="header">
       <div class="header-top flex flex-row">
         <div class="flex-grow">
@@ -27,25 +31,44 @@
       <div class="settings-panel flex flex-noshrink flex-column">
         <div class="panel-top flex-nogrow">
           <h2>Logger configuration</h2>
-          <p>Paste logger configuration in this box</p>
         </div>
-
-        <div class="panel-middle scrollable flex-grow p-t-025em">
-          <div ref="settingsEditArea"
-            style="white-space: pre-wrap; border: 1px solid orange; padding: 10px;"
-            class="monospace h100"
-            :class="{'jsonbg': !confHasError, 'jsonbg-error': confHasError}"
-            contenteditable="true"
-            @input="updateSettings"
-          >
-            {{parsedSettings}}
+        <div class="flex flex-row flex-end w100">
+          <div v-if="!showTextMode" class="button" @click="showTextMode = true">
+            Paste config ...
+          </div>
+          <div v-else class="button" @click="showTextMode = false">
+            Back
           </div>
         </div>
-        <div class="flex-noshrink flex flex-row flex-cross-center p-t-025em">
-          <div class="button button-bar"
-               @click="restoreLoggerSettings()"
-          >
-            Revert logger config
+
+        <div class="panel-middle scrollable flex-grow log-config-margin">
+          <template v-if="showTextMode">
+            <div ref="settingsEditArea"
+              style="white-space: pre-wrap; border: 1px solid orange; padding: 10px;"
+              class="monospace h100"
+              :class="{'jsonbg': !confHasError, 'jsonbg-error': confHasError}"
+              contenteditable="true"
+              @input="updateSettings"
+            >
+              {{parsedSettings}}
+            </div>
+          </template>
+          <template v-else>
+            <JsonObject label="logger-settings" 
+                        :value="currentSettings" 
+                        :ignoreKeys="{'allowLogging': true}"
+                        @change="updateSettingsUi"
+            ></JsonObject>
+          </template>
+        </div>
+
+
+        <div class="flex flex-row flex-end">
+          <div class="button" @click="restoreLoggerSettings()">
+            Revert
+          </div>
+          <div class="button button-primary" @click="saveLoggerSettings()">
+            Save
           </div>
         </div>
       </div>
@@ -102,11 +125,21 @@
               >
                 Stop logging
               </div>
-              <p v-if="lastSettings && lastSettings.timeout"
-                 class="m-025em"
+              <template v-if="lastSettings && lastSettings.timeout"
+                        class="m-025em"
               >
-                ... or wait until logging ends.
-              </p>
+                <p>
+                  ... or wait until logging ends.
+                </p>
+                <p>
+                  You can <a @click="hidePopup()">hide popup</a> — it will automatically re-appear when logging finishes.
+                </p>
+              </template>
+              <template v-else-if="lastSettings">
+                <p>
+                  You can <a @click="hidePopup()">hide popup</a> — the logging will continue until you re-open the popup and stop it.
+                </p>
+              </template>
             </div>
             <div v-else class="flex flex-column flex-center flex-cross-center w100 h100">
               <div class="button button-big button-primary"
@@ -130,8 +163,12 @@ import { mapState } from 'vuex';
 import Logger from '../ext/lib/Logger';
 import Comms from '../ext/lib/comms/Comms';
 import IO from '../common/js/IO';
+import JsonObject from '../common/components/JsonEditor/JsonObject';
 
 export default {
+  components: {
+    JsonObject,
+  },
   data() {
     return {
       showLoggerUi: false,
@@ -141,8 +178,10 @@ export default {
       },
       parsedSettings: '',
       lastSettings: {},
+      currentSettings: {},
       confHasError: false,
       logStringified: '',
+      showTextMode: false,
     }
   },
   async created() {
@@ -164,7 +203,8 @@ export default {
   computed: {
     ...mapState([
       'uwLog',
-      'showLogger'
+      'showLogger',
+      'loggingEnded',
     ]),
   },
   watch: {
@@ -181,21 +221,42 @@ export default {
       if (newValue) {
         this.getLoggerSettings();
       }
+    },
+    loggingEnded(newValue) {
+      // note — the value of loggingEnded never actually matters. Even if this value is 'true'
+      // internally, vuexStore.dspatch() will still do its job and give us the signal we want
+      if (newValue) {
+        this.stopLogging();
+      }
     }
   },
   methods: {
     async getLoggerSettings() {
       this.lastSettings = await Logger.getConfig() || {};
       this.parsedSettings = JSON.stringify(this.lastSettings, null, 2) || '';
+      this.currentSettings = JSON.parse(JSON.stringify(this.lastSettings));
     },
     updateSettings(val) {
       try {
         this.parsedSettings = JSON.stringify(JSON.parse(val.target.textContent.trim()), null, 2);
         this.lastSettings = JSON.parse(val.target.textContent.trim());
+        this.currentSettings = JSON.parse(JSON.stringify(this.lastSettings));
         this.confHasError = false;
       } catch (e) {
         this.confHasError = true;
       }
+    },
+    updateSettingsUi(val) {
+      try {
+        this.parsedSettings = JSON.stringify(val, null, 2);
+        this.lastSettings = val;
+        this.currentSettings = JSON.parse(JSON.stringify(this.lastSettings));
+      } catch (e) {
+        
+      }
+    },
+    saveLoggerSettings() {
+      Logger.saveConfig({...this.lastSettings});
     },
     restoreLoggerSettings() {
       this.getLoggerSettings();
@@ -366,6 +427,11 @@ pre {
 }
 .jsonbg-error {
   background-color: #884420;
+}
+
+.log-config-margin {
+  margin-top: 3em;
+  margin-bottom: 3em;
 }
 
 </style>
