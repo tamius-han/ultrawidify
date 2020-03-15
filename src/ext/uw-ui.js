@@ -22,7 +22,7 @@ class UwUi {
     this.commsHandlers = {
       'show-logger': [() => this.showLogger()],
       'hide-logger': [() => this.hideLogger()],
-      'emit-logs'  : [(message) => {console.log("emit logs received in uwui!", message); this.addLogs(message)}]
+      'emit-logs'  : [(message) => this.addLogs(message)]
     }
   }
 
@@ -227,6 +227,13 @@ class UwUi {
 
   addLogs(message) {
     this.logger.appendLog(JSON.parse(message.payload));
+
+    // since this gets called _after_ logging has been finished,
+    // we also inform logger UI to save current settings
+    if (this.vueInitiated && this.vuexStore !== undefined) {
+      console.log("got add logs. payload:", message.payload);
+      this.vuexStore.dispatch('uw-logging-ended', true);
+    }
   }
 }
 
