@@ -128,6 +128,8 @@ const config = {
 
           if (process.env.BROWSER !== 'firefox') {
             jsonContent.version = jsonContent.version.replace(/[a-zA-Z-]/g, '');
+            delete jsonContent.applications;
+            delete jsonContent.options_ui.browser_style;
           }
 
           return JSON.stringify(jsonContent, null, 2);
