@@ -2,6 +2,10 @@ import Debug from '../conf/Debug';
 import PlayerData from './video-data/PlayerData';
 import ExtensionMode from '../../common/enums/extension-mode.enum';
 
+if(process.env.CHANNEL !== 'stable'){
+  console.log("Loading ActionHandler");
+}
+
 class ActionHandler {
 
   constructor(pageInfo) {
@@ -303,6 +307,10 @@ class ActionHandler {
     this.execAction(this.mouseMoveActions, event, videoData)
   }
 
+}
+
+if(process.env.CHANNEL !== 'stable'){
+  console.log("ActionHandler loaded");
 }
 
 export default ActionHandler;

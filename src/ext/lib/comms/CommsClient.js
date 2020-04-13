@@ -1,6 +1,10 @@
 import Debug from '../../conf/Debug';
 import BrowserDetect from '../../conf/BrowserDetect';
 
+if (process.env.CHANNEL !== 'stable'){
+  console.log("Loading CommsClient");
+}
+
 class CommsClient {
   constructor(name, logger, commands) {
     this.logger = logger;
@@ -123,6 +127,10 @@ class CommsClient {
   }
 
 
+}
+
+if (process.env.CHANNEL !== 'stable'){
+  console.log("CommsClient loaded");
 }
 
 export default CommsClient;

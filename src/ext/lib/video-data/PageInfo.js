@@ -4,10 +4,9 @@ import RescanReason from './enums/RescanReason';
 import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 import CropModePersistence from '../../../common/enums/crop-mode-persistence.enum';
 
-if(Debug.debug)
-  console.log("Loading: PageInfo.js");
-
-
+if (process.env.CHANNEL !== 'stable'){
+  console.log("Loading PageInfo");
+}
 
 class PageInfo {
   constructor(comms, settings, logger, extensionMode, readOnly = false){

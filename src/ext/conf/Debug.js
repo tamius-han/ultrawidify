@@ -1,3 +1,8 @@
+if (process.env.CHANNEL !== 'stable') {
+  console.log('We are not on stable channel. File init will be printed to console.');
+  console.log('Loaded Debug.js');
+}
+
 // Set prod to true when releasing
 // const _prod = true; 
 const _prod = false; 
