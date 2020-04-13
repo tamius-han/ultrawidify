@@ -296,7 +296,7 @@ export default {
 }
 </script>
 
-<style scoped src="../res/css/flex.scss"></style> 
+<style lang="scss" src="../res/css/flex.scss" scoped></style> 
 
 <style lang="scss" scoped>
 @import '../res/css/colors.scss';
