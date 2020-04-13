@@ -46,7 +46,6 @@
     "ext/*",
     "res/fonts/*",
     "res/css/*",
-       
     "res/img/settings/about-bg.png"
   ],
   "permissions": [
