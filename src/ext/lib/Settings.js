@@ -8,7 +8,9 @@ import VideoAlignment from '../../common/enums/video-alignment.enum';
 import ExtensionConfPatch from '../conf/ExtConfPatches';
 import CropModePersistence from '../../common/enums/crop-mode-persistence.enum';
 
-
+if(process.env.CHANNEL !== 'stable'){
+  console.log("Loading Settings");
+}
 
 class Settings {
 
