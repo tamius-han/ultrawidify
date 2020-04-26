@@ -87,6 +87,5 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
-@import url('./json.scss');
+<style lang="scss" scoped src="./json.scss">
 </style>
