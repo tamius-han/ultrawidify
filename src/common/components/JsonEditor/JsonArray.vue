@@ -77,8 +77,7 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
-@import url('./json.scss');
-@import url('../../../res/css/flex.scss');
-
+<style lang="scss" scoped src="./json.scss">
+</style>
+<style lang="scss" scoped src="../../../res/css/flex.scss">
 </style>
