@@ -8,6 +8,7 @@ import GuardLine from './GuardLine';
 // import DebugCanvas from './DebugCanvas';
 import VideoAlignment from '../../../common/enums/video-alignment.enum';
 import AspectRatio from '../../../common/enums/aspect-ratio.enum';
+import {sleep} from '../../lib/Util';
 
 class ArDetector {
 
@@ -257,7 +258,7 @@ class ArDetector {
 
     while (!this._exited && exitedRetries --> 0) {
       this.logger.log('warn', 'debug', `[ArDetect::main] <@${this.arid}>  We are trying to start another instance of autodetection on current video, but the previous instance hasn't exited yet. Waiting for old instance to exit ...`);
-      await this.sleep(this.settings.active.arDetect.timers.tickrate);
+      await sleep(this.settings.active.arDetect.timers.tickrate);
     }
     if (!this._exited) {
       this.logger.log('error', 'debug', `[ArDetect::main] <@${this.arid}>  Previous instance didn't exit in time. Not starting a new one.`);
@@ -302,16 +303,13 @@ class ArDetector {
         }
       }
 
-      await this.sleep(this.settings.active.arDetect.timers.tickrate);
+      await sleep(this.settings.active.arDetect.timers.tickrate);
     }
 
     this.logger.log('info', 'debug', `%c[ArDetect::main] <@${this.arid}>  Main autodetection loop exited. Halted? ${this._halted}`,  _ard_console_stop);
     this._exited = true;
   }
 
-  async sleep(timeout) {
-    return new Promise( (resolve, reject) => setTimeout(() => resolve(), timeout));
-  }
 
   canTriggerFrameCheck(lastFrameCheckStartTime) {
     if (this._paused) {
