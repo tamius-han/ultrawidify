@@ -14,7 +14,7 @@
     "build-testing-chrome": "cross-env NODE_ENV=development BROWSER=chrome CHANNEL=testing webpack --hide-modules",
     "build-nightly-chrome": "cross-env NODE_ENV=development BROWSER=chrome CHANNEL=nightly webpack --hide-modules",
     "build-chrome:dev": "cross-env NODE_ENV=development BROWSER=chrome webpack --hide-modules",
-    "build-all": "rm ./dist-zip/uw-amo-source.zip; mv ./dist-zip/*.zip ./dist-zip/old/; npm run build; node scripts/build-zip.js ff; npm run build-chrome; node scripts/build-zip.js chrome; ./scripts/prepare-amo-source.sh",
+    "build-all": "mkdir -p ./build/old; rm -rf ./dist-ff; rm -rf ./dist-chrome; rm ./dist-zip/uw-amo-source.zip; mv -f ./dist-zip/*.zip ./build/old; npm run build; node scripts/build-zip.js ff; npm run build-chrome; node scripts/build-zip.js chrome; ./scripts/prepare-amo-source.sh",
     "build-zip": "node scripts/build-zip.js",
     "dev": "cross-env NODE_ENV=development CHANNEL=dev concurrently \"cross-env BROWSER=firefox npm run build:dev -- --watch\" \"cross-env BROWSER=chrome npm run build:dev -- --watch\""
   },
