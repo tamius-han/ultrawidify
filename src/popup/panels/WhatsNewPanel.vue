@@ -5,8 +5,8 @@
     <p class="label">4.4.7</p>
     <ul>
       <li><b>[4.4.7.1]</b> CSS fixes</li>
-      <li><b>[4.4.7.1]</b> Delay CSS changes if video dimensions are invalid (attempt to fix youtube alignment problems
-      that appear in certain circumstances)
+      <li><b>[4.4.7.1~2]</b> Delay CSS changes if video dimensions are invalid (attempt to fix youtube alignment problems
+      that appear in certain circumstances). 4.4.7.2 increased number of retries.
       </li>
       <li>Removed unnecessary font files and image files from the package.</li>
       <li>(For testing/debugging purposes) Logger UI in swatter mode is now somewhat functional and user-friendly.</li>

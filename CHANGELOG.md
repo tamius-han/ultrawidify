@@ -19,6 +19,7 @@ QoL improvements for me:
 * LoggerUI is now functional.
 * **[4.4.7.1]** Additional CSS fixes
 * **[4.4.7.1]** Bruteforce fix for youtube alignment issue
+* **[4.4.7.2]** Bruteforce fix for youtube alignment issue — increase number of retries
 
 ### v4.4.6
 
