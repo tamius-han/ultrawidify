@@ -280,8 +280,8 @@ class Resizer {
             }
             // fire first few rechecks in quick succession, but start increasing timeout 
             // later down the line.
-            if (iteration > 3) {
-              timeout = Math.max(2 * timeout, 1000);
+            if (iteration > 0 && iteration % 0 == 0) {
+              timeout = Math.min(2 * timeout, 1000);
             }
             this.logger.log('info', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> Sleeping for ${timeout} ms`);
             await sleep(timeout);
