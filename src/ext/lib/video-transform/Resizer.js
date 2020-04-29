@@ -272,7 +272,7 @@ class Resizer {
         if (stretchFactors?.error === 'illegal_video_dimensions') {
           let timeout = 10; // ms
           let iteration = 0;
-          let maxIterations = 6;
+          let maxIterations = 15;
           do {
             if (iteration > maxIterations) {
               this.logger.log('error', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> Video dimensions remain illegal after ${maxIterations} retries`);
@@ -281,7 +281,7 @@ class Resizer {
             // fire first few rechecks in quick succession, but start increasing timeout 
             // later down the line.
             if (iteration > 3) {
-              timeout *= 2;
+              timeout = Math.max(2 * timeout, 1000);
             }
             this.logger.log('info', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> Sleeping for ${timeout} ms`);
             await sleep(timeout);
