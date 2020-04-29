@@ -3,6 +3,16 @@
  * and calculates how much they deviate from the average. sum of pixels is stored in 
  * the red pixel and diff is stored in the green one. Blue component holds the grayscale
  * average of the sample. Alpha component can be ignored.
+ * 
+ * 
+ * RGBA pixel data:
+ * 
+ *  |       red         |       green       |       blue        |
+ *  +-------------------+-------------------+-------------------+
+ *  | sum of all pixels |   stdev of all    | avg of all pixels |
+ *  |     in a row      |       pixels      |                   |
+ *  |   (grayscale)     |    (grayscale)    |    (grayscale)    |
+ * 
  * @param {number} sampleRadius sample width
  * @param {number} pixelSizeX size of a pixel on the texture (should be 1 / frameWidth)
  */
