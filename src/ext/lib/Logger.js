@@ -2,6 +2,10 @@ import currentBrowser from '../conf/BrowserDetect';
 import { decycle } from 'json-cyclic';
 import Comms from './comms/Comms';
 
+if (process.env.CHANNEL !== 'stable'){
+  console.log('Loading Logger');
+}
+
 class Logger {
   constructor(options) {
     this.onLogEndCallbacks = [];
@@ -545,6 +549,10 @@ class Logger {
 
     console.info('[info] Export object saved to vuex store.')
   }
+}
+
+if (process.env.CHANNEL !== 'stable'){
+  console.log('Logger loaded');
 }
 
 export default Logger;

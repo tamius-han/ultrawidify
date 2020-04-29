@@ -8,6 +8,7 @@ import Stretch from '../../../common/enums/stretch.enum';
 import VideoAlignment from '../../../common/enums/video-alignment.enum';
 import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 import CropModePersistance from '../../../common/enums/crop-mode-persistence.enum';
+import { sleep } from '../Util';
 
 if(Debug.debug) {
   console.log("Loading: Resizer.js");
@@ -139,7 +140,7 @@ class Resizer {
     }
   }
 
-  setAr(ar, lastAr) {
+  async setAr(ar, lastAr) {
     if (this.destroyed) {
       return;
     }
@@ -258,15 +259,37 @@ class Resizer {
         || this.stretcher.mode === Stretch.FixedSource){
       var stretchFactors = this.scaler.calculateCrop(ar);
 
+      this.logger.log('error', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> failed to set AR due to problem with calculating crop. Error:`, stretchFactors && stretchFactors.error);
+
       if(! stretchFactors || stretchFactors.error){
-        this.logger.log('error', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> failed to set AR due to problem with calculating crop. Error:`, (stretchFactors ? stretchFactors.error : stretchFactors));
-        if (stretchFactors.error === 'no_video'){
+        if (stretchFactors?.error === 'no_video'){
           this.conf.destroy();
+          return;
         }
-        if (stretchFactors.error === 'illegal_video_dimensions') {
-          this.logger.log('error', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> Illegal video dimensions found. We will pause everything.`)
+
+        // we could have issued calculate crop too early. Instead of spending 30 minutes trying to fix this the proper way by
+        // reading documentation, let's fix it in 30 seconds with some brute force code
+        if (stretchFactors?.error === 'illegal_video_dimensions') {
+          let timeout = 10; // ms
+          let iteration = 0;
+          let maxIterations = 15;
+          do {
+            if (iteration > maxIterations) {
+              this.logger.log('error', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> Video dimensions remain illegal after ${maxIterations} retries`);
+              return;
+            }
+            // fire first few rechecks in quick succession, but start increasing timeout 
+            // later down the line.
+            if (iteration > 0 && iteration % 0 == 0) {
+              timeout = Math.min(2 * timeout, 1000);
+            }
+            this.logger.log('info', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> Sleeping for ${timeout} ms`);
+            await sleep(timeout);
+            stretchFactors = this.scaler.calculateCrop(ar);
+            iteration++;
+          } while (stretchFactors.error === 'illegal_video_dimensions');
+          this.logger.log('info', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> Video dimensions have corrected themselves after retrying.`);
         }
-        return;
       }
 
       if (this.stretcher.mode === Stretch.Conditional){
@@ -589,12 +612,17 @@ class Resizer {
 
     // inject new CSS or replace existing one
     if (!this.userCss) {
+      this.logger.log('info', ['debug', 'resizer'], "[Resizer::setStyleString] <rid:"+this.resizerId+"> Setting new css: ", newCssString);
+
       this.injectCss(newCssString);
       this.userCss = newCssString;
     } else if (newCssString !== this.userCss) {
+      this.logger.log('info', ['debug', 'resizer'], "[Resizer::setStyleString] <rid:"+this.resizerId+"> Replacing css.\nOld string:", this.userCss, "\nNew string:", newCssString);
       // we only replace css if it
       this.replaceCss(this.userCss, newCssString);
       this.userCss = newCssString;
+    } else {
+      this.logger.log('info', ['debug', 'resizer'], "[Resizer::setStyleString] <rid:"+this.resizerId+"> Existing css is still valid, doing nothing.");
     }
   }
 }

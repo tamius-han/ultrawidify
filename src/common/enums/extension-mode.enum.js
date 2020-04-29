@@ -1,3 +1,8 @@
+if (process.env.CHANNEL !== 'stable') {
+  console.log('Loaded ExtensionMode');
+}
+
+
 var ExtensionMode = Object.freeze({
   AutoDisabled: -2,
   Disabled: -1,

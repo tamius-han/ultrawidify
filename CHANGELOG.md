@@ -13,10 +13,13 @@ QoL improvements for me:
 
 * logging: allow to enable logging at will and export said logs to a file
 
-### v4.4.7 (current)
+### v4.4.7 (Current)
 
 * Removed unnecessary font files and image files from the package.
 * LoggerUI is now functional.
+* **[4.4.7.1]** Additional CSS fixes
+* **[4.4.7.1]** Bruteforce fix for youtube alignment issue
+* **[4.4.7.2]** Bruteforce fix for youtube alignment issue — increase number of retries
 
 ### v4.4.6
 
