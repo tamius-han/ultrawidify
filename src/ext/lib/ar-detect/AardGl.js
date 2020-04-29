@@ -308,6 +308,10 @@ class AardGl {
     // this.conf.resizer.setArLastAr();
   }
 
+  async nextFrame() {
+    return new Promise(resolve => window.requestAnimationFrame(resolve));
+  }
+
   async main() {
     if (this._paused) {
       // unpause if paused
@@ -369,7 +373,7 @@ class AardGl {
         }
       }
 
-      await this.sleep(this.settings.active.arDetect.timers.tickrate);
+      await this.nextFrame();
     }
 
     this.logger.log('info', 'debug', `%c[AardGl::main] <@${this.arid}>  Main autodetection loop exited. Halted? ${this._halted}`,  _ard_console_stop);
