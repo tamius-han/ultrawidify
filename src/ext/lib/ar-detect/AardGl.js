@@ -299,14 +299,15 @@ class AardGl {
     // [0] initiate "dependencies" first
     //
 
+    // This is space for EdgeDetector and GuardLine init
     
     //
     // [1] initiate canvases
     //
 
     if (!cwidth) {
-      cwidth = this.settings.active.arDetect.canvasDimensions.sampleCanvas.width;
-      cheight = this.settings.active.arDetect.canvasDimensions.sampleCanvas.height;
+      cwidth = this.settings.active.aardGl.canvasDimensions.sampleCanvas.width;
+      cheight = this.settings.active.aardGl.canvasDimensions.sampleCanvas.height;
     }
 
     if (this.canvas) {
@@ -366,7 +367,7 @@ class AardGl {
     // we need a rectangle. This is output data, not texture. This means that the size of the rectangle should be
     // [sample count] x height of the sample, as shader can sample frame at a different resolution than what gets
     // rendered here. We don't need all horizontal pixels on our output. We do need all vertical pixels, though)
-    this.glSetRectangle(this.gl, this.settings.active.arDetect.sampling.staticCols, cheight);
+    this.glSetRectangle(this.gl, this.settings.active.aard.sampleCols, cheight);
 
     // do setup once
     // tho we could do it for every frame
