@@ -330,8 +330,7 @@ class AardGl {
 
     //
     // [2] SETUP WEBGL STUFF —————————————————————————————————————————————————————————————————————————————————
-    //
-
+    //#region webgl setup
     this.gl = this.canvas.getContext("webgl");
 
     // load shaders and stuff. PixelSize for horizontalAdder should be 1/sample canvas width
@@ -373,7 +372,7 @@ class AardGl {
     // tho we could do it for every frame
     this.canvasScaleFactor = cheight / this.video.videoHeight;
 
-
+    //#endregion
 
     //
     // [3] detect if we're in the fallback mode and reset guardline
@@ -451,7 +450,7 @@ class AardGl {
     this._exited = false;
 
     // set initial timestamps so frame check will trigger the first time we run the loop
-    let lastFrameCheckStartTime = Date.now() - (this.settings.active.arDetect.timers.playing << 1);
+    let lastFrameCheckStartTime = Date.now() - (this.settings.active.aardGl.timers.playing << 1);
 
     const frameCheckTimes = new Array(10).fill(-1);
     let frameCheckBufferIndex = 0;
@@ -501,7 +500,6 @@ class AardGl {
     }
     
     var startTime = performance.now();
-    let sampleCols = this.sampleCols.slice(0);
 
     //
     // [0] blackframe tests (they also determine whether we need fallback mode)
@@ -551,6 +549,7 @@ class AardGl {
       this.logger.log('info', 'arDetect_verbose', `%c[AardGl::frameCheck] canvas.drawImage seems to have worked`, "color:#000; backgroud:#2f5;");
     }
 
+    // [1]
 
     this.clearImageData(imageData);
   }

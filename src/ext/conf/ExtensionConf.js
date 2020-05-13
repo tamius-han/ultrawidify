@@ -151,11 +151,6 @@ var ExtensionConf = {
     },
     sampleCols: 32,
     canvasDimensions: {
-      blackframeCanvas: {   // smaller than sample canvas, blackframe canvas is used to recon for black frames
-                            // it's not used to detect aspect ratio by itself, so it can be tiny af
-        width: 16,
-        height: 9,
-      },
       sampleCanvas: {   // size of image sample for detecting aspect ratio. Bigger size means more accurate results,
                         // at the expense of performance. Width == sample texture size (size of webGL canvas is pegged
                         // on sample count)
@@ -206,11 +201,6 @@ var ExtensionConf = {
       thresholdStep: 8,                   // when failing to set aspect ratio, increase threshold by this much
       increaseAfterConsecutiveResets: 2   // increase if AR resets this many times in a row
     },
-    sampling: {
-      staticCols: 9,      // we take a column at [0-n]/n-th parts along the width and sample it
-      randomCols: 0,      // we add this many randomly selected columns to the static columns
-      staticRows: 9,      // forms grid with staticSampleCols. Determined in the same way. For black frame checks
-    },
     guardLine: {              // all pixels on the guardline need to be black, or else we trigger AR recalculation 
                               // (if AR fails to be recalculated, we reset AR)
       enabled: true,
@@ -228,22 +218,6 @@ var ExtensionConf = {
     arSwitchLimiter: {          // to be implemented 
       switches: 2,              // we can switch this many times
         period: 2.0             // per this period
-    },
-    edgeDetection: {
-      sampleWidth: 8,        // we take a sample this wide for edge detection
-      detectionThreshold: 4,  // sample needs to have this many non-black pixels to be a valid edge
-      confirmationThreshold: 1,  // 
-      singleSideConfirmationThreshold: 3,    // we need this much edges (out of all samples, not just edges) in order
-                                             // to confirm an edge in case there's no edges on top or bottom (other
-                                            // than logo, of course)
-      logoThreshold: 0.15,     // if edge candidate sits with count greater than this*all_samples, it can't be logo
-                              // or watermark.
-      edgeTolerancePx: 1,          // we check for black edge violation this far from detection point
-      edgeTolerancePercent: null,  // we check for black edge detection this % of height from detection point. unused
-      middleIgnoredArea: 0.2,      // we ignore this % of canvas height towards edges while detecting aspect ratios
-      minColsForSearch: 0.5,       // if we hit the edge of blackbars for all but this many columns (%-wise), we don't
-                                   // continue with search. It's pointless, because black edge is higher/lower than we
-                                   // are now. (NOTE: keep this less than 1 in case we implement logo detection)
     },
     pillarTest: {
       ignoreThinPillarsPx: 5, // ignore pillars that are less than this many pixels thick. 
