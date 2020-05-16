@@ -2,8 +2,11 @@
   <div v-if="settingsInitialized" 
        class="popup flex flex-column no-overflow"
   >
-    <div class="header flex-row flex-nogrow flex-noshrink">
+    <div class="header flex-row flex-nogrow flex-noshrink relative">
       <span class="smallcaps">Ultrawidify</span>: <small>Quick settings</small>
+      <div class="absolute channel-info" v-if="BrowserDetect.processEnvChannel !== 'stable'">
+        Build channel: {{BrowserDetect.processEnvChannel}}
+      </div>
     </div>
 
     <div class="flex flex-row body no-overflow flex-grow">
@@ -202,6 +205,7 @@ export default {
       videoTabDisabled: false,
       canShowVideoTab: {canShow: true, warning: true},
       showWhatsNew: false,
+      BrowserDetect: BrowserDetect,
     }
   },
   async created() {
@@ -240,6 +244,7 @@ export default {
     DefaultSettingsPanel,
     PerformancePanel,
     Debug,
+    BrowserDetect,
     AboutPanel,
     Donate,
     SiteDetailsPanel,
@@ -581,5 +586,18 @@ html, body {
   // max-width: 780px;
   // width: 800px;
   height: 600px;
+}
+
+.relative {
+  position: relative;
+}
+.absolute {
+  position: absolute;
+}
+.channel-info {
+  height: 0px;
+  right: 1.5rem;
+  bottom: 0.85rem;
+  font-size: 0.75rem;
 }
 </style>
