@@ -212,7 +212,7 @@ class CommsServer {
         this.sendToAll(message);
         return;
       }
-      [tab, frame] = tab.split('-')
+      [tab, frame] = frame.split('-');
     }
 
     this.logger.log('info', 'comms', `%c[CommsServer::sendToFrame] attempting to send message to tab ${tab}, frame ${frame}`, "background: #dda; color: #11D", message);
