@@ -351,7 +351,7 @@ const ExtensionConfPatch = [
                     '100%'
                   ]
                 }
-                // 'width': true            // this would prevent aard from runing if <video> had a 'width' property in style, regardless of value
+                // 'width': true            // this would prevent aard from running if <video> had a 'width' property in style, regardless of value
                                             // could also be an empty object, in theory.
               }
             }

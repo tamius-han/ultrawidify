@@ -50,7 +50,7 @@ var ExtensionConf = {
                                       // component. Average intensity is normalized to where 0 is black and 1 is biggest value for
                                       // that component. If sum of differences between normalized average intensity and normalized
                                       // component varies more than this % between color components, we can afford to use less strict
-                                      // cummulative treshold.
+                                      // cumulative threshold.
       cumulativeThresholdLax: 1600,    
       cumulativeThresholdStrict: 2560,// if we add values of all pixels together and get more than this, the frame is bright enough.
                                  // (note: blackframe is 16x9 px -> 144px total. cumulative threshold can be reached fast)
@@ -64,7 +64,7 @@ var ExtensionConf = {
       threshold: 16,          // if pixel is darker than the sum of black level and this value, we count it as black
                               // on 0-255. Needs to be fairly high (8 might not cut it) due to compression
                               // artifacts in the video itself
-      frameThreshold: 4,      // treshold, but when doing blackframe test
+      frameThreshold: 4,      // threshold, but when doing blackframe test
       imageThreshold: 16,     // in order to detect pixel as "not black", the pixel must be brighter than
                               // the sum of black level, threshold and this value.
       gradientThreshold: 2,   // When trying to determine thickness of the black bars, we take 2 values: position of
@@ -72,7 +72,7 @@ var ExtensionConf = {
                               // brighter than our image threshold. If positions are more than this many pixels apart,
                               // we assume we aren't looking at letterbox and thus don't correct the aspect ratio.
       gradientSampleSize: 16, // How far do we look to find the gradient
-      maxGradient: 6,         // if two neighbouring pixels in gradientSampleSize differ by more than this, then we aren't
+      maxGradient: 6,         // if two neighboring pixels in gradientSampleSize differ by more than this, then we aren't
                               // looking at a gradient
       gradientNegativeTreshold: -2,
       gradientMaxSD: 6,    // reserved for future use
@@ -173,7 +173,7 @@ var ExtensionConf = {
   // Polje 'shortcut' je tabela, če se slučajno lotimo kdaj delati choordov. 
   actions: [{
     name: 'Trigger automatic detection',    // name displayed in settings
-    label: 'Automatic',                     // name displayed in ui (can be overriden in scope/playerUi)
+    label: 'Automatic',                     // name displayed in ui (can be overridden in scope/playerUi)
     cmd: [{
       action: 'set-ar',
       arg: AspectRatio.Automatic,
@@ -1047,7 +1047,7 @@ var ExtensionConf = {
                 '100%'
               ]
             }
-            // 'width': true            // this would prevent aard from runing if <video> had a 'width' property in style, regardless of value
+            // 'width': true            // this would prevent aard from running if <video> had a 'width' property in style, regardless of value
                                         // could also be an empty object, in theory.
           }
         }
@@ -1079,7 +1079,7 @@ var ExtensionConf = {
                 '100%'
               ]
             }
-            // 'width': true            // this would prevent aard from runing if <video> had a 'width' property in style, regardless of value
+            // 'width': true            // this would prevent aard from running if <video> had a 'width' property in style, regardless of value
                                         // could also be an empty object, in theory.
           }
         }

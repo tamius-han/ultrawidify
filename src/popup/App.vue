@@ -349,7 +349,7 @@ export default {
       // Extension global disabled — show 'extension settings'
       // Extension site disabled, no embedded videos — show 'site settings'
       // Extension site disabled, embedded videos from non-blacklisted hosts — show video settings
-      // Extension site enabled — show vido settings
+      // Extension site enabled — show video settings
 
       // note: this if statement is ever so slightly unnecessary
       if (! this.settings.canStartExtension('@global')) {

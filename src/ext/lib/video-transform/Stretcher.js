@@ -76,7 +76,7 @@ class Stretcher {
     // poznamo. Torej jih moramo računati.
     //
     //
-    // video.videoWidht and video.videoHeight describe the size of the video file.
+    // video.videoWidth and video.videoHeight describe the size of the video file.
     // Size of the video file can be different than the size of the <video> tag.
     // This can leave us with the following situation:
     //     * Video resolution is 850x480-ish (as reported by videoWidth and videoHeight)
@@ -103,7 +103,7 @@ class Stretcher {
     const videoAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
     const playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
 
-    const squezeFactor = this.fixedStretchRatio / videoAr;
+    const squeezeFactor = this.fixedStretchRatio / videoAr;
 
     // Whether squeezing happens on X or Y axis depends on whether required AR is wider or narrower than
     // the player, in which the video is displayed
@@ -115,13 +115,13 @@ postCropStretchFactors: x=${postCropStretchFactors.xFactor} y=${postCropStretchF
 fixedStretchRatio:      ${this.fixedStretchRatio}
 videoAr:                ${videoAr}
 playerAr:               ${playerAr}
-squeezeFactor:          ${squezeFactor}`, '\nvideo', this.conf.video);
+squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
 
 
     if (this.fixedStretchRatio < playerAr) {
-      postCropStretchFactors.xFactor *= squezeFactor;
+      postCropStretchFactors.xFactor *= squeezeFactor;
     } else {
-      postCropStretchFactors.yFactor *= squezeFactor; 
+      postCropStretchFactors.yFactor *= squeezeFactor; 
     }
 
     this.logger.log('info', 'stretcher', `[Stretcher::applyStretchFixedSource] here's what we'll apply:\npostCropStretchFactors: x=${postCropStretchFactors.x} y=${postCropStretchFactors.y}`);
