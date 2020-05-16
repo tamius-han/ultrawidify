@@ -29,6 +29,7 @@
   }],
 
   "background": {
+    "persistent": true,
     "scripts": [
       "ext/uw-bg.js"
     ]

@@ -227,6 +227,12 @@ export default {
         cmd: 'unmark-player',
         forwardToAll: true,
       });
+      if (BrowserDetect.chrome) {
+        chrome.extension.getBackgroundPage().sendUnmarkPlayer({
+          cmd: 'unmark-player',
+          forwardToAll: true,
+        });
+      }
     });
 
     // get info about current site from background script

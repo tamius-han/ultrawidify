@@ -305,6 +305,15 @@ class UWServer {
       selected: this.selectedSubitem
     }
   }
+
+  // chrome shitiness mitigation 
+  sendUnmarkPlayer(message) {
+    this.comms.sendUnmarkPlayer(message);
+  }
 }
 
 var server = new UWServer();
+
+window.sendUnmarkPlayer = (message) => {
+  server.sendUnmarkPlayer(message)
+}

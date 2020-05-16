@@ -328,6 +328,12 @@ class CommsServer {
     
     this.handleMessage(message, sender, sendResponse);
   }
+
+  // chrome shitiness mitigation
+  sendUnmarkPlayer(message) {
+    this.logger.log('info', 'comms', '[CommsServer.js::sendUnmarkPlayer] Chrome is a shit browser that doesn\'t do port.postMessage() in unload events, so we have to resort to inelegant hacks. If you see this, then the workaround method works.');
+    this.processReceivedMessage(message, this.popupPort);
+  }
 }
 
 export default CommsServer;
