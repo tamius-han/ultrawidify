@@ -129,7 +129,7 @@ class PlayerData {
       try {
         this.doPeriodicPlayerElementChangeCheck();
       } catch (e) {
-        console.error('[playerdata::legacycd] this message is pretty high on the list of messages you shouldnt see', e);
+        console.error('[PlayerData::legacycd] this message is pretty high on the list of messages you shouldnt see', e);
       }
     }
   }

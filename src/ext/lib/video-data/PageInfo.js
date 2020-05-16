@@ -178,7 +178,7 @@ class PageInfo {
 
           if (this.readOnly) {
             // in lite mode, we're done. This is all the info we want, but we want to actually start doing 
-            // things that interfere with the website. We still want to be runnig a rescan, tho.
+            // things that interfere with the website. We still want to be running a rescan, tho.
 
             if(rescanReason == RescanReason.PERIODIC){
               this.scheduleRescan(RescanReason.PERIODIC);
@@ -252,7 +252,7 @@ class PageInfo {
       // našli ob naslednjem preiskovanju
       //
       // if we encounter a fuckup, we can assume that no videos were found on the page. We destroy all videoData
-      // objects to prevent multiple initalization (which happened, but I don't know why). No biggie if we destroyed
+      // objects to prevent multiple initialization (which happened, but I don't know why). No biggie if we destroyed
       // videoData objects in error — they'll be back in the next rescan
       this.logger.log('error', 'debug', "rescan error: — destroying all videoData objects",e);
       for (const v of this.videos) {
@@ -567,7 +567,7 @@ class PageInfo {
   }
 
   setKeyboardShortcutsEnabled(state) {
-    this.actionHandler.setKeybordLocal(state);
+    this.actionHandler.setKeyboardLocal(state);
   }
 
   setArPersistence(persistenceMode) {
