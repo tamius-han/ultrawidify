@@ -8,6 +8,7 @@ const BrowserDetect = {
   chrome: process.env.BROWSER === 'chrome',
   edge: process.env.BROWSER === 'edge',
   processEnvBrowser: process.env.BROWSER,
+  processEnvChannel: process.env.CHANNEL,
 } 
 
 if (process.env.CHANNEL !== 'stable') {

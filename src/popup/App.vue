@@ -2,8 +2,11 @@
   <div v-if="settingsInitialized" 
        class="popup flex flex-column no-overflow"
   >
-    <div class="header flex-row flex-nogrow flex-noshrink">
+    <div class="header flex-row flex-nogrow flex-noshrink relative">
       <span class="smallcaps">Ultrawidify</span>: <small>Quick settings</small>
+      <div class="absolute channel-info" v-if="BrowserDetect.processEnvChannel !== 'stable'">
+        Build channel: {{BrowserDetect.processEnvChannel}}
+      </div>
     </div>
 
     <div class="flex flex-row body no-overflow flex-grow">
@@ -202,6 +205,7 @@ export default {
       videoTabDisabled: false,
       canShowVideoTab: {canShow: true, warning: true},
       showWhatsNew: false,
+      BrowserDetect: BrowserDetect,
     }
   },
   async created() {
@@ -223,6 +227,12 @@ export default {
         cmd: 'unmark-player',
         forwardToAll: true,
       });
+      if (BrowserDetect.chrome) {
+        chrome.extension.getBackgroundPage().sendUnmarkPlayer({
+          cmd: 'unmark-player',
+          forwardToAll: true,
+        });
+      }
     });
 
     // get info about current site from background script
@@ -240,6 +250,7 @@ export default {
     DefaultSettingsPanel,
     PerformancePanel,
     Debug,
+    BrowserDetect,
     AboutPanel,
     Donate,
     SiteDetailsPanel,
@@ -344,7 +355,7 @@ export default {
       // Extension global disabled — show 'extension settings'
       // Extension site disabled, no embedded videos — show 'site settings'
       // Extension site disabled, embedded videos from non-blacklisted hosts — show video settings
-      // Extension site enabled — show vido settings
+      // Extension site enabled — show video settings
 
       // note: this if statement is ever so slightly unnecessary
       if (! this.settings.canStartExtension('@global')) {
@@ -581,5 +592,18 @@ html, body {
   // max-width: 780px;
   // width: 800px;
   height: 600px;
+}
+
+.relative {
+  position: relative;
+}
+.absolute {
+  position: absolute;
+}
+.channel-info {
+  height: 0px;
+  right: 1.5rem;
+  bottom: 0.85rem;
+  font-size: 0.75rem;
 }
 </style>

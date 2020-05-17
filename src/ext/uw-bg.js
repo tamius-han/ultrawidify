@@ -173,14 +173,11 @@ class UWServer {
     }
 
     if (this.videoTabs[sender.tab.id]) {
-      if (this.videoTabs[sender.tab.id].frames[sender.frameId]) {
-        return; // existing value is fine, no need to act
-      } else {
-        this.videoTabs[sender.tab.id].frames[sender.frameId] = {
-          id: sender.frameId,
-          host: frameHostname,
-          url: sender.url
-        }
+      this.videoTabs[sender.tab.id].frames[sender.frameId] = {
+        id: sender.frameId,
+        host: frameHostname,
+        url: sender.url,
+        registerTime: Date.now(),
       }
     } else {
       this.videoTabs[sender.tab.id] = {
@@ -192,7 +189,8 @@ class UWServer {
       this.videoTabs[sender.tab.id].frames[sender.frameId] = {
         id: sender.frameId,
         host: frameHostname,
-        url: sender.url
+        url: sender.url,
+        registerTime: Date.now(),
       }
     }
 
@@ -290,6 +288,25 @@ class UWServer {
     }
 
     if (this.videoTabs[ctab.id]) {
+      // if video is older than PageInfo's video rescan period (+ 4000ms of grace),
+      // we clean it up from videoTabs[tabId].frames array.
+      const ageLimit = Date.now() - this.settings.active.pageInfo.timeouts.rescan - 4000;
+      console.log("videoTabs[tabId]:", this.videoTabs[ctab.id])
+      try {
+        for (const key in this.videoTabs[ctab.id].frames) {
+          if (this.videoTabs[ctab.id].frames[key].registerTime < ageLimit) {
+            delete this.videoTabs[ctab.id].frames[key];
+          }
+        }
+      } catch (e) {
+        // something went wrong. There's prolly no frames.
+        return {
+          host: this.extractHostname(ctab.url),
+          frames: [],
+          selected: this.selectedSubitem
+        }
+      }
+
       return {
         ...this.videoTabs[ctab.id],
         host: this.extractHostname(ctab.url),
@@ -305,6 +322,15 @@ class UWServer {
       selected: this.selectedSubitem
     }
   }
+
+  // chrome shitiness mitigation 
+  sendUnmarkPlayer(message) {
+    this.comms.sendUnmarkPlayer(message);
+  }
 }
 
 var server = new UWServer();
+
+window.sendUnmarkPlayer = (message) => {
+  server.sendUnmarkPlayer(message)
+}

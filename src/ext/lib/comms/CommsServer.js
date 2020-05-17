@@ -212,7 +212,7 @@ class CommsServer {
         this.sendToAll(message);
         return;
       }
-      [tab, frame] = tab.split('-')
+      [tab, frame] = frame.split('-');
     }
 
     this.logger.log('info', 'comms', `%c[CommsServer::sendToFrame] attempting to send message to tab ${tab}, frame ${frame}`, "background: #dda; color: #11D", message);
@@ -327,6 +327,12 @@ class CommsServer {
     this.logger.log('info', 'comms', "%c[CommsServer.js::processMessage_nonpersistent] Received message from background script!", "background-color: #11D; color: #aad", message, sender);
     
     this.handleMessage(message, sender, sendResponse);
+  }
+
+  // chrome shitiness mitigation
+  sendUnmarkPlayer(message) {
+    this.logger.log('info', 'comms', '[CommsServer.js::sendUnmarkPlayer] Chrome is a shit browser that doesn\'t do port.postMessage() in unload events, so we have to resort to inelegant hacks. If you see this, then the workaround method works.');
+    this.processReceivedMessage(message, this.popupPort);
   }
 }
 

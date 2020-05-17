@@ -178,7 +178,7 @@ class PageInfo {
 
           if (this.readOnly) {
             // in lite mode, we're done. This is all the info we want, but we want to actually start doing 
-            // things that interfere with the website. We still want to be runnig a rescan, tho.
+            // things that interfere with the website. We still want to be running a rescan, tho.
 
             if(rescanReason == RescanReason.PERIODIC){
               this.scheduleRescan(RescanReason.PERIODIC);
@@ -237,12 +237,28 @@ class PageInfo {
       // if we're left without videos on the current page, we unregister the page.
       // if we have videos, we call register.
       if (this.comms) {
-        if (this.videos.length != oldVideoCount) { // only if number of videos changed, tho
-          if (this.videos.length > 0) {
-            this.comms.registerVideo({host: window.location.host, location: window.location});
-          } else {
-            this.comms.unregisterVideo({host: window.location.host, location: window.location});
-          }
+        // We used to send "register video" requests only on the first load, or if the number of 
+        // videos on the page has changed. However, since Chrome Web Store started to require every
+        // extension requiring "broad permissions" to undergo manual review
+        // ... and since Chrome Web Store is known for taking their sweet ass time reviewing extensions,
+        // with review times north of an entire fucking month
+        // ... and since the legacy way of checking whether our frames-with-videos cache in background 
+        // script contains any frames that no longer exist required us to use webNavigation.getFrame()/
+        // webNavigation.getAllFrames(), which requires a permission that triggers a review. 
+        //
+        // While the extension uses some other permissions that trigger manual review, it's said that
+        // less is better / has a positive effect on your manual review times ... So I guess we'll do 
+        // things in the less-than-optimal. more-than-retarded way.
+        //
+        // no but honestly fuck Chrome.
+
+        // if (this.videos.length != oldVideoCount) {
+        // } 
+        
+        if (this.videos.length > 0) {
+          this.comms.registerVideo({host: window.location.host, location: window.location});
+        } else {
+          this.comms.unregisterVideo({host: window.location.host, location: window.location});
         }
       }
 
@@ -252,7 +268,7 @@ class PageInfo {
       // našli ob naslednjem preiskovanju
       //
       // if we encounter a fuckup, we can assume that no videos were found on the page. We destroy all videoData
-      // objects to prevent multiple initalization (which happened, but I don't know why). No biggie if we destroyed
+      // objects to prevent multiple initialization (which happened, but I don't know why). No biggie if we destroyed
       // videoData objects in error — they'll be back in the next rescan
       this.logger.log('error', 'debug', "rescan error: — destroying all videoData objects",e);
       for (const v of this.videos) {
@@ -567,7 +583,7 @@ class PageInfo {
   }
 
   setKeyboardShortcutsEnabled(state) {
-    this.actionHandler.setKeybordLocal(state);
+    this.actionHandler.setKeyboardLocal(state);
   }
 
   setArPersistence(persistenceMode) {
