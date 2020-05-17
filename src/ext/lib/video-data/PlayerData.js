@@ -187,8 +187,9 @@ class PlayerData {
   }
 
   unmarkPlayer() {
-    this.logger.log('info', 'debug', "[PlayerData::unmarkPlayer] unmarking player!")
+    this.logger.log('info', 'debug', "[PlayerData::unmarkPlayer] unmarking player!", {playerIdElement: this.playerIdElement});
     if (this.playerIdElement) {
+      this.playerIdElement.innerHTML = '';
       this.playerIdElement.remove();
     }
     this.playerIdElement = undefined;
