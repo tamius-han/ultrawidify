@@ -15,10 +15,10 @@ class EdgeDetect{
     this.logger = ardConf.logger;
     this.settings = ardConf.settings;
 
-    this.sampleWidthBase = this.settings.active.arDetect.edgeDetection.sampleWidth << 2; // corrected so we can work on imageData
+    this.sampleWidthBase = this.settings.active.aard.edgeDetection.sampleWidth << 2; // corrected so we can work on imageData
     this.halfSample = this.sampleWidthBase >> 1; 
 
-    this.detectionThreshold = this.settings.active.arDetect.edgeDetection.detectionThreshold;
+    this.detectionThreshold = this.settings.active.aard.edgeDetection.detectionThreshold;
 
     this.init(); // initiate things that can change
   }
@@ -73,12 +73,12 @@ class EdgeDetect{
       const cols_b = cols_a.slice(0);
       const res_bottom = [];
       
-      this.colsThreshold = sampleCols.length * this.settings.active.arDetect.edgeDetection.minColsForSearch;
+      this.colsThreshold = sampleCols.length * this.settings.active.aard.edgeDetection.minColsForSearch;
       if (this.colsThreshold == 0)
         this.colsThreshold = 1;
       
-      this.blackbarThreshold = this.conf.blackLevel + this.settings.active.arDetect.blackbar.threshold;
-      this.imageThreshold = this.blackbarThreshold + this.settings.active.arDetect.blackbar.imageThreshold;
+      this.blackbarThreshold = this.conf.blackLevel + this.settings.active.aard.blackbar.threshold;
+      this.imageThreshold = this.blackbarThreshold + this.settings.active.aard.blackbar.imageThreshold;
       
       // if guardline didn't fail and imageDetect did, we don't have to check the upper few pixels
       // but only if upper and lower edge are defined. If they're not, we need to check full height
@@ -100,14 +100,14 @@ class EdgeDetect{
           lower_bottom = this.conf.canvas.height - 1;
         } else {
           upper_top = 0;
-          upper_bottom = (this.conf.canvas.height >> 1) /*- parseInt(this.conf.canvas.height * this.settings.active.arDetect.edgeDetection.middleIgnoredArea);*/
-          lower_top = (this.conf.canvas.height >> 1) /*+ parseInt(this.conf.canvas.height * this.settings.active.arDetect.edgeDetection.middleIgnoredArea);*/
+          upper_bottom = (this.conf.canvas.height >> 1) /*- parseInt(this.conf.canvas.height * this.settings.active.aard.edgeDetection.middleIgnoredArea);*/
+          lower_top = (this.conf.canvas.height >> 1) /*+ parseInt(this.conf.canvas.height * this.settings.active.aard.edgeDetection.middleIgnoredArea);*/
           lower_bottom = this.conf.canvas.height - 1;
         }
       } else{
         upper_top = 0;
-        upper_bottom = (this.conf.canvas.height >> 1) /*- parseInt(this.conf.canvas.height * this.settings.active.arDetect.edgeDetection.middleIgnoredArea);*/
-        lower_top = (this.conf.canvas.height >> 1) /*+ parseInt(this.conf.canvas.height * this.settings.active.arDetect.edgeDetection.middleIgnoredArea);*/
+        upper_bottom = (this.conf.canvas.height >> 1) /*- parseInt(this.conf.canvas.height * this.settings.active.aard.edgeDetection.middleIgnoredArea);*/
+        lower_top = (this.conf.canvas.height >> 1) /*+ parseInt(this.conf.canvas.height * this.settings.active.aard.edgeDetection.middleIgnoredArea);*/
         lower_bottom = this.conf.canvas.height - 1;
       }
 
@@ -251,8 +251,8 @@ class EdgeDetect{
           sampleEnd = this.conf.canvasImageDataRowLength;
         
         // calculate row offsets for imageData array
-        sampleRow_black = (sample.black - this.settings.active.arDetect.edgeDetection.edgeTolerancePx - 1) * this.conf.canvasImageDataRowLength;
-        sampleRow_color = (sample.black + this.settings.active.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
+        sampleRow_black = (sample.black - this.settings.active.aard.edgeDetection.edgeTolerancePx - 1) * this.conf.canvasImageDataRowLength;
+        sampleRow_color = (sample.black + this.settings.active.aard.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
         
         // že ena kršitev črnega roba pomeni, da kandidat ni primeren
         // even a single black edge violation means the candidate is not an edge
@@ -294,8 +294,8 @@ class EdgeDetect{
           sampleEnd = this.conf.canvasImageDataRowLength;
         
         // calculate row offsets for imageData array
-        sampleRow_black = (sample.black + this.settings.active.arDetect.edgeDetection.edgeTolerancePx + 1) * this.conf.canvasImageDataRowLength;
-        sampleRow_color = (sample.black - this.settings.active.arDetect.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
+        sampleRow_black = (sample.black + this.settings.active.aard.edgeDetection.edgeTolerancePx + 1) * this.conf.canvasImageDataRowLength;
+        sampleRow_color = (sample.black - this.settings.active.aard.edgeDetection.edgeTolerancePx) * this.conf.canvasImageDataRowLength;
         
         // že ena kršitev črnega roba pomeni, da kandidat ni primeren
         // even a single black edge violation means the candidate is not an edge
@@ -337,7 +337,7 @@ class EdgeDetect{
   edgePostprocess(edges){
     var edgesTop = [];
     var edgesBottom = [];
-    var alignMargin = this.conf.canvas.height * this.settings.active.arDetect.allowedMisaligned;
+    var alignMargin = this.conf.canvas.height * this.settings.active.aard.allowedMisaligned;
     
     var missingEdge = edges.edgeCandidatesTopCount == 0 || edges.edgeCandidatesBottomCount == 0;
     
@@ -391,8 +391,8 @@ class EdgeDetect{
         var blackbarWidth = edgesTop[0].distance > edgesBottom[0].distance ? 
                             edgesTop[0].distance : edgesBottom[0].distance;
         
-        if (edgesTop[0].count + edgesBottom[0].count > this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold
-           || ( edgesTop[0].count > this.settings.active.arDetect.edgeDetection.confirmationThreshold && edgesBottom[0].count > this.settings.active.arDetect.edgeDetection.confirmationThreshold) ){
+        if (edgesTop[0].count + edgesBottom[0].count > this.settings.active.aard.edgeDetection.singleSideConfirmationThreshold
+           || ( edgesTop[0].count > this.settings.active.aard.edgeDetection.confirmationThreshold && edgesBottom[0].count > this.settings.active.aard.edgeDetection.confirmationThreshold) ){
           return {
             status: EdgeStatus.AR_KNOWN,
             blackbarWidth: blackbarWidth,
@@ -409,7 +409,7 @@ class EdgeDetect{
       // it could be watermark. It could be a dark frame. Let's check for watermark first.
       if (edgesTop[0].distance < edgesBottom[0].distance &&
           edgesTop[0].count    < edgesBottom[0].count    &&
-          edgesTop[0].count    < this.conf.sampleCols.length * this.settings.active.arDetect.edgeDetection.logoThreshold){
+          edgesTop[0].count    < this.conf.sampleCols.length * this.settings.active.aard.edgeDetection.logoThreshold){
         // možno, da je watermark zgoraj. Preverimo, če se kateri od drugih potencialnih robov na zgornjem robu
         // ujema s prvim spodnjim (+/- variance). Če je temu tako, potem bo verjetno watermark. Logo mora imeti
         // manj vzorcev kot navaden rob.
@@ -425,8 +425,8 @@ class EdgeDetect{
               var blackbarWidth = edgesTop[i].distance > edgesBottom[0].distance ? 
                                   edgesTop[i].distance : edgesBottom[0].distance;
 
-              if (edgesTop[i].count + edgesBottom[0].count > this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold
-                 || (edgesTop[i].count > this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold && edgesBottom[0].count > this.settings.active.arDetect.edgeDetection.confirmationThreshold) ) {
+              if (edgesTop[i].count + edgesBottom[0].count > this.settings.active.aard.edgeDetection.singleSideConfirmationThreshold
+                 || (edgesTop[i].count > this.settings.active.aard.edgeDetection.singleSideConfirmationThreshold && edgesBottom[0].count > this.settings.active.aard.edgeDetection.confirmationThreshold) ) {
                 return {
                   status: EdgeStatus.AR_KNOWN,
                   blackbarWidth: blackbarWidth,
@@ -443,7 +443,7 @@ class EdgeDetect{
       }
       if (edgesBottom[0].distance < edgesTop[0].distance &&
           edgesBottom[0].count    < edgesTop[0].count    &&
-          edgesBottom[0].count    < this.conf.sampleCols.length * this.settings.active.arDetect.edgeDetection.logoThreshold){
+          edgesBottom[0].count    < this.conf.sampleCols.length * this.settings.active.aard.edgeDetection.logoThreshold){
         
         if(edgesBottom[0].length > 1){
           var lowMargin = edgesTop[0].distance - alignMargin;
@@ -456,8 +456,8 @@ class EdgeDetect{
               var blackbarWidth = edgesBottom[i].distance > edgesTop[0].distance ? 
                                   edgesBottom[i].distance : edgesTop[0].distance;
               
-              if (edgesTop[0].count + edgesBottom[i].count > this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold
-                  || (edgesTop[0].count > this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold && edgesBottom[i].count > this.settings.active.arDetect.edgeDetection.confirmationThreshold)) {
+              if (edgesTop[0].count + edgesBottom[i].count > this.settings.active.aard.edgeDetection.singleSideConfirmationThreshold
+                  || (edgesTop[0].count > this.settings.active.aard.edgeDetection.singleSideConfirmationThreshold && edgesBottom[i].count > this.settings.active.aard.edgeDetection.confirmationThreshold)) {
                 return {
                   status: EdgeStatus.AR_KNOWN,
                   blackbarWidth: blackbarWidth,
@@ -479,7 +479,7 @@ class EdgeDetect{
       // either the top or the bottom edge remains undetected, but we have one more trick that we
       // can try. It also tries to work around logos.
       
-      const edgeDetectionThreshold = this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold;
+      const edgeDetectionThreshold = this.settings.active.aard.edgeDetection.singleSideConfirmationThreshold;
       
       if (edges.edgeCandidatesTopCount == 0 && edges.edgeCandidatesBottomCount != 0){
         for(var edge of edgesBottom){
@@ -524,7 +524,7 @@ class EdgeDetect{
     // we also return true if we detect too much black
   
     var blackbarThreshold, upper, lower;
-    blackbarThreshold = this.conf.blackLevel + this.settings.active.arDetect.blackbar.threshold;
+    blackbarThreshold = this.conf.blackLevel + this.settings.active.aard.blackbar.threshold;
   
   
     var middleRowStart = (this.conf.canvas.height >> 1) * this.conf.canvas.width;
@@ -562,11 +562,11 @@ class EdgeDetect{
   
     // če sta oba robova v mejah merske napake, potem vrnemo 'false'
     // if both edges resemble rounding error, we retunr 'false'
-    if(edge_left < this.settings.active.arDetect.pillarTest.ignoreThinPillarsPx && edge_right < this.settings.active.arDetect.pillarTest.ignoreThinPillarsPx){
+    if(edge_left < this.settings.active.aard.pillarTest.ignoreThinPillarsPx && edge_right < this.settings.active.aard.pillarTest.ignoreThinPillarsPx){
       return false;
     }
   
-    var edgeError = this.settings.active.arDetect.pillarTest.allowMisaligned;
+    var edgeError = this.settings.active.aard.pillarTest.allowMisaligned;
     var error_low = 1 - edgeError;
     var error_hi = 1 + edgeError;
   
@@ -646,7 +646,7 @@ class EdgeDetect{
         imageRow: -1,
         lastValue: -1,
         diffIndex: 0,
-        diffs: new Array(this.settings.active.arDetect.blackbar.gradientSampleSize).fill(0)
+        diffs: new Array(this.settings.active.aard.blackbar.gradientSampleSize).fill(0)
       }
     }
 
@@ -724,7 +724,7 @@ class EdgeDetect{
           }
 
           colsTmp[c].diffIndex++;
-          if (colsTmp[c].diffIndex > this.settings.active.arDetect.blackbar.gradientSampleSize) {
+          if (colsTmp[c].diffIndex > this.settings.active.aard.blackbar.gradientSampleSize) {
             colsTmp[c].imageFound = true;
             continue;
           }
@@ -737,11 +737,11 @@ class EdgeDetect{
     // let's process our results
     for (const c of colsTmp) {
       if (c.blackFound) {
-        if (this.settings.active.arDetect.blackbar.antiGradientMode === AntiGradientMode.Disabled) {
+        if (this.settings.active.aard.blackbar.antiGradientMode === AntiGradientMode.Disabled) {
           // if gradient detection is disabled, we treat such columns as detections/not gradient
         }
         if (c.imageFound) {
-          if (c.imageRow - c.blackRow <= this.settings.active.arDetect.blackbar.gradientThreshold) {
+          if (c.imageRow - c.blackRow <= this.settings.active.aard.blackbar.gradientThreshold) {
             // this is within our margin of error. Colums like this are auto-accepted
             colsOut.push({
               col: c.col,
@@ -757,7 +757,7 @@ class EdgeDetect{
               tmpVal += c.diffs[i];
               
               // if difference is negative, we aren't looking at a gradient
-              if (c.diffs[i] < this.settings.active.arDetect.blackbar.gradientNegativeTreshold) {
+              if (c.diffs[i] < this.settings.active.aard.blackbar.gradientNegativeTreshold) {
                 colsOut.push({
                   col: c.col,
                   black: c.blackRow
@@ -766,7 +766,7 @@ class EdgeDetect{
               }
 
               // if difference is too big, we assume we aren't looking at a gradient
-              if (c.diffs[i] > this.settings.active.arDetect.blackbar.maxGradient) {
+              if (c.diffs[i] > this.settings.active.aard.blackbar.maxGradient) {
                 colsOut.push({
                   col: c.col,
                   black: c.blackRow
@@ -789,7 +789,7 @@ class EdgeDetect{
               stdev = Math.sqrt((squareSum / (c.diffIndex - 1)));
 
               // if standard deviation is too big, we're not on a gradient (prolly)
-              if (stdev > this.settings.active.arDetect.blackbar.gradientMaxSD) {
+              if (stdev > this.settings.active.aard.blackbar.gradientMaxSD) {
                 colsOut.push({
                   col: c.col,
                   black: c.blackRow
@@ -821,7 +821,7 @@ class EdgeDetect{
           // we have blackbar but we haven't found a point that goes over imageTreshold.
           // how these cases are handled is determiend by what antiGradientMode we're using.
           // strict mode — treat as gradient. Lax mode — treat as not gradient
-          if (this.settings.active.arDetect.blackbar.antiGradientMode === AntiGradientMode.Lax) {
+          if (this.settings.active.aard.blackbar.antiGradientMode === AntiGradientMode.Lax) {
             colsOut.push({
               col: c.col,
               black: c.blackRow
@@ -852,7 +852,7 @@ class EdgeDetect{
       c.diffs = [];
     }
     if (reverseSearchDirection) {
-      if (this.settings.active.arDetect.blackbar.antiGradientMode === AntiGradientMode.Disabled) {
+      if (this.settings.active.aard.blackbar.antiGradientMode === AntiGradientMode.Disabled) {
         // todo: remove gradient detection code from this branch
         for(var i = bottom - this.conf.canvasImageDataRowLength; i >= top; i-= this.conf.canvasImageDataRowLength){
           for(let c = 0; c < colsIn.length; c++){
@@ -883,7 +883,7 @@ class EdgeDetect{
                 continue;
               }
             } else {
-              if (colsIn[c].blackFound++ > this.settings.active.arDetect.blackbar.gradientSampleSize) {
+              if (colsIn[c].blackFound++ > this.settings.active.aard.blackbar.gradientSampleSize) {
                 colsIn[c].imageFound = true;
                 continue;
               }
@@ -961,7 +961,7 @@ class EdgeDetect{
             } else {
               // če smo dobili piksel, ki presega blackbar, preverimo do gradientSampleSize dodatnih pikslov.
               // ko dobimo piksel čez imageTreshold oz. gradientSampleSize, izračunamo ali gre za gradient.
-              if (colsIn[c].blackFound++ > this.settings.active.arDetect.blackbar.gradientSampleSize) {
+              if (colsIn[c].blackFound++ > this.settings.active.aard.blackbar.gradientSampleSize) {
                 colsIn[c].imageFound = true;
                 continue;
               }
@@ -1024,7 +1024,7 @@ class EdgeDetect{
               continue;
             }
           } else {
-            if (colsIn[c].blackFound++ > this.settings.active.arDetect.blackbar.gradientSampleSize) {
+            if (colsIn[c].blackFound++ > this.settings.active.aard.blackbar.gradientSampleSize) {
               colsIn[c].imageFound = true;
               continue;
             }

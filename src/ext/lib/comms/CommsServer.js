@@ -97,9 +97,9 @@ class CommsServer {
         (message) => {
           this.settings.active.sites['@global'].autoar = "disabled";
           if (message.reason){
-            this.settings.active.arDetect.disabledReason = message.reason;
+            this.settings.active.aard.disabledReason = message.reason;
           } else {
-            this.settings.active.arDetect.disabledReason = 'User disabled';
+            this.settings.active.aard.disabledReason = 'User disabled';
           }
           this.settings.save();
           this.logger.log('info', 'comms', "[uw-bg] autoar set to disabled. evidenz:", this.settings.active);
@@ -111,7 +111,7 @@ class CommsServer {
       
           // set fairly liberal limit
           var timeout = message.timeout < 4 ? 4 : message.timeout;
-          this.settings.active.arDetect.timer_playing = timeout;
+          this.settings.active.aard.timer_playing = timeout;
           this.settings.save();
         }
       ],

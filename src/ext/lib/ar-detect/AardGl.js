@@ -9,7 +9,7 @@ import DebugCanvas from './DebugCanvas';
 import VideoAlignment from '../../../common/enums/video-alignment.enum';
 import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 import { generateHorizontalAdder } from './gllib/shader-generators/HorizontalAdderGenerator';
-import { getVertexShader } from './gllib/shaders/vertex-shader';
+import { getBasicVertexShader } from './gllib/shaders/vertex-shader';
 import { sleep } from '../Util';
 
 /**
@@ -30,7 +30,7 @@ class AardGl {
     this.canFallback = true;
     this.fallbackMode = false;
 
-    this.blackLevel = this.settings.active.arDetect.blackbar.blackLevel;
+    this.blackLevel = this.settings.activeaard.blackbar.blackLevel;
 
     this.arid = (Math.random()*100).toFixed();
 
@@ -61,15 +61,15 @@ class AardGl {
       // we slow down if ended or pausing. Detecting is pointless.
       // we don't stop outright in case seeking happens during pause/after video was 
       // ended and video gets into 'playing' state again
-      return Date.now() - lastFrameCheckStartTime > this.settings.active.arDetect.timers.paused;
+      return Date.now() - lastFrameCheckStartTime > this.settings.activeaard.timers.paused;
     }
     if (this.video.error){
       // če je video pavziran, še vedno skušamo zaznati razmerje stranic - ampak bolj poredko.
       // if the video is paused, we still do autodetection. We just do it less often.
-      return Date.now() - lastFrameCheckStartTime > this.settings.active.arDetect.timers.error;
+      return Date.now() - lastFrameCheckStartTime > this.settings.activeaard.timers.error;
     }
     
-    return Date.now() - lastFrameCheckStartTime > this.settings.active.arDetect.timers.playing;
+    return Date.now() - lastFrameCheckStartTime > this.settings.activeaard.timers.playing;
   }
 
   isRunning(){
@@ -114,7 +114,7 @@ class AardGl {
   }
 
   resetBlackLevel(){
-    this.blackLevel = this.settings.active.arDetect.blackbar.blackLevel;    
+    this.blackLevel = this.settings.activeaard.blackbar.blackLevel;    
   }
 
   clearImageData(id) {
@@ -223,7 +223,7 @@ class AardGl {
     glContext.compileShader(shader);
 
     // check if shader was compiled successfully
-    if (! glContext.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    if (! glContext.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
       glContext.deleteShader(shader);
       this.logger.log('error', ['init', 'debug', 'arDetect'], `%c[AardGl::setupShader] <@${this.arid}> Failed to setup shader.`, _ard_console_stop);
       return null;
@@ -238,8 +238,9 @@ class AardGl {
    * @param {*} shaders   — shaders (previously compiled with setupShader())
    */
   compileProgram(glContext, shaders) {
+    console.log(glContext, shaders);
     const program = glContext.createProgram();
-    for (const shader of shadersr) {
+    for (const shader of shaders) {
       glContext.attachShader(program, shader);
     }
     glContext.linkProgram(program);
@@ -306,8 +307,8 @@ class AardGl {
     //
 
     if (!cwidth) {
-      cwidth = this.settings.active.aardGl.canvasDimensions.sampleCanvas.width;
-      cheight = this.settings.active.aardGl.canvasDimensions.sampleCanvas.height;
+      cwidth = this.settings.activeaard.Gl.canvasDimensions.sampleCanvas.width;
+      cheight = this.settings.activeaard.Gl.canvasDimensions.sampleCanvas.height;
     }
 
     if (this.canvas) {
@@ -322,11 +323,12 @@ class AardGl {
     this.canvas.width = cwidth;
     this.canvas.height = cheight;
     this.blackframeCanvas = document.createElement("canvas");
-    this.blackframeCanvas.width = this.settings.active.arDetect.canvasDimensions.blackframeCanvas.width;
-    this.blackframeCanvas.height = this.settings.active.arDetect.canvasDimensions.blackframeCanvas.height;
+    this.blackframeCanvas.width = this.settings.activeaard.canvasDimensions.blackframeCanvas.width;
+    this.blackframeCanvas.height = this.settings.activeaard.canvasDimensions.blackframeCanvas.height;
 
-    this.context = this.canvas.getContext("2d");
+    // this.context = this.canvas.getContext("2d");
 
+    this.pixelBuffer = new Uint8Array(cwidth * cheight * 4);
 
     //
     // [2] SETUP WEBGL STUFF —————————————————————————————————————————————————————————————————————————————————
@@ -345,8 +347,8 @@ class AardGl {
     const glProgram = this.compileProgram(this.gl, [vertexShader, horizontalAdderShader]);
 
     // look up where the vertex data needs to go
-    const positionLocation = this.gl.getAttributeLocation(program, 'a_position');
-    const textureCoordsLocation = this.gl.getAttributeLocation(program, 'a_textureCoords');
+    // const positionLocation = this.gl.getAttributeLocation(glProgram, 'a_position');
+    // const textureCoordsLocation = this.gl.getAttributeLocation(glProgram, 'a_textureCoords');
 
     // create buffers and bind them
     const positionBuffer = this.gl.createBuffer();
@@ -355,18 +357,18 @@ class AardGl {
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, textureCoordsBuffer);
 
     // create a texture
-    const texture = this.gl.createTexture();
-    this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+    this.texture = this.gl.createTexture();
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
 
     // set some parameters
     // btw we don't need to set gl.TEXTURE_WRAP_[S|T], because it's set to repeat by default — which is what we want
-    this.gl.texParameteri(this.gl, this.gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    this.gl.texParameteri(this.gl, this.gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    this.gl.texParameteri(this.gl, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+    this.gl.texParameteri(this.gl, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
 
     // we need a rectangle. This is output data, not texture. This means that the size of the rectangle should be
     // [sample count] x height of the sample, as shader can sample frame at a different resolution than what gets
     // rendered here. We don't need all horizontal pixels on our output. We do need all vertical pixels, though)
-    this.glSetRectangle(this.gl, this.settings.active.aard.sampleCols, cheight);
+    this.glSetRectangle(this.gl, this.settings.activeaard..sampleCols, cheight);
 
     // do setup once
     // tho we could do it for every frame
@@ -418,6 +420,7 @@ class AardGl {
     }
 
     this.conf.arSetupComplete = true;
+    console.log("DRAWING BUFFER SIZE:", this.gl.drawingBufferWidth, '×', this.gl.drawingBufferHeight);
   }
 
   drawFrame() {
@@ -455,7 +458,7 @@ class AardGl {
 
     while (!this._exited && exitedRetries --> 0) {
       this.logger.log('warn', 'debug', `[AardGl::main] <@${this.arid}>  We are trying to start another instance of autodetection on current video, but the previous instance hasn't exited yet. Waiting for old instance to exit ...`);
-      await sleep(this.settings.active.arDetect.timers.tickrate);
+      await sleep(this.settings.activeaard.timers.tickrate);
     }
     if (!this._exited) {
       this.logger.log('error', 'debug', `[AardGl::main] <@${this.arid}>  Previous instance didn't exit in time. Not starting a new one.`);
@@ -469,7 +472,7 @@ class AardGl {
     this._exited = false;
 
     // set initial timestamps so frame check will trigger the first time we run the loop
-    let lastFrameCheckStartTime = Date.now() - (this.settings.active.aardGl.timers.playing << 1);
+    let lastFrameCheckStartTime = Date.now() - (this.settings.activeaard.Gl.timers.playing << 1);
 
     const frameCheckTimes = new Array(10).fill(-1);
     let frameCheckBufferIndex = 0;
@@ -523,8 +526,12 @@ class AardGl {
     //
     // [0] try drawing image to canvas
     //
+    let imageData;
+
     try {
       this.drawFrame();
+
+
       this.fallbackMode = false;
     } catch (e) {
       this.logger.log('error', 'arDetect', `%c[AardGl::frameCheck] <@${this.arid}>  %c[AardGl::frameCheck] can't draw image on canvas. ${this.canDoFallbackMode ? 'Trying canvas.drawWindow instead' : 'Doing nothing as browser doesn\'t support fallback mode.'}`, "color:#000; backgroud:#f51;", e);
@@ -593,7 +600,7 @@ class AardGl {
 
       var trueHeight = this.canvas.height * zoomFactor - letterbox;
 
-      if(edges.top > 1 && edges.top <= this.settings.active.arDetect.fallbackMode.noTriggerZonePx ){
+      if(edges.top > 1 && edges.top <= this.settings.activeaard.fallbackMode.noTriggerZonePx ){
         this.logger.log('info', 'arDetect', `%c[AardGl::calculateArFromEdges] <@${this.arid}>  Edge is in the no-trigger zone. Aspect ratio change is not triggered.`)
         return;
       }
@@ -602,7 +609,7 @@ class AardGl {
       // x2, ker je safetyBorderPx definiran za eno stran.
       // safety border so we can detect aspect ratio narrowing (21:9 -> 16:9).
       // x2 because safetyBorderPx is for one side.
-      trueHeight += (this.settings.active.arDetect.fallbackMode.safetyBorderPx << 1);
+      trueHeight += (this.settings.activeaard.fallbackMode.safetyBorderPx << 1);
 
       return this.canvas.width * zoomFactor / trueHeight;
     }
@@ -631,7 +638,7 @@ class AardGl {
       // is ar variance within acceptable levels? If yes -> we done
       this.logger.log('info', 'arDetect', `%c[AardGl::processAr] <@${this.arid}>  New aspect ratio varies from the old one by this much:\n`,"color: #aaf","old Ar", lastAr.ar, "current ar", trueAr, "arDiff (absolute):",arDiff,"ar diff (relative to new ar)", arDiff_percent);
 
-      if (arDiff < trueAr * this.settings.active.arDetect.allowedArVariance){
+      if (arDiff < trueAr * this.settings.activeaard.allowedArVariance){
         this.logger.log('info', 'arDetect', `%c[AardGl::processAr] <@${this.arid}>  Aspect ratio change denied — diff %: ${arDiff_percent}`, "background: #740; color: #fa2");
         return;
       }
