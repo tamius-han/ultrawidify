@@ -129,7 +129,7 @@ class PlayerData {
       try {
         this.doPeriodicPlayerElementChangeCheck();
       } catch (e) {
-        console.error('[playerdata::legacycd] this message is pretty high on the list of messages you shouldnt see', e);
+        console.error('[PlayerData::legacycd] this message is pretty high on the list of messages you shouldnt see', e);
       }
     }
   }
@@ -187,8 +187,9 @@ class PlayerData {
   }
 
   unmarkPlayer() {
-    this.logger.log('info', 'debug', "[PlayerData::unmarkPlayer] unmarking player!")
+    this.logger.log('info', 'debug', "[PlayerData::unmarkPlayer] unmarking player!", {playerIdElement: this.playerIdElement});
     if (this.playerIdElement) {
+      this.playerIdElement.innerHTML = '';
       this.playerIdElement.remove();
     }
     this.playerIdElement = undefined;
