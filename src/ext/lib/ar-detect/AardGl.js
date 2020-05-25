@@ -420,6 +420,25 @@ class AardGl {
     this.conf.arSetupComplete = true;
   }
 
+  drawFrame() {
+    const level = 0;
+    const internalFormat = this.gl.RGBA;
+    const sourceFormat = this.gl.RGBA;
+    const sourceType = this.gl.UNSIGNED_BYTE;
+
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
+
+    // if (this.resizeInput) {
+      // TODO: check if 'width' and 'height' mean the input gets resized
+      // this.gl.texImage2D(gl.TEXTURE_2D, level, internalformat, width, height, border, format, type, pixels)
+    // } else {
+      this.gl.texImage2D(gl.TEXTURE_2D, level, internalformat, sourceFormat, sourceType, this.video);
+    // }
+
+    // get the pixels back out:
+    this.gl.readPixels(0, 0, width, height, format, type, pixels)
+  }
+
   async main() {
     if (this._paused) {
       // unpause if paused
