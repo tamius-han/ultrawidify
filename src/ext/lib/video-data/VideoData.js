@@ -3,6 +3,7 @@ import PlayerData from './PlayerData';
 import Resizer from '../video-transform/Resizer';
 import ArDetector from '../ar-detect/ArDetector';
 import AspectRatio from '../../../common/enums/aspect-ratio.enum';
+import AardGl from '../ar-detect/AardGl';
 
 class VideoData {
   
@@ -47,7 +48,8 @@ class VideoData {
     };
 
 
-    this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
+    // this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
+    this.arDetector = new AardGl(this);
     // player dimensions need to be in:
     // this.player.dimensions
 
