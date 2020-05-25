@@ -521,55 +521,20 @@ class AardGl {
     var startTime = performance.now();
 
     //
-    // [0] blackframe tests (they also determine whether we need fallback mode)
+    // [0] try drawing image to canvas
     //
     try {
-      this.blackframeContext.drawImage(this.video, 0, 0, this.blackframeCanvas.width, this.blackframeCanvas.height);
+      this.drawFrame();
       this.fallbackMode = false;
     } catch (e) {
       this.logger.log('error', 'arDetect', `%c[AardGl::frameCheck] <@${this.arid}>  %c[AardGl::frameCheck] can't draw image on canvas. ${this.canDoFallbackMode ? 'Trying canvas.drawWindow instead' : 'Doing nothing as browser doesn\'t support fallback mode.'}`, "color:#000; backgroud:#f51;", e);
-
-      // nothing to see here, really, if fallback mode isn't supported by browser
-      if (! this.canDoFallbackMode) {
-        return;
-      }
-      if (! this.canvasReadyForDrawWindow()) {
-        // this means canvas needs to be resized, so we'll just re-run setup with all those new parameters
-        this.stop();
-          
-        let newCanvasWidth = window.innerHeight * (this.video.videoWidth / this.video.videoHeight);
-        let newCanvasHeight = window.innerHeight;
-        
-        if (this.conf.resizer.videoAlignment === VideoAlignment.Center) {
-          this.canvasDrawWindowHOffset = Math.round((window.innerWidth - newCanvasWidth) * 0.5);
-        } else if (this.conf.resizer.videoAlignment === VideoAlignment.Left) {
-          this.canvasDrawWindowHOffset = 0;
-        } else {
-          this.canvasDrawWindowHOffset = window.innerWidth - newCanvasWidth;
-        }
-
-        this.setup(newCanvasWidth, newCanvasHeight);
-        
-        return;
-      } 
-      // if this is the case, we'll first draw on canvas, as we'll need intermediate canvas if we want to get a
-      // smaller sample for blackframe check
-      this.fallbackMode = true;
-
-      try {
-        this.context.drawWindow(window, this.canvasDrawWindowHOffset, 0, this.canvas.width, this.canvas.height, "rgba(0,0,128,1)");
-      } catch (e) {
-        this.logger.log('error', 'arDetect', `%c[AardGl::frameCheck] can't draw image on canvas with fallback mode either. This error is prolly only temporary.`, "color:#000; backgroud:#f51;", e);
-        return; // it's prolly just a fluke, so we do nothing special here
-      }
-      // draw blackframe sample from our main sample:
-      this.blackframeContext.drawImage(this.canvas, this.blackframeCanvas.width, this.blackframeCanvas.height)
-
-      this.logger.log('info', 'arDetect_verbose', `%c[AardGl::frameCheck] canvas.drawImage seems to have worked`, "color:#000; backgroud:#2f5;");
     }
 
     // [1]
 
+
+
+    
     this.clearImageData(imageData);
   }
 
