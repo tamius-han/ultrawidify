@@ -14,7 +14,7 @@
         <div class="flex flex-input">
           More often&nbsp;<small>(~60/s)</small>
           <input type="range"
-                 :value="Math.log(settings.active.arDetect.timers.playing)"
+                 :value="Math.log(settings.active.aard.timers.playing)"
                  @change="setArCheckFrequency($event.target.value)"
                  min="2.3"
                  max="9.3"
@@ -88,7 +88,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                v-model="settings.active.arDetect.timers.playing"
+                v-model="settings.active.aard.timers.playing"
                 />
         </div>
       </div>
@@ -98,7 +98,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                v-model="settings.active.arDetect.timers.paused"
+                v-model="settings.active.aard.timers.paused"
                 />
         </div>
       </div>
@@ -108,7 +108,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                v-model="settings.active.arDetect.timers.error"
+                v-model="settings.active.aard.timers.error"
                 />
         </div>
       </div>
@@ -121,7 +121,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                v-model="settings.active.arDetect.timers.tickrate"
+                v-model="settings.active.aard.timers.tickrate"
                 />
         </div>
       </div>
@@ -147,7 +147,7 @@
         </div>
         <div class="flex flex-input">
           <input type="checkbox"
-                 v-model="settings.active.arDetect.fallbackMode.enabled"
+                 v-model="settings.active.aard.fallbackMode.enabled"
           /> Enable fallback mode&nbsp;<span v-if="!fallbackModeAvailable">because I'm super duper sure I'm using firefox right now.</span>
         </div>
       </div>
@@ -158,7 +158,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                v-model="settings.active.arDetect.fallbackMode.safetyBorderPx"
+                v-model="settings.active.aard.fallbackMode.safetyBorderPx"
                 />
         </div>
       </div>
@@ -168,7 +168,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                v-model="settings.active.arDetect.fallbackMode.noTriggerZonePx"
+                v-model="settings.active.aard.fallbackMode.noTriggerZonePx"
                 />
         </div>
       </div>
@@ -185,7 +185,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                 v-model="settings.active.arDetect.allowedMisaligned"
+                 v-model="settings.active.aard.allowedMisaligned"
           />
         </div>
       </div>
@@ -207,7 +207,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                 v-model="settings.active.arDetect.sampling.staticCols"
+                 v-model="settings.active.aard.sampling.staticCols"
           />
         </div>
       </div>
@@ -217,7 +217,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                 v-model="settings.active.arDetect.sampling.randomCols"
+                 v-model="settings.active.aard.sampling.randomCols"
           />
         </div>
       </div>
@@ -227,7 +227,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                 v-model="settings.active.arDetect.sampling.staticRows"
+                 v-model="settings.active.aard.sampling.staticRows"
           />
         </div>
       </div>
@@ -237,7 +237,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                 v-model="settings.active.arDetect.canvasDimensions.sampleCanvas.width"
+                 v-model="settings.active.aard.canvasDimensions.sampleCanvas.width"
           />
         </div>
       </div>
@@ -247,7 +247,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                 v-model="settings.active.arDetect.canvasDimensions.sampleCanvas.height"
+                 v-model="settings.active.aard.canvasDimensions.sampleCanvas.height"
           />
         </div>
       </div>
@@ -279,7 +279,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                 v-model="settings.active.arDetect.blackbar.blackLevel"
+                 v-model="settings.active.aard.blackbar.blackLevel"
           />
         </div>
       </div>
@@ -289,7 +289,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                 v-model="settings.active.arDetect.blackbar.threshold"
+                 v-model="settings.active.aard.blackbar.threshold"
           />
         </div>
       </div>
@@ -298,7 +298,7 @@
           Gradient detection:
         </div>
         <div class="flex flex-input">
-          <select v-model="settings.active.arDetect.blackbar.antiGradientMode">
+          <select v-model="settings.active.aard.blackbar.antiGradientMode">
             <option :value="0">Disabled</option>
             <option :value="1">Lax</option>
             <option :value="2">Strict</option>
@@ -311,7 +311,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                 v-model="settings.active.arDetect.blackbar.imageThreshold"
+                 v-model="settings.active.aard.blackbar.imageThreshold"
           />
         </div>
       </div>
@@ -321,7 +321,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                 v-model="settings.active.arDetect.blackbar.gradientThreshold"
+                 v-model="settings.active.aard.blackbar.gradientThreshold"
           />
         </div>
       </div>
@@ -331,7 +331,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                 v-model="settings.active.arDetect.blackbar.gradientSampleSize"
+                 v-model="settings.active.aard.blackbar.gradientSampleSize"
           />
         </div>
       </div>
@@ -359,7 +359,7 @@
           </div>
           <div class="flex flex-input">
             <input type="text"
-                  v-model="settings.active.arDetect.canvasDimensions.blackframeCanvas.width"
+                  v-model="settings.active.aard.canvasDimensions.blackframeCanvas.width"
             />
           </div>
         </div>
@@ -369,7 +369,7 @@
           </div>
           <div class="flex flex-input">
             <input type="text"
-                   v-model="settings.active.arDetect.canvasDimensions.blackframeCanvas.height"
+                   v-model="settings.active.aard.canvasDimensions.blackframeCanvas.height"
             />
           </div>
         </div>
@@ -379,7 +379,7 @@
           </div>
           <div class="flex flex-input">
             <input type="text"
-                   v-model="settings.active.arDetect.blackframe.sufficientColorVariance"
+                   v-model="settings.active.aard.blackframe.sufficientColorVariance"
             />
           </div>
         </div>
@@ -389,7 +389,7 @@
           </div>
           <div class="flex flex-input">
             <input type="text"
-                   v-model="settings.active.arDetect.blackframe.cumulativeThresholdLax"
+                   v-model="settings.active.aard.blackframe.cumulativeThresholdLax"
             />
           </div>
         </div>
@@ -399,7 +399,7 @@
           </div>
           <div class="flex flex-input">
             <input type="text"
-                   v-model="settings.active.arDetect.blackframe.cumulativeThresholdStrict"
+                   v-model="settings.active.aard.blackframe.cumulativeThresholdStrict"
             />
           </div>
         </div>
@@ -409,7 +409,7 @@
           </div>
           <div class="flex flex-input">
             <input type=""
-                   v-model="settings.active.arDetect.blackframe.blackPixelsCondition"
+                   v-model="settings.active.aard.blackframe.blackPixelsCondition"
             />
           </div>
         </div>
@@ -422,7 +422,7 @@
       <b>Sample width</b> — In a bid to detect "false" edges, we take two samples this many pixels wide near the point of our potential edge. One sample must be completely black, the other must contain a set 
       amount of non-black pixels.<br/>
       <b>Detection threshold</b> — non-black sample mentioned above needs to contain at least this many non-black pixels.<br/>
-      <b>Thickness quorum (per edge)</b> — amount of samples that agree on the thincknes of the blackbar that we need in order to establish aspect ratio. Every edge needs to have at least this many. Values higher than {{~~(settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold / 2)}} (quorum (total)/2) are pointless.<br/>
+      <b>Thickness quorum (per edge)</b> — amount of samples that agree on the thincknes of the blackbar that we need in order to establish aspect ratio. Every edge needs to have at least this many. Values higher than {{~~(settings.active.aard.edgeDetection.singleSideConfirmationThreshold / 2)}} (quorum (total)/2) are pointless.<br/>
       <b>Thickness quorum (total)</b> — amount of samples that agree on the thinckess of the blackbar that we need in order to establish aspect ratio in case one of the edges doesn't contain enough samples to achieve quorum.<br/>
       <b>Logo threshold</b> — if edge candidate sits with count greater than this*all_samples, it can't be a logo or a watermark.<br/>
       <b>Ignore middle area</b> — When trying to detect area, ignore area between middle and canvasHeight * {this value} pixels towards the edge.<br/>
@@ -435,7 +435,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                 v-model="settings.active.arDetect.edgeDetection.sampleWidth"
+                 v-model="settings.active.aard.edgeDetection.sampleWidth"
           />
         </div>
       </div>
@@ -445,7 +445,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                 v-model="settings.active.arDetect.edgeDetection.detectionThreshold"
+                 v-model="settings.active.aard.edgeDetection.detectionThreshold"
           />
         </div>
       </div>
@@ -455,7 +455,7 @@
         </div>
         <div class="flex flex-input">
           <input 
-                 v-model="settings.active.arDetect.edgeDetection.confirmationThreshold"
+                 v-model="settings.active.aard.edgeDetection.confirmationThreshold"
           />
         </div>
       </div>
@@ -465,7 +465,7 @@
         </div>
         <div class="flex flex-input">
           <input 
-                 v-model="settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold"
+                 v-model="settings.active.aard.edgeDetection.singleSideConfirmationThreshold"
           />
         </div>
       </div>
@@ -475,7 +475,7 @@
         </div>
         <div class="flex flex-input">
           <input 
-                 v-model="settings.active.arDetect.edgeDetection.logoThreshold"
+                 v-model="settings.active.aard.edgeDetection.logoThreshold"
           />
         </div>
       </div>
@@ -485,7 +485,7 @@
         </div>
         <div class="flex flex-input">
           <input 
-                 v-model="settings.active.arDetect.edgeDetection.middleIgnoredArea"
+                 v-model="settings.active.aard.edgeDetection.middleIgnoredArea"
           />
         </div>
       </div>
@@ -495,7 +495,7 @@
         </div>
         <div class="flex flex-input">
           <input 
-                 v-model="settings.active.arDetect.edgeDetection.minColsForSearch"
+                 v-model="settings.active.aard.edgeDetection.minColsForSearch"
           />
         </div>
       </div>
@@ -516,7 +516,7 @@
         </div>
         <div class="flex flex-input">
           <input type="checkbox"
-                 v-model="settings.active.arDetect.guardLine.enabled"
+                 v-model="settings.active.aard.guardLine.enabled"
           /> Enable guardline
         </div>
       </div>
@@ -526,7 +526,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                 v-model="settings.active.arDetect.guardLine.ignoreEdgeMargin"
+                 v-model="settings.active.aard.guardLine.ignoreEdgeMargin"
           />
         </div>
       </div>
@@ -536,7 +536,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                 v-model="settings.active.arDetect.guardLine.imageTestThreshold"
+                 v-model="settings.active.aard.guardLine.imageTestThreshold"
           />
         </div>
       </div>
@@ -546,7 +546,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                 v-model="settings.active.arDetect.guardLine.edgeTolerancePx"
+                 v-model="settings.active.aard.guardLine.edgeTolerancePx"
           />
         </div>
       </div>
@@ -564,7 +564,7 @@
           </div>
           <div class="flex flex-input">
             <input type=""
-                  v-model="settings.active.arDetect.allowedMisaligned"
+                  v-model="settings.active.aard.allowedMisaligned"
             />
           </div>
         </div>
@@ -615,36 +615,36 @@ export default {
   },
   methods: {
     setArCheckFrequency(event) {
-      this.settings.active.arDetect.timers.playing = Math.floor(Math.pow(Math.E, event));
+      this.settings.active.aard.timers.playing = Math.floor(Math.pow(Math.E, event));
     },
     getSensitivity() {
-      if (this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold === 3 && this.settings.active.arDetect.edgeDetection.confirmationThreshold === 1) {
+      if (this.settings.active.aard.edgeDetection.singleSideConfirmationThreshold === 3 && this.settings.active.aard.edgeDetection.confirmationThreshold === 1) {
         return 'sensitive';
       }
-      if (this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold === 5 && this.settings.active.arDetect.edgeDetection.confirmationThreshold === 2) {
+      if (this.settings.active.aard.edgeDetection.singleSideConfirmationThreshold === 5 && this.settings.active.aard.edgeDetection.confirmationThreshold === 2) {
         return 'balanced';
       }
-      if (this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold === 7 && this.settings.active.arDetect.edgeDetection.confirmationThreshold === 3) {
+      if (this.settings.active.aard.edgeDetection.singleSideConfirmationThreshold === 7 && this.settings.active.aard.edgeDetection.confirmationThreshold === 3) {
         return 'accurate';
       }
-      if (this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold === 16 && this.settings.active.arDetect.edgeDetection.confirmationThreshold === 8) {
+      if (this.settings.active.aard.edgeDetection.singleSideConfirmationThreshold === 16 && this.settings.active.aard.edgeDetection.confirmationThreshold === 8) {
         return 'strict';
       }
       return 'user-defined';
     },
     setConfirmationThresholds(sens) {
       if (sens === 'sensitive') {
-        this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold = 3;
-        this.settings.active.arDetect.edgeDetection.confirmationThreshold = 1;
+        this.settings.active.aard.edgeDetection.singleSideConfirmationThreshold = 3;
+        this.settings.active.aard.edgeDetection.confirmationThreshold = 1;
       } else if (sens === 'balanced') {
-        this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold = 5;
-        this.settings.active.arDetect.edgeDetection.confirmationThreshold = 2;
+        this.settings.active.aard.edgeDetection.singleSideConfirmationThreshold = 5;
+        this.settings.active.aard.edgeDetection.confirmationThreshold = 2;
       } else if (sens === 'accurate') {
-        this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold = 7;
-        this.settings.active.arDetect.edgeDetection.confirmationThreshold = 3;
+        this.settings.active.aard.edgeDetection.singleSideConfirmationThreshold = 7;
+        this.settings.active.aard.edgeDetection.confirmationThreshold = 3;
       } else if (sens === 'strict') {
-        this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold = 16;
-        this.settings.active.arDetect.edgeDetection.confirmationThreshold = 8;
+        this.settings.active.aard.edgeDetection.singleSideConfirmationThreshold = 16;
+        this.settings.active.aard.edgeDetection.confirmationThreshold = 8;
       }
 
       this.sensitivity = this.getSensitivity();

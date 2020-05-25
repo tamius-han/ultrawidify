@@ -26,24 +26,24 @@ export function generateHorizontalAdder(sampleRadius, pixelSizeX) {
   // build adder kernel
   let adderStatements = 'vec4 rowSum =';
   for (let i = sampleRadius - 1; i > 0; i--) {
-    adderStatements += `${i == sampleRadius - 1 ? '' : '+'} texture2D(u_frame, v_textureCoords + vec2(${-i * pixelSizeX}, 0))`;
+    adderStatements += `${i == sampleRadius - 1 ? '' : ' +'} texture2D(u_frame, v_textureCoords + vec2(${-i * pixelSizeX}, 0))`;
   }
-  adderStatements += `+ texture2D(u_frame, v_textureCoords + vec2(0, 0))`;
+  adderStatements += ` + texture2D(u_frame, v_textureCoords + vec2(0, 0))`;
   for (let i = 0; i < sampleRadius; i++) {
-    adderStatements += `+ texture2D(u_frame, v_textureCoords + vec2(${i * pixelSizeX}, 0))`;
+    adderStatements += ` + texture2D(u_frame, v_textureCoords + vec2(${i * pixelSizeX}, 0))`;
   }
-  adderStatements += ';'
+  adderStatements += ';';
 
   // build deviance kernel
   let stdDevStatements = `vec4 diffSum =`;
   for (let i = sampleRadius - 1; i > 0; i--) {
-    stdDevStatements = `${i == sampleRadius - 1 ? '' : '+'} abs(texture2D(u_frame, v_textureCoords + vec2(${-i * pixelSizeX}, 0)) - rowAvg)`; 
+    stdDevStatements += `${i == sampleRadius - 1 ? '' : ' +'} abs(texture2D(u_frame, v_textureCoords + vec2(${-i * pixelSizeX}, 0)) - average)`; 
   }
-  stdDevStatements = `+ abs(texture2D(u_frame, v_textureCoords + vec2(0, 0) - rowAvg)`; 
+  stdDevStatements += `+ abs(texture2D(u_frame, v_textureCoords + vec2(0, 0)) - average)`; 
   for (let i = sampleRadius - 1; i > 0; i--) {
-    stdDevStatements = `${i == sampleRadius - 1 ? '' : '+'} abs(texture2D(u_frame, v_textureCoords + vec2(${-i * pixelSizeX}, 0)) - rowAvg)`; 
+    stdDevStatements += ` + abs(texture2D(u_frame, v_textureCoords + vec2(${i * pixelSizeX}, 0)) - average)`; 
   }
-
+  stdDevStatements += ';';
 
   const shader = `
   precision mediump float;
@@ -64,7 +64,7 @@ export function generateHorizontalAdder(sampleRadius, pixelSizeX) {
     float sumGrayscale = (rowSum.r + rowSum.g + rowSum.b) / 3.0;
     float diffGrayscale = (diff.r + diff.g + diff.b) / 3.0;
 
-    gl_fragColor = vec4(sumGrayscale, diffGrayscale, (average.r + average.g + average.b) / 3.0, 1.0);
+    gl_FragColor = vec4(sumGrayscale, diffGrayscale, (average.r + average.g + average.b) / 3.0, 1.0);
   }
   `
   // btw don't forget: output "image" should be way smaller than input frame
