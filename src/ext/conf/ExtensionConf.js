@@ -11,7 +11,7 @@ if(Debug.debug)
   console.log("Loading: ExtensionConf.js");
 
 var ExtensionConf = {
-  arDetect: {
+  aard: {
     disabledReason: "",       // if automatic aspect ratio has been disabled, show reason
     allowedMisaligned: 0.05,  // top and bottom letterbox thickness can differ by this much. 
                               // Any more and we don't adjust ar.
