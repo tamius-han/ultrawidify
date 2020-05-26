@@ -307,8 +307,8 @@ class AardGl {
     //
 
     if (!cwidth) {
-      cwidth = this.settings.active.aard.Gl.canvasDimensions.sampleCanvas.width;
-      cheight = this.settings.active.aard.Gl.canvasDimensions.sampleCanvas.height;
+      cwidth = this.settings.active.aardGl.canvasDimensions.sampleCanvas.width;
+      cheight = this.settings.active.aardGl.canvasDimensions.sampleCanvas.height;
     }
 
     if (this.canvas) {
@@ -472,7 +472,7 @@ class AardGl {
     this._exited = false;
 
     // set initial timestamps so frame check will trigger the first time we run the loop
-    let lastFrameCheckStartTime = Date.now() - (this.settings.active.aard.Gl.timers.playing << 1);
+    let lastFrameCheckStartTime = Date.now() - (this.settings.active.aardGl.timers.playing << 1);
 
     const frameCheckTimes = new Array(10).fill(-1);
     let frameCheckBufferIndex = 0;
