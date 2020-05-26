@@ -28,8 +28,8 @@ class GuardLine {
   }
 
   setBlackbar(bbconf){
-    var bbTop = bbconf.top - this.settings.activeaard.guardLine.edgeTolerancePx;
-    var bbBottom = bbconf.bottom + this.settings.activeaard.guardLine.edgeTolerancePx;
+    var bbTop = bbconf.top - this.settings.active.aard.guardLine.edgeTolerancePx;
+    var bbBottom = bbconf.bottom + this.settings.active.aard.guardLine.edgeTolerancePx;
 
     // to odstrani vse neveljavne nastavitve in vse možnosti, ki niso smiselne
     // this removes any configs with invalid values or values that dont make sense
@@ -43,16 +43,16 @@ class GuardLine {
     }
 
     this.imageBar = {
-      top: bbconf.top + 1 + this.settings.activeaard.guardLine.edgeTolerancePx,
-      bottom: bbconf.bottom - 1 - this.settings.activeaard.guardLine.edgeTolerancePx
+      top: bbconf.top + 1 + this.settings.active.aard.guardLine.edgeTolerancePx,
+      bottom: bbconf.bottom - 1 - this.settings.active.aard.guardLine.edgeTolerancePx
     }
   }
 
   check(image, fallbackMode){
     // izračunaj enkrat in shrani na objekt
     // calculate once and save object-instance-wide
-    this.blackbarThreshold = this.conf.blackLevel + this.settings.activeaard.blackbar.threshold;
-    this.imageThreshold = this.blackbarThreshold + this.settings.activeaard.blackbar.imageThreshold;
+    this.blackbarThreshold = this.conf.blackLevel + this.settings.active.aard.blackbar.threshold;
+    this.imageThreshold = this.blackbarThreshold + this.settings.active.aard.blackbar.imageThreshold;
 
     // dejansko testiranje
     // actual checks
@@ -95,7 +95,7 @@ class GuardLine {
       return { success: true };
     }
 
-    var offset = parseInt(this.conf.canvas.width * this.settings.activeaard.guardLine.ignoreEdgeMargin) << 2;
+    var offset = parseInt(this.conf.canvas.width * this.settings.active.aard.guardLine.ignoreEdgeMargin) << 2;
     
     var offenders = [];
     var offenderCount = -1; // doing it this way means first offender has offenderCount==0. Ez index.
@@ -160,7 +160,7 @@ class GuardLine {
     if(!this.imageBar.top || !this.imageBar.bottom)
       return { success: false };
         
-    var offset = (this.conf.canvas.width * this.settings.activeaard.guardLine.ignoreEdgeMargin) << 2;
+    var offset = (this.conf.canvas.width * this.settings.active.aard.guardLine.ignoreEdgeMargin) << 2;
       
     // TODO: implement logo check.
     
@@ -169,8 +169,8 @@ class GuardLine {
     // check both rows - by the rules and definitions, we shouldn't go out of bounds here. no need to check, then
     
     //   if(fallbackMode){
-    //     var edge_upper = this.settings.activeaard.fallbackMode.noTriggerZonePx;
-    //     var edge_lower = this.conf.canvas.height - this.settings.activeaard.fallbackMode.noTriggerZonePx - 1;
+    //     var edge_upper = this.settings.active.aard.fallbackMode.noTriggerZonePx;
+    //     var edge_lower = this.conf.canvas.height - this.settings.active.aard.fallbackMode.noTriggerZonePx - 1;
     //   }
     //   else{
         var edge_upper = this.imageBar.top;
@@ -181,7 +181,7 @@ class GuardLine {
     // robu (eden izmed robov je lahko v celoti črn)
     // how many non-black pixels we need to consider this check a success. We only need to detect enough pixels
     // on one edge (one of the edges can be black as long as both aren't)
-    var successThreshold = (this.conf.canvas.width * this.settings.activeaard.guardLine.imageTestThreshold);
+    var successThreshold = (this.conf.canvas.width * this.settings.active.aard.guardLine.imageTestThreshold);
     var rowStart, rowEnd;
     
     

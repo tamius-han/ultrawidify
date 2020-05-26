@@ -25,7 +25,7 @@ class ArDetector {
     this.canFallback = true;
     this.fallbackMode = false;
 
-    this.blackLevel = this.settings.activeaard.blackbar.blackLevel;
+    this.blackLevel = this.settings.active.aard.blackbar.blackLevel;
 
     this.arid = (Math.random()*100).toFixed();
 
@@ -97,8 +97,8 @@ class ArDetector {
     //
 
     if (!cwidth) {
-      cwidth = this.settings.activeaard.canvasDimensions.sampleCanvas.width;
-      cheight = this.settings.activeaard.canvasDimensions.sampleCanvas.height;
+      cwidth = this.settings.active.aard.canvasDimensions.sampleCanvas.width;
+      cheight = this.settings.active.aard.canvasDimensions.sampleCanvas.height;
     }
 
     if (this.canvas) {
@@ -113,8 +113,8 @@ class ArDetector {
     this.canvas.width = cwidth;
     this.canvas.height = cheight;
     this.blackframeCanvas = document.createElement("canvas");
-    this.blackframeCanvas.width = this.settings.activeaard.canvasDimensions.blackframeCanvas.width;
-    this.blackframeCanvas.height = this.settings.activeaard.canvasDimensions.blackframeCanvas.height;
+    this.blackframeCanvas.width = this.settings.active.aard.canvasDimensions.blackframeCanvas.width;
+    this.blackframeCanvas.height = this.settings.active.aard.canvasDimensions.blackframeCanvas.height;
 
     this.context = this.canvas.getContext("2d");
     this.blackframeContext = this.blackframeCanvas.getContext("2d");
@@ -129,8 +129,8 @@ class ArDetector {
     // [2] determine places we'll use to sample our main frame
     //
 
-    var ncol = this.settings.activeaard.sampling.staticCols;
-    var nrow = this.settings.activeaard.sampling.staticRows;
+    var ncol = this.settings.active.aard.sampling.staticCols;
+    var nrow = this.settings.active.aard.sampling.staticRows;
     
     var colSpacing = this.canvas.width / ncol;
     var rowSpacing = (this.canvas.height << 2) / nrow;
@@ -258,7 +258,7 @@ class ArDetector {
 
     while (!this._exited && exitedRetries --> 0) {
       this.logger.log('warn', 'debug', `[ArDetect::main] <@${this.arid}>  We are trying to start another instance of autodetection on current video, but the previous instance hasn't exited yet. Waiting for old instance to exit ...`);
-      await sleep(this.settings.activeaard.timers.tickrate);
+      await sleep(this.settings.active.aard.timers.tickrate);
     }
     if (!this._exited) {
       this.logger.log('error', 'debug', `[ArDetect::main] <@${this.arid}>  Previous instance didn't exit in time. Not starting a new one.`);
@@ -272,7 +272,7 @@ class ArDetector {
     this._exited = false;
 
     // set initial timestamps so frame check will trigger the first time we run the loop
-    let lastFrameCheckStartTime = Date.now() - (this.settings.activeaard.timers.playing << 1);
+    let lastFrameCheckStartTime = Date.now() - (this.settings.active.aard.timers.playing << 1);
 
     const frameCheckTimes = new Array(10).fill(-1);
     let frameCheckBufferIndex = 0;
@@ -303,7 +303,7 @@ class ArDetector {
         }
       }
 
-      await sleep(this.settings.activeaard.timers.tickrate);
+      await sleep(this.settings.active.aard.timers.tickrate);
     }
 
     this.logger.log('info', 'debug', `%c[ArDetect::main] <@${this.arid}>  Main autodetection loop exited. Halted? ${this._halted}`,  _ard_console_stop);
@@ -319,15 +319,15 @@ class ArDetector {
       // we slow down if ended or pausing. Detecting is pointless.
       // we don't stop outright in case seeking happens during pause/after video was 
       // ended and video gets into 'playing' state again
-      return Date.now() - lastFrameCheckStartTime > this.settings.activeaard.timers.paused;
+      return Date.now() - lastFrameCheckStartTime > this.settings.active.aard.timers.paused;
     }
     if (this.video.error){
       // če je video pavziran, še vedno skušamo zaznati razmerje stranic - ampak bolj poredko.
       // if the video is paused, we still do autodetection. We just do it less often.
-      return Date.now() - lastFrameCheckStartTime > this.settings.activeaard.timers.error;
+      return Date.now() - lastFrameCheckStartTime > this.settings.active.aard.timers.error;
     }
     
-    return Date.now() - lastFrameCheckStartTime > this.settings.activeaard.timers.playing;
+    return Date.now() - lastFrameCheckStartTime > this.settings.active.aard.timers.playing;
   }
 
   isRunning(){
@@ -445,7 +445,7 @@ class ArDetector {
 
       var trueHeight = this.canvas.height * zoomFactor - letterbox;
 
-      if(edges.top > 1 && edges.top <= this.settings.activeaard.fallbackMode.noTriggerZonePx ){
+      if(edges.top > 1 && edges.top <= this.settings.active.aard.fallbackMode.noTriggerZonePx ){
         this.logger.log('info', 'arDetect', `%c[ArDetect::calculateArFromEdges] <@${this.arid}>  Edge is in the no-trigger zone. Aspect ratio change is not triggered.`)
         return;
       }
@@ -454,7 +454,7 @@ class ArDetector {
       // x2, ker je safetyBorderPx definiran za eno stran.
       // safety border so we can detect aspect ratio narrowing (21:9 -> 16:9).
       // x2 because safetyBorderPx is for one side.
-      trueHeight += (this.settings.activeaard.fallbackMode.safetyBorderPx << 1);
+      trueHeight += (this.settings.active.aard.fallbackMode.safetyBorderPx << 1);
 
       return this.canvas.width * zoomFactor / trueHeight;
     }
@@ -483,7 +483,7 @@ class ArDetector {
       // is ar variance within acceptable levels? If yes -> we done
       this.logger.log('info', 'arDetect', `%c[ArDetect::processAr] <@${this.arid}>  New aspect ratio varies from the old one by this much:\n`,"color: #aaf","old Ar", lastAr.ar, "current ar", trueAr, "arDiff (absolute):",arDiff,"ar diff (relative to new ar)", arDiff_percent);
 
-      if (arDiff < trueAr * this.settings.activeaard.allowedArVariance){
+      if (arDiff < trueAr * this.settings.active.aard.allowedArVariance){
         this.logger.log('info', 'arDetect', `%c[ArDetect::processAr] <@${this.arid}>  Aspect ratio change denied — diff %: ${arDiff_percent}`, "background: #740; color: #fa2");
         return;
       }
@@ -698,11 +698,11 @@ class ArDetector {
       } else {
         if (this.conf.player.dimensions){
           this.guardLine.setBlackbarManual({
-            top: this.settings.activeaard.fallbackMode.noTriggerZonePx,
-            bottom: this.conf.player.dimensions.height - this.settings.activeaard.fallbackMode.noTriggerZonePx - 1
+            top: this.settings.active.aard.fallbackMode.noTriggerZonePx,
+            bottom: this.conf.player.dimensions.height - this.settings.active.aard.fallbackMode.noTriggerZonePx - 1
           },{
-            top: edgePost.guardLineTop + this.settings.activeaard.guardLine.edgeTolerancePx,
-            bottom: edgePost.guardLineBottom - this.settings.activeaard.guardLine.edgeTolerancePx
+            top: edgePost.guardLineTop + this.settings.active.aard.guardLine.edgeTolerancePx,
+            bottom: edgePost.guardLineBottom - this.settings.active.aard.guardLine.edgeTolerancePx
           })
         }
       }
@@ -724,7 +724,7 @@ class ArDetector {
   }
 
   resetBlackLevel(){
-    this.blackLevel = this.settings.activeaard.blackbar.blackLevel;    
+    this.blackLevel = this.settings.active.aard.blackbar.blackLevel;    
   }
 
   blackLevelTest_full() {
@@ -749,7 +749,7 @@ class ArDetector {
     let cumulativeValue = 0;
     let blackPixelCount = 0;
     const bfImageData = this.blackframeContext.getImageData(0, 0, cols, rows).data;
-    const blackTreshold = this.blackLevel + this.settings.activeaard.blackbar.frameTreshold;
+    const blackTreshold = this.blackLevel + this.settings.active.aard.blackbar.frameTreshold;
     
 
     // we do some recon for letterbox and pillarbox. While this can't determine whether letterbox/pillarbox exists
@@ -810,17 +810,17 @@ class ArDetector {
       }
     }
 
-    const hasSufficientVariance = Math.abs(var_r - var_g) / Math.max(var_r, var_g, 1) > this.settings.activeaard.blackframe.sufficientColorVariance
-                                  || Math.abs(var_r - var_b) / Math.max(var_r, var_b, 1) > this.settings.activeaard.blackframe.sufficientColorVariance
-                                  || Math.abs(var_b - var_g) / Math.max(var_b, var_g, 1) > this.settings.activeaard.blackframe.sufficientColorVariance
+    const hasSufficientVariance = Math.abs(var_r - var_g) / Math.max(var_r, var_g, 1) > this.settings.active.aard.blackframe.sufficientColorVariance
+                                  || Math.abs(var_r - var_b) / Math.max(var_r, var_b, 1) > this.settings.active.aard.blackframe.sufficientColorVariance
+                                  || Math.abs(var_b - var_g) / Math.max(var_b, var_g, 1) > this.settings.active.aard.blackframe.sufficientColorVariance
 
-    let isBlack = (blackPixelCount/(cols * rows) > this.settings.activeaard.blackframe.blackPixelsCondition);
+    let isBlack = (blackPixelCount/(cols * rows) > this.settings.active.aard.blackframe.blackPixelsCondition);
 
     if (! isBlack) {
       if (hasSufficientVariance) {
-        isBlack = cumulativeValue < this.settings.activeaard.blackframe.cumulativeThresholdLax;
+        isBlack = cumulativeValue < this.settings.active.aard.blackframe.cumulativeThresholdLax;
       } else {
-        isBlack = cumulativeValue < this.settings.activeaard.blackframe.cumulativeThresholdStrict;
+        isBlack = cumulativeValue < this.settings.active.aard.blackframe.cumulativeThresholdStrict;
       }
     }
 
@@ -842,13 +842,13 @@ class ArDetector {
             gb: Math.abs(var_b - var_g) / Math.max(var_b, var_g, 1),
           },
           relativePercent: {
-            rg: Math.abs(var_r - var_g) / Math.max(var_r, var_g, 1) / this.settings.activeaard.blackframe.sufficientColorVariance,
-            rb: Math.abs(var_r - var_b) / Math.max(var_r, var_b, 1) / this.settings.activeaard.blackframe.sufficientColorVariance,
-            gb: Math.abs(var_b - var_g) / Math.max(var_b, var_g, 1) / this.settings.activeaard.blackframe.sufficientColorVariance,
+            rg: Math.abs(var_r - var_g) / Math.max(var_r, var_g, 1) / this.settings.active.aard.blackframe.sufficientColorVariance,
+            rb: Math.abs(var_r - var_b) / Math.max(var_r, var_b, 1) / this.settings.active.aard.blackframe.sufficientColorVariance,
+            gb: Math.abs(var_b - var_g) / Math.max(var_b, var_g, 1) / this.settings.active.aard.blackframe.sufficientColorVariance,
           },
-          varianceLimit: this.settings.activeaard.blackframe.sufficientColorVariance,
+          varianceLimit: this.settings.active.aard.blackframe.sufficientColorVariance,
         },
-        cumulativeValuePercent: cumulativeValue / (hasSufficientVariance ? this.settings.activeaard.blackframe.cumulativeThresholdLax : this.settings.activeaard.blackframe.cumulativeThresholdStrict),
+        cumulativeValuePercent: cumulativeValue / (hasSufficientVariance ? this.settings.active.aard.blackframe.cumulativeThresholdLax : this.settings.active.aard.blackframe.cumulativeThresholdStrict),
         rowMax: rowMax,
         colMax: colMax,
       };
@@ -867,7 +867,7 @@ class ArDetector {
 
     // If we detect anything darker than blackLevel, we modify blackLevel to the new lowest value
     const rowOffset = this.canvas.width * (this.canvas.height - 1);
-    let currentMin = 255, currentMax = 0, colOffset_r, colOffset_g, colOffset_b, colOffset_rb, colOffset_gb, colOffset_bb, blthreshold = this.settings.activeaard.blackbar.threshold;
+    let currentMin = 255, currentMax = 0, colOffset_r, colOffset_g, colOffset_b, colOffset_rb, colOffset_gb, colOffset_bb, blthreshold = this.settings.active.aard.blackbar.threshold;
   
     // detect black level. if currentMax comes above blackbar + blackbar threshold, we know we aren't letterboxed
 

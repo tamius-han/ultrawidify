@@ -30,7 +30,7 @@ class AardGl {
     this.canFallback = true;
     this.fallbackMode = false;
 
-    this.blackLevel = this.settings.activeaard.blackbar.blackLevel;
+    this.blackLevel = this.settings.active.aard.blackbar.blackLevel;
 
     this.arid = (Math.random()*100).toFixed();
 
@@ -61,15 +61,15 @@ class AardGl {
       // we slow down if ended or pausing. Detecting is pointless.
       // we don't stop outright in case seeking happens during pause/after video was 
       // ended and video gets into 'playing' state again
-      return Date.now() - lastFrameCheckStartTime > this.settings.activeaard.timers.paused;
+      return Date.now() - lastFrameCheckStartTime > this.settings.active.aard.timers.paused;
     }
     if (this.video.error){
       // če je video pavziran, še vedno skušamo zaznati razmerje stranic - ampak bolj poredko.
       // if the video is paused, we still do autodetection. We just do it less often.
-      return Date.now() - lastFrameCheckStartTime > this.settings.activeaard.timers.error;
+      return Date.now() - lastFrameCheckStartTime > this.settings.active.aard.timers.error;
     }
     
-    return Date.now() - lastFrameCheckStartTime > this.settings.activeaard.timers.playing;
+    return Date.now() - lastFrameCheckStartTime > this.settings.active.aard.timers.playing;
   }
 
   isRunning(){
@@ -114,7 +114,7 @@ class AardGl {
   }
 
   resetBlackLevel(){
-    this.blackLevel = this.settings.activeaard.blackbar.blackLevel;    
+    this.blackLevel = this.settings.active.aard.blackbar.blackLevel;    
   }
 
   clearImageData(id) {
@@ -307,8 +307,8 @@ class AardGl {
     //
 
     if (!cwidth) {
-      cwidth = this.settings.activeaard.Gl.canvasDimensions.sampleCanvas.width;
-      cheight = this.settings.activeaard.Gl.canvasDimensions.sampleCanvas.height;
+      cwidth = this.settings.active.aard.Gl.canvasDimensions.sampleCanvas.width;
+      cheight = this.settings.active.aard.Gl.canvasDimensions.sampleCanvas.height;
     }
 
     if (this.canvas) {
@@ -323,8 +323,8 @@ class AardGl {
     this.canvas.width = cwidth;
     this.canvas.height = cheight;
     this.blackframeCanvas = document.createElement("canvas");
-    this.blackframeCanvas.width = this.settings.activeaard.canvasDimensions.blackframeCanvas.width;
-    this.blackframeCanvas.height = this.settings.activeaard.canvasDimensions.blackframeCanvas.height;
+    this.blackframeCanvas.width = this.settings.active.aard.canvasDimensions.blackframeCanvas.width;
+    this.blackframeCanvas.height = this.settings.active.aard.canvasDimensions.blackframeCanvas.height;
 
     // this.context = this.canvas.getContext("2d");
 
@@ -368,7 +368,7 @@ class AardGl {
     // we need a rectangle. This is output data, not texture. This means that the size of the rectangle should be
     // [sample count] x height of the sample, as shader can sample frame at a different resolution than what gets
     // rendered here. We don't need all horizontal pixels on our output. We do need all vertical pixels, though)
-    this.glSetRectangle(this.gl, this.settings.activeaard..sampleCols, cheight);
+    this.glSetRectangle(this.gl, this.settings.active.aard.sampleCols, cheight);
 
     // do setup once
     // tho we could do it for every frame
@@ -458,7 +458,7 @@ class AardGl {
 
     while (!this._exited && exitedRetries --> 0) {
       this.logger.log('warn', 'debug', `[AardGl::main] <@${this.arid}>  We are trying to start another instance of autodetection on current video, but the previous instance hasn't exited yet. Waiting for old instance to exit ...`);
-      await sleep(this.settings.activeaard.timers.tickrate);
+      await sleep(this.settings.active.aard.timers.tickrate);
     }
     if (!this._exited) {
       this.logger.log('error', 'debug', `[AardGl::main] <@${this.arid}>  Previous instance didn't exit in time. Not starting a new one.`);
@@ -472,7 +472,7 @@ class AardGl {
     this._exited = false;
 
     // set initial timestamps so frame check will trigger the first time we run the loop
-    let lastFrameCheckStartTime = Date.now() - (this.settings.activeaard.Gl.timers.playing << 1);
+    let lastFrameCheckStartTime = Date.now() - (this.settings.active.aard.Gl.timers.playing << 1);
 
     const frameCheckTimes = new Array(10).fill(-1);
     let frameCheckBufferIndex = 0;
@@ -600,7 +600,7 @@ class AardGl {
 
       var trueHeight = this.canvas.height * zoomFactor - letterbox;
 
-      if(edges.top > 1 && edges.top <= this.settings.activeaard.fallbackMode.noTriggerZonePx ){
+      if(edges.top > 1 && edges.top <= this.settings.active.aard.fallbackMode.noTriggerZonePx ){
         this.logger.log('info', 'arDetect', `%c[AardGl::calculateArFromEdges] <@${this.arid}>  Edge is in the no-trigger zone. Aspect ratio change is not triggered.`)
         return;
       }
@@ -609,7 +609,7 @@ class AardGl {
       // x2, ker je safetyBorderPx definiran za eno stran.
       // safety border so we can detect aspect ratio narrowing (21:9 -> 16:9).
       // x2 because safetyBorderPx is for one side.
-      trueHeight += (this.settings.activeaard.fallbackMode.safetyBorderPx << 1);
+      trueHeight += (this.settings.active.aard.fallbackMode.safetyBorderPx << 1);
 
       return this.canvas.width * zoomFactor / trueHeight;
     }
@@ -638,7 +638,7 @@ class AardGl {
       // is ar variance within acceptable levels? If yes -> we done
       this.logger.log('info', 'arDetect', `%c[AardGl::processAr] <@${this.arid}>  New aspect ratio varies from the old one by this much:\n`,"color: #aaf","old Ar", lastAr.ar, "current ar", trueAr, "arDiff (absolute):",arDiff,"ar diff (relative to new ar)", arDiff_percent);
 
-      if (arDiff < trueAr * this.settings.activeaard.allowedArVariance){
+      if (arDiff < trueAr * this.settings.active.aard.allowedArVariance){
         this.logger.log('info', 'arDetect', `%c[AardGl::processAr] <@${this.arid}>  Aspect ratio change denied — diff %: ${arDiff_percent}`, "background: #740; color: #fa2");
         return;
       }
