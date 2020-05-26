@@ -224,8 +224,8 @@ class AardGl {
 
     // check if shader was compiled successfully
     if (! glContext.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+      this.logger.log('error', ['init', 'debug', 'arDetect'], `%c[AardGl::setupShader] <@${this.arid}> Failed to setup shader. Error given:`, glContext.getShaderInfoLog(), _ard_console_stop);
       glContext.deleteShader(shader);
-      this.logger.log('error', ['init', 'debug', 'arDetect'], `%c[AardGl::setupShader] <@${this.arid}> Failed to setup shader.`, _ard_console_stop);
       return null;
     }
 
@@ -245,8 +245,7 @@ class AardGl {
     }
     glContext.linkProgram(program);
     if (! glContext.getProgramParameter(program, glContext.LINK_STATUS)) {
-      glContext.deleteShader(shader);
-      this.logger.log('error', ['init', 'debug', 'arDetect'], `%c[AardGl::setupProgram] <@${this.arid}> Failed to setup program.`, _ard_console_stop);
+      this.logger.log('error', ['init', 'debug', 'arDetect'], `%c[AardGl::setupProgram] <@${this.arid}> Failed to setup program.`, glContext.getProgramInfoLog(), _ard_console_stop);
       return null;
     }
 
