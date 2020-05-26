@@ -154,7 +154,7 @@ var ExtensionConf = {
       sampleCanvas: {   // size of image sample for detecting aspect ratio. Bigger size means more accurate results,
                         // at the expense of performance. Width == sample texture size (size of webGL canvas is pegged
                         // on sample count)
-        width: 640,
+        width: 32,
         height: 360,
       },
     },
