@@ -556,7 +556,7 @@ class Settings {
   }
 
   getDefaultStretchMode(site) {
-    if (site && this.active.sites[site]?.stretch !== Stretch.Default) {
+    if (site && (this.active.sites[site]?.stretch ?? Stretch.Default) !== Stretch.Default) {
       return this.active.sites[site].stretch;
     }
 
@@ -564,7 +564,7 @@ class Settings {
   }
 
   getDefaultCropPersistenceMode(site) {
-    if (site && this.active.sites[site]?.cropModePersistence !== Stretch.Default) {
+    if (site && (this.active.sites[site]?.cropModePersistence ?? Stretch.Default) !== Stretch.Default) {
       return this.active.sites[site].cropModePersistence;
     }
 
@@ -573,7 +573,7 @@ class Settings {
   }
 
   getDefaultVideoAlignment(site) {
-    if (this.active.sites[site]?.videoAlignment !== VideoAlignment.Default) {
+    if ( (this.active.sites[site]?.videoAlignment ?? VideoAlignment.Default) !== VideoAlignment.Default) {
       return this.active.sites[site].videoAlignment;
     }
 
