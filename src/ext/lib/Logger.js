@@ -227,29 +227,21 @@ class Logger {
     stackInfo['mousemove'] = false;
     stackInfo['exitLogs'] = false;
 
-    // here we check which source triggered the action. We know that only one of these
-    // functions will appear in the trace at most once (and if more than one of these
-    // appears — e.g. frameCheck triggered by user toggling autodetection in popup —
-    // the most recent one will be the correct one 99% of the time)
+    // here we check which source triggered the action. There can be more
+    // than one source, too, so we don't break when we find the first one
     for (const line of stackInfo.stack.trace) {
       if (line === 'doPeriodicPlayerElementChangeCheck') {
         stackInfo['periodicPlayerCheck'] = true;
-        break;
       } else if (line === 'doPeriodicFallbackChangeDetectionCheck') {
         stackInfo['periodicVideoStyleChangeCheck'] = true;
-        break;
       } else if (line === 'frameCheck') {
         stackInfo['aard'] = true;
-        break;
       } else if (line === 'execAction') {
         stackInfo['keyboard'] = true;
-        break;
       } else if (line === 'processReceivedMessage') {
         stackInfo['popup'] = true;
-        break;
       } else if (line === 'handleMouseMove') {
         stackInfo['mousemove'] = true;
-        break;
       }
     }
 
