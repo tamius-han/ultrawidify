@@ -325,6 +325,17 @@ class AardGl {
     this.blackframeCanvas.width = this.settings.active.aard.canvasDimensions.blackframeCanvas.width;
     this.blackframeCanvas.height = this.settings.active.aard.canvasDimensions.blackframeCanvas.height;
 
+    // FOR DEBUG PURPOSES ONLY — REMOVE!
+    var body = document.getElementsByTagName('body')[0];
+
+    this.canvas.style.position = "absolute";
+    this.canvas.style.left = `50px`;
+    this.canvas.style.top = `50px`;
+    this.canvas.style.zIndex = 10002;
+
+    body.appendChild(this.canvas);
+    // END FOR DEBUG PURPOSES ONLY
+
     // this.context = this.canvas.getContext("2d");
 
     this.pixelBuffer = new Uint8Array(cwidth * cheight * 4);
@@ -343,17 +354,17 @@ class AardGl {
     const horizontalAdderShader = this.compileShader(this.gl, horizontalAdderShaderSrc, this.gl.FRAGMENT_SHADER);
 
     // link shaders to program
-    const glProgram = this.compileProgram(this.gl, [vertexShader, horizontalAdderShader]);
+    this.glProgram = this.compileProgram(this.gl, [vertexShader, horizontalAdderShader]);
 
     // look up where the vertex data needs to go
     // const positionLocation = this.gl.getAttributeLocation(glProgram, 'a_position');
     // const textureCoordsLocation = this.gl.getAttributeLocation(glProgram, 'a_textureCoords');
 
     // create buffers and bind them
-    const positionBuffer = this.gl.createBuffer();
-    const textureCoordsBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl, positionBuffer);
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, textureCoordsBuffer);
+    this.positionBuffer = this.gl.createBuffer();
+    this.textureCoordsBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl, this.positionBuffer);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.textureCoordsBuffer);
 
     // create a texture
     this.texture = this.gl.createTexture();
@@ -422,7 +433,23 @@ class AardGl {
     console.log("DRAWING BUFFER SIZE:", this.gl.drawingBufferWidth, '×', this.gl.drawingBufferHeight);
   }
 
-  drawFrame() {
+  drawScene() {
+    // clear canvas
+    this.gl.clearColor(0.0, 0.0, 1.0, 0.5); 
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+    this.gl.useProgram(this.glProgram);
+
+    this.gl.bindBuffer(this.gl, this.positionBuffer);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.textureCoordsBuffer);
+
+    // this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, framebuffer)
+
+    // get the pixels back out:
+    // this.gl.readPixels(0, 0, width, height, format, type, pixels)
+  }
+
+  updateTexture() {
     const level = 0;
     const internalFormat = this.gl.RGBA;
     const sourceFormat = this.gl.RGBA;
@@ -437,21 +464,26 @@ class AardGl {
       this.gl.texImage2D(gl.TEXTURE_2D, level, internalformat, sourceFormat, sourceType, this.video);
     // }
 
-    // get the pixels back out:
-    this.gl.readPixels(0, 0, width, height, format, type, pixels)
+
   }
 
   async main() {
+    this.logger.log('info', 'debug', `"%c[AardGl::main] <@${this.arid}>  Entering main function.`, _ard_console_start);
     if (this._paused) {
       // unpause if paused
       this._paused = false;
       return; // main loop still keeps executing. Return is needed to avoid a million instances of autodetection
     }
+
+    console.log("we werent paused");
+
     if (!this._halted) { 
       // we are already running, don't run twice
       // this would have handled the 'paused' from before, actually.
       return;
     }
+
+    console.log("we werent halted");
 
     let exitedRetries = 10;
 
@@ -464,7 +496,9 @@ class AardGl {
       return;
     }
 
-    this.logger.log('info', 'debug', `%c[AardGl::main] <@${this.arid}>  Previous instance didn't exit in time. Not starting a new one.`);
+    console.log("no other instances")
+
+    this.logger.log('info', 'debug', `%c[AardGl::main] <@${this.arid}>  Starting a new instance.`);
 
     // we need to unhalt:
     this._halted = false;
@@ -477,32 +511,38 @@ class AardGl {
     let frameCheckBufferIndex = 0;
     let fcstart, fctime;
 
-    while (this && !this._halted) {
-      // NOTE: we separated tickrate and inter-check timeouts so that when video switches
-      // state from 'paused' to 'playing', we don't need to wait for the rest of the longer
-      // paused state timeout to finish.
+    this.logger.log('info', 'debug', `"%c[AardGl::start] <@${this.arid}>  Starting aardGL loop!`, _ard_console_start);
 
-      if ( (!this._manualTicks && this.canTriggerFrameCheck(lastFrameCheckStartTime)) || this._nextTick) {
-        this._nextTick = false;
+    try {
+      while (this && !this._halted) {
+        // NOTE: we separated tickrate and inter-check timeouts so that when video switches
+        // state from 'paused' to 'playing', we don't need to wait for the rest of the longer
+        // paused state timeout to finish.
 
-        lastFrameCheckStartTime = Date.now();
-        fcstart = performance.now();
-        
-        try {
-          this.frameCheck();
-        } catch (e) {
-          this.logger.log('error', 'debug', `%c[AardGl::main] <@${this.arid}>  Frame check failed:`,  "color: #000, background: #f00", e);
+        if ( (!this._manualTicks && this.canTriggerFrameCheck(lastFrameCheckStartTime)) || this._nextTick) {
+          this._nextTick = false;
+
+          lastFrameCheckStartTime = Date.now();
+          fcstart = performance.now();
+          
+          try {
+            this.frameCheck();
+          } catch (e) {
+            this.logger.log('error', 'debug', `%c[AardGl::main] <@${this.arid}>  Frame check failed:`,  "color: #000, background: #f00", e);
+          }
+
+          if (Debug.performanceMetrics) {
+            fctime = performance.now() - fcstart;
+            frameCheckTimes[frameCheckBufferIndex % frameCheckTimes.length] = fctime;
+            this.conf.pageInfo.sendPerformanceUpdate({frameCheckTimes: frameCheckTimes, lastFrameCheckTime: fctime});
+            ++frameCheckBufferIndex;
+          }
         }
 
-        if (Debug.performanceMetrics) {
-          fctime = performance.now() - fcstart;
-          frameCheckTimes[frameCheckBufferIndex % frameCheckTimes.length] = fctime;
-          this.conf.pageInfo.sendPerformanceUpdate({frameCheckTimes: frameCheckTimes, lastFrameCheckTime: fctime});
-          ++frameCheckBufferIndex;
-        }
+        await this.nextFrame();
       }
-
-      await this.nextFrame();
+    } catch (e) {
+      this.logger.log('error', 'debug', `%c[AardGl::main] <@${this.arid}>  Main autodetection loop crashed. Reason?`, e, _ard_console_stop);
     }
 
     this.logger.log('info', 'debug', `%c[AardGl::main] <@${this.arid}>  Main autodetection loop exited. Halted? ${this._halted}`,  _ard_console_stop);
@@ -516,9 +556,12 @@ class AardGl {
       return;
     }
 
-    if (!this.blackframeContext) {
-      this.init();
-    }
+    console.info("frame check into happenings")
+
+    // we dont have blackframe canvas atm
+    // if (!this.blackframeContext) {
+    //   this.init();
+    // }
     
     var startTime = performance.now();
 
@@ -528,7 +571,7 @@ class AardGl {
     let imageData;
 
     try {
-      this.drawFrame();
+      // this.drawFrame();
 
 
       this.fallbackMode = false;
@@ -536,10 +579,15 @@ class AardGl {
       this.logger.log('error', 'arDetect', `%c[AardGl::frameCheck] <@${this.arid}>  %c[AardGl::frameCheck] can't draw image on canvas. ${this.canDoFallbackMode ? 'Trying canvas.drawWindow instead' : 'Doing nothing as browser doesn\'t support fallback mode.'}`, "color:#000; backgroud:#f51;", e);
     }
 
-    // [1]
+    // [1] update frame
+    try {
+      this.updateTexture();
+      this.drawScene();
+    } catch (e) {
+      this.logger.log('error', 'aardGl', `%c[AardGl::frameCheck] <@${this.arid}> Something went wrong while trying to update/draw video frame with gl!`, "color:#000; backgroud:#f51;", e);
+    }
 
-
-
+    console.log("TEXTURE DRAWN!")
     
     this.clearImageData(imageData);
   }
