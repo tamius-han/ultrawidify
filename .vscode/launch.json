@@ -1,23 +1,40 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "firefox",
+      "request": "attach",
+      "name": "Attach",
+      "pathMappings": [
         {
-            "name": "Launch addon",
-            "type": "firefox",
-            "request": "launch",
-            "port":6000,
-            "reAttach": true,
-            "addonType": "webExtension",
-            "addonPath": "${workspaceFolder}/dist-ff",
+          "url": "webpack:///ext",
+          "path": "${workspaceFolder}/src/ext"
         }
-    ],
-    "firefox": {
-        "executable": "/usr/bin/firefox-developer-edition",
-        "firefoxArgs": [
-            "--start-debugger-server"
-        ]
+      ]
+    },
+    {
+      "name": "Launch addon",
+      "type": "firefox",
+      "request": "launch",
+      "port": 6000,
+      "reAttach": true,
+      "addonType": "webExtension",
+      "addonPath": "${workspaceFolder}/dist-ff",
+      "pathMappings": [
+        {
+          "url": "webpack:///ext",
+          "path": "${workspaceFolder}/src/ext"
+        },
+      ]
     }
+  ],
+  "firefox": {
+    "executable": "/usr/bin/firefox-developer-edition",
+    "firefoxArgs": [
+      "--start-debugger-server"
+    ]
+  }
 }
