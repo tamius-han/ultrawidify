@@ -503,6 +503,26 @@ class Resizer {
                     '\nwdiff, hdiffAfterZoom:', wdiffAfterZoom, 'x', hdiffAfterZoom, 
                     '\n\n---- data out ----\n',
                     'translate:', translate);
+
+    // by the way, let's do a quick sanity check whether video player is doing any fuckies wuckies
+    // fucky wucky examples: 
+    //
+    //       * video width is bigger than player width AND video height is bigger than player height
+    //       * video width is smaller than player width AND video height is smaller than player height
+    //
+    // In both examples, at most one of the two conditions can be true at the same time. If both 
+    // conditions are true at the same time, we need to go 'chiny reckon' and recheck our player
+    // element. Chances are our video is not getting aligned correctly
+    if ( 
+      (this.conf.video.offsetWidth > this.conf.player.dimensions.width && this.conf.video.offsetHeight > this.conf.player.dimensions.height) ||
+      (this.conf.video.offsetWidth < this.conf.player.dimensions.width && this.conf.video.offsetHeight < this.conf.player.dimensions.height)
+    ) {
+      this.logger.log('warn', ['debugger', 'resizer'], `[Resizer::_res_computeOffsets] <rid:${this.resizerId}> We are getting some incredibly funny results here.\n\n`,
+        `Video seems to be both wider and taller (or shorter and narrower) than player element at the same time. This is super duper not supposed to happen.\n\n`,
+        `Player element needs to be checked.`
+      )
+      this.player.checkPlayerSizeChange();
+    }
     return translate; 
   }
   
