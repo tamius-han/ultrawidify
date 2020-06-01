@@ -713,7 +713,11 @@ class ArDetector {
       // the aspect ratio to defaults
       this.logger.log('error', 'arDetect', `%c[ArDetect::frameCheck] There was a problem setting blackbar. Doing nothing. Error:`, e);
       
-      this.guardline.reset();
+      try {
+        this.guardline.reset();
+      } catch (e) {
+        // no guardline, no bigge
+      }
       // WE DO NOT RESET ASPECT RATIO HERE IN CASE OF PROBLEMS, CAUSES UNWARRANTED RESETS: 
       // (eg. here: https://www.youtube.com/watch?v=nw5Z93Yt-UQ&t=410)
       //
