@@ -128,7 +128,7 @@ class VideoData {
   }
 
   async sleep(timeout) {
-    return new Promise( (resolve, reject) => setTimeout(() => resolve(), timeout));
+    return new Promise( (resolve) => setTimeout(() => resolve(), timeout));
   }
 
 
