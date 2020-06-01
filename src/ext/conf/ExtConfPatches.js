@@ -378,6 +378,18 @@ const ExtensionConfPatch = [
         }
       }
     }
+  }, {
+    forVersion: '4.4.9',
+    sites: {
+      "www.youtube.com": {
+        override: true,
+        DOM: {
+          player: {
+            manual: true
+          }
+        }
+      }
+    }
   }
 ];
 
