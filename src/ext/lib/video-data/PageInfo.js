@@ -209,17 +209,6 @@ class PageInfo {
           
           try {
             v = new VideoData(video, this.settings, this);
-
-            if (!this.defaultCrop) {
-              if (!v.invalid) {
-                v.initArDetection();
-              } else {
-                this.logger.log('error', 'debug', 'Video is invalid. Aard not started.', video);
-              }
-            } else {
-              this.logger.log('info', 'debug', 'Default crop is specified for this site. Not starting aard.');
-            }
-            
             this.videos.push(v);
           } catch (e) {
             this.logger.log('error', 'debug', "rescan error: failed to initialize videoData. Skipping this video.",e);
