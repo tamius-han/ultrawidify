@@ -15,9 +15,46 @@ class VideoData {
     this.settings = settings;
     this.pageInfo = pageInfo;
     this.extensionMode = pageInfo.extensionMode;
+    this.videoStatusOk = false;
 
     this.userCssClassName = `uw-fuck-you-and-do-what-i-tell-you_${this.vdid}`;
 
+    this.videoLoaded = false;
+
+    console.log("video*", video)
+
+    this.dimensions = {
+      width: this.video.offsetWidth,
+      height: this.video.offsetHeight,
+    };
+
+    // this is in case extension loads before the video
+    video.addEventListener('loadeddata', () => {
+      this.logger.log('info', 'init', '[VideoData::ctor->video.onloadeddata] Video fired event "loaded data!"');
+      this.onVideoLoaded();
+    });
+
+    // this one is in case extension loads after the video is loaded
+    video.addEventListener('timeupdate', () => {
+      this.onVideoLoaded()
+    });
+  }
+
+  async onVideoLoaded() {
+    if (!this.videoLoaded) {
+      this.logger.log('info', 'init', '%c[VideoData::onVideoLoaded] ——————————— Initiating phase two of videoData setup ———————————', 'color: #0f9');
+
+      this.videoLoaded = true;
+      try {
+        await this.setupStageTwo();
+        this.logger.log('info', 'init', '%c[VideoData::onVideoLoaded] ——————————— videoData setup stage two complete ———————————', 'color: #0f9');
+      } catch (e) {
+        this.logger.log('error', 'init', '%c[VideoData::onVideoLoaded] ——————————— Setup stage two failed. ———————————\n', 'color: #f00', e);
+      }
+    }
+  }
+
+  async setupStageTwo() {
     // We only init observers once player is confirmed valid
     const observerConf = {
       attributes: true,
@@ -37,14 +74,10 @@ class VideoData {
 
     this.resizer = new Resizer(this);
 
-    const ths = this;
     this.observer = new MutationObserver( (m, o) => this.onVideoDimensionsChanged(m, o, ths));
-    this.observer.observe(video, observerConf);
+    this.observer.observe(this.video, observerConf);
 
-    this.dimensions = {
-      width: this.video.offsetWidth,
-      height: this.video.offsetHeight,
-    };
+
 
 
     this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
@@ -63,9 +96,23 @@ class VideoData {
     // start fallback video/player size detection
     this.fallbackChangeDetection();
 
-    // force reload last aspect ratio (if default crop ratio exists)
+    // force reload last aspect ratio (if default crop ratio exists), but only after the video is 
     if (this.pageInfo.defaultCrop) {
       this.resizer.setAr(this.pageInfo.defaultCrop);
+    }
+
+    try {
+      if (!this.pageInfo.defaultCrop) {
+        if (!this.invalid) {
+          this.initArDetection();
+        } else {
+          this.logger.log('error', 'debug', '[VideoData::secondStageSetup] Video is invalid. Aard not started.', this.video);
+        }
+      } else {
+        this.logger.log('info', 'debug', '[VideoData::secondStageSetup] Default crop is specified for this site. Not starting aard.');
+      }
+    } catch (e) {
+      this.logger.log('error', 'init', `[VideoData::secondStageSetup] Error with aard initialization (or error with default aspect ratio application)`, e)
     }
   }
 
