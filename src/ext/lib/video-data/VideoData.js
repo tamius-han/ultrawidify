@@ -21,8 +21,6 @@ class VideoData {
 
     this.videoLoaded = false;
 
-    console.log("video*", video)
-
     this.dimensions = {
       width: this.video.offsetWidth,
       height: this.video.offsetHeight,
@@ -55,17 +53,16 @@ class VideoData {
   }
 
   async setupStageTwo() {
-    // We only init observers once player is confirmed valid
+    // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
+    // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)
+
+    // NOTE: We only init observers once player is confirmed valid
     const observerConf = {
       attributes: true,
       // attributeFilter: ['style', 'class'],
       attributeOldValue: true,
     };
 
-    
-
-    // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
-    // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)
     this.player = new PlayerData(this);
     if (this.player.invalid) {
       this.invalid = true;
@@ -74,12 +71,14 @@ class VideoData {
 
     this.resizer = new Resizer(this);
 
-    this.observer = new MutationObserver( (m, o) => this.onVideoDimensionsChanged(m, o, ths));
+    // INIT OBSERVERS
+    this.observer = new MutationObserver( (m, o) => {
+      this.logger.log('info', 'debug', `[VideoData::setupStageTwo->mutationObserver] Mutation observer detected a mutation:`, {m, o});
+      this.onVideoDimensionsChanged(m, o, this)
+    });
     this.observer.observe(this.video, observerConf);
 
-
-
-
+    // INIT AARD
     this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
     // player dimensions need to be in:
     // this.player.dimensions
