@@ -1022,7 +1022,7 @@ var ExtensionConf = {
       keyboardShortcutsEnabled: ExtensionMode.Default,
       DOM: {
         player: {
-          manual: true,
+          manual: false,
           querySelectors: "#movie_player, #player",
           additionalCss: "",
           useRelativeAncestor: false,
