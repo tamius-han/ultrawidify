@@ -366,9 +366,21 @@ class Logger {
     });
   }
 
-  logToConsole(message, stackInfo) {
+  logToConsole(level, message, stackInfo) {
     try {
-      console.log(...message, {stack: stackInfo});
+      switch (level) {
+        case 'error': 
+          console.error(...message, {stack: stackInfo});
+          break;
+        case 'warn':
+          console.warn(...message, {stack: stackInfo});
+          break;
+        case 'info': 
+          console.info(...message, {stack: stackInfo});
+          break;
+        default: 
+          console.log(...message, {stack: stackInfo});
+      }
     } catch (e) {
       console.error("Message too big to log. Error:", e, "stackinfo:", stackInfo);
     }
@@ -391,7 +403,7 @@ class Logger {
         this.logToFile(message, stackInfo);
       }
       if (this.conf.consoleOptions?.enabled) {
-        this.logToConsole(message, stackInfo);
+        this.logToConsole(level, message, stackInfo);
       }
       return; // don't check further — recursion-land ahead!
     }
@@ -412,7 +424,7 @@ class Logger {
     }
     if (this.conf.consoleOptions?.enabled) {
       if (this.canLogConsole(component) || stackInfo.exitLogs) {
-        this.logToConsole(message, stackInfo);
+        this.logToConsole(level, message, stackInfo);
       }
     }
   }
