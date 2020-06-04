@@ -47,6 +47,10 @@ class Settings {
     if (!parsedSettings.preventReload && this.onSettingsChanged) {
       try {
         this.onSettingsChanged();
+
+
+
+        
         this.logger.log('info', 'settings', '[Settings] Update callback finished.')
       } catch (e) {
         this.logger.log('error', 'settings', "[Settings] CALLING UPDATE CALLBACK FAILED. Reason:", e)
@@ -494,38 +498,41 @@ class Settings {
       site = window.location.host;
 
       if (!site) {
+        this.logger.log('warn', ['settings', 'init', 'debug'], `[Settings::canStartAutoAr] No site — even window.location.host returned nothing!: ${window.location.host}`);
         return false;
       }
     }
 
-    if (Debug.debug) {
+    // if (Debug.debug) {
       // let's just temporarily disable debugging while recursively calling
       // this function to get extension status on current site without duplo
       // console logs (and without endless recursion)
-      Debug.debug = false;
-      const csar = this.canStartAutoAr(site);
-      Debug.debug = true;
+      // Debug.debug = false;
+      // const csar = this.canStartAutoAr(site);
+      // Debug.debug = true;
 
-      this.logger.log('info', 'settings', "[Settings::canStartAutoAr] ----------------\nCAN WE START AUTOAR ON SITE", site,
+      this.logger.log('info', ['settings', 'init', 'debug'], "[Settings::canStartAutoAr] ----------------\nCAN WE START AUTOAR ON SITE", site,
                                           "?\n\nsettings.active.sites[site]=", this.active.sites[site], "settings.active.sites[@global]=", this.active.sites['@global'],
                                           "\nAutoar mode (global)?", this.active.sites['@global'].autoar,
                                           `\nAutoar mode (${site})`, this.active.sites[site] ? this.active.sites[site].autoar : '<not defined>',
-                                          "\nCan autoar be started?", csar
+                                          // "\nCan autoar be started?", csar
       );
-    }
+    // }
 
     // if site is not defined, we use default mode:    
     if (! this.active.sites[site]) {
+      this.logger.log('info', ['settings', 'aard', 'init', 'debug'], "[Settings::canStartAutoAr] Settings not defined for this site, returning defaults.", site, this.active.sites[site], this.active.sites);
       return this.active.sites['@global'].autoar === ExtensionMode.Enabled;
     }
 
     if (this.active.sites['@global'].autoar === ExtensionMode.Enabled) {
+      this.logger.log('info', ['settings', 'aard', 'init', 'debug'], `[Settings::canStartAutoAr] Aard is enabled by default. Extension can run unless disabled for this site.`, this.active.sites[site].autoar);
       return this.active.sites[site].autoar !== ExtensionMode.Disabled;
     } else if (this.active.sites['@global'].autoar === ExtensionMode.Whitelist) {
-      this.logger.log('info', 'settings', "canStartAutoAr — can(not) start csar because extension is in whitelist mode, and this site is (not) equal to", ExtensionMode.Enabled)
+      this.logger.log('info', ['settings', 'init', 'debug'], "canStartAutoAr — can(not) start aard because extension is in whitelist mode, and this site is (not) equal to", ExtensionMode.Enabled)
       return this.active.sites[site].autoar === ExtensionMode.Enabled;
     } else {
-      this.logger.log('info', 'settings', "canStartAutoAr — cannot start csar because extension is globally disabled")
+      this.logger.log('info', ['settings', 'init', 'debug'], "canStartAutoAr — cannot start aard because extension is globally disabled")
       return false;
     }
   }
