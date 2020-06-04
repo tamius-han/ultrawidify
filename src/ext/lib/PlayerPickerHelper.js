@@ -36,7 +36,7 @@ class PlayerPickerHelper {
   }
 
   findPlayerForVideo(settings, video) {
-    const host = window.location.host;
+    const host = window.location.hostname;
     let element = video.parentNode;
 
     if (this.settings.active.sites[host]

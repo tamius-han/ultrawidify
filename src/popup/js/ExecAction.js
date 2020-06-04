@@ -48,7 +48,7 @@ class ExecAction {
         if (scope === 'global') {
           site = '@global';
         } else if (!this.site) {
-          site = window.location.host;
+          site = window.location.hostname;
         }
 
         if (scope === 'site' && !this.settings.active.sites[site]) {

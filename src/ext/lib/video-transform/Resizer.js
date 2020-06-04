@@ -151,7 +151,7 @@ class Resizer {
       return;
     }
 
-    const siteSettings = this.settings.active.sites[window.location.host];
+    const siteSettings = this.settings.active.sites[window.location.hostname];
 
     // reset zoom, but only on aspect ratio switch. We also know that aspect ratio gets converted to
     // AspectRatio.Fixed when zooming, so let's keep that in mind
@@ -354,7 +354,7 @@ class Resizer {
 
   resetPan() {
     this.pan = {};
-    this.videoAlignment = this.settings.getDefaultVideoAlignment(window.location.host);
+    this.videoAlignment = this.settings.getDefaultVideoAlignment(window.location.hostname);
   }
 
   setPan(relativeMousePosX, relativeMousePosY){
@@ -585,7 +585,7 @@ class Resizer {
 
     let extraStyleString;
     try {
-      extraStyleString = this.settings.active.sites[window.location.host].DOM.video.additionalCss;
+      extraStyleString = this.settings.active.sites[window.location.hostname].DOM.video.additionalCss;
     } catch (e) {
       // do nothing. It's ok if no special settings are defined for this site, we'll just do defaults
     }

@@ -495,10 +495,10 @@ class Settings {
   canStartAutoAr(site) {
     // 'site' argument is only ever used when calling this function recursively for debugging
     if (!site) {
-      site = window.location.host;
+      site = window.location.hostname;
 
       if (!site) {
-        this.logger.log('warn', ['settings', 'init', 'debug'], `[Settings::canStartAutoAr] No site — even window.location.host returned nothing!: ${window.location.host}`);
+        this.logger.log('warn', ['settings', 'init', 'debug'], `[Settings::canStartAutoAr] No site — even window.location.hostname returned nothing!: ${window.location.hostname}`);
         return false;
       }
     }
