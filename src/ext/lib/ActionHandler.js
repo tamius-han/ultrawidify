@@ -32,8 +32,8 @@ class ActionHandler {
 
     var actions;    
     try {
-      if (this.settings.active.sites[window.location.host].actions) {
-        actions = this.settings.active.sites[window.location.host].actions;
+      if (this.settings.active.sites[window.location.hostname].actions) {
+        actions = this.settings.active.sites[window.location.hostname].actions;
       } else {
         actions = this.settings.active.actions;
       }
@@ -247,7 +247,7 @@ class ActionHandler {
               this.setKeyboardLocal(cmd.arg);
             }
           } else {
-            let site = action.scope === 'site' ? window.location.host : '@global';
+            let site = action.scope === 'site' ? window.location.hostname : '@global';
 
             if (cmd.action === "set-stretch") {
               this.settings.active.sites[site].stretch = cmd.arg;

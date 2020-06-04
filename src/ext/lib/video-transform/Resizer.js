@@ -151,7 +151,7 @@ class Resizer {
       return;
     }
 
-    const siteSettings = this.settings.active.sites[window.location.host];
+    const siteSettings = this.settings.active.sites[window.location.hostname];
 
     // reset zoom, but only on aspect ratio switch. We also know that aspect ratio gets converted to
     // AspectRatio.Fixed when zooming, so let's keep that in mind
@@ -267,28 +267,13 @@ class Resizer {
           return;
         }
 
-        // we could have issued calculate crop too early. Instead of spending 30 minutes trying to fix this the proper way by
-        // reading documentation, let's fix it in 30 seconds with some brute force code
+        // we could have issued calculate crop too early. Let's tell VideoData that there's something wrong
+        // and exit this function. When <video> will receive onloadeddata or ontimeupdate (receiving either
+        // of the two means video is loaded or playing, and that means video has proper dimensions), it will
+        // try to reset or re-apply aspect ratio when the video is finally ready.
         if (stretchFactors?.error === 'illegal_video_dimensions') {
-          let timeout = 10; // ms
-          let iteration = 0;
-          let maxIterations = 15;
-          do {
-            if (iteration > maxIterations) {
-              this.logger.log('error', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> Video dimensions remain illegal after ${maxIterations} retries`);
-              return;
-            }
-            // fire first few rechecks in quick succession, but start increasing timeout 
-            // later down the line.
-            if (iteration > 0 && iteration % 0 == 0) {
-              timeout = Math.min(2 * timeout, 1000);
-            }
-            this.logger.log('info', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> Sleeping for ${timeout} ms`);
-            await sleep(timeout);
-            stretchFactors = this.scaler.calculateCrop(ar);
-            iteration++;
-          } while (stretchFactors.error === 'illegal_video_dimensions');
-          this.logger.log('info', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> Video dimensions have corrected themselves after retrying.`);
+          this.conf.videoDimensionsLoaded = false;
+          return;
         }
       }
 
@@ -369,7 +354,7 @@ class Resizer {
 
   resetPan() {
     this.pan = {};
-    this.videoAlignment = this.settings.getDefaultVideoAlignment(window.location.host);
+    this.videoAlignment = this.settings.getDefaultVideoAlignment(window.location.hostname);
   }
 
   setPan(relativeMousePosX, relativeMousePosY){
@@ -503,6 +488,26 @@ class Resizer {
                     '\nwdiff, hdiffAfterZoom:', wdiffAfterZoom, 'x', hdiffAfterZoom, 
                     '\n\n---- data out ----\n',
                     'translate:', translate);
+
+    // by the way, let's do a quick sanity check whether video player is doing any fuckies wuckies
+    // fucky wucky examples: 
+    //
+    //       * video width is bigger than player width AND video height is bigger than player height
+    //       * video width is smaller than player width AND video height is smaller than player height
+    //
+    // In both examples, at most one of the two conditions can be true at the same time. If both 
+    // conditions are true at the same time, we need to go 'chiny reckon' and recheck our player
+    // element. Chances are our video is not getting aligned correctly
+    if ( 
+      (this.conf.video.offsetWidth > this.conf.player.dimensions.width && this.conf.video.offsetHeight > this.conf.player.dimensions.height) ||
+      (this.conf.video.offsetWidth < this.conf.player.dimensions.width && this.conf.video.offsetHeight < this.conf.player.dimensions.height)
+    ) {
+      this.logger.log('warn', ['debugger', 'resizer'], `[Resizer::_res_computeOffsets] <rid:${this.resizerId}> We are getting some incredibly funny results here.\n\n`,
+        `Video seems to be both wider and taller (or shorter and narrower) than player element at the same time. This is super duper not supposed to happen.\n\n`,
+        `Player element needs to be checked.`
+      )
+      this.player.checkPlayerSizeChange();
+    }
     return translate; 
   }
   
@@ -580,7 +585,7 @@ class Resizer {
 
     let extraStyleString;
     try {
-      extraStyleString = this.settings.active.sites[window.location.host].DOM.video.additionalCss;
+      extraStyleString = this.settings.active.sites[window.location.hostname].DOM.video.additionalCss;
     } catch (e) {
       // do nothing. It's ok if no special settings are defined for this site, we'll just do defaults
     }

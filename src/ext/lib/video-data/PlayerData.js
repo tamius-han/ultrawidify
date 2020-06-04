@@ -47,7 +47,7 @@ class PlayerData {
 
       this.periodicallyRefreshPlayerElement = false;
       try {
-        this.periodicallyRefreshPlayerElement = this.settings.active.sites[window.location.host].DOM.player.periodicallyRefreshPlayerElement;
+        this.periodicallyRefreshPlayerElement = this.settings.active.sites[window.location.hostname].DOM.player.periodicallyRefreshPlayerElement;
       } catch (e) {
         // no biggie — that means we don't have any special settings for this site.
       }
@@ -226,7 +226,7 @@ class PlayerData {
   }
 
   getPlayer() {
-    const host = window.location.host;
+    const host = window.location.hostname;
     let element = this.video.parentNode;
     const videoWidth = this.video.offsetWidth;
     const videoHeight = this.video.offsetHeight;

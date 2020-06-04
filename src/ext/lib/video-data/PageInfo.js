@@ -29,7 +29,7 @@ class PageInfo {
 
     try {
       // request inject css immediately
-      const playerStyleString = this.settings.active.sites[window.location.host].css.replace('\\n', '');
+      const playerStyleString = this.settings.active.sites[window.location.hostname].css.replace('\\n', '');
       this.comms.sendMessage({
         cmd: 'inject-css',
         cssString: playerStyleString
@@ -39,11 +39,11 @@ class PageInfo {
     }
 
     // try getting default crop immediately.
-    // const cropModePersistence = this.settings.getDefaultCropPersistenceMode(window.location.host);
+    // const cropModePersistence = this.settings.getDefaultCropPersistenceMode(window.location.hostname);
 
     // try {
     //   if (cropModePersistence === CropModePersistence.Forever) {
-    //     this.defaultCrop = this.settings.active.sites[window.location.host].defaultCrop;
+    //     this.defaultCrop = this.settings.active.sites[window.location.hostname].defaultCrop;
     //   } else if (cropModePersistence === CropModePersistence.CurrentSession) {
     //     this.defaultCrop = JSON.parse(sessionStorage.getItem('uw-crop-mode-session-persistence'));
     //   }
@@ -95,7 +95,7 @@ class PageInfo {
     }
 
     try {
-      playerStyleString = this.settings.active.sites[window.location.host].css;
+      playerStyleString = this.settings.active.sites[window.location.hostname].css;
       if (playerStyleString) {
         this.comms.sendMessage({
           cmd: 'eject-css',
@@ -150,7 +150,7 @@ class PageInfo {
     const oldVideoCount = this.videos.length;
 
     try{
-      var vids = this.getVideos(window.location.host);
+      var vids = this.getVideos(window.location.hostname);
 
       if(!vids || vids.length == 0){
         this.hasVideos = false;
@@ -209,17 +209,6 @@ class PageInfo {
           
           try {
             v = new VideoData(video, this.settings, this);
-
-            if (!this.defaultCrop) {
-              if (!v.invalid) {
-                v.initArDetection();
-              } else {
-                this.logger.log('error', 'debug', 'Video is invalid. Aard not started.', video);
-              }
-            } else {
-              this.logger.log('info', 'debug', 'Default crop is specified for this site. Not starting aard.');
-            }
-            
             this.videos.push(v);
           } catch (e) {
             this.logger.log('error', 'debug', "rescan error: failed to initialize videoData. Skipping this video.",e);
@@ -256,9 +245,9 @@ class PageInfo {
         // } 
         
         if (this.videos.length > 0) {
-          this.comms.registerVideo({host: window.location.host, location: window.location});
+          this.comms.registerVideo({host: window.location.hostname, location: window.location});
         } else {
-          this.comms.unregisterVideo({host: window.location.host, location: window.location});
+          this.comms.unregisterVideo({host: window.location.hostname, location: window.location});
         }
       }
 
@@ -593,12 +582,12 @@ class PageInfo {
     if (persistenceMode === CropModePersistence.CurrentSession) {
       sessionStorage.setItem('uw-crop-mode-session-persistence', JSON.stringify(this.currentCrop));
     } else if (persistenceMode === CropModePersistence.Forever) {
-      if (this.settings.active.sites[window.location.host]) {
+      if (this.settings.active.sites[window.location.hostname]) {
         //                                              | key may be missing, so we do this
-        this.settings.active.sites[window.location.host]['defaultAr'] = this.currentCrop;
+        this.settings.active.sites[window.location.hostname]['defaultAr'] = this.currentCrop;
       } else {
-        this.settings.active.sites[window.location.host] = this.settings.getDefaultOption();
-        this.settings.active.sites[window.location.host]['defaultAr'] = this.currentCrop;
+        this.settings.active.sites[window.location.hostname] = this.settings.getDefaultOption();
+        this.settings.active.sites[window.location.hostname]['defaultAr'] = this.currentCrop;
       }
       
       this.settings.saveWithoutReload();
@@ -610,7 +599,7 @@ class PageInfo {
     // This means crop persistance is disabled. If crop persistance is enabled, then settings for current
     // site MUST exist (crop persistence mode is disabled by default)
 
-    const cropModePersistence = this.settings.getDefaultCropPersistenceMode(window.location.host);
+    const cropModePersistence = this.settings.getDefaultCropPersistenceMode(window.location.hostname);
 
     if (cropModePersistence === CropModePersistence.Disabled) {
       return;
@@ -621,12 +610,12 @@ class PageInfo {
     if (cropModePersistence === CropModePersistence.CurrentSession) {
       sessionStorage.setItem('uw-crop-mode-session-persistence', JSON.stringify(ar));
     } else if (cropModePersistence === CropModePersistence.Forever) {
-      if (this.settings.active.sites[window.location.host]) {
+      if (this.settings.active.sites[window.location.hostname]) {
         //                                              | key may be missing, so we do this
-        this.settings.active.sites[window.location.host]['defaultAr'] = ar;
+        this.settings.active.sites[window.location.hostname]['defaultAr'] = ar;
       } else {
-        this.settings.active.sites[window.location.host] = this.settings.getDefaultOption();
-        this.settings.active.sites[window.location.host]['defaultAr'] = ar;
+        this.settings.active.sites[window.location.hostname] = this.settings.getDefaultOption();
+        this.settings.active.sites[window.location.hostname]['defaultAr'] = ar;
       }
       
       this.settings.saveWithoutReload();

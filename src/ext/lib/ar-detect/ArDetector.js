@@ -201,7 +201,12 @@ class ArDetector {
   }
 
   start() {
-    this.logger.log('info', 'debug', `"%c[ArDetect::start] <@${this.arid}>  Starting automatic aspect ratio detection`, _ard_console_start);
+    if (this.settings.canStartAutoAr()) {
+      this.logger.log('info', 'debug', `"%c[ArDetect::start] <@${this.arid}> Starting automatic aspect ratio detection`, _ard_console_start);
+    } else {
+      this.logger.log('warn', 'debug', `"%c[ArDetect::start] <@${this.arid}> Wanted to start automatic aspect ratio detection, but settings don't allow that. Aard won't be started.`, _ard_console_change);
+      return;
+    }
 
     if (this.conf.resizer.lastAr.type === AspectRatio.Automatic) {
       // ensure first autodetection will run in any case
@@ -713,7 +718,11 @@ class ArDetector {
       // the aspect ratio to defaults
       this.logger.log('error', 'arDetect', `%c[ArDetect::frameCheck] There was a problem setting blackbar. Doing nothing. Error:`, e);
       
-      this.guardline.reset();
+      try {
+        this.guardline.reset();
+      } catch (e) {
+        // no guardline, no bigge
+      }
       // WE DO NOT RESET ASPECT RATIO HERE IN CASE OF PROBLEMS, CAUSES UNWARRANTED RESETS: 
       // (eg. here: https://www.youtube.com/watch?v=nw5Z93Yt-UQ&t=410)
       //

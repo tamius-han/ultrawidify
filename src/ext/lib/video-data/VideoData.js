@@ -15,20 +15,61 @@ class VideoData {
     this.settings = settings;
     this.pageInfo = pageInfo;
     this.extensionMode = pageInfo.extensionMode;
+    this.videoStatusOk = false;
 
     this.userCssClassName = `uw-fuck-you-and-do-what-i-tell-you_${this.vdid}`;
 
-    // We only init observers once player is confirmed valid
+    this.videoLoaded = false;
+    this.videoDimensionsLoaded = true;
+
+    this.dimensions = {
+      width: this.video.offsetWidth,
+      height: this.video.offsetHeight,
+    };
+
+    // this is in case extension loads before the video
+    video.addEventListener('loadeddata', () => {
+      this.logger.log('info', 'init', '[VideoData::ctor->video.onloadeddata] Video fired event "loaded data!"');
+      this.onVideoLoaded();
+    });
+
+    // this one is in case extension loads after the video is loaded
+    video.addEventListener('timeupdate', () => {
+      this.onVideoLoaded();
+    });
+  }
+
+  async onVideoLoaded() {
+    if (!this.videoLoaded) {
+      this.logger.log('info', 'init', '%c[VideoData::onVideoLoaded] ——————————— Initiating phase two of videoData setup ———————————', 'color: #0f9');
+
+      this.videoLoaded = true;
+      this.videoDimensionsLoaded = true;
+      try {
+        await this.setupStageTwo();
+        this.logger.log('info', 'init', '%c[VideoData::onVideoLoaded] ——————————— videoData setup stage two complete ———————————', 'color: #0f9');
+      } catch (e) {
+        this.logger.log('error', 'init', '%c[VideoData::onVideoLoaded] ——————————— Setup stage two failed. ———————————\n', 'color: #f00', e);
+      }
+    } else if (!this.videoDimensionsLoaded) {
+      this.logger.log('info', 'debug', "%c[VideoData::restoreCrop] Recovering from illegal video dimensions. Resetting aspect ratio.", "background: #afd, color: #132");
+
+      this.restoreCrop();
+      this.videoDimensionsLoaded = true;
+    }
+  }
+
+  async setupStageTwo() {
+    // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
+    // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)
+
+    // NOTE: We only init observers once player is confirmed valid
     const observerConf = {
       attributes: true,
       // attributeFilter: ['style', 'class'],
       attributeOldValue: true,
     };
 
-    
-
-    // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
-    // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)
     this.player = new PlayerData(this);
     if (this.player.invalid) {
       this.invalid = true;
@@ -37,22 +78,20 @@ class VideoData {
 
     this.resizer = new Resizer(this);
 
-    const ths = this;
-    this.observer = new MutationObserver( (m, o) => this.onVideoDimensionsChanged(m, o, ths));
-    this.observer.observe(video, observerConf);
+    // INIT OBSERVERS
+    this.observer = new MutationObserver( (m, o) => {
+      this.logger.log('info', 'debug', `[VideoData::setupStageTwo->mutationObserver] Mutation observer detected a mutation:`, {m, o});
+      this.onVideoDimensionsChanged(m, o, this)
+    });
+    this.observer.observe(this.video, observerConf);
 
-    this.dimensions = {
-      width: this.video.offsetWidth,
-      height: this.video.offsetHeight,
-    };
-
-
+    // INIT AARD
     this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
     // player dimensions need to be in:
     // this.player.dimensions
 
     // apply default align and stretch
-    this.logger.log('info', 'debug', "%c[VideoData::ctor] Initial resizer reset!", {background: '#afd', color: '#132'});
+    this.logger.log('info', 'debug', "%c[VideoData::ctor] Initial resizer reset!", "background: #afd, color: #132");
     this.resizer.reset();
 
     this.logger.log('info', ['debug', 'init'], '[VideoData::ctor] Created videoData with vdid', this.vdid, '\nextension mode:', this.extensionMode)
@@ -63,9 +102,40 @@ class VideoData {
     // start fallback video/player size detection
     this.fallbackChangeDetection();
 
-    // force reload last aspect ratio (if default crop ratio exists)
+    // force reload last aspect ratio (if default crop ratio exists), but only after the video is 
     if (this.pageInfo.defaultCrop) {
       this.resizer.setAr(this.pageInfo.defaultCrop);
+    }
+
+    try {
+      if (!this.pageInfo.defaultCrop) {
+        if (!this.invalid) {
+          this.initArDetection();
+        } else {
+          this.logger.log('error', 'debug', '[VideoData::secondStageSetup] Video is invalid. Aard not started.', this.video);
+        }
+      } else {
+        this.logger.log('info', 'debug', '[VideoData::secondStageSetup] Default crop is specified for this site. Not starting aard.');
+      }
+    } catch (e) {
+      this.logger.log('error', 'init', `[VideoData::secondStageSetup] Error with aard initialization (or error with default aspect ratio application)`, e)
+    }
+  }
+
+  restoreCrop() {  
+    this.logger.log('info', 'debug', '[VideoData::restoreCrop] Attempting to reset/restore aspect ratio.')
+    // if we have default crop set for this page, apply this.
+    // otherwise, reset crop
+    if (this.pageInfo.defaultCrop) {
+      this.resizer.setAr(this.pageInfo.defaultCrop);
+    } else {
+      this.resizer.reset();
+
+      try {
+        this.startArDetection();
+      } catch (e) {
+        this.logger.log('warn', 'debug', '[VideoData::restoreCrop] Autodetection not resumed. Reason:', e);
+      }
     }
   }
 
@@ -81,7 +151,7 @@ class VideoData {
   }
 
   async sleep(timeout) {
-    return new Promise( (resolve, reject) => setTimeout(() => resolve(), timeout));
+    return new Promise( (resolve) => setTimeout(() => resolve(), timeout));
   }
 
 
