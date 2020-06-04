@@ -52,6 +52,8 @@ class VideoData {
         this.logger.log('error', 'init', '%c[VideoData::onVideoLoaded] ——————————— Setup stage two failed. ———————————\n', 'color: #f00', e);
       }
     } else if (!this.videoDimensionsLoaded) {
+      this.logger.log('info', 'debug', "%c[VideoData::restoreCrop] Recovering from illegal video dimensions. Resetting aspect ratio.", "background: #afd, color: #132");
+
       this.restoreCrop();
       this.videoDimensionsLoaded = true;
     }
@@ -89,7 +91,7 @@ class VideoData {
     // this.player.dimensions
 
     // apply default align and stretch
-    this.logger.log('info', 'debug', "%c[VideoData::ctor] Initial resizer reset!", {background: '#afd', color: '#132'});
+    this.logger.log('info', 'debug', "%c[VideoData::ctor] Initial resizer reset!", "background: #afd, color: #132");
     this.resizer.reset();
 
     this.logger.log('info', ['debug', 'init'], '[VideoData::ctor] Created videoData with vdid', this.vdid, '\nextension mode:', this.extensionMode)
@@ -120,9 +122,8 @@ class VideoData {
     }
   }
 
-  restoreCrop() {
-    this.logger.log('info', 'debug', "%c[VideoData::restoreCrop] Recovering from illegal video dimensions. Resetting aspect ratio.", {background: '#afd', color: '#132'});
-  
+  restoreCrop() {  
+    this.logger.log('info', 'debug', '[VideoData::restoreCrop] Attempting to reset/restore aspect ratio.')
     // if we have default crop set for this page, apply this.
     // otherwise, reset crop
     if (this.pageInfo.defaultCrop) {
