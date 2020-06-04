@@ -267,28 +267,13 @@ class Resizer {
           return;
         }
 
-        // we could have issued calculate crop too early. Instead of spending 30 minutes trying to fix this the proper way by
-        // reading documentation, let's fix it in 30 seconds with some brute force code
+        // we could have issued calculate crop too early. Let's tell VideoData that there's something wrong
+        // and exit this function. When <video> will receive onloadeddata or ontimeupdate (receiving either
+        // of the two means video is loaded or playing, and that means video has proper dimensions), it will
+        // try to reset or re-apply aspect ratio when the video is finally ready.
         if (stretchFactors?.error === 'illegal_video_dimensions') {
-          let timeout = 10; // ms
-          let iteration = 0;
-          let maxIterations = 15;
-          do {
-            if (iteration > maxIterations) {
-              this.logger.log('error', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> Video dimensions remain illegal after ${maxIterations} retries`);
-              return;
-            }
-            // fire first few rechecks in quick succession, but start increasing timeout 
-            // later down the line.
-            if (iteration > 0 && iteration % 0 == 0) {
-              timeout = Math.min(2 * timeout, 1000);
-            }
-            this.logger.log('info', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> Sleeping for ${timeout} ms`);
-            await sleep(timeout);
-            stretchFactors = this.scaler.calculateCrop(ar);
-            iteration++;
-          } while (stretchFactors.error === 'illegal_video_dimensions');
-          this.logger.log('info', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> Video dimensions have corrected themselves after retrying.`);
+          this.conf.videoDimensionsLoaded = false;
+          return;
         }
       }
 

@@ -20,6 +20,7 @@ class VideoData {
     this.userCssClassName = `uw-fuck-you-and-do-what-i-tell-you_${this.vdid}`;
 
     this.videoLoaded = false;
+    this.videoDimensionsLoaded = true;
 
     this.dimensions = {
       width: this.video.offsetWidth,
@@ -34,7 +35,7 @@ class VideoData {
 
     // this one is in case extension loads after the video is loaded
     video.addEventListener('timeupdate', () => {
-      this.onVideoLoaded()
+      this.onVideoLoaded();
     });
   }
 
@@ -43,12 +44,16 @@ class VideoData {
       this.logger.log('info', 'init', '%c[VideoData::onVideoLoaded] ——————————— Initiating phase two of videoData setup ———————————', 'color: #0f9');
 
       this.videoLoaded = true;
+      this.videoDimensionsLoaded = true;
       try {
         await this.setupStageTwo();
         this.logger.log('info', 'init', '%c[VideoData::onVideoLoaded] ——————————— videoData setup stage two complete ———————————', 'color: #0f9');
       } catch (e) {
         this.logger.log('error', 'init', '%c[VideoData::onVideoLoaded] ——————————— Setup stage two failed. ———————————\n', 'color: #f00', e);
       }
+    } else if (!this.videoDimensionsLoaded) {
+      this.restoreCrop();
+      this.videoDimensionsLoaded = true;
     }
   }
 
@@ -112,6 +117,24 @@ class VideoData {
       }
     } catch (e) {
       this.logger.log('error', 'init', `[VideoData::secondStageSetup] Error with aard initialization (or error with default aspect ratio application)`, e)
+    }
+  }
+
+  restoreCrop() {
+    this.logger.log('info', 'debug', "%c[VideoData::restoreCrop] Recovering from illegal video dimensions. Resetting aspect ratio.", {background: '#afd', color: '#132'});
+  
+    // if we have default crop set for this page, apply this.
+    // otherwise, reset crop
+    if (this.pageInfo.defaultCrop) {
+      this.resizer.setAr(this.pageInfo.defaultCrop);
+    } else {
+      this.resizer.reset();
+
+      try {
+        this.startArDetection();
+      } catch (e) {
+        this.logger.log('warn', 'debug', '[VideoData::restoreCrop] Autodetection not resumed. Reason:', e);
+      }
     }
   }
 
