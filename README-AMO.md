@@ -4,6 +4,21 @@
 
 The extension is built on a PC running Manjaro Linux. npm and node are installed from repositories/aur.
 
+### Software versions:
+
+Node/npm versions:
+
+```
+node: %%NODE_VERSION%%
+npm:  %%NPM_VERSION%%
+```
+
+Linux (`uname -a`):
+
+```
+%%UNAME%%
+```
+
 
 ## Installing dependencies
 
