@@ -10,7 +10,7 @@
 # (NOTE: the last bit is necessary to remove ANSI color codes from output)
 NODE_VERSION=`nvm ls | head -n 1 | awk '{print $2}' | sed 's/\x1B\[[0-9;]\+[A-Za-z]//g'`
 NPM_VERSION=`npm --version`
-UNAME=`uname -a`
+LINUX_VERSION=`uname -a`
 
 # copy REAMDE to /tmp for processing
 cp README-AMO.md /tmp/README-AMO.md
@@ -18,7 +18,7 @@ cp README-AMO.md /tmp/README-AMO.md
 # replace placeholders with proper software versions
 sed -i "s/%%NODE_VERSION%%/${NODE_VERSION}/g" /tmp/README-AMO.md
 sed -i "s/%%NPM_VERSION%%/${NPM_VERSION}/g" /tmp/README-AMO.md
-sed -i "s/%%UNAME%%/${UNAME}/g" /tmp/README-AMO.md
+sed -i "s/%%UNAME%%/${LINUX_VERSION}/g" /tmp/README-AMO.md
 
 # add files to archive
 zip -r dist-zip/uw-amo-source.zip /tmp/README-AMO.md .babelrc package.json package-lock.json webpack.config.js scripts/ src/
@@ -44,7 +44,7 @@ echo ""
 echo "extracted variables:"
 echo "NODE_VERSION: ${NODE_VERSION}"
 echo "NPM_VERSION:  ${NPM_VERSION}"
-echo "UNAME:        ${UNAME}"
+echo "UNAME:        ${LINUX_VERSION}"
 echo ""
 echo ""
 echo "—————— EXTENSION PACKAGES READY FOR UPLOAD ——————"
