@@ -21,6 +21,8 @@ Linux (`uname -a`):
 
 ## Reproducing build
 
+Run the following commands to install dependencies and compile the firefox build:
+
 ```
 npm ci
 npm run build
