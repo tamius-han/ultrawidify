@@ -16,7 +16,7 @@ npm:  %%NPM_VERSION%%
 Linux (`uname -a`):
 
 ```
-%%UNAME%%
+%%LINUX_VERSION%%
 ```
 
 
@@ -29,4 +29,4 @@ Run `npm ci`
 
 `npm run build`
 
-The compiled code pops up in /dist-ff (/dist-chrome for Chromium-based browsers).
+The compiled code pops up in `/dist-ff` (`/dist-chrome` for Chromium-based browsers).
