@@ -19,14 +19,11 @@ Linux (`uname -a`):
 %%LINUX_VERSION%%
 ```
 
-
-## Installing dependencies
-
-Run `npm ci`
-
-
 ## Reproducing build
 
-`npm run build`
+```
+npm ci
+npm run build
+```
 
-The compiled code pops up in `/dist-ff` (`/dist-chrome` for Chromium-based browsers).
+The compiled code pops up in `/dist-ff`.
