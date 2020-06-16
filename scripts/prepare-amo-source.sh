@@ -10,7 +10,7 @@
 # (NOTE: the last bit is necessary to remove ANSI color codes from output)
 NODE_VERSION=`nvm ls | head -n 1 | awk '{print $2}' | sed 's/\x1B\[[0-9;]\+[A-Za-z]//g'`
 NPM_VERSION=`npm --version`
-LINUX_VERSION=`uname -a`
+LINUX_VERSION="$(uname -a | sed 's/\//\\\//g')"
 
 # copy REAMDE to /tmp for processing
 cp README-AMO.md /tmp/README-AMO.md
@@ -18,7 +18,7 @@ cp README-AMO.md /tmp/README-AMO.md
 # replace placeholders with proper software versions
 sed -i "s/%%NODE_VERSION%%/${NODE_VERSION}/g" /tmp/README-AMO.md
 sed -i "s/%%NPM_VERSION%%/${NPM_VERSION}/g" /tmp/README-AMO.md
-sed -i "s/%%UNAME%%/${LINUX_VERSION}/g" /tmp/README-AMO.md
+sed -i "s/%%LINUX_VERSION%%/${LINUX_VERSION}/g" /tmp/README-AMO.md
 
 # add files to archive
 zip -r dist-zip/uw-amo-source.zip /tmp/README-AMO.md .babelrc package.json package-lock.json webpack.config.js scripts/ src/
@@ -31,8 +31,8 @@ echo ""
 echo "—————— AMO SOURCE PREPARATION FINISHED ——————"
 echo "                 Debug info:"
 echo ""
-echo "nvm ls:"
-nvm ls
+echo "nvm ls | head -n 1:"
+nvm ls | head -n 1
 echo ""
 echo "npm --version"
 npm --version
