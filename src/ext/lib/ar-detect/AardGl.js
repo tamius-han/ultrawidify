@@ -44,6 +44,12 @@ class AardGl {
 
     this.canDoFallbackMode = false; 
     this.logger.log('info', 'init', `[AardGl::ctor] creating new AardGl. arid: ${this.arid}`);
+
+    this.glData = {
+      positionBuffer: null,
+      textureCoordsBuffer: null,
+      textureCoordsLocation: null
+    };
   }
 
   /**
@@ -198,11 +204,29 @@ class AardGl {
   }
   //#endregion
   //#region WebGL helpers
+  glInitBuffers(width, height) {
+    // create buffers and bind them
+    this.glData.positionBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl, this.glData.positionBuffer);
+
+    // create rectangle for drawing
+    this.glSetRectangle(this.gl, width, height);
+
+    // create texture coordinate buffer
+    this.glData.textureCoordsBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.glData.textureCoordsBuffer);
+
+    // this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array([0.0, 0.0, 1.0, ))
+
+    // create a texture
+
+  }
+
   glSetRectangle(glContext, width, height) {
     glContext.bufferData(glContext.ARRAY_BUFFER, new Float32Array([
-      0, 0,
-      width, 0,
-      0, height,
+      0, 0,       //
+      0, height,  // this triangle is flipped. This and
+      width, 0,   // this line are swapped over for experiment
       0, height,
       width, 0,
       width, height
@@ -224,7 +248,7 @@ class AardGl {
 
     // check if shader was compiled successfully
     if (! glContext.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-      this.logger.log('error', ['init', 'debug', 'arDetect'], `%c[AardGl::setupShader] <@${this.arid}> Failed to setup shader. Error given:`, glContext.getShaderInfoLog(), _ard_console_stop);
+      this.logger.log('error', ['init', 'debug', 'arDetect'], `%c[AardGl::setupShader] <@${this.arid}> Failed to setup shader. Error given:`, this.gl.getShaderInfoLog(shader), _ard_console_stop);
       glContext.deleteShader(shader);
       return null;
     }
@@ -241,11 +265,12 @@ class AardGl {
     console.log(glContext, shaders);
     const program = glContext.createProgram();
     for (const shader of shaders) {
+      console.log("shader", shader);
       glContext.attachShader(program, shader);
     }
     glContext.linkProgram(program);
     if (! glContext.getProgramParameter(program, glContext.LINK_STATUS)) {
-      this.logger.log('error', ['init', 'debug', 'arDetect'], `%c[AardGl::setupProgram] <@${this.arid}> Failed to setup program.`, glContext.getProgramInfoLog(), _ard_console_stop);
+      this.logger.log('error', ['init', 'debug', 'arDetect'], `%c[AardGl::setupProgram] <@${this.arid}> Failed to setup program.`, glContext.getProgramInfoLog(program), _ard_console_stop);
       return null;
     }
 
@@ -343,42 +368,8 @@ class AardGl {
     //
     // [2] SETUP WEBGL STUFF —————————————————————————————————————————————————————————————————————————————————
     //#region webgl setup
-    this.gl = this.canvas.getContext("webgl");
-
-    // load shaders and stuff. PixelSize for horizontalAdder should be 1/sample canvas width
-    const vertexShaderSrc = getBasicVertexShader();
-    const horizontalAdderShaderSrc = generateHorizontalAdder(10, 1 / cwidth); // todo: unhardcode 10 as radius
-
-    // compile shaders
-    const vertexShader = this.compileShader(this.gl, vertexShaderSrc, this.gl.VERTEX_SHADER);
-    const horizontalAdderShader = this.compileShader(this.gl, horizontalAdderShaderSrc, this.gl.FRAGMENT_SHADER);
-
-    // link shaders to program
-    this.glProgram = this.compileProgram(this.gl, [vertexShader, horizontalAdderShader]);
-
-    // look up where the vertex data needs to go
-    // const positionLocation = this.gl.getAttributeLocation(glProgram, 'a_position');
-    // const textureCoordsLocation = this.gl.getAttributeLocation(glProgram, 'a_textureCoords');
-
-    // create buffers and bind them
-    this.positionBuffer = this.gl.createBuffer();
-    this.textureCoordsBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl, this.positionBuffer);
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.textureCoordsBuffer);
-
-    // create a texture
-    this.texture = this.gl.createTexture();
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
-
-    // set some parameters
-    // btw we don't need to set gl.TEXTURE_WRAP_[S|T], because it's set to repeat by default — which is what we want
-    this.gl.texParameteri(this.gl, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
-    this.gl.texParameteri(this.gl, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
-
-    // we need a rectangle. This is output data, not texture. This means that the size of the rectangle should be
-    // [sample count] x height of the sample, as shader can sample frame at a different resolution than what gets
-    // rendered here. We don't need all horizontal pixels on our output. We do need all vertical pixels, though)
-    this.glSetRectangle(this.gl, this.settings.active.aard.sampleCols, cheight);
+    
+    this.glSetup();
 
     // do setup once
     // tho we could do it for every frame
@@ -433,6 +424,43 @@ class AardGl {
     console.log("DRAWING BUFFER SIZE:", this.gl.drawingBufferWidth, '×', this.gl.drawingBufferHeight);
   }
 
+  glSetup(cwidth, cheight) {
+    this.gl = this.canvas.getContext("webgl");
+
+    // load shaders and stuff. PixelSize for horizontalAdder should be 1/sample canvas width
+    const vertexShaderSrc = getBasicVertexShader();
+    const horizontalAdderShaderSrc = generateHorizontalAdder(10, 1 / cwidth); // todo: unhardcode 10 as radius
+
+    // compile shaders
+    const vertexShader = this.compileShader(this.gl, vertexShaderSrc, this.gl.VERTEX_SHADER);
+    const horizontalAdderShader = this.compileShader(this.gl, horizontalAdderShaderSrc, this.gl.FRAGMENT_SHADER);
+
+    // link shaders to program
+    this.glProgram = this.compileProgram(this.gl, [vertexShader, horizontalAdderShader]);
+
+    // look up where the vertex data needs to go
+    // const positionLocation = this.gl.getAttributeLocation(glProgram, 'a_position');
+    // const textureCoordsLocation = this.gl.getAttributeLocation(glProgram, 'a_textureCoords');
+
+    this.glInitBuffers(this.settings.active.aard.sampleCols, cheight);
+
+    this.texture = this.gl.createTexture();
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
+
+    // texture is half-transparent blue by default. Helps with debugging.
+    this.gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, [0, 0, 255, 128]);
+
+    // set some parameters
+    // btw we don't need to set gl.TEXTURE_WRAP_[S|T], because it's set to repeat by default — which is what we want
+    this.gl.texParameteri(this.gl, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+    this.gl.texParameteri(this.gl, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+
+    // we need a rectangle. This is output data, not texture. This means that the size of the rectangle should be
+    // [sample count] x height of the sample, as shader can sample frame at a different resolution than what gets
+    // rendered here. We don't need all horizontal pixels on our output. We do need all vertical pixels, though)
+    this.glSetRectangle(this.gl, this.settings.active.aard.sampleCols, cheight);
+  }
+
   drawScene() {
     // clear canvas
     this.gl.clearColor(0.0, 0.0, 1.0, 0.5); 
@@ -440,13 +468,17 @@ class AardGl {
 
     this.gl.useProgram(this.glProgram);
 
-    this.gl.bindBuffer(this.gl, this.positionBuffer);
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.textureCoordsBuffer);
+    this.gl.bindBuffer(this.gl, this.glData.positionBuffer);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.glData.textureCoordsBuffer);
 
     // this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, framebuffer)
 
+    // run our program
+    this.gl.useProgram(this.glProgram);
+    this.gl.drawElements(this.gl.TRIANGLES, )
+
     // get the pixels back out:
-    // this.gl.readPixels(0, 0, width, height, format, type, pixels)
+    this.gl.readPixels(0, 0, width, height, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.pixelBuffer);
   }
 
   updateTexture() {
@@ -550,46 +582,53 @@ class AardGl {
   }
 
   frameCheck(){
-    if(! this.video){
-      this.logger.log('error', 'debug', `%c[AardGl::frameCheck] <@${this.arid}>  Video went missing. Destroying current instance of videoData.`);
-      this.conf.destroy();
-      return;
-    }
-
-    console.info("frame check into happenings")
-
-    // we dont have blackframe canvas atm
-    // if (!this.blackframeContext) {
-    //   this.init();
-    // }
-    
-    var startTime = performance.now();
-
-    //
-    // [0] try drawing image to canvas
-    //
-    let imageData;
-
     try {
-      // this.drawFrame();
+      if(! this.video){
+        this.logger.log('error', 'debug', `%c[AardGl::frameCheck] <@${this.arid}>  Video went missing. Destroying current instance of videoData.`);
+        this.conf.destroy();
+        return;
+      }
 
 
-      this.fallbackMode = false;
+      // we dont have blackframe canvas atm
+      // if (!this.blackframeContext) {
+      //   this.init();
+      // }
+      
+      var startTime = performance.now();
+
+      //
+      // [0] try drawing image to canvas
+      //
+      let imageData;
+
+      try {
+        // this.drawFrame();
+
+
+        this.fallbackMode = false;
+      } catch (e) {
+        this.logger.log('error', 'arDetect', `%c[AardGl::frameCheck] <@${this.arid}>  %c[AardGl::frameCheck] can't draw image on canvas. ${this.canDoFallbackMode ? 'Trying canvas.drawWindow instead' : 'Doing nothing as browser doesn\'t support fallback mode.'}`, "color:#000; backgroud:#f51;", e);
+      }
+
+      // [1] update frame
+      try {
+        this.updateTexture();
+        this.drawScene();
+      } catch (e) {
+        this.logger.log('error', 'aardGl', `%c[AardGl::frameCheck] <@${this.arid}> Something went wrong while trying to update/draw video frame with gl!`, "color:#000; backgroud:#f51;", e);
+      }
+
+      console.log("TEXTURE DRAWN!", this.pixelBuffer)
+
+
+
+      // [N] clear data
+
+      this.clearImageData(imageData);
     } catch (e) {
-      this.logger.log('error', 'arDetect', `%c[AardGl::frameCheck] <@${this.arid}>  %c[AardGl::frameCheck] can't draw image on canvas. ${this.canDoFallbackMode ? 'Trying canvas.drawWindow instead' : 'Doing nothing as browser doesn\'t support fallback mode.'}`, "color:#000; backgroud:#f51;", e);
+      this.logger.log('error', 'debug', `%c[AardGl::frameCheck] <@${this.arid}> Error during framecheck.`, "background: #000; color: #fa2", e);
     }
-
-    // [1] update frame
-    try {
-      this.updateTexture();
-      this.drawScene();
-    } catch (e) {
-      this.logger.log('error', 'aardGl', `%c[AardGl::frameCheck] <@${this.arid}> Something went wrong while trying to update/draw video frame with gl!`, "color:#000; backgroud:#f51;", e);
-    }
-
-    console.log("TEXTURE DRAWN!")
-    
-    this.clearImageData(imageData);
   }
 
   /**
