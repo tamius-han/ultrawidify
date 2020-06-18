@@ -5,7 +5,8 @@
   "author": "Tamius Han <tamius.han@gmail.com>",
   "scripts": {
     "start": "npm run dev",
-    "build": "cross-env NODE_ENV=production BROWSER=firefox CHANNEL=stable webpack --hide-modules",
+    "pre-build": "rm -rf ./dist-ff; rm -rf ./dist-chrome; rm -rf ./node_modules; npm ci",
+    "build": "npm run pre-build; cross-env NODE_ENV=production BROWSER=firefox CHANNEL=stable webpack --hide-modules",
     "build-chrome": "cross-env NODE_ENV=production BROWSER=chrome CHANNEL=stable webpack --hide-modules",
     "build-edge": "cross-env NODE_ENV=production BROWSER=edge CHANNEL=stable webpack --hide-modules",
     "build:dev": "webpack --hide-modules",
@@ -14,7 +15,7 @@
     "build-testing-chrome": "cross-env NODE_ENV=development BROWSER=chrome CHANNEL=testing webpack --hide-modules",
     "build-nightly-chrome": "cross-env NODE_ENV=development BROWSER=chrome CHANNEL=nightly webpack --hide-modules",
     "build-chrome:dev": "cross-env NODE_ENV=development BROWSER=chrome webpack --hide-modules",
-    "build-all": "mkdir -p ./build/old; rm -rf ./dist-ff; rm -rf ./dist-chrome; rm ./dist-zip/uw-amo-source.zip; mv -f ./dist-zip/*.zip ./build/old; npm run build; node scripts/build-zip.js ff; npm run build-chrome; node scripts/build-zip.js chrome; ./scripts/prepare-amo-source.sh",
+    "build-all": "mkdir -p ./build/old; npm run pre-build; rm ./dist-zip/uw-amo-source.zip; mv -f ./dist-zip/*.zip ./build/old; npm run build; node scripts/build-zip.js ff; npm run build-chrome; node scripts/build-zip.js chrome; ./scripts/prepare-amo-source.sh",
     "build-zip": "node scripts/build-zip.js",
     "dev": "cross-env NODE_ENV=development CHANNEL=dev concurrently \"cross-env BROWSER=firefox npm run build:dev -- --watch\" \"cross-env BROWSER=chrome npm run build:dev -- --watch\""
   },

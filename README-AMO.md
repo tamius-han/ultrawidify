@@ -4,14 +4,28 @@
 
 The extension is built on a PC running Manjaro Linux. npm and node are installed from repositories/aur.
 
+### Software versions:
 
-## Installing dependencies
+Node/npm versions:
 
-Run `npm ci`
+```
+node: %%NODE_VERSION%%
+npm:  %%NPM_VERSION%%
+```
 
+Linux (`uname -a`):
+
+```
+%%LINUX_VERSION%%
+```
 
 ## Reproducing build
 
-`npm run build`
+Run the following commands to install dependencies and compile the firefox build:
 
-The compiled code pops up in /dist-ff (/dist-chrome for Chromium-based browsers).
+```
+npm ci
+npm run build
+```
+
+The compiled code pops up in `/dist-ff`.

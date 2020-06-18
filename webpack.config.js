@@ -8,7 +8,7 @@ const { VueLoaderPlugin } = require('vue-loader');
 
 const config = {
   mode: process.env.NODE_ENV,
-  devtool: "inline-source-map",
+  devtool: `${process.env.CHANNEL === 'stable' ? undefined : "inline-source-map"}`,
   context: __dirname + '/src',
   entry: {
     'ext/uw': './ext/uw.js',
@@ -145,7 +145,12 @@ const config = {
     })
   ],
   optimization: {
-    minimize: false,
+    // minimize: false,
+    // occurrenceOrder: false,
+    // providedExports: false,
+    // usedExports: false,
+    // concatenateModules: false,
+    // sideEffects: false,
   }
 };
 
