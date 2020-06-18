@@ -179,7 +179,8 @@ class VideoData {
       return;
     }
     if(! this.arSetupComplete){
-      this.arDetector = new ArDetector(this);
+      // this.arDetector = new ArDetector(this);
+      this.arDetector = new AardGl(this);
     }
   }
 
@@ -192,7 +193,8 @@ class VideoData {
       this.arDetector.init();
     }
     else{
-      this.arDetector = new ArDetector(this);
+      // this.arDetector = new ArDetector(this);
+      this.arDetector = new AardGl(this);
       this.arDetector.init();
     }
   }
