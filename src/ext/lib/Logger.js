@@ -330,7 +330,7 @@ class Logger {
   }
 
   canLogFile(component) {
-    if (!this.conf.fileOptions.enabled || this.temp_disable) {
+    if (!(this.conf.fileOptions?.enabled) || this.temp_disable) {
       return false;
     }
     if (Array.isArray(component) && component.length ) {
