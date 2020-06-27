@@ -207,7 +207,7 @@ class AardGl {
   glInitBuffers(width, height) {
     // create buffers and bind them
     this.glData.positionBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl, this.glData.positionBuffer);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.glData.positionBuffer);
 
     // create rectangle for drawing
     this.glSetRectangle(this.gl, width, height);
@@ -224,6 +224,10 @@ class AardGl {
 
   glSetRectangle(glContext, width, height) {
     glContext.bufferData(glContext.ARRAY_BUFFER, new Float32Array([
+      // 0, height,
+      // width, height,
+      // 0, 0,
+      // width, 0
       0, 0,       //
       0, height,  // this triangle is flipped. This and
       width, 0,   // this line are swapped over for experiment
@@ -248,7 +252,7 @@ class AardGl {
 
     // check if shader was compiled successfully
     if (! glContext.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-      this.logger.log('error', ['init', 'debug', 'arDetect'], `%c[AardGl::setupShader] <@${this.arid}> Failed to setup shader. Error given:`, this.gl.getShaderInfoLog(shader), _ard_console_stop);
+      this.logger.log('error', ['init', 'debug', 'arDetect'], `%c[AardGl::setupShader] <@${this.arid}> Failed to setup shader. Error given:`, _ard_console_stop, this.gl.getShaderInfoLog(shader));
       glContext.deleteShader(shader);
       return null;
     }
@@ -295,7 +299,7 @@ class AardGl {
         throw "Settings prevent autoar from starting"
       }
     } catch (e) {
-      this.logger.log('error', 'init', `%c[AardGl::init] <@${this.arid}> Initialization failed.`, _ard_console_stop, e);
+      this.logger.log('error', ['init', 'debug', 'aard'], `%c[AardGl::init] <@${this.arid}> Initialization failed.`, _ard_console_stop, e);
     }
   }
 
@@ -353,9 +357,9 @@ class AardGl {
     // FOR DEBUG PURPOSES ONLY — REMOVE!
     var body = document.getElementsByTagName('body')[0];
 
-    this.canvas.style.position = "absolute";
+    this.canvas.style.position = "fixed";
     this.canvas.style.left = `50px`;
-    this.canvas.style.top = `50px`;
+    this.canvas.style.top = `64px`;
     this.canvas.style.zIndex = 10002;
 
     body.appendChild(this.canvas);
@@ -369,7 +373,9 @@ class AardGl {
     // [2] SETUP WEBGL STUFF —————————————————————————————————————————————————————————————————————————————————
     //#region webgl setup
     
-    this.glSetup();
+    this.glSetup(cwidth, cheight);
+
+    console.log("glsetup complete")
 
     // do setup once
     // tho we could do it for every frame
@@ -377,55 +383,52 @@ class AardGl {
 
     //#endregion
 
-    //
-    // [3] detect if we're in the fallback mode and reset guardline
-    //
 
-    if (this.fallbackMode) {
-      this.logger.log('warn', 'debug', `[AardGl::setup] <@${this.arid}>  WARNING: CANVAS RESET DETECTED/we're in fallback mode - recalculating guardLine`, "background: #000; color: #ff2");
-      // blackbar, imagebar
-      this.guardLine.reset();
-    }
-
-    //
-    // [4] see if browser supports "fallback mode" by drawing a small portion of our window
-    //
-
-    try {
-      this.blackframeContext.drawWindow(window,0, 0, this.blackframeCanvas.width, this.blackframeCanvas.height, "rgba(0,0,128,1)");
-      this.canDoFallbackMode = true;
-    } catch (e) {
-      this.canDoFallbackMode = false;
-    }
-    
     //
     // [5] do other things setup needs to do
     //
 
-    this.detectionTimeoutEventCount = 0;
-    this.resetBlackLevel();
+    // this.detectionTimeoutEventCount = 0;
+    // this.resetBlackLevel();
 
-    // if we're restarting AardGl, we need to do this in order to force-recalculate aspect ratio
-    this.conf.resizer.setLastAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
+    // // if we're restarting AardGl, we need to do this in order to force-recalculate aspect ratio
+    // this.conf.resizer.setLastAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
 
-    this.canvasImageDataRowLength = cwidth << 2;
-    this.noLetterboxCanvasReset = false;
+    // this.canvasImageDataRowLength = cwidth << 2;
+    // this.noLetterboxCanvasReset = false;
     
-    if (this.settings.canStartAutoAr() ) {
-      this.start();
-    }
+    // if (this.settings.canStartAutoAr() ) {
+    //   this.start();
+    // }
   
-    if(Debug.debugCanvas.enabled){
-      // this.debugCanvas.init({width: cwidth, height: cheight});
-      // DebugCanvas.draw("test marker","test","rect", {x:5, y:5}, {width: 5, height: 5});
-    }
+    // if(Debug.debugCanvas.enabled){
+    //   // this.debugCanvas.init({width: cwidth, height: cheight});
+    //   // DebugCanvas.draw("test marker","test","rect", {x:5, y:5}, {width: 5, height: 5});
+    // }
 
     this.conf.arSetupComplete = true;
     console.log("DRAWING BUFFER SIZE:", this.gl.drawingBufferWidth, '×', this.gl.drawingBufferHeight);
+
+    // start autodetection after setup is complete
+    this.start();
   }
 
   glSetup(cwidth, cheight) {
     this.gl = this.canvas.getContext("webgl");
+
+    if (this.gl === null) {
+      throw new Error('Unable to initialize WebGL. WebGL may not be supported by machine.');
+    }
+
+    // set color to half-transparent blue initially, for testing purposes
+    if (process.env.CHANNEL === 'dev') {
+      try {
+        this.gl.clearColor(0, 0, 1.0, 0.5);
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+      } catch (e) {
+        console.error("failing to clear channel!", e);
+      }
+    }
 
     // load shaders and stuff. PixelSize for horizontalAdder should be 1/sample canvas width
     const vertexShaderSrc = getBasicVertexShader();
@@ -442,23 +445,38 @@ class AardGl {
     // const positionLocation = this.gl.getAttributeLocation(glProgram, 'a_position');
     // const textureCoordsLocation = this.gl.getAttributeLocation(glProgram, 'a_textureCoords');
 
-    this.glInitBuffers(this.settings.active.aard.sampleCols, cheight);
+    console.log("program compiled. init buffers");
+
+    this.glInitBuffers(this.settings.active.aardGl.sampleCols, cheight);
+
+    console.log("program compiled. buffer init complete");
 
     this.texture = this.gl.createTexture();
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
 
     // texture is half-transparent blue by default. Helps with debugging.
-    this.gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, [0, 0, 255, 128]);
+    // this.gl.texImage2D(
+    //   this.gl.TEXTURE_2D, // target
+    //   0,                  // level
+    //   this.gl.RGBA,       // internal format
+    //   1, 1, 0,            // width, height, border
+    //   this.gl.RGBA,       // format of content
+    //   this.gl.UNSIGNED_BYTE, // type
+    //   new ArrayBufferView([0, 0, 255, 128])
+    // );
 
     // set some parameters
-    // btw we don't need to set gl.TEXTURE_WRAP_[S|T], because it's set to repeat by default — which is what we want
-    this.gl.texParameteri(this.gl, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
-    this.gl.texParameteri(this.gl, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
 
     // we need a rectangle. This is output data, not texture. This means that the size of the rectangle should be
     // [sample count] x height of the sample, as shader can sample frame at a different resolution than what gets
     // rendered here. We don't need all horizontal pixels on our output. We do need all vertical pixels, though)
     this.glSetRectangle(this.gl, this.settings.active.aard.sampleCols, cheight);
+
+    console.log("gl setup complete");
   }
 
   drawScene() {
@@ -475,7 +493,8 @@ class AardGl {
 
     // run our program
     this.gl.useProgram(this.glProgram);
-    this.gl.drawElements(this.gl.TRIANGLES, )
+    // this.gl.drawElements(this.gl.TRIANGLES, 2, this.gl.UNSIGNED_BYTE, 0);
+    this.gl.drawArrays(this.gl.TRIANGLES, 0, 2)
 
     // get the pixels back out:
     this.gl.readPixels(0, 0, width, height, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.pixelBuffer);
@@ -493,7 +512,7 @@ class AardGl {
       // TODO: check if 'width' and 'height' mean the input gets resized
       // this.gl.texImage2D(gl.TEXTURE_2D, level, internalformat, width, height, border, format, type, pixels)
     // } else {
-      this.gl.texImage2D(gl.TEXTURE_2D, level, internalformat, sourceFormat, sourceType, this.video);
+      this.gl.texImage2D(this.gl.TEXTURE_2D, level, internalFormat, sourceFormat, sourceType, this.video);
     // }
 
 
