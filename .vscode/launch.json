@@ -8,10 +8,16 @@
             "name": "Launch addon",
             "type": "firefox",
             "request": "launch",
-            "port":6000,
+            "port": 6000,
             "reAttach": true,
             "addonType": "webExtension",
             "addonPath": "${workspaceFolder}/dist-ff",
+            "pathMappings": [
+                {
+                    "url": "webpack:///",
+                    "path": "${workspaceFolder}/src/"
+                }
+            ]
         }
     ],
     "firefox": {
