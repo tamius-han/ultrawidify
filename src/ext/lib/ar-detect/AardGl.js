@@ -1,4 +1,3 @@
-
 import Debug from '../../conf/Debug';
 import EdgeDetect from './edge-detect/EdgeDetect';
 import EdgeStatus from './edge-detect/enums/EdgeStatusEnum';
@@ -50,6 +49,10 @@ class AardGl {
       textureCoordsBuffer: null,
       textureCoordsLocation: null
     };
+
+    // delete this:
+    this.count = 0;
+    this.greenC = true;
   }
 
   /**
@@ -216,21 +219,22 @@ class AardGl {
     this.glData.textureCoordsBuffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.glData.textureCoordsBuffer);
 
-    // this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array([0.0, 0.0, 1.0, ))
-
-    // create a texture
-
+    // create index buffer
+    this.glData.indexBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.glData.indexBuffer);
+    
+    // This array defines each face as two triangles, using the
+    // indices into the vertex array to specify each triangle's
+    // position.
+    const indices = [0, 1, 2, 3, 4, 5];
+    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), this.gl.STATIC_DRAW);
   }
 
   glSetRectangle(glContext, width, height) {
     glContext.bufferData(glContext.ARRAY_BUFFER, new Float32Array([
-      // 0, height,
-      // width, height,
-      // 0, 0,
-      // width, 0
       0, 0,       //
-      0, height,  // this triangle is flipped. This and
       width, 0,   // this line are swapped over for experiment
+      0, height,  // this triangle is flipped. This and
       0, height,
       width, 0,
       width, height
@@ -278,7 +282,16 @@ class AardGl {
       return null;
     }
 
-    return program;
+    return {
+      program,
+      attribLocations: {
+        vertexPosition: this.gl.getAttribLocation(program, 'aVertexPosition'),
+        textureCoord: this.gl.getAttribLocation(program, 'aTextureCoord'),
+      },
+      uniformLocations: {
+        u_frame: this.gl.getUniformLocation(program, 'u_frame'),
+      }
+    };
   }
   //#endregion
 
@@ -428,6 +441,9 @@ class AardGl {
       } catch (e) {
         console.error("failing to clear channel!", e);
       }
+    } else {
+      this.gl.clearColor(0, 0, 0.0, 0.0);
+      this.gl.clear(this.gl.COLOR_BUFFER_BIT);
     }
 
     // load shaders and stuff. PixelSize for horizontalAdder should be 1/sample canvas width
@@ -439,7 +455,10 @@ class AardGl {
     const horizontalAdderShader = this.compileShader(this.gl, horizontalAdderShaderSrc, this.gl.FRAGMENT_SHADER);
 
     // link shaders to program
-    this.glProgram = this.compileProgram(this.gl, [vertexShader, horizontalAdderShader]);
+    const programInfo = this.compileProgram(this.gl, [vertexShader, horizontalAdderShader]);
+    this.glProgram = programInfo.program;
+    this.glData.attribLocations = programInfo.attribLocations;
+    this.glData.uniformLocations = programInfo.uniformLocations;
 
     // look up where the vertex data needs to go
     // const positionLocation = this.gl.getAttributeLocation(glProgram, 'a_position');
@@ -479,20 +498,37 @@ class AardGl {
     console.log("gl setup complete");
   }
 
+
   drawScene() {
+    if (this.count++ % 10 === 0) {
+      this.greenC = !this.greenC;
+    }
     // clear canvas
-    this.gl.clearColor(0.0, 0.0, 1.0, 0.5); 
+    this.gl.clearColor(0, this.greenC ? 0.5 : 0, 0.75, 0.5); 
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
     this.gl.useProgram(this.glProgram);
 
-    this.gl.bindBuffer(this.gl, this.glData.positionBuffer);
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.glData.textureCoordsBuffer);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.glData.positionBuffer);
+    this.gl.vertexAttribPointer(this.glData.attribLocations.vertexPosition, 3, this.gl.FLOAT, false, 0, 0);
 
-    // this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, framebuffer)
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.glData.textureCoordsBuffer);
+    this.gl.vertexAttribPointer(this.glData.attribLocations.textureCoord, size, type, normalized, stride, offset)
+
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.glData.indexBuffer);
 
     // run our program
     this.gl.useProgram(this.glProgram);
+    
+    // Tell WebGL we want to affect texture unit 0
+    gl.activeTexture(gl.TEXTURE0);
+
+    // Bind the texture to texture unit 0
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+    // Tell the shader we bound the texture to texture unit 0
+    gl.uniform1i(this.glData.uniformLocations.u_frame, 0);
+
     // this.gl.drawElements(this.gl.TRIANGLES, 2, this.gl.UNSIGNED_BYTE, 0);
     this.gl.drawArrays(this.gl.TRIANGLES, 0, 2)
 
@@ -512,6 +548,7 @@ class AardGl {
       // TODO: check if 'width' and 'height' mean the input gets resized
       // this.gl.texImage2D(gl.TEXTURE_2D, level, internalformat, width, height, border, format, type, pixels)
     // } else {
+      console.log(this.video)
       this.gl.texImage2D(this.gl.TEXTURE_2D, level, internalFormat, sourceFormat, sourceType, this.video);
     // }
 
@@ -639,8 +676,6 @@ class AardGl {
       }
 
       console.log("TEXTURE DRAWN!", this.pixelBuffer)
-
-
 
       // [N] clear data
 
