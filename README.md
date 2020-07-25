@@ -13,7 +13,6 @@ If you own an ultrawide monitor, you have probably noticed that sometimes videos
 ![Demo](img-demo/example-httyd2.png "Should these black bars be here? No [...] But an ultrawide user never forgets.")
 
 
-
 ## Known issues
 
 * Netflix autodetection not working in Chrome and working poorly in Firefox. This problem happens because DRM, and happens on other sites utilizing DRM protection schemes. Don't expect Chrome support any time soon.
@@ -29,10 +28,10 @@ If you own an ultrawide monitor, you have probably noticed that sometimes videos
 ### Features
 
 * **Can be enabled or disabled on per-site basis**
-* **Crop video to fit screen** (no stretching. Supported aspect ratios: 21/9 (1:2.39), 16:9, 16:10, _one (1) custom aspect ratio_)
-* **Automatic aspect ratio detection** (can be enabled/disabled entirely or on a per-site basis, separately of the extension. May not work on sites utilizing DRM schemes. Autodetection in action: [youtube](https://www.youtube.com/watch?v=j2xn1WpbtCQ))
+* **Crop video to fit screen** (no stretching. Supported aspect ratios: 21/9 (1:2.39), 16:9, 16:10. It's possible to set additional aspect ratios, but settings GUI currently contains some mildly annoying bugs)
+* **Automatic aspect ratio detection** (can be enabled/disabled entirely or on a per-site basis, separately of the extension. May not work on sites utilizing DRM schemes, such as Netflix et. al.). Autodetection in action: [youtube](https://www.youtube.com/watch?v=j2xn1WpbtCQ))
 * **Supports Youtube theater mode**
-* **[EXPERIMENTAL!]** Stretch video to fit the screen (4 different approaches)
+* **[EXPERIMENTAL!]** Stretch video to fit the screen
 * **[EXPERIMENTAL!]** custom zooming and panning
 
 
@@ -40,10 +39,13 @@ If you own an ultrawide monitor, you have probably noticed that sometimes videos
 
 * Youtube
 * Netflix
+* Twitch
 
 ### Other sites
 
 I am not actively testing extension on other sites. You can try your luck and enable extension for any unsupported site you stumble across via extension popup, but I make no guarantees it will work everywhere.
+
+If extension doesn't work for a site I'm not testing on out of the box, follow [this wiki](https://github.com/tamius-han/ultrawidify/wiki/Fixing-site-incompatibilites-('Advanced-settings')). The 'quick and dirty' approach should work for most sites. (If you try doing things the proper way, you should really know what you're doing.)
 
 ### Installing this extension
 
