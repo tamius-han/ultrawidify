@@ -2,7 +2,7 @@
 
 ## Super TL;DR: I'm just looking for the install links, thanks
 
-[Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/), [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi), [Edge](https://github.com/tamius-han/ultrawidify#microsoft-edge) (Chromium-based only)
+[Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/), [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi), [Edge](https://microsoftedge.microsoft.com/addons/detail/lmpgpgechmkkkehkihpiddbcbgibokbi) (Chromium-based only)
 
 There's also [nightly "builds"](https://stuff.lionsarch.tamius.net/ultrawidify/nightly/).
 
@@ -13,10 +13,9 @@ If you own an ultrawide monitor, you have probably noticed that sometimes videos
 ![Demo](img-demo/example-httyd2.png "Should these black bars be here? No [...] But an ultrawide user never forgets.")
 
 
-
 ## Known issues
 
-* Netflix autodetection not working in Chrome, wontfix as issue is fundamentally unfixable.
+* Netflix autodetection not working in Chrome and working poorly in Firefox. This problem happens because DRM, and happens on other sites utilizing DRM protection schemes. Don't expect Chrome support any time soon.
 * Everything reported in [issues](https://github.com/tamius-han/ultrawidify/issues)
 
 ### Limitations
@@ -25,15 +24,14 @@ If you own an ultrawide monitor, you have probably noticed that sometimes videos
 * Autodetection is only correct 95% of the time, most of the time.
 * That new stretching mode wasn't thoroughly tested yet. Issues may be present. (Same with zoom)
 * Enabling extension everywhere (as opposed to whitelisted sites) could break some websites.
-* Edge has 
 
 ### Features
 
 * **Can be enabled or disabled on per-site basis**
-* **Crop video to fit screen** (no stretching. Supported aspect ratios: 21/9 (1:2.39), 16:9, 16:10, _one (1) custom aspect ratio_)
-* **Automatic aspect ratio detection** (can be enabled/disabled entirely or on a per-site basis, separately of the extension. Autodetection in action: [youtube](https://www.youtube.com/watch?v=j2xn1WpbtCQ))
+* **Crop video to fit screen** (no stretching. Supported aspect ratios: 21/9 (1:2.39), 16:9, 16:10. It's possible to set additional aspect ratios, but settings GUI currently contains some mildly annoying bugs)
+* **Automatic aspect ratio detection** (can be enabled/disabled entirely or on a per-site basis, separately of the extension. May not work on sites utilizing DRM schemes, such as Netflix et. al.). Autodetection in action: [youtube](https://www.youtube.com/watch?v=j2xn1WpbtCQ))
 * **Supports Youtube theater mode**
-* **[EXPERIMENTAL!]** Stretch video to fit the screen (4 different approaches)
+* **[EXPERIMENTAL!]** Stretch video to fit the screen
 * **[EXPERIMENTAL!]** custom zooming and panning
 
 
@@ -41,19 +39,23 @@ If you own an ultrawide monitor, you have probably noticed that sometimes videos
 
 * Youtube
 * Netflix
+* Twitch
 
 ### Other sites
 
 I am not actively testing extension on other sites. You can try your luck and enable extension for any unsupported site you stumble across via extension popup, but I make no guarantees it will work everywhere.
+
+If extension doesn't work for a site I'm not testing on out of the box, follow [this wiki](https://github.com/tamius-han/ultrawidify/wiki/Fixing-site-incompatibilites-('Advanced-settings')). The 'quick and dirty' approach should work for most sites. (If you try doing things the proper way, you should really know what you're doing.)
 
 ### Installing this extension
 
 You can download this extension from Firefox' and Chrome's extension stores:
 
 * [Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
-* [Chrome, Opera, Chromium Edge](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
+* [Chrome, Opera](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
+* [Chromium Edge](https://microsoftedge.microsoft.com/addons/detail/lmpgpgechmkkkehkihpiddbcbgibokbi)
 
-Opera users and users of the new, Chromium-based Edge can install Ultrawidify from Chrome Web Store as well.
+Users of beta and developer branches of Opera can find Ultrawidify on Opera store as well, but given Opera's review process is unacceptably slow (awaiting moderator review since 2020-03-15) not only am I not going to maintain Opera store presence, Opera users are advised to use Chrome version of the extension in order to avoid waiting years for new features to be approved by Opera moderators.
 
 ### Nightly builds
 
@@ -80,7 +82,7 @@ You can make a donation [via Paypal](https://www.paypal.me/tamius).
 
 # The long version
 
-The technology has been here for a while, but plenty of people don't know how to properly encode a video (despite the fact [youtube has an article that explains aspect ratios](https://support.google.com/youtube/answer/6375112)). Plenty of people surprisingly includes major Holywood studios, such as [Marvel](https://www.youtube.com/watch?v=Ke1Y3P9D0Bc), [Disney](https://www.youtube.com/watch?v=yCOPJi0Urq4), [Dreamworks](https://www.youtube.com/watch?v=oKiYuIsPxYk), [Warner Brothers](https://www.youtube.com/watch?v=VYZ3U1inHA4), [Sony](https://www.youtube.com/watch?v=7BWWWQzTpNU), et cetera. You'd think that this is the one thing Holywood studios and people who make [music videos for a living](https://www.youtube.com/watch?v=c6Mx2mxpaCY) would know how to do right, but they don't. This extension is here to fix that.
+The technology has been here for a while, but plenty of people don't know how to properly encode a video (despite the fact [youtube has an article that explains aspect ratios](https://support.google.com/youtube/answer/6375112)). Plenty of people surprisingly includes major Hollywood studios, such as [Marvel](https://www.youtube.com/watch?v=Ke1Y3P9D0Bc), [Disney](https://www.youtube.com/watch?v=yCOPJi0Urq4), [Dreamworks](https://www.youtube.com/watch?v=oKiYuIsPxYk), [Warner Brothers](https://www.youtube.com/watch?v=VYZ3U1inHA4), [Sony](https://www.youtube.com/watch?v=7BWWWQzTpNU), et cetera. You'd think that this is the one thing Hollywood studios and people who make [music videos for a living](https://www.youtube.com/watch?v=c6Mx2mxpaCY) would know how to do right, but they don't. This extension is here to fix that.
 
 ![Jesus Christ.](img-demo/example-jasonbourne.png "This is indeed worse than Snowden.")
 
@@ -252,6 +254,8 @@ However, I do plan on implementing this feature. Hopefully by the end of the yea
 
 [Latest stable for Chrome — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
 
+[Latest stable for Edge — Download from Microsoft store](https://microsoftedge.microsoft.com/addons/detail/lmpgpgechmkkkehkihpiddbcbgibokbi)
+
 ### Installing the current, github version
 
 ## Get pre-built version:
@@ -272,26 +276,6 @@ TODO: see if #3 already loads the extension in FF
 3. Go to `about:debugging` (or Chrome equivalent)
 4. Add temporary addon
 5. Select `${ultrawidify_folder}/dist/manifest.json`
-
-
-# Microsoft Edge
-
-With the advent of the new Chromium-based Edge, this extension should work just fine. I don't actively test in Edge, though, so your mileage may vary.
-
-## Chromium-based
-
-1. Visit [edge://extensions](edge://extensions/)
-2. Go to [Chrome Web Store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
-3. Click 'Allow extensions from other stores' on the blue popup bar at the top of the screen
-4. Install Ultrawidify
-5. Enjoy
-
-I might reconsider publishing extension for Chromium-based Microsoft Edge once it's released. Releasing in MS Store appears to be impossible at current time as extension submissions don't appear to be open at all (unless you got a special invite or something).
-
-## Old Edge
-
-1. Get [Chromium-based Edge](https://www.microsoftedgeinsider.com/en-us/)
-2. See steps above
 
 # Changelog
 

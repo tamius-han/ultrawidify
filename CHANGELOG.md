@@ -18,6 +18,7 @@ QoL improvements for me:
 * Fixed the youtube alignment issue (previously fixed in v4.4.7.1-2), but this time for real (and in a bit more proper way)
 * Fixed the bug where extension wouldn't work when URL specified a port (e.g. www.example.com:80)
 * **[4.4.9.1]** removed source files from extension build in order to decrease package size
+* **[4.4.9.2]** updated dependencies and stuff
 
 In addition to that, as of 4.4.9.1 the build process ensures removal of `node_modules` before building the extension so we can have reproducible builds except for real this time. Hopefully.
 
