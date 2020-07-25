@@ -3,12 +3,9 @@
 # makes a zip file with human-readable source code that we need to upload to AMO
 # since webpack minifies stuff
 
-# we need to do this, otherwise `nvm` command won't be available
-. ~/.nvm/nvm.sh
-
 # first, we collect npm/node versions: 
 # (NOTE: the last bit is necessary to remove ANSI color codes from output)
-NODE_VERSION=`nvm ls | head -n 1 | awk '{print $2}' | sed 's/\x1B\[[0-9;]\+[A-Za-z]//g'`
+NODE_VERSION=`node --version`
 NPM_VERSION=`npm --version`
 LINUX_VERSION="$(uname -a | sed 's/\//\\\//g')"
 
@@ -31,8 +28,8 @@ echo ""
 echo "—————— AMO SOURCE PREPARATION FINISHED ——————"
 echo "                 Debug info:"
 echo ""
-echo "nvm ls | head -n 1:"
-nvm ls | head -n 1
+echo "node --version:"
+node --version
 echo ""
 echo "npm --version"
 npm --version
