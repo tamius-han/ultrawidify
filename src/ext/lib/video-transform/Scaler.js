@@ -32,10 +32,9 @@ class Scaler {
     }
 
     
-    if(! this.conf.player.dimensions ){
+    if (!this.conf.player.dimensions) {
       ratioOut = screen.width / screen.height;
-    }
-    else {
+    } else {
       ratioOut = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
     }
     
@@ -47,17 +46,17 @@ class Scaler {
     
     var fileAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
       
-    if (ar.type === AspectRatio.FitWidth){
+    if (ar.type === AspectRatio.FitWidth) {
       ratioOut > fileAr ? ratioOut : fileAr
       ar.ratio = ratioOut;
       return ratioOut;
     }
-    else if(ar.type === AspectRatio.FitHeight){
+    else if (ar.type === AspectRatio.FitHeight) {
       ratioOut < fileAr ? ratioOut : fileAr
       ar.ratio = ratioOut;
       return ratioOut;
     }
-    else if(ar.type === AspectRatio.Reset){
+    else if (ar.type === AspectRatio.Reset) {
       this.logger.log('info', 'debug', "[Scaler.js::modeToAr] Using original aspect ratio -", fileAr)
       ar.ar = fileAr;
       return fileAr;
