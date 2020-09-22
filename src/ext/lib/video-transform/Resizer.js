@@ -442,18 +442,85 @@ class Resizer {
 
   // mostly internal stuff
 
+  /**
+   * Returns the size of the video file _as displayed_ on the screen.
+   * Consider the following example:
+   * 
+   *   * player dimensions are 2560x1080
+   *   * <video> is child of player
+   *   * <video> has the following css: {width: 100%, height: 100%}
+   *   * video file dimensions are 1280x720
+   * 
+   * CSS will ensure that the dimensions of <video> tag are equal to the dimension of the
+   * player element — that is, 2560x1080px. This is no bueno, because the browser will upscale 
+   * the video file to take up as much space as it can (without stretching it). This means
+   * we'll get a 1920x1080 video (as displayed) and a letterbox.
+   * 
+   * We can't get that number out of anywhere: video.videoWidth will return 1280 (video file
+   * dimensions) and .offsetWidth (and the likes) will return the <video> tag dimension. Neither
+   * will return the actual size of video as displayed, which we need in order to calculate the 
+   * extra space to the left and right of the video.
+   * 
+   * We make the assumption of the 
+   */
+  computeVideoDisplayedDimensions() {
+    const offsetWidth = this.conf.video.offsetWidth;
+    const offsetHeight = this.conf.video.offsetHeight;
+
+    const scaleX = offsetWidth / this.conf.video.videoWidth;
+    const scaleY = offsetHeight / this.conf.video.videoHeight;
+
+    // if differences between the scale factors are minimal, we presume offsetWidth and 
+    // offsetHeight are the accurate enough for our needs
+    if (Math.abs(scaleX - scaleY) < 0.02) {
+      return {
+        realVideoWidth: offsetWidth,
+        realVideoHeight: offsetHeight,
+        marginX: 0,
+        marginY: 0,
+      }
+    }
+
+    // if we're still here, we need to calculate real video dimensions
+    const diffX = Math.abs(scaleY * this.conf.video.videoWidth - offsetWidth);
+    const diffY = Math.abs(scaleX * this.conf.video.videoHeight - offsetHeight);
+
+    // in this case, we want to base our real dimensions off scaleX
+    // otherwise, we want to base it off scaleY
+    if (diffX < diffY) {
+      const realHeight = this.conf.video.videoHeight * scaleX;
+      return {
+        realVideoWidth: offsetWidth,
+        realVideoHeight: realHeight,
+        marginX: 0,
+        marginY: (offsetHeight - realHeight) * 0.5
+      }
+    } else {
+      const realWidth = this.conf.video.videoWidth * scaleY;
+      return {
+        realVideoWidth: realWidth,
+        realVideoHeight: offsetHeight,
+        marginX: (offsetWidth - realWidth) * 0.5,
+        marginY: 0
+      }
+    }
+  }
+
   computeOffsets(stretchFactors){
     this.logger.log('info', 'debug', "[Resizer::computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.settings.active.sites['@global'].videoAlignment);
 
-    const wdiff = this.conf.player.dimensions.width - this.conf.video.offsetWidth;
-    const hdiff = this.conf.player.dimensions.height - this.conf.video.offsetHeight;
+    const {realVideoWidth, realVideoHeight, marginX, marginY} = this.computeVideoDisplayedDimensions();
+
+
+    const wdiff = this.conf.player.dimensions.width - realVideoWidth;
+    const hdiff = this.conf.player.dimensions.height - realVideoHeight;
 
     if (wdiff < 0 && hdiff < 0 && this.zoom.scale > 1) {
       this.conf.player.restore();
     }
 
-    const wdiffAfterZoom = this.conf.video.offsetWidth * stretchFactors.xFactor - this.conf.player.dimensions.width;
-    const hdiffAfterZoom = this.conf.video.offsetHeight * stretchFactors.yFactor - this.conf.player.dimensions.height;
+    const wdiffAfterZoom = realVideoWidth * stretchFactors.xFactor - this.conf.player.dimensions.width;
+    const hdiffAfterZoom = realVideoHeight * stretchFactors.yFactor - this.conf.player.dimensions.height;
     
     const translate = {
       x: wdiff * 0.5,
@@ -482,6 +549,7 @@ class Resizer {
                     '---- data in ----',
                     '\nplayer dimensions:    ', {w: this.conf.player.dimensions.width, h: this.conf.player.dimensions.height},
                     '\nvideo dimensions:     ', {w: this.conf.video.offsetWidth, h: this.conf.video.offsetHeight},
+                    '\nreal video dimensions:', {w: realVideoWidth, h: realVideoHeight},
                     '\nstretch factors:      ', stretchFactors,
                     '\npan & zoom:           ', this.pan, this.zoom.scale,
                     '\nwdiff, hdiff:         ', wdiff, 'x', hdiff,
