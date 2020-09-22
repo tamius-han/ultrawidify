@@ -449,7 +449,7 @@ class Resizer {
     const hdiff = this.conf.player.dimensions.height - this.conf.video.offsetHeight;
 
     if (wdiff < 0 && hdiff < 0 && this.zoom.scale > 1) {
-      this.conf.player.re
+      this.conf.player.restore();
     }
 
     const wdiffAfterZoom = this.conf.video.offsetWidth * stretchFactors.xFactor - this.conf.player.dimensions.width;
