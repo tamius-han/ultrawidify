@@ -104,12 +104,34 @@ class ActionHandler {
       }
     }
 
-    document.addEventListener('keydown',  (event) => ths.handleKeydown(event) );
-    document.addEventListener('keyup', (event) => ths.handleKeyup(event) );
+    // events should be handled in handleEvent function. We need to do things this 
+    // way, otherwise we can't remove event listenerđ
+    // https://stackoverflow.com/a/19507086
+    document.addEventListener('keydown', this );
+    document.addEventListener('keyup', this );
 
     this.pageInfo.setActionHandler(this);
 
     this.logger.log('info', 'debug', "[ActionHandler::init] initialization complete");
+  }
+
+  handleEvent(event) {
+    switch(event.type) {
+      case 'keydown':
+        this.handleKeydown(event);
+        break;
+      case 'keyup': 
+        this.handleKeyup(event);
+        break;
+      case 'mousemove':
+        this.handleMouseMove(event);
+        break;
+    }
+  }
+
+  destroy() {
+    document.removeEventListener('keydown', this);
+    document.removeEventListener('keyup', this);
   }
 
   registerHandleMouse(videoData) {
