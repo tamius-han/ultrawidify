@@ -303,10 +303,8 @@ class Resizer {
 
     this.zoom.applyZoom(stretchFactors);
 
-    //TODO: correct these two
     var translate = this.computeOffsets(stretchFactors);
     this.applyCss(stretchFactors, translate);
-
   }
 
 
@@ -581,8 +579,11 @@ class Resizer {
         `Video seems to be both wider and taller (or shorter and narrower) than player element at the same time. This is super duper not supposed to happen.\n\n`,
         `Player element needs to be checked.`
       )
-      this.player.checkPlayerSizeChange();
+      if (this.conf.player.checkPlayerSizeChange()) {
+        this.conf.player.onPlayerDimensionsChanged();
+      }
     }
+
     return translate; 
   }
   
