@@ -155,6 +155,10 @@ class UW {
     }
   
     try {
+      if (this.pageInfo) {
+        this.logger.log('info', 'debug', '[uw.js::setup] An instance of pageInfo already exists and will be destroyed.');
+        this.pageInfo.destroy();
+      }
       this.pageInfo = new PageInfo(this.comms, this.settings, this.logger, extensionMode, isSiteDisabled);
       this.logger.log('info', 'debug', "[uw.js::setup] pageInfo initialized.");
   
@@ -162,6 +166,9 @@ class UW {
 
       // start action handler only if extension is enabled for this site
       if (!isSiteDisabled) {
+        if (this.actionHandler) {
+          this.actionHandler.destroy();
+        }
         this.actionHandler = new ActionHandler(this.pageInfo);
         this.actionHandler.init();
         
