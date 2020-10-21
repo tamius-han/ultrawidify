@@ -155,11 +155,11 @@ class Resizer {
 
     // reset zoom, but only on aspect ratio switch. We also know that aspect ratio gets converted to
     // AspectRatio.Fixed when zooming, so let's keep that in mind
-    if (ar.type !== AspectRatio.Fixed) {
-      this.zoom.reset();
-      this.resetPan();
-    } else if (ar.ratio !== this.lastAr.ratio) {
-      // we must check against this.lastAR.ratio because some calls provide same value for ar and lastAr
+    if (
+      (ar.type !== AspectRatio.Fixed && ar.type !== AspectRatio.Manual) // anything not these two _always_ changes AR
+      || ar.type !== this.lastAr.type                                   // this also means aspect ratio has changed
+      || ar.ratio !== this.lastAr.ratio                                 // this also means aspect ratio has changed
+      ) {
       this.zoom.reset();
       this.resetPan();
     }
