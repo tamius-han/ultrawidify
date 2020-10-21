@@ -394,7 +394,7 @@ class PlayerData {
     this.getPlayer();
   }
 
-  checkPlayerSizeChange(){
+  checkPlayerSizeChange() {
     // this 'if' is just here for debugging — real code starts later. It's safe to collapse and
     // ignore the contents of this if (unless we need to change how logging works)
     if (this.logger.canLog('debug')){
