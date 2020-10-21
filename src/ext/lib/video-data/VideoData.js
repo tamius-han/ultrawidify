@@ -56,6 +56,7 @@ class VideoData {
 
       this.restoreCrop();
       this.videoDimensionsLoaded = true;
+
     }
   }
 
@@ -123,7 +124,7 @@ class VideoData {
   }
 
   restoreCrop() {  
-    this.logger.log('info', 'debug', '[VideoData::restoreCrop] Attempting to reset/restore aspect ratio.')
+    this.logger.log('info', 'debug', '[VideoData::restoreCrop] Attempting to reset aspect ratio.')
     // if we have default crop set for this page, apply this.
     // otherwise, reset crop
     if (this.pageInfo.defaultCrop) {
@@ -132,6 +133,7 @@ class VideoData {
       this.resizer.reset();
 
       try {
+        this.stopArDetection();
         this.startArDetection();
       } catch (e) {
         this.logger.log('warn', 'debug', '[VideoData::restoreCrop] Autodetection not resumed. Reason:', e);

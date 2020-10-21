@@ -155,11 +155,11 @@ class Resizer {
 
     // reset zoom, but only on aspect ratio switch. We also know that aspect ratio gets converted to
     // AspectRatio.Fixed when zooming, so let's keep that in mind
-    if (ar.type !== AspectRatio.Fixed) {
-      this.zoom.reset();
-      this.resetPan();
-    } else if (ar.ratio !== this.lastAr.ratio) {
-      // we must check against this.lastAR.ratio because some calls provide same value for ar and lastAr
+    if (
+      (ar.type !== AspectRatio.Fixed && ar.type !== AspectRatio.Manual) // anything not these two _always_ changes AR
+      || ar.type !== this.lastAr.type                                   // this also means aspect ratio has changed
+      || ar.ratio !== this.lastAr.ratio                                 // this also means aspect ratio has changed
+      ) {
       this.zoom.reset();
       this.resetPan();
     }
@@ -239,29 +239,29 @@ class Resizer {
       this.conf.destroy();
     }
 
-    // pause AR on basic stretch, unpause when using other modes
-    // for sine reason unpause doesn't unpause. investigate that later
-    try {
-      if (this.stretcher.mode === Stretch.Basic) {
-        this.conf.arDetector.pause();
-      } else {
-        if (this.lastAr.type === AspectRatio.Automatic) {
-          this.conf.arDetector.unpause();
-        }
+    // pause AR on:
+    // * ar.type NOT automatic
+    // * ar.type is auto, but stretch is set to basic basic stretch
+    // 
+    // unpause when using other modes
+    if (ar.type !== AspectRatio.Automatic || this.stretcher.mode === Stretch.Basic) {
+      this.conf?.arDetector?.pause();
+    } else {
+      if (this.lastAr.type === AspectRatio.Automatic) {
+        this.conf?.arDetector?.unpause();
       }
-    } catch (e) {   // resizer starts before arDetector. this will do nothing but fail if arDetector isn't setup
-
     }
 
     // do stretch thingy
     if (this.stretcher.mode === Stretch.NoStretch 
         || this.stretcher.mode === Stretch.Conditional 
         || this.stretcher.mode === Stretch.FixedSource){
+     
       var stretchFactors = this.scaler.calculateCrop(ar);
 
-      this.logger.log('error', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> failed to set AR due to problem with calculating crop. Error:`, stretchFactors && stretchFactors.error);
 
       if(! stretchFactors || stretchFactors.error){
+        this.logger.log('error', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> failed to set AR due to problem with calculating crop. Error:`, stretchFactors?.error);
         if (stretchFactors?.error === 'no_video'){
           this.conf.destroy();
           return;
@@ -303,14 +303,17 @@ class Resizer {
 
     this.zoom.applyZoom(stretchFactors);
 
-    //TODO: correct these two
     var translate = this.computeOffsets(stretchFactors);
     this.applyCss(stretchFactors, translate);
-
   }
 
+
   toFixedAr() {
-    this.lastAr.type = AspectRatio.Fixed;
+    // converting to fixed AR means we also turn off autoAR
+    this.setAr({
+      ar: this.lastAr.ar,
+      type: AspectRatio.Fixed
+    });
   }
 
   resetLastAr() {
@@ -339,7 +342,9 @@ class Resizer {
       this.videoAlignment = VideoAlignment.Center;
 
       // because non-fixed aspect ratios reset panning:
-      this.toFixedAr();
+      if (this.lastAr.type !== AspectRatio.Fixed) {
+        this.toFixedAr();
+      }
 
       const player = this.conf.player.element;
 
@@ -380,7 +385,7 @@ class Resizer {
   }
 
   restore() {
-    this.logger.log('info', 'debug', "[Resizer::restore] <rid:"+this.resizerId+"> attempting to restore aspect ratio", {'a_lastAr': this.lastAr} );
+    this.logger.log('info', 'debug', "[Resizer::restore] <rid:"+this.resizerId+"> attempting to restore aspect ratio", {'lastAr': this.lastAr} );
     
     // this is true until we verify that css has actually been applied
     if(this.lastAr.type === AspectRatio.Initial){
@@ -442,18 +447,85 @@ class Resizer {
 
   // mostly internal stuff
 
+  /**
+   * Returns the size of the video file _as displayed_ on the screen.
+   * Consider the following example:
+   * 
+   *   * player dimensions are 2560x1080
+   *   * <video> is child of player
+   *   * <video> has the following css: {width: 100%, height: 100%}
+   *   * video file dimensions are 1280x720
+   * 
+   * CSS will ensure that the dimensions of <video> tag are equal to the dimension of the
+   * player element — that is, 2560x1080px. This is no bueno, because the browser will upscale 
+   * the video file to take up as much space as it can (without stretching it). This means
+   * we'll get a 1920x1080 video (as displayed) and a letterbox.
+   * 
+   * We can't get that number out of anywhere: video.videoWidth will return 1280 (video file
+   * dimensions) and .offsetWidth (and the likes) will return the <video> tag dimension. Neither
+   * will return the actual size of video as displayed, which we need in order to calculate the 
+   * extra space to the left and right of the video.
+   * 
+   * We make the assumption of the 
+   */
+  computeVideoDisplayedDimensions() {
+    const offsetWidth = this.conf.video.offsetWidth;
+    const offsetHeight = this.conf.video.offsetHeight;
+
+    const scaleX = offsetWidth / this.conf.video.videoWidth;
+    const scaleY = offsetHeight / this.conf.video.videoHeight;
+
+    // if differences between the scale factors are minimal, we presume offsetWidth and 
+    // offsetHeight are the accurate enough for our needs
+    if (Math.abs(scaleX - scaleY) < 0.02) {
+      return {
+        realVideoWidth: offsetWidth,
+        realVideoHeight: offsetHeight,
+        marginX: 0,
+        marginY: 0,
+      }
+    }
+
+    // if we're still here, we need to calculate real video dimensions
+    const diffX = Math.abs(scaleY * this.conf.video.videoWidth - offsetWidth);
+    const diffY = Math.abs(scaleX * this.conf.video.videoHeight - offsetHeight);
+
+    // in this case, we want to base our real dimensions off scaleX
+    // otherwise, we want to base it off scaleY
+    if (diffX < diffY) {
+      const realHeight = this.conf.video.videoHeight * scaleX;
+      return {
+        realVideoWidth: offsetWidth,
+        realVideoHeight: realHeight,
+        marginX: 0,
+        marginY: (offsetHeight - realHeight) * 0.5
+      }
+    } else {
+      const realWidth = this.conf.video.videoWidth * scaleY;
+      return {
+        realVideoWidth: realWidth,
+        realVideoHeight: offsetHeight,
+        marginX: (offsetWidth - realWidth) * 0.5,
+        marginY: 0
+      }
+    }
+  }
+
   computeOffsets(stretchFactors){
     this.logger.log('info', 'debug', "[Resizer::computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.settings.active.sites['@global'].videoAlignment);
 
-    const wdiff = this.conf.player.dimensions.width - this.conf.video.offsetWidth;
-    const hdiff = this.conf.player.dimensions.height - this.conf.video.offsetHeight;
+    const {realVideoWidth, realVideoHeight, marginX, marginY} = this.computeVideoDisplayedDimensions();
+
+
+    const wdiff = this.conf.player.dimensions.width - realVideoWidth;
+    const hdiff = this.conf.player.dimensions.height - realVideoHeight;
 
     if (wdiff < 0 && hdiff < 0 && this.zoom.scale > 1) {
-      this.conf.player.re
+      this.conf.player.restore();
     }
 
-    const wdiffAfterZoom = this.conf.video.offsetWidth * stretchFactors.xFactor - this.conf.player.dimensions.width;
-    const hdiffAfterZoom = this.conf.video.offsetHeight * stretchFactors.yFactor - this.conf.player.dimensions.height;
+    const wdiffAfterZoom = realVideoWidth * stretchFactors.xFactor - this.conf.player.dimensions.width;
+    const hdiffAfterZoom = realVideoHeight * stretchFactors.yFactor - this.conf.player.dimensions.height;
     
     const translate = {
       x: wdiff * 0.5,
@@ -482,6 +554,7 @@ class Resizer {
                     '---- data in ----',
                     '\nplayer dimensions:    ', {w: this.conf.player.dimensions.width, h: this.conf.player.dimensions.height},
                     '\nvideo dimensions:     ', {w: this.conf.video.offsetWidth, h: this.conf.video.offsetHeight},
+                    '\nreal video dimensions:', {w: realVideoWidth, h: realVideoHeight},
                     '\nstretch factors:      ', stretchFactors,
                     '\npan & zoom:           ', this.pan, this.zoom.scale,
                     '\nwdiff, hdiff:         ', wdiff, 'x', hdiff,
@@ -506,8 +579,11 @@ class Resizer {
         `Video seems to be both wider and taller (or shorter and narrower) than player element at the same time. This is super duper not supposed to happen.\n\n`,
         `Player element needs to be checked.`
       )
-      this.player.checkPlayerSizeChange();
+      if (this.conf.player.checkPlayerSizeChange()) {
+        this.conf.player.onPlayerDimensionsChanged();
+      }
     }
+
     return translate; 
   }
   
@@ -538,11 +614,13 @@ class Resizer {
         styleArray[i] = styleArray[i].trim();   
         // some sites do 'top: 50%; left: 50%; transform: <transform>' to center videos. 
         // we dont wanna, because we already center videos on our own
-        if (styleArray[i].startsWith("transform:") ||
-            styleArray[i].startsWith("top:") ||
-            styleArray[i].startsWith("left:") ||
-            styleArray[i].startsWith("right:") ||
-            styleArray[i].startsWith("bottom:") ){
+        if (styleArray[i].startsWith("transform:")
+            || styleArray[i].startsWith("top:") 
+            || styleArray[i].startsWith("left:") 
+            || styleArray[i].startsWith("right:") 
+            || styleArray[i].startsWith("bottom:")
+            || styleArray[i].startsWith("margin")
+          ){
           delete styleArray[i];
         }
       }
@@ -592,9 +670,13 @@ class Resizer {
 
     const styleArray = this.buildStyleArray('', extraStyleString)
 
+    // sometimes, site designers will center <video> by setting margin: to something. We do not like that, as
+    // it prevents extension from working properly.
+    styleArray.push('margin: 0px 0px 0px 0px !important; width: initial !important; height: initial !important');
+
     // add remaining elements
     if (stretchFactors) {
-      styleArray.push(`transform: translate(${translate.x}px, ${translate.y}px) scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor})`);
+      styleArray.push(`transform: translate(${translate.x}px, ${translate.y}px) scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor}) !important;`);
 
       // important — guarantees video will be properly aligned
       styleArray.push("top: 0px !important; left: 0px !important; bottom: 0px !important; right: 0px;"); 
