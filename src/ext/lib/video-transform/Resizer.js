@@ -676,7 +676,7 @@ class Resizer {
 
     // add remaining elements
     if (stretchFactors) {
-      styleArray.push(`transform: translate(${translate.x}px, ${translate.y}px) scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor});`);
+      styleArray.push(`transform: translate(${translate.x}px, ${translate.y}px) scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor}) !important;`);
 
       // important — guarantees video will be properly aligned
       styleArray.push("top: 0px !important; left: 0px !important; bottom: 0px !important; right: 0px;"); 
