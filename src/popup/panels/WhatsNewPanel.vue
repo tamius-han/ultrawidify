@@ -2,25 +2,21 @@
   <div>
     <h2>What's new</h2>
     <p>Full changelog for older versions <a href="https://github.com/tamius-han/ultrawidify/blob/master/CHANGELOG.md">is available here</a>.</p>
-    <p class="label">4.4.9.2</p>
+    <p class="label">4.4.10</p>
     <ul>
       <li>
-        Fixed issue with video alignment on youtube under certain conditions (previously fixed in v4.4.7.1-2), but this time for real (hopefully). 
+        Video alignment should now work on Twitch (<a href="https://github.com/tamius-han/ultrawidify/issues/109">#109</a>)
       </li>
       <li>
-        Fixed the bug where extension wouldn't work when URL specified a port (e.g. www.example.com:80)
+        Videos should now align properly on Hulu while cropped (<a href="https://github.com/tamius-han/ultrawidify/issues/111">#111 &amp; via email</a>)
       </li>
       <li>
-        <b>[4.4.9.1]</b> removed source maps from extension build
+        Fixed a problem where changing certain settings would cause multiple instances of Ultrawidify to run on a page, effectively preventing some crop options to be set until reload. (possibly <a href="(https://github.com/tamius-han/ultrawidify/issues/112">#112</a>?)
       </li>
        <li>
-        <b>[4.4.9.2]</b> updated npm packages
+        Fixed a problem where embedded videos would be misaligned after switching from full screen
       </li>
     </ul>
-    <p>
-      In addition to that, as of 4.4.9.1 the build process ensures removal of `node_modules` before building the extension so we can have
-      reproducible builds except for real this time. Hopefully.
-    </p>
   </div>
 </template>
 <script>

@@ -13,7 +13,14 @@ QoL improvements for me:
 
 * logging: allow to enable logging at will and export said logs to a file
 
-### v4.4.9 (Current)
+### v4.4.10 (Current)
+
+* Video alignment should now work on Twitch [#109](https://github.com/tamius-han/ultrawidify/issues/109)
+* Videos should now align properly on Hulu while cropped [#111](https://github.com/tamius-han/ultrawidify/issues/111) & via email
+* Fixed a problem where changing certain settings would cause multiple instances of Ultrawidify to run on a page, effectively preventing some crop options to be set until reload. (possibly [#112](https://github.com/tamius-han/ultrawidify/issues/112)?)
+* Fixed a problem where embedded videos would be misaligned after switching from full screen
+
+### v4.4.9
 
 * Fixed the youtube alignment issue (previously fixed in v4.4.7.1-2), but this time for real (and in a bit more proper way)
 * Fixed the bug where extension wouldn't work when URL specified a port (e.g. www.example.com:80)
