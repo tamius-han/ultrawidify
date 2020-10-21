@@ -613,11 +613,13 @@ class Resizer {
         styleArray[i] = styleArray[i].trim();   
         // some sites do 'top: 50%; left: 50%; transform: <transform>' to center videos. 
         // we dont wanna, because we already center videos on our own
-        if (styleArray[i].startsWith("transform:") ||
-            styleArray[i].startsWith("top:") ||
-            styleArray[i].startsWith("left:") ||
-            styleArray[i].startsWith("right:") ||
-            styleArray[i].startsWith("bottom:") ){
+        if (styleArray[i].startsWith("transform:")
+            || styleArray[i].startsWith("top:") 
+            || styleArray[i].startsWith("left:") 
+            || styleArray[i].startsWith("right:") 
+            || styleArray[i].startsWith("bottom:")
+            || styleArray[i].startsWith("margin")
+          ){
           delete styleArray[i];
         }
       }
@@ -667,9 +669,13 @@ class Resizer {
 
     const styleArray = this.buildStyleArray('', extraStyleString)
 
+    // sometimes, site designers will center <video> by setting margin: to something. We do not like that, as
+    // it prevents extension from working properly.
+    styleArray.push('margin: 0px 0px 0px 0px !important; width: initial !important; height: initial !important');
+
     // add remaining elements
     if (stretchFactors) {
-      styleArray.push(`transform: translate(${translate.x}px, ${translate.y}px) scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor})`);
+      styleArray.push(`transform: translate(${translate.x}px, ${translate.y}px) scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor});`);
 
       // important — guarantees video will be properly aligned
       styleArray.push("top: 0px !important; left: 0px !important; bottom: 0px !important; right: 0px;"); 
