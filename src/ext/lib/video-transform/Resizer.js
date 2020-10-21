@@ -385,7 +385,7 @@ class Resizer {
   }
 
   restore() {
-    this.logger.log('info', 'debug', "[Resizer::restore] <rid:"+this.resizerId+"> attempting to restore aspect ratio", {'a_lastAr': this.lastAr} );
+    this.logger.log('info', 'debug', "[Resizer::restore] <rid:"+this.resizerId+"> attempting to restore aspect ratio", {'lastAr': this.lastAr} );
     
     // this is true until we verify that css has actually been applied
     if(this.lastAr.type === AspectRatio.Initial){
