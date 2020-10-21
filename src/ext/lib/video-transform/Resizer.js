@@ -239,29 +239,29 @@ class Resizer {
       this.conf.destroy();
     }
 
-    // pause AR on basic stretch, unpause when using other modes
-    // for sine reason unpause doesn't unpause. investigate that later
-    try {
-      if (this.stretcher.mode === Stretch.Basic) {
-        this.conf.arDetector.pause();
-      } else {
-        if (this.lastAr.type === AspectRatio.Automatic) {
-          this.conf.arDetector.unpause();
-        }
+    // pause AR on:
+    // * ar.type NOT automatic
+    // * ar.type is auto, but stretch is set to basic basic stretch
+    // 
+    // unpause when using other modes
+    if (ar.type !== AspectRatio.Automatic || this.stretcher.mode === Stretch.Basic) {
+      this.conf?.arDetector?.pause();
+    } else {
+      if (this.lastAr.type === AspectRatio.Automatic) {
+        this.conf?.arDetector?.unpause();
       }
-    } catch (e) {   // resizer starts before arDetector. this will do nothing but fail if arDetector isn't setup
-
     }
 
     // do stretch thingy
     if (this.stretcher.mode === Stretch.NoStretch 
         || this.stretcher.mode === Stretch.Conditional 
         || this.stretcher.mode === Stretch.FixedSource){
+     
       var stretchFactors = this.scaler.calculateCrop(ar);
 
-      this.logger.log('error', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> failed to set AR due to problem with calculating crop. Error:`, stretchFactors && stretchFactors.error);
 
       if(! stretchFactors || stretchFactors.error){
+        this.logger.log('error', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> failed to set AR due to problem with calculating crop. Error:`, stretchFactors?.error);
         if (stretchFactors?.error === 'no_video'){
           this.conf.destroy();
           return;
@@ -309,8 +309,13 @@ class Resizer {
 
   }
 
+
   toFixedAr() {
-    this.lastAr.type = AspectRatio.Fixed;
+    // converting to fixed AR means we also turn off autoAR
+    this.setAr({
+      ar: this.lastAr.ar,
+      type: AspectRatio.Fixed
+    });
   }
 
   resetLastAr() {
@@ -339,7 +344,9 @@ class Resizer {
       this.videoAlignment = VideoAlignment.Center;
 
       // because non-fixed aspect ratios reset panning:
-      this.toFixedAr();
+      if (this.lastAr.type !== AspectRatio.Fixed) {
+        this.toFixedAr();
+      }
 
       const player = this.conf.player.element;
 
