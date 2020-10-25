@@ -671,8 +671,9 @@ class Resizer {
     const styleArray = this.buildStyleArray('', extraStyleString)
 
     // sometimes, site designers will center <video> by setting margin: to something. We do not like that, as
-    // it prevents extension from working properly.
-    styleArray.push('margin: 0px 0px 0px 0px !important; width: initial !important; height: initial !important');
+    // it prevents extension from working properly
+    // no `height: inital !important;` because that breaks youtube.
+    styleArray.push('margin: 0px 0px 0px 0px !important; width: initial !important; align-self: start !important; justify-self: start !important;');
 
     // add remaining elements
     if (stretchFactors) {
