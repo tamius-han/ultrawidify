@@ -16,6 +16,9 @@
        <li>
         Fixed a problem where embedded videos would be misaligned after switching from full screen
       </li>
+      <li>
+        <b>[4.4.10.1]</b> Fixed cruncyhroll regression — <a href="https://github.com/tamius-han/ultrawidify/issues/115">#115</a>
+      </li>
     </ul>
   </div>
 </template>

@@ -15,10 +15,11 @@ QoL improvements for me:
 
 ### v4.4.10 (Current)
 
-* Video alignment should now work on Twitch [#109](https://github.com/tamius-han/ultrawidify/issues/109)
-* Videos should now align properly on Hulu while cropped [#111](https://github.com/tamius-han/ultrawidify/issues/111) & via email
+* Video alignment should now work on Twitch — [#109](https://github.com/tamius-han/ultrawidify/issues/109)
+* Videos should now align properly on Hulu while cropped — [#111](https://github.com/tamius-han/ultrawidify/issues/111) & via email
 * Fixed a problem where changing certain settings would cause multiple instances of Ultrawidify to run on a page, effectively preventing some crop options to be set until reload. (possibly [#112](https://github.com/tamius-han/ultrawidify/issues/112)?)
 * Fixed a problem where embedded videos would be misaligned after switching from full screen
+* **[4.4.10.1]** Fixed cruncyhroll regression — [#109](https://github.com/tamius-han/ultrawidify/issues/115)
 
 ### v4.4.9
 
