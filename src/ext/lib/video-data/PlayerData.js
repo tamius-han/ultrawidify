@@ -73,6 +73,29 @@ class PlayerData {
   }
 
 
+  setBaseClass() {
+    if (!this.dimensions) {
+      // TODO: determine how to handle this edge case. Fallback to 'base-wide-screen' might
+      // be better option than doing nothing
+      return;
+    }
+    // note that we should never allow both narrow-screen and wide-screen classes on the video
+    // element at _any_ time. That may break some sites even more.
+
+    if (this.video.videoWidth / this.videoHeight <= this.dimensions.width / this.dimensions.height) {
+      this.video.classList.remove('uw-ultrawidify-base-narrow-screen');
+      this.video.classList.add('uw-ultrawidify-base-wide-screen'); 
+    } else {
+      this.video.classList.remove('uw-ultrawidify-base-wide-screen');
+      this.video.classList.add('uw-ultrawidify-base-narrow-screen');
+    }
+  }
+
+  unsetBaseClass() {
+    this.video.classList.remove('uw-ultrawidify-base-narrow-screen');
+    this.video.classList.remove('uw-ultrawidify-base-wide-screen');
+  }
+
   static isFullScreen(){
     return ( window.innerHeight == window.screen.height && window.innerWidth == window.screen.width);
   }
