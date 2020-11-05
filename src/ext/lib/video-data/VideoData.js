@@ -6,6 +6,7 @@ import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 
 class VideoData {
   
+
   constructor(video, settings, pageInfo){
     this.vdid = (Math.random()*100).toFixed();
     this.logger = pageInfo.logger;
@@ -27,16 +28,7 @@ class VideoData {
       height: this.video.offsetHeight,
     };
 
-    // this is in case extension loads before the video
-    video.addEventListener('loadeddata', () => {
-      this.logger.log('info', 'init', '[VideoData::ctor->video.onloadeddata] Video fired event "loaded data!"');
-      this.onVideoLoaded();
-    });
-
-    // this one is in case extension loads after the video is loaded
-    video.addEventListener('timeupdate', () => {
-      this.onVideoLoaded();
-    });
+    this.setupStageOne();
   }
 
   async onVideoLoaded() {
@@ -58,6 +50,41 @@ class VideoData {
       this.videoDimensionsLoaded = true;
 
     }
+  }
+
+  async injectBaseCss() {
+    try {
+    await this.pageInfo.injectCss(`
+      .uw-ultrawidify-base-wide-screen {
+        margin: 0px 0px 0px 0px !important; width: initial !important; align-self: start !important; justify-self: start !important;
+      }
+    `);
+    } catch (e) {
+      console.error('Failed to inject base css!', e);
+    }
+  }
+
+  unsetBaseClass() {
+    this.video.classList.remove('uw-ultrawidify-base-wide-screen');
+  }
+
+  async setupStageOne() {
+    this.logger.log('info', 'init', '%c[VideoData::setupStageOne] ——————————— Starting setup stage one! ———————————', 'color: #0f9');
+    // ensure base css is loaded before doing anything
+    this.injectBaseCss();
+
+    // this is in case extension loads before the video
+    this.video.addEventListener('loadeddata', () => {
+      this.logger.log('info', 'init', '[VideoData::ctor->video.onloadeddata] Video fired event "loaded data!"');
+      this.onVideoLoaded();
+    });
+
+    // this one is in case extension loads after the video is loaded
+    this.video.addEventListener('timeupdate', () => {
+      this.onVideoLoaded();
+    });
+
+    this.logger.log('info', 'init', '%c[VideoData::setupStageOne] ——————————— Setup stage one complete! ———————————', 'color: #0f9');
   }
 
   async setupStageTwo() {
@@ -98,7 +125,12 @@ class VideoData {
     this.logger.log('info', ['debug', 'init'], '[VideoData::ctor] Created videoData with vdid', this.vdid, '\nextension mode:', this.extensionMode)
 
     this.pageInfo.initMouseActionHandler(this);
+    
+    // NOTE — since base class for our <video> element depends on player aspect ratio,
+    // we handle it in PlayerData class.
+    this.video.classList.add('uw-ultrawidify-base-wide-screen'); 
     this.video.classList.add(this.userCssClassName); // this also needs to be applied BEFORE we initialize resizer!
+
 
     // start fallback video/player size detection
     this.fallbackChangeDetection();
@@ -122,6 +154,7 @@ class VideoData {
       this.logger.log('error', 'init', `[VideoData::secondStageSetup] Error with aard initialization (or error with default aspect ratio application)`, e)
     }
   }
+
 
   restoreCrop() {  
     this.logger.log('info', 'debug', '[VideoData::restoreCrop] Attempting to reset aspect ratio.')
@@ -175,7 +208,8 @@ class VideoData {
             // we still only need to make sure we're only adding our class to classlist if it has been
             // removed. classList.add() will _still_ trigger mutation (even if classlist wouldn't change).
             // This is a problem because INFINITE RECURSION TIME, and we _really_ don't want that.
-            context.video.classList.add(this.userCssClassName);  
+            context.video.classList.add(this.userCssClassName);
+            context.video.classList.add('uw-ultrawidify-base-wide-screen'); 
           }
           // always trigger refresh on class changes, since change of classname might trigger change 
           // of the player size as well.
@@ -298,6 +332,7 @@ class VideoData {
 
     if (this.video) {
       this.video.classList.remove(this.userCssClassName);
+      this.video.classList.remove('uw-ultrawidify-base-wide-screen'); 
     }
 
     this.pause();
