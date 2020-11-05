@@ -79,16 +79,29 @@ class PlayerData {
       // be better option than doing nothing
       return;
     }
+
     // note that we should never allow both narrow-screen and wide-screen classes on the video
     // element at _any_ time. That may break some sites even more.
+    // We should also only set/unset css classes when they change, otherwise mutation observer
+    // will trigger. Triggering mutation observer is problematic because this function may be
+    // called from said mutation observer, and that is bad.
 
-    if (this.video.videoWidth / this.videoHeight <= this.dimensions.width / this.dimensions.height) {
-      this.video.classList.remove('uw-ultrawidify-base-narrow-screen');
-      this.video.classList.add('uw-ultrawidify-base-wide-screen'); 
-    } else {
-      this.video.classList.remove('uw-ultrawidify-base-wide-screen');
-      this.video.classList.add('uw-ultrawidify-base-narrow-screen');
+
+    const isNarrowScreen = this.video.videoWidth / this.video.videoHeight > this.dimensions.width / this.dimensions.height;
+
+    console.warn('setting base class. Is narrow screen?', isNarrowScreen, 'was narrow screen?', this.isNarrowScreen, "video:", this.video, ":", this.video.videoWidth, "x", this.video.videoHeight, "video file ar:", this.video.videoWidth / this.video.videoHeight, "player ar:", this.dimensions.width / this.dimensions.height)
+
+    if (this.isNarrowScreen != isNarrowScreen) {
+      if (!isNarrowScreen) {
+        this.video.classList.remove('uw-ultrawidify-base-narrow-screen');
+        this.video.classList.add('uw-ultrawidify-base-wide-screen'); 
+      } else {
+        this.video.classList.remove('uw-ultrawidify-base-wide-screen');
+        this.video.classList.add('uw-ultrawidify-base-narrow-screen');
+      }
     }
+
+    this.isNarrowScreen = isNarrowScreen;
   }
 
   unsetBaseClass() {
