@@ -58,22 +58,22 @@ class PageInfo {
     this.currentZoomScale = 1;
   }
 
-  injectCss(cssString) {
-    this.comms.sendMessage({
+  async injectCss(cssString) {
+    await this.comms.sendMessage({
       cmd: 'inject-css',
       cssString: cssString
     });
   }
 
-  ejectCss(cssString) {
-    this.comms.sendMessage({
+  async ejectCss(cssString) {
+    await this.comms.sendMessage({
       cmd: 'eject-css',
       cssString: cssString
     });
   }
 
-  replaceCss(oldCssString, newCssString) {
-    this.comms.sendMessage({
+  async replaceCss(oldCssString, newCssString) {
+    await this.comms.sendMessage({
       cmd: 'replace-css',
       newCssString,
       oldCssString
