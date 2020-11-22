@@ -23,7 +23,15 @@ var ActionList = {
       name: 'Manually specify ratio',
       arg: AspectRatio.Fixed,
       customArg: true,
-      hintHTML: '',
+      customSetter: (value) => {
+        const [width, height] = value.split(':');
+
+        if (width && height) {
+          return +width / +height;
+        }
+        return +width;
+      },
+      hintHTML: '<small>Enter the aspect ratio as {width}:{height} or a single number, e.g. "21:9", "2.35:1", or "2.35" (without quotes).</small>',
     }],
     scopes: {
       global: false,
