@@ -26,7 +26,7 @@
     "concurrently": "^5.2.0",
     "fs-extra": "^7.0.1",
     "json-cyclic": "0.0.3",
-    "vue": "^2.6.11",
+    "vue": "^2.6.12",
     "vuex": "^3.5.1",
     "vuex-webextensions": "^1.3.0",
     "webextension-polyfill": "^0.6.0"
