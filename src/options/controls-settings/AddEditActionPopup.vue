@@ -60,7 +60,7 @@
         <b>Show this action in the following tabs:</b>
       </div>
 
-      <template v-if="action && action.cmd[0] && action.cmd[0].action !== 'set-ar'">
+      <template v-if="aaction?.cmd[0]?.action !== 'set-ar'">
         <div class="tab-title">Extension settings (global)</div>
         <ScopeSettings :scopeOptions="globalScopeOptions"
                       @show="updateScopes('global', 'show', $event)"
@@ -69,7 +69,7 @@
         />
       </template>
 
-      <template v-if="action && action.cmd[0] && action.cmd[0].action !== 'set-ar'">
+      <template v-if="action?.cmd[0]?.action !== 'set-ar'">
         <div class="tab-title">Site settings (site)</div>
         <ScopeSettings :scopeOptions="siteScopeOptions"
                       @show="updateScopes('site', 'show', $event)"

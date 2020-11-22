@@ -31,7 +31,7 @@
       <div class="flex flex-row flex-wrap">
         <ShortcutButton v-for="(action, index) of aardActions"
                         class="flex flex-grow button"
-                        :class="{'setting-selected': getCurrent('autoar') === action.cmd[0].arg}"
+                        :class="{'setting-selected': getCurrent('autoar') === action.cmd[0]?.arg}"
                         :key="index"
                         :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
                         :shortcut="parseShortcut(action)"
@@ -50,7 +50,7 @@
       <div class="flex flex-row flex-wrap">
         <ShortcutButton v-for="(action, index) of cropModePersistenceActions"
                         class="flex flex-grow button b3"
-                        :class="{'setting-selected': getCurrent('cropModePersistence') === action.cmd[0].arg}"
+                        :class="{'setting-selected': getCurrent('cropModePersistence') === action.cmd[0]?.arg}"
                         :key="index"
                         :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
                         :shortcut="parseShortcut(action)"
@@ -66,7 +66,7 @@
       <div class="flex flex-row flex-wrap">
         <ShortcutButton v-for="(action, index) of stretchActions"
                         class="flex b3 flex-grow button"
-                        :class="{'setting-selected': getCurrent('stretch') === action.cmd[0].arg}"
+                        :class="{'setting-selected': getCurrent('stretch') === action.cmd[0]?.arg}"
                         :key="index"
                         :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
                         :shortcut="parseShortcut(action)"
@@ -81,7 +81,7 @@
       <div class="flex flex-row flex-wrap">
         <ShortcutButton v-for="(action, index) of keyboardActions"
                         class="flex b3 flex-grow button"
-                        :class="{'setting-selected': getCurrent('keyboardShortcutsEnabled') === action.cmd[0].arg}"
+                        :class="{'setting-selected': getCurrent('keyboardShortcutsEnabled') === action.cmd[0]?.arg}"
                         :key="index"
                         :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
                         :shortcut="parseShortcut(action)"
@@ -96,7 +96,7 @@
       <div class="flex flex-row flex-wrap">
         <ShortcutButton v-for="(action, index) of alignmentActions"
                         class="flex b3 flex-grow button"
-                        :class="{'setting-selected': getCurrent('videoAlignment') === action.cmd[0].arg}"
+                        :class="{'setting-selected': getCurrent('videoAlignment') === action.cmd[0]?.arg}"
                         :key="index"
                         :label="(action.scopes[scope] && action.scopes[scope].label) ? action.scopes[scope].label : action.label"
                         :shortcut="parseShortcut(action)"
