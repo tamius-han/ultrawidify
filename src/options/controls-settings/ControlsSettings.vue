@@ -29,7 +29,7 @@
         Crop actions
       </div>
       <template v-for="(action, index) of settings.active.actions">
-        <ActionAlt v-if="action.cmd.length === 1 && action.cmd[0].action === 'set-ar'"
+        <ActionAlt v-if="action.cmd?.length === 1 && action.cmd[0]?.action === 'set-ar'"
                    :key="index"
                    :action="action"
                    @edit="changeShortcut(index)"
@@ -41,7 +41,7 @@
         Stretch actions
       </div>
       <template v-for="(action, index) of settings.active.actions">
-        <ActionAlt v-if="action.cmd.length === 1 && action.cmd[0].action === 'set-stretch'"
+        <ActionAlt v-if="action.cmd?.length === 1 && action.cmd[0]?.action === 'set-stretch'"
                    :key="index"
                    :action="action"
                    @edit="changeShortcut(index)"
@@ -55,7 +55,7 @@
         Alignment actions
       </div>
       <template v-for="(action, index) of settings.active.actions">
-        <ActionAlt v-if="action.cmd.length === 1 && action.cmd[0].action === 'set-alignment'"
+        <ActionAlt v-if="action.cmd?.length === 1 && action.cmd[0]?.action === 'set-alignment'"
                    :key="index"
                    :action="action"
                    @edit="changeShortcut(index)"
@@ -69,11 +69,11 @@
       </div>
       <template v-for="(action, index) of settings.active.actions">
         <ActionAlt v-if="action.cmd.length === 1 && (
-                            action.cmd[0].action === 'change-zoom' ||
-                            action.cmd[0].action === 'set-zoom' ||
-                            action.cmd[0].action === 'set-pan' || 
-                            action.cmd[0].action === 'pan' ||
-                            action.cmd[0].action === 'set-pan'
+                            action.cmd[0]?.action === 'change-zoom' ||
+                            action.cmd[0]?.action === 'set-zoom' ||
+                            action.cmd[0]?.action === 'set-pan' || 
+                            action.cmd[0]?.action === 'pan' ||
+                            action.cmd[0]?.action === 'set-pan'
                         )"
                    :key="index"
                    :action="action"
@@ -88,14 +88,14 @@
       </div>
       <template v-for="(action, index) of settings.active.actions">
         <ActionAlt v-if="action.cmd.length > 1 || (
-                            action.cmd[0].action !== 'change-zoom' &&
-                            action.cmd[0].action !== 'set-zoom' &&
-                            action.cmd[0].action !== 'set-pan' &&
-                            action.cmd[0].action !== 'pan' &&
-                            action.cmd[0].action !== 'set-pan' &&
-                            action.cmd[0].action !== 'set-alignment' &&
-                            action.cmd[0].action !== 'set-stretch' &&
-                            action.cmd[0].action !== 'set-ar'
+                            action.cmd[0]?.action !== 'change-zoom' &&
+                            action.cmd[0]?.action !== 'set-zoom' &&
+                            action.cmd[0]?.action !== 'set-pan' &&
+                            action.cmd[0]?.action !== 'pan' &&
+                            action.cmd[0]?.action !== 'set-pan' &&
+                            action.cmd[0]?.action !== 'set-alignment' &&
+                            action.cmd[0]?.action !== 'set-stretch' &&
+                            action.cmd[0]?.action !== 'set-ar'
                         )"
                    :key="index"
                    :action="action"
