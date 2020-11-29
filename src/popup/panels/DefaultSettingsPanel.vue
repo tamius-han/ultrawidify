@@ -147,7 +147,6 @@ export default {
   components: {
     ShortcutButton,
   },
-  
   watch: {
     settings: {
       deep: true,
@@ -172,7 +171,6 @@ export default {
       let site;
       if (this.scope === 'global') {
         site = '@global'
-        this.site = site;
       } else {
         if (!this.site) {
           return '';
