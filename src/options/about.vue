@@ -38,12 +38,14 @@ import Settings from '../ext/lib/Settings';
 export default {
   data() {
     return {
-      addonVersion: Settings.getVersion(),
+      addonVersion: '[extension version not loaded. This is a bug.]',
       mailtoLink: 'mailto:tamius.han@gmail.com',
       redditLink: '',
     }
   },
   created() {
+    this.addonVersion = Settings.getExtensionVersion();
+
     const messageTemplate = encodeURIComponent(
 `Describe your issue in more detail. In case of misaligned videos, please provide screenshots. When reporting\
  issues with autodetection not detecting aspect ratio correctly, please provide a link with timestamp to the\
