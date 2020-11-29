@@ -1,5 +1,5 @@
 // vue dependency imports
-import Vue from 'vue';
+import {createApp} from 'vue';
 import Vuex from 'vuex';
 import VuexWebExtensions from 'vuex-webextensions';
 import LoggerUi from '../csui/LoggerUi';
@@ -126,6 +126,8 @@ class UwUi {
     try {
       Vue.prototype.$browser = global.browser;
       Vue.use(Vuex);
+
+      
       this.vuexStore = new Vuex.Store({
         plugins: [VuexWebExtensions({
           persistentStates: [
@@ -190,16 +192,22 @@ class UwUi {
     document.body.appendChild(rootDiv);
    
     try {
-      new Vue({
-        el: `#${uwid}`,
-        components: {
-          LoggerUi: LoggerUi
-        },
-        store: this.vuexStore,
-        render(h) {
-          return h('logger-ui');
-        }
-      });
+      createApp('logger-ui')
+        .component('LoggerUi', LoggerUi)
+        .use(this.vuexStore)
+        .mount(`#${uwid}`);
+
+
+      // new Vue({
+      //   el: `#${uwid}`,
+      //   components: {
+      //     LoggerUi: LoggerUi
+      //   },
+      //   store: this.vuexStore,
+      //   render(h) {
+      //     return h('logger-ui');
+      //   }
+      // });
     } catch (e) {
       console.error("Error while initiating vue:", e)
     }
