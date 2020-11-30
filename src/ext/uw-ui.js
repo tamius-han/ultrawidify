@@ -1,6 +1,6 @@
 // vue dependency imports
-import Vue from 'vue';
-import Vuex from 'vuex';
+import { createApp } from 'vue';
+import { createStore } from 'vuex';
 import VuexWebExtensions from 'vuex-webextensions';
 import LoggerUi from '../csui/LoggerUi';
 
@@ -124,16 +124,19 @@ class UwUi {
     }
 
     try {
-      Vue.prototype.$browser = global.browser;
-      Vue.use(Vuex);
-      this.vuexStore = new Vuex.Store({
-        plugins: [VuexWebExtensions({
-          persistentStates: [
-            'uwLog',
-            'showLogger',
-            'loggingEnded',
-          ],
-        })],
+      // Vue.prototype.$browser = global.browser;
+      // Vue.use(Vuex);
+      
+      this.vuexStore = createStore({
+        plugins: [
+          VuexWebExtensions({
+            persistentStates: [
+              'uwLog',
+              'showLogger',
+              'loggingEnded',
+            ],
+          }),
+        ],
         state: {
           uwLog: '',
           showLogger: false,
@@ -184,22 +187,27 @@ class UwUi {
     const uwid = `uw-ui-root-${random}`;
 
     const rootDiv = document.createElement('div');
-    rootDiv.setAttribute("style", "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999; background-color: #ff0000;");
+    rootDiv.setAttribute("style", "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999;");
     rootDiv.setAttribute("id", uwid);
 
     document.body.appendChild(rootDiv);
    
     try {
-      new Vue({
-        el: `#${uwid}`,
-        components: {
-          LoggerUi: LoggerUi
-        },
-        store: this.vuexStore,
-        render(h) {
-          return h('logger-ui');
-        }
-      });
+      createApp(LoggerUi)
+        .component('LoggerUi', LoggerUi)
+        .use(this.vuexStore)
+        .mount(`#${uwid}`);
+
+      // new Vue({
+      //   el: `#${uwid}`,
+      //   components: {
+      //     LoggerUi: LoggerUi
+      //   },
+      //   store: this.vuexStore,
+      //   render(h) {
+      //     return h('logger-ui');
+      //   }
+      // });
     } catch (e) {
       console.error("Error while initiating vue:", e)
     }
@@ -208,12 +216,14 @@ class UwUi {
   }
 
   async showLogger() {
+    console.log("show logger?")
     if (!this.loggerUiInitiated) {
       await this.initLoggerUi();
     }
 
     
     try {
+      console.log("will show logger")
       this.vuexStore.dispatch('uw-show-logger');
     } catch (e) {
       console.error('Failed to dispatch vuex store', e)
