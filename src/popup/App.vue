@@ -29,7 +29,7 @@
           <div class="">
             Site settings
           </div>
-          <div v-if="selectedTab === 'site' && this.activeSites.length > 1"
+          <div v-if="selectedTab === 'site' && activeSites.length > 1"
                class=""
           >
             <small>Select site to control:</small>
@@ -55,7 +55,7 @@
           <div class="">
             Video settings <span v-if="canShowVideoTab.canShow && canShowVideoTab.warning" class="warning-color">⚠</span>
           </div>
-          <div v-if="selectedTab === 'video' && this.activeFrames.length > 0"
+          <div v-if="selectedTab === 'video' && activeFrames.length > 0"
                class=""
           >
             <small>Select embedded frame to control:</small>
@@ -82,7 +82,7 @@
           <div class="">
             Advanced settings
           </div>
-          <div v-if="selectedTab === 'site-details' && this.activeSites.length > 1"
+          <div v-if="selectedTab === 'site-details' && activeSites.length > 1"
                class=""
           >
             <small>Select site to control:</small>
@@ -137,7 +137,7 @@
 
       <!-- PANELS/CONTENT -->
       <div id="tab-content" class="flex-grow h100 overflow-y-auto">
-        <VideoPanel v-if="settings && settings.active && selectedTab === 'video'"
+        <VideoPanel v-if="settings?.active && selectedTab === 'video'"
                     class=""
                     :someSitesDisabledWarning="canShowVideoTab.warning"
                     :settings="settings"
@@ -145,7 +145,7 @@
                     :zoom="currentZoom"
                     @zoom-change="updateZoom($event)"
         />
-        <DefaultSettingsPanel v-if="settings && settings.active && (selectedTab === 'site' || selectedTab === 'global')"
+        <DefaultSettingsPanel v-if="settings?.active && (selectedTab === 'global' || selectedTab === 'site')"
                               class=""
                               :settings="settings"
                               :scope="selectedTab"
@@ -325,6 +325,7 @@ export default {
         if (!this.site || this.site.host !== message.site.host) {
           this.port.postMessage({cmd: 'get-current-zoom'});
         }
+        console.log("processing received message:", message)
         this.site = message.site;
 
         // update activeSites
