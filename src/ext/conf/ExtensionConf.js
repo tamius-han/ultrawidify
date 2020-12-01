@@ -1193,6 +1193,18 @@ var ExtensionConf = {
       videoAlignment: 1,
       type: 'official',
     },
+    "www.wakanim.tv": {
+      type: 'community',
+      DOM: {
+        player: {
+          manual: true,
+          querySelectors: "#jwplayer-container",
+          additionalCss: "",
+          useRelativeAncestor: false,
+          playerNodeCss: "",
+        }
+      }
+    },
   }
 }
 
