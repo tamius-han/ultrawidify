@@ -390,6 +390,22 @@ const ExtensionConfPatch = [
         }
       }
     }
+  }, {
+    forVersion: '4.5.0',
+    sites: {
+      "www.wakanim.tv": {
+        type: 'community',
+        DOM: {
+          player: {
+            manual: true,
+            querySelectors: "#jwplayer-container",
+            additionalCss: "",
+            useRelativeAncestor: false,
+            playerNodeCss: "",
+          }
+        }
+      }
+    }
   }
 ];
 
