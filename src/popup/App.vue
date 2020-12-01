@@ -2,16 +2,24 @@
   <div v-if="settingsInitialized" 
        class="popup flex flex-column no-overflow"
   >
-    <div class="header flex-row flex-nogrow flex-noshrink relative">
+    <div class="flex-row flex-nogrow flex-noshrink relative"
+         :class="{'header': !narrowPopup, 'header-small': narrowPopup}"
+    >
       <span class="smallcaps">Ultrawidify</span>: <small>Quick settings</small>
       <div class="absolute channel-info" v-if="BrowserDetect.processEnvChannel !== 'stable'">
         Build channel: {{BrowserDetect.processEnvChannel}}
       </div>
     </div>
+    <div v-if="narrowPopup" class="w100 text-center show-more">
+      <a v-show="!sideMenuVisible" href="#" @click="toggleSideMenu(true)">More options</a>
+    </div>
 
     <div class="flex flex-row body no-overflow flex-grow">
       <!-- TABS/SIDEBAR -->
-      <div id="tablist" class="flex flex-column flex-nogrow flex-noshrink h100">
+      <div id="tablist"
+           v-show="!narrowPopup || sideMenuVisible"
+           class="flex flex-column flex-nogrow flex-noshrink h100"
+      >
         <div class="menu-item"
             :class="{'selected-tab': selectedTab === 'global'}"
             @click="selectTab('global')"
@@ -136,7 +144,11 @@
       </div>
 
       <!-- PANELS/CONTENT -->
-      <div id="tab-content" class="flex-grow h100 overflow-y-auto">
+      <div id="tab-content" 
+           v-show="!(narrowPopup && sideMenuVisible)"
+           class="flex-grow h100 overflow-y-auto"
+           :class="{'narrow-content': narrowPopup}"
+      >
         <VideoPanel v-if="settings?.active && selectedTab === 'video'"
                     class=""
                     :someSitesDisabledWarning="canShowVideoTab.warning"
@@ -206,6 +218,8 @@ export default {
       canShowVideoTab: {canShow: true, warning: true},
       showWhatsNew: false,
       BrowserDetect: BrowserDetect,
+      narrowPopup: null,
+      sideMenuVisible: null,
     }
   },
   async created() {
@@ -245,6 +259,16 @@ export default {
       await this.sleep(5000);
     } 
   },
+  async updated() {
+    const body = document.getElementsByTagName('body')[0];
+
+    // ensure that narrowPopup only gets set the first time the popup renders
+    // if popup was rendered before, we don't do anything because otherwise
+    // we'll be causing an unwanted re-render
+    if (this.narrowPopup === null) {
+      this.narrowPopup = body.offsetWidth < 600;
+    }
+  },
   components: {
     VideoPanel,
     DefaultSettingsPanel,
@@ -282,6 +306,7 @@ export default {
         this.settings.active.whatsNewChecked = true;
         this.settings.save();
       }
+      this.toggleSideMenu(false);
     },
     selectFrame(frame) {
       this.selectedFrame = frame;
@@ -476,6 +501,10 @@ export default {
     },
     selectSite(host) {
       this.selectedSite = host;
+    },
+    toggleSideMenu(visible) {
+      console.warn('toggling side menu visible to:', visible ?? !this.sideMenuVisible )
+      this.sideMenuVisible = visible ?? !this.sideMenuVisible;
     }
   }
 }
@@ -487,11 +516,20 @@ export default {
 <style src="../res/css/common.scss"></style>
 
 <style lang="scss" scoped>
-html, body {
-  width: 800px !important;
-  max-width: 800px !important;
+html {
+  // width: 800px !important;
+  // max-width: 800px !important;
   padding: 0px;
   margin: 0px;
+}
+
+.zero-width {
+  width: 0px !important;
+  overflow: hidden;
+}
+
+.header .header-small, .narrow-content {
+  padding: 8px;
 }
 
 #tablist {
@@ -509,6 +547,17 @@ html, body {
   padding-left: 15px;
   padding-bottom: 1px;
   font-size: 2.7em;
+}
+.header-small {
+  overflow: hidden;
+  background-color: #7f1416;
+  color: #fff;
+  margin: 0px;
+  margin-top: 0px;
+  padding-top: 8px;
+  padding-left: 15px;
+  padding-bottom: 1px;
+  font-size: 1.27em;
 }
 
 
@@ -606,5 +655,10 @@ html, body {
   right: 1.5rem;
   bottom: 0.85rem;
   font-size: 0.75rem;
+}
+
+.show-more {
+  padding-top: 12px;
+  font-size: 0.9rem;
 }
 </style>
