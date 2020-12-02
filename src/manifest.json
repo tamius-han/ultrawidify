@@ -47,7 +47,8 @@
     "ext/*",
     "res/fonts/*",
     "res/css/*",
-    "res/img/settings/about-bg.png"
+    "res/img/settings/about-bg.png",
+    "res/icons/*"
   ],
   "permissions": [
     "storage",
