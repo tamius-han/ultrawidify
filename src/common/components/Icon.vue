@@ -1,5 +1,5 @@
 <template>
-  <svg class="bi" width="1em" height="1em" fill="currentColor">
+  <svg class="bi icon" width="1em" height="1em" fill="currentColor">
     <use :xlink:href=" '' + iconHref" />
   </svg>
 </template>
@@ -22,4 +22,8 @@ export default {
 </script>
 
 <style scoped>
+.icon {
+  margin-left: 1em;
+  margin-right: 1em;
+}
 </style>
