@@ -34,7 +34,7 @@
         </div>
         <div class="flex flex-row flex-end w100">
           <div v-if="!showTextMode" class="button" @click="showTextMode = true">
-            Paste config ...
+            <Icon icon="clipboard-plus" style="font-size: 2em"></Icon>&nbsp; Paste config ...
           </div>
           <div v-else class="button" @click="showTextMode = false">
             Back
@@ -164,10 +164,12 @@ import Logger from '../ext/lib/Logger';
 import Comms from '../ext/lib/comms/Comms';
 import IO from '../common/js/IO';
 import JsonObject from '../common/components/JsonEditor/JsonObject';
+import Icon from '../common/components/Icon';
 
 export default {
   components: {
     JsonObject,
+    Icon,
   },
   data() {
     return {
