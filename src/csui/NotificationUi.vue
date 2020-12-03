@@ -59,7 +59,7 @@ export default {
       notificationText: "this is a test notification <b>with some html for bold measure</b>",
       notificationActions: null,
       showNotification: true,
-    }
+    };
   },
   ...mapState([
     'notificationConfig'
@@ -107,9 +107,15 @@ export default {
     }
   }
 }
+
 </script>
 
 <style lang="scss" scoped>
+@import '../res/css/colors.scss';
+@import '../res/css/font/overpass.css';
+@import '../res/css/font/overpass-mono.css';
+@import '../res/css/common.scss';
+
 .root-window {
   position: relative;
   width: 100%;
