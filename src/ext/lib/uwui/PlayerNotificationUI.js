@@ -1,13 +1,12 @@
 import UI from './UI';
 import VuexWebExtensions from 'vuex-webextensions';
-import VideoNotification from '../../../csui/VideoNotification';
+import VideoNotification from '../../../csui/NotificationUi';
 
-class PlayerNotification extends UI {
+class PlayerNotificationUi extends UI {
 
   constructor (
     playerElement
   ) {
-
     super(
       'notification',
       getStoreConfig(),
@@ -58,7 +57,7 @@ class PlayerNotification extends UI {
 
   getCommsConfig() {
     return {
-      handlers = {
+      handlers: {
         'show-notification': [(message) => this.showNotification(message)],
       }
     }
@@ -95,4 +94,4 @@ class PlayerNotification extends UI {
   }
 }
 
-export default PlayerNotification;
+export default PlayerNotificationUi;
