@@ -2,8 +2,9 @@ import Debug from '../../conf/Debug';
 import ExtensionMode from '../../../common/enums/extension-mode.enum'
 import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 
-if(Debug.debug)
-  console.log("Loading: PlayerData.js");
+if (process.env.CHANNEL !== 'stable'){
+  console.info("Loading: PlayerData.js");
+}
 
 /* sprejme <video> tag (element) in seznam imen, ki se lahko pojavijo v razredih oz. id staršev.
 // vrne dimenzije predvajalnika (širina, višina)
@@ -463,6 +464,10 @@ class PlayerData {
 
     return true;
   }
+}
+
+if (process.env.CHANNEL !== 'stable'){
+  console.info("PlayerData loaded");
 }
 
 export default PlayerData;

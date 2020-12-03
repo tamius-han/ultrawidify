@@ -9,7 +9,7 @@ import ExtensionConfPatch from '../conf/ExtConfPatches';
 import CropModePersistence from '../../common/enums/crop-mode-persistence.enum';
 
 if(process.env.CHANNEL !== 'stable'){
-  console.log("Loading Settings");
+  console.info("Loading Settings");
 }
 
 class Settings {
@@ -589,3 +589,7 @@ class Settings {
 }
 
 export default Settings;
+
+if(process.env.CHANNEL !== 'stable'){
+  console.info("Settings loaded");
+}
