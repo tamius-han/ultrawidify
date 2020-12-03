@@ -235,6 +235,8 @@ small {
   margin-bottom: 3px;
   color: $text-dim;
   text-align: center;
+  cursor: pointer;
+  user-select: none;;
 }
 
     
@@ -254,10 +256,6 @@ small {
 .button:hover {
   color: lighten($selected-color, 10%);
   background-color: lighten($background-selected, 10%);
-}
-
-.button {
-  cursor: pointer !important;
 }
 
 .disabled {
