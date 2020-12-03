@@ -123,11 +123,7 @@ class UwUi {
       return;
     }
 
-    try {
-      // Vue.prototype.$browser = global.browser;
-      // Vue.use(Vuex);
-      
-      this.vuexStore = createStore({
+    this.vuexStore = createStore({
         plugins: [
           VuexWebExtensions({
             persistentStates: [
@@ -171,9 +167,6 @@ class UwUi {
           }
         }
       });
-    } catch (e) {
-      console.error("Ultrawidify failed to initialize vue. Error:", e);
-    }
 
     // make sure we don't init twice
     this.vueInitiated = true;
@@ -194,7 +187,6 @@ class UwUi {
    
     try {
       createApp(LoggerUi)
-        .component('LoggerUi', LoggerUi)
         .use(this.vuexStore)
         .mount(`#${uwid}`);
 
