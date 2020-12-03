@@ -23,7 +23,7 @@ export default {
 
 <style scoped>
 .icon {
-  margin-left: 1em;
-  margin-right: 1em;
+  margin-left: 0.25em;
+  margin-right: 0.25em;
 }
 </style>
