@@ -10,7 +10,7 @@ import Logger from './lib/Logger';
 
 
 if(process.env.CHANNEL !== 'stable'){
-  console.warm("\n\n\n\n\n\n           ———    Sᴛλʀᴛɪɴɢ  Uʟᴛʀᴀᴡɪᴅɪꜰʏ    ———\n               <<   ʟᴏᴀᴅɪɴɢ ᴍᴀɪɴ ꜰɪʟᴇ   >>\n\n\n\n");
+  console.warn("\n\n\n\n\n\n           ———    Sᴛλʀᴛɪɴɢ  Uʟᴛʀᴀᴡɪᴅɪꜰʏ    ———\n               <<   ʟᴏᴀᴅɪɴɢ ᴍᴀɪɴ ꜰɪʟᴇ   >>\n\n\n\n");
   try {
     if(window.self !== window.top){
       console.info("%cWe aren't in an iframe.", "color: #afc, background: #174");

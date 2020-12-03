@@ -5,7 +5,7 @@ import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 import CropModePersistence from '../../../common/enums/crop-mode-persistence.enum';
 
 if (process.env.CHANNEL !== 'stable'){
-  console.log("Loading PageInfo");
+  console.info("Loading PageInfo");
 }
 
 class PageInfo {
@@ -621,6 +621,10 @@ class PageInfo {
       this.settings.saveWithoutReload();
     }
   }
+}
+
+if (process.env.CHANNEL !== 'stable'){
+  console.info("PageInfo loaded!");
 }
 
 export default PageInfo;

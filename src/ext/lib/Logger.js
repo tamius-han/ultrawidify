@@ -3,7 +3,7 @@ import { decycle } from 'json-cyclic';
 import Comms from './comms/Comms';
 
 if (process.env.CHANNEL !== 'stable'){
-  console.log('Loading Logger');
+  console.info('Loading Logger');
 }
 
 class Logger {
@@ -560,7 +560,7 @@ class Logger {
 }
 
 if (process.env.CHANNEL !== 'stable'){
-  console.log('Logger loaded');
+  console.info('Logger loaded');
 }
 
 export default Logger;
