@@ -10,15 +10,19 @@
         Build channel: {{BrowserDetect.processEnvChannel}}
       </div>
     </div>
-    <div v-if="narrowPopup" class="w100 text-center show-more">
-      <a v-show="!sideMenuVisible" href="#" @click="toggleSideMenu(true)">More options</a>
+    <div 
+      v-if="narrowPopup"
+      class="w100 show-more flex flex-row flex-center flex-cross-center menu-button"
+      @click="toggleSideMenu()"
+    >
+      <Icon icon="list" /><div>Menu</div>
     </div>
-
     <div class="flex flex-row body no-overflow flex-grow">
       <!-- TABS/SIDEBAR -->
       <div id="tablist"
            v-show="!narrowPopup || sideMenuVisible"
            class="flex flex-column flex-nogrow flex-noshrink h100"
+           :class="{'w100': narrowPopup}"
       >
         <div class="menu-item"
             :class="{'selected-tab': selectedTab === 'global'}"
@@ -179,6 +183,7 @@
 </template>
 
 <script>
+import Icon from '../common/components/Icon.vue'
 import WhatsNewPanel from './panels/WhatsNewPanel.vue';
 import SiteDetailsPanel from './panels/SiteDetailsPanel.vue';
 import Donate from '../common/misc/Donate.vue';
@@ -278,7 +283,7 @@ export default {
     AboutPanel,
     Donate,
     SiteDetailsPanel,
-    WhatsNewPanel,
+    WhatsNewPanel, Icon
   },
   methods: {
     async sleep(t) {
@@ -503,7 +508,7 @@ export default {
       this.selectedSite = host;
     },
     toggleSideMenu(visible) {
-      console.warn('toggling side menu visible to:', visible ?? !this.sideMenuVisible )
+      console.warn('toggling side menu visible to:', visible ?? !this.sideMenuVisible, "arg:", visible )
       this.sideMenuVisible = visible ?? !this.sideMenuVisible;
     }
   }
@@ -625,6 +630,7 @@ html {
   background-color: initial;
   border-left: #f0c089 3px solid !important;
 }
+
 .tabitem-selected::before {
   padding-right: 8px;
 }
@@ -636,6 +642,13 @@ html {
 .tabitem-iframe::after {
   content: "</>";
   padding-left: 0.33em;
+}
+
+.menu-button {
+  margin-bottom: 4px;
+  padding: 4px;
+  border-bottom: #f18810 1px solid !important;
+  font-size: 1.5rem !important;
 }
 
 .popup {
