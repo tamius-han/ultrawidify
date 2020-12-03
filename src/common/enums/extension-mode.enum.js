@@ -1,5 +1,5 @@
 if (process.env.CHANNEL !== 'stable') {
-  console.log('Loaded ExtensionMode');
+  console.info('Loading ExtensionMode');
 }
 
 
@@ -11,5 +11,9 @@ var ExtensionMode = Object.freeze({
   Basic: 2,
   Enabled: 3,
 });
+
+if (process.env.CHANNEL !== 'stable') {
+  console.info('Loaded ExtensionMode');
+}
 
 export default ExtensionMode;
