@@ -1,6 +1,11 @@
 import { createApp } from 'vue';
 import { createStore } from 'vuex';
 
+if (process.env.CHANNEL !== 'stable'){
+  console.info("Loading: UI");
+}
+
+
 class UI {
   constructor(
     interfaceId,
@@ -10,6 +15,10 @@ class UI {
   ) {
     this.interfaceId = interfaceId;
     this.commsConfig = commsConfig;
+    this.storeConfig = storeConfig,
+    this.uiConfig = uiConfig;
+
+    this.init();
   }
 
   async init() {
@@ -34,11 +43,13 @@ class UI {
 
   async initVue() {
     this.vuexStore = createStore(this.storeConfig);
+    this.initUi();
   }
 
   async initUi() {
     const random = Math.round(Math.random() * 69420);
-    const uwid = `uw-${this.interfaceId}-root-${random}`
+    // const uwid = `uw-${this.interfaceId}-root-${random}`
+    const uwid = 'not-so-random-id'
 
     const rootDiv = document.createElement('div');
     rootDiv.setAttribute('style', `position: ${uiConfig.style?.position ?? 'relative'}; width: ${uiConfig.style?.width ?? '100%'}; height: ${uiConfig.style?.height ?? '100%'}; ${uiConfig.additionalStyle}`);
@@ -72,5 +83,10 @@ class UI {
     this.element?.remove();
   }
 }
+
+if (process.env.CHANNEL !== 'stable'){
+  console.info("UI.js loaded");
+}
+
 
 export default UI;

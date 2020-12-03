@@ -41,6 +41,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import Icon from '../common/components/Icon';
 
 export default {

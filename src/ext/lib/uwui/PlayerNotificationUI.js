@@ -1,6 +1,11 @@
 import UI from './UI';
 import VuexWebExtensions from 'vuex-webextensions';
-import VideoNotification from '../../../csui/NotificationUi';
+import NotificationUi from '../../../csui/NotificationUi.vue';
+
+if (process.env.CHANNEL !== 'stable'){
+  console.info("Loading: PlayerNotificationUi");
+}
+
 
 class PlayerNotificationUi extends UI {
 
@@ -9,16 +14,16 @@ class PlayerNotificationUi extends UI {
   ) {
     super(
       'notification',
-      getStoreConfig(),
-      getUiConfig(playerElement),
-      getCommsConfig()
+      PlayerNotificationUi.getStoreConfig(),
+      PlayerNotificationUi.getUiConfig(playerElement),
+      PlayerNotificationUi.getCommsConfig()
     )
   }
 
 
   //#region constructor helpers
   // we will move some things out of the constructor in order to keep things clean
-  getStoreConfig() {
+  static getStoreConfig() {
     return {
       plugins: [
         VuexWebExtensions({
@@ -48,14 +53,14 @@ class PlayerNotificationUi extends UI {
     };
   }
 
-  getUiConfig(playerElement) {
+  static getUiConfig(playerElement) {
     return {
       parentElement: playerElement,
-      component: VideoNotification
+      component: NotificationUi
     }
   }
 
-  getCommsConfig() {
+  static getCommsConfig() {
     return {
       handlers: {
         'show-notification': [(message) => this.showNotification(message)],
@@ -93,5 +98,10 @@ class PlayerNotificationUi extends UI {
     this.vuexStore?.dispatch('uw-set-notification', notificationConfig);
   }
 }
+
+if (process.env.CHANNEL !== 'stable'){
+  console.info("PlayerNotificationUi loaded");
+}
+
 
 export default PlayerNotificationUi;
