@@ -1,6 +1,7 @@
 import Debug from '../../conf/Debug';
 import ExtensionMode from '../../../common/enums/extension-mode.enum'
 import AspectRatio from '../../../common/enums/aspect-ratio.enum';
+import PlayerNotificationUi from '../uwui/PlayerNotificationUI';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: PlayerData.js");
@@ -43,6 +44,7 @@ class PlayerData {
       this.extensionMode = videoData.extensionMode;
       this.invalid = false;
       this.element = this.getPlayer();
+      this.notificationService = new PlayerNotificationUi(this.element);
       this.dimensions = undefined;
       this.overlayNode = undefined;
 
@@ -97,6 +99,7 @@ class PlayerData {
   destroy() {
     this.stopChangeDetection();
     this.destroyOverlay();
+    this.notificationService?.destroy();
   }
 
   startChangeDetection(){
@@ -218,6 +221,11 @@ class PlayerData {
         fullscreen: isFullScreen
       };
 
+
+      // NOTE: it's possible that notificationService hasn't been initialized yet at this point.
+      //       no biggie if it wasn't, we just won't replace the notification UI
+      this.notificationService?.replace(player);
+    
       // actually re-calculate zoom when player size changes, but only if videoData.resizer
       // is defined. Since resizer needs a PlayerData object to exist, videoData.resizer will
       // be undefined the first time this function will run.
