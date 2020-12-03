@@ -15,7 +15,9 @@
       class="w100 show-more flex flex-row flex-center flex-cross-center menu-button"
       @click="toggleSideMenu()"
     >
-      <Icon icon="list" /><div>Menu</div>
+      <Icon v-if="!sideMenuVisible" icon="list" />
+      <Icon v-else icon="x" />
+      <div>Menu</div>
     </div>
     <div class="flex flex-row body no-overflow flex-grow">
       <!-- TABS/SIDEBAR -->
@@ -270,7 +272,11 @@ export default {
     // ensure that narrowPopup only gets set the first time the popup renders
     // if popup was rendered before, we don't do anything because otherwise
     // we'll be causing an unwanted re-render
-    if (this.narrowPopup === null) {
+    // 
+    // another thing worth noting — the popup gets first initialized with
+    // offsetWidth set to 0. This means proper popup will be displayed as a
+    // mini popup if we don't check for that.
+    if (this.narrowPopup === null && body.offsetWidth > 0) {
       this.narrowPopup = body.offsetWidth < 600;
     }
   },
@@ -649,6 +655,8 @@ html {
   padding: 4px;
   border-bottom: #f18810 1px solid !important;
   font-size: 1.5rem !important;
+  cursor: pointer;
+  user-select: none;;
 }
 
 .popup {
