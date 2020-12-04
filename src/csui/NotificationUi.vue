@@ -1,5 +1,5 @@
 <template>
-  <div v-if="showNotification" class="root-window flex flex-column overflow-hidden">
+  <div v-if="showNotification" class="uw-ultrawidify-container flex flex-column overflow-hidden">
     <div class="notification-popup flex flex-row">
       <div v-if="notificationIcon" class="flex-nogrow flex-noshrink notification-icon">
         <Icon
@@ -116,22 +116,22 @@ export default {
 @import '../res/css/font/overpass-mono.css';
 @import '../res/css/common.scss';
 
-.root-window {
+.uw-ultrawidify-container {
   position: relative;
   width: 100%;
   height: 100%;
-}
 
-.notification-popup {
-  position: absolute;
-  z-index: 99999999;
-  background-color: rgba(0,0,0,0.88);
-  top: 2rem;
-  left: 2rem;
-  width: 15rem;
-  color: #fff;
-}
-.notification-icon {
-  font-size: 3rem;
+  .notification-popup {
+    position: absolute;
+    z-index: 99999999;
+    background-color: rgba(108, 55, 12, 0.779);
+    top: 2rem;
+    left: 2rem;
+    width: 15rem;
+    color: #fff;
+  }
+  .notification-icon {
+    font-size: 3rem;
+  }
 }
 </style>
