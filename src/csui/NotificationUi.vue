@@ -5,11 +5,10 @@
         <Icon
           class="flex-nogrow flex-noshrink"
           :icon="notificationIcon"
-          @click="closeNotification()"
         >
         </Icon>
       </div>
-      <div class="notification-context flex-grow flex-shrink flex flex-column">
+      <div class="notification-content flex-grow flex-shrink flex flex-column flex-cross-center">
         <div
           class="notification-text"
           v-html="notificationText"
@@ -21,18 +20,41 @@
         >
           <div 
             v-for="action of notificationActions"
+            class="action-button"
             :key="action"
             @click="action.command"
           >
             <Icon v-if="action.icon" :icon="action.icon"></Icon>{{action.label}}
           </div>
         </div>
+        <div 
+          v-if="hideActions"
+          class="hide-actions"
+        >
+          Never show again:<wbr>&nbsp;
+          <template 
+            v-for="action of hideActions"
+            :key="action"
+          >
+            <i @click="closeNotification">
+              <a 
+                class="hide-action-button"
+                @click="action.command"
+              >
+                {{action.label}}
+              </a>
+              <wbr>&nbsp;
+            </i>
+          </template>
+        </div>
       </div>
-      <div class="notification-icon">
+      <div
+        class="notification-icon action-button"
+          @click="closeNotification()"
+      >
         <Icon
           class="flex-nogrow flex-noshrink"
           icon="x"
-          @click="closeNotification()"
         >
         </Icon>
       </div>
@@ -50,20 +72,19 @@ export default {
   },
   data() {
     return {
-      // notificationIcon: null,
-      // notificationText: null,
-      // notificationActions: null,
-      // showNotification: false,
       notificationTimeout: null,
       notificationIcon: "exclamation-triangle",
-      notificationText: "this is a test notification <b>with some html for bold measure</b>",
+      notificationText: "<b>Sample text.</b> This will be replaced with real notification later.",
       notificationActions: null,
-      showNotification: true,
+      hideActions: null,
+      showNotification: false,
     };
   },
-  ...mapState([
-    'notificationConfig'
-  ]),
+  computed: {
+    ...mapState([
+      'notificationConfig'
+    ]),
+  },
   watch: {
     /**
      * Sets new notification config. Currently, we can only show one notification at a time.
@@ -79,31 +100,39 @@ export default {
      *        label: label of the button
      *        icon: icon of the button
      *      }
+     *    ],
+     *    hideOptions: [
+     *      // more of notificationActions except it's a special case
      *    ]
      * }
      */
     notificationConfig(newConfig) {
+      console.log('notificationConfig?');
       if (newConfig) {
         this.notificationText = newConfig.text;
         this.notificationActions = newConfig.notificationActions;
         this.notificationIcon = newConfig.icon;
+        this.hideActions = newConfig.hideActions;
 
         this.showNotification = true;
 
         if (newConfig.timeout !== -1) {
-          this.notificationTimeout = setTimeout(() => this.closeNotification(), newConfig.timeout ?? 10000);
+          this.notificationTimeout = setTimeout(() => this.closeNotification(), newConfig.timeout ?? 5000);
         }
       }
     }
   },
   methods: {
     closeNotification() {
+      console.log("close notification!")
+
       clearTimeout(this.notificationTimeout);
 
       this.showNotification = false;
       this.notificationIcon = null;
       this.notificationText = null;
       this.notificationActions = null;
+      this.hideActions = null;
     }
   }
 }
@@ -120,18 +149,62 @@ export default {
   position: relative;
   width: 100%;
   height: 100%;
+  pointer-events: none;
+
+  font-size: 16px;
 
   .notification-popup {
+    pointer-events: auto !important;
     position: absolute;
     z-index: 99999999;
+    top: 2em;
+    right: 2em;
+    width: 32em;
+
+    padding: 0.7em 0.5em;
+
+    font-family: 'Overpass';
+
     background-color: rgba(108, 55, 12, 0.779);
-    top: 2rem;
-    left: 2rem;
-    width: 15rem;
     color: #fff;
+
+    user-select: none;
   }
+
+  .notifcation-content {
+    margin-left: 0.5em;
+  }
+
+  .notification-text {
+    text-align: justify;
+  }
+  
   .notification-icon {
-    font-size: 3rem;
+    font-size: 3em;
+    line-height: 0.5;
+  }
+  .action-button {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+
+  .hide-actions {
+    color: #ccc;
+    font-size: 0.8em;
+    justify-self: flex-end;
+    align-self: flex-end;
+    margin-top: 1em;
+    margin-bottom: -1em;
+  }
+
+  .hide-action-button {
+    color: #eee;
+    font-size: 0.9em;
+    text-decoration: underline;
+    text-decoration-color: rgba(255,255,255,0.5);
+
+    pointer-events: auto;
+    cursor: pointer;
   }
 }
 </style>
