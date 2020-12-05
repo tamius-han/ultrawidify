@@ -19,8 +19,9 @@
 
   "content_scripts": [{
     "matches": ["*://*/*"],
-    "js": [      
-      "ext/uw.js" 
+    "js": [ 
+      "common/lib/browser-polyfill.js",
+      "ext/uw.js"
     ],
     "css": [
       "ext/uw-ui.css",
