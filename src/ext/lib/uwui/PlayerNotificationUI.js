@@ -1,23 +1,31 @@
 import UI from './UI';
 import VuexWebExtensions from 'vuex-webextensions';
 import NotificationUi from '../../../csui/NotificationUi.vue';
+import Notifications from '../../../common/data/notifications';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: PlayerNotificationUi");
 }
 
+let MuteScope = Object.freeze({
+  CurrentSite: 'current-site',
+  Global: 'global'
+});
 
 class PlayerNotificationUi extends UI {
 
   constructor (
-    playerElement
-  ) {
+    playerElement,
+    settings
+  ) {    
     super(
       'notification',
       PlayerNotificationUi.getStoreConfig(),
       PlayerNotificationUi.getUiConfig(playerElement),
       PlayerNotificationUi.getCommsConfig()
-    )
+    );
+
+    this.settings = settings;
   }
 
 
@@ -42,11 +50,13 @@ class PlayerNotificationUi extends UI {
       },
       mutations: {
         'uw-set-notification'(state, payload) {
+          console.log('mutation!', state, payload);
           state['notificationConfig'] = payload;
         }
       },
       actions: {
         'uw-set-notification'({commit}, payload) {
+          console.log('action!', commit, payload);
           commit('uw-set-notification', payload);
         }
       }
@@ -78,7 +88,7 @@ class PlayerNotificationUi extends UI {
   /**
    * Show notification on screen.
    * 
-   * @param notificationConfig notification config
+   * @param notificationConfig notification config (or ID of notification config in /common/data/notifications.js)
    * 
    * notificationConfig should resemble this:
    * {
@@ -91,11 +101,79 @@ class PlayerNotificationUi extends UI {
    *        label: label of the button
    *        icon: icon of the button
    *      }
+   *    ],
+   *    hideActions: [
+   *      // more of notificationActions but with special case
    *    ]
    * }
+   * 
+   * When notificationConfig is a string, the function will add two additional notifications on the notificationActionsPile
+   *    * never show this notification ever again on any site
+   *    * never show this notification again on this site
    */
   showNotification(notificationConfig) {
-    this.vuexStore?.dispatch('uw-set-notification', notificationConfig);
+    if (typeof notificationConfig === 'string') {
+      try {
+        const config = Notifications[notificationConfig];
+
+        // this should _never_ appear on production version of the extension, but it should help with development.
+        if (!config) {
+          return this.vuexStore?.dispatch('uw-set-notification', {
+            icon: 'x-circle-fill',
+            text: `Notification for key ${notificationConfig} does not exist.`,
+            timeout: -1,
+          });
+        }
+
+        // don't show notification if it's muted
+        if (this.isNotificationMuted(notificationConfig)) {
+          return;
+        }
+
+        this.vuexStore?.dispatch('uw-set-notification', {
+          ...config,
+          hideActions: [
+            {
+              command: () => this.muteNotification(notificationConfig, MuteScope.CurrentSite),
+              label: 'this site'
+            },
+            {
+              command: () => this.muteNotification(notificationConfig, MuteScope.Global),
+              label: 'never ever'
+            }
+          ]
+        });
+      } catch (e) {
+        console.error('theres been an error:', e)
+      }
+    } else {
+      this.vuexStore?.dispatch('uw-set-notification', notificationConfig);
+    }
+  }
+
+  muteNotification(notificationId, scope) {
+    // ensure objects we try to set exist
+    if (!this.settings.active.mutedNotifications) {
+      this.settings.active.mutedNotifications = {};
+    }
+    if (!this.settings.active.mutedNotifications[notificationId]) {
+      this.settings.active.mutedNotifications[notificationId] = {};
+    }
+
+    // actually mute notification
+    if (scope === MuteScope.Global) {
+      this.settings.active.mutedNotifications[notificationId].$global = true;
+    } else {
+      this.settings.active.mutedNotifications[notificationId][window.location.hostname] = true;
+    }
+
+    // persist settings
+    this.settings.saveWithoutReload();
+  }
+
+  isNotificationMuted(notificationId) {
+    return this.settings.active.mutedNotifications?.[notificationId]?.$global 
+      || this.settings.active.mutedNotifications?.[notificationId]?.[window.location.hostname];
   }
 }
 

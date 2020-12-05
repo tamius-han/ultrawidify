@@ -38,19 +38,12 @@ class UI {
 
   async initUi() {
     const random = Math.round(Math.random() * 69420);
-    // const uwid = `uw-${this.interfaceId}-root-${random}`
-    const uwid = 'not-so-random-id'
+    const uwid = `uw-${this.interfaceId}-root-${random}`
 
     const rootDiv = document.createElement('div');
 
-    try {
-      rootDiv.setAttribute('style', `position: ${this.uiConfig.style?.position ?? 'relative'}; width: ${this.uiConfig.style?.width ?? '100%'}; height: ${this.uiConfig.style?.height ?? '100%'}; ${this.uiConfig.additionalStyle ?? ''}`);
-      rootDiv.setAttribute('id', uwid);
-    } catch (e) {
-      console.error("ERROR:", e)
-    }
-
-    console.warn('UI: init 3', this.uiConfig);
+    rootDiv.setAttribute('style', `position: ${this.uiConfig.style?.position ?? 'relative'}; width: ${this.uiConfig.style?.width ?? '100%'}; height: ${this.uiConfig.style?.height ?? '100%'}; ${this.uiConfig.additionalStyle ?? ''}`);
+    rootDiv.setAttribute('id', uwid);
 
 
     if (this.uiConfig?.parentElement) {
