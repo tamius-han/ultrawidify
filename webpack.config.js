@@ -86,6 +86,9 @@ const config = {
       { from: 'res', to: 'res', ignore: ['css', 'css/**']},
       { from: 'ext', to: 'ext', ignore: ['conf/*', 'lib/**']},
 
+      // we need to get webextension-polyfill and put it in common/lib
+      { from: '../node_modules/webextension-polyfill/dist/browser-polyfill.js', to: 'common/lib/browser-polyfill.js'},
+
       // This is a hack to get bootstrap icons svg file in /res/icons
       { from: '../node_modules/bootstrap-icons/bootstrap-icons.svg', to: 'res/icons/bootstrap-icons.svg'},
 
