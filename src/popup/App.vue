@@ -1,6 +1,16 @@
 <template>
+  <!--
+    NOTE — the code that makes ultrawidify popup work in firefox regardless of whether the
+    extension is being displayed in a normal or a small/overflow popup breaks the popup
+    behaviour on Chrome (where the popup would never reach the full width of 800px)
+
+    Since I'm tired and the hour is getting late, we'll just add an extra CSS class for
+    non-firefox builds of this extension and be done with it. No need to complicate things
+    further than that.
+  -->
   <div v-if="settingsInitialized" 
        class="popup flex flex-column no-overflow"
+       :class="{'popup-chrome': ! BrowserDetect.firefox}"
   >
     <div class="flex-row flex-nogrow flex-noshrink relative"
          :class="{'header': !narrowPopup, 'header-small': narrowPopup}"
@@ -289,7 +299,8 @@ export default {
     AboutPanel,
     Donate,
     SiteDetailsPanel,
-    WhatsNewPanel, Icon
+    WhatsNewPanel,
+    Icon,
   },
   methods: {
     async sleep(t) {
@@ -660,9 +671,25 @@ html {
 }
 
 .popup {
-  // max-width: 780px;
-  // width: 800px;
   height: 600px;
+}
+
+/**
+  This was written at the top, but it's worth repeating.
+
+  NOTE — the code that makes ultrawidify popup work in firefox regardless of whether the
+  extension is being displayed in a normal or a small/overflow popup breaks the popup
+  behaviour on Chrome (where the popup would never reach the full width of 800px)
+
+  Since I'm tired and the hour is getting late, we'll just add an extra CSS class for
+  non-firefox builds of this extension and be done with it. No need to complicate things
+  further than that.
+
+  It also seems that Chrome doesn't like if we set the width of the popup all the way to 
+  800px (probably something something scrollbar), so let's just take away a few px.
+ */
+.popup-chrome {
+  width: 780px !important;
 }
 
 .relative {
