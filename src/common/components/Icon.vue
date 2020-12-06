@@ -1,5 +1,5 @@
 <template>
-  <svg class="bi icon" width="1em" height="1em" fill="currentColor">
+  <svg class="bi icon" width="1em" height="1em" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
     <use :xlink:href=" '' + iconHref" />
   </svg>
 </template>
