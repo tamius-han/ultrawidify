@@ -5,13 +5,17 @@
 </template>
 
 <script>
+import BrowserDetect from '../../ext/conf/BrowserDetect';
+
 export default {
   props: {
     icon: String,
   },
   data() {
+    // note — webextension-polyfill is not gonna save us here.
+    //        been there, tried that.
     return {
-      bootstrapIconsBasePath: (browser ?? chrome).runtime.getURL('/res/icons/bootstrap-icons.svg'),
+      bootstrapIconsBasePath: (BrowserDetect.firefox ? browser : chrome).runtime.getURL('/res/icons/bootstrap-icons.svg'),
       iconHref: '',
     };
   },
