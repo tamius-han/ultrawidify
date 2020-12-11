@@ -182,6 +182,7 @@ class UwUi {
     const rootDiv = document.createElement('div');
     rootDiv.setAttribute("style", "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999;");
     rootDiv.setAttribute("id", uwid);
+    rootDiv.classList.add('uw-ultrawidify-container-root');
 
     document.body.appendChild(rootDiv);
    

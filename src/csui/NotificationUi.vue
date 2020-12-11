@@ -145,7 +145,7 @@ export default {
 @import '../res/css/font/overpass-mono.css';
 @import '../res/css/common.scss';
 
-.uw-ultrawidify-container {
+.uw-ultrawidify-container-root {
   position: relative;
   width: 100%;
   height: 100%;
