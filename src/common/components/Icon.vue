@@ -25,9 +25,11 @@ export default {
 }
 </script>
 
-<style scoped>
-.icon {
-  margin-left: 0.25em;
-  margin-right: 0.25em;
+<style lang="scss" scoped>
+.uw-ultrawidify-container-root {
+  .icon {
+    margin-left: 0.25em;
+    margin-right: 0.25em;
+  }
 }
 </style>

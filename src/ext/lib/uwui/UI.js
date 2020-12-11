@@ -44,7 +44,7 @@ class UI {
 
     rootDiv.setAttribute('style', `position: ${this.uiConfig.style?.position ?? 'absolute'}; width: ${this.uiConfig.style?.width ?? '100%'}; height: ${this.uiConfig.style?.height ?? '100%'}; top: ${this.uiConfig.style?.height ?? '0'}; ${this.uiConfig.additionalStyle ?? ''}`);
     rootDiv.setAttribute('id', uwid);
-
+    rootDiv.classList.add('uw-ultrawidify-container-root');
 
     if (this.uiConfig?.parentElement) {
       this.uiConfig.parentElement.appendChild(rootDiv);
