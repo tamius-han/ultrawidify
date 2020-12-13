@@ -222,15 +222,14 @@ class PlayerData {
         fullscreen: isFullScreen
       };
 
-
-      // NOTE: it's possible that notificationService hasn't been initialized yet at this point.
-      //       no biggie if it wasn't, we just won't replace the notification UI
-      this.notificationService?.replace(player);
-    
       // actually re-calculate zoom when player size changes, but only if videoData.resizer
       // is defined. Since resizer needs a PlayerData object to exist, videoData.resizer will
       // be undefined the first time this function will run.
       this.videoData.resizer?.restore();
+
+      // NOTE: it's possible that notificationService hasn't been initialized yet at this point.
+      //       no biggie if it wasn't, we just won't replace the notification UI
+      this.notificationService?.replace(this.element);
     }
   }
 
