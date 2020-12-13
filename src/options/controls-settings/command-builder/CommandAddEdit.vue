@@ -49,8 +49,8 @@
       </div>
 
       <!-- CUSTOM ARGUMENT INPUT -->
-      <div v-if="selectedArgument && selectedArgument.customArg"
-        class="flex flex-row">
+      <div v-if="selectedArgument && selectedArgument.customArg">
+        <div class="flex flex-row">
         <div class="flex label-secondary form-label">
           <span class="w100">
             {{selectedArgument.name}}:
@@ -62,6 +62,11 @@
                   :value="customArgumentValue"
                   @input="setCustomValue($event.target.value, selectedArgument.customSetter)"
           >
+        </div>
+        </div>
+        <div class="flex flex-row">
+          <div v-if="selectedArgument.hintHTML" v-html="selectedArgument.hintHTML">
+          </div>
         </div>
       </div>
 
