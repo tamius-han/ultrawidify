@@ -140,6 +140,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '../res/css/uwui-base.scss';
 @import '../res/css/colors.scss';
 @import '../res/css/font/overpass.css';
 @import '../res/css/font/overpass-mono.css';
@@ -151,7 +152,13 @@ export default {
   height: 100%;
   pointer-events: none;
 
-  font-size: 16px;
+  display: block !important;
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none !important;
+
+  font-size: 16px !important;
 
   .notification-popup {
     pointer-events: auto !important;
