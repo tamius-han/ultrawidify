@@ -88,7 +88,8 @@ export default {
 </script>
 
 <style scoped>
-.icon {
+
+.bi.icon {
   margin-left: 0.25em;
   margin-right: 0.25em;
 }

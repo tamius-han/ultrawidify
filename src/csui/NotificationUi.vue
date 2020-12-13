@@ -181,6 +181,8 @@ export default {
 
   .notification-text {
     text-align: justify;
+    padding-left: 0.5em;
+    padding-right: 0.25em;
   }
   
   .notification-icon {
