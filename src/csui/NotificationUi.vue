@@ -107,7 +107,6 @@ export default {
      * }
      */
     notificationConfig(newConfig) {
-      console.log('notificationConfig?');
       if (newConfig) {
         this.notificationText = newConfig.text;
         this.notificationActions = newConfig.notificationActions;
@@ -124,8 +123,6 @@ export default {
   },
   methods: {
     closeNotification() {
-      console.log("close notification!")
-
       clearTimeout(this.notificationTimeout);
 
       this.showNotification = false;
