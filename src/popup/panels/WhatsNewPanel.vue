@@ -16,6 +16,14 @@
       <li>
         (In Firefox) When extension was placed in overflow menu, the popup was cut off. That should be fixed now. (<a href="https://github.com/tamius-han/ultrawidify/issues/119">#119</a>)
       </li>
+      <li>
+        The extension will now show a notification when autodetection can't run due to DRM.
+      </li>
+      <li>
+        Videos on facebook and reddit no longer get shifted up and to the left for me (cropping most of the video off-screen), but I haven't been
+        deliberately trying to fix that issue. If you experience that issue, please consider contacting me (via github or email) with a link to a
+        problematic video.
+      </li>
     </ul>
   </div>
 </template>
