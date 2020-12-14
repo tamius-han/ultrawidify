@@ -1,19 +1,22 @@
 # Changelog
 
-## v4.x
+
 
 ### Plans for the future
 
-* WebGL
-* Native builds for Chromium Edge and Opera
+* Native builds for Chromium Edge
 * Settings page looks ugly af right now. Maybe fix it some time later
 * other bug fixes
 
-QoL improvements for me:
+## v5.0 (planned major)
 
-* logging: allow to enable logging at will and export said logs to a file
+ * WebGL autodetection
+ * in-player GUI
+ * Fix UI logger
 
-### v4.5.0
+## v4.x (current major)
+
+### v4.5.0 (Current)
 
 * Under the hood: migrated from vue2 to vue3, because optional chaining in templates is too OP.
 * (On options page, section 'Action &amp; shortcuts') Manual aspect ratio now supports entering custom ratios using '21/9' and '2.39:1' formats (as opposed to single number, e.g. '2.39') — [#121](https://github.com/tamius-han/ultrawidify/issues/121).
@@ -22,7 +25,7 @@ QoL improvements for me:
 * The extension will now show a notification when autodetection can't run due to DRM
 * Videos on facebook and reddit no longer get shifted up and to the left for me (cropping most of the video off-screen), but I haven't been deliberately trying to fix that issue. If you experience that issue, please consider contacting me (via github or email) with a link to a problematic video.
 
-### v4.4.10 (Current)
+### v4.4.10 
 
 * Video alignment should now work on Twitch — [#109](https://github.com/tamius-han/ultrawidify/issues/109)
 * Videos should now align properly on Hulu while cropped — [#111](https://github.com/tamius-han/ultrawidify/issues/111) & via email
