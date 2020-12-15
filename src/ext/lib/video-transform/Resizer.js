@@ -301,7 +301,19 @@ class Resizer {
       this.logger.log('error', 'debug', '[Resizer::setAr] Okay wtf happened? If you see this, something has gone wrong', stretchFactors,"\n------[ i n f o   d u m p ]------\nstretcher:", this.stretcher);
     }
 
+    const debugObject = {
+      stretch: {
+        x: stretchFactors.xFactor,
+        y: stretchFactors.yFactor
+      }
+    };
+
     this.zoom.applyZoom(stretchFactors);
+
+    debugObject['stretchAfterZoom'] = {
+      x: stretchFactors.xFactor,
+      y: stretchFactors.yFactor
+    }
 
     var translate = this.computeOffsets(stretchFactors);
     this.applyCss(stretchFactors, translate);
@@ -514,8 +526,24 @@ class Resizer {
   computeOffsets(stretchFactors){
     this.logger.log('info', 'debug', "[Resizer::computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.settings.active.sites['@global'].videoAlignment);
 
+    const debugObject = {};
+
     const {realVideoWidth, realVideoHeight, marginX, marginY} = this.computeVideoDisplayedDimensions();
 
+    debugObject['videoRawData'] = {
+      streamDimensions: {
+        x: this.conf.video.videoWidth,
+        y: this.conf.video.videoHeight
+      },
+      displayedSize: {
+        x: realVideoWidth,
+        y: realVideoHeight
+      },
+      videoElementSize: {
+        x: this.conf.video.offsetWidth,
+        y: this.conf.video.offsetHeight
+      }
+    }
 
     const wdiff = this.conf.player.dimensions.width - realVideoWidth;
     const hdiff = this.conf.player.dimensions.height - realVideoHeight;
@@ -527,13 +555,21 @@ class Resizer {
     const wdiffAfterZoom = realVideoWidth * stretchFactors.xFactor - this.conf.player.dimensions.width;
     const hdiffAfterZoom = realVideoHeight * stretchFactors.yFactor - this.conf.player.dimensions.height;
     
+    debugObject['sizeDifferenceToPlayer'] = {
+      beforeZoom: {
+        wdiff,
+        hdiff
+      },
+      afterZoom: {
+        wdiff: wdiffAfterZoom,
+        hdiff: hdiffAfterZoom,
+      }
+    }
+
     const translate = {
       x: wdiff * 0.5,
       y: hdiff * 0.5,
     };
-
-    
-    
 
     if (this.pan) {
       // don't offset when video is smaller than player
@@ -549,6 +585,15 @@ class Resizer {
         translate.x -= wdiffAfterZoom * 0.5;
       }
     }
+
+    debugObject['videoTranslation'] = {
+      alignment: VideoAlignment.toString(this.videoAlignment),
+      panningEnabled: !!this.pan,
+      x: translate.x,
+      y: translate.y,
+    }
+
+    this.conf.player.ui?.updateDebugInfo('resizer', debugObject);
   
     this.logger.log('info', ['debug', 'resizer'], "[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> calculated offsets:\n\n",
                     '---- data in ----',
