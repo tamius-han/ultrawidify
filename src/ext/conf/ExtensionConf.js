@@ -1039,19 +1039,6 @@ var ExtensionConf = {
       videoAlignment: VideoAlignment.Default,
       keyboardShortcutsEnabled: ExtensionMode.Default,
       arPersistence: true,              // persist aspect ratio between different videos
-      autoarPreventConditions: {        // prevents autoar on following conditions
-        videoStyleString: {             // if video style string thing does anything of what follows
-          containsProperty: {           // if video style string has any of these properties (listed as keys)
-            'height': {                 // if 'height' property is present in style attribute, we prevent autoar from running
-              allowedValues: [          // unless attribute is equal to anything in here. Optional.
-                '100%'
-              ]
-            }
-            // 'width': true            // this would prevent aard from running if <video> had a 'width' property in style, regardless of value
-                                        // could also be an empty object, in theory.
-          }
-        }
-      },
       "DOM": {
         "player": {
           "manual": true,
@@ -1071,19 +1058,6 @@ var ExtensionConf = {
       videoAlignment: VideoAlignment.Default,
       keyboardShortcutsEnabled: ExtensionMode.Default,
       arPersistence: true,              // persist aspect ratio between different videos
-      autoarPreventConditions: {        // prevents autoar on following conditions
-        videoStyleString: {             // if video style string thing does anything of what follows
-          containsProperty: {           // if video style string has any of these properties (listed as keys)
-            'height': {                 // if 'height' property is present in style attribute, we prevent autoar from running
-              allowedValues: [          // unless attribute is equal to anything in here. Optional.
-                '100%'
-              ]
-            }
-            // 'width': true            // this would prevent aard from running if <video> had a 'width' property in style, regardless of value
-                                        // could also be an empty object, in theory.
-          }
-        }
-      },
       DOM: {
         "player": {
           "manual": true,
