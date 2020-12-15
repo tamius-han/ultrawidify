@@ -406,6 +406,18 @@ const ExtensionConfPatch = [
         }
       }
     }
+  }, {
+    forVersion: '4.5.0.1',
+    updateFn: (userOptions, defaultOptions) => {
+      for (const site in userOptions.sites) {
+        try {
+          delete userOptions[sites].autoarPreventConditions
+        } catch (e) {
+          // doesn't matter if site doesn't have that option,
+          // everything is still fine
+        }
+      }
+    }
   }
 ];
 
