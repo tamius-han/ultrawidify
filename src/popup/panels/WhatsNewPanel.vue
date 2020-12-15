@@ -24,6 +24,9 @@
         deliberately trying to fix that issue. If you experience that issue, please consider contacting me (via github or email) with a link to a
         problematic video.
       </li>
+      <li>
+        <b>[4.5.0.1]</b> Fixes for netflix alignment issues.
+      </li>
     </ul>
   </div>
 </template>
