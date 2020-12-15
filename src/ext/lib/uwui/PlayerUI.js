@@ -40,7 +40,9 @@ class PlayerUi extends UI {
       plugins: [
         VuexWebExtensions({
           persistentStates: [
-            'showUi'
+            'showUi',
+            'resizerDebugData',
+            'playerDebugData',
           ],
         }),
       ],
@@ -53,7 +55,13 @@ class PlayerUi extends UI {
         },
         'uw-set-ui-visible'(state, payload) {
           state['showUi'] = payload;
-        }
+        },
+        'uw-set-player-debug-data'(state, payload) {
+          state['playerDebugData'] = payload;
+        },
+        'uw-set-resizer-debug-data'(state, payload) {
+          state['resizerDebugData'] = payload;
+        },
       },
       actions: {
         'uw-set-ui-visible'({commit}, payload) {
@@ -62,7 +70,13 @@ class PlayerUi extends UI {
         },
         'uw-toggle-ui'({commit}) {
           commit('uw-toggle-ui');
-        }
+        },
+        'uw-set-player-debug-data'({commit}, payload) {
+          commit('uw-set-player-debug-data ', payload);
+        },
+        'uw-set-resizer-debug-data'({commit}, payload) {
+          commit('uw-set-resizer-debug-data ', payload);
+        },
       }
     };
   }
@@ -88,6 +102,12 @@ class PlayerUi extends UI {
   //#region lifecycle
   replace(playerElement) {
     super.replace(this.getUiConfig(playerElement));
+  }
+  //#endregion
+
+  //#region debug methods
+  updateDebugInfo(component, data) {
+    this.vuexStore?.dispatch(`uw-set-${component}-debug-data`, data);
   }
   //#endregion
 }

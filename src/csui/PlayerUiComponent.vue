@@ -14,12 +14,18 @@ export default {
   },
   data() {
     return {
-      uiVisible: true
+      uiVisible: true,
+      debugData: {
+        resizer: {},
+        player: {},
+      }
     };
   },
   computed: {
     ...mapState([
-      'showUi'
+      'showUi',
+      'resizerDebugData',
+      'playerDebugData'
     ]),
   },
   watch: {
@@ -27,6 +33,12 @@ export default {
       if (visible !== undefined) {
         this.uiVisible = visible;
       }
+    },
+    resizerDebugData(newData) {
+      this.debugData.resizer = newData;
+    },
+    playerDebugData(newData) {
+      this.debugData.player = newData;
     }
   },
   created() {
