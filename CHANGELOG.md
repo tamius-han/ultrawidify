@@ -24,6 +24,7 @@
 * (In Firefox) When extension was placed in overflow menu, the popup was cut off. That should be fixed now. [#119](https://github.com/tamius-han/ultrawidify/issues/119)
 * The extension will now show a notification when autodetection can't run due to DRM
 * Videos on facebook and reddit no longer get shifted up and to the left for me (cropping most of the video off-screen), but I haven't been deliberately trying to fix that issue. If you experience that issue, please consider contacting me (via github or email) with a link to a problematic video.
+* **[4.5.0.1]** Fixed the misalignment issue on netflix ... 
 
 ### v4.4.10 
 
