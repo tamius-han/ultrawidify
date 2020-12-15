@@ -1,6 +1,10 @@
 <template>
   <div class="uw-hover uv-hover-trigger-region">
     TEST CONTENT
+
+    <div>
+      {{debugData}}
+    </div>
   </div>
 </template>
 
