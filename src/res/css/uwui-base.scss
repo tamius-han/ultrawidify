@@ -17,6 +17,7 @@
   height: 100%;
   top: 0;
   left: 0;
+  font-size: 16px;
 
   // Ensure we're display:block
   display: block;
@@ -24,4 +25,23 @@
   // we are click-through by default:
   pointer-events: none;
 
+  // defaults for some common elements:
+  p,h1,h2,h3,h4,h5,h6 {
+    display: block;
+  }
+  h1,h2,h3,h4,h5,h6,b {
+    font-weight: bold;
+  }
+  h1 {
+    font-size: 2em;
+    margin: .67em 0;
+  }
+  h2 {
+    font-size: 1.69em;
+    margin: .75em 0;
+  }
+  h3: {
+    font-size: 1.3em;
+    margin: .83em 0;
+  }
 }
