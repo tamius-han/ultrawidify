@@ -75,7 +75,7 @@ class PlayerUi extends UI {
           commit('uw-set-player-debug-data ', payload);
         },
         'uw-set-resizer-debug-data'({commit}, payload) {
-          commit('uw-set-resizer-debug-data ', payload);
+          commit('uw-set-resizer-debug-data', payload);
         },
       }
     };
