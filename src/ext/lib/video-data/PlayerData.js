@@ -232,8 +232,12 @@ class PlayerData {
       // NOTE: it's possible that notificationService hasn't been initialized yet at this point.
       //       no biggie if it wasn't, we just won't replace the notification UI
       this.notificationService?.replace(this.element);
-      this.ui?.updateDebugInfo('player', {dimensions: this.dimensions, elementId: element.id, elementClasses: element.classList});
+      this.reportPlayerDimensionForDebugging();
     }
+  }
+
+  reportPlayerDimensionForDebugging() {
+    this.ui?.updateDebugInfo('player', {dimensions: this.dimensions, elementId: this.element.id, elementClasses: this.element.classList});
   }
 
   getPlayer() {

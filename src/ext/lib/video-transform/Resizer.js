@@ -530,6 +530,11 @@ class Resizer {
 
     const {realVideoWidth, realVideoHeight, marginX, marginY} = this.computeVideoDisplayedDimensions();
 
+    debugObject['playerData'] = {
+      'dimensions': this.conf.player.dimensions,
+      'id': this.conf.player.element.id,
+      'classList': this.conf.player.element.classList
+    };
     debugObject['videoRawData'] = {
       streamDimensions: {
         x: this.conf.video.videoWidth,
@@ -543,7 +548,7 @@ class Resizer {
         x: this.conf.video.offsetWidth,
         y: this.conf.video.offsetHeight
       }
-    }
+    };
 
     const wdiff = this.conf.player.dimensions.width - realVideoWidth;
     const hdiff = this.conf.player.dimensions.height - realVideoHeight;
@@ -593,6 +598,7 @@ class Resizer {
       y: translate.y,
     }
 
+    this.conf.player.reportPlayerDimensionForDebugging();
     this.conf.player.ui?.updateDebugInfo('resizer', debugObject);
   
     this.logger.log('info', ['debug', 'resizer'], "[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> calculated offsets:\n\n",
