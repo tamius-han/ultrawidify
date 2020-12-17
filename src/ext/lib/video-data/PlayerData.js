@@ -1,9 +1,11 @@
 import Debug from '../../conf/Debug';
 import ExtensionMode from '../../../common/enums/extension-mode.enum'
 import AspectRatio from '../../../common/enums/aspect-ratio.enum';
+import PlayerNotificationUi from '../uwui/PlayerNotificationUI';
 
-if(Debug.debug)
-  console.log("Loading: PlayerData.js");
+if (process.env.CHANNEL !== 'stable'){
+  console.info("Loading: PlayerData.js");
+}
 
 /* sprejme <video> tag (element) in seznam imen, ki se lahko pojavijo v razredih oz. id staršev.
 // vrne dimenzije predvajalnika (širina, višina)
@@ -42,6 +44,7 @@ class PlayerData {
       this.extensionMode = videoData.extensionMode;
       this.invalid = false;
       this.element = this.getPlayer();
+      this.notificationService = new PlayerNotificationUi(this.element, this.settings);
       this.dimensions = undefined;
       this.overlayNode = undefined;
 
@@ -62,6 +65,7 @@ class PlayerData {
         this.checkPlayerSizeChange();
       }
       this.startChangeDetection();
+
     } catch (e) {
       console.error('[Ultrawidify::PlayerData::ctor] There was an error setting up player data. You should be never seeing this message. Error:', e);
       this.invalid = true;
@@ -71,7 +75,6 @@ class PlayerData {
   async sleep(timeout) {
     return new Promise( (resolve, reject) => setTimeout(() => resolve(), timeout));
   }
-
 
   static isFullScreen(){
     return ( window.innerHeight == window.screen.height && window.innerWidth == window.screen.width);
@@ -97,6 +100,7 @@ class PlayerData {
   destroy() {
     this.stopChangeDetection();
     this.destroyOverlay();
+    this.notificationService?.destroy();
   }
 
   startChangeDetection(){
@@ -222,6 +226,10 @@ class PlayerData {
       // is defined. Since resizer needs a PlayerData object to exist, videoData.resizer will
       // be undefined the first time this function will run.
       this.videoData.resizer?.restore();
+
+      // NOTE: it's possible that notificationService hasn't been initialized yet at this point.
+      //       no biggie if it wasn't, we just won't replace the notification UI
+      this.notificationService?.replace(this.element);
     }
   }
 
@@ -464,6 +472,14 @@ class PlayerData {
 
     return true;
   }
+
+  showNotification(notificationId) {
+    this.notificationService?.showNotification(notificationId);
+  }
+}
+
+if (process.env.CHANNEL !== 'stable'){
+  console.info("PlayerData loaded");
 }
 
 export default PlayerData;

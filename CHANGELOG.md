@@ -13,12 +13,22 @@ QoL improvements for me:
 
 * logging: allow to enable logging at will and export said logs to a file
 
+### v4.5.0
+
+* Under the hood: migrated from vue2 to vue3, because optional chaining in templates is too OP.
+* (On options page, section 'Action &amp; shortcuts') Manual aspect ratio now supports entering custom ratios using '21/9' and '2.39:1' formats (as opposed to single number, e.g. '2.39') — [#121](https://github.com/tamius-han/ultrawidify/issues/121).
+* Added config for wakanim.tv (special thanks to @saschanaz for doing the legwork — [#113](https://github.com/tamius-han/ultrawidify/issues/113))
+* (In Firefox) When extension was placed in overflow menu, the popup was cut off. That should be fixed now. [#119](https://github.com/tamius-han/ultrawidify/issues/119)
+* The extension will now show a notification when autodetection can't run due to DRM
+* Videos on facebook and reddit no longer get shifted up and to the left for me (cropping most of the video off-screen), but I haven't been deliberately trying to fix that issue. If you experience that issue, please consider contacting me (via github or email) with a link to a problematic video.
+
 ### v4.4.10 (Current)
 
-* Video alignment should now work on Twitch [#109](https://github.com/tamius-han/ultrawidify/issues/109)
-* Videos should now align properly on Hulu while cropped [#111](https://github.com/tamius-han/ultrawidify/issues/111) & via email
+* Video alignment should now work on Twitch — [#109](https://github.com/tamius-han/ultrawidify/issues/109)
+* Videos should now align properly on Hulu while cropped — [#111](https://github.com/tamius-han/ultrawidify/issues/111) & via email
 * Fixed a problem where changing certain settings would cause multiple instances of Ultrawidify to run on a page, effectively preventing some crop options to be set until reload. (possibly [#112](https://github.com/tamius-han/ultrawidify/issues/112)?)
 * Fixed a problem where embedded videos would be misaligned after switching from full screen
+* **[4.4.10.1]** Fixed cruncyhroll regression — [#109](https://github.com/tamius-han/ultrawidify/issues/115)
 
 ### v4.4.9
 

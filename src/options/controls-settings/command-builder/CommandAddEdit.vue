@@ -49,8 +49,8 @@
       </div>
 
       <!-- CUSTOM ARGUMENT INPUT -->
-      <div v-if="selectedArgument && selectedArgument.customArg"
-        class="flex flex-row">
+      <div v-if="selectedArgument && selectedArgument.customArg">
+        <div class="flex flex-row">
         <div class="flex label-secondary form-label">
           <span class="w100">
             {{selectedArgument.name}}:
@@ -59,8 +59,14 @@
         <div class="flex flex-grow flex-input">
           <input type="text"
                   class="w100"
-                  v-model="customArgumentValue"
+                  :value="customArgumentValue"
+                  @input="setCustomValue($event.target.value, selectedArgument.customSetter)"
           >
+        </div>
+        </div>
+        <div class="flex flex-row">
+          <div v-if="selectedArgument.hintHTML" v-html="selectedArgument.hintHTML">
+          </div>
         </div>
       </div>
 
@@ -121,6 +127,13 @@ export default {
     setArgument(arg) {
       this.selectedArgument = ActionList[this.selectedAction].args.find(x => x.arg == arg);
       this.customArgumentValue = undefined;
+    },
+    setCustomValue(value, customSetter) {
+      if (!customSetter) {
+        this.customArgumentValue = value;
+      } else {
+        this.customArgumentValue = customSetter(value);
+      }
     },
     emitCommand() {
       this.$emit(

@@ -1,17 +1,41 @@
 <template>
+  <!--
+    NOTE — the code that makes ultrawidify popup work in firefox regardless of whether the
+    extension is being displayed in a normal or a small/overflow popup breaks the popup
+    behaviour on Chrome (where the popup would never reach the full width of 800px)
+
+    Since I'm tired and the hour is getting late, we'll just add an extra CSS class for
+    non-firefox builds of this extension and be done with it. No need to complicate things
+    further than that.
+  -->
   <div v-if="settingsInitialized" 
        class="popup flex flex-column no-overflow"
+       :class="{'popup-chrome': ! BrowserDetect.firefox}"
   >
-    <div class="header flex-row flex-nogrow flex-noshrink relative">
+    <div class="flex-row flex-nogrow flex-noshrink relative"
+         :class="{'header': !narrowPopup, 'header-small': narrowPopup}"
+    >
       <span class="smallcaps">Ultrawidify</span>: <small>Quick settings</small>
       <div class="absolute channel-info" v-if="BrowserDetect.processEnvChannel !== 'stable'">
         Build channel: {{BrowserDetect.processEnvChannel}}
       </div>
     </div>
-
+    <div 
+      v-if="narrowPopup"
+      class="w100 show-more flex flex-row flex-center flex-cross-center menu-button"
+      @click="toggleSideMenu()"
+    >
+      <Icon v-if="!sideMenuVisible" icon="list" />
+      <Icon v-else icon="x" />
+      <div>Menu</div>
+    </div>
     <div class="flex flex-row body no-overflow flex-grow">
       <!-- TABS/SIDEBAR -->
-      <div id="tablist" class="flex flex-column flex-nogrow flex-noshrink h100">
+      <div id="tablist"
+           v-show="!narrowPopup || sideMenuVisible"
+           class="flex flex-column flex-nogrow flex-noshrink h100"
+           :class="{'w100': narrowPopup}"
+      >
         <div class="menu-item"
             :class="{'selected-tab': selectedTab === 'global'}"
             @click="selectTab('global')"
@@ -29,7 +53,7 @@
           <div class="">
             Site settings
           </div>
-          <div v-if="selectedTab === 'site' && this.activeSites.length > 1"
+          <div v-if="selectedTab === 'site' && activeSites.length > 1"
                class=""
           >
             <small>Select site to control:</small>
@@ -55,7 +79,7 @@
           <div class="">
             Video settings <span v-if="canShowVideoTab.canShow && canShowVideoTab.warning" class="warning-color">⚠</span>
           </div>
-          <div v-if="selectedTab === 'video' && this.activeFrames.length > 0"
+          <div v-if="selectedTab === 'video' && activeFrames.length > 0"
                class=""
           >
             <small>Select embedded frame to control:</small>
@@ -82,7 +106,7 @@
           <div class="">
             Advanced settings
           </div>
-          <div v-if="selectedTab === 'site-details' && this.activeSites.length > 1"
+          <div v-if="selectedTab === 'site-details' && activeSites.length > 1"
                class=""
           >
             <small>Select site to control:</small>
@@ -136,8 +160,12 @@
       </div>
 
       <!-- PANELS/CONTENT -->
-      <div id="tab-content" class="flex-grow h100 overflow-y-auto">
-        <VideoPanel v-if="settings && settings.active && selectedTab === 'video'"
+      <div id="tab-content" 
+           v-show="!(narrowPopup && sideMenuVisible)"
+           class="flex-grow h100 overflow-y-auto"
+           :class="{'narrow-content': narrowPopup}"
+      >
+        <VideoPanel v-if="settings?.active && selectedTab === 'video'"
                     class=""
                     :someSitesDisabledWarning="canShowVideoTab.warning"
                     :settings="settings"
@@ -145,7 +173,7 @@
                     :zoom="currentZoom"
                     @zoom-change="updateZoom($event)"
         />
-        <DefaultSettingsPanel v-if="settings && settings.active && (selectedTab === 'site' || selectedTab === 'global')"
+        <DefaultSettingsPanel v-if="settings?.active && (selectedTab === 'global' || selectedTab === 'site')"
                               class=""
                               :settings="settings"
                               :scope="selectedTab"
@@ -167,6 +195,7 @@
 </template>
 
 <script>
+import Icon from '../common/components/Icon.vue'
 import WhatsNewPanel from './panels/WhatsNewPanel.vue';
 import SiteDetailsPanel from './panels/SiteDetailsPanel.vue';
 import Donate from '../common/misc/Donate.vue';
@@ -206,6 +235,8 @@ export default {
       canShowVideoTab: {canShow: true, warning: true},
       showWhatsNew: false,
       BrowserDetect: BrowserDetect,
+      narrowPopup: null,
+      sideMenuVisible: null,
     }
   },
   async created() {
@@ -245,6 +276,20 @@ export default {
       await this.sleep(5000);
     } 
   },
+  async updated() {
+    const body = document.getElementsByTagName('body')[0];
+
+    // ensure that narrowPopup only gets set the first time the popup renders
+    // if popup was rendered before, we don't do anything because otherwise
+    // we'll be causing an unwanted re-render
+    // 
+    // another thing worth noting — the popup gets first initialized with
+    // offsetWidth set to 0. This means proper popup will be displayed as a
+    // mini popup if we don't check for that.
+    if (this.narrowPopup === null && body.offsetWidth > 0) {
+      this.narrowPopup = body.offsetWidth < 600;
+    }
+  },
   components: {
     VideoPanel,
     DefaultSettingsPanel,
@@ -255,6 +300,7 @@ export default {
     Donate,
     SiteDetailsPanel,
     WhatsNewPanel,
+    Icon,
   },
   methods: {
     async sleep(t) {
@@ -282,6 +328,7 @@ export default {
         this.settings.active.whatsNewChecked = true;
         this.settings.save();
       }
+      this.toggleSideMenu(false);
     },
     selectFrame(frame) {
       this.selectedFrame = frame;
@@ -325,6 +372,7 @@ export default {
         if (!this.site || this.site.host !== message.site.host) {
           this.port.postMessage({cmd: 'get-current-zoom'});
         }
+        console.log("processing received message:", message)
         this.site = message.site;
 
         // update activeSites
@@ -475,6 +523,10 @@ export default {
     },
     selectSite(host) {
       this.selectedSite = host;
+    },
+    toggleSideMenu(visible) {
+      console.warn('toggling side menu visible to:', visible ?? !this.sideMenuVisible, "arg:", visible )
+      this.sideMenuVisible = visible ?? !this.sideMenuVisible;
     }
   }
 }
@@ -486,11 +538,20 @@ export default {
 <style src="../res/css/common.scss"></style>
 
 <style lang="scss" scoped>
-html, body {
-  width: 800px !important;
-  max-width: 800px !important;
+html {
+  // width: 800px !important;
+  // max-width: 800px !important;
   padding: 0px;
   margin: 0px;
+}
+
+.zero-width {
+  width: 0px !important;
+  overflow: hidden;
+}
+
+.header .header-small, .narrow-content {
+  padding: 8px;
 }
 
 #tablist {
@@ -508,6 +569,17 @@ html, body {
   padding-left: 15px;
   padding-bottom: 1px;
   font-size: 2.7em;
+}
+.header-small {
+  overflow: hidden;
+  background-color: #7f1416;
+  color: #fff;
+  margin: 0px;
+  margin-top: 0px;
+  padding-top: 8px;
+  padding-left: 15px;
+  padding-bottom: 1px;
+  font-size: 1.27em;
 }
 
 
@@ -575,6 +647,7 @@ html, body {
   background-color: initial;
   border-left: #f0c089 3px solid !important;
 }
+
 .tabitem-selected::before {
   padding-right: 8px;
 }
@@ -588,10 +661,35 @@ html, body {
   padding-left: 0.33em;
 }
 
+.menu-button {
+  margin-bottom: 4px;
+  padding: 4px;
+  border-bottom: #f18810 1px solid !important;
+  font-size: 1.5rem !important;
+  cursor: pointer;
+  user-select: none;;
+}
+
 .popup {
-  // max-width: 780px;
-  // width: 800px;
   height: 600px;
+}
+
+/**
+  This was written at the top, but it's worth repeating.
+
+  NOTE — the code that makes ultrawidify popup work in firefox regardless of whether the
+  extension is being displayed in a normal or a small/overflow popup breaks the popup
+  behaviour on Chrome (where the popup would never reach the full width of 800px)
+
+  Since I'm tired and the hour is getting late, we'll just add an extra CSS class for
+  non-firefox builds of this extension and be done with it. No need to complicate things
+  further than that.
+
+  It also seems that Chrome doesn't like if we set the width of the popup all the way to 
+  800px (probably something something scrollbar), so let's just take away a few px.
+ */
+.popup-chrome {
+  width: 780px !important;
 }
 
 .relative {
@@ -605,5 +703,10 @@ html, body {
   right: 1.5rem;
   bottom: 0.85rem;
   font-size: 0.75rem;
+}
+
+.show-more {
+  padding-top: 12px;
+  font-size: 0.9rem;
 }
 </style>

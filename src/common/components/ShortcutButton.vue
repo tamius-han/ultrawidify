@@ -20,11 +20,13 @@ export default {
 }
 </script>
 
-<style scoped>
-.center-text {
-  text-align: center;
-}
-.dark {
-  opacity: 50%;
+<style lang="scss" scoped>
+.uw-ultrawidify-container-root {
+  .center-text {
+    text-align: center;
+  }
+  .dark {
+    opacity: 50%;
+  }
 }
 </style>

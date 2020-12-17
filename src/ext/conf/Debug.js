@@ -1,6 +1,6 @@
 if (process.env.CHANNEL !== 'stable') {
-  console.log('We are not on stable channel. File init will be printed to console.');
-  console.log('Loaded Debug.js');
+  console.info('We are not on stable channel. File init will be printed to console.');
+  console.info('Loading Debug.js');
 }
 
 // Set prod to true when releasing
@@ -54,9 +54,13 @@ function __disableAllDebug(obj) {
   }
 }
 
-if(Debug.debug)
-  console.log("Guess we're debugging ultrawidify then. Debug.js must always load first, and others must follow.\nLoading: Debug.js");
+if (Debug.debug) {
+  console.info("Guess we're debugging ultrawidify then. Debug.js must always load first, and others must follow.\nLoading: Debug.js");
+}
 
+if (process.env.CHANNEL !== 'stable') {
+  console.info('Loaded Debug.js');
+}
 
 
 export default Debug;

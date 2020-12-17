@@ -5,7 +5,7 @@ import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 import CropModePersistence from '../../../common/enums/crop-mode-persistence.enum';
 
 if (process.env.CHANNEL !== 'stable'){
-  console.log("Loading PageInfo");
+  console.info("Loading PageInfo");
 }
 
 class PageInfo {
@@ -58,22 +58,22 @@ class PageInfo {
     this.currentZoomScale = 1;
   }
 
-  injectCss(cssString) {
-    this.comms.sendMessage({
+  async injectCss(cssString) {
+    await this.comms.sendMessage({
       cmd: 'inject-css',
       cssString: cssString
     });
   }
 
-  ejectCss(cssString) {
-    this.comms.sendMessage({
+  async ejectCss(cssString) {
+    await this.comms.sendMessage({
       cmd: 'eject-css',
       cssString: cssString
     });
   }
 
-  replaceCss(oldCssString, newCssString) {
-    this.comms.sendMessage({
+  async replaceCss(oldCssString, newCssString) {
+    await this.comms.sendMessage({
       cmd: 'replace-css',
       newCssString,
       oldCssString
@@ -621,6 +621,10 @@ class PageInfo {
       this.settings.saveWithoutReload();
     }
   }
+}
+
+if (process.env.CHANNEL !== 'stable'){
+  console.info("PageInfo loaded!");
 }
 
 export default PageInfo;

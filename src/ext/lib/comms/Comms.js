@@ -2,7 +2,7 @@ import Debug from '../../conf/Debug';
 import BrowserDetect from '../../conf/BrowserDetect';
 
 if (process.env.CHANNEL !== 'stable'){
-  console.log("Loading Comms");
+  console.info("Loading Comms");
 }
 
 class Comms {
@@ -37,7 +37,7 @@ class Comms {
 }
 
 if (process.env.CHANNEL !== 'stable'){
-  console.log("Comms loaded");
+  console.info("Comms loaded");
 }
 
 export default Comms;

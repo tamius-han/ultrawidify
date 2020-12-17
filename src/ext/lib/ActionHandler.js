@@ -3,7 +3,7 @@ import PlayerData from './video-data/PlayerData';
 import ExtensionMode from '../../common/enums/extension-mode.enum';
 
 if(process.env.CHANNEL !== 'stable'){
-  console.log("Loading ActionHandler");
+  console.info("Loading ActionHandler");
 }
 
 class ActionHandler {
@@ -332,7 +332,7 @@ class ActionHandler {
 }
 
 if(process.env.CHANNEL !== 'stable'){
-  console.log("ActionHandler loaded");
+  console.info("ActionHandler loaded");
 }
 
 export default ActionHandler;

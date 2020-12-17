@@ -34,7 +34,7 @@
         </div>
         <div class="flex flex-row flex-end w100">
           <div v-if="!showTextMode" class="button" @click="showTextMode = true">
-            Paste config ...
+            <Icon icon="clipboard-plus" style="font-size: 2em"></Icon>&nbsp; Paste config ...
           </div>
           <div v-else class="button" @click="showTextMode = false">
             Back
@@ -164,10 +164,12 @@ import Logger from '../ext/lib/Logger';
 import Comms from '../ext/lib/comms/Comms';
 import IO from '../common/js/IO';
 import JsonObject from '../common/components/JsonEditor/JsonObject';
+import Icon from '../common/components/Icon';
 
 export default {
   components: {
     JsonObject,
+    Icon,
   },
   data() {
     return {
@@ -304,134 +306,134 @@ export default {
 @import '../res/css/font/overpass-mono.css';
 @import '../res/css/common.scss';
 
+.uw-ultrawidify-container-root {
+  .root-window {
+    position: fixed !important;
+    top: 5vh !important;
+    left: 5vw !important;
+    width: 90vw !important;
+    height: 90vh !important;
+    z-index: 999999 !important;
+    background-color: rgba( $page-background, 0.9) !important;
+    color: #f1f1f1 !important;
+    font-size: 14px !important;
 
-.root-window {
-  position: fixed !important;
-  top: 5vh !important;
-  left: 5vw !important;
-  width: 90vw !important;
-  height: 90vh !important;
-  z-index: 999999 !important;
-  background-color: rgba( $page-background, 0.9) !important;
-  color: #f1f1f1 !important;
-  font-size: 14px !important;
+    box-sizing: border-box !important;
+  }
 
-  box-sizing: border-box !important;
-}
+  div {
+    font-family: 'Overpass';
+  }
 
-div {
-  font-family: 'Overpass';
-}
-
-h1, h2 {
-  font-family: 'Overpass Thin';
-}
-h1 {
-  font-size: 4em;
-}
-h2 {
-  font-size: 2em;
-}
-
-.header {
+  h1, h2 {
+    font-family: 'Overpass Thin';
+  }
   h1 {
-    margin-bottom: -0.20em;
-    margin-top: 0.0em;
+    font-size: 4em;
   }
-  .header-top, .header-bottom {
-    padding-left: 16px;
-    padding-right: 16px;
+  h2 {
+    font-size: 2em;
   }
-  .header-top {
-    background-color: $popup-header-background !important;
+
+  .header {
+    h1 {
+      margin-bottom: -0.20em;
+      margin-top: 0.0em;
+    }
+    .header-top, .header-bottom {
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+    .header-top {
+      background-color: $popup-header-background !important;
+    }
+    .header-bottom {
+      font-size: 1.75em;
+    }
   }
-  .header-bottom {
-    font-size: 1.75em;
+  .content {
+    box-sizing: border-box;
+    padding: 8px 32px;
+    width: 100%;
+  }
+  .settings-panel {
+    box-sizing: border-box;
+    padding-right: 8px;
+    flex-grow: 2 !important;
+    min-width: 30% !important;
+    flex-shrink: 0 !important;
+    height: inherit !important;
+  }
+  .results-panel {
+    box-sizing: border-box;
+    padding-left: 8px;
+    max-width: 70% !important;
+    flex-grow: 5 !important;
+    flex-shrink: 0 !important;
+    height: inherit !important;
+  }
+
+  .scrollable {
+    overflow: auto;
+  }
+
+  .overflow-hidden {
+    overflow: hidden;
+  }
+
+  pre {
+    font-family: 'Overpass Mono';
+  }
+
+  .m-025em {
+    margin: 0.25em;
+  }
+
+  .p-t-025em {
+    padding-top: 0.25em;
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-items: center;
+    padding-left: 2em;
+    padding-right: 2em;
+  }
+
+  .button-primary {
+    background-color: $primary;
+    color: #fff;
+  }
+
+  .button-big {
+    font-size: 1.5em;
+    padding: 1.75em 3.25em;
+  }
+
+  .button-bar {
+    font-size: 1.25em;
+    padding: 0.25em 1.25em;
+    margin-left: 0.25em;
+  }
+
+  .button-header {
+    font-size: 2em;
+    padding-top: 0.1em;
+    padding-left: 1em;
+    padding-right: 1em;
+  }
+
+  .jsonbg {
+    background-color: #131313;
+  }
+  .jsonbg-error {
+    background-color: #884420;
+  }
+
+  .log-config-margin {
+    margin-top: 3em;
+    margin-bottom: 3em;
   }
 }
-.content {
-  box-sizing: border-box;
-  padding: 8px 32px;
-  width: 100%;
-}
-.settings-panel {
-  box-sizing: border-box;
-  padding-right: 8px;
-  flex-grow: 2 !important;
-  min-width: 30% !important;
-  flex-shrink: 0 !important;
-  height: inherit !important;
-}
-.results-panel {
-  box-sizing: border-box;
-  padding-left: 8px;
-  max-width: 70% !important;
-  flex-grow: 5 !important;
-  flex-shrink: 0 !important;
-  height: inherit !important;
-}
-
-.scrollable {
-  overflow: auto;
-}
-
-.overflow-hidden {
-  overflow: hidden;
-}
-
-pre {
-  font-family: 'Overpass Mono';
-}
-
-.m-025em {
-  margin: 0.25em;
-}
-
-.p-t-025em {
-  padding-top: 0.25em;
-}
-
-.button {
-  display: inline-flex;
-  align-items: center;
-  justify-items: center;
-  padding-left: 2em;
-  padding-right: 2em;
-}
-
-.button-primary {
-  background-color: $primary;
-  color: #fff;
-}
-
-.button-big {
-  font-size: 1.5em;
-  padding: 1.75em 3.25em;
-}
-
-.button-bar {
-  font-size: 1.25em;
-  padding: 0.25em 1.25em;
-  margin-left: 0.25em;
-}
-
-.button-header {
-  font-size: 2em;
-  padding-top: 0.1em;
-  padding-left: 1em;
-  padding-right: 1em;
-}
-
-.jsonbg {
-  background-color: #131313;
-}
-.jsonbg-error {
-  background-color: #884420;
-}
-
-.log-config-margin {
-  margin-top: 3em;
-  margin-bottom: 3em;
-}
-
 </style>

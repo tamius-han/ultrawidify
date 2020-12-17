@@ -3,7 +3,7 @@ import { decycle } from 'json-cyclic';
 import Comms from './comms/Comms';
 
 if (process.env.CHANNEL !== 'stable'){
-  console.log('Loading Logger');
+  console.info('Loading Logger');
 }
 
 class Logger {
@@ -486,10 +486,14 @@ class Logger {
 
   saveViaBgScript() {
     console.info('[info] will attempt to save. Issuing "show-logger"');
-    if (!this.conf?.fileOptions?.enabled || this.isBackgroundScript) {
-      console.info('[info] Logging to file is either disabled or we\'re not on the content script. Not saving.');
+    if (this.isBackgroundScript) {
+      console.info('[info] Background script cannot display logger UI.');
       return;
     }
+    // if (!this.conf?.fileOptions?.enabled) {
+    //   console.info('[info] Logging to file is disabled. Logger won\'t get shown.');
+    //   return;
+    // }
 
     Comms.sendMessage({cmd: 'show-logger', forwardToSameFramePort: true, port: 'content-ui-port'});
 
@@ -556,7 +560,7 @@ class Logger {
 }
 
 if (process.env.CHANNEL !== 'stable'){
-  console.log('Logger loaded');
+  console.info('Logger loaded');
 }
 
 export default Logger;

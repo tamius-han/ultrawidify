@@ -1,5 +1,5 @@
 if (process.env.CHANNEL !== 'stable') {
-  console.log('Loaded BrowserDetect');
+  console.info('Loaded BrowserDetect');
 }
 
 
@@ -12,7 +12,7 @@ const BrowserDetect = {
 } 
 
 if (process.env.CHANNEL !== 'stable') {
-  console.log("Loading: BrowserDetect.js\n\nprocess.env.BROWSER:", process.env.BROWSER, "Exporting BrowserDetect:", BrowserDetect);
+  console.info("BrowserDetect loaded:\n\nprocess.env.BROWSER:", process.env.BROWSER, "\nExporting BrowserDetect:", BrowserDetect);
 }
 
 export default BrowserDetect;
