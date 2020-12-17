@@ -1,86 +1,22 @@
 <template>
   <div class="uw-hover uv-hover-trigger-region">
     TEST CONTENT
-
-    <div class="uw-debug-info flex flex-row">
-
-      <!-- Player info -->
-      <div class="">
-        <h3>Player info</h3>
-        <p>
-          <b>Window size:</b><br/>
-          {{windowWidth}} x {{windowHeight}}
-        </p>
-        <p>
-          <b>Player dimensions</b><br/>
-          {{debugData?.resizer?.playerData?.dimensions?.width ?? 'not detected'}} x {{debugData?.resizer?.playerData?.dimensions?.height ?? 'not detected'}}
-        </p>
-        <p>
-          <b>Player id:</b> {{debugData?.resizer?.playerData?.elementId || '<no ID>'}}
-        </p>
-        <p>
-          <b>Player classes:</b><br/>
-          {{debugData?.resizer?.playerData?.classList || '<no classes>'}}
-        </p>
-        <p>
-          <b>Is full screen?</b> {{debugData?.resizer?.playerData?.dimensions?.fullscreen ?? 'unknown'}}
-        </p>
-        
-      </div>
-
-      <!-- Stream info -->
-      <div class="">
-        <h3>Stream info</h3>
-        <p>
-          <b>Stream dimensions:</b> <small>(Native size of the video)</small><br/>
-          {{debugData?.resizer?.videoRawData?.streamDimensions.x}} x {{debugData?.resizer?.videoRawData?.streamDimensions?.y}}
-        </p>
-        <p>
-          <b>Stream displayed dimensions:</b> <small>(Video file is being upscaled to this size)</small><br/>
-          {{debugData?.resizer?.videoRawData?.displayedSize?.x}} x {{debugData?.resizer?.videoRawData?.displayedSize?.y}}
-        </p>
-        <p>
-          <b>Video element size:</b> <small>(Size of the html element)</small><br/>
-          {{debugData?.resizer?.videoRawData?.displayedSize?.x}} x {{debugData?.resizer?.videoRawData?.displayedSize?.y}}
-        </p>
-        <p>
-          <b>Size difference to player (raw):</b> <small>(positive numbers: video element is bigger than player element)</small><br/>
-          x: {{debugData?.resizer?.sizeDifferenceToPlayer?.beforeZoom?.wdiff}}; &nbsp; &nbsp; y: {{debugData?.resizer?.sizeDifferenceToPlayer?.beforeZoom?.hdiff}}
-        </p>
-        <p>
-          <b>Size difference to player (raw):</b> <small>(same as above, except after cropping, stretching, panning and zoom are applied)</small><br/>
-          x: {{debugData?.resizer?.sizeDifferenceToPlayer?.afterZoom?.wdiff}}; &nbsp; &nbsp; y: {{debugData?.resizer?.sizeDifferenceToPlayer?.afterZoom?.hdiff}}
-        </p>
-      </div>
-
-      <!-- Transform info -->
-      <div class="">
-        <h3>Transformations</h3>
-        <p>
-          <b>Alignment:</b> <small>(I agree that 'left' and 'right' are both evil, but that's not the kind of alignments we're thinking of)</small><br/>
-          {{debugData?.resizer?.videoTranslation?.alignment || '<unknown>'}}
-        </p>
-        <p>
-          <b>Translation</b><br/>
-          x: {{debugData?.resizer?.videoTranslation?.x}}; &nbsp; &nbsp; y: {{debugData?.resizer?.videoTranslation?.y}}
-        </p>
-      </div>
-    </div>
-    <div class="uw-debug-info flex">
-      <pre>
-        {{debugDataPrettified}}
-      </pre>
-    </div>
+  </div>
+  <div class="uw-debug-info">
+    <ResizerDebugPanel :debugData="debugData">
+    </ResizerDebugPanel>
   </div>
 </template>
 
 <script>
 import { mapState } from 'vuex';
 import Icon from '../common/components/Icon';
+import ResizerDebugPanel from './PlayerUiPanels/ResizerDebugPanelComponent';
 
 export default {
   components: {
     Icon,
+    ResizerDebugPanel
   },
   data() {
     return {
@@ -138,10 +74,16 @@ export default {
 @import '../res/css/common.scss';
 
 .uw-ultrawidify-container-root {
+  // .relative-wrapper {
+  //   position: relative;
+  //   width: 100%;
+  //   height: 100%;
+  // }
+
   .uw-hover {
     position: absolute;
-    top: 20%;
-    left: 20%;
+    top: 10%;
+    left: 10%;
     width: 100px;
     height: 100px;
     color: #fff;
@@ -154,8 +96,17 @@ export default {
   }
 
   .uw-debug-info {
-    width: 1200px;
-    height: 600px;
+    position: absolute;
+
+    top: 10%;
+    left: 10%;
+    
+    z-index: 999999999999999999;
+
+    width: 2500px;
+    height: 1200px;
+    max-width: 80%;
+    max-height: 80%;
 
     pointer-events: all !important;
 
