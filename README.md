@@ -2,7 +2,9 @@
 
 ## Super TL;DR: I'm just looking for the install links, thanks
 
-[Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/), [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi), [Edge](https://microsoftedge.microsoft.com/addons/detail/lmpgpgechmkkkehkihpiddbcbgibokbi) (Chromium-based only)
+[Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/), [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi).
+
+**Microsoft Edge is not supported at this time, as Edge features some bugs that make it impossible for extension to work.** [Read more](https://github.com/tamius-han/ultrawidify/issues/117#issuecomment-747109695).
 
 There's also [nightly "builds"](https://stuff.lionsarch.tamius.net/ultrawidify/nightly/).
 
@@ -235,7 +237,6 @@ However, I do plan on implementing this feature. Hopefully by the end of the yea
 
 
 
-
 ## Plans for the future
 
 1. Handle porting of extension settings between versions. 
@@ -254,7 +255,8 @@ However, I do plan on implementing this feature. Hopefully by the end of the yea
 
 [Latest stable for Chrome — download from Chrome store](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
 
-[Latest stable for Edge — Download from Microsoft store](https://microsoftedge.microsoft.com/addons/detail/lmpgpgechmkkkehkihpiddbcbgibokbi)
+Edge version is currently not available, as Edge has some bugs that prevent this extension from working correctly. [Read more](https://github.com/tamius-han/ultrawidify/issues/117#issuecomment-747109695)
+<!-- [Latest stable for Edge — Download from Microsoft store](https://microsoftedge.microsoft.com/addons/detail/lmpgpgechmkkkehkihpiddbcbgibokbi) -->
 
 ### Installing the current, github version
 
@@ -268,7 +270,7 @@ Requirements: npm, node.
 
 1. Clone this repo
 2. run `npm install`
-3. If using **Firefox,** run: `npm run watch:dev`. If using **Chrome,** run: `npm run watch-chrome:dev`. If using Edge, run: `npm run watch-edge:dev`.
+3. If using **Firefox,** run: `npm run watch:dev`. If using **Chrome,** run: `npm run watch-chrome:dev`.
 
 TODO: see if #3 already loads the extension in FF
 
