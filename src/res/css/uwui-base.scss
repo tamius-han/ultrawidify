@@ -26,22 +26,22 @@
   pointer-events: none;
 
   // defaults for some common elements:
-  p,h1,h2,h3,h4,h5,h6 {
+  p,h1,h2,h3,h4,h5,h6,div {
     display: block;
   }
   h1,h2,h3,h4,h5,h6,b {
     font-weight: bold;
   }
   h1 {
-    font-size: 2em;
-    margin: .67em 0;
+    font-size: 2rem;
+    margin: .5rem 0;
   }
   h2 {
     font-size: 1.69em;
-    margin: .75em 0;
+    margin: .42rem 0;
   }
-  h3: {
-    font-size: 1.3em;
-    margin: .83em 0;
+  h3 {
+    font-size: 1.42rem;
+    margin: .25rem 0;
   }
 }
