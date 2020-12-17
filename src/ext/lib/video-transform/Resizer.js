@@ -560,6 +560,10 @@ class Resizer {
     const wdiffAfterZoom = realVideoWidth * stretchFactors.xFactor - this.conf.player.dimensions.width;
     const hdiffAfterZoom = realVideoHeight * stretchFactors.yFactor - this.conf.player.dimensions.height;
     
+    debugObject['transformedSize'] = {
+      x: realVideoWidth * stretchFactors.xFactor,
+      y: realVideoHeight * stretchFactors.yFactor
+    }
     debugObject['sizeDifferenceToPlayer'] = {
       beforeZoom: {
         wdiff,
@@ -591,11 +595,17 @@ class Resizer {
       }
     }
 
-    debugObject['videoTranslation'] = {
+    debugObject['videoTransform'] = {
       alignment: VideoAlignment.toString(this.videoAlignment),
       panningEnabled: !!this.pan,
-      x: translate.x,
-      y: translate.y,
+      translate: {
+        x: translate.x,
+        y: translate.y,
+      },
+      scale: {
+        x: stretchFactors.xFactor,
+        y: stretchFactors.yFactor
+      }
     }
 
     this.conf.player.reportPlayerDimensionForDebugging();
