@@ -133,6 +133,17 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
     return this.calculateStretch(actualAr, this.fixedStretchRatio);
   }
 
+  getArCorrectionFactor() {
+    const streamAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
+    const playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
+
+    let arCorrectionFactor = 1;
+    if (playerAr < streamAr) {
+      arCorrectionFactor = this.conf.player.dimensions.width / this.conf.video.offsetWidth;
+    }
+    return arCorrectionFactor;
+  }
+
   calculateStretch(actualAr, playerArOverride) {
     const playerAr = playerArOverride || this.conf.player.dimensions.width / this.conf.player.dimensions.height;
     const videoAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
@@ -210,6 +221,11 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
         this.logger.log('info', 'stretcher', "[Stretcher.js::calculateStretch] stretching strategy 6")
       }
     }
+
+    // correct factors
+    const arCorrectionFactor = this.getArCorrectionFactor();
+    stretchFactors.xFactor *= arCorrectionFactor;
+    stretchFactors.yFactor *= arCorrectionFactor;
 
     return stretchFactors;
   }

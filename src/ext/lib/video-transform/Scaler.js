@@ -66,6 +66,28 @@ class Scaler {
   }
 
   calculateCrop(ar) {
+    /**
+     * STEP 1: NORMALIZE ASPECT RATIO
+     *
+     * Video width is normalized based on 100% of the parent. That means if the player AR 
+     * is narrower than video ar, we need to pre-downscale the video. This scaling already
+     * undoes any zoom that style="height:123%" on the video element adds.
+     * 
+     * Quick notes:
+     *   * when I say 'video AR', I actually mean aspect ratio after we've compensated for
+     *     any possible 'height:' stuffs in the style attribute of the video tag
+     *   * because video width is normalized on 100% of the parent, we don't need to correct
+     *     anything when the player is wider than the video.
+     */
+    const streamAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
+    const playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
+    const compensatedStreamAr = streamAr * this.conf.videoData.getHeightCompensationFactor();
+
+    let arCorrectionFactor = 1;
+    if (playerAr < compensatedStreamAr) {
+      arCorrectionFactor = this.conf.player.dimensions.width / this.conf.video.offsetWidth;
+    }
+
     if(!this.conf.video){
       this.logger.log('info', 'debug', "[Scaler::calculateCrop] ERROR — no video detected. Conf:", this.conf, "video:", this.conf.video, "video dimensions:", this.conf.video && this.conf.video.videoWidth, '×', this.conf.video && this.conf.video.videoHeight);
       
@@ -81,7 +103,7 @@ class Scaler {
     }
 
     if (ar.type === AspectRatio.Reset){
-      return {xFactor: 1, yFactor: 1}
+      return {xFactor: arCorrectionFactor, yFactor: arCorrectionFactor}
     }
 
     // handle fuckie-wuckies
@@ -102,15 +124,13 @@ class Scaler {
 
     // Dejansko razmerje stranic datoteke/<video> značke
     // Actual aspect ratio of the file/<video> tag
-    var fileAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
-    var playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
 
     if (ar.type === AspectRatio.Initial || !ar.ratio) {
-      ar.ratio = fileAr;
+      ar.ratio = streamAr;
     }
 
   
-    this.logger.log('info', 'scaler', "[Scaler::calculateCrop] ar is " ,ar.ratio, ", file ar is", fileAr, ", this.conf.player.dimensions are ", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
+    this.logger.log('info', 'scaler', "[Scaler::calculateCrop] ar is " ,ar.ratio, ", file ar is", streamAr, ", this.conf.player.dimensions are ", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
     
     var videoDimensions = {
       xFactor: 1,
@@ -119,11 +139,11 @@ class Scaler {
       actualHeight: 0,  // height of the video (excluding letterbox) when <video> tag height is equal to height
     }
   
-    if (fileAr < playerAr) {
-      if (fileAr < ar.ratio){
+    if (streamAr < playerAr) {
+      if (streamAr < ar.ratio){
         // in this situation we have to crop letterbox on top/bottom of the player
         // we cut it, but never more than the player
-        videoDimensions.xFactor = Math.min(ar.ratio, playerAr) / fileAr;
+        videoDimensions.xFactor = Math.min(ar.ratio, playerAr) / streamAr;
         videoDimensions.yFactor = videoDimensions.xFactor;
       } else {
         // in this situation, we would be cutting pillarbox. Inside horizontal player.
@@ -132,14 +152,14 @@ class Scaler {
         videoDimensions.yFactor = 1;
       }
     } else {
-      if (fileAr < ar.ratio || playerAr < ar.ratio){
+      if (streamAr < ar.ratio || playerAr < ar.ratio){
         // in this situation, we need to add extra letterbox on top of our letterbox
         // this means we simply don't crop anything _at all_
         videoDimensions.xFactor = 1;
         videoDimensions.yFactor = 1;
       } else {
         // meant for handling pillarbox crop. not quite implemented.
-        videoDimensions.xFactor = fileAr / Math.min(ar.ratio, playerAr);
+        videoDimensions.xFactor = streamAr / Math.min(ar.ratio, playerAr);
         videoDimensions.yFactor = videoDimensions.xFactor;
         // videoDimensions.xFactor = Math.max(ar.ratio, playerAr) * fileAr;
         // videoDimensions.yFactor = videoDimensions.xFactor;
@@ -147,6 +167,10 @@ class Scaler {
     }
     
     this.logger.log('info', 'scaler', "[Scaler::calculateCrop] Crop factor calculated — ", videoDimensions.xFactor);
+
+    // correct the factors
+    videoDimensions.xFactor *= arCorrectionFactor;
+    videoDimensions.yFactor *= arCorrectionFactor;
 
     return videoDimensions;
   }
