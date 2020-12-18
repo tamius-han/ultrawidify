@@ -81,7 +81,7 @@ class Scaler {
      */
     const streamAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
     const playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
-    const compensatedStreamAr = streamAr * this.conf.videoData.getHeightCompensationFactor();
+    const compensatedStreamAr = streamAr * this.conf.getHeightCompensationFactor();
 
     let arCorrectionFactor = 1;
     if (playerAr < compensatedStreamAr) {
