@@ -71,7 +71,13 @@ class Scaler {
      *
      * Video width is normalized based on 100% of the parent. That means if the player AR 
      * is narrower than video ar, we need to pre-downscale the video. This scaling already
-     * undoes any zoom that style="height:123%" on the video element adds.
+     * undoes any zoom that style="height:123%" on the video element adds. 
+     * 
+     * There are few exceptions and additional caveatss:
+     *   * AspectRatio.FitHeight: we don't want to pre-downscale the video at all, as things
+     *     will be scaled to fit height as-is.
+     *   * When player is wider than stream, we want to undo any height compensations site
+     *     tacks on the video tag.
      * 
      * Quick notes:
      *   * when I say 'video AR', I actually mean aspect ratio after we've compensated for
@@ -81,11 +87,14 @@ class Scaler {
      */
     const streamAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
     const playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
-    const compensatedStreamAr = streamAr * this.conf.getHeightCompensationFactor();
+    const heightCompensationFactor = this.conf.getHeightCompensationFactor();
+    const compensatedStreamAr = streamAr * heightCompensationFactor;
 
     let arCorrectionFactor = 1;
     if (playerAr < compensatedStreamAr) {
       arCorrectionFactor = this.conf.player.dimensions.width / this.conf.video.offsetWidth;
+    } else if (ar.type !== AspectRatio.Reset) {
+      arCorrectionFactor /= heightCompensationFactor;
     }
 
     if(!this.conf.video){
