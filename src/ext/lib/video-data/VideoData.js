@@ -295,7 +295,7 @@ class VideoData {
       }
 
       // let's play _very_ safe
-      let {property, value} = style.split('!important')[0].split(':');
+      let [property, value] = style.split('!important')[0].split(':');
       value = value.trim();
       styleObject[property] = value;
     }
