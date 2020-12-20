@@ -221,10 +221,10 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
       }
     }
 
-    const arCorrectionFactor = this.getArCorrectionFactor();
+    // const arCorrectionFactor = this.getArCorrectionFactor();
     // correct factors, unless we're trying to reset
-    stretchFactors.xFactor *= arCorrectionFactor;
-    stretchFactors.yFactor *= arCorrectionFactor;
+    // stretchFactors.xFactor *= arCorrectionFactor;
+    // stretchFactors.yFactor *= arCorrectionFactor;
     stretchFactors.arCorrectionFactor = this.getArCorrectionFactor();
 
     return stretchFactors;
