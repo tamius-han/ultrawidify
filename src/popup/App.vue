@@ -245,7 +245,7 @@ export default {
         allowLogging: true,
     });
 
-    this.settings = new Settings({updateCallback: () => this.updateConfig(), logger: this.logger});
+    this.settings = new Settings({afterSettingsSaved: () => this.updateConfig(), logger: this.logger});
     await this.settings.init();
     this.settingsInitialized = true;
 
@@ -339,7 +339,14 @@ export default {
     async updateConfig() {
       // when this runs, a site could have been enabled or disabled
       // this means we must update canShowVideoTab
+      const settings = this.settings;
+      this.settings = null;
       this.updateCanShowVideoTab();
+
+      this.$nextTick(() => {
+        this.settings = settings;
+        this.updateCanShowVideoTab();
+      });
     },
     updateCanShowVideoTab() {
       let canShow = false;
