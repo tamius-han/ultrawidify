@@ -94,10 +94,8 @@ class Scaler {
 
     if (ar.type !== AspectRatio.FitHeight) {
       if (playerAr < compensatedStreamAr) {
-        console.warn('AR CORRECT FACTOR')
         arCorrectionFactor = this.conf.player.dimensions.width / this.conf.video.offsetWidth;
       } else if (ar.type !== AspectRatio.Reset) {
-        console.warn('ANTI-HEIGHTCOMPENSATION')
         arCorrectionFactor /= heightCompensationFactor;
       }
     }
