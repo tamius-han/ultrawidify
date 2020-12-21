@@ -18,6 +18,7 @@ class Settings {
     // Options: activeSettings, updateCallback, logger
     this.logger = options.logger;
     this.onSettingsChanged = options.onSettingsChanged;
+    this.afterSettingsSaved = options.afterSettingsSaved;
     this.active = options.activeSettings ?? undefined;
     this.default = ExtensionConf;
     this.default['version'] = this.getExtensionVersion();
@@ -48,13 +49,13 @@ class Settings {
       try {
         this.onSettingsChanged();
 
-
-
-        
         this.logger.log('info', 'settings', '[Settings] Update callback finished.')
       } catch (e) {
         this.logger.log('error', 'settings', "[Settings] CALLING UPDATE CALLBACK FAILED. Reason:", e)
       }
+    }
+    if (this.afterSettingsSaved) {
+      this.afterSettingsSaved();
     }
   }
 
