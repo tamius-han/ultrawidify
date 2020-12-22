@@ -2,10 +2,15 @@
   <div v-if="uiVisible" class="uw-hover uv-hover-trigger-region">
     <div class="flex flex-row pad">
       <div class="text panel">
-        <h1>Microsoft Edge is too broken for this extension to work</h1>
-        <p><sup>2020-12-21</sup></p>
-        <p>In October 2020, Microsoft Edge received an update that renders video playback completely broken. This extension relies on the browser implementing functional video playback, which means that this extension currently cannot work in Edge (and neither can other 21:9 extensions).</p>
-        <p>I have attempted all possible workarounds for shits and giggles without success — this issue is completely impossible for me to fix until Microsoft gets their marbles together and fixes their broken browser.</p>
+        <h1>Microsoft Edge's DRM implementation is too broken for this extension to work</h1>
+        <p><sup>2020-12-22</sup></p>
+        <p>
+          In October 2020, Microsoft Edge received an update that renders video playback completely broken on sites that utilize DRM. This extension relies on the browser implementing functional video playback,
+          which means that this extension currently cannot work in Edge on sites that utilize DRM (and neither can other 21:9 extensions).
+        </p>
+        <p>
+          I have attempted all possible workarounds and none of them work.
+        </p>
         <p><small>Yes I do recognize the irony of getting pissed at Microsoft for their bugs while my extension is basically the Skyrim of CWS, but guys at Microsoft are getting paid for working on MS Edge and I'm not getting paid for writing this extension.</small></p>
         <p>
           <b>I am not keeping up with Edge updates as I primarily use Firefox and Chrome. If Edge has already fixed their broken video implementation,
@@ -21,11 +26,31 @@
         </p>
         <p>&nbsp;</p>
         <p>
-          Further reading: <a href="">ELI5 blogpost about this problem</a>.
+          Further reading: <a href="https://stuff.tamius.net/sacred-texts/2020/12/22/ultrawidify-and-edge-2020-edition/">blog post with extra details</a>.
         </p>
         <p>
           I know better than you: <b><a @click="uiVisible=false">hide this popup</a></b>
         </p>
+        <p>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
+        </p>
+        <h3>Help by reporting this issue to Microsoft</h3>
+        <p><b>Go to the settings menu</b> <small>(upper right corner of the window, three dots)</small> <b>→ Help and feedback</b> <small>(second option from the bottom)</small> <b>→ Send feedback.</b> (Alternatively, press Alt + Shift + I)</p>
+        <p>Enter this in the first box:</p>
+        <p>
+          <br/>
+          <i>
+            Videos on sites that utilize DRM protection schemes are not being scaled correctly. If a part of a DRM-protected video is being displayed outside the boundaries of the browser window, 
+            Edge will scale the video to only fit the portion of the video tag that is currently being displayed on the screen, rather than filling the entire video tag. This causes videos appear
+            differently than website developers intended at best, and breaking certain websites at worst.
+          </i>
+          <br/>
+        </p>
+        <p>Or something along these lines. Click 'send' when you're done.</p>
+        <p>Maybe if Edge developer team gets enough reports, they'll fix the problem.</p>
       </div>
       <div class="image-examples panel">
         <p>Follow-up questions</p>
