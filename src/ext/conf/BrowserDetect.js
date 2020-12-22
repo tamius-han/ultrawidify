@@ -9,6 +9,7 @@ const BrowserDetect = {
   edge: process.env.BROWSER === 'edge',
   processEnvBrowser: process.env.BROWSER,
   processEnvChannel: process.env.CHANNEL,
+  isEdgeUA: () => /Edg\/(\.?[0-9]*)*$/.test(window.navigator.userAgent)
 } 
 
 if (process.env.CHANNEL !== 'stable') {
