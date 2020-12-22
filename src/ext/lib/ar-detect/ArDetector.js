@@ -561,6 +561,7 @@ class ArDetector {
       if (!this.drmNotificationShown) {
         this.drmNotificationShown = true;
         this.conf.player.showNotification('AARD_DRM');
+        this.conf.resizer.setAr({type: AspectRatio.Reset});
         return;
       } 
 
