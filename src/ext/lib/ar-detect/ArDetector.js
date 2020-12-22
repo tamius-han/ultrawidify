@@ -9,6 +9,7 @@ import GuardLine from './GuardLine';
 import VideoAlignment from '../../../common/enums/video-alignment.enum';
 import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 import {sleep} from '../../lib/Util';
+import BrowserDetect from '../../conf/BrowserDetect';
 
 class ArDetector {
 
@@ -557,10 +558,18 @@ class ArDetector {
     } catch (e) {
       this.logger.log('error', 'arDetect', `%c[ArDetect::frameCheck] <@${this.arid}>  %c[ArDetect::frameCheck] can't draw image on canvas. ${this.canDoFallbackMode ? 'Trying canvas.drawWindow instead' : 'Doing nothing as browser doesn\'t support fallback mode.'}`, "color:#000; backgroud:#f51;", e);
 
+      console.log('video is protected by DRM', this.drmNotificationShown)
       // nothing to see here, really, if fallback mode isn't supported by browser
       if (!this.drmNotificationShown) {
         this.drmNotificationShown = true;
-        this.conf.player.showNotification('AARD_DRM');
+
+        // if we detect Edge, we'll throw the aggressive popup
+        if (BrowserDetect.isEdgeUA() && !this.settings.active.mutedNotifications?.browserSpecific?.edge?.brokenDrm?.[window.hostname]) {
+          new PlayerUi(this.element, this.settings);
+        } else {
+          this.conf.player.showNotification('AARD_DRM');
+        }
+
         this.conf.resizer.setAr({type: AspectRatio.Reset});
         return;
       } 

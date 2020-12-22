@@ -83,6 +83,7 @@
 import { mapState } from 'vuex';
 import Icon from '../common/components/Icon';
 import BrowserDetect from '../ext/conf/BrowserDetect';
+import Settings from '../ext/lib/Settings';
 
 export default {
   components: {
@@ -110,6 +111,25 @@ export default {
   methods: {
     getUrl(url) {
       return BrowserDetect.firefox ? browser.runtime.getURL(url) : chrome.runtime.getURL(url);
+    },
+    async hidePopupForever() {
+      const settings = new Settings();
+      await settings.init();
+
+      if (!settings.active.mutedNotifications) {
+        settings.active.mutedNotifications = {};
+      }
+      if (!settings.active.mutedNotifications?.browserSpecific) {
+        settings.active.mutedNotifications.browserSpecific = {
+          edge: {
+            brokenDrm: {
+            }
+          }
+        };
+      }
+      settings.active.mutedNotifications.browserSpecific.edge.brokenDrm[window.location.hostname] = true;
+
+      await settings.saveWithoutReload();
     }
   }
 }

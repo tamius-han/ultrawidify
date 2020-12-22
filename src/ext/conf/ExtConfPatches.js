@@ -407,7 +407,7 @@ const ExtensionConfPatch = [
       }
     }
   }, {
-    forVersion: '4.5.0.1',
+    forVersion: '4.5.1',
     updateFn: (userOptions, defaultOptions) => {
       for (const site in userOptions.sites) {
         try {
