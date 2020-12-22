@@ -16,6 +16,15 @@
 
 ## v4.x (current major)
 
+### v4.5.1
+
+* Fixed the misalignment issue on netflix ... hopefully.
+* 'Site settings' tab should now work in Chrome as well ([#126](https://github.com/tamius-han/ultrawidify/issues/126))
+* Popup interface now refreshes properly ([#127](https://github.com/tamius-han/ultrawidify/issues/127))
+* Videos should now be scaled correctly when the display is narrower than video's native aspect ratio ([#118](https://github.com/tamius-han/ultrawidify/issues/118))
+* Edge users using CWS version of the extension get a very aggressive warning when trying to use the extension with Edge
+
+
 ### v4.5.0 (Current)
 
 * Under the hood: migrated from vue2 to vue3, because optional chaining in templates is too OP.
@@ -24,7 +33,6 @@
 * (In Firefox) When extension was placed in overflow menu, the popup was cut off. That should be fixed now. [#119](https://github.com/tamius-han/ultrawidify/issues/119)
 * The extension will now show a notification when autodetection can't run due to DRM
 * Videos on facebook and reddit no longer get shifted up and to the left for me (cropping most of the video off-screen), but I haven't been deliberately trying to fix that issue. If you experience that issue, please consider contacting me (via github or email) with a link to a problematic video.
-* **[4.5.0.1]** Fixed the misalignment issue on netflix ... 
 
 ### v4.4.10 
 
