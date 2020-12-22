@@ -9,6 +9,9 @@
           which means that this extension currently cannot work in Edge on sites that utilize DRM (and neither can other 21:9 extensions).
         </p>
         <p>
+          Using this extension (and its alternatives) on this site may make the problem you're trying to fix even worse than it is now.
+        </p>
+        <p>
           I have attempted all possible workarounds and none of them work.
         </p>
         <p><small>Yes I do recognize the irony of getting pissed at Microsoft for their bugs while my extension is basically the Skyrim of CWS, but guys at Microsoft are getting paid for working on MS Edge and I'm not getting paid for writing this extension.</small></p>
@@ -29,7 +32,7 @@
           Further reading: <a href="https://stuff.tamius.net/sacred-texts/2020/12/22/ultrawidify-and-edge-2020-edition/">blog post with extra details</a>.
         </p>
         <p>
-          I know better than you: <b><a @click="uiVisible=false">hide this popup</a></b>
+          I know better than you: <b><a @click="uiVisible=false">hide this popup</a></b> | <a @click="hidePopupForever()">never show again for this site</a>
         </p>
         <p>
           <br/>
