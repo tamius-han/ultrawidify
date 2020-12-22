@@ -50,7 +50,8 @@
     "res/fonts/*",
     "res/css/*",
     "res/img/settings/about-bg.png",
-    "res/icons/*"
+    "res/icons/*",
+    "res/img/*"
   ],
   "permissions": [
     "storage",
