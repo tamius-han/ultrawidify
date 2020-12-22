@@ -11,3 +11,5 @@ build/
 *.kate-swp
 
 src/res/img/git-ignore/
+
+test/debug-configs/
