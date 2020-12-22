@@ -550,6 +550,7 @@ class ArDetector {
 
       // special browsers require special tests
       if (this.hasDRM()) {
+        this.fallbackMode = false;
         throw 'Video is protected by DRM. Autodetection cannot run here.';
       }
       this.fallbackMode = false;
@@ -561,7 +562,14 @@ class ArDetector {
         this.drmNotificationShown = true;
         this.conf.player.showNotification('AARD_DRM');
         return;
+      } 
+
+      // in case of DRM errors, we need to prevent the execution to reach the aspec
+      // ratio setting part of this function
+      if (e === 'Video is protected by DRM. Autodetection cannot run here.') {
+        return;
       }
+
       if (! this.canvasReadyForDrawWindow()) {
         // this means canvas needs to be resized, so we'll just re-run setup with all those new parameters
         this.stop();
