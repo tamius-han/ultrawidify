@@ -49,10 +49,6 @@ class PlayerData {
 
       this.notificationService = new PlayerNotificationUi(this.element, this.settings);
 
-      if (BrowserDetect.isEdgeUA()) {
-        this.ui = new PlayerUi(this.element, this.settings);
-      }
-
       this.dimensions = undefined;
       this.overlayNode = undefined;
 
