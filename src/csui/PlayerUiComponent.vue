@@ -104,17 +104,18 @@ export default {
       }
     }
   },
-  created() {
-    console.log("created!");
-    console.log("store:", this.$store, this);
-  },
   methods: {
     getUrl(url) {
       return BrowserDetect.firefox ? browser.runtime.getURL(url) : chrome.runtime.getURL(url);
     },
     async hidePopupForever() {
+      try {
+        console.log("++")
       const settings = new Settings();
+        console.log("++0")
+
       await settings.init();
+        console.log("++1")
 
       if (!settings.active.mutedNotifications) {
         settings.active.mutedNotifications = {};
