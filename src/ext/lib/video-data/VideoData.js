@@ -56,7 +56,10 @@ class VideoData {
     try {
     await this.pageInfo.injectCss(`
       .uw-ultrawidify-base-wide-screen {
-        margin: 0px 0px 0px 0px !important; width: initial !important; align-self: start !important; justify-self: start !important;
+        margin: 0px 0px 0px 0px !important;
+        width: initial !important;
+        align-self: start !important;
+        justify-self: start !important;
       }
     `);
     } catch (e) {
