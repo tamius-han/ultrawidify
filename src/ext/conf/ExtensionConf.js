@@ -1032,7 +1032,7 @@ var ExtensionConf = {
     },
     "www.netflix.com" : {
       mode: ExtensionMode.Enabled,
-      autoar: currentBrowser.firefox ? ExtensionMode.Enabled : ExtensionMode.Disabled,     
+      autoar: ExtensionMode.Enabled,     
       override: false,
       type: 'official',
       stretch: Stretch.Default,
