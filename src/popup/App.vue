@@ -210,6 +210,7 @@ import DefaultSettingsPanel from './panels/DefaultSettingsPanel';
 import AboutPanel from './panels/AboutPanel';
 import ExtensionMode from '../common/enums/extension-mode.enum';
 import Logger from '../ext/lib/Logger';
+import {ChromeShittinessMitigations as CSM} from '../common/js/ChromeShittinessMitigations';
 
 export default {
   data () {
@@ -219,7 +220,6 @@ export default {
       selectedSite: '',
       activeFrames: [],
       activeSites: [],
-      port: BrowserDetect.firefox ? browser.runtime.connect({name: 'popup-port'}) : chrome.runtime.connect({name: 'popup-port'}),
       comms: new Comms(),
       frameStore: {},
       frameStoreCount: 0,
@@ -245,16 +245,19 @@ export default {
         allowLogging: true,
     });
 
-    this.settings = new Settings({updateCallback: () => this.updateConfig(), logger: this.logger});
+    this.settings = new Settings({afterSettingsSaved: () => this.updateConfig(), logger: this.logger});
     await this.settings.init();
     this.settingsInitialized = true;
 
-    this.port.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
+    const port = BrowserDetect.firefox ? browser.runtime.connect({name: 'popup-port'}) : chrome.runtime.connect({name: 'popup-port'});
+    port.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
+    CSM.setProperty('port', port);
+
     this.execAction.setSettings(this.settings);
 
     // ensure we'll clean player markings on popup close
     window.addEventListener("unload", () => {
-      this.port.postMessage({
+      CSM.port.postMessage({
         cmd: 'unmark-player',
         forwardToAll: true,
       });
@@ -314,7 +317,7 @@ export default {
     getSite() {
       try {
         this.logger.log('info','popup', '[popup::getSite] Requesting current site ...')
-        this.port.postMessage({cmd: 'get-current-site'});
+        CSM.port.postMessage({cmd: 'get-current-site'});
       } catch (e) {
         this.logger.log('error','popup','[popup::getSite] sending get-current-site failed for some reason. Reason:', e);
       }
@@ -336,7 +339,14 @@ export default {
     async updateConfig() {
       // when this runs, a site could have been enabled or disabled
       // this means we must update canShowVideoTab
+      const settings = this.settings;
+      this.settings = null;
       this.updateCanShowVideoTab();
+
+      this.$nextTick(() => {
+        this.settings = settings;
+        this.updateCanShowVideoTab();
+      });
     },
     updateCanShowVideoTab() {
       let canShow = false;
@@ -370,9 +380,8 @@ export default {
           }
         }
         if (!this.site || this.site.host !== message.site.host) {
-          this.port.postMessage({cmd: 'get-current-zoom'});
+          CSM.port.postMessage({cmd: 'get-current-zoom'});
         }
-        console.log("processing received message:", message)
         this.site = message.site;
 
         // update activeSites
@@ -472,7 +481,7 @@ export default {
 
           this.frameStore[frame] = fs;
 
-          this.port.postMessage({
+          CSM.port.postMessage({
             cmd: 'mark-player',
             forwardToContentScript: true,
             targetTab: videoTab.id,
@@ -525,7 +534,6 @@ export default {
       this.selectedSite = host;
     },
     toggleSideMenu(visible) {
-      console.warn('toggling side menu visible to:', visible ?? !this.sideMenuVisible, "arg:", visible )
       this.sideMenuVisible = visible ?? !this.sideMenuVisible;
     }
   }

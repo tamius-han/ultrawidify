@@ -56,7 +56,10 @@ class VideoData {
     try {
     await this.pageInfo.injectCss(`
       .uw-ultrawidify-base-wide-screen {
-        margin: 0px 0px 0px 0px !important; width: initial !important; align-self: start !important; justify-self: start !important;
+        margin: 0px 0px 0px 0px !important;
+        width: initial !important;
+        align-self: start !important;
+        justify-self: start !important;
       }
     `);
     } catch (e) {
@@ -276,6 +279,54 @@ class VideoData {
   isWithin(a, b, diff) {
     return a < b + diff && a > b - diff
   }
+
+  /**
+   * Gets the contents of the style attribute of the video element
+   * in a form of an object.
+   */
+  getVideoStyle() {
+    // This will _always_ give us an array. Empty string gives an array
+    // that contains one element. That element is an empty string.
+    const styleArray = (this.video.getAttribute('style') || '').split(';');
+    
+    const styleObject = {};
+
+    for (const style of styleArray) {
+      // not a valid CSS, so we skip those
+      if (style.indexOf(':') === -1) {
+        continue;
+      }
+
+      // let's play _very_ safe
+      let [property, value] = style.split('!important')[0].split(':');
+      value = value.trim();
+      styleObject[property] = value;
+    }
+
+    return styleObject;
+  }
+
+  /**
+   * Some sites try to accomodate ultrawide users by "cropping" videos
+   * by setting 'style' attribute of the video element to 'height: X%',
+   * where 'X' is something greater than 100.
+   * 
+   * This function gets that percentage and converts it into a factor.
+   */
+  getHeightCompensationFactor() {
+    const heightStyle = this.getVideoStyle()?.height;
+
+    if (!heightStyle || !heightStyle.endsWith('%')) {
+      return 1;
+    }
+
+    const heightCompensationFactor = heightStyle.split('%')[0] / 100;
+    if (isNaN(heightCompensationFactor)) {
+      return 1;
+    }
+    return heightCompensationFactor;
+  }
+
 
   firstTimeArdInit(){
     if(this.destroyed || this.invalid) {

@@ -2,6 +2,8 @@ import Debug from '../../conf/Debug';
 import ExtensionMode from '../../../common/enums/extension-mode.enum'
 import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 import PlayerNotificationUi from '../uwui/PlayerNotificationUI';
+import PlayerUi from '../uwui/PlayerUI';
+import BrowserDetect from '../../conf/BrowserDetect';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: PlayerData.js");
@@ -44,7 +46,9 @@ class PlayerData {
       this.extensionMode = videoData.extensionMode;
       this.invalid = false;
       this.element = this.getPlayer();
+
       this.notificationService = new PlayerNotificationUi(this.element, this.settings);
+
       this.dimensions = undefined;
       this.overlayNode = undefined;
 
@@ -475,6 +479,15 @@ class PlayerData {
 
   showNotification(notificationId) {
     this.notificationService?.showNotification(notificationId);
+  }
+
+  /**
+   * NOTE: this method needs to be deleted once Edge gets its shit together.
+   */
+  showEdgeNotification() {
+    if (BrowserDetect.isEdgeUA() && !this.settings.active.mutedNotifications?.browserSpecific?.edge?.brokenDrm?.[window.hostname]) {
+      this.ui = new PlayerUi(this.element, this.settings);
+    }
   }
 }
 
