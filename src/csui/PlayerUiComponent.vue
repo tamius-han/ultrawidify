@@ -2,14 +2,14 @@
   <div v-if="uiVisible" class="uw-hover uv-hover-trigger-region">
     <div class="flex flex-row pad">
       <div class="text panel">
-        <h1>Microsoft Edge's DRM implementation is too broken for this extension to work</h1>
+        <h1>Microsoft Edge's DRM implementation is too broken for this extension to work on this site</h1>
         <p><sup>2020-12-22</sup></p>
         <p>
           In October 2020, Microsoft Edge received an update that renders video playback completely broken on sites that utilize DRM. This extension relies on the browser implementing functional video playback,
           which means that this extension currently cannot work in Edge on sites that utilize DRM (and neither can other 21:9 extensions).
         </p>
         <p>
-          Using this extension (and its alternatives) on this site may make the problem you're trying to fix even worse than it is now.
+          <b>Using this extension (and its alternatives) on this site may make the problem you're trying to fix even worse than it is now.</b>
         </p>
         <p>
           I have attempted all possible workarounds and none of them work.
@@ -17,8 +17,8 @@
         <p><small>Yes I do recognize the irony of getting pissed at Microsoft for their bugs while my extension is basically the Skyrim of CWS, but guys at Microsoft are getting paid for working on MS Edge and I'm not getting paid for writing this extension.</small></p>
         <p>
           <b>I am not keeping up with Edge updates as I primarily use Firefox and Chrome. If Edge has already fixed their broken video implementation,
-            please open an issue on <a href="https://github.com/tamius-han/ultrawidify/issues">github</a>, <a href="mailto:tamius.han@gmail.com">shoot me an email</a> or
-            <a href="https://www.reddit.com/message/compose?to=xternal7">PM me on reddit</a>. Please include this string in the message:
+            please open an issue on <a href="https://github.com/tamius-han/ultrawidify/issues" target="_blank">github</a>, <a href="mailto:tamius.han@gmail.com" target="_blank">shoot me an email</a> or
+            <a href="https://www.reddit.com/message/compose?to=xternal7" target="_blank">PM me on reddit</a>. Please include this string in the message:
           </b>
         </p>
         <p>
@@ -29,7 +29,7 @@
         </p>
         <p>&nbsp;</p>
         <p>
-          Further reading: <a href="https://stuff.tamius.net/sacred-texts/2020/12/22/ultrawidify-and-edge-2020-edition/">blog post with extra details</a>.
+          Further reading: <a href="https://stuff.tamius.net/sacred-texts/2020/12/22/ultrawidify-and-edge-2020-edition/" target="_blank">blog post with extra details</a>.
         </p>
         <p>
           I know better than you: <b><a @click="uiVisible=false">hide this popup</a></b> | <a @click="hidePopupForever()">never show again for this site</a>
