@@ -23,6 +23,7 @@
 * Popup interface now refreshes properly ([#127](https://github.com/tamius-han/ultrawidify/issues/127))
 * Videos should now be scaled correctly when the display is narrower than video's native aspect ratio ([#118](https://github.com/tamius-han/ultrawidify/issues/118))
 * Edge users using CWS version of the extension get a very aggressive warning when trying to use the extension with Edge
+* Fullscreen videos on streamable are aligned correctly ([#116](https://github.com/tamius-han/ultrawidify/issues/118)).
 
 
 ### v4.5.0 (Current)
