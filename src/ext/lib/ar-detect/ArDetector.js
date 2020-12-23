@@ -558,7 +558,6 @@ class ArDetector {
     } catch (e) {
       this.logger.log('error', 'arDetect', `%c[ArDetect::frameCheck] <@${this.arid}>  %c[ArDetect::frameCheck] can't draw image on canvas. ${this.canDoFallbackMode ? 'Trying canvas.drawWindow instead' : 'Doing nothing as browser doesn\'t support fallback mode.'}`, "color:#000; backgroud:#f51;", e);
 
-      console.log('video is protected by DRM', this.drmNotificationShown)
       // nothing to see here, really, if fallback mode isn't supported by browser
       if (!this.drmNotificationShown) {
         this.drmNotificationShown = true;

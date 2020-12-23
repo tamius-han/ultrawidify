@@ -50,13 +50,11 @@ class PlayerNotificationUi extends UI {
       },
       mutations: {
         'uw-set-notification'(state, payload) {
-          console.log('mutation!', state, payload);
           state['notificationConfig'] = payload;
         }
       },
       actions: {
         'uw-set-notification'({commit}, payload) {
-          console.log('action!', commit, payload);
           commit('uw-set-notification', payload);
         }
       }

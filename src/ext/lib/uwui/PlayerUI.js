@@ -57,7 +57,6 @@ class PlayerUi extends UI {
       },
       actions: {
         'uw-set-ui-visible'({commit}, payload) {
-          console.log('action!', commit, payload);
           commit('uw-set-ui-visible', payload);
         },
         'uw-toggle-ui'({commit}) {
