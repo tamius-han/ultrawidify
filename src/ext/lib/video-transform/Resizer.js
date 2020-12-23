@@ -672,7 +672,7 @@ class Resizer {
       styleArray.push(`transform: translate(${translate.x}px, ${translate.y}px) scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor}) !important;`);
 
       // important — guarantees video will be properly aligned
-      styleArray.push("position: absolute; top: 0px !important; left: 0px !important; bottom: 0px !important; right: 0px;"); 
+      styleArray.push("top: 0px !important; left: 0px !important; bottom: 0px !important; right: 0px;"); 
 
       // important — some websites (cough reddit redesign cough) may impose some dumb max-width and max-height
       // restrictions. If site has dumb shit like 'max-width: 100%' and 'max-height: 100vh' in their CSS, that
