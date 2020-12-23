@@ -564,11 +564,8 @@ class ArDetector {
         this.drmNotificationShown = true;
 
         // if we detect Edge, we'll throw the aggressive popup
-        if (BrowserDetect.isEdgeUA() && !this.settings.active.mutedNotifications?.browserSpecific?.edge?.brokenDrm?.[window.hostname]) {
-          new PlayerUi(this.element, this.settings);
-        } else {
-          this.conf.player.showNotification('AARD_DRM');
-        }
+        this.conf.player.showEdgeNotification();
+        this.conf.player.showNotification('AARD_DRM');
 
         this.conf.resizer.setAr({type: AspectRatio.Reset});
         return;
