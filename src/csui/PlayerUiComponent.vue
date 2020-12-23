@@ -9,7 +9,7 @@
           which means that this extension currently cannot work in Edge on sites that utilize DRM (and neither can other 21:9 extensions).
         </p>
         <p>
-          <b>Using this extension (and its alternatives) on this site may make the problem you're trying to fix even worse than it is now.</b>
+          <b>Using this extension (and its alternatives) on this site may make things worse</b> — even if you only set aspect ratio manually.
         </p>
         <p>
           I have attempted all possible workarounds and none of them work.
@@ -32,7 +32,11 @@
           Further reading: <a href="https://stuff.tamius.net/sacred-texts/2020/12/22/ultrawidify-and-edge-2020-edition/" target="_blank">blog post with extra details</a>.
         </p>
         <p>
-          I know better than you: <b><a @click="uiVisible=false">hide this popup</a></b> | <a @click="hidePopupForever()">never show again for this site</a>
+          I know better than you: <b><a @click="uiVisible=false">hide this popup</a></b>
+        </p>
+        <p>
+          In order to disable this popup forever, open the ultrawidify popup, click on 'site settings' and disable automatic aspect ratio detection for this site.
+          You should probably even disable the extension for this site altogether for the time being.
         </p>
         <p>
           <br/>
@@ -109,13 +113,8 @@ export default {
       return BrowserDetect.firefox ? browser.runtime.getURL(url) : chrome.runtime.getURL(url);
     },
     async hidePopupForever() {
-      try {
-        console.log("++")
       const settings = new Settings();
-        console.log("++0")
-
       await settings.init();
-        console.log("++1")
 
       if (!settings.active.mutedNotifications) {
         settings.active.mutedNotifications = {};
@@ -131,6 +130,7 @@ export default {
       settings.active.mutedNotifications.browserSpecific.edge.brokenDrm[window.location.hostname] = true;
 
       await settings.saveWithoutReload();
+      this.uiVisible = false;
     }
   }
 }
