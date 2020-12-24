@@ -1086,6 +1086,15 @@ var ExtensionConf = {
         }
       }
     },
+    "streamable.com": {
+      mode: 3,
+      autoar: 3,
+      type: 'official',
+      stretch: -1,
+      videoAlignment: -1,
+      keyboardShortcutsEnabled: 0,
+      css: ".player {text-align: left}"
+    },
     "vimeo.com": {
       mode: 3,
       autoar: 3,
