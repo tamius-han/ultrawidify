@@ -672,6 +672,8 @@ class Resizer {
       styleArray.push(`transform: translate(${translate.x}px, ${translate.y}px) scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor}) !important;`);
 
       // important — guarantees video will be properly aligned
+      // Note that position:absolute cannot be put here, otherwise old.reddit /w RES breaks — videos embedded
+      // from certain hosts will get a height: 0px. This is bad.
       styleArray.push("top: 0px !important; left: 0px !important; bottom: 0px !important; right: 0px;"); 
 
       // important — some websites (cough reddit redesign cough) may impose some dumb max-width and max-height
