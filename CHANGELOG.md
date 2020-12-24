@@ -24,7 +24,7 @@
 * Videos should now be scaled correctly when the display is narrower than video's native aspect ratio ([#118](https://github.com/tamius-han/ultrawidify/issues/118))
 * Edge users using CWS version of the extension get a very aggressive warning when trying to use the extension with Edge
 * Fullscreen videos on streamable are aligned correctly ([#116](https://github.com/tamius-han/ultrawidify/issues/118)).
-
+* **[4.5.1.1]** Streamable fix broke old.reddit + RES on embeds from v.redd.it and streamable.com. We're now using an alternative implementation. ([#128](https://github.com/tamius-han/ultrawidify/issues/128))
 
 ### v4.5.0 (Current)
 

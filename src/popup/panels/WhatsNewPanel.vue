@@ -21,6 +21,9 @@
       <li>
         Edge users using CWS version of the extension get a very aggressive warning when trying to use the extension with Edge
       </li>
+      <li>
+        <b>[4.5.1.1]</b> Streamable fix broke old.reddit + RES on embeds from v.redd.it and streamable.com. We're now using an alternative implementation. (<a href="https://github.com/tamius-han/ultrawidify/issues/128">#128</a>)
+      </li>
     </ul>
   </div>
 </template>
