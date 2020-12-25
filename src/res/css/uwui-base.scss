@@ -43,4 +43,26 @@
     font-size: 1.42rem;
     margin: .25rem 0;
   }
+  ul, ol { 
+    display: block;
+    list-style: disc outside none;
+    margin: 1em 0;
+    padding: 0 0 0 40px;
+  }
+  ol { 
+    list-style-type: decimal;
+  }
+  ul ul, ol ul { 
+    list-style-type: circle; 
+    // list-style-position: inside; 
+    margin-left: 15px; 
+  }
+  ol ol, ul ol { 
+    list-style-type: lower-latin; 
+    // list-style-position: inside; 
+    margin-left: 15px; 
+  }
+  li { 
+    display: list-item;
+  }
 }
