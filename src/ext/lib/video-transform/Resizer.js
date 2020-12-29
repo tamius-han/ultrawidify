@@ -144,6 +144,10 @@ class Resizer {
     if (this.destroyed) {
       return;
     }
+    
+    if (!this.video.videoWidth || !this.video.videoHeight) {
+      this.logger.log('warning', 'debug', '[Resizer::setAr] <rid:'+this.resizerId+'> Video has no width or no height. This is not allowed. Aspect ratio will not be set.');
+    }
   
     this.logger.log('info', 'debug', '[Resizer::setAr] <rid:'+this.resizerId+'> trying to set ar. New ar:', ar)
 
