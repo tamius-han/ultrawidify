@@ -25,6 +25,7 @@
 * Edge users using CWS version of the extension get a very aggressive warning when trying to use the extension with Edge
 * Fullscreen videos on streamable are aligned correctly ([#116](https://github.com/tamius-han/ultrawidify/issues/118)).
 * **[4.5.1.1]** Streamable fix broke old.reddit + RES on embeds from v.redd.it and streamable.com. We're now using an alternative implementation. ([#128](https://github.com/tamius-han/ultrawidify/issues/128))
+* **[4.5.1.2]** Fixed the issue where videos would sometimes get misaligned while using hybrid stretch. ([#125](https://github.com/tamius-han/ultrawidify/issues/125))
 
 ### v4.5.0 (Current)
 
