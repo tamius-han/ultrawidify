@@ -1032,7 +1032,7 @@ var ExtensionConf = {
     },
     "www.netflix.com" : {
       mode: ExtensionMode.Enabled,
-      autoar: currentBrowser.firefox ? ExtensionMode.Enabled : ExtensionMode.Disabled,     
+      autoar: ExtensionMode.Enabled,     
       override: false,
       type: 'official',
       stretch: Stretch.Default,
@@ -1085,6 +1085,15 @@ var ExtensionConf = {
           playerNodeCss: ""
         }
       }
+    },
+    "streamable.com": {
+      mode: 3,
+      autoar: 3,
+      type: 'official',
+      stretch: -1,
+      videoAlignment: -1,
+      keyboardShortcutsEnabled: 0,
+      css: ".player {text-align: left}"
     },
     "vimeo.com": {
       mode: 3,

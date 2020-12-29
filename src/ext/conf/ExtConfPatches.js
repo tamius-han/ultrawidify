@@ -407,7 +407,7 @@ const ExtensionConfPatch = [
       }
     }
   }, {
-    forVersion: '4.5.0.1',
+    forVersion: '4.5.1',
     updateFn: (userOptions, defaultOptions) => {
       for (const site in userOptions.sites) {
         try {
@@ -417,6 +417,24 @@ const ExtensionConfPatch = [
           // everything is still fine
         }
       }
+    }
+  }, {
+    forVersion: '4.5.1.1',
+    updateFn: (userOptions, defaultOptions) => {
+      if (!userOptions.sites['streamable.com']) {
+        userOptions.sites['streamable.com'] = {
+          mode: 3,
+          autoar: 3,
+          type: 'official',
+          stretch: -1,
+          videoAlignment: -1,
+          keyboardShortcutsEnabled: 0,
+          css: ".player {text-align: left}"
+        };
+      }
+      if (!userOptions.sites['streamable.com'].css) {
+        userOptions.sites['streamable.com'].css = '.player {text-align: left}'
+      };
     }
   }
 ];

@@ -177,43 +177,41 @@ class Resizer {
       this.conf.pageInfo.updateCurrentCrop(ar);
     }
 
-    if (ar.type === AspectRatio.Automatic || 
-        ar.type === AspectRatio.Reset && this.lastAr.type === AspectRatio.Initial) {
-      // some sites do things that interfere with our site (and aspect ratio setting in general)
-      // first, we check whether video contains anything we don't like
-      if (siteSettings?.autoarPreventConditions?.videoStyleString) {
-        const styleString = (this.video.getAttribute('style') || '').split(';');
+    // if (ar.type === AspectRatio.Automatic || 
+    //     ar.type === AspectRatio.Reset && this.lastAr.type === AspectRatio.Initial) {
+    //   // some sites do things that interfere with our site (and aspect ratio setting in general)
+    //   // first, we check whether video contains anything we don't like
+    //   if (siteSettings?.autoarPreventConditions?.videoStyleString) {
+    //     const styleString = (this.video.getAttribute('style') || '').split(';');
 
-        if (siteSettings.autoarPreventConditions.videoStyleString.containsProperty) {
-          const bannedProperties = siteSettings.autoarPreventConditions.videoStyleString.containsProperty;
-          for (const prop in bannedProperties) {
-            for (const s of styleString) {
-              if (s.trim().startsWith(prop)) {
+    //     if (siteSettings.autoarPreventConditions.videoStyleString.containsProperty) {
+    //       const bannedProperties = siteSettings.autoarPreventConditions.videoStyleString.containsProperty;
+    //       for (const prop in bannedProperties) {
+    //         for (const s of styleString) {
+    //           if (s.trim().startsWith(prop)) {
 
-                // check if css property has a list of allowed values:
-                if (bannedProperties[prop].allowedValues) {
-                  const styleValue = s.split(':')[1].trim();
+    //             // check if css property has a list of allowed values:
+    //             if (bannedProperties[prop].allowedValues) {
+    //               const styleValue = s.split(':')[1].trim();
 
-                  // check if property value is on the list of allowed values
-                  // if it's not, we aren't allowed to start aard
-                  if (bannedProperties[prop].allowedValues.indexOf(styleValue) === -1) {
-                    this.logger.log('error', 'debug', "%c[Resizer::setAr] video style contains forbidden css property/value combo: ", "color: #900, background: #100", prop, " — we aren't allowed to start autoar.")
-                    return;
-                  }
-                } else {
-                  // no allowed values, no problem. We have forbidden property
-                  // and this means aard can't start.
-                  this.logger.log('info', 'debug', "%c[Resizer::setAr] video style contains forbidden css property: ", "color: #900, background: #100", prop, " — we aren't allowed to start autoar.")
-                  return;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    
+    //               // check if property value is on the list of allowed values
+    //               // if it's not, we aren't allowed to start aard
+    //               if (bannedProperties[prop].allowedValues.indexOf(styleValue) === -1) {
+    //                 this.logger.log('error', 'debug', "%c[Resizer::setAr] video style contains forbidden css property/value combo: ", "color: #900, background: #100", prop, " — we aren't allowed to start autoar.")
+    //                 return;
+    //               }
+    //             } else {
+    //               // no allowed values, no problem. We have forbidden property
+    //               // and this means aard can't start.
+    //               this.logger.log('info', 'debug', "%c[Resizer::setAr] video style contains forbidden css property: ", "color: #900, background: #100", prop, " — we aren't allowed to start autoar.")
+    //               return;
+    //             }
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
     if (lastAr) {
       this.lastAr = this.calculateRatioForLegacyOptions(lastAr);
@@ -229,11 +227,11 @@ class Resizer {
       this.lastAr = {type: ar.type, ratio: ar.ratio}
     }
 
-    if (this.extensionMode === ExtensionMode.Basic && !PlayerData.isFullScreen() && ar.type !== AspectRatio.Reset) {
-      // don't actually apply or calculate css when using basic mode if not in fullscreen
-      //  ... unless we're resetting the aspect ratio to original
-      return; 
-    }
+    // if (this.extensionMode === ExtensionMode.Basic && !PlayerData.isFullScreen() && ar.type !== AspectRatio.Reset) {
+    //   // don't actually apply or calculate css when using basic mode if not in fullscreen
+    //   //  ... unless we're resetting the aspect ratio to original
+    //   return; 
+    // }
 
     if (! this.video) {
       this.conf.destroy();
@@ -258,7 +256,6 @@ class Resizer {
         || this.stretcher.mode === Stretch.FixedSource){
      
       var stretchFactors = this.scaler.calculateCrop(ar);
-
 
       if(! stretchFactors || stretchFactors.error){
         this.logger.log('error', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> failed to set AR due to problem with calculating crop. Error:`, stretchFactors?.error);
@@ -297,7 +294,7 @@ class Resizer {
       var stretchFactors = this.stretcher.calculateBasicStretch();
       this.logger.log('info', 'debug', '[Resizer::setAr] Processed stretch factors for basic stretch. Stretch factors are:', stretchFactors);
     } else {
-      var stretchFactors = {xFactor: 1, yFactor: 1}
+      var stretchFactors = {xFactor: 1, yFactor: 1};
       this.logger.log('error', 'debug', '[Resizer::setAr] Okay wtf happened? If you see this, something has gone wrong', stretchFactors,"\n------[ i n f o   d u m p ]------\nstretcher:", this.stretcher);
     }
 
@@ -736,6 +733,8 @@ class Resizer {
       styleArray.push(`transform: translate(${translate.x}px, ${translate.y}px) scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor}) !important;`);
 
       // important — guarantees video will be properly aligned
+      // Note that position:absolute cannot be put here, otherwise old.reddit /w RES breaks — videos embedded
+      // from certain hosts will get a height: 0px. This is bad.
       styleArray.push("top: 0px !important; left: 0px !important; bottom: 0px !important; right: 0px;"); 
 
       // important — some websites (cough reddit redesign cough) may impose some dumb max-width and max-height

@@ -9,3 +9,7 @@ build/
 *.pem
 
 *.kate-swp
+
+src/res/img/git-ignore/
+
+test/debug-configs/

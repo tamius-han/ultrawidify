@@ -2,30 +2,27 @@
   <div>
     <h2>What's new</h2>
     <p>Full changelog for older versions <a href="https://github.com/tamius-han/ultrawidify/blob/master/CHANGELOG.md">is available here</a>.</p>
-    <p class="label">4.5.0</p>
+    <p class="label">4.5.1</p>
     <ul>
+      <li>Fixed the misalignment issue on netflix ... hopefully.</li>
       <li>
-        Under the hood: migrated from vue2 to vue3, because optional chaining in templates is too OP.
+        'Site settings' tab should now work in Chrome as well (<a href="https://github.com/tamius-han/ultrawidify/issues/126">#126</a>)
       </li>
       <li>
-        (On options page, section 'Action &amp; shortcuts') Manual aspect ratio now supports entering custom ratios using '21/9' and '2.39:1' formats (as opposed to single number, e.g. '2.39') — <a href="https://github.com/tamius-han/ultrawidify/issues/121">#121</a>.
+        Popup interface now refreshes properly (<a href="https://github.com/tamius-han/ultrawidify/issues/127">#127</a>)
       </li>
       <li>
-        Added config for wakanim.tv (special thanks to <a href="https://github.com/saschanaz">@saschanaz</a> for doing the legwork — <a href="https://github.com/tamius-han/ultrawidify/issues/113">#113</a>)
+        Videos should now be scaled correctly when the display is narrower than video's native aspect ratio (<a href="https://github.com/tamius-han/ultrawidify/issues/118">#118</a>)
       </li>
       <li>
-        (In Firefox) When extension was placed in overflow menu, the popup was cut off. That should be fixed now. (<a href="https://github.com/tamius-han/ultrawidify/issues/119">#119</a>)
+        Fullscreen videos on streamable are aligned correctly (<a href="https://github.com/tamius-han/ultrawidify/issues/118">#116</a>). Note that while this fix hasn't broken any sites I have access to and know of,
+        there is a small possibility that this bugfix may break something somewhere. If this happens on a site you use, please notify me via github, email or PM me on reddit.
       </li>
       <li>
-        The extension will now show a notification when autodetection can't run due to DRM.
+        Edge users using CWS version of the extension get a very aggressive warning when trying to use the extension with Edge
       </li>
       <li>
-        Videos on facebook and reddit no longer get shifted up and to the left for me (cropping most of the video off-screen), but I haven't been
-        deliberately trying to fix that issue. If you experience that issue, please consider contacting me (via github or email) with a link to a
-        problematic video.
-      </li>
-      <li>
-        <b>[4.5.0.1]</b> Fixes for netflix alignment issues.
+        <b>[4.5.1.1]</b> Streamable fix broke old.reddit + RES on embeds from v.redd.it and streamable.com. We're now using an alternative implementation. (<a href="https://github.com/tamius-han/ultrawidify/issues/128">#128</a>)
       </li>
     </ul>
   </div>

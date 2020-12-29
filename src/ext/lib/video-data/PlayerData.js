@@ -45,6 +45,7 @@ class PlayerData {
       this.extensionMode = videoData.extensionMode;
       this.invalid = false;
       this.element = this.getPlayer();
+
       this.notificationService = new PlayerNotificationUi(this.element, this.settings);
       this.ui = new PlayerUi(this.element, this.settings);
       this.dimensions = undefined;
@@ -482,6 +483,15 @@ class PlayerData {
 
   showNotification(notificationId) {
     this.notificationService?.showNotification(notificationId);
+  }
+
+  /**
+   * NOTE: this method needs to be deleted once Edge gets its shit together.
+   */
+  showEdgeNotification() {
+    if (BrowserDetect.isEdgeUA() && !this.settings.active.mutedNotifications?.browserSpecific?.edge?.brokenDrm?.[window.hostname]) {
+      this.ui = new PlayerUi(this.element, this.settings);
+    }
   }
 }
 

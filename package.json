@@ -20,6 +20,7 @@
     "start": "npm run dev"
   },
   "dependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.12.1",
     "@types/core-js": "^2.5.3",
     "@types/es6-promise": "^3.3.0",
     "@vue/cli": "^4.5.9",
