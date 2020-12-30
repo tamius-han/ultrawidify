@@ -485,7 +485,7 @@ class PlayerData {
    * NOTE: this method needs to be deleted once Edge gets its shit together.
    */
   showEdgeNotification() {
-    if (BrowserDetect.isEdgeUA() && !this.settings.active.mutedNotifications?.browserSpecific?.edge?.brokenDrm?.[window.hostname]) {
+    if (BrowserDetect.isEdgeUA && !this.settings.active.mutedNotifications?.browserSpecific?.edge?.brokenDrm?.[window.hostname]) {
       this.ui = new PlayerUi(this.element, this.settings);
     }
   }

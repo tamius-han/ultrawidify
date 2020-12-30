@@ -138,7 +138,7 @@ export default {
   },
   methods: {
     getUrl(url) {
-      return BrowserDetect.firefox ? browser.runtime.getURL(url) : chrome.runtime.getURL(url);
+      return BrowserDetect.getURL(url);
     },
     async hidePopupForever() {
       const settings = new Settings();
