@@ -261,7 +261,7 @@ export default {
         cmd: 'unmark-player',
         forwardToAll: true,
       });
-      if (BrowserDetect.chrome) {
+      if (BrowserDetect.anyChromium) {
         chrome.extension.getBackgroundPage().sendUnmarkPlayer({
           cmd: 'unmark-player',
           forwardToAll: true,
