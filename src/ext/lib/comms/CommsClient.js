@@ -11,7 +11,7 @@ class CommsClient {
 
     if (BrowserDetect.firefox) {
       this.port = browser.runtime.connect({name: name});
-    } else if (BrowserDetect.chrome) {
+    } else if (BrowserDetect.anyChromium) {
       this.port = chrome.runtime.connect({name: name});
     }
 
