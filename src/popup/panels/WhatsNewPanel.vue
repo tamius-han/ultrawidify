@@ -20,8 +20,14 @@
       </li>
       <li>
         <b>[4.5.1.1]</b> Streamable fix broke old.reddit + RES on embeds from v.redd.it and streamable.com. We're now using an alternative implementation. (<a href="https://github.com/tamius-han/ultrawidify/issues/128">#128</a>)
+      </li>
+      <li>
         <b>[4.5.1.2]</b> Fixed the issue where videos would sometimes get misaligned while using hybrid stretch. (<a href="https://github.com/tamius-han/ultrawidify/issues/125">#125</a>)
+      </li>
+      <li>
         <b>[4.5.1.3]</b> Added a potential fix for disney plus
+      </li>
+      <li>
         <b>[4.5.1.3]</b> Microsoft Edge has fixed the bugs that prevented the extension from working properly. Popup should no longer be shown.
       </li>
     </ul>
