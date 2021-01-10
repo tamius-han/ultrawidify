@@ -1066,7 +1066,8 @@ var ExtensionConf = {
           "useRelativeAncestor": false,
           "playerNodeCss": ""
         }
-      }
+      },
+      css: ".hudson-container { height: 100%; }",
     },
     "www.twitch.tv": {
       mode: ExtensionMode.Enabled,
@@ -1144,13 +1145,6 @@ var ExtensionConf = {
         }
       },
       css: 'video {\n  width: 100% !important;\n  height: 100% !important;\n}',
-    },
-    "www.disneyplus.com": {
-      DOM: {
-        player: {
-          periodicallyRefreshPlayerElement: true,
-        }
-      }
     },
     "imgur.com": {
       mode: -1,
