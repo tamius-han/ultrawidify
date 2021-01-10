@@ -441,6 +441,8 @@ const ExtensionConfPatch = [
     updateFn: (userOptions, defaultOptions) => {
       try {
         userOptions.sites['wwww.disneyplus.com']['css'] = ".hudson-container {\n  height: 100%;\n}";
+      } catch (e) {
+        // do nothing if disney+ is missing
       }
     }
   }
