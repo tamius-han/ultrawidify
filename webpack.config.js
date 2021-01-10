@@ -121,7 +121,7 @@ const config = {
                                             .substr(2)         // YYYY -> YY
                                             .replace('-', '')  // YY-MM-DD -> YYMM-DD
                                             .replace('-', '.') // YYMM-DD -> YYMM.DD
-                                    }.${process.env.BUILD_NUMBER}`;
+                                    }.${process.env.BUILD_NUMBER ?? 0}`;
             jsonContent.browser_action.default_title = "Ultrawidify Nightly";
             
             // because we don't want web-ext to submit this as proper release
@@ -137,7 +137,7 @@ const config = {
                                             .substr(2)         // YYYY -> YY
                                             .replace('-', '')  // YY-MM-DD -> YYMM-DD
                                             .replace('-', '.') // YYMM-DD -> YYMM.DD
-                                    }.${process.env.BUILD_NUMBER}`;
+                                    }.${process.env.BUILD_NUMBER ?? 0}`;
             jsonContent.browser_action.default_title = "Ultrawidify Testing";
             
             // because we don't want web-ext to submit this as proper release
