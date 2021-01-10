@@ -20,6 +20,10 @@
         Build channel: {{BrowserDetect.processEnvChannel}}
       </div>
     </div>
+    <div v-if="BrowserDetect.isEdgeUA">
+      NOTE: please ensure your Windows and Edge have the latest updates, otherwise this extension
+      <b>WILL NOT WORK</b> on DRM-protected sites.
+    </div>
     <div 
       v-if="narrowPopup"
       class="w100 show-more flex flex-row flex-center flex-cross-center menu-button"
