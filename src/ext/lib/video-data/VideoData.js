@@ -87,7 +87,6 @@ class VideoData {
     this.onVideoLoaded();
   }
   onTimeUpdate() {
-    console.info('received timeupdate event!', this);
     this.onVideoLoaded();
   }
   //#endregion
