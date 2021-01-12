@@ -33,7 +33,7 @@ class VideoData {
 
   async onVideoLoaded() {
     if (!this.videoLoaded) {
-      if (this.video.videoWidth && this.video.videoHeight) {
+      if (!this.video.videoWidth || !this.video.videoHeight) {
         return; // onVideoLoaded is a lie in this case
       }
       this.logger.log('info', 'init', '%c[VideoData::onVideoLoaded] ——————————— Initiating phase two of videoData setup ———————————', 'color: #0f9');
