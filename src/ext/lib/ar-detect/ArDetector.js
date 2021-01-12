@@ -474,19 +474,19 @@ class ArDetector {
     
     // poglejmo, če se je razmerje stranic spremenilo
     // check if aspect ratio is changed:
-    var lastAr = this.conf.resizer.getLastAr();
+    let lastAr = this.conf.resizer.getLastAr();
     if (lastAr.type === AspectRatio.Automatic && lastAr.ratio !== null && lastAr.ratio !== undefined){
       // spremembo lahko zavrnemo samo, če uporabljamo avtomatski način delovanja in če smo razmerje stranic
       // že nastavili.
       //
       // we can only deny aspect ratio changes if we use automatic mode and if aspect ratio was set from here.
       
-      var arDiff = trueAr - lastAr.ar;
+      let arDiff = trueAr - lastAr.ar;
       
       if (arDiff < 0)
         arDiff = -arDiff;
       
-      var arDiff_percent = arDiff / trueAr;
+      const arDiff_percent = arDiff / trueAr;
       
       // ali je sprememba v mejah dovoljenega? Če da -> fertik
       // is ar variance within acceptable levels? If yes -> we done
