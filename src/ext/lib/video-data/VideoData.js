@@ -71,21 +71,29 @@ class VideoData {
     this.video.classList.remove('uw-ultrawidify-base-wide-screen');
   }
 
+  onLoadedData() {
+    this.logger.log('info', 'init', '[VideoData::ctor->video.onloadeddata] Video fired event "loaded data!"');
+    this.onVideoLoaded();
+  }
+  onLoadedMetadata() {
+    this.logger.log('info', 'init', '[VideoData::ctor->video.onloadedmetadata] Video fired event "loaded metadata!"');
+    this.onVideoLoaded();
+  }
+  onTimeUpdate() {
+    console.info('received timeupdate event!', this);
+    this.onVideoLoaded();
+  }
   async setupStageOne() {
     this.logger.log('info', 'init', '%c[VideoData::setupStageOne] ——————————— Starting setup stage one! ———————————', 'color: #0f9');
     // ensure base css is loaded before doing anything
     this.injectBaseCss();
 
     // this is in case extension loads before the video
-    this.video.addEventListener('loadeddata', () => {
-      this.logger.log('info', 'init', '[VideoData::ctor->video.onloadeddata] Video fired event "loaded data!"');
-      this.onVideoLoaded();
-    });
+    this.video.addEventListener('loadeddata', this.onLoadedData.bind(this));
+    this.video.addEventListener('loadedmetadata', this.onLoadedMetadata.bind(this));
 
     // this one is in case extension loads after the video is loaded
-    this.video.addEventListener('timeupdate', () => {
-      this.onVideoLoaded();
-    });
+    this.video.addEventListener('timeupdate', this.onTimeUpdate.bind(this));
 
     this.logger.log('info', 'init', '%c[VideoData::setupStageOne] ——————————— Setup stage one complete! ———————————', 'color: #0f9');
   }
@@ -158,6 +166,38 @@ class VideoData {
     }
   }
 
+  destroy() {
+    this.logger.log('info', ['debug', 'init'], `[VideoData::destroy] <vdid:${this.vdid}> received destroy command`);
+
+    if (this.video) {
+      this.video.classList.remove(this.userCssClassName);
+      this.video.classList.remove('uw-ultrawidify-base-wide-screen'); 
+
+      this.video.removeEventListener('onloadeddata', this.onLoadedData);
+      this.video.removeEventListener('onloadedmetadata', this.onLoadedMetadata);
+      this.video.removeEventListener('ontimeupdate', this.onTimeUpdate);
+    }
+
+    this.pause();
+    this.destroyed = true;
+    try {
+      this.arDetector.stop();
+      this.arDetector.destroy();
+    } catch (e) {}
+    this.arDetector = undefined;
+    try {
+      this.resizer.destroy();
+    } catch (e) {}
+    this.resizer = undefined;
+    try {
+      this.player.destroy();
+    } catch (e) {}
+    try {
+      this.observer.disconnect();
+    } catch (e) {}
+    this.player = undefined;
+    this.video = undefined;
+  }
 
   restoreCrop() {  
     this.logger.log('info', 'debug', '[VideoData::restoreCrop] Attempting to reset aspect ratio.')
@@ -376,35 +416,6 @@ class VideoData {
     if (this.arDetector) {
       this.arDetector.stop();
     }
-  }
-
-  destroy() {
-    this.logger.log('info', ['debug', 'init'], `[VideoData::destroy] <vdid:${this.vdid}> received destroy command`);
-
-    if (this.video) {
-      this.video.classList.remove(this.userCssClassName);
-      this.video.classList.remove('uw-ultrawidify-base-wide-screen'); 
-    }
-
-    this.pause();
-    this.destroyed = true;
-    try {
-      this.arDetector.stop();
-      this.arDetector.destroy();
-    } catch (e) {}
-    this.arDetector = undefined;
-    try {
-      this.resizer.destroy();
-    } catch (e) {}
-    this.resizer = undefined;
-    try {
-      this.player.destroy();
-    } catch (e) {}
-    try {
-      this.observer.disconnect();
-    } catch (e) {}
-    this.player = undefined;
-    this.video = undefined;
   }
 
   pause(){
