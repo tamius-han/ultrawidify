@@ -16,6 +16,11 @@
 
 ## v4.x (current major)
 
+### v4.5.2
+
+* Fixed the issue where videos would sometimes get misaligned while using hybrid stretch, except for real this time. ([#125](https://github.com/tamius-han/ultrawidify/issues/125))
+* Improved DRM detection (the 'autodetection cannot work on this site' popup should now no longer show up on the sites where autodetection _can_ work)
+
 ### v4.5.1
 
 * Fixed the misalignment issue on netflix ... hopefully.
@@ -27,6 +32,7 @@
 * **[4.5.1.2]** Fixed the issue where videos would sometimes get misaligned while using hybrid stretch. ([#125](https://github.com/tamius-han/ultrawidify/issues/125))
 * **[4.5.1.3]** Added fix for disney plus
 * **[4.5.1.3]** Microsoft Edge has fixed the bugs that prevented the extension from working properly. Popup should no longer be shown.
+
 
 ### v4.5.0 (Current)
 
