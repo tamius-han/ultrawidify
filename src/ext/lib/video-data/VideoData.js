@@ -219,7 +219,15 @@ class VideoData {
   }
   //#endregion
 
+  //#region video status
+  isVideoPlaying() {
+    return this.video && !!(this.video.currentTime > 0 && !this.video.paused && !this.video.ended && this.video.readyState > 2);
+  }
 
+  hasVideoStartedPlaying() {
+    return this.video && this.video.currentTime > 0;
+  }
+  //#endregion
 
   restoreCrop() {  
     this.logger.log('info', 'debug', '[VideoData::restoreCrop] Attempting to reset aspect ratio.')
