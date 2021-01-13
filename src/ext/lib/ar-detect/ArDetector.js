@@ -552,27 +552,25 @@ class ArDetector {
       // special browsers require special tests
       if (this.hasDRM()) {
         this.fallbackMode = false;
-        throw 'Video is protected by DRM. Autodetection cannot run here.';
+        throw 'VIDEO_DRM_PROTECTED';
       }
       this.fallbackMode = false;
     } catch (e) {
       this.logger.log('error', 'arDetect', `%c[ArDetect::frameCheck] <@${this.arid}>  %c[ArDetect::frameCheck] can't draw image on canvas. ${this.canDoFallbackMode ? 'Trying canvas.drawWindow instead' : 'Doing nothing as browser doesn\'t support fallback mode.'}`, "color:#000; backgroud:#f51;", e);
 
-      // nothing to see here, really, if fallback mode isn't supported by browser
-      if (!this.drmNotificationShown) {
-        this.drmNotificationShown = true;
-
-        // if we detect Edge, we'll throw the aggressive popup
-        this.conf.player.showEdgeNotification();
-        this.conf.player.showNotification('AARD_DRM');
-
-        this.conf.resizer.setAr({type: AspectRatio.Reset});
-        return;
-      } 
-
       // in case of DRM errors, we need to prevent the execution to reach the aspec
-      // ratio setting part of this function
-      if (e === 'Video is protected by DRM. Autodetection cannot run here.') {
+      // ratio setting part of this function. For the time being, we're only stopping
+      // in case we encounter DRM error in Chrome. Firefox has fallback mode and generates
+      // different error, so that goes.
+      if (e === 'VIDEO_DRM_PROTECTED') {
+        // nothing to see here, really, if fallback mode isn't supported by browser
+        if (!this.drmNotificationShown) {
+          this.drmNotificationShown = true;
+
+          this.conf.player.showNotification('AARD_DRM');
+          this.conf.resizer.setAr({type: AspectRatio.Reset});
+        } 
+
         return;
       }
 
