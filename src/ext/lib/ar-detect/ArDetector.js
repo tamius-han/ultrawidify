@@ -526,6 +526,13 @@ class ArDetector {
    * completely opaque (i.e. have value of 255))
    */
   hasDRM() {
+    // oh btw, there's one exception. There is this brief period between the point
+    // when metadata (video dimensions) have loaded and the moment the video starts
+    // playing where ctx.drawImage() will draw a transparent black square regardless
+    // of whether the video is actually DRM-protected or not.
+    if (! this.conf.hasVideoStartedPlaying()) {
+      return false;
+    }
     return this.blackframeContext.getImageData(0,0,1,1).data[3] === 0;
   }
 
