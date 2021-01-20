@@ -1,11 +1,11 @@
 {
   "name": "ultrawidify",
-  "version": "4.5.1",
+  "version": "4.5.2",
   "description": "Aspect ratio fixer for youtube and other sites, with automatic aspect ratio detection. Supports ultrawide and other ratios.",
   "author": "Tamius Han <tamius.han@gmail.com>",
   "scripts": {
     "build": "npm run pre-build; cross-env NODE_ENV=production BROWSER=firefox CHANNEL=stable webpack --hide-modules",
-    "build-all": "mkdir -p ./build/old; npm run pre-build; rm ./dist-zip/uw-amo-source.zip; mv -f ./dist-zip/*.zip ./build/old; npm run build; node scripts/build-zip.js ff; npm run build-chrome; node scripts/build-zip.js chrome; ./scripts/prepare-amo-source.sh",
+    "build-all": "mkdir -p ./build/old; npm run pre-build; rm ./dist-zip/uw-amo-source.zip; mv -f ./dist-zip/*.zip ./build/old; npm run build; node scripts/build-zip.js ff; npm run build-chrome; node scripts/build-zip.js chrome; npm run build-edge; node scripts/build-zip.js edge; ./scripts/prepare-amo-source.sh",
     "build-chrome": "cross-env NODE_ENV=production BROWSER=chrome CHANNEL=stable webpack --hide-modules",
     "build-chrome:dev": "cross-env NODE_ENV=development BROWSER=chrome webpack --hide-modules",
     "build-edge": "cross-env NODE_ENV=production BROWSER=edge CHANNEL=stable webpack --hide-modules",

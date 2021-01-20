@@ -16,16 +16,23 @@
 
 ## v4.x (current major)
 
+### v4.5.2
+
+* Fixed the issue where videos would sometimes get misaligned while using hybrid stretch, except for real this time. ([#125](https://github.com/tamius-han/ultrawidify/issues/125))
+* Improved DRM detection (the 'autodetection cannot work on this site' popup should now no longer show up on the sites where autodetection _can_ work)
+
 ### v4.5.1
 
 * Fixed the misalignment issue on netflix ... hopefully.
 * 'Site settings' tab should now work in Chrome as well ([#126](https://github.com/tamius-han/ultrawidify/issues/126))
 * Popup interface now refreshes properly ([#127](https://github.com/tamius-han/ultrawidify/issues/127))
 * Videos should now be scaled correctly when the display is narrower than video's native aspect ratio ([#118](https://github.com/tamius-han/ultrawidify/issues/118))
-* Edge users using CWS version of the extension get a very aggressive warning when trying to use the extension with Edge
 * Fullscreen videos on streamable are aligned correctly ([#116](https://github.com/tamius-han/ultrawidify/issues/118)).
 * **[4.5.1.1]** Streamable fix broke old.reddit + RES on embeds from v.redd.it and streamable.com. We're now using an alternative implementation. ([#128](https://github.com/tamius-han/ultrawidify/issues/128))
 * **[4.5.1.2]** Fixed the issue where videos would sometimes get misaligned while using hybrid stretch. ([#125](https://github.com/tamius-han/ultrawidify/issues/125))
+* **[4.5.1.3]** Added fix for disney plus
+* **[4.5.1.3]** Microsoft Edge has fixed the bugs that prevented the extension from working properly. Popup should no longer be shown.
+
 
 ### v4.5.0 (Current)
 

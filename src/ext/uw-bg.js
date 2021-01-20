@@ -69,7 +69,7 @@ class UWServer {
 
     if(BrowserDetect.firefox) {
       browser.tabs.onActivated.addListener((m) => {this.onTabSwitched(m)});  
-    } else if (BrowserDetect.chrome) {
+    } else if (BrowserDetect.anyChromium) {
       chrome.tabs.onActivated.addListener((m) => {this.onTabSwitched(m)});
     }
   }
@@ -84,7 +84,7 @@ class UWServer {
     try {
       if (BrowserDetect.firefox || BrowserDetect.edge) {
         browser.tabs.insertCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
-      } else if (BrowserDetect.chrome) {
+      } else if (BrowserDetect.anyChromium) {
         chrome.tabs.insertCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
       }
     } catch (e) {
@@ -95,7 +95,7 @@ class UWServer {
     try {
       if (BrowserDetect.firefox || BrowserDetect.edge) {
         browser.tabs.removeCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
-      } else if (BrowserDetect.chrome) {
+      } else if (BrowserDetect.anyChromium) {
         // this doesn't work currently, but hopefully chrome will get this feature in the future
         chrome.tabs.removeCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
       }
@@ -141,7 +141,7 @@ class UWServer {
       let tab;
       if (BrowserDetect.firefox) {
         tab = await browser.tabs.get(this.currentTabId);
-      } else if (BrowserDetect.chrome) {
+      } else if (BrowserDetect.anyChromium) {
         tab = await this._promisifyTabsGet(chrome, this.currentTabId);
       }
 
@@ -223,7 +223,7 @@ class UWServer {
           file: '/ext/uw-ui.js',
           allFrames: true,
         });
-      } else if (BrowserDetect.chrome) {
+      } else if (BrowserDetect.anyChromium) {
         await new Promise( resolve => 
           chrome.tabs.executeScript({
             file: '/ext/uw-ui.js',
@@ -269,7 +269,7 @@ class UWServer {
   async getCurrentTab() {
     if (BrowserDetect.firefox) {
       return (await browser.tabs.query({active: true, currentWindow: true}))[0];
-    } else if (BrowserDetect.chrome) {
+    } else if (BrowserDetect.anyChromium) {
       return new Promise((resolve, reject) => chrome.tabs.query({active: true, currentWindow: true}, (x) => resolve(x[0])));
     }
   }

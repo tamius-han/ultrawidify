@@ -436,6 +436,15 @@ const ExtensionConfPatch = [
         userOptions.sites['streamable.com'].css = '.player {text-align: left}'
       };
     }
+  }, {
+    forVersion: '4.5.1.3',
+    updateFn: (userOptions, defaultOptions) => {
+      try {
+        userOptions.sites['wwww.disneyplus.com']['css'] = ".hudson-container {\n  height: 100%;\n}";
+      } catch (e) {
+        // do nothing if disney+ is missing
+      }
+    }
   }
 ];
 

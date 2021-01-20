@@ -61,6 +61,9 @@ export default {
     console.log("store:", this.$store, this);
   },
   methods: {
+    getUrl(url) {
+      return BrowserDetect.getURL(url);
+    },
   }
 }
 </script>
