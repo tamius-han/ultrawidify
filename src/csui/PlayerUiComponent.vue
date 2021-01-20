@@ -2,24 +2,49 @@
   <div class="uw-hover uv-hover-trigger-region">
     TEST CONTENT
   </div>
-  <div class="uw-debug-info">
-    <ResizerDebugPanel :debugData="debugData">
-    </ResizerDebugPanel>
+  <div class="popup-panel">
+    <div class="tab-row flex flex-row">
+      <div class="tab">
+        todo: icon<br/>
+        Video options
+      </div>
+    </div>
+    <div>
+      <!-- Panel section -->
+      <template v-if="settingsInitialized">
+        <VideoSettings
+          :settings="settings"
+        ></VideoSettings>
+        <ResizerDebugPanel :debugData="debugData">
+        </ResizerDebugPanel>
+      </template>
+    </div>
   </div>
 </template>
 
 <script>
+import VideoSettings from './PlayerUiPanels/VideoSettings.vue'
 import { mapState } from 'vuex';
 import Icon from '../common/components/Icon';
 import ResizerDebugPanel from './PlayerUiPanels/ResizerDebugPanelComponent';
+import BrowserDetect from '../ext/conf/BrowserDetect';
+import ExecAction from './ui-libs/ExecAction';
+import Logger from '../ext/lib/Logger';
+import Settings from '../ext/lib/Settings';
 
 export default {
   components: {
     Icon,
-    ResizerDebugPanel
+    ResizerDebugPanel, VideoSettings
   },
   data() {
     return {
+      // component properties
+      settings: {},
+      settingsInitialized: false,
+      execAction: new ExecAction(),
+      logger: null,
+
       uiVisible: true,
       debugData: {
         resizer: {},
@@ -56,9 +81,24 @@ export default {
       this.debugDataPrettified = JSON.stringify(this.debugData, null, 2);
     }
   },
-  created() {
-    console.log("created!");
-    console.log("store:", this.$store, this);
+  async created() {
+    try {
+      this.logger = new Logger();
+      await this.logger.init({
+          allowLogging: true,
+      });
+
+      this.settings = new Settings({afterSettingsSaved: this.updateConfig, logger: this.logger});
+      await this.settings.init();
+      this.settingsInitialized = true;
+
+      this.execAction.setSettings(this.settings);
+
+      console.log("created!");
+      console.log("store:", this.$store, this);
+    } catch (e) {
+      console.error('Failed to initiate ultrawidify player ui.', e);
+    }
   },
   methods: {
     getUrl(url) {
@@ -98,7 +138,7 @@ export default {
     background-color: #f00;
   }
 
-  .uw-debug-info {
+  .popup-panel {
     position: absolute;
 
     top: 10%;
@@ -116,12 +156,24 @@ export default {
     background-color: rgba(0,0,0,0.69);
     color: #fff;
 
-    overflow-y: scroll;
+    overflow-y: auto;
+
+    .tab {
+      display: block;
+      height: 42px;
+      font-size: 2.5rem;
+      background: rgb(87, 54, 26);
+    }
+    .tab:hover {
+      background-color: #f00;
+    }
   }
 
   pre {
     white-space: pre-wrap;
   }
+
+
 }
 
 

@@ -1,7 +1,7 @@
 export default {
   computed: {
     scopeActions: function() {
-      return this.settings.active.actions.filter(x => {
+      return this.settings?.active.actions?.filter(x => {
         if (! x.scopes) {
           console.error('This action does not have a scope.', x);
           return false;
