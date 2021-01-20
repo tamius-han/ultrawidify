@@ -12,6 +12,10 @@ function getBrowserObj() {
   return process.env.BROWSER === 'firefox' ? browser : chrome;
 }
 
+function getRuntime() {
+  return process.env.BROWSER === 'firefox' ? browser.runtime : chrome.runtime;
+}
+
 function getURL(url) {
   return process.env.BROWSER === 'firefox' ? browser.runtime.getURL(url) : chrome.runtime.getURL(url);
 }
@@ -25,6 +29,7 @@ const BrowserDetect = {
   processEnvChannel: process.env.CHANNEL,
   isEdgeUA: detectEdgeUA(),
   browserObj: getBrowserObj(),
+  runtime: getRuntime(),
   getURL: (url) => getURL(url),
 } 
 
