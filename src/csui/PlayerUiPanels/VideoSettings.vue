@@ -1,9 +1,38 @@
 <template>
   <div class="" style="padding-bottom: 20px">
-    sample text<br/><br/>
-    <br/>
-    <h1>Crop video:</h1>
+    <div>
+      <h1>Crop video:</h1>
+      <div class="flex flex-row flex-wrap">
+        <ShortcutButton v-for="(action, index) of aspectRatioActions"
+                        class="flex b3 flex-grow button"
+                        :key="index"
+                        :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
+                        :shortcut="parseShortcut(action)"
+                        @clic.native="execAction(action)"
+        >
 
+        </ShortcutButton>
+      </div>
+
+
+    </div>
+    <div>
+      <h1>Streth video:</h1>
+      <div class="flex flex-row flex-wrap">
+      </div>
+    </div>
+    <div>
+      <h1>Manual zoom:</h1>
+      <div class="flex flex-row flex-wrap">
+
+      </div>
+    </div>
+    <div>
+      <h1>Video alignment:</h1>
+      <div class="flex flex-row flex-wrap">
+
+      </div>
+    </div>
   </div>
 </template>
 
@@ -14,6 +43,7 @@ import ComputeActionsMixin from '../../common/mixins/ComputeActionsMixin';
 import CropModePersistence from '../../common/enums/crop-mode-persistence.enum';
 import ExecAction from '../ui-libs/ExecAction';
 import BrowserDetect from '../../ext/conf/BrowserDetect';
+import AspectRatio from '../../common/enums/aspect-ratio.enum';
 
 export default {
   data() {
@@ -23,7 +53,7 @@ export default {
     }
   },
   mixins: [
-    // ComputeActionsMixin
+    ComputeActionsMixin
   ],
   props: [
     'settings',
@@ -32,10 +62,10 @@ export default {
     'cropModePersistence',
   ],
   created() {
-    // this.exec = new ExecAction(this.settings);
+    this.exec = new ExecAction(this.settings);
   },
   components: {
-    // ShortcutButton,
+    ShortcutButton,
   },
   computed: {
     // logarithmicZoom: function(){
@@ -47,13 +77,13 @@ export default {
       BrowserDetect.runtime.openOptionsPage();
     },
     execAction(action) {
-      // this.exec.exec(action, 'page', this.frame);
+      this.exec.exec(action, 'page', this.frame);
     },
     parseShortcut(action) {
-      // if (! action.scopes.page.shortcut) {
-      //   return '';
-      // }
-      // return KeyboardShortcutParser.parseShortcut(action.scopes.page.shortcut[0]);
+      if (! action.scopes.page.shortcut) {
+        return '';
+      }
+      return KeyboardShortcutParser.parseShortcut(action.scopes.page.shortcut[0]);
     },
     resetZoom() {
       this.zoom = 1;
