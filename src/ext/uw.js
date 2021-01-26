@@ -7,6 +7,7 @@ import Comms from './lib/comms/Comms';
 import CommsClient from './lib/comms/CommsClient';
 import PageInfo from './lib/video-data/PageInfo';
 import Logger from './lib/Logger';
+import UWGlobals from './lib/UWGlobals';
 
 
 if(process.env.CHANNEL !== 'stable'){
@@ -65,6 +66,14 @@ class UW {
     }
   }
 
+  createUWGlobals() {
+    if (window.ultrawidify) {
+      window.ultrawidify.destroy();
+    }
+
+    window.ultrawidify = new UWGlobals();
+  }
+
   reloadSettings() {
     this.logger.log('info', 'debug', 'Things happened in the popup. Will reload extension settings.');
     this.init();
@@ -74,6 +83,8 @@ class UW {
     if (Debug.debug) {
       console.log("[uw::main] loading configuration ...");
     }
+
+    this.createUWGlobals();
   
     // logger init is the first thing that needs to run
     try {
@@ -179,8 +190,6 @@ class UW {
       this.logger.log('error', 'debug', "[uw::init] FAILED TO START EXTENSION. Error:", e);
     }
   }
-
- 
 }
 
 var main = new UW();

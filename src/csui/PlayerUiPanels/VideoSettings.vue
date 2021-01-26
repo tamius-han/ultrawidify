@@ -19,6 +19,7 @@
     <div>
       <h1>Streth video:</h1>
       <div class="flex flex-row flex-wrap">
+        <div @click="testAction()">TEST CLICK ME</div>
       </div>
     </div>
     <div>
@@ -96,6 +97,9 @@ export default {
       //   'page',
       //   this.frame
       // );
+    },
+    testAction() {
+      window.ultrawidify.videos[0].setAr({type: AspectRatio.FitWidth});
     }
   }
 }

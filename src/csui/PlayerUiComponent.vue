@@ -9,7 +9,7 @@
         Video options
       </div>
     </div>
-    <div>
+    <div>sudpo 
       <!-- Panel section -->
       <template v-if="settingsInitialized">
         <VideoSettings
@@ -92,10 +92,16 @@ export default {
       await this.settings.init();
       this.settingsInitialized = true;
 
+      console.log("settings inited")
+
       this.execAction.setSettings(this.settings);
 
       console.log("created!");
       console.log("store:", this.$store, this);
+
+      console.log("settings:", this.settings)
+      console.log("windowPD", window.ultrawidify);
+      console.log("this:", this);
     } catch (e) {
       console.error('Failed to initiate ultrawidify player ui.', e);
     }

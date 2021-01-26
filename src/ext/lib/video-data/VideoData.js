@@ -8,7 +8,8 @@ class VideoData {
   
 
   constructor(video, settings, pageInfo){
-    this.vdid = (Math.random()*100).toFixed();
+    window.ultrawidify.addVideo(this);
+    
     this.logger = pageInfo.logger;
     this.arSetupComplete = false;
     this.video = video;
@@ -90,6 +91,7 @@ class VideoData {
     this.onVideoLoaded();
   }
   //#endregion
+
 
   //#region lifecycle-ish
   /**

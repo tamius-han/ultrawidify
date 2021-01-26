@@ -30,7 +30,6 @@ class PlayerUi extends UI {
     this.settings = settings;
   }
 
-
   //#region constructor helpers
   // we will move some things out of the constructor in order to keep things clean
   static getStoreConfig() {

@@ -47,6 +47,7 @@ class PlayerData {
       this.element = this.getPlayer();
 
       this.notificationService = new PlayerNotificationUi(this.element, this.settings);
+
       this.ui = new PlayerUi(this.element, this.settings);
       this.dimensions = undefined;
       this.overlayNode = undefined;
