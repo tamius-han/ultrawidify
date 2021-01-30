@@ -37,6 +37,7 @@ if (process.env.CHANNEL !== 'stable'){
 */
 
 class PlayerData {
+  
   constructor(videoData) {
     try {
       this.logger = videoData.logger;

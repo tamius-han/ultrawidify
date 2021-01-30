@@ -187,6 +187,7 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
         
         this.logger.log('info', 'stretcher', "[Stretcher.js::calculateStretch] stretching strategy 3")
       }
+
     } else {
       // player adds LETTERBOX
 
