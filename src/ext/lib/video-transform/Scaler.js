@@ -1,5 +1,7 @@
 import Debug from '../../conf/Debug';
 import AspectRatio from '../../../common/enums/aspect-ratio.enum';
+import BrowserDetect from '../../conf/BrowserDetect';
+
 
 // računa velikost videa za približevanje/oddaljevanje
 // does video size calculations for zooming/cropping
