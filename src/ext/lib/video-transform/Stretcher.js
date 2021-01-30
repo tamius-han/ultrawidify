@@ -255,24 +255,31 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
    * style attribute does).
    */
   chromeBugMitigation(stretchFactors) {
-      if (BrowserDetect.anyChromium && this.conf.player?.isFullScreen && this.conf.player?.dimensions?.fullscreen) {
-        const playerAr = playerArOverride || this.conf.player.dimensions.width / this.conf.player.dimensions.height;
-        const streamAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
-        
-        let maxSafeAr;
+    if (BrowserDetect.anyChromium && this.conf.player?.isFullScreen && this.conf.player?.dimensions?.fullscreen) {
+      const playerAr = playerArOverride || this.conf.player.dimensions.width / this.conf.player.dimensions.height;
+      const streamAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
+      
+      let maxSafeAr;
 
-        if (playerAr >= (streamAr * 1.1)) {
-          maxSafeAr = (window.innerWidth * 0.997) / window.innerHeight;
-        } else if (playerAr < (streamAr * 0.95)) {
-          maxSafeAr = window.innerWidth / (window.innerHeight * 0.997);
-        } else {
-          // in some cases, we tolerate minor stretch to avoid tiny black bars
-          return;
-        }
-        
-        stretchFactors.xFactor = Math.min(stretchFactors.xFactor, maxSafeAr);
-        stretchFactors.yFactor = Math.min(stretchFactors.yFactor, maxSafeAr);
+      if (playerAr >= (streamAr * 1.1)) {
+        maxSafeAr = (window.innerWidth * 0.997) / window.innerHeight;
+      } else if (playerAr < (streamAr * 0.95)) {
+        maxSafeAr = window.innerWidth / (window.innerHeight * 0.997);
+      } else {
+        // in some cases, we tolerate minor stretch to avoid tiny black bars
+        return;
       }
+      
+      const maxSafeStretchFactor = this.conf.resizer.stretcher.calculateCrop(maxSafeAr).xFactor;
+
+      console.info('Stretch factors before:', stretchFactors.xFactor, stretchFactors.yFactor, "max safe:", maxSafeStretchFactor, "max safe ar:", maxSafeAr);
+
+      stretchFactors.xFactor = Math.min(stretchFactors.xFactor, maxSafeStretchFactor);
+      stretchFactors.yFactor = Math.min(stretchFactors.yFactor, maxSafeStretchFactor);
+
+      console.info('Stretch factors after:', stretchFactors.xFactor, stretchFactors.yFactor);
+
+    }
   }
 }
 
