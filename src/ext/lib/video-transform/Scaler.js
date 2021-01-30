@@ -180,6 +180,30 @@ class Scaler {
     
     this.logger.log('info', 'scaler', "[Scaler::calculateCrop] Crop factor calculated — ", videoDimensions.xFactor);
 
+    // Workaround for Chrome/Edge issue where zooming too much results in video being stretched incorrectly
+    /**
+     * Bug description — if the following are true:
+     *   * user is using Chrome or Edge (but surprisingly not Opera)
+     *   * user is using hardware acceleration
+     *   * user is using a noVideo card
+     *   * user is in full screen mode
+     * Then the video will do Stretch.Basic no matter what you put in `transform: scale(x,y)`.
+     * 
+     * Because this issue happens regardless of how you upscale the video (doesn't matter if you use transform:scale
+     * or width+height or anything else), the aspect ratio needs to be limited _before_ applying arCorrectionFactor
+     * (note that arCorrectionFactor is usually <= 1, as it conpensates for zooming that height=[>100%] on <video>
+     * style attribute does). 
+     * 
+     * This method is also repeated in calculate stretch method.
+     */
+
+    if (BrowserDetect.anyChromium && this.conf.player?.isFullScreen && this.conf.player?.dimensions?.fullscreen) {
+      const maxSafeAr = (window.innerWidth * 0.995) / window.innerHeight;
+      
+      videoDimensions.xFactor = Math.min(videoDimensions.xFactor, maxSafeAr);
+      videoDimensions.yFactor = Math.min(videoDimensions.yFactor, maxSafeAr);
+    }
+
     // correct the factors
     videoDimensions.xFactor *= arCorrectionFactor;
     videoDimensions.yFactor *= arCorrectionFactor;

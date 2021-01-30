@@ -230,6 +230,49 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
 
     return stretchFactors;
   }
+
+  /**
+   * Ensure that <video> element is never both taller-ish and wider-ish than the screen, while in fullscreen
+   * on Chromium-based browsers. 
+   * 
+   * Workaround for Chrome/Edge issue where zooming too much results in video being stretched incorrectly.
+   * 
+   * Bug description — if the following are true:
+   *   * user is using Chrome or Edge (but surprisingly not Opera)
+   *   * user is using hardware acceleration
+   *   * user is using a noVideo card
+   *   * user is in full screen mode
+   *   * the video is both roughly taller and roughly wider than the monitor
+   * Then the video will do Stretch.Basic no matter what you put in `transform: scale(x,y)`.
+   * 
+   * In practice, the issue appears slightly _before_ the last condition is met (video needs to be ~3434 px wide
+   * in order for this bug to trigger on my 3440x1440 display).
+   * 
+   * Because this issue happens regardless of how you upscale the video (doesn't matter if you use transform:scale
+   * or width+height or anything else), the aspect ratio needs to be limited _before_ applying arCorrectionFactor
+   * (note that arCorrectionFactor is usually <= 1, as it conpensates for zooming that height=[>100%] on <video>
+   * style attribute does).
+   */
+  chromeBugMitigation(stretchFactors) {
+      if (BrowserDetect.anyChromium && this.conf.player?.isFullScreen && this.conf.player?.dimensions?.fullscreen) {
+        const playerAr = playerArOverride || this.conf.player.dimensions.width / this.conf.player.dimensions.height;
+        const streamAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
+        
+        let maxSafeAr;
+
+        if (playerAr >= (streamAr * 1.1)) {
+          maxSafeAr = (window.innerWidth * 0.997) / window.innerHeight;
+        } else if (playerAr < (streamAr * 0.95)) {
+          maxSafeAr = window.innerWidth / (window.innerHeight * 0.997);
+        } else {
+          // in some cases, we tolerate minor stretch to avoid tiny black bars
+          return;
+        }
+        
+        stretchFactors.xFactor = Math.min(stretchFactors.xFactor, maxSafeAr);
+        stretchFactors.yFactor = Math.min(stretchFactors.yFactor, maxSafeAr);
+      }
+  }
 }
 
 export default Stretcher;

@@ -269,6 +269,8 @@ class Resizer {
 
     this.zoom.applyZoom(stretchFactors);
 
+    this.stretcher.chromeBugMitigation(stretchFactors);
+
     var translate = this.computeOffsets(stretchFactors);
     this.applyCss(stretchFactors, translate);
   }
