@@ -255,7 +255,7 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
    * style attribute does).
    */
   chromeBugMitigation(stretchFactors) {
-    if (BrowserDetect.anyChromium && this.conf.player?.isFullScreen && this.conf.player?.dimensions?.fullscreen) {
+    if (BrowserDetect.anyChromium && this.conf.player?.dimensions?.fullscreen) {
       const playerAr = playerArOverride || this.conf.player.dimensions.width / this.conf.player.dimensions.height;
       const streamAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
       
