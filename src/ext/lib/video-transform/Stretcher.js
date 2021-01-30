@@ -1,4 +1,5 @@
 import Stretch from '../../../common/enums/stretch.enum';
+import BrowserDetect from '../../conf/BrowserDetect';
 
 // računa vrednosti za transform-scale (x, y)
 // transform: scale(x,y) se uporablja za raztegovanje videa, ne pa za približevanje
