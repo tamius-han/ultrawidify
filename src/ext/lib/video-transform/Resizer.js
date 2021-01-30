@@ -182,42 +182,6 @@ class Resizer {
       this.conf.pageInfo.updateCurrentCrop(ar);
     }
 
-    // if (ar.type === AspectRatio.Automatic || 
-    //     ar.type === AspectRatio.Reset && this.lastAr.type === AspectRatio.Initial) {
-    //   // some sites do things that interfere with our site (and aspect ratio setting in general)
-    //   // first, we check whether video contains anything we don't like
-    //   if (siteSettings?.autoarPreventConditions?.videoStyleString) {
-    //     const styleString = (this.video.getAttribute('style') || '').split(';');
-
-    //     if (siteSettings.autoarPreventConditions.videoStyleString.containsProperty) {
-    //       const bannedProperties = siteSettings.autoarPreventConditions.videoStyleString.containsProperty;
-    //       for (const prop in bannedProperties) {
-    //         for (const s of styleString) {
-    //           if (s.trim().startsWith(prop)) {
-
-    //             // check if css property has a list of allowed values:
-    //             if (bannedProperties[prop].allowedValues) {
-    //               const styleValue = s.split(':')[1].trim();
-
-    //               // check if property value is on the list of allowed values
-    //               // if it's not, we aren't allowed to start aard
-    //               if (bannedProperties[prop].allowedValues.indexOf(styleValue) === -1) {
-    //                 this.logger.log('error', 'debug', "%c[Resizer::setAr] video style contains forbidden css property/value combo: ", "color: #900, background: #100", prop, " — we aren't allowed to start autoar.")
-    //                 return;
-    //               }
-    //             } else {
-    //               // no allowed values, no problem. We have forbidden property
-    //               // and this means aard can't start.
-    //               this.logger.log('info', 'debug', "%c[Resizer::setAr] video style contains forbidden css property: ", "color: #900, background: #100", prop, " — we aren't allowed to start autoar.")
-    //               return;
-    //             }
-    //           }
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
-
     if (lastAr) {
       this.lastAr = this.calculateRatioForLegacyOptions(lastAr);
       ar = this.calculateRatioForLegacyOptions(ar);
