@@ -4,6 +4,7 @@ import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 import PlayerNotificationUi from '../uwui/PlayerNotificationUI';
 import PlayerUi from '../uwui/PlayerUI';
 import BrowserDetect from '../../conf/BrowserDetect';
+import _ from 'lodash';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: PlayerData.js");
@@ -87,19 +88,10 @@ class PlayerData {
 
   
   // player size observer may not be strictly necessary here
-  _playerDimensionChangedInProgress = false;
   onPlayerDimensionsChanged(mutationList, observer, context) {
-    if (this._playerDimensionChangedInProgress) {
-      return;
-    }
-    
-    this._playerDimensionChangedInProgress = true;
-
     if (this?.checkPlayerSizeChange()) {
       this.videoData.resizer.restore();
     }
-
-    this._playerDimensionChangedInProgress = false;
   }
 
 
@@ -124,7 +116,16 @@ class PlayerData {
     }
 
     try {
-      this.observer = new MutationObserver((m,o) => this.onPlayerDimensionsChanged(m,o,this));
+      this.observer = new MutationObserver(
+        _.debounce(           // don't do this too much:
+          (m,o) => this.onPlayerDimensionsChanged(m,o,this),
+          250,                // do it once per this many ms
+          {
+            leading: true,    // do it when we call this fallback first
+            trailing: true    // do it after the timeout if we call this callback few more times
+          }
+        )
+      );
 
       const observerConf = {
         attributes: true,
