@@ -117,7 +117,7 @@ class Scaler {
     }
 
     if (ar.type === AspectRatio.Reset){
-      return {xFactor: arCorrectionFactor, yFactor: arCorrectionFactor}
+      return {xFactor: arCorrectionFactor, yFactor: arCorrectionFactor, arCorrectionFactor: arCorrectionFactor}
     }
 
     // handle fuckie-wuckies
@@ -151,13 +151,28 @@ class Scaler {
       yFactor: 1,
       actualWidth: 0,   // width of the video (excluding pillarbox) when <video> tag height is equal to width
       actualHeight: 0,  // height of the video (excluding letterbox) when <video> tag height is equal to height
+      arCorrectionFactor: arCorrectionFactor,
     }
   
+    this.calculateCropCore(videoDimensions, ar.ratio, streamAr, playerAr)
+    
+    return videoDimensions;
+  }
+
+  /**
+   * The act of calculating aspect ratio is separated due to resue elsewhere in the extension.
+   * We are doing that to avoid surprise recursions.
+   * @param {*} videoDimensions 
+   * @param {*} ar 
+   * @param {*} streamAr 
+   * @param {*} playerAr 
+   */
+  calculateCropCore(videoDimensions, ar, streamAr, playerAr) {
     if (streamAr < playerAr) {
-      if (streamAr < ar.ratio){
+      if (streamAr < ar){
         // in this situation we have to crop letterbox on top/bottom of the player
         // we cut it, but never more than the player
-        videoDimensions.xFactor = Math.min(ar.ratio, playerAr) / streamAr;
+        videoDimensions.xFactor = Math.min(ar, playerAr) / streamAr;
         videoDimensions.yFactor = videoDimensions.xFactor;
       } else {
         // in this situation, we would be cutting pillarbox. Inside horizontal player.
@@ -166,7 +181,7 @@ class Scaler {
         videoDimensions.yFactor = 1;
       }
     } else {
-      if (streamAr < ar.ratio || playerAr < ar.ratio){
+      if (streamAr < ar || playerAr < ar){
         // in this situation, we need to add extra letterbox on top of our letterbox
         // this means we simply don't crop anything _at all_
         videoDimensions.xFactor = 1;
@@ -179,38 +194,14 @@ class Scaler {
         // videoDimensions.yFactor = videoDimensions.xFactor;
       }
     }
-    
+
     this.logger.log('info', 'scaler', "[Scaler::calculateCrop] Crop factor calculated — ", videoDimensions.xFactor);
-
-    // Workaround for Chrome/Edge issue where zooming too much results in video being stretched incorrectly
-    /**
-     * Bug description — if the following are true:
-     *   * user is using Chrome or Edge (but surprisingly not Opera)
-     *   * user is using hardware acceleration
-     *   * user is using a noVideo card
-     *   * user is in full screen mode
-     * Then the video will do Stretch.Basic no matter what you put in `transform: scale(x,y)`.
-     * 
-     * Because this issue happens regardless of how you upscale the video (doesn't matter if you use transform:scale
-     * or width+height or anything else), the aspect ratio needs to be limited _before_ applying arCorrectionFactor
-     * (note that arCorrectionFactor is usually <= 1, as it conpensates for zooming that height=[>100%] on <video>
-     * style attribute does). 
-     * 
-     * This method is also repeated in calculate stretch method.
-     */
-
-    if (BrowserDetect.anyChromium && this.conf.player?.isFullScreen && this.conf.player?.dimensions?.fullscreen) {
-      const maxSafeAr = (window.innerWidth * 0.995) / window.innerHeight;
-      
-      videoDimensions.xFactor = Math.min(videoDimensions.xFactor, maxSafeAr);
-      videoDimensions.yFactor = Math.min(videoDimensions.yFactor, maxSafeAr);
+ 
+    // correct the scale factor
+    if (videoDimensions.arCorrectionFactor) {
+      videoDimensions.xFactor *= videoDimensions.arCorrectionFactor;
+      videoDimensions.yFactor *= videoDimensions.arCorrectionFactor;
     }
-
-    // correct the factors
-    videoDimensions.xFactor *= arCorrectionFactor;
-    videoDimensions.yFactor *= arCorrectionFactor;
-
-    return videoDimensions;
   }
 }
 

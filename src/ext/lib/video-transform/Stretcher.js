@@ -271,15 +271,21 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
         return;
       }
       
-      const maxSafeStretchFactor = this.conf.resizer.scaler.calculateCrop({type: AspectRatio.Fixed, ratio: maxSafeAr}).xFactor;
+      const maxSafeStretchFactor = this.conf.resizer.scaler.calculateCropCore(
+        { 
+          xFactor: 1,
+          yFactor: 1,
+          arCorrectionFactor: stretchFactors.arCorrectionFactor
+        },
+        maxSafeAr,
+        streamAr,
+        playerAr
+      ).xFactor;
 
-      console.info('Stretch factors before:', stretchFactors.xFactor, stretchFactors.yFactor, "max safe:", maxSafeStretchFactor, "max safe ar:", maxSafeAr);
+      // console.info('Stretch factors before:', stretchFactors.xFactor, stretchFactors.yFactor, "max safe:", maxSafeStretchFactor, "max safe ar:", maxSafeAr);
 
       stretchFactors.xFactor = Math.min(stretchFactors.xFactor, maxSafeStretchFactor);
       stretchFactors.yFactor = Math.min(stretchFactors.yFactor, maxSafeStretchFactor);
-
-      console.info('Stretch factors after:', stretchFactors.xFactor, stretchFactors.yFactor);
-
     }
   }
 }
