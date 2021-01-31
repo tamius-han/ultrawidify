@@ -115,8 +115,7 @@ class PlayerData {
     }
 
     try {
-      const ths = this;
-      this.observer = new MutationObserver((m,o) => this.onPlayerDimensionsChanged(m,o,this).bind(this));
+      this.observer = new MutationObserver((m,o) => this.onPlayerDimensionsChanged(m,o,this));
 
       const observerConf = {
         attributes: true,
