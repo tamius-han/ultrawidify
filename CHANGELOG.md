@@ -16,6 +16,10 @@
 
 ## v4.x (current major)
 
+### v4.5.3
+
+* Provides workaround for the fullscreen stretching bug Chrome 88 (or a recent Windows 10 update) introduced for nVidia users using hardware acceleration on Windows 10. In order to mitigate this bug, Ultrawidify needs to keep a 5-10 px wide black border while watching videos in full screen. This bug is also present in Edge.
+
 ### v4.5.2
 
 * Fixed the issue where videos would sometimes get misaligned while using hybrid stretch, except for real this time. ([#125](https://github.com/tamius-han/ultrawidify/issues/125))
