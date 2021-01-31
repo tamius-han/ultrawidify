@@ -286,6 +286,8 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
 
       stretchFactors.xFactor = Math.min(stretchFactors.xFactor, maxSafeStretchFactor);
       stretchFactors.yFactor = Math.min(stretchFactors.yFactor, maxSafeStretchFactor);
+
+      return stretchFactors;
     }
   }
 }

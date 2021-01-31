@@ -146,7 +146,7 @@ class Scaler {
   
     this.logger.log('info', 'scaler', "[Scaler::calculateCrop] ar is " ,ar.ratio, ", file ar is", streamAr, ", this.conf.player.dimensions are ", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
     
-    var videoDimensions = {
+    const videoDimensions = {
       xFactor: 1,
       yFactor: 1,
       actualWidth: 0,   // width of the video (excluding pillarbox) when <video> tag height is equal to width
@@ -202,6 +202,8 @@ class Scaler {
       videoDimensions.xFactor *= videoDimensions.arCorrectionFactor;
       videoDimensions.yFactor *= videoDimensions.arCorrectionFactor;
     }
+
+    return videoDimensions;
   }
 }
 
