@@ -87,9 +87,8 @@ class PlayerData {
 
   // player size observer may not be strictly necessary here
   onPlayerDimensionsChanged(mutationList, observer, context) {
-    console.log("context:", context, "this:", this);
-    if (context.checkPlayerSizeChange()) {
-      context.videoData.resizer.restore();
+    if (this?.checkPlayerSizeChange()) {
+      this.videoData.resizer.restore();
     }
   }
 
