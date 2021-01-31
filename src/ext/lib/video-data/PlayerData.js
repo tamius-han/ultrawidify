@@ -85,11 +85,21 @@ class PlayerData {
     return ( window.innerHeight == window.screen.height && window.innerWidth == window.screen.width);
   }
 
+  
   // player size observer may not be strictly necessary here
+  _playerDimensionChangedInProgress = false;
   onPlayerDimensionsChanged(mutationList, observer, context) {
+    if (this._playerDimensionChangedInProgress) {
+      return;
+    }
+    
+    this._playerDimensionChangedInProgress = true;
+
     if (this?.checkPlayerSizeChange()) {
       this.videoData.resizer.restore();
     }
+
+    this._playerDimensionChangedInProgress = false;
   }
 
 
