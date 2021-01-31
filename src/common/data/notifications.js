@@ -6,7 +6,7 @@ let Notifications = Object.freeze({
   },
   'AARD_DRM': {
     icon: 'exclamation-triangle',
-    text: '<b>Autodetection cannot run on this video.</b> This usually happens when sites use DRM. You will have to set aspect ratio manually.',
+    text: '<b>Autodetection may not be able to run on this video.</b> On sites that utilize DRM you will have to set aspect ratio manually.',
     timeout: 5000,
   }
 });
