@@ -270,7 +270,7 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
         return;
       }
       
-      const maxSafeStretchFactor = this.conf.resizer.scaler.calculateCrop(maxSafeAr).xFactor;
+      const maxSafeStretchFactor = this.conf.resizer.scaler.calculateCrop({type: AspectRatio.Fixed, ratio: maxSafeAr}).xFactor;
 
       console.info('Stretch factors before:', stretchFactors.xFactor, stretchFactors.yFactor, "max safe:", maxSafeStretchFactor, "max safe ar:", maxSafeAr);
 
