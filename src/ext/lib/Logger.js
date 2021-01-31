@@ -44,16 +44,6 @@ class Logger {
   }
 
   static async getConfig() {
-    return { "allowLogging": true,
-      "consoleOptions": {
-        "enabled": true,
-        "debug": true,
-        "resizer": true,
-        "scaler": true,
-        "stretcher": true
-      },
-      "fileOptions": {}
-    }
     let ret;
 
     if (currentBrowser.firefox) {
