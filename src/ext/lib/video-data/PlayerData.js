@@ -88,10 +88,18 @@ class PlayerData {
 
   
   // player size observer may not be strictly necessary here
+  // note that this function is called manually as well — whenever aspect ratio changes.
+  // this can result in recursive calls. We don't want recusrive calls.
+  onPlayerDimensionsChanged_recursing = false;
   onPlayerDimensionsChanged(mutationList, observer, context) {
+    if (this.onPlayerDimensionsChanged_recursing) {
+      return;
+    }
+    this.onPlayerDimensionsChanged_recursing = true;
     if (this?.checkPlayerSizeChange()) {
       this.videoData.resizer.restore();
     }
+    this.onPlayerDimensionsChanged_recursing = false;
   }
 
 
