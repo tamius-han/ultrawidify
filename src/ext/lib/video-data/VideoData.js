@@ -379,7 +379,7 @@ class VideoData {
       }
       
     } catch(e) {
-      // do nothing on fail
+      console.error('Validating video offsets failed:', e)
     }
   }
 
