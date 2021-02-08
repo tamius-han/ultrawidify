@@ -1,6 +1,8 @@
 import Debug from '../../conf/Debug';
 import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
 import BrowserDetect from '../../conf/BrowserDetect';
+import VideoData from '../video-data/VideoData';
+import Logger from '../Logger';
 
 
 // računa velikost videa za približevanje/oddaljevanje
@@ -8,7 +10,10 @@ import BrowserDetect from '../../conf/BrowserDetect';
 
 
 class Scaler {
-  // internal variables
+  //#region helper objects
+  conf: VideoData;
+  logger: Logger;
+  //#endregion
 
   // functions
   constructor(videoData) {
