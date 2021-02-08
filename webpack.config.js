@@ -22,19 +22,22 @@ const config = {
     path: __dirname + `/dist-${process.env.BROWSER == 'firefox' ? 'ff' : process.env.BROWSER}`,
     filename: '[name].js',
   },
+
+  devtool: "source-map",
+
   resolve: {
     // maybe we'll move to TS some day, but today is not the day
     extensions: [
-      // '.ts', '.tsx',
+      '.ts', '.tsx',
       '.js', '.vue'
     ],
   },
   module: {
     rules: [
-      // { 
-      //   test: /\.tsx?$/,
-      //   loader: 'ts-loader',
-      // },
+      { 
+        test: /\.tsx?$/,
+        loader: 'ts-loader',
+      },
       {
         test: /\.vue$/,
         loaders: 'vue-loader',
