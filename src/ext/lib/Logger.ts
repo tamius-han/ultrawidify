@@ -1,19 +1,25 @@
-import currentBrowser from '../conf/BrowserDetect';
 import { decycle } from 'json-cyclic';
 import Comms from './comms/Comms';
+import BrowserDetect from '../conf/BrowserDetect';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info('Loading Logger');
 }
 
 class Logger {
-  constructor(options) {
-    this.onLogEndCallbacks = [];
-    this.history = [];
-    this.globalHistory = {};
-    this.isContentScript = false;
-    this.isBackgroundScript = true;
+  temp_disable: boolean = false;
+  onLogEndCallbacks: any[] = [];
+  history: any[] = [];
+  globalHistory: any = {};
+  isContentScript: boolean = false;
+  isBackgroundScript: boolean = true;
+  vuexStore: any;
+  uwInstance: any;
+  conf: any;
+  startTime: number;
+  stopTime: number;
 
+  constructor(options) {
     this.vuexStore = options?.vuexStore;
     this.uwInstance = options?.uwInstance;
   }
@@ -23,20 +29,15 @@ class Logger {
       console.info('Saving logger conf:', conf)
     }
 
-    if (currentBrowser.firefox || currentBrowser.edge) {
-      return browser.storage.local.set( {'uwLogger': JSON.stringify(conf)});
-    } else if (currentBrowser.chrome) {
-      return chrome.storage.local.set( {'uwLogger': JSON.stringify(conf)});
-    }
+    (BrowserDetect.browserObj as any).storage.local.set( {'uwLogger': JSON.stringify(conf)});
   }
 
   static syncConfig(callback) {
-    const br = currentBrowser.firefox ? browser : chrome;
-    br.storage.onChanged.addListener( (changes, area) => {
+    (BrowserDetect.browserObj as any).storage.onChanged.addListener( (changes, area) => {
       if (changes.uwLogger) {
         const newLoggerConf = JSON.parse(changes.uwLogger.newValue)
         if (process.env.CHANNEL === 'dev') {
-          console.info('Logger settings reloaded. New conf:', conf);
+          console.info('Logger settings reloaded. New conf:', newLoggerConf);
         }
         callback(newLoggerConf);
       }
@@ -46,15 +47,11 @@ class Logger {
   static async getConfig() {
     let ret;
 
-    if (currentBrowser.firefox) {
-      ret = await browser.storage.local.get('uwLogger');
-    } else if (currentBrowser.chrome) {
+    if (BrowserDetect.firefox) {
+      ret = await (BrowserDetect.browserObj as any).storage.local.get('uwLogger');
+    } else if (BrowserDetect.anyChromium) {
       ret = await new Promise( (resolve, reject) => {
-        chrome.storage.local.get('uwLogger', (res) => resolve(res));
-      });
-    } else if (currentBrowser.edge) {
-      ret = await new Promise( (resolve, reject) => {
-        browser.storage.local.get('uwLogger', (res) => resolve(res));
+        (BrowserDetect.browserObj as any).storage.local.get('uwLogger', (res) => resolve(res));
       });
     }
 
@@ -101,9 +98,7 @@ class Logger {
     this.temp_disable = false;
     this.stopTime = this.conf.timeout ? performance.now() + (this.conf.timeout * 1000) : undefined;
 
-    const br = currentBrowser.firefox ? browser : chrome;
-
-    br.storage.onChanged.addListener( (changes, area) => {
+    (BrowserDetect.browserObj as any).storage.onChanged.addListener( (changes, area) => {
       if (process.env.CHANNEL === 'dev') {
         if (!changes.uwLogger) {
           // console.info('[Logger::<storage/on change> No new logger settings!');
@@ -131,7 +126,7 @@ class Logger {
   }
   
   clear() {
-    this.log = [];
+    this.history = [];
     this.startTime = performance.now();
     this.stopTime = this.conf.timeout ? performance.now() + (this.conf.timeout * 1000) : undefined;
   }
@@ -142,9 +137,9 @@ class Logger {
     Logger.saveConfig(conf);
   }
 
-  async getSaved() {
-    return Logger.getSaved();    
-  }
+  // async getSaved() {
+  //   return Logger.getSaved();    
+  // }
 
 
   // allow syncing of start times between bg and page scripts.
@@ -174,7 +169,7 @@ class Logger {
   getFileLogJSONString() {
     return {
       site: window && window.location,
-      log: JSON.toString(this.history),
+      log: JSON.stringify(this.history),
     }
   }
 
@@ -213,7 +208,7 @@ class Logger {
   parseStack() {
     const trace = (new Error()).stack;
 
-    const stackInfo = {};
+    const stackInfo: any = {};
     // we turn our stack into array and remove the "file::line" part of the trace,
     // since that is useless because minification/webpack
     stackInfo['stack'] = {trace: trace.split('\n').map(a => a.split('@')[0])};
@@ -336,7 +331,7 @@ class Logger {
     }
   }
 
-  canLogConsole(component, stackInfo) {
+  canLogConsole(component, stackInfo?) {
     if (!this.conf.consoleOptions?.enabled || this.temp_disable) {
       return false;
     }
@@ -437,7 +432,7 @@ class Logger {
       let ts = performance.now();
       let secondMark = ts - 1000;
       let halfSecondMark = ts - 500;
-      let i = this.history.length();
+      let i = this.history.length;
 
       // correct ts _after_ secondMark and halfSecondMark were determined
       if (ts <= this.history[this.history.length - 1]) {
