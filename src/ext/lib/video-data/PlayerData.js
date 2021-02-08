@@ -5,6 +5,7 @@ import PlayerNotificationUi from '../uwui/PlayerNotificationUI';
 import PlayerUi from '../uwui/PlayerUI';
 import BrowserDetect from '../../conf/BrowserDetect';
 import _ from 'lodash';
+import { sleep } from '../../../common/js/utils';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: PlayerData.js");
@@ -78,28 +79,15 @@ class PlayerData {
     }
   }
 
-  async sleep(timeout) {
-    return new Promise( (resolve, reject) => setTimeout(() => resolve(), timeout));
-  }
-
   static isFullScreen(){
     return ( window.innerHeight == window.screen.height && window.innerWidth == window.screen.width);
   }
 
   
-  // player size observer may not be strictly necessary here
-  // note that this function is called manually as well — whenever aspect ratio changes.
-  // this can result in recursive calls. We don't want recusrive calls.
-  onPlayerDimensionsChanged_recursing = false;
-  onPlayerDimensionsChanged(mutationList, observer, context) {
-    if (this.onPlayerDimensionsChanged_recursing) {
-      return;
-    }
-    this.onPlayerDimensionsChanged_recursing = true;
+  onPlayerDimensionsChanged(mutationList, observer) {
     if (this?.checkPlayerSizeChange()) {
       this.videoData.resizer.restore();
     }
-    this.onPlayerDimensionsChanged_recursing = false;
   }
 
 
@@ -124,16 +112,31 @@ class PlayerData {
     }
 
     try {
-      this.observer = new MutationObserver(
-        _.debounce(           // don't do this too much:
-          (m,o) => this.onPlayerDimensionsChanged(m,o,this),
-          250,                // do it once per this many ms
-          {
-            leading: true,    // do it when we call this fallback first
-            trailing: true    // do it after the timeout if we call this callback few more times
-          }
-        )
-      );
+      if (BrowserDetect.firefox) {
+        this.observer = new MutationObserver(
+          _.debounce(           // don't do this too much:
+            this.onPlayerDimensionsChanged,
+            250,                // do it once per this many ms
+            {
+              leading: true,    // do it when we call this fallback first
+              trailing: true    // do it after the timeout if we call this callback few more times
+            }
+          )
+        );
+      } else {
+        // Chrome for some reason insists that this.onPlayerDimensionsChanged is not a function
+        // when it's not wrapped into an anonymous function
+        this.observer = new MutationObserver(
+          _.debounce(           // don't do this too much:
+            (m,o) => this.onPlayerDimensionsChanged(m,o),
+            250,                // do it once per this many ms
+            {
+              leading: true,    // do it when we call this fallback first
+              trailing: true    // do it after the timeout if we call this callback few more times
+            }
+          )
+        );
+      }
 
       const observerConf = {
         attributes: true,
@@ -152,7 +155,7 @@ class PlayerData {
 
   async legacyChangeDetection() {
     while (!this.halted) {
-      await this.sleep(1000);
+      await sleep(1000);
       try {
         this.doPeriodicPlayerElementChangeCheck();
       } catch (e) {

@@ -3,6 +3,8 @@ import PlayerData from './PlayerData';
 import Resizer from '../video-transform/Resizer';
 import ArDetector from '../ar-detect/ArDetector';
 import AspectRatio from '../../../common/enums/aspect-ratio.enum';
+import _ from 'lodash';
+import BrowserDetect from '../../conf/BrowserDetect';
 
 class VideoData {
   
@@ -134,10 +136,37 @@ class VideoData {
     this.resizer = new Resizer(this);
 
     // INIT OBSERVERS
-    this.observer = new MutationObserver( (m, o) => {
-      this.logger.log('info', 'debug', `[VideoData::setupStageTwo->mutationObserver] Mutation observer detected a mutation:`, {m, o});
-      this.onVideoDimensionsChanged(m, o, this)
-    });
+    try {
+      if (BrowserDetect.firefox) {
+        this.observer = new MutationObserver( 
+          _.debounce(
+            this.onVideoDimensionsChanged,
+            250,
+            {
+              leading: true,
+              trailing: true
+            }
+          )
+        );
+      } else {
+        // Chrome for some reason insists that this.onPlayerDimensionsChanged is not a function
+        // when it's not wrapped into an anonymous function
+        this.observer = new MutationObserver( 
+          _.debounce(
+            (m, o) => {
+              this.onVideoDimensionsChanged(m, o)
+            }, 
+            250,
+            {
+              leading: true,
+              trailing: true
+            }
+          )
+        );
+      }
+    } catch (e) {
+      console.error('[VideoData] Observer setup failed:', e);
+    }
     this.observer.observe(this.video, observerConf);
 
     // INIT AARD
@@ -263,9 +292,9 @@ class VideoData {
   }
 
 
-  onVideoDimensionsChanged(mutationList, observer, context) {
-    if (!mutationList || context.video === undefined) {  // something's wrong
-      if (observer && context.video) {
+  onVideoDimensionsChanged(mutationList, observer) {
+    if (!mutationList || this.video === undefined) {  // something's wrong
+      if (observer && this.video) {
         observer.disconnect();
       }
       return;
@@ -275,14 +304,14 @@ class VideoData {
     for (let mutation of mutationList) {
       if (mutation.type === 'attributes') {
         if (mutation.attributeName === 'class') {
-          if(!context.video.classList.contains(this.userCssClassName) ) {
+          if(!this.video.classList.contains(this.userCssClassName) ) {
             // force the page to include our class in classlist, if the classlist has been removed
             // while classList.add() doesn't duplicate classes (does nothing if class is already added),
             // we still only need to make sure we're only adding our class to classlist if it has been
             // removed. classList.add() will _still_ trigger mutation (even if classlist wouldn't change).
             // This is a problem because INFINITE RECURSION TIME, and we _really_ don't want that.
-            context.video.classList.add(this.userCssClassName);
-            context.video.classList.add('uw-ultrawidify-base-wide-screen'); 
+            this.video.classList.add(this.userCssClassName);
+            this.video.classList.add('uw-ultrawidify-base-wide-screen'); 
           }
           // always trigger refresh on class changes, since change of classname might trigger change 
           // of the player size as well.
@@ -301,13 +330,13 @@ class VideoData {
     // adding player observer taught us that if element size gets triggered by a class, then
     // the 'style' attributes don't necessarily trigger. This means we also need to trigger
     // restoreAr here, in case video size was changed this way
-    context.player.forceRefreshPlayerElement();
-    context.restoreAr();
+    this.player.forceRefreshPlayerElement();
+    this.restoreAr();
 
     // sometimes something fucky wucky happens and mutations aren't detected correctly, so we
     // try to get around that
     setTimeout( () => {
-      context.validateVideoOffsets();
+      this.validateVideoOffsets();
     }, 100);
   }
 
