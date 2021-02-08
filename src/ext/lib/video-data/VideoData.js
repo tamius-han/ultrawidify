@@ -370,16 +370,24 @@ class VideoData {
       const ph = +(pcs.height.split('px')[0]);
       const pw = +(pcs.width.split('px')[0]);
 
+      console.info(
+        '---- [ video offsets & stuff ] ----\n',
+        'video offset x:', translateX, '(x2:', translateX * 2, ') + width:', vw, 'should = player width:', pw, '\n',
+        'video offset y:', translateY, '(x2:', translateY * 2, ') + height:', vh, 'should = player height:', ph
+      );
       // TODO: check & account for panning and alignment
       if (transformMatrix[0] !== 'none'
           && this.isWithin(vh, (ph - (translateY * 2)), 2)
           && this.isWithin(vw, (pw - (translateX * 2)), 2)) {
+        console.info('offsets are within tolerance');
       } else {
+        console.warn('offsets are incorrect')
         this.player.forceDetectPlayerElementChange();
+        this.restoreAr();
       }
       
     } catch(e) {
-      // do nothing on fail
+      console.error('Validating video offsets failed:', e)
     }
   }
 
