@@ -1,5 +1,5 @@
 import Debug from '../../conf/Debug';
-import AspectRatio from '../../../common/enums/aspect-ratio.enum';
+import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
 import BrowserDetect from '../../conf/BrowserDetect';
 
 
@@ -19,9 +19,9 @@ class Scaler {
 
   // Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". 
   // Približevanje opuščeno.
-  // handles "legacy" options, such as 'fit to widht', 'fit to height' and AspectRatio.Reset. No zoom tho
+  // handles "legacy" options, such as 'fit to widht', 'fit to height' and AspectRatioType.Reset. No zoom tho
   modeToAr (ar) {
-    if (ar.type !== AspectRatio.FitWidth && ar.type !== AspectRatio.FitHeight && ar.ratio) {
+    if (ar.type !== AspectRatioType.FitWidth && ar.type !== AspectRatioType.FitHeight && ar.ratio) {
       return ar.ratio; 
     }
 
@@ -48,17 +48,17 @@ class Scaler {
     
     var fileAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
       
-    if (ar.type === AspectRatio.FitWidth) {
+    if (ar.type === AspectRatioType.FitWidth) {
       ratioOut > fileAr ? ratioOut : fileAr
       ar.ratio = ratioOut;
       return ratioOut;
     }
-    else if (ar.type === AspectRatio.FitHeight) {
+    else if (ar.type === AspectRatioType.FitHeight) {
       ratioOut < fileAr ? ratioOut : fileAr
       ar.ratio = ratioOut;
       return ratioOut;
     }
-    else if (ar.type === AspectRatio.Reset) {
+    else if (ar.type === AspectRatioType.Reset) {
       this.logger.log('info', 'debug', "[Scaler.js::modeToAr] Using original aspect ratio -", fileAr)
       ar.ar = fileAr;
       return fileAr;
@@ -76,7 +76,7 @@ class Scaler {
      * undoes any zoom that style="height:123%" on the video element adds. 
      * 
      * There are few exceptions and additional caveatss:
-     *   * AspectRatio.FitHeight: we don't want to pre-downscale the video at all, as things
+     *   * AspectRatioType.FitHeight: we don't want to pre-downscale the video at all, as things
      *     will be scaled to fit height as-is.
      *   * When player is wider than stream, we want to undo any height compensations site
      *     tacks on the video tag.
@@ -94,10 +94,10 @@ class Scaler {
 
     let arCorrectionFactor = 1;
 
-    if (ar.type !== AspectRatio.FitHeight) {
+    if (ar.type !== AspectRatioType.FitHeight) {
       if (playerAr < compensatedStreamAr) {
         arCorrectionFactor = this.conf.player.dimensions.width / this.conf.video.offsetWidth;
-      } else if (ar.type !== AspectRatio.Reset) {
+      } else if (ar.type !== AspectRatioType.Reset) {
         arCorrectionFactor /= heightCompensationFactor;
       }
     }
@@ -116,7 +116,7 @@ class Scaler {
       return {error: "illegal_video_dimensions"};
     }
 
-    if (ar.type === AspectRatio.Reset){
+    if (ar.type === AspectRatioType.Reset){
       return {xFactor: arCorrectionFactor, yFactor: arCorrectionFactor, arCorrectionFactor: arCorrectionFactor}
     }
 
@@ -139,7 +139,7 @@ class Scaler {
     // Dejansko razmerje stranic datoteke/<video> značke
     // Actual aspect ratio of the file/<video> tag
 
-    if (ar.type === AspectRatio.Initial || !ar.ratio) {
+    if (ar.type === AspectRatioType.Initial || !ar.ratio) {
       ar.ratio = streamAr;
     }
 

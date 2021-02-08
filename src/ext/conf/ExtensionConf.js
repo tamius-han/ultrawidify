@@ -1,11 +1,11 @@
 import Debug from './Debug';
 import currentBrowser from './BrowserDetect';
-import VideoAlignment from '../../common/enums/video-alignment.enum';
-import Stretch from '../../common/enums/stretch.enum';
-import ExtensionMode from '../../common/enums/extension-mode.enum';
-import AntiGradientMode from '../../common/enums/anti-gradient-mode.enum';
-import AspectRatio from '../../common/enums/aspect-ratio.enum';
-import CropModePersistence from '../../common/enums/crop-mode-persistence.enum';
+import VideoAlignmentType from '../../common/enums/VideoAlignmentType.enum';
+import StretchType from '../../common/enums/StretchType.enum';
+import ExtensionMode from '../../common/enums/ExtensionMode.enum';
+import AntiGradientMode from '../../common/enums/AntiGradientMode.enum';
+import AspectRatioType from '../../common/enums/AspectRatioType.enum';
+import CropModePersistence from '../../common/enums/CropModePersistence.enum';
 
 if(Debug.debug)
   console.log("Loading: ExtensionConf.js");
@@ -176,7 +176,7 @@ var ExtensionConf = {
     label: 'Automatic',                     // name displayed in ui (can be overridden in scope/playerUi)
     cmd: [{
       action: 'set-ar',
-      arg: AspectRatio.Automatic,
+      arg: AspectRatioType.Automatic,
       persistent: false, // optional, false by default. If true, change doesn't take effect immediately.
                          // Instead, this action saves stuff to settings
     }],
@@ -211,7 +211,7 @@ var ExtensionConf = {
     label: 'Reset',
     cmd: [{
       action: 'set-ar',
-      arg: AspectRatio.Reset,
+      arg: AspectRatioType.Reset,
     }],
     scopes: {
       page: {
@@ -237,7 +237,7 @@ var ExtensionConf = {
     label: 'Fit width',
     cmd: [{
       action: 'set-ar',
-      arg: AspectRatio.FitWidth,
+      arg: AspectRatioType.FitWidth,
     }],
     scopes: {
       page: {
@@ -263,7 +263,7 @@ var ExtensionConf = {
     label: 'Fit height',
     cmd: [{
       action: 'set-ar',
-      arg: AspectRatio.FitHeight
+      arg: AspectRatioType.FitHeight
     }],
     scopes: {
       page: {
@@ -290,7 +290,7 @@ var ExtensionConf = {
     label: '16:9',
     cmd: [{
       action: 'set-ar',
-      arg: AspectRatio.Fixed,
+      arg: AspectRatioType.Fixed,
       customArg: 1.78,
     }],
     scopes: {
@@ -318,7 +318,7 @@ var ExtensionConf = {
     label: '21:9',
     cmd: [{
       action: 'set-ar',
-      arg: AspectRatio.Fixed,
+      arg: AspectRatioType.Fixed,
       customArg: 2.39
     }],
     scopes: {
@@ -346,7 +346,7 @@ var ExtensionConf = {
     label: '18:9',
     cmd: [{
       action: 'set-ar',
-      arg: AspectRatio.Fixed,
+      arg: AspectRatioType.Fixed,
       customArg: 2.0,
     }],
     scopes: {
@@ -547,7 +547,7 @@ var ExtensionConf = {
     label: 'Don\'t stretch',
     cmd: [{
       action: 'set-stretch',
-      arg: Stretch.NoStretch,
+      arg: StretchType.NoStretch,
     }],
     scopes: {
       global: {
@@ -572,7 +572,7 @@ var ExtensionConf = {
     label: 'Basic stretch',
     cmd: [{
       action: 'set-stretch',
-      arg: Stretch.Basic,
+      arg: StretchType.Basic,
     }],
     scopes: {
       global: {
@@ -597,7 +597,7 @@ var ExtensionConf = {
     label: 'Hybrid stretch',
     cmd: [{
       action: 'set-stretch',
-      arg: Stretch.Hybrid,
+      arg: StretchType.Hybrid,
     }],
     scopes: {
       global: {
@@ -622,7 +622,7 @@ var ExtensionConf = {
     label: 'Thin borders only',
     cmd: [{
       action: 'set-stretch',
-      arg: Stretch.Conditional,
+      arg: StretchType.Conditional,
     }],
     scopes: {
       global: {
@@ -647,7 +647,7 @@ var ExtensionConf = {
     label: 'Default',
     cmd: [{
       action: 'set-stretch',
-      arg: Stretch.Default,
+      arg: StretchType.Default,
     }],
     scopes: {
       site: {
@@ -660,7 +660,7 @@ var ExtensionConf = {
     label: '4:3 stretch (src)',
     cmd: [{
       action: 'set-stretch',
-      arg: Stretch.FixedSource,
+      arg: StretchType.FixedSource,
       customArg: 1.33,
     }],
     scopes: {
@@ -677,7 +677,7 @@ var ExtensionConf = {
     label: '16:9 stretch (src)',
     cmd: [{
       action: 'set-stretch',
-      arg: Stretch.FixedSource,
+      arg: StretchType.FixedSource,
       customArg: 1.77,
     }],
     scopes: {
@@ -698,7 +698,7 @@ var ExtensionConf = {
     label: 'Left',
     cmd: [{
       action: 'set-alignment',
-      arg: VideoAlignment.Left,
+      arg: VideoAlignmentType.Left,
     }],
     scopes: {
       global: {
@@ -720,7 +720,7 @@ var ExtensionConf = {
     label: 'Center',
     cmd: [{
       action: 'set-alignment',
-      arg: VideoAlignment.Center,
+      arg: VideoAlignmentType.Center,
     }],
     scopes: {
       global: {
@@ -742,7 +742,7 @@ var ExtensionConf = {
     label: 'Right',
     cmd: [{
       action: 'set-alignment',
-      arg: VideoAlignment.Right
+      arg: VideoAlignmentType.Right
     }],
     scopes: {
       global: {
@@ -764,7 +764,7 @@ var ExtensionConf = {
     label: 'Default',
     cmd: [{
       action: 'set-alignment',
-      arg: VideoAlignment.Default
+      arg: VideoAlignmentType.Default
     }],
     scopes: {
       site: {
@@ -780,7 +780,7 @@ var ExtensionConf = {
     name: 'Enable extension',
     label: 'Enable',
     cmd: [{
-      action: 'set-extension-mode',
+      action: 'set-ExtensionMode',
       arg: ExtensionMode.Enabled,
       persistent: true,
     }],
@@ -796,7 +796,7 @@ var ExtensionConf = {
     name: 'Enable extension on whitelisted sites only',
     label: 'On whitelist only',
     cmd: [{
-      action: 'set-extension-mode',
+      action: 'set-ExtensionMode',
       arg: ExtensionMode.Whitelist,
       persistent: true,
     }],
@@ -809,7 +809,7 @@ var ExtensionConf = {
     name: 'Extension mode: use default settings',
     label: 'Default',
     cmd: [{
-      action: 'set-extension-mode',
+      action: 'set-ExtensionMode',
       arg: ExtensionMode.Default,
       persistent: true,
     }],
@@ -822,7 +822,7 @@ var ExtensionConf = {
     name: 'Disable extension',
     label: 'Disable',
     cmd: [{
-      action: 'set-extension-mode',
+      action: 'set-ExtensionMode',
       arg: ExtensionMode.Disabled,
       persistent: true,
     }],
@@ -1006,8 +1006,8 @@ var ExtensionConf = {
       autoarFallback: currentBrowser.firefox ?     // if autoAr fails, try fallback mode?
                        ExtensionMode.Enabled :     // Options same as in autoar.
                        ExtensionMode.Disabled,     // if autoar is disabled, this setting is irrelevant
-      stretch: Stretch.NoStretch,                  // Default stretch mode. 
-      videoAlignment: VideoAlignment.Center,       // Video alignment
+      stretch: StretchType.NoStretch,                  // Default stretch mode. 
+      videoAlignment: VideoAlignmentType.Center,       // Video alignment
       keyboardShortcutsEnabled: ExtensionMode.Enabled,
     },
     "www.youtube.com" : {
@@ -1017,8 +1017,8 @@ var ExtensionConf = {
       override: false,                  // ignore value localStorage in favour of this
       type: 'official',                 // is officially supported? (Alternatives are 'community' and 'user-defined')
       actions: null,                    // overrides global keyboard shortcuts and button configs. Is array, is optional.
-      stretch: Stretch.Default,
-      videoAlignment: VideoAlignment.Default,
+      stretch: StretchType.Default,
+      videoAlignment: VideoAlignmentType.Default,
       keyboardShortcutsEnabled: ExtensionMode.Default,
       DOM: {
         player: {
@@ -1035,8 +1035,8 @@ var ExtensionConf = {
       autoar: ExtensionMode.Enabled,     
       override: false,
       type: 'official',
-      stretch: Stretch.Default,
-      videoAlignment: VideoAlignment.Default,
+      stretch: StretchType.Default,
+      videoAlignment: VideoAlignmentType.Default,
       keyboardShortcutsEnabled: ExtensionMode.Default,
       arPersistence: true,              // persist aspect ratio between different videos
       "DOM": {
@@ -1054,8 +1054,8 @@ var ExtensionConf = {
       autoar: ExtensionMode.Enabled,     
       override: false,
       type: 'community',
-      stretch: Stretch.Default,
-      videoAlignment: VideoAlignment.Default,
+      stretch: StretchType.Default,
+      videoAlignment: VideoAlignmentType.Default,
       keyboardShortcutsEnabled: ExtensionMode.Default,
       arPersistence: true,              // persist aspect ratio between different videos
       DOM: {
@@ -1074,8 +1074,8 @@ var ExtensionConf = {
       autoar: ExtensionMode.Enabled,     
       override: true,
       type: 'official',
-      stretch: Stretch.Default,
-      videoAlignment: VideoAlignment.Default,
+      stretch: StretchType.Default,
+      videoAlignment: VideoAlignmentType.Default,
       keyboardShortcutsEnabled: ExtensionMode.Default,
       DOM: {
         player: {
@@ -1117,8 +1117,8 @@ var ExtensionConf = {
       autoar:ExtensionMode.Enabled,     
       override: false,
       type: 'testing',
-      stretch: Stretch.Default,
-      videoAlignment: VideoAlignment.Default,
+      stretch: StretchType.Default,
+      videoAlignment: VideoAlignmentType.Default,
       keyboardShortcutsEnabled: ExtensionMode.Default,
       DOM: {
         player: {
@@ -1134,8 +1134,8 @@ var ExtensionConf = {
       autoar: ExtensionMode.Enabled,     
       override: false,
       type: 'testing',
-      stretch: Stretch.Default,
-      videoAlignment: VideoAlignment.Default,
+      stretch: StretchType.Default,
+      videoAlignment: VideoAlignmentType.Default,
       keyboardShortcutsEnabled: ExtensionMode.Default,
       DOM: {
         player: {

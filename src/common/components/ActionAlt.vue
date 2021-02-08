@@ -5,7 +5,7 @@
 
       </div>
       <div class="flex action-name">
-        <span v-if="action.cmd && action.cmd.length > 1 || action.cmd[0].action === 'set-ar' && action.userAdded || (action.cmd[0].arg === AspectRatio.Fixed)" class="icon red" @click="removeAction()">🗙</span>
+        <span v-if="action.cmd && action.cmd.length > 1 || action.cmd[0].action === 'set-ar' && action.userAdded || (action.cmd[0].arg === AspectRatioType.Fixed)" class="icon red" @click="removeAction()">🗙</span>
         <span v-else class="icon transparent">🗙</span> &nbsp; &nbsp;
         <span class="icon" @click="editAction()">🖉</span> &nbsp; &nbsp;
         {{action.name}}
@@ -108,8 +108,8 @@
 </template>
 
 <script>
-import Stretch from '../enums/stretch.enum';
-import AspectRatio from '../enums/aspect-ratio.enum';
+import StretchType from '../enums/StretchType.enum';
+import AspectRatioType from '../enums/AspectRatioType.enum';
 import KeyboardShortcutParser from '../js/KeyboardShortcutParser';
 
 

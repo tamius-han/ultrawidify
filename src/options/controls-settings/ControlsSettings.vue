@@ -111,7 +111,7 @@
 
 <script>
 import Button from '../../common/components/Button';
-import Stretch from '../../common/enums/stretch.enum';
+import StretchType from '../../common/enums/StretchType.enum';
 import ActionAlt from '../../common/components/ActionAlt';
 
 export default {

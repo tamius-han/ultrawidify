@@ -2,7 +2,7 @@ import Debug from '../../../conf/Debug';
 import EdgeStatus from './enums/EdgeStatusEnum';
 import EdgeDetectQuality from './enums/EdgeDetectQualityEnum';
 import EdgeDetectPrimaryDirection from './enums/EdgeDetectPrimaryDirectionEnum';
-import AntiGradientMode from '../../../../common/enums/anti-gradient-mode.enum'; 
+import AntiGradientMode from '../../../../common/enums/AntiGradientMode.enum'; 
 
 if (Debug.debug) {
   console.log("Loading EdgeDetect.js");

@@ -6,8 +6,8 @@ import EdgeDetectPrimaryDirection from './edge-detect/enums/EdgeDetectPrimaryDir
 import EdgeDetectQuality from './edge-detect/enums/EdgeDetectQualityEnum';
 import GuardLine from './GuardLine';
 // import DebugCanvas from './DebugCanvas';
-import VideoAlignment from '../../../common/enums/video-alignment.enum';
-import AspectRatio from '../../../common/enums/aspect-ratio.enum';
+import VideoAlignmentType from '../../../common/enums/VideoAlignmentType.enum';
+import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
 import {sleep} from '../../lib/Util';
 import BrowserDetect from '../../conf/BrowserDetect';
 
@@ -187,7 +187,7 @@ class ArDetector {
     this.resetBlackLevel();
 
     // if we're restarting ArDetect, we need to do this in order to force-recalculate aspect ratio
-    this.conf.resizer.setLastAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
+    this.conf.resizer.setLastAr({type: AspectRatioType.Automatic, ratio: this.getDefaultAr()});
 
     this.canvasImageDataRowLength = cwidth << 2;
     this.noLetterboxCanvasReset = false;
@@ -212,9 +212,9 @@ class ArDetector {
       return;
     }
 
-    if (this.conf.resizer.lastAr.type === AspectRatio.Automatic) {
+    if (this.conf.resizer.lastAr.type === AspectRatioType.Automatic) {
       // ensure first autodetection will run in any case
-      this.conf.resizer.setLastAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
+      this.conf.resizer.setLastAr({type: AspectRatioType.Automatic, ratio: this.getDefaultAr()});
     }
 
 
@@ -475,7 +475,7 @@ class ArDetector {
     // poglejmo, če se je razmerje stranic spremenilo
     // check if aspect ratio is changed:
     let lastAr = this.conf.resizer.getLastAr();
-    if (lastAr.type === AspectRatio.Automatic && lastAr.ratio !== null && lastAr.ratio !== undefined){
+    if (lastAr.type === AspectRatioType.Automatic && lastAr.ratio !== null && lastAr.ratio !== undefined){
       // spremembo lahko zavrnemo samo, če uporabljamo avtomatski način delovanja in če smo razmerje stranic
       // že nastavili.
       //
@@ -500,7 +500,7 @@ class ArDetector {
     }
     this.logger.log('info', 'debug', `%c[ArDetect::processAr] <@${this.arid}>  Triggering aspect ratio change. New aspect ratio: ${trueAr}`, _ard_console_change);
     
-    this.conf.resizer.updateAr({type: AspectRatio.Automatic, ratio: trueAr}, {type: AspectRatio.Automatic, ratio: trueAr});
+    this.conf.resizer.updateAr({type: AspectRatioType.Automatic, ratio: trueAr}, {type: AspectRatioType.Automatic, ratio: trueAr});
   }
 
   clearImageData(id) {
@@ -575,7 +575,7 @@ class ArDetector {
           this.drmNotificationShown = true;
 
           this.conf.player.showNotification('AARD_DRM');
-          this.conf.resizer.setAr({type: AspectRatio.Reset});
+          this.conf.resizer.setAr({type: AspectRatioType.Reset});
         } 
 
         return;
@@ -588,9 +588,9 @@ class ArDetector {
         let newCanvasWidth = window.innerHeight * (this.video.videoWidth / this.video.videoHeight);
         let newCanvasHeight = window.innerHeight;
         
-        if (this.conf.resizer.videoAlignment === VideoAlignment.Center) {
+        if (this.conf.resizer.videoAlignment === VideoAlignmentType.Center) {
           this.canvasDrawWindowHOffset = Math.round((window.innerWidth - newCanvasWidth) * 0.5);
-        } else if (this.conf.resizer.videoAlignment === VideoAlignment.Left) {
+        } else if (this.conf.resizer.videoAlignment === VideoAlignmentType.Left) {
           this.canvasDrawWindowHOffset = 0;
         } else {
           this.canvasDrawWindowHOffset = window.innerWidth - newCanvasWidth;
@@ -637,7 +637,7 @@ class ArDetector {
       // da je letterbox izginil.
       // If we don't detect letterbox, we reset aspect ratio to aspect ratio of the video file. The aspect ratio could
       // have been corrected manually. It's also possible that letterbox (that was there before) disappeared.
-      this.conf.resizer.updateAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
+      this.conf.resizer.updateAr({type: AspectRatioType.Automatic, ratio: this.getDefaultAr()});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
@@ -677,7 +677,7 @@ class ArDetector {
     // (since the new letterbox edge isn't present in our sample due to technical
     // limitations)
     if (this.fallbackMode && guardLineOut.blackbarFail) {
-      this.conf.resizer.setAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
+      this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.getDefaultAr()});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
@@ -702,7 +702,7 @@ class ArDetector {
 
           if(guardLineOut.blackbarFail){
             this.logger.log('info', 'arDetect', `[ArDetect::frameCheck] Detected blackbar violation and pillarbox. Resetting to default aspect ratio.`);
-            this.conf.resizer.setAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
+            this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.getDefaultAr()});
             this.guardLine.reset();
           }
 
@@ -774,7 +774,7 @@ class ArDetector {
       // WE DO NOT RESET ASPECT RATIO HERE IN CASE OF PROBLEMS, CAUSES UNWARRANTED RESETS: 
       // (eg. here: https://www.youtube.com/watch?v=nw5Z93Yt-UQ&t=410)
       //
-      // this.conf.resizer.setAr({type: AspectRatio.Automatic, ratio: this.getDefaultAr()});
+      // this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.getDefaultAr()});
     }
 
     this.clearImageData(imageData);

@@ -1,4 +1,4 @@
-﻿# Ultrawidify — aspect ratio fixer for youtube and netflix
+# Ultrawidify — aspect ratio fixer for youtube and netflix
 
 ## Super TL;DR: I'm just looking for the install links, thanks
 

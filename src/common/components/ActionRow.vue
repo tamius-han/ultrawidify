@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import Stretch from '../enums/stretch.enum';
+import StretchType from '../enums/StretchType.enum';
 import KeyboardShortcutParser from '../js/KeyboardShortcutParser'
 
 export default {

@@ -2,7 +2,7 @@ import Debug from '../../conf/Debug';
 import PlayerData from './PlayerData';
 import Resizer from '../video-transform/Resizer';
 import ArDetector from '../ar-detect/ArDetector';
-import AspectRatio from '../../../common/enums/aspect-ratio.enum';
+import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
 import * as _ from 'lodash';
 import BrowserDetect from '../../conf/BrowserDetect';
 import Logger from '../Logger';
@@ -570,7 +570,7 @@ class VideoData {
       return;
     }
     
-    if (ar.type === AspectRatio.Fixed || ar.type === AspectRatio.FitHeight || ar.type === AspectRatio.FitHeight) {
+    if (ar.type === AspectRatioType.Fixed || ar.type === AspectRatioType.FitHeight || ar.type === AspectRatioType.FitHeight) {
       this.player.forceRefreshPlayerElement();
     }
 

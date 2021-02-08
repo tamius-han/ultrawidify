@@ -125,7 +125,7 @@ import ExecAction from '../js/ExecAction';
 import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
 import ShortcutButton from '../../common/components/ShortcutButton';
 import ComputeActionsMixin from '../../common/mixins/ComputeActionsMixin';
-import CropModePersistence from '../../common/enums/crop-mode-persistence.enum';
+import CropModePersistence from '../../common/enums/CropModePersistence.enum';
 
 export default {
   data() {
