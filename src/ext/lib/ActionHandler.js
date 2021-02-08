@@ -105,7 +105,7 @@ class ActionHandler {
     }
 
     // events should be handled in handleEvent function. We need to do things this 
-    // way, otherwise we can't remove event listenerđ
+    // way, otherwise we can't remove event listener
     // https://stackoverflow.com/a/19507086
     document.addEventListener('keydown', this );
     document.addEventListener('keyup', this );
