@@ -565,7 +565,7 @@ class VideoData {
     this.resizer.setLastAr(lastAr);
   }
 
-  setAr(ar, lastAr){
+  setAr(ar, lastAr?){
     if (this.invalid) {
       return;
     }

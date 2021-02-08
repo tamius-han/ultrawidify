@@ -68,11 +68,11 @@ class Stretcher {
       actualWidth = newWidth;
     }
 
-    var minW = this.conf.player.dimensions.width * (1 - this.settings.active.StretchType.conditionalDifferencePercent);
-    var maxW = this.conf.player.dimensions.width * (1 + this.settings.active.StretchType.conditionalDifferencePercent);
+    var minW = this.conf.player.dimensions.width * (1 - this.settings.active.stretch.conditionalDifferencePercent);
+    var maxW = this.conf.player.dimensions.width * (1 + this.settings.active.stretch.conditionalDifferencePercent);
 
-    var minH = this.conf.player.dimensions.height * (1 - this.settings.active.StretchType.conditionalDifferencePercent);
-    var maxH = this.conf.player.dimensions.height * (1 + this.settings.active.StretchType.conditionalDifferencePercent);
+    var minH = this.conf.player.dimensions.height * (1 - this.settings.active.stretch.conditionalDifferencePercent);
+    var maxH = this.conf.player.dimensions.height * (1 + this.settings.active.stretch.conditionalDifferencePercent);
 
     if (actualWidth >= minW && actualWidth <= maxW) {
       stretchFactors.xFactor *= this.conf.player.dimensions.width / actualWidth;

@@ -2,18 +2,39 @@ import Debug from '../conf/Debug';
 import currentBrowser from '../conf/BrowserDetect';
 import ExtensionConf from '../conf/ExtensionConf';
 import ExtensionMode from '../../common/enums/ExtensionMode.enum';
-import ObjectCopy from '../lib/ObjectCopy';
+import ObjectCopy from './ObjectCopy';
 import StretchType from '../../common/enums/StretchType.enum';
 import VideoAlignmentType from '../../common/enums/VideoAlignmentType.enum';
 import ExtensionConfPatch from '../conf/ExtConfPatches';
 import CropModePersistence from '../../common/enums/CropModePersistence.enum';
 import BrowserDetect from '../conf/BrowserDetect';
+import Logger from './Logger';
+import SettingsInterface from '../../common/interfaces/SettingsInterface';
 
 if(process.env.CHANNEL !== 'stable'){
   console.info("Loading Settings");
 }
 
+
 class Settings {
+  //#region flags
+  useSync: boolean = false;
+  version: string;
+  //#endregion
+
+  //#region helper classes
+  logger: Logger;
+  //#endregion
+
+  //#region data
+  default: SettingsInterface;  // default settings
+  active: SettingsInterface;   // currently active settings
+  //#endregion
+
+  //#region callbacks
+  onSettingsChanged: any;
+  afterSettingsSaved: any;
+  //#endregion
 
   constructor(options) {
     // Options: activeSettings, updateCallback, logger
@@ -23,14 +44,8 @@ class Settings {
     this.active = options?.activeSettings ?? undefined;
     this.default = ExtensionConf;
     this.default['version'] = this.getExtensionVersion();
-    this.useSync = false;
-    this.version = undefined;
 
-    if (currentBrowser.firefox) {
-      browser.storage.onChanged.addListener((changes, area) => {this.storageChangeListener(changes, area)});
-    } else if (currentBrowser.chrome) {
-      chrome.storage.onChanged.addListener((changes, area) => {this.storageChangeListener(changes, area)});
-    }
+    (BrowserDetect.browserObj as any).storage.onChanged.addListener((changes, area) => {this.storageChangeListener(changes, area)});
   }
 
   storageChangeListener(changes, area) {
@@ -60,14 +75,10 @@ class Settings {
     }
   }
 
-  static getExtensionVersion() {
-    if (currentBrowser.firefox) {
-      return browser.runtime.getManifest().version;
-    } else if (currentBrowser.chrome) {
-      return chrome.runtime.getManifest().version;
-    } 
+  static getExtensionVersion(): string {
+    return (BrowserDetect.browserObj as any).runtime.getManifest().version;
   }
-  getExtensionVersion() {
+  getExtensionVersion(): string {
     return Settings.getExtensionVersion(); 
   }
 
@@ -96,7 +107,10 @@ class Settings {
       // also, the fourth digit can start with a letter. 
       // versions that start with a letter are ranked lower than 
       // versions x.x.x.0
-      if (isNaN(+aa[3]) ^ isNaN(+bb[3])) {
+      if (
+        (isNaN(+aa[3]) && !isNaN(+bb[3]))
+        || (!isNaN(+aa[3]) && isNaN(+bb[3]))
+      ) {
         return isNaN(+aa[3]) ? -1 : 1;
       }
 
@@ -269,14 +283,10 @@ class Settings {
     let ret;
     
     if (currentBrowser.firefox) {
-      ret = await browser.storage.local.get('uwSettings');
-    } else if (currentBrowser.chrome) {
+      ret = await (BrowserDetect.browserObj as any).storage.local.get('uwSettings');
+    } else if (currentBrowser.anyChromium) {
       ret = await new Promise( (resolve, reject) => {
-        chrome.storage.local.get('uwSettings', (res) => resolve(res));
-      });
-    } else if (currentBrowser.edge) {
-      ret = await new Promise( (resolve, reject) => {
-        browser.storage.local.get('uwSettings', (res) => resolve(res));
+        (BrowserDetect.browserObj as any).storage.local.get('uwSettings', (res) => resolve(res));
       });
     }
 
@@ -312,7 +322,7 @@ class Settings {
     }
   }
 
-  async set(extensionConf, options) {
+  async set(extensionConf, options?) {
     if (!options || !options.forcePreserveVersion) {
       extensionConf.version = this.version;
     }
@@ -321,11 +331,7 @@ class Settings {
 
     this.logger?.log('info', 'settings', "[Settings::set] setting new settings:", extensionConf)
 
-    if (BrowserDetect.firefox) {
-      return browser.storage.local.set( {'uwSettings': JSON.stringify(extensionConf)});
-    } else {
-      return chrome.storage.local.set( {'uwSettings': JSON.stringify(extensionConf)});
-    }
+    return (BrowserDetect.browserObj as any).storage.local.set( {'uwSettings': JSON.stringify(extensionConf)});
   }
 
   async setActive(activeSettings) {
@@ -336,7 +342,7 @@ class Settings {
     this.active[prop] = value;
   }
 
-  async save(options) {
+  async save(options?) {
     if (Debug.debug && Debug.storage) {
       console.log("[Settings::save] Saving active settings:", this.active);
     }
@@ -539,7 +545,7 @@ class Settings {
     }
   }
 
-  getDefaultOption(option) {
+  getDefaultOption(option?) {
     const allDefault = {
       mode: ExtensionMode.Default,
       autoar: ExtensionMode.Default,

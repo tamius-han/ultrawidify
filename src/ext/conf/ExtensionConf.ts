@@ -6,11 +6,12 @@ import ExtensionMode from '../../common/enums/ExtensionMode.enum';
 import AntiGradientMode from '../../common/enums/AntiGradientMode.enum';
 import AspectRatioType from '../../common/enums/AspectRatioType.enum';
 import CropModePersistence from '../../common/enums/CropModePersistence.enum';
+import SettingsInterface from '../../common/interfaces/SettingsInterface';
 
 if(Debug.debug)
   console.log("Loading: ExtensionConf.js");
 
-var ExtensionConf = {
+const ExtensionConf: SettingsInterface = {
   arDetect: {
     disabledReason: "",       // if automatic aspect ratio has been disabled, show reason
     allowedMisaligned: 0.05,  // top and bottom letterbox thickness can differ by this much. 
@@ -373,7 +374,7 @@ var ExtensionConf = {
     label: 'Never persist',
     cmd: [{
       action: 'set-ar-persistence',
-      arg: CropModePersistence.Never,
+      arg: CropModePersistence.Disabled,
     }],
     scopes: {
       site: {
