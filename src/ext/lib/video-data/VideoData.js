@@ -25,6 +25,8 @@ class VideoData {
     this.videoLoaded = false;
     this.videoDimensionsLoaded = true;
 
+    this.validationId = null;
+
     this.dimensions = {
       width: this.video.offsetWidth,
       height: this.video.offsetHeight,
@@ -276,8 +278,14 @@ class VideoData {
     }
   }
 
+  /**
+   * Starts fallback change detection (validates whether currently applied settings are correct)
+   */
   async fallbackChangeDetection() {
-    while (!this.destroyed && !this.invalid) {
+    const validationId = Date.now();
+    this.validationId = validationId;
+
+    while (!this.destroyed && !this.invalid && this.validationId === validationId) {
       await this.sleep(500);
       this.doPeriodicFallbackChangeDetectionCheck();
     }
