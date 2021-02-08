@@ -1,27 +1,55 @@
 import Debug from '../../conf/Debug';
 import VideoData from './VideoData';
-import RescanReason from './enums/RescanReason';
+import RescanReason from './enums/RescanReason.enum';
 import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
 import CropModePersistence from '../../../common/enums/CropModePersistence.enum';
+import Logger from '../Logger';
+import Settings from '../Settings';
+import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
+import CommsClient from '../comms/CommsClient';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading PageInfo");
 }
 
 class PageInfo {
+  //#region flags
+  readOnly: boolean = false;
+  hasVideos: boolean = false;
+  siteDisabled: boolean = false;
+  //#endregion
+
+  //#region timers and timeouts
+  rescanTimer: any;
+  urlCheckTimer: any;
+  announceZoomTimeout: any;
+  //#endregion
+
+  //#region helper objects
+  logger: Logger;
+  settings: Settings;
+  comms: CommsClient;
+  videos: VideoData[] = [];
+  //#endregion
+
+  //#region misc stuff
+  lastUrl: string;
+  extensionMode: ExtensionMode;
+  defaultCrop: any;
+  currentCrop: any;
+  actionHandlerInitQueue: any[] = [];
+  currentZoomScale: number = 1;
+  
+  actionHandler: any;
+  //#endregion
+
   constructor(comms, settings, logger, extensionMode, readOnly = false){
     this.logger = logger;
-    this.hasVideos = false;
-    this.siteDisabled = false;
-    this.videos = [];
     this.settings = settings;
-    this.actionHandlerInitQueue = [];
 
     this.lastUrl = window.location.href;
     this.extensionMode = extensionMode;
     this.readOnly = readOnly;
-    this.defaultCrop = undefined;
-    this.currentCrop = undefined;
 
     if (comms){ 
       this.comms = comms;
@@ -54,8 +82,6 @@ class PageInfo {
 
     this.rescan(RescanReason.PERIODIC);
     this.scheduleUrlCheck();
-
-    this.currentZoomScale = 1;
   }
 
   async injectCss(cssString) {
@@ -87,7 +113,7 @@ class PageInfo {
     }
     for (var video of this.videos) {
       try {
-        this.comms.unregisterVideo(video.id)
+        (this.comms.unregisterVideo as any)(video.vdid)
         video.destroy();
       } catch (e) {
         this.logger.log('error', ['debug', 'init'], '[PageInfo::destroy] unable to destroy video! Error:', e);
@@ -95,7 +121,7 @@ class PageInfo {
     }
 
     try {
-      playerStyleString = this.settings.active.sites[window.location.hostname].css;
+      const playerStyleString = this.settings.active.sites[window.location.hostname].css;
       if (playerStyleString) {
         this.comms.sendMessage({
           cmd: 'eject-css',
@@ -132,8 +158,8 @@ class PageInfo {
 
   getVideos(host) {
     if (this.settings.active.sites[host]?.DOM?.video?.manual
-        && this.settings.active.sites[host]?.DOM?.video?.querySelector){
-      const videos = document.querySelectorAll(this.settings.active.sites[host].DOM.video.querySelector);
+        && this.settings.active.sites[host]?.DOM?.video?.querySelectors){
+      const videos = document.querySelectorAll(this.settings.active.sites[host].DOM.video.querySelectors);
 
       if (videos.length) {
         return videos;
@@ -245,9 +271,11 @@ class PageInfo {
         // } 
         
         if (this.videos.length > 0) {
-          this.comms.registerVideo({host: window.location.hostname, location: window.location});
+          // this.comms.registerVideo({host: window.location.hostname, location: window.location});
+          this.comms.registerVideo();
         } else {
-          this.comms.unregisterVideo({host: window.location.hostname, location: window.location});
+          // this.comms.unregisterVideo({host: window.location.hostname, location: window.location});
+          this.comms.unregisterVideo();
         }
       }
 
@@ -386,7 +414,7 @@ class PageInfo {
     }
     if (playingOnly) {
       for(var vd of this.videos){
-        if (video.isPlaying()) {
+        if (vd.isPlaying()) {
           vd.startArDetection();
         }
       }
@@ -542,7 +570,7 @@ class PageInfo {
 
   announceZoom(scale) {
     if (this.announceZoomTimeout) {
-      clearTimeout(this.announceZoom);
+      clearTimeout(this.announceZoomTimeout);
     }
     this.currentZoomScale = scale;
     const ths = this;
@@ -551,7 +579,7 @@ class PageInfo {
 
   setManualTick(manualTick) {
     for(var vd of this.videos) {
-      vd.setManualTick();
+      vd.setManualTick(manualTick);
     }
   }
 
