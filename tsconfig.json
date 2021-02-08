@@ -2,7 +2,7 @@
   "compilerOptions": {
     "outDir": "./ts-out",
     "allowJs": true,
-    "target": "es2020"
+    "target": "es2018"
   },
   "include": [ "./src/**/*" ]
 }
