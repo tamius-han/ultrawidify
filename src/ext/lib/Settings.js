@@ -1,12 +1,12 @@
 import Debug from '../conf/Debug';
 import currentBrowser from '../conf/BrowserDetect';
 import ExtensionConf from '../conf/ExtensionConf';
-import ExtensionMode from '../../common/enums/extension-mode.enum';
+import ExtensionMode from '../../common/enums/ExtensionMode.enum';
 import ObjectCopy from '../lib/ObjectCopy';
-import Stretch from '../../common/enums/stretch.enum';
-import VideoAlignment from '../../common/enums/video-alignment.enum';
+import StretchType from '../../common/enums/StretchType.enum';
+import VideoAlignmentType from '../../common/enums/VideoAlignmentType.enum';
 import ExtensionConfPatch from '../conf/ExtConfPatches';
-import CropModePersistence from '../../common/enums/crop-mode-persistence.enum';
+import CropModePersistence from '../../common/enums/CropModePersistence.enum';
 import BrowserDetect from '../conf/BrowserDetect';
 
 if(process.env.CHANNEL !== 'stable'){
@@ -301,10 +301,10 @@ class Settings {
         sites[site].autoar = ExtensionMode.Default;
       }
       if (sites[site].stretch === undefined) {
-        sites[site].stretch = Stretch.Default;
+        sites[site].stretch = StretchType.Default;
       }
       if (sites[site].videoAlignment === undefined) {
-        sites[site].videoAlignment = VideoAlignment.Default;
+        sites[site].videoAlignment = VideoAlignmentType.Default;
       }
       if (sites[site].keyboardShortcutsEnabled === undefined) {
         sites[site].keyboardShortcutsEnabled = ExtensionMode.Default;
@@ -544,8 +544,8 @@ class Settings {
       mode: ExtensionMode.Default,
       autoar: ExtensionMode.Default,
       autoarFallback: ExtensionMode.Default,
-      stretch: Stretch.Default,
-      videoAlignment: VideoAlignment.Default,
+      stretch: StretchType.Default,
+      videoAlignment: VideoAlignmentType.Default,
     };
 
     if (!option || allDefault[option] === undefined) {
@@ -565,7 +565,7 @@ class Settings {
   }
 
   getDefaultStretchMode(site) {
-    if (site && (this.active.sites[site]?.stretch ?? Stretch.Default) !== Stretch.Default) {
+    if (site && (this.active.sites[site]?.stretch ?? StretchType.Default) !== StretchType.Default) {
       return this.active.sites[site].stretch;
     }
 
@@ -573,7 +573,7 @@ class Settings {
   }
 
   getDefaultCropPersistenceMode(site) {
-    if (site && (this.active.sites[site]?.cropModePersistence ?? Stretch.Default) !== Stretch.Default) {
+    if (site && (this.active.sites[site]?.cropModePersistence ?? StretchType.Default) !== StretchType.Default) {
       return this.active.sites[site].cropModePersistence;
     }
 
@@ -582,7 +582,7 @@ class Settings {
   }
 
   getDefaultVideoAlignment(site) {
-    if ( (this.active.sites[site]?.videoAlignment ?? VideoAlignment.Default) !== VideoAlignment.Default) {
+    if ( (this.active.sites[site]?.videoAlignment ?? VideoAlignmentType.Default) !== VideoAlignmentType.Default) {
       return this.active.sites[site].videoAlignment;
     }
 

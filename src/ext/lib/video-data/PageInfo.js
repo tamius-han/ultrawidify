@@ -1,8 +1,8 @@
 import Debug from '../../conf/Debug';
 import VideoData from './VideoData';
 import RescanReason from './enums/RescanReason';
-import AspectRatio from '../../../common/enums/aspect-ratio.enum';
-import CropModePersistence from '../../../common/enums/crop-mode-persistence.enum';
+import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
+import CropModePersistence from '../../../common/enums/CropModePersistence.enum';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading PageInfo");
@@ -414,7 +414,7 @@ class PageInfo {
   setAr(ar, playingOnly){
     this.logger.log('info', 'debug', '[PageInfo::setAr] aspect ratio:', ar, "playing only?", playingOnly)
 
-    if (ar.type !== AspectRatio.Automatic) {
+    if (ar.type !== AspectRatioType.Automatic) {
       this.stopArDetection(playingOnly);
     } else {
       this.logger.log('info', 'debug', '[PageInfo::setAr] aspect ratio is auto');
@@ -434,7 +434,7 @@ class PageInfo {
     }
 
     // TODO: find a way to only change aspect ratio for one video
-    if (ar === AspectRatio.Reset) {
+    if (ar === AspectRatioType.Reset) {
       for (var vd of this.videos) {
         if (!playingOnly || vd.isPlaying()) {
           vd.resetAr();

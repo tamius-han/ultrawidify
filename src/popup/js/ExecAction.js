@@ -59,7 +59,7 @@ class ExecAction {
           this.settings.active.sites[site].stretch = cmd.arg;
         } else if (cmd.action === "set-alignment") {
           this.settings.active.sites[site].videoAlignment = cmd.arg;
-        } else if (cmd.action === "set-extension-mode") {
+        } else if (cmd.action === "set-ExtensionMode") {
           this.settings.active.sites[site].mode = cmd.arg;
         } else if (cmd.action === "set-autoar-mode") {
           this.settings.active.sites[site].autoar = cmd.arg;

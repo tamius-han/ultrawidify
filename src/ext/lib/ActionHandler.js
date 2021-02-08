@@ -1,6 +1,6 @@
 import Debug from '../conf/Debug';
 import PlayerData from './video-data/PlayerData';
-import ExtensionMode from '../../common/enums/extension-mode.enum';
+import ExtensionMode from '../../common/enums/ExtensionMode.enum';
 
 if(process.env.CHANNEL !== 'stable'){
   console.info("Loading ActionHandler");
@@ -275,7 +275,7 @@ class ActionHandler {
               this.settings.active.sites[site].stretch = cmd.arg;
             } else if (cmd.action === "set-alignment") {
               this.settings.active.sites[site].videoAlignment = cmd.arg;
-            } else if (cmd.action === "set-extension-mode") {
+            } else if (cmd.action === "set-ExtensionMode") {
               this.settings.active.sites[site].status = cmd.arg;
             } else if (cmd.action === "set-autoar-mode") {
               this.settings.active.sites[site].arStatus = cmd.arg;

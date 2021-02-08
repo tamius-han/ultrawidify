@@ -1,6 +1,6 @@
-import Stretch from '../../../common/enums/stretch.enum';
+import StretchType from '../../../common/enums/StretchType.enum';
 import BrowserDetect from '../../conf/BrowserDetect';
-import AspectRatio from '../../../common/enums/aspect-ratio.enum';
+import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
 import VideoData from '../video-data/VideoData';
 import Logger from '../Logger';
 import Settings from '../Settings';
@@ -36,10 +36,10 @@ class Stretcher {
   }
 
   setStretchMode(stretchMode, fixedStretchRatio?) {
-    if (stretchMode === Stretch.Default) {
+    if (stretchMode === StretchType.Default) {
       this.mode = this.settings.getDefaultStretchMode(window.location.hostname);
     } else {
-      if (stretchMode === Stretch.Fixed || stretchMode == Stretch.FixedSource) {
+      if (stretchMode === StretchType.Fixed || stretchMode == StretchType.FixedSource) {
         this.fixedStretchRatio = fixedStretchRatio;
       }
       this.mode = stretchMode;
@@ -68,11 +68,11 @@ class Stretcher {
       actualWidth = newWidth;
     }
 
-    var minW = this.conf.player.dimensions.width * (1 - this.settings.active.stretch.conditionalDifferencePercent);
-    var maxW = this.conf.player.dimensions.width * (1 + this.settings.active.stretch.conditionalDifferencePercent);
+    var minW = this.conf.player.dimensions.width * (1 - this.settings.active.StretchType.conditionalDifferencePercent);
+    var maxW = this.conf.player.dimensions.width * (1 + this.settings.active.StretchType.conditionalDifferencePercent);
 
-    var minH = this.conf.player.dimensions.height * (1 - this.settings.active.stretch.conditionalDifferencePercent);
-    var maxH = this.conf.player.dimensions.height * (1 + this.settings.active.stretch.conditionalDifferencePercent);
+    var minH = this.conf.player.dimensions.height * (1 - this.settings.active.StretchType.conditionalDifferencePercent);
+    var maxH = this.conf.player.dimensions.height * (1 + this.settings.active.StretchType.conditionalDifferencePercent);
 
     if (actualWidth >= minW && actualWidth <= maxW) {
       stretchFactors.xFactor *= this.conf.player.dimensions.width / actualWidth;
@@ -260,7 +260,7 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
    *   * user is using a noVideo card
    *   * user is in full screen mode
    *   * the video is both roughly taller and roughly wider than the monitor
-   * Then the video will do Stretch.Basic no matter what you put in `transform: scale(x,y)`.
+   * Then the video will do StretchType.Basic no matter what you put in `transform: scale(x,y)`.
    * 
    * In practice, the issue appears slightly _before_ the last condition is met (video needs to be ~3434 px wide
    * in order for this bug to trigger on my 3440x1440 display).
