@@ -35,8 +35,9 @@ const config = {
   module: {
     rules: [
       { 
-        test: /\.tsx?$/,
+        test: /\.ts$/,
         loader: 'ts-loader',
+        exclude: /node_modules/
       },
       {
         test: /\.vue$/,
