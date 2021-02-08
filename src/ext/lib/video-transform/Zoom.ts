@@ -1,19 +1,32 @@
 import Debug from '../../conf/Debug';
+import Logger from '../Logger';
+import VideoData from '../video-data/VideoData';
 
 // računa približevanje ter računa/popravlja odmike videa
 // calculates zooming and video offsets/panning
 
 class Zoom {
-  // functions
+  //#region flags
+
+  //#endregion
+
+  //#region helper objects
+  conf: VideoData;
+  logger: Logger;
+  //#endregion
+
+  //#region misc data
+  scale: number = 1;
+  logScale: number = 0;
+  scaleStep: number = 0.1; 
+  minScale: number = -1;    // 50% (log2(0.5) = -1)
+  maxScale: number = 3;     // 800% (log2(8) = 3)
+  //#endregion
+
+
   constructor(videoData) {
     this.conf = videoData;
     this.logger = videoData.logger;
-
-    this.scale = 1;
-    this.logScale = 0;
-    this.scaleStep = 0.1;
-    this.minScale = -1;  // 50% (log2(0.5) = -1)
-    this.maxScale = 3;   // 800% (log2(8) = 3)
   }
 
   reset(){
@@ -41,7 +54,7 @@ class Zoom {
     this.conf.announceZoom(this.scale);
   }
 
-  setZoom(scale, no_announce){
+  setZoom(scale: number, no_announce?){
     this.logger.log('info', 'debug', "[Zoom::setZoom] Setting zoom to", scale, "!");
 
     // NOTE: SCALE IS NOT LOGARITHMIC

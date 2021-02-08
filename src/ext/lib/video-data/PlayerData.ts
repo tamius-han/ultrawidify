@@ -4,8 +4,11 @@ import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 import PlayerNotificationUi from '../uwui/PlayerNotificationUI';
 import PlayerUi from '../uwui/PlayerUI';
 import BrowserDetect from '../../conf/BrowserDetect';
-import _ from 'lodash';
+import * as _ from 'lodash';
 import { sleep } from '../../../common/js/utils';
+import VideoData from './VideoData';
+import Settings from '../Settings';
+import Logger from '../Logger';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: PlayerData.js");
@@ -40,6 +43,31 @@ if (process.env.CHANNEL !== 'stable'){
 
 class PlayerData {
   
+  //#region helper objects
+  logger: Logger;
+  videoData: VideoData;
+  settings: Settings;
+  notificationService: PlayerNotificationUi;
+  //#endregion
+
+  //#region HTML objects
+  video: any;
+  element: any;
+  overlayNode: any;
+  //#endregion
+
+  //#region flags
+  invalid: boolean = false;
+  private periodicallyRefreshPlayerElement: boolean = false;
+  halted: boolean = true;
+
+  //#region misc stuff
+  extensionMode: any;
+  dimensions: any;
+  private playerIdElement: any;
+  private observer: MutationObserver;
+  //#endregion
+
   constructor(videoData) {
     try {
       this.logger = videoData.logger;
@@ -84,7 +112,7 @@ class PlayerData {
   }
 
   
-  onPlayerDimensionsChanged(mutationList, observer) {
+  onPlayerDimensionsChanged(mutationList?, observer?) {
     if (this?.checkPlayerSizeChange()) {
       this.videoData.resizer.restore();
     }

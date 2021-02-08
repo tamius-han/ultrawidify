@@ -3,11 +3,43 @@ import PlayerData from './PlayerData';
 import Resizer from '../video-transform/Resizer';
 import ArDetector from '../ar-detect/ArDetector';
 import AspectRatio from '../../../common/enums/aspect-ratio.enum';
-import _ from 'lodash';
+import * as _ from 'lodash';
 import BrowserDetect from '../../conf/BrowserDetect';
+import Logger from '../Logger';
+import Settings from '../Settings';
+import PageInfo from './PageInfo';
+import { sleep } from '../../../common/js/utils';
 
 class VideoData {
-  
+  //#region flags
+  arSetupComplete: boolean = false;
+  destroyed: boolean = false;
+  invalid: boolean = false;
+  videoStatusOk: boolean = false;
+  videoLoaded: boolean = false;
+  videoDimensionsLoaded: boolean = false;
+  paused: boolean = false;
+  //#endregion
+
+  //#region misc stuff
+  vdid: string;
+  video: any;
+  observer: MutationObserver;
+  extensionMode: any;
+  userCssClassName: string;
+  validationId: number;
+  dimensions: any;
+  //#endregion
+
+  //#region helper objects
+  logger: Logger;
+  settings: Settings;
+  pageInfo: PageInfo;
+  player: PlayerData;
+  resizer: Resizer;
+  arDetector: ArDetector;
+  //#endregion
+
 
   constructor(video, settings, pageInfo){
     this.vdid = (Math.random()*100).toFixed();
@@ -267,7 +299,8 @@ class VideoData {
     if (this.pageInfo.defaultCrop) {
       this.resizer.setAr(this.pageInfo.defaultCrop);
     } else {
-      this.resizer.reset();
+    console.log("RESETTING!")
+    this.resizer.reset();
 
       try {
         this.stopArDetection();
@@ -286,7 +319,7 @@ class VideoData {
     this.validationId = validationId;
 
     while (!this.destroyed && !this.invalid && this.validationId === validationId) {
-      await this.sleep(500);
+      await sleep(500);
       this.doPeriodicFallbackChangeDetectionCheck();
     }
   }
@@ -294,11 +327,6 @@ class VideoData {
   doPeriodicFallbackChangeDetectionCheck() {
     this.validateVideoOffsets();
   }
-
-  async sleep(timeout) {
-    return new Promise( (resolve) => setTimeout(() => resolve(), timeout));
-  }
-
 
   onVideoDimensionsChanged(mutationList, observer) {
     if (!mutationList || this.video === undefined) {  // something's wrong
@@ -391,7 +419,7 @@ class VideoData {
    * Gets the contents of the style attribute of the video element
    * in a form of an object.
    */
-  getVideoStyle() {
+  getVideoStyle(): any {
     // This will _always_ give us an array. Empty string gives an array
     // that contains one element. That element is an empty string.
     const styleArray = (this.video.getAttribute('style') || '').split(';');
@@ -502,7 +530,7 @@ class VideoData {
     }
     this.paused = false;
     try {
-      this.resizer.start();
+      // this.resizer.start();
       if (this.player) {
         this.player.start();
       }
