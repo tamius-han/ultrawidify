@@ -1,6 +1,9 @@
 import Stretch from '../../../common/enums/stretch.enum';
 import BrowserDetect from '../../conf/BrowserDetect';
 import AspectRatio from '../../../common/enums/aspect-ratio.enum';
+import VideoData from '../video-data/VideoData';
+import Logger from '../Logger';
+import Settings from '../Settings';
 
 // računa vrednosti za transform-scale (x, y)
 // transform: scale(x,y) se uporablja za raztegovanje videa, ne pa za približevanje
@@ -8,8 +11,20 @@ import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 // transform: scale(x,y) is used for stretching, not zooming. 
 
 class Stretcher {
-  // internal variables
+  //#region flags
 
+  //#endregion
+
+  //#region helper objects
+  conf: VideoData;
+  logger: Logger;
+  settings: Settings;
+  //#endregion
+
+  //#region misc data
+  mode: any;
+  fixedStretchRatio: any;
+  //#endregion
 
   // functions
   constructor(videoData) {
@@ -20,7 +35,7 @@ class Stretcher {
     this.fixedStretchRatio = undefined;
   }
 
-  setStretchMode(stretchMode, fixedStretchRatio) {
+  setStretchMode(stretchMode, fixedStretchRatio?) {
     if (stretchMode === Stretch.Default) {
       this.mode = this.settings.getDefaultStretchMode(window.location.hostname);
     } else {
@@ -145,7 +160,7 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
     return arCorrectionFactor;
   }
 
-   calculateStretch(actualAr, playerArOverride) {
+   calculateStretch(actualAr, playerArOverride?) {
     const playerAr = playerArOverride || this.conf.player.dimensions.width / this.conf.player.dimensions.height;
     const streamAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
 
@@ -153,7 +168,7 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
       actualAr = playerAr;
     }
 
-    var stretchFactors = {
+    var stretchFactors: any = {
       xFactor: 1,
       yFactor: 1
     };
