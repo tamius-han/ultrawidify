@@ -5,6 +5,7 @@ import ArDetector from '../ar-detect/ArDetector';
 import AspectRatio from '../../../common/enums/aspect-ratio.enum';
 import _ from 'lodash';
 import BrowserDetect from '../../conf/BrowserDetect';
+import { hasDrm } from '../ar-detect/DrmDetecor';
 
 class VideoData {
   
@@ -52,6 +53,8 @@ class VideoData {
       }
     } else if (!this.videoDimensionsLoaded) {
       this.logger.log('info', 'debug', "%c[VideoData::restoreCrop] Recovering from illegal video dimensions. Resetting aspect ratio.", "background: #afd, color: #132");
+
+      // test for 
 
       this.restoreCrop();
       this.videoDimensionsLoaded = true;
@@ -450,6 +453,11 @@ class VideoData {
       // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
       return;
     }
+    if (hasDrm(this.video)) {
+      this.player.showNotification('AARD_DRM');
+      return;
+    }
+
     if (this.arDetector){
       this.arDetector.init();
     }
