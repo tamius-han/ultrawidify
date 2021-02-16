@@ -185,7 +185,7 @@
         </div>
         <div class="flex flex-input">
           <input type="text"
-                 v-model="settings.active.arDetect.allowedMisaligned"
+                 v-model="settings.active.arDetect.pillarTest.allowMisaligned"
           />
         </div>
       </div>
