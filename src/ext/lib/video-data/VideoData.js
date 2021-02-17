@@ -38,9 +38,21 @@ class VideoData {
 
   async onVideoLoaded() {
     if (!this.videoLoaded) {
-      if (!this.video.videoWidth || !this.video.videoHeight) {
+
+      // video.readyState 101:
+      // 0 — no info. Can't play. 
+      // 1 — we have metadata but nothing else
+      // 2 — we have data for current playback position, but not future      <--- meaning current frame, meaning Aard can work here or higher
+      // 3 — we have a lil bit for the future
+      // 4 — we'll survive to the end
+      if (!this.video?.videoWidth || !this.video?.videoHeight || this.video.readyState < 2) {
         return; // onVideoLoaded is a lie in this case
       }
+      // const hasDrmResult = hasDrm(this.video);
+      // if (hasDrmResult === undefined) {
+      //   console.info('video not playing or doesnt exist. doing nothing.');
+      // }
+
       this.logger.log('info', 'init', '%c[VideoData::onVideoLoaded] ——————————— Initiating phase two of videoData setup ———————————', 'color: #0f9');
 
       this.videoLoaded = true;
@@ -53,8 +65,6 @@ class VideoData {
       }
     } else if (!this.videoDimensionsLoaded) {
       this.logger.log('info', 'debug', "%c[VideoData::restoreCrop] Recovering from illegal video dimensions. Resetting aspect ratio.", "background: #afd, color: #132");
-
-      // test for 
 
       this.restoreCrop();
       this.videoDimensionsLoaded = true;
@@ -455,7 +465,7 @@ class VideoData {
     }
     if (hasDrm(this.video)) {
       this.player.showNotification('AARD_DRM');
-      return;
+      // return;
     }
 
     if (this.arDetector){
