@@ -510,32 +510,6 @@ class ArDetector {
     id = undefined;
   }
 
-  /**
-   * Checks whether video we're trying to play is protected by DRM. 
-   * 
-   * When trying to get an image frame of a DRM-protected video in
-   * firefox, the method canvas.drawImage(video) will throw an exception.
-   * 
-   * This doesn't happen in Chrome. As opposed to Firefox, chrome will
-   * simply draw a transparent black image and not tell anyone that
-   * anything is amiss. However, since the image is (according to my testing
-   * on netflix) completely transparent, this means we can determine whether
-   * the video is DRM-protected by looking at the alpha byte of the image.
-   * 
-   * (Videos don't tend to have an alpha channel, so they're always
-   * completely opaque (i.e. have value of 255))
-   */
-  hasDRM() {
-    // oh btw, there's one exception. There is this brief period between the point
-    // when metadata (video dimensions) have loaded and the moment the video starts
-    // playing where ctx.drawImage() will draw a transparent black square regardless
-    // of whether the video is actually DRM-protected or not.
-    if (! this.conf.hasVideoStartedPlaying()) {
-      return false;
-    }
-    return this.blackframeContext.getImageData(0,0,1,1).data[3] === 0;
-  }
-
   frameCheck(){
     if(! this.video){
       this.logger.log('error', 'debug', `%c[ArDetect::frameCheck] <@${this.arid}>  Video went missing. Destroying current instance of videoData.`);
@@ -557,10 +531,10 @@ class ArDetector {
       this.blackframeContext.drawImage(this.video, 0, 0, this.blackframeCanvas.width, this.blackframeCanvas.height);
 
       // special browsers require special tests
-      if (this.hasDRM()) {
-        this.fallbackMode = false;
-        throw 'VIDEO_DRM_PROTECTED';
-      }
+      // if (this.hasDRM()) {
+      //   this.fallbackMode = false;
+      //   throw 'VIDEO_DRM_PROTECTED';
+      // }
       this.fallbackMode = false;
     } catch (e) {
       this.logger.log('error', 'arDetect', `%c[ArDetect::frameCheck] <@${this.arid}>  %c[ArDetect::frameCheck] can't draw image on canvas. ${this.canDoFallbackMode ? 'Trying canvas.drawWindow instead' : 'Doing nothing as browser doesn\'t support fallback mode.'}`, "color:#000; backgroud:#f51;", e);
@@ -569,17 +543,17 @@ class ArDetector {
       // ratio setting part of this function. For the time being, we're only stopping
       // in case we encounter DRM error in Chrome. Firefox has fallback mode and generates
       // different error, so that goes.
-      if (e === 'VIDEO_DRM_PROTECTED') {
-        // nothing to see here, really, if fallback mode isn't supported by browser
-        if (!this.drmNotificationShown) {
-          this.drmNotificationShown = true;
+      // if (e === 'VIDEO_DRM_PROTECTED') {
+      //   // nothing to see here, really, if fallback mode isn't supported by browser
+      //   if (!this.drmNotificationShown) {
+      //     this.drmNotificationShown = true;
 
-          this.conf.player.showNotification('AARD_DRM');
-          this.conf.resizer.setAr({type: AspectRatioType.Reset});
-        } 
+      //     this.conf.player.showNotification('AARD_DRM');
+      //     this.conf.resizer.setAr({type: AspectRatio.Reset});
+      //   } 
 
-        return;
-      }
+      //   return;
+      // }
 
       if (! this.canvasReadyForDrawWindow()) {
         // this means canvas needs to be resized, so we'll just re-run setup with all those new parameters
