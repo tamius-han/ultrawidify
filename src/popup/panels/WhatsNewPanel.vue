@@ -7,6 +7,12 @@
       <li>
         Provided a workaround for the fullscreen stretching bug Chrome 88 (or a recent Windows 10 update) introduced for nVidia users using hardware acceleration on Windows 10. In order to mitigate this bug, Ultrawidify needs to keep a 5-10 px wide black border while watching videos in full screen. This bug is also present in Edge.
       </li>
+      <li>
+        <b>[4.5.3.1]</b> Fixed binding for letterbox misalignment treshold binding in settings.
+      </li>
+      <li>
+        <b>[4.5.3.1]</b> Removed false positive "this extension can't work due to DRM" notifications. Note that this also gets rid of all such notifications in non-Firefox browsers.
+      </li>
     </ul>
   </div>
 </template>
