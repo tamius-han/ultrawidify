@@ -5,6 +5,11 @@ import BrowserDetect from '../../conf/BrowserDetect';
  * @param {*} video video we're trying to check
  */
 export function hasDrm(video) {
+  // if video is not playing, we cannot know whether autodetection will work or not
+  if (!video || !(video.currentTime > 0 && !video.paused && !video.ended && video.readyState > 2)) {
+    return undefined;
+  }
+
   /**
    * DRM DETECTION 101:
    *
@@ -43,6 +48,8 @@ export function hasDrm(video) {
     // of whether the video is actually DRM-protected or not.
 
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    console.log(context.getImageData(0,0,1,1).data, 'drm result', video.videoTracks)
 
     return context.getImageData(0,0,1,1).data[3] === 0;
   }
