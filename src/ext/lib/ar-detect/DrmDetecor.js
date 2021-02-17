@@ -25,7 +25,7 @@ export function hasDrm(video) {
   const canvas = document.createElement('canvas');
   canvas.width = 2;
   canvas.height = 2;
-  const context = canvas.getContext();
+  const context = canvas.getContext('2d');
 
   if (BrowserDetect.firefox) {
     try {
@@ -43,6 +43,7 @@ export function hasDrm(video) {
     // of whether the video is actually DRM-protected or not.
 
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    return this.blackframeContext.getImageData(0,0,1,1).data[3] === 0;
+
+    return context.getImageData(0,0,1,1).data[3] === 0;
   }
 }
