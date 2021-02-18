@@ -11,7 +11,7 @@
         <b>[4.5.3.1]</b> Fixed binding for letterbox misalignment treshold binding in settings.
       </li>
       <li>
-        <b>[4.5.3.1]</b> Removed false positive "this extension can't work due to DRM" notifications. Note that this also gets rid of all such notifications in non-Firefox browsers.
+        <b>[4.5.3.2]</b> Removed false positive "this extension can't work due to DRM" notifications.
       </li>
     </ul>
   </div>
