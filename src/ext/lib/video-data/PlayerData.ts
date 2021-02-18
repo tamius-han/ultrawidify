@@ -207,7 +207,7 @@ class PlayerData {
       this.destroyOverlay();
     }
 
-    var overlay = document.createElement('div');
+    let overlay = document.createElement('div');
     overlay.style.width = '100%';
     overlay.style.height = '100%';
     overlay.style.position = 'absolute';

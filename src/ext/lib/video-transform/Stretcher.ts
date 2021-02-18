@@ -47,17 +47,17 @@ class Stretcher {
   }
 
   applyConditionalStretch(stretchFactors, actualAr){
-    var playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
-    var videoAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
+    let playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
+    let videoAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
 
     if (! actualAr){
       actualAr = playerAr;
     }
 
-    var newWidth = this.conf.video.offsetWidth * stretchFactors.xFactor;
-    var newHeight = this.conf.video.offsetHeight * stretchFactors.yFactor;
+    let newWidth = this.conf.video.offsetWidth * stretchFactors.xFactor;
+    let newHeight = this.conf.video.offsetHeight * stretchFactors.yFactor;
 
-    var actualWidth, actualHeight;
+    let actualWidth, actualHeight;
 
     // determine the dimensions of the video (sans black bars) after scaling
     if(actualAr < videoAr){
@@ -68,11 +68,11 @@ class Stretcher {
       actualWidth = newWidth;
     }
 
-    var minW = this.conf.player.dimensions.width * (1 - this.settings.active.stretch.conditionalDifferencePercent);
-    var maxW = this.conf.player.dimensions.width * (1 + this.settings.active.stretch.conditionalDifferencePercent);
+    let minW = this.conf.player.dimensions.width * (1 - this.settings.active.stretch.conditionalDifferencePercent);
+    let maxW = this.conf.player.dimensions.width * (1 + this.settings.active.stretch.conditionalDifferencePercent);
 
-    var minH = this.conf.player.dimensions.height * (1 - this.settings.active.stretch.conditionalDifferencePercent);
-    var maxH = this.conf.player.dimensions.height * (1 + this.settings.active.stretch.conditionalDifferencePercent);
+    let minH = this.conf.player.dimensions.height * (1 - this.settings.active.stretch.conditionalDifferencePercent);
+    let maxH = this.conf.player.dimensions.height * (1 + this.settings.active.stretch.conditionalDifferencePercent);
 
     if (actualWidth >= minW && actualWidth <= maxW) {
       stretchFactors.xFactor *= this.conf.player.dimensions.width / actualWidth;
@@ -168,7 +168,7 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
       actualAr = playerAr;
     }
 
-    var stretchFactors: any = {
+    let stretchFactors: any = {
       xFactor: 1,
       yFactor: 1
     };

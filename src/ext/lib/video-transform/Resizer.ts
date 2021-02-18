@@ -104,7 +104,7 @@ class Resizer {
     // Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". 
     // Približevanje opuščeno.
     // handles "legacy" options, such as 'fit to widht', 'fit to height' and AspectRatioType.Reset. No zoom tho
-    var ratioOut;
+    let ratioOut;
 
     if (!this.conf.video) {
       this.logger.log('info', 'debug', "[Scaler.js::modeToAr] No video??",this.conf.video, "killing videoData");
@@ -126,7 +126,7 @@ class Resizer {
     // IMPORTANT NOTE: lastAr needs to be set after _res_setAr() is called, as _res_setAr() assumes we're
     // setting a static aspect ratio (even if the function is called from here or ArDetect). 
     
-    var fileAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
+    let fileAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
       
     if (ar.type === AspectRatioType.FitWidth){
       ar.ratio = ratioOut > fileAr ? ratioOut : fileAr;
@@ -296,7 +296,7 @@ class Resizer {
 
     this.stretcher.chromeBugMitigation(stretchFactors);
 
-    var translate = this.computeOffsets(stretchFactors);
+    let translate = this.computeOffsets(stretchFactors);
 
 
     console.log("aspect ratio will be set. stretch factors:", stretchFactors, "translate:", translate);
@@ -603,7 +603,7 @@ class Resizer {
         }
       }
   
-      for (var i in styleArray) {
+      for (let i in styleArray) {
         styleArray[i] = styleArray[i].trim();   
         // some sites do 'top: 50%; left: 50%; transform: <transform>' to center videos. 
         // we dont wanna, because we already center videos on our own
@@ -626,7 +626,7 @@ class Resizer {
   buildStyleString(styleArray) {
     let styleString = '';
 
-    for(var i in styleArray) {
+    for(let i in styleArray) {
       if(styleArray[i]) {
         styleString += styleArray[i] + " !important; ";
       }

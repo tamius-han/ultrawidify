@@ -30,7 +30,7 @@ class Scaler {
       return ar.ratio; 
     }
 
-    var ratioOut;
+    let ratioOut;
 
     if (!this.conf.video) {
       this.logger.log('error', 'debug', "[Scaler.js::modeToAr] No video??",this.conf.video, "killing videoData");
@@ -51,7 +51,7 @@ class Scaler {
     // IMPORTANT NOTE: lastAr needs to be set after _res_setAr() is called, as _res_setAr() assumes we're
     // setting a static aspect ratio (even if the function is called from here or ArDetect). 
     
-    var fileAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
+    let fileAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
       
     if (ar.type === AspectRatioType.FitWidth) {
       ratioOut > fileAr ? ratioOut : fileAr
