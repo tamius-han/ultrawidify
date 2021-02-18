@@ -8,10 +8,54 @@ import GuardLine from './GuardLine';
 // import DebugCanvas from './DebugCanvas';
 import VideoAlignmentType from '../../../common/enums/VideoAlignmentType.enum';
 import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
-import {sleep} from '../../lib/Util';
+import {sleep} from '../Util';
 import BrowserDetect from '../../conf/BrowserDetect';
+import Logger from '../Logger';
+import VideoData from '../video-data/VideoData';
+import Settings from '../Settings';
 
 class ArDetector {
+  logger: Logger;
+  conf: VideoData;
+  video: HTMLVideoElement;
+  settings: Settings;
+
+  guardLine: GuardLine;
+  edgeDetector: EdgeDetect;
+
+  setupTimer: any;
+  sampleCols: any[];
+  sampleLines
+
+  canFallback: boolean = true;
+  fallbackMode: boolean = false;
+
+  blackLevel: number;
+
+  arid: string;
+
+  // ar detector starts in this state. running main() sets both to false
+  _paused: boolean;
+  _halted: boolean = true;
+  _exited: boolean = true;
+
+  private manualTickEnabled: boolean;
+  _nextTick: boolean;
+  canDoFallbackMode: boolean = false;
+
+  // helper objects
+  private attachedCanvas: HTMLCanvasElement;
+  canvas: HTMLCanvasElement;
+  private blackframeCanvas: HTMLCanvasElement;
+  private context: CanvasRenderingContext2D;
+  private blackframeContext: CanvasRenderingContext2D;
+  private canvasScaleFactor: number;
+  private detectionTimeoutEventCount: number;
+  canvasImageDataRowLength: number;
+  private noLetterboxCanvasReset: boolean;
+  private detectedAr: any;
+  private canvasDrawWindowHOffset: number;
+  private sampleCols_current: number;
 
   constructor(videoData){
     this.logger = videoData.logger;
@@ -19,34 +63,18 @@ class ArDetector {
     this.video = videoData.video;
     this.settings = videoData.settings;
     
-    this.setupTimer = null;
-
     this.sampleCols = [];
-
-    this.canFallback = true;
-    this.fallbackMode = false;
 
     this.blackLevel = this.settings.active.arDetect.blackbar.blackLevel;
 
     this.arid = (Math.random()*100).toFixed();
 
-    // ar detector starts in this state. running main() sets both to false
-    this._halted = true;
-    this._exited = true;
-
     // we can tick manually, for debugging
-    this._manualTicks = false;
-    this._nextTick = false;
-
-    this.canDoFallbackMode = false; 
-
-    this.drmNotificationShown = false;
-
     this.logger.log('info', 'init', `[ArDetector::ctor] creating new ArDetector. arid: ${this.arid}`);
   }
 
   setManualTick(manualTick) {
-    this._manualTicks = manualTick;
+    this.manualTickEnabled = manualTick;
   }
 
   tick() {
@@ -68,19 +96,19 @@ class ArDetector {
   }
 
   destroy(){
-    this.logger.log('info', 'init', `%c[ArDetect::destroy] <@${this.arid}> Destroying aard.`, _ard_console_stop, e);
+    this.logger.log('info', 'init', `%c[ArDetect::destroy] <@${this.arid}> Destroying aard.`, _ard_console_stop);
     // this.debugCanvas.destroy();
     this.stop();
   }
 
-  setup(cwidth, cheight){
+  setup(cwidth?: number, cheight?: number){
     this.logger.log('info', 'init', `[ArDetect::setup] <@${this.arid}> Starting autodetection setup.`);
     //
     // [-1] check for zero-width and zero-height videos. If we detect this, we kick the proverbial
     //      can some distance down the road. This problem will prolly fix itself soon. We'll also
     //      not do any other setup until this issue is fixed
     //
-    if(this.video.videoWidth === 0 || this.video.videoHeight === 0 ){
+    if (this.video.videoWidth === 0 || this.video.videoHeight === 0 ){
       this.logger.log('warn', 'debug', `[ArDetect::setup] <@${this.arid}> This video has zero width or zero height. Dimensions: ${this.video.videoWidth} × ${this.video.videoHeight}`);
 
       this.scheduleInitRestart();
@@ -173,7 +201,7 @@ class ArDetector {
     //
 
     try {
-      this.blackframeContext.drawWindow(window,0, 0, this.blackframeCanvas.width, this.blackframeCanvas.height, "rgba(0,0,128,1)");
+      (this.blackframeContext as any).drawWindow(window,0, 0, this.blackframeCanvas.width, this.blackframeCanvas.height, "rgba(0,0,128,1)");
       this.canDoFallbackMode = true;
     } catch (e) {
       this.canDoFallbackMode = false;
@@ -292,7 +320,7 @@ class ArDetector {
       // state from 'paused' to 'playing', we don't need to wait for the rest of the longer
       // paused state timeout to finish.
 
-      if ( (!this._manualTicks && this.canTriggerFrameCheck(lastFrameCheckStartTime)) || this._nextTick) {
+      if ( (!this.manualTickEnabled && this.canTriggerFrameCheck(lastFrameCheckStartTime)) || this._nextTick) {
         this._nextTick = false;
 
         lastFrameCheckStartTime = Date.now();
@@ -344,7 +372,7 @@ class ArDetector {
   }
 
 
-  scheduleInitRestart(timeout, force_reset){
+  scheduleInitRestart(timeout?: number, force_reset?: boolean){
     if(! timeout){
       timeout = 100;
     }
@@ -481,7 +509,7 @@ class ArDetector {
       //
       // we can only deny aspect ratio changes if we use automatic mode and if aspect ratio was set from here.
       
-      let arDiff = trueAr - lastAr.ar;
+      let arDiff = trueAr - lastAr.ratio;
       
       if (arDiff < 0)
         arDiff = -arDiff;
@@ -490,7 +518,7 @@ class ArDetector {
       
       // ali je sprememba v mejah dovoljenega? Če da -> fertik
       // is ar variance within acceptable levels? If yes -> we done
-      this.logger.log('info', 'arDetect', `%c[ArDetect::processAr] <@${this.arid}>  New aspect ratio varies from the old one by this much:\n`,"color: #aaf","old Ar", lastAr.ar, "current ar", trueAr, "arDiff (absolute):",arDiff,"ar diff (relative to new ar)", arDiff_percent);
+      this.logger.log('info', 'arDetect', `%c[ArDetect::processAr] <@${this.arid}>  New aspect ratio varies from the old one by this much:\n`,"color: #aaf","old Ar", lastAr.ratio, "current ar", trueAr, "arDiff (absolute):",arDiff,"ar diff (relative to new ar)", arDiff_percent);
 
       if (arDiff < trueAr * this.settings.active.arDetect.allowedArVariance){
         this.logger.log('info', 'arDetect', `%c[ArDetect::processAr] <@${this.arid}>  Aspect ratio change denied — diff %: ${arDiff_percent}`, "background: #740; color: #fa2");
@@ -500,12 +528,12 @@ class ArDetector {
     }
     this.logger.log('info', 'debug', `%c[ArDetect::processAr] <@${this.arid}>  Triggering aspect ratio change. New aspect ratio: ${trueAr}`, _ard_console_change);
     
-    this.conf.resizer.updateAr({type: AspectRatioType.Automatic, ratio: trueAr}, {type: AspectRatioType.Automatic, ratio: trueAr});
+    this.conf.resizer.updateAr({type: AspectRatioType.Automatic, ratio: trueAr});
   }
 
   clearImageData(id) {
-    if (ArrayBuffer.transfer) {
-      ArrayBuffer.transfer(id, 0);
+    if ((ArrayBuffer as any).transfer) {
+      (ArrayBuffer as any).transfer(id, 0);
     }
     id = undefined;
   }
@@ -579,7 +607,7 @@ class ArDetector {
       this.fallbackMode = true;
 
       try {
-        this.context.drawWindow(window, this.canvasDrawWindowHOffset, 0, this.canvas.width, this.canvas.height, "rgba(0,0,128,1)");
+        (this.context as any).drawWindow(window, this.canvasDrawWindowHOffset, 0, this.canvas.width, this.canvas.height, "rgba(0,0,128,1)");
       } catch (e) {
         this.logger.log('error', 'arDetect', `%c[ArDetect::frameCheck] can't draw image on canvas with fallback mode either. This error is prolly only temporary.`, "color:#000; backgroud:#f51;", e);
         return; // it's prolly just a fluke, so we do nothing special here
@@ -680,8 +708,6 @@ class ArDetector {
             this.guardLine.reset();
           }
 
-          triggerTimeout = this.getTimeout(baseTimeout, startTime);
-          this.scheduleFrameCheck(triggerTimeout);
           this.clearImageData(imageData);
           return;
         }
@@ -741,7 +767,7 @@ class ArDetector {
       this.logger.log('error', 'arDetect', `%c[ArDetect::frameCheck] There was a problem setting blackbar. Doing nothing. Error:`, e);
       
       try {
-        this.guardline.reset();
+        this.guardLine.reset();
       } catch (e) {
         // no guardline, no bigge
       }
@@ -780,7 +806,7 @@ class ArDetector {
     let cumulativeValue = 0;
     let blackPixelCount = 0;
     const bfImageData = this.blackframeContext.getImageData(0, 0, cols, rows).data;
-    const blackTreshold = this.blackLevel + this.settings.active.arDetect.blackbar.frameTreshold;
+    const blackTreshold = this.blackLevel + this.settings.active.arDetect.blackbar.frameThreshold;
     
 
     // we do some recon for letterbox and pillarbox. While this can't determine whether letterbox/pillarbox exists
@@ -788,7 +814,7 @@ class ArDetector {
     let rowMax = new Array(rows).fill(0);
     let colMax = new Array(cols).fill(0);
 
-    let r, c;
+    let r: number, c: number;
 
 
     for (let i = 0; i < bfImageData.length; i+= 4) {

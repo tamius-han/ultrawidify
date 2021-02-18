@@ -3,12 +3,27 @@ import EdgeStatus from './enums/EdgeStatusEnum';
 import EdgeDetectQuality from './enums/EdgeDetectQualityEnum';
 import EdgeDetectPrimaryDirection from './enums/EdgeDetectPrimaryDirectionEnum';
 import AntiGradientMode from '../../../../common/enums/AntiGradientMode.enum'; 
+import ArDetector from '../ArDetector';
+import Logger from '../../Logger';
+import Settings from '../../Settings';
 
 if (Debug.debug) {
   console.log("Loading EdgeDetect.js");
 }
 
 class EdgeDetect{
+  conf: ArDetector;
+  logger: Logger;
+  settings: Settings;
+
+
+  // helper stuff
+  private sampleWidthBase: number;
+  private halfSample: number;
+  private detectionThreshold: number;
+  private colsThreshold: number;
+  private blackbarThreshold: number;
+  private imageThreshold: number;
 
   constructor(ardConf){
     this.conf = ardConf;
@@ -41,7 +56,7 @@ class EdgeDetect{
         //   edges = fastCandidates; // todo: processing
         // } else {
           edgeCandidates = this.edgeDetect(image, fastCandidates);
-          bars = this.edgePostprocess(edgeCandidates, this.conf.canvas.height);
+          bars = this.edgePostprocess(edgeCandidates);
         // }
       } catch (e) {
         this.logger.log('error', 'arDetect', '%c[EdgeDetect::findBars] find bars failed.', 'background: #f00, color: #000', e);
@@ -259,7 +274,7 @@ class EdgeDetect{
         loopEnd = sampleRow_black + sampleEnd;
 
         if (Debug.debugCanvas.enabled){
-          blackEdgeViolation = this._blackbarTest_dbg(image, sampleRow_black + sampleStart, loopEnd);
+          // blackEdgeViolation = this._blackbarTest_dbg(image, sampleRow_black + sampleStart, loopEnd);
         } else {
           blackEdgeViolation = this._blackbarTest(image, sampleRow_black + sampleStart, loopEnd);
         }
@@ -274,7 +289,7 @@ class EdgeDetect{
         loopEnd = sampleRow_color + sampleEnd;
 
         if (Debug.debugCanvas.enabled) {
-          this._imageTest_dbg(image, sampleRow_color + sampleStart, loopEnd, sample.black, edgeCandidatesTop)
+          // this._imageTest_dbg(image, sampleRow_color + sampleStart, loopEnd, sample.black, edgeCandidatesTop)
         } else {
           this._imageTest(image, sampleRow_color + sampleStart, loopEnd, sample.black, edgeCandidatesTop);
         }
@@ -302,7 +317,7 @@ class EdgeDetect{
         loopEnd = sampleRow_black + sampleEnd;
         
         if(Debug.debugCanvas.enabled){
-          blackEdgeViolation = this._blackbarTest_dbg(image, sampleRow_black + sampleStart, loopEnd);
+          // blackEdgeViolation = this._blackbarTest_dbg(image, sampleRow_black + sampleStart, loopEnd);
         } else {
           blackEdgeViolation = this._blackbarTest(image, sampleRow_black + sampleStart, loopEnd);
         }
@@ -317,7 +332,7 @@ class EdgeDetect{
         loopEnd = sampleRow_color + sampleEnd;
 
         if(Debug.debugCanvas.enabled) {
-          this._imageTest_dbg(image, sampleRow_color + sampleStart, loopEnd, sample.black, edgeCandidatesBottom);
+          // this._imageTest_dbg(image, sampleRow_color + sampleStart, loopEnd, sample.black, edgeCandidatesBottom);
         } else {
           this._imageTest(image, sampleRow_color + sampleStart, loopEnd, sample.black, edgeCandidatesBottom);
         }
@@ -1095,62 +1110,62 @@ class EdgeDetect{
     }
   }
 
-  _columnTest_dbgc(image, top, bottom, colsIn, colsOut, reverseSearchDirection){
-    var tmpI;
-    if(reverseSearchDirection){
-      for(var i = bottom - this.conf.canvasImageDataRowLength; i >= top; i-= this.conf.canvasImageDataRowLength){
-        for(var col of colsIn){
-          tmpI = i + (col << 2);
+  // _columnTest_dbgc(image, top, bottom, colsIn, colsOut, reverseSearchDirection){
+  //   var tmpI;
+  //   if(reverseSearchDirection){
+  //     for(var i = bottom - this.conf.canvasImageDataRowLength; i >= top; i-= this.conf.canvasImageDataRowLength){
+  //       for(var col of colsIn){
+  //         tmpI = i + (col << 2);
           
-          if( image[tmpI]     > this.blackbarThreshold || 
-              image[tmpI + 1] > this.blackbarThreshold ||
-              image[tmpI + 2] > this.blackbarThreshold ){
+  //         if( image[tmpI]     > this.blackbarThreshold || 
+  //             image[tmpI + 1] > this.blackbarThreshold ||
+  //             image[tmpI + 2] > this.blackbarThreshold ){
             
-            var bottom = (i / this.conf.canvasImageDataRowLength) + 1;
-            colsOut.push({
-              col: col,
-              bottom: bottom
-            });
-            colsIn.splice(colsIn.indexOf(col), 1);
-            this.conf.debugCanvas.trace(tmpI,DebugCanvasClasses.EDGEDETECT_CANDIDATE);
-          }
-          else{
-            this.conf.debugCanvas.trace(tmpI, DebugCanvasClasses.EDGEDETECT_ONBLACK);
-          }
-        }
-        if(colsIn.length < this.colsThreshold)
-          break;
-      }
-    } else {
-      for(var i = top; i < bottom; i+= this.conf.canvasImageDataRowLength){
-        for(var col of colsIn){
-          tmpI = i + (col << 2);
+  //           var bottom = (i / this.conf.canvasImageDataRowLength) + 1;
+  //           colsOut.push({
+  //             col: col,
+  //             bottom: bottom
+  //           });
+  //           colsIn.splice(colsIn.indexOf(col), 1);
+  //           this.conf.debugCanvas.trace(tmpI,DebugCanvasClasses.EDGEDETECT_CANDIDATE);
+  //         }
+  //         else{
+  //           this.conf.debugCanvas.trace(tmpI, DebugCanvasClasses.EDGEDETECT_ONBLACK);
+  //         }
+  //       }
+  //       if(colsIn.length < this.colsThreshold)
+  //         break;
+  //     }
+  //   } else {
+  //     for(var i = top; i < bottom; i+= this.conf.canvasImageDataRowLength){
+  //       for(var col of colsIn){
+  //         tmpI = i + (col << 2);
           
-          if( image[tmpI]     > this.blackbarThreshold || 
-              image[tmpI + 1] > this.blackbarThreshold ||
-              image[tmpI + 2] > this.blackbarThreshold ){
+  //         if( image[tmpI]     > this.blackbarThreshold || 
+  //             image[tmpI + 1] > this.blackbarThreshold ||
+  //             image[tmpI + 2] > this.blackbarThreshold ){
           
-            colsOut.push({
-              col: col,
-              top: (i / this.conf.canvasImageDataRowLength) - 1
-            });
-            colsIn.splice(colsIn.indexOf(col), 1);
-            this.conf.debugCanvas.trace(tmpI, DebugCanvasClasses.EDGEDETECT_CANDIDATE);      
-            if(tmpI-1 > 0){
-              this.conf.debugCanvas.trace(tmpI - 1, DebugCanvasClasses.EDGEDETECT_CANDIDATE_SECONDARY);
-            }
-            if(tmpI+1 < image.length){
-              this.conf.debugCanvas.trace(tmpI + 1, DebugCanvasClasses.EDGEDETECT_CANDIDATE_SECONDARY);
-            }
-          } else {
-            this.conf.debugCanvas.trace(tmpI, DebugCanvasClasses.EDGEDETECT_ONBLACK);
-          }
-        }
-        if(colsIn.length < this.colsThreshold)
-          break;
-      }
-    }
-  }
+  //           colsOut.push({
+  //             col: col,
+  //             top: (i / this.conf.canvasImageDataRowLength) - 1
+  //           });
+  //           colsIn.splice(colsIn.indexOf(col), 1);
+  //           this.conf.debugCanvas.trace(tmpI, DebugCanvasClasses.EDGEDETECT_CANDIDATE);      
+  //           if(tmpI-1 > 0){
+  //             this.conf.debugCanvas.trace(tmpI - 1, DebugCanvasClasses.EDGEDETECT_CANDIDATE_SECONDARY);
+  //           }
+  //           if(tmpI+1 < image.length){
+  //             this.conf.debugCanvas.trace(tmpI + 1, DebugCanvasClasses.EDGEDETECT_CANDIDATE_SECONDARY);
+  //           }
+  //         } else {
+  //           this.conf.debugCanvas.trace(tmpI, DebugCanvasClasses.EDGEDETECT_ONBLACK);
+  //         }
+  //       }
+  //       if(colsIn.length < this.colsThreshold)
+  //         break;
+  //     }
+  //   }
+  // }
 
   _blackbarTest(image, start, end){
     for(var i = start; i < end; i += 4){
@@ -1163,20 +1178,20 @@ class EdgeDetect{
     return false; // no violation
   }
 
-  _blackbarTest_dbg(image, start, end){
-    for(var i = start; i < end; i += 4){
-      if( image[i  ] > this.blackbarThreshold ||
-          image[i+1] > this.blackbarThreshold ||
-          image[i+2] > this.blackbarThreshold ){
+  // _blackbarTest_dbg(image, start, end){
+  //   for(var i = start; i < end; i += 4){
+  //     if( image[i  ] > this.blackbarThreshold ||
+  //         image[i+1] > this.blackbarThreshold ||
+  //         image[i+2] > this.blackbarThreshold ){
         
-        this.conf.debugCanvas.trace(i, DebugCanvasClasses.VIOLATION)
-        return true;
-      } else {
-        this.conf.debugCanvas.trace(i, DebugCanvasClasses.EDGEDETECT_BLACKBAR)
-      }
-    }
-    return false; // no violation
-  }
+  //       this.conf.debugCanvas.trace(i, DebugCanvasClasses.VIOLATION)
+  //       return true;
+  //     } else {
+  //       this.conf.debugCanvas.trace(i, DebugCanvasClasses.EDGEDETECT_BLACKBAR)
+  //     }
+  //   }
+  //   return false; // no violation
+  // }
 
   _imageTest(image, start, end, sampleOffset, edgeCandidates){
     var detections = 0;
@@ -1198,28 +1213,28 @@ class EdgeDetect{
     }
   }
 
-  _imageTest_dbg(image, start, end, sampleOffset, edgeCandidates){
-    var detections = 0;
+  // _imageTest_dbg(image, start, end, sampleOffset, edgeCandidates){
+  //   var detections = 0;
 
-    for(var i = start; i < end; i += 4){
-      if( image[i  ] > this.blackbarThreshold ||
-        image[i+1] > this.blackbarThreshold ||
-        image[i+2] > this.blackbarThreshold ){
-        ++detections;
-        this.conf.debugCanvas.trace(i, DebugCanvasClasses.EDGEDETECT_IMAGE);
-      } else {
-        this.conf.debugCanvas.trace(i, DebugCanvasClasses.WARN);
-      }
-    }
-    if(detections >= this.detectionThreshold){
-      if(edgeCandidates[sampleOffset] != undefined)
-        edgeCandidates[sampleOffset].count++;
-      else{
-        edgeCandidates[sampleOffset] = {offset: sampleOffset, count: 1};
-        edgeCandidates.count++;
-      }
-    }
-  }
+  //   for(var i = start; i < end; i += 4){
+  //     if( image[i  ] > this.blackbarThreshold ||
+  //       image[i+1] > this.blackbarThreshold ||
+  //       image[i+2] > this.blackbarThreshold ){
+  //       ++detections;
+  //       this.conf.debugCanvas.trace(i, DebugCanvasClasses.EDGEDETECT_IMAGE);
+  //     } else {
+  //       this.conf.debugCanvas.trace(i, DebugCanvasClasses.WARN);
+  //     }
+  //   }
+  //   if(detections >= this.detectionThreshold){
+  //     if(edgeCandidates[sampleOffset] != undefined)
+  //       edgeCandidates[sampleOffset].count++;
+  //     else{
+  //       edgeCandidates[sampleOffset] = {offset: sampleOffset, count: 1};
+  //       edgeCandidates.count++;
+  //     }
+  //   }
+  // }
 
 }
 

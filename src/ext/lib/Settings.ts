@@ -500,7 +500,7 @@ class Settings {
     return this.canStartExtension(site);
   }
 
-  canStartAutoAr(site) {
+  canStartAutoAr(site?: string) {
     // 'site' argument is only ever used when calling this function recursively for debugging
     if (!site) {
       site = window.location.hostname;
