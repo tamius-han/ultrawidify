@@ -111,7 +111,7 @@ class PageInfo {
     if(this.rescanTimer){
       clearTimeout(this.rescanTimer);
     }
-    for (var video of this.videos) {
+    for (let video of this.videos) {
       try {
         (this.comms.unregisterVideo as any)(video.vdid)
         video.destroy();
@@ -134,7 +134,7 @@ class PageInfo {
   }
 
   reset() {
-    for(var video of this.videos) {
+    for(let video of this.videos) {
       video.destroy();
     }
     this.rescan(RescanReason.MANUAL);
@@ -150,7 +150,7 @@ class PageInfo {
 
   setActionHandler(actionHandler) {
     this.actionHandler = actionHandler;
-    for (var item of this.actionHandlerInitQueue) {
+    for (let item of this.actionHandlerInitQueue) {
       this.actionHandler.registerHandleMouse(item);
     }
     this.actionHandlerInitQueue = [];
@@ -176,7 +176,7 @@ class PageInfo {
     const oldVideoCount = this.videos.length;
 
     try{
-      var vids = this.getVideos(window.location.hostname);
+      let vids = this.getVideos(window.location.hostname);
 
       if(!vids || vids.length == 0){
         this.hasVideos = false;
@@ -190,8 +190,8 @@ class PageInfo {
 
       // add new videos
       this.hasVideos = false;
-      var videoExists = false;    
-      var video, v;
+      let videoExists = false;    
+      let video, v;
 
       for (video of vids) {
         // če najdemo samo en video z višino in širino, to pomeni, da imamo na strani veljavne videe
@@ -314,7 +314,7 @@ class PageInfo {
         clearTimeout(this.rescanTimer);
       }
 
-      var ths = this;
+      let ths = this;
       
       this.rescanTimer = setTimeout(function(rescanReason){
         ths.rescanTimer = null;
@@ -332,7 +332,7 @@ class PageInfo {
       clearTimeout(this.urlCheckTimer);
     }
 
-    var ths = this;
+    let ths = this;
         
     this.urlCheckTimer = setTimeout(function(){
       ths.urlCheckTimer = null;
@@ -357,14 +357,14 @@ class PageInfo {
 
   initArDetection(playingOnly){
     if (playingOnly) {
-      for(var vd of this.videos){
+      for(let vd of this.videos){
         if(vd.isPlaying()) {
           vd.initArDetection();
         }
       }
       return;
     } else {
-      for(var vd of this.videos){
+      for(let vd of this.videos){
         vd.initArDetection();
       }
     }
@@ -375,13 +375,13 @@ class PageInfo {
   // these need to be called on tab switch
   pauseProcessing(playingOnly){
     if (playingOnly) {
-      for(var vd of this.videos){
+      for(let vd of this.videos){
         if (vd.isPlaying()) {
           vd.pause();
         }
       }  
     } else {
-      for(var vd of this.videos){
+      for(let vd of this.videos){
         vd.pause();
       }
     }
@@ -389,7 +389,7 @@ class PageInfo {
 
   resumeProcessing(resumeAutoar = false, playingOnly = false){
     if (playingOnly) {
-      for(var vd of this.videos){
+      for(let vd of this.videos){
         if (vd.isPlaying()) {
           vd.resume();
           if(resumeAutoar){
@@ -398,7 +398,7 @@ class PageInfo {
         }
       }
     } else {
-      for(var vd of this.videos){
+      for(let vd of this.videos){
         vd.resume();
         if(resumeAutoar){
           vd.resumeAutoAr();
@@ -413,13 +413,13 @@ class PageInfo {
       this.logger.log('info', 'debug', '[PageInfo::startArDetection()] starting automatic ar detection!')
     }
     if (playingOnly) {
-      for(var vd of this.videos){
+      for(let vd of this.videos){
         if (vd.isPlaying()) {
           vd.startArDetection();
         }
       }
     } else {
-      for(var vd of this.videos){
+      for(let vd of this.videos){
         vd.startArDetection();
       }
     }
@@ -427,13 +427,13 @@ class PageInfo {
 
   stopArDetection(playingOnly){
     if (playingOnly) {
-      for(var vd of this.videos){
+      for(let vd of this.videos){
         if (vd.isPlaying()) { 
           vd.stopArDetection();
         }
       }
     } else {
-      for(var vd of this.videos){
+      for(let vd of this.videos){
         vd.stopArDetection();
       }
     }
@@ -448,7 +448,7 @@ class PageInfo {
       this.logger.log('info', 'debug', '[PageInfo::setAr] aspect ratio is auto');
 
       try {
-        for (var vd of this.videos) {
+        for (let vd of this.videos) {
           if (!playingOnly || vd.isPlaying()) {
             vd.resetLastAr();
           }
@@ -463,13 +463,13 @@ class PageInfo {
 
     // TODO: find a way to only change aspect ratio for one video
     if (ar === AspectRatioType.Reset) {
-      for (var vd of this.videos) {
+      for (let vd of this.videos) {
         if (!playingOnly || vd.isPlaying()) {
           vd.resetAr();
         }
       }
     } else {
-      for (var vd of this.videos) {
+      for (let vd of this.videos) {
         if (!playingOnly || vd.isPlaying()) {
           vd.setAr(ar)
         }
@@ -479,13 +479,13 @@ class PageInfo {
   
   setVideoAlignment(videoAlignment, playingOnly) {
     if (playingOnly) {
-      for(var vd of this.videos) {
+      for(let vd of this.videos) {
         if (vd.isPlaying()) { 
           vd.setVideoAlignment(videoAlignment)
         }
       }
     } else {
-      for(var vd of this.videos) {
+      for(let vd of this.videos) {
         vd.setVideoAlignment(videoAlignment)
       }
     }
@@ -493,13 +493,13 @@ class PageInfo {
 
   setPanMode(mode, playingOnly) {
     if (playingOnly) {
-      for(var vd of this.videos) {
+      for(let vd of this.videos) {
         if (vd.isPlaying()) {
           vd.setPanMode(mode);
         }
       }
     } else {
-      for(var vd of this.videos) {
+      for(let vd of this.videos) {
         vd.setPanMode(mode);
       }
     }
@@ -507,13 +507,13 @@ class PageInfo {
 
   restoreAr(playingOnly) {
     if (playingOnly) {
-      for(var vd of this.videos){
+      for(let vd of this.videos){
         if (vd.isPlaying()) {
           vd.restoreAr();
         }
       }
     } else {
-      for(var vd of this.videos){
+      for(let vd of this.videos){
         vd.restoreAr();
       }
     }
@@ -523,13 +523,13 @@ class PageInfo {
     // TODO: find a way to only change aspect ratio for one video
 
     if (playingOnly) {
-      for(var vd of this.videos){
+      for(let vd of this.videos){
         if (vd.isPlaying()) {
           vd.setStretchMode(stretchMode, fixedStretchRatio)
         }
       }
     } else {
-      for(var vd of this.videos){
+      for(let vd of this.videos){
         vd.setStretchMode(stretchMode, fixedStretchRatio)
       }
     }
@@ -537,20 +537,20 @@ class PageInfo {
 
   setZoom(zoomLevel, no_announce, playingOnly) {
     if (playingOnly) {
-      for(var vd of this.videos) {
+      for(let vd of this.videos) {
         if (vd.isPlaying()) {
           vd.setZoom(zoomLevel, no_announce);
         }
       }
     } else {
-      for(var vd of this.videos) {
+      for(let vd of this.videos) {
         vd.setZoom(zoomLevel, no_announce);
       }
     }
   }
 
   zoomStep(step, playingOnly) {
-    for(var vd of this.videos){
+    for(let vd of this.videos){
       if (!playingOnly || vd.isPlaying()) {
         vd.zoomStep(step);
       }
@@ -558,12 +558,12 @@ class PageInfo {
   }
 
   markPlayer(name, color) { 
-    for (var vd of this.videos) {
+    for (let vd of this.videos) {
       vd.markPlayer(name,color);
     }
   }
   unmarkPlayer() {
-    for (var vd of this.videos) {
+    for (let vd of this.videos) {
       vd.unmarkPlayer();
     }
   }
@@ -578,13 +578,13 @@ class PageInfo {
   }
 
   setManualTick(manualTick) {
-    for(var vd of this.videos) {
+    for(let vd of this.videos) {
       vd.setManualTick(manualTick);
     }
   }
 
   tick() {
-    for(var vd of this.videos) {
+    for(let vd of this.videos) {
       vd.tick();
     }
   }

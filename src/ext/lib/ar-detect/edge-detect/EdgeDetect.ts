@@ -128,10 +128,10 @@ class EdgeDetect{
 
       this.logger.log('info', 'arDetect', '[EdgeDetect::findCandidates] searching for candidates on ranges', upper_top, '<->', upper_bottom, ';', lower_top, '<->', lower_bottom);
       
-      var upper_top_corrected = upper_top * this.conf.canvasImageDataRowLength;
-      var upper_bottom_corrected = upper_bottom * this.conf.canvasImageDataRowLength;
-      var lower_top_corrected = lower_top * this.conf.canvasImageDataRowLength;
-      var lower_bottom_corrected = lower_bottom * this.conf.canvasImageDataRowLength;
+      let upper_top_corrected = upper_top * this.conf.canvasImageDataRowLength;
+      let upper_bottom_corrected = upper_bottom * this.conf.canvasImageDataRowLength;
+      let lower_top_corrected = lower_top * this.conf.canvasImageDataRowLength;
+      let lower_bottom_corrected = lower_bottom * this.conf.canvasImageDataRowLength;
       
       // if(Debug.debugCanvas.enabled){
         // this._columnTest_dbgc(image, upper_top_corrected, upper_bottom_corrected, cols_a, res_top, false);
@@ -236,20 +236,20 @@ class EdgeDetect{
   }
 
   edgeDetect(image, samples){
-    var edgeCandidatesTop = {count: 0};
-    var edgeCandidatesBottom = {count: 0};
+    let edgeCandidatesTop = {count: 0};
+    let edgeCandidatesBottom = {count: 0};
     
-    var detections;
-    var canvasWidth = this.conf.canvas.width;
-    var canvasHeight = this.conf.canvas.height;
+    let detections;
+    let canvasWidth = this.conf.canvas.width;
+    let canvasHeight = this.conf.canvas.height;
     
-    var sampleStart, sampleEnd, loopEnd;
-    var sampleRow_black, sampleRow_color;
+    let sampleStart, sampleEnd, loopEnd;
+    let sampleRow_black, sampleRow_color;
     
-    var blackEdgeViolation = false;
+    let blackEdgeViolation = false;
     
-    var topEdgeCount = 0;
-    var bottomEdgeCount = 0;
+    let topEdgeCount = 0;
+    let bottomEdgeCount = 0;
       
     try {
       for (const sample of samples.res_top){
@@ -350,11 +350,11 @@ class EdgeDetect{
   }
 
   edgePostprocess(edges){
-    var edgesTop = [];
-    var edgesBottom = [];
-    var alignMargin = this.conf.canvas.height * this.settings.active.arDetect.allowedMisaligned;
+    let edgesTop = [];
+    let edgesBottom = [];
+    let alignMargin = this.conf.canvas.height * this.settings.active.arDetect.allowedMisaligned;
     
-    var missingEdge = edges.edgeCandidatesTopCount == 0 || edges.edgeCandidatesBottomCount == 0;
+    let missingEdge = edges.edgeCandidatesTopCount == 0 || edges.edgeCandidatesBottomCount == 0;
     
     // pretvorimo objekt v tabelo
     // convert objects to array
@@ -363,8 +363,8 @@ class EdgeDetect{
     delete(edges.edgeCandidatesBottom.count);
 
     if( edges.edgeCandidatesTopCount > 0){
-      for(var e in edges.edgeCandidatesTop){
-        var edge = edges.edgeCandidatesTop[e];
+      for(let e in edges.edgeCandidatesTop){
+        let edge = edges.edgeCandidatesTop[e];
         edgesTop.push({
           distance: edge.offset,
           absolute: edge.offset,
@@ -374,8 +374,8 @@ class EdgeDetect{
     }
     
     if( edges.edgeCandidatesBottomCount > 0){
-      for(var e in edges.edgeCandidatesBottom){
-        var edge = edges.edgeCandidatesBottom[e];
+      for(let e in edges.edgeCandidatesBottom){
+        let edge = edges.edgeCandidatesBottom[e];
         edgesBottom.push({
           distance: this.conf.canvas.height - edge.offset,
           absolute: edge.offset,
@@ -403,7 +403,7 @@ class EdgeDetect{
       if( edgesTop[0].distance >= edgesBottom[0].distance - alignMargin &&
           edgesTop[0].distance <= edgesBottom[0].distance + alignMargin ){
         
-        var blackbarWidth = edgesTop[0].distance > edgesBottom[0].distance ? 
+        let blackbarWidth = edgesTop[0].distance > edgesBottom[0].distance ? 
                             edgesTop[0].distance : edgesBottom[0].distance;
         
         if (edgesTop[0].count + edgesBottom[0].count > this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold
@@ -430,14 +430,14 @@ class EdgeDetect{
         // manj vzorcev kot navaden rob.
         
         if (edgesTop[0].length > 1){
-          var lowMargin = edgesBottom[0].distance - alignMargin;
-          var highMargin = edgesBottom[0].distance + alignMargin;
+          let lowMargin = edgesBottom[0].distance - alignMargin;
+          let highMargin = edgesBottom[0].distance + alignMargin;
           
-          for (var i = 1; i < edgesTop.length; i++){
+          for (let i = 1; i < edgesTop.length; i++){
             if(edgesTop[i].distance >= lowMargin && edgesTop[i].distance <= highMargin){
               // dobili smo dejanski rob. vrnimo ga
               // we found the actual edge. let's return that.
-              var blackbarWidth = edgesTop[i].distance > edgesBottom[0].distance ? 
+              let blackbarWidth = edgesTop[i].distance > edgesBottom[0].distance ? 
                                   edgesTop[i].distance : edgesBottom[0].distance;
 
               if (edgesTop[i].count + edgesBottom[0].count > this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold
@@ -461,14 +461,14 @@ class EdgeDetect{
           edgesBottom[0].count    < this.conf.sampleCols.length * this.settings.active.arDetect.edgeDetection.logoThreshold){
         
         if(edgesBottom[0].length > 1){
-          var lowMargin = edgesTop[0].distance - alignMargin;
-          var highMargin = edgesTop[0].distance + alignMargin;
+          let lowMargin = edgesTop[0].distance - alignMargin;
+          let highMargin = edgesTop[0].distance + alignMargin;
           
-          for(var i = 1; i < edgesBottom.length; i++){
+          for(let i = 1; i < edgesBottom.length; i++){
             if (edgesBottom[i].distance >= lowMargin && edgesTop[i].distance <= highMargin) {
               // dobili smo dejanski rob. vrnimo ga
               // we found the actual edge. let's return that.
-              var blackbarWidth = edgesBottom[i].distance > edgesTop[0].distance ? 
+              let blackbarWidth = edgesBottom[i].distance > edgesTop[0].distance ? 
                                   edgesBottom[i].distance : edgesTop[0].distance;
               
               if (edgesTop[0].count + edgesBottom[i].count > this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold
@@ -497,7 +497,7 @@ class EdgeDetect{
       const edgeDetectionThreshold = this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold;
       
       if (edges.edgeCandidatesTopCount == 0 && edges.edgeCandidatesBottomCount != 0){
-        for(var edge of edgesBottom){
+        for(let edge of edgesBottom){
           if(edge.count >= edgeDetectionThreshold)
             return {
               status: EdgeStatus.AR_KNOWN, 
@@ -511,7 +511,7 @@ class EdgeDetect{
         }
       }
       if (edges.edgeCandidatesTopCount != 0 && edges.edgeCandidatesBottomCount == 0){
-        for(var edge of edgesTop){
+        for(let edge of edgesTop){
           if(edge.count >= edgeDetectionThreshold)
             return {
               status: EdgeStatus.AR_KNOWN,
@@ -538,22 +538,22 @@ class EdgeDetect{
     // roughly centered, we return true. Otherwise we return false.
     // we also return true if we detect too much black
   
-    var blackbarThreshold, upper, lower;
+    let blackbarThreshold, upper, lower;
     blackbarThreshold = this.conf.blackLevel + this.settings.active.arDetect.blackbar.threshold;
   
   
-    var middleRowStart = (this.conf.canvas.height >> 1) * this.conf.canvas.width;
-    var middleRowEnd = middleRowStart + this.conf.canvas.width - 1;
+    let middleRowStart = (this.conf.canvas.height >> 1) * this.conf.canvas.width;
+    let middleRowEnd = middleRowStart + this.conf.canvas.width - 1;
   
-    var rowStart = middleRowStart << 2;
-    var midpoint = (middleRowStart + (this.conf.canvas.width >> 1)) << 2
-    var rowEnd = middleRowEnd << 2;
+    let rowStart = middleRowStart << 2;
+    let midpoint = (middleRowStart + (this.conf.canvas.width >> 1)) << 2
+    let rowEnd = middleRowEnd << 2;
   
-    var edge_left = -1, edge_right = -1;
+    let edge_left = -1, edge_right = -1;
   
     // preverimo na levi strani
     // let's check for edge on the left side
-    for(var i = rowStart; i < midpoint; i+=4){
+    for(let i = rowStart; i < midpoint; i+=4){
       if(image[i] > blackbarThreshold || image[i+1] > blackbarThreshold || image[i+2] > blackbarThreshold){
         edge_left = (i - rowStart) >> 2;
         break;
@@ -562,7 +562,7 @@ class EdgeDetect{
   
     // preverimo na desni strani
     // check on the right
-    for(var i = rowEnd; i > midpoint; i-= 4){
+    for(let i = rowEnd; i > midpoint; i-= 4){
       if(image[i] > blackbarThreshold || image[i+1] > blackbarThreshold || image[i+2] > blackbarThreshold){
         edge_right =  this.conf.canvas.width - ((i - rowStart) >> 2);
         break;
@@ -581,9 +581,9 @@ class EdgeDetect{
       return false;
     }
   
-    var edgeError = this.settings.active.arDetect.pillarTest.allowMisaligned;
-    var error_low = 1 - edgeError;
-    var error_hi = 1 + edgeError;
+    let edgeError = this.settings.active.arDetect.pillarTest.allowMisaligned;
+    let error_low = 1 - edgeError;
+    let error_hi = 1 + edgeError;
   
     // če sta 'edge_left' in 'edge_right' podobna/v mejah merske napake, potem vrnemo true — lahko da smo našli logo na sredini zaslona
     // if 'edge_left' and 'edge_right' are similar enough to each other, we return true. If we found a logo in a black frame, we could
@@ -869,7 +869,7 @@ class EdgeDetect{
     if (reverseSearchDirection) {
       if (this.settings.active.arDetect.blackbar.antiGradientMode === AntiGradientMode.Disabled) {
         // todo: remove gradient detection code from this branch
-        for(var i = bottom - this.conf.canvasImageDataRowLength; i >= top; i-= this.conf.canvasImageDataRowLength){
+        for(let i = bottom - this.conf.canvasImageDataRowLength; i >= top; i-= this.conf.canvasImageDataRowLength){
           for(let c = 0; c < colsIn.length; c++){
             if (colsIn[c].blackFound && colsIn[c].imageFound) {
               // če smo našli obe točki, potem ne pregledujemo več.
@@ -923,7 +923,7 @@ class EdgeDetect{
         }
       } else {
         // anti-gradient detection
-        for(var i = bottom - this.conf.canvasImageDataRowLength; i >= top; i-= this.conf.canvasImageDataRowLength){
+        for(let i = bottom - this.conf.canvasImageDataRowLength; i >= top; i-= this.conf.canvasImageDataRowLength){
           for(let c = 0; c < colsIn.length; c++){
             if (colsIn[c].blackFound && colsIn[c].imageFound) {
               // če smo našli obe točki, potem ne pregledujemo več.
@@ -1111,17 +1111,17 @@ class EdgeDetect{
   }
 
   // _columnTest_dbgc(image, top, bottom, colsIn, colsOut, reverseSearchDirection){
-  //   var tmpI;
+  //   let tmpI;
   //   if(reverseSearchDirection){
-  //     for(var i = bottom - this.conf.canvasImageDataRowLength; i >= top; i-= this.conf.canvasImageDataRowLength){
-  //       for(var col of colsIn){
+  //     for(let i = bottom - this.conf.canvasImageDataRowLength; i >= top; i-= this.conf.canvasImageDataRowLength){
+  //       for(let col of colsIn){
   //         tmpI = i + (col << 2);
           
   //         if( image[tmpI]     > this.blackbarThreshold || 
   //             image[tmpI + 1] > this.blackbarThreshold ||
   //             image[tmpI + 2] > this.blackbarThreshold ){
             
-  //           var bottom = (i / this.conf.canvasImageDataRowLength) + 1;
+  //           let bottom = (i / this.conf.canvasImageDataRowLength) + 1;
   //           colsOut.push({
   //             col: col,
   //             bottom: bottom
@@ -1137,8 +1137,8 @@ class EdgeDetect{
   //         break;
   //     }
   //   } else {
-  //     for(var i = top; i < bottom; i+= this.conf.canvasImageDataRowLength){
-  //       for(var col of colsIn){
+  //     for(let i = top; i < bottom; i+= this.conf.canvasImageDataRowLength){
+  //       for(let col of colsIn){
   //         tmpI = i + (col << 2);
           
   //         if( image[tmpI]     > this.blackbarThreshold || 
@@ -1168,7 +1168,7 @@ class EdgeDetect{
   // }
 
   _blackbarTest(image, start, end){
-    for(var i = start; i < end; i += 4){
+    for(let i = start; i < end; i += 4){
       if( image[i  ] > this.blackbarThreshold ||
           image[i+1] > this.blackbarThreshold ||
           image[i+2] > this.blackbarThreshold ){
@@ -1179,7 +1179,7 @@ class EdgeDetect{
   }
 
   // _blackbarTest_dbg(image, start, end){
-  //   for(var i = start; i < end; i += 4){
+  //   for(let i = start; i < end; i += 4){
   //     if( image[i  ] > this.blackbarThreshold ||
   //         image[i+1] > this.blackbarThreshold ||
   //         image[i+2] > this.blackbarThreshold ){
@@ -1214,9 +1214,9 @@ class EdgeDetect{
   }
 
   // _imageTest_dbg(image, start, end, sampleOffset, edgeCandidates){
-  //   var detections = 0;
+  //   let detections = 0;
 
-  //   for(var i = start; i < end; i += 4){
+  //   for(let i = start; i < end; i += 4){
   //     if( image[i  ] > this.blackbarThreshold ||
   //       image[i+1] > this.blackbarThreshold ||
   //       image[i+2] > this.blackbarThreshold ){

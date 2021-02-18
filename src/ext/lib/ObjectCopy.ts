@@ -4,7 +4,7 @@ class ObjectCopy {
   static addNew(current, newValues){
     
     // clone target
-    var out = JSON.parse(JSON.stringify(newValues));
+    let out = JSON.parse(JSON.stringify(newValues));
 
     if(! current) {
       if(Debug.debug) {
@@ -14,7 +14,7 @@ class ObjectCopy {
       return out;
     }
 
-    for(var k in out) {
+    for(let k in out) {
       // if current key exist, replace it with existing value. Take no action otherwise.
       if(current[k]) {
 
@@ -37,7 +37,7 @@ class ObjectCopy {
 
     // add the values that would otherwise be deleted back to our object. (We need that so user-defined
     // sites don't get forgotten)
-    for(var k in current) {
+    for(let k in current) {
       if (! out[k]) {
         out[k] = current[k];
       }
@@ -47,7 +47,7 @@ class ObjectCopy {
   }
 
   static overwrite(current, newValues){
-    for(var k in newValues) {
+    for(let k in newValues) {
       // if current key exist, replace it with existing value. Take no action otherwise.
       if (current[k] !== undefined) {
         // Types and constructors of objects must match. If they don't, we always use the new value.

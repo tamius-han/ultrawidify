@@ -24,7 +24,7 @@ class CssHandler {
         }
       }
   
-      for (var i in styleArray) {
+      for (let i in styleArray) {
         styleArray[i] = styleArray[i].trim();   
         // some sites do 'top: 50%; left: 50%; transform: <transform>' to center videos. 
         // we dont wanna, because we already center videos on our own
@@ -45,7 +45,7 @@ class CssHandler {
   static buildStyleString(styleArray) {
     let styleString = '';
 
-    for(var i in styleArray) {
+    for(let i in styleArray) {
       if(styleArray[i]) {
         styleString += styleArray[i] + "; ";
       }

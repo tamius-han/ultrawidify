@@ -161,16 +161,16 @@ class ArDetector {
     // [2] determine places we'll use to sample our main frame
     //
 
-    var ncol = this.settings.active.arDetect.sampling.staticCols;
-    var nrow = this.settings.active.arDetect.sampling.staticRows;
+    let ncol = this.settings.active.arDetect.sampling.staticCols;
+    let nrow = this.settings.active.arDetect.sampling.staticRows;
     
-    var colSpacing = this.canvas.width / ncol;
-    var rowSpacing = (this.canvas.height << 2) / nrow;
+    let colSpacing = this.canvas.width / ncol;
+    let rowSpacing = (this.canvas.height << 2) / nrow;
     
     this.sampleLines = [];
     this.sampleCols = [];
 
-    for(var i = 0; i < ncol; i++){
+    for(let i = 0; i < ncol; i++){
       if(i < ncol - 1)
         this.sampleCols.push(Math.round(colSpacing * i));
       else{
@@ -178,7 +178,7 @@ class ArDetector {
       }
     }
 
-    for(var i = 0; i < nrow; i++){
+    for(let i = 0; i < nrow; i++){
       if(i < ncol - 5)
         this.sampleLines.push(Math.round(rowSpacing * i));
       else{
@@ -381,7 +381,7 @@ class ArDetector {
       clearTimeout(this.setupTimer);
     }
     
-    var ths = this;
+    let ths = this;
     this.setupTimer = setTimeout(function(){
         ths.setupTimer = null;
         try{
@@ -419,7 +419,7 @@ class ArDetector {
   }
 
   getTimeout(baseTimeout, startTime){
-    var execTime = (performance.now() - startTime);
+    let execTime = (performance.now() - startTime);
     
     return baseTimeout;
   }
@@ -475,12 +475,12 @@ class ArDetector {
       // letterbox also needs to be corrected:
       //   letterbox += [video.zoomedHeight] - [video.unzoomedHeight]
 
-      var vbr = this.video.getBoundingClientRect();
+      let vbr = this.video.getBoundingClientRect();
       
       zoomFactor = vbr.height / this.video.clientHeight;
       letterbox += vbr.height - this.video.clientHeight;
 
-      var trueHeight = this.canvas.height * zoomFactor - letterbox;
+      let trueHeight = this.canvas.height * zoomFactor - letterbox;
 
       if(edges.top > 1 && edges.top <= this.settings.active.arDetect.fallbackMode.noTriggerZonePx ){
         this.logger.log('info', 'arDetect', `%c[ArDetect::calculateArFromEdges] <@${this.arid}>  Edge is in the no-trigger zone. Aspect ratio change is not triggered.`)
@@ -549,7 +549,7 @@ class ArDetector {
       this.init();
     }
     
-    var startTime = performance.now();
+    let startTime = performance.now();
     let sampleCols = this.sampleCols.slice(0);
 
     //
@@ -724,7 +724,7 @@ class ArDetector {
     
     // blackSamples -> {res_top, res_bottom}
    
-    var edgePost = this.edgeDetector.findBars(imageData, sampleCols, EdgeDetectPrimaryDirection.VERTICAL, EdgeDetectQuality.IMPROVED, guardLineOut, bfanalysis);
+    let edgePost = this.edgeDetector.findBars(imageData, sampleCols, EdgeDetectPrimaryDirection.VERTICAL, EdgeDetectQuality.IMPROVED, guardLineOut, bfanalysis);
     
     this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] edgeDetector returned this\n`,  "color: #aaf", edgePost);
     
@@ -737,7 +737,7 @@ class ArDetector {
       return;
     }
 
-    var newAr = this.calculateArFromEdges(edgePost);
+    let newAr = this.calculateArFromEdges(edgePost);
       
     this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Triggering aspect ration change! new ar: ${newAr}`, "color: #aaf");
 
@@ -930,7 +930,7 @@ class ArDetector {
   
     // detect black level. if currentMax comes above blackbar + blackbar threshold, we know we aren't letterboxed
 
-    for (var i = 0; i < sampleCols.length; ++i){
+    for (let i = 0; i < sampleCols.length; ++i){
       colOffset_r = sampleCols[i] << 2;
       colOffset_g = colOffset_r + 1;
       colOffset_b = colOffset_r + 2;
@@ -966,8 +966,8 @@ class ArDetector {
 
 }
 
-var _ard_console_stop = "background: #000; color: #f41";
-var _ard_console_start = "background: #000; color: #00c399";
-var _ard_console_change = "background: #000; color: #ff8";
+let _ard_console_stop = "background: #000; color: #f41";
+let _ard_console_start = "background: #000; color: #00c399";
+let _ard_console_change = "background: #000; color: #ff8";
 
 export default ArDetector;

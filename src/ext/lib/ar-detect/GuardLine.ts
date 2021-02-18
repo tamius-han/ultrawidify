@@ -48,8 +48,8 @@ class GuardLine {
   }
 
   setBlackbar(bbconf){
-    var bbTop = bbconf.top - this.settings.active.arDetect.guardLine.edgeTolerancePx;
-    var bbBottom = bbconf.bottom + this.settings.active.arDetect.guardLine.edgeTolerancePx;
+    let bbTop = bbconf.top - this.settings.active.arDetect.guardLine.edgeTolerancePx;
+    let bbBottom = bbconf.bottom + this.settings.active.arDetect.guardLine.edgeTolerancePx;
 
     // to odstrani vse neveljavne nastavitve in vse možnosti, ki niso smiselne
     // this removes any configs with invalid values or values that dont make sense
@@ -76,7 +76,7 @@ class GuardLine {
 
     // dejansko testiranje
     // actual checks
-    var guardLineResult = this.guardLineCheck(image, fallbackMode);
+    let guardLineResult = this.guardLineCheck(image, fallbackMode);
 
     // Zaznali smo kršitev črnega dela, zato nam ni treba preveriti, ali je slika
     // prisotna. Vemo namreč, da se je razmerje stranic zmanjšalo.
@@ -91,7 +91,7 @@ class GuardLine {
       }
     }
 
-    var imageCheckResult = this.imageCheck(image, fallbackMode);
+    let imageCheckResult = this.imageCheck(image, fallbackMode);
 
     return {
       blackbarFail: false,
@@ -115,27 +115,28 @@ class GuardLine {
       return { success: true };
     }
 
-    var offset = (this.aard.canvas.width * this.settings.active.arDetect.guardLine.ignoreEdgeMargin) << 2;
+    let offset = (this.aard.canvas.width * this.settings.active.arDetect.guardLine.ignoreEdgeMargin) << 2;
     
-    var offenders = [];
-    var offenderCount = -1; // doing it this way means first offender has offenderCount==0. Ez index.
+    let offenders = [];
+    let offenderCount = -1; // doing it this way means first offender has offenderCount==0. Ez index.
     
     // TODO: implement logo check.
     
     // preglejmo obe vrstici
     // check both rows
-    
+    let edge_lower, edge_upper;
+
     if(! fallbackMode){
-      var edge_upper = this.blackbar.top;
-      var edge_lower = this.blackbar.bottom;
+      edge_upper = this.blackbar.top;
+      edge_lower = this.blackbar.bottom;
     }
-    else{
+    else {
       // fallback mode is a bit different
       edge_upper = 0;
       edge_lower = this.aard.canvas.height - 1;
     }
     
-    var rowStart, rowEnd;
+    let rowStart, rowEnd;
     
     // <<<=======| checking upper row |========>>>
     
@@ -168,8 +169,8 @@ class GuardLine {
       return {success: true};
     }
     
-    var ret = new Array(offenders.length);
-    for(var o in offenders){
+    let ret = new Array(offenders.length);
+    for(let o in offenders){
       ret[o] = offenders[o].x + (offenders[o].width * 0.25);
     }
     
@@ -180,7 +181,7 @@ class GuardLine {
     if(!this.imageBar.top || !this.imageBar.bottom)
       return { success: false };
         
-    var offset = (this.aard.canvas.width * this.settings.active.arDetect.guardLine.ignoreEdgeMargin) << 2;
+    let offset = (this.aard.canvas.width * this.settings.active.arDetect.guardLine.ignoreEdgeMargin) << 2;
       
     // TODO: implement logo check.
     
@@ -189,20 +190,20 @@ class GuardLine {
     // check both rows - by the rules and definitions, we shouldn't go out of bounds here. no need to check, then
     
     //   if(fallbackMode){
-    //     var edge_upper = this.settings.active.arDetect.fallbackMode.noTriggerZonePx;
-    //     var edge_lower = this.conf.canvas.height - this.settings.active.arDetect.fallbackMode.noTriggerZonePx - 1;
+    //     let edge_upper = this.settings.active.arDetect.fallbackMode.noTriggerZonePx;
+    //     let edge_lower = this.conf.canvas.height - this.settings.active.arDetect.fallbackMode.noTriggerZonePx - 1;
     //   }
     //   else{
-        var edge_upper = this.imageBar.top;
-        var edge_lower = this.imageBar.bottom;
+        let edge_upper = this.imageBar.top;
+        let edge_lower = this.imageBar.bottom;
     //   }
     
     // koliko pikslov rabimo zaznati, da je ta funkcija uspe. Tu dovoljujemo tudi, da so vsi piksli na enem
     // robu (eden izmed robov je lahko v celoti črn)
     // how many non-black pixels we need to consider this check a success. We only need to detect enough pixels
     // on one edge (one of the edges can be black as long as both aren't)
-    var successThreshold = (this.aard.canvas.width * this.settings.active.arDetect.guardLine.imageTestThreshold);
-    var rowStart, rowEnd;
+    let successThreshold = (this.aard.canvas.width * this.settings.active.arDetect.guardLine.imageTestThreshold);
+    let rowStart, rowEnd;
     
     
     // <<<=======| checking upper row |========>>>
@@ -210,7 +211,7 @@ class GuardLine {
     rowStart = ((edge_upper * this.aard.canvas.width) << 2) + offset;
     rowEnd = rowStart + ( this.aard.canvas.width << 2 ) - (offset * 2);
     
-    var res = false;
+    let res = false;
     
     if(Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine){
       // res = this._ti_debugCheckRow(image, rowStart, rowEnd, successThreshold);
@@ -242,8 +243,8 @@ class GuardLine {
 
 
   _gl_rowCheck(image, rowStart, rowEnd, offenders, offenderCount){
-    var firstOffender = -1;
-    for(var i = rowStart; i < rowEnd; i+=4){
+    let firstOffender = -1;
+    for(let i = rowStart; i < rowEnd; i+=4){
       
       // we track sections that go over what's supposed to be a black line, so we can suggest more 
       // columns to sample
@@ -267,8 +268,8 @@ class GuardLine {
   }
 
   // _gl_debugRowCheck(image, rowStart, rowEnd, offenders, offenderCount){
-  //   var firstOffender = -1;
-  //   for(var i = rowStart; i < rowEnd; i+=4){
+  //   let firstOffender = -1;
+  //   for(let i = rowStart; i < rowEnd; i+=4){
       
   //     // we track sections that go over what's supposed to be a black line, so we can suggest more 
   //     // columns to sample
@@ -295,7 +296,7 @@ class GuardLine {
   // }
 
   _ti_checkRow(image, rowStart, rowEnd, successThreshold): boolean {
-    for(var i = rowStart; i < rowEnd; i+=4){
+    for(let i = rowStart; i < rowEnd; i+=4){
       if(image[i] > this.imageThreshold || image[i+1] > this.imageThreshold || image[i+2] > this.imageThreshold){
         if(successThreshold --<= 0){
           return true;
@@ -307,7 +308,7 @@ class GuardLine {
   }
 
   // _ti_debugCheckRow(image, rowStart, rowEnd, successThreshold) {
-  //   for(var i = rowStart; i < rowEnd; i+=4){
+  //   for(let i = rowStart; i < rowEnd; i+=4){
   //     if(image[i] > this.imageThreshold || image[i+1] > this.imageThreshold || image[i+2] > this.imageThreshold){
   //       this.aard.debugCanvas.trace(i, DebugCanvasClasses.GUARDLINE_IMAGE);
   //       if(successThreshold --<= 0){
