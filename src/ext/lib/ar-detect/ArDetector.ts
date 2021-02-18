@@ -672,7 +672,9 @@ class ArDetector {
     // otherwise we continue. We add blackbar violations to the list of the cols
     // we'll sample and sort them
     if (guardLineOut.blackbarFail) {
-      sampleCols.concat(guardLineOut.offenders).sort((a, b) => a > b);
+      sampleCols.concat(guardLineOut.offenders).sort(
+        (a: number, b: number) => a - b
+      );
     }
   
     // if we're in fallback mode and blackbar test failed, we restore CSS and quit

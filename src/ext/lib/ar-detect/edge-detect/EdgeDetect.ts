@@ -43,7 +43,7 @@ class EdgeDetect{
     
   }
 
-  findBars(image, sampleCols, direction = EdgeDetectPrimaryDirection.VERTICAL, quality = EdgeDetectQuality.IMPROVED, guardLineOut, blackFrameAnalysis){
+  findBars(image, sampleCols, direction = EdgeDetectPrimaryDirection.VERTICAL, quality = EdgeDetectQuality.IMPROVED, guardLineOut?, blackFrameAnalysis?){
     let fastCandidates, edgeCandidates, bars;
     if (direction == EdgeDetectPrimaryDirection.VERTICAL) {
       try {
@@ -863,7 +863,7 @@ class EdgeDetect{
     let tmpI;
     let lastTmpI = 0;
     let edgeDetectCount = 0;
-    for(const c in colsOut) {
+    for(const c of colsOut) {
       c.diffs = [];
     }
     if (reverseSearchDirection) {
@@ -1010,7 +1010,7 @@ class EdgeDetect{
         }
       }
     } else {
-      for(var i = top; i < bottom; i+= this.conf.canvasImageDataRowLength){
+      for(let i = top; i < bottom; i+= this.conf.canvasImageDataRowLength){
         for(let c = 0; c < colsIn.length; c++){
           if (colsIn[c].blackFound && colsIn[c].imageFound) {
             // če smo našli obe točki, potem ne pregledujemo več.
@@ -1066,18 +1066,18 @@ class EdgeDetect{
 
   }
 
-  _columnTest(image, top, bottom, colsIn, colsOut, reverseSearchDirection){
-    var tmpI;
+  _columnTest(image, top: number, bottom: number, colsIn, colsOut, reverseSearchDirection){
+    let tmpI;
     if(reverseSearchDirection){
-      for(var i = bottom - this.conf.canvasImageDataRowLength; i >= top; i-= this.conf.canvasImageDataRowLength){
-        for(var col of colsIn){
+      for(let i = bottom - this.conf.canvasImageDataRowLength; i >= top; i-= this.conf.canvasImageDataRowLength){
+        for(const col of colsIn){
           tmpI = i + (col << 2);
           
           if( image[tmpI]     > this.blackbarThreshold || 
               image[tmpI + 1] > this.blackbarThreshold ||
               image[tmpI + 2] > this.blackbarThreshold ){
             
-            var bottom = (i / this.conf.canvasImageDataRowLength) + 1;
+            const bottom = (i / this.conf.canvasImageDataRowLength) + 1;
             colsOut.push({
               col: col,
               bottom: bottom
@@ -1089,8 +1089,8 @@ class EdgeDetect{
           break;
       }
     } else {
-      for(var i = top; i < bottom; i+= this.conf.canvasImageDataRowLength){
-        for(var col of colsIn){
+      for(let i = top; i < bottom; i+= this.conf.canvasImageDataRowLength){
+        for(const col of colsIn){
           tmpI = i + (col << 2);
           
           if( image[tmpI]     > this.blackbarThreshold || 
@@ -1194,9 +1194,9 @@ class EdgeDetect{
   // }
 
   _imageTest(image, start, end, sampleOffset, edgeCandidates){
-    var detections = 0;
+    let detections = 0;
 
-    for (var i = start; i < end; i += 4){
+    for (let i = start; i < end; i += 4){
       if (image[i  ] > this.blackbarThreshold ||
           image[i+1] > this.blackbarThreshold ||
           image[i+2] > this.blackbarThreshold ){
