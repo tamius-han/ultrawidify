@@ -9,6 +9,7 @@ import Logger from '../Logger';
 import Settings from '../Settings';
 import PageInfo from './PageInfo';
 import { sleep } from '../../../common/js/utils';
+import { hasDrm } from '../ar-detect/DrmDetecor';
 
 class VideoData {
   //#region flags
@@ -69,7 +70,16 @@ class VideoData {
 
   async onVideoLoaded() {
     if (!this.videoLoaded) {
-      if (!this.video.videoWidth || !this.video.videoHeight) {
+      
+      /**
+       * video.readyState 101:
+       * 0 — no info. Can't play. 
+       * 1 — we have metadata but nothing else
+       * 2 — we have data for current playback position, but not future      <--- meaning current frame, meaning Aard can work here or higher
+       * 3 — we have a lil bit for the future
+       * 4 — we'll survive to the end
+       */ 
+      if (!this.video?.videoWidth || !this.video?.videoHeight || this.video.readyState < 2) {
         return; // onVideoLoaded is a lie in this case
       }
       this.logger.log('info', 'init', '%c[VideoData::onVideoLoaded] ——————————— Initiating phase two of videoData setup ———————————', 'color: #0f9');
@@ -493,6 +503,11 @@ class VideoData {
       // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
       return;
     }
+
+    if (hasDrm(this.video)) {
+      this.player.showNotification('AARD_DRM');
+    }
+
     if (!this.arDetector) {
       this.initArDetection();
     }
