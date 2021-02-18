@@ -20,7 +20,7 @@
 
 * Provides workaround for the fullscreen stretching bug Chrome 88 (or a recent Windows 10 update) introduced for nVidia users using hardware acceleration on Windows 10. In order to mitigate this bug, Ultrawidify needs to keep a 5-10 px wide black border while watching videos in full screen. This bug is also present in Edge.
 * **[4.5.3.1]** Fixed letterbox misalignment binding in settings (#134)
-* **[4.5.3.1]** Fixed false 'autodetection not supported' notifications.
+* **[4.5.3.2]** Fixed false 'autodetection not supported' notifications.
 
 ### v4.5.2
 
