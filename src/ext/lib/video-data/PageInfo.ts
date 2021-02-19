@@ -439,7 +439,7 @@ class PageInfo {
     }
   }
 
-  setAr(ar, playingOnly){
+  setAr(ar, playingOnly?: boolean){
     this.logger.log('info', 'debug', '[PageInfo::setAr] aspect ratio:', ar, "playing only?", playingOnly)
 
     if (ar.type !== AspectRatioType.Automatic) {
@@ -491,7 +491,7 @@ class PageInfo {
     }
   }
 
-  setPanMode(mode, playingOnly) {
+  setPanMode(mode, playingOnly?: boolean) {
     if (playingOnly) {
       for(let vd of this.videos) {
         if (vd.isPlaying()) {
@@ -519,7 +519,7 @@ class PageInfo {
     }
   }
 
-  setStretchMode(stretchMode, playingOnly, fixedStretchRatio){
+  setStretchMode(stretchMode, playingOnly?: boolean, fixedStretchRatio?: boolean){
     // TODO: find a way to only change aspect ratio for one video
 
     if (playingOnly) {
@@ -535,7 +535,7 @@ class PageInfo {
     }
   }
 
-  setZoom(zoomLevel, no_announce, playingOnly) {
+  setZoom(zoomLevel, no_announce?: boolean, playingOnly?: boolean) {
     if (playingOnly) {
       for(let vd of this.videos) {
         if (vd.isPlaying()) {
@@ -549,7 +549,7 @@ class PageInfo {
     }
   }
 
-  zoomStep(step, playingOnly) {
+  zoomStep(step, playingOnly?: boolean) {
     for(let vd of this.videos){
       if (!playingOnly || vd.isPlaying()) {
         vd.zoomStep(step);
