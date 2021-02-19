@@ -1,20 +1,37 @@
 import Debug from '../conf/Debug';
 import PlayerData from './video-data/PlayerData';
 import ExtensionMode from '../../common/enums/ExtensionMode.enum';
+import Logger from './Logger';
+import PageInfo from './video-data/PageInfo';
+import Settings from './Settings';
+import VideoData from './video-data/VideoData';
 
 if(process.env.CHANNEL !== 'stable'){
   console.info("Loading ActionHandler");
 }
 
 class ActionHandler {
+  logger: Logger;
+  pageInfo: PageInfo;
+  settings: Settings;
+
+
+  inputs: string[] = ['input', 'select', 'button', 'textarea'];
+  keyboardLocalDisabled: boolean = true;
+
+  keyUpActions: any[] = [];
+  keyDownActions: any[] = [];
+  mouseMoveActions: any[] = [];
+  mouseScrollUpActions: any[] = [];
+  mouseScrollDownActions: any[] = [];
+  mouseEnterActions: any[] = [];
+  mouseLeaveActions: any[] = [];
+
 
   constructor(pageInfo) {
     this.logger = pageInfo.logger;
     this.pageInfo = pageInfo;
     this.settings = pageInfo.settings;
-    
-    this.inputs = ['input', 'select', 'button', 'textarea'];
-    this.keyboardLocalDisabled = false;
   }
 
   init() {
@@ -240,7 +257,7 @@ class ActionHandler {
       this.isActionMatchStandard(shortcut, event) || this.isActionMatchKeyCode(shortcut, event);
   }
 
-  execAction(actions, event, videoData) {
+  execAction(actions, event, videoData?: VideoData) {
     this.logger.log('info', 'keyboard', "%c[ActionHandler::execAction] Trying to find and execute action for event. Actions/event: ", "color: #ff0", actions, event);
 
     const isLatin = event.key ? this.isLatin(event.key) : true;
@@ -275,10 +292,10 @@ class ActionHandler {
               this.settings.active.sites[site].stretch = cmd.arg;
             } else if (cmd.action === "set-alignment") {
               this.settings.active.sites[site].videoAlignment = cmd.arg;
-            } else if (cmd.action === "set-ExtensionMode") {
-              this.settings.active.sites[site].status = cmd.arg;
+            } else if (cmd.action === "set-extension-mode") {
+              this.settings.active.sites[site].mode = cmd.arg;
             } else if (cmd.action === "set-autoar-mode") {
-              this.settings.active.sites[site].arStatus = cmd.arg;
+              this.settings.active.sites[site].autoar = cmd.arg;
             } else if (cmd.action === 'set-keyboard') {
               this.settings.active.sites[site].keyboardShortcutsEnabled = cmd.arg;
             } else if (cmd.action === 'set-ar-persistence') {
@@ -323,9 +340,9 @@ class ActionHandler {
     this.execAction(this.keyDownActions, event);
   }
 
-  handleMouseMove(event, videoData) {
+  handleMouseMove(event, videoData?: VideoData) {
     this.logger.log('info', 'keyboard', "[ActionHandler::handleMouseMove] mouse move is being handled.\nevent:", event, "\nvideo data:", videoData);
-    videoData.panHandler(event);
+    videoData?.panHandler(event);
     this.execAction(this.mouseMoveActions, event, videoData)
   }
 

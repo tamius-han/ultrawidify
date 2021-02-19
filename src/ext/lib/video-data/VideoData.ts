@@ -606,7 +606,7 @@ class VideoData {
     this.resizer.setLastAr('original');
   }
 
-  panHandler(event, forcePan) {
+  panHandler(event, forcePan?: boolean) {
     if (this.invalid) {
       return;
     }
