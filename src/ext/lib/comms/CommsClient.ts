@@ -1,19 +1,33 @@
 import Debug from '../../conf/Debug';
 import BrowserDetect from '../../conf/BrowserDetect';
+import Logger from '../Logger';
+import { browser } from 'webextension-polyfill-ts';
+import Settings from '../Settings';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading CommsClient");
 }
 
 class CommsClient {
+  commsId: string;
+
+  logger: Logger;
+  settings: any;   // sus?
+
+
+  commands: {[x: string]: any[]};
+
+
+
+  _listener: (m: any) => void;
+  port: any;
+
+
   constructor(name, logger, commands) {
+    try {
     this.logger = logger;
 
-    if (BrowserDetect.firefox) {
-      this.port = browser.runtime.connect({name: name});
-    } else if (BrowserDetect.anyChromium) {
-      this.port = chrome.runtime.connect({name: name});
-    }
+    this.port = browser.runtime.connect(null, {name: name});
 
     this.logger.onLogEnd(
       (history) => {
@@ -32,6 +46,9 @@ class CommsClient {
     this.commsId = (Math.random() * 20).toFixed(0);
 
     this.commands = commands;
+    } catch (e) {
+      console.error("CONSTRUCOTR FAILED:", e)
+    }
   }
   
   destroy() {
@@ -60,34 +77,11 @@ class CommsClient {
 
   async sendMessage_nonpersistent(message){
     message = JSON.parse(JSON.stringify(message)); // vue quirk. We should really use vue store instead
-    
-    if(BrowserDetect.firefox){
-      return browser.runtime.sendMessage(message)
-    } else {
-      return new Promise((resolve, reject) => {
-        try{
-          if(BrowserDetect.edge){
-            browser.runtime.sendMessage(message, function(response){
-              var r = response; 
-              resolve(r);
-            });
-          } else {
-            chrome.runtime.sendMessage(message, function(response){
-              // Chrome/js shittiness mitigation — remove this line and an empty array will be returned
-              var r = response; 
-              resolve(r);
-              return true;
-            });
-          }
-        }
-        catch(e){
-          reject(e);
-        }
-        return true;
-      });
-    }
+    return browser.runtime.sendMessage(null, message, null);
   }
 
+
+  // TODO: sus function — does it get any use?
   async requestSettings(){
     this.logger.log('info', 'comms', "%c[CommsClient::requestSettings] sending request for congif!", "background: #11D; color: #aad");
    
@@ -99,12 +93,12 @@ class CommsClient {
       return Promise.resolve(false);
     }
 
-    this.settings.active = JSON.parse(response.extensionConf);
+    this.settings = {active: JSON.parse(response.extensionConf)};
     return Promise.resolve(true);
   }
 
   async sendMessage(message) {
-    await this.sendMessage_nonpersistent(message);
+    return this.sendMessage_nonpersistent(message);
   }
 
   registerVideo(){
