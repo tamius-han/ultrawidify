@@ -7,6 +7,74 @@ if (process.env.CHANNEL !== 'stable'){
   console.info('Loading Logger');
 }
 
+
+export const baseLoggingOptions: LoggerConfig = {
+  isContentScript: true,
+  allowLogging: true,
+  useConfFromStorage: true,
+  fileOptions: {
+    enabled: false
+  },
+  consoleOptions: {
+    "enabled": true,
+    "debug": true,
+    "init": true,
+    "settings": true,
+    "keyboard": true,
+    "mousemove": false,
+    "actionHandler": true,
+    "comms": true,
+    "playerDetect": true,
+    "resizer": true,
+    "scaler": true,
+    "stretcher": true,
+    // "videoRescan": true,
+    // "playerRescan": true,
+    "arDetect": true,
+    "arDetect_verbose": true
+  },
+  allowBlacklistedOrigins: {
+    'periodicPlayerCheck': false,
+    'periodicVideoStyleChangeCheck': false,
+    'handleMouseMove': false
+  }
+};
+
+export interface LoggingOptions {
+  enabled?: boolean;
+  debug?: boolean;
+  init?: boolean;
+  settings?: boolean;
+  keyboard?: boolean;
+  mousemove?: boolean;
+  actionHandler?: boolean;
+  comms?: boolean;
+  playerDetect?: boolean;
+  resizer?: boolean;
+  scaler?: boolean;
+  stretcher?: boolean;
+  videoRescan?: boolean;
+  playerRescan?: boolean;
+  arDetect?: boolean;
+  arDetect_verbose?: boolean;
+}
+
+export interface LoggerBlacklistedOrigins {
+  periodicPlayerCheck?: boolean;
+  periodicVideoStyleChangeCheck?: boolean;
+  handleMouseMove?: boolean;
+}
+
+export interface LoggerConfig {
+  isContentScript?: boolean;
+  isBackgroundScript?: boolean;
+  allowLogging?: boolean;
+  useConfFromStorage?: boolean;
+  fileOptions?: LoggingOptions;
+  consoleOptions?: LoggingOptions;
+  allowBlacklistedOrigins?: LoggerBlacklistedOrigins;
+}
+
 class Logger {
   temp_disable: boolean = false;
   onLogEndCallbacks: any[] = [];
@@ -20,12 +88,12 @@ class Logger {
   startTime: number;
   stopTime: number;
 
-  constructor(options) {
+  constructor(options?: {vuexStore?: any, uwInstance?: any}) {
     this.vuexStore = options?.vuexStore;
     this.uwInstance = options?.uwInstance;
   }
 
-  static saveConfig(conf) {
+  static saveConfig(conf: LoggerConfig) {
     if (process.env.CHANNEL === 'dev') {
       console.info('Saving logger conf:', conf)
     }
@@ -33,7 +101,7 @@ class Logger {
     browser.storage.local.set( {'uwLogger': JSON.stringify(conf)});
   }
 
-  static syncConfig(callback) {
+  static syncConfig(callback: (x) => void) {
     browser.storage.onChanged.addListener( (changes, area) => {
       if (changes.uwLogger) {
         const newLoggerConf = JSON.parse(changes.uwLogger.newValue)
@@ -71,7 +139,7 @@ class Logger {
     }
   }
 
-  async init(conf) {
+  async init(conf: LoggerConfig) {
     // this is the only property that always gets passed via conf
     // and doesn't get ignored even if the rest of the conf gets
     // loaded from browser storage
