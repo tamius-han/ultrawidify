@@ -185,7 +185,6 @@ class ActionHandler {
       this.logger.resume(); // undisable
 
       this.logger.log('info', 'keyboard', "[ActionHandler::preventAction] Testing whether we're in a textbox or something. Detailed rundown of conditions:\n" +
-      "is full screen? (yes->allow):", PlayerData.isFullScreen(),
       "\nis tag one of defined inputs? (yes->prevent):", this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1,
       "\nis role = textbox? (yes -> prevent):", activeElement.getAttribute("role") === "textbox",
       "\nis type === 'text'? (yes -> prevent):", activeElement.getAttribute("type") === "text",
@@ -202,12 +201,6 @@ class ActionHandler {
       "\nevent.target:", event.target
       );
     }
-
-    // lately youtube has allowed you to read and write comments while watching video in
-    // fullscreen mode. We can no longer do this.
-    // if (PlayerData.isFullScreen()) {
-    //   return false;
-    // }
 
     if (this.keyboardLocalDisabled) {
       return true;
