@@ -130,9 +130,9 @@
 import ShortcutButton from '../../common/components/ShortcutButton.vue';
 import QsElement from '../../common/components/QsElement.vue';
 import QuerySelectorSetting from '../../common/components/QuerySelectorSetting.vue';
-import ExtensionMode from '../../common/enums/extension-mode.enum';
-import VideoAlignment from '../../common/enums/video-alignment.enum';
-import Stretch from '../../common/enums/stretch.enum';
+import ExtensionMode from '../../common/enums/ExtensionMode.enum';
+import VideoAlignmentType from '../../common/enums/VideoAlignmentType.enum';
+import StretchType from '../../common/enums/StretchType.enum';
 export default {
   components: {
     QuerySelectorSetting,
@@ -186,8 +186,8 @@ export default {
           mode: ExtensionMode.Default,
           autoar: ExtensionMode.Default,
           type: 'user-added',
-          stretch: Stretch.Default,
-          videoAlignment: VideoAlignment.Default,
+          stretch: StretchType.Default,
+          videoAlignment: VideoAlignmentType.Default,
           keyboardShortcutsEnabled: ExtensionMode.Default,
         }
       }

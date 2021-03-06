@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "outDir": "./ts-out",
+    "allowJs": true,
+    "target": "es2018",
+    "types": [
+      "chrome",
+      "node"
+    ],
+    "typeRoots": [
+      "node_modules/@types",
+      "node_modules/web-ext-types"
+    ],
+  },
+  "include": [ "./src/**/*" ],
+}

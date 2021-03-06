@@ -219,7 +219,7 @@ import Settings from '../ext/lib/Settings';
 import ExecAction from './js/ExecAction.js';
 import DefaultSettingsPanel from './panels/DefaultSettingsPanel';
 import AboutPanel from './panels/AboutPanel';
-import ExtensionMode from '../common/enums/extension-mode.enum';
+import ExtensionMode from '../common/enums/ExtensionMode.enum';
 import Logger from '../ext/lib/Logger';
 import {ChromeShittinessMitigations as CSM} from '../common/js/ChromeShittinessMitigations';
 
