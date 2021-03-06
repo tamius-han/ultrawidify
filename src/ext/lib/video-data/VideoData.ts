@@ -309,7 +309,6 @@ class VideoData {
     if (this.pageInfo.defaultCrop) {
       this.resizer.setAr(this.pageInfo.defaultCrop);
     } else {
-    console.log("RESETTING!")
     this.resizer.reset();
 
       try {

@@ -291,7 +291,6 @@ class UWServer {
       // if video is older than PageInfo's video rescan period (+ 4000ms of grace),
       // we clean it up from videoTabs[tabId].frames array.
       const ageLimit = Date.now() - this.settings.active.pageInfo.timeouts.rescan - 4000;
-      console.log("videoTabs[tabId]:", this.videoTabs[ctab.id])
       try {
         for (const key in this.videoTabs[ctab.id].frames) {
           if (this.videoTabs[ctab.id].frames[key].registerTime < ageLimit) {
