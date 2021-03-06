@@ -1,21 +1,33 @@
 import Debug from '../../conf/Debug';
 import BrowserDetect from '../../conf/BrowserDetect';
+import Logger from '../Logger';
+import Settings from '../Settings';
+import { browser } from 'webextension-polyfill-ts';
+import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
+
 
 class CommsServer {
+  server: any;
+  logger: Logger;
+  settings: Settings;
+
+
+  // we could have a bit more defined type here, but then
+  // typescript be like {[x: string]; any} dOeSnT hAvE sYmBoL.ItErAToR
+  // and I'm too lazy to handle this properly
+  ports: any = [];
+  popupPort: any;
+
+  commands: {[x: string]: ((a: any, b: any) => void | Promise<void>)[]}
+
   constructor(server) {
     this.server = server;
     this.logger = server.logger;
     this.settings = server.settings;
-    this.ports = [];
     this.popupPort = null;
 
-    if (BrowserDetect.firefox) {
-      browser.runtime.onConnect.addListener(p => this.onConnect(p));
-      browser.runtime.onMessage.addListener((m, sender) => this.processReceivedMessage_nonpersistent(m, sender));
-    } else {
-      chrome.runtime.onConnect.addListener(p => this.onConnect(p));
-      chrome.runtime.onMessage.addListener((m, sender, callback) => this.processReceivedMessage_nonpersistent(m, sender, callback));
-    }
+    browser.runtime.onConnect.addListener(p => this.onConnect(p));
+    browser.runtime.onMessage.addListener((m, sender) => this.processReceivedMessage_nonpersistent(m, sender));
 
     // commands — functions that handle incoming messages
     // functions can have the following arguments, which are, 
@@ -51,14 +63,6 @@ class CommsServer {
       'popup-set-selected-tab': [
         (message) => this.server.setSelectedTab(message.selectedMenu, message.selectedSubitem),
       ],
-      'get-config': [
-        (message, port) => {
-          this.logger.log('info', 'comms', "CommsServer: received get-config. Active settings?", this.settings.active, "\n(settings:", this.settings, ")");
-          port.postMessage(
-            {cmd: "set-config", conf: this.settings.active, site: this.server.currentSite}
-          );
-        },
-      ],
       'has-video': [
         (message, port) => this.server.registerVideo(port.sender),
       ],
@@ -74,28 +78,31 @@ class CommsServer {
       'replace-css': [
         (message, sender) => this.server.replaceCss(message.oldCssString, message.newCssString, sender),
       ],
+      // 'get-config': [
+      //   (message, port) => {
+      //     this.logger.log('info', 'comms', "CommsServer: received get-config. Active settings?", this.settings.active, "\n(settings:", this.settings, ")");
+      //     port.postMessage(
+      //       {cmd: "set-config", conf: this.settings.active, site: this.server.currentSite}
+      //     );
+      //   },
+      // ],
       'get-config': [
-        (message, sender, sendResponse) => {
-          if (BrowserDetect.firefox) {
-            var ret = {extensionConf: JSON.stringify(this.settings.active)};
-            this.logger.log('info', 'comms', "%c[CommsServer.js::processMessage_nonpersistent] Returning this:", "background-color: #11D; color: #aad", ret);
-            Promise.resolve(ret);
-          } else {
-            sendResponse({extensionConf: JSON.stringify(this.settings.active)});
-            return true;
-          }
+        (message, sender) => {
+          var ret = {extensionConf: JSON.stringify(this.settings.active)};
+          this.logger.log('info', 'comms', "%c[CommsServer.js::processMessage_nonpersistent] Returning this:", "background-color: #11D; color: #aad", ret);
+          Promise.resolve(ret);
         }
       ],
       'autoar-enable': [
         () => {
-          this.settings.active.sites['@global'].autoar = "blacklist";
+          this.settings.active.sites['@global'].autoar = ExtensionMode.Enabled;
           this.settings.save();
           this.logger.log('info', 'comms', "[uw-bg] autoar set to enabled (blacklist). evidenz:", this.settings.active);
         }
       ],
       'autoar-disable': [
         (message) => {
-          this.settings.active.sites['@global'].autoar = "disabled";
+          this.settings.active.sites['@global'].autoar = ExtensionMode.Disabled;
           if (message.reason){
             this.settings.active.arDetect.disabledReason = message.reason;
           } else {
@@ -111,7 +118,7 @@ class CommsServer {
       
           // set fairly liberal limit
           var timeout = message.timeout < 4 ? 4 : message.timeout;
-          this.settings.active.arDetect.timer_playing = timeout;
+          this.settings.active.arDetect.timers.playing = timeout;
           this.settings.save();
         }
       ],
@@ -140,7 +147,7 @@ class CommsServer {
   }
 
   async getCurrentTabHostname() {
-    const activeTab = await this._getActiveTab();
+    const activeTab = await this.activeTab;
 
     if (!activeTab || activeTab.length < 1) {
       this.logger.log('warn', 'comms', 'There is no active tab for some reason. activeTab:', activeTab);
@@ -173,34 +180,28 @@ class CommsServer {
     }
   }
 
-  async _getActiveTab() {
-    if (BrowserDetect.firefox) {
-      return await browser.tabs.query({currentWindow: true, active: true});
-    } else {
-      return await new Promise( (resolve, reject) => {
-        chrome.tabs.query({lastFocusedWindow: true, active: true}, function (res) {
-          resolve(res);
-          return true;
-        });
-      });
-    }
+  get activeTab() {
+    return browser.tabs.query({currentWindow: true, active: true});
   }
 
-  // if port is NOT defined, send to all content scripts of a given frame
-  // if port is defined, send just to that particular script of a given frame
-  async sendToFrameContentScripts(message, tab, frame, port) {
+  /**
+   * Sends a message to addon content scripts.
+   * @param message message
+   * @param tab the tab we want to send the message to
+   * @param frame the frame within that tab that we want to send the message to
+   * @param port if defined, message will only be sent to that specific script, otherwise it gets sent to all scripts of a given frame
+   */
+  async sendToFrameContentScripts(message, tab, frame, port?) {
     if (port !== undefined) {
-      // note: 'port' is _not_ shadowed here.
       this.ports[tab][frame][port].postMessage(message);
       return;
     }
-    for (const port in this.ports[tab][frame]) {
-      // note: 'port' is shadowed here!
-      this.ports[tab][frame][port].postMessage(message);
+    for (const framePort in this.ports[tab][frame]) {
+      this.ports[tab][frame][framePort].postMessage(message);
     }
   }
 
-  async sendToFrame(message, tab, frame, port) {
+  async sendToFrame(message, tab, frame, port?) {
     this.logger.log('info', 'comms', `%c[CommsServer::sendToFrame] attempting to send message to tab ${tab}, frame ${frame}`, "background: #dda; color: #11D", message);
 
     if (isNaN(tab)) {
@@ -233,7 +234,7 @@ class CommsServer {
   async sendToActive(message) {
     this.logger.log('info', 'comms', "%c[CommsServer::sendToActive] trying to send a message to active tab. Message:", "background: #dda; color: #11D", message);
 
-    const tabs = await this._getActiveTab();
+    const tabs = await this.activeTab;
 
     this.logger.log('info', 'comms', "[CommsServer::_sendToActive] currently active tab(s)?", tabs);
     for (const frame in this.ports[tabs[0].id]) {
@@ -280,7 +281,10 @@ class CommsServer {
   }
 
 
-  async execCmd(message, portOrSender, sendResponse) {
+  // TODO: sendResponse seems redundant — it used to be a callback for
+  // chrome-based browsers, but browser polyfill doesn't do callback. Just
+  // awaits.
+  async execCmd(message, portOrSender, sendResponse?) {
     this.logger.log(
       'info', 'comms', '[CommsServer.js::execCmd] Received message', message,
       ". Port/sender:", portOrSender, "sendResponse:", sendResponse, "\nThere is ", this.commands[message.cmd]?.length ?? 0,
@@ -289,7 +293,7 @@ class CommsServer {
     if (this.commands[message.cmd]) {
       for (const c of this.commands[message.cmd]) {
         try {
-          await c(message, portOrSender, sendResponse);
+          await c(message, portOrSender);
         } catch (e) {
           this.logger.log('error', 'debug', "[CommsServer.js::execCmd] failed to execute command.", e)
         }
@@ -297,8 +301,8 @@ class CommsServer {
     }
   }
 
-  async handleMessage(message, portOrSender, sendResponse) {
-    await this.execCmd(message, portOrSender, sendResponse);
+  async handleMessage(message, portOrSender) {
+    await this.execCmd(message, portOrSender);
     
     if (message.forwardToSameFramePort) {
       this.sendToFrameContentScripts(message, portOrSender.tab.id, portOrSender.frameId, message.port)
@@ -323,10 +327,10 @@ class CommsServer {
     this.handleMessage(message, port)
   }
 
-  processReceivedMessage_nonpersistent(message, sender, sendResponse){
+  processReceivedMessage_nonpersistent(message, sender){
     this.logger.log('info', 'comms', "%c[CommsServer.js::processMessage_nonpersistent] Received message from background script!", "background-color: #11D; color: #aad", message, sender);
     
-    this.handleMessage(message, sender, sendResponse);
+    this.handleMessage(message, sender);
   }
 
   // chrome shitiness mitigation
