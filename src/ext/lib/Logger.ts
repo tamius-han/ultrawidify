@@ -1,6 +1,7 @@
 import { decycle } from 'json-cyclic';
 import Comms from './comms/Comms';
 import BrowserDetect from '../conf/BrowserDetect';
+import { browser } from 'webextension-polyfill-ts';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info('Loading Logger');
@@ -29,11 +30,11 @@ class Logger {
       console.info('Saving logger conf:', conf)
     }
 
-    (BrowserDetect.browserObj as any).storage.local.set( {'uwLogger': JSON.stringify(conf)});
+    browser.storage.local.set( {'uwLogger': JSON.stringify(conf)});
   }
 
   static syncConfig(callback) {
-    (BrowserDetect.browserObj as any).storage.onChanged.addListener( (changes, area) => {
+    browser.storage.onChanged.addListener( (changes, area) => {
       if (changes.uwLogger) {
         const newLoggerConf = JSON.parse(changes.uwLogger.newValue)
         if (process.env.CHANNEL === 'dev') {
@@ -47,13 +48,13 @@ class Logger {
   static async getConfig() {
     let ret;
 
-    if (BrowserDetect.firefox) {
-      ret = await (BrowserDetect.browserObj as any).storage.local.get('uwLogger');
-    } else if (BrowserDetect.anyChromium) {
-      ret = await new Promise( (resolve, reject) => {
-        (BrowserDetect.browserObj as any).storage.local.get('uwLogger', (res) => resolve(res));
-      });
-    }
+    // if (BrowserDetect.firefox) {
+      ret = await browser.storage.local.get('uwLogger');
+    // } else if (BrowserDetect.anyChromium) {
+    //   ret = await new Promise( (resolve, reject) => {
+    //     browser.storage.local.get('uwLogger', (res) => resolve(res));
+    //   });
+    // }
 
     if (process.env.CHANNEL === 'dev') {
       try {
@@ -98,7 +99,7 @@ class Logger {
     this.temp_disable = false;
     this.stopTime = this.conf.timeout ? performance.now() + (this.conf.timeout * 1000) : undefined;
 
-    (BrowserDetect.browserObj as any).storage.onChanged.addListener( (changes, area) => {
+    browser.storage.onChanged.addListener( (changes, area) => {
       if (process.env.CHANNEL === 'dev') {
         if (!changes.uwLogger) {
           // console.info('[Logger::<storage/on change> No new logger settings!');
