@@ -10,6 +10,7 @@ import CropModePersistence from '../../common/enums/CropModePersistence.enum';
 import BrowserDetect from '../conf/BrowserDetect';
 import Logger from './Logger';
 import SettingsInterface from '../../common/interfaces/SettingsInterface';
+import { browser } from 'webextension-polyfill-ts';
 
 if(process.env.CHANNEL !== 'stable'){
   console.info("Loading Settings");
@@ -45,7 +46,7 @@ class Settings {
     this.default = ExtensionConf;
     this.default['version'] = this.getExtensionVersion();
 
-    (BrowserDetect.browserObj as any).storage.onChanged.addListener((changes, area) => {this.storageChangeListener(changes, area)});
+    browser.storage.onChanged.addListener((changes, area) => {this.storageChangeListener(changes, area)});
   }
 
   storageChangeListener(changes, area) {
@@ -76,7 +77,7 @@ class Settings {
   }
 
   static getExtensionVersion(): string {
-    return (BrowserDetect.browserObj as any).runtime.getManifest().version;
+    return browser.runtime.getManifest().version;
   }
   getExtensionVersion(): string {
     return Settings.getExtensionVersion(); 
@@ -282,13 +283,7 @@ class Settings {
   async get() {
     let ret;
     
-    if (currentBrowser.firefox) {
-      ret = await (BrowserDetect.browserObj as any).storage.local.get('uwSettings');
-    } else if (currentBrowser.anyChromium) {
-      ret = await new Promise( (resolve, reject) => {
-        (BrowserDetect.browserObj as any).storage.local.get('uwSettings', (res) => resolve(res));
-      });
-    }
+    ret = await browser.storage.local.get('uwSettings');
 
     this.logger?.log('info', 'settings', 'Got settings:', ret && ret.uwSettings && JSON.parse(ret.uwSettings));
 
@@ -331,7 +326,7 @@ class Settings {
 
     this.logger?.log('info', 'settings', "[Settings::set] setting new settings:", extensionConf)
 
-    return (BrowserDetect.browserObj as any).storage.local.set( {'uwSettings': JSON.stringify(extensionConf)});
+    return browser.storage.local.set( {'uwSettings': JSON.stringify(extensionConf)});
   }
 
   async setActive(activeSettings) {
