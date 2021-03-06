@@ -102,7 +102,7 @@
 
 <script>
 import ShortcutButton from '../../common/components/ShortcutButton.vue' 
-import Stretch from '../../common/enums/stretch.enum';
+import StretchType from '../../common/enums/StretchType.enum';
 import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
 import CommandChain from './command-builder/CommandChain';
 import CommandAddEdit from './command-builder/CommandAddEdit';

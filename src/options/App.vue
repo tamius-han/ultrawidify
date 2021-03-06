@@ -111,11 +111,11 @@
 <script>
 import Donate from '../common/misc/Donate.vue';
 import SuperAdvancedSettings from './SuperAdvancedSettings.vue';
-import Debug from '../ext/conf/Debug.js';
-import BrowserDetect from '../ext/conf/BrowserDetect.js';
-import ExtensionConf from '../ext/conf/ExtensionConf.js';
-import ObjectCopy from '../ext/lib/ObjectCopy.js';
-import Settings from '../ext/lib/Settings.js';
+import Debug from '../ext/conf/Debug';
+import BrowserDetect from '../ext/conf/BrowserDetect';
+import ExtensionConf from '../ext/conf/ExtensionConf';
+import ObjectCopy from '../ext/lib/ObjectCopy';
+import Settings from '../ext/lib/Settings';
 import GeneralSettings from './GeneralSettings';
 import ControlsSettings from './controls-settings/ControlsSettings';
 import AddEditActionPopup from './controls-settings/AddEditActionPopup';
