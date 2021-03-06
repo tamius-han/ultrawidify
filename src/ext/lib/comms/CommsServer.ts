@@ -12,10 +12,11 @@ class CommsServer {
   settings: Settings;
 
 
-  // we could have a bit more defined type here, but then
-  // typescript be like {[x: string]; any} dOeSnT hAvE sYmBoL.ItErAToR
-  // and I'm too lazy to handle this properly
-  ports: any = [];
+  ports: {
+    [frame: string] : {
+      [port: string]: any
+    }
+  }[] = [];
   popupPort: any;
 
   commands: {[x: string]: ((a: any, b: any) => void | Promise<void>)[]}
