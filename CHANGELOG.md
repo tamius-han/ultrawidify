@@ -8,11 +8,15 @@
 * Settings page looks ugly af right now. Maybe fix it some time later
 * other bug fixes
 
-## v5.0 (planned major)
+## v6.0 (planned major)
 
  * WebGL autodetection
  * in-player GUI
  * Fix UI logger
+
+## v5.x (next major)
+
+* Migrate main scripts to typescript (vue is currently not included)
 
 ## v4.x (current major)
 
