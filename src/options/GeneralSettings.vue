@@ -57,16 +57,16 @@
     </div>
     <div class="flex flex-row button-box">
       <Button label="Left" 
-              :selected="settings.active.sites['@global'].videoAlignment === VideoAlignment.Left"
-              @click.native="setDefaultvideoAlignment(VideoAlignment.Left)"> 
+              :selected="settings.active.sites['@global'].videoAlignment === VideoAlignmentType.Left"
+              @click.native="setDefaultvideoAlignment(VideoAlignmentType.Left)"> 
       </Button>
       <Button label="Center"
-              :selected="settings.active.sites['@global'].videoAlignment === VideoAlignment.Center"
-              @click.native="setDefaultvideoAlignment(VideoAlignment.Center)">
+              :selected="settings.active.sites['@global'].videoAlignment === VideoAlignmentType.Center"
+              @click.native="setDefaultvideoAlignment(VideoAlignmentType.Center)">
       </Button>
       <Button label="Right"
-              :selected="settings.active.sites['@global'].videoAlignment === VideoAlignment.Right"
-              @click.native="setDefaultvideoAlignment(VideoAlignment.Right)">
+              :selected="settings.active.sites['@global'].videoAlignment === VideoAlignmentType.Right"
+              @click.native="setDefaultvideoAlignment(VideoAlignmentType.Right)">
       </Button>
     </div>
 
@@ -75,20 +75,20 @@
     </div>
     <div class="flex flex-row button-box">
       <Button label="Don't stretch"
-              :selected="settings.active.sites['@global'].stretch === Stretch.NoStretch"
-              @click.native="setDefaultStretchingMode(Stretch.NoStretch)"> 
+              :selected="settings.active.sites['@global'].stretch === StretchType.NoStretch"
+              @click.native="setDefaultStretchingMode(StretchType.NoStretch)"> 
       </Button>
       <Button label="Basic stretch"
-              :selected="settings.active.sites['@global'].stretch === Stretch.Basic"
-              @click.native="setDefaultStretchingMode(Stretch.Basic)">
+              :selected="settings.active.sites['@global'].stretch === StretchType.Basic"
+              @click.native="setDefaultStretchingMode(StretchType.Basic)">
       </Button>
       <Button label="Hybrid stretch"
-              :selected="settings.active.sites['@global'].stretch === Stretch.Hybrid"
-              @click.native="setDefaultStretchingMode(Stretch.Hybrid)">
+              :selected="settings.active.sites['@global'].stretch === StretchType.Hybrid"
+              @click.native="setDefaultStretchingMode(StretchType.Hybrid)">
       </Button>
       <Button label="Thin borders only"
-              :selected="settings.active.sites['@global'].stretch === Stretch.Conditional"
-              @click.native="setDefaultStretchingMode(Stretch.Conditional)"
+              :selected="settings.active.sites['@global'].stretch === StretchType.Conditional"
+              @click.native="setDefaultStretchingMode(StretchType.Conditional)"
       >
       </Button>
     </div>
@@ -108,7 +108,7 @@
         <div class="flex flex-input">
           <input type="number"
                 step="any"
-                :value="settings.active.stretch.conditionalDifferencePercent"
+                :value="settings.active.StretchType.conditionalDifferencePercent"
                 @input="updateStretchThreshold($event.target.value)"
                 >
         </div>
@@ -152,9 +152,9 @@
 
 <script>
 import Button from '../common/components/Button';
-import Stretch from '../common/enums/stretch.enum';
-import ExtensionMode from '../common/enums/extension-mode.enum';
-import VideoAlignment from '../common/enums/video-alignment.enum';
+import StretchType from '../common/enums/StretchType.enum';
+import ExtensionMode from '../common/enums/ExtensionMode.enum';
+import VideoAlignmentType from '../common/enums/VideoAlignmentType.enum';
 import BrowserDetect from '../ext/conf/BrowserDetect';
 
 export default {
@@ -198,7 +198,7 @@ export default {
       if (!newThreshold || isNaN(newThreshold)) {
         return;
       }
-      this.settings.active.stretch.conditionalDifferencePercent = newThreshold;
+      this.settings.active.StretchType.conditionalDifferencePercent = newThreshold;
       this.settings.save();
     },
     resetSettings() {

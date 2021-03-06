@@ -100,7 +100,11 @@ class PlayerUi extends UI {
 
   //#region lifecycle
   replace(playerElement) {
-    super.replace(this.getUiConfig(playerElement));
+    try {
+      super.replace(this.getUiConfig(playerElement));
+    } catch (e) {
+      this.logger.log('error', 'Couldn\'t replace player element for ui. Error:', e);
+    }
   }
   //#endregion
 

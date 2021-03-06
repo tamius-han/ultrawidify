@@ -1,27 +1,27 @@
-import VideoAlignment from '../../common/enums/video-alignment.enum';
-import Stretch from '../../common/enums/stretch.enum';
-import ExtensionMode from '../../common/enums/extension-mode.enum';
-import AspectRatio from '../../common/enums/aspect-ratio.enum';
-import CropModePersistence from '../../common/enums/crop-mode-persistence.enum';
+import VideoAlignmentType from '../../common/enums/VideoAlignmentType.enum';
+import StretchType from '../../common/enums/StretchType.enum';
+import ExtensionMode from '../../common/enums/ExtensionMode.enum';
+import AspectRatioType from '../../common/enums/AspectRatioType.enum';
+import CropModePersistence from '../../common/enums/CropModePersistence.enum';
 
 var ActionList = {
   'set-ar': {
     name: 'Set aspect ratio',
     args: [{
       name: 'Automatic',
-      arg: AspectRatio.Automatic,
+      arg: AspectRatioType.Automatic,
     },{
       name: 'Fit width',
-      arg: AspectRatio.FitWidth,
+      arg: AspectRatioType.FitWidth,
     },{
       name: 'Fit height',
-      arg: AspectRatio.FitHeight,
+      arg: AspectRatioType.FitHeight,
     },{
       name: 'Reset',
-      arg: AspectRatio.Reset,
+      arg: AspectRatioType.Reset,
     },{
       name: 'Manually specify ratio',
-      arg: AspectRatio.Fixed,
+      arg: AspectRatioType.Fixed,
       customArg: true,
       customSetter: (value) => {
         const [width, height] = value.split(':');
@@ -70,33 +70,33 @@ var ActionList = {
     name: 'Set stretch',
     args: [{
       name: 'Normal',
-      arg: Stretch.NoStretch
+      arg: StretchType.NoStretch
     },{
       name: 'Basic',
-      arg: Stretch.Basic,
+      arg: StretchType.Basic,
     },{
       name: 'Hybrid',
-      arg: Stretch.Hybrid,
+      arg: StretchType.Hybrid,
     },{
       name: 'Thin borders',
-      arg: Stretch.Conditional,
+      arg: StretchType.Conditional,
     },{
       name: 'Fixed (source)',
-      arg: Stretch.FixedSource,
+      arg: StretchType.FixedSource,
       customArg: true,
       scopes: {
         page: true,
       }
     },{
       name: 'Fixed (displayed)',
-      arg: Stretch.Fixed,
+      arg: StretchType.Fixed,
       customArg: true,
       scopes: {
         page: true,
       }
     },{
       name: 'Default',
-      arg: Stretch.Default,
+      arg: StretchType.Default,
       scopes: {
         site: true
       }
@@ -111,16 +111,16 @@ var ActionList = {
     name: 'Set video alignment',
     args: [{
       name: 'Left',
-      arg: VideoAlignment.Left,
+      arg: VideoAlignmentType.Left,
     },{
       name: 'Center',
-      arg: VideoAlignment.Center,
+      arg: VideoAlignmentType.Center,
     },{
       name: 'Right',
-      arg: VideoAlignment.Right
+      arg: VideoAlignmentType.Right
     },{
       name: 'Default',
-      arg: VideoAlignment.Default,
+      arg: VideoAlignmentType.Default,
       scopes: {
         site: true,
       }
@@ -179,7 +179,7 @@ var ActionList = {
       page: true,
     }
   },
-  'set-extension-mode': {
+  'set-ExtensionMode': {
     name: 'Set extension mode',
     args: [{
       name: 'Enable',
