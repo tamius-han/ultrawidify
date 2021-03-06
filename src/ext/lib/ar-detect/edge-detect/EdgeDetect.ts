@@ -43,14 +43,14 @@ class EdgeDetect{
     
   }
 
-  findBars(image, sampleCols, direction = EdgeDetectPrimaryDirection.VERTICAL, quality = EdgeDetectQuality.IMPROVED, guardLineOut?, blackFrameAnalysis?){
+  findBars(image, sampleCols, direction = EdgeDetectPrimaryDirection.Vertical, quality = EdgeDetectQuality.Improved, guardLineOut?, blackFrameAnalysis?){
     let fastCandidates, edgeCandidates, bars;
-    if (direction == EdgeDetectPrimaryDirection.VERTICAL) {
+    if (direction == EdgeDetectPrimaryDirection.Vertical) {
       try {
         fastCandidates = this.findCandidates(image, sampleCols, guardLineOut);
         
         if (! this.isValidSample(fastCandidates)) {
-          return {status: EdgeStatus.AR_UNKNOWN};
+          return {status: EdgeStatus.ARUnknown};
         }
         // if(quality == EdgeDetectQuality.FAST){
         //   edges = fastCandidates; // todo: processing
@@ -60,10 +60,10 @@ class EdgeDetect{
         // }
       } catch (e) {
         this.logger.log('error', 'arDetect', '%c[EdgeDetect::findBars] find bars failed.', 'background: #f00, color: #000', e);
-        return {status: EdgeStatus.AR_UNKNOWN}
+        return {status: EdgeStatus.ARUnknown}
       }
     } else {
-      bars = this.pillarTest(image) ? {status: EdgeStatus.AR_KNOWN} : {status: EdgeStatus.AR_UNKNOWN};
+      bars = this.pillarTest(image) ? {status: EdgeStatus.ARKnown} : {status: EdgeStatus.ARUnknown};
     }
 
     return bars;
@@ -409,7 +409,7 @@ class EdgeDetect{
         if (edgesTop[0].count + edgesBottom[0].count > this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold
            || ( edgesTop[0].count > this.settings.active.arDetect.edgeDetection.confirmationThreshold && edgesBottom[0].count > this.settings.active.arDetect.edgeDetection.confirmationThreshold) ){
           return {
-            status: EdgeStatus.AR_KNOWN,
+            status: EdgeStatus.ARKnown,
             blackbarWidth: blackbarWidth,
             guardLineTop: edgesTop[0].distance,
             guardLineBottom: edgesBottom[0].absolute,
@@ -443,7 +443,7 @@ class EdgeDetect{
               if (edgesTop[i].count + edgesBottom[0].count > this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold
                  || (edgesTop[i].count > this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold && edgesBottom[0].count > this.settings.active.arDetect.edgeDetection.confirmationThreshold) ) {
                 return {
-                  status: EdgeStatus.AR_KNOWN,
+                  status: EdgeStatus.ARKnown,
                   blackbarWidth: blackbarWidth,
                   guardLineTop: edgesTop[i].distance,
                   guardLineBottom: edgesBottom[0].absolute,
@@ -474,7 +474,7 @@ class EdgeDetect{
               if (edgesTop[0].count + edgesBottom[i].count > this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold
                   || (edgesTop[0].count > this.settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold && edgesBottom[i].count > this.settings.active.arDetect.edgeDetection.confirmationThreshold)) {
                 return {
-                  status: EdgeStatus.AR_KNOWN,
+                  status: EdgeStatus.ARKnown,
                   blackbarWidth: blackbarWidth,
                   guardLineTop: edgesTop[0].distance,
                   guardLineBottom: edgesBottom[i].absolute,
@@ -500,7 +500,7 @@ class EdgeDetect{
         for(let edge of edgesBottom){
           if(edge.count >= edgeDetectionThreshold)
             return {
-              status: EdgeStatus.AR_KNOWN, 
+              status: EdgeStatus.ARKnown, 
               blackbarWidth: edge.distance,
               guardLineTop: null,
               guardLineBottom: edge.bottom,
@@ -514,7 +514,7 @@ class EdgeDetect{
         for(let edge of edgesTop){
           if(edge.count >= edgeDetectionThreshold)
             return {
-              status: EdgeStatus.AR_KNOWN,
+              status: EdgeStatus.ARKnown,
               blackbarWidth: edge.distance,
               guardLineTop: edge.top,
               guardLineBottom: null,
@@ -527,7 +527,7 @@ class EdgeDetect{
     }
     // če pridemo do sem, nam ni uspelo nič. Razmerje stranic ni znano
     // if we reach this bit, we have failed in determining aspect ratio. It remains unknown.
-    return {status: EdgeStatus.AR_UNKNOWN}
+    return {status: EdgeStatus.ARUnknown}
   }
   
   pillarTest(image){

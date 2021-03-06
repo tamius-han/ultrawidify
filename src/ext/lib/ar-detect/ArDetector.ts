@@ -701,7 +701,7 @@ class ArDetector {
     // that we will cut too much, we rather avoid doing anything at all. There's gonna be a next chance.
     try{
       if(guardLineOut.blackbarFail || guardLineOut.imageFail){
-        if(this.edgeDetector.findBars(imageData, null, EdgeDetectPrimaryDirection.HORIZONTAL).status === 'ar_known'){
+        if(this.edgeDetector.findBars(imageData, null, EdgeDetectPrimaryDirection.Horizontal).status === 'ar_known'){
 
 
           if(guardLineOut.blackbarFail){
@@ -724,14 +724,14 @@ class ArDetector {
     
     // blackSamples -> {res_top, res_bottom}
    
-    let edgePost = this.edgeDetector.findBars(imageData, sampleCols, EdgeDetectPrimaryDirection.VERTICAL, EdgeDetectQuality.IMPROVED, guardLineOut, bfanalysis);
+    let edgePost = this.edgeDetector.findBars(imageData, sampleCols, EdgeDetectPrimaryDirection.Vertical, EdgeDetectQuality.Improved, guardLineOut, bfanalysis);
     
     this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] edgeDetector returned this\n`,  "color: #aaf", edgePost);
     
-    if (edgePost.status !== EdgeStatus.AR_KNOWN){
+    if (edgePost.status !== EdgeStatus.ARKnown){
       // rob ni bil zaznan, zato ne naredimo ničesar.
       // no edge was detected. Let's leave things as they were
-      this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Edge wasn't detected with findBars`, "color: #fa3", edgePost, "EdgeStatus.AR_KNOWN:", EdgeStatus.AR_KNOWN);
+      this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Edge wasn't detected with findBars`, "color: #fa3", edgePost, "EdgeStatus.AR_KNOWN:", EdgeStatus.ARKnown);
 
       this.clearImageData(imageData);
       return;
