@@ -17,7 +17,7 @@ class ActionHandler {
 
 
   inputs: string[] = ['input', 'select', 'button', 'textarea'];
-  keyboardLocalDisabled: boolean = true;
+  keyboardLocalDisabled: boolean = false;
 
   keyUpActions: any[] = [];
   keyDownActions: any[] = [];
