@@ -505,7 +505,7 @@ class PageInfo {
     }
   }
 
-  restoreAr(playingOnly) {
+  restoreAr(playingOnly?: boolean) {
     if (playingOnly) {
       for(let vd of this.videos){
         if (vd.isPlaying()) {

@@ -390,7 +390,7 @@ class Settings {
     return this.active.actions;
   }
 
-  getExtensionMode(site) {
+  getExtensionMode(site?: string) {
     if (!site) {
       site = window.location.hostname;
 
