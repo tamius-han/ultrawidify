@@ -27,6 +27,7 @@
     "@types/firefox": "0.0.30",
     "@types/node": "^14.14.25",
     "@vue/cli": "^4.5.9",
+    "@vue/cli-plugin-typescript": "^4.5.11",
     "bootstrap": "^4.5.3",
     "bootstrap-icons": "^1.1.0",
     "bootstrap-icons-vue": "^0.3.0",
