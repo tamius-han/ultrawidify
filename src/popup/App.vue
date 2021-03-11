@@ -195,8 +195,8 @@
                               :settings="settings"
                               :site="selectedSite"
         />
-        <!-- <PerformancePanel v-if="selectedTab === 'performance-metrics'" 
-                          :performance="performance" /> -->
+        <PerformancePanel v-if="selectedTab === 'performance-metrics'" 
+                          :performance="performance" />
         <WhatsNewPanel v-if="selectedTab === 'whats-new'" />
         <AboutPanel v-if="selectedTab === 'about'" />
         <Donate v-if="selectedTab === 'donate'" />
@@ -205,23 +205,39 @@
   </div>
 </template>
 
-<script lang="ts">
+<script>
+import Icon from '../common/components/Icon.vue'
+import WhatsNewPanel from './panels/WhatsNewPanel.vue';
+import SiteDetailsPanel from './panels/SiteDetailsPanel.vue';
+import Donate from '../common/misc/Donate.vue';
+import Debug from '../ext/conf/Debug';
+import BrowserDetect from '../ext/conf/BrowserDetect';
+import Comms from '../ext/lib/comms/Comms';
+import VideoPanel from './panels/VideoPanel';
+import PerformancePanel from './panels/PerformancePanel';
+import Settings from '../ext/lib/Settings';
+import ExecAction from './js/ExecAction.js';
+import DefaultSettingsPanel from './panels/DefaultSettingsPanel';
+import AboutPanel from './panels/AboutPanel';
+import ExtensionMode from '../common/enums/ExtensionMode.enum';
+import Logger from '../ext/lib/Logger';
+import {ChromeShittinessMitigations as CSM} from '../common/js/ChromeShittinessMitigations';
 
-
-export default Vue.extend({
-   data () {
+export default {
+  data () {
     return {
       selectedTab: 'video',
       selectedFrame: '__all',
       selectedSite: '',
       activeFrames: [],
       activeSites: [],
+      comms: new Comms(),
       frameStore: {},
       frameStoreCount: 0,
       performance: {},
       site: null,
       currentZoom: 1,
-      execAction: new ExecAction(null, null),
+      execAction: new ExecAction(),
       settings: {},
       settingsInitialized: false,
       logger: {},
@@ -244,10 +260,9 @@ export default Vue.extend({
     await this.settings.init();
     this.settingsInitialized = true;
 
-    const port = browser.runtime.connect(null, {name: 'popup-port'});
-    // port.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
-
-    // CSM.setProperty('port', port);
+    const port = BrowserDetect.firefox ? browser.runtime.connect({name: 'popup-port'}) : chrome.runtime.connect({name: 'popup-port'});
+    port.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
+    CSM.setProperty('port', port);
 
     this.execAction.setSettings(this.settings);
 
@@ -257,12 +272,12 @@ export default Vue.extend({
         cmd: 'unmark-player',
         forwardToAll: true,
       });
-      // if (BrowserDetect.anyChromium) {
-      //   chrome.extension.getBackgroundPage().sendUnmarkPlayer({
-      //     cmd: 'unmark-player',
-      //     forwardToAll: true,
-      //   });
-      // }
+      if (BrowserDetect.anyChromium) {
+        chrome.extension.getBackgroundPage().sendUnmarkPlayer({
+          cmd: 'unmark-player',
+          forwardToAll: true,
+        });
+      }
     });
 
     // get info about current site from background script
@@ -292,6 +307,7 @@ export default Vue.extend({
   components: {
     VideoPanel,
     DefaultSettingsPanel,
+    PerformancePanel,
     Debug,
     BrowserDetect,
     AboutPanel,
@@ -302,7 +318,7 @@ export default Vue.extend({
   },
   methods: {
     async sleep(t) {
-      return new Promise<void>( (resolve,reject) => {
+      return new Promise( (resolve,reject) => {
         setTimeout(() => resolve(), t);
       });
     },
@@ -316,6 +332,20 @@ export default Vue.extend({
       } catch (e) {
         this.logger.log('error','popup','[popup::getSite] sending get-current-site failed for some reason. Reason:', e);
       }
+    },
+    getRandomColor() {
+      return `rgb(${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)})`;
+    },
+    selectTab(tab) {
+      this.selectedTab = tab;
+      if (tab === 'whats-new') {
+        this.settings.active.whatsNewChecked = true;
+        this.settings.save();
+      }
+      this.toggleSideMenu(false);
+    },
+    selectFrame(frame) {
+      this.selectedFrame = frame;
     },
     async updateConfig() {
       // when this runs, a site could have been enabled or disabled
@@ -357,7 +387,7 @@ export default Vue.extend({
         if (this.site) {
           if (!this.site.host) {
             // dunno why this fix is needed, but sometimes it is
-            this.site.host = message.site.tabHostname;
+            this.site.host = site.tabHostname;
           }
         }
         if (!this.site || this.site.host !== message.site.host) {
@@ -499,7 +529,7 @@ export default Vue.extend({
       // update whether video tab can be shown
       this.updateCanShowVideoTab();
     },
-    getRandomColor(): string {
+    getRandomColor() {
       return `rgb(${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)})`;
     },
     setCurrentZoom(nz) {
@@ -508,16 +538,8 @@ export default Vue.extend({
     updateZoom(nz){
       this.currentZoom = nz;
     },
-    selectTab(tab) {
-      this.selectedTab = tab;
-      if (tab === 'whats-new') {
-        this.settings.active.whatsNewChecked = true;
-        this.settings.save();
-      }
-      this.toggleSideMenu(false);
-    },
-    selectFrame(frame) {
-      this.selectedFrame = frame;
+    selectFrame(id){
+      this.selectedFrame = id;
     },
     selectSite(host) {
       this.selectedSite = host;
@@ -526,7 +548,7 @@ export default Vue.extend({
       this.sideMenuVisible = visible ?? !this.sideMenuVisible;
     }
   }
-})
+}
 </script>
 
 <style src="../res/css/font/overpass.css"></style>
