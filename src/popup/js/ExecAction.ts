@@ -1,7 +1,7 @@
-import { browser } from 'webextension-polyfill-ts';
+import { browser } from '../../../node_modules/webextension-polyfill-ts/lib/index';
 import Settings from '../../ext/lib/Settings';
 
-class PopupExec {
+class ExecAction {
   settings: Settings;
   site: any;
   
@@ -82,4 +82,4 @@ class PopupExec {
   }
 }
 
-export default PopupExec;
+export default ExecAction;
