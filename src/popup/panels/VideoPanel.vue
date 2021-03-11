@@ -121,7 +121,7 @@
 </template>
 
 <script>
-import ExecAction from '../js/ExecAction';
+import PopupExec from '../js/PopupExec';
 import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
 import ShortcutButton from '../../common/components/ShortcutButton';
 import ComputeActionsMixin from '../../common/mixins/ComputeActionsMixin';
@@ -145,7 +145,7 @@ export default {
     'cropModePersistence',
   ],
   created() {
-    this.exec = new ExecAction(this.settings);
+    this.exec = new PopupExec(this.settings);
   },
   components: {
     ShortcutButton,
