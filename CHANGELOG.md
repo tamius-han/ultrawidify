@@ -16,7 +16,13 @@
 
 ## v5.x (next major)
 
-* Migrate main scripts to typescript (vue is currently not included)
+### v5.0.0 (next)
+
+There's been some big-ish changes under the hood:
+
+* Migrate main scripts to typescript (vue is currently not included).
+* webextension-polyfill is now used everywhere (if only because typescript throws a hissy fit with `browser` and `chrome` otherwise)
+* Fix some bugs that I didn't even know I had, but typescript kinda shone some light on them
 
 ## v4.x (current major)
 
