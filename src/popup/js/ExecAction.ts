@@ -1,6 +1,10 @@
-import Comms from '../../ext/lib/comms/Comms';
+import { browser } from '../../../node_modules/webextension-polyfill-ts/lib/index';
+import Settings from '../../ext/lib/Settings';
 
 class ExecAction {
+  settings: Settings;
+  site: any;
+  
   constructor(settings, site) {
     this.settings = settings;
     this.site = site;
@@ -24,7 +28,7 @@ class ExecAction {
           arg: cmd.arg,
           customArg: cmd.customArg
         }
-        Comms.sendMessage(message);
+        browser.runtime.sendMessage(message);
       } else {
 
         // set-ar-persistence sends stuff to content scripts as well (!)
@@ -41,7 +45,7 @@ class ExecAction {
           }
           // this hopefully delays settings.save() until current crops are saved on the site
           // and thus avoid any fucky-wuckies
-          await Comms.sendMessage(message);
+          await browser.runtime.sendMessage(message);
         }
 
         let site = this.site;
