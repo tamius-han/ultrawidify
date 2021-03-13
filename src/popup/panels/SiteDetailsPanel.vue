@@ -126,14 +126,16 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import ShortcutButton from '../../common/components/ShortcutButton.vue';
 import QsElement from '../../common/components/QsElement.vue';
 import QuerySelectorSetting from '../../common/components/QuerySelectorSetting.vue';
 import ExtensionMode from '../../common/enums/ExtensionMode.enum';
 import VideoAlignmentType from '../../common/enums/VideoAlignmentType.enum';
 import StretchType from '../../common/enums/StretchType.enum';
-export default {
+
+import Vue from 'vue'
+export default Vue.extend({
   components: {
     QuerySelectorSetting,
     ShortcutButton,
@@ -249,8 +251,7 @@ export default {
       this.settings.save();
     },
   }
-
-}
+})
 </script>
 
 <style>

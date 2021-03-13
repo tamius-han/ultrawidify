@@ -36,19 +36,21 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import Comms from '../../ext/lib/comms/Comms';
-import ShortcutButton from '../../common/components/ShortcutButton';
+import ShortcutButton from '../../common/components/ShortcutButton.vue';
 import BrowserDetect from '../../ext/conf/BrowserDetect';
+import { browser } from 'webextension-polyfill-ts';
 
-export default {
+import Vue from 'vue'
+export default Vue.extend({
   components: {
     ShortcutButton,
  },
   data() {
     return {
       // reminder — webextension-polyfill doesn't seem to work in vue!
-      addonVersion: BrowserDetect.firefox ? browser.runtime.getManifest().version : chrome.runtime.getManifest().version,
+      addonVersion: browser.runtime.getManifest().version,
       loggingEnabled: false,
       loggerSettings: '',
       loggerSettingsError: false,
@@ -103,6 +105,5 @@ Browser-related stuff (please ensure this section is correct):
       Comms.sendMessage({cmd: 'hide-logger', forwardToActive: true});
     }
   }
-}
+})
 </script>
-

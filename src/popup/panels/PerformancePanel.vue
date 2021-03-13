@@ -6,10 +6,9 @@
   </div>
 </template>
 
-<script>
-
-
-export default {
+<script lang="ts">
+import Vue from 'vue'
+export default Vue.extend({
   props: {
     performance: Object,
   },
@@ -18,7 +17,7 @@ export default {
       deep: true,
     }
   }
-}
+})
 </script>
 
 <style>

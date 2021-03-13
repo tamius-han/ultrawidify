@@ -213,16 +213,18 @@ import Donate from '../common/misc/Donate.vue';
 import Debug from '../ext/conf/Debug';
 import BrowserDetect from '../ext/conf/BrowserDetect';
 import Comms from '../ext/lib/comms/Comms';
-import VideoPanel from './panels/VideoPanel';
-import PerformancePanel from './panels/PerformancePanel';
+import VideoPanel from './panels/VideoPanel.vue';
+import PerformancePanel from './panels/PerformancePanel.vue';
 import Settings from '../ext/lib/Settings';
 import PopupExec from './js/PopupExec';
-import DefaultSettingsPanel from './panels/DefaultSettingsPanel';
-import AboutPanel from './panels/AboutPanel';
+import DefaultSettingsPanel from './panels/DefaultSettingsPanel.vue';
+import AboutPanel from './panels/AboutPanel.vue';
 import ExtensionMode from '../common/enums/ExtensionMode.enum';
 import Logger from '../ext/lib/Logger';
 import {ChromeShittinessMitigations as CSM} from '../common/js/ChromeShittinessMitigations';
+import { browser } from 'webextension-polyfill-ts';
 
+import Vue from '*.vue';
 export default Vue.extend({
   data () {
     return {
@@ -260,7 +262,7 @@ export default Vue.extend({
     await this.settings.init();
     this.settingsInitialized = true;
 
-    const port = BrowserDetect.firefox ? browser.runtime.connect({name: 'popup-port'}) : chrome.runtime.connect({name: 'popup-port'});
+    const port = browser.runtime.connect(null, {name: 'popup-port'});
     port.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
     CSM.setProperty('port', port);
 
@@ -272,12 +274,12 @@ export default Vue.extend({
         cmd: 'unmark-player',
         forwardToAll: true,
       });
-      if (BrowserDetect.anyChromium) {
-        chrome.extension.getBackgroundPage().sendUnmarkPlayer({
-          cmd: 'unmark-player',
-          forwardToAll: true,
-        });
-      }
+      // if (BrowserDetect.anyChromium) {
+      //   chrome.extension.getBackgroundPage().sendUnmarkPlayer({
+      //     cmd: 'unmark-player',
+      //     forwardToAll: true,
+      //   });
+      // }
     });
 
     // get info about current site from background script
@@ -318,7 +320,7 @@ export default Vue.extend({
   },
   methods: {
     async sleep(t) {
-      return new Promise( (resolve,reject) => {
+      return new Promise<void>( (resolve,reject) => {
         setTimeout(() => resolve(), t);
       });
     },
@@ -333,9 +335,7 @@ export default Vue.extend({
         this.logger.log('error','popup','[popup::getSite] sending get-current-site failed for some reason. Reason:', e);
       }
     },
-    getRandomColor() {
-      return `rgb(${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)})`;
-    },
+    
     selectTab(tab) {
       this.selectedTab = tab;
       if (tab === 'whats-new') {
@@ -343,9 +343,6 @@ export default Vue.extend({
         this.settings.save();
       }
       this.toggleSideMenu(false);
-    },
-    selectFrame(frame) {
-      this.selectedFrame = frame;
     },
     async updateConfig() {
       // when this runs, a site could have been enabled or disabled
@@ -387,7 +384,7 @@ export default Vue.extend({
         if (this.site) {
           if (!this.site.host) {
             // dunno why this fix is needed, but sometimes it is
-            this.site.host = site.tabHostname;
+            this.site.host = message.site.tabHostname;
           }
         }
         if (!this.site || this.site.host !== message.site.host) {
@@ -538,8 +535,8 @@ export default Vue.extend({
     updateZoom(nz){
       this.currentZoom = nz;
     },
-    selectFrame(id){
-      this.selectedFrame = id;
+    selectFrame(frame) {
+      this.selectedFrame = frame;
     },
     selectSite(host) {
       this.selectedSite = host;

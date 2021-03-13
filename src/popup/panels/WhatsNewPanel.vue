@@ -16,16 +16,18 @@
     </ul>
   </div>
 </template>
-<script>
+
+<script lang="ts">
 import BrowserDetect from '../../ext/conf/BrowserDetect';
 
-export default {
+import Vue from 'vue'
+export default Vue.extend({
   data () {
     return {
       BrowserDetect: BrowserDetect
     }
   },
-}
+})
 </script>
 
 <style>
