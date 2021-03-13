@@ -122,14 +122,13 @@
   </div>
 </template>
 
-<script lang="ts">
+<script>
 import ExecAction from '../js/ExecAction';
 import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
-import ShortcutButton from '../../common/components/ShortcutButton.vue';
+import ShortcutButton from '../../common/components/ShortcutButton';
 import ComputeActionsMixin from '../../common/mixins/ComputeActionsMixin';
 
-import Vue from 'vue'
-export default Vue.extend({
+export default {
   data() {
     return {
     }
@@ -191,10 +190,10 @@ export default Vue.extend({
       return KeyboardShortcutParser.parseShortcut(action.scopes[this.scope].shortcut[0]);
     },
     wipeSettings() {
-      this.settings.setDefaultSettings();
+      settings.setDefaultSettings();
     }
   }
-})
+}
 </script>
 
 <style>
