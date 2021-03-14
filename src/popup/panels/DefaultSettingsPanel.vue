@@ -123,12 +123,12 @@
 </template>
 
 <script lang="ts">
-import ExecAction from '../js/ExecAction';
 import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
 import ShortcutButton from '../../common/components/ShortcutButton.vue';
 import ComputeActionsMixin from '../../common/mixins/ComputeActionsMixin';
 
 import Vue from 'vue'
+import PopupExec from '../js/PopupExec';
 export default Vue.extend({
   data() {
     return {
