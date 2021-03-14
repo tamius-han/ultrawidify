@@ -134,8 +134,8 @@ import ExtensionMode from '../../common/enums/ExtensionMode.enum';
 import VideoAlignmentType from '../../common/enums/VideoAlignmentType.enum';
 import StretchType from '../../common/enums/StretchType.enum';
 
-import { defineComponent } from 'vue'
-export default defineComponent({
+import Vue from 'vue'
+export default Vue.extend({
   components: {
     QuerySelectorSetting,
     ShortcutButton,
