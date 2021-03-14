@@ -18,10 +18,10 @@
 </template>
 
 <script lang="ts">
+import { defineComponent } from 'vue';
 import BrowserDetect from '../../ext/conf/BrowserDetect';
 
-import Vue from 'vue'
-export default Vue.extend({
+export default defineComponent({
   data () {
     return {
       BrowserDetect: BrowserDetect

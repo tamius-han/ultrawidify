@@ -126,10 +126,11 @@
 import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
 import ShortcutButton from '../../common/components/ShortcutButton.vue';
 import ComputeActionsMixin from '../../common/mixins/ComputeActionsMixin';
-
-import Vue from 'vue'
 import PopupExec from '../js/PopupExec';
-export default Vue.extend({
+import { defineComponent } from 'vue';
+
+
+export default defineComponent({
   data() {
     return {
     }
@@ -143,7 +144,7 @@ export default Vue.extend({
     site: String,
   },
   created() {
-    this.exec = new ExecAction(this.settings, this.site);
+    this.exec = new PopupExec(this.settings, this.site);
   },
   components: {
     ShortcutButton,
