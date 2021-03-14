@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "moduleResolution": "node",
     "outDir": "./ts-out",
     "allowJs": true,
     "target": "es2018",
