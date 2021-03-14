@@ -56,7 +56,6 @@
 import Debug from '../../ext/conf/Debug';
 import BrowserDetect from '../../ext/conf/BrowserDetect';
 import Logger from '../../ext/lib/Logger';
-import PopupExec from '../../popup/js/PopupExec';
 
 export default {
   data () {
