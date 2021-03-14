@@ -42,11 +42,11 @@ import ShortcutButton from '../../common/components/ShortcutButton.vue';
 import BrowserDetect from '../../ext/conf/BrowserDetect';
 import { browser } from 'webextension-polyfill-ts';
 
-import Vue from 'vue'
-export default Vue.extend({
+import { defineComponent } from 'vue'
+export default defineComponent({
   components: {
     ShortcutButton,
- },
+  },
   data() {
     return {
       // reminder — webextension-polyfill doesn't seem to work in vue!

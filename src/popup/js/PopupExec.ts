@@ -5,7 +5,7 @@ class PopupExec {
   settings: Settings;
   site: any;
   
-  constructor(settings, site) {
+  constructor(settings?, site?) {
     this.settings = settings;
     this.site = site;
   }
