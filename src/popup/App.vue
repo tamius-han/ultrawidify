@@ -216,7 +216,7 @@ import Comms from '../ext/lib/comms/Comms';
 import VideoPanel from './panels/VideoPanel';
 import PerformancePanel from './panels/PerformancePanel';
 import Settings from '../ext/lib/Settings';
-import ExecAction from './js/ExecAction.js';
+import ExecAction from './js/ExecAction';
 import DefaultSettingsPanel from './panels/DefaultSettingsPanel';
 import AboutPanel from './panels/AboutPanel';
 import ExtensionMode from '../common/enums/ExtensionMode.enum';
