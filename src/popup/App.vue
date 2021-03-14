@@ -195,6 +195,8 @@
                               :settings="settings"
                               :site="selectedSite"
         />
+        <PerformancePanel v-if="selectedTab === 'performance-metrics'" 
+                          :performance="performance" />
         <WhatsNewPanel v-if="selectedTab === 'whats-new'" />
         <AboutPanel v-if="selectedTab === 'about'" />
         <Donate v-if="selectedTab === 'donate'" />
@@ -221,9 +223,9 @@ import ExtensionMode from '../common/enums/ExtensionMode.enum';
 import Logger from '../ext/lib/Logger';
 import {ChromeShittinessMitigations as CSM} from '../common/js/ChromeShittinessMitigations';
 import { browser } from 'webextension-polyfill-ts';
-import { defineComponent } from 'vue';
 
-export default defineComponent({
+import Vue from '*.vue';
+export default Vue.extend({
   data () {
     return {
       selectedTab: 'video',

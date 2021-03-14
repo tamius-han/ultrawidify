@@ -120,16 +120,15 @@
   </div>
 </template>
 
-<script lang="ts">
+<script>
 import PopupExec from '../js/PopupExec';
 import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
-import ShortcutButton from '../../common/components/ShortcutButton.vue';
+import ShortcutButton from '../../common/components/ShortcutButton';
 import ComputeActionsMixin from '../../common/mixins/ComputeActionsMixin';
 import CropModePersistence from '../../common/enums/CropModePersistence.enum';
-import { defineComponent } from 'vue';
 
-export default defineComponent({
-   data() {
+export default {
+  data() {
     return {
       scope: 'page',
       CropModePersistence: CropModePersistence,
@@ -182,7 +181,7 @@ export default defineComponent({
       );
     }
   }
-})
+}
 </script>
 
 <style>
