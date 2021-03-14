@@ -57,7 +57,6 @@
 import Debug from '../../ext/conf/Debug';
 import BrowserDetect from '../../ext/conf/BrowserDetect';
 import Logger from '../../ext/lib/Logger';
-import PopupExec from '../../popup/js/PopupExec';
 
 export default {
   data () {
@@ -74,7 +73,7 @@ export default {
       performance: {},
       site: null,
       currentZoom: 1,
-      // execAction: new PopupExec(),
+      execAction: new ExecAction(),
       settings: {},
       settingsInitialized: false,
       logger: {},
