@@ -26,6 +26,12 @@ class VideoData {
   vdid: string;
   video: any;
   observer: ResizeObserver;
+  mutationObserver: MutationObserver;
+  mutationObserverConf: MutationObserverInit = {
+    attributes: true,
+    attributeFilter: ['class', 'style'],
+    attributeOldValue: true,
+  };
   extensionMode: any;
   userCssClassName: string;
   validationId: number;
@@ -106,20 +112,27 @@ class VideoData {
 
   async injectBaseCss() {
     try {
-    await this.pageInfo.injectCss(`
-      .uw-ultrawidify-base-wide-screen {
-        margin: 0px 0px 0px 0px !important;
-        width: initial !important;
-        align-self: start !important;
-        justify-self: start !important;
+      if (!this.mutationObserver) {
+        this.setupMutationObserver();
       }
-    `);
+      await this.pageInfo.injectCss(`
+        .uw-ultrawidify-base-wide-screen {
+          margin: 0px 0px 0px 0px !important;
+          width: initial !important;
+          align-self: start !important;
+          justify-self: start !important;
+          max-height: initial !important;
+          max-width: initial !important;
+        }
+      `);
     } catch (e) {
       console.error('Failed to inject base css!', e);
     }
   }
 
   unsetBaseClass() {
+    this.mutationObserver.disconnect();
+    this.mutationObserver = undefined;
     this.video.classList.remove('uw-ultrawidify-base-wide-screen');
   }
 
@@ -163,14 +176,6 @@ class VideoData {
   async setupStageTwo() {
     // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
     // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)
-
-    // NOTE: We only init observers once player is confirmed valid
-    const observerConf = {
-      attributes: true,
-      // attributeFilter: ['style', 'class'],
-      attributeOldValue: true,
-    };
-
     this.player = new PlayerData(this);
     if (this.player.invalid) {
       this.invalid = true;
@@ -255,6 +260,41 @@ class VideoData {
     }
   }
 
+  setupMutationObserver() {
+    try {
+      if (BrowserDetect.firefox) {
+        this.mutationObserver = new MutationObserver(
+          _.debounce(
+            this.onVideoMutation,
+            250,
+            {
+              leading: true,
+              trailing: true
+            }
+          )
+        )
+      } else {
+        // Chrome for some reason insists that this.onPlayerDimensionsChanged is not a function
+        // when it's not wrapped into an anonymous function
+        this.mutationObserver = new MutationObserver(
+          _.debounce(
+            (m, o) => {
+              this.onVideoMutation(m, o)
+            },
+            250,
+            {
+              leading: true,
+              trailing: true
+            }
+          )
+        )
+      }
+    } catch (e) {
+      console.error('[VideoData] Observer setup failed:', e);
+    }
+    this.mutationObserver.observe(this.video, this.mutationObserverConf);
+  }
+
   /**
    * cleans up handlers and stuff when the show is over
    */
@@ -337,6 +377,37 @@ class VideoData {
     this.validateVideoOffsets();
   }
 
+  onVideoMutation(mutationList?: MutationRecord[], observer?) {
+    // verify that mutation didn't remove our class. Some pages like to do that.
+    let confirmAspectRatioRestore = false;
+
+    for(const mutation of mutationList) {
+      if (mutation.type === 'attributes') {
+        if( mutation.attributeName === 'class' 
+            && mutation.oldValue.indexOf('uw-ultrawidify-base-wide-screen') !== -1
+            && mutation.oldValue.indexOf('uw-ultrawidify-base-wide-screen') === -1
+        ) {
+          // force the page to include our class in classlist, if the classlist has been removed
+          // while classList.add() doesn't duplicate classes (does nothing if class is already added),
+          // we still only need to make sure we're only adding our class to classlist if it has been
+          // removed. classList.add() will _still_ trigger mutation (even if classlist wouldn't change).
+          // This is a problem because INFINITE RECURSION TIME, and we _really_ don't want that.
+
+          confirmAspectRatioRestore = true;
+          this.video.classList.add(this.userCssClassName);
+          this.video.classList.add('uw-ultrawidify-base-wide-screen'); 
+
+          console.warn('our classname was removed by site! undoign!')
+        } else if (mutation.attributeName === 'style') {
+          confirmAspectRatioRestore = true;
+        }
+      }
+    }
+
+    this.processDimensionsChanged();
+    // console.info('video mutated. mutation list?', mutationList);
+  }
+
   onVideoDimensionsChanged(mutationList, observer) {
     if (!mutationList || this.video === undefined) {  // something's wrong
       if (observer && this.video) {
@@ -344,34 +415,15 @@ class VideoData {
       }
       return;
     }
-    let confirmAspectRatioRestore = false;
 
-    for (let mutation of mutationList) {
-      if (mutation.type === 'attributes') {
-        if (mutation.attributeName === 'class') {
-          if(!this.video.classList.contains(this.userCssClassName) ) {
-            // force the page to include our class in classlist, if the classlist has been removed
-            // while classList.add() doesn't duplicate classes (does nothing if class is already added),
-            // we still only need to make sure we're only adding our class to classlist if it has been
-            // removed. classList.add() will _still_ trigger mutation (even if classlist wouldn't change).
-            // This is a problem because INFINITE RECURSION TIME, and we _really_ don't want that.
-            this.video.classList.add(this.userCssClassName);
-            this.video.classList.add('uw-ultrawidify-base-wide-screen'); 
-          }
-          // always trigger refresh on class changes, since change of classname might trigger change 
-          // of the player size as well.
-          confirmAspectRatioRestore = true;
-        }
-        if (mutation.attributeName === 'style') {
-          confirmAspectRatioRestore = true;
-        }
-      }
-    }
+    this.processDimensionsChanged();
+  }
 
-    if (!confirmAspectRatioRestore) {
-      return;
-    }
-
+  /**
+   * Forces Ultrawidify to resotre aspect ratio. You should never call this method directly,
+   * instead you should be calling processDimensionChanged() wrapper function.
+   */
+  private _processDimensionsChanged() {
     // adding player observer taught us that if element size gets triggered by a class, then
     // the 'style' attributes don't necessarily trigger. This means we also need to trigger
     // restoreAr here, in case video size was changed this way
@@ -383,6 +435,21 @@ class VideoData {
     setTimeout( () => {
       this.validateVideoOffsets();
     }, 100);
+  }
+
+  /**
+   * Restores aspect ratio and validates video offsets after the restore. Execution uses
+   * debounce to limit how often the function executes.
+   */
+  private processDimensionsChanged() {
+    _.debounce(
+      this._processDimensionsChanged,
+      250,
+      {
+        leading: true,
+        trailing: true
+      }
+    );
   }
 
   validateVideoOffsets() {
