@@ -8,9 +8,11 @@
 * Settings page looks ugly af right now. Maybe fix it some time later
 * other bug fixes
 
+## v7.0 (planned major)
+ * WebGL autodetection
+
 ## v6.0 (planned major)
 
- * WebGL autodetection
  * in-player GUI
  * Fix UI logger
 
@@ -21,8 +23,9 @@
 There's been some big-ish changes under the hood:
 
 * Migrate main scripts to typescript (vue is currently not included).
-* webextension-polyfill is now used everywhere (if only because typescript throws a hissy fit with `browser` and `chrome` otherwise)
+* webextension-polyfill is now used everywhere (if only because typescript throws a hissy fit with `browser` and `chrome` otherwise) ([#114](https://github.com/tamius-han/ultrawidify/issues/114))
 * Fix some bugs that I didn't even know I had, but typescript kinda shone some light on them
+* Manual zoom (Z/U unless sites override the two) should now work again (without automatic AR constantly overriding it). Same goes for panning. ([#135](https://github.com/tamius-han/ultrawidify/issues/135) & [#138](https://github.com/tamius-han/ultrawidify/issues/138))
 
 ## v4.x (current major)
 
