@@ -298,9 +298,6 @@ class Resizer {
 
     let translate = this.computeOffsets(stretchFactors);
 
-
-    console.log("aspect ratio will be set. stretch factors:", stretchFactors, "translate:", translate);
-
     this.applyCss(stretchFactors, translate);
   }
 
@@ -543,17 +540,19 @@ class Resizer {
       }
     }
   
-    console.log('info', ['debug', 'resizer'], "[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> calculated offsets:\n\n",
-                    '---- data in ----',
-                    '\nplayer dimensions:    ', {w: this.conf.player.dimensions.width, h: this.conf.player.dimensions.height},
-                    '\nvideo dimensions:     ', {w: this.conf.video.offsetWidth, h: this.conf.video.offsetHeight},
-                    '\nreal video dimensions:', {w: realVideoWidth, h: realVideoHeight},
-                    '\nstretch factors:      ', stretchFactors,
-                    '\npan & zoom:           ', this.pan, this.zoom.scale,
-                    '\nwdiff, hdiff:         ', wdiff, 'x', hdiff,
-                    '\nwdiff, hdiffAfterZoom:', wdiffAfterZoom, 'x', hdiffAfterZoom, 
-                    '\n\n---- data out ----\n',
-                    'translate:', translate);
+    this.logger.log(
+      'info', ['debug', 'resizer'], "[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> calculated offsets:\n\n",
+      '---- data in ----',
+      '\nplayer dimensions:    ', {w: this.conf.player.dimensions.width, h: this.conf.player.dimensions.height},
+      '\nvideo dimensions:     ', {w: this.conf.video.offsetWidth, h: this.conf.video.offsetHeight},
+      '\nreal video dimensions:', {w: realVideoWidth, h: realVideoHeight},
+      '\nstretch factors:      ', stretchFactors,
+      '\npan & zoom:           ', this.pan, this.zoom.scale,
+      '\nwdiff, hdiff:         ', wdiff, 'x', hdiff,
+      '\nwdiff, hdiffAfterZoom:', wdiffAfterZoom, 'x', hdiffAfterZoom, 
+      '\n\n---- data out ----\n',
+      'translate:', translate
+    );
 
     // by the way, let's do a quick sanity check whether video player is doing any fuckies wuckies
     // fucky wucky examples: 
