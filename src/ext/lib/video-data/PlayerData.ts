@@ -65,7 +65,7 @@ class PlayerData {
   extensionMode: any;
   dimensions: any;
   private playerIdElement: any;
-  private observer: MutationObserver;
+  private observer: ResizeObserver;
   //#endregion
 
   constructor(videoData) {
@@ -141,7 +141,7 @@ class PlayerData {
 
     try {
       if (BrowserDetect.firefox) {
-        this.observer = new MutationObserver(
+        this.observer = new ResizeObserver(
           _.debounce(           // don't do this too much:
             this.onPlayerDimensionsChanged,
             250,                // do it once per this many ms
@@ -154,7 +154,7 @@ class PlayerData {
       } else {
         // Chrome for some reason insists that this.onPlayerDimensionsChanged is not a function
         // when it's not wrapped into an anonymous function
-        this.observer = new MutationObserver(
+        this.observer = new ResizeObserver(
           _.debounce(           // don't do this too much:
             (m,o) => this.onPlayerDimensionsChanged(m,o),
             250,                // do it once per this many ms
@@ -172,7 +172,7 @@ class PlayerData {
         attributeOldValue: true,
       };
       
-      this.observer.observe(this.element, observerConf);
+      this.observer.observe(this.element);
     } catch (e) {
       console.error("failed to set observer",e )
     }
