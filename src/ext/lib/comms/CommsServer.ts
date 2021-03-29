@@ -45,11 +45,6 @@ class CommsServer {
     ],
     'get-current-site': [
       async (message, port) => {
-        console.info("WILL GET CURRENT SITE AND RETURN:", {
-          cmd: 'set-current-site',
-          site: await this.server.getVideoTab(),
-          tabHostname: await this.getCurrentTabHostname()
-        })
         port.postMessage({
           cmd: 'set-current-site',
           site: await this.server.getVideoTab(),
