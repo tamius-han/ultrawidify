@@ -25,7 +25,7 @@ class VideoData {
   //#region misc stuff
   vdid: string;
   video: any;
-  observer: MutationObserver;
+  observer: ResizeObserver;
   extensionMode: any;
   userCssClassName: string;
   validationId: number;
@@ -182,7 +182,7 @@ class VideoData {
     // INIT OBSERVERS
     try {
       if (BrowserDetect.firefox) {
-        this.observer = new MutationObserver( 
+        this.observer = new ResizeObserver( 
           _.debounce(
             this.onVideoDimensionsChanged,
             250,
@@ -195,7 +195,7 @@ class VideoData {
       } else {
         // Chrome for some reason insists that this.onPlayerDimensionsChanged is not a function
         // when it's not wrapped into an anonymous function
-        this.observer = new MutationObserver( 
+        this.observer = new ResizeObserver( 
           _.debounce(
             (m, o) => {
               this.onVideoDimensionsChanged(m, o)
@@ -211,7 +211,7 @@ class VideoData {
     } catch (e) {
       console.error('[VideoData] Observer setup failed:', e);
     }
-    this.observer.observe(this.video, observerConf);
+    this.observer.observe(this.video);
 
     // INIT AARD
     this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
