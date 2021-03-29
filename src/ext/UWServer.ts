@@ -16,7 +16,7 @@ export default class UWServer {
   ports: any[] = [];
   hasVideos: boolean;
   currentSite: string = '';
-  videoTabs: any;
+  videoTabs: any = {};
   currentTabId: number = 0;
 
   selectedSubitem: any = {
