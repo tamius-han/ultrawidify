@@ -541,8 +541,11 @@ class Resizer {
     }
   
     this.logger.log(
-      'info', ['debug', 'resizer'], "[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> calculated offsets:\n\n",
-      '---- data in ----',
+      'info', ['debug', 'resizer'], "[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> calculated offsets:",
+      '\n\n---- elements ----',
+      '\nplayer element:       ', this.conf.player.element,
+      '\nvideo element:        ', this.conf.video,
+      '\n\n---- data in ----',
       '\nplayer dimensions:    ', {w: this.conf.player.dimensions.width, h: this.conf.player.dimensions.height},
       '\nvideo dimensions:     ', {w: this.conf.video.offsetWidth, h: this.conf.video.offsetHeight},
       '\nreal video dimensions:', {w: realVideoWidth, h: realVideoHeight},
