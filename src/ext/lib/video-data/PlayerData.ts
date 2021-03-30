@@ -63,7 +63,7 @@ class PlayerData {
 
   //#region misc stuff
   extensionMode: any;
-  dimensions: any;
+  dimensions: {width?: number, height?: number, fullscreen?: boolean};
   private playerIdElement: any;
   private observer: ResizeObserver;
   //#endregion
