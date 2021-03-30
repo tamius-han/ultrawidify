@@ -37,14 +37,14 @@ export default class UWServer {
 
     const loggingOptions = {
       isBackgroundScript: true,
-      allowLogging: true,
+      allowLogging: false,
       useConfFromStorage: true,
       logAll: true,
       fileOptions: {
-        enabled: true,
+        enabled: false,
       },
       consoleOptions: {
-        enabled: true
+        enabled: false
       }
     };
     this.logger = new Logger();
