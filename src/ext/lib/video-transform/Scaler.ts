@@ -26,6 +26,7 @@ export type VideoDimensions = {
   yFactor?: number;
   cropStrategy?: number;
   arCorrectionFactor?: number;
+  styleHeightCompensationFactor?: number;
   actualWidth?: number;
   actualHeight?: number;
 }
@@ -182,6 +183,7 @@ class Scaler {
       actualWidth: 0,   // width of the video (excluding pillarbox) when <video> tag height is equal to width
       actualHeight: 0,  // height of the video (excluding letterbox) when <video> tag height is equal to height
       arCorrectionFactor: arCorrectionFactor,
+      styleHeightCompensationFactor: heightCompensationFactor
     }
   
     this.calculateCropCore(videoDimensions, ar.ratio, streamAr, playerAr)

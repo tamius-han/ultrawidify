@@ -518,14 +518,13 @@ class Resizer {
    * @param realVideoHeight real video height
    * @param playerWidth player width
    * @param playerHeight player height
+   * @param mode whether to 
    */
-  computeAutoHeightCompensationFactor(realVideoWidth: number, realVideoHeight: number, playerWidth: number, playerHeight: number): number {
+  computeAutoHeightCompensationFactor(realVideoWidth: number, realVideoHeight: number, playerWidth: number, playerHeight: number, mode: 'height' | 'width'): number {
     const widthFactor = playerWidth / realVideoWidth;
     const heightFactor = playerHeight / realVideoHeight;
 
-    console.warn('wf:', widthFactor, 'hf:', heightFactor);
-
-    return widthFactor < heightFactor ? widthFactor : heightFactor;
+    return mode === 'height' ? heightFactor : widthFactor;
   }
 
   computeOffsets(stretchFactors: VideoDimensions){
@@ -535,10 +534,14 @@ class Resizer {
 
     // correct any remaining element size discrepencies (applicable only to certain crop strategies!)
     // NOTE: it's possible that we might also need to apply a similar measure for CropPillarbox strategy
-    // (but we'll wait for bug reports before doing so)
+    // (but we'll wait for bug reports before doing so).
+    // We also don't compensate for height:auto if height is provided via element style
     let autoHeightCompensationFactor;
-    if (stretchFactors.cropStrategy === CropStrategy.CropLetterbox) {
-      autoHeightCompensationFactor = this.computeAutoHeightCompensationFactor(realVideoWidth, realVideoHeight, this.conf.player.dimensions.width, this.conf.player.dimensions.height);
+    if (
+      stretchFactors.cropStrategy === CropStrategy.CropLetterbox 
+      && (!stretchFactors.styleHeightCompensationFactor || stretchFactors.styleHeightCompensationFactor === 1)
+    ) {
+      autoHeightCompensationFactor = this.computeAutoHeightCompensationFactor(realVideoWidth, realVideoHeight, this.conf.player.dimensions.width, this.conf.player.dimensions.height, 'height');
       stretchFactors.xFactor *= autoHeightCompensationFactor;
       stretchFactors.yFactor *= autoHeightCompensationFactor;
     }
@@ -585,7 +588,7 @@ class Resizer {
       '\nplayer dimensions:    ', {w: this.conf.player.dimensions.width, h: this.conf.player.dimensions.height},
       '\nvideo dimensions:     ', {w: this.conf.video.offsetWidth, h: this.conf.video.offsetHeight},
       '\nreal video dimensions:', {w: realVideoWidth, h: realVideoHeight},
-      '\nauto compensation:    ', autoHeightCompensationFactor,
+      '\nauto compensation:    ', 'x', autoHeightCompensationFactor,
       '\nstretch factors:      ', stretchFactors,
       '\npan & zoom:           ', this.pan, this.zoom.scale,
       '\nwdiff, hdiff:         ', wdiff, 'x', hdiff,
