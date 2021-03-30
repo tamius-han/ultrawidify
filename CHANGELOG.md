@@ -26,6 +26,7 @@ There's been some big-ish changes under the hood:
 * webextension-polyfill is now used everywhere (if only because typescript throws a hissy fit with `browser` and `chrome` otherwise) ([#114](https://github.com/tamius-han/ultrawidify/issues/114))
 * Fix some bugs that I didn't even know I had, but typescript kinda shone some light on them
 * Manual zoom (Z/U unless sites override the two) should now work again (without automatic AR constantly overriding it). Same goes for panning. ([#135](https://github.com/tamius-han/ultrawidify/issues/135) & [#138](https://github.com/tamius-han/ultrawidify/issues/138))
+* Fix issue when video would be scaled incorrectly if video element uses `height:auto`.
 
 ## v4.x (current major)
 
