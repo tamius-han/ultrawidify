@@ -619,6 +619,7 @@ class Resizer {
     return translate; 
   }
   
+  //#region css handling
   buildStyleArray(existingStyleString, extraStyleString) {
     if (existingStyleString) {
       const styleArray = existingStyleString.split(";");
@@ -742,6 +743,7 @@ class Resizer {
       this.logger.log('info', ['debug', 'resizer'], "[Resizer::setStyleString] <rid:"+this.resizerId+"> Existing css is still valid, doing nothing.");
     }
   }
+  //#endregion
 }
 
 export default Resizer;
