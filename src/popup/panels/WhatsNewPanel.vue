@@ -16,6 +16,9 @@
       <li>
         Manual zoom and panning are now back. (<a href="https://github.com/tamius-han/ultrawidify/issues/135">#135</a> and <a href="https://github.com/tamius-han/ultrawidify/issues/138">#138</a>)
       </li>
+      <li>
+        Fix issue when video would be scaled incorrectly if video element uses <code>height:auto</code>.
+      </li>
     </ul>
   </div>
 </template>
