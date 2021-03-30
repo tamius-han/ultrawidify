@@ -41,13 +41,13 @@ class UwUi {
       if (!this.logger) {
         const loggingOptions = {
           isContentScript: true,
-          allowLogging: true,
+          allowLogging: false,
           useConfFromStorage: true,
           fileOptions: {
             enabled: false
           },
           consoleOptions: {
-            "enabled": true,
+            "enabled": false,
             "debug": true,
             "init": true,
             "settings": true,
