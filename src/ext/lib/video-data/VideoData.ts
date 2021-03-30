@@ -385,7 +385,7 @@ class VideoData {
       if (mutation.type === 'attributes') {
         if( mutation.attributeName === 'class' 
             && mutation.oldValue.indexOf('uw-ultrawidify-base-wide-screen') !== -1
-            && mutation.oldValue.indexOf('uw-ultrawidify-base-wide-screen') === -1
+            && !this.video.classList.contains('uw-ultrawidify-base-wide-screen')
         ) {
           // force the page to include our class in classlist, if the classlist has been removed
           // while classList.add() doesn't duplicate classes (does nothing if class is already added),
@@ -396,8 +396,6 @@ class VideoData {
           confirmAspectRatioRestore = true;
           this.video.classList.add(this.userCssClassName);
           this.video.classList.add('uw-ultrawidify-base-wide-screen'); 
-
-          console.warn('our classname was removed by site! undoign!')
         } else if (mutation.attributeName === 'style') {
           confirmAspectRatioRestore = true;
         }
@@ -405,7 +403,6 @@ class VideoData {
     }
 
     this.processDimensionsChanged();
-    // console.info('video mutated. mutation list?', mutationList);
   }
 
   onVideoDimensionsChanged(mutationList, observer) {
