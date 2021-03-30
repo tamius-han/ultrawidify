@@ -39,7 +39,7 @@ export default {
   data() {
     return {
       addonVersion: '[extension version not loaded. This is a bug.]',
-      mailtoLink: 'mailto:tamius.han@gmail.com',
+      mailtoLink: 'mailto:tamius.han+ultrawidify@gmail.com',
       redditLink: '',
     }
   },
