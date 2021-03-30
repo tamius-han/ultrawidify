@@ -1,5 +1,5 @@
 import Debug from '../../conf/Debug';
-import Scaler from './Scaler';
+import Scaler, { CropStrategy, VideoDimensions } from './Scaler';
 import Stretcher from './Stretcher';
 import Zoom from './Zoom';
 import PlayerData from '../video-data/PlayerData';
@@ -501,11 +501,47 @@ class Resizer {
     }
   }
 
-  computeOffsets(stretchFactors){
+  /**
+   * Sometimes, sites (e.g. new reddit) will guarantee that video fits width of its container
+   * and let the browser figure out the height through the magic of height:auto. This is bad,
+   * because our addon generally relies of videos always being 100% of the height of the
+   * container.
+   * 
+   * This sometimes leads to a situation where realVideoHeight and realVideoWidth — at least 
+   * one of which should be roughly equal to the player width or hight with the other one being
+   * either smaller or equal — are both smaller than player width or height; and sometimes 
+   * rather substantially. Fortunately for us, realVideo[Width|Height] and player dimensions
+   * never lie, which allows us to calculate the extra scale factor we need.
+   * 
+   * Returned factor for this function should do fit:contain, not fit:cover.
+   * @param realVideoWidth real video width
+   * @param realVideoHeight real video height
+   * @param playerWidth player width
+   * @param playerHeight player height
+   */
+  computeAutoHeightCompensationFactor(realVideoWidth: number, realVideoHeight: number, playerWidth: number, playerHeight: number): number {
+    const widthFactor = playerWidth / realVideoWidth;
+    const heightFactor = playerHeight / realVideoHeight;
+
+    console.warn('wf:', widthFactor, 'hf:', heightFactor);
+
+    return widthFactor < heightFactor ? widthFactor : heightFactor;
+  }
+
+  computeOffsets(stretchFactors: VideoDimensions){
     this.logger.log('info', 'debug', "[Resizer::computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.settings.active.sites['@global'].videoAlignment);
 
     const {realVideoWidth, realVideoHeight, marginX, marginY} = this.computeVideoDisplayedDimensions();
 
+    // correct any remaining element size discrepencies (applicable only to certain crop strategies!)
+    // NOTE: it's possible that we might also need to apply a similar measure for CropPillarbox strategy
+    // (but we'll wait for bug reports before doing so)
+    let autoHeightCompensationFactor;
+    if (stretchFactors.cropStrategy === CropStrategy.CropLetterbox) {
+      autoHeightCompensationFactor = this.computeAutoHeightCompensationFactor(realVideoWidth, realVideoHeight, this.conf.player.dimensions.width, this.conf.player.dimensions.height);
+      stretchFactors.xFactor *= autoHeightCompensationFactor;
+      stretchFactors.yFactor *= autoHeightCompensationFactor;
+    }
 
     const wdiff = this.conf.player.dimensions.width - realVideoWidth;
     const hdiff = this.conf.player.dimensions.height - realVideoHeight;
@@ -549,6 +585,7 @@ class Resizer {
       '\nplayer dimensions:    ', {w: this.conf.player.dimensions.width, h: this.conf.player.dimensions.height},
       '\nvideo dimensions:     ', {w: this.conf.video.offsetWidth, h: this.conf.video.offsetHeight},
       '\nreal video dimensions:', {w: realVideoWidth, h: realVideoHeight},
+      '\nauto compensation:    ', autoHeightCompensationFactor,
       '\nstretch factors:      ', stretchFactors,
       '\npan & zoom:           ', this.pan, this.zoom.scale,
       '\nwdiff, hdiff:         ', wdiff, 'x', hdiff,
