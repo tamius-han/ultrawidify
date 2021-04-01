@@ -19,6 +19,12 @@
       <li>
         Fix issue when video would be scaled incorrectly if video element uses <code>height:auto</code>.
       </li>
+      <li>
+        <b>[5.0.0.1]</b> Fixed the issue where settings were reset on page load.
+      </li>
+      <li>
+        <b>[5.0.0.1]</b> Fixed the issue where settings page wouldn't load.
+      </li>
     </ul>
   </div>
 </template>

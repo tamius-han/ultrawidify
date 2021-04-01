@@ -18,7 +18,7 @@
 
 ## v5.x (next major)
 
-### v5.0.0 (next)
+### v5.0.0
 
 There's been some big-ish changes under the hood:
 
@@ -27,7 +27,8 @@ There's been some big-ish changes under the hood:
 * Fix some bugs that I didn't even know I had, but typescript kinda shone some light on them
 * Manual zoom (Z/U unless sites override the two) should now work again (without automatic AR constantly overriding it). Same goes for panning. ([#135](https://github.com/tamius-han/ultrawidify/issues/135) & [#138](https://github.com/tamius-han/ultrawidify/issues/138))
 * Fix issue when video would be scaled incorrectly if video element uses `height:auto`.
-
+* **[5.0.0.1]** Fixed the issue where settings were reset on page load.
+* **[5.0.0.1]** Fixed the issue where settings page wouldn't load.
 ## v4.x (current major)
 
 ### v4.5.3
