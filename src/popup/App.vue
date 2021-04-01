@@ -216,12 +216,13 @@ import Comms from '../ext/lib/comms/Comms';
 import VideoPanel from './panels/VideoPanel';
 import PerformancePanel from './panels/PerformancePanel';
 import Settings from '../ext/lib/Settings';
-import ExecAction from './js/ExecAction.js';
+import ExecAction from './js/ExecAction';
 import DefaultSettingsPanel from './panels/DefaultSettingsPanel';
 import AboutPanel from './panels/AboutPanel';
 import ExtensionMode from '../common/enums/ExtensionMode.enum';
 import Logger from '../ext/lib/Logger';
 import {ChromeShittinessMitigations as CSM} from '../common/js/ChromeShittinessMitigations';
+import { browser } from 'webextension-polyfill-ts';
 
 export default {
   data () {
@@ -260,7 +261,8 @@ export default {
     await this.settings.init();
     this.settingsInitialized = true;
 
-    const port = BrowserDetect.firefox ? browser.runtime.connect({name: 'popup-port'}) : chrome.runtime.connect({name: 'popup-port'});
+    // const port = BrowserDetect.firefox ? browser.runtime.connect({name: 'popup-port'}) : chrome.runtime.connect({name: 'popup-port'});
+    const port = browser.runtime.connect({name: 'popup-port'});
     port.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
     CSM.setProperty('port', port);
 

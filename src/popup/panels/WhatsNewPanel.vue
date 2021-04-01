@@ -2,16 +2,28 @@
   <div>
     <h2>What's new</h2>
     <p>Full changelog for older versions <a href="https://github.com/tamius-han/ultrawidify/blob/master/CHANGELOG.md">is available here</a>.</p>
-    <p class="label">4.5.3</p>
+    <p class="label">5.0.0</p>
     <ul>
       <li>
-        Provided a workaround for the fullscreen stretching bug Chrome 88 (or a recent Windows 10 update) introduced for nVidia users using hardware acceleration on Windows 10. In order to mitigate this bug, Ultrawidify needs to keep a 5-10 px wide black border while watching videos in full screen. This bug is also present in Edge.
+        Under the hood: the extension has been moved over to typescript (except UI bits, which remain javascript).
       </li>
       <li>
-        <b>[4.5.3.1]</b> Fixed binding for letterbox misalignment treshold binding in settings.
+        webextension-polyfill is now used everywhere (if only because typescript throws a hissy fit with <code>browser</code> and <code>chrome</code> otherwise) (<a href="https://github.com/tamius-han/ultrawidify/issues/114">#114</a>). 
       </li>
       <li>
-        <b>[4.5.3.2]</b> Removed false positive "this extension can't work due to DRM" notifications.
+        Fix some bugs that I didn't even know I had, but typescript kinda shone some light on them
+      </li>
+      <li>
+        Manual zoom and panning are now back. (<a href="https://github.com/tamius-han/ultrawidify/issues/135">#135</a> and <a href="https://github.com/tamius-han/ultrawidify/issues/138">#138</a>)
+      </li>
+      <li>
+        Fix issue when video would be scaled incorrectly if video element uses <code>height:auto</code>.
+      </li>
+      <li>
+        <b>[5.0.0.1]</b> Fixed the issue where settings were reset on page load.
+      </li>
+      <li>
+        <b>[5.0.0.1]</b> Fixed the issue where settings page wouldn't load.
       </li>
     </ul>
   </div>

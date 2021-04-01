@@ -116,8 +116,8 @@ import KeyboardShortcutParser from '../js/KeyboardShortcutParser';
 export default {
   data () {
     return {
-      Stretch: Stretch,
-      AspectRatio: AspectRatio,
+      StretchType: StretchType,
+      AspectRatioType: AspectRatioType,
     }
   },
   created () {

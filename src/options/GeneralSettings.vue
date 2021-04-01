@@ -108,7 +108,7 @@
         <div class="flex flex-input">
           <input type="number"
                 step="any"
-                :value="settings.active.StretchType.conditionalDifferencePercent"
+                :value="settings.active.stretch.conditionalDifferencePercent"
                 @input="updateStretchThreshold($event.target.value)"
                 >
         </div>
@@ -166,9 +166,9 @@ export default {
   },
   data () {
     return {
-      Stretch: Stretch,
+      StretchType: StretchType,
       ExtensionMode: ExtensionMode,
-      VideoAlignment: VideoAlignment,
+      VideoAlignmentType: VideoAlignmentType,
       stretchThreshold: 0,
       corruptedSettingsError: false,
       downloadPermissionError: false,
@@ -198,7 +198,7 @@ export default {
       if (!newThreshold || isNaN(newThreshold)) {
         return;
       }
-      this.settings.active.StretchType.conditionalDifferencePercent = newThreshold;
+      this.settings.active.stretch.conditionalDifferencePercent = newThreshold;
       this.settings.save();
     },
     resetSettings() {

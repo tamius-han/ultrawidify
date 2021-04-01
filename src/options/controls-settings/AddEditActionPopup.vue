@@ -121,7 +121,7 @@ export default {
   },
   data () {
     return {
-      Stretch: Stretch,
+      StretchType: StretchType,
       action: {
         name: 'New action',
         label: 'New action',

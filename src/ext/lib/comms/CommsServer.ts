@@ -19,124 +19,130 @@ class CommsServer {
   }[] = [];
   popupPort: any;
 
-  commands: {[x: string]: ((a: any, b: any) => void | Promise<void>)[]}
+  /**
+   * commands — functions that handle incoming messages
+   * functions can have the following arguments, which are, 
+   * in this order:
+   *       message      — the message we received
+   *       port|sender  — on persistent channels, second argument is port on which the server
+   *                      listens. If the message was sent in non-persistent way, this is the
+   *                      sender script/frame/whatever of the message
+   *       sendResponse — callback function on messages received via non-persistent channel
+   */
+  commands: {[x: string]: ((a: any, b: any) => void | Promise<void>)[]} = {
+    'announce-zoom': [
+      (message) => {
+        try {
+          // forward message to the popup
+          this.popupPort.postMessage({cmd: 'set-current-zoom', zoom: message.zoom});
+        } catch (e) {
+          // if popup is closed, this will/may fail. This is okay, so we just ignore this error
+        }
+      },
+    ],
+    'get-current-zoom': [
+      (message) => this.sendToActive(message),
+    ],
+    'get-current-site': [
+      async (message, port) => {
+        port.postMessage({
+          cmd: 'set-current-site',
+          site: await this.server.getVideoTab(),
+          tabHostname: await this.getCurrentTabHostname()
+        });
+      },
+    ],
+    'popup-set-selected-tab': [
+      (message) => this.server.setSelectedTab(message.selectedMenu, message.selectedSubitem),
+    ],
+    'has-video': [
+      (message, port) => this.server.registerVideo(port.sender),
+    ],
+    'noVideo': [
+      (message, port) => this.server.unregisterVideo(port.sender),
+    ],
+    'inject-css': [
+      (message, sender) => this.server.injectCss(message.cssString, sender),
+    ],
+    'eject-css': [
+      (message, sender) => this.server.removeCss(message.cssString, sender),
+    ],
+    'replace-css': [
+      (message, sender) => this.server.replaceCss(message.oldCssString, message.newCssString, sender),
+    ],
+    // 'get-config': [
+    //   (message, port) => {
+    //     this.logger.log('info', 'comms', "CommsServer: received get-config. Active settings?", this.settings.active, "\n(settings:", this.settings, ")");
+    //     port.postMessage(
+    //       {cmd: "set-config", conf: this.settings.active, site: this.server.currentSite}
+    //     );
+    //   },
+    // ],
+    'get-config': [
+      (message, sender) => {
+        var ret = {extensionConf: JSON.stringify(this.settings.active)};
+        this.logger.log('info', 'comms', "%c[CommsServer.js::processMessage_nonpersistent] Returning this:", "background-color: #11D; color: #aad", ret);
+        Promise.resolve(ret);
+      }
+    ],
+    'autoar-enable': [
+      () => {
+        this.settings.active.sites['@global'].autoar = ExtensionMode.Enabled;
+        this.settings.save();
+        this.logger.log('info', 'comms', "[uw-bg] autoar set to enabled (blacklist). evidenz:", this.settings.active);
+      }
+    ],
+    'autoar-disable': [
+      (message) => {
+        this.settings.active.sites['@global'].autoar = ExtensionMode.Disabled;
+        if (message.reason){
+          this.settings.active.arDetect.disabledReason = message.reason;
+        } else {
+          this.settings.active.arDetect.disabledReason = 'User disabled';
+        }
+        this.settings.save();
+        this.logger.log('info', 'comms', "[uw-bg] autoar set to disabled. evidenz:", this.settings.active);
+      }
+    ],
+    'autoar-set-interval': [
+      (message) => {
+        this.logger.log('info', 'comms', `[uw-bg] trying to set new interval for autoAr. New interval is, ${message.timeout} ms`);
+    
+        // set fairly liberal limit
+        var timeout = message.timeout < 4 ? 4 : message.timeout;
+        this.settings.active.arDetect.timers.playing = timeout;
+        this.settings.save();
+      }
+    ],
+    'logging-stop-and-save': [  // TODO: possibly never used/superseded — check
+      (message, sender) => {
+        this.logger.log('info', 'comms', "Received command to stop logging and export the received input");
+        this.logger.addToGlobalHistory(`${message.host}::${sender?.tab?.id ?? '×'}-${sender.frameId ?? '×'}`, JSON.parse(message.history));
+        this.logger.finish();
+      }
+    ],
+    'logging-save': [
+      (message, sender) => {
+        this.logger.log('info', 'comms', `Received command to save log for site ${message.host} (tabId ${sender.tab.id}, frameId ${sender.frameId}`);
+        this.logger.addToGlobalHistory(`${message?.host}::${sender?.tab?.id ?? '×'}-${sender?.frameId ?? '×'}`, JSON.parse(message.history));
+      }
+    ]
+  }
+
+
+  //#region getters
+  get activeTab() {
+    return browser.tabs.query({currentWindow: true, active: true});
+  }
+  //#endregion
 
   constructor(server) {
     this.server = server;
     this.logger = server.logger;
     this.settings = server.settings;
-    this.popupPort = null;
 
     browser.runtime.onConnect.addListener(p => this.onConnect(p));
     browser.runtime.onMessage.addListener((m, sender) => this.processReceivedMessage_nonpersistent(m, sender));
-
-    // commands — functions that handle incoming messages
-    // functions can have the following arguments, which are, 
-    // in this order:
-    //       message      — the message we received
-    //       port|sender  — on persistent channels, second argument is port on which the server
-    //                      listens. If the message was sent in non-persistent way, this is the
-    //                      sender script/frame/whatever of the message
-    //       sendResponse — callback function on messages received via non-persistent channel
-    this.commands = {
-      'announce-zoom': [
-        (message) => {
-          try {
-            // forward message to the popup
-            this.popupPort.postMessage({cmd: 'set-current-zoom', zoom: message.zoom});
-          } catch (e) {
-            // if popup is closed, this will/may fail. This is okay, so we just ignore this error
-          }
-        },
-      ],
-      'get-current-zoom': [
-        (message) => this.sendToActive(message),
-      ],
-      'get-current-site': [
-        async (message, port) => {
-          port.postMessage({
-            cmd: 'set-current-site',
-            site: await this.server.getVideoTab(),
-            tabHostname: await this.getCurrentTabHostname()
-          });
-        },
-      ],
-      'popup-set-selected-tab': [
-        (message) => this.server.setSelectedTab(message.selectedMenu, message.selectedSubitem),
-      ],
-      'has-video': [
-        (message, port) => this.server.registerVideo(port.sender),
-      ],
-      'noVideo': [
-        (message, port) => this.server.unregisterVideo(port.sender),
-      ],
-      'inject-css': [
-        (message, sender) => this.server.injectCss(message.cssString, sender),
-      ],
-      'eject-css': [
-        (message, sender) => this.server.removeCss(message.cssString, sender),
-      ],
-      'replace-css': [
-        (message, sender) => this.server.replaceCss(message.oldCssString, message.newCssString, sender),
-      ],
-      // 'get-config': [
-      //   (message, port) => {
-      //     this.logger.log('info', 'comms', "CommsServer: received get-config. Active settings?", this.settings.active, "\n(settings:", this.settings, ")");
-      //     port.postMessage(
-      //       {cmd: "set-config", conf: this.settings.active, site: this.server.currentSite}
-      //     );
-      //   },
-      // ],
-      'get-config': [
-        (message, sender) => {
-          var ret = {extensionConf: JSON.stringify(this.settings.active)};
-          this.logger.log('info', 'comms', "%c[CommsServer.js::processMessage_nonpersistent] Returning this:", "background-color: #11D; color: #aad", ret);
-          Promise.resolve(ret);
-        }
-      ],
-      'autoar-enable': [
-        () => {
-          this.settings.active.sites['@global'].autoar = ExtensionMode.Enabled;
-          this.settings.save();
-          this.logger.log('info', 'comms', "[uw-bg] autoar set to enabled (blacklist). evidenz:", this.settings.active);
-        }
-      ],
-      'autoar-disable': [
-        (message) => {
-          this.settings.active.sites['@global'].autoar = ExtensionMode.Disabled;
-          if (message.reason){
-            this.settings.active.arDetect.disabledReason = message.reason;
-          } else {
-            this.settings.active.arDetect.disabledReason = 'User disabled';
-          }
-          this.settings.save();
-          this.logger.log('info', 'comms', "[uw-bg] autoar set to disabled. evidenz:", this.settings.active);
-        }
-      ],
-      'autoar-set-interval': [
-        (message) => {
-          this.logger.log('info', 'comms', `[uw-bg] trying to set new interval for autoAr. New interval is, ${message.timeout} ms`);
-      
-          // set fairly liberal limit
-          var timeout = message.timeout < 4 ? 4 : message.timeout;
-          this.settings.active.arDetect.timers.playing = timeout;
-          this.settings.save();
-        }
-      ],
-      'logging-stop-and-save': [  // TODO: possibly never used/superseded — check
-        (message, sender) => {
-          this.logger.log('info', 'comms', "Received command to stop logging and export the received input");
-          this.logger.addToGlobalHistory(`${message.host}::${sender?.tab?.id ?? '×'}-${sender.frameId ?? '×'}`, JSON.parse(message.history));
-          this.logger.finish();
-        }
-      ],
-      'logging-save': [
-        (message, sender) => {
-          this.logger.log('info', 'comms', `Received command to save log for site ${message.host} (tabId ${sender.tab.id}, frameId ${sender.frameId}`);
-          this.logger.addToGlobalHistory(`${message?.host}::${sender?.tab?.id ?? '×'}-${sender?.frameId ?? '×'}`, JSON.parse(message.history));
-        }
-      ]
-    }
   }
 
   subscribe(command, callback) {
@@ -181,9 +187,6 @@ class CommsServer {
     }
   }
 
-  get activeTab() {
-    return browser.tabs.query({currentWindow: true, active: true});
-  }
 
   /**
    * Sends a message to addon content scripts.
@@ -306,7 +309,7 @@ class CommsServer {
     await this.execCmd(message, portOrSender);
     
     if (message.forwardToSameFramePort) {
-      this.sendToFrameContentScripts(message, portOrSender.tab.id, portOrSender.frameId, message.port)
+      this.sendToFrameContentScripts(message, portOrSender.tab.id, portOrSender.frameId, message.port);
     }
     if (message.forwardToContentScript) {
       this.logger.log('info', 'comms', "[CommsServer.js::processReceivedMessage] Message has 'forward to content script' flag set. Forwarding message as is. Message:", message);

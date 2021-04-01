@@ -16,7 +16,7 @@ export default class UWServer {
   ports: any[] = [];
   hasVideos: boolean;
   currentSite: string = '';
-  videoTabs: any;
+  videoTabs: any = {};
   currentTabId: number = 0;
 
   selectedSubitem: any = {
@@ -37,14 +37,14 @@ export default class UWServer {
 
     const loggingOptions = {
       isBackgroundScript: true,
-      allowLogging: true,
+      allowLogging: false,
       useConfFromStorage: true,
       logAll: true,
       fileOptions: {
-        enabled: true,
+        enabled: false,
       },
       consoleOptions: {
-        enabled: true
+        enabled: false
       }
     };
     this.logger = new Logger();

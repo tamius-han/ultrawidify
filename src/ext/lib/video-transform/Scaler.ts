@@ -5,6 +5,32 @@ import VideoData from '../video-data/VideoData';
 import Logger from '../Logger';
 
 
+export enum CropStrategy {
+  /**
+   * Nomenclature explained:
+   * 
+   * SP - stream AR < player AR
+   * PS - the opposite of ↑
+   * 
+   * ArDominant - given aspect ratio is bigger than stream AR and player AR
+   * PSDominant - stream AR or player AR are bigger than given aspect ratio
+   */
+  CropLetterbox = 1,
+  NoCropPillarbox = 2,
+  NoCropLetterbox = 3,
+  CropPillarbox = 4
+}
+
+export type VideoDimensions = {
+  xFactor?: number;
+  yFactor?: number;
+  cropStrategy?: number;
+  arCorrectionFactor?: number;
+  styleHeightCompensationFactor?: number;
+  actualWidth?: number;
+  actualHeight?: number;
+}
+
 // računa velikost videa za približevanje/oddaljevanje
 // does video size calculations for zooming/cropping
 
@@ -72,7 +98,7 @@ class Scaler {
     return null;
   }
 
-  calculateCrop(ar) {
+  calculateCrop(ar: {type: AspectRatioType, ratio?: number}) {
     /**
      * STEP 1: NORMALIZE ASPECT RATIO
      *
@@ -151,12 +177,13 @@ class Scaler {
   
     this.logger.log('info', 'scaler', "[Scaler::calculateCrop] ar is " ,ar.ratio, ", file ar is", streamAr, ", this.conf.player.dimensions are ", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
     
-    const videoDimensions = {
+    const videoDimensions: VideoDimensions = {
       xFactor: 1,
       yFactor: 1,
       actualWidth: 0,   // width of the video (excluding pillarbox) when <video> tag height is equal to width
       actualHeight: 0,  // height of the video (excluding letterbox) when <video> tag height is equal to height
       arCorrectionFactor: arCorrectionFactor,
+      styleHeightCompensationFactor: heightCompensationFactor
     }
   
     this.calculateCropCore(videoDimensions, ar.ratio, streamAr, playerAr)
@@ -172,18 +199,20 @@ class Scaler {
    * @param {*} streamAr 
    * @param {*} playerAr 
    */
-  calculateCropCore(videoDimensions, ar, streamAr, playerAr) {
+  calculateCropCore(videoDimensions: VideoDimensions, ar: number, streamAr: number, playerAr: number) {
     if (streamAr < playerAr) {
       if (streamAr < ar){
         // in this situation we have to crop letterbox on top/bottom of the player
         // we cut it, but never more than the player
         videoDimensions.xFactor = Math.min(ar, playerAr) / streamAr;
         videoDimensions.yFactor = videoDimensions.xFactor;
+        videoDimensions.cropStrategy = CropStrategy.CropLetterbox;
       } else {
         // in this situation, we would be cutting pillarbox. Inside horizontal player.
         // I don't think so. Except exceptions, we'll wait for bug reports.
         videoDimensions.xFactor = 1;
         videoDimensions.yFactor = 1;
+        videoDimensions.cropStrategy = CropStrategy.NoCropPillarbox;
       }
     } else {
       if (streamAr < ar || playerAr < ar){
@@ -191,10 +220,12 @@ class Scaler {
         // this means we simply don't crop anything _at all_
         videoDimensions.xFactor = 1;
         videoDimensions.yFactor = 1;
+        videoDimensions.cropStrategy = CropStrategy.NoCropLetterbox;
       } else {
         // meant for handling pillarbox crop. not quite implemented.
-        videoDimensions.xFactor = streamAr / Math.min(ar.ratio, playerAr);
+        videoDimensions.xFactor = streamAr / Math.min(ar, playerAr);
         videoDimensions.yFactor = videoDimensions.xFactor;
+        videoDimensions.cropStrategy = CropStrategy.CropPillarbox;
         // videoDimensions.xFactor = Math.max(ar.ratio, playerAr) * fileAr;
         // videoDimensions.yFactor = videoDimensions.xFactor;
       }

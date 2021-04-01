@@ -10,13 +10,13 @@ if (process.env.CHANNEL !== 'stable'){
 
 export const baseLoggingOptions: LoggerConfig = {
   isContentScript: true,
-  allowLogging: true,
+  allowLogging: false,
   useConfFromStorage: true,
   fileOptions: {
     enabled: false
   },
   consoleOptions: {
-    "enabled": true,
+    "enabled": false,
     "debug": true,
     "init": true,
     "settings": true,
