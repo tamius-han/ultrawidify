@@ -65,7 +65,7 @@ class Settings {
     if (!parsedSettings.preventReload && this.onSettingsChanged) {
       try {
         this.onSettingsChanged();
-        console.info('Storage changed!');
+
         this.logger?.log('info', 'settings', '[Settings] Update callback finished.')
       } catch (e) {
         this.logger?.log('error', 'settings', "[Settings] CALLING UPDATE CALLBACK FAILED. Reason:", e)
