@@ -94,7 +94,7 @@ import StretchType from '../../../common/enums/StretchType.enum';
 export default {
   data () {
     return {
-      Stretch: Stretch,
+      StretchType: StretchType,
       ActionList: ActionList,
       selectedAction: undefined,
       selectedArgument: undefined,

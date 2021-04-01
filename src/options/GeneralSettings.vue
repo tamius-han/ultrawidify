@@ -166,7 +166,7 @@ export default {
   },
   data () {
     return {
-      Stretch: Stretch,
+      StretchType: StretchType,
       ExtensionMode: ExtensionMode,
       VideoAlignment: VideoAlignment,
       stretchThreshold: 0,
