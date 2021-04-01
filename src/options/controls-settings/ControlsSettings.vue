@@ -121,7 +121,7 @@ export default {
   },
   data () {
     return {
-      Stretch: Stretch,
+      StretchType: StretchType,
       tableVisibility: {
         crop: true,
       }
