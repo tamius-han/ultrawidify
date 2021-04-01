@@ -117,7 +117,7 @@ export default {
   data () {
     return {
       StretchType: StretchType,
-      AspectRatio: AspectRatio,
+      AspectRatioType: AspectRatioType,
     }
   },
   created () {
