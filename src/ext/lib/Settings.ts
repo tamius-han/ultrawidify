@@ -65,7 +65,7 @@ class Settings {
     if (!parsedSettings.preventReload && this.onSettingsChanged) {
       try {
         this.onSettingsChanged();
-
+        console.info('Storage changed!');
         this.logger?.log('info', 'settings', '[Settings] Update callback finished.')
       } catch (e) {
         this.logger?.log('error', 'settings', "[Settings] CALLING UPDATE CALLBACK FAILED. Reason:", e)
@@ -230,16 +230,6 @@ class Settings {
 
     // if there's settings, set saved object as active settings
     this.active = settings;
-
-    // if last saved settings was for version prior to 4.x, we reset settings to default
-    // it's not like people will notice cos that version didn't preserve settings at all
-    if (this.active.version && !settings.version.startsWith('4')) {
-      this.active = this.getDefaultSettings();
-      this.active.version = this.version;
-      await this.save();
-      return this.active;
-    }
-
 
     // if version number is undefined, we make it defined
     // this should only happen on first extension initialization
