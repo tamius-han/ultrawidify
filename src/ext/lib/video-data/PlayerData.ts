@@ -108,7 +108,6 @@ class PlayerData {
   }
 
   static isFullScreen(){
-    console.info(window.innerHeight, window.screen.height, 'x', window.innerWidth, window.screen.width);
     return ( window.innerHeight == window.screen.height && window.innerWidth == window.screen.width);
   }
 
