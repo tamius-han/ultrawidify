@@ -13,7 +13,7 @@
     </ul>
     <p>
       <small><b>NOTE:</b> zoom limitations were introduced as a workaround for a bug caused by Chrome's/Edge's faulty hardware acceleration
-      which caused videos to be incorrectly stretched on nVidia GPUs while in fullscreens. While this issue is reportedly fixed as
+      which caused videos to be incorrectly stretched on nVidia GPUs while in fullscreen. While this issue is reportedly fixed as
       of few weeks ago, a few people reported having this issue within the past two weeks.</small>
     </p>
     <p>
