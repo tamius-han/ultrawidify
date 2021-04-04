@@ -271,17 +271,16 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
    * style attribute does).
    */
   chromeBugMitigation(stretchFactors) {
-    console.log("limit zoom?", BrowserDetect.anyChromium, this.conf.player?.dimensions, this.settings?.active?.mitigations?.zoomLimit?.enabled);
+    console.log("limit zoom?", BrowserDetect.anyChromium, this.conf.player?.dimensions, this.settings?.active?.mitigations?.zoomLimit?.enabled, 'stack?', new Error().stack);
     if (
       BrowserDetect.anyChromium 
-      && (this.conf.player?.dimensions?.fullscreen || !
-        this.settings?.active?.mitigations?.zoomLimit?.fullscreenOnly)
+      && (this.conf.player?.dimensions?.fullscreen || ! this.settings?.active?.mitigations?.zoomLimit?.fullscreenOnly)
       && this.settings?.active?.mitigations?.zoomLimit?.enabled
     ) {
       const playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
       const streamAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
       
-      let maxSafeAr;
+      let maxSafeAr: number;
       let arLimitFactor = this.settings?.active?.mitigations?.zoomLimit?.limit ?? 0.997;
 
       if (playerAr >= (streamAr * 1.1)) {
