@@ -164,7 +164,7 @@
               <b>Fix for:</b> Chrome and Edge used to have a bug where videos would get incorrectly stretched when zoomed in too far.
               The issue only appeared in fullscreen, on nVidia GPUs, and with hardware acceleration enabled. While this option only
               needs to be applied in fullscreen, fullscreen detection in Chrome can be a bit unreliable (depending on your OS and/or
-              display scaling settings).
+              display scaling settings). <a href="https://stuff.tamius.net/sacred-texts/2021/02/01/ultrawidify-and-chrome-2021-edition/">More about the issue</a>.
             </small>
           </div>
         </div>
