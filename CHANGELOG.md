@@ -11,12 +11,16 @@
 ## v7.0 (planned major)
  * WebGL autodetection
 
-## v6.0 (planned major)
+## v6.0 (next major)
 
  * in-player GUI
  * Fix UI logger
 
-## v5.x (next major)
+## v5.x (current major)
+
+### v5.0.1
+* Turned off zoom limitations for Edge and Chrome. 
+* Added an option for users to manually re-enable (and configure) Chrome/Edge's zoom limiter.
 
 ### v5.0.0
 
