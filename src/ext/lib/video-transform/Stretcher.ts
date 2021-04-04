@@ -271,7 +271,6 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
    * style attribute does).
    */
   chromeBugMitigation(stretchFactors) {
-    console.log("limit zoom?", BrowserDetect.anyChromium, this.conf.player?.dimensions, this.settings?.active?.mitigations?.zoomLimit?.enabled, 'stack?', new Error().stack);
     if (
       BrowserDetect.anyChromium 
       && (this.conf.player?.dimensions?.fullscreen || ! this.settings?.active?.mitigations?.zoomLimit?.fullscreenOnly)
