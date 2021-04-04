@@ -1,6 +1,6 @@
 {
   "name": "ultrawidify",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "Aspect ratio fixer for youtube and other sites, with automatic aspect ratio detection. Supports ultrawide and other ratios.",
   "author": "Tamius Han <tamius.han@gmail.com>",
   "scripts": {

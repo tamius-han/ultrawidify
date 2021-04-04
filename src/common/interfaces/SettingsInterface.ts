@@ -181,6 +181,18 @@ interface SettingsInterface {
   pan?: any,
   version?: string,
   preventReload?: boolean,
+
+  // -----------------------------------------
+  //           ::: MITIGATIONS :::
+  // -----------------------------------------
+  // Settings for browser bug workarounds.
+  mitigations?: {
+    zoomLimit?: {
+      enabled?: boolean,
+      fullscreenOnly: boolean,
+      limit?: number,
+    }
+  }
   // -----------------------------------------
   //             ::: ACTIONS :::
   // -----------------------------------------

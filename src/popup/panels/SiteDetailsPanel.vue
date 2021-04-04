@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-column" style="padding-bottom: 20px">
+  <div class="flex flex-column" style="padding-bottom: 20px; position: relative">
     <!-- <div class="">
       <div class="label">Player picker</div>
       <div class="desc">
@@ -122,6 +122,67 @@
         />
       </div>
 
+      <div class="label">
+        Browser quirk mitigations
+      </div>
+      <div class="description">
+        Sometimes, the extension may misbehave as a result of issues and bugs present in your browser, operating system or your GPU driver.
+        Some of the issues can be fixed by limiting certain functionalities of this addon.
+      </div>
+      <div class="flex flex-column">
+        <div
+          v-if="BrowserDetect.anyChromium"
+          class="workaround flex flex-column"
+        >
+          <div class="flex label-secondary form-label">
+            <input :checked="settings?.active?.mitigations?.zoomLimit?.enabled"
+                  @change="setMitigation(['zoomLimit', 'enabled'], $event.target.checked)"
+                  type="checkbox" 
+            /> Limit zoom.
+          </div>
+          <div class="flex flex-row">
+            <div class="label-secondary form-label">
+              <small>Limit zoom to % of width (1=100%):</small>
+            </div>
+            <input type="number"
+                  :value="settings?.active?.mitigations?.zoomLimit?.limit || 0.997"
+                  step="0.001"
+                  min="0.5"
+                  @change="setMitigation(['zoomLimit', 'limit'], +$event.target.value)"
+                  @blur="updateVideoQuerySelector"
+                  :disabled="!settings?.active?.mitigations?.zoomLimit?.enabled"
+            />
+          </div>
+          <div class="flex label-secondary form-label">
+            <input :checked="settings?.active?.mitigations?.zoomLimit?.fullscreenOnly"
+                  @change="setMitigation(['zoomLimit', 'fullscreenOnly'], $event.target.checked)"
+                  type="checkbox" 
+            /> Limit zoom only while in fullscreen
+          </div>
+          <div class="description">
+            <small>
+              <b>Fix for:</b> Chrome and Edge used to have a bug where videos would get incorrectly stretched when zoomed in too far.
+              The issue only appeared in fullscreen, on nVidia GPUs, and with hardware acceleration enabled. While this option only
+              needs to be applied in fullscreen, fullscreen detection in Chrome can be a bit unreliable (depending on your OS and/or
+              display scaling settings).
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <div>&nbsp;</div>
+
+      <div>&nbsp;</div>
+
+    </div>
+    <div id="save-banner-observer-bait">
+      &nbsp;
+    </div>
+    <div
+      id="save-banner"
+      class="save-banner"
+    >
+      <div class="button">Save settings</div>
     </div>
   </div>
 </template>
@@ -133,6 +194,8 @@ import QuerySelectorSetting from '../../common/components/QuerySelectorSetting.v
 import ExtensionMode from '../../common/enums/ExtensionMode.enum';
 import VideoAlignmentType from '../../common/enums/VideoAlignmentType.enum';
 import StretchType from '../../common/enums/StretchType.enum';
+import BrowserDetect from '../../ext/conf/BrowserDetect';
+
 export default {
   components: {
     QuerySelectorSetting,
@@ -149,6 +212,7 @@ export default {
       playerCss: '',
       playerByNodeIndex: false,
       playerParentNodeIndex: undefined,
+      BrowserDetect
     };
   },
   props: {
@@ -179,7 +243,24 @@ export default {
       // that's here just in case relevant settings for this site don't exist yet
     }
   },
+  mounted() {
+    this.createObserver();
+  },
   methods: {
+    createObserver() {
+      const saveButtonBait = document.getElementById('save-banner-observer-bait');
+      const saveButton = document.getElementById('save-banner');
+
+      const observer = new IntersectionObserver( 
+        ([e]) => {
+          // console.log('observer triggered. intersection ratio?', e.intersectionRatio)
+          saveButton.classList.toggle('floating', e.intersectionRatio < 0.95);
+        },
+        {threshold: [0, 0.5, 0.9, 0.95, 1]}
+      );
+
+      observer.observe(saveButtonBait);
+    },
     ensureSettings(scope) {
       if (! this.settings.active.sites[this.site]) {
         this.settings.active.sites[this.site] = {
@@ -248,12 +329,39 @@ export default {
       this.settings.active.sites[this.site].DOM.player.useRelativeAncestor = this.playerByNodeIndex;
       this.settings.save();
     },
+    setMitigation(mitigation, value) {
+      // ensure mitigations object exists.
+      // it may not exist in the settings on first load
+      if (! this.settings.active.mitigations) {
+        this.settings.active.mitigations = {};
+      }
+
+      if (Array.isArray(mitigation)) {
+        let currentMitigationsParent = this.settings.active.mitigations;
+
+        for (let i = 0; i < mitigation.length - 1; i++) {
+          if (!currentMitigationsParent[mitigation[i]]) {
+            currentMitigationsParent[mitigation[i]] = {};
+          }
+          currentMitigationsParent = currentMitigationsParent[mitigation[i]];
+        }
+
+        currentMitigationsParent[mitigation[mitigation.length - 1]] = value;
+      
+      } else {
+        this.settings.active.mitigations[mitigation] = value;
+      }
+
+      this.settings.save();
+    }
   }
 
 }
 </script>
 
-<style>
+<style lang="scss">
+@import '../../res/css/colors.scss';
+
 .pp_video {
   margin: 2px;
   padding: 5px;
@@ -278,5 +386,19 @@ export default {
   margin: 2px;
   padding: 2px;
   border: 2px solid #f00;
+}
+
+.save-banner {
+  display: block;
+  position: sticky;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  background-color: #131313;
+  text-align: center;
+
+  &.floating {
+    box-shadow: 0 2rem 3rem 1rem $selected-color;
+  }
 }
 </style>
