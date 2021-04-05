@@ -156,6 +156,7 @@
           <div class="flex label-secondary form-label">
             <input :checked="settings?.active?.mitigations?.zoomLimit?.fullscreenOnly"
                   @change="setMitigation(['zoomLimit', 'fullscreenOnly'], $event.target.checked)"
+                  :disabled="!settings?.active?.mitigations?.zoomLimit?.enabled"
                   type="checkbox" 
             /> Limit zoom only while in fullscreen
           </div>
