@@ -3,6 +3,7 @@
 import StretchType from '../../common/enums/StretchType.enum';
 import ExtensionMode from '../../common/enums/ExtensionMode.enum';
 import VideoAlignmentType from '../../common/enums/VideoAlignmentType.enum';
+import BrowserDetect from './BrowserDetect';
 
 const ExtensionConfPatch = [
   {
@@ -443,6 +444,21 @@ const ExtensionConfPatch = [
         userOptions.sites['wwww.disneyplus.com']['css'] = ".hudson-container {\n  height: 100%;\n}";
       } catch (e) {
         // do nothing if disney+ is missing
+      }
+    }
+  }, {
+    forVersion: '5.0.1',
+    updateFn: (userOptions, defaultOptions) => {
+      try {
+        userOptions.mitigations = {
+          zoomLimit: {
+            enabled: BrowserDetect.edge || BrowserDetect.isEdgeUA,
+            limit: 0.997,
+            fullscreenOnly: true
+          }
+        } 
+      } catch (e) {
+        // do nothing
       }
     }
   }
