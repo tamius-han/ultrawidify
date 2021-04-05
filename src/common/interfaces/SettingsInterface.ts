@@ -189,7 +189,7 @@ interface SettingsInterface {
   mitigations?: {
     zoomLimit?: {
       enabled?: boolean,
-      fullscreenOnly: boolean,
+      fullscreenOnly?: boolean,
       limit?: number,
     }
   }
