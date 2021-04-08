@@ -5,10 +5,7 @@
     <p class="label">5.0.1</p>
     <ul>
       <li>
-        Disabled zoom limitation in Chrome build of the addon (workaround remains active in <a href="https://microsoftedge.microsoft.com/addons/detail/ultrawidify/lmpgpgechmkkkehkihpiddbcbgibokbi" target="_blank">Edge Addons</a> build of the addon)
-      </li>
-      <li>
-        Added an option to toggle and further configure zoom limitation.
+        Added an option to disable and further configure zoom limitations.
       </li>
     </ul>
     <p>
