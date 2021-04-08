@@ -19,8 +19,7 @@
 ## v5.x (current major)
 
 ### v5.0.1
-* Turned off zoom limitations for Edge and Chrome. 
-* Added an option for users to manually re-enable (and configure) Chrome/Edge's zoom limiter.
+* Added an option for users to turn off (and/or configure) Chrome/Edge's zoom limiter.
 
 ### v5.0.0
 
