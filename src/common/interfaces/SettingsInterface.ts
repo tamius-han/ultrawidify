@@ -285,6 +285,7 @@ interface SettingsInterface {
         }
       },
       css?: string;
+      usePlayerArInFullscreen: boolean;
     }
   }
 }
