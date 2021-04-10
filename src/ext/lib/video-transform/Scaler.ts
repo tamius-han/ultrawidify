@@ -118,8 +118,8 @@ class Scaler {
      *   * because video width is normalized on 100% of the parent, we don't need to correct
      *     anything when the player is wider than the video.
      */
-    const streamAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
-    const playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
+    const streamAr = this.conf.aspectRatio;
+    const playerAr = this.conf.player.aspectRatio;
     const heightCompensationFactor = this.conf.getHeightCompensationFactor();
     const compensatedStreamAr = streamAr * heightCompensationFactor;
 
