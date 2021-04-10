@@ -963,7 +963,7 @@ const ExtensionConf: SettingsInterface = {
   ],
   mitigations: {
     zoomLimit: {
-      enabled: BrowserDetect.edge || BrowserDetect.isEdgeUA,
+      enabled: true,
       limit: 0.997,
       fullscreenOnly: true
     }
