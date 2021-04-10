@@ -148,7 +148,7 @@ class Scaler {
     }
 
     if (ar.type === AspectRatioType.Reset){
-      return {xFactor: arCorrectionFactor, yFactor: arCorrectionFactor, arCorrectionFactor: arCorrectionFactor}
+      return {xFactor: arCorrectionFactor, yFactor: arCorrectionFactor, arCorrectionFactor: arCorrectionFactor};
     }
 
     // handle fuckie-wuckies
