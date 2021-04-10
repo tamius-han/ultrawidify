@@ -68,6 +68,17 @@ class PlayerData {
   private observer: ResizeObserver;
   //#endregion
 
+  /**
+   * Gets player aspect ratio. If in full screen, it returns screen aspect ratio unless settings say otherwise.
+   */
+  get aspectRatio() {
+    if (this.dimensions.fullscreen && !this.settings.getSettingsForSite()?.usePlayerArInFullscreen) {
+      return window.innerWidth / window.innerHeight;
+    }
+
+    return this.dimensions.width / this.dimensions.height;
+  }
+
   constructor(videoData) {
     try {
       this.logger = videoData.logger;

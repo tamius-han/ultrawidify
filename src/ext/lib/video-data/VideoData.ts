@@ -48,6 +48,10 @@ class VideoData {
   //#endregion
 
 
+  get aspectRatio() {
+    return this.video.videoWidth / this.video.videoHeight;
+  }
+  
   constructor(video, settings, pageInfo){
     this.vdid = (Math.random()*100).toFixed();
     this.logger = pageInfo.logger;

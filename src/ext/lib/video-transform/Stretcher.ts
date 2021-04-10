@@ -47,8 +47,8 @@ class Stretcher {
   }
 
   applyConditionalStretch(stretchFactors, actualAr){
-    let playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
-    let videoAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
+    let playerAr = this.conf.player.aspectRatio;
+    let videoAr = this.conf.aspectRatio;
 
     if (! actualAr){
       actualAr = playerAr;
@@ -102,25 +102,25 @@ class Stretcher {
     // This means we want to calculate stretching using those values, but we don't know
     // them. This means we have to calculate them.
 
-    const videoAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
-    if (this.conf.player.dimensions.width > this.conf.player.dimensions.height * videoAr) {
+    const streamAr = this.conf.aspectRatio;
+    if (this.conf.player.dimensions.width > this.conf.player.dimensions.height * streamAr) {
       return {
-        xFactor: this.conf.player.dimensions.width / (this.conf.player.dimensions.height * videoAr),
+        xFactor: this.conf.player.dimensions.width / (this.conf.player.dimensions.height * streamAr),
         yFactor: 1
       };
     }
 
     return {
       xFactor: 1,
-      yFactor: this.conf.player.dimensions.height / (this.conf.player.dimensions.width / videoAr)
+      yFactor: this.conf.player.dimensions.height / (this.conf.player.dimensions.width / streamAr)
     };
   }
 
   applyStretchFixedSource(postCropStretchFactors) {
-    const videoAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
-    const playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
+    const streamAr = this.conf.aspectRatio;
+    const playerAr = this.conf.player.aspectRatio;
 
-    const squeezeFactor = this.fixedStretchRatio / videoAr;
+    const squeezeFactor = this.fixedStretchRatio / streamAr;
 
     // Whether squeezing happens on X or Y axis depends on whether required AR is wider or narrower than
     // the player, in which the video is displayed
@@ -130,7 +130,7 @@ class Stretcher {
     this.logger.log('info', 'stretcher', `[Stretcher::applyStretchFixedSource] here's what we got:
 postCropStretchFactors: x=${postCropStretchFactors.xFactor} y=${postCropStretchFactors.yFactor}
 fixedStretchRatio:      ${this.fixedStretchRatio}
-videoAr:                ${videoAr}
+videoAr:                ${streamAr}
 playerAr:               ${playerAr}
 squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
 
@@ -151,9 +151,6 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
   }
 
   getArCorrectionFactor() {
-    const streamAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
-    const playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
-
     let arCorrectionFactor = 1;
     arCorrectionFactor = this.conf.player.dimensions.width / this.conf.video.offsetWidth;
 
@@ -161,8 +158,8 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
   }
 
    calculateStretch(actualAr, playerArOverride?) {
-    const playerAr = playerArOverride || this.conf.player.dimensions.width / this.conf.player.dimensions.height;
-    const streamAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
+    const playerAr = playerArOverride || this.conf.player.aspectRatio;
+    const streamAr = this.conf.aspectRatio;
 
     if (! actualAr){
       actualAr = playerAr;
@@ -276,8 +273,8 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
       && (this.conf.player?.dimensions?.fullscreen || ! this.settings?.active?.mitigations?.zoomLimit?.fullscreenOnly)
       && this.settings?.active?.mitigations?.zoomLimit?.enabled
     ) {
-      const playerAr = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
-      const streamAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
+      const playerAr = this.conf.player.aspectRatio;
+      const streamAr = this.conf.aspectRatio;
       
       let maxSafeAr: number;
       let arLimitFactor = this.settings?.active?.mitigations?.zoomLimit?.limit ?? 0.997;
