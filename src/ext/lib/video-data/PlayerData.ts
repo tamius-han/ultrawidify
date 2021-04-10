@@ -118,8 +118,18 @@ class PlayerData {
     }
   }
 
+  /**
+   * Returns whether we're in fullscreen mode or not.
+   */
   static isFullScreen(){
-    return ( window.innerHeight == window.screen.height && window.innerWidth == window.screen.width);
+    const ihdiff = Math.abs(window.screen.height - window.innerHeight);
+    const iwdiff = Math.abs(window.screen.width - window.innerWidth);
+
+    // Chrome on linux on X on mixed PPI displays may return ever so slightly different values
+    // for innerHeight vs screen.height abd innerWidth vs. screen.width, probably courtesy of
+    // fractional scaling or something. This means we'll give ourself a few px of margin — the
+    // window elements visible in not-fullscreen are usually double digit px tall
+    return ( ihdiff < 5 && iwdiff < 5 );
   }
 
   
