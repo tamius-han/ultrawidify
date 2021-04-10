@@ -380,6 +380,14 @@ class Settings {
     return this.active.actions;
   }
 
+  getSettingsForSite(site?) {
+    if (!site) {
+      site = window.location.hostname;
+    }
+
+    return this.active.sites[site];
+  }
+
   getExtensionMode(site?: string) {
     if (!site) {
       site = window.location.hostname;
