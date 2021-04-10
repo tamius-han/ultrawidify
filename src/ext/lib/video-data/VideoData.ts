@@ -538,8 +538,6 @@ class VideoData {
     }
     return heightCompensationFactor;
   }
-
-
   firstTimeArdInit(){
     if(this.destroyed || this.invalid) {
       // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
