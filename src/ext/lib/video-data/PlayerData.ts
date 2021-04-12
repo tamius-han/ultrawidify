@@ -410,39 +410,25 @@ class PlayerData {
           continue;
         }
     
-        // element je player, če je ena stranica enako velika kot video, druga pa večja ali enaka. 
-        // za enakost dovolimo mala odstopanja
-        // element is player, if one of the sides is as long as the video and the other bigger (or same)
-        // we allow for tiny variations when checking for equality
+        // element is player, if at least one of the sides is as long as the video
+        // note that we can't make any additional assumptions with regards to player
+        // size, since there are both cases where the other side is bigger _and_ cases
+        // where other side is smaller than the video.
+        // 
+        // Don't bother thinking about this too much, as any "thinking" was quickly
+        // corrected by bugs caused by various edge cases.
         if (
           this.equalish(element.offsetHeight, videoHeight, 5)
           || this.equalish(element.offsetWidth, videoWidth, 5)
         ) {
-          
-          // todo — in case the match is only equalish and not exact, take difference into account when 
-          // calculating score
-          
           score = 1000;
-
-          // This entire section is disabled because of some bullshit on vk and some shady CIS streaming sites.
-          // Possibly removal of this criteria is not necessary, because there was also a bug with force player
-          // 
-
-          // if (element.id.indexOf('player') !== -1) { // prefer elements with 'player' in id
-          //   score += 75;
-          // }
-          // this has only been observed on steam
-          // if (element.id.indexOf('movie') !== -1) {
-          //   score += 75;
-          // }
-          // if (element.classList.toString().indexOf('player') !== -1) {  // prefer elements with 'player' in classlist, but a bit less than id
-          //   score += 50;
-          // }
-
 
           // -------------------
           //     PENALTIES
           // -------------------
+          //
+          // Our ideal player will be as close to the video element, and it will als
+          // be as close to the size of the video.
 
           // prefer elements closer to <video>
           score -= scorePenalty * penaltyMultiplier++;
