@@ -72,11 +72,16 @@ class PlayerData {
    * Gets player aspect ratio. If in full screen, it returns screen aspect ratio unless settings say otherwise.
    */
   get aspectRatio() {
-    if (this.dimensions.fullscreen && !this.settings.getSettingsForSite()?.usePlayerArInFullscreen) {
-      return window.innerWidth / window.innerHeight;
-    }
+    try {
+      if (this.dimensions?.fullscreen && !this.settings.getSettingsForSite()?.usePlayerArInFullscreen) {
+        return window.innerWidth / window.innerHeight;
+      }
 
-    return this.dimensions.width / this.dimensions.height;
+      return this.dimensions.width / this.dimensions.height;
+    } catch (e) {
+      console.error('cannot determine aspect ratio!', e);
+      return 1;
+    }
   }
 
   constructor(videoData) {

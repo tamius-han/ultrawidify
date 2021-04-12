@@ -49,7 +49,12 @@ class VideoData {
 
 
   get aspectRatio() {
-    return this.video.videoWidth / this.video.videoHeight;
+    try {
+      return this.video.videoWidth / this.video.videoHeight;
+    } catch (e) {
+      console.error('cannot determine stream aspect ratio!', e);
+      return 1;
+    }
   }
   
   constructor(video, settings, pageInfo){
