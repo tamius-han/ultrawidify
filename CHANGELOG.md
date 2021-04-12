@@ -18,6 +18,14 @@
 
 ## v5.x (current major)
 
+
+### v5.0.2
+
+* When in full screen, the extension will assume player element dimensions are the same as the screen resolution. This should help with sites where ultrawidify doesn't correctly identify the player, as cropping generally doesn't work if player element is not identified. Old behaviour can be restored in advanced extension settings by toggling the "use player aspect ratio in fullscreen" checkbox under 'player detection settings'. 
+* Extension should now respect 'disable extension' option for real.
+* Fixed the issue where player wouldn't get detected if video was wider than the player.
+
+
 ### v5.0.1
 * Added an option for users to turn off (and/or configure) Chrome/Edge's zoom limiter.
 
