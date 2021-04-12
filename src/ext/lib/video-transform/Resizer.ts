@@ -174,7 +174,7 @@ class Resizer {
       this.conf.videoUnloaded();
     }
   
-    this.logger.log('info', 'debug', '[Resizer::setAr] <rid:'+this.resizerId+'> trying to set ar. New ar:', ar)
+    this.logger.log('info', 'debug', '[Resizer::setAr] <rid:'+this.resizerId+'> trying to set ar. New ar:', ar);
 
     if (ar == null) {
       return;
