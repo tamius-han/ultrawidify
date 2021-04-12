@@ -33,32 +33,35 @@ export default class UWServer {
   }
 
   async setup() {
-    // logger is the first thing that goes up
+    try {
+      // logger is the first thing that goes up
+      const loggingOptions = {
+        isBackgroundScript: true,
+        allowLogging: false,
+        useConfFromStorage: true,
+        logAll: true,
+        fileOptions: {
+          enabled: false,
+        },
+        consoleOptions: {
+          enabled: false
+        }
+      };
+      this.logger = new Logger();
+      await this.logger.init(loggingOptions);
 
-    const loggingOptions = {
-      isBackgroundScript: true,
-      allowLogging: false,
-      useConfFromStorage: true,
-      logAll: true,
-      fileOptions: {
-        enabled: false,
-      },
-      consoleOptions: {
-        enabled: false
-      }
-    };
-    this.logger = new Logger();
-    await this.logger.init(loggingOptions);
+      this.settings = new Settings({logger: this.logger});
+      await this.settings.init();
+      this.comms = new CommsServer(this);
+      this.comms.subscribe('show-logger', async () => await this.initUiAndShowLogger());
+      this.comms.subscribe('init-vue', async () => await this.initUi());
+      this.comms.subscribe('uwui-vue-initialized', () => this.uiLoggerInitialized = true);
+      this.comms.subscribe('emit-logs', () => {});  // we don't need to do anything, this gets forwarded to UI content script as is
 
-    this.settings = new Settings({logger: this.logger});
-    await this.settings.init();
-    this.comms = new CommsServer(this);
-    this.comms.subscribe('show-logger', async () => await this.initUiAndShowLogger());
-    this.comms.subscribe('init-vue', async () => await this.initUi());
-    this.comms.subscribe('uwui-vue-initialized', () => this.uiLoggerInitialized = true);
-    this.comms.subscribe('emit-logs', () => {});  // we don't need to do anything, this gets forwarded to UI content script as is
-
-    browser.tabs.onActivated.addListener((m) => {this.onTabSwitched(m)});  
+      browser.tabs.onActivated.addListener((m) => {this.onTabSwitched(m)});  
+    } catch (e) {
+      console.error(`Ultrawidify [server]: failed to start. Reason:`, e);
+    }
   }
 
   async _promisifyTabsGet(browserObj, tabId){
@@ -215,37 +218,42 @@ export default class UWServer {
       }
       
     } catch (e) {
+      console.warn('Ultrawidify [server]: UI setup failed. While problematic, this problem shouldn\'t completely crash the extension.');
       this.logger.log('ERROR', 'uwbg', 'UI initialization failed. Reason:', e);
     }
   }
 
   async initUiAndShowLogger() {
-    // this implementation is less than optimal and very hacky, but it should work
-    // just fine for our use case.
-    this.uiLoggerInitialized = false;
+    try {
+      // this implementation is less than optimal and very hacky, but it should work
+      // just fine for our use case.
+      this.uiLoggerInitialized = false;
 
-    await this.initUi();
+      await this.initUi();
 
-    await new Promise<void>( async (resolve, reject) => {
-      // if content script doesn't give us a response within 5 seconds, something is 
-      // obviously wrong and we stop waiting,
+      await new Promise<void>( async (resolve, reject) => {
+        // if content script doesn't give us a response within 5 seconds, something is 
+        // obviously wrong and we stop waiting,
 
-      // oh and btw, resolve/reject do not break the loops, so we need to do that 
-      // ourselves:
-      // https://stackoverflow.com/questions/55207256/will-resolve-in-promise-loop-break-loop-iteration
-      let isRejected = false;
-      setTimeout( async () => {isRejected = true; reject()}, 5000);
+        // oh and btw, resolve/reject do not break the loops, so we need to do that 
+        // ourselves:
+        // https://stackoverflow.com/questions/55207256/will-resolve-in-promise-loop-break-loop-iteration
+        let isRejected = false;
+        setTimeout( async () => {isRejected = true; reject()}, 5000);
 
-      // check whether UI has been initiated on the FE. If it was, we resolve the 
-      // promise and off we go
-      while (!isRejected) {
-        if (this.uiLoggerInitialized) {
-          resolve();
-          return;        // remember the bit about resolve() not breaking the loop?
+        // check whether UI has been initiated on the FE. If it was, we resolve the 
+        // promise and off we go
+        while (!isRejected) {
+          if (this.uiLoggerInitialized) {
+            resolve();
+            return;        // remember the bit about resolve() not breaking the loop?
+          }
+          await sleep(100);
         }
-        await sleep(100);
-      }
-    })
+      });
+    } catch (e) {
+      console.warn('Ultrawidify [server]: failed to set up logger UI. While problematic, this problem shouldn\'t completely crash the extension.');
+    }
   }
 
   async getCurrentTab() {
