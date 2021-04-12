@@ -476,6 +476,31 @@ const ExtensionConfPatch = [
         // do nothing
       }
     }
+  }, {
+    forVersion: '5.0.2',
+    updateFn: (userOptions, defaultOptions) => {
+      try {
+        if (! userOptions.mitigations) {
+          userOptions.mitigations = {
+            zoomLimit: {
+              enabled: true,
+              limit: 0.997,
+              fullscreenOnly: true
+            }
+          } 
+        } else if (BrowserDetect.chrome) {
+          userOptions.mitigations = {
+            zoomLimit: {
+              enabled: true,
+              limit: 0.997,
+              fullscreenOnly: true
+            }
+          } 
+        }
+      } catch (e) {
+        // do nothing
+      }
+    }
   }
 ];
 
