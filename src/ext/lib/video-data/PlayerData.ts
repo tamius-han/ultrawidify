@@ -319,7 +319,9 @@ class PlayerData {
     const videoWidth = this.video.offsetWidth;
     const videoHeight = this.video.offsetHeight;
     const elementQ = [];
-    let scorePenalty = 0;
+    const scorePenalty = 10;
+    const sizePenaltyMultiplier = 0.1;
+    let penaltyMultiplier = 0;
     let score;
 
     try {
@@ -373,7 +375,7 @@ class PlayerData {
               }
 
               // elements farther away from the video get a penalty
-              score -= (scorePenalty++) * 20;
+              score -= (scorePenalty) * 20;
 
               // push the element on the queue/stack:
               elementQ.push({
@@ -400,7 +402,7 @@ class PlayerData {
 
       // try to find element the old fashioned way
 
-      while (element){    
+      while (element){
         // odstranimo čudne elemente, ti bi pokvarili zadeve
         // remove weird elements, those would break our stuff
         if ( element.offsetWidth == 0 || element.offsetHeight == 0){
@@ -412,13 +414,15 @@ class PlayerData {
         // za enakost dovolimo mala odstopanja
         // element is player, if one of the sides is as long as the video and the other bigger (or same)
         // we allow for tiny variations when checking for equality
-        if ( (element.offsetWidth >= videoWidth && this.equalish(element.offsetHeight, videoHeight, 2))
-            || (element.offsetHeight >= videoHeight && this.equalish(element.offsetWidth, videoHeight, 2))) {
+        if (
+          this.equalish(element.offsetHeight, videoHeight, 5)
+          || this.equalish(element.offsetWidth, videoWidth, 5)
+        ) {
           
           // todo — in case the match is only equalish and not exact, take difference into account when 
           // calculating score
           
-          score = 100;
+          score = 1000;
 
           // This entire section is disabled because of some bullshit on vk and some shady CIS streaming sites.
           // Possibly removal of this criteria is not necessary, because there was also a bug with force player
@@ -434,8 +438,27 @@ class PlayerData {
           // if (element.classList.toString().indexOf('player') !== -1) {  // prefer elements with 'player' in classlist, but a bit less than id
           //   score += 50;
           // }
-          score -= scorePenalty++; // prefer elements closer to <video>
-          
+
+
+          // -------------------
+          //     PENALTIES
+          // -------------------
+
+          // prefer elements closer to <video>
+          score -= scorePenalty * penaltyMultiplier++;
+
+          // the bigger the size difference between the video and the player,
+          // the more penalty we'll incur. Since we did some grace ith 
+          let playerSizePenalty = 1;
+          if ( element.offsetHeight > (videoHeight + 5)) {
+            playerSizePenalty = (element.offsetWidth - videoHeight) * sizePenaltyMultiplier;
+          }
+          if ( element.offsetWidth > (videoWidth + 5)) {
+            playerSizePenalty *= (element.offsetWidth - videoWidth) * sizePenaltyMultiplier
+          }
+
+          score -= playerSizePenalty;
+
           elementQ.push({
             element: element,
             score: score,
