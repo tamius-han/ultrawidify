@@ -35,7 +35,7 @@
     "concurrently": "^5.2.0",
     "fs-extra": "^7.0.1",
     "json-cyclic": "0.0.3",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "typescript": "^4.2.3",
     "vue": "^3.0.0-beta.1",
     "vuex": "^4.0.0-alpha.1",
