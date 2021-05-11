@@ -134,12 +134,7 @@ videoAr:                ${streamAr}
 playerAr:               ${playerAr}
 squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
 
-
-    if (this.fixedStretchRatio < playerAr) {
-      postCropStretchFactors.xFactor *= squeezeFactor;
-    } else {
-      postCropStretchFactors.yFactor *= squeezeFactor; 
-    }
+    postCropStretchFactors.xFactor *= squeezeFactor;
 
     this.logger.log('info', 'stretcher', `[Stretcher::applyStretchFixedSource] here's what we'll apply:\npostCropStretchFactors: x=${postCropStretchFactors.x} y=${postCropStretchFactors.y}`);
 
