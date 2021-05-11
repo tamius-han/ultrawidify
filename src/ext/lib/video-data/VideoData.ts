@@ -390,6 +390,12 @@ class VideoData {
     // verify that mutation didn't remove our class. Some pages like to do that.
     let confirmAspectRatioRestore = false;
 
+    if (!this.video) {
+      this.logger.log('error', 'debug', '[VideoData::onVideoMutation] mutation was triggered, but video element is missing. Something is fishy. Terminating this uw instance.');
+      this.destroy();
+      return;
+    }
+
     for(const mutation of mutationList) {
       if (mutation.type === 'attributes') {
         if( mutation.attributeName === 'class' 
