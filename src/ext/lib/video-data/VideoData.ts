@@ -468,17 +468,17 @@ class VideoData {
     } catch (e) {
     }
     // THIS BREAKS PANNING
-    const cs = window.getComputedStyle(this.video);
-    const pcs = window.getComputedStyle(this.player.element);
+    const videoComputedStyle = window.getComputedStyle(this.video);
+    const playerComputedStyle = window.getComputedStyle(this.player.element);
 
     try {
-      const transformMatrix = cs.transform.split(')')[0].split(',');
+      const transformMatrix = videoComputedStyle.transform.split(')')[0].split(',');
       const translateX = +transformMatrix[4];
       const translateY = +transformMatrix[5];
-      const vh = +(cs.height.split('px')[0]);
-      const vw = +(cs.width.split('px')[0]);
-      const ph = +(pcs.height.split('px')[0]);
-      const pw = +(pcs.width.split('px')[0]);
+      const vh = +(videoComputedStyle.height.split('px')[0]);
+      const vw = +(videoComputedStyle.width.split('px')[0]);
+      const ph = +(playerComputedStyle.height.split('px')[0]);
+      const pw = +(playerComputedStyle.width.split('px')[0]);
 
       // TODO: check & account for panning and alignment
       if (transformMatrix[0] !== 'none'
