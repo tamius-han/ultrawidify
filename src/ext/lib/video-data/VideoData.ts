@@ -486,6 +486,7 @@ class VideoData {
           && this.isWithin(vw, (pw - (translateX * 2)), 2)) {
       } else {
         this.player.forceDetectPlayerElementChange();
+        this.restoreAr();
       }
       
     } catch(e) {
