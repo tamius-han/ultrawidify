@@ -18,6 +18,10 @@
 
 ## v5.x (current major)
 
+### v5.0.3
+
+* Fixed the issue where the videos were sometimes offset up and left. Again.
+* Fix the issue where correcting source stretch was squished incorrectly ([#153](https://github.com/tamius-han/ultrawidify/issues/153))
 
 ### v5.0.2
 

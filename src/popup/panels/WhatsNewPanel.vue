@@ -2,13 +2,13 @@
   <div>
     <h2>What's new</h2>
     <p>Full changelog for older versions <a href="https://github.com/tamius-han/ultrawidify/blob/master/CHANGELOG.md">is available here</a>.</p>
-    <p class="label">5.0.2</p>
+    <p class="label">5.0.3</p>
     <ul>
       <li>
-        When in full screen, the extension will assume player element dimensions are the same as the screen resolution. This should help with sites where ultrawidify doesn't correctly identify the player, as cropping generally doesn't work if player element is not identified. Old behaviour can be restored in advanced extension settings by toggling the "use player aspect ratio in fullscreen" checkbox under 'player detection settings'. 
+        Fixed the issue where the videos were sometimes offset up and left. Again.
       </li>
       <li>
-        Fixed the issue where player wouldn't get detected if video was wider than the player.
+        Fix the issue where correcting source stretch was squished incorrectly (<a href="https://github.com/tamius-han/ultrawidify/issues/153">#153</a>)
       </li>
     </ul>
     <p>
