@@ -138,7 +138,7 @@
         />
       </div>
       <div class="flex flex-column">
-        <div class="flex label-secondary form-label">Additional css</div>
+        <div class="flex label-secondary form-label">Additional style for video element</div>
         <input type="text"
                v-model="videoCss"
                @change="updateVideoCss"
