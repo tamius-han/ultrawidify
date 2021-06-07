@@ -18,6 +18,10 @@
 
 ## v5.x (current major)
 
+### v5.0.4
+* Attempt to fix disney+ again, courtesy of [@jwannebo](https://github.com/tamius-han/ultrawidify/issues/84#issuecomment-846334005) on github.
+
+
 ### v5.0.3
 
 * Fixed the issue where the videos were sometimes offset up and left. Again.
