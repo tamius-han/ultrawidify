@@ -10,6 +10,9 @@ npm run pre-build
 rm ./dist-zip/uw-amo-source.zip
 mv -f ./dist-zip/*.zip ./build/old
 
+# lets force raise ram limit, but the improper way
+# export NODE_OPTIONS=--max_old_space_size=4096
+
 # build the version for each browser and create a zip afterwards
 # step 1: define build functions 
 #function buildFF {
