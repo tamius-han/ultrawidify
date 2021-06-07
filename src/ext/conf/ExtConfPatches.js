@@ -501,6 +501,20 @@ const ExtensionConfPatch = [
         // do nothing
       }
     }
+  }, {
+    forVersion: '5.0.4',
+    updateFn: (userOptions, defaultOptions) => {
+      try {
+        userOptions.sites['wwww.disneyplus.com'].DOM.player = {
+          ... userOptions.sites['wwww.disneyplus.com'].DOM.player,
+          querySelectors: ".btm-media-client-element",
+          useRelativeAncestor: false,
+          videoAncestor: 1
+        }
+      } catch (e) {
+        // do nothing
+      }
+    }
   }
 ];
 
