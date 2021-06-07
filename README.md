@@ -2,9 +2,7 @@
 
 ## Super TL;DR: I'm just looking for the install links, thanks
 
-[Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/), [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi).
-
-**Microsoft Edge is not supported at this time, as Edge features some bugs that make it impossible for extension to work.** [Read more](https://github.com/tamius-han/ultrawidify/issues/117#issuecomment-747109695).
+[Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/), [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi), [Edge](https://microsoftedge.microsoft.com/addons/detail/ultrawidify/lmpgpgechmkkkehkihpiddbcbgibokbi). 
 
 There's also [nightly "builds"](https://stuff.lionsarch.tamius.net/ultrawidify/nightly/).
 
@@ -51,13 +49,13 @@ If extension doesn't work for a site I'm not testing on out of the box, follow [
 
 ### Installing this extension
 
-You can download this extension from Firefox' and Chrome's extension stores:
+You can download this extension from the relevant extension stores:
 
 * [Firefox](https://addons.mozilla.org/en/firefox/addon/ultrawidify/)
-* [Chrome, Opera](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
-* [Chromium Edge](https://microsoftedge.microsoft.com/addons/detail/lmpgpgechmkkkehkihpiddbcbgibokbi)
+* [Chrome](https://chrome.google.com/webstore/detail/ultrawidify/dndehlekllfkaijdlokmmicgnlanfjbi)
+* [Edge](https://microsoftedge.microsoft.com/addons/detail/ultrawidify/lmpgpgechmkkkehkihpiddbcbgibokbi)
 
-Users of beta and developer branches of Opera can find Ultrawidify on Opera store as well, but given Opera's review process is unacceptably slow (awaiting moderator review since 2020-03-15) not only am I not going to maintain Opera store presence, Opera users are advised to use Chrome version of the extension in order to avoid waiting years for new features to be approved by Opera moderators.
+Other browsers are not officially supported. If you're using a different Chromium-based browser, you can try installing the addon from the Chrome Web Store — but if things don't work, you're on your own.
 
 ### Nightly builds
 
