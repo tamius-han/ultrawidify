@@ -1070,9 +1070,10 @@ const ExtensionConf: SettingsInterface = {
       DOM: {
         "player": {
           "manual": true,
-          "querySelectors": ".btn-media-clients",
+          "querySelectors": ".btm-media-client-element",
           "additionalCss": "",
           "useRelativeAncestor": false,
+          "videoAncestor": 1,
           "playerNodeCss": ""
         }
       },
