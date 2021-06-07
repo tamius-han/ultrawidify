@@ -38,7 +38,7 @@ if [ ! -z "$GIT_COMMIT" ] ; then
 fi
 
 # let's raise RAM limit for npm command globally
-alias npm='node --max_old_space_size=2048 /usr/bin/npm'
+NODE_OPTIONS=--max_old_space_size=4096
 
 npm ci
 
