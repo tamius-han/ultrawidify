@@ -15,7 +15,7 @@
     "build-testing-chrome": "cross-env NODE_ENV=development BROWSER=chrome CHANNEL=testing webpack --hide-modules",
     "build-zip": "node scripts/build-zip.js",
     "build:dev": "webpack --hide-modules",
-    "dev": "cross-env NODE_ENV=development CHANNEL=dev concurrently \"cross-env BROWSER=firefox npm run build:dev -- --watch\" \"cross-env BROWSER=chrome npm run build:dev -- --watch\"",
+    "dev": "cross-env NODE_ENV=development CHANNEL=dev concurrently \"cross-env BROWSER=firefox npm run build:dev -- --watch\" \"cross-env BROWSER=chrome npm run build:dev -- --watch\"  \"cross-env BROWSER=edge npm run build:dev -- --watch\"",
     "pre-build": "rm -rf ./dist-ff; rm -rf ./dist-chrome; rm -rf ./node_modules; npm ci",
     "start": "npm run dev"
   },
