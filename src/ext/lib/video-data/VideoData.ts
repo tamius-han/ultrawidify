@@ -58,7 +58,7 @@ class VideoData {
   }
   
   constructor(video, settings, pageInfo){
-    window.ultrawidify.addVideo(this);
+    (window as any).ultrawidify.addVideo(this);
     
     this.logger = pageInfo.logger;
     this.arSetupComplete = false;
