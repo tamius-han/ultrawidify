@@ -38,18 +38,18 @@
       Player detection settings<br/><small>for {{site}}</small>
     </div>
     <div class="description">
-      Player is the frame around the video. Extension crops/stretches the video to fit the player.
+      If extension doesn't work, you can help a little by telling it where to look for the player.<br/>
     </div>
     <div class="">
       <div class="">
-        <input :checked="!playerManualQs"
+        <input :checked="playerManualQs"
                 @change="togglePlayerManualQs"
                 type="checkbox" 
-        /> Detect automatically
+        /> Manually specify player
       </div>
 
       <div class="flex flex-column">
-        <div class="">Query selectors:</div>
+        <div class="">Query selectors for player:</div>
         <input type="text"
                v-model="playerQs"
                @change="updatePlayerQuerySelector"
@@ -58,24 +58,48 @@
         />
       </div>
 
-      <div class="">
+      <div class="flex flex-row">
         <input :checked="playerByNodeIndex"
                :disabled="!playerManualQs"
                 @change="toggleByNodeIndex"
                 type="checkbox" 
-        /> Specify player node parent index instead
-      </div>
-
-      <div class="flex flex-column">
-        <div class="">Player node parent index:</div>
-         <input v-model="playerParentNodeIndex"
+        />
+        <div>
+          Player is n-th parent of video:
+        </div>
+        <input v-model="playerParentNodeIndex"
                 :disabled="!playerByNodeIndex || !playerManualQs"
                 @change="updatePlayerParentNodeIndex"
                 @blur="updatePlayerParentNodeIndex"
                 type="number" 
-         />
+        />
       </div>
-      
+
+      <div class="description">
+        <small>
+          <b>Hint:</b> Player is a HTML element that represents the portion of the page you expect the video to play in.
+          You can provide player's query selector, or you can tick the 'player is the n-th parent of video'
+          checkbox and try entering values 1-12ish and see if anything works. Note that you need to save
+          settings and reload the page every time you change the number.
+        </small>
+      </div>
+
+      <div class="flex flex-row">
+        <input :checked="usePlayerAr"
+                @change="toggleUsePlayerAr"
+                type="checkbox" 
+        />
+        <div>
+          Do not use monitor AR in fullscreen
+        </div>
+      </div>
+
+      <div class="description">
+        <small>
+          <b>Hint:</b> When in full screen, the extension will assume that player element is as big as your screen.
+          You generally want to keep this option off, unless you like to browse in fullscreen a lot.
+        </small>
+      </div>
     </div>
 
     <div class="label">
@@ -114,7 +138,7 @@
         />
       </div>
       <div class="flex flex-column">
-        <div class="flex label-secondary form-label">Additional css</div>
+        <div class="flex label-secondary form-label">Additional style for video element</div>
         <input type="text"
                v-model="videoCss"
                @change="updateVideoCss"
@@ -156,6 +180,7 @@
           <div class="flex label-secondary form-label">
             <input :checked="settings?.active?.mitigations?.zoomLimit?.fullscreenOnly"
                   @change="setMitigation(['zoomLimit', 'fullscreenOnly'], $event.target.checked)"
+                  :disabled="!settings?.active?.mitigations?.zoomLimit?.enabled"
                   type="checkbox" 
             /> Limit zoom only while in fullscreen
           </div>
@@ -164,7 +189,7 @@
               <b>Fix for:</b> Chrome and Edge used to have a bug where videos would get incorrectly stretched when zoomed in too far.
               The issue only appeared in fullscreen, on nVidia GPUs, and with hardware acceleration enabled. While this option only
               needs to be applied in fullscreen, fullscreen detection in Chrome can be a bit unreliable (depending on your OS and/or
-              display scaling settings).
+              display scaling settings). <a href="https://stuff.tamius.net/sacred-texts/2021/02/01/ultrawidify-and-chrome-2021-edition/" target="_blank">More about the issue</a>.
             </small>
           </div>
         </div>
@@ -212,6 +237,7 @@ export default {
       playerCss: '',
       playerByNodeIndex: false,
       playerParentNodeIndex: undefined,
+      usePlayerAr: false,
       BrowserDetect
     };
   },
@@ -233,6 +259,7 @@ export default {
       this.playerQs = this.settings.active.sites[this.site].DOM.player.querySelectors;
       this.playerByNodeIndex = this.settings.active.sites[this.site].DOM.player.useRelativeAncestor || this.playerByNodeIndex;
       this.playerParentNodeIndex = this.settings.active.sites[this.site].DOM.player.videoAncestor;
+      this.usePlayerAr = this.settings.active.sites[this.site].usePlayerArInFullscreen;
     } catch (e) {
       // that's here just in case relevant settings for this site don't exist yet
     }
@@ -327,6 +354,12 @@ export default {
       this.ensureSettings('player');
       this.playerByNodeIndex = !this.playerByNodeIndex;
       this.settings.active.sites[this.site].DOM.player.useRelativeAncestor = this.playerByNodeIndex;
+      this.settings.save();
+    },
+    toggleUsePlayerAr() {
+      this.ensureSettings('player');
+      this.usePlayerAr = !this.usePlayerAr;
+      this.settings.active.sites[this.site].usePlayerArInFullscreen = this.usePlayerAr;
       this.settings.save();
     },
     setMitigation(mitigation, value) {

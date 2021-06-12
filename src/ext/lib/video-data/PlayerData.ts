@@ -68,6 +68,22 @@ class PlayerData {
   private observer: ResizeObserver;
   //#endregion
 
+  /**
+   * Gets player aspect ratio. If in full screen, it returns screen aspect ratio unless settings say otherwise.
+   */
+  get aspectRatio() {
+    try {
+      if (this.dimensions?.fullscreen && !this.settings.getSettingsForSite()?.usePlayerArInFullscreen) {
+        return window.innerWidth / window.innerHeight;
+      }
+
+      return this.dimensions.width / this.dimensions.height;
+    } catch (e) {
+      console.error('cannot determine aspect ratio!', e);
+      return 1;
+    }
+  }
+
   constructor(videoData) {
     try {
       this.logger = videoData.logger;
@@ -107,9 +123,18 @@ class PlayerData {
     }
   }
 
+  /**
+   * Returns whether we're in fullscreen mode or not.
+   */
   static isFullScreen(){
-    console.info(window.innerHeight, window.screen.height, 'x', window.innerWidth, window.screen.width);
-    return ( window.innerHeight == window.screen.height && window.innerWidth == window.screen.width);
+    const ihdiff = Math.abs(window.screen.height - window.innerHeight);
+    const iwdiff = Math.abs(window.screen.width - window.innerWidth);
+
+    // Chrome on linux on X on mixed PPI displays may return ever so slightly different values
+    // for innerHeight vs screen.height abd innerWidth vs. screen.width, probably courtesy of
+    // fractional scaling or something. This means we'll give ourself a few px of margin — the
+    // window elements visible in not-fullscreen are usually double digit px tall
+    return ( ihdiff < 5 && iwdiff < 5 );
   }
 
   
@@ -188,7 +213,7 @@ class PlayerData {
       try {
         this.doPeriodicPlayerElementChangeCheck();
       } catch (e) {
-        console.error('[PlayerData::legacycd] this message is pretty high on the list of messages you shouldnt see', e);
+        console.error('[PlayerData::legacycd] this message is pretty high on the list of messages you shouldn\'t see', e);
       }
     }
   }
@@ -294,7 +319,9 @@ class PlayerData {
     const videoWidth = this.video.offsetWidth;
     const videoHeight = this.video.offsetHeight;
     const elementQ = [];
-    let scorePenalty = 0;
+    const scorePenalty = 10;
+    const sizePenaltyMultiplier = 0.1;
+    let penaltyMultiplier = 0;
     let score;
 
     try {
@@ -348,7 +375,7 @@ class PlayerData {
               }
 
               // elements farther away from the video get a penalty
-              score -= (scorePenalty++) * 20;
+              score -= (scorePenalty) * 20;
 
               // push the element on the queue/stack:
               elementQ.push({
@@ -375,7 +402,7 @@ class PlayerData {
 
       // try to find element the old fashioned way
 
-      while (element){    
+      while (element){
         // odstranimo čudne elemente, ti bi pokvarili zadeve
         // remove weird elements, those would break our stuff
         if ( element.offsetWidth == 0 || element.offsetHeight == 0){
@@ -383,34 +410,41 @@ class PlayerData {
           continue;
         }
     
-        // element je player, če je ena stranica enako velika kot video, druga pa večja ali enaka. 
-        // za enakost dovolimo mala odstopanja
-        // element is player, if one of the sides is as long as the video and the other bigger (or same)
-        // we allow for tiny variations when checking for equality
-        if ( (element.offsetWidth >= videoWidth && this.equalish(element.offsetHeight, videoHeight, 2))
-            || (element.offsetHeight >= videoHeight && this.equalish(element.offsetWidth, videoHeight, 2))) {
-          
-          // todo — in case the match is only equalish and not exact, take difference into account when 
-          // calculating score
-          
-          score = 100;
+        // element is player, if at least one of the sides is as long as the video
+        // note that we can't make any additional assumptions with regards to player
+        // size, since there are both cases where the other side is bigger _and_ cases
+        // where other side is smaller than the video.
+        // 
+        // Don't bother thinking about this too much, as any "thinking" was quickly
+        // corrected by bugs caused by various edge cases.
+        if (
+          this.equalish(element.offsetHeight, videoHeight, 5)
+          || this.equalish(element.offsetWidth, videoWidth, 5)
+        ) {
+          score = 1000;
 
-          // This entire section is disabled because of some bullshit on vk and some shady CIS streaming sites.
-          // Possibly removal of this criteria is not necessary, because there was also a bug with force player
-          // 
+          // -------------------
+          //     PENALTIES
+          // -------------------
+          //
+          // Our ideal player will be as close to the video element, and it will als
+          // be as close to the size of the video.
 
-          // if (element.id.indexOf('player') !== -1) { // prefer elements with 'player' in id
-          //   score += 75;
-          // }
-          // this has only been observed on steam
-          // if (element.id.indexOf('movie') !== -1) {
-          //   score += 75;
-          // }
-          // if (element.classList.toString().indexOf('player') !== -1) {  // prefer elements with 'player' in classlist, but a bit less than id
-          //   score += 50;
-          // }
-          score -= scorePenalty++; // prefer elements closer to <video>
-          
+          // prefer elements closer to <video>
+          score -= scorePenalty * penaltyMultiplier++;
+
+          // the bigger the size difference between the video and the player,
+          // the more penalty we'll incur. Since we did some grace ith 
+          let playerSizePenalty = 1;
+          if ( element.offsetHeight > (videoHeight + 5)) {
+            playerSizePenalty = (element.offsetWidth - videoHeight) * sizePenaltyMultiplier;
+          }
+          if ( element.offsetWidth > (videoWidth + 5)) {
+            playerSizePenalty *= (element.offsetWidth - videoWidth) * sizePenaltyMultiplier
+          }
+
+          score -= playerSizePenalty;
+
           elementQ.push({
             element: element,
             score: score,

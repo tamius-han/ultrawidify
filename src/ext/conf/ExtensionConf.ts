@@ -7,6 +7,7 @@ import AntiGradientMode from '../../common/enums/AntiGradientMode.enum';
 import AspectRatioType from '../../common/enums/AspectRatioType.enum';
 import CropModePersistence from '../../common/enums/CropModePersistence.enum';
 import SettingsInterface from '../../common/interfaces/SettingsInterface';
+import BrowserDetect from './BrowserDetect';
 
 if(Debug.debug)
   console.log("Loading: ExtensionConf.js");
@@ -960,6 +961,13 @@ const ExtensionConf: SettingsInterface = {
     }
   },
   ],
+  mitigations: {
+    zoomLimit: {
+      enabled: true,
+      limit: 0.997,
+      fullscreenOnly: true
+    }
+  },
   whatsNewChecked: true,
   // -----------------------------------------
   //       ::: SITE CONFIGURATION :::
@@ -1062,9 +1070,10 @@ const ExtensionConf: SettingsInterface = {
       DOM: {
         "player": {
           "manual": true,
-          "querySelectors": ".btn-media-clients",
+          "querySelectors": ".btm-media-client-element",
           "additionalCss": "",
           "useRelativeAncestor": false,
+          "videoAncestor": 1,
           "playerNodeCss": ""
         }
       },

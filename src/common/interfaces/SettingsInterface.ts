@@ -189,7 +189,7 @@ interface SettingsInterface {
   mitigations?: {
     zoomLimit?: {
       enabled?: boolean,
-      fullscreenOnly: boolean,
+      fullscreenOnly?: boolean,
       limit?: number,
     }
   }
@@ -285,6 +285,7 @@ interface SettingsInterface {
         }
       },
       css?: string;
+      usePlayerArInFullscreen?: boolean;
     }
   }
 }

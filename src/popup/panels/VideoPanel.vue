@@ -126,6 +126,7 @@ import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
 import ShortcutButton from '../../common/components/ShortcutButton';
 import ComputeActionsMixin from '../../common/mixins/ComputeActionsMixin';
 import CropModePersistence from '../../common/enums/CropModePersistence.enum';
+import BrowserDetect from '../../ext/conf/BrowserDetect';
 
 export default {
   data() {
@@ -157,7 +158,11 @@ export default {
   },
   methods: {
     async openOptionsPage() {
-      (browser ?? chrome).runtime.openOptionsPage();
+      if (BrowserDetect.firefox) {
+        browser.runtime.openOptionsPage();
+      } else {
+        chrome.runtime.openOptionsPage();
+      }
     },
     execAction(action) {
       this.exec.exec(action, 'page', this.frame);

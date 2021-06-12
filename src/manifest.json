@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Ultrawidify",
   "description": "Removes black bars on ultrawide videos and offers advanced options to fix aspect ratio.",
-  "version": "5.0.1",
+  "version": "5.0.4",
   "applications": {
     "gecko": {
       "id": "{cf02b1a7-a01a-4e37-a609-516a283f1ed3}"

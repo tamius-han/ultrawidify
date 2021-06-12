@@ -174,7 +174,7 @@ class Resizer {
       this.conf.videoUnloaded();
     }
   
-    this.logger.log('info', 'debug', '[Resizer::setAr] <rid:'+this.resizerId+'> trying to set ar. New ar:', ar)
+    this.logger.log('info', 'debug', '[Resizer::setAr] <rid:'+this.resizerId+'> trying to set ar. New ar:', ar);
 
     if (ar == null) {
       return;
@@ -527,6 +527,7 @@ class Resizer {
     return mode === 'height' ? heightFactor : widthFactor;
   }
 
+  private _computeOffsetsRecursionGuard: boolean = false;
   computeOffsets(stretchFactors: VideoDimensions){
     this.logger.log('info', 'debug', "[Resizer::computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.settings.active.sites['@global'].videoAlignment);
 
@@ -548,10 +549,6 @@ class Resizer {
 
     const wdiff = this.conf.player.dimensions.width - realVideoWidth;
     const hdiff = this.conf.player.dimensions.height - realVideoHeight;
-
-    if (wdiff < 0 && hdiff < 0 && this.zoom.scale > 1) {
-      this.conf.resizer.restore();
-    }
 
     const wdiffAfterZoom = realVideoWidth * stretchFactors.xFactor - this.conf.player.dimensions.width;
     const hdiffAfterZoom = realVideoHeight * stretchFactors.yFactor - this.conf.player.dimensions.height;
@@ -614,8 +611,15 @@ class Resizer {
         `Video seems to be both wider and taller (or shorter and narrower) than player element at the same time. This is super duper not supposed to happen.\n\n`,
         `Player element needs to be checked.`
       )
-      if (this.conf.player.checkPlayerSizeChange()) {
-        this.conf.player.onPlayerDimensionsChanged();
+
+      // sometimes this appears to randomly recurse.
+      // There seems to be no way to reproduce it.
+      if (! this._computeOffsetsRecursionGuard) {
+        this._computeOffsetsRecursionGuard = true;
+        if (this.conf.player.checkPlayerSizeChange()) {
+          this.conf.player.onPlayerDimensionsChanged();
+        }
+        this._computeOffsetsRecursionGuard = false;
       }
     }
 

@@ -48,6 +48,15 @@ class VideoData {
   //#endregion
 
 
+  get aspectRatio() {
+    try {
+      return this.video.videoWidth / this.video.videoHeight;
+    } catch (e) {
+      console.error('cannot determine stream aspect ratio!', e);
+      return 1;
+    }
+  }
+  
   constructor(video, settings, pageInfo){
     window.ultrawidify.addVideo(this);
     
@@ -383,6 +392,12 @@ class VideoData {
     // verify that mutation didn't remove our class. Some pages like to do that.
     let confirmAspectRatioRestore = false;
 
+    if (!this.video) {
+      this.logger.log('error', 'debug', '[VideoData::onVideoMutation] mutation was triggered, but video element is missing. Something is fishy. Terminating this uw instance.');
+      this.destroy();
+      return;
+    }
+
     for(const mutation of mutationList) {
       if (mutation.type === 'attributes') {
         if( mutation.attributeName === 'class' 
@@ -461,17 +476,17 @@ class VideoData {
     } catch (e) {
     }
     // THIS BREAKS PANNING
-    const cs = window.getComputedStyle(this.video);
-    const pcs = window.getComputedStyle(this.player.element);
+    const videoComputedStyle = window.getComputedStyle(this.video);
+    const playerComputedStyle = window.getComputedStyle(this.player.element);
 
     try {
-      const transformMatrix = cs.transform.split(')')[0].split(',');
+      const transformMatrix = videoComputedStyle.transform.split(')')[0].split(',');
       const translateX = +transformMatrix[4];
       const translateY = +transformMatrix[5];
-      const vh = +(cs.height.split('px')[0]);
-      const vw = +(cs.width.split('px')[0]);
-      const ph = +(pcs.height.split('px')[0]);
-      const pw = +(pcs.width.split('px')[0]);
+      const vh = +(videoComputedStyle.height.split('px')[0]);
+      const vw = +(videoComputedStyle.width.split('px')[0]);
+      const ph = +(playerComputedStyle.height.split('px')[0]);
+      const pw = +(playerComputedStyle.width.split('px')[0]);
 
       // TODO: check & account for panning and alignment
       if (transformMatrix[0] !== 'none'
@@ -479,6 +494,7 @@ class VideoData {
           && this.isWithin(vw, (pw - (translateX * 2)), 2)) {
       } else {
         this.player.forceDetectPlayerElementChange();
+        this.restoreAr();
       }
       
     } catch(e) {
@@ -536,8 +552,6 @@ class VideoData {
     }
     return heightCompensationFactor;
   }
-
-
   firstTimeArdInit(){
     if(this.destroyed || this.invalid) {
       // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};

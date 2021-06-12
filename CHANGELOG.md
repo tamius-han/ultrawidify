@@ -18,9 +18,24 @@
 
 ## v5.x (current major)
 
+### v5.0.4
+* Attempt to fix disney+ again, courtesy of [@jwannebo](https://github.com/tamius-han/ultrawidify/issues/84#issuecomment-846334005) on github.
+
+
+### v5.0.3
+
+* Fixed the issue where the videos were sometimes offset up and left. Again.
+* Fix the issue where correcting source stretch was squished incorrectly ([#153](https://github.com/tamius-han/ultrawidify/issues/153))
+
+### v5.0.2
+
+* When in full screen, the extension will assume player element dimensions are the same as the screen resolution. This should help with sites where ultrawidify doesn't correctly identify the player, as cropping generally doesn't work if player element is not identified. Old behaviour can be restored in advanced extension settings by toggling the "use player aspect ratio in fullscreen" checkbox under 'player detection settings'. 
+* Extension should now respect 'disable extension' option for real.
+* Fixed the issue where player wouldn't get detected if video was wider than the player.
+
+
 ### v5.0.1
-* Turned off zoom limitations for Edge and Chrome. 
-* Added an option for users to manually re-enable (and configure) Chrome/Edge's zoom limiter.
+* Added an option for users to turn off (and/or configure) Chrome/Edge's zoom limiter.
 
 ### v5.0.0
 

@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+        "hollowtree.vue-pack",
+        "msjsdiag.debugger-for-chrome",
+        "firefox-devtools.vscode-firefox-debug",
+        "msjsdiag.debugger-for-edge"
+    ]
+}

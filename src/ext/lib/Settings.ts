@@ -155,8 +155,6 @@ class Settings {
     const sorted = this.sortConfPatches(extconfPatches);
     return sorted.findIndex(x => this.compareExtensionVersions(x.forVersion, version) > 0);
   }
-
-
   applySettingsPatches(oldVersion, patches) {
     let index = this.findFirstNecessaryPatch(oldVersion, patches);
     if (index === -1) {
@@ -380,6 +378,14 @@ class Settings {
     return this.active.actions;
   }
 
+  getSettingsForSite(site?) {
+    if (!site) {
+      site = window.location.hostname;
+    }
+
+    return this.active.sites[site];
+  }
+
   getExtensionMode(site?: string) {
     if (!site) {
       site = window.location.hostname;
@@ -478,7 +484,7 @@ class Settings {
   }
 
   extensionEnabled(){
-    return this.active.sites['@global'] !== ExtensionMode.Disabled
+    return this.active.sites['@global'].mode !== ExtensionMode.Disabled
   }
 
   extensionEnabledForSite(site) {
