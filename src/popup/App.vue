@@ -20,17 +20,6 @@
         Build channel: {{BrowserDetect.processEnvChannel}}
       </div>
     </div>
-    <div  v-if="BrowserDetect.isEdgeUA" style="margin: 2px 12px; border: 1px solid #fa6; color: #fa6" class="flex flex-row flex-center">
-      <div class="flex-nogrow flex-nosrhink flex flex-center" style="font-size: 2em">
-        <Icon icon="exclamation-triangle"></Icon>
-      </div>
-      <div class="flex-grow padding-right: 1em; line-height: 1">
-        <small>
-          <b>NOTE:</b> please ensure your Windows and Edge have the latest updates in order for this extension to work on DRM-protected sites.
-          If your Windows and Edge are not up to date, videos on sites like Netflix, Hulu, and Disney+ may not be aligned and cropped correctly.
-        </small>
-      </div>
-    </div>
     <div 
       v-if="narrowPopup"
       class="w100 show-more flex flex-row flex-center flex-cross-center menu-button"
