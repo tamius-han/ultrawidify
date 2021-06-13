@@ -163,7 +163,10 @@ const config = {
     }),
     new webpack.DefinePlugin({
       'process.env.BROWSER': JSON.stringify(process.env.BROWSER),
-      'process.env.CHANNEL': JSON.stringify(process.env.CHANNEL)
+      'process.env.CHANNEL': JSON.stringify(process.env.CHANNEL),
+
+      '__VUE_OPTIONS_API__': true,
+      '__VUE_PROD_DEVTOOLS__': false
     })
   ],
   optimization: {
@@ -179,6 +182,9 @@ const config = {
 if (config.mode === 'production') {
   config.plugins = (config.plugins || []).concat([
     new webpack.DefinePlugin({
+      '__VUE_OPTIONS_API__': true,
+      '__VUE_PROD_DEVTOOLS__': false,
+      
       'process.env': {
         NODE_ENV: '"production"',
       },
