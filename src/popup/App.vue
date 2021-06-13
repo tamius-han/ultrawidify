@@ -20,17 +20,6 @@
         Build channel: {{BrowserDetect.processEnvChannel}}
       </div>
     </div>
-    <div  v-if="BrowserDetect.isEdgeUA" style="margin: 2px 12px; border: 1px solid #fa6; color: #fa6" class="flex flex-row flex-center">
-      <div class="flex-nogrow flex-nosrhink flex flex-center" style="font-size: 2em">
-        <Icon icon="exclamation-triangle"></Icon>
-      </div>
-      <div class="flex-grow padding-right: 1em; line-height: 1">
-        <small>
-          <b>NOTE:</b> please ensure your Windows and Edge have the latest updates in order for this extension to work on DRM-protected sites.
-          If your Windows and Edge are not up to date, videos on sites like Netflix, Hulu, and Disney+ may not be aligned and cropped correctly.
-        </small>
-      </div>
-    </div>
     <div 
       v-if="narrowPopup"
       class="w100 show-more flex flex-row flex-center flex-cross-center menu-button"
@@ -216,12 +205,13 @@ import Comms from '../ext/lib/comms/Comms';
 import VideoPanel from './panels/VideoPanel';
 import PerformancePanel from './panels/PerformancePanel';
 import Settings from '../ext/lib/Settings';
-import ExecAction from './js/ExecAction.js';
+import ExecAction from './js/ExecAction';
 import DefaultSettingsPanel from './panels/DefaultSettingsPanel';
 import AboutPanel from './panels/AboutPanel';
-import ExtensionMode from '../common/enums/extension-mode.enum';
+import ExtensionMode from '../common/enums/ExtensionMode.enum';
 import Logger from '../ext/lib/Logger';
 import {ChromeShittinessMitigations as CSM} from '../common/js/ChromeShittinessMitigations';
+import { browser } from 'webextension-polyfill-ts';
 
 export default {
   data () {
@@ -260,7 +250,8 @@ export default {
     await this.settings.init();
     this.settingsInitialized = true;
 
-    const port = BrowserDetect.firefox ? browser.runtime.connect({name: 'popup-port'}) : chrome.runtime.connect({name: 'popup-port'});
+    // const port = BrowserDetect.firefox ? browser.runtime.connect({name: 'popup-port'}) : chrome.runtime.connect({name: 'popup-port'});
+    const port = browser.runtime.connect({name: 'popup-port'});
     port.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
     CSM.setProperty('port', port);
 

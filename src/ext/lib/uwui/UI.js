@@ -15,7 +15,7 @@ class UI {
   ) {
     this.interfaceId = interfaceId;
     this.commsConfig = commsConfig;
-    this.storeConfig = storeConfig,
+    this.storeConfig = storeConfig;
     this.uiConfig = uiConfig;
 
     this.init();

@@ -102,7 +102,7 @@
 
 <script>
 import ShortcutButton from '../../common/components/ShortcutButton.vue' 
-import Stretch from '../../common/enums/stretch.enum';
+import StretchType from '../../common/enums/StretchType.enum';
 import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
 import CommandChain from './command-builder/CommandChain';
 import CommandAddEdit from './command-builder/CommandAddEdit';
@@ -121,7 +121,7 @@ export default {
   },
   data () {
     return {
-      Stretch: Stretch,
+      StretchType: StretchType,
       action: {
         name: 'New action',
         label: 'New action',

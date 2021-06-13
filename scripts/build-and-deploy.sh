@@ -37,6 +37,9 @@ if [ ! -z "$GIT_COMMIT" ] ; then
   fi
 fi
 
+# let's raise RAM limit for npm command globally
+NODE_OPTIONS=--max_old_space_size=4096
+
 npm ci
 
 rm -rf ./dist-zip || true   # no big deal if ./dist-zip doesn't exist
@@ -46,7 +49,7 @@ mkdir dist-zip              # create it back
 # build firefox
 #
 npm run "${BUILD_SCRIPT}"
-node scripts/build-zip.js ff nightly
+node --max-old-space-size=2048 scripts/build-zip.js ff nightly
 # if [ ! -z "${AMO_API_KEY}" ] ; then
 #   if [ ! -z "${AMO_API_SECRET}" ] ; then 
 #     web-ext sign --source-dir ./dist --api-key "${AMO_API_KEY}" --api-secret "${AMO_API_SECRET}"
@@ -57,11 +60,17 @@ node scripts/build-zip.js ff nightly
 # build chrome
 #
 npm run "${BUILD_SCRIPT}-chrome"
-node scripts/build-zip.js chrome nightly
-
+node --max-old-space-size=2048 scripts/build-zip.js chrome nightly
 #
 #./scripts/build-crx.sh
 #
+
+#
+# build edge
+#
+npm run "${BUILD_SCRIPT}-edge"
+node --max-old-space-size=2048 scripts/build-zip.js chrome nightly
+
 
 ######################################
 #        UPLOAD TO WEB SERVER 
@@ -74,7 +83,6 @@ echo ""
 echo "Uploading to server ..."
 # push all built stuff to the server
 scp -i ~/.ssh/id_rsa -r ./dist-zip/* "ultrawidify-uploader@${RELEASE_SERVER}:${RELEASE_DIRECTORY}${BUILD_CHANNEL_DIRECTORY}"
-
 
 
 ######################################

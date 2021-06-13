@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-column" style="padding-bottom: 20px">
+  <div class="flex flex-column" style="padding-bottom: 20px; position: relative">
     <!-- <div class="">
       <div class="label">Player picker</div>
       <div class="desc">
@@ -38,18 +38,18 @@
       Player detection settings<br/><small>for {{site}}</small>
     </div>
     <div class="description">
-      Player is the frame around the video. Extension crops/stretches the video to fit the player.
+      If extension doesn't work, you can help a little by telling it where to look for the player.<br/>
     </div>
     <div class="">
       <div class="">
-        <input :checked="!playerManualQs"
+        <input :checked="playerManualQs"
                 @change="togglePlayerManualQs"
                 type="checkbox" 
-        /> Detect automatically
+        /> Manually specify player
       </div>
 
       <div class="flex flex-column">
-        <div class="">Query selectors:</div>
+        <div class="">Query selectors for player:</div>
         <input type="text"
                v-model="playerQs"
                @change="updatePlayerQuerySelector"
@@ -58,24 +58,48 @@
         />
       </div>
 
-      <div class="">
+      <div class="flex flex-row">
         <input :checked="playerByNodeIndex"
                :disabled="!playerManualQs"
                 @change="toggleByNodeIndex"
                 type="checkbox" 
-        /> Specify player node parent index instead
-      </div>
-
-      <div class="flex flex-column">
-        <div class="">Player node parent index:</div>
-         <input v-model="playerParentNodeIndex"
+        />
+        <div>
+          Player is n-th parent of video:
+        </div>
+        <input v-model="playerParentNodeIndex"
                 :disabled="!playerByNodeIndex || !playerManualQs"
                 @change="updatePlayerParentNodeIndex"
                 @blur="updatePlayerParentNodeIndex"
                 type="number" 
-         />
+        />
       </div>
-      
+
+      <div class="description">
+        <small>
+          <b>Hint:</b> Player is a HTML element that represents the portion of the page you expect the video to play in.
+          You can provide player's query selector, or you can tick the 'player is the n-th parent of video'
+          checkbox and try entering values 1-12ish and see if anything works. Note that you need to save
+          settings and reload the page every time you change the number.
+        </small>
+      </div>
+
+      <div class="flex flex-row">
+        <input :checked="usePlayerAr"
+                @change="toggleUsePlayerAr"
+                type="checkbox" 
+        />
+        <div>
+          Do not use monitor AR in fullscreen
+        </div>
+      </div>
+
+      <div class="description">
+        <small>
+          <b>Hint:</b> When in full screen, the extension will assume that player element is as big as your screen.
+          You generally want to keep this option off, unless you like to browse in fullscreen a lot.
+        </small>
+      </div>
     </div>
 
     <div class="label">
@@ -114,7 +138,7 @@
         />
       </div>
       <div class="flex flex-column">
-        <div class="flex label-secondary form-label">Additional css</div>
+        <div class="flex label-secondary form-label">Additional style for video element</div>
         <input type="text"
                v-model="videoCss"
                @change="updateVideoCss"
@@ -122,6 +146,68 @@
         />
       </div>
 
+      <div class="label">
+        Browser quirk mitigations
+      </div>
+      <div class="description">
+        Sometimes, the extension may misbehave as a result of issues and bugs present in your browser, operating system or your GPU driver.
+        Some of the issues can be fixed by limiting certain functionalities of this addon.
+      </div>
+      <div class="flex flex-column">
+        <div
+          v-if="BrowserDetect.anyChromium"
+          class="workaround flex flex-column"
+        >
+          <div class="flex label-secondary form-label">
+            <input :checked="settings?.active?.mitigations?.zoomLimit?.enabled"
+                  @change="setMitigation(['zoomLimit', 'enabled'], $event.target.checked)"
+                  type="checkbox" 
+            /> Limit zoom.
+          </div>
+          <div class="flex flex-row">
+            <div class="label-secondary form-label">
+              <small>Limit zoom to % of width (1=100%):</small>
+            </div>
+            <input type="number"
+                  :value="settings?.active?.mitigations?.zoomLimit?.limit || 0.997"
+                  step="0.001"
+                  min="0.5"
+                  @change="setMitigation(['zoomLimit', 'limit'], +$event.target.value)"
+                  @blur="updateVideoQuerySelector"
+                  :disabled="!settings?.active?.mitigations?.zoomLimit?.enabled"
+            />
+          </div>
+          <div class="flex label-secondary form-label">
+            <input :checked="settings?.active?.mitigations?.zoomLimit?.fullscreenOnly"
+                  @change="setMitigation(['zoomLimit', 'fullscreenOnly'], $event.target.checked)"
+                  :disabled="!settings?.active?.mitigations?.zoomLimit?.enabled"
+                  type="checkbox" 
+            /> Limit zoom only while in fullscreen
+          </div>
+          <div class="description">
+            <small>
+              <b>Fix for:</b> Chrome and Edge used to have a bug where videos would get incorrectly stretched when zoomed in too far.
+              The issue only appeared in fullscreen, on nVidia GPUs, and with hardware acceleration enabled. While this option only
+              needs to be applied in fullscreen, fullscreen detection in Chrome can be a bit unreliable (depending on your OS and/or
+              display scaling settings). <a href="https://stuff.tamius.net/sacred-texts/2021/02/01/ultrawidify-and-chrome-2021-edition/" target="_blank">More about the issue</a>.
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <div>&nbsp;</div>
+
+      <div>&nbsp;</div>
+
+    </div>
+    <div id="save-banner-observer-bait">
+      &nbsp;
+    </div>
+    <div
+      id="save-banner"
+      class="save-banner"
+    >
+      <div class="button">Save settings</div>
     </div>
   </div>
 </template>
@@ -130,9 +216,11 @@
 import ShortcutButton from '../../common/components/ShortcutButton.vue';
 import QsElement from '../../common/components/QsElement.vue';
 import QuerySelectorSetting from '../../common/components/QuerySelectorSetting.vue';
-import ExtensionMode from '../../common/enums/extension-mode.enum';
-import VideoAlignment from '../../common/enums/video-alignment.enum';
-import Stretch from '../../common/enums/stretch.enum';
+import ExtensionMode from '../../common/enums/ExtensionMode.enum';
+import VideoAlignmentType from '../../common/enums/VideoAlignmentType.enum';
+import StretchType from '../../common/enums/StretchType.enum';
+import BrowserDetect from '../../ext/conf/BrowserDetect';
+
 export default {
   components: {
     QuerySelectorSetting,
@@ -149,6 +237,8 @@ export default {
       playerCss: '',
       playerByNodeIndex: false,
       playerParentNodeIndex: undefined,
+      usePlayerAr: false,
+      BrowserDetect
     };
   },
   props: {
@@ -169,6 +259,7 @@ export default {
       this.playerQs = this.settings.active.sites[this.site].DOM.player.querySelectors;
       this.playerByNodeIndex = this.settings.active.sites[this.site].DOM.player.useRelativeAncestor || this.playerByNodeIndex;
       this.playerParentNodeIndex = this.settings.active.sites[this.site].DOM.player.videoAncestor;
+      this.usePlayerAr = this.settings.active.sites[this.site].usePlayerArInFullscreen;
     } catch (e) {
       // that's here just in case relevant settings for this site don't exist yet
     }
@@ -179,15 +270,32 @@ export default {
       // that's here just in case relevant settings for this site don't exist yet
     }
   },
+  mounted() {
+    this.createObserver();
+  },
   methods: {
+    createObserver() {
+      const saveButtonBait = document.getElementById('save-banner-observer-bait');
+      const saveButton = document.getElementById('save-banner');
+
+      const observer = new IntersectionObserver( 
+        ([e]) => {
+          // console.log('observer triggered. intersection ratio?', e.intersectionRatio)
+          saveButton.classList.toggle('floating', e.intersectionRatio < 0.95);
+        },
+        {threshold: [0, 0.5, 0.9, 0.95, 1]}
+      );
+
+      observer.observe(saveButtonBait);
+    },
     ensureSettings(scope) {
       if (! this.settings.active.sites[this.site]) {
         this.settings.active.sites[this.site] = {
           mode: ExtensionMode.Default,
           autoar: ExtensionMode.Default,
           type: 'user-added',
-          stretch: Stretch.Default,
-          videoAlignment: VideoAlignment.Default,
+          stretch: StretchType.Default,
+          videoAlignment: VideoAlignmentType.Default,
           keyboardShortcutsEnabled: ExtensionMode.Default,
         }
       }
@@ -248,12 +356,45 @@ export default {
       this.settings.active.sites[this.site].DOM.player.useRelativeAncestor = this.playerByNodeIndex;
       this.settings.save();
     },
+    toggleUsePlayerAr() {
+      this.ensureSettings('player');
+      this.usePlayerAr = !this.usePlayerAr;
+      this.settings.active.sites[this.site].usePlayerArInFullscreen = this.usePlayerAr;
+      this.settings.save();
+    },
+    setMitigation(mitigation, value) {
+      // ensure mitigations object exists.
+      // it may not exist in the settings on first load
+      if (! this.settings.active.mitigations) {
+        this.settings.active.mitigations = {};
+      }
+
+      if (Array.isArray(mitigation)) {
+        let currentMitigationsParent = this.settings.active.mitigations;
+
+        for (let i = 0; i < mitigation.length - 1; i++) {
+          if (!currentMitigationsParent[mitigation[i]]) {
+            currentMitigationsParent[mitigation[i]] = {};
+          }
+          currentMitigationsParent = currentMitigationsParent[mitigation[i]];
+        }
+
+        currentMitigationsParent[mitigation[mitigation.length - 1]] = value;
+      
+      } else {
+        this.settings.active.mitigations[mitigation] = value;
+      }
+
+      this.settings.save();
+    }
   }
 
 }
 </script>
 
-<style>
+<style lang="scss">
+@import '../../res/css/colors.scss';
+
 .pp_video {
   margin: 2px;
   padding: 5px;
@@ -278,5 +419,19 @@ export default {
   margin: 2px;
   padding: 2px;
   border: 2px solid #f00;
+}
+
+.save-banner {
+  display: block;
+  position: sticky;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  background-color: #131313;
+  text-align: center;
+
+  &.floating {
+    box-shadow: 0 2rem 3rem 1rem $selected-color;
+  }
 }
 </style>

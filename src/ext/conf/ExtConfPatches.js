@@ -1,8 +1,9 @@
 // How to use:
 // version: {ExtensionConf object, but only properties that get overwritten}
-import Stretch from '../../common/enums/stretch.enum';
-import ExtensionMode from '../../common/enums/extension-mode.enum';
-import VideoAlignment from '../../common/enums/video-alignment.enum';
+import StretchType from '../../common/enums/StretchType.enum';
+import ExtensionMode from '../../common/enums/ExtensionMode.enum';
+import VideoAlignmentType from '../../common/enums/VideoAlignmentType.enum';
+import BrowserDetect from './BrowserDetect';
 
 const ExtensionConfPatch = [
   {
@@ -267,7 +268,7 @@ const ExtensionConfPatch = [
             label: '4:3 stretch (src)',
             cmd: [{
               action: 'set-stretch',
-              arg: Stretch.FixedSource,
+              arg: StretchType.FixedSource,
               customArg: 1.33,
             }],
             scopes: {
@@ -284,7 +285,7 @@ const ExtensionConfPatch = [
             label: '16:9 stretch (src)',
             cmd: [{
               action: 'set-stretch',
-              arg: Stretch.FixedSource,
+              arg: StretchType.FixedSource,
               customArg: 1.77,
             }],
             scopes: {
@@ -309,8 +310,8 @@ const ExtensionConfPatch = [
         autoar: ExtensionMode.Enabled,
         autoarFallback: ExtensionMode.Enabled,
         override: true,                  // ignore value localStorage in favour of this
-        stretch: Stretch.Default,
-        videoAlignment: VideoAlignment.Default,
+        stretch: StretchType.Default,
+        videoAlignment: VideoAlignmentType.Default,
         keyboardShortcutsEnabled: ExtensionMode.Default,
         DOM: {
           player: {
@@ -339,8 +340,8 @@ const ExtensionConfPatch = [
           autoar: ExtensionMode.Enabled,     
           override: false,
           type: 'community',
-          stretch: Stretch.Default,
-          videoAlignment: VideoAlignment.Default,
+          stretch: StretchType.Default,
+          videoAlignment: VideoAlignmentType.Default,
           keyboardShortcutsEnabled: ExtensionMode.Default,
           arPersistence: true,              // persist aspect ratio between different videos
           autoarPreventConditions: {        // prevents autoar on following conditions
@@ -443,6 +444,71 @@ const ExtensionConfPatch = [
         userOptions.sites['wwww.disneyplus.com']['css'] = ".hudson-container {\n  height: 100%;\n}";
       } catch (e) {
         // do nothing if disney+ is missing
+      }
+    }
+  }, {
+    forVersion: '5.0.1',
+    updateFn: (userOptions, defaultOptions) => {
+      try {
+        userOptions.mitigations = {
+          zoomLimit: {
+            enabled: BrowserDetect.edge || BrowserDetect.isEdgeUA,
+            limit: 0.997,
+            fullscreenOnly: true
+          }
+        } 
+      } catch (e) {
+        // do nothing
+      }
+    }
+  }, {
+    forVersion: '5.0.1.1',
+    updateFn: (userOptions, defaultOptions) => {
+      try {
+        userOptions.mitigations = {
+          zoomLimit: {
+            enabled: true,
+            limit: 0.997,
+            fullscreenOnly: true
+          }
+        } 
+      } catch (e) {
+        // do nothing
+      }
+    }
+  }, {
+    forVersion: '5.0.2',
+    updateFn: (userOptions, defaultOptions) => {
+      try {
+        if (! userOptions.mitigations) {
+          userOptions.mitigations = {
+            zoomLimit: {
+              enabled: true,
+              limit: 0.997,
+              fullscreenOnly: true
+            }
+          } 
+        } else if (BrowserDetect.chrome) {
+          userOptions.mitigations = {
+            zoomLimit: {
+              enabled: true,
+              limit: 0.997,
+              fullscreenOnly: true
+            }
+          } 
+        }
+      } catch (e) {
+        // do nothing
+      }
+    }
+  }, {
+    forVersion: '5.0.4',
+    updateFn: (userOptions, defaultOptions) => {
+      userOptions.sites['www.disneyplus.com'].DOM.player = {
+        ... userOptions.sites['www.disneyplus.com'].DOM.player,
+        querySelectors: ".btm-media-client-element",
+        useRelativeAncestor: true,
+        videoAncestor: 1
       }
     }
   }

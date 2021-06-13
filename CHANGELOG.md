@@ -8,13 +8,58 @@
 * Settings page looks ugly af right now. Maybe fix it some time later
 * other bug fixes
 
-## v5.0 (planned major)
-
+## v7.0 (planned major)
  * WebGL autodetection
+
+## v6.0 (next major)
+
  * in-player GUI
  * Fix UI logger
 
+## v5.x (current major)
+
+### v5.0.4
+* Attempt to fix disney+ again, courtesy of [@jwannebo](https://github.com/tamius-han/ultrawidify/issues/84#issuecomment-846334005) on github.
+
+
+### v5.0.3
+
+* Fixed the issue where the videos were sometimes offset up and left. Again.
+* Fix the issue where correcting source stretch was squished incorrectly ([#153](https://github.com/tamius-han/ultrawidify/issues/153))
+
+### v5.0.2
+
+* When in full screen, the extension will assume player element dimensions are the same as the screen resolution. This should help with sites where ultrawidify doesn't correctly identify the player, as cropping generally doesn't work if player element is not identified. Old behaviour can be restored in advanced extension settings by toggling the "use player aspect ratio in fullscreen" checkbox under 'player detection settings'. 
+* Extension should now respect 'disable extension' option for real.
+* Fixed the issue where player wouldn't get detected if video was wider than the player.
+
+
+### v5.0.1
+* Added an option for users to turn off (and/or configure) Chrome/Edge's zoom limiter.
+
+### v5.0.0
+
+There's been some big-ish changes under the hood:
+
+* Migrate main scripts to typescript (vue is currently not included).
+* webextension-polyfill is now used everywhere (if only because typescript throws a hissy fit with `browser` and `chrome` otherwise) ([#114](https://github.com/tamius-han/ultrawidify/issues/114))
+* Fix some bugs that I didn't even know I had, but typescript kinda shone some light on them
+* Manual zoom (Z/U unless sites override the two) should now work again (without automatic AR constantly overriding it). Same goes for panning. ([#135](https://github.com/tamius-han/ultrawidify/issues/135) & [#138](https://github.com/tamius-han/ultrawidify/issues/138))
+* Fix issue when video would be scaled incorrectly if video element uses `height:auto`.
+* **[5.0.0.1]** Fixed the issue where settings were reset on page load.
+* **[5.0.0.1]** Fixed the issue where settings page wouldn't load.
 ## v4.x (current major)
+
+### v4.5.3
+
+* Provides workaround for the fullscreen stretching bug Chrome 88 (or a recent Windows 10 update) introduced for nVidia users using hardware acceleration on Windows 10. In order to mitigate this bug, Ultrawidify needs to keep a 5-10 px wide black border while watching videos in full screen. This bug is also present in Edge.
+* **[4.5.3.1]** Fixed letterbox misalignment binding in settings (#134)
+* **[4.5.3.2]** Fixed false 'autodetection not supported' notifications.
+
+### v4.5.2
+
+* Fixed the issue where videos would sometimes get misaligned while using hybrid stretch, except for real this time. ([#125](https://github.com/tamius-han/ultrawidify/issues/125))
+* Improved DRM detection (the 'autodetection cannot work on this site' popup should now no longer show up on the sites where autodetection _can_ work)
 
 ### v4.5.1
 
@@ -27,6 +72,7 @@
 * **[4.5.1.2]** Fixed the issue where videos would sometimes get misaligned while using hybrid stretch. ([#125](https://github.com/tamius-han/ultrawidify/issues/125))
 * **[4.5.1.3]** Added fix for disney plus
 * **[4.5.1.3]** Microsoft Edge has fixed the bugs that prevented the extension from working properly. Popup should no longer be shown.
+
 
 ### v4.5.0 (Current)
 

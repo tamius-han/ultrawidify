@@ -22,19 +22,23 @@ const config = {
     path: __dirname + `/dist-${process.env.BROWSER == 'firefox' ? 'ff' : process.env.BROWSER}`,
     filename: '[name].js',
   },
+
+  devtool: "source-map",
+
   resolve: {
     // maybe we'll move to TS some day, but today is not the day
     extensions: [
-      // '.ts', '.tsx',
+      '.ts', '.tsx',
       '.js', '.vue'
     ],
   },
   module: {
     rules: [
-      // { 
-      //   test: /\.tsx?$/,
-      //   loader: 'ts-loader',
-      // },
+      { 
+        test: /\.ts$/,
+        loader: 'ts-loader',
+        exclude: /node_modules/
+      },
       {
         test: /\.vue$/,
         loaders: 'vue-loader',
@@ -121,7 +125,7 @@ const config = {
                                             .substr(2)         // YYYY -> YY
                                             .replace('-', '')  // YY-MM-DD -> YYMM-DD
                                             .replace('-', '.') // YYMM-DD -> YYMM.DD
-                                    }.${process.env.BUILD_NUMBER}`;
+                                    }.${process.env.BUILD_NUMBER === undefined ? 0 : process.env.BUILD_NUMBER}`;
             jsonContent.browser_action.default_title = "Ultrawidify Nightly";
             
             // because we don't want web-ext to submit this as proper release
@@ -137,7 +141,7 @@ const config = {
                                             .substr(2)         // YYYY -> YY
                                             .replace('-', '')  // YY-MM-DD -> YYMM-DD
                                             .replace('-', '.') // YYMM-DD -> YYMM.DD
-                                    }.${process.env.BUILD_NUMBER}`;
+                                    }.${process.env.BUILD_NUMBER === undefined ? 0 : process.env.BUILD_NUMBER}`;
             jsonContent.browser_action.default_title = "Ultrawidify Testing";
             
             // because we don't want web-ext to submit this as proper release
@@ -159,7 +163,10 @@ const config = {
     }),
     new webpack.DefinePlugin({
       'process.env.BROWSER': JSON.stringify(process.env.BROWSER),
-      'process.env.CHANNEL': JSON.stringify(process.env.CHANNEL)
+      'process.env.CHANNEL': JSON.stringify(process.env.CHANNEL),
+
+      '__VUE_OPTIONS_API__': true,
+      '__VUE_PROD_DEVTOOLS__': false
     })
   ],
   optimization: {
@@ -175,6 +182,9 @@ const config = {
 if (config.mode === 'production') {
   config.plugins = (config.plugins || []).concat([
     new webpack.DefinePlugin({
+      '__VUE_OPTIONS_API__': true,
+      '__VUE_PROD_DEVTOOLS__': false,
+      
       'process.env': {
         NODE_ENV: '"production"',
       },
