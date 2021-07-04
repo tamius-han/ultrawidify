@@ -18,6 +18,11 @@
 
 ## v5.x (current major)
 
+### v5.0.5
+
+* improved UX a bit
+* Fixed white background on app.plex.tv ([#158](https://github.com/tamius-han/ultrawidify/issues/158))
+
 ### v5.0.4
 * Attempt to fix disney+ again, courtesy of [@jwannebo](https://github.com/tamius-han/ultrawidify/issues/84#issuecomment-846334005) on github.
 
@@ -29,7 +34,7 @@
 
 ### v5.0.2
 
-* When in full screen, the extension will assume player element dimensions are the same as the screen resolution. This should help with sites where ultrawidify doesn't correctly identify the player, as cropping generally doesn't work if player element is not identified. Old behaviour can be restored in advanced extension settings by toggling the "use player aspect ratio in fullscreen" checkbox under 'player detection settings'. 
+* When in full screen, the extension will assume player element dimensions are the same as the screen resolution. This should help with sites where ultrawidify doesn't correctly identify the player, as cropping generally doesn't work if player element is not identified. Old behaviour can be restored in advanced extension settings by toggling the "use player aspect ratio in fullscreen" checkbox under 'player detection settings'.
 * Extension should now respect 'disable extension' option for real.
 * Fixed the issue where player wouldn't get detected if video was wider than the player.
 
@@ -83,7 +88,7 @@ There's been some big-ish changes under the hood:
 * The extension will now show a notification when autodetection can't run due to DRM
 * Videos on facebook and reddit no longer get shifted up and to the left for me (cropping most of the video off-screen), but I haven't been deliberately trying to fix that issue. If you experience that issue, please consider contacting me (via github or email) with a link to a problematic video.
 
-### v4.4.10 
+### v4.4.10
 
 * Video alignment should now work on Twitch — [#109](https://github.com/tamius-han/ultrawidify/issues/109)
 * Videos should now align properly on Hulu while cropped — [#111](https://github.com/tamius-han/ultrawidify/issues/111) & via email
@@ -121,7 +126,7 @@ In addition to that, as of 4.4.9.1 the build process ensures removal of `node_mo
 * Fixed netflix (and possibly disney+ )
 * It's been almost a month and Chrome Web Store still hasn't finished the review of the 4.4.4.1 (and 4.4.4.2) revisions because when it comes to incompetence, it's hard to expect anything less from Google. I've did some proverbial yelling at the support in hopes that Chrome version will finally see an update (disclaimer: when I said yelling I really mean a polite request, because support staff doesn't deserve abuse because a different department is utter shite at doing their jobs).
 
-### v4.4.5 
+### v4.4.5
 
 * Extension no longer requires `allTabs` and `webNavigation` permissions
 * Some CSS on the debugger popup was not scoped, causing issues with some sites.
@@ -151,7 +156,7 @@ In addition to that, as of 4.4.9.1 the build process ensures removal of `node_mo
 
 * Changes to player detection that fix issues with vk
 * Extension tries to avoid setting aspect ratio pointlessly
-* (Hopefully) fixed mailto: and reddit compose links. 
+* (Hopefully) fixed mailto: and reddit compose links.
 * When reporting bugs, email/reddit template now automatically gathers browser, extension version and OS.
 
 ### v4.4.0
@@ -197,23 +202,23 @@ and OS are automatically included in email/reddit template.
 * Started using mutation observers to watch for anything modifying the size of our video.
 * **[4.2.3.1]** fixed some bugs in popup.
 
-### v4.2.2 
+### v4.2.2
 
 * Fixed player detection on reddit (for videos from v.reddit)
 
 ### v4.2.1
 * Fixed bug where custom CSS didn't get applied to pages
 
-### v4.2.0 
+### v4.2.0
 
 * Slightly improved popup design. (Design change suggested by PortaTrekos)
-* Player detection: youtube and twitch now have manual player element detection, with strictly defined players. 
+* Player detection: youtube and twitch now have manual player element detection, with strictly defined players.
 * Improved site settings control in extension popup. It's possible to enable extension for previously disabled embedded sites.
 * Improved incompatibilities with reddit, where videos would be vertically misaligned when not using RES
 * Fixed imcompatibilities with Iridium. Flicker when clicking play/pause or switching between big and popup player is caused by either Youtube or Iridium trying to apply their styles over mine.
 * Issues with inconsistent alignment that some people reported are potentially fixed
 
-### v4.1.2 
+### v4.1.2
 
 * Fixed video alignment issues on www.reddit as well (for people who use old reddit without going to old.reddit)
 * Fixed bug with 'player detection' tab
@@ -225,17 +230,17 @@ and OS are automatically included in email/reddit template.
 ### v4.1.0
 
 * Added ability to add custom CSS to page
-* Fixed video alignment issues on old.reddit. Disabled extension on imgur by default. 
+* Fixed video alignment issues on old.reddit. Disabled extension on imgur by default.
 * Extension now works on vimeo again
 * **UX:** Renamed 'about' to 'report a problem' in order to make contact info more discoverable
 
 
 ### v4.0.1
 
-* Fixed bug where sites using 'default' option in 'Extension mode' settings would be disabled, even if extension was not. 
+* Fixed bug where sites using 'default' option in 'Extension mode' settings would be disabled, even if extension was not.
 * Fixed bug where extension sometimes wouldn't work on Netflix.
 
-### v4.0.0 
+### v4.0.0
 
 * Fixed the bug where saving settings wouldn't work
 * Massive under-the-hood changes. The extension popup and settings page use VueJS
@@ -265,7 +270,7 @@ and OS are automatically included in email/reddit template.
 
 Never happened, got bumped to 4.0.0.
 
-### v3.2.2 
+### v3.2.2
 
 * Pan event listener now gets properly unbound
 * Fixed 'reset zoom' button in popup
@@ -274,7 +279,7 @@ Never happened, got bumped to 4.0.0.
 
 * Fixed issue where global video alignment setting didn't get saved properly
 
-### v3.2.0 
+### v3.2.0
 
 * Zoom and panning
 * Reorganized popup
@@ -314,7 +319,7 @@ User-facing changes:
 
 Added some anti-lag measures. This seems to be an issue affecting _only_ Chrome (and only then some installs), where canvas.drawImage() won't work properly for some reason.
 
-### v2.2.4 
+### v2.2.4
 
 Lots of mostly incredibly minor stuff.
 
@@ -325,11 +330,11 @@ Lots of mostly incredibly minor stuff.
 * Fixed some under-the-hood bugs nobody knew they even existed
 * A lil bit of refactoring
 
-### v2.2.3 
+### v2.2.3
 
 * Fixed automatic aspect ratio detection on DRM-protected sites.
 
-### v2.2.2  
+### v2.2.2
 
 * Fixes problems with switching from normal to fullscreen player on youtube. If 2.2.1 didn't fix the font issue, this version should have.
 
@@ -345,9 +350,9 @@ Various improvements to automatic aspect ratio detection:
 * **Fixed the situation with insane memory usage due to the automatic aspect ratio detection (#25, #32) and lag that appeared in certain cases after the extension has been running for a while.** There's still fun stuff going on — see notes below.
 * Improved accuracy of automatic detection. This should fix the issue of rapid switching in dark videos or videos with otherwise uneven edges (#12 - [video](https://www.youtube.com/watch?v=NaTGwlfRB_c); #24 - [video](https://www.youtube.com/watch?v=xvZqHgFz51I) (see the car at the beginning))
 
-Improved accuracy has increased the base RAM usage, and not by a small amount (I seem to have fixed my blunders, so that could _actually_ be on Firefox). As a result, I've reduced both resolution of the sample as well as polling frequency. 
+Improved accuracy has increased the base RAM usage, and not by a small amount (I seem to have fixed my blunders, so that could _actually_ be on Firefox). As a result, I've reduced both resolution of the sample as well as polling frequency.
 
-Polling of 1 check per second shouldn't use too much RAM. If you want automatic aspect ratio detection to react faster, you can up that number to 30 in the settings. 30 checks per second can be expensive: up to 400 MB if you've just started Firefox and went to youtube. Can go north of 2 gigs if you've been running Firefox for longer than that (seems to be a problem with Javascript garbage collection). 
+Polling of 1 check per second shouldn't use too much RAM. If you want automatic aspect ratio detection to react faster, you can up that number to 30 in the settings. 30 checks per second can be expensive: up to 400 MB if you've just started Firefox and went to youtube. Can go north of 2 gigs if you've been running Firefox for longer than that (seems to be a problem with Javascript garbage collection).
 
 Videos that aren't playing (e.g. videos that are paused or ended) do (should) ***not*** use any meaningful amount of RAM.
 
@@ -365,11 +370,11 @@ Videos that aren't playing (e.g. videos that are paused or ended) do (should) **
 
 Youtube fix seems to have broken Chrome compatibility (again), so any quick fix for this point forward will land in Chrome version along with v2.2.
 
-### v2.1.2 
+### v2.1.2
 
 * Fixed some bugs with autodetection sometimes not working properly on Youtube.
 
-Problem: there's this bit of code that keeps aspect ratio from changing when the difference between 'previous' and 'current' aspect ratio is too small. Unfortunately, the 'previous' value was _not_ updated on every aspect ratio switch for some reason. Also `ArDetect.init()` — for some reason — didn't always clean the 'previous' value even though it should. 
+Problem: there's this bit of code that keeps aspect ratio from changing when the difference between 'previous' and 'current' aspect ratio is too small. Unfortunately, the 'previous' value was _not_ updated on every aspect ratio switch for some reason. Also `ArDetect.init()` — for some reason — didn't always clean the 'previous' value even though it should.
 
 ### v2.1.1
 
@@ -381,7 +386,7 @@ Problem: there's this bit of code that keeps aspect ratio from changing when the
 * Popup should work more reliably now
 * Twitch works ... kinda but not always
 
-### v2.0.3 
+### v2.0.3
 
 * Fixed the bug where Netflix videos weren't vertically centered in Firefox 57+ (not present in Chrome or FF 56 or earlier)
 
@@ -442,15 +447,15 @@ The extension is being rewritten almost ground-up, around automatic aspect ratio
 
 * Introduced Netflix support.
 
-As Netflix relies on extension re-initializing at least the UI ***a lot***, the optimization introduced in 1.0.2 was reversed (as waiting 2 seconds for the UI to appear is just too much). 
+As Netflix relies on extension re-initializing at least the UI ***a lot***, the optimization introduced in 1.0.2 was reversed (as waiting 2 seconds for the UI to appear is just too much).
 
 Furthermore, triggering UI re-initialisation on onUpdated events turned out to not be the proper way to go: immediately after the extension is initialized, onUpdated gets triggered even more often than your average Buzzfeed writer/reader. But change the episode on Netflix and suddenly, onUpdated gets barely triggered at all — which means that more often than not, the UI extension injects into the page wasn't visible. (the fuck, really)
 
 This is why Netflix uses another function that manually checks whether the player bar is present. Ideally that check happens every tenth of a second, but Firefox may be limiting that to one per second.
 
-### v1.0.2  
+### v1.0.2
 
-The 'extension sometimes not working' bug was fixed (by having extension try to setup every time a page got updated), but the fix had some problems. Namely, the extension would re-initiate (complete with re-adding the entire UI) itself very _very_ often. 
+The 'extension sometimes not working' bug was fixed (by having extension try to setup every time a page got updated), but the fix had some problems. Namely, the extension would re-initiate (complete with re-adding the entire UI) itself very _very_ often.
 
 This could be a problem, so it was fixed. Extension is notified of updates only every ~2 seconds (which absorbs most of the "page was updated" events on page load) and doesn't attempt to reload the UI if the UI was already loaded. (Unless `debugmsg` is set to true. It's generally not, but any commits to this repo could potentially still have it enabled).
 
@@ -464,7 +469,7 @@ Fixed the bug where sometimes the extension would fail to work. (example: you op
 
 ### v1.0-rc1
 
-* Settings page is added and mostly working. 
+* Settings page is added and mostly working.
 
 ### v0.9.9.6
 
@@ -480,7 +485,7 @@ Fixed the bug where sometimes the extension would fail to work. (example: you op
 
 ### v0.9.9.1
 
-* Keybinds `a` and `w` now work. 
+* Keybinds `a` and `w` now work.
 * Some changes under the bonnet, mostly regarding the way keypresses are handled.
 * 'Settings' page is ~15% done.
 
