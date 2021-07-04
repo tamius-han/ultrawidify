@@ -126,7 +126,7 @@ const ExtensionConfPatch = [
     updateFn: (userOptions, defaultOptions) => {
       // remove 'press P to toggle panning mode' thing
       const togglePan = userOptions.actions.find(x => x.cmd && x.cmd.length === 1 && x.cmd[0].action === 'toggle-pan');
-      if (togglePan) { 
+      if (togglePan) {
         togglePan.scopes = {};
       }
 
@@ -221,7 +221,7 @@ const ExtensionConfPatch = [
           show: true,
         }
       });
-      
+
       // patch shortcuts for non-latin layouts, but only if the user hasn't changed default keys
       for (const action of userOptions.actions) {
         if (!action.cmd || action.cmd.length !== 1) {
@@ -263,7 +263,7 @@ const ExtensionConfPatch = [
     updateFn: (userOptions, defaultOptions) => {
       try {
         userOptions.actions.push(
-          { 
+          {
             name: 'Stretch source to 4:3',
             label: '4:3 stretch (src)',
             cmd: [{
@@ -280,7 +280,7 @@ const ExtensionConfPatch = [
               show: true,
               path: 'crop'
             }
-          }, { 
+          }, {
             name: 'Stretch source to 16:9',
             label: '16:9 stretch (src)',
             cmd: [{
@@ -337,7 +337,7 @@ const ExtensionConfPatch = [
       if (!userOptions.sites['www.disneyplus.com']) {
         userOptions.sites['www.disneyplus.com'] = {
           mode: ExtensionMode.Enabled,
-          autoar: ExtensionMode.Enabled,     
+          autoar: ExtensionMode.Enabled,
           override: false,
           type: 'community',
           stretch: StretchType.Default,
@@ -456,7 +456,7 @@ const ExtensionConfPatch = [
             limit: 0.997,
             fullscreenOnly: true
           }
-        } 
+        }
       } catch (e) {
         // do nothing
       }
@@ -471,7 +471,7 @@ const ExtensionConfPatch = [
             limit: 0.997,
             fullscreenOnly: true
           }
-        } 
+        }
       } catch (e) {
         // do nothing
       }
@@ -487,7 +487,7 @@ const ExtensionConfPatch = [
               limit: 0.997,
               fullscreenOnly: true
             }
-          } 
+          }
         } else if (BrowserDetect.chrome) {
           userOptions.mitigations = {
             zoomLimit: {
@@ -495,7 +495,7 @@ const ExtensionConfPatch = [
               limit: 0.997,
               fullscreenOnly: true
             }
-          } 
+          }
         }
       } catch (e) {
         // do nothing
@@ -509,6 +509,28 @@ const ExtensionConfPatch = [
         querySelectors: ".btm-media-client-element",
         useRelativeAncestor: true,
         videoAncestor: 1
+      }
+    }
+  }, {
+    forVersion: '5.0.5',
+    sites: {
+      "app.plex.tv": {
+        mode: 3,
+        autoar: 3,
+        type: "user-added",
+        stretch: -1,
+        videoAlignment: -1,
+        keyboardShortcutsEnabled: 0,
+        DOM: {
+          player: {
+            manual: false,
+            querySelectors: "",
+            additionalCss: "",
+            useRelativeAncestor: false,
+            playerNodeCss: ""
+          }
+        },
+        css: "body {\n  background-color: #000;\n}\n\n.application {\n  background-color: #000;\n}"
       }
     }
   }
