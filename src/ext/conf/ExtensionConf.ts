@@ -15,7 +15,7 @@ if(Debug.debug)
 const ExtensionConf: SettingsInterface = {
   arDetect: {
     disabledReason: "",       // if automatic aspect ratio has been disabled, show reason
-    allowedMisaligned: 0.05,  // top and bottom letterbox thickness can differ by this much. 
+    allowedMisaligned: 0.05,  // top and bottom letterbox thickness can differ by this much.
                               // Any more and we don't adjust ar.
     allowedArVariance: 0.075, // amount by which old ar can differ from the new (1 = 100%)
     timers: {                 // autodetection frequency
@@ -46,14 +46,14 @@ const ExtensionConf: SettingsInterface = {
       },
     },
 
-    // samplingInterval: 10,     // we sample at columns at (width/this) * [ 1 .. this - 1] 
+    // samplingInterval: 10,     // we sample at columns at (width/this) * [ 1 .. this - 1]
     blackframe: {
       sufficientColorVariance: 0.10,  // calculate difference between average intensity and pixel, for every pixel for every color
                                       // component. Average intensity is normalized to where 0 is black and 1 is biggest value for
                                       // that component. If sum of differences between normalized average intensity and normalized
                                       // component varies more than this % between color components, we can afford to use less strict
                                       // cumulative threshold.
-      cumulativeThresholdLax: 1600,    
+      cumulativeThresholdLax: 1600,
       cumulativeThresholdStrict: 2560,// if we add values of all pixels together and get more than this, the frame is bright enough.
                                  // (note: blackframe is 16x9 px -> 144px total. cumulative threshold can be reached fast)
       blackPixelsCondition: 0.6, // How much pixels must be black (1 all, 0 none) before we consider frame as black. Takes
@@ -93,7 +93,7 @@ const ExtensionConf: SettingsInterface = {
       randomCols: 0,      // we add this many randomly selected columns to the static columns
       staticRows: 9,      // forms grid with staticSampleCols. Determined in the same way. For black frame checks
     },
-    guardLine: {              // all pixels on the guardline need to be black, or else we trigger AR recalculation 
+    guardLine: {              // all pixels on the guardline need to be black, or else we trigger AR recalculation
                               // (if AR fails to be recalculated, we reset AR)
       enabled: true,
       ignoreEdgeMargin: 0.20, // we ignore anything that pokes over the black line this close to the edge
@@ -107,14 +107,14 @@ const ExtensionConf: SettingsInterface = {
       safetyBorderPx: 5,        // determines the thickness of safety border in fallback mode
       noTriggerZonePx: 8        // if we detect edge less than this many pixels thick, we don't correct.
     },
-    arSwitchLimiter: {          // to be implemented 
+    arSwitchLimiter: {          // to be implemented
       switches: 2,              // we can switch this many times
         period: 2.0             // per this period
     },
     edgeDetection: {
       sampleWidth: 8,        // we take a sample this wide for edge detection
       detectionThreshold: 4,  // sample needs to have this many non-black pixels to be a valid edge
-      confirmationThreshold: 1,  // 
+      confirmationThreshold: 1,  //
       singleSideConfirmationThreshold: 3,    // we need this much edges (out of all samples, not just edges) in order
                                              // to confirm an edge in case there's no edges on top or bottom (other
                                             // than logo, of course)
@@ -128,11 +128,11 @@ const ExtensionConf: SettingsInterface = {
                                    // are now. (NOTE: keep this less than 1 in case we implement logo detection)
     },
     pillarTest: {
-      ignoreThinPillarsPx: 5, // ignore pillars that are less than this many pixels thick. 
+      ignoreThinPillarsPx: 5, // ignore pillars that are less than this many pixels thick.
       allowMisaligned: 0.05   // left and right edge can vary this much (%)
     },
     textLineTest: {
-      nonTextPulse: 0.10,     // if a single continuous pulse has this many non-black pixels, we aren't dealing 
+      nonTextPulse: 0.10,     // if a single continuous pulse has this many non-black pixels, we aren't dealing
                               // with text. This value is relative to canvas width (%)
       pulsesToConfirm: 10,    // this is a threshold to confirm we're seeing text.
       pulsesToConfirmIfHalfBlack: 5, // this is the threshold to confirm we're seeing text if longest black pulse
@@ -171,8 +171,8 @@ const ExtensionConf: SettingsInterface = {
   //             ::: ACTIONS :::
   // -----------------------------------------
   // Nastavitve za ukaze. Zamenja stare nastavitve za bližnične tipke.
-  // 
-  // Polje 'shortcut' je tabela, če se slučajno lotimo kdaj delati choordov. 
+  //
+  // Polje 'shortcut' je tabela, če se slučajno lotimo kdaj delati choordov.
   actions: [{
     name: 'Trigger automatic detection',    // name displayed in settings
     label: 'Automatic',                     // name displayed in ui (can be overridden in scope/playerUi)
@@ -197,7 +197,7 @@ const ExtensionConf: SettingsInterface = {
           code: 'KeyA',
           ctrlKey: false,
           metaKey: false,
-          altKey: false, 
+          altKey: false,
           shiftKey: false,
           onKeyUp: true,
           onKeyDown: false,
@@ -223,7 +223,7 @@ const ExtensionConf: SettingsInterface = {
           code: 'KeyR',
           ctrlKey: false,
           metaKey: false,
-          altKey: false, 
+          altKey: false,
           shiftKey: false,
           onKeyUp: true,
           onKeyDown: false,
@@ -249,7 +249,7 @@ const ExtensionConf: SettingsInterface = {
           code: 'KeyW',
           ctrlKey: false,
           metaKey: false,
-          altKey: false, 
+          altKey: false,
           shiftKey: false,
           onKeyUp: true,
           onKeyDown: false,
@@ -275,7 +275,7 @@ const ExtensionConf: SettingsInterface = {
           code: 'KeyE',
           ctrlKey: false,
           metaKey: false,
-          altKey: false, 
+          altKey: false,
           shiftKey: false,
           onKeyUp: true,
           onKeyDown: false,
@@ -303,7 +303,7 @@ const ExtensionConf: SettingsInterface = {
           code: 'KeyS',
           ctrlKey: false,
           metaKey: false,
-          altKey: false, 
+          altKey: false,
           shiftKey: false,
           onKeyUp: false,
           onKeyDown: true,
@@ -331,7 +331,7 @@ const ExtensionConf: SettingsInterface = {
           code: 'KeyD',
           ctrlKey: false,
           metaKey: false,
-          altKey: false, 
+          altKey: false,
           shiftKey: false,
           onKeyUp: false,
           onKeyDown: true,
@@ -359,7 +359,7 @@ const ExtensionConf: SettingsInterface = {
           code: 'KeyX',
           ctrlKey: false,
           metaKey: false,
-          altKey: false, 
+          altKey: false,
           shiftKey: false,
           onKeyUp: true,
           onKeyDown: false,
@@ -472,7 +472,7 @@ const ExtensionConf: SettingsInterface = {
           code: 'KeyY',
           ctrlKey: false,
           metaKey: false,
-          altKey: false, 
+          altKey: false,
           shiftKey: false,
           onKeyUp: true,
           onKeyDown: false,
@@ -497,7 +497,7 @@ const ExtensionConf: SettingsInterface = {
           code: 'KeyU',
           ctrlKey: false,
           metaKey: false,
-          altKey: false, 
+          altKey: false,
           shiftKey: false,
           onKeyUp: true,
           onKeyDown: false,
@@ -532,7 +532,7 @@ const ExtensionConf: SettingsInterface = {
         shortcut: [{
           ctrlKey: false,
           metaKey: false,
-          altKey: false, 
+          altKey: false,
           shiftKey: true,
           onKeyDown: false,
           onKeyUp: false,
@@ -657,7 +657,7 @@ const ExtensionConf: SettingsInterface = {
       }
     }
   }, // NEW OPTIONS
-  { 
+  {
     name: 'Stretch source to 4:3',
     label: '4:3 stretch (src)',
     cmd: [{
@@ -674,7 +674,7 @@ const ExtensionConf: SettingsInterface = {
       show: true,
       path: 'crop'
     }
-  }, { 
+  }, {
     name: 'Stretch source to 16:9',
     label: '16:9 stretch (src)',
     cmd: [{
@@ -778,7 +778,7 @@ const ExtensionConf: SettingsInterface = {
   //    E N A B L E   E X T E N S I O N / A U T O A R
   //    (for sites/extension tab in the popup)
   //
-  { 
+  {
     name: 'Enable extension',
     label: 'Enable',
     cmd: [{
@@ -889,7 +889,7 @@ const ExtensionConf: SettingsInterface = {
     scopes: {
       global: {
         show: true,
-      }, 
+      },
       site: {
         show: true,
       }
@@ -899,7 +899,7 @@ const ExtensionConf: SettingsInterface = {
   //
   // Enable/disable keyboard shortcuts
   //
-  { 
+  {
     name: 'Enable keyboard shortcuts',
     label: 'Enable',
     cmd: [{
@@ -974,31 +974,31 @@ const ExtensionConf: SettingsInterface = {
   // -----------------------------------------
   // Nastavitve za posamezno stran
   // Config for a given page:
-  // 
+  //
   // <hostname> : {
   //    status: <option>              // should extension work on this site?
   //    arStatus: <option>            // should we do autodetection on this site?
-  //    
+  //
   //    defaultAr?: <ratio>          // automatically apply this aspect ratio on this side. Use extension defaults if undefined.
   //    stretch? <stretch mode>       // automatically stretch video on this site in this manner
   //    videoAlignment? <left|center|right>
   //
-  //    type: <official|community|user>  // 'official' — blessed by Tam. 
+  //    type: <official|community|user>  // 'official' — blessed by Tam.
   //                                     // 'community' — blessed by reddit.
   //                                     // 'user' — user-defined (not here)
   //    override: <true|false>           // override user settings for this site on update
-  // } 
-  //  
-  // Veljavne vrednosti za možnosti 
+  // }
+  //
+  // Veljavne vrednosti za možnosti
   // Valid values for options:
   //
   //     status, arStatus, statusEmbedded:
-  //    
+  //
   //    * enabled     — always allow, full
   //    * basic       — allow, but only the basic version without playerData
   //    * default     — allow if default is to allow, block if default is to block
   //    * disabled    — never allow
-  // 
+  //
   sites: {
     "@global": {                        // global defaults. Possible options will state site-only options in order
                                         // to avoid writing this multiple times. Tags:
@@ -1010,12 +1010,12 @@ const ExtensionConf: SettingsInterface = {
                                         //       'disabled'  - work nowhere
                                         //       'basic'     - (Possible future use)
                                         //       'default'   - follow global rules (#s)
-      autoar: ExtensionMode.Enabled,    //  Should we try to automatically detect aspect ratio? 
+      autoar: ExtensionMode.Enabled,    //  Should we try to automatically detect aspect ratio?
                                         //  Options: 'enabled', 'whitelist' (#g), 'default' (#s), 'disabled'
       autoarFallback: currentBrowser.firefox ?     // if autoAr fails, try fallback mode?
                        ExtensionMode.Enabled :     // Options same as in autoar.
                        ExtensionMode.Disabled,     // if autoar is disabled, this setting is irrelevant
-      stretch: StretchType.NoStretch,                  // Default stretch mode. 
+      stretch: StretchType.NoStretch,                  // Default stretch mode.
       videoAlignment: VideoAlignmentType.Center,       // Video alignment
       keyboardShortcutsEnabled: ExtensionMode.Enabled,
     },
@@ -1041,7 +1041,7 @@ const ExtensionConf: SettingsInterface = {
     },
     "www.netflix.com" : {
       mode: ExtensionMode.Enabled,
-      autoar: ExtensionMode.Enabled,     
+      autoar: ExtensionMode.Enabled,
       override: false,
       type: 'official',
       stretch: StretchType.Default,
@@ -1060,7 +1060,7 @@ const ExtensionConf: SettingsInterface = {
     },
     "www.disneyplus.com" : {
       mode: ExtensionMode.Enabled,
-      autoar: ExtensionMode.Enabled,     
+      autoar: ExtensionMode.Enabled,
       override: false,
       type: 'community',
       stretch: StretchType.Default,
@@ -1081,7 +1081,7 @@ const ExtensionConf: SettingsInterface = {
     },
     "www.twitch.tv": {
       mode: ExtensionMode.Enabled,
-      autoar: ExtensionMode.Enabled,     
+      autoar: ExtensionMode.Enabled,
       override: true,
       type: 'official',
       stretch: StretchType.Default,
@@ -1124,7 +1124,7 @@ const ExtensionConf: SettingsInterface = {
     },
     "old.reddit.com" : {
       mode: ExtensionMode.Enabled,
-      autoar:ExtensionMode.Enabled,     
+      autoar:ExtensionMode.Enabled,
       override: false,
       type: 'testing',
       stretch: StretchType.Default,
@@ -1141,7 +1141,7 @@ const ExtensionConf: SettingsInterface = {
     },
     "www.reddit.com" : {
       mode: ExtensionMode.Enabled,
-      autoar: ExtensionMode.Enabled,     
+      autoar: ExtensionMode.Enabled,
       override: false,
       type: 'testing',
       stretch: StretchType.Default,
@@ -1192,6 +1192,24 @@ const ExtensionConf: SettingsInterface = {
         }
       }
     },
+    "app.plex.tv": {
+      mode: 3,
+      autoar: 3,
+      type: "user-added",
+      stretch: -1,
+      videoAlignment: -1,
+      keyboardShortcutsEnabled: 0,
+      DOM: {
+        player: {
+          manual: false,
+          querySelectors: "",
+          additionalCss: "",
+          useRelativeAncestor: false,
+          playerNodeCss: ""
+        }
+      },
+      css: "body {\n  background-color: #000;\n}\n\n.application {\n  background-color: #000;\n}"
+    }
   }
 }
 

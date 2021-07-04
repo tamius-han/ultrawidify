@@ -6,7 +6,7 @@
         If extension doesn't detect player correctly, you can override it.
         <small>(NOTE: this currently doesn't work for embedded videos)</small>
       </div>
-      
+
       <div>Meaning of outlines:</div>
 
       <div class="flex flex-row flex-wrap">
@@ -30,8 +30,6 @@
           <QsElement :selector="qse" :key="qse" />
         </template>
       </div>
-
-
     </div> -->
 
     <div class="label">
@@ -44,50 +42,59 @@
       <div class="">
         <input :checked="playerManualQs"
                 @change="togglePlayerManualQs"
-                type="checkbox" 
+                type="checkbox"
         /> Manually specify player
+        <span v-if="playerManualQs" class="small-samecolor">
+          &nbsp;
+          <a
+            v-if="playerByNodeIndex"
+            @click="toggleByNodeIndex"
+          >(use advanced options)</a>
+          <a
+            v-if="!playerByNodeIndex"
+            @click="toggleByNodeIndex"
+          >(use basic options)</a>
+        </span>
       </div>
 
-      <div class="flex flex-column">
-        <div class="">Query selectors for player:</div>
-        <input type="text"
-               v-model="playerQs"
-               @change="updatePlayerQuerySelector"
-               @blur="updatePlayerQuerySelector"
-               :disabled="playerByNodeIndex || !playerManualQs"
-        />
-      </div>
-
-      <div class="flex flex-row">
-        <input :checked="playerByNodeIndex"
-               :disabled="!playerManualQs"
-                @change="toggleByNodeIndex"
-                type="checkbox" 
-        />
-        <div>
-          Player is n-th parent of video:
+      <div v-if="playerManualQs">
+        <div v-if="!playerByNodeIndex" class="flex flex-column">
+          <div class="">Query selectors for player:</div>
+          <input type="text"
+                v-model="playerQs"
+                @change="updatePlayerQuerySelector"
+                @blur="updatePlayerQuerySelector"
+                :disabled="playerByNodeIndex || !playerManualQs"
+          />
         </div>
-        <input v-model="playerParentNodeIndex"
-                :disabled="!playerByNodeIndex || !playerManualQs"
-                @change="updatePlayerParentNodeIndex"
-                @blur="updatePlayerParentNodeIndex"
-                type="number" 
-        />
+
+        <div v-if="playerByNodeIndex" class="flex flex-row">
+          <div>
+            Player is n-th parent of video:
+          </div>
+          <input v-model="playerParentNodeIndex"
+                  :disabled="!playerManualQs"
+                  @change="updatePlayerParentNodeIndex"
+                  @blur="updatePlayerParentNodeIndex"
+                  type="number"
+          />
+        </div>
+
+        <div class="description">
+          <small>
+            <b>Hint:</b> Player is a HTML element that represents the portion of the page you expect the video to play in.
+            The correct value for n-th player value should normally between 1-10 (depends on the site). If none of these
+            values works, then the site probably has a different issue.
+            Note that you need to save settings and reload the page every time you change the number.
+          </small>
+        </div>
       </div>
 
-      <div class="description">
-        <small>
-          <b>Hint:</b> Player is a HTML element that represents the portion of the page you expect the video to play in.
-          You can provide player's query selector, or you can tick the 'player is the n-th parent of video'
-          checkbox and try entering values 1-12ish and see if anything works. Note that you need to save
-          settings and reload the page every time you change the number.
-        </small>
-      </div>
 
       <div class="flex flex-row">
         <input :checked="usePlayerAr"
                 @change="toggleUsePlayerAr"
-                type="checkbox" 
+                type="checkbox"
         />
         <div>
           Do not use monitor AR in fullscreen
@@ -116,7 +123,7 @@
         >
         </textarea>
     </div>
-    
+
     <div class="label">
       Video detection settings<br/><small>for {{site}}</small>
     </div>
@@ -125,7 +132,7 @@
       <div class="">
         <input :checked="!videoManualQs"
                 @change="toggleVideoManualQs"
-                type="checkbox" 
+                type="checkbox"
         /> Detect automatically
       </div>
       <div class="flex flex-column">
@@ -161,7 +168,7 @@
           <div class="flex label-secondary form-label">
             <input :checked="settings?.active?.mitigations?.zoomLimit?.enabled"
                   @change="setMitigation(['zoomLimit', 'enabled'], $event.target.checked)"
-                  type="checkbox" 
+                  type="checkbox"
             /> Limit zoom.
           </div>
           <div class="flex flex-row">
@@ -181,7 +188,7 @@
             <input :checked="settings?.active?.mitigations?.zoomLimit?.fullscreenOnly"
                   @change="setMitigation(['zoomLimit', 'fullscreenOnly'], $event.target.checked)"
                   :disabled="!settings?.active?.mitigations?.zoomLimit?.enabled"
-                  type="checkbox" 
+                  type="checkbox"
             /> Limit zoom only while in fullscreen
           </div>
           <div class="description">
@@ -235,7 +242,7 @@ export default {
       playerManualQs: false,
       playerQs: '',
       playerCss: '',
-      playerByNodeIndex: false,
+      playerByNodeIndex: true,
       playerParentNodeIndex: undefined,
       usePlayerAr: false,
       BrowserDetect
@@ -247,19 +254,19 @@ export default {
   },
   created() {
     try {
-      this.videoManualQs = this.settings.active.sites[this.site].DOM.video.manual || this.videoManualQs;
-      this.videoQs = this.settings.active.sites[this.site].DOM.video.querySelectors;
-      this.videoCss = this.settings.active.sites[this.site].DOM.video.additionalCss;
+      this.videoManualQs = this.settings.active.sites[this.site]?.DOM?.video?.manual ?? this.videoManualQs;
+      this.videoQs = this.settings.active.sites[this.site]?.DOM?.video?.querySelectors;
+      this.videoCss = this.settings.active.sites[this.site]?.DOM?.video?.additionalCss;
     } catch (e) {
       // that's here just in case relevant settings for this site don't exist yet
     }
-    
+
     try {
-      this.playerManualQs = this.settings.active.sites[this.site].DOM.player.manual || this.playerManualQs;
-      this.playerQs = this.settings.active.sites[this.site].DOM.player.querySelectors;
-      this.playerByNodeIndex = this.settings.active.sites[this.site].DOM.player.useRelativeAncestor || this.playerByNodeIndex;
-      this.playerParentNodeIndex = this.settings.active.sites[this.site].DOM.player.videoAncestor;
-      this.usePlayerAr = this.settings.active.sites[this.site].usePlayerArInFullscreen;
+      this.playerManualQs = this.settings.active.sites[this.site]?.DOM?.player?.manual ?? this.playerManualQs;
+      this.playerQs = this.settings.active.sites[this.site]?.DOM?.player?.querySelectors;
+      this.playerByNodeIndex = this.settings.active.sites[this.site]?.DOM?.player?.useRelativeAncestor ?? this.playerByNodeIndex;
+      this.playerParentNodeIndex = this.settings.active.sites[this.site]?.DOM?.player?.videoAncestor;
+      this.usePlayerAr = this.settings.active.sites[this.site]?.usePlayerArInFullscreen;
     } catch (e) {
       // that's here just in case relevant settings for this site don't exist yet
     }
@@ -278,7 +285,7 @@ export default {
       const saveButtonBait = document.getElementById('save-banner-observer-bait');
       const saveButton = document.getElementById('save-banner');
 
-      const observer = new IntersectionObserver( 
+      const observer = new IntersectionObserver(
         ([e]) => {
           // console.log('observer triggered. intersection ratio?', e.intersectionRatio)
           saveButton.classList.toggle('floating', e.intersectionRatio < 0.95);
@@ -380,7 +387,7 @@ export default {
         }
 
         currentMitigationsParent[mitigation[mitigation.length - 1]] = value;
-      
+
       } else {
         this.settings.active.mitigations[mitigation] = value;
       }
@@ -433,5 +440,9 @@ export default {
   &.floating {
     box-shadow: 0 2rem 3rem 1rem $selected-color;
   }
+}
+
+.small-samecolor {
+  font-size: 0.8em;
 }
 </style>
