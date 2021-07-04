@@ -30,8 +30,6 @@
           <QsElement :selector="qse" :key="qse" />
         </template>
       </div>
-
-
     </div> -->
 
     <div class="label">
@@ -51,11 +49,11 @@
           <a
             v-if="playerByNodeIndex"
             @click="toggleByNodeIndex"
-          >(show advanced options)</a>
+          >(use advanced options)</a>
           <a
             v-if="!playerByNodeIndex"
             @click="toggleByNodeIndex"
-          >(hide advanced options)</a>
+          >(use basic options)</a>
         </span>
       </div>
 
@@ -256,19 +254,19 @@ export default {
   },
   created() {
     try {
-      this.videoManualQs = this.settings.active.sites[this.site].DOM.video.manual || this.videoManualQs;
-      this.videoQs = this.settings.active.sites[this.site].DOM.video.querySelectors;
-      this.videoCss = this.settings.active.sites[this.site].DOM.video.additionalCss;
+      this.videoManualQs = this.settings.active.sites[this.site]?.DOM?.video?.manual ?? this.videoManualQs;
+      this.videoQs = this.settings.active.sites[this.site]?.DOM?.video?.querySelectors;
+      this.videoCss = this.settings.active.sites[this.site]?.DOM?.video?.additionalCss;
     } catch (e) {
       // that's here just in case relevant settings for this site don't exist yet
     }
 
     try {
-      this.playerManualQs = this.settings.active.sites[this.site].DOM.player.manual || this.playerManualQs;
-      this.playerQs = this.settings.active.sites[this.site].DOM.player.querySelectors;
-      this.playerByNodeIndex = this.settings.active.sites[this.site].DOM.player.useRelativeAncestor || this.playerByNodeIndex;
-      this.playerParentNodeIndex = this.settings.active.sites[this.site].DOM.player.videoAncestor;
-      this.usePlayerAr = this.settings.active.sites[this.site].usePlayerArInFullscreen;
+      this.playerManualQs = this.settings.active.sites[this.site]?.DOM?.player?.manual ?? this.playerManualQs;
+      this.playerQs = this.settings.active.sites[this.site]?.DOM?.player?.querySelectors;
+      this.playerByNodeIndex = this.settings.active.sites[this.site]?.DOM?.player?.useRelativeAncestor ?? this.playerByNodeIndex;
+      this.playerParentNodeIndex = this.settings.active.sites[this.site]?.DOM?.player?.videoAncestor;
+      this.usePlayerAr = this.settings.active.sites[this.site]?.usePlayerArInFullscreen;
     } catch (e) {
       // that's here just in case relevant settings for this site don't exist yet
     }
