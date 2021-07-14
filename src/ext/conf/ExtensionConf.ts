@@ -1231,7 +1231,26 @@ const ExtensionConf: SettingsInterface = {
         }
       },
       "css": ""
-    }
+    },
+    "piped.kavin.rocks": {
+      mode: 0,
+      autoar: 0,
+      type: 'community',
+      autoarFallback: 0,
+      stretch: 0,
+      videoAlignment: -1,
+      keyboardShortcutsEnabled: 0,
+      DOM: {
+        player: {
+          manual: false,
+          querySelectors: "",
+          additionalCss: "",
+          useRelativeAncestor: false,
+          playerNodeCss: ""
+        }
+      },
+      css: ".shaka-video-container {\n  flex-direction: column !important;\n}"
+    },
   }
 }
 
