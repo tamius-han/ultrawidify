@@ -172,7 +172,26 @@ const ExtensionConfPatch = [
           }
         },
         "css": ""
-      }
+      },
+      "piped.kavin.rocks": {
+        mode: 0,
+        autoar: 0,
+        type: 'community',
+        autoarFallback: 0,
+        stretch: 0,
+        videoAlignment: -1,
+        keyboardShortcutsEnabled: 0,
+        DOM: {
+          player: {
+            manual: false,
+            querySelectors: "",
+            additionalCss: "",
+            useRelativeAncestor: false,
+            playerNodeCss: ""
+          }
+        },
+        css: ".shaka-video-container {\n  flex-direction: column !important;\n}"
+      },
     },
     updateFn: (userOptions, defaultOptions) => {
       // 5.0.5 initially incorrectly had app.plex.tv marked as 'user-added'
@@ -180,6 +199,25 @@ const ExtensionConfPatch = [
       // changed configuration. Site patches submitted by community should have 
       // 'community' type. extConfPatch for 5.0.5 was also retroactively corrected.
       userOptions.sites['app.plex.tv'].type = 'community';
+      userOptions.sites['piped.kavin.rocks'] = {
+        mode: 0,
+        autoar: 0,
+        type: 'community',
+        autoarFallback: 0,
+        stretch: 0,
+        videoAlignment: -1,
+        keyboardShortcutsEnabled: 0,
+        DOM: {
+          player: {
+            manual: false,
+            querySelectors: "",
+            additionalCss: "",
+            useRelativeAncestor: false,
+            playerNodeCss: ""
+          }
+        },
+        css: ".shaka-video-container {\n  flex-direction: column !important;\n}"
+      };
     }
   }
 ];
