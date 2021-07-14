@@ -517,7 +517,7 @@ const ExtensionConfPatch = [
       "app.plex.tv": {
         mode: 3,
         autoar: 3,
-        type: "user-added",
+        type: "community",
         stretch: -1,
         videoAlignment: -1,
         keyboardShortcutsEnabled: 0,
@@ -532,6 +532,39 @@ const ExtensionConfPatch = [
         },
         css: "body {\n  background-color: #000;\n}\n\n.application {\n  background-color: #000;\n}"
       }
+    }
+  }, {
+    forVersion: '5.0.6',
+    sites: {
+      "metaivi.com": {
+        mode: 0,
+        autoar: 0,
+        type: "community",
+        stretch: -1,
+        videoAlignment: -1,
+        DOM: {
+          video: {
+            manual: false,
+            querySelectors: "",
+            additionalCss: "position: absolute !important;"
+          },
+          player: {
+            manual: false,
+            querySelectors: "",
+            additionalCss: "",
+            useRelativeAncestor: false,
+            playerNodeCss: ""
+          }
+        },
+        "css": ""
+      }
+    },
+    updateFn: (userOptions, defaultOptions) => {
+      // 5.0.5 initially incorrectly had app.plex.tv marked as 'user-added'
+      // when 'user-added' is generally reserved for marking sites with user-
+      // changed configuration. Site patches submitted by community should have 
+      // 'community' type. extConfPatch for 5.0.5 was also retroactively corrected.
+      userOptions.sites['app.plex.tv'].type = 'community';
     }
   }
 ];
