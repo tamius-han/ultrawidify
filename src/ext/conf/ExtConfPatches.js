@@ -219,6 +219,21 @@ const ExtensionConfPatch = [
         css: ".shaka-video-container {\n  flex-direction: column !important;\n}"
       };
     }
+  }, {
+    forVersion: '5.0.7',
+    updateFn: (userOptions, defaultOptions) => {
+      // 5.0.5 initially incorrectly had app.plex.tv marked as 'user-added'
+      // when 'user-added' is generally reserved for marking sites with user-
+      // changed configuration. Site patches submitted by community should have 
+      // 'community' type. extConfPatch for 5.0.5 was also retroactively corrected.
+      userOptions.sites['www.youtube.com'].DOM.player = {
+        manual: true,
+        querySelectors: "#movie_player, #player, #c4-player",
+        additionalCss: "",
+        useRelativeAncestor: false,
+        playerNodeCss: "",
+      }
+    }
   }
 ];
 
