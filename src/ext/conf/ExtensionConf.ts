@@ -1031,8 +1031,8 @@ const ExtensionConf: SettingsInterface = {
       keyboardShortcutsEnabled: ExtensionMode.Default,
       DOM: {
         player: {
-          manual: false,
-          querySelectors: "#movie_player, #player",
+          manual: true,
+          querySelectors: "#movie_player, #player, #c4-player",
           additionalCss: "",
           useRelativeAncestor: false,
           playerNodeCss: "",
