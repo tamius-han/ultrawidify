@@ -319,6 +319,7 @@ export default {
     font-size: 14px !important;
 
     box-sizing: border-box !important;
+    pointer-events: auto !important;
   }
 
   div {
