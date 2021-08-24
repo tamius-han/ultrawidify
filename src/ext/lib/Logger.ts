@@ -91,6 +91,10 @@ class Logger {
   constructor(options?: {vuexStore?: any, uwInstance?: any}) {
     this.vuexStore = options?.vuexStore;
     this.uwInstance = options?.uwInstance;
+
+    browser.storage.onChanged.addListener((changes, area) => {
+      this.storageChangeListener(changes, area)
+    });
   }
 
   static saveConfig(conf: LoggerConfig) {
@@ -188,6 +192,34 @@ class Logger {
         this.conf = newConf;
       }
     });
+  }
+
+  storageChangeListener(changes, area) {
+    if (!changes.uwLogger) {
+      console.info('We dont have any logging settings, not processing frther');
+      return;
+    }
+
+    try {
+      this.conf = JSON.parse(changes.uwLogger.newValue);
+    } catch (e) {
+      console.warn('[uwLogger] Error while trying to parse new conf for logger:', e, '\nWe received the following changes:', changes, 'for area:', area);
+    }
+    
+    // This code can only execute if user tried to enable or disable logging
+    // through the popup. In cases like this, we do not gate the console.log
+    // behind a check, since we _always_ want to have this feedback in response
+    // to an action.
+    console.info(
+      '[uwLogger] logger config changed! New configuration:',
+      this.conf, '\nraw changes:', changes, 'area?', area,
+      '\n————————————————————————————————————————————————————————————————————————\n\n\n\n\n\n\n\n\n\n\n\n-----\nLogging with new settings starts now.'
+    );
+
+    // initiate loger if need be
+    if (!this.startTime) {
+      this.init(this.conf);
+    }
   }
 
   setVuexStore(store) {
@@ -386,7 +418,7 @@ class Logger {
   }
 
   canLogFile(component) {
-    if (!this.conf.fileOptions.enabled || this.temp_disable) {
+    if (!this.conf?.fileOptions?.enabled || this.temp_disable) {
       return false;
     }
     if (Array.isArray(component) && component.length ) {

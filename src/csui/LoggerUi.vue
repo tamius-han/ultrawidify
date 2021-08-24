@@ -276,6 +276,8 @@ export default {
         this.logStringified = undefined;
       }
       this.$store.dispatch('uw-hide-logger');
+
+      this.showLoggerUi = false;
     },
     closePopupAndStopLogging() {
       Logger.saveConfig({...this.lastSettings, allowLogging: false});
