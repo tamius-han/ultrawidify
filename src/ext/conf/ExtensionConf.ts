@@ -1031,8 +1031,8 @@ const ExtensionConf: SettingsInterface = {
       keyboardShortcutsEnabled: ExtensionMode.Default,
       DOM: {
         player: {
-          manual: false,
-          querySelectors: "#movie_player, #player",
+          manual: true,
+          querySelectors: "#movie_player, #player, #c4-player",
           additionalCss: "",
           useRelativeAncestor: false,
           playerNodeCss: "",
@@ -1195,7 +1195,7 @@ const ExtensionConf: SettingsInterface = {
     "app.plex.tv": {
       mode: 3,
       autoar: 3,
-      type: "user-added",
+      type: "community",
       stretch: -1,
       videoAlignment: -1,
       keyboardShortcutsEnabled: 0,
@@ -1209,7 +1209,48 @@ const ExtensionConf: SettingsInterface = {
         }
       },
       css: "body {\n  background-color: #000;\n}\n\n.application {\n  background-color: #000;\n}"
-    }
+    },
+    "metaivi.com": {
+      mode: 0,
+      autoar: 0,
+      type: "community",
+      stretch: -1,
+      videoAlignment: -1,
+      DOM: {
+        video: {
+          manual: false,
+          querySelectors: "",
+          additionalCss: "position: absolute !important;"
+        },
+        player: {
+          manual: false,
+          querySelectors: "",
+          additionalCss: "",
+          useRelativeAncestor: false,
+          playerNodeCss: ""
+        }
+      },
+      "css": ""
+    },
+    "piped.kavin.rocks": {
+      mode: 0,
+      autoar: 0,
+      type: 'community',
+      autoarFallback: 0,
+      stretch: 0,
+      videoAlignment: -1,
+      keyboardShortcutsEnabled: 0,
+      DOM: {
+        player: {
+          manual: false,
+          querySelectors: "",
+          additionalCss: "",
+          useRelativeAncestor: false,
+          playerNodeCss: ""
+        }
+      },
+      css: ".shaka-video-container {\n  flex-direction: column !important;\n}"
+    },
   }
 }
 

@@ -2,23 +2,21 @@
   <div>
     <h2>What's new</h2>
     <p>Full changelog for older versions <a href="https://github.com/tamius-han/ultrawidify/blob/master/CHANGELOG.md">is available here</a>.</p>
-    <p class="label">5.0.5</p>
+    <p class="label">5.1.0</p>
     <ul>
       <li>
-        In 'Advanced Settings' tab of the popup: Player Detection Settings are now a bit less of a mess.
+        Under the hood changes: aspect ratio autodetection now uses requestAnimationFrame instead of a setTimeout/setInterval-based loop.
       </li>
       <li>
-        Fixed the background issue with app.plex.tv (<a href="https://github.com/tamius-han/ultrawidify/issues/158" target="_blank">#158</a>).<br/>
-        <small><b>NOTE:</b> if you're using self-hosted plex, you will have to configure the extension for flex yourself. Refer to the <a href="https://github.com/tamius-han/ultrawidify/issues/158" target="_blank">github issue</a> for details.</small>
+        Logger is sorta fixed.
       </li>
     </ul>
     <p>
-      <small><b>NOTE from older versions:</b> zoom limitations were introduced as a workaround for a bug caused by Chrome's/Edge's faulty hardware acceleration. Yes I know this message has been here since march, but nothing has changed.</small>
+      Hopefully that didn't break anything too much.
     </p>
-    <p>
-      <small>If you experience issues with videos being stretched incorrectly at certain zoom levels, go to:</small><br/>
-      <small><code>extension popup > Advanced Settings > Browser quirk mitigations > limit zoom.</code></small>
-    </p>
+    <p><small>
+      <b>Known issues:</b> zooming is limited in Chromium-based browsers. This is a browser bug that no extension can fix. See <a href="https://github.com/tamius-han/ultrawidify/discussions/161" target="_blank">this</a> for more info.
+    </small></p>
   </div>
 </template>
 <script>

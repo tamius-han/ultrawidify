@@ -276,6 +276,8 @@ export default {
         this.logStringified = undefined;
       }
       this.$store.dispatch('uw-hide-logger');
+
+      this.showLoggerUi = false;
     },
     closePopupAndStopLogging() {
       Logger.saveConfig({...this.lastSettings, allowLogging: false});
@@ -319,6 +321,7 @@ export default {
     font-size: 14px !important;
 
     box-sizing: border-box !important;
+    pointer-events: auto !important;
   }
 
   div {

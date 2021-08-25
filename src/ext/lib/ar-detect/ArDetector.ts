@@ -14,6 +14,13 @@ import Logger from '../Logger';
 import VideoData from '../video-data/VideoData';
 import Settings from '../Settings';
 
+enum VideoPlaybackState {
+  Playing,
+  Paused,
+  Ended,
+  Error
+}
+
 class ArDetector {
   logger: Logger;
   conf: VideoData;
@@ -44,6 +51,7 @@ class ArDetector {
   canDoFallbackMode: boolean = false;
 
   // helper objects
+  private animationFrameHandle: any;
   private attachedCanvas: HTMLCanvasElement;
   canvas: HTMLCanvasElement;
   private blackframeCanvas: HTMLCanvasElement;
@@ -56,7 +64,83 @@ class ArDetector {
   private detectedAr: any;
   private canvasDrawWindowHOffset: number;
   private sampleCols_current: number;
+  private timers = {
+    nextFrameCheckTime: Date.now()
+  }
+  private status = {
+    lastVideoStatus: VideoPlaybackState.Playing
+  }
 
+  //#region debug variables
+  private performanceConfig = {
+    sampleCountForAverages: 32
+  }
+  private performance = {
+    animationFrame: {
+      lastTime: 0,
+      currentIndex: 0,
+      sampleTime: []
+    },
+    drawImage: {
+      currentIndex: 0,
+      sampleTime: [],
+    },
+    getImageData: {
+      currentIndex: 0,
+      sampleTime: [],
+    },
+    aard: {
+      currentIndex: 0,
+      sampleTime: [],
+    }
+  };
+
+  //#endregion
+
+  //#region getters
+  get defaultAr() {
+    const ratio = this.video.videoWidth / this.video.videoHeight;
+    if (isNaN(ratio)) {
+      return undefined;
+    }
+    return ratio;
+  }
+
+  //#endregion getters
+
+  //#region debug getters
+
+  /**
+   * We get one animation frame per this many ms. This means that our autodetection
+   * stuff must run in less than this many ms. This valuz is averaged out over multiple
+   * samples for better accuracy.
+   * 
+   * Returns value in ms.
+   * 
+   * A very important caveat: if autodetection takes up too much time, it WILL artificially
+   * increase time budget. Therefore, you should use (and firstly even implement) getTimeBudget()
+   * that turns off autodetection for a second or so to gather accurate timing info.
+   */
+   get eyeballedTimeBudget() {
+    let sum;
+    for (let i = 0; i < this.performance.animationFrame.sampleTime.length; i++) {
+      sum += this.performance.animationFrame.sampleTime[i];
+    }
+
+    return sum / this.performance.animationFrame.sampleTime.length;
+  }
+
+  /**
+   * Converts time budget (eyeballed) into actual framerate. Since eyeballed time budget rises
+   * if our autodetection takes too long, it's still good enough for calculating framerate
+   */
+  get fps() {
+    return 1000 / this.eyeballedTimeBudget;
+  }
+
+  //#endregion
+
+  //#region lifecycle
   constructor(videoData){
     this.logger = videoData.logger;
     this.conf = videoData;
@@ -73,14 +157,6 @@ class ArDetector {
     this.logger.log('info', 'init', `[ArDetector::ctor] creating new ArDetector. arid: ${this.arid}`);
   }
 
-  setManualTick(manualTick) {
-    this.manualTickEnabled = manualTick;
-  }
-
-  tick() {
-    this._nextTick = true;
-  }
-
   init(){
     this.logger.log('info', 'init', `[ArDetect::init] <@${this.arid}> Initializing autodetection.`);
 
@@ -93,12 +169,6 @@ class ArDetector {
     } catch (e) {
       this.logger.log('error', 'init', `%c[ArDetect::init] <@${this.arid}> Initialization failed.`, _ard_console_stop, e);
     }
-  }
-
-  destroy(){
-    this.logger.log('info', 'init', `%c[ArDetect::destroy] <@${this.arid}> Destroying aard.`, _ard_console_stop);
-    // this.debugCanvas.destroy();
-    this.stop();
   }
 
   setup(cwidth?: number, cheight?: number){
@@ -215,12 +285,13 @@ class ArDetector {
     this.resetBlackLevel();
 
     // if we're restarting ArDetect, we need to do this in order to force-recalculate aspect ratio
-    this.conf.resizer.setLastAr({type: AspectRatioType.Automatic, ratio: this.getDefaultAr()});
+    this.conf.resizer.setLastAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
 
     this.canvasImageDataRowLength = cwidth << 2;
     this.noLetterboxCanvasReset = false;
     
     if (this.settings.canStartAutoAr() ) {
+      // this.main();
       this.start();
     }
   
@@ -232,6 +303,14 @@ class ArDetector {
     this.conf.arSetupComplete = true;
   }
 
+  destroy(){
+    this.logger.log('info', 'init', `%c[ArDetect::destroy] <@${this.arid}> Destroying aard.`, _ard_console_stop);
+    // this.debugCanvas.destroy();
+    this.halt();
+  }
+  //#endregion lifecycle
+
+  //#region AARD control
   start() {
     if (this.settings.canStartAutoAr()) {
       this.logger.log('info', 'debug', `"%c[ArDetect::start] <@${this.arid}> Starting automatic aspect ratio detection`, _ard_console_start);
@@ -242,27 +321,38 @@ class ArDetector {
 
     if (this.conf.resizer.lastAr.type === AspectRatioType.Automatic) {
       // ensure first autodetection will run in any case
-      this.conf.resizer.setLastAr({type: AspectRatioType.Automatic, ratio: this.getDefaultAr()});
+      this.conf.resizer.setLastAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
     }
 
-
-    
-    // launch main() if it's currently not running:
-    this.main();
-    // automatic detection starts halted. If halted=false when main first starts, extension won't run
-    // this._paused is undefined the first time we run this function, which is effectively the same thing
-    // as false. Still, we'll explicitly fix this here.
     this._paused = false;  
     this._halted = false;
     this._paused = false;
+
+    // start autodetection
+    this.startLoop();
+
+    // automatic detection starts halted. If halted=false when main first starts, extension won't run
+    // this._paused is undefined the first time we run this function, which is effectively the same thing
+    // as false. Still, we'll explicitly fix this here.
+  }
+
+  startLoop() {
+    if (this.animationFrameHandle) {
+      window.cancelAnimationFrame(this.animationFrameHandle);
+    }
+
+    this.animationFrameHandle = window.requestAnimationFrame( (ts) => this.animationFrameBootstrap(ts));
+  }
+
+  stop() {
+    if (this.animationFrameHandle) {
+      window.cancelAnimationFrame(this.animationFrameHandle);
+    }
+    this.logger.log('info', 'debug', `"%c[ArDetect::stop] <@${this.arid}>  Stopping AnimationFrame loop.`, _ard_console_stop);
   }
 
   unpause() {
-    // pause only if we were running before. Don't pause if we aren't running
-    // (we are running when _halted is neither true nor undefined)
-    if (this._paused && this._halted === false) {
-      this._paused = true;
-    }
+    this.startLoop();
   }
 
   pause() {
@@ -271,108 +361,76 @@ class ArDetector {
     if (this._halted === false) {
       this._paused = true;
     }
+    this.stop();
   }
 
-  stop(){
-    this.logger.log('info', 'debug', `"%c[ArDetect::stop] <@${this.arid}>  Stopping automatic aspect ratio detection`, _ard_console_stop);
+  halt(){
+    this.logger.log('info', 'debug', `"%c[ArDetect::stop] <@${this.arid}>  Halting automatic aspect ratio detection`, _ard_console_stop);
+    this.stop();
     this._halted = true;
     // this.conf.resizer.setArLastAr();
   }
 
-  async main() {
-    if (this._paused) {
-      // unpause if paused
-      this._paused = false;
-      return; // main loop still keeps executing. Return is needed to avoid a million instances of autodetection
-    }
-    if (!this._halted) { 
-      // we are already running, don't run twice
-      // this would have handled the 'paused' from before, actually.
-      return;
-    }
-
-    let exitedRetries = 10;
-
-    while (!this._exited && exitedRetries --> 0) {
-      this.logger.log('warn', 'debug', `[ArDetect::main] <@${this.arid}>  We are trying to start another instance of autodetection on current video, but the previous instance hasn't exited yet. Waiting for old instance to exit ...`);
-      await sleep(this.settings.active.arDetect.timers.tickrate);
-    }
-    if (!this._exited) {
-      this.logger.log('error', 'debug', `[ArDetect::main] <@${this.arid}>  Previous instance didn't exit in time. Not starting a new one.`);
-      return;
-    }
-
-    this.logger.log('info', 'debug', `%c[ArDetect::main] <@${this.arid}>  Previous instance didn't exit in time. Not starting a new one.`);
-
-    // we need to unhalt:
-    this._halted = false;
-    this._exited = false;
-
-    // set initial timestamps so frame check will trigger the first time we run the loop
-    let lastFrameCheckStartTime = Date.now() - (this.settings.active.arDetect.timers.playing << 1);
-
-    const frameCheckTimes = new Array(10).fill(-1);
-    let frameCheckBufferIndex = 0;
-    let fcstart, fctime;
-
-    while (this && !this._halted) {
-      // NOTE: we separated tickrate and inter-check timeouts so that when video switches
-      // state from 'paused' to 'playing', we don't need to wait for the rest of the longer
-      // paused state timeout to finish.
-
-      if ( (!this.manualTickEnabled && this.canTriggerFrameCheck(lastFrameCheckStartTime)) || this._nextTick) {
-        this._nextTick = false;
-
-        lastFrameCheckStartTime = Date.now();
-        fcstart = performance.now();
-        
-        try {
-          this.frameCheck();
-        } catch (e) {
-          this.logger.log('error', 'debug', `%c[ArDetect::main] <@${this.arid}>  Frame check failed:`,  "color: #000, background: #f00", e);
-        }
-
-        if (Debug.performanceMetrics) {
-          fctime = performance.now() - fcstart;
-          frameCheckTimes[frameCheckBufferIndex % frameCheckTimes.length] = fctime;
-          this.conf.pageInfo.sendPerformanceUpdate({frameCheckTimes: frameCheckTimes, lastFrameCheckTime: fctime});
-          ++frameCheckBufferIndex;
-        }
-      }
-
-      await sleep(this.settings.active.arDetect.timers.tickrate);
-    }
-
-    this.logger.log('info', 'debug', `%c[ArDetect::main] <@${this.arid}>  Main autodetection loop exited. Halted? ${this._halted}`,  _ard_console_stop);
-    this._exited = true;
+  setManualTick(manualTick) {
+    this.manualTickEnabled = manualTick;
   }
 
-
-  canTriggerFrameCheck(lastFrameCheckStartTime) {
-    if (this._paused) {
-      return false;
-    }
-    if (this.video.ended || this.video.paused){
-      // we slow down if ended or pausing. Detecting is pointless.
-      // we don't stop outright in case seeking happens during pause/after video was 
-      // ended and video gets into 'playing' state again
-      return Date.now() - lastFrameCheckStartTime > this.settings.active.arDetect.timers.paused;
-    }
-    if (this.video.error){
-      // če je video pavziran, še vedno skušamo zaznati razmerje stranic - ampak bolj poredko.
-      // if the video is paused, we still do autodetection. We just do it less often.
-      return Date.now() - lastFrameCheckStartTime > this.settings.active.arDetect.timers.error;
-    }
-    
-    return Date.now() - lastFrameCheckStartTime > this.settings.active.arDetect.timers.playing;
+  tick() {
+    this._nextTick = true;
   }
+  //#endregion
+
+  //#region helper functions (general)
 
   isRunning(){
     return ! (this._halted || this._paused || this._exited);
   }
 
+  private getVideoPlaybackState(): VideoPlaybackState {
+    try {
+      if (this.video.ended) {
+        return VideoPlaybackState.Ended;
+      } else if (this.video.paused) {
+        return VideoPlaybackState.Paused;
+      } else if (this.video.error) {
+        return VideoPlaybackState.Error;
+      } else {
+        return VideoPlaybackState.Playing;
+      }
+    } catch (e) {
+      this.logger.log('warn', 'debug', `[ArDetect::getVideoPlaybackState]  There was an error while determining video playback state.`, e);
+      return VideoPlaybackState.Error;
+    }
+  }
 
-  scheduleInitRestart(timeout?: number, force_reset?: boolean){
+  /**
+   * Checks whether conditions for granting a frame check are fulfilled
+   * @returns 
+   */
+  private canTriggerFrameCheck() {
+    if (this._paused) {
+      return false;
+    }
+
+    // if video was paused & we know that we already checked that frame,
+    // we will not check it again.
+    const videoState = this.getVideoPlaybackState();
+    if (videoState !== VideoPlaybackState.Playing) {
+      if (this.status.lastVideoStatus === videoState) {
+        return false;
+      }
+    }
+    this.status.lastVideoStatus = videoState;
+
+    if (Date.now() < this.timers.nextFrameCheckTime) {
+      return false;
+    }
+
+    this.timers.nextFrameCheckTime = Date.now() + this.settings.active.arDetect.timers.playing;
+    return true;
+  }
+
+  private scheduleInitRestart(timeout?: number, force_reset?: boolean){
     if(! timeout){
       timeout = 100;
     }
@@ -385,7 +443,7 @@ class ArDetector {
     this.setupTimer = setTimeout(function(){
         ths.setupTimer = null;
         try{
-          ths.main();
+          ths.start();
         } catch(e) {
           this.logger('error', 'debug', `[ArDetector::scheduleInitRestart] <@${this.arid}> Failed to start main(). Error:`,e);
         }
@@ -395,10 +453,7 @@ class ArDetector {
     );
   }
 
-
-
-  //#region helper functions (general)
-  attachCanvas(canvas){
+  private attachCanvas(canvas){
     if(this.attachedCanvas)
       this.attachedCanvas.remove();
 
@@ -412,25 +467,92 @@ class ArDetector {
             .appendChild(canvas);
   }
 
-  canvasReadyForDrawWindow(){
+  private canvasReadyForDrawWindow(){
     this.logger.log('info', 'debug', `%c[ArDetect::canvasReadyForDrawWindow] <@${this.arid}> canvas is ${this.canvas.height === window.innerHeight ? '' : 'NOT '}ready for drawWindow(). Canvas height: ${this.canvas.height}px; window inner height: ${window.innerHeight}px.`)
 
     return this.canvas.height == window.innerHeight
   }
 
-  getTimeout(baseTimeout, startTime){
-    let execTime = (performance.now() - startTime);
-    
-    return baseTimeout;
+  /**
+   * Adds execution time sample for performance metrics
+   * @param performanceObject 
+   * @param executionTime 
+   */
+  private addPerformanceTimeMeasure(performanceObject, executionTime) {
+    performanceObject.sampleTime[performanceObject.currentIndex] = executionTime;
+    performanceObject.currentIndex = (performanceObject.currentIndex + 1) % this.performanceConfig.sampleCountForAverages;
+  }
+
+  //#endregion
+
+  //#region helper functions (performance measurements)
+
+  /**
+   * Returns time ultrawidify spends on certain aspects of autodetection.
+   * 
+   * The returned object contains the following:
+   * 
+   *    eyeballedTimeBudget  — a very inaccurate time budget
+   *    fps                  — framerate at which we run
+   *    aardTime             — time spent on average frameCheck loop. 
+   *                           It's a nearly useless metric, because 
+   *                           frameCheck can exit very early.
+   *    drawWindowTime       — how much time browser spends on executing
+   *                           drawWindow() calls.
+   *    getImageData         — how much time browser spends on executing
+   *                           getImageData() calls.
+   *   
+   * Most of these are on "per frame" basis and averaged.
+   */
+  getTimings() {
+    let drawWindowTime = 0, getImageDataTime = 0, aardTime = 0;
+
+    // drawImage and getImageData are of same length and use same everything
+    for (let i = 0; i < this.performance.drawImage.sampleTime.length; i++) {
+      drawWindowTime += this.performance.drawImage.sampleTime[i] ?? 0;
+      getImageDataTime += this.performance.getImageData.sampleTime[i] ?? 0;
+    }
+    drawWindowTime /= this.performance.drawImage.sampleTime.length;
+    getImageDataTime /= this.performance.getImageData.sampleTime.length;
+
+    return {
+      eyeballedTimeBudget: this.eyeballedTimeBudget,
+      fps: this.fps,
+      drawWindowTime,
+      getImageDataTime
+    }
   }
   //#endregion
 
-  getDefaultAr() {
-    const ratio = this.video.videoWidth / this.video.videoHeight;
-    if (isNaN(ratio)) {
-      return undefined;
+  /**
+   * This is the "main loop" for aspect ratio autodetection
+   */
+  private animationFrameBootstrap(timestamp: number) {
+    // do timekeeping first
+    this.addPerformanceTimeMeasure(this.performance.animationFrame, timestamp - this.performance.animationFrame.lastTime)
+    this.performance.animationFrame.lastTime = timestamp;
+
+    // trigger frame check, if we're allowed to
+    if ( (!this.manualTickEnabled && this.canTriggerFrameCheck()) || this._nextTick) {
+      this._nextTick = false;
+
+      try {
+        const startTime = performance.now();
+        this.frameCheck();
+        this.addPerformanceTimeMeasure(this.performance.aard, performance.now() - startTime);
+      } catch (e) {
+        this.logger.log('error', 'debug', `%c[ArDetect::main] <@${this.arid}>  Frame check failed:`,  "color: #000, background: #f00", e);
+      }
     }
-    return ratio;
+
+    if (this && !this._halted && !this._paused) {
+      this.animationFrameHandle = window.requestAnimationFrame( (ts) => this.animationFrameBootstrap(ts));
+    } else if (this._halted) {
+      this.logger.log('info', 'debug', `%c[ArDetect::main] <@${this.arid}>  Main autodetection loop exited. Halted? ${this._halted}`,  _ard_console_stop);
+      this._exited = true;
+    } else {
+      this.logger.log('info', 'debug', `[ArDetect::main] <@${this.arid}>  Not renewing animation frame for some reason. Paused? ${this._paused}; Halted?: ${this._halted}, Exited?: ${this._exited}`);
+    }
   }
 
   calculateArFromEdges(edges) {
@@ -549,43 +671,33 @@ class ArDetector {
       this.init();
     }
     
-    let startTime = performance.now();
+    let startTime;
+    let partialDrawImageTime = 0;
     let sampleCols = this.sampleCols.slice(0);
 
     //
     // [0] blackframe tests (they also determine whether we need fallback mode)
     //
     try {
+      startTime = performance.now();
       this.blackframeContext.drawImage(this.video, 0, 0, this.blackframeCanvas.width, this.blackframeCanvas.height);
+      partialDrawImageTime += performance.now() - startTime;
 
-      // special browsers require special tests
-      // if (this.hasDRM()) {
-      //   this.fallbackMode = false;
-      //   throw 'VIDEO_DRM_PROTECTED';
-      // }
       this.fallbackMode = false;
+
+      // If we detected DRM and if we're here, this means we're also using Google Chrome.
+      // And if we're here while DRM is detected, we know we'll be looking at black frames.
+      // We won't be able to do anything useful, therefore we're just gonna call it quits.
+      if (this.conf.hasDrm) {
+        this.logger.log('info', 'debug', 'we have drm, doing nothing.', this.conf.hasDrm);
+        return;
+      }
     } catch (e) {
       this.logger.log('error', 'arDetect', `%c[ArDetect::frameCheck] <@${this.arid}>  %c[ArDetect::frameCheck] can't draw image on canvas. ${this.canDoFallbackMode ? 'Trying canvas.drawWindow instead' : 'Doing nothing as browser doesn\'t support fallback mode.'}`, "color:#000; backgroud:#f51;", e);
 
-      // in case of DRM errors, we need to prevent the execution to reach the aspec
-      // ratio setting part of this function. For the time being, we're only stopping
-      // in case we encounter DRM error in Chrome. Firefox has fallback mode and generates
-      // different error, so that goes.
-      // if (e === 'VIDEO_DRM_PROTECTED') {
-      //   // nothing to see here, really, if fallback mode isn't supported by browser
-      //   if (!this.drmNotificationShown) {
-      //     this.drmNotificationShown = true;
-
-      //     this.conf.player.showNotification('AARD_DRM');
-      //     this.conf.resizer.setAr({type: AspectRatio.Reset});
-      //   } 
-
-      //   return;
-      // }
-
       if (! this.canvasReadyForDrawWindow()) {
         // this means canvas needs to be resized, so we'll just re-run setup with all those new parameters
-        this.stop();
+        this.halt();
           
         let newCanvasWidth = window.innerHeight * (this.video.videoWidth / this.video.videoHeight);
         let newCanvasHeight = window.innerHeight;
@@ -606,14 +718,16 @@ class ArDetector {
       // smaller sample for blackframe check
       this.fallbackMode = true;
 
+      startTime = performance.now();
       try {
-        (this.context as any).drawWindow(window, this.canvasDrawWindowHOffset, 0, this.canvas.width, this.canvas.height, "rgba(0,0,128,1)");
+        (this.context as any).drawWindow(window, this.canvasDrawWindowHOffset, 0, this.canvas.width, this.canvas.height);
       } catch (e) {
         this.logger.log('error', 'arDetect', `%c[ArDetect::frameCheck] can't draw image on canvas with fallback mode either. This error is prolly only temporary.`, "color:#000; backgroud:#f51;", e);
         return; // it's prolly just a fluke, so we do nothing special here
       }
       // draw blackframe sample from our main sample:
-      this.blackframeContext.drawImage(this.canvas, this.blackframeCanvas.width, this.blackframeCanvas.height)
+      this.blackframeContext.drawImage(this.canvas, this.blackframeCanvas.width, this.blackframeCanvas.height);
+      partialDrawImageTime += performance.now() - startTime;
 
       this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] canvas.drawImage seems to have worked`, "color:#000; backgroud:#2f5;");
     }
@@ -625,21 +739,25 @@ class ArDetector {
       return;
     }
 
-    
-
     // if we are in fallback mode, then frame has already been drawn to the main canvas.
     // if we are in normal mode though, the frame has yet to be drawn
     if (!this.fallbackMode) {
+      startTime = performance.now();
       this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+      partialDrawImageTime += performance.now() - startTime;
     }
+
+    this.addPerformanceTimeMeasure(this.performance.drawImage, partialDrawImageTime);
+    startTime = performance.now();
     const imageData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
+    this.addPerformanceTimeMeasure(this.performance.getImageData, performance.now() - startTime);
 
     if (! this.fastLetterboxPresenceTest(imageData, sampleCols) ) {
       // Če ne zaznamo letterboxa, kličemo reset. Lahko, da je bilo razmerje stranic popravljeno na roke. Možno je tudi,
       // da je letterbox izginil.
       // If we don't detect letterbox, we reset aspect ratio to aspect ratio of the video file. The aspect ratio could
       // have been corrected manually. It's also possible that letterbox (that was there before) disappeared.
-      this.conf.resizer.updateAr({type: AspectRatioType.Automatic, ratio: this.getDefaultAr()});
+      this.conf.resizer.updateAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
@@ -648,6 +766,7 @@ class ArDetector {
       this.clearImageData(imageData);
       return;
     }
+
 
     // Če preverjamo naprej, potem moramo postaviti to vrednost nazaj na 'false'. V nasprotnem primeru se bo
     // css resetiral enkrat na video/pageload namesto vsakič, ko so za nekaj časa obrobe odstranejene
@@ -681,7 +800,7 @@ class ArDetector {
     // (since the new letterbox edge isn't present in our sample due to technical
     // limitations)
     if (this.fallbackMode && guardLineOut.blackbarFail) {
-      this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.getDefaultAr()});
+      this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
@@ -706,7 +825,7 @@ class ArDetector {
 
           if(guardLineOut.blackbarFail){
             this.logger.log('info', 'arDetect', `[ArDetect::frameCheck] Detected blackbar violation and pillarbox. Resetting to default aspect ratio.`);
-            this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.getDefaultAr()});
+            this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
             this.guardLine.reset();
           }
 
@@ -776,7 +895,7 @@ class ArDetector {
       // WE DO NOT RESET ASPECT RATIO HERE IN CASE OF PROBLEMS, CAUSES UNWARRANTED RESETS: 
       // (eg. here: https://www.youtube.com/watch?v=nw5Z93Yt-UQ&t=410)
       //
-      // this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.getDefaultAr()});
+      // this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
     }
 
     this.clearImageData(imageData);
@@ -919,6 +1038,13 @@ class ArDetector {
     };
   }
 
+  /**
+   * Does a quick test to see if the aspect ratio is correct
+   * Returns 'true' if there's a chance of letterbox existing, false if not.
+   * @param imageData 
+   * @param sampleCols 
+   * @returns 
+   */
   fastLetterboxPresenceTest(imageData, sampleCols) {
     // fast test to see if aspect ratio is correct.
     // returns 'true'  if presence of letterbox is possible.
@@ -958,8 +1084,11 @@ class ArDetector {
       );
     }
 
-    if (currentMin < this.blackLevel)
+
+
+    if (currentMin < this.blackLevel) {
       this.blackLevel = currentMin
+    }
 
     return true;
   }

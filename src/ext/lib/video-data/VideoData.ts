@@ -36,6 +36,7 @@ class VideoData {
   userCssClassName: string;
   validationId: number;
   dimensions: any;
+  hasDrm: boolean;
   //#endregion
 
   //#region helper objects
@@ -324,7 +325,7 @@ class VideoData {
     this.pause();
     this.destroyed = true;
     try {
-      this.arDetector.stop();
+      this.arDetector.halt();
       this.arDetector.destroy();
     } catch (e) {}
     this.arDetector = undefined;
@@ -438,6 +439,9 @@ class VideoData {
    * instead you should be calling processDimensionChanged() wrapper function.
    */
   private _processDimensionsChanged() {
+    if (!this.player) {
+      this.logger.log('warn', 'debug', `[VideoData::_processDimensionsChanged] Player is not defined. This is super haram.`, this.player)
+    }
     // adding player observer taught us that if element size gets triggered by a class, then
     // the 'style' attributes don't necessarily trigger. This means we also need to trigger
     // restoreAr here, in case video size was changed this way
@@ -585,6 +589,9 @@ class VideoData {
 
     if (hasDrm(this.video)) {
       this.player.showNotification('AARD_DRM');
+      this.hasDrm = true;
+    } else {
+      this.hasDrm = false;
     }
 
     if (!this.arDetector) {
@@ -603,14 +610,14 @@ class VideoData {
 
   stopArDetection() {
     if (this.arDetector) {
-      this.arDetector.stop();
+      this.arDetector.halt();
     }
   }
 
   pause(){
     this.paused = true;
     if(this.arDetector){
-      this.arDetector.stop();
+      this.arDetector.halt();
     }
     if(this.player){
       this.player.stop();

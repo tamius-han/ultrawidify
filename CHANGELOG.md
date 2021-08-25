@@ -18,6 +18,20 @@
 
 ## v5.x (current major)
 
+### v5.1.0
+
+* Re-enable logger
+* Move aspect ratio autodetection to requestAnimationFrame
+
+### v5.0.7 
+
+* Videos of square-ish aspect ratios on 1440p (and lower) resolutions now no longer get misaligned ([#162](https://github.com/tamius-han/ultrawidify/issues/162))
+* Alignment of featured videos on youtube channel page should now also be fixed
+
+### v5.0.6
+* Added configuration for metaivi.com based on user feedback ([#160](https://github.com/tamius-han/ultrawidify/issues/160))
+* Removed ExtConfPatches for versions < 4.5.0, because nobody should be using a build of this extension that's over a year old
+
 ### v5.0.5
 
 * improved UX a bit
