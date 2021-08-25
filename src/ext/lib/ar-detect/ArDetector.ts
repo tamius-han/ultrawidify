@@ -57,6 +57,20 @@ class ArDetector {
   private canvasDrawWindowHOffset: number;
   private sampleCols_current: number;
 
+
+  //#region getters
+  get defaultAr() {
+    const ratio = this.video.videoWidth / this.video.videoHeight;
+    if (isNaN(ratio)) {
+      return undefined;
+    }
+    return ratio;
+  }
+
+  //#endregion getters
+
+
+  //#region lifecycle
   constructor(videoData){
     this.logger = videoData.logger;
     this.conf = videoData;
@@ -73,14 +87,6 @@ class ArDetector {
     this.logger.log('info', 'init', `[ArDetector::ctor] creating new ArDetector. arid: ${this.arid}`);
   }
 
-  setManualTick(manualTick) {
-    this.manualTickEnabled = manualTick;
-  }
-
-  tick() {
-    this._nextTick = true;
-  }
-
   init(){
     this.logger.log('info', 'init', `[ArDetect::init] <@${this.arid}> Initializing autodetection.`);
 
@@ -93,12 +99,6 @@ class ArDetector {
     } catch (e) {
       this.logger.log('error', 'init', `%c[ArDetect::init] <@${this.arid}> Initialization failed.`, _ard_console_stop, e);
     }
-  }
-
-  destroy(){
-    this.logger.log('info', 'init', `%c[ArDetect::destroy] <@${this.arid}> Destroying aard.`, _ard_console_stop);
-    // this.debugCanvas.destroy();
-    this.stop();
   }
 
   setup(cwidth?: number, cheight?: number){
@@ -215,7 +215,7 @@ class ArDetector {
     this.resetBlackLevel();
 
     // if we're restarting ArDetect, we need to do this in order to force-recalculate aspect ratio
-    this.conf.resizer.setLastAr({type: AspectRatioType.Automatic, ratio: this.getDefaultAr()});
+    this.conf.resizer.setLastAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
 
     this.canvasImageDataRowLength = cwidth << 2;
     this.noLetterboxCanvasReset = false;
@@ -232,6 +232,14 @@ class ArDetector {
     this.conf.arSetupComplete = true;
   }
 
+  destroy(){
+    this.logger.log('info', 'init', `%c[ArDetect::destroy] <@${this.arid}> Destroying aard.`, _ard_console_stop);
+    // this.debugCanvas.destroy();
+    this.stop();
+  }
+  //#endregion lifecycle
+
+  //#region AARD control
   start() {
     if (this.settings.canStartAutoAr()) {
       this.logger.log('info', 'debug', `"%c[ArDetect::start] <@${this.arid}> Starting automatic aspect ratio detection`, _ard_console_start);
@@ -242,7 +250,7 @@ class ArDetector {
 
     if (this.conf.resizer.lastAr.type === AspectRatioType.Automatic) {
       // ensure first autodetection will run in any case
-      this.conf.resizer.setLastAr({type: AspectRatioType.Automatic, ratio: this.getDefaultAr()});
+      this.conf.resizer.setLastAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
     }
 
 
@@ -278,6 +286,91 @@ class ArDetector {
     this._halted = true;
     // this.conf.resizer.setArLastAr();
   }
+
+  setManualTick(manualTick) {
+    this.manualTickEnabled = manualTick;
+  }
+
+  tick() {
+    this._nextTick = true;
+  }
+  //#endregion
+
+  //#region helper functions (general)
+
+  isRunning(){
+    return ! (this._halted || this._paused || this._exited);
+  }
+
+  canTriggerFrameCheck(lastFrameCheckStartTime) {
+    if (this._paused) {
+      return false;
+    }
+    if (this.video.ended || this.video.paused){
+      // we slow down if ended or pausing. Detecting is pointless.
+      // we don't stop outright in case seeking happens during pause/after video was 
+      // ended and video gets into 'playing' state again
+      return Date.now() - lastFrameCheckStartTime > this.settings.active.arDetect.timers.paused;
+    }
+    if (this.video.error){
+      // če je video pavziran, še vedno skušamo zaznati razmerje stranic - ampak bolj poredko.
+      // if the video is paused, we still do autodetection. We just do it less often.
+      return Date.now() - lastFrameCheckStartTime > this.settings.active.arDetect.timers.error;
+    }
+    
+    return Date.now() - lastFrameCheckStartTime > this.settings.active.arDetect.timers.playing;
+  }
+
+  scheduleInitRestart(timeout?: number, force_reset?: boolean){
+    if(! timeout){
+      timeout = 100;
+    }
+    // don't allow more than 1 instance
+    if(this.setupTimer){ 
+      clearTimeout(this.setupTimer);
+    }
+    
+    let ths = this;
+    this.setupTimer = setTimeout(function(){
+        ths.setupTimer = null;
+        try{
+          ths.main();
+        } catch(e) {
+          this.logger('error', 'debug', `[ArDetector::scheduleInitRestart] <@${this.arid}> Failed to start main(). Error:`,e);
+        }
+        ths = null;
+      },
+      timeout
+    );
+  }
+
+  attachCanvas(canvas){
+    if(this.attachedCanvas)
+      this.attachedCanvas.remove();
+
+    // todo: place canvas on top of the video instead of random location
+    canvas.style.position = "absolute";
+    canvas.style.left = "200px";
+    canvas.style.top = "1200px";
+    canvas.style.zIndex = 10000;
+
+    document.getElementsByTagName("body")[0]
+            .appendChild(canvas);
+  }
+
+  canvasReadyForDrawWindow(){
+    this.logger.log('info', 'debug', `%c[ArDetect::canvasReadyForDrawWindow] <@${this.arid}> canvas is ${this.canvas.height === window.innerHeight ? '' : 'NOT '}ready for drawWindow(). Canvas height: ${this.canvas.height}px; window inner height: ${window.innerHeight}px.`)
+
+    return this.canvas.height == window.innerHeight
+  }
+
+  getTimeout(baseTimeout, startTime){
+    let execTime = (performance.now() - startTime);
+    
+    return baseTimeout;
+  }
+  //#endregion
+
 
   async main() {
     if (this._paused) {
@@ -345,92 +438,6 @@ class ArDetector {
 
     this.logger.log('info', 'debug', `%c[ArDetect::main] <@${this.arid}>  Main autodetection loop exited. Halted? ${this._halted}`,  _ard_console_stop);
     this._exited = true;
-  }
-
-
-  canTriggerFrameCheck(lastFrameCheckStartTime) {
-    if (this._paused) {
-      return false;
-    }
-    if (this.video.ended || this.video.paused){
-      // we slow down if ended or pausing. Detecting is pointless.
-      // we don't stop outright in case seeking happens during pause/after video was 
-      // ended and video gets into 'playing' state again
-      return Date.now() - lastFrameCheckStartTime > this.settings.active.arDetect.timers.paused;
-    }
-    if (this.video.error){
-      // če je video pavziran, še vedno skušamo zaznati razmerje stranic - ampak bolj poredko.
-      // if the video is paused, we still do autodetection. We just do it less often.
-      return Date.now() - lastFrameCheckStartTime > this.settings.active.arDetect.timers.error;
-    }
-    
-    return Date.now() - lastFrameCheckStartTime > this.settings.active.arDetect.timers.playing;
-  }
-
-  isRunning(){
-    return ! (this._halted || this._paused || this._exited);
-  }
-
-
-  scheduleInitRestart(timeout?: number, force_reset?: boolean){
-    if(! timeout){
-      timeout = 100;
-    }
-    // don't allow more than 1 instance
-    if(this.setupTimer){ 
-      clearTimeout(this.setupTimer);
-    }
-    
-    let ths = this;
-    this.setupTimer = setTimeout(function(){
-        ths.setupTimer = null;
-        try{
-          ths.main();
-        } catch(e) {
-          this.logger('error', 'debug', `[ArDetector::scheduleInitRestart] <@${this.arid}> Failed to start main(). Error:`,e);
-        }
-        ths = null;
-      },
-      timeout
-    );
-  }
-
-
-
-  //#region helper functions (general)
-  attachCanvas(canvas){
-    if(this.attachedCanvas)
-      this.attachedCanvas.remove();
-
-    // todo: place canvas on top of the video instead of random location
-    canvas.style.position = "absolute";
-    canvas.style.left = "200px";
-    canvas.style.top = "1200px";
-    canvas.style.zIndex = 10000;
-
-    document.getElementsByTagName("body")[0]
-            .appendChild(canvas);
-  }
-
-  canvasReadyForDrawWindow(){
-    this.logger.log('info', 'debug', `%c[ArDetect::canvasReadyForDrawWindow] <@${this.arid}> canvas is ${this.canvas.height === window.innerHeight ? '' : 'NOT '}ready for drawWindow(). Canvas height: ${this.canvas.height}px; window inner height: ${window.innerHeight}px.`)
-
-    return this.canvas.height == window.innerHeight
-  }
-
-  getTimeout(baseTimeout, startTime){
-    let execTime = (performance.now() - startTime);
-    
-    return baseTimeout;
-  }
-  //#endregion
-
-  getDefaultAr() {
-    const ratio = this.video.videoWidth / this.video.videoHeight;
-    if (isNaN(ratio)) {
-      return undefined;
-    }
-    return ratio;
   }
 
   calculateArFromEdges(edges) {
@@ -639,7 +646,7 @@ class ArDetector {
       // da je letterbox izginil.
       // If we don't detect letterbox, we reset aspect ratio to aspect ratio of the video file. The aspect ratio could
       // have been corrected manually. It's also possible that letterbox (that was there before) disappeared.
-      this.conf.resizer.updateAr({type: AspectRatioType.Automatic, ratio: this.getDefaultAr()});
+      this.conf.resizer.updateAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
@@ -681,7 +688,7 @@ class ArDetector {
     // (since the new letterbox edge isn't present in our sample due to technical
     // limitations)
     if (this.fallbackMode && guardLineOut.blackbarFail) {
-      this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.getDefaultAr()});
+      this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
@@ -706,7 +713,7 @@ class ArDetector {
 
           if(guardLineOut.blackbarFail){
             this.logger.log('info', 'arDetect', `[ArDetect::frameCheck] Detected blackbar violation and pillarbox. Resetting to default aspect ratio.`);
-            this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.getDefaultAr()});
+            this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
             this.guardLine.reset();
           }
 
@@ -776,7 +783,7 @@ class ArDetector {
       // WE DO NOT RESET ASPECT RATIO HERE IN CASE OF PROBLEMS, CAUSES UNWARRANTED RESETS: 
       // (eg. here: https://www.youtube.com/watch?v=nw5Z93Yt-UQ&t=410)
       //
-      // this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.getDefaultAr()});
+      // this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
     }
 
     this.clearImageData(imageData);
