@@ -291,6 +291,7 @@ class ArDetector {
     this.noLetterboxCanvasReset = false;
     
     if (this.settings.canStartAutoAr() ) {
+      this.main();
       this.start();
     }
   
@@ -305,7 +306,7 @@ class ArDetector {
   destroy(){
     this.logger.log('info', 'init', `%c[ArDetect::destroy] <@${this.arid}> Destroying aard.`, _ard_console_stop);
     // this.debugCanvas.destroy();
-    this.stop();
+    this.halt();
   }
   //#endregion lifecycle
 
@@ -323,24 +324,30 @@ class ArDetector {
       this.conf.resizer.setLastAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
     }
 
-
-    
-    // launch main() if it's currently not running:
-    this.main();
-    // automatic detection starts halted. If halted=false when main first starts, extension won't run
-    // this._paused is undefined the first time we run this function, which is effectively the same thing
-    // as false. Still, we'll explicitly fix this here.
     this._paused = false;  
     this._halted = false;
     this._paused = false;
+
+    // start autodetection
+    if (this.animationFrameHandle) {
+      window.cancelAnimationFrame(this.animationFrameHandle);
+    }
+
+    this.animationFrameHandle = window.requestAnimationFrame( (ts) => this.animationFrameBootstrap(ts));
+
+    // automatic detection starts halted. If halted=false when main first starts, extension won't run
+    // this._paused is undefined the first time we run this function, which is effectively the same thing
+    // as false. Still, we'll explicitly fix this here.
+  }
+  stop() {
+    if (this.animationFrameHandle) {
+      window.cancelAnimationFrame(this.animationFrameHandle);
+    }
+    this.logger.log('info', 'debug', `"%c[ArDetect::stop] <@${this.arid}>  Stopping AnimationFrame loop.`, _ard_console_stop);
   }
 
   unpause() {
-    // pause only if we were running before. Don't pause if we aren't running
-    // (we are running when _halted is neither true nor undefined)
-    if (this._paused && this._halted === false) {
-      this._paused = true;
-    }
+    this.start();
   }
 
   pause() {
@@ -349,10 +356,12 @@ class ArDetector {
     if (this._halted === false) {
       this._paused = true;
     }
+    this.stop();
   }
 
-  stop(){
-    this.logger.log('info', 'debug', `"%c[ArDetect::stop] <@${this.arid}>  Stopping automatic aspect ratio detection`, _ard_console_stop);
+  halt(){
+    this.logger.log('info', 'debug', `"%c[ArDetect::stop] <@${this.arid}>  Halting automatic aspect ratio detection`, _ard_console_stop);
+    this.stop();
     this._halted = true;
     // this.conf.resizer.setArLastAr();
   }
@@ -367,10 +376,6 @@ class ArDetector {
   //#endregion
 
   //#region helper functions (general)
-
-  private isDRM() {
-    return this.video.mediaKeys instanceof MediaKeys;
-  }
 
   isRunning(){
     return ! (this._halted || this._paused || this._exited);
@@ -412,9 +417,12 @@ class ArDetector {
     }
     this.status.lastVideoStatus = videoState;
 
-    const canTriggerFrameCheck = Date.now() >= this.timers.nextFrameCheckTime;
+    if (Date.now() < this.timers.nextFrameCheckTime) {
+      return false;
+    }
+
     this.timers.nextFrameCheckTime = Date.now() + this.settings.active.arDetect.timers.playing;
-    return canTriggerFrameCheck;
+    return true;
   }
 
   private scheduleInitRestart(timeout?: number, force_reset?: boolean){
@@ -512,39 +520,38 @@ class ArDetector {
   //#endregion
 
   async main() {
-    if (this._paused) {
-      // unpause if paused
-      this._paused = false;
-      return; // main loop still keeps executing. Return is needed to avoid a million instances of autodetection
+    try {
+      if (this._paused) {
+        this.start();
+        return; // main loop still keeps executing. Return is needed to avoid a million instances of autodetection
+      }
+      if (!this._halted) { 
+        // we are already running, don't run twice
+        // this would have handled the 'paused' from before, actually.
+        return;
+      }
+
+      let exitedRetries = 10;
+
+      while (!this._exited && exitedRetries --> 0) {
+        this.logger.log('warn', 'debug', `[ArDetect::main] <@${this.arid}>  We are trying to start another instance of autodetection on current video, but the previous instance hasn't exited yet. Waiting for old instance to exit ...`);
+        await sleep(this.settings.active.arDetect.timers.tickrate);
+      }
+      if (!this._exited) {
+        this.logger.log('error', 'debug', `[ArDetect::main] <@${this.arid}>  Previous instance didn't exit in time. Not starting a new one.`);
+        return;
+      }
+
+      this.logger.log('info', 'debug', `%c[ArDetect::main] <@${this.arid}>  Previous instance didn't exit in time. Not starting a new one.`);
+
+      // we need to unhalt:
+      this._halted = false;
+      this._exited = false;
+
+      this.start();
+    } catch (e) {
+      this.logger.log('error', 'debug', `[ArDetect::main] <${this.arid} failed to start autodetection for some reason.`, e);
     }
-    if (!this._halted) { 
-      // we are already running, don't run twice
-      // this would have handled the 'paused' from before, actually.
-      return;
-    }
-
-    let exitedRetries = 10;
-
-    while (!this._exited && exitedRetries --> 0) {
-      this.logger.log('warn', 'debug', `[ArDetect::main] <@${this.arid}>  We are trying to start another instance of autodetection on current video, but the previous instance hasn't exited yet. Waiting for old instance to exit ...`);
-      await sleep(this.settings.active.arDetect.timers.tickrate);
-    }
-    if (!this._exited) {
-      this.logger.log('error', 'debug', `[ArDetect::main] <@${this.arid}>  Previous instance didn't exit in time. Not starting a new one.`);
-      return;
-    }
-
-    this.logger.log('info', 'debug', `%c[ArDetect::main] <@${this.arid}>  Previous instance didn't exit in time. Not starting a new one.`);
-
-    // we need to unhalt:
-    this._halted = false;
-    this._exited = false;
-
-    if (this.animationFrameHandle) {
-      window.cancelAnimationFrame(this.animationFrameHandle)
-    }
-
-    this.animationFrameHandle = window.requestAnimationFrame(this.animationFrameBootstrap);
   }
 
   /**
@@ -554,7 +561,6 @@ class ArDetector {
     // do timekeeping first
     this.addPerformanceTimeMeasure(this.performance.animationFrame, timestamp - this.performance.animationFrame.lastTime)
     this.performance.animationFrame.lastTime = timestamp;
-
 
     // trigger frame check, if we're allowed to
     if ( (!this.manualTickEnabled && this.canTriggerFrameCheck()) || this._nextTick) {
@@ -570,7 +576,7 @@ class ArDetector {
     }
 
     if (this && !this._halted && !this._paused) {
-      this.animationFrameHandle = window.requestAnimationFrame(this.animationFrameBootstrap);
+      this.animationFrameHandle = window.requestAnimationFrame( (ts) => this.animationFrameBootstrap(ts));
     } else if (this._halted) {
       this.logger.log('info', 'debug', `%c[ArDetect::main] <@${this.arid}>  Main autodetection loop exited. Halted? ${this._halted}`,  _ard_console_stop);
       this._exited = true;
@@ -720,7 +726,7 @@ class ArDetector {
 
       if (! this.canvasReadyForDrawWindow()) {
         // this means canvas needs to be resized, so we'll just re-run setup with all those new parameters
-        this.stop();
+        this.halt();
           
         let newCanvasWidth = window.innerHeight * (this.video.videoWidth / this.video.videoHeight);
         let newCanvasHeight = window.innerHeight;

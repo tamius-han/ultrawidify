@@ -323,7 +323,7 @@ class VideoData {
     this.pause();
     this.destroyed = true;
     try {
-      this.arDetector.stop();
+      this.arDetector.halt();
       this.arDetector.destroy();
     } catch (e) {}
     this.arDetector = undefined;
@@ -608,14 +608,14 @@ class VideoData {
 
   stopArDetection() {
     if (this.arDetector) {
-      this.arDetector.stop();
+      this.arDetector.halt();
     }
   }
 
   pause(){
     this.paused = true;
     if(this.arDetector){
-      this.arDetector.stop();
+      this.arDetector.halt();
     }
     if(this.player){
       this.player.stop();
