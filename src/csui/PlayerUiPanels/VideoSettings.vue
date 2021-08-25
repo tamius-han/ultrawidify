@@ -41,10 +41,10 @@
 import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
 import ShortcutButton from '../../common/components/ShortcutButton';
 import ComputeActionsMixin from '../../common/mixins/ComputeActionsMixin';
-import CropModePersistence from '../../common/enums/crop-mode-persistence.enum';
 import ExecAction from '../ui-libs/ExecAction';
 import BrowserDetect from '../../ext/conf/BrowserDetect';
-import AspectRatio from '../../common/enums/aspect-ratio.enum';
+import AspectRatioType from '../../common/enums/AspectRatioType.enum';
+import CropModePersistence from '../../common/enums/CropModePersistence.enum';
 
 export default {
   data() {
@@ -99,7 +99,7 @@ export default {
       // );
     },
     testAction() {
-      window.ultrawidify.videos[0].setAr({type: AspectRatio.FitWidth});
+      window.ultrawidify.videos[0].setAr({type: AspectRatioType.FitWidth});
     }
   }
 }

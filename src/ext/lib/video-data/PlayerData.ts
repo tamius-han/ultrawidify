@@ -66,6 +66,8 @@ class PlayerData {
   dimensions: {width?: number, height?: number, fullscreen?: boolean};
   private playerIdElement: any;
   private observer: ResizeObserver;
+
+  private ui: any;
   //#endregion
 
   /**
@@ -95,6 +97,8 @@ class PlayerData {
       this.element = this.getPlayer();
 
       this.notificationService = new PlayerNotificationUi(this.element, this.settings);
+      this.ui = new PlayerUi(this.element, this.settings);
+      this.ui.init();
 
       this.dimensions = undefined;
       this.overlayNode = undefined;
@@ -121,6 +125,7 @@ class PlayerData {
       console.error('[Ultrawidify::PlayerData::ctor] There was an error setting up player data. You should be never seeing this message. Error:', e);
       this.invalid = true;
     }
+
   }
 
   /**
