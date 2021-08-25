@@ -438,7 +438,7 @@ class VideoData {
    */
   private _processDimensionsChanged() {
     if (!this.player) {
-      console.warn(`[VideoData::_processDimensionsChanged] Player is not defined. This is super haram.`, this.player)
+      this.logger.log('warn', 'debug', `[VideoData::_processDimensionsChanged] Player is not defined. This is super haram.`, this.player)
     }
     // adding player observer taught us that if element size gets triggered by a class, then
     // the 'style' attributes don't necessarily trigger. This means we also need to trigger

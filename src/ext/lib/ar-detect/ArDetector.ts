@@ -291,7 +291,7 @@ class ArDetector {
     this.noLetterboxCanvasReset = false;
     
     if (this.settings.canStartAutoAr() ) {
-      this.main();
+      // this.main();
       this.start();
     }
   
@@ -303,7 +303,7 @@ class ArDetector {
     this.conf.arSetupComplete = true;
   }
 
-  destroy(){
+  destroy(){¸
     this.logger.log('info', 'init', `%c[ArDetect::destroy] <@${this.arid}> Destroying aard.`, _ard_console_stop);
     // this.debugCanvas.destroy();
     this.halt();
@@ -329,16 +329,21 @@ class ArDetector {
     this._paused = false;
 
     // start autodetection
-    if (this.animationFrameHandle) {
-      window.cancelAnimationFrame(this.animationFrameHandle);
-    }
-
-    this.animationFrameHandle = window.requestAnimationFrame( (ts) => this.animationFrameBootstrap(ts));
+    this.startLoop();
 
     // automatic detection starts halted. If halted=false when main first starts, extension won't run
     // this._paused is undefined the first time we run this function, which is effectively the same thing
     // as false. Still, we'll explicitly fix this here.
   }
+
+  startLoop() {
+    if (this.animationFrameHandle) {
+      window.cancelAnimationFrame(this.animationFrameHandle);
+    }
+
+    this.animationFrameHandle = window.requestAnimationFrame( (ts) => this.animationFrameBootstrap(ts));
+  }
+
   stop() {
     if (this.animationFrameHandle) {
       window.cancelAnimationFrame(this.animationFrameHandle);
@@ -347,7 +352,7 @@ class ArDetector {
   }
 
   unpause() {
-    this.start();
+    this.startLoop();
   }
 
   pause() {
@@ -438,7 +443,7 @@ class ArDetector {
     this.setupTimer = setTimeout(function(){
         ths.setupTimer = null;
         try{
-          ths.main();
+          ths.start();
         } catch(e) {
           this.logger('error', 'debug', `[ArDetector::scheduleInitRestart] <@${this.arid}> Failed to start main(). Error:`,e);
         }
@@ -518,41 +523,6 @@ class ArDetector {
     }
   }
   //#endregion
-
-  async main() {
-    try {
-      if (this._paused) {
-        this.start();
-        return; // main loop still keeps executing. Return is needed to avoid a million instances of autodetection
-      }
-      if (!this._halted) { 
-        // we are already running, don't run twice
-        // this would have handled the 'paused' from before, actually.
-        return;
-      }
-
-      let exitedRetries = 10;
-
-      while (!this._exited && exitedRetries --> 0) {
-        this.logger.log('warn', 'debug', `[ArDetect::main] <@${this.arid}>  We are trying to start another instance of autodetection on current video, but the previous instance hasn't exited yet. Waiting for old instance to exit ...`);
-        await sleep(this.settings.active.arDetect.timers.tickrate);
-      }
-      if (!this._exited) {
-        this.logger.log('error', 'debug', `[ArDetect::main] <@${this.arid}>  Previous instance didn't exit in time. Not starting a new one.`);
-        return;
-      }
-
-      this.logger.log('info', 'debug', `%c[ArDetect::main] <@${this.arid}>  Previous instance didn't exit in time. Not starting a new one.`);
-
-      // we need to unhalt:
-      this._halted = false;
-      this._exited = false;
-
-      this.start();
-    } catch (e) {
-      this.logger.log('error', 'debug', `[ArDetect::main] <${this.arid} failed to start autodetection for some reason.`, e);
-    }
-  }
 
   /**
    * This is the "main loop" for aspect ratio autodetection
@@ -719,6 +689,7 @@ class ArDetector {
       // And if we're here while DRM is detected, we know we'll be looking at black frames.
       // We won't be able to do anything useful, therefore we're just gonna call it quits.
       if (this.conf.hasDrm) {
+        this.logger.log('info', 'debug', 'we have drm, doing nothing.', this.conf.hasDrm);
         return;
       }
     } catch (e) {
@@ -795,6 +766,7 @@ class ArDetector {
       this.clearImageData(imageData);
       return;
     }
+
 
     // Če preverjamo naprej, potem moramo postaviti to vrednost nazaj na 'false'. V nasprotnem primeru se bo
     // css resetiral enkrat na video/pageload namesto vsakič, ko so za nekaj časa obrobe odstranejene
@@ -1066,6 +1038,13 @@ class ArDetector {
     };
   }
 
+  /**
+   * Does a quick test to see if the aspect ratio is correct
+   * Returns 'true' if there's a chance of letterbox existing, false if not.
+   * @param imageData 
+   * @param sampleCols 
+   * @returns 
+   */
   fastLetterboxPresenceTest(imageData, sampleCols) {
     // fast test to see if aspect ratio is correct.
     // returns 'true'  if presence of letterbox is possible.
@@ -1105,8 +1084,11 @@ class ArDetector {
       );
     }
 
-    if (currentMin < this.blackLevel)
+
+
+    if (currentMin < this.blackLevel) {
       this.blackLevel = currentMin
+    }
 
     return true;
   }
