@@ -303,7 +303,7 @@ class ArDetector {
     this.conf.arSetupComplete = true;
   }
 
-  destroy(){¸
+  destroy(){
     this.logger.log('info', 'init', `%c[ArDetect::destroy] <@${this.arid}> Destroying aard.`, _ard_console_stop);
     // this.debugCanvas.destroy();
     this.halt();
