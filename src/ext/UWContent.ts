@@ -6,6 +6,7 @@ import Comms from './lib/comms/Comms';
 import CommsClient from './lib/comms/CommsClient';
 import PageInfo from './lib/video-data/PageInfo';
 import Logger, { baseLoggingOptions } from './lib/Logger';
+import UWGlobals from './lib/UWGlobals';
 
 export default class UWContent {
   pageInfo: PageInfo;
@@ -79,6 +80,11 @@ export default class UWContent {
         }
       } catch (e) {
         console.error("logger init failed!", e)
+      }
+
+      // second — let's add some globals
+      if (! (window as any).ultrawidify) {
+        (window as any).ultrawidify = new UWGlobals();
       }
 
       // init() is re-run any time settings change
