@@ -1048,13 +1048,9 @@ const ExtensionConf: SettingsInterface = {
       videoAlignment: VideoAlignmentType.Default,
       keyboardShortcutsEnabled: ExtensionMode.Default,
       arPersistence: true,              // persist aspect ratio between different videos
-      "DOM": {
-        "player": {
-          "manual": true,
-          "querySelectors": ".VideoContainer",
-          "additionalCss": "",
-          "useRelativeAncestor": false,
-          "playerNodeCss": ""
+      DOM: {
+        player: {
+          manual: false,                // as of 2021-09, netflix no longer requires manual player class. This may change in the future tho.
         }
       }
     },
