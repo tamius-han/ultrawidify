@@ -234,6 +234,13 @@ const ExtensionConfPatch = [
         playerNodeCss: "",
       }
     }
+  }, {
+    forVersion: '5.0.8',
+    updateFn: (userOptions, defaultOptions) => {
+      userOptions.sites['www.netflix.com'].DOM.player = {
+        manual: false
+      }
+    }
   }
 ];
 
