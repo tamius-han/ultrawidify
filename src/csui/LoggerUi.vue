@@ -33,6 +33,9 @@
           <h2>Logger configuration</h2>
         </div>
         <div class="flex flex-row flex-end w100">
+          <div v-if="!showTextMode" class="button" @click="loadDefaultConfig()">
+            Default config
+          </div>
           <div v-if="!showTextMode" class="button" @click="showTextMode = true">
             <Icon icon="clipboard-plus" style="font-size: 2em"></Icon>&nbsp; Paste config ...
           </div>
@@ -56,7 +59,7 @@
           <template v-else>
             <JsonObject label="logger-settings" 
                         :value="currentSettings" 
-                        :ignoreKeys="{'allowLogging': true}"
+                        :ignoreKeys="{'allowLogging': false}"
                         @change="updateSettingsUi"
             ></JsonObject>
           </template>
@@ -107,11 +110,16 @@
         </template>
         <template v-else>
           <div class="panel-middle scrollable flex-grow">
-            <div v-if="!parsedSettings" class="text-center w100">
-              Please paste logger config into the text box to the left.
-              ←←←
+            <div>
+              <p>Here's express usage tutorial on how to use the logger.</p>
+              <p>Quick rundown of all the options you can put into logger configuration can be found <a href="https://github.com/tamius-han/ultrawidify/wiki/Development&Debugging:-Logger-options" target="_blank">here</a>.</p>
+              <p>If you want logging results to appear here, in this window, you need to put appropriate configuration in the fileOptions section of the settings. You can edit the settings by clicking 'paste config' button.</p>
+              <p>To start logging to console, it's enough to click that tiny 'save' button down there, under logger options (<code>logger-settings.allowLogging</code> must be set to true. Then — depending on where you want logging to happen — you also need to enable either <code>logger-settings.fileOptions.enabled</code> or <code>logger-settings.consoleOptions.enabled</code>)</p>
+              <p>You can quickly toggle values for various components by clicking on "true" or "false".</p>
+              <p>Click the small 'save' down at the bottom of this window to immediately apply the logger configuration changes.</p>
+              <p>Yes, I know this is not a pinnacle of user-friendliness, nor a pinnacle of web design. It was put together very quickly, mostly for my convenience. I have plans to move extension UI from the popup into the player, tho, and these plans will make this window obsolete. Because of that, I plan to do absolutely nothing about the state of this window. Wait for the extension redesign pls.</p>
             </div>
-            <div v-else-if="confHasError" class="warn">
+            <div v-if="confHasError" class="warn">
               Logger configuration contains an error. Cannot start logging.
             </div>
             <div v-else-if="lastSettings && lastSettings.allowLogging && lastSettings.consoleOptions && lastSettings.consoleOptions.enabled"
@@ -160,7 +168,7 @@
 
 <script>
 import { mapState } from 'vuex';
-import Logger from '../ext/lib/Logger';
+import Logger, { baseLoggingOptions } from '../ext/lib/Logger';
 import Comms from '../ext/lib/comms/Comms';
 import IO from '../common/js/IO';
 import JsonObject from '../common/components/JsonEditor/JsonObject';
@@ -196,6 +204,12 @@ export default {
     }, {
       header: "Tracer",
       subheader: "I'm already printing stack traces"
+    }, {
+      header: "Grûmsh",
+      subheader: "He who watches"
+    }, {
+      header: "Situation Room/The Council",
+      subheader: "We will always be watching"
     }];
 
     this.header = headerRotation[Math.floor(+Date.now() / (3600000*24)) % headerRotation.length] || this.header;
@@ -233,8 +247,13 @@ export default {
     }
   },
   methods: {
+    loadDefaultConfig() {
+      this.lastSettings = baseLoggingOptions;
+      this.parsedSettings = JSON.stringify(this.lastSettings, null, 2) || '';
+      this.currentSettings = JSON.parse(JSON.stringify(this.lastSettings));
+    },
     async getLoggerSettings() {
-      this.lastSettings = await Logger.getConfig() || {};
+      this.lastSettings = await Logger.getConfig() || baseLoggingOptions;
       this.parsedSettings = JSON.stringify(this.lastSettings, null, 2) || '';
       this.currentSettings = JSON.parse(JSON.stringify(this.lastSettings));
     },
