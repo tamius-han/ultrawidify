@@ -527,9 +527,9 @@ class ArDetector {
   /**
    * This is the "main loop" for aspect ratio autodetection
    */
-  private animationFrameBootstrap(timestamp: number) {
+  private async animationFrameBootstrap(timestamp: number) {
     // do timekeeping first
-    this.addPerformanceTimeMeasure(this.performance.animationFrame, timestamp - this.performance.animationFrame.lastTime)
+    this.addPerformanceTimeMeasure(this.performance.animationFrame, timestamp - this.performance.animationFrame.lastTime);
     this.performance.animationFrame.lastTime = timestamp;
 
     // trigger frame check, if we're allowed to
@@ -538,7 +538,7 @@ class ArDetector {
 
       try {
         const startTime = performance.now();
-        this.frameCheck();
+        await this.frameCheck();
         this.addPerformanceTimeMeasure(this.performance.aard, performance.now() - startTime);
       } catch (e) {
         this.logger.log('error', 'debug', `%c[ArDetect::main] <@${this.arid}>  Frame check failed:`,  "color: #000, background: #f00", e);
@@ -661,6 +661,8 @@ class ArDetector {
   }
 
   async frameCheck(){
+    this.logger.log('info', 'arDetect_verbose',  `%c[ArDetect::processAr] <@${this.arid}> Starting frame check.`);
+
     if(! this.video){
       this.logger.log('error', 'debug', `%c[ArDetect::frameCheck] <@${this.arid}>  Video went missing. Destroying current instance of videoData.`);
       this.conf.destroy();
@@ -734,8 +736,9 @@ class ArDetector {
         return; // it's prolly just a fluke, so we do nothing special here
       }
       // draw blackframe sample from our main sample:
-      await new Promise(resolve => {
+      await new Promise<void>(resolve => {
         this.blackframeContext.drawImage(this.canvas, this.blackframeCanvas.width, this.blackframeCanvas.height);
+        resolve();
       });
       partialDrawImageTime += performance.now() - startTime;
 
@@ -753,8 +756,9 @@ class ArDetector {
     // if we are in normal mode though, the frame has yet to be drawn
     if (!this.fallbackMode) {
       startTime = performance.now();
-      await new Promise(resolve => {
+      await new Promise<void>(resolve => {
         this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+        resolve();
       })
       partialDrawImageTime += performance.now() - startTime;
     }
@@ -812,21 +816,16 @@ class ArDetector {
     // (since the new letterbox edge isn't present in our sample due to technical
     // limitations)
     if (this.fallbackMode && guardLineOut.blackbarFail) {
+      this.logger.log('warn', 'arDetect_verbose',  `%c[ArDetect::frameCheck] <@${this.arid}> We are in fallback mode and blackbar failed. Reverting to initial aspect ratio.`);
+
       this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
       this.clearImageData(imageData);
       return;
-    }
-         
-    // će se razmerje stranic spreminja iz ožjega na širšega, potem najprej poglejmo za prisotnostjo navpičnih črnih obrob.
-    // če so prisotne navpične obrobe tudi na levi in desni strani, potlej obstaja možnost, da gre za logo na črnem ozadju.
-    // v tem primeru obstaja nevarnost, da porežemo preveč. Ker obstaja dovolj velika možnost, da bi porezali preveč, rajši
-    // ne naredimo ničesar.
-    //
-    // če je pillarbox zaznan v primeru spremembe iz ožjega na širše razmerje stranice, razmerje povrnemo na privzeto vrednost.
-    //
+    }       
+ 
     // If aspect ratio changes from narrower to wider, we first check for presence of pillarbox. Presence of pillarbox indicates
     // a chance of a logo on black background. We could cut easily cut too much. Because there's a somewhat significant chance
     // that we will cut too much, we rather avoid doing anything at all. There's gonna be a next chance.
@@ -837,7 +836,9 @@ class ArDetector {
             this.logger.log('info', 'arDetect', `[ArDetect::frameCheck] Detected blackbar violation and pillarbox. Resetting to default aspect ratio.`);
             this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
             this.guardLine.reset();
-          }
+          } else {
+            this.logger.log('info', 'arDetect_verbose', `[ArDetect::frameCheck] Guardline failed, blackbar didn't, and we got pillarbox. Doing nothing.`);
+          }          
 
           this.clearImageData(imageData);
           return;
