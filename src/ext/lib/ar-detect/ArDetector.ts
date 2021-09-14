@@ -408,7 +408,7 @@ class ArDetector {
    * @returns 
    */
   private canTriggerFrameCheck() {
-    if (this._paused) {
+    if (this._paused || this._halted || this._exited) {
       return false;
     }
 
@@ -620,6 +620,10 @@ class ArDetector {
   }
 
   processAr(trueAr){
+    if (!this.isRunning()) {
+      this.logger.log('warn', 'debug', `[ArDetect::processAr] <@${this.arid}> Trying to change aspect ratio while AARD is paused.`);
+      return;
+    }
     this.detectedAr = trueAr;
     
     // poglejmo, če se je razmerje stranic spremenilo
