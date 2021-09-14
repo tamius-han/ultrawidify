@@ -833,8 +833,6 @@ class ArDetector {
     try{
       if(guardLineOut.blackbarFail || guardLineOut.imageFail){
         if(this.edgeDetector.findBars(imageData, null, EdgeDetectPrimaryDirection.Horizontal).status === 'ar_known'){
-
-
           if(guardLineOut.blackbarFail){
             this.logger.log('info', 'arDetect', `[ArDetect::frameCheck] Detected blackbar violation and pillarbox. Resetting to default aspect ratio.`);
             this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
