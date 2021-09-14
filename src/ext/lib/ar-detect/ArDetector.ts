@@ -660,7 +660,7 @@ class ArDetector {
     id = undefined;
   }
 
-  frameCheck(){
+  async frameCheck(){
     if(! this.video){
       this.logger.log('error', 'debug', `%c[ArDetect::frameCheck] <@${this.arid}>  Video went missing. Destroying current instance of videoData.`);
       this.conf.destroy();
@@ -680,7 +680,15 @@ class ArDetector {
     //
     try {
       startTime = performance.now();
-      this.blackframeContext.drawImage(this.video, 0, 0, this.blackframeCanvas.width, this.blackframeCanvas.height);
+
+      // do it in ghetto async. This way, other javascript function should be able to 
+      // get a chance to do something _before_ we process our data
+      await new Promise<void>(
+        resolve => {
+          this.blackframeContext.drawImage(this.video, 0, 0, this.blackframeCanvas.width, this.blackframeCanvas.height);
+          resolve();
+        }
+      );
       partialDrawImageTime += performance.now() - startTime;
 
       this.fallbackMode = false;
@@ -726,7 +734,9 @@ class ArDetector {
         return; // it's prolly just a fluke, so we do nothing special here
       }
       // draw blackframe sample from our main sample:
-      this.blackframeContext.drawImage(this.canvas, this.blackframeCanvas.width, this.blackframeCanvas.height);
+      await new Promise(resolve => {
+        this.blackframeContext.drawImage(this.canvas, this.blackframeCanvas.width, this.blackframeCanvas.height);
+      });
       partialDrawImageTime += performance.now() - startTime;
 
       this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] canvas.drawImage seems to have worked`, "color:#000; backgroud:#2f5;");
@@ -743,7 +753,9 @@ class ArDetector {
     // if we are in normal mode though, the frame has yet to be drawn
     if (!this.fallbackMode) {
       startTime = performance.now();
-      this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+      await new Promise(resolve => {
+        this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+      })
       partialDrawImageTime += performance.now() - startTime;
     }
 
