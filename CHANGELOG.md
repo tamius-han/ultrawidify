@@ -22,6 +22,7 @@
 
 * Re-enable logger
 * Move aspect ratio autodetection to requestAnimationFrame
+* Fix netflix
 
 ### v5.0.7 
 
