@@ -28,10 +28,10 @@ export const baseLoggingOptions: LoggerConfig = {
     "resizer": true,
     "scaler": true,
     "stretcher": true,
-    // "videoRescan": true,
-    // "playerRescan": true,
+    "videoRescan": false,
+    "playerRescan": false,
     "arDetect": true,
-    "arDetect_verbose": true
+    "arDetect_verbose": false
   },
   allowBlacklistedOrigins: {
     'periodicPlayerCheck': false,
@@ -166,7 +166,7 @@ class Logger {
     if (this.conf.fileOptions === undefined) {
       this.conf.fileOptions = {};
     }
-    
+
     this.startTime = performance.now();
     this.temp_disable = false;
     this.stopTime = this.conf.timeout ? performance.now() + (this.conf.timeout * 1000) : undefined;
@@ -205,7 +205,7 @@ class Logger {
     } catch (e) {
       console.warn('[uwLogger] Error while trying to parse new conf for logger:', e, '\nWe received the following changes:', changes, 'for area:', area);
     }
-    
+
     // This code can only execute if user tried to enable or disable logging
     // through the popup. In cases like this, we do not gate the console.log
     // behind a check, since we _always_ want to have this feedback in response
@@ -225,7 +225,7 @@ class Logger {
   setVuexStore(store) {
     this.vuexStore = store;
   }
-  
+
   clear() {
     this.history = [];
     this.startTime = performance.now();
@@ -239,12 +239,12 @@ class Logger {
   }
 
   // async getSaved() {
-  //   return Logger.getSaved();    
+  //   return Logger.getSaved();
   // }
 
 
   // allow syncing of start times between bg and page scripts.
-  // may result in negative times in the log file, but that doesn't 
+  // may result in negative times in the log file, but that doesn't
   // really matter
   getStartTime() {
     return this.startTime;
@@ -286,7 +286,7 @@ class Logger {
   }
 
   // this should be used mostly in background page instance of logger, btw
-  // 
+  //
   addToGlobalHistory(key, log) {
     this.globalHistory[key] = log;
     this.log('info', 'debug', 'Added log for', key, 'to global history. Current history:', this.globalHistory);
@@ -358,8 +358,8 @@ class Logger {
         stackInfo.stack.trace.splice(i);
         break;
       }
-    } 
-    
+    }
+
     return stackInfo;
   }
 
@@ -411,7 +411,7 @@ class Logger {
 
     if (this.isBlacklistedOrigin(stackInfo)) {
       return false;
-    }    
+    }
 
     // if either of these two is true, we allow logging to happen (forbidden origins were checked above)
     return (this.canLogFile(component) || this.canLogConsole(component) || stackInfo.exitLogs);
@@ -448,7 +448,7 @@ class Logger {
 
     return this.conf.logAll;
   }
-  
+
   logToFile(message, stackInfo) {
     let ts = performance.now();
     if (ts <= this.history[this.history.length - 1]) {
@@ -465,16 +465,16 @@ class Logger {
   logToConsole(level, message, stackInfo) {
     try {
       switch (level) {
-        case 'error': 
+        case 'error':
           console.error(...message, {stack: stackInfo});
           break;
         case 'warn':
           console.warn(...message, {stack: stackInfo});
           break;
-        case 'info': 
+        case 'info':
           console.info(...message, {stack: stackInfo});
           break;
-        default: 
+        default:
           console.log(...message, {stack: stackInfo});
       }
     } catch (e) {
@@ -512,7 +512,7 @@ class Logger {
     if (this.isBlacklistedOrigin(stackInfo)) {
       return;
     }
-    
+
     if (this.conf.fileOptions?.enabled) {
       if (this.canLogFile(component) || stackInfo.exitLogs) {
         this.logToFile(message, stackInfo);
@@ -545,7 +545,7 @@ class Logger {
         message: "-------------------------------------- CAHEN --------------------------------------"
       });
 
-      // find the spot for the half second mark. In this case, we don't really particularly care whether timestamps 
+      // find the spot for the half second mark. In this case, we don't really particularly care whether timestamps
       // are duped due to cahen warnings
       while (this.history[i--].ts > halfSecondMark) {}
       this.history.push({
@@ -593,7 +593,7 @@ class Logger {
 
     Comms.sendMessage({cmd: 'show-logger', forwardToSameFramePort: true, port: 'content-ui-port'});
 
-    let exportObject; 
+    let exportObject;
     try {
       exportObject = {
         pageLogs: decycle(this.history),
@@ -631,7 +631,7 @@ class Logger {
 
     console.info('[info] vuex store present. Parsing logs.');
 
-    let exportObject; 
+    let exportObject;
     try {
       exportObject = {
         pageLogs: decycle(this.history),
