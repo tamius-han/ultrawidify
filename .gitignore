@@ -13,3 +13,5 @@ build/
 src/res/img/git-ignore/
 
 test/debug-configs/
+
+debugging-resources/

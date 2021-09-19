@@ -314,23 +314,31 @@ class ActionHandler {
   handleKeyup(event) {
     this.logger.log('info', 'keyboard', "%c[ActionHandler::handleKeyup] we pressed a key: ", "color: #ff0", event.key , " | keyup: ", event.keyup, "event:", event);
 
-    if (this.preventAction(event)) {
-      this.logger.log('info', 'keyboard', "[ActionHandler::handleKeyup] we are in a text box or something. Doing nothing.");
-      return;
-    }
+    try {
+      if (this.preventAction(event)) {
+        this.logger.log('info', 'keyboard', "[ActionHandler::handleKeyup] we are in a text box or something. Doing nothing.");
+        return;
+      }
 
-    this.execAction(this.keyUpActions, event);
+      this.execAction(this.keyUpActions, event);
+    } catch (e) {
+      this.logger.log('info', 'debug', '[ActionHandler::handleKeyup] Failed to handle keyup!', e);
+    }
   }
 
   handleKeydown(event) {
     this.logger.log('info', 'keyboard', "%c[ActionHandler::handleKeydown] we pressed a key: ", "color: #ff0", event.key , " | keydown: ", event.keydown, "event:", event)
 
-    if (this.preventAction(event)) {
-      this.logger.log('info', 'keyboard', "[ActionHandler::handleKeydown] we are in a text box or something. Doing nothing.");
-      return;
-    }
+    try {
+      if (this.preventAction(event)) {
+        this.logger.log('info', 'keyboard', "[ActionHandler::handleKeydown] we are in a text box or something. Doing nothing.");
+        return;
+      }
 
-    this.execAction(this.keyDownActions, event);
+      this.execAction(this.keyDownActions, event);
+    } catch (e) {
+      this.logger.log('info', 'debug', '[ActionHandler::handleKeydown] Failed to handle keydown!', e);
+    }
   }
 
   handleMouseMove(event, videoData?: VideoData) {

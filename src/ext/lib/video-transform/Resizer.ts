@@ -218,7 +218,7 @@ class Resizer {
         this.logger.log('info', 'resizer', `[Resizer::setAr] <${this.resizerId}> Something wrong with ar or the player. Doing nothing.`);
         return;
       }
-      this.lastAr = {type: ar.type, ratio: ar.ratio}
+      this.lastAr = {type: ar.type, ratio: ar.ratio};
     }
 
     // if (this.extensionMode === ExtensionMode.Basic && !PlayerData.isFullScreen() && ar.type !== AspectRatioType.Reset) {
@@ -293,7 +293,6 @@ class Resizer {
     }
 
     this.zoom.applyZoom(stretchFactors);
-
     this.stretcher.chromeBugMitigation(stretchFactors);
 
     let translate = this.computeOffsets(stretchFactors);
