@@ -326,7 +326,7 @@ class ArDetector {
 
     this._paused = false;  
     this._halted = false;
-    this._paused = false;
+    this._exited = false;
 
     // start autodetection
     this.startLoop();
