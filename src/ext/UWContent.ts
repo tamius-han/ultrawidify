@@ -42,7 +42,7 @@ export default class UWContent {
     'unmark-player': [() => this.pageInfo.unmarkPlayer()],
     'autoar-set-manual-tick': [(message) => this.pageInfo.setManualTick(message.arg)],
     'autoar-tick': [() => this.pageInfo.tick()],
-    'set-ar-persistence': [(message) => this.pageInfo.setArPersistence(message.arg)], 
+    'set-ar-persistence': [(message) => this.pageInfo.setArPersistence(message.arg)],
   }
 
   constructor(){
@@ -62,11 +62,11 @@ export default class UWContent {
       if (Debug.debug) {
         console.log("[uw::main] loading configuration ...");
       }
-    
+
       // logger init is the first thing that needs to run
       try {
         if (!this.logger) {
-          
+
           this.logger = new Logger();
           await this.logger.init(baseLoggingOptions);
 
@@ -85,6 +85,7 @@ export default class UWContent {
       // second — let's add some globals
       if (! (window as any).ultrawidify) {
         (window as any).ultrawidify = new UWGlobals();
+        ((window as any).ultrawidify as UWGlobals).importSubscriptionsFromCommsHandlers(this.commsHandlers);
       }
 
       // init() is re-run any time settings change
@@ -98,7 +99,7 @@ export default class UWContent {
         });
         await this.settings.init();
       }
-    
+
       this.comms = new CommsClient('content-main-port', this.logger, this.commsHandlers);
 
       // če smo razširitev onemogočili v nastavitvah, ne naredimo ničesar
@@ -116,7 +117,7 @@ export default class UWContent {
           return;
         }
       }
-    
+
       try {
         if (this.pageInfo) {
           this.logger.log('info', 'debug', '[uw.js::setup] An instance of pageInfo already exists and will be destroyed.');
@@ -124,7 +125,7 @@ export default class UWContent {
         }
         this.pageInfo = new PageInfo(this.comms, this.settings, this.logger, extensionMode, isSiteDisabled);
         this.logger.log('info', 'debug', "[uw.js::setup] pageInfo initialized.");
-    
+
         this.logger.log('info', 'debug', "[uw.js::setup] will try to initate ActionHandler.");
 
         // start action handler only if extension is enabled for this site
@@ -134,7 +135,7 @@ export default class UWContent {
           }
           this.actionHandler = new ActionHandler(this.pageInfo);
           this.actionHandler.init();
-          
+
           this.logger.log('info', 'debug', "[uw.js::setup] ActionHandler initiated.");
         }
 
