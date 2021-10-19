@@ -49,6 +49,7 @@ import CropModePersistence from '../../common/enums/CropModePersistence.enum';
 export default {
   data() {
     return {
+      exec: null,
       scope: 'page',
       CropModePersistence: CropModePersistence,
     }
@@ -63,7 +64,7 @@ export default {
     'cropModePersistence',
   ],
   created() {
-    this.exec = new ExecAction(this.settings);
+    this.exec = new ExecAction(this.settings, window.location.hostname, window.ultrawidify);
   },
   components: {
     ShortcutButton,
@@ -78,7 +79,13 @@ export default {
       BrowserDetect.runtime.openOptionsPage();
     },
     execAction(action) {
-      this.exec.exec(action, 'page', this.frame);
+      console.log('execing action:', action, window.ultrawidify);
+
+      try {
+        this.exec.exec(action, 'page', this.frame, true);
+      } catch (error) {
+        console.error('[uw:VideoSettings.vue::execAction] failed to execute action. Error:', error);
+      }
     },
     parseShortcut(action) {
       if (! action.scopes.page.shortcut) {
@@ -91,16 +98,13 @@ export default {
     },
     changeZoom(nz) {
       nz = Math.pow(2, nz);
-      this.$emit('zoom-change', nz); 
+      this.$emit('zoom-change', nz);
       // this.exec.exec(
       //   {cmd: [{action: 'set-zoom', arg: nz}]},
       //   'page',
       //   this.frame
       // );
     },
-    testAction() {
-      window.ultrawidify.videos[0].setAr({type: AspectRatioType.FitWidth});
-    }
   }
 }
 </script>

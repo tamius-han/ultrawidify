@@ -13,9 +13,11 @@ class ExecAction {
     this.site = site;
   }
 
-  async exec(action, scope, frame) {
+
+  async exec(action, scope, frame, useBus) {
+    console.log('execing actioN!');
     for (var cmd of action.cmd) {
-      if (scope === 'page') {
+      if (!scope || scope === 'page') {
         const message = {
           forwardToContentScript: true,
           targetFrame: frame,
@@ -24,14 +26,18 @@ class ExecAction {
           arg: cmd.arg,
           customArg: cmd.customArg
         }
-        Comms.sendMessage(message);
+        if (useBus) {
+          window.ultrawidify.bus.sendMessage(message.cmd, message);
+        } else {
+          Comms.sendMessage(message);
+        }
       } else {
 
         // set-ar-persistence sends stuff to content scripts as well (!)
         // it's important to do that BEFORE the save step
         if (cmd.action === 'set-ar-persistence') {
           // even when setting global defaults, we only send message to the current tab in
-          // order to avoid problems related to 
+          // order to avoid problems related to
           const message = {
             forwardToActive: true,
             targetFrame: frame,
@@ -41,7 +47,11 @@ class ExecAction {
           }
           // this hopefully delays settings.save() until current crops are saved on the site
           // and thus avoid any fucky-wuckies
-          await Comms.sendMessage(message);
+          if (useBus) {
+            window.ultrawidify.bus.sendMessage(message.cmd, message);
+          } else {
+            await Comms.sendMessage(message);
+          }
         }
 
         let site = this.site;
