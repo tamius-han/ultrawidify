@@ -1,34 +1,38 @@
 <template>
-  <div class="" style="padding-bottom: 20px">
-    <div>
+  <div class="flex flex-row flex-wrap" style="padding-bottom: 20px">
+    <div class="sub-panel">
       <h1>Crop video:</h1>
-      <div class="flex flex-row flex-wrap">
+      <div class="sub-panel-content flex flex-row flex-wrap">
         <ShortcutButton v-for="(action, index) of aspectRatioActions"
                         class="flex b3 flex-grow button"
                         :key="index"
                         :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
                         :shortcut="parseShortcut(action)"
-                        @clic.native="execAction(action)"
+                        @click.native="execAction(action)"
         >
-
         </ShortcutButton>
       </div>
-
-
     </div>
-    <div>
-      <h1>Streth video:</h1>
+    <div class="sub-panel">
+      <h1>Stretch video:</h1>
       <div class="flex flex-row flex-wrap">
-        <div @click="testAction()">TEST CLICK ME</div>
+        <ShortcutButton v-for="(action, index) of stretchActions"
+                        class="flex b3 flex-grow button"
+                        :key="index"
+                        :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
+                        :shortcut="parseShortcut(action)"
+                        @click.native="execAction(action)"
+        >
+        </ShortcutButton>
       </div>
     </div>
-    <div>
+    <div class="sub-panel">
       <h1>Manual zoom:</h1>
       <div class="flex flex-row flex-wrap">
 
       </div>
     </div>
-    <div>
+    <div class="sub-panel">
       <h1>Video alignment:</h1>
       <div class="flex flex-row flex-wrap">
 
@@ -109,7 +113,9 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss" src="../../res/css/flex.scss" scoped></style>
+<style lang="scss" src="../res-common/panels.scss"></style>
+<style lang="scss" scoped>
 .b3 {
   width: 9rem;
   padding-left: 0.33rem;
@@ -123,5 +129,6 @@ export default {
   padding-bottom: 16px;
   padding-top: 8px;
 }
+
 
 </style>

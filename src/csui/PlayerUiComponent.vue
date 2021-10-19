@@ -2,14 +2,23 @@
   <div class="uw-hover uv-hover-trigger-region">
     TEST CONTENT
   </div>
-  <div class="popup-panel">
-    <div class="tab-row flex flex-row">
+  <div class="popup-panel flex flex-row">
+    <div class="tab-row flex flex-column">
       <div class="tab">
         todo: icon<br/>
         Video options
       </div>
+      <div class="tab">
+        Autodetection options
+      </div>
+      <div class="tab">
+        Advanced options
+      </div>
+      <div class="tab">
+        Debugging
+      </div>
     </div>
-    <div>sudpo 
+    <div>
       <!-- Panel section -->
       <template v-if="settingsInitialized">
         <VideoSettings
@@ -115,6 +124,7 @@ export default {
 </script>
 
 <style lang="scss" src="../res/css/uwui-base.scss" scoped></style>
+<style lang="scss" src="../res/css/flex.scss" scoped></style>
 <style lang="scss" scoped>
 @import '../res/css/uwui-base.scss';
 @import '../res/css/colors.scss';
@@ -149,7 +159,7 @@ export default {
 
     top: 10%;
     left: 10%;
-    
+
     z-index: 999999999999999999;
 
     width: 2500px;
