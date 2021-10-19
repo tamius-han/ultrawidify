@@ -29,7 +29,7 @@ class PageInfo {
   logger: Logger;
   settings: Settings;
   comms: CommsClient;
-  videos: VideoData[] = [];
+  videos: {videoData: VideoData, element: HTMLVideoElement}[] = [];
   //#endregion
 
   //#region misc stuff
@@ -113,8 +113,8 @@ class PageInfo {
     }
     for (let video of this.videos) {
       try {
-        (this.comms.unregisterVideo as any)(video.vdid)
-        video.destroy();
+        (this.comms.unregisterVideo as any)(video.videoData.vdid)
+        video.videoData.destroy();
       } catch (e) {
         this.logger.log('error', ['debug', 'init'], '[PageInfo::destroy] unable to destroy video! Error:', e);
       }
@@ -135,8 +135,10 @@ class PageInfo {
 
   reset() {
     for(let video of this.videos) {
-      video.destroy();
+      video.videoData.destroy();
+      video.videoData = null;
     }
+    this.videos = [];
     this.rescan(RescanReason.MANUAL);
   }
 
@@ -159,7 +161,7 @@ class PageInfo {
   getVideos(host) {
     if (this.settings.active.sites[host]?.DOM?.video?.manual
         && this.settings.active.sites[host]?.DOM?.video?.querySelectors){
-      const videos = document.querySelectorAll(this.settings.active.sites[host].DOM.video.querySelectors);
+      const videos = document.querySelectorAll(this.settings.active.sites[host].DOM.video.querySelectors) as NodeListOf<HTMLVideoElement>;
 
       if (videos.length) {
         return videos;
@@ -172,9 +174,25 @@ class PageInfo {
     return this.readOnly ? this.hasVideos : this.videos.length;
   }
 
-  rescan(rescanReason){
-    const oldVideoCount = this.videos.length;
+  /**
+   * Re-scans the page for videos. Removes any videos that no longer exist from our list
+   * of videos. Destroys all videoData objects for all the videos that don't have their
+   * own <video> html element on the page.
+   * @param rescanReason Why was the rescan triggered. Mostly used for logging.
+   * @returns 
+   */
+  rescan(rescanReason?: RescanReason){
+    // is there any video data objects that had their HTML elements removed but not yet 
+    // destroyed? We clean that up here.
+    const orphans = this.videos.filter(x => !document.body.contains(x.element));
+    for (const orphan of orphans) {
+      orphan.videoData.destroy();
+    }
 
+    // remove all destroyed videos.
+    this.videos = this.videos.filter(x => !x.videoData.destroyed);
+
+    // add new videos
     try{
       let vids = this.getVideos(window.location.hostname);
 
@@ -190,65 +208,49 @@ class PageInfo {
 
       // add new videos
       this.hasVideos = false;
-      let videoExists = false;    
-      let video, v;
+      let videoExists = false;
 
-      for (video of vids) {
-        // če najdemo samo en video z višino in širino, to pomeni, da imamo na strani veljavne videe
-        // če trenutni video nima definiranih teh vrednostih, preskočimo vse nadaljnja preverjanja
-        // <===[:::::::]===>
+      for (const videoElement of vids) {
+        // do not re-add videos that we already track:
+        if (this.videos.find(x => x.element.isEqualNode(videoElement))) {
+          continue;
+        }
+
         // if we find even a single video with width and height, that means the page has valid videos
         // if video lacks either of the two properties, we skip all further checks cos pointless
-        if(video.offsetWidth && video.offsetHeight){
-          this.hasVideos = true;
-
-          if (this.readOnly) {
-            // in lite mode, we're done. This is all the info we want, but we want to actually start doing 
-            // things that interfere with the website. We still want to be running a rescan, tho.
-
-            if(rescanReason == RescanReason.PERIODIC){
-              this.scheduleRescan(RescanReason.PERIODIC);
-            }
-            return;
-          }
-        } else {
+        if(!videoElement.offsetWidth || !videoElement.offsetHeight) {
           continue;
         }
+        
+        // at this point, we're certain that we found new videos. Let's update some properties:
+        this.hasVideos = true;
 
-        videoExists = false;
+        // if PageInfo is marked as "readOnly", we actually aren't adding any videos to anything because
+        // that's super haram. We're only interested in whether 
+        if (this.readOnly) {
+          // in lite mode, we're done. This is all the info we want, but we want to actually start doing 
+          // things that interfere with the website. We still want to be running a rescan, tho.
 
-        for (v of this.videos) {
-          if (v.destroyed) {
-            continue; //TODO: if destroyed video is same as current video, copy aspect ratio settings to current video
+          if(rescanReason == RescanReason.PERIODIC){
+            this.scheduleRescan(RescanReason.PERIODIC);
           }
-
-          if (v.video == video) {
-            videoExists = true;
-            break;
-          }
+          return;
         }
 
-        if (videoExists) {
-          continue;
-        } else {
-          this.logger.log('info', 'videoRescan', "[PageInfo::rescan] found new video candidate:", video, "NOTE:: Video initialization starts here:\n--------------------------------\n")
-          
-          try {
-            v = new VideoData(video, this.settings, this);
-            this.videos.push(v);
-          } catch (e) {
-            this.logger.log('error', 'debug', "rescan error: failed to initialize videoData. Skipping this video.",e);
-          }
+        this.logger.log('info', 'videoRescan', "[PageInfo::rescan] found new video candidate:", videoElement, "NOTE:: Video initialization starts here:\n--------------------------------\n")
 
-          this.logger.log('info', 'videoRescan', "END VIDEO INITIALIZATION\n\n\n-------------------------------------\nvideos[] is now this:", this.videos,"\n\n\n\n\n\n\n\n")
+        try {
+          const newVideo = new VideoData(videoElement, this.settings, this);
+          this.videos.push({videoData: newVideo, element: videoElement});      
+        } catch (e) {
+          this.logger.log('error', 'debug', "rescan error: failed to initialize videoData. Skipping this video.",e);
         }
+        
+        this.logger.log('info', 'videoRescan', "END VIDEO INITIALIZATION\n\n\n-------------------------------------\nvideos[] is now this:", this.videos,"\n\n\n\n\n\n\n\n")
       }
 
       this.removeDestroyed();
 
-      // če smo ostali brez videev, potem odregistriraj stran. 
-      // če nismo ostali brez videev, potem registriraj stran.
-      //
       // if we're left without videos on the current page, we unregister the page.
       // if we have videos, we call register.
       if (this.comms) {
@@ -280,27 +282,23 @@ class PageInfo {
       }
 
     } catch(e) {
-      // če pride do zajeba, potem lahko domnevamo da na strani ni nobenega videa. Uničimo vse objekte videoData
-      // da preprečimo večkratno inicializacijo. Če smo se z našim ugibom zmotili, potem se bodo vsi videi ponovno
-      // našli ob naslednjem preiskovanju
-      //
       // if we encounter a fuckup, we can assume that no videos were found on the page. We destroy all videoData
       // objects to prevent multiple initialization (which happened, but I don't know why). No biggie if we destroyed
       // videoData objects in error — they'll be back in the next rescan
       this.logger.log('error', 'debug', "rescan error: — destroying all videoData objects",e);
       for (const v of this.videos) {
-        v.destroy();
+        v.videoData.destroy();
       }
+      this.videos = [];
       return;
     }
-
     if(rescanReason == RescanReason.PERIODIC){
       this.scheduleRescan(RescanReason.PERIODIC);
     }
   }
 
   removeDestroyed(){
-    this.videos = this.videos.filter( vid => vid.destroyed === false);
+    this.videos = this.videos.filter( vid => vid.videoData.destroyed === false);
   }
 
   scheduleRescan(rescanReason){
@@ -358,14 +356,14 @@ class PageInfo {
   initArDetection(playingOnly){
     if (playingOnly) {
       for(let vd of this.videos){
-        if(vd.isPlaying()) {
-          vd.initArDetection();
+        if(vd.videoData.isPlaying()) {
+          vd.videoData.initArDetection();
         }
       }
       return;
     } else {
       for(let vd of this.videos){
-        vd.initArDetection();
+        vd.videoData.initArDetection();
       }
     }
   }
@@ -376,13 +374,13 @@ class PageInfo {
   pauseProcessing(playingOnly){
     if (playingOnly) {
       for(let vd of this.videos){
-        if (vd.isPlaying()) {
-          vd.pause();
+        if (vd.videoData.isPlaying()) {
+          vd.videoData.pause();
         }
       }  
     } else {
       for(let vd of this.videos){
-        vd.pause();
+        vd.videoData.pause();
       }
     }
   }
@@ -390,18 +388,18 @@ class PageInfo {
   resumeProcessing(resumeAutoar = false, playingOnly = false){
     if (playingOnly) {
       for(let vd of this.videos){
-        if (vd.isPlaying()) {
-          vd.resume();
+        if (vd.videoData.isPlaying()) {
+          vd.videoData.resume();
           if(resumeAutoar){
-            vd.resumeAutoAr();
+            vd.videoData.resumeAutoAr();
           }
         }
       }
     } else {
       for(let vd of this.videos){
-        vd.resume();
+        vd.videoData.resume();
         if(resumeAutoar){
-          vd.resumeAutoAr();
+          vd.videoData.resumeAutoAr();
         }
       }
     }
@@ -414,13 +412,13 @@ class PageInfo {
     }
     if (playingOnly) {
       for(let vd of this.videos){
-        if (vd.isPlaying()) {
-          vd.startArDetection();
+        if (vd.videoData.isPlaying()) {
+          vd.videoData.startArDetection();
         }
       }
     } else {
       for(let vd of this.videos){
-        vd.startArDetection();
+        vd.videoData.startArDetection();
       }
     }
   }
@@ -428,13 +426,13 @@ class PageInfo {
   stopArDetection(playingOnly){
     if (playingOnly) {
       for(let vd of this.videos){
-        if (vd.isPlaying()) { 
-          vd.stopArDetection();
+        if (vd.videoData.isPlaying()) { 
+          vd.videoData.stopArDetection();
         }
       }
     } else {
       for(let vd of this.videos){
-        vd.stopArDetection();
+        vd.videoData.stopArDetection();
       }
     }
   }
@@ -449,8 +447,8 @@ class PageInfo {
 
       try {
         for (let vd of this.videos) {
-          if (!playingOnly || vd.isPlaying()) {
-            vd.resetLastAr();
+          if (!playingOnly || vd.videoData.isPlaying()) {
+            vd.videoData.resetLastAr();
           }
         }
       } catch (e) {
@@ -464,14 +462,14 @@ class PageInfo {
     // TODO: find a way to only change aspect ratio for one video
     if (ar === AspectRatioType.Reset) {
       for (let vd of this.videos) {
-        if (!playingOnly || vd.isPlaying()) {
-          vd.resetAr();
+        if (!playingOnly || vd.videoData.isPlaying()) {
+          vd.videoData.resetAr();
         }
       }
     } else {
       for (let vd of this.videos) {
-        if (!playingOnly || vd.isPlaying()) {
-          vd.setAr(ar)
+        if (!playingOnly || vd.videoData.isPlaying()) {
+          vd.videoData.setAr(ar)
         }
       }
     }
@@ -480,13 +478,13 @@ class PageInfo {
   setVideoAlignment(videoAlignment, playingOnly) {
     if (playingOnly) {
       for(let vd of this.videos) {
-        if (vd.isPlaying()) { 
-          vd.setVideoAlignment(videoAlignment)
+        if (vd.videoData.isPlaying()) { 
+          vd.videoData.setVideoAlignment(videoAlignment)
         }
       }
     } else {
       for(let vd of this.videos) {
-        vd.setVideoAlignment(videoAlignment)
+        vd.videoData.setVideoAlignment(videoAlignment)
       }
     }
   }
@@ -494,13 +492,13 @@ class PageInfo {
   setPanMode(mode, playingOnly?: boolean) {
     if (playingOnly) {
       for(let vd of this.videos) {
-        if (vd.isPlaying()) {
-          vd.setPanMode(mode);
+        if (vd.videoData.isPlaying()) {
+          vd.videoData.setPanMode(mode);
         }
       }
     } else {
       for(let vd of this.videos) {
-        vd.setPanMode(mode);
+        vd.videoData.setPanMode(mode);
       }
     }
   }
@@ -508,13 +506,13 @@ class PageInfo {
   restoreAr(playingOnly?: boolean) {
     if (playingOnly) {
       for(let vd of this.videos){
-        if (vd.isPlaying()) {
-          vd.restoreAr();
+        if (vd.videoData.isPlaying()) {
+          vd.videoData.restoreAr();
         }
       }
     } else {
       for(let vd of this.videos){
-        vd.restoreAr();
+        vd.videoData.restoreAr();
       }
     }
   }
@@ -524,13 +522,13 @@ class PageInfo {
 
     if (playingOnly) {
       for(let vd of this.videos){
-        if (vd.isPlaying()) {
-          vd.setStretchMode(stretchMode, fixedStretchRatio)
+        if (vd.videoData.isPlaying()) {
+          vd.videoData.setStretchMode(stretchMode, fixedStretchRatio)
         }
       }
     } else {
       for(let vd of this.videos){
-        vd.setStretchMode(stretchMode, fixedStretchRatio)
+        vd.videoData.setStretchMode(stretchMode, fixedStretchRatio)
       }
     }
   }
@@ -538,33 +536,33 @@ class PageInfo {
   setZoom(zoomLevel, no_announce?: boolean, playingOnly?: boolean) {
     if (playingOnly) {
       for(let vd of this.videos) {
-        if (vd.isPlaying()) {
-          vd.setZoom(zoomLevel, no_announce);
+        if (vd.videoData.isPlaying()) {
+          vd.videoData.setZoom(zoomLevel, no_announce);
         }
       }
     } else {
       for(let vd of this.videos) {
-        vd.setZoom(zoomLevel, no_announce);
+        vd.videoData.setZoom(zoomLevel, no_announce);
       }
     }
   }
 
   zoomStep(step, playingOnly?: boolean) {
     for(let vd of this.videos){
-      if (!playingOnly || vd.isPlaying()) {
-        vd.zoomStep(step);
+      if (!playingOnly || vd.videoData.isPlaying()) {
+        vd.videoData.zoomStep(step);
       }
     }
   }
 
   markPlayer(name, color) { 
     for (let vd of this.videos) {
-      vd.markPlayer(name,color);
+      vd.videoData.markPlayer(name,color);
     }
   }
   unmarkPlayer() {
     for (let vd of this.videos) {
-      vd.unmarkPlayer();
+      vd.videoData.unmarkPlayer();
     }
   }
 
@@ -579,13 +577,13 @@ class PageInfo {
 
   setManualTick(manualTick) {
     for(let vd of this.videos) {
-      vd.setManualTick(manualTick);
+      vd.videoData.setManualTick(manualTick);
     }
   }
 
   tick() {
     for(let vd of this.videos) {
-      vd.tick();
+      vd.videoData.tick();
     }
   }
 

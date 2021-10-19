@@ -18,12 +18,17 @@
 
 ## v5.x (current major)
 
+### v5.1.1
+
+* Fixed autodetection
+
 ### v5.1.0
 
 * Re-enable logger
 * Move aspect ratio autodetection to requestAnimationFrame
+* Fix netflix
 
-### v5.0.7 
+### v5.0.7
 
 * Videos of square-ish aspect ratios on 1440p (and lower) resolutions now no longer get misaligned ([#162](https://github.com/tamius-han/ultrawidify/issues/162))
 * Alignment of featured videos on youtube channel page should now also be fixed
