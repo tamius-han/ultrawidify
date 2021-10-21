@@ -34,7 +34,7 @@
 <script>
 import VideoSettings from './PlayerUiPanels/VideoSettings.vue'
 import { mapState } from 'vuex';
-import Icon from '../common/components/Icon';
+// import Icon from '../common/components/Icon';
 import ResizerDebugPanel from './PlayerUiPanels/ResizerDebugPanelComponent';
 import BrowserDetect from '../ext/conf/BrowserDetect';
 import ExecAction from './ui-libs/ExecAction';
@@ -43,7 +43,7 @@ import Settings from '../ext/lib/Settings';
 
 export default {
   components: {
-    Icon,
+    // Icon,
     ResizerDebugPanel, VideoSettings
   },
   data() {

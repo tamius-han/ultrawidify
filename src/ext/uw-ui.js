@@ -9,6 +9,8 @@ import Logger from './lib/Logger';
 import Settings from './lib/Settings';
 import CommsClient from './lib/comms/CommsClient';
 import Comms from './lib/comms/Comms';
+import mdiVue from 'mdi-vue/v3';
+import * as mdijs from '@mdi/js';
 
 class UwUi {
 
@@ -185,10 +187,11 @@ class UwUi {
     rootDiv.classList.add('uw-ultrawidify-container-root');
 
     document.body.appendChild(rootDiv);
-   
+
     try {
       createApp(LoggerUi)
         .use(this.vuexStore)
+        .use(mdiVue, {icons: mdijs})
         .mount(`#${uwid}`);
 
       // new Vue({
@@ -214,7 +217,7 @@ class UwUi {
       await this.initLoggerUi();
     }
 
-    
+
     try {
       console.log("will show logger")
       this.vuexStore.dispatch('uw-show-logger');
@@ -243,7 +246,7 @@ class UwUi {
 // leave a mark, so this script won't get executed more than once on a given page
 const markerId = 'ultrawidify-marker-5aeaf521-7afe-447f-9a17-3428f62d0970';
 
-// if this script has already been executed, don't execute it again. 
+// if this script has already been executed, don't execute it again.
 if (! document.getElementById(markerId)) {
   const markerDiv = document.createElement('div');
   markerDiv.setAttribute("style", "display: none");

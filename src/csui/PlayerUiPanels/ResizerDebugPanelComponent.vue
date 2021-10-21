@@ -11,7 +11,9 @@
             <small>(Inner size)</small>
           </div>
           <div class="data">{{windowWidth}} x {{windowHeight}}</div>
-          <div class="button" @click="refreshWindowSize()"><Icon icon="arrow-clockwise"></Icon> Refresh</div>
+          <div class="button" @click="refreshWindowSize()">
+            <!-- <Icon icon="arrow-clockwise"></Icon> -->
+            Refresh</div>
         </div>
         <div class="data-item">
           <div class="data-title">Player dimensions:</div>
@@ -94,11 +96,11 @@
 </template>
 
 <script>
-import Icon from '../../common/components/Icon';
+// import Icon from '../../common/components/Icon';
 
 export default {
   components: {
-    Icon,
+    // Icon,
   },
   props: {
     debugData: Object

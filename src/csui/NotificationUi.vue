@@ -14,30 +14,31 @@
           v-html="notificationText"
         >
         </div>
-        <div 
+        <div
           v-if="notificationActions"
           class="action-buttons flex flex-row"
         >
-          <div 
+          <div
             v-for="action of notificationActions"
             class="action-button"
             :key="action"
             @click="action.command"
           >
-            <Icon v-if="action.icon" :icon="action.icon"></Icon>{{action.label}}
+            <!-- <Icon v-if="action.icon" :icon="action.icon"></Icon> -->
+            {{action.label}}
           </div>
         </div>
-        <div 
+        <div
           v-if="hideActions"
           class="hide-actions"
         >
           Never show again:<wbr>&nbsp;
-          <template 
+          <template
             v-for="action of hideActions"
             :key="action"
           >
             <i @click="closeNotification">
-              <a 
+              <a
                 class="hide-action-button"
                 @click="action.command"
               >
@@ -52,11 +53,11 @@
         class="notification-icon action-button"
           @click="closeNotification()"
       >
-        <Icon
+        <!-- <Icon
           class="flex-nogrow flex-noshrink"
           icon="x"
         >
-        </Icon>
+        </Icon> -->
       </div>
     </div>
   </div>
@@ -64,11 +65,11 @@
 
 <script>
 import { mapState } from 'vuex';
-import Icon from '../common/components/Icon';
+// import Icon from '../common/components/Icon';
 
 export default {
   components: {
-    Icon,
+    // Icon,
   },
   data() {
     return {
@@ -88,7 +89,7 @@ export default {
   watch: {
     /**
      * Sets new notification config. Currently, we can only show one notification at a time.
-     * 
+     *
      * We expect a config object like this:
      * {
      *    timeout: number  — how long we'll be displaying the notification. If empty, 10s. -1: until user dismisses it
@@ -184,7 +185,7 @@ export default {
     padding-left: 0.5em;
     padding-right: 0.25em;
   }
-  
+
   .notification-icon {
     font-size: 3em;
     line-height: 0.5;

@@ -1,5 +1,7 @@
 import { createApp } from 'vue';
 import { createStore } from 'vuex';
+import mdiVue from 'mdi-vue/v3';
+import * as mdijs from '@mdi/js';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: UI");
@@ -56,7 +58,7 @@ class UI {
 
     this.element = rootDiv;
 
-    const app = createApp(this.uiConfig.component);
+    const app = createApp(this.uiConfig.component).use(mdiVue, {icons: mdijs});
     if (this.vuexStore) {
       app.use(this.vuexStore);
     }
@@ -65,7 +67,7 @@ class UI {
 
   /**
    * Replaces ui config and re-inits the UI
-   * @param {*} newUiConfig 
+   * @param {*} newUiConfig
    */
   replace(newUiConfig) {
     this.element?.remove();

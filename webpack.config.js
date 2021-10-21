@@ -34,7 +34,7 @@ const config = {
   },
   module: {
     rules: [
-      { 
+      {
         test: /\.ts$/,
         loader: 'ts-loader',
         exclude: /node_modules/
@@ -93,11 +93,8 @@ const config = {
       // we need to get webextension-polyfill and put it in common/lib
       { from: '../node_modules/webextension-polyfill/dist/browser-polyfill.js', to: 'common/lib/browser-polyfill.js'},
 
-      // This is a hack to get bootstrap icons svg file in /res/icons
-      { from: '../node_modules/bootstrap-icons/bootstrap-icons.svg', to: 'res/icons/bootstrap-icons.svg'},
-
       // This is extension icon, as used on extension lists and/or extension's action button
-      // This folder does not contain any GUI icons — these are in /res/icons. 
+      // This folder does not contain any GUI icons — these are in /res/icons.
       // (TODO: check if this copy is even necessary — /icons has same content as /res/icons)
       { from: 'icons', to: 'icons', ignore: ['icon.xcf'] },
       { from: 'popup/popup.html', to: 'popup/popup.html', transform: transformHtml },
@@ -127,7 +124,7 @@ const config = {
                                             .replace('-', '.') // YYMM-DD -> YYMM.DD
                                     }.${process.env.BUILD_NUMBER === undefined ? 0 : process.env.BUILD_NUMBER}`;
             jsonContent.browser_action.default_title = "Ultrawidify Nightly";
-            
+
             // because we don't want web-ext to submit this as proper release
             delete jsonContent.applications;
           } else if (process.env.CHANNEL === 'testing') {
@@ -143,7 +140,7 @@ const config = {
                                             .replace('-', '.') // YYMM-DD -> YYMM.DD
                                     }.${process.env.BUILD_NUMBER === undefined ? 0 : process.env.BUILD_NUMBER}`;
             jsonContent.browser_action.default_title = "Ultrawidify Testing";
-            
+
             // because we don't want web-ext to submit this as proper release
             delete jsonContent.applications;
           }
@@ -184,7 +181,7 @@ if (config.mode === 'production') {
     new webpack.DefinePlugin({
       '__VUE_OPTIONS_API__': true,
       '__VUE_PROD_DEVTOOLS__': false,
-      
+
       'process.env': {
         NODE_ENV: '"production"',
       },

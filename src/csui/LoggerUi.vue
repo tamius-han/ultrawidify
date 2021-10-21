@@ -37,7 +37,7 @@
             Default config
           </div>
           <div v-if="!showTextMode" class="button" @click="showTextMode = true">
-            <Icon icon="clipboard-plus" style="font-size: 2em"></Icon>&nbsp; Paste config ...
+            <!-- <Icon icon="clipboard-plus" style="font-size: 2em"></Icon>&nbsp; Paste config ... -->
           </div>
           <div v-else class="button" @click="showTextMode = false">
             Back
@@ -57,8 +57,8 @@
             </div>
           </template>
           <template v-else>
-            <JsonObject label="logger-settings" 
-                        :value="currentSettings" 
+            <JsonObject label="logger-settings"
+                        :value="currentSettings"
                         :ignoreKeys="{'allowLogging': false}"
                         @change="updateSettingsUi"
             ></JsonObject>
@@ -172,12 +172,12 @@ import Logger, { baseLoggingOptions } from '../ext/lib/Logger';
 import Comms from '../ext/lib/comms/Comms';
 import IO from '../common/js/IO';
 import JsonObject from '../common/components/JsonEditor/JsonObject';
-import Icon from '../common/components/Icon';
+// import Icon from '../common/components/Icon';
 
 export default {
   components: {
     JsonObject,
-    Icon,
+    // Icon,
   },
   data() {
     return {
@@ -273,7 +273,7 @@ export default {
         this.lastSettings = val;
         this.currentSettings = JSON.parse(JSON.stringify(this.lastSettings));
       } catch (e) {
-        
+
       }
     },
     saveLoggerSettings() {
@@ -319,7 +319,7 @@ export default {
 }
 </script>
 
-<style lang="scss" src="../res/css/flex.scss" scoped></style> 
+<style lang="scss" src="../res/css/flex.scss" scoped></style>
 
 <style lang="scss" scoped>
 @import '../res/css/colors.scss';

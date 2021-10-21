@@ -25,8 +25,8 @@
       class="w100 show-more flex flex-row flex-center flex-cross-center menu-button"
       @click="toggleSideMenu()"
     >
-      <Icon v-if="!sideMenuVisible" icon="list" />
-      <Icon v-else icon="x" />
+      <!-- <Icon v-if="!sideMenuVisible" icon="list" /> -->
+      <!-- <Icon v-else icon="x" /> -->
       <div>Menu</div>
     </div>
     <div class="flex flex-row body no-overflow flex-grow">
@@ -195,7 +195,6 @@
 </template>
 
 <script>
-import Icon from '../common/components/Icon.vue'
 import WhatsNewPanel from './panels/WhatsNewPanel.vue';
 import SiteDetailsPanel from './panels/SiteDetailsPanel.vue';
 import Donate from '../common/misc/Donate.vue';
