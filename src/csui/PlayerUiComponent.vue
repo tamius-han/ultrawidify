@@ -2,31 +2,74 @@
   <div class="uw-hover uv-hover-trigger-region">
     TEST CONTENT
   </div>
-  <div class="popup-panel flex flex-row">
-    <div class="tab-row flex flex-column">
-      <div class="tab">
-        todo: icon<br/>
-        Video options
-      </div>
-      <div class="tab">
-        Autodetection options
-      </div>
-      <div class="tab">
-        Advanced options
-      </div>
-      <div class="tab">
-        Debugging
+  <div class="popup-panel flex flex-column">
+    <div>
+      <div class="popup-title">Ultrawidify <small>{{settings?.active?.version}} - {{BrowserDetect.processEnvChannel}}</small></div>
+      <div class="">
+        Site: {{site}}
+        <div v-if="siteSupportLevel === 'supported'" class="site-support supported">
+          <mdicon name="check-decagram" />
+          <div>Officially supported</div>
+        </div>
+        <div v-if="siteSupportLevel === 'community'" class="site-support community">
+          <mdicon name="handshake" />
+          <div>Supported through contributions from community.</div>
+        </div>
+        <div v-if="siteSupportLevel === 'community'" class="site-support no-support">
+          <mdicon name="help-circle-outline" />
+          <div>Not officially supported. Extension will try to fix things, but no promises.</div>
+        </div>
+        <div v-if="siteSupportLevel === 'user-added'" class="site-support user-added">
+          <mdicon name="account" />
+          <div>Extension follows your personal configuration for this site.</div>
+        </div>
+        <mdicon v-if="siteSupportLevel === 'community'" class="site-support supported" name="checkbox-marked-circle" />
       </div>
     </div>
-    <div>
-      <!-- Panel section -->
-      <template v-if="settingsInitialized">
-        <VideoSettings
-          :settings="settings"
-        ></VideoSettings>
-        <ResizerDebugPanel :debugData="debugData">
-        </ResizerDebugPanel>
-      </template>
+    <div class="flex flex-row">
+      <div class="tab-row flex flex-column">
+        <div class="tab">
+          <mdicon name="crop" />
+          Video options
+        </div>
+        <div class="tab">
+          Autodetection options
+        </div>
+        <div class="tab">
+          <mdicon name="cogs" />
+          Advanced options
+        </div>
+        <div class="tab">
+          <mdicon name="bug-outline" />
+          Debugging
+        </div>
+      </div>
+      <div class="content flex flex-column">
+        <!-- autodetection warning -->
+
+        <div class="warning-area">
+          <div class="warning-box">
+            <div>
+              <mdicon name="alert" :size="42" />
+            </div>
+            <div>
+              This site uses <a href="https://en.wikipedia.org/wiki/Digital_rights_management" target="_blank">digital rights management</a> solutions that prevent this
+              extension from automatically detecting aspect ratio. You will have to adjust aspect ratio manually.
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-row">
+          <!-- Panel section -->
+          <template v-if="settingsInitialized">
+            <VideoSettings
+              :settings="settings"
+            ></VideoSettings>
+            <!-- <ResizerDebugPanel :debugData="debugData">
+            </ResizerDebugPanel> -->
+          </template>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -50,6 +93,7 @@ export default {
     return {
       // component properties
       settings: {},
+      BrowserDetect: BrowserDetect,
       settingsInitialized: false,
       execAction: new ExecAction(),
       logger: null,
@@ -125,6 +169,7 @@ export default {
 
 <style lang="scss" src="../res/css/uwui-base.scss" scoped></style>
 <style lang="scss" src="../res/css/flex.scss" scoped></style>
+<style lang="scss" src="./res-common/common.scss" scoped></style>
 <style lang="scss" scoped>
 @import '../res/css/uwui-base.scss';
 @import '../res/css/colors.scss';
@@ -169,10 +214,16 @@ export default {
 
     pointer-events: all !important;
 
-    background-color: rgba(0,0,0,0.69);
+    background-color: rgba(0,0,0,0.50);
     color: #fff;
 
     overflow-y: auto;
+
+    backdrop-filter: blur(16px) saturate(120%);
+
+    .popup-title, .popup-title h1 {
+      font-size: 48px !important;
+    }
 
     .tab {
       display: block;

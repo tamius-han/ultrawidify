@@ -1,7 +1,10 @@
 <template>
   <div class="flex flex-row flex-wrap" style="padding-bottom: 20px">
     <div class="sub-panel">
-      <h1>Crop video:</h1>
+      <div class="flex flex-row">
+        <mdicon name="crop" :size="32" />
+        <h1>Crop video:</h1>
+      </div>
       <div class="sub-panel-content flex flex-row flex-wrap">
         <ShortcutButton v-for="(action, index) of aspectRatioActions"
                         class="flex b3 flex-grow button"
@@ -14,7 +17,10 @@
       </div>
     </div>
     <div class="sub-panel">
-      <h1>Stretch video:</h1>
+      <div class="flex flex-row">
+        <mdicon name="stretch-to-page-outline" :size="32" />
+        <h1>Stretch video:</h1>
+      </div>
       <div class="flex flex-row flex-wrap">
         <ShortcutButton v-for="(action, index) of stretchActions"
                         class="flex b3 flex-grow button"
@@ -27,13 +33,69 @@
       </div>
     </div>
     <div class="sub-panel">
-      <h1>Manual zoom:</h1>
-      <div class="flex flex-row flex-wrap">
+      <div class="flex flex-row">
+        <mdicon name="magnify-plus-outline" :size="32" />
+        <h1>Manual zoom:</h1>
+      </div>
+      <div class="flex flex-column">
+        <!--
+          min, max and value need to be implemented in js as this slider
+          should use logarithmic scale
+        -->
+        <div class="flex flex-row">
+          <ShortcutButton
+            class="flex b3 flex-grow button"
+            label="-5 %"
+          >
+          </ShortcutButton>
+          <ShortcutButton
+            class="flex b3 flex-grow button"
+            label="-1 %"
+          >
+          </ShortcutButton>
+          <div class="flex-grow"></div>
+          <ShortcutButton
+            class="flex b3 flex-grow button"
+            label="+1 %"
+          >
+          </ShortcutButton>
+          <ShortcutButton
+            class="flex b3 flex-grow button"
+            label="+5 %"
+          >
+          </ShortcutButton>
+        </div>
+        <input id="_input_zoom_slider"
+                class="input-slider"
+                type="range"
+                step="any"
+                min="-1"
+                max="4"
+                :value="logarithmicZoom"
+                @input="changeZoom($event.target.value)"
+                />
+        <div style="overflow: auto" class="flex flex-row">
+          <div class="flex flex-grow medium-small x-pad-1em">
+            Zoom: {{(zoom * 100).toFixed()}}%
+          </div>
+          <div class="flex flex-nogrow flex-noshrink medium-small">
+            <a class="_zoom_reset x-pad-1em" @click="resetZoom()">reset</a>
+          </div>
+        </div>
 
+        <div class="m-t-0-33em display-block">
+          <input id="_input_zoom_site_allow_pan"
+                  type="checkbox"
+                  />
+          Pan with mouse
+        </div>
       </div>
     </div>
     <div class="sub-panel">
-      <h1>Video alignment:</h1>
+      <div class="flex flex-row">
+        <mdicon name="align-horizontal-center" :size="32" />
+        <h1>Video alignment:</h1>
+      </div>
       <div class="flex flex-row flex-wrap">
 
       </div>
@@ -68,15 +130,15 @@ export default {
     'cropModePersistence',
   ],
   created() {
-    this.exec = new ExecAction(this.settings, window.location.hostname, window.ultrawidify);
+    this.exec = new ExecAction(this.settings, window.location.hostname);
   },
   components: {
     ShortcutButton,
   },
   computed: {
-    // logarithmicZoom: function(){
-    //   return Math.log2(this.zoom);
-    // }
+    logarithmicZoom: function(){
+      return Math.log2(this.zoom || 1);
+    }
   },
   methods: {
     async openOptionsPage() {
@@ -100,21 +162,26 @@ export default {
     resetZoom() {
       this.zoom = 1;
     },
-    changeZoom(nz) {
-      nz = Math.pow(2, nz);
-      this.$emit('zoom-change', nz);
-      // this.exec.exec(
-      //   {cmd: [{action: 'set-zoom', arg: nz}]},
-      //   'page',
-      //   this.frame
-      // );
+    changeZoom(newZoom) {
+      newZoom = Math.pow(2, newZoom);
+
+      this.exec.exec(
+        {
+          cmd: [{action: 'set-zoom', arg: newZoom}]
+        },
+        'page',
+        this.frame,
+        true
+      );
     },
   }
 }
 </script>
 
 <style lang="scss" src="../../res/css/flex.scss" scoped></style>
-<style lang="scss" src="../res-common/panels.scss"></style>
+<style lang="scss" src="../res-common/panels.scss" scoped></style>
+<style lang="scss" src="../res-common/common.scss" scoped></style>
+
 <style lang="scss" scoped>
 .b3 {
   width: 9rem;
