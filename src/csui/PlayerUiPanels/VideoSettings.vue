@@ -42,53 +42,144 @@
           min, max and value need to be implemented in js as this slider
           should use logarithmic scale
         -->
-        <div class="flex flex-row">
-          <ShortcutButton
-            class="flex b3 flex-grow button"
-            label="-5 %"
+        <div class="flex flex-row flex-end">
+          <Button
+            v-if="zoomAspectRatioLocked"
+            label="Unlock aspect ratio"
+            icon="lock-open"
+            :fixedWidth="true"
+            @click="toggleZoomAr()"
           >
-          </ShortcutButton>
-          <ShortcutButton
-            class="flex b3 flex-grow button"
-            label="-1 %"
+          </Button>
+          <Button
+            v-else
+            label="Lock aspect ratio"
+            icon="lock"
+            :fixedWidth="true"
+            @click="toggleZoomAr()"
           >
-          </ShortcutButton>
-          <div class="flex-grow"></div>
-          <ShortcutButton
-            class="flex b3 flex-grow button"
-            label="+1 %"
-          >
-          </ShortcutButton>
-          <ShortcutButton
-            class="flex b3 flex-grow button"
-            label="+5 %"
-          >
-          </ShortcutButton>
+          </Button>
         </div>
-        <input id="_input_zoom_slider"
-                class="input-slider"
-                type="range"
-                step="any"
-                min="-1"
-                max="4"
-                :value="logarithmicZoom"
-                @input="changeZoom($event.target.value)"
-                />
-        <div style="overflow: auto" class="flex flex-row">
-          <div class="flex flex-grow medium-small x-pad-1em">
-            Zoom: {{(zoom * 100).toFixed()}}%
+        <template v-if="zoomAspectRatioLocked">
+          <div class="flex flex-row">
+            <ShortcutButton
+              class="flex b3 flex-grow button"
+              label="-5 %"
+            >
+            </ShortcutButton>
+            <ShortcutButton
+              class="flex b3 flex-grow button"
+              label="-1 %"
+            >
+            </ShortcutButton>
+            <div class="flex-grow"></div>
+            <ShortcutButton
+              class="flex b3 flex-grow button"
+              label="+1 %"
+            >
+            </ShortcutButton>
+            <ShortcutButton
+              class="flex b3 flex-grow button"
+              label="+5 %"
+            >
+            </ShortcutButton>
           </div>
-          <div class="flex flex-nogrow flex-noshrink medium-small">
-            <a class="_zoom_reset x-pad-1em" @click="resetZoom()">reset</a>
-          </div>
-        </div>
-
-        <div class="m-t-0-33em display-block">
-          <input id="_input_zoom_site_allow_pan"
-                  type="checkbox"
+          <input id="_input_zoom_slider"
+                  class="input-slider"
+                  type="range"
+                  step="any"
+                  min="-1"
+                  max="4"
+                  :value="logarithmicZoom"
+                  @input="changeZoom($event.target.value)"
                   />
-          Pan with mouse
-        </div>
+          <div style="overflow: auto" class="flex flex-row">
+            <div class="flex flex-grow medium-small x-pad-1em">
+              Zoom: {{(zoom * 100).toFixed()}}%
+            </div>
+            <div class="flex flex-nogrow flex-noshrink medium-small">
+              <a class="_zoom_reset x-pad-1em" @click="resetZoom()">reset</a>
+            </div>
+          </div>
+        </template>
+        <template v-else>
+          <div>Horizontal zoom</div>
+          <div class="flex flex-row">
+            <ShortcutButton
+              class="flex b3 flex-grow button"
+              label="-5 %"
+            >
+            </ShortcutButton>
+            <ShortcutButton
+              class="flex b3 flex-grow button"
+              label="-1 %"
+            >
+            </ShortcutButton>
+            <div class="flex-grow"></div>
+            <ShortcutButton
+              class="flex b3 flex-grow button"
+              label="+1 %"
+            >
+            </ShortcutButton>
+            <ShortcutButton
+              class="flex b3 flex-grow button"
+              label="+5 %"
+            >
+            </ShortcutButton>
+          </div>
+          <input id="_input_zoom_slider"
+                  class="input-slider"
+                  type="range"
+                  step="any"
+                  min="-1"
+                  max="4"
+                  :value="logarithmicZoom"
+                  @input="changeZoom($event.target.value)"
+          />
+
+          <div>Vertical zoom</div>
+          <div class="flex flex-row">
+            <ShortcutButton
+              class="flex b3 flex-grow button"
+              label="-5 %"
+            >
+            </ShortcutButton>
+            <ShortcutButton
+              class="flex b3 flex-grow button"
+              label="-1 %"
+            >
+            </ShortcutButton>
+            <div class="flex-grow"></div>
+            <ShortcutButton
+              class="flex b3 flex-grow button"
+              label="+1 %"
+            >
+            </ShortcutButton>
+            <ShortcutButton
+              class="flex b3 flex-grow button"
+              label="+5 %"
+            >
+            </ShortcutButton>
+          </div>
+          <input id="_input_zoom_slider"
+                  class="input-slider"
+                  type="range"
+                  step="any"
+                  min="-1"
+                  max="4"
+                  :value="logarithmicZoom"
+                  @input="changeZoom($event.target.value)"
+          />
+
+          <div style="overflow: auto" class="flex flex-row">
+            <div class="flex flex-grow medium-small x-pad-1em">
+              Zoom: {{(zoomX * 100).toFixed()}}% x {{(zoomY * 100).toFixed()}}%
+            </div>
+            <div class="flex flex-nogrow flex-noshrink medium-small">
+              <a class="_zoom_reset x-pad-1em" @click="resetZoom()">reset</a>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
     <div class="sub-panel">
@@ -96,14 +187,26 @@
         <mdicon name="align-horizontal-center" :size="32" />
         <h1>Video alignment:</h1>
       </div>
-      <div class="flex flex-row flex-wrap">
 
+      <div class="flex flex-row">
+        <alignment-options-control-component>
+        </alignment-options-control-component>
+      </div>
+
+      <div class="flex flex-row flex-wrap">
+         <div class="m-t-0-33em display-block">
+          <input id="_input_zoom_site_allow_pan"
+                  type="checkbox"
+                  />
+          Pan with mouse
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import Button from '../../common/components/Button.vue'
 import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
 import ShortcutButton from '../../common/components/ShortcutButton';
 import ComputeActionsMixin from '../../common/mixins/ComputeActionsMixin';
@@ -111,6 +214,7 @@ import ExecAction from '../ui-libs/ExecAction';
 import BrowserDetect from '../../ext/conf/BrowserDetect';
 import AspectRatioType from '../../common/enums/AspectRatioType.enum';
 import CropModePersistence from '../../common/enums/CropModePersistence.enum';
+import AlignmentOptionsControlComponent from './AlignmentOptionsControlComponent.vue';
 
 export default {
   data() {
@@ -118,6 +222,7 @@ export default {
       exec: null,
       scope: 'page',
       CropModePersistence: CropModePersistence,
+      zoomAspectRatioLocked: true
     }
   },
   mixins: [
@@ -134,6 +239,8 @@ export default {
   },
   components: {
     ShortcutButton,
+    Button,
+    AlignmentOptionsControlComponent
   },
   computed: {
     logarithmicZoom: function(){
@@ -159,10 +266,15 @@ export default {
       }
       return KeyboardShortcutParser.parseShortcut(action.scopes.page.shortcut[0]);
     },
+
+    toggleZoomAr() {
+      this.zoomAspectRatioLocked = !this.zoomAspectRatioLocked;
+    },
+
     resetZoom() {
       this.zoom = 1;
     },
-    changeZoom(newZoom) {
+    changeZoom(newZoom, axis) {
       newZoom = Math.pow(2, newZoom);
 
       this.exec.exec(
