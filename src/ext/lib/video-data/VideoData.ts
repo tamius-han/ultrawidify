@@ -57,10 +57,10 @@ class VideoData {
       return 1;
     }
   }
-  
+
   constructor(video, settings, pageInfo){
     (window as any).ultrawidify.addVideo(this);
-    
+
     this.logger = pageInfo.logger;
     this.arSetupComplete = false;
     this.video = video;
@@ -87,15 +87,15 @@ class VideoData {
 
   async onVideoLoaded() {
     if (!this.videoLoaded) {
-      
+
       /**
        * video.readyState 101:
-       * 0 — no info. Can't play. 
+       * 0 — no info. Can't play.
        * 1 — we have metadata but nothing else
        * 2 — we have data for current playback position, but not future      <--- meaning current frame, meaning Aard can work here or higher
        * 3 — we have a lil bit for the future
        * 4 — we'll survive to the end
-       */ 
+       */
       if (!this.video?.videoWidth || !this.video?.videoHeight || this.video.readyState < 2) {
         return; // onVideoLoaded is a lie in this case
       }
@@ -199,7 +199,7 @@ class VideoData {
     // INIT OBSERVERS
     try {
       if (BrowserDetect.firefox) {
-        this.observer = new ResizeObserver( 
+        this.observer = new ResizeObserver(
           _.debounce(
             this.onVideoDimensionsChanged,
             250,
@@ -212,11 +212,11 @@ class VideoData {
       } else {
         // Chrome for some reason insists that this.onPlayerDimensionsChanged is not a function
         // when it's not wrapped into an anonymous function
-        this.observer = new ResizeObserver( 
+        this.observer = new ResizeObserver(
           _.debounce(
             (m, o) => {
               this.onVideoDimensionsChanged(m, o)
-            }, 
+            },
             250,
             {
               leading: true,
@@ -252,7 +252,7 @@ class VideoData {
     // start fallback video/player size detection
     this.fallbackChangeDetection();
 
-    // force reload last aspect ratio (if default crop ratio exists), but only after the video is 
+    // force reload last aspect ratio (if default crop ratio exists), but only after the video is
     if (this.pageInfo.defaultCrop) {
       this.resizer.setAr(this.pageInfo.defaultCrop);
     }
@@ -315,7 +315,7 @@ class VideoData {
 
     if (this.video) {
       this.video.classList.remove(this.userCssClassName);
-      this.video.classList.remove('uw-ultrawidify-base-wide-screen'); 
+      this.video.classList.remove('uw-ultrawidify-base-wide-screen');
 
       this.video.removeEventListener('onloadeddata', this.onLoadedData);
       this.video.removeEventListener('onloadedmetadata', this.onLoadedMetadata);
@@ -354,14 +354,14 @@ class VideoData {
   }
   //#endregion
 
-  restoreCrop() {  
+  restoreCrop() {
     this.logger.log('info', 'debug', '[VideoData::restoreCrop] Attempting to reset aspect ratio.')
     // if we have default crop set for this page, apply this.
     // otherwise, reset crop
     if (this.pageInfo.defaultCrop) {
       this.resizer.setAr(this.pageInfo.defaultCrop);
     } else {
-    this.resizer.reset();
+      this.resizer.reset();
 
       try {
         this.stopArDetection();
@@ -500,7 +500,7 @@ class VideoData {
         this.player.forceDetectPlayerElementChange();
         this.restoreAr();
       }
-      
+
     } catch(e) {
       console.error('Validating video offsets failed:', e)
     }
@@ -518,7 +518,7 @@ class VideoData {
     // This will _always_ give us an array. Empty string gives an array
     // that contains one element. That element is an empty string.
     const styleArray = (this.video.getAttribute('style') || '').split(';');
-    
+
     const styleObject = {};
 
     for (const style of styleArray) {
@@ -537,10 +537,10 @@ class VideoData {
   }
 
   /**
-   * Some sites try to accomodate ultrawide users by "cropping" videos
+   * Some sites try to accommodate ultrawide users by "cropping" videos
    * by setting 'style' attribute of the video element to 'height: X%',
    * where 'X' is something greater than 100.
-   * 
+   *
    * This function gets that percentage and converts it into a factor.
    */
   getHeightCompensationFactor() {
@@ -579,7 +579,7 @@ class VideoData {
       this.arDetector.init();
     }
   }
-  
+
   startArDetection() {
     this.logger.log('info', 'debug', "[VideoData::startArDetection] starting AR detection")
     if(this.destroyed || this.invalid) {
@@ -670,7 +670,7 @@ class VideoData {
     if (this.invalid) {
       return;
     }
-    
+
     if (ar.type === AspectRatioType.Fixed || ar.type === AspectRatioType.FitHeight || ar.type === AspectRatioType.FitHeight) {
       this.player.forceRefreshPlayerElement();
     }
@@ -788,7 +788,7 @@ class VideoData {
         this.logger.log('info', 'debug', "[VideoDetect] player size changed. reason: dimension change. Old dimensions?", this.dimensions.width, this.dimensions.height, "new dimensions:", this.video.offsetWidth, this.video.offsetHeight);
       }
     }
-    
+
     // if size doesn't match, update & return true
     if (this.dimensions?.width != videoWidth
         || this.dimensions?.height != videoHeight ){

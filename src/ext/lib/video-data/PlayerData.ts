@@ -202,7 +202,7 @@ class PlayerData {
         // attributeFilter: ['style', 'class'],
         attributeOldValue: true,
       };
-      
+
       this.observer.observe(this.element);
     } catch (e) {
       console.error("failed to set observer",e )
@@ -361,7 +361,6 @@ class PlayerData {
             element = element.parentNode;
           }
           if (element) {
-            this.updatePlayerDimensions(element);
             return element;
           }
         } else if (this.settings.active.sites[host]?.DOM?.player?.querySelectors) {
@@ -372,7 +371,7 @@ class PlayerData {
             // Let's see how this works
             if (this.collectionHas(allSelectors, element)) {
               score = 100; // every matching element gets a baseline 100 points
-              
+
               // elements that match the size get a hefty bonus
               if ( (element.offsetWidth >= videoWidth && this.equalish(element.offsetHeight, videoHeight, 2))
                 || (element.offsetHeight >= videoHeight && this.equalish(element.offsetWidth, videoHeight, 2))) {
@@ -414,12 +413,12 @@ class PlayerData {
           element = element.parentNode;
           continue;
         }
-    
+
         // element is player, if at least one of the sides is as long as the video
         // note that we can't make any additional assumptions with regards to player
         // size, since there are both cases where the other side is bigger _and_ cases
         // where other side is smaller than the video.
-        // 
+        //
         // Don't bother thinking about this too much, as any "thinking" was quickly
         // corrected by bugs caused by various edge cases.
         if (
@@ -439,7 +438,7 @@ class PlayerData {
           score -= scorePenalty * penaltyMultiplier++;
 
           // the bigger the size difference between the video and the player,
-          // the more penalty we'll incur. Since we did some grace ith 
+          // the more penalty we'll incur. Since we did some grace ith
           let playerSizePenalty = 1;
           if ( element.offsetHeight > (videoHeight + 5)) {
             playerSizePenalty = (element.offsetWidth - videoHeight) * sizePenaltyMultiplier;
@@ -455,7 +454,7 @@ class PlayerData {
             score: score,
           });
         }
-        
+
         element = element.parentNode;
       }
 
@@ -465,7 +464,7 @@ class PlayerData {
       if (elementQ.length) {
         // return element with biggest score
         const playerElement = elementQ.sort( (a,b) => b.score - a.score)[0].element;
-        
+
         this.updatePlayerDimensions(playerElement);
         return playerElement;
       }
@@ -487,7 +486,7 @@ class PlayerData {
   forceDetectPlayerElementChange() {
     // Player dimension changes get calculated every time updatePlayerDimensions is called (which happens
     // every time getPlayer() detects an element). If updatePlayerDimension detects dimensions were changed,
-    // it will always re-apply current crop, rendering this function little more than a fancy alias for 
+    // it will always re-apply current crop, rendering this function little more than a fancy alias for
     // getPlayer().
     this.getPlayer();
   }

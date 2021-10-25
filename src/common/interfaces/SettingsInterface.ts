@@ -14,7 +14,7 @@ interface ActionScopeInterface {
     code?: string,
     ctrlKey?: boolean,
     metaKey?: boolean,
-    altKey?: boolean, 
+    altKey?: boolean,
     shiftKey?: boolean,
     onKeyUp?: boolean,
     onKeyDown?: boolean,
@@ -22,10 +22,17 @@ interface ActionScopeInterface {
   }[],
 }
 
+interface RestrictionsSettings {
+  disableOnSmallPlayers?: boolean;    // Whether ultrawidify should disable itself when the player is small
+  minAllowedWidth?: number;           // if player is less than this many px wide, ultrawidify will disable itself
+  minAllowedHeight?: number;          // if player is less than this many px tall, ultrawidify will disable itself
+  onlyAllowInFullscreen?: boolean;    // if enabled, ultrawidify will be disabled when not in full screen regardless of what previous two options say
+}
+
 interface SettingsInterface {
   arDetect: {
     disabledReason: string,     // if automatic aspect ratio has been disabled, show reason
-    allowedMisaligned: number,  // top and bottom letterbox thickness can differ by this much. 
+    allowedMisaligned: number,  // top and bottom letterbox thickness can differ by this much.
                                 // Any more and we don't adjust ar.
     allowedArVariance: number,  // amount by which old ar can differ from the new (1 = 100%)
     timers: {                   // autodetection frequency
@@ -56,14 +63,14 @@ interface SettingsInterface {
       },
     },
 
-    // samplingInterval: 10,     // we sample at columns at (width/this) * [ 1 .. this - 1] 
+    // samplingInterval: 10,     // we sample at columns at (width/this) * [ 1 .. this - 1]
     blackframe: {
       sufficientColorVariance: number,  // calculate difference between average intensity and pixel, for every pixel for every color
                                       // component. Average intensity is normalized to where 0 is black and 1 is biggest value for
                                       // that component. If sum of differences between normalized average intensity and normalized
                                       // component varies more than this % between color components, we can afford to use less strict
                                       // cumulative threshold.
-      cumulativeThresholdLax: number,    
+      cumulativeThresholdLax: number,
       cumulativeThresholdStrict: number,// if we add values of all pixels together and get more than this, the frame is bright enough.
                                  // (note: blackframe is 16x9 px -> 144px total. cumulative threshold can be reached fast)
       blackPixelsCondition: number, // How much pixels must be black (1 all, 0 none) before we consider frame as black. Takes
@@ -103,7 +110,7 @@ interface SettingsInterface {
       randomCols: number,      // we add this many randomly selected columns to the static columns
       staticRows: number,      // forms grid with staticSampleCols. Determined in the same way. For black frame checks
     },
-    guardLine: {              // all pixels on the guardline need to be black, or else we trigger AR recalculation 
+    guardLine: {              // all pixels on the guardline need to be black, or else we trigger AR recalculation
                               // (if AR fails to be recalculated, we reset AR)
       enabled: boolean,
       ignoreEdgeMargin: number, // we ignore anything that pokes over the black line this close to the edge
@@ -117,14 +124,14 @@ interface SettingsInterface {
       safetyBorderPx: number,        // determines the thickness of safety border in fallback mode
       noTriggerZonePx: number        // if we detect edge less than this many pixels thick, we don't correct.
     },
-    arSwitchLimiter: {          // to be implemented 
+    arSwitchLimiter: {          // to be implemented
       switches: number,              // we can switch this many times
         period: number             // per this period
     },
     edgeDetection: {
       sampleWidth: number,        // we take a sample this wide for edge detection
       detectionThreshold: number,  // sample needs to have this many non-black pixels to be a valid edge
-      confirmationThreshold: number,  // 
+      confirmationThreshold: number,  //
       singleSideConfirmationThreshold: number,    // we need this much edges (out of all samples, not just edges) in order
                                              // to confirm an edge in case there's no edges on top or bottom (other
                                             // than logo, of course)
@@ -138,11 +145,11 @@ interface SettingsInterface {
                                    // are now. (NOTE: keep this less than 1 in case we implement logo detection)
     },
     pillarTest: {
-      ignoreThinPillarsPx: number, // ignore pillars that are less than this many pixels thick. 
+      ignoreThinPillarsPx: number, // ignore pillars that are less than this many pixels thick.
       allowMisaligned: number   // left and right edge can vary this much (%)
     },
     textLineTest: {
-      nonTextPulse: number,     // if a single continuous pulse has this many non-black pixels, we aren't dealing 
+      nonTextPulse: number,     // if a single continuous pulse has this many non-black pixels, we aren't dealing
                               // with text. This value is relative to canvas width (%)
       pulsesToConfirm: number,    // this is a threshold to confirm we're seeing text.
       pulsesToConfirmIfHalfBlack: number, // this is the threshold to confirm we're seeing text if longest black pulse
@@ -150,11 +157,15 @@ interface SettingsInterface {
       testRowOffset: number     // we test this % of height from detected edge
     }
   },
+
+  restrictions?: RestrictionsSettings;
+
   zoom: {
     minLogZoom: number,
     maxLogZoom: number,
     announceDebounce: number     // we wait this long before announcing new zoom
   },
+
   miscSettings: {
     mousePan: {
       enabled: boolean
@@ -197,8 +208,8 @@ interface SettingsInterface {
   //             ::: ACTIONS :::
   // -----------------------------------------
   // Nastavitve za ukaze. Zamenja stare nastavitve za bližnične tipke.
-  // 
-  // Polje 'shortcut' je tabela, če se slučajno lotimo kdaj delati choordov. 
+  //
+  // Polje 'shortcut' je tabela, če se slučajno lotimo kdaj delati choordov.
   actions: {
     name?: string,    // name displayed in settings
     label?: string,                     // name displayed in ui (can be overridden in scope/playerUi)
@@ -226,31 +237,31 @@ interface SettingsInterface {
   // -----------------------------------------
   // Nastavitve za posamezno stran
   // Config for a given page:
-  // 
+  //
   // <hostname> : {
   //    status: <option>              // should extension work on this site?
   //    arStatus: <option>            // should we do autodetection on this site?
-  //    
+  //
   //    defaultAr?: <ratio>          // automatically apply this aspect ratio on this side. Use extension defaults if undefined.
   //    stretch? <stretch mode>       // automatically stretch video on this site in this manner
   //    videoAlignment? <left|center|right>
   //
-  //    type: <official|community|user>  // 'official' — blessed by Tam. 
+  //    type: <official|community|user>  // 'official' — blessed by Tam.
   //                                     // 'community' — blessed by reddit.
   //                                     // 'user' — user-defined (not here)
   //    override: <true|false>           // override user settings for this site on update
-  // } 
-  //  
-  // Veljavne vrednosti za možnosti 
+  // }
+  //
+  // Veljavne vrednosti za možnosti
   // Valid values for options:
   //
   //     status, arStatus, statusEmbedded:
-  //    
+  //
   //    * enabled     — always allow, full
   //    * basic       — allow, but only the basic version without playerData
   //    * default     — allow if default is to allow, block if default is to block
   //    * disabled    — never allow
-  // 
+  //
   sites: {
     [x: string]: {
       mode?: ExtensionMode,
@@ -286,6 +297,8 @@ interface SettingsInterface {
       },
       css?: string;
       usePlayerArInFullscreen?: boolean;
+
+      restrictions?: RestrictionsSettings;
     }
   }
 }

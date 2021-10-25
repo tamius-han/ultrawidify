@@ -39,7 +39,7 @@ class PageInfo {
   currentCrop: any;
   actionHandlerInitQueue: any[] = [];
   currentZoomScale: number = 1;
-  
+
   actionHandler: any;
   //#endregion
 
@@ -51,7 +51,7 @@ class PageInfo {
     this.extensionMode = extensionMode;
     this.readOnly = readOnly;
 
-    if (comms){ 
+    if (comms){
       this.comms = comms;
     }
 
@@ -179,10 +179,10 @@ class PageInfo {
    * of videos. Destroys all videoData objects for all the videos that don't have their
    * own <video> html element on the page.
    * @param rescanReason Why was the rescan triggered. Mostly used for logging.
-   * @returns 
+   * @returns
    */
   rescan(rescanReason?: RescanReason){
-    // is there any video data objects that had their HTML elements removed but not yet 
+    // is there any video data objects that had their HTML elements removed but not yet
     // destroyed? We clean that up here.
     const orphans = this.videos.filter(x => !document.body.contains(x.element));
     for (const orphan of orphans) {
@@ -198,7 +198,7 @@ class PageInfo {
 
       if(!vids || vids.length == 0){
         this.hasVideos = false;
-    
+
         if(rescanReason == RescanReason.PERIODIC){
           this.logger.log('info', 'videoRescan', "[PageInfo::rescan] Scheduling normal rescan.")
           this.scheduleRescan(RescanReason.PERIODIC);
@@ -221,14 +221,14 @@ class PageInfo {
         if(!videoElement.offsetWidth || !videoElement.offsetHeight) {
           continue;
         }
-        
+
         // at this point, we're certain that we found new videos. Let's update some properties:
         this.hasVideos = true;
 
         // if PageInfo is marked as "readOnly", we actually aren't adding any videos to anything because
-        // that's super haram. We're only interested in whether 
+        // that's super haram. We're only interested in whether
         if (this.readOnly) {
-          // in lite mode, we're done. This is all the info we want, but we want to actually start doing 
+          // in lite mode, we're done. This is all the info we want, but we want to actually start doing
           // things that interfere with the website. We still want to be running a rescan, tho.
 
           if(rescanReason == RescanReason.PERIODIC){
@@ -241,11 +241,11 @@ class PageInfo {
 
         try {
           const newVideo = new VideoData(videoElement, this.settings, this);
-          this.videos.push({videoData: newVideo, element: videoElement});      
+          this.videos.push({videoData: newVideo, element: videoElement});
         } catch (e) {
           this.logger.log('error', 'debug', "rescan error: failed to initialize videoData. Skipping this video.",e);
         }
-        
+
         this.logger.log('info', 'videoRescan', "END VIDEO INITIALIZATION\n\n\n-------------------------------------\nvideos[] is now this:", this.videos,"\n\n\n\n\n\n\n\n")
       }
 
@@ -254,24 +254,24 @@ class PageInfo {
       // if we're left without videos on the current page, we unregister the page.
       // if we have videos, we call register.
       if (this.comms) {
-        // We used to send "register video" requests only on the first load, or if the number of 
+        // We used to send "register video" requests only on the first load, or if the number of
         // videos on the page has changed. However, since Chrome Web Store started to require every
         // extension requiring "broad permissions" to undergo manual review
         // ... and since Chrome Web Store is known for taking their sweet ass time reviewing extensions,
         // with review times north of an entire fucking month
-        // ... and since the legacy way of checking whether our frames-with-videos cache in background 
+        // ... and since the legacy way of checking whether our frames-with-videos cache in background
         // script contains any frames that no longer exist required us to use webNavigation.getFrame()/
-        // webNavigation.getAllFrames(), which requires a permission that triggers a review. 
+        // webNavigation.getAllFrames(), which requires a permission that triggers a review.
         //
         // While the extension uses some other permissions that trigger manual review, it's said that
-        // less is better / has a positive effect on your manual review times ... So I guess we'll do 
+        // less is better / has a positive effect on your manual review times ... So I guess we'll do
         // things in the less-than-optimal. more-than-retarded way.
         //
         // no but honestly fuck Chrome.
 
         // if (this.videos.length != oldVideoCount) {
-        // } 
-        
+        // }
+
         if (this.videos.length > 0) {
           // this.comms.registerVideo({host: window.location.hostname, location: window.location});
           this.comms.registerVideo();
@@ -313,7 +313,7 @@ class PageInfo {
       }
 
       let ths = this;
-      
+
       this.rescanTimer = setTimeout(function(rescanReason){
         ths.rescanTimer = null;
         ths.rescan(rescanReason);
@@ -331,7 +331,7 @@ class PageInfo {
     }
 
     let ths = this;
-        
+
     this.urlCheckTimer = setTimeout(function(){
       ths.urlCheckTimer = null;
       ths.ghettoUrlCheck();
@@ -345,7 +345,7 @@ class PageInfo {
   ghettoUrlCheck() {
     if (this.lastUrl != window.location.href){
       this.logger.log('error', 'videoRescan', "[PageInfo::ghettoUrlCheck] URL has changed. Triggering a rescan!");
-      
+
       this.rescan(RescanReason.URL_CHANGE);
       this.lastUrl = window.location.href;
     }
@@ -377,7 +377,7 @@ class PageInfo {
         if (vd.videoData.isPlaying()) {
           vd.videoData.pause();
         }
-      }  
+      }
     } else {
       for(let vd of this.videos){
         vd.videoData.pause();
@@ -426,7 +426,7 @@ class PageInfo {
   stopArDetection(playingOnly){
     if (playingOnly) {
       for(let vd of this.videos){
-        if (vd.videoData.isPlaying()) { 
+        if (vd.videoData.isPlaying()) {
           vd.videoData.stopArDetection();
         }
       }
@@ -474,11 +474,11 @@ class PageInfo {
       }
     }
   }
-  
+
   setVideoAlignment(videoAlignment, playingOnly) {
     if (playingOnly) {
       for(let vd of this.videos) {
-        if (vd.videoData.isPlaying()) { 
+        if (vd.videoData.isPlaying()) {
           vd.videoData.setVideoAlignment(videoAlignment)
         }
       }
@@ -555,7 +555,7 @@ class PageInfo {
     }
   }
 
-  markPlayer(name, color) { 
+  markPlayer(name, color) {
     for (let vd of this.videos) {
       vd.videoData.markPlayer(name,color);
     }
@@ -604,7 +604,7 @@ class PageInfo {
   setArPersistence(persistenceMode) {
     // name of this function is mildly misleading — we don't really _set_ ar persistence. (Ar persistence
     // mode is set and saved via popup or keyboard shortcuts, if user defined them) We just save the current
-    // aspect ratio whenever aspect ratio persistence mode changes. 
+    // aspect ratio whenever aspect ratio persistence mode changes.
     if (persistenceMode === CropModePersistence.CurrentSession) {
       sessionStorage.setItem('uw-crop-mode-session-persistence', JSON.stringify(this.currentCrop));
     } else if (persistenceMode === CropModePersistence.Forever) {
@@ -615,7 +615,7 @@ class PageInfo {
         this.settings.active.sites[window.location.hostname] = this.settings.getDefaultOption();
         this.settings.active.sites[window.location.hostname]['defaultAr'] = this.currentCrop;
       }
-      
+
       this.settings.saveWithoutReload();
     }
   }
@@ -632,7 +632,7 @@ class PageInfo {
     }
 
     this.defaultCrop = ar;
-    
+
     if (cropModePersistence === CropModePersistence.CurrentSession) {
       sessionStorage.setItem('uw-crop-mode-session-persistence', JSON.stringify(ar));
     } else if (cropModePersistence === CropModePersistence.Forever) {
@@ -643,7 +643,7 @@ class PageInfo {
         this.settings.active.sites[window.location.hostname] = this.settings.getDefaultOption();
         this.settings.active.sites[window.location.hostname]['defaultAr'] = ar;
       }
-      
+
       this.settings.saveWithoutReload();
     }
   }
