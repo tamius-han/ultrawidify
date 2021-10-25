@@ -615,9 +615,7 @@ class Resizer {
       // There seems to be no way to reproduce it.
       if (! this._computeOffsetsRecursionGuard) {
         this._computeOffsetsRecursionGuard = true;
-        if (this.conf.player.checkPlayerSizeChange()) {
-          this.conf.player.onPlayerDimensionsChanged();
-        }
+        this.conf.player.trackDimensionChanges();
         this._computeOffsetsRecursionGuard = false;
       }
     }

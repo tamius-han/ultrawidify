@@ -14,35 +14,29 @@ if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: PlayerData.js");
 }
 
-/* sprejme <video> tag (element) in seznam imen, ki se lahko pojavijo v razredih oz. id staršev.
-// vrne dimenzije predvajalnika (širina, višina)
-// 
-// Na youtube v theater mode je razširitev rahlo pokvarjena. Video tag ostane večji od predvajalnika, ko se zapusti
-// celozaslonski način. Ta funkcija skuša to težavo rešiti tako, da poišče element predvajalnika, ki je zavit okoli videa.
-// 
-// Funkcija izkorišča lastnost, da bi načeloma moral biti vsak zunanji element večji od notranjega. Najmanjši element od
-// <video> značke pa do korena drevesa bi tako moral biti predvajalnik.
-// 
-// Če je podan seznam imen, potem funkcija vrne dimenzije prvega elementa, ki v id oz. razredu vsebuje katerokoli ime iz seznama
-// 
-// | EN |
-//
-// accepts <video> tag (element) and list of names that can appear in id or class 
-// returns player dimensions (width, height)
-//
-// Theater mode is mildly broken on youtube. <video> tag remains bigger than the player after leaving the fullscreen mode, and
-// there's nothing we can do about that. This function aims to solve the problem by finding the player element that's wrapped around
-// the <video> tag.
-// 
-// In general, an outer tag should be bigger than the inner tag. Therefore the smallest element between <video> tag and the document
-// root should be the player.
-//
-// If list of names is provided, the function returns dimensions of the first element that contains any name from the list in either
-// id or class.
-*/
+interface PlayerDimensions {
+  width?: number;
+  height?: number;
+  fullscreen?: boolean;
+}
+
+/**
+ * accepts <video> tag (element) and list of names that can appear in id or class
+ * returns player dimensions (width, height)
+ * Theater mode is mildly broken on youtube. <video> tag remains bigger than the player after leaving the fullscreen mode, and
+ * there's nothing we can do about that. This function aims to solve the problem by finding the player element that's wrapped around
+ * the <video> tag.
+
+ * In general, an outer tag should be bigger than the inner tag. Therefore the smallest element between <video> tag and the document
+ * root should be the player.
+
+ * If list of names is provided, the function returns dimensions of the first element that contains any name from the list in either
+ * id or class.
+ */
 
 class PlayerData {
-  
+  private playerCssClass = 'uw-ultrawidify-player-css';
+
   //#region helper objects
   logger: Logger;
   videoData: VideoData;
@@ -57,13 +51,14 @@ class PlayerData {
   //#endregion
 
   //#region flags
+  enabled: boolean;
   invalid: boolean = false;
   private periodicallyRefreshPlayerElement: boolean = false;
   halted: boolean = true;
 
   //#region misc stuff
   extensionMode: any;
-  dimensions: {width?: number, height?: number, fullscreen?: boolean};
+  dimensions: PlayerDimensions;
   private playerIdElement: any;
   private observer: ResizeObserver;
 
@@ -117,7 +112,7 @@ class PlayerData {
       }
 
       if (this.extensionMode === ExtensionMode.Enabled) {
-        this.checkPlayerSizeChange();
+        this.trackDimensionChanges();
       }
       this.startChangeDetection();
 
@@ -142,21 +137,138 @@ class PlayerData {
     return ( ihdiff < 5 && iwdiff < 5 );
   }
 
-  
-  onPlayerDimensionsChanged(mutationList?, observer?) {
-    if (this?.checkPlayerSizeChange()) {
-      this.videoData.resizer.restore();
+
+  /**
+   *
+   */
+  trackDimensionChanges() {
+
+    // get player dimensions _once_
+    let currentPlayerDimensions;
+    const isFullScreen = PlayerData.isFullScreen();
+
+    if (isFullScreen) {
+      currentPlayerDimensions = {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        fullscreen: true
+      };
+    } else {
+      currentPlayerDimensions = {
+        width: this.element.offsetWidth,
+        height: this.element.offsetHeight,
+        fullscreen: false,
+      }
+    }
+
+    // if dimensions of the player box are the same as the last known
+    // dimensions, we don't have to do anything
+    if (
+      this.dimensions
+      && this.dimensions.width == currentPlayerDimensions.width
+      && this.dimensions.height == currentPlayerDimensions.height
+    ) {
+      this.dimensions = currentPlayerDimensions;
+      return;
+    }
+
+    // in every other case, we need to check if the player is still
+    // big enough to warrant our extension running.
+
+    this.handleSizeConstraints(currentPlayerDimensions);
+    this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
+
+    // Save current dimensions to avoid triggering this function pointlessly
+    this.dimensions = currentPlayerDimensions;
+  }
+
+
+  /**
+   * Handles size restrictions (if any)
+   * @param currentPlayerDimensions
+   */
+  private handleSizeConstraints(currentPlayerDimensions: PlayerDimensions) {
+
+    // never disable ultrawidify in full screen
+    if (currentPlayerDimensions.fullscreen) {
+      this.enable();
+      return;
+    }
+
+    const restrictions = this.settings.getSettingsForSite()?.restrictions ?? this.settings.active?.restrictions;
+
+    // if 'disable on small players' option is not enabled, the extension will run in any case
+    if (!restrictions?.disableOnSmallPlayers) {
+      this.enable();
+      return;
+    }
+
+    // If we only allow ultrawidify in full screen, we disable it when not in full screen
+    if (restrictions.onlyAllowInFullscreen && !currentPlayerDimensions.fullscreen) {
+      this.disable();
+      return;
+    }
+
+    // if current width or height are smaller than the minimum, the extension will not run
+    if (restrictions.minAllowedHeight > currentPlayerDimensions?.height || restrictions.minAllowedWidth > currentPlayerDimensions?.width) {
+      this.disable();
+      return;
+    }
+
+    // in this case, the player is big enough to warrant enabling Ultrawidify
+    this.enable();
+  }
+
+
+  private handleDimensionChanges(newDimensions: PlayerDimensions, oldDimensions: PlayerDimensions) {
+    if (!this.enabled) {
+      this.logger.log('info', 'debug', "[PlayerDetect] player size changed, but PlayerDetect is in disabled state. The player element is probably too small.");
+      return;
+    }
+
+    // this 'if' is just here for debugging — real code starts later. It's safe to collapse and
+    // ignore the contents of this if (unless we need to change how logging works)
+    this.logger.log('info', 'debug', "[PlayerDetect] player size potentially changed.\n\nold dimensions:", oldDimensions, '\nnew dimensions:', newDimensions);
+
+    // if size doesn't match, trigger onPlayerDimensionChange
+    if (
+      newDimensions?.width != oldDimensions?.width
+      || newDimensions?.height != oldDimensions?.height
+      || newDimensions?.fullscreen != oldDimensions?.fullscreen
+    ){
+      // If player size changes, we restore aspect ratio
+      this.videoData.resizer?.restore();
     }
   }
 
-
-  start(){
+  /**
+   * Enables ultrawidify for this video by adding the relevant classes
+   * to the video and player element.
+   */
+  enable() {
+    this.enabled = true;
+    this.element.classList.add(this.playerCssClass);
     this.startChangeDetection();
+    this.videoData.enable({fromPlayer: true});
   }
 
-  stop(){
-    this.halted = true;
-    this.stopChangeDetection();
+  /**
+   * Disables ultrawidify for this video by removing the relevant classes
+   * from the video and player elements.
+   *
+   * NOTE: it is very important to keep change detection active while disabled,
+   * because otherwise ultrawidify will otherwise remain inactive after
+   * switching (back to) full screen.
+   */
+  disable() {
+    this.enabled = false;
+    this.element.classList.remove(this.playerCssClass);
+    this.videoData.disable({fromPlayer: true});
+  }
+
+
+  onPlayerDimensionsChanged(mutationList?, observer?) {
+    this.trackDimensionChanges();
   }
 
   destroy() {
@@ -165,6 +277,7 @@ class PlayerData {
     this.notificationService?.destroy();
   }
 
+  //#region player element change detection
   startChangeDetection(){
     if (this.invalid) {
       return;
@@ -216,7 +329,7 @@ class PlayerData {
     while (!this.halted) {
       await sleep(1000);
       try {
-        this.doPeriodicPlayerElementChangeCheck();
+        this.forceRefreshPlayerElement();
       } catch (e) {
         console.error('[PlayerData::legacycd] this message is pretty high on the list of messages you shouldn\'t see', e);
       }
@@ -225,7 +338,7 @@ class PlayerData {
 
   doPeriodicPlayerElementChangeCheck() {
     if (this.periodicallyRefreshPlayerElement) {
-      this.forceDetectPlayerElementChange();
+      this.forceRefreshPlayerElement();
     }
   }
 
@@ -233,6 +346,7 @@ class PlayerData {
     this.observer.disconnect();
   }
 
+  //#region interface
   makeOverlay() {
     if (!this.overlayNode) {
       this.destroyOverlay();
@@ -283,7 +397,10 @@ class PlayerData {
     }
     this.playerIdElement = undefined;
   }
+  //#endregion
 
+
+  //#region helper functions
   collectionHas(collection, element) {
     for (let i = 0, len = collection.length; i < len; i++) {
       if (collection[i] == element) {
@@ -292,31 +409,7 @@ class PlayerData {
     }
     return false;
   }
-
-  updatePlayerDimensions(element) {
-    const isFullScreen = PlayerData.isFullScreen();
-
-    if (element.offsetWidth !== this.dimensions?.width
-        || element.offsetHeight !== this.dimensions?.height
-        || isFullScreen !== this.dimensions?.fullscreen) {
-
-      // update dimensions only if they've changed, _before_ we do a restore (not after)
-      this.dimensions = {
-        width: element.offsetWidth,
-        height: element.offsetHeight,
-        fullscreen: isFullScreen
-      };
-
-      // actually re-calculate zoom when player size changes, but only if videoData.resizer
-      // is defined. Since resizer needs a PlayerData object to exist, videoData.resizer will
-      // be undefined the first time this function will run.
-      this.videoData.resizer?.restore();
-
-      // NOTE: it's possible that notificationService hasn't been initialized yet at this point.
-      //       no biggie if it wasn't, we just won't replace the notification UI
-      this.notificationService?.replace(this.element);
-    }
-  }
+  //#endregion
 
   getPlayer() {
     const host = window.location.hostname;
@@ -398,7 +491,6 @@ class PlayerData {
             // return element with biggest score
             // if video player has not been found, proceed to automatic detection
             const playerElement = elementQ.sort( (a,b) => b.score - a.score)[0].element;
-            this.updatePlayerDimensions(playerElement);
             return playerElement;
           }
         }
@@ -407,7 +499,6 @@ class PlayerData {
       // try to find element the old fashioned way
 
       while (element){
-        // odstranimo čudne elemente, ti bi pokvarili zadeve
         // remove weird elements, those would break our stuff
         if ( element.offsetWidth == 0 || element.offsetHeight == 0){
           element = element.parentNode;
@@ -465,7 +556,6 @@ class PlayerData {
         // return element with biggest score
         const playerElement = elementQ.sort( (a,b) => b.score - a.score)[0].element;
 
-        this.updatePlayerDimensions(playerElement);
         return playerElement;
       }
 
@@ -483,87 +573,10 @@ class PlayerData {
     return a > b - tolerance && a < b + tolerance;
   }
 
-  forceDetectPlayerElementChange() {
-    // Player dimension changes get calculated every time updatePlayerDimensions is called (which happens
-    // every time getPlayer() detects an element). If updatePlayerDimension detects dimensions were changed,
-    // it will always re-apply current crop, rendering this function little more than a fancy alias for
-    // getPlayer().
-    this.getPlayer();
-  }
-
   forceRefreshPlayerElement() {
-    this.getPlayer();
-  }
-
-  checkPlayerSizeChange() {
-    // this 'if' is just here for debugging — real code starts later. It's safe to collapse and
-    // ignore the contents of this if (unless we need to change how logging works)
-    if (this.logger.canLog('debug')){
-      if (this.dimensions?.fullscreen){
-        if(! PlayerData.isFullScreen()){
-          this.logger.log('info', 'debug', "[PlayerDetect] player size changed. reason: exited fullscreen");
-        }
-      }
-      if(! this.element) {
-        this.logger.log('info', 'playerDetect', "[PlayerDetect] player element isn't defined");
-      }
-
-      if ( this.element &&
-           ( +this.dimensions?.width != +this.element?.offsetWidth ||
-             +this.dimensions?.height != +this.element?.offsetHeight )
-      ) {
-        this.logger.log('info', 'debug', "[PlayerDetect] player size changed. reason: dimension change. Old dimensions?", this.dimensions?.width, this.dimensions?.height, "new dimensions:", this.element?.offsetWidth, this.element?.offsetHeight);
-      }
-    }
-
-    // if size doesn't match, update & return true
-    if (this.dimensions?.width != this.element.offsetWidth 
-        || this.dimensions?.height != this.element.offsetHeight ){
-      
-      const isFullScreen = PlayerData.isFullScreen();
-
-      if (isFullScreen) {
-        this.dimensions = {
-          width: window.innerWidth,
-          height: window.innerHeight,
-          fullscreen: true
-        }
-      } else {
-        this.dimensions = {
-          width: this.element.offsetWidth,
-          height: this.element.offsetHeight,
-          fullscreen: isFullScreen
-        };
-      }
-      return true;
-    }
-    return false;
-  }
-
-  checkFullscreenChange() {
-    const isFs = PlayerData.isFullScreen();
-
-    if (this.dimensions) {
-      if (this.dimensions.fullscreen != isFs) {
-        this.dimensions = {
-          fullscreen: isFs,
-          width: isFs ? screen.width : this.video.offsetWidth,
-          height: isFs ? screen.height : this.video.offsetHeight
-        };
-        return true;
-      }
-      return false;
-    }
-
-    this.logger.log('info', 'debug', "[PlayerData::checkFullscreenChange] this.dimensions is not defined. Assuming fs change happened and setting default values.")
-
-    this.dimensions = {
-      fullscreen: isFs,
-      width: isFs ? screen.width : this.video.offsetWidth,
-      height: isFs ? screen.height : this.video.offsetHeight
-    };
-
-    return true;
+    this.element = this.getPlayer();
+    this.notificationService?.replace(this.element);
+    this.trackDimensionChanges();
   }
 
   showNotification(notificationId) {

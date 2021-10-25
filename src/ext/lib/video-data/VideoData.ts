@@ -12,8 +12,11 @@ import { sleep } from '../../../common/js/utils';
 import { hasDrm } from '../ar-detect/DrmDetecor';
 
 class VideoData {
+  private baseCssName: string = 'uw-ultrawidify-base-wide-screen';
+
   //#region flags
   arSetupComplete: boolean = false;
+  enabled: boolean;
   destroyed: boolean = false;
   invalid: boolean = false;
   videoStatusOk: boolean = false;
@@ -186,7 +189,6 @@ class VideoData {
    * for our standards)
    */
   async setupStageTwo() {
-    // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
     // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)
     this.player = new PlayerData(this);
     if (this.player.invalid) {
@@ -242,12 +244,10 @@ class VideoData {
     this.logger.log('info', ['debug', 'init'], '[VideoData::ctor] Created videoData with vdid', this.vdid, '\nextension mode:', this.extensionMode)
 
     this.pageInfo.initMouseActionHandler(this);
-    
-    // NOTE — since base class for our <video> element depends on player aspect ratio,
-    // we handle it in PlayerData class.
-    this.video.classList.add('uw-ultrawidify-base-wide-screen'); 
-    this.video.classList.add(this.userCssClassName); // this also needs to be applied BEFORE we initialize resizer!
 
+    // aspect ratio autodetection cannot be properly initialized at this time,
+    // so we'll avoid doing that
+    this.enable({withoutAard: true});
 
     // start fallback video/player size detection
     this.fallbackChangeDetection();
@@ -322,7 +322,7 @@ class VideoData {
       this.video.removeEventListener('ontimeupdate', this.onTimeUpdate);
     }
 
-    this.pause();
+    this.disable();
     this.destroyed = true;
     try {
       this.arDetector.halt();
@@ -344,6 +344,46 @@ class VideoData {
   }
   //#endregion
 
+  /**
+   * Enables ultrawidify in general.
+   * @param options
+   */
+  enable(options?: {fromPlayer?: boolean, withoutAard?: boolean}) {
+    this.enabled = true;
+
+    // NOTE — since base class for our <video> element depends on player aspect ratio,
+    // we handle it in PlayerData class.
+    this.video.classList.add(this.baseCssName);
+    this.video.classList.add(this.userCssClassName); // this also needs to be applied BEFORE we initialize resizer! — O RLY? NEEDS TO BE CHECKED
+
+    if (!options?.withoutAard) {
+      this.startArDetection();
+    }
+
+    if (!options?.fromPlayer) {
+      this.player?.enable();
+    }
+
+    this.restoreCrop();
+  }
+
+  /**
+   * Disables ultrawidify in general.
+   * @param options
+   */
+  disable(options?: {fromPlayer?: boolean}) {
+    this.enabled = false;
+
+    this.stopArDetection();
+
+    this.video.classList.remove(this.baseCssName);
+    this.video.classList.remove(this.userCssClassName);
+
+    if (!options.fromPlayer) {
+      this.player?.disable();
+    }
+  }
+
   //#region video status
   isVideoPlaying() {
     return this.video && !!(this.video.currentTime > 0 && !this.video.paused && !this.video.ended && this.video.readyState > 2);
@@ -355,6 +395,10 @@ class VideoData {
   //#endregion
 
   restoreCrop() {
+    if (!this.resizer) {
+      this.logger.log('warn', 'debug', '[VideoData::restoreCrop] Resizer has not been initialized yet. Crop will not be restored.');
+      return;
+    }
     this.logger.log('info', 'debug', '[VideoData::restoreCrop] Attempting to reset aspect ratio.')
     // if we have default crop set for this page, apply this.
     // otherwise, reset crop
@@ -399,11 +443,16 @@ class VideoData {
       return;
     }
 
+    if (!this.enabled) {
+      this.logger.log('info', 'info', '[VideoData::onVideoMutation] mutation was triggered, but the extension is disabled. Is the player window too small?');
+      return;
+    }
+
     for(const mutation of mutationList) {
       if (mutation.type === 'attributes') {
-        if( mutation.attributeName === 'class' 
-            && mutation.oldValue.indexOf('uw-ultrawidify-base-wide-screen') !== -1
-            && !this.video.classList.contains('uw-ultrawidify-base-wide-screen')
+        if( mutation.attributeName === 'class'
+            && mutation.oldValue.indexOf(this.baseCssName) !== -1
+            && !this.video.classList.contains(this.baseCssName)
         ) {
           // force the page to include our class in classlist, if the classlist has been removed
           // while classList.add() doesn't duplicate classes (does nothing if class is already added),
@@ -413,7 +462,7 @@ class VideoData {
 
           confirmAspectRatioRestore = true;
           this.video.classList.add(this.userCssClassName);
-          this.video.classList.add('uw-ultrawidify-base-wide-screen'); 
+          this.video.classList.add(this.baseCssName);
         } else if (mutation.attributeName === 'style') {
           confirmAspectRatioRestore = true;
         }
@@ -426,6 +475,13 @@ class VideoData {
   onVideoDimensionsChanged(mutationList, observer) {
     if (!mutationList || this.video === undefined) {  // something's wrong
       if (observer && this.video) {
+        this.logger.log(
+          'warn', 'debug',
+          'onVideoDimensionChanged encountered a weird state. video and observer exist, but mutationlist does not.\n\nmutationList:', mutationList,
+          '\nobserver:', observer,
+          '\nvideo:', this.video,
+          '\n\nObserver will be disconnected.'
+        );
         observer.disconnect();
       }
       return;
@@ -440,7 +496,8 @@ class VideoData {
    */
   private _processDimensionsChanged() {
     if (!this.player) {
-      this.logger.log('warn', 'debug', `[VideoData::_processDimensionsChanged] Player is not defined. This is super haram.`, this.player)
+      this.logger.log('warn', 'debug', `[VideoData::_processDimensionsChanged] Player is not defined. This is super haram.`, this.player);
+      return;
     }
     // adding player observer taught us that if element size gets triggered by a class, then
     // the 'style' attributes don't necessarily trigger. This means we also need to trigger
@@ -497,7 +554,7 @@ class VideoData {
           && this.isWithin(vh, (ph - (translateY * 2)), 2)
           && this.isWithin(vw, (pw - (translateX * 2)), 2)) {
       } else {
-        this.player.forceDetectPlayerElementChange();
+        this.player.forceRefreshPlayerElement();
         this.restoreAr();
       }
 
@@ -556,16 +613,8 @@ class VideoData {
     }
     return heightCompensationFactor;
   }
-  firstTimeArdInit(){
-    if(this.destroyed || this.invalid) {
-      // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
-      return;
-    }
-    if(! this.arSetupComplete){
-      this.arDetector = new ArDetector(this);
-    }
-  }
 
+  //#region AARD handlers
   initArDetection() {
     if(this.destroyed || this.invalid) {
       // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
@@ -587,57 +636,20 @@ class VideoData {
       return;
     }
 
-    if (hasDrm(this.video)) {
-      this.player.showNotification('AARD_DRM');
-      this.hasDrm = true;
-    } else {
-      this.hasDrm = false;
-    }
-
-    if (!this.arDetector) {
-      this.initArDetection();
-    }
-    this.arDetector.start();
-  }
-
-  rebootArDetection() {
-    if(this.destroyed || this.invalid) {
-      // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
-      return;
-    }
-    this.arDetector.init();
-  }
-
-  stopArDetection() {
-    if (this.arDetector) {
-      this.arDetector.halt();
-    }
-  }
-
-  pause(){
-    this.paused = true;
-    if(this.arDetector){
-      this.arDetector.halt();
-    }
-    if(this.player){
-      this.player.stop();
-    }
-  }
-
-  resume(){
-    if(this.destroyed || this.invalid) {
-      // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
-      return;
-    }
-    this.paused = false;
     try {
-      // this.resizer.start();
-      if (this.player) {
-        this.player.start();
+      if (hasDrm(this.video)) {
+        this.player.showNotification('AARD_DRM');
+        this.hasDrm = true;
+      } else {
+        this.hasDrm = false;
       }
+
+      if (!this.arDetector) {
+        this.initArDetection();
+      }
+      this.arDetector.start();
     } catch (e) {
-      this.logger.log('error', 'debug', "[VideoData.js::resume] cannot resume for reasons. Will destroy videoData. Error here:", e);
-      this.destroy();
+      this.logger.log('warn', 'debug', '[VideoData::startArDetection()] Could not start aard for some reason. Was the function was called too early?', e);
     }
   }
 
@@ -647,18 +659,14 @@ class VideoData {
     }
   }
 
-  setManualTick(manualTick) {
-    if(this.arDetector){
-      this.arDetector.setManualTick(manualTick);
+  stopArDetection() {
+    if (this.arDetector) {
+      this.arDetector.halt();
     }
   }
+  //#endregion
 
-  tick() {
-    if(this.arDetector){
-      this.arDetector.tick();
-    }
-  }
-
+  //#region shit that gets propagated to resizer and should be removed. Implement an event bus instead
   setLastAr(lastAr){
     if (this.invalid) {
       return;
@@ -771,6 +779,7 @@ class VideoData {
   isPlaying() {
     return this.video && this.video.currentTime > 0 && !this.video.paused && !this.video.ended;
   }
+  //#endregion
 
   checkVideoSizeChange(){
     const videoWidth = this.video.offsetWidth;

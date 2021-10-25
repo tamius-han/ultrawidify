@@ -12,6 +12,28 @@ if (process.env.CHANNEL !== 'stable'){
   console.info("Loading PageInfo");
 }
 
+/**
+ *
+ * The classes kinda go like this:
+ *
+ *      PageInfo    — one per page/frame.
+ *          |
+ *          +——— VideoData                    — child of PageInfo. There may be more than one of those
+ *          |        +—— PlayerData           — VideoData has exactly ONE (1) PlayerData
+ *          |        +—— AspectRatioDetector  — VideoData has 0-1 AARD things
+ *          |        +—— Resizer
+ *          |               +—— Scaler
+ *          |               +—— Stretcher
+ *          |               +—— Zoom
+ *          +——— VideoData
+ *          |        +—— PlayerData
+ *          |        :
+ *          :
+ *
+ * There is as many VideoData objects as there are videos.
+ */
+
+
 class PageInfo {
   //#region flags
   readOnly: boolean = false;
@@ -375,12 +397,12 @@ class PageInfo {
     if (playingOnly) {
       for(let vd of this.videos){
         if (vd.videoData.isPlaying()) {
-          vd.videoData.pause();
+          vd.videoData.disable();
         }
       }
     } else {
       for(let vd of this.videos){
-        vd.videoData.pause();
+        vd.videoData.disable();
       }
     }
   }
@@ -389,7 +411,7 @@ class PageInfo {
     if (playingOnly) {
       for(let vd of this.videos){
         if (vd.videoData.isPlaying()) {
-          vd.videoData.resume();
+          vd.videoData.enable();
           if(resumeAutoar){
             vd.videoData.resumeAutoAr();
           }
@@ -397,7 +419,7 @@ class PageInfo {
       }
     } else {
       for(let vd of this.videos){
-        vd.videoData.resume();
+        vd.videoData.enable();
         if(resumeAutoar){
           vd.videoData.resumeAutoAr();
         }
@@ -573,18 +595,6 @@ class PageInfo {
     this.currentZoomScale = scale;
     const ths = this;
     this.announceZoomTimeout = setTimeout(() => ths.comms.announceZoom(scale), this.settings.active.zoom.announceDebounce);
-  }
-
-  setManualTick(manualTick) {
-    for(let vd of this.videos) {
-      vd.videoData.setManualTick(manualTick);
-    }
-  }
-
-  tick() {
-    for(let vd of this.videos) {
-      vd.videoData.tick();
-    }
   }
 
   sendPerformanceUpdate(performanceUpdate) {
