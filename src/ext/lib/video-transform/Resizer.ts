@@ -12,6 +12,7 @@ import { sleep } from '../Util';
 import Logger from '../Logger';
 import Settings from '../Settings';
 import VideoData from '../video-data/VideoData';
+import EventBus from '../EventBus';
 
 if(Debug.debug) {
   console.log("Loading: Resizer.js");
@@ -30,6 +31,7 @@ class Resizer {
   stretcher: Stretcher;
   zoom: Zoom;
   conf: VideoData;
+  eventBus: EventBus;
   //#endregion
 
   //#region HTML elements
@@ -45,10 +47,32 @@ class Resizer {
   currentVideoSettings: any;
   lastAr: {type: any, ratio?: number} = {type: AspectRatioType.Initial};
   resizerId: any;
-  videoAlignment: any;
+  videoAlignment: {x: VideoAlignmentType, y: VideoAlignmentType};
   userCss: string;
   userCssClassName: any;
   pan: any = null;
+  //#endregion
+
+  //#region event bus configuration
+  private eventBusCommands = {
+    'set-ar': [{
+      function: (config: any) => this.setAr(config.type, config.ratio)
+    }],
+    'set-alignment': [{
+      function: (config: any) => {
+        this.setVideoAlignment(config.videoAlignmentX, config.videoAlignmentY);
+      }
+    }],
+    'set-stretch': [{
+      function: (config: any) => this.setStretchMode(config.stretchMode, config.fixedAspectRatio)
+    }],
+    'set-zoom': [{
+      function: (config: any) => this.setZoom(config.zoomLevel)
+    }],
+    'change-zoom': [{
+      function: (config: any) => this.zoomStep(config.step)
+    }],
+  }
   //#endregion
 
   constructor(videoData) {
@@ -62,7 +86,7 @@ class Resizer {
     this.stretcher = new Stretcher(this.conf);
     this.zoom = new Zoom(this.conf);
 
-    this.videoAlignment = this.settings.getDefaultVideoAlignment(window.location.hostname); // this is initial video alignment
+    this.videoAlignment.x = this.settings.getDefaultVideoAlignment(window.location.hostname); // this is initial video alignment
     this.destroyed = false;
 
 
@@ -73,6 +97,17 @@ class Resizer {
     }
 
     this.userCssClassName = videoData.userCssClassName;
+
+    this.eventBus = videoData.eventBus;
+    this.initEventBus();
+  }
+
+  initEventBus() {
+    for (const action in this.eventBusCommands) {
+      for (const command of this.eventBusCommands[action]) {
+        this.eventBus.subscribe(action, command);
+      }
+    }
   }
 
   injectCss(css) {
@@ -332,7 +367,7 @@ class Resizer {
         return;
       }
       // dont allow weird floats
-      this.videoAlignment = VideoAlignmentType.Center;
+      this.videoAlignment.x = VideoAlignmentType.Center;
 
       // because non-fixed aspect ratios reset panning:
       if (this.lastAr.type !== AspectRatioType.Fixed) {
@@ -352,7 +387,7 @@ class Resizer {
 
   resetPan() {
     this.pan = {x: 0, y: 0};
-    this.videoAlignment = this.settings.getDefaultVideoAlignment(window.location.hostname);
+    this.videoAlignment.x = this.settings.getDefaultVideoAlignment(window.location.hostname);
   }
 
   setPan(relativeMousePosX, relativeMousePosY){
@@ -372,8 +407,11 @@ class Resizer {
     this.restore();
   }
 
-  setVideoAlignment(videoAlignment) {
-    this.videoAlignment = videoAlignment;
+  setVideoAlignment(videoAlignmentX: VideoAlignmentType, videoAlignmentY?: VideoAlignmentType) {
+    this.videoAlignment = {
+      x: videoAlignmentX ?? VideoAlignmentType.Default,
+      y: videoAlignmentY ?? VideoAlignmentType.Default
+    };
     this.restore();
   }
 
@@ -411,7 +449,7 @@ class Resizer {
     }
   }
 
-  setZoom(zoomLevel, no_announce) {
+  setZoom(zoomLevel, no_announce?) {
     this.zoom.setZoom(zoomLevel, no_announce);
   }
 
@@ -567,10 +605,10 @@ class Resizer {
         translate.y += hdiffAfterZoom * this.pan.relativeOffsetY * this.zoom.scale;
       }
     } else {
-      if (this.videoAlignment == VideoAlignmentType.Left) {
+      if (this.videoAlignment.x == VideoAlignmentType.Left) {
         translate.x += wdiffAfterZoom * 0.5;
       }
-      else if (this.videoAlignment == VideoAlignmentType.Right) {
+      else if (this.videoAlignment.x == VideoAlignmentType.Right) {
         translate.x -= wdiffAfterZoom * 0.5;
       }
     }

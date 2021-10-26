@@ -10,6 +10,7 @@ import Settings from '../Settings';
 import PageInfo from './PageInfo';
 import { sleep } from '../../../common/js/utils';
 import { hasDrm } from '../ar-detect/DrmDetecor';
+import EventBus from '../EventBus';
 
 class VideoData {
   private baseCssName: string = 'uw-ultrawidify-base-wide-screen';
@@ -49,6 +50,7 @@ class VideoData {
   player: PlayerData;
   resizer: Resizer;
   arDetector: ArDetector;
+  eventBus: EventBus;
   //#endregion
 
 
@@ -84,6 +86,8 @@ class VideoData {
       width: this.video.offsetWidth,
       height: this.video.offsetHeight,
     };
+
+    this.eventBus = new EventBus();
 
     this.setupStageOne();
   }

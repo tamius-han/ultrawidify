@@ -155,6 +155,9 @@ export default {
       console.log("settings:", this.settings)
       console.log("windowPD", window.ultrawidify);
       console.log("this:", this);
+
+
+      console.log('eventBus:', this.eventBus);
     } catch (e) {
       console.error('Failed to initiate ultrawidify player ui.', e);
     }

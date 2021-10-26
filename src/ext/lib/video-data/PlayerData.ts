@@ -9,6 +9,7 @@ import { sleep } from '../../../common/js/utils';
 import VideoData from './VideoData';
 import Settings from '../Settings';
 import Logger from '../Logger';
+import EventBus from '../EventBus';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: PlayerData.js");
@@ -42,6 +43,7 @@ class PlayerData {
   videoData: VideoData;
   settings: Settings;
   notificationService: PlayerNotificationUi;
+  eventBus: EventBus;
   //#endregion
 
   //#region HTML objects
@@ -87,12 +89,13 @@ class PlayerData {
       this.videoData = videoData;
       this.video = videoData.video;
       this.settings = videoData.settings;
+      this.eventBus = videoData.eventBus;
       this.extensionMode = videoData.extensionMode;
       this.invalid = false;
       this.element = this.getPlayer();
 
       this.notificationService = new PlayerNotificationUi(this.element, this.settings);
-      this.ui = new PlayerUi(this.element, this.settings);
+      this.ui = new PlayerUi(this.element, this.settings, this.eventBus);
       this.ui.init();
 
       this.dimensions = undefined;
