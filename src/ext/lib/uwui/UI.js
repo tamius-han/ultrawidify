@@ -39,6 +39,10 @@ class UI {
   }
 
   async initUi() {
+    if (this.app) {
+      this.app.unmount();
+    }
+
     const random = Math.round(Math.random() * 69420);
     const uwid = `uw-${this.interfaceId}-root-${random}`
 
@@ -71,6 +75,8 @@ class UI {
    */
   replace(newUiConfig) {
     this.element?.remove();
+    this.app.unmount();
+    this.app = undefined;
     this.uiConfig = newUiConfig;
     this.initUi();
   }
@@ -78,6 +84,8 @@ class UI {
   destroy() {
     // this.comms?.destroy();
     this.element?.remove();
+    this.app.unmount();
+    this.app = undefined;
   }
 }
 
