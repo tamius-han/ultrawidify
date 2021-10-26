@@ -11,7 +11,7 @@
                         :key="index"
                         :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
                         :shortcut="parseShortcut(action)"
-                        @click.native="execAction(action)"
+                        @click="execAction(action)"
         >
         </ShortcutButton>
       </div>
@@ -27,7 +27,7 @@
                         :key="index"
                         :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
                         :shortcut="parseShortcut(action)"
-                        @click.native="execAction(action)"
+                        @click="execAction(action)"
         >
         </ShortcutButton>
       </div>
@@ -233,6 +233,7 @@ export default {
     'frame',
     'zoom',
     'cropModePersistence',
+    'eventBus'
   ],
   created() {
     this.exec = new ExecAction(this.settings, window.location.hostname);
@@ -252,6 +253,17 @@ export default {
       BrowserDetect.runtime.openOptionsPage();
     },
     execAction(action) {
+
+      // TODO: migrate all actions to the new way of doing things
+      if (action.cmd[0].action === 'set-ar') {
+        this.eventBus?.send('set-ar', {
+          type: action.cmd[0].arg,
+          ratio: action.cmd[0].customArg
+        });
+        return;
+      }
+
+
       console.log('execing action:', action, window.ultrawidify);
 
       try {

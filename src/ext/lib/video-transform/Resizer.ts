@@ -56,7 +56,7 @@ class Resizer {
   //#region event bus configuration
   private eventBusCommands = {
     'set-ar': [{
-      function: (config: any) => this.setAr(config.type, config.ratio)
+      function: (config: any) => this.setAr(config)
     }],
     'set-alignment': [{
       function: (config: any) => {
@@ -81,6 +81,8 @@ class Resizer {
     this.logger = videoData.logger;
     this.video = videoData.video;
     this.settings = videoData.settings;
+    this.eventBus = videoData.eventBus;
+    this.initEventBus();
 
     this.scaler = new Scaler(this.conf);
     this.stretcher = new Stretcher(this.conf);
@@ -98,8 +100,7 @@ class Resizer {
 
     this.userCssClassName = videoData.userCssClassName;
 
-    this.eventBus = videoData.eventBus;
-    this.initEventBus();
+
   }
 
   initEventBus() {
@@ -178,7 +179,6 @@ class Resizer {
 
     return ar;
   }
-
 
   updateAr(ar) {
     if (!ar) {
@@ -387,7 +387,7 @@ class Resizer {
 
   resetPan() {
     this.pan = {x: 0, y: 0};
-    this.videoAlignment.x = this.settings.getDefaultVideoAlignment(window.location.hostname);
+    this.videoAlignment = {x: this.settings.getDefaultVideoAlignment(window.location.hostname), y: VideoAlignmentType.Center};
   }
 
   setPan(relativeMousePosX, relativeMousePosY){

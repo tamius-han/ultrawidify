@@ -18,13 +18,15 @@ class PlayerUi extends UI {
    */
   constructor (
     playerElement,
-    settings
-  ) {    
+    settings,
+    eventBus,
+  ) {
     super(
       'ultrawidifyUi',
       PlayerUi.getStoreConfig(),
       PlayerUi.getUiConfig(playerElement),
-      PlayerUi.getCommsConfig()
+      PlayerUi.getCommsConfig(),
+      eventBus
     );
 
     this.settings = settings;

@@ -724,9 +724,9 @@ class ArDetector {
         let newCanvasWidth = window.innerHeight * (this.video.videoWidth / this.video.videoHeight);
         let newCanvasHeight = window.innerHeight;
 
-        if (this.conf.resizer.videoAlignment === VideoAlignmentType.Center) {
+        if (this.conf.resizer.videoAlignment.x === VideoAlignmentType.Center) {
           this.canvasDrawWindowHOffset = Math.round((window.innerWidth - newCanvasWidth) * 0.5);
-        } else if (this.conf.resizer.videoAlignment === VideoAlignmentType.Left) {
+        } else if (this.conf.resizer.videoAlignment.x === VideoAlignmentType.Left) {
           this.canvasDrawWindowHOffset = 0;
         } else {
           this.canvasDrawWindowHOffset = window.innerWidth - newCanvasWidth;

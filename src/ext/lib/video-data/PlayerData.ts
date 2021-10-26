@@ -94,7 +94,7 @@ class PlayerData {
       this.invalid = false;
       this.element = this.getPlayer();
 
-      this.notificationService = new PlayerNotificationUi(this.element, this.settings);
+      this.notificationService = new PlayerNotificationUi(this.element, this.settings, this.eventBus);
       this.ui = new PlayerUi(this.element, this.settings, this.eventBus);
       this.ui.init();
 

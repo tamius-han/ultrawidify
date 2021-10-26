@@ -14,11 +14,13 @@ class UI {
     storeConfig,
     uiConfig, // {component, parentElement?}
     commsConfig,
+    eventBus
   ) {
     this.interfaceId = interfaceId;
     this.commsConfig = commsConfig;
     this.storeConfig = storeConfig;
     this.uiConfig = uiConfig;
+    this.eventBus = eventBus;
 
     this.init();
   }
@@ -62,10 +64,25 @@ class UI {
 
     this.element = rootDiv;
 
-    const app = createApp(this.uiConfig.component).use(mdiVue, {icons: mdijs});
+    const app = createApp(this.uiConfig.component)
+      .use(mdiVue, {icons: mdijs})
+      .use({   // hand eventBus to the component
+        install: (app, options) => {
+          app.mixin({
+            data() {
+              return {
+                eventBus: options.eventBus
+              }
+            }
+          })
+        }
+      }, {eventBus: this.eventBus});
+
     if (this.vuexStore) {
       app.use(this.vuexStore);
     }
+
+    this.app = app;
     app.mount(`#${uwid}`);
   }
 
