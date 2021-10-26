@@ -40,8 +40,8 @@ export default class UWContent {
     'change-zoom': [(message) => this.pageInfo.zoomStep(message.arg, message.playing)],
     'mark-player': [(message) => this.pageInfo.markPlayer(message.name, message.color)],
     'unmark-player': [() => this.pageInfo.unmarkPlayer()],
-    'autoar-set-manual-tick': [(message) => this.pageInfo.setManualTick(message.arg)],
-    'autoar-tick': [() => this.pageInfo.tick()],
+    // 'autoar-set-manual-tick': [(message) => this.pageInfo.setManualTick(message.arg)],
+    // 'autoar-tick': [() => this.pageInfo.tick()],
     'set-ar-persistence': [(message) => this.pageInfo.setArPersistence(message.arg)],
   }
 
