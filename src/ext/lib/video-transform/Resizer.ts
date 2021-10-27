@@ -88,9 +88,12 @@ class Resizer {
     this.stretcher = new Stretcher(this.conf);
     this.zoom = new Zoom(this.conf);
 
-    this.videoAlignment.x = this.settings.getDefaultVideoAlignment(window.location.hostname); // this is initial video alignment
-    this.destroyed = false;
+    this.videoAlignment = {
+      x: this.settings.getDefaultVideoAlignment(window.location.hostname),
+      y: VideoAlignmentType.Center
+    }; // this is initial video alignment
 
+    this.destroyed = false;
 
     if (this.settings.active.pan) {
       this.canPan = this.settings.active.miscSettings.mousePan.enabled;
@@ -99,8 +102,6 @@ class Resizer {
     }
 
     this.userCssClassName = videoData.userCssClassName;
-
-
   }
 
   initEventBus() {
@@ -594,8 +595,6 @@ class Resizer {
       x: wdiff * 0.5,
       y: hdiff * 0.5,
     };
-
-
 
 
     if (this.pan.relativeOffsetX || this.pan.relativeOffsetY) {
