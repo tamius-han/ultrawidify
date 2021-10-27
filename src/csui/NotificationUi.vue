@@ -2,11 +2,11 @@
   <div v-if="showNotification" class="uw-ultrawidify-container flex flex-column overflow-hidden">
     <div class="notification-popup flex flex-row">
       <div v-if="notificationIcon" class="flex-nogrow flex-noshrink notification-icon">
-        <Icon
+        <!-- <Icon
           class="flex-nogrow flex-noshrink"
           :icon="notificationIcon"
         >
-        </Icon>
+        </Icon> -->
       </div>
       <div class="notification-content flex-grow flex-shrink flex flex-column flex-cross-center">
         <div

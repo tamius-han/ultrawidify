@@ -304,7 +304,7 @@ export default {
     Donate,
     SiteDetailsPanel,
     WhatsNewPanel,
-    Icon,
+    // Icon,
   },
   methods: {
     async sleep(t) {
