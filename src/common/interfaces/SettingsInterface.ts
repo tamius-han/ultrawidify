@@ -6,20 +6,22 @@ import ExtensionMode from '../enums/ExtensionMode.enum'
 import StretchType from '../enums/StretchType.enum'
 import VideoAlignmentType from '../enums/VideoAlignmentType.enum'
 
+export interface KeyboardShortcutInterface {
+  key?: string,
+  code?: string,
+  ctrlKey?: boolean,
+  metaKey?: boolean,
+  altKey?: boolean,
+  shiftKey?: boolean,
+  onKeyUp?: boolean,
+  onKeyDown?: boolean,
+  onMouseMove?: boolean,
+}
+
 interface ActionScopeInterface {
   show: boolean,
   label?: string,   // example override, takes precedence over default label
-  shortcut?: {
-    key?: string,
-    code?: string,
-    ctrlKey?: boolean,
-    metaKey?: boolean,
-    altKey?: boolean,
-    shiftKey?: boolean,
-    onKeyUp?: boolean,
-    onKeyDown?: boolean,
-    onMouseMove?: boolean,
-  }[],
+  shortcut?: KeyboardShortcutInterface[],
 }
 
 interface RestrictionsSettings {
@@ -27,6 +29,16 @@ interface RestrictionsSettings {
   minAllowedWidth?: number;           // if player is less than this many px wide, ultrawidify will disable itself
   minAllowedHeight?: number;          // if player is less than this many px tall, ultrawidify will disable itself
   onlyAllowInFullscreen?: boolean;    // if enabled, ultrawidify will be disabled when not in full screen regardless of what previous two options say
+}
+
+export interface CommandInterface {
+  action: string,
+  label: string,
+  comment?: string,
+  arguments?: any,
+  shortcut?: KeyboardShortcutInterface,
+  internalOnly?: boolean,
+  actionId?: string,
 }
 
 interface SettingsInterface {
@@ -231,6 +243,15 @@ interface SettingsInterface {
     },
     userAdded?: boolean,
   }[],
+  // This object fulfills the same purpose as 'actions', but is written in less retarded and overly
+  // complicated way. Hopefully it'll be easier to maintain it that way.
+  commands?: {
+    crop?: CommandInterface[],
+    stretch?: CommandInterface[],
+    zoom?: CommandInterface[],
+    pan?: CommandInterface[],
+    internal?: CommandInterface[],
+  },
   whatsNewChecked: boolean,
   // -----------------------------------------
   //       ::: SITE CONFIGURATION :::
