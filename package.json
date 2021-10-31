@@ -16,11 +16,13 @@
     "build-zip": "node scripts/build-zip.js",
     "build:dev": "webpack --hide-modules",
     "dev": "cross-env NODE_ENV=development CHANNEL=dev concurrently \"cross-env BROWSER=firefox npm run build:dev -- --watch\" \"cross-env BROWSER=chrome npm run build:dev -- --watch\"  \"cross-env BROWSER=edge npm run build:dev -- --watch\"",
+    "dev:windows": "cross-env NODE_ENV=development CHANNEL=dev concurrently \"cross-env BROWSER=firefox npm run build:dev -- -w --watch-poll\" \"cross-env BROWSER=chrome npm run build:dev -- -w --watch-poll\"  \"cross-env BROWSER=edge npm run build:dev -- -w --watch-poll\"",
     "dev-ff": "cross-env NODE_ENV=development CHANNEL=dev BROWSER=firefox npm run build:dev -- --watch",
     "dev-chrome": "cross-env NODE_ENV=development CHANNEL=dev BROWSER=chrome npm run build:dev -- --watch",
     "dev-edge": "cross-env NODE_ENV=development CHANNEL=dev BROWSER=edge npm run build:dev -- --watch",
     "pre-build": "rm -rf ./dist-ff; rm -rf ./dist-chrome; rm -rf ./node_modules; npm ci",
-    "start": "npm run dev"
+    "start": "npm run dev",
+    "start:windows": "npm run dev:windows"
   },
   "dependencies": {
     "@babel/plugin-proposal-class-properties": "^7.12.1",
