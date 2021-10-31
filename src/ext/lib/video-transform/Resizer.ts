@@ -22,6 +22,7 @@ class Resizer {
   //#region flags
   canPan: boolean = false;
   destroyed: boolean = false;
+  manualZoom: boolean = false;
   //#endregion
 
   //#region helper objects
@@ -56,7 +57,10 @@ class Resizer {
   //#region event bus configuration
   private eventBusCommands = {
     'set-ar': [{
-      function: (config: any) => this.setAr(config)
+      function: (config: any) => {
+        this.manualZoom = false; // this only gets called from UI or keyboard shortcuts, making this action safe.
+        this.setAr(config);
+      }
     }],
     'set-alignment': [{
       function: (config: any) => {
@@ -64,10 +68,13 @@ class Resizer {
       }
     }],
     'set-stretch': [{
-      function: (config: any) => this.setStretchMode(config.stretchMode, config.fixedAspectRatio)
+      function: (config: any) => {
+        this.manualZoom = false; // we also need to unset manual aspect ratio when doing this
+        this.setStretchMode(config.stretchMode, config.fixedAspectRatio)
+      }
     }],
     'set-zoom': [{
-      function: (config: any) => this.setZoom(config.zoomLevel)
+      function: (config: any) => this.setZoom(config.zoom, config.axis)
     }],
     'change-zoom': [{
       function: (config: any) => this.zoomStep(config.step)
@@ -138,8 +145,6 @@ class Resizer {
     if (ar.type !== AspectRatioType.FitWidth && ar.type !== AspectRatioType.FitHeight && ar.ratio) {
       return ar;
     }
-    // Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi".
-    // Približevanje opuščeno.
     // handles "legacy" options, such as 'fit to widht', 'fit to height' and AspectRatioType.Reset. No zoom tho
     let ratioOut;
 
@@ -157,9 +162,6 @@ class Resizer {
       ratioOut = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
     }
 
-    // POMEMBNO: lastAr je potrebno nastaviti šele po tem, ko kličemo _res_setAr(). _res_setAr() predvideva,
-    // da želimo nastaviti statično (type: 'static') razmerje stranic — tudi, če funkcijo kličemo tu oz. v ArDetect.
-    //
     // IMPORTANT NOTE: lastAr needs to be set after _res_setAr() is called, as _res_setAr() assumes we're
     // setting a static aspect ratio (even if the function is called from here or ArDetect).
 
@@ -203,6 +205,10 @@ class Resizer {
   async setAr(ar: {type: any, ratio?: number}, lastAr?: {type: any, ratio?: number}) {
     if (this.destroyed) {
       return;
+    }
+
+    if (ar.type !== AspectRatioType.Automatic) {
+      this.manualZoom = false;
     }
 
     if (!this.video.videoWidth || !this.video.videoHeight) {
@@ -322,7 +328,12 @@ class Resizer {
       this.logger.log('error', 'debug', '[Resizer::setAr] Okay wtf happened? If you see this, something has gone wrong', stretchFactors,"\n------[ i n f o   d u m p ]------\nstretcher:", this.stretcher);
     }
 
-    this.zoom.applyZoom(stretchFactors);
+    this.applyScaling(stretchFactors);
+  }
+
+  private applyScaling(stretchFactors) {
+    console.log('applying scaling factors:', stretchFactors);
+
     this.stretcher.chromeBugMitigation(stretchFactors);
 
     let translate = this.computeOffsets(stretchFactors);
@@ -410,20 +421,25 @@ class Resizer {
   }
 
   restore() {
-    this.logger.log('info', 'debug', "[Resizer::restore] <rid:"+this.resizerId+"> attempting to restore aspect ratio", {'lastAr': this.lastAr} );
+    if (!this.manualZoom) {
+      this.logger.log('info', 'debug', "[Resizer::restore] <rid:"+this.resizerId+"> attempting to restore aspect ratio", {'lastAr': this.lastAr} );
 
-    // this is true until we verify that css has actually been applied
-    if(this.lastAr.type === AspectRatioType.Initial){
-      this.setAr({type: AspectRatioType.Reset});
-    }
-    else {
-      if (this.lastAr?.ratio === null) {
-        // if this is the case, we do nothing as we have the correct aspect ratio
-        // throw "Last ar is null!"
-        return;
+      // this is true until we verify that css has actually been applied
+      if(this.lastAr.type === AspectRatioType.Initial){
+        this.setAr({type: AspectRatioType.Reset});
       }
-      this.setAr(this.lastAr, this.lastAr)
+      else {
+        if (this.lastAr?.ratio === null) {
+          // if this is the case, we do nothing as we have the correct aspect ratio
+          // throw "Last ar is null!"
+          return;
+        }
+        this.setAr(this.lastAr, this.lastAr)
+      }
+    } else {
+      this.applyScaling({xFactor: this.zoom.scale, yFactor: this.zoom.scaleY});
     }
+
   }
 
   reset(){
@@ -443,16 +459,20 @@ class Resizer {
     }
   }
 
-  setZoom(zoomLevel, no_announce?) {
-    this.zoom.setZoom(zoomLevel, no_announce);
+  setZoom(zoomLevel: number, axis?: 'x' | 'y', no_announce?) {
+    this.manualZoom = true;
+    console.log('setting zoom:', zoomLevel);
+    this.zoom.setZoom(zoomLevel, axis, no_announce);
   }
 
   zoomStep(step){
+    this.manualZoom = true;
     this.zoom.zoomStep(step);
   }
 
   resetZoom(){
     this.zoom.setZoom(1);
+    this.manualZoom = false;
     this.restore();
   }
 

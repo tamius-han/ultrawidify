@@ -17,8 +17,10 @@ class Zoom {
 
   //#region misc data
   scale: number = 1;
+  scaleY: number = 1;
   logScale: number = 0;
-  scaleStep: number = 0.1; 
+  logScaleY: number = 0;
+  scaleStep: number = 0.1;
   minScale: number = -1;    // 50% (log2(0.5) = -1)
   maxScale: number = 3;     // 800% (log2(8) = 3)
   //#endregion
@@ -34,6 +36,11 @@ class Zoom {
     this.logScale = 0;
   }
 
+  /**
+   * Increases zoom by a given amount. Does not allow per-axis zoom.
+   * Will set zoom level to x axis (+ given amount) if x and y zooms differ.
+   * @param amount
+   */
   zoomStep(amount){
     this.logScale += amount;
 
@@ -43,18 +50,16 @@ class Zoom {
     if (this.logScale >= this.maxScale) {
       this.logScale = this.maxScale;
     }
-  
+
+    this.logScaleY = this.logScale;
+
     this.scale = Math.pow(2, this.logScale);
 
     this.logger.log('info', 'debug', "[Zoom::zoomStep] changing zoom by", amount, ". New zoom level:", this.scale);
-
-    this.conf.resizer.toFixedAr();
-
-    this.conf.restoreAr();
-    this.conf.announceZoom(this.scale);
+    this.processZoom();
   }
 
-  setZoom(scale: number, no_announce?){
+  setZoom(scale: number, axis?: 'x' |'y', no_announce?){
     this.logger.log('info', 'debug', "[Zoom::setZoom] Setting zoom to", scale, "!");
 
     // NOTE: SCALE IS NOT LOGARITHMIC
@@ -64,12 +69,27 @@ class Zoom {
       scale = this.maxScale;
     }
 
-    this.scale = scale;
+    switch (axis) {
+      case 'x':
+        this.scale = scale;
+        break;
+      case 'y':
+        this.scaleY = scale;
+        break;
+      default:
+        this.scale = scale;
+        this.scaleY = scale;
+    }
+
+    this.processZoom();
+  }
+
+  processZoom() {
+    // this.conf.resizer.toFixedAr();
 
     this.conf.restoreAr();
-    if (!no_announce) {
-      this.conf.announceZoom(this.scale);
-    }
+    this.conf.announceZoom(this.scale);
+
   }
 
   applyZoom(stretchFactors){

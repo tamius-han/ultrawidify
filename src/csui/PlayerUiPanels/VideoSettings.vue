@@ -1,33 +1,33 @@
 <template>
   <div class="flex flex-row flex-wrap" style="padding-bottom: 20px">
-    <div class="sub-panel">
+    <div v-if="settings" class="sub-panel">
       <div class="flex flex-row">
         <mdicon name="crop" :size="32" />
         <h1>Crop video:</h1>
       </div>
       <div class="sub-panel-content flex flex-row flex-wrap">
-        <ShortcutButton v-for="(action, index) of aspectRatioActions"
+        <ShortcutButton v-for="(command, index) of settings?.active.commands.crop"
                         class="flex b3 flex-grow button"
                         :key="index"
-                        :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
-                        :shortcut="parseShortcut(action)"
-                        @click="execAction(action)"
+                        :label="command.label"
+                        :shortcut="parseShortcut(command)"
+                        @click="execAction(command)"
         >
         </ShortcutButton>
       </div>
     </div>
-    <div class="sub-panel">
+    <div v-if="settings" class="sub-panel">
       <div class="flex flex-row">
         <mdicon name="stretch-to-page-outline" :size="32" />
         <h1>Stretch video:</h1>
       </div>
       <div class="flex flex-row flex-wrap">
-        <ShortcutButton v-for="(action, index) of stretchActions"
+        <ShortcutButton v-for="(command, index) of settings?.active.commands.stretch"
                         class="flex b3 flex-grow button"
                         :key="index"
-                        :label="(action.scopes.page && action.scopes.page.label) ? action.scopes.page.label : action.label"
-                        :shortcut="parseShortcut(action)"
-                        @click="execAction(action)"
+                        :label="command.label"
+                        :shortcut="parseShortcut(command)"
+                        @click="execAction(command)"
         >
         </ShortcutButton>
       </div>
@@ -61,7 +61,7 @@
           </Button>
         </div>
         <template v-if="zoomAspectRatioLocked">
-          <div class="flex flex-row">
+          <!-- <div class="flex flex-row">
             <ShortcutButton
               class="flex b3 flex-grow button"
               label="-5 %"
@@ -83,7 +83,7 @@
               label="+5 %"
             >
             </ShortcutButton>
-          </div>
+          </div> -->
           <input id="_input_zoom_slider"
                   class="input-slider"
                   type="range"
@@ -104,7 +104,7 @@
         </template>
         <template v-else>
           <div>Horizontal zoom</div>
-          <div class="flex flex-row">
+          <!-- <div class="flex flex-row">
             <ShortcutButton
               class="flex b3 flex-grow button"
               label="-5 %"
@@ -126,7 +126,7 @@
               label="+5 %"
             >
             </ShortcutButton>
-          </div>
+          </div> -->
           <input id="_input_zoom_slider"
                   class="input-slider"
                   type="range"
@@ -134,12 +134,12 @@
                   min="-1"
                   max="4"
                   :value="logarithmicZoom"
-                  @input="changeZoom($event.target.value)"
+                  @input="changeZoom($event.target.value, 'x')"
           />
 
           <div>Vertical zoom</div>
           <div class="flex flex-row">
-            <ShortcutButton
+            <!-- <ShortcutButton
               class="flex b3 flex-grow button"
               label="-5 %"
             >
@@ -159,7 +159,7 @@
               class="flex b3 flex-grow button"
               label="+5 %"
             >
-            </ShortcutButton>
+            </ShortcutButton> -->
           </div>
           <input id="_input_zoom_slider"
                   class="input-slider"
@@ -168,7 +168,7 @@
                   min="-1"
                   max="4"
                   :value="logarithmicZoom"
-                  @input="changeZoom($event.target.value)"
+                  @input="changeZoom($event.target.value, 'y')"
           />
 
           <div style="overflow: auto" class="flex flex-row">
@@ -231,7 +231,6 @@ export default {
   props: [
     'settings',
     'frame',
-    'zoom',
     'cropModePersistence',
     'eventBus'
   ],
@@ -252,31 +251,14 @@ export default {
     async openOptionsPage() {
       BrowserDetect.runtime.openOptionsPage();
     },
-    execAction(action) {
-
-      // TODO: migrate all actions to the new way of doing things
-      if (action.cmd[0].action === 'set-ar') {
-        this.eventBus?.send('set-ar', {
-          type: action.cmd[0].arg,
-          ratio: action.cmd[0].customArg
-        });
-        return;
-      }
-
-
-      console.log('execing action:', action, window.ultrawidify);
-
-      try {
-        this.exec.exec(action, 'page', this.frame, true);
-      } catch (error) {
-        console.error('[uw:VideoSettings.vue::execAction] failed to execute action. Error:', error);
-      }
+    execAction(command) {
+      this.eventBus?.send(command.action, command.arguments);
     },
-    parseShortcut(action) {
-      if (! action.scopes.page.shortcut) {
+    parseShortcut(command) {
+      if (! command.shortcut) {
         return '';
       }
-      return KeyboardShortcutParser.parseShortcut(action.scopes.page.shortcut[0]);
+      return KeyboardShortcutParser.parseShortcut(command.shortcut);
     },
 
     toggleZoomAr() {
@@ -285,18 +267,16 @@ export default {
 
     resetZoom() {
       this.zoom = 1;
+      this.eventBus.send('set-zoom', {zoom: 1});
+
+      console.log('resetting zoom!');
+
     },
     changeZoom(newZoom, axis) {
       newZoom = Math.pow(2, newZoom);
+      console.log('new zoom:', newZoom);
 
-      this.exec.exec(
-        {
-          cmd: [{action: 'set-zoom', arg: newZoom}]
-        },
-        'page',
-        this.frame,
-        true
-      );
+      this.eventBus.send('set-zoom', {zoom: newZoom, axis: axis});
     },
   }
 }
