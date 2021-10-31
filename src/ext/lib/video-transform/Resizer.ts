@@ -257,12 +257,6 @@ class Resizer {
       this.lastAr = {type: ar.type, ratio: ar.ratio};
     }
 
-    // if (this.extensionMode === ExtensionMode.Basic && !PlayerData.isFullScreen() && ar.type !== AspectRatioType.Reset) {
-    //   // don't actually apply or calculate css when using basic mode if not in fullscreen
-    //   //  ... unless we're resetting the aspect ratio to original
-    //   return;
-    // }
-
     if (! this.video) {
       this.conf.destroy();
     }
@@ -335,7 +329,6 @@ class Resizer {
 
     this.applyCss(stretchFactors, translate);
   }
-
 
   toFixedAr() {
     // converting to fixed AR means we also turn off autoAR
