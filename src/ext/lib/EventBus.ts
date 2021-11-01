@@ -20,6 +20,11 @@ export default class EventBus {
   }
 
   send(command: string, config: any, stopPropagation?: boolean) {
+    if (!this.commands ||!this.commands[command]) {
+      // ensure send is not being called for commands that we have no subscriptions for
+      return;
+    }
+
     for (const eventBusCommand of this.commands[command]) {
       eventBusCommand.function(config);
 
@@ -31,6 +36,11 @@ export default class EventBus {
   }
 
   sendGlobal(command: string, config: any) {
+    if (!this.commands ||!this.commands[command]) {
+      // ensure send is not being called for commands that we have no subscriptions for
+      return;
+    }
+
     for (const eventBusCommand of this.commands[command]) {
       this.sendUpstream(command, config);
       this.sendDownstream(command, config);

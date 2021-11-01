@@ -155,8 +155,8 @@ export default {
       CropModePersistence: CropModePersistence,
       zoomAspectRatioLocked: true,
       zoom: {
-        x: 1,
-        y: 1
+        x: 0,
+        y: 0
       }
     }
   },
@@ -209,17 +209,11 @@ export default {
     resetZoom() {
       this.zoom = 1;
       this.eventBus.send('set-zoom', {zoom: 1});
-
-      console.log('resetting zoom!');
-
     },
     changeZoom(newZoom, axis) {
       newZoom = Math.pow(2, newZoom);
-      console.log('new zoom:', newZoom);
 
       this.eventBus.send('set-zoom', {zoom: newZoom, axis: axis, noAnnounce: true});
-
-      // this.zoom = newZoom;
     },
   }
 }
