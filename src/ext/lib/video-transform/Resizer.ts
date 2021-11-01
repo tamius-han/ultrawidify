@@ -74,7 +74,7 @@ class Resizer {
       }
     }],
     'set-zoom': [{
-      function: (config: any) => this.setZoom(config.zoom, config.axis)
+      function: (config: any) => this.setZoom(config.zoom, config.axis, config.noAnnounce)
     }],
     'change-zoom': [{
       function: (config: any) => this.zoomStep(config.step)
@@ -331,13 +331,15 @@ class Resizer {
     this.applyScaling(stretchFactors);
   }
 
-  private applyScaling(stretchFactors) {
-    console.log('applying scaling factors:', stretchFactors);
-
+  applyScaling(stretchFactors, options?: {noAnnounce?: boolean}) {
     this.stretcher.chromeBugMitigation(stretchFactors);
 
-    let translate = this.computeOffsets(stretchFactors);
+    // let the UI know
+    if(!options?.noAnnounce) {
+      this.conf.eventBus.send('announce-zoom', {x: stretchFactors.xFactor, y: stretchFactors.yFactor});
+    }
 
+    let translate = this.computeOffsets(stretchFactors);
     this.applyCss(stretchFactors, translate);
   }
 
@@ -459,10 +461,10 @@ class Resizer {
     }
   }
 
-  setZoom(zoomLevel: number, axis?: 'x' | 'y', no_announce?) {
+  setZoom(zoomLevel: number, axis?: 'x' | 'y', noAnnounce?) {
     this.manualZoom = true;
     console.log('setting zoom:', zoomLevel);
-    this.zoom.setZoom(zoomLevel, axis, no_announce);
+    this.zoom.setZoom(zoomLevel, axis, noAnnounce);
   }
 
   zoomStep(step){

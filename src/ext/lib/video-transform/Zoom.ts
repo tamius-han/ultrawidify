@@ -59,7 +59,7 @@ class Zoom {
     this.processZoom();
   }
 
-  setZoom(scale: number, axis?: 'x' |'y', no_announce?){
+  setZoom(scale: number, axis?: 'x' |'y', noAnnounce?){
     this.logger.log('info', 'debug', "[Zoom::setZoom] Setting zoom to", scale, "!");
 
     // NOTE: SCALE IS NOT LOGARITHMIC
@@ -87,9 +87,7 @@ class Zoom {
   processZoom() {
     // this.conf.resizer.toFixedAr();
 
-    this.conf.restoreAr();
-    this.conf.announceZoom(this.scale);
-
+    this.conf.resizer.applyScaling({xFactor: this.scale, yFactor: this.scaleY}, {noAnnounce: true});
   }
 
   applyZoom(stretchFactors){

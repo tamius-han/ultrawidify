@@ -552,9 +552,6 @@ const ExtensionConf: SettingsInterface = {
   // -----------------------------------------
   //             ::: ACTIONS :::
   // -----------------------------------------
-  // Nastavitve za ukaze. Zamenja stare nastavitve za bližnične tipke.
-  //
-  // Polje 'shortcut' je tabela, če se slučajno lotimo kdaj delati choordov.
   actions: [{
     name: 'Trigger automatic detection',    // name displayed in settings
     label: 'Automatic',                     // name displayed in ui (can be overridden in scope/playerUi)
@@ -1353,7 +1350,6 @@ const ExtensionConf: SettingsInterface = {
   // -----------------------------------------
   //       ::: SITE CONFIGURATION :::
   // -----------------------------------------
-  // Nastavitve za posamezno stran
   // Config for a given page:
   //
   // <hostname> : {
@@ -1370,7 +1366,6 @@ const ExtensionConf: SettingsInterface = {
   //    override: <true|false>           // override user settings for this site on update
   // }
   //
-  // Veljavne vrednosti za možnosti
   // Valid values for options:
   //
   //     status, arStatus, statusEmbedded:
