@@ -64,7 +64,7 @@ class Resizer {
     }],
     'set-alignment': [{
       function: (config: any) => {
-        this.setVideoAlignment(config.videoAlignmentX, config.videoAlignmentY);
+        this.setVideoAlignment(config.x, config.y);
       }
     }],
     'set-stretch': [{
@@ -399,7 +399,7 @@ class Resizer {
 
   resetPan() {
     this.pan = {x: 0, y: 0};
-    this.videoAlignment = {x: this.settings.getDefaultVideoAlignment(window.location.hostname), y: VideoAlignmentType.Center};
+    // this.videoAlignment = {x: this.settings.getDefaultVideoAlignment(window.location.hostname), y: VideoAlignmentType.Center};
   }
 
   setPan(relativeMousePosX, relativeMousePosY){
@@ -624,11 +624,18 @@ class Resizer {
         translate.y += hdiffAfterZoom * this.pan.relativeOffsetY * this.zoom.scale;
       }
     } else {
+      // correct horizontal alignment according to the settings
       if (this.videoAlignment.x == VideoAlignmentType.Left) {
         translate.x += wdiffAfterZoom * 0.5;
-      }
-      else if (this.videoAlignment.x == VideoAlignmentType.Right) {
+      } else if (this.videoAlignment.x == VideoAlignmentType.Right) {
         translate.x -= wdiffAfterZoom * 0.5;
+      }
+
+      // correct vertical alignment according to the settings
+      if (this.videoAlignment.y == VideoAlignmentType.Top) {
+        translate.y += hdiffAfterZoom * 0.5;
+      } else if (this.videoAlignment.y == VideoAlignmentType.Bottom) {
+        translate.y -= hdiffAfterZoom * 0.5;
       }
     }
 
