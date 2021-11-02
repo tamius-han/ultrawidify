@@ -123,11 +123,10 @@ const ExtensionConfPatch = [
       }
     }
   }, {
-    forVersion: '6.0.0',
+    forVersion: '6.0.0-alpha1',
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
-      // migrate keyboard settings to the new format:
-
-      // userOptions.actions
+      // add new commands
+      userOptions.commands = defaultOptions.commands;
     }
   }
 ];

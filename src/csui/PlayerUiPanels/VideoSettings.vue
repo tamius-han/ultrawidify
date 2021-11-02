@@ -66,13 +66,13 @@
                   type="range"
                   step="any"
                   min="-1"
-                  max="4"
+                  max="3"
                   :value="zoom.x"
                   @input="changeZoom($event.target.value)"
                   />
           <div style="overflow: auto" class="flex flex-row">
             <div class="flex flex-grow medium-small x-pad-1em">
-              Zoom: {{(zoom.x * 100).toFixed()}}%
+              Zoom: {{getZoomForDisplay('x')}}
             </div>
             <div class="flex flex-nogrow flex-noshrink medium-small">
               <a class="_zoom_reset x-pad-1em" @click="resetZoom()">reset</a>
@@ -97,14 +97,14 @@
                   type="range"
                   step="any"
                   min="-1"
-                  max="4"
+                  max="3"
                   :value="zoom.y"
                   @input="changeZoom($event.target.value, 'y')"
           />
 
           <div style="overflow: auto" class="flex flex-row">
             <div class="flex flex-grow medium-small x-pad-1em">
-              Zoom: {{(zoom.x * 100).toFixed()}}% x {{(zoom.y * 100).toFixed()}}%
+              Zoom: {{getZoomForDisplay('x')}} x {{getZoomForDisplay('y')}}
             </div>
             <div class="flex flex-nogrow flex-noshrink medium-small">
               <a class="_zoom_reset x-pad-1em" @click="resetZoom()">reset</a>
@@ -189,6 +189,14 @@ export default {
   computed: {
   },
   methods: {
+    getZoomForDisplay(axis) {
+      // zoom is internally handled logarithmically, because we want to
+      // have x0.5, x1, x2, x4 ... magnifications spaced out at regular
+      // intervals. When displaying, we need to conver that back to non-
+      // logarithmic units.
+
+      return `${ (Math.pow(2, this.zoom[axis]) * 100).toFixed()}%`;
+    },
     async openOptionsPage() {
       BrowserDetect.runtime.openOptionsPage();
     },
@@ -207,12 +215,23 @@ export default {
     },
 
     resetZoom() {
-      this.zoom = 1;
-      this.eventBus.send('set-zoom', {zoom: 1});
+      // we store zoom logarithmically on this component
+      this.zoom = {x: 0, y: 0};
+
+      // we do not use logarithmic zoom elsewhere
+      this.eventBus.send('set-zoom', {zoom: 1, axis: 'y'});
+      this.eventBus.send('set-zoom', {zoom: 1, axis: 'x'});
     },
     changeZoom(newZoom, axis) {
-      newZoom = Math.pow(2, newZoom);
+      // we store zoom logarithmically on this compnent
+      if (!axis) {
+        this.zoom.x = newZoom;
+      } else {
+        this.zoom[axis] = newZoom;
+      }
 
+      // we do not use logarithmic zoom elsewhere, therefore we need to convert
+      newZoom = Math.pow(2, newZoom);
       this.eventBus.send('set-zoom', {zoom: newZoom, axis: axis, noAnnounce: true});
     },
   }
