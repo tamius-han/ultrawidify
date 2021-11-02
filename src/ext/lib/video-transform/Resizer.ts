@@ -70,7 +70,7 @@ class Resizer {
     'set-stretch': [{
       function: (config: any) => {
         this.manualZoom = false; // we also need to unset manual aspect ratio when doing this
-        this.setStretchMode(config.stretchMode, config.fixedAspectRatio)
+        this.setStretchMode(config.type, config.ratio)
       }
     }],
     'set-zoom': [{
@@ -324,8 +324,13 @@ class Resizer {
       stretchFactors = this.stretcher.calculateBasicStretch();
       this.logger.log('info', 'debug', '[Resizer::setAr] Processed stretch factors for basic StretchType. Stretch factors are:', stretchFactors);
     } else {
-      stretchFactors = {xFactor: 1, yFactor: 1};
-      this.logger.log('error', 'debug', '[Resizer::setAr] Okay wtf happened? If you see this, something has gone wrong', stretchFactors,"\n------[ i n f o   d u m p ]------\nstretcher:", this.stretcher);
+      stretchFactors = this.scaler.calculateCrop(ar);
+      this.logger.log(
+        'error', 'debug',
+        '[Resizer::setAr] Okay wtf happened? If you see this, something has gone wrong. Pretending stretchMode is set tu NoStretch. Stretch factors are:', stretchFactors,
+        "\n------[ i n f o   d u m p ]------\nstretcher:", this.stretcher,
+        '\nargs: ar (corrected for legacy):', ar, 'last ar (optional argument):', lastAr
+      );
     }
 
     this.applyScaling(stretchFactors);
