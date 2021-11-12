@@ -50,16 +50,45 @@ const config = {
       },
       {
         test: /\.css$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader'],
+        use: [
+          MiniCssExtractPlugin.loader, {
+          loader: 'css-loader',
+          // options: {
+          //   importLoaders: 2,
+          //   modules: {
+          //     localIdentName: "🔶uw_[local]"
+          //   }
+          // }
+        }],
       },
       {
         test: /\.scss$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
+        use: [
+          MiniCssExtractPlugin.loader,
+          // 'css-loader',
+         {
+            loader: 'css-loader',
+            // options: {
+            //   // importLoaders: 1,
+            //   modules: {
+            //     localIdentName: "🔶uw_[local]"
+            //   }
+            // }
+          },
+          'sass-loader'
+        ],
       },
-      {
-        test: /\.sass$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader?indentedSyntax'],
-      },
+      // {
+      //   test: /\.sass$/,
+      //   use: [MiniCssExtractPlugin.loader, {
+      //     loader: 'css-loader',
+      //     options: {
+      //       importLoaders: 2,
+      //       modules: true,
+      //       localIdentName: "🔶uw_[local]"
+      //     }
+      //   }, 'sass-loader?indentedSyntax'],
+      // },
       {
         test: /\.(png|jpg|gif|svg|ico)$/,
         loader: 'file-loader',
