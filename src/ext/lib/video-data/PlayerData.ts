@@ -95,7 +95,7 @@ class PlayerData {
       this.element = this.getPlayer();
 
       this.notificationService = new PlayerNotificationUi(this.element, this.settings, this.eventBus);
-      this.ui = new PlayerUi(this.element, this.settings, this.eventBus);
+      this.ui = new PlayerUi(this.element, this.settings, this.eventBus, this.videoData);
       this.ui.init();
 
       this.dimensions = undefined;

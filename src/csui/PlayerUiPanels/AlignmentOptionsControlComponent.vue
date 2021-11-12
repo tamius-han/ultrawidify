@@ -68,84 +68,90 @@ import VideoAlignmentType from '../../common/enums/VideoAlignmentType.enum';
 
 
 export default {
+  props: [
+    'eventBus'
+  ],
   data() {
     return {
       VideoAlignment: VideoAlignmentType
     }
   },
   methods: {
-    align() {
-
+    align(alignmentX, alignmentY) {
+      console.warn('sending set alignment:', {x: alignmentX, y: alignmentY});
+      this.eventBus.send('set-alignment', {x: alignmentX, y: alignmentY})
     }
   }
 }
 </script>
 
-<style lang="scss" scoped>
-.alignment-box {
-  aspect-ratio: 1;
-  width: 100%;
-  min-width: 40px;
-  max-width: 80px;
-
-  display: flex;
-  flex-direction: column;
-
-  .row {
-    flex: 0 0 33%;
+<style lang="scss">
+.uw-ultrawidify-container-root {
+  .alignment-box {
+    aspect-ratio: 1;
+    width: 100%;
+    min-width: 40px;
+    max-width: 80px;
 
     display: flex;
-    flex-direction: row;
-  }
+    flex-direction: column;
 
-  .col {
-    flex: 0 0 33%;
+    .row {
+      flex: 0 0 33%;
 
-    display: flex;
-
-    .alignment-ui {
-      width: 50%;
-      height: 50%;
+      display: flex;
+      flex-direction: row;
     }
 
-    align-items: center;
-    justify-content: center;
+    .col {
+      flex: 0 0 33%;
 
-    &.top  {
-      align-items: flex-start;
+      display: flex;
 
       .alignment-ui {
-        border-top: 3px solid #fff;
+        width: 50%;
+        height: 50%;
       }
-    }
-    &.bottom  {
-      align-items: flex-end;
 
-      .alignment-ui {
-        border-bottom: 3px solid #fff;
+      align-items: center;
+      justify-content: center;
+
+      &.top  {
+        align-items: flex-start;
+
+        .alignment-ui {
+          border-top: 3px solid #fff;
+        }
       }
-    }
-    &.left {
-      justify-content: flex-start;
+      &.bottom  {
+        align-items: flex-end;
 
-      .alignment-ui {
-        border-left: 3px solid #fff;
+        .alignment-ui {
+          border-bottom: 3px solid #fff;
+        }
       }
-    }
-    &.right {
-      justify-content: flex-end;
+      &.left {
+        justify-content: flex-start;
 
-      .alignment-ui {
-        border-right: 3px solid #fff;
+        .alignment-ui {
+          border-left: 3px solid #fff;
+        }
       }
-    }
+      &.right {
+        justify-content: flex-end;
 
-    &.center.ycenter {
+        .alignment-ui {
+          border-right: 3px solid #fff;
+        }
+      }
 
-      .alignment-ui {
-        width: 25%;
-        height: 25%;
-        background-color: #fff;
+      &.center.ycenter {
+
+        .alignment-ui {
+          width: 25%;
+          height: 25%;
+          background-color: #fff;
+        }
       }
     }
   }

@@ -20,13 +20,14 @@ class PlayerUi extends UI {
     playerElement,
     settings,
     eventBus,
+    videoData
   ) {
     super(
       'ultrawidifyUi',
       PlayerUi.getStoreConfig(),
       PlayerUi.getUiConfig(playerElement),
       PlayerUi.getCommsConfig(),
-      eventBus
+      { eventBus, videoData }
     );
 
     this.settings = settings;

@@ -47,7 +47,7 @@
       <div class="content flex flex-column">
         <!-- autodetection warning -->
 
-        <div class="warning-area">
+        <div v-if="ultrawidify?.videoData?.hasDrm" class="warning-area">
           <div class="warning-box">
             <div>
               <mdicon name="alert" :size="42" />
@@ -64,7 +64,7 @@
           <template v-if="settingsInitialized">
             <VideoSettings
               :settings="settings"
-              :eventBus="eventBus"
+              :eventBus="ultrawidify.eventBus"
             ></VideoSettings>
             <!-- <ResizerDebugPanel :debugData="debugData">
             </ResizerDebugPanel> -->

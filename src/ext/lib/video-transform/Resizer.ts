@@ -591,6 +591,8 @@ class Resizer {
 
     const {realVideoWidth, realVideoHeight, marginX, marginY} = this.computeVideoDisplayedDimensions();
 
+    const {postZoomVideoDimensions, displayedVideoDimensions, crop} = this.computeCroppedAreas(stretchFactors);
+
     // correct any remaining element size discrepencies (applicable only to certain crop strategies!)
     // NOTE: it's possible that we might also need to apply a similar measure for CropPillarbox strategy
     // (but we'll wait for bug reports before doing so).
@@ -604,6 +606,9 @@ class Resizer {
       stretchFactors.xFactor *= autoHeightCompensationFactor;
       stretchFactors.yFactor *= autoHeightCompensationFactor;
     }
+
+    const offsetWidth = this.conf.video.offsetWidth;
+    const offsetHeight = this.conf.video.offsetHeight;
 
     const wdiff = this.conf.player.dimensions.width - realVideoWidth;
     const hdiff = this.conf.player.dimensions.height - realVideoHeight;

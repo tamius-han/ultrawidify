@@ -14,13 +14,13 @@ class UI {
     storeConfig,
     uiConfig, // {component, parentElement?}
     commsConfig,
-    eventBus
+    ultrawidify, // or, at least, videoData instance + event bus
   ) {
     this.interfaceId = interfaceId;
     this.commsConfig = commsConfig;
     this.storeConfig = storeConfig;
     this.uiConfig = uiConfig;
-    this.eventBus = eventBus;
+    this.ultrawidify = ultrawidify;
 
     this.init();
   }
@@ -71,12 +71,12 @@ class UI {
           app.mixin({
             data() {
               return {
-                eventBus: options.eventBus
+                ultrawidify: options.ultrawidify
               }
             }
           })
         }
-      }, {eventBus: this.eventBus});
+      }, {ultrawidify: this.ultrawidify});
 
     if (this.vuexStore) {
       app.use(this.vuexStore);

@@ -24,7 +24,7 @@ class PlayerNotificationUi extends UI {
       PlayerNotificationUi.getStoreConfig(),
       PlayerNotificationUi.getUiConfig(playerElement),
       PlayerNotificationUi.getCommsConfig(),
-      eventBus
+      { eventBus }
     );
 
     this.settings = settings;
