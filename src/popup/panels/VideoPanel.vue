@@ -31,10 +31,10 @@
       <div class="row"
       >
         <!--
-          min, max and value need to be implemented in js as this slider 
+          min, max and value need to be implemented in js as this slider
           should use logarithmic scale
         -->
-        <input id="_input_zoom_slider" 
+        <input id="_input_zoom_slider"
                 class="input-slider"
                 type="range"
                 step="any"
@@ -49,12 +49,12 @@
           </div>
           <div class="flex flex-nogrow flex-noshrink medium-small">
             <a class="_zoom_reset x-pad-1em" @click="resetZoom()">reset</a>
-          </div> 
+          </div>
         </div>
 
         <div class="m-t-0-33em display-block">
           <input id="_input_zoom_site_allow_pan"
-                  type="checkbox" 
+                  type="checkbox"
                   />
           Pan with mouse
         </div>
@@ -178,7 +178,7 @@ export default {
     },
     changeZoom(nz) {
       nz = Math.pow(2, nz);
-      this.$emit('zoom-change', nz); 
+      this.$emit('zoom-change', nz);
       this.exec.exec(
         {cmd: [{action: 'set-zoom', arg: nz}]},
         'page',

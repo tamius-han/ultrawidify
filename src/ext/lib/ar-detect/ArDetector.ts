@@ -390,6 +390,7 @@ class ArDetector {
   }
 
   private getVideoPlaybackState(): VideoPlaybackState {
+
     try {
       if (this.video.ended) {
         return VideoPlaybackState.Ended;

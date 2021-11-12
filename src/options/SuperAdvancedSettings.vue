@@ -54,7 +54,7 @@ export default {
   },
   computed: {
     // parsedSettings() {
-    //   return 
+    //   return
     // }
   },
   methods: {
@@ -75,7 +75,7 @@ export default {
       // this.lastSettings = JSON.parse(JSON.stringify(this.settings.active));
       const ths = this;
       this.$nextTick( () => {
-        ths.parsedSettings = JSON.stringify(ths.lastSettings, null, 2) 
+        ths.parsedSettings = JSON.stringify(ths.lastSettings, null, 2)
         ths.lastSettings = JSON.parse(JSON.stringify(ths.settings.active))
       });
     },

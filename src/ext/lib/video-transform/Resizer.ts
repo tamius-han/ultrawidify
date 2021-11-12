@@ -559,6 +559,36 @@ class Resizer {
     }
   }
 
+  computeCroppedAreas(stretchFactors) {
+    // PSA: offsetWidth and offsetHeight DO NOT INCLUDE
+    // ZOOM APPLIED THROUGH THE MAGIC OF CSS TRANSFORMS
+    const sourceWidth = this.conf.video.offsetWidth;
+    const sourceHeight = this.conf.video.offsetHeight;
+
+    // this is the size of the video AFTER zooming was applied but does
+    // not account for cropping. It may be bigger than the player in
+    // both dimensions. It may be smaller than player in both dimensions
+    const postZoomWidth = sourceWidth * stretchFactors.xFactor;
+    const postZoomHeight = sourceHeight * stretchFactors.yFactor;
+
+    // this is the size of the video after crop is applied
+    const displayedWidth = Math.min(this.conf.player.dimensions.width, postZoomWidth);
+    const displayedHeight = Math.min(this.conf.player.dimensions.height, postZoomHeight);
+
+    // these two are cropped areas. Negative values mean additional
+    // letterboxing or pillarboxing. We assume center alignment for
+    // the time being - we will correct that later if need be
+    const croppedX = (postZoomWidth - displayedWidth) * 0.5;
+    const croppedY = (postZoomHeight - displayedHeight) * 0.5;
+
+    return {
+      sourceVideoDimensions: {width: sourceWidth, height: sourceHeight},
+      postZoomVideoDimensions: {width: postZoomWidth, height: postZoomHeight},
+      displayedVideoDimensions: {width: displayedWidth, height: displayedHeight},
+      crop: {left: croppedX, top: croppedY},
+    };
+  }
+
   /**
    * Sometimes, sites (e.g. new reddit) will guarantee that video fits width of its container
    * and let the browser figure out the height through the magic of height:auto. This is bad,

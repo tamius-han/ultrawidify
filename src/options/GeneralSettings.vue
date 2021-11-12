@@ -210,7 +210,7 @@ export default {
 
       const blob = new Blob([JSON.stringify(this.settings.active)], {type: 'application/json'});
       const fileUrl = URL.createObjectURL(blob);
-      
+
       try {
         if (BrowserDetect.firefox) {
           // reminder — webextension-polyfill doesn't seem to work in vue!
@@ -218,7 +218,7 @@ export default {
           browser.downloads.download({saveAs: true, filename: 'ultrawidify-settings.json', url: fileUrl});
         } else if (BrowserDetect.anyChromium) {
           const ths = this;
-          
+
           chrome.permissions.request(
             {permissions: ['downloads']},
             (granted) => {
@@ -227,7 +227,7 @@ export default {
               } else {
                 ths.downloadPermissionError = true
               }
-            } 
+            }
           )
         }
       } catch (e) {
@@ -240,7 +240,7 @@ export default {
     async importSettings($event) {
       let file, text, settingsObj;
       this.corruptedSettingsError = false;
-      
+
       try {
         file = $event.target.files[0];
       } catch (e) {
@@ -258,7 +258,7 @@ export default {
         return;
       }
 
-      // validate settings 
+      // validate settings
       for (const key in this.settings.default) {
         if (!settingsObj[key]) {
           console.error("corrupted settings!")

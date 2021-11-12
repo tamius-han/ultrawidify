@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import ShortcutButton from '../../common/components/ShortcutButton.vue' 
+import ShortcutButton from '../../common/components/ShortcutButton.vue'
 
 export default {
   props: {
