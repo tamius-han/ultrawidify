@@ -82,7 +82,7 @@ class PlayerNotificationUi extends UI {
 
   //#region lifecycle
   replace(playerElement) {
-    super.replace(this.getUiConfig(playerElement));
+    super.replace(PlayerNotificationUi.getUiConfig(playerElement));
   }
   //#endregion
 
