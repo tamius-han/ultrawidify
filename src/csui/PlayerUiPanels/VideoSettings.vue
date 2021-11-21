@@ -250,11 +250,11 @@ export default {
 
 </style>
 
-<style lang="scss" src="../../res/css/flex.scss" scoped></style>
-<style lang="scss" src="../res-common/panels.scss" scoped></style>
-<style lang="scss" src="../res-common/common.scss" scoped></style>
+<style lang="scss" src="../../res/css/flex.scss" scoped module></style>
+<style lang="scss" src="../res-common/panels.scss" scoped module></style>
+<style lang="scss" src="../res-common/common.scss" scoped module></style>
 
-<style lang="scss" scoped>
+<style lang="scss" scoped module>
 .uw-ultrawidify-container-root {
   .b3 {
     width: 9rem;
@@ -270,5 +270,4 @@ export default {
     padding-top: 8px;
   }
 }
-
 </style>

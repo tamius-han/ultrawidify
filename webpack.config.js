@@ -49,17 +49,40 @@ const config = {
         exclude: /node_modules/,
       },
       {
-        test: /\.css$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader'],
+        test: /\.(sc|c)ss$/,
+        use: [
+          // MiniCssExtractPlugin.loader,
+          'vue-style-loader',
+          {
+            loader: 'css-loader',
+            // modules: {
+            //   localIdentName: "[name]-[hash]"
+            // }
+            // options: {
+            //   modules: true,
+            //   // localIdentName: "🔶uw_[local]"
+            //   localIdentName: "[name]-[hash]"
+            //   // localIdentName: "uw_[local]"
+            // }
+          },
+          'sass-loader'
+        ],
       },
-      {
-        test: /\.scss$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
-      },
-      {
-        test: /\.sass$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader?indentedSyntax'],
-      },
+      // {
+      //   test: /\.scss$/,
+      //   use: [
+      //     // MiniCssExtractPlugin.loader,
+      //     'css-loader',
+      //   //  {
+      //   //     loader: 'css-loader',
+      //   //     // options: {
+      //   //     //   modules: true,
+      //   //     //   localIdentName: "🔶uw_[local]"
+      //   //     // }
+      //   //   },
+      //     'sass-loader'
+      //   ],
+      // },
       {
         test: /\.(png|jpg|gif|svg|ico)$/,
         loader: 'file-loader',

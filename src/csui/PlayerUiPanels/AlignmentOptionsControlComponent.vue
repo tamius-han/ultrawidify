@@ -85,7 +85,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped module>
 .uw-ultrawidify-container-root {
   .alignment-box {
     aspect-ratio: 1;
