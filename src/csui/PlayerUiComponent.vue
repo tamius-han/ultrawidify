@@ -5,37 +5,66 @@
   <div class="popup-panel flex flex-column">
     <div>
       <div class="popup-title">Ultrawidify <small>{{settings?.active?.version}} - {{BrowserDetect.processEnvChannel}}</small></div>
-      <div class="">
-        Site: {{site}}
-        <div v-if="siteSupportLevel === 'supported'" class="site-support supported">
+      <div class="site-support-info">
+        <div class="site-support-site">{{site}}</div>
+        <div v-if="siteSupportLevel === 'official'" class="site-support official">
           <mdicon name="check-decagram" />
-          <div>Officially supported</div>
+          <div>Official</div>
+          <div class="tooltip">The extension is being tested and should work on this site.</div>
         </div>
         <div v-if="siteSupportLevel === 'community'" class="site-support community">
           <mdicon name="handshake" />
-          <div>Supported through contributions from community.</div>
+          <div>Community</div>
+          <div class="tooltip">
+            People say extension works on this site (or have provided help getting the extension to work if it didn't).<br/><br/>
+            Tamius (the dev) does not test the extension on this site, probably because it requires a subscription or
+            is geoblocked.
+          </div>
         </div>
-        <div v-if="siteSupportLevel === 'community'" class="site-support no-support">
+        <div v-if="siteSupportLevel === 'no-support'" class="site-support no-support">
           <mdicon name="help-circle-outline" />
-          <div>Not officially supported. Extension will try to fix things, but no promises.</div>
+          <div>Unknown</div>
+          <div class="tooltip">
+            Not officially supported. Extension will try to fix things, but no promises.<br/><br/>
+            Tamius (the dev) does not test the extension on this site for various reasons
+            (unaware, not using the site, language barrier, geoblocking, requires paid subscription).
+          </div>
         </div>
         <div v-if="siteSupportLevel === 'user-added'" class="site-support user-added">
           <mdicon name="account" />
-          <div>Extension follows your personal configuration for this site.</div>
+          <div>Custom</div>
+          <div class="tooltip">
+            You have manually changed settings for this site. The extension is doing what you told it to do.
+          </div>
         </div>
         <mdicon v-if="siteSupportLevel === 'community'" class="site-support supported" name="checkbox-marked-circle" />
       </div>
     </div>
     <div class="flex flex-row">
       <div class="tab-row flex flex-column">
-        <div class="tab">
+        <div
+          class="tab"
+          @click="selectTab('videoSettings')"
+        >
           <mdicon name="crop" />
           Video options
         </div>
-        <div class="tab">
+        <div
+          class="tab"
+          @click="selectTab('playerDetection')"
+        >
+          Player detection
+        </div>
+        <div
+          class="tab"
+          @click="selectTab('autodetectionSettings')"
+        >
           Autodetection options
         </div>
-        <div class="tab">
+        <div
+          class="tab"
+          @click="selectTab('advancedOptions')"
+        >
           <mdicon name="cogs" />
           Advanced options
         </div>
@@ -99,6 +128,8 @@ export default {
       execAction: new ExecAction(),
       logger: null,
 
+      site: window.location.hostname,
+
       uiVisible: true,
       debugData: {
         resizer: {},
@@ -113,12 +144,19 @@ export default {
       'resizerDebugData',
       'playerDebugData'
     ]),
-    windowWidth: () => {
+    // LPT: NO ARROW FUNCTIONS IN COMPUTED,
+    // IS SUPER HARAM
+    // THINGS WILL NOT WORK IF YOU USE ARROWS
+    windowWidth() {
       return window.innerWidth;
     },
-    windowHeight: () => {
+    windowHeight() {
       return window.innerHeight;
     },
+    siteSupportLevel() {
+      console.warn('\n\n\n\n\n\n\n\n\n\n\nsite support level. site:', this, this?.site, this?.settings, this?.settings?.active?.sites[this.site]);
+      return (this.site && this.settings?.active) ? this.settings.active.sites[this.site]?.type || 'no-support' : 'waiting';
+    }
   },
   watch: {
     showUi(visible) {
@@ -168,10 +206,10 @@ export default {
 }
 </script>
 
-<style lang="scss" src="../res/css/uwui-base.scss" scoped></style>
-<style lang="scss" src="../res/css/flex.scss" scoped></style>
-<style lang="scss" src="./res-common/common.scss" scoped></style>
-<style lang="scss" scoped>
+<style lang="scss" src="../res/css/uwui-base.scss" scoped module></style>
+<style lang="scss" src="../res/css/flex.scss" scoped module></style>
+<style lang="scss" src="./res-common/common.scss" scoped module></style>
+<style lang="scss" scoped module>
 @import '../res/css/uwui-base.scss';
 @import '../res/css/colors.scss';
 @import '../res/css/font/overpass.css';
@@ -184,6 +222,88 @@ export default {
   //   width: 100%;
   //   height: 100%;
   // }
+
+  .site-support-info {
+    display: flex;
+    flex-direction: row;
+    // padding-left: 2rem;
+
+    .site-support-site {
+      font-size: 1.2em;
+    }
+
+    .site-support {
+      display: inline-flex;
+      flex-direction: row;
+      align-items: center;
+
+      margin-left: 2rem;
+      border-radius: 8px;
+      padding: 0rem 1.5rem 0rem 1rem;
+
+      position: relative;
+
+      .tooltip {
+        padding: 1rem;
+        display: none;
+        position: absolute;
+        bottom: 0;
+        transform: translateY(110%);
+        width: 42em;
+
+        background-color: rgba(0,0,0,0.90);
+        color: #ccc;
+      }
+      &:hover {
+        .tooltip {
+          display: block;
+        }
+      }
+
+      .mdi {
+        margin-right: 1rem;
+      }
+
+      &.official {
+        background-color: #fa6;
+        color: #000;
+
+        .mdi {
+          fill: #000 !important;
+        }
+      }
+
+      &.community {
+        background-color: rgb(47, 47, 97);
+        color: #fff;
+
+        .mdi {
+          fill: #fff !important;
+        }
+      }
+
+      &.no-support {
+        background-color: rgb(138, 65, 126);
+        color: #eee;
+
+        .mdi {
+          fill: #eee !important;
+        }
+      }
+
+      &.user-added {
+        border: 1px solid #ff0;
+
+        color: #ff0;
+
+        .mdi {
+          fill: #ff0 !important;
+        }
+      }
+    }
+  }
+
+
 
   .uw-hover {
     position: absolute;

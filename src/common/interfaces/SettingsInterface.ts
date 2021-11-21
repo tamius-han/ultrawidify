@@ -256,7 +256,6 @@ interface SettingsInterface {
   // -----------------------------------------
   //       ::: SITE CONFIGURATION :::
   // -----------------------------------------
-  // Nastavitve za posamezno stran
   // Config for a given page:
   //
   // <hostname> : {
@@ -273,7 +272,6 @@ interface SettingsInterface {
   //    override: <true|false>           // override user settings for this site on update
   // }
   //
-  // Veljavne vrednosti za možnosti
   // Valid values for options:
   //
   //     status, arStatus, statusEmbedded:
