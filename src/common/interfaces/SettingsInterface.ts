@@ -172,6 +172,10 @@ interface SettingsInterface {
 
   restrictions?: RestrictionsSettings;
 
+  crop: {
+    default: any;
+  },
+
   zoom: {
     minLogZoom: number,
     maxLogZoom: number,
@@ -186,6 +190,7 @@ interface SettingsInterface {
     defaultAr?: any
   },
   stretch: {
+    default: any;
     conditionalDifferencePercent: number  // black bars less than this wide will trigger stretch
                                         // if mode is set to '1'. 1.0=100%
   },
@@ -283,10 +288,15 @@ interface SettingsInterface {
   //
   sites: {
     [x: string]: {
-      mode?: ExtensionMode,
-      autoar?: ExtensionMode,
-      autoarFallback?: ExtensionMode,
-      stretch?: StretchType,
+      defaultCrop?: any,                          // v6 new
+      defaultStretch?: any,                       // v6 new
+
+                                                  // everything 'superseded by' needs to be implemented
+                                                  // as well as ported from the old settings
+      mode?: ExtensionMode,                       // v6 — superseded by defaultCrop
+      autoar?: ExtensionMode,                     // v6 — superseded by defaultCrop
+      autoarFallback?: ExtensionMode,             // v6 — deprecated, no replacement
+      stretch?: StretchType,                      // v6 — superseded by defaultStretch
       videoAlignment?: VideoAlignmentType,
       keyboardShortcutsEnabled?: ExtensionMode,
       type?: string,

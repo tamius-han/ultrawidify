@@ -11,6 +11,7 @@ import BrowserDetect from '../conf/BrowserDetect';
 import Logger from './Logger';
 import SettingsInterface from '../../common/interfaces/SettingsInterface';
 import { browser } from 'webextension-polyfill-ts';
+import AspectRatioType from '../../common/enums/AspectRatioType.enum';
 
 if(process.env.CHANNEL !== 'stable'){
   console.info("Loading Settings");
@@ -80,13 +81,13 @@ class Settings {
     return browser.runtime.getManifest().version;
   }
   getExtensionVersion(): string {
-    return Settings.getExtensionVersion(); 
+    return Settings.getExtensionVersion();
   }
 
   compareExtensionVersions(a, b) {
     let aa = a.split('.');
     let bb = b.split('.');
-    
+
     if (+aa[0] !== +bb[0]) {
       // difference on first digit
       return +aa[0] - +bb[0];
@@ -105,8 +106,8 @@ class Settings {
       aa[3] = aa[3] === undefined ? 0 : aa[3];
       bb[3] = bb[3] === undefined ? 0 : bb[3];
 
-      // also, the fourth digit can start with a letter. 
-      // versions that start with a letter are ranked lower than 
+      // also, the fourth digit can start with a letter.
+      // versions that start with a letter are ranked lower than
       // versions x.x.x.0
       if (
         (isNaN(+aa[3]) && !isNaN(+bb[3]))
@@ -115,7 +116,7 @@ class Settings {
         return isNaN(+aa[3]) ? -1 : 1;
       }
 
-      // at this point, either both version numbers are a NaN or 
+      // at this point, either both version numbers are a NaN or
       // both versions are a number.
       if (!isNaN(+aa[3])) {
         return +aa[3] - +bb[3];
@@ -168,7 +169,7 @@ class Settings {
       const updateFn = patches[index].updateFn;
       delete patches[index].forVersion;
       delete patches[index].updateFn;
-      
+
       if (Object.keys(patches[index]).length > 0) {
         ObjectCopy.overwrite(this.active, patches[index]);
       }
@@ -213,11 +214,11 @@ class Settings {
     // if there's no settings saved, return default settings.
     if(! settings || (Object.keys(settings).length === 0 && settings.constructor === Object)) {
       this.logger?.log(
-        'info', 
-        'settings', 
-        '[Settings::init] settings don\'t exist. Using defaults.\n#keys:', 
-        settings ? Object.keys(settings).length : 0, 
-        '\nsettings:', 
+        'info',
+        'settings',
+        '[Settings::init] settings don\'t exist. Using defaults.\n#keys:',
+        settings ? Object.keys(settings).length : 0,
+        '\nsettings:',
         settings
       );
       this.active = this.getDefaultSettings();
@@ -262,7 +263,7 @@ class Settings {
     // set 'whatsNewChecked' flag to false when updating, always
     this.active.whatsNewChecked = false;
     // update settings version to current
-    this.active.version = this.version; 
+    this.active.version = this.version;
 
     await this.save();
     return this.active;
@@ -270,7 +271,7 @@ class Settings {
 
   async get() {
     let ret;
-    
+
     ret = await browser.storage.local.get('uwSettings');
 
     this.logger?.log('info', 'settings', 'Got settings:', ret && ret.uwSettings && JSON.parse(ret.uwSettings));
@@ -350,18 +351,18 @@ class Settings {
   // -----------------------------------------
   // Nastavitve za posamezno stran
   // Config for a given page:
-  // 
+  //
   // <hostname> : {
   //    status: <option>              // should extension work on this site?
   //    arStatus: <option>            // should we do autodetection on this site?
   //    statusEmbedded: <option>      // reserved for future... maybe
-  // } 
-  //  
-  // Veljavne vrednosti za možnosti 
+  // }
+  //
+  // Veljavne vrednosti za možnosti
   // Valid values for options:
   //
   //     status, arStatus, statusEmbedded:
-  //    
+  //
   //    * enabled     — always allow
   //    * basic       — only allow fullscreen
   //    * default     — allow if default is to allow, block if default is to block
@@ -405,7 +406,7 @@ class Settings {
       if (this.active.sites[site].mode === ExtensionMode.Enabled) {
         return ExtensionMode.Enabled;
       } else if (this.active.sites[site].mode === ExtensionMode.Basic) {
-        return ExtensionMode.Basic;            
+        return ExtensionMode.Basic;
       }  else if (this.active.sites[site].mode === ExtensionMode.Disabled) {
         return ExtensionMode.Disabled;
       } else {
@@ -415,7 +416,7 @@ class Settings {
           return ExtensionMode.Disabled;
         }
       }
-  
+
     } catch(e){
       this.logger?.log('error', 'settings', "[Settings.js::canStartExtension] Something went wrong — are settings defined/has init() been called?\n\nerror:", e, "\n\nSettings object:", this)
 
@@ -470,7 +471,7 @@ class Settings {
     }
 
     try {
-      if (!this.active.sites[site] 
+      if (!this.active.sites[site]
           || this.active.sites[site].keyboardShortcutsEnabled === undefined
           || this.active.sites[site].keyboardShortcutsEnabled === ExtensionMode.Default) {
         return this.keyboardShortcutsEnabled('@global');
@@ -518,7 +519,7 @@ class Settings {
       );
     // }
 
-    // if site is not defined, we use default mode:    
+    // if site is not defined, we use default mode:
     if (! this.active.sites[site]) {
       this.logger?.log('info', ['settings', 'aard', 'init', 'debug'], "[Settings::canStartAutoAr] Settings not defined for this site, returning defaults.", site, this.active.sites[site], this.active.sites);
       return this.active.sites['@global'].autoar === ExtensionMode.Enabled;
@@ -548,7 +549,7 @@ class Settings {
     if (!option || allDefault[option] === undefined) {
       return allDefault;
     }
-    
+
     return allDefault[option];
   }
 
@@ -561,7 +562,7 @@ class Settings {
     return this.active.miscSettings.defaultAr;
   }
 
-  getDefaultStretchMode(site) {
+  getDefaultStretchMode_legacy(site) {
     if (site && (this.active.sites[site]?.stretch ?? StretchType.Default) !== StretchType.Default) {
       return this.active.sites[site].stretch;
     }
@@ -584,6 +585,42 @@ class Settings {
     }
 
     return this.active.sites['@global'].videoAlignment;
+  }
+
+  /**
+   * Gets default site configuration. Only returns essential settings.
+   * @returns
+   */
+  getDefaultSiteConfiguration() {
+    return {
+      type: 'user-added',
+      defaultCrop: {
+        type: AspectRatioType.Automatic,    // AARD is enabled by default
+      },
+      defaultStretch: {
+        type: StretchType.NoStretch,        // because we aren't uncultured savages
+      },
+    }
+  }
+
+  /**
+   * Gets default cropping mode for extension.
+   * Returns site default if defined, otherwise it returns extension default.
+   * If extension default is not defined because extension updated but the
+   * settings didn't port over, we return automatic.
+   */
+  getDefaultCrop(site?: string) {
+    return this.active.sites[site ?? window.location.hostname]?.defaultCrop ?? this.active.crop?.default ?? {type: AspectRatioType.Automatic};
+  }
+
+  /**
+   * Gets default stretching mode for extension.
+   * Returns site default if defined, otherwise it returns extension default.
+   * If extension default is not defined because extension updated but the
+   * settings didn't port over, we return automatic.
+   */
+  getDefaultStretchMode(site?: string) {
+    return this.active.sites[site ?? window.location.hostname]?.defaultStretch ?? this.active.stretch.default ?? {type: StretchType.NoStretch};
   }
 }
 

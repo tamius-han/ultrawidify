@@ -1,5 +1,8 @@
 <template>
   <div class="flex flex-row flex-wrap" style="padding-bottom: 20px">
+
+
+    <!-- CROP OPTIONS -->
     <div v-if="settings" class="sub-panel">
       <div class="flex flex-row">
         <mdicon name="crop" :size="32" />
@@ -15,7 +18,45 @@
         >
         </ShortcutButton>
       </div>
+
+      <div class="flex flex-row">
+        <div class="label">Default for this site</div>
+        <div class="select">
+          <select
+            :value="siteDefaultCrop"
+            @click="setDefaultCrop($event, 'site')"
+          >
+            <option
+              v-for="(command, index) of settings?.active.commands.crop"
+              :key="index"
+              :value="JSON.stringify(command.arguments)"
+            >
+              {{command.label}}
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="flex flex-row">
+        <div class="label">Extension default</div>
+        <div class="select">
+          <select
+            :value="extensionDefaultCrop"
+            @click="setDefaultCrop($event, 'global')"
+          >
+            <option
+              v-for="(command, index) of settings?.active.commands.crop"
+              :key="index"
+              :value="JSON.stringify(command.arguments)"
+            >
+              {{command.label}}
+            </option>
+          </select>
+        </div>
+      </div>
     </div>
+
+
+    <!-- STRETCH OPTIONS -->
     <div v-if="settings" class="sub-panel">
       <div class="flex flex-row">
         <mdicon name="stretch-to-page-outline" :size="32" />
@@ -31,7 +72,45 @@
         >
         </ShortcutButton>
       </div>
+
+      <div class="flex flex-row">
+        <div class="label">Default for this site</div>
+        <div class="select">
+          <select
+            v-model="siteDefaultStretchMode"
+            @click="setDefaultStretchingMode($event, 'site')"
+          >
+            <option
+              v-for="(command, index) of settings?.active.commands.stretch"
+              :key="index"
+              :value="JSON.stringify(command.arguments)"
+            >
+              {{command.label}}
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="flex flex-row">
+        <div class="label">Extension default</div>
+        <div class="select">
+          <select
+            v-model="extensionDefaultStretchMode"
+            @click="setDefaultStretchingMode($event, 'global')"
+          >
+            <option
+              v-for="(command, index) of settings?.active.commands.stretch"
+              :key="index"
+              :value="JSON.stringify(command.arguments)"
+            >
+              {{command.label}}
+            </option>
+          </select>
+        </div>
+      </div>
     </div>
+
+
+    <!-- ZOOM OPTIONS -->
     <div class="sub-panel">
       <div class="flex flex-row">
         <mdicon name="magnify-plus-outline" :size="32" />
@@ -146,6 +225,7 @@ import ComputeActionsMixin from '../../common/mixins/ComputeActionsMixin';
 import ExecAction from '../ui-libs/ExecAction';
 import BrowserDetect from '../../ext/conf/BrowserDetect';
 import AspectRatioType from '../../common/enums/AspectRatioType.enum';
+import StretchType from '../../common/enums/StretchType.enum';
 import CropModePersistence from '../../common/enums/CropModePersistence.enum';
 import AlignmentOptionsControlComponent from './AlignmentOptionsControlComponent.vue';
 
@@ -155,6 +235,8 @@ export default {
       exec: null,
       scope: 'page',
       CropModePersistence: CropModePersistence,
+      StretchType: StretchType,
+      AspectRatioType: AspectRatioType,
       zoomAspectRatioLocked: true,
       zoom: {
         x: 0,
@@ -163,7 +245,7 @@ export default {
     }
   },
   mixins: [
-    ComputeActionsMixin
+    ComputeActionsMixin,
   ],
   props: [
     'settings',
@@ -189,6 +271,29 @@ export default {
     AlignmentOptionsControlComponent
   },
   computed: {
+    // because this is passed to a <select>, all the values must be
+    // passed as strings.
+    extensionDefaultCrop() {
+      return JSON.stringify(
+        this.settings?.active.crop?.default ?? {type: AspectRatioType.Automatic}
+      );
+    },
+    siteDefaultCrop()  {
+      console.log('default crop for site:', JSON.parse(JSON.stringify(this.settings)), this.settings?.active.sites[window.location.hostname], this.settings?.active.sites[window.location.hostname].defaultCrop)
+      return JSON.stringify(
+        this.settings?.getDefaultCrop() ?? {type: AspectRatioType.Automatic}
+      );
+    },
+    extensionDefaultStretchMode () {
+      return JSON.stringify(
+        this.settings?.active.stretch.default ?? {type: StretchType.NoStretch}
+      );
+    },
+    siteDefaultStretchMode () {
+      return JSON.stringify(
+        this.settings?.getDefaultStretchMode() ?? {type: StretchType.NoStretch}
+      );
+    }
   },
   methods: {
     getZoomForDisplay(axis) {
@@ -236,6 +341,50 @@ export default {
       newZoom = Math.pow(2, newZoom);
       this.eventBus.send('set-zoom', {zoom: newZoom, axis: axis, noAnnounce: true});
     },
+
+    /**
+     * Sets default crop, for either site or global
+     */
+    setDefaultCrop($event, globalOrSite) {
+      const commandArguments = JSON.parse($event.target.value);
+
+      if (globalOrSite === 'site') {
+        if (!this.settings.active.sites[window.location.hostname]) {
+          this.settings.active.sites[window.location.hostname] = this.settings.getDefaultSiteConfiguration();
+        }
+        this.settings.active.sites[window.location.hostname].defaultCrop = commandArguments;
+      } else {
+        // eventually, this 'if' will be safe to remove (and we'll be able to only
+        // get away with the 'else' section) Maybe in 6 months or so.
+        if (!this.settings.active.crop) {
+          console.log('active settings crop not present. Well add');
+          this.settings.active['crop'] = {
+            default: commandArguments
+          }
+        } else {
+          console.log('default crop settings are present:', JSON.parse(JSON.stringify(this.settings.active.crop)))
+          this.settings.active.crop.default = commandArguments;
+        }
+      }
+      this.settings.saveWithoutReload();
+    },
+
+    /**
+     * Sets default stretching mode, for either site or global
+     */
+    setDefaultStretchingMode($event, globalOrSite) {
+      const commandArguments = JSON.parse($event.target.value);
+
+      if (globalOrSite === 'site') {
+        if (!this.settings.active.sites[window.location.hostname]) {
+          this.setting.active.sites[window.location.hostname] = this.settings.getDefaultSiteConfiguration();
+        }
+        this.setting.active.sites[window.location.hostname].defaultStretch = commandArguments;
+      } else {
+          this.settings.active.stretch.default = commandArguments;
+      }
+      this.settings.saveWithoutReload();
+    }
   }
 }
 </script>

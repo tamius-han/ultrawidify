@@ -31,13 +31,13 @@ class Stretcher {
     this.conf = videoData;
     this.logger = videoData.logger;
     this.settings = videoData.settings;
-    this.mode = this.settings.getDefaultStretchMode(window.location.hostname);
+    this.mode = this.settings.getDefaultStretchMode_legacy(window.location.hostname);
     this.fixedStretchRatio = undefined;
   }
 
   setStretchMode(stretchMode, fixedStretchRatio?) {
     if (stretchMode === StretchType.Default) {
-      this.mode = this.settings.getDefaultStretchMode(window.location.hostname);
+      this.mode = this.settings.getDefaultStretchMode_legacy(window.location.hostname);
     } else {
       if (stretchMode === StretchType.Fixed || stretchMode == StretchType.FixedSource) {
         this.fixedStretchRatio = fixedStretchRatio;

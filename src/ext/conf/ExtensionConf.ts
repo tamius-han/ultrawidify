@@ -140,6 +140,11 @@ const ExtensionConf: SettingsInterface = {
       testRowOffset: 0.02     // we test this % of height from detected edge
     }
   },
+  crop: {
+    default: {
+      type: AspectRatioType.Automatic,
+    }
+  },
   zoom: {
     minLogZoom: -1,
     maxLogZoom: 3,
@@ -152,6 +157,9 @@ const ExtensionConf: SettingsInterface = {
     mousePanReverseMouse: false,
   },
   stretch: {
+    default: {
+      type: StretchType.NoStretch
+    },
     conditionalDifferencePercent: 0.05  // black bars less than this wide will trigger stretch
                                         // if mode is set to '1'. 1.0=100%
   },
@@ -1360,10 +1368,10 @@ const ExtensionConf: SettingsInterface = {
   //    stretch? <stretch mode>       // automatically stretch video on this site in this manner
   //    videoAlignment? <left|center|right>
   //
-  //    type: <official|community|user>  // 'official' — blessed by Tam.
-  //                                     // 'community' — blessed by reddit.
-  //                                     // 'user' — user-defined (not here)
-  //    override: <true|false>           // override user settings for this site on update
+  //    type: <official|community|user-added>  // 'official' — blessed by Tam.
+  //                                           // 'community' — blessed by people sending me messages.
+  //                                           // 'user-added' — user-defined (not here)
+  //    override: <true|false>                 // override user settings for this site on update
   // }
   //
   // Valid values for options:
