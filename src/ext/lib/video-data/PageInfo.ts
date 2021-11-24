@@ -462,7 +462,7 @@ class PageInfo {
   setAr(ar, playingOnly?: boolean){
     this.logger.log('info', 'debug', '[PageInfo::setAr] aspect ratio:', ar, "playing only?", playingOnly)
 
-    if (ar.type !== AspectRatioType.Automatic) {
+    if (ar.type !== AspectRatioType.AutomaticUpdate && ar.type !== AspectRatioType.Automatic) {
       this.stopArDetection(playingOnly);
     } else {
       this.logger.log('info', 'debug', '[PageInfo::setAr] aspect ratio is auto');

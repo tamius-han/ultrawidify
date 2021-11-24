@@ -285,7 +285,7 @@ class ArDetector {
     this.resetBlackLevel();
 
     // if we're restarting ArDetect, we need to do this in order to force-recalculate aspect ratio
-    this.conf.resizer.setLastAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
+    this.conf.resizer.setLastAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
 
     this.canvasImageDataRowLength = cwidth << 2;
     this.noLetterboxCanvasReset = false;
@@ -319,9 +319,9 @@ class ArDetector {
       return;
     }
 
-    if (this.conf.resizer.lastAr.type === AspectRatioType.Automatic) {
+    if (this.conf.resizer.lastAr.type === AspectRatioType.AutomaticUpdate) {
       // ensure first autodetection will run in any case
-      this.conf.resizer.setLastAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
+      this.conf.resizer.setLastAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
     }
 
     this._paused = false;
@@ -638,7 +638,7 @@ class ArDetector {
     // poglejmo, če se je razmerje stranic spremenilo
     // check if aspect ratio is changed:
     let lastAr = this.conf.resizer.getLastAr();
-    if (lastAr.type === AspectRatioType.Automatic && lastAr.ratio !== null && lastAr.ratio !== undefined){
+    if (lastAr.type === AspectRatioType.AutomaticUpdate && lastAr.ratio !== null && lastAr.ratio !== undefined){
       // spremembo lahko zavrnemo samo, če uporabljamo avtomatski način delovanja in če smo razmerje stranic
       // že nastavili.
       //
@@ -663,7 +663,7 @@ class ArDetector {
     }
     this.logger.log('info', 'debug', `%c[ArDetect::processAr] <@${this.arid}>  Triggering aspect ratio change. New aspect ratio: ${trueAr}`, _ard_console_change);
 
-    this.conf.resizer.updateAr({type: AspectRatioType.Automatic, ratio: trueAr});
+    this.conf.resizer.updateAr({type: AspectRatioType.AutomaticUpdate, ratio: trueAr});
   }
 
   clearImageData(id) {
@@ -790,7 +790,7 @@ class ArDetector {
       // da je letterbox izginil.
       // If we don't detect letterbox, we reset aspect ratio to aspect ratio of the video file. The aspect ratio could
       // have been corrected manually. It's also possible that letterbox (that was there before) disappeared.
-      this.conf.resizer.updateAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
+      this.conf.resizer.updateAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
@@ -835,7 +835,7 @@ class ArDetector {
     if (this.fallbackMode && guardLineOut.blackbarFail) {
       this.logger.log('warn', 'arDetect_verbose',  `%c[ArDetect::frameCheck] <@${this.arid}> We are in fallback mode and blackbar failed. Reverting to initial aspect ratio.`);
 
-      this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
+      this.conf.resizer.setAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
 
@@ -851,7 +851,7 @@ class ArDetector {
         if(this.edgeDetector.findBars(imageData, null, EdgeDetectPrimaryDirection.Horizontal).status === 'ar_known'){
           if(guardLineOut.blackbarFail){
             this.logger.log('info', 'arDetect', `[ArDetect::frameCheck] Detected blackbar violation and pillarbox. Resetting to default aspect ratio.`);
-            this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
+            this.conf.resizer.setAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
             this.guardLine.reset();
           } else {
             this.logger.log('info', 'arDetect_verbose', `[ArDetect::frameCheck] Guardline failed, blackbar didn't, and we got pillarbox. Doing nothing.`);
@@ -923,7 +923,7 @@ class ArDetector {
       // WE DO NOT RESET ASPECT RATIO HERE IN CASE OF PROBLEMS, CAUSES UNWARRANTED RESETS:
       // (eg. here: https://www.youtube.com/watch?v=nw5Z93Yt-UQ&t=410)
       //
-      // this.conf.resizer.setAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
+      // this.conf.resizer.setAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
     }
 
     this.clearImageData(imageData);

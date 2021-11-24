@@ -190,7 +190,7 @@ class Resizer {
 
     // Some options require a bit more testing re: whether they make sense
     // if they don't, we refuse to update aspect ratio until they do
-    if (ar.type === AspectRatioType.Automatic || ar.type === AspectRatioType.Fixed) {
+    if (ar.type === AspectRatioType.AutomaticUpdate || ar.type === AspectRatioType.Fixed) {
       if (!ar.ratio || isNaN(ar.ratio)) {
         return;
       }
