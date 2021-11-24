@@ -42,6 +42,7 @@ class ArDetector {
   arid: string;
 
   // ar detector starts in this state. running main() sets both to false
+  _ready: boolean = false;
   _paused: boolean;
   _halted: boolean = true;
   _exited: boolean = true;
@@ -159,16 +160,7 @@ class ArDetector {
 
   init(){
     this.logger.log('info', 'init', `[ArDetect::init] <@${this.arid}> Initializing autodetection.`);
-
-    try {
-      if (this.settings.canStartAutoAr()) {
-        this.setup();
-      } else {
-        throw "Settings prevent autoar from starting"
-      }
-    } catch (e) {
-      this.logger.log('error', 'init', `%c[ArDetect::init] <@${this.arid}> Initialization failed.`, _ard_console_stop, e);
-    }
+    this.setup();
   }
 
   setup(cwidth?: number, cheight?: number){
@@ -290,10 +282,8 @@ class ArDetector {
     this.canvasImageDataRowLength = cwidth << 2;
     this.noLetterboxCanvasReset = false;
 
-    if (this.settings.canStartAutoAr() ) {
-      // this.main();
-      this.start();
-    }
+    this._ready = true;
+    this.start();
 
     if(Debug.debugCanvas.enabled){
       // this.debugCanvas.init({width: cwidth, height: cheight});
@@ -312,11 +302,15 @@ class ArDetector {
 
   //#region AARD control
   start() {
-    if (this.settings.canStartAutoAr()) {
-      this.logger.log('info', 'debug', `"%c[ArDetect::start] <@${this.arid}> Starting automatic aspect ratio detection`, _ard_console_start);
-    } else {
-      this.logger.log('warn', 'debug', `"%c[ArDetect::start] <@${this.arid}> Wanted to start automatic aspect ratio detection, but settings don't allow that. Aard won't be started.`, _ard_console_change);
-      return;
+    // if (this.settings.canStartAutoAr()) {
+    //   this.logger.log('info', 'debug', `"%c[ArDetect::start] <@${this.arid}> Starting automatic aspect ratio detection`, _ard_console_start);
+    // } else {
+    //   this.logger.log('warn', 'debug', `"%c[ArDetect::start] <@${this.arid}> Wanted to start automatic aspect ratio detection, but settings don't allow that. Aard won't be started.`, _ard_console_change);
+    //   return;
+    // }
+    if (!this._ready) {
+      this.init();
+      return;         // we will return to this function once initialization is complete
     }
 
     if (this.conf.resizer.lastAr.type === AspectRatioType.AutomaticUpdate) {

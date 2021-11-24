@@ -207,7 +207,23 @@ class Resizer {
       return;
     }
 
-    if (ar.type !== AspectRatioType.Automatic) {
+    // handle autodetection stuff
+    if (ar.type === AspectRatioType.Automatic) {
+      this.conf.arDetector.start();
+      return;
+    } else if (ar.type !== AspectRatioType.AutomaticUpdate) {
+      this.conf.arDetector.stop();
+    }
+
+    // unless we're trying to reset aspect ratio, we need to tell VideoData that this would
+    // be a good time to start injecting CSS modifications into the page.
+    //
+    // CSS, et. al. initialization is deferred in order to avoid breaking wonky sites by default.
+    if (ar.type !== AspectRatioType.Reset && ar.type !== AspectRatioType.Initial) {
+      await this.conf.preparePage();
+    }
+
+    if (ar.type !== AspectRatioType.AutomaticUpdate) {
       this.manualZoom = false;
     }
 

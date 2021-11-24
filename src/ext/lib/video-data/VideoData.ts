@@ -3,6 +3,7 @@ import PlayerData from './PlayerData';
 import Resizer from '../video-transform/Resizer';
 import ArDetector from '../ar-detect/ArDetector';
 import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
+import CropModePersistence from '../../../common/enums/CropModePersistence.enum';
 import * as _ from 'lodash';
 import BrowserDetect from '../../conf/BrowserDetect';
 import Logger from '../Logger';
@@ -175,8 +176,6 @@ class VideoData {
    */
   async setupStageOne() {
     this.logger.log('info', 'init', '%c[VideoData::setupStageOne] ——————————— Starting setup stage one! ———————————', 'color: #0f9');
-    // ensure base css is loaded before doing anything
-    this.injectBaseCss();
 
     // this is in case extension loads before the video
     this.video.addEventListener('loadeddata', this.onLoadedData.bind(this));
@@ -195,14 +194,55 @@ class VideoData {
   async setupStageTwo() {
     // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)
     this.player = new PlayerData(this);
+
     if (this.player.invalid) {
       this.invalid = true;
       return;
     }
-
     this.resizer = new Resizer(this);
+    this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevents ArDetector from starting
 
-    // INIT OBSERVERS
+    this.logger.log('info', ['debug', 'init'], '[VideoData::ctor] Created videoData with vdid', this.vdid, '\nextension mode:', this.extensionMode)
+
+
+    // Everything is set up at this point. However, we are still purely "read-only" at this point. Player CSS should not be changed until
+    // after we receive a "please crop" or "please stretch".
+
+    // Time to apply any crop from address of crop mode persistence
+    const defaultCrop = this.settings.getDefaultCrop();
+    const defaultStretch = this.settings.getDefaultStretchMode();
+
+    // Crop mode persistence is intended to avoid resetting video aspect ratio to site or extension default
+    // when going from one video to another. As such, crop persistence takes priority over site defaults.
+    // This option should only trigger if we have modified the aspect ratio manually.
+    if (
+      this.settings.getDefaultCropPersistenceMode(window.location.hostname) !== CropModePersistence.Disabled
+      && this.pageInfo.defaultCrop
+    ) {
+      this.resizer.setAr(this.pageInfo.defaultCrop);
+    } else {
+      this.resizer.setAr(defaultCrop);
+      this.resizer.setStretchMode(defaultStretch);
+    }
+  }
+
+  /**
+   * Must be triggered on first action. TODO
+   */
+  preparePage() {
+    this.injectBaseCss();
+
+    this.pageInfo.initMouseActionHandler(this);
+
+    // aspect ratio autodetection cannot be properly initialized at this time,
+    // so we'll avoid doing that
+    this.enable();
+
+    // start fallback video/player size detection
+    this.fallbackChangeDetection();
+  }
+
+  initializeObservers() {
     try {
       if (BrowserDetect.firefox) {
         this.observer = new ResizeObserver(
@@ -235,45 +275,6 @@ class VideoData {
       console.error('[VideoData] Observer setup failed:', e);
     }
     this.observer.observe(this.video);
-
-    // INIT AARD
-    this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
-    // player dimensions need to be in:
-    // this.player.dimensions
-
-    // apply default align and stretch
-    this.logger.log('info', 'debug', "%c[VideoData::ctor] Initial resizer reset!", "background: #afd, color: #132");
-    this.resizer.reset();
-
-    this.logger.log('info', ['debug', 'init'], '[VideoData::ctor] Created videoData with vdid', this.vdid, '\nextension mode:', this.extensionMode)
-
-    this.pageInfo.initMouseActionHandler(this);
-
-    // aspect ratio autodetection cannot be properly initialized at this time,
-    // so we'll avoid doing that
-    this.enable({withoutAard: true});
-
-    // start fallback video/player size detection
-    this.fallbackChangeDetection();
-
-    // force reload last aspect ratio (if default crop ratio exists), but only after the video is
-    if (this.pageInfo.defaultCrop) {
-      this.resizer.setAr(this.pageInfo.defaultCrop);
-    }
-
-    try {
-      if (!this.pageInfo.defaultCrop) {
-        if (!this.invalid) {
-          this.initArDetection();
-        } else {
-          this.logger.log('error', 'debug', '[VideoData::secondStageSetup] Video is invalid. Aard not started.', this.video);
-        }
-      } else {
-        this.logger.log('info', 'debug', '[VideoData::secondStageSetup] Default crop is specified for this site. Not starting aard.');
-      }
-    } catch (e) {
-      this.logger.log('error', 'init', `[VideoData::secondStageSetup] Error with aard initialization (or error with default aspect ratio application)`, e)
-    }
   }
 
   setupMutationObserver() {
@@ -352,17 +353,13 @@ class VideoData {
    * Enables ultrawidify in general.
    * @param options
    */
-  enable(options?: {fromPlayer?: boolean, withoutAard?: boolean}) {
+  enable(options?: {fromPlayer?: boolean}) {
     this.enabled = true;
 
     // NOTE — since base class for our <video> element depends on player aspect ratio,
     // we handle it in PlayerData class.
     this.video.classList.add(this.baseCssName);
     this.video.classList.add(this.userCssClassName); // this also needs to be applied BEFORE we initialize resizer! — O RLY? NEEDS TO BE CHECKED
-
-    if (!options?.withoutAard) {
-      this.startArDetection();
-    }
 
     if (!options?.fromPlayer) {
       this.player?.enable();
