@@ -1,6 +1,8 @@
 @import "colors.scss";
 @import "fonts.scss";
 @import "flex.scss";
+// @import "~/@mdi/font/css/materialdesignicons.css";
+
 // @import "form.scss";
 
 body {
@@ -239,7 +241,7 @@ body {
     user-select: none;;
   }
 
-      
+
   .selected, .setting-selected {
     color: $selected-color !important;
     background-color: $background-selected !important;
@@ -266,7 +268,7 @@ body {
 
   .disabled-button {
     color: #666 !important;
-    cursor: not-allowed !important;     
+    cursor: not-allowed !important;
   }
 
   .disabled-button:hover {

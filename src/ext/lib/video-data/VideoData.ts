@@ -231,7 +231,6 @@ class VideoData {
    */
   preparePage() {
     this.injectBaseCss();
-
     this.pageInfo.initMouseActionHandler(this);
 
     // aspect ratio autodetection cannot be properly initialized at this time,
@@ -364,8 +363,7 @@ class VideoData {
     if (!options?.fromPlayer) {
       this.player?.enable();
     }
-
-    this.restoreCrop();
+    // this.restoreCrop();
   }
 
   /**
@@ -403,6 +401,7 @@ class VideoData {
     this.logger.log('info', 'debug', '[VideoData::restoreCrop] Attempting to reset aspect ratio.')
     // if we have default crop set for this page, apply this.
     // otherwise, reset crop
+
     if (this.pageInfo.defaultCrop) {
       this.resizer.setAr(this.pageInfo.defaultCrop);
     } else {
@@ -554,8 +553,8 @@ class VideoData {
           && this.isWithin(vh, (ph - (translateY * 2)), 2)
           && this.isWithin(vw, (pw - (translateX * 2)), 2)) {
       } else {
-        this.player.forceRefreshPlayerElement();
-        this.restoreAr();
+        // this.player.forceRefreshPlayerElement();
+        // this.restoreAr();
       }
 
     } catch(e) {
