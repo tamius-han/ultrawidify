@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@babel/plugin-proposal-class-properties": "^7.16.0",
+    "@mdi/font": "^6.5.95",
     "@mdi/js": "^6.4.95",
     "@types/chrome": "0.0.129",
     "@types/core-js": "^2.5.5",
