@@ -47,7 +47,7 @@ class ActionHandler {
 
     var ths = this;
 
-    var actions;    
+    var actions;
     try {
       if (this.settings.active.sites[window.location.hostname].actions) {
         actions = this.settings.active.sites[window.location.hostname].actions;
@@ -121,7 +121,7 @@ class ActionHandler {
       }
     }
 
-    // events should be handled in handleEvent function. We need to do things this 
+    // events should be handled in handleEvent function. We need to do things this
     // way, otherwise we can't remove event listener
     // https://stackoverflow.com/a/19507086
     document.addEventListener('keydown', this );
@@ -137,7 +137,7 @@ class ActionHandler {
       case 'keydown':
         this.handleKeydown(event);
         break;
-      case 'keyup': 
+      case 'keyup':
         this.handleKeyup(event);
         break;
       case 'mousemove':
@@ -210,7 +210,7 @@ class ActionHandler {
     }
     if (this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1) {
       return true;
-    } 
+    }
     if (activeElement.getAttribute("role") === "textbox") {
       return true;
     }
@@ -245,8 +245,8 @@ class ActionHandler {
   isActionMatch(shortcut, event, isLatin = true) {
     // ASCII and symbols fall back to key code matching, because we don't know for sure that
     // regular matching by key is going to work
-    return isLatin ? 
-      this.isActionMatchStandard(shortcut, event) : 
+    return isLatin ?
+      this.isActionMatchStandard(shortcut, event) :
       this.isActionMatchStandard(shortcut, event) || this.isActionMatchKeyCode(shortcut, event);
   }
 
@@ -255,59 +255,62 @@ class ActionHandler {
 
     const isLatin = event.key ? this.isLatin(event.key) : true;
 
-    for (var action of actions) {
-      if (this.isActionMatch(action.shortcut, event, isLatin)) {
-        this.logger.log('info', 'keyboard', "%c[ActionHandler::execAction] found an action associated with keypress/event: ", "color: #ff0", action);
+    console.warn('You need to migrate this to new commands');
 
-        for (var cmd of action.cmd) {
-          if (action.scope === 'page') {
-            if (cmd.action === "set-ar") {
-              this.pageInfo.setAr({type: cmd.arg, ratio: cmd.customArg});
-            } else if (cmd.action === "change-zoom") {
-              this.pageInfo.zoomStep(cmd.arg);
-            } else if (cmd.action === "set-zoom") {
-              this.pageInfo.setZoom(cmd.arg);
-            } else if (cmd.action === "set-stretch") {
-              this.pageInfo.setStretchMode(cmd.arg);
-            } else if (cmd.action === "toggle-pan") {
-              this.pageInfo.setPanMode(cmd.arg)
-            } else if (cmd.action === "pan") {
-              if (videoData) {
-                videoData.panHandler(event, true);
-              }
-            } else if (cmd.action === 'set-keyboard') {
-              this.setKeyboardLocal(cmd.arg);
-            }
-          } else {
-            let site = action.scope === 'site' ? window.location.hostname : '@global';
+    // for (var action of actions) {
+    //   if (this.isActionMatch(action.shortcut, event, isLatin)) {
+    //     this.logger.log('info', 'keyboard', "%c[ActionHandler::execAction] found an action associated with keypress/event: ", "color: #ff0", action);
 
-            if (cmd.action === "set-stretch") {
-              this.settings.active.sites[site].stretch = cmd.arg;
-            } else if (cmd.action === "set-alignment") {
-              this.settings.active.sites[site].videoAlignment = cmd.arg;
-            } else if (cmd.action === "set-extension-mode") {
-              this.settings.active.sites[site].mode = cmd.arg;
-            } else if (cmd.action === "set-autoar-mode") {
-              this.settings.active.sites[site].autoar = cmd.arg;
-            } else if (cmd.action === 'set-keyboard') {
-              this.settings.active.sites[site].keyboardShortcutsEnabled = cmd.arg;
-            } else if (cmd.action === 'set-ar-persistence') {
-              this.settings.active.sites[site]['cropModePersistence'] = cmd.arg;
-              this.pageInfo.setArPersistence(cmd.arg);
-              this.settings.saveWithoutReload();
-            }
+    //     for (var cmd of action.cmd) {
+    //       if (action.scope === 'page') {
+    //         if (cmd.action === "set-ar") {
+    //           // the entirety of this function should be moved to new command bus
+    //           // this.pageInfo.setAr({type: cmd.arg, ratio: cmd.customArg});
+    //         } else if (cmd.action === "change-zoom") {
+    //           this.pageInfo.zoomStep(cmd.arg);
+    //         } else if (cmd.action === "set-zoom") {
+    //           this.pageInfo.setZoom(cmd.arg);
+    //         } else if (cmd.action === "set-stretch") {
+    //           this.pageInfo.setStretchMode(cmd.arg);
+    //         } else if (cmd.action === "toggle-pan") {
+    //           this.pageInfo.setPanMode(cmd.arg)
+    //         } else if (cmd.action === "pan") {
+    //           if (videoData) {
+    //             videoData.panHandler(event, true);
+    //           }
+    //         } else if (cmd.action === 'set-keyboard') {
+    //           this.setKeyboardLocal(cmd.arg);
+    //         }
+    //       } else {
+    //         let site = action.scope === 'site' ? window.location.hostname : '@global';
 
-            if (cmd.action !== 'set-ar-persistence') {
-              this.settings.save();
-            }
-          }
-        }
+    //         if (cmd.action === "set-stretch") {
+    //           this.settings.active.sites[site].stretch = cmd.arg;
+    //         } else if (cmd.action === "set-alignment") {
+    //           this.settings.active.sites[site].videoAlignment = cmd.arg;
+    //         } else if (cmd.action === "set-extension-mode") {
+    //           this.settings.active.sites[site].mode = cmd.arg;
+    //         } else if (cmd.action === "set-autoar-mode") {
+    //           this.settings.active.sites[site].autoar = cmd.arg;
+    //         } else if (cmd.action === 'set-keyboard') {
+    //           this.settings.active.sites[site].keyboardShortcutsEnabled = cmd.arg;
+    //         } else if (cmd.action === 'set-ar-persistence') {
+    //           this.settings.active.sites[site]['cropModePersistence'] = cmd.arg;
+    //           this.pageInfo.setArPersistence(cmd.arg);
+    //           this.settings.saveWithoutReload();
+    //         }
 
-        // če smo našli dejanje za to tipko, potem ne preiskujemo naprej
-        // if we found an action for this key, we stop searching for a match
-        return;
-      }
-    }
+    //         if (cmd.action !== 'set-ar-persistence') {
+    //           this.settings.save();
+    //         }
+    //       }
+    //     }
+
+    //     // če smo našli dejanje za to tipko, potem ne preiskujemo naprej
+    //     // if we found an action for this key, we stop searching for a match
+    //     return;
+    //   }
+    // }
   }
 
 

@@ -375,23 +375,7 @@ class PageInfo {
     this.scheduleUrlCheck();
   }
 
-  initArDetection(playingOnly){
-    if (playingOnly) {
-      for(let vd of this.videos){
-        if(vd.videoData.isPlaying()) {
-          vd.videoData.initArDetection();
-        }
-      }
-      return;
-    } else {
-      for(let vd of this.videos){
-        vd.videoData.initArDetection();
-      }
-    }
-  }
 
-
-  // to je treba klicat ob menjavi zavihkov
   // these need to be called on tab switch
   pauseProcessing(playingOnly){
     if (playingOnly) {
@@ -427,167 +411,6 @@ class PageInfo {
     }
   }
 
-
-  startArDetection(playingOnly){
-    if (Debug.debug) {
-      this.logger.log('info', 'debug', '[PageInfo::startArDetection()] starting automatic ar detection!')
-    }
-    if (playingOnly) {
-      for(let vd of this.videos){
-        if (vd.videoData.isPlaying()) {
-          vd.videoData.startArDetection();
-        }
-      }
-    } else {
-      for(let vd of this.videos){
-        vd.videoData.startArDetection();
-      }
-    }
-  }
-
-  stopArDetection(playingOnly){
-    if (playingOnly) {
-      for(let vd of this.videos){
-        if (vd.videoData.isPlaying()) {
-          vd.videoData.stopArDetection();
-        }
-      }
-    } else {
-      for(let vd of this.videos){
-        vd.videoData.stopArDetection();
-      }
-    }
-  }
-
-  setAr(ar, playingOnly?: boolean){
-    this.logger.log('info', 'debug', '[PageInfo::setAr] aspect ratio:', ar, "playing only?", playingOnly)
-
-    if (ar.type !== AspectRatioType.AutomaticUpdate && ar.type !== AspectRatioType.Automatic) {
-      this.stopArDetection(playingOnly);
-    } else {
-      this.logger.log('info', 'debug', '[PageInfo::setAr] aspect ratio is auto');
-
-      try {
-        for (let vd of this.videos) {
-          if (!playingOnly || vd.videoData.isPlaying()) {
-            vd.videoData.resetLastAr();
-          }
-        }
-      } catch (e) {
-        this.logger.log('error', 'debug', "???", e);
-      }
-      this.initArDetection(playingOnly);
-      this.startArDetection(playingOnly);
-      return;
-    }
-
-    // TODO: find a way to only change aspect ratio for one video
-    if (ar === AspectRatioType.Reset) {
-      for (let vd of this.videos) {
-        if (!playingOnly || vd.videoData.isPlaying()) {
-          vd.videoData.resetAr();
-        }
-      }
-    } else {
-      for (let vd of this.videos) {
-        if (!playingOnly || vd.videoData.isPlaying()) {
-          vd.videoData.setAr(ar)
-        }
-      }
-    }
-  }
-
-  setVideoAlignment(videoAlignment, playingOnly) {
-    if (playingOnly) {
-      for(let vd of this.videos) {
-        if (vd.videoData.isPlaying()) {
-          vd.videoData.setVideoAlignment(videoAlignment)
-        }
-      }
-    } else {
-      for(let vd of this.videos) {
-        vd.videoData.setVideoAlignment(videoAlignment)
-      }
-    }
-  }
-
-  setPanMode(mode, playingOnly?: boolean) {
-    if (playingOnly) {
-      for(let vd of this.videos) {
-        if (vd.videoData.isPlaying()) {
-          vd.videoData.setPanMode(mode);
-        }
-      }
-    } else {
-      for(let vd of this.videos) {
-        vd.videoData.setPanMode(mode);
-      }
-    }
-  }
-
-  restoreAr(playingOnly?: boolean) {
-    if (playingOnly) {
-      for(let vd of this.videos){
-        if (vd.videoData.isPlaying()) {
-          vd.videoData.restoreAr();
-        }
-      }
-    } else {
-      for(let vd of this.videos){
-        vd.videoData.restoreAr();
-      }
-    }
-  }
-
-  setStretchMode(stretchMode, playingOnly?: boolean, fixedStretchRatio?: boolean){
-    // TODO: find a way to only change aspect ratio for one video
-
-    if (playingOnly) {
-      for(let vd of this.videos){
-        if (vd.videoData.isPlaying()) {
-          vd.videoData.setStretchMode(stretchMode, fixedStretchRatio)
-        }
-      }
-    } else {
-      for(let vd of this.videos){
-        vd.videoData.setStretchMode(stretchMode, fixedStretchRatio)
-      }
-    }
-  }
-
-  setZoom(zoomLevel, no_announce?: boolean, playingOnly?: boolean) {
-    if (playingOnly) {
-      for(let vd of this.videos) {
-        if (vd.videoData.isPlaying()) {
-          vd.videoData.setZoom(zoomLevel, no_announce);
-        }
-      }
-    } else {
-      for(let vd of this.videos) {
-        vd.videoData.setZoom(zoomLevel, no_announce);
-      }
-    }
-  }
-
-  zoomStep(step, playingOnly?: boolean) {
-    for(let vd of this.videos){
-      if (!playingOnly || vd.videoData.isPlaying()) {
-        vd.videoData.zoomStep(step);
-      }
-    }
-  }
-
-  markPlayer(name, color) {
-    for (let vd of this.videos) {
-      vd.videoData.markPlayer(name,color);
-    }
-  }
-  unmarkPlayer() {
-    for (let vd of this.videos) {
-      vd.videoData.unmarkPlayer();
-    }
-  }
-
   announceZoom(scale) {
     if (this.announceZoomTimeout) {
       clearTimeout(this.announceZoomTimeout);
@@ -595,20 +418,6 @@ class PageInfo {
     this.currentZoomScale = scale;
     const ths = this;
     this.announceZoomTimeout = setTimeout(() => ths.comms.announceZoom(scale), this.settings.active.zoom.announceDebounce);
-  }
-
-  sendPerformanceUpdate(performanceUpdate) {
-    if(this.comms) {
-      this.comms.sendPerformanceUpdate(performanceUpdate);
-    }
-  }
-
-  requestCurrentZoom() {
-    this.comms.announceZoom(this.currentZoomScale);
-  }
-
-  setKeyboardShortcutsEnabled(state) {
-    this.actionHandler.setKeyboardLocal(state);
   }
 
   setArPersistence(persistenceMode) {

@@ -472,7 +472,6 @@ class VideoData {
 
     this.processDimensionsChanged();
   }
-
   onVideoDimensionsChanged(mutationList, observer) {
     if (!mutationList || this.video === undefined) {  // something's wrong
       if (observer && this.video) {
@@ -668,38 +667,6 @@ class VideoData {
   //#endregion
 
   //#region shit that gets propagated to resizer and should be removed. Implement an event bus instead
-  setLastAr(lastAr){
-    if (this.invalid) {
-      return;
-    }
-    this.resizer.setLastAr(lastAr);
-  }
-
-  setAr(ar, lastAr?){
-    if (this.invalid) {
-      return;
-    }
-
-    if (ar.type === AspectRatioType.Fixed || ar.type === AspectRatioType.FitHeight || ar.type === AspectRatioType.FitHeight) {
-      this.player.forceRefreshPlayerElement();
-    }
-
-    this.resizer.setAr(ar, lastAr);
-  }
-
-  resetAr() {
-    if (this.invalid) {
-      return;
-    }
-    this.resizer.reset();
-  }
-
-  resetLastAr() {
-    if (this.invalid) {
-      return;
-    }
-    this.resizer.setLastAr('original');
-  }
 
   panHandler(event, forcePan?: boolean) {
     if (this.invalid) {
@@ -723,46 +690,11 @@ class VideoData {
     this.resizer.setPanMode(mode);
   }
 
-  setVideoAlignment(videoAlignment) {
-    if (this.invalid) {
-      return;
-    }
-    this.resizer.setVideoAlignment(videoAlignment);
-  }
-
   restoreAr(){
     if (this.invalid) {
       return;
     }
     this.resizer.restore();
-  }
-
-  setStretchMode(stretchMode, fixedStretchRatio){
-    if (this.invalid) {
-      return;
-    }
-    this.resizer.setStretchMode(stretchMode, fixedStretchRatio);
-  }
-
-  setZoom(zoomLevel, no_announce){
-    if (this.invalid) {
-      return;
-    }
-    this.resizer.setZoom(zoomLevel, no_announce);
-  }
-
-  zoomStep(step){
-    if (this.invalid) {
-      return;
-    }
-    this.resizer.zoomStep(step);
-  }
-
-  announceZoom(scale){
-    if (this.invalid) {
-      return;
-    }
-    this.pageInfo.announceZoom(scale);
   }
 
   markPlayer(name, color) {
@@ -773,6 +705,7 @@ class VideoData {
       this.player.markPlayer(name, color)
     }
   }
+
   unmarkPlayer() {
     this.player.unmarkPlayer();
   }

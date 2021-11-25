@@ -18,31 +18,33 @@ export default class UWContent {
   commsHandlers: {
     [x: string]: ((a: any, b?: any) => void | Promise<void>)[]
   } = {
-    'get-current-zoom': [() => this.pageInfo.requestCurrentZoom()],
-    'set-ar': [(message) => this.pageInfo.setAr({type: message.arg, ratio: message.customArg}, message.playing)],
-    'set-alignment': [(message) => {
-      this.pageInfo.setVideoAlignment(message.arg, message.playing);
-      this.pageInfo.restoreAr();
-    }],
-    'set-stretch': [(message) => this.pageInfo.setStretchMode(message.arg, message.playing, message.customArg)],
-    'set-keyboard': [(message) => this.pageInfo.setKeyboardShortcutsEnabled(message.arg)],
-    'autoar-start': [(message) => {
-      if (message.enabled !== false) {
-        this.pageInfo.initArDetection(message.playing);
-        this.pageInfo.startArDetection(message.playing);
-      } else {
-        this.pageInfo.stopArDetection(message.playing);
-      }
-    }],
-    'pause-processing': [(message) => this.pageInfo.pauseProcessing(message.playing)],
-    'resume-processing': [(message) => this.pageInfo.resumeProcessing(message.autoArStatus, message.playing)],
-    'set-zoom': [(message) => this.pageInfo.setZoom(message.arg, true, message.playing)],
-    'change-zoom': [(message) => this.pageInfo.zoomStep(message.arg, message.playing)],
-    'mark-player': [(message) => this.pageInfo.markPlayer(message.name, message.color)],
-    'unmark-player': [() => this.pageInfo.unmarkPlayer()],
+    // THIS SHOULD BE MIGRATED TO EVENT BUS
+    // 'get-current-zoom': [() => this.pageInfo.requestCurrentZoom()],
+    // 'set-ar': [(message) => this.pageInfo.setAr({type: message.arg, ratio: message.customArg}, message.playing)],
+    // 'set-alignment': [(message) => {
+    //   this.pageInfo.setVideoAlignment(message.arg, message.playing);
+    //   this.pageInfo.restoreAr();
+    // }],
+    // 'set-stretch': [(message) => this.pageInfo.setStretchMode(message.arg, message.playing, message.customArg)],
+    // 'set-keyboard': [(message) => this.pageInfo.setKeyboardShortcutsEnabled(message.arg)],
+    // DEPRECATED — should be set with resizer.setAr()
+    // 'autoar-start': [(message) => {
+    //   if (message.enabled !== false) {
+    //     this.pageInfo.initArDetection(message.playing);
+    //     this.pageInfo.startArDetection(message.playing);
+    //   } else {
+    //     this.pageInfo.stopArDetection(message.playing);
+    //   }
+    // }],
+    // 'pause-processing': [(message) => this.pageInfo.pauseProcessing(message.playing)],
+    // 'resume-processing': [(message) => this.pageInfo.resumeProcessing(message.autoArStatus, message.playing)],
+    // 'set-zoom': [(message) => this.pageInfo.setZoom(message.arg, true, message.playing)],
+    // 'change-zoom': [(message) => this.pageInfo.zoomStep(message.arg, message.playing)],
+    // 'mark-player': [(message) => this.pageInfo.markPlayer(message.name, message.color)],
+    // 'unmark-player': [() => this.pageInfo.unmarkPlayer()],
     // 'autoar-set-manual-tick': [(message) => this.pageInfo.setManualTick(message.arg)],
     // 'autoar-tick': [() => this.pageInfo.tick()],
-    'set-ar-persistence': [(message) => this.pageInfo.setArPersistence(message.arg)],
+    // 'set-ar-persistence': [(message) => this.pageInfo.setArPersistence(message.arg)],
   }
 
   constructor(){
