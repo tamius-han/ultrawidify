@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ultravidify - Content Script User Interface</title>
+  <!-- <link rel="stylesheet" href="csui.css"> -->
+  <% if (NODE_ENV === 'development') { %>
+  <!-- Load some resources only in development environment -->
+  <% } %>
+</head>
+<body class="uw-ultrawidify-container-root">
+  <div stye="color: #fff; background: #000;">it works!</div>
+  <div id="app"></div>
+  <script src="csui.js"></script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-import Comms from '../../ext/lib/comms/Comms';
+import Comms from '../../../ext/lib/comms/Comms';
 
 class ExecAction {
   constructor(settings, site) {
@@ -27,7 +27,8 @@ class ExecAction {
           customArg: cmd.customArg
         }
         if (useBus) {
-          window.ultrawidify.bus.sendMessage(message.cmd, message);
+          // todo: postMessage out of the iframe!
+          // window.ultrawidify.bus.sendMessage(message.cmd, message);
         } else {
           Comms.sendMessage(message);
         }
@@ -48,7 +49,8 @@ class ExecAction {
           // this hopefully delays settings.save() until current crops are saved on the site
           // and thus avoid any fucky-wuckies
           if (useBus) {
-            window.ultrawidify.bus.sendMessage(message.cmd, message);
+          // todo: postMessage out of the iframe!
+            // window.ultrawidify.bus.sendMessage(message.cmd, message);
           } else {
             await Comms.sendMessage(message);
           }

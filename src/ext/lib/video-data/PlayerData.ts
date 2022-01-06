@@ -2,7 +2,6 @@ import Debug from '../../conf/Debug';
 import ExtensionMode from '../../../common/enums/ExtensionMode.enum'
 import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
 import PlayerNotificationUi from '../uwui/PlayerNotificationUI';
-import PlayerUi from '../uwui/PlayerUI';
 import BrowserDetect from '../../conf/BrowserDetect';
 import * as _ from 'lodash';
 import { sleep } from '../../../common/js/utils';
@@ -10,6 +9,7 @@ import VideoData from './VideoData';
 import Settings from '../Settings';
 import Logger from '../Logger';
 import EventBus from '../EventBus';
+import UI from '../uwui/UI';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: PlayerData.js");
@@ -94,9 +94,9 @@ class PlayerData {
       this.invalid = false;
       this.element = this.getPlayer();
 
-      this.notificationService = new PlayerNotificationUi(this.element, this.settings, this.eventBus);
-      this.ui = new PlayerUi(this.element, this.settings, this.eventBus, this.videoData);
-      this.ui.init();
+      // this.notificationService = new PlayerNotificationUi(this.element, this.settings, this.eventBus);
+      this.ui = new UI('ultrawidifyUi', {parentElement: this.element});
+      // this.ui.init();
 
       this.dimensions = undefined;
       this.overlayNode = undefined;
@@ -578,12 +578,12 @@ class PlayerData {
 
   forceRefreshPlayerElement() {
     this.element = this.getPlayer();
-    this.notificationService?.replace(this.element);
+    // this.notificationService?.replace(this.element);
     this.trackDimensionChanges();
   }
 
   showNotification(notificationId) {
-    this.notificationService?.showNotification(notificationId);
+    // this.notificationService?.showNotification(notificationId);
   }
 
   /**

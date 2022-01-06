@@ -218,15 +218,15 @@
 </template>
 
 <script>
-import Button from '../../common/components/Button.vue'
-import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
-import ShortcutButton from '../../common/components/ShortcutButton';
-import ComputeActionsMixin from '../../common/mixins/ComputeActionsMixin';
+import Button from '../../../common/components/Button.vue'
+import KeyboardShortcutParser from '../../../common/js/KeyboardShortcutParser';
+import ShortcutButton from '../../../common/components/ShortcutButton';
+import ComputeActionsMixin from '../../../common/mixins/ComputeActionsMixin';
 import ExecAction from '../ui-libs/ExecAction';
-import BrowserDetect from '../../ext/conf/BrowserDetect';
-import AspectRatioType from '../../common/enums/AspectRatioType.enum';
-import StretchType from '../../common/enums/StretchType.enum';
-import CropModePersistence from '../../common/enums/CropModePersistence.enum';
+import BrowserDetect from '../../../ext/conf/BrowserDetect';
+import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
+import StretchType from '../../../common/enums/StretchType.enum';
+import CropModePersistence from '../../../common/enums/CropModePersistence.enum';
 import AlignmentOptionsControlComponent from './AlignmentOptionsControlComponent.vue';
 
 export default {
@@ -255,14 +255,15 @@ export default {
   ],
   created() {
     this.exec = new ExecAction(this.settings, window.location.hostname);
-    this.eventBus.subscribe('announce-zoom', {
-      function: (config) => {
-        this.zoom = {
-          x: Math.log2(config.x),
-          y: Math.log2(config.y)
-        };
-      }
-    });
+    // todo: replace event bus with postMessage
+    // this.eventBus.subscribe('announce-zoom', {
+    //   function: (config) => {
+    //     this.zoom = {
+    //       x: Math.log2(config.x),
+    //       y: Math.log2(config.y)
+    //     };
+    //   }
+    // });
     // this.eventBus.send('get-current-config');
   },
   components: {
@@ -279,7 +280,7 @@ export default {
       );
     },
     siteDefaultCrop()  {
-      console.log('default crop for site:', JSON.parse(JSON.stringify(this.settings)), this.settings?.active.sites[window.location.hostname], this.settings?.active.sites[window.location.hostname].defaultCrop)
+      // console.log('default crop for site:', JSON.parse(JSON.stringify(this.settings)), this.settings?.active.sites[window.location.hostname], this.settings?.active.sites[window.location.hostname].defaultCrop)
       return JSON.stringify(
         this.settings?.getDefaultCrop() ?? {type: AspectRatioType.Automatic}
       );
@@ -308,7 +309,7 @@ export default {
       BrowserDetect.runtime.openOptionsPage();
     },
     execAction(command) {
-      this.eventBus?.send(command.action, command.arguments);
+      // this.eventBus?.send(command.action, command.arguments);
     },
     parseShortcut(command) {
       if (! command.shortcut) {
@@ -326,8 +327,9 @@ export default {
       this.zoom = {x: 0, y: 0};
 
       // we do not use logarithmic zoom elsewhere
-      this.eventBus.send('set-zoom', {zoom: 1, axis: 'y'});
-      this.eventBus.send('set-zoom', {zoom: 1, axis: 'x'});
+      // todo: replace eventBus with postMessage to parent
+      // this.eventBus.send('set-zoom', {zoom: 1, axis: 'y'});
+      // this.eventBus.send('set-zoom', {zoom: 1, axis: 'x'});
     },
     changeZoom(newZoom, axis) {
       // we store zoom logarithmically on this compnent
@@ -339,7 +341,6 @@ export default {
 
       // we do not use logarithmic zoom elsewhere, therefore we need to convert
       newZoom = Math.pow(2, newZoom);
-      this.eventBus.send('set-zoom', {zoom: newZoom, axis: axis, noAnnounce: true});
     },
 
     /**
@@ -348,25 +349,26 @@ export default {
     setDefaultCrop($event, globalOrSite) {
       const commandArguments = JSON.parse($event.target.value);
 
-      if (globalOrSite === 'site') {
-        if (!this.settings.active.sites[window.location.hostname]) {
-          this.settings.active.sites[window.location.hostname] = this.settings.getDefaultSiteConfiguration();
-        }
-        this.settings.active.sites[window.location.hostname].defaultCrop = commandArguments;
-      } else {
-        // eventually, this 'if' will be safe to remove (and we'll be able to only
-        // get away with the 'else' section) Maybe in 6 months or so.
-        if (!this.settings.active.crop) {
-          console.log('active settings crop not present. Well add');
-          this.settings.active['crop'] = {
-            default: commandArguments
-          }
-        } else {
-          console.log('default crop settings are present:', JSON.parse(JSON.stringify(this.settings.active.crop)))
-          this.settings.active.crop.default = commandArguments;
-        }
-      }
-      this.settings.saveWithoutReload();
+      // todo: account for the fact that window.host doesnt work the way we want in an iframe
+      // if (globalOrSite === 'site') {
+      //   if (!this.settings.active.sites[window.location.hostname]) {
+      //     this.settings.active.sites[window.location.hostname] = this.settings.getDefaultSiteConfiguration();
+      //   }
+      //   this.settings.active.sites[window.location.hostname].defaultCrop = commandArguments;
+      // } else {
+      //   // eventually, this 'if' will be safe to remove (and we'll be able to only
+      //   // get away with the 'else' section) Maybe in 6 months or so.
+      //   if (!this.settings.active.crop) {
+      //     console.log('active settings crop not present. Well add');
+      //     this.settings.active['crop'] = {
+      //       default: commandArguments
+      //     }
+      //   } else {
+      //     console.log('default crop settings are present:', JSON.parse(JSON.stringify(this.settings.active.crop)))
+      //     this.settings.active.crop.default = commandArguments;
+      //   }
+      // }
+      // this.settings.saveWithoutReload();
     },
 
     /**
@@ -399,7 +401,7 @@ export default {
 
 </style>
 
-<style lang="scss" src="../../res/css/flex.scss" scoped module></style>
+<style lang="scss" src="../../../res/css/flex.scss" scoped module></style>
 <style lang="scss" src="../res-common/panels.scss" scoped module></style>
 <style lang="scss" src="../res-common/common.scss" scoped module></style>
 

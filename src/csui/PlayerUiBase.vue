@@ -8,7 +8,8 @@
       <div class="site-support-info">
         <div class="site-support-site">{{site}}</div>
         <div v-if="siteSupportLevel === 'official'" class="site-support official">
-          <mdicon name="check-decagram" />
+          <!-- <mdicon name="check-decagram" /> -->
+          <span class="mdi account-edit mdi-account-edit"></span>
           <div>Official</div>
           <div class="tooltip">The extension is being tested and should work on this site.</div>
         </div>
@@ -93,7 +94,6 @@
           <template v-if="settingsInitialized">
             <VideoSettings
               :settings="settings"
-              :eventBus="ultrawidify.eventBus"
             ></VideoSettings>
             <!-- <ResizerDebugPanel :debugData="debugData">
             </ResizerDebugPanel> -->
@@ -105,12 +105,12 @@
 </template>
 
 <script>
-import VideoSettings from './PlayerUiPanels/VideoSettings.vue'
+import VideoSettings from './src/PlayerUiPanels/VideoSettings.vue'
 import { mapState } from 'vuex';
 // import Icon from '../common/components/Icon';
-import ResizerDebugPanel from './PlayerUiPanels/ResizerDebugPanelComponent';
+import ResizerDebugPanel from './src/PlayerUiPanels/ResizerDebugPanelComponent';
 import BrowserDetect from '../ext/conf/BrowserDetect';
-import ExecAction from './ui-libs/ExecAction';
+import ExecAction from './src/ui-libs/ExecAction';
 import Logger from '../ext/lib/Logger';
 import Settings from '../ext/lib/Settings';
 
@@ -139,11 +139,12 @@ export default {
     };
   },
   computed: {
-    ...mapState([
-      'showUi',
-      'resizerDebugData',
-      'playerDebugData'
-    ]),
+    // we don't have vuex here at the moment, so no mapState yet!
+    // ...mapState([
+    //   'showUi',
+    //   'resizerDebugData',
+    //   'playerDebugData'
+    // ]),
     // LPT: NO ARROW FUNCTIONS IN COMPUTED,
     // IS SUPER HARAM
     // THINGS WILL NOT WORK IF YOU USE ARROWS
@@ -185,15 +186,6 @@ export default {
       this.settingsInitialized = true;
 
       console.log("settings inited")
-
-      this.execAction.setSettings(this.settings);
-
-      console.log("created!");
-      console.log("store:", this.$store, this);
-
-      console.log("settings:", this.settings)
-      console.log("windowPD", window.ultrawidify);
-      console.log("this:", this);
     } catch (e) {
       console.error('Failed to initiate ultrawidify player ui.', e);
     }
@@ -208,8 +200,10 @@ export default {
 
 <style lang="scss" src="../res/css/uwui-base.scss" scoped module></style>
 <style lang="scss" src="../res/css/flex.scss" scoped module></style>
-<style lang="scss" src="./res-common/common.scss" scoped module></style>
+<style lang="scss" src="../res/css/mdi.scss" scoped module></style>
+<style lang="scss" src="./src/res-common/common.scss" scoped module></style>
 <style lang="scss" scoped module>
+
 @import '../res/css/uwui-base.scss';
 @import '../res/css/colors.scss';
 @import '../res/css/font/overpass.css';

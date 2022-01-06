@@ -43,7 +43,6 @@
     "open_in_tab": true
   },
 
-
   "web_accessible_resources": [
     "./*",
     "ext/*",
@@ -51,7 +50,8 @@
     "res/css/*",
     "res/img/settings/about-bg.png",
     "res/icons/*",
-    "res/img/*"
+    "res/img/*",
+    "csui/*"
   ],
   "permissions": [
     "storage",

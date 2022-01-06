@@ -1,52 +1,21 @@
-import { createApp } from 'vue';
-import { createStore } from 'vuex';
-import mdiVue from 'mdi-vue/v3';
-import * as mdijs from '@mdi/js';
-
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: UI");
 }
 
-
 class UI {
   constructor(
     interfaceId,
-    storeConfig,
     uiConfig, // {component, parentElement?}
-    commsConfig,
-    ultrawidify, // or, at least, videoData instance + event bus
   ) {
     this.interfaceId = interfaceId;
-    this.commsConfig = commsConfig;
-    this.storeConfig = storeConfig;
     this.uiConfig = uiConfig;
-    this.ultrawidify = ultrawidify;
 
     this.init();
   }
 
   async init() {
-    // initialize vuejs, but only once (check handled in initVue())
-    // we need to initialize this _after_ initializing comms.
-
-    this.initVue();
-  }
-
-  async initVue() {
-    if (this.storeConfig) {
-      this.vuexStore = createStore(this.storeConfig);
-    }
-
-    this.initUi();
-  }
-
-  async initUi() {
-    if (this.app) {
-      this.app.unmount();
-    }
-
     const random = Math.round(Math.random() * 69420);
-    const uwid = `uw-${this.interfaceId}-root-${random}`
+    const uwid = `uw-ultrawidify-${this.interfaceId}-root-${random}`
 
     const rootDiv = document.createElement('div');
 
@@ -64,26 +33,20 @@ class UI {
 
     this.element = rootDiv;
 
-    const app = createApp(this.uiConfig.component)
-      .use(mdiVue, {icons: mdijs})
-      .use({   // hand eventBus to the component
-        install: (app, options) => {
-          app.mixin({
-            data() {
-              return {
-                ultrawidify: options.ultrawidify
-              }
-            }
-          })
-        }
-      }, {ultrawidify: this.ultrawidify});
+    try {
+      const iframe = document.createElement('iframe');
+      iframe.setAttribute('src', browser.runtime.getURL('/csui/csui.html'));
+      iframe.style.width = "100%";
+      iframe.style.height = "100%";
+      iframe.style.position = "absolute";
+      iframe.style.zIndex = "1000";
 
-    if (this.vuexStore) {
-      app.use(this.vuexStore);
+      rootDiv.appendChild(iframe);
+    } catch(e) {
+
     }
 
-    this.app = app;
-    app.mount(`#${uwid}`);
+    console.log('——————————————————————————————————————— UI IS BEING CREATED ', rootDiv);
   }
 
   /**
@@ -92,17 +55,13 @@ class UI {
    */
   replace(newUiConfig) {
     this.element?.remove();
-    this.app.unmount();
-    this.app = undefined;
     this.uiConfig = newUiConfig;
-    this.initUi();
+    this.init();
   }
 
   destroy() {
     // this.comms?.destroy();
     this.element?.remove();
-    this.app.unmount();
-    this.app = undefined;
   }
 }
 

@@ -16,6 +16,7 @@ const config = {
     'ext/uw-bg': './ext/uw-bg.js',
     'popup/popup': './popup/popup.js',
     'options/options': './options/options.js',
+    'csui/csui': './csui/csui.js',
     // 'install/first-time/first-time':'./install/first-time/first-time.js',
   },
   output: {
@@ -26,7 +27,7 @@ const config = {
   devtool: "source-map",
 
   resolve: {
-    // maybe we'll move to TS some day, but today is not the day
+    // maybe we'll move vue stuff to TS some day, but today is not the day
     extensions: [
       '.ts', '.tsx',
       '.js', '.vue'
@@ -112,6 +113,7 @@ const config = {
     new CopyWebpackPlugin([
       { from: 'res', to: 'res', ignore: ['css', 'css/**']},
       { from: 'ext', to: 'ext', ignore: ['conf/*', 'lib/**']},
+      { from: 'csui', to: 'csui', ignore: ['src']},
 
       // we need to get webextension-polyfill and put it in common/lib
       { from: '../node_modules/webextension-polyfill/dist/browser-polyfill.js', to: 'common/lib/browser-polyfill.js'},
@@ -121,6 +123,7 @@ const config = {
       // (TODO: check if this copy is even necessary — /icons has same content as /res/icons)
       { from: 'icons', to: 'icons', ignore: ['icon.xcf'] },
       { from: 'popup/popup.html', to: 'popup/popup.html', transform: transformHtml },
+      { from: 'csui/csui.html', to: 'csui/csui.html', transform: transformHtml },
       { from: 'options/options.html', to: 'options/options.html', transform: transformHtml },
       // { from: 'install/first-time/first-time.html', to: 'install/first-time/first-time.html', transform: transformHtml},
       {

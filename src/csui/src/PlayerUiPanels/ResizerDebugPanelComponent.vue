@@ -121,11 +121,11 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import '../../res/css/uwui-base.scss';
-@import '../../res/css/colors.scss';
-@import '../../res/css/font/overpass.css';
-@import '../../res/css/font/overpass-mono.css';
-@import '../../res/css/common.scss';
+@import '../../../res/css/uwui-base.scss';
+@import '../../../res/css/colors.scss';
+@import '../../../res/css/font/overpass.css';
+@import '../../../res/css/font/overpass-mono.css';
+@import '../../../res/css/common.scss';
 
 // increase specificy with this one trick (webdevs hate him!)
 .uw-ultrawidify-container-root {

@@ -64,7 +64,7 @@
 </template>
 
 <script>
-import VideoAlignmentType from '../../common/enums/VideoAlignmentType.enum';
+import VideoAlignmentType from '../../../common/enums/VideoAlignmentType.enum';
 
 
 export default {
@@ -79,7 +79,7 @@ export default {
   methods: {
     align(alignmentX, alignmentY) {
       console.warn('sending set alignment:', {x: alignmentX, y: alignmentY});
-      this.eventBus.send('set-alignment', {x: alignmentX, y: alignmentY})
+      // this.eventBus.send('set-alignment', {x: alignmentX, y: alignmentY})
     }
   }
 }

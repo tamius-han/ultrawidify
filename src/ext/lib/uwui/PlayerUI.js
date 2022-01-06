@@ -1,6 +1,6 @@
 import UI from './UI';
 import VuexWebExtensions from 'vuex-webextensions';
-import PlayerUiComponent from '../../../csui/PlayerUiComponent.vue';
+import PlayerUiComponent from '../../../csui/PlayerUiBase.vue';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: PlayerUi");
