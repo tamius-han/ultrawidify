@@ -391,34 +391,22 @@ export default {
 }
 </script>
 
-<style lang="scss">
-.uw-ultrawidify-container-root {
-  all: revert;
-  * {
-    all: revert;
-  }
-}
-
-</style>
-
 <style lang="scss" src="../../../res/css/flex.scss" scoped module></style>
 <style lang="scss" src="../res-common/panels.scss" scoped module></style>
 <style lang="scss" src="../res-common/common.scss" scoped module></style>
 
 <style lang="scss" scoped module>
-.uw-ultrawidify-container-root {
-  .b3 {
-    width: 9rem;
-    padding-left: 0.33rem;
-    padding-right: 0.33rem;
-  }
-  .input-slider {
-    width: 480px;
-  }
-  .warning-lite {
-    padding-right: 16px;
-    padding-bottom: 16px;
-    padding-top: 8px;
-  }
+.b3 {
+  width: 9rem;
+  padding-left: 0.33rem;
+  padding-right: 0.33rem;
+}
+.input-slider {
+  width: 480px;
+}
+.warning-lite {
+  padding-right: 16px;
+  padding-bottom: 16px;
+  padding-top: 8px;
 }
 </style>

@@ -5,6 +5,7 @@ const WebpackShellPlugin = require('webpack-shell-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ChromeExtensionReloader = require('webpack-chrome-extension-reloader');
 const { VueLoaderPlugin } = require('vue-loader');
+const path = require('path');
 
 const config = {
   mode: process.env.NODE_ENV,
@@ -66,7 +67,12 @@ const config = {
             //   // localIdentName: "uw_[local]"
             // }
           },
-          'sass-loader'
+          {
+            loader: 'sass-loader',
+            options: {
+              sourceMap: true
+            }
+          }
         ],
       },
       // {

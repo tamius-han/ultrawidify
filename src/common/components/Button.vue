@@ -2,7 +2,6 @@
   <div class="button center-text"
        :class="{'setting-selected': selected }"
   >
-    <mdicon v-if="icon" :name="icon" class="icon" />
     <div class="label">
       {{label}}
     </div>

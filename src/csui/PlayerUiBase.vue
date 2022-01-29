@@ -8,8 +8,7 @@
       <div class="site-support-info">
         <div class="site-support-site">{{site}}</div>
         <div v-if="siteSupportLevel === 'official'" class="site-support official">
-          <!-- <mdicon name="check-decagram" /> -->
-          <span class="mdi account-edit mdi-account-edit"></span>
+          <mdicon name="check-decagram" />
           <div>Official</div>
           <div class="tooltip">The extension is being tested and should work on this site.</div>
         </div>
@@ -24,6 +23,7 @@
         </div>
         <div v-if="siteSupportLevel === 'no-support'" class="site-support no-support">
           <mdicon name="help-circle-outline" />
+          <span class="mdi help-circle-outline mdi-help-circle-outline"></span>
           <div>Unknown</div>
           <div class="tooltip">
             Not officially supported. Extension will try to fix things, but no promises.<br/><br/>
@@ -32,7 +32,8 @@
           </div>
         </div>
         <div v-if="siteSupportLevel === 'user-added'" class="site-support user-added">
-          <mdicon name="account" />
+          <!-- <mdicon name="account" /> -->
+          <span class="mdi account-edit mdi-account-edit"></span>
           <div>Custom</div>
           <div class="tooltip">
             You have manually changed settings for this site. The extension is doing what you told it to do.
@@ -48,6 +49,7 @@
           @click="selectTab('videoSettings')"
         >
           <mdicon name="crop" />
+          <span class="mdi account-edit mdi-account-edit"></span>
           Video options
         </div>
         <div
@@ -67,10 +69,12 @@
           @click="selectTab('advancedOptions')"
         >
           <mdicon name="cogs" />
+          <span class="mdi account-edit mdi-cogs"></span>
           Advanced options
         </div>
         <div class="tab">
           <mdicon name="bug-outline" />
+          <span class="mdi mdi-bug-outline"></span>
           Debugging
         </div>
       </div>
@@ -198,165 +202,156 @@ export default {
 }
 </script>
 
-<style lang="scss" src="../res/css/uwui-base.scss" scoped module></style>
-<style lang="scss" src="../res/css/flex.scss" scoped module></style>
-<style lang="scss" src="../res/css/mdi.scss" scoped module></style>
-<style lang="scss" src="./src/res-common/common.scss" scoped module></style>
-<style lang="scss" scoped module>
+<style lang="scss" scoped>
 
-@import '../res/css/uwui-base.scss';
-@import '../res/css/colors.scss';
-@import '../res/css/font/overpass.css';
-@import '../res/css/font/overpass-mono.css';
-@import '../res/css/common.scss';
+@import 'res/css/uwui-base.scss';
+@import 'res/css/colors.scss';
+@import 'res/css/font/overpass.css';
+@import 'res/css/font/overpass-mono.css';
+@import 'res/css/common.scss';
 
-.uw-ultrawidify-container-root {
-  // .relative-wrapper {
-  //   position: relative;
-  //   width: 100%;
-  //   height: 100%;
-  // }
+// .relative-wrapper {
+//   position: relative;
+//   width: 100%;
+//   height: 100%;
+// }
 
-  .site-support-info {
-    display: flex;
+.site-support-info {
+  display: flex;
+  flex-direction: row;
+  // padding-left: 2rem;
+
+  .site-support-site {
+    font-size: 1.2em;
+  }
+
+  .site-support {
+    display: inline-flex;
     flex-direction: row;
-    // padding-left: 2rem;
+    align-items: center;
 
-    .site-support-site {
-      font-size: 1.2em;
+    margin-left: 2rem;
+    border-radius: 8px;
+    padding: 0rem 1.5rem 0rem 1rem;
+
+    position: relative;
+
+    .tooltip {
+      padding: 1rem;
+      display: none;
+      position: absolute;
+      bottom: 0;
+      transform: translateY(110%);
+      width: 42em;
+
+      background-color: rgba(0,0,0,0.90);
+      color: #ccc;
+    }
+    &:hover {
+      .tooltip {
+        display: block;
+      }
     }
 
-    .site-support {
-      display: inline-flex;
-      flex-direction: row;
-      align-items: center;
+    .mdi {
+      margin-right: 1rem;
+    }
 
-      margin-left: 2rem;
-      border-radius: 8px;
-      padding: 0rem 1.5rem 0rem 1rem;
-
-      position: relative;
-
-      .tooltip {
-        padding: 1rem;
-        display: none;
-        position: absolute;
-        bottom: 0;
-        transform: translateY(110%);
-        width: 42em;
-
-        background-color: rgba(0,0,0,0.90);
-        color: #ccc;
-      }
-      &:hover {
-        .tooltip {
-          display: block;
-        }
-      }
+    &.official {
+      background-color: #fa6;
+      color: #000;
 
       .mdi {
-        margin-right: 1rem;
+        fill: #000 !important;
       }
+    }
 
-      &.official {
-        background-color: #fa6;
-        color: #000;
+    &.community {
+      background-color: rgb(47, 47, 97);
+      color: #fff;
 
-        .mdi {
-          fill: #000 !important;
-        }
+      .mdi {
+        fill: #fff !important;
       }
+    }
 
-      &.community {
-        background-color: rgb(47, 47, 97);
-        color: #fff;
+    &.no-support {
+      background-color: rgb(138, 65, 126);
+      color: #eee;
 
-        .mdi {
-          fill: #fff !important;
-        }
+      .mdi {
+        fill: #eee !important;
       }
+    }
 
-      &.no-support {
-        background-color: rgb(138, 65, 126);
-        color: #eee;
+    &.user-added {
+      border: 1px solid #ff0;
 
-        .mdi {
-          fill: #eee !important;
-        }
-      }
+      color: #ff0;
 
-      &.user-added {
-        border: 1px solid #ff0;
-
-        color: #ff0;
-
-        .mdi {
-          fill: #ff0 !important;
-        }
+      .mdi {
+        fill: #ff0 !important;
       }
     }
   }
-
-
-
-  .uw-hover {
-    position: absolute;
-    top: 10%;
-    left: 10%;
-    width: 100px;
-    height: 100px;
-    color: #fff;
-    background-color: #000;
-
-    z-index: 999999999999999999;
-  }
-  .uw-hover:hover {
-    background-color: #f00;
-  }
-
-  .popup-panel {
-    position: absolute;
-
-    top: 10%;
-    left: 10%;
-
-    z-index: 999999999999999999;
-
-    width: 2500px;
-    height: 1200px;
-    max-width: 80%;
-    max-height: 80%;
-
-    pointer-events: all !important;
-
-    background-color: rgba(0,0,0,0.50);
-    color: #fff;
-
-    overflow-y: auto;
-
-    backdrop-filter: blur(16px) saturate(120%);
-
-    .popup-title, .popup-title h1 {
-      font-size: 48px !important;
-    }
-
-    .tab {
-      display: block;
-      height: 42px;
-      font-size: 2.5rem;
-      background: rgb(87, 54, 26);
-    }
-    .tab:hover {
-      background-color: #f00;
-    }
-  }
-
-  pre {
-    white-space: pre-wrap;
-  }
-
-
 }
 
+
+
+.uw-hover {
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  width: 100px;
+  height: 100px;
+  color: #fff;
+  background-color: #000;
+
+  z-index: 999999999999999999;
+}
+.uw-hover:hover {
+  background-color: #f00;
+}
+
+.popup-panel {
+  position: absolute;
+
+  top: 10%;
+  left: 10%;
+
+  z-index: 999999999999999999;
+
+  width: 2500px;
+  height: 1200px;
+  max-width: 80%;
+  max-height: 80%;
+
+  pointer-events: all !important;
+
+  background-color: rgba(0,0,0,0.50);
+  color: #fff;
+
+  overflow-y: auto;
+
+  backdrop-filter: blur(16px) saturate(120%);
+
+  .popup-title, .popup-title h1 {
+    font-size: 48px !important;
+  }
+
+  .tab {
+    display: block;
+    height: 42px;
+    font-size: 2.5rem;
+    background: rgb(87, 54, 26);
+  }
+  .tab:hover {
+    background-color: #f00;
+  }
+}
+
+pre {
+  white-space: pre-wrap;
+}
 
 </style>

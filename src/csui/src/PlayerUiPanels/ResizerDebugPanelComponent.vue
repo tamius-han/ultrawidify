@@ -127,35 +127,31 @@ export default {
 @import '../../../res/css/font/overpass-mono.css';
 @import '../../../res/css/common.scss';
 
-// increase specificy with this one trick (webdevs hate him!)
-.uw-ultrawidify-container-root {
-  .panel-root {
-    display: block;
-    padding: 16px;
-  }
-
-  .panel {
-    display: inline-block;
-    width: 420px;
-    max-width: 100%;
-    padding: 12px 6px;
-  }
-
-  .data-item {
-    display: block;
-    margin-bottom: 0.69rem;
-  }
-
-  .data-title {
-
-    small {
-      display: block;
-      opacity: 0.69;
-    }
-  }
-  .data {
-    color: $primary-color;
-  }
-
+.panel-root {
+  display: block;
+  padding: 16px;
 }
+
+.panel {
+  display: inline-block;
+  width: 420px;
+  max-width: 100%;
+  padding: 12px 6px;
+}
+
+.data-item {
+  display: block;
+  margin-bottom: 0.69rem;
+}
+
+.data-title {
+
+  small {
+    display: block;
+    opacity: 0.69;
+  }
+}
+.data {
+  color: $primary-color;
+  }
 </style>

@@ -86,72 +86,70 @@ export default {
 </script>
 
 <style lang="scss" scoped module>
-.uw-ultrawidify-container-root {
-  .alignment-box {
-    aspect-ratio: 1;
-    width: 100%;
-    min-width: 40px;
-    max-width: 80px;
+.alignment-box {
+  aspect-ratio: 1;
+  width: 100%;
+  min-width: 40px;
+  max-width: 80px;
+
+  display: flex;
+  flex-direction: column;
+
+  .row {
+    flex: 0 0 33%;
 
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+  }
 
-    .row {
-      flex: 0 0 33%;
+  .col {
+    flex: 0 0 33%;
 
-      display: flex;
-      flex-direction: row;
+    display: flex;
+
+    .alignment-ui {
+      width: 50%;
+      height: 50%;
     }
 
-    .col {
-      flex: 0 0 33%;
+    align-items: center;
+    justify-content: center;
 
-      display: flex;
+    &.top  {
+      align-items: flex-start;
 
       .alignment-ui {
-        width: 50%;
-        height: 50%;
+        border-top: 3px solid #fff;
       }
+    }
+    &.bottom  {
+      align-items: flex-end;
 
-      align-items: center;
-      justify-content: center;
-
-      &.top  {
-        align-items: flex-start;
-
-        .alignment-ui {
-          border-top: 3px solid #fff;
-        }
+      .alignment-ui {
+        border-bottom: 3px solid #fff;
       }
-      &.bottom  {
-        align-items: flex-end;
+    }
+    &.left {
+      justify-content: flex-start;
 
-        .alignment-ui {
-          border-bottom: 3px solid #fff;
-        }
+      .alignment-ui {
+        border-left: 3px solid #fff;
       }
-      &.left {
-        justify-content: flex-start;
+    }
+    &.right {
+      justify-content: flex-end;
 
-        .alignment-ui {
-          border-left: 3px solid #fff;
-        }
+      .alignment-ui {
+        border-right: 3px solid #fff;
       }
-      &.right {
-        justify-content: flex-end;
+    }
 
-        .alignment-ui {
-          border-right: 3px solid #fff;
-        }
-      }
+    &.center.ycenter {
 
-      &.center.ycenter {
-
-        .alignment-ui {
-          width: 25%;
-          height: 25%;
-          background-color: #fff;
-        }
+      .alignment-ui {
+        width: 25%;
+        height: 25%;
+        background-color: #fff;
       }
     }
   }

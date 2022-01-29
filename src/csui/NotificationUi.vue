@@ -144,19 +144,19 @@ export default {
 @import '../res/css/font/overpass-mono.css';
 @import '../res/css/common.scss';
 
-.uw-ultrawidify-container-root {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
+// .uw-ultrawidify-container-root {
+  // position: relative;
+  // width: 100%;
+  // height: 100%;
+  // pointer-events: none;
 
-  display: block !important;
-  position: relative !important;
-  width: 100% !important;
-  height: 100% !important;
-  pointer-events: none !important;
+  // display: block !important;
+  // position: relative !important;
+  // width: 100% !important;
+  // height: 100% !important;
+  // pointer-events: none !important;
 
-  font-size: 16px !important;
+  // font-size: 16px !important;
 
   .notification-popup {
     pointer-events: auto !important;
@@ -213,5 +213,5 @@ export default {
     pointer-events: auto;
     cursor: pointer;
   }
-}
+// }
 </style>

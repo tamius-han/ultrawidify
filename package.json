@@ -66,6 +66,7 @@
     "file-loader": "^1.1.11",
     "mini-css-extract-plugin": "^0.4.4",
     "node-sass": "^4.14.1",
+    "resolve-url-loader": "^5.0.0",
     "sass-loader": "^7.1.0",
     "ts-loader": "^8.3.0",
     "vue-cli-plugin-vue-next": "~0.1.4",

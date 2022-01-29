@@ -14,7 +14,7 @@
     <div class="command-details">
       <div class="flex flex-column cmd-container cd-pad">
         <div class="flex bold">
-          Command: 
+          Command:
         </div>
         <div class="flex cmdlist">
           {{parseCommand(action.cmd)}}
@@ -151,99 +151,97 @@ export default {
 <style lang="scss" scoped>
 @import '../../res/css/colors.scss';
 
-.uw-ultrawidify-container-root {
-  .action {
-    cursor: pointer;
-    position: relative;
-    box-sizing: border-box;
-  }
+.action {
+  cursor: pointer;
+  position: relative;
+  box-sizing: border-box;
+}
 
-  .action .command-details {
-    height: 0px;
-    max-height: 0px;
-    transition: max-height 0.5s ease;
-    overflow: hidden;
-    transition: height 0.5s ease;
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 50%;
-  }
+.action .command-details {
+  height: 0px;
+  max-height: 0px;
+  transition: max-height 0.5s ease;
+  overflow: hidden;
+  transition: height 0.5s ease;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 50%;
+}
 
-  .action:hover .command-details {
-    height: auto;
-    max-height: 200px;
-    transition: max-height 0.5s ease;
-  }
+.action:hover .command-details {
+  height: auto;
+  max-height: 200px;
+  transition: max-height 0.5s ease;
+}
 
-  .command-details {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 50%;
-  }
+.command-details {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 50%;
+}
 
-  .action-name-cmd-container, .p1rem {
-    padding: 1rem;
-  }
+.action-name-cmd-container, .p1rem {
+  padding: 1rem;
+}
 
-  .cd-pad {
-    padding: 0.5em;
-  }
+.cd-pad {
+  padding: 0.5em;
+}
 
-  .action-name {
-    font-size: 1.5rem;
-    font-weight: 300;
-    color: $text-normal;
-    width: 50%;
-  }
+.action-name {
+  font-size: 1.5rem;
+  font-weight: 300;
+  color: $text-normal;
+  width: 50%;
+}
 
-  .action-name:hover, .action:hover .action-name {
-    color: lighten($primary-color, 20%);
-  }
+.action-name:hover, .action:hover .action-name {
+  color: lighten($primary-color, 20%);
+}
 
-  .red {
-    color: $primary-color !important;
-  }
+.red {
+  color: $primary-color !important;
+}
 
-  .cmd-container {
-    width: 13.37rem;
-  }
+.cmd-container {
+  width: 13.37rem;
+}
 
-  .cmdlist {
-    font-family: 'Overpass Mono';
-    font-size: 0.9rem;
-    color: $text-dim;
-  }
+.cmdlist {
+  font-family: 'Overpass Mono';
+  font-size: 0.9rem;
+  color: $text-dim;
+}
 
-  .bold {
-    font-weight: 600;
-  }
+.bold {
+  font-weight: 600;
+}
 
-  .scope-scope {
-    width: 5rem;
-    text-align: right !important;
-    color: $secondary-color;
-  }
+.scope-scope {
+  width: 5rem;
+  text-align: right !important;
+  color: $secondary-color;
+}
 
-  .scope-visible {
-    width: 7rem;
-  }
+.scope-visible {
+  width: 7rem;
+}
 
-  .scope-button-label {
-    width: 16rem;
-  }
+.scope-button-label {
+  width: 16rem;
+}
 
-  .scope-row-label {
-    color: $text-dark;
-  }
+.scope-row-label {
+  color: $text-dark;
+}
 
-  .scope-row-highlight {
-    color: $text-normal;
-  }
+.scope-row-highlight {
+  color: $text-normal;
+}
 
-  .transparent {
-    opacity: 0;
-  }
+.transparent {
+  opacity: 0;
 }
 </style>

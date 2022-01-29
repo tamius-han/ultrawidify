@@ -1,25 +1,23 @@
-.uw-ultrawidify-container-root {
-  .json-level-indent {
-    padding-left: 2em !important;
-    font-family: 'Overpass Mono', monospace;
-  }
-  .item-key {
-    color: rgb(255, 196, 148);
-  }
-  .item-key-boolean-false {
-    color: rgb(207, 149, 101)
-  }
+.json-level-indent {
+  padding-left: 2em !important;
+  font-family: 'Overpass Mono', monospace;
+}
+.item-key {
+  color: rgb(255, 196, 148);
+}
+.item-key-boolean-false {
+  color: rgb(207, 149, 101)
+}
 
-  .json-value-boolean-true {
-    color: rgb(150, 240, 198);
-  }
-  .json-value-boolean-false {
-    color: rgb(241, 21, 21);
-  }
-  .json-value-number {
-    color: rgb(121, 121, 238);
-  }
-  .json-value-string {
-    color:  rgb(226, 175, 7);
-  }
+.json-value-boolean-true {
+  color: rgb(150, 240, 198);
+}
+.json-value-boolean-false {
+  color: rgb(241, 21, 21);
+}
+.json-value-number {
+  color: rgb(121, 121, 238);
+}
+.json-value-string {
+  color:  rgb(226, 175, 7);
 }
