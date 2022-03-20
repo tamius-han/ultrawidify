@@ -135,7 +135,8 @@ export default {
       // we _should_ be always running from an iframe in order to
       // avoid fucking up CSS. This means rules of the game change
       // a wee tiny bit.
-      site: window.parent.location.hostname,
+      // site: null,
+      site: window.location.hostname,
       lastProbeTs: null,
 
       uiVisible: true,
