@@ -1,8 +1,8 @@
 <template>
-  <div class="uw-hover uv-hover-trigger-region">
+  <div class="uw-hover uv-hover-trigger-region uw-clickable">
     TEST CONTENT
   </div>
-  <div class="popup-panel flex flex-column">
+  <div class="popup-panel flex flex-column uw-clickable">
     <div>
       <div class="popup-title">Ultrawidify <small>{{settings?.active?.version}} - {{BrowserDetect.processEnvChannel}}</small></div>
       <div class="site-support-info">
@@ -178,6 +178,7 @@ export default {
       this.debugDataPrettified = JSON.stringify(this.debugData, null, 2);
     }
   },
+
   async created() {
     try {
       this.logger = new Logger();
