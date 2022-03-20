@@ -132,7 +132,11 @@ export default {
       execAction: new ExecAction(),
       logger: null,
 
-      site: window.location.hostname,
+      // we _should_ be always running from an iframe in order to
+      // avoid fucking up CSS. This means rules of the game change
+      // a wee tiny bit.
+      site: window.parent.location.hostname,
+      lastProbeTs: null,
 
       uiVisible: true,
       debugData: {
