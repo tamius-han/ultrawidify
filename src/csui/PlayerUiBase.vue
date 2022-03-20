@@ -132,11 +132,11 @@ export default {
       execAction: new ExecAction(),
       logger: null,
 
-      // we _should_ be always running from an iframe in order to
-      // avoid fucking up CSS. This means rules of the game change
-      // a wee tiny bit.
-      // site: null,
-      site: window.location.hostname,
+      // NOTE: chromium doesn't allow us to access window.parent.location
+      // meaning we will have to correct this value from our uwui-probe
+      // messages ... which is a bummer.
+      // site: window.location.hostname,
+      site: null,
       lastProbeTs: null,
 
       uiVisible: true,
@@ -196,14 +196,86 @@ export default {
       this.settingsInitialized = true;
 
       console.log("settings inited")
+
+      // set up communication with client script
+      window.addEventListener('message', event => {
+        console.log('[iframe] received event:', event)
+        try {
+          this.handleMessage(event);
+        } catch (e) {
+          console.error('could not handle message:', e)
+        }
+      });
     } catch (e) {
       console.error('Failed to initiate ultrawidify player ui.', e);
     }
   },
+
   methods: {
+    /**
+     * Gets URL of the browser settings page (i think?)
+     */
     getUrl(url) {
       return BrowserDetect.getURL(url);
     },
+
+    /**
+     * Mostly intended to process messages received via window.addEventListener('message').
+     * This method should include minimal logic — instead, it should only route messages
+     * to the correct function down the line.
+     */
+    handleMessage(event) {
+      console.log('[handleMessage] will handle event:', event)
+      if (event.data.cmd === 'uwui-probe') {
+        if (!this.site) {
+          this.site = event.origin.split('//')[1];
+        }
+        this.handleProbe(event.data, event.origin);
+      }
+    },
+
+    /**
+     * Handles 'uwui-probe' events. It checks whether there's a clickable element under
+     * cursor, and sends a reply to the content scripts that indicates whether pointer-events
+     * property of the iframe should be set to capture or ignore the clicks.
+     */
+    handleProbe(eventData, origin) {
+      if (eventData.ts < this.lastProbeTs) {
+        return; // i dont know if events can arrive out-of-order. Prolly not. We still check.
+      }
+      this.lastProbeTs = eventData.ts;
+
+      /* we check if our mouse is hovering over an element.
+       *
+       * gentleman's agreement: elements with uw-clickable inside the iframe will
+       * toggle pointerEvents on the iframe from 'none' to 'auto'
+       * Children of uw-clickable events should also do that.
+       *
+       * TODO: rename uw-clickable to something else, since we pretty much need that on
+       * our top-level element.
+       */
+      let isClickable = false;
+      let element = document.elementFromPoint(eventData.coords.x, eventData.coords.y);
+
+      while (element) {
+        if (element?.classList.contains('uw-clickable')) {
+          // we could set 'pointerEvents' here and now & simply use return, but that
+          // might cause us a problem if we ever try to add more shit to this function
+          isClickable = true;
+          break;
+        }
+        element = element.parentElement;
+      }
+
+      window.parent.postMessage(
+        {
+          cmd: 'uwui-clickable',
+          clickable: isClickable,
+          ts: +new Date()
+        },
+        origin
+      );
+    }
   }
 }
 </script>
