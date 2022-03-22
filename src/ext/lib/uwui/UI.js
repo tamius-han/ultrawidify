@@ -71,7 +71,6 @@ class UI {
           }
         }
 
-        console.warn('coords:', coords, 'uiURI:', uiURI);
 
         // ask the iframe to check whether there's a clickable element
         iframe.contentWindow.postMessage(
@@ -90,7 +89,6 @@ class UI {
     }
 
     rootDiv.appendChild(iframe);
-    console.log('ui created')
 
     // subscribe to events coming back to us
     window.addEventListener('message', (event) => this.handleMessage(event));
@@ -106,14 +104,12 @@ class UI {
   handleMessage(event) {
     console.log('[main] received event:', event.origin, this.uiURI, this.extensionBase, event)
     if (event.origin === this.extensionBase) {
-      console.log('this is the event we want', this.uiIframe );
+      if (event.data.action === 'uwui-clickable') {
       if (event.data.cmd === 'uwui-clickable') {
         if (event.data.ts < this.lastProbeResponseTs) {
-          console.log('event too early')
           return;
         }
         this.lastProbeResponseTs = event.data.ts;
-        console.log('---- event is clickable?', event.data.clickable)
         this.uiIframe.style.pointerEvents = event.data.clickable ? 'auto' : 'none';
       }
     }

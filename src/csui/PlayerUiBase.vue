@@ -225,7 +225,7 @@ export default {
      * to the correct function down the line.
      */
     handleMessage(event) {
-      console.log('[handleMessage] will handle event:', event)
+      if (event.data.action === 'uwui-probe') {
       if (event.data.cmd === 'uwui-probe') {
         if (!this.site) {
           this.site = event.origin.split('//')[1];
