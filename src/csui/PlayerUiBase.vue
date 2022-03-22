@@ -135,8 +135,8 @@ export default {
       // NOTE: chromium doesn't allow us to access window.parent.location
       // meaning we will have to correct this value from our uwui-probe
       // messages ... which is a bummer.
-      // site: window.location.hostname,
       site: null,
+      origin: '*', // will be set appropriately once the first uwui-probe event is received
       lastProbeTs: null,
 
       uiVisible: true,
@@ -185,30 +185,35 @@ export default {
   },
 
   async created() {
-    try {
-      this.logger = new Logger();
-      await this.logger.init({
-          allowLogging: true,
-      });
+    this.logger = new Logger();
+    await this.logger.init({
+        allowLogging: true,
+    });
 
-      this.settings = new Settings({afterSettingsSaved: this.updateConfig, logger: this.logger});
-      await this.settings.init();
-      this.settingsInitialized = true;
+    this.settings = new Settings({afterSettingsSaved: this.updateConfig, logger: this.logger});
+    await this.settings.init();
+    this.settingsInitialized = true;
 
-      console.log("settings inited")
+    console.log("settings inited")
 
-      // set up communication with client script
-      window.addEventListener('message', event => {
-        console.log('[iframe] received event:', event)
-        try {
-          this.handleMessage(event);
-        } catch (e) {
-          console.error('could not handle message:', e)
+    // set up communication with client script
+    window.addEventListener('message', event => {
+      this.handleMessage(event);
+    });
+
+    /**
+     * Setup the "companion" onMouseMove handler to the one in the content script.
+     * We can handle events with the same function we use to handle events from
+     * the content script.
+     */
+    document.addEventListener('mousemove', (event) => {
+      this.handleProbe({
+        coords: {
+          x: event.clientX,
+          y: event.clientY
         }
-      });
-    } catch (e) {
-      console.error('Failed to initiate ultrawidify player ui.', e);
-    }
+      }, this.origin);
+    });
   },
 
   methods: {
@@ -226,8 +231,8 @@ export default {
      */
     handleMessage(event) {
       if (event.data.action === 'uwui-probe') {
-      if (event.data.cmd === 'uwui-probe') {
         if (!this.site) {
+          this.origin = event.origin;
           this.site = event.origin.split('//')[1];
         }
         this.handleProbe(event.data, event.origin);
@@ -241,7 +246,7 @@ export default {
      */
     handleProbe(eventData, origin) {
       if (eventData.ts < this.lastProbeTs) {
-        return; // i dont know if events can arrive out-of-order. Prolly not. We still check.
+        return; // i don't know if events can arrive out-of-order. Prolly not. We still check.
       }
       this.lastProbeTs = eventData.ts;
 
@@ -269,12 +274,17 @@ export default {
 
       window.parent.postMessage(
         {
-          cmd: 'uwui-clickable',
+          action: 'uwui-clickable',
           clickable: isClickable,
           ts: +new Date()
         },
         origin
       );
+    },
+
+    selectTab(tab) {
+      console.log('selected tab:', tab);
+      console.warn('NOTE: tab selection is not syet inplemented!')
     }
   }
 }

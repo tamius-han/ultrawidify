@@ -13,7 +13,7 @@ class UI {
     this.uiURI = browser.runtime.getURL('/csui/csui.html');
     this.extensionBase = browser.runtime.getURL('').replace(/\/$/, "");
 
-    console.log('init init');
+    this.eventBus = uiConfig.eventBus;
 
     this.init();
   }
@@ -51,41 +51,33 @@ class UI {
     iframe.style.border = 0;
     iframe.style.pointerEvents = 'none';
 
-    // so we have a problem: we want iframe to be clickthrough everywhere except
-    // on our actual overlay. There's no nice way of doing that, so we need some
-    // extra javascript to deal with this
+    /* so we have a problem: we want iframe to be clickthrough everywhere except
+     * on our actual overlay. There's no nice way of doing that, so we need some
+     * extra javascript to deal with this.
+     *
+     * There's a second problem: while iframe is in clickable mode, onMouseMove
+     * will not work (as all events will be hijacked by the iframe). This means
+     * that iframe also needs to run its own instance of onMouseMove.
+     */
+
 
     iframe.onload = function() {
-
-      function onMouseMove(event) {
-        let coords;
-        if (event.currentTarget === document) {
-          coords = {
-            x: event.pageX - iframe.offsetLeft,
-            y: event.pageY - iframe.offsetTop
-          }
-        } else {
-          coords = {
-            x: event.clientX,
-            y: event.clientY
-          }
-        }
-
+      document.addEventListener('mousemove', (event) => {
+        const coords = {
+          x: event.pageX - iframe.offsetLeft,
+          y: event.pageY - iframe.offsetTop
+        };
 
         // ask the iframe to check whether there's a clickable element
         iframe.contentWindow.postMessage(
           {
-            cmd: 'uwui-probe',
+            action: 'uwui-probe',
             coords,
             ts: +new Date()   // this should be accurate enough for our purposes
           },
           uiURI
         );
-
-        // iframe.style.pointerEvents = isClickable ? 'auto' : 'none';
-      }
-
-      document.addEventListener('mousemove', onMouseMove, true);
+      }, true);
     }
 
     rootDiv.appendChild(iframe);
@@ -97,6 +89,7 @@ class UI {
     this.uiIframe = iframe;
   }
 
+
   /**
    * Handles events received from the iframe.
    * @param {*} event
@@ -105,12 +98,13 @@ class UI {
     console.log('[main] received event:', event.origin, this.uiURI, this.extensionBase, event)
     if (event.origin === this.extensionBase) {
       if (event.data.action === 'uwui-clickable') {
-      if (event.data.cmd === 'uwui-clickable') {
         if (event.data.ts < this.lastProbeResponseTs) {
           return;
         }
         this.lastProbeResponseTs = event.data.ts;
         this.uiIframe.style.pointerEvents = event.data.clickable ? 'auto' : 'none';
+      } else {
+        this.eventBus.send(event.data.action, event.data.arguments);
       }
     }
   }
