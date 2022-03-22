@@ -95,7 +95,7 @@ class PlayerData {
       this.element = this.getPlayer();
 
       // this.notificationService = new PlayerNotificationUi(this.element, this.settings, this.eventBus);
-      this.ui = new UI('ultrawidifyUi', {parentElement: this.element});
+      this.ui = new UI('ultrawidifyUi', {parentElement: this.element, eventBus: this.eventBus});
       // this.ui.init();
 
       this.dimensions = undefined;

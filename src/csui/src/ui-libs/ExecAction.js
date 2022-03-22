@@ -15,7 +15,6 @@ class ExecAction {
 
 
   async exec(action, scope, frame, useBus) {
-    console.log('execing actioN!');
     for (var cmd of action.cmd) {
       if (!scope || scope === 'page') {
         const message = {
@@ -29,6 +28,7 @@ class ExecAction {
         if (useBus) {
           // todo: postMessage out of the iframe!
           // window.ultrawidify.bus.sendMessage(message.cmd, message);
+          window.parent.sendMessage(message.cmd, message);
         } else {
           Comms.sendMessage(message);
         }
@@ -49,8 +49,9 @@ class ExecAction {
           // this hopefully delays settings.save() until current crops are saved on the site
           // and thus avoid any fucky-wuckies
           if (useBus) {
-          // todo: postMessage out of the iframe!
+            // todo: postMessage out of the iframe!
             // window.ultrawidify.bus.sendMessage(message.cmd, message);
+            window.parent.sendMessage(message.cmd, message);
           } else {
             await Comms.sendMessage(message);
           }

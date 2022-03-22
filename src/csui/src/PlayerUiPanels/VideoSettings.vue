@@ -309,6 +309,8 @@ export default {
       BrowserDetect.runtime.openOptionsPage();
     },
     execAction(command) {
+      const cmd = JSON.parse(JSON.stringify(command));
+      window.parent.postMessage(cmd, '*');
       // this.eventBus?.send(command.action, command.arguments);
     },
     parseShortcut(command) {
