@@ -95,7 +95,6 @@ class UI {
    * @param {*} event
    */
   handleMessage(event) {
-    console.log('[main] received event:', event.origin, this.uiURI, this.extensionBase, event)
     if (event.origin === this.extensionBase) {
       if (event.data.action === 'uwui-clickable') {
         if (event.data.ts < this.lastProbeResponseTs) {

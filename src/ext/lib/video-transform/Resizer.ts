@@ -484,7 +484,7 @@ class Resizer {
 
   setZoom(zoomLevel: number, axis?: 'x' | 'y', noAnnounce?) {
     this.manualZoom = true;
-    console.log('setting zoom:', zoomLevel);
+    // console.log('setting zoom:', zoomLevel);
     this.zoom.setZoom(zoomLevel, axis, noAnnounce);
   }
 
