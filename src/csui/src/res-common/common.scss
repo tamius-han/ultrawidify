@@ -26,4 +26,22 @@ div, p, span {
 h1, h2, h3 {
   font-family: 'Overpass' !important;
   font-weight: 100 !important;
+  margin: 0;
+  padding: 0;
+}
+
+.button {
+  background-color: rgba(11,11,11,0.5);
+  color: #aaa;
+  border: 1px solid transparent;
+
+  &:hover {
+    color: #fff;
+    background-color: rgba(11,11,11,0.9);
+    border-bottom: 1px solid rgba($primary, 0.5);
+  }
+}
+.b3 {
+  margin: 0.25rem;
+  padding: 0.5rem 2rem;
 }
