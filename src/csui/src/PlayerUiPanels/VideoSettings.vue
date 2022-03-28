@@ -39,6 +39,7 @@
         <div class="sub-panel-content flex flex-row flex-wrap">
           <ShortcutButton v-for="(command, index) of settings?.active.commands.crop"
                           class="flex b3 button"
+                          :class="{active: isActiveCrop(command)}"
                           :key="index"
                           :label="command.label"
                           :shortcut="parseShortcut(command)"
@@ -272,6 +273,12 @@ export default {
         y: 0
       },
       editMode: true,
+      resizerConfig: {
+        crop: null,
+        stretch: null,
+        zoom: null,
+        pan: null
+      }
     }
   },
   mixins: [
@@ -282,6 +289,7 @@ export default {
     'frame',
     'cropModePersistence',
     'eventBus',
+    'site'
   ],
   created() {
     this.exec = new ExecAction(this.settings, window.location.hostname);
@@ -295,6 +303,10 @@ export default {
     //   }
     // });
     // this.eventBus.send('get-current-config');
+    this.eventBus.subscribe('uw-config-broadcast', {function: (config) => this.handleConfigBroadcast(config)});
+  },
+  mounted() {
+    this.eventBus.sendToTunnel('get-ar');
   },
   components: {
     ShortcutButton,
@@ -340,8 +352,7 @@ export default {
     },
     execAction(command) {
       const cmd = JSON.parse(JSON.stringify(command));
-      window.parent.postMessage(cmd, '*');
-      // this.eventBus?.send(command.action, command.arguments);
+      this.eventBus?.sendToTunnel(cmd.action, cmd.arguments);
     },
     parseShortcut(command) {
       if (! command.shortcut) {
@@ -418,6 +429,44 @@ export default {
           this.settings.active.stretch.default = commandArguments;
       }
       this.settings.saveWithoutReload();
+    },
+
+    /**
+     * Handles 'uw-config-broadcast' messages
+     */
+    handleConfigBroadcast(message) {
+      if (message.type === 'ar') {
+        this.resizerConfig.crop = message.config;
+      }
+
+      this.$nextTick( () => this.$forceUpdate() );
+    },
+
+    /**
+     * Determines whether a given crop command is the currently active one
+     */
+    isActiveCrop(cropCommand) {
+      if (! this.resizerConfig.crop) {
+        return false;
+      }
+
+      const defaultCrop = this.settings.getDefaultCrop(this.site);
+
+      if (cropCommand.arguments.type === AspectRatioType.Automatic) {
+        return this.resizerConfig.crop.type === AspectRatioType.Automatic
+          || this.resizerConfig.crop.type === AspectRatioType.AutomaticUpdate
+          || this.resizerConfig.crop.type === AspectRatioType.Initial && defaultCrop === AspectRatioType.Automatic;
+      }
+      if (cropCommand.arguments.type === AspectRatioType.Reset) {
+        return this.resizerConfig.crop.type === AspectRatioType.Reset
+          || this.resizerConfig.crop.type === AspectRatioType.Initial && defaultCrop !== AspectRatioType.Automatic;
+      }
+      if (cropCommand.arguments.type === AspectRatioType.Fixed) {
+        return this.resizerConfig.crop.type === AspectRatioType.Fixed
+          && this.resizerConfig.crop.ratio === cropCommand.arguments.ratio;
+      }
+      // only legacy options (fitw, fith) left to handle:
+      return cropCommand.arguments.type === this.resizerConfig.crop.type;
     }
   }
 }

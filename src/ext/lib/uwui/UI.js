@@ -87,6 +87,25 @@ class UI {
 
     // set uiIframe for handleMessage
     this.uiIframe = iframe;
+
+    /* set up event bus tunnel from content script to UI — necessary if we want to receive
+     * like current zoom levels & current aspect ratio & stuff. Some of these things are
+     * necessary for UI display in the popup.
+     */
+    this.eventBus.subscribe(
+      'uw-config-broadcast',
+      {
+        function: (config) => {
+          iframe.contentWindow.postMessage(
+            {
+              action: 'uw-bus-tunnel',
+              payload: {action: 'uw-config-broadcast', config}
+            },
+            uiURI
+          )
+        }
+      }
+    );
   }
 
 
@@ -102,8 +121,9 @@ class UI {
         }
         this.lastProbeResponseTs = event.data.ts;
         this.uiIframe.style.pointerEvents = event.data.clickable ? 'auto' : 'none';
-      } else {
-        this.eventBus.send(event.data.action, event.data.arguments);
+      } else if (event.data.action === 'uw-bus-tunnel') {
+        const busCommand = event.data.payload;
+        this.eventBus.send(busCommand.action, busCommand.config);
       }
     }
   }

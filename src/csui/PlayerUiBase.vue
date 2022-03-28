@@ -82,6 +82,8 @@
           <template v-if="settingsInitialized">
             <VideoSettings
               :settings="settings"
+              :eventBus="eventBus"
+              :site="site"
             ></VideoSettings>
             <!-- <ResizerDebugPanel :debugData="debugData">
             </ResizerDebugPanel> -->
@@ -101,6 +103,7 @@ import BrowserDetect from '../ext/conf/BrowserDetect';
 import ExecAction from './src/ui-libs/ExecAction';
 import Logger from '../ext/lib/Logger';
 import Settings from '../ext/lib/Settings';
+import EventBus from '../ext/lib/EventBus';
 
 export default {
   components: {
@@ -114,6 +117,7 @@ export default {
       BrowserDetect: BrowserDetect,
       settingsInitialized: false,
       execAction: new ExecAction(),
+      eventBus: new EventBus(),
       logger: null,
 
       // NOTE: chromium doesn't allow us to access window.parent.location
@@ -227,6 +231,8 @@ export default {
           this.site = event.origin.split('//')[1];
         }
         this.handleProbe(event.data, event.origin);
+      } else if (event.data.action === 'uw-bus-tunnel') {
+        this.handleBusTunnelIn(event.data.payload);
       }
     },
 
@@ -273,6 +279,10 @@ export default {
       );
     },
 
+    handleBusTunnelIn(payload) {
+      this.eventBus.send(payload.action, payload.config);
+    },
+
     selectTab(tab) {
       console.log('selected tab:', tab);
       console.warn('NOTE: tab selection is not syet inplemented!')
@@ -282,12 +292,12 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-
 @import 'res/css/uwui-base.scss';
 @import 'res/css/colors.scss';
 @import 'res/css/font/overpass.css';
 @import 'res/css/font/overpass-mono.css';
 @import 'res/css/common.scss';
+@import './src/res-common/_variables';
 
 // .relative-wrapper {
 //   position: relative;
@@ -436,8 +446,8 @@ export default {
         opacity: 1;
       }
       &.active {
-        opacity: 1;
-        background-color: rgba(54, 31, 21, 0.5);
+        opacity: 1.0;
+        background-color: $primaryBg;
         color: rgb(255, 174, 107);
         border-bottom: 1px solid rgba(116, 78, 47, 0.5);
         border-top: 1px solid rgba(116, 78, 47, 0.5);

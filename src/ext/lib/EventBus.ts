@@ -35,6 +35,22 @@ export default class EventBus {
     }
   }
 
+  /**
+   * Send, but intended for sending commands from iframe to content scripts
+   * @param command
+   * @param config
+   */
+  sendToTunnel(command: string, config: any) {
+    window.parent.postMessage(
+      {
+        action: 'uw-bus-tunnel',
+        payload: {action: command, config}
+      },
+      '*'
+    );
+  }
+
+
   sendGlobal(command: string, config: any) {
     if (!this.commands ||!this.commands[command]) {
       // ensure send is not being called for commands that we have no subscriptions for

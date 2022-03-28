@@ -46,7 +46,17 @@ class Resizer {
   currentPlayerStyleString: any;
   currentCssValidFor: any;
   currentVideoSettings: any;
-  lastAr: {type: any, ratio?: number} = {type: AspectRatioType.Initial};
+
+  _lastAr: {type: any, ratio?: number} = {type: AspectRatioType.Initial};
+  set lastAr(x: {type: any, ratio?: number}) {
+    this._lastAr = x;
+    // emit updates for UI when setting lastAr
+    this.eventBus.send('uw-config-broadcast', {type: 'ar', config: x})
+  }
+  get lastAr() {
+    return this._lastAr;
+  }
+
   resizerId: any;
   videoAlignment: {x: VideoAlignmentType, y: VideoAlignmentType};
   userCss: string;
@@ -79,6 +89,9 @@ class Resizer {
     'change-zoom': [{
       function: (config: any) => this.zoomStep(config.step)
     }],
+    'get-ar': [{
+      function: () => this.eventBus.send('uw-config-broadcast', {type: 'ar', config: this.lastAr})
+    }]
   }
   //#endregion
 
@@ -484,7 +497,6 @@ class Resizer {
 
   setZoom(zoomLevel: number, axis?: 'x' | 'y', noAnnounce?) {
     this.manualZoom = true;
-    // console.log('setting zoom:', zoomLevel);
     this.zoom.setZoom(zoomLevel, axis, noAnnounce);
   }
 
