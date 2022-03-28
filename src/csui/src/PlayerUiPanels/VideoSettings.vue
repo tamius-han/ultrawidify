@@ -1,216 +1,245 @@
 <template>
-  <div class="flex flex-row flex-wrap" style="padding-bottom: 20px">
-
-
-    <!-- CROP OPTIONS -->
-    <div v-if="settings" class="sub-panel">
-      <div class="flex flex-row">
-        <mdicon name="crop" :size="32" />
-        <h1>Crop video:</h1>
-      </div>
-      <div class="sub-panel-content flex flex-row flex-wrap">
-        <ShortcutButton v-for="(command, index) of settings?.active.commands.crop"
-                        class="flex b3 flex-grow button"
-                        :key="index"
-                        :label="command.label"
-                        :shortcut="parseShortcut(command)"
-                        @click="execAction(command)"
+  <div class="flex flex-column">
+    <!-- 'Change UI' options is a tiny bit in upper right corner. -->
+    <div
+      class="options-bar flex flex-row"
+      :class="{isEditing: editMode}"
+    >
+      <template v-if="editMode">
+        <div class="flex-grow">
+          You are currently editing options and shortcuts.
+        </div>
+        <div
+          class="flex-nogrow flex-noshrink"
+          @click="editMode = false"
         >
-        </ShortcutButton>
-      </div>
-
-      <div class="flex flex-row">
-        <div class="label">Default for this site</div>
-        <div class="select">
-          <select
-            :value="siteDefaultCrop"
-            @click="setDefaultCrop($event, 'site')"
-          >
-            <option
-              v-for="(command, index) of settings?.active.commands.crop"
-              :key="index"
-              :value="JSON.stringify(command.arguments)"
-            >
-              {{command.label}}
-            </option>
-          </select>
+          Exit edit mode
         </div>
-      </div>
-      <div class="flex flex-row">
-        <div class="label">Extension default</div>
-        <div class="select">
-          <select
-            :value="extensionDefaultCrop"
-            @click="setDefaultCrop($event, 'global')"
-          >
-            <option
-              v-for="(command, index) of settings?.active.commands.crop"
-              :key="index"
-              :value="JSON.stringify(command.arguments)"
-            >
-              {{command.label}}
-            </option>
-          </select>
+      </template>
+      <template v-else>
+        <div class="flex-grow"></div>
+        <div
+          class=""
+          @click="editMode = true"
+        >
+          Edit ratios and shortcuts
         </div>
-      </div>
+      </template>
     </div>
 
+    <!-- The rest of the tab is under 'edit ratios and shortcuts' row -->
+    <div class="flex flex-row flex-wrap" style="padding-bottom: 20px">
 
-    <!-- STRETCH OPTIONS -->
-    <div v-if="settings" class="sub-panel">
-      <div class="flex flex-row">
-        <mdicon name="stretch-to-page-outline" :size="32" />
-        <h1>Stretch video:</h1>
-      </div>
-      <div class="flex flex-row flex-wrap">
-        <ShortcutButton v-for="(command, index) of settings?.active.commands.stretch"
-                        class="flex b3 flex-grow button"
-                        :key="index"
-                        :label="command.label"
-                        :shortcut="parseShortcut(command)"
-                        @click="execAction(command)"
-        >
-        </ShortcutButton>
-      </div>
-
-      <div class="flex flex-row">
-        <div class="label">Default for this site</div>
-        <div class="select">
-          <select
-            v-model="siteDefaultStretchMode"
-            @click="setDefaultStretchingMode($event, 'site')"
+      <!-- CROP OPTIONS -->
+      <div v-if="settings" class="sub-panel">
+        <div class="flex flex-row">
+          <mdicon name="crop" :size="32" />
+          <h1>Crop video:</h1>
+        </div>
+        <div class="sub-panel-content flex flex-row flex-wrap">
+          <ShortcutButton v-for="(command, index) of settings?.active.commands.crop"
+                          class="flex b3 button"
+                          :key="index"
+                          :label="command.label"
+                          :shortcut="parseShortcut(command)"
+                          @click="execAction(command)"
           >
-            <option
-              v-for="(command, index) of settings?.active.commands.stretch"
-              :key="index"
-              :value="JSON.stringify(command.arguments)"
+          </ShortcutButton>
+        </div>
+
+        <div class="flex flex-row">
+          <div class="label">Default for this site</div>
+          <div class="select">
+            <select
+              :value="siteDefaultCrop"
+              @click="setDefaultCrop($event, 'site')"
             >
-              {{command.label}}
-            </option>
-          </select>
-        </div>
-      </div>
-      <div class="flex flex-row">
-        <div class="label">Extension default</div>
-        <div class="select">
-          <select
-            v-model="extensionDefaultStretchMode"
-            @click="setDefaultStretchingMode($event, 'global')"
-          >
-            <option
-              v-for="(command, index) of settings?.active.commands.stretch"
-              :key="index"
-              :value="JSON.stringify(command.arguments)"
-            >
-              {{command.label}}
-            </option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- ZOOM OPTIONS -->
-    <div class="sub-panel">
-      <div class="flex flex-row">
-        <mdicon name="magnify-plus-outline" :size="32" />
-        <h1>Manual zoom:</h1>
-      </div>
-      <div class="flex flex-column">
-        <!--
-          min, max and value need to be implemented in js as this slider
-          should use logarithmic scale
-        -->
-        <div class="flex flex-row flex-end">
-          <Button
-            v-if="zoomAspectRatioLocked"
-            label="Unlock aspect ratio"
-            icon="lock-open"
-            :fixedWidth="true"
-            @click="toggleZoomAr()"
-          >
-          </Button>
-          <Button
-            v-else
-            label="Lock aspect ratio"
-            icon="lock"
-            :fixedWidth="true"
-            @click="toggleZoomAr()"
-          >
-          </Button>
-        </div>
-        <template v-if="zoomAspectRatioLocked">
-          <input id="_input_zoom_slider"
-                  class="input-slider"
-                  type="range"
-                  step="any"
-                  min="-1"
-                  max="3"
-                  :value="zoom.x"
-                  @input="changeZoom($event.target.value)"
-                  />
-          <div style="overflow: auto" class="flex flex-row">
-            <div class="flex flex-grow medium-small x-pad-1em">
-              Zoom: {{getZoomForDisplay('x')}}
-            </div>
-            <div class="flex flex-nogrow flex-noshrink medium-small">
-              <a class="_zoom_reset x-pad-1em" @click="resetZoom()">reset</a>
-            </div>
+              <option
+                v-for="(command, index) of settings?.active.commands.crop"
+                :key="index"
+                :value="JSON.stringify(command.arguments)"
+              >
+                {{command.label}}
+              </option>
+            </select>
           </div>
-        </template>
-        <template v-else>
-          <div>Horizontal zoom</div>
-          <input id="_input_zoom_slider"
-                  class="input-slider"
-                  type="range"
-                  step="any"
-                  min="-1"
-                  max="4"
-                  :value="zoom.x"
-                  @input="changeZoom($event.target.value, 'x')"
-          />
-
-          <div>Vertical zoom</div>
-          <input id="_input_zoom_slider"
-                  class="input-slider"
-                  type="range"
-                  step="any"
-                  min="-1"
-                  max="3"
-                  :value="zoom.y"
-                  @input="changeZoom($event.target.value, 'y')"
-          />
-
-          <div style="overflow: auto" class="flex flex-row">
-            <div class="flex flex-grow medium-small x-pad-1em">
-              Zoom: {{getZoomForDisplay('x')}} x {{getZoomForDisplay('y')}}
-            </div>
-            <div class="flex flex-nogrow flex-noshrink medium-small">
-              <a class="_zoom_reset x-pad-1em" @click="resetZoom()">reset</a>
-            </div>
+        </div>
+        <div class="flex flex-row">
+          <div class="label">Extension default</div>
+          <div class="select">
+            <select
+              :value="extensionDefaultCrop"
+              @click="setDefaultCrop($event, 'global')"
+            >
+              <option
+                v-for="(command, index) of settings?.active.commands.crop"
+                :key="index"
+                :value="JSON.stringify(command.arguments)"
+              >
+                {{command.label}}
+              </option>
+            </select>
           </div>
-        </template>
-      </div>
-    </div>
-    <div class="sub-panel">
-      <div class="flex flex-row">
-        <mdicon name="align-horizontal-center" :size="32" />
-        <h1>Video alignment:</h1>
+        </div>
       </div>
 
-      <div class="flex flex-row">
-        <alignment-options-control-component
-          :eventBus="eventBus"
-        >
-        </alignment-options-control-component>
+
+      <!-- STRETCH OPTIONS -->
+      <div v-if="settings" class="sub-panel">
+        <div class="flex flex-row">
+          <mdicon name="stretch-to-page-outline" :size="32" />
+          <h1>Stretch video:</h1>
+        </div>
+        <div class="flex flex-row flex-wrap">
+          <ShortcutButton v-for="(command, index) of settings?.active.commands.stretch"
+                          class="flex b3 flex-grow button"
+                          :key="index"
+                          :label="command.label"
+                          :shortcut="parseShortcut(command)"
+                          @click="execAction(command)"
+          >
+          </ShortcutButton>
+        </div>
+
+        <div class="flex flex-row">
+          <div class="label">Default for this site</div>
+          <div class="select">
+            <select
+              v-model="siteDefaultStretchMode"
+              @click="setDefaultStretchingMode($event, 'site')"
+            >
+              <option
+                v-for="(command, index) of settings?.active.commands.stretch"
+                :key="index"
+                :value="JSON.stringify(command.arguments)"
+              >
+                {{command.label}}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="flex flex-row">
+          <div class="label">Extension default</div>
+          <div class="select">
+            <select
+              v-model="extensionDefaultStretchMode"
+              @click="setDefaultStretchingMode($event, 'global')"
+            >
+              <option
+                v-for="(command, index) of settings?.active.commands.stretch"
+                :key="index"
+                :value="JSON.stringify(command.arguments)"
+              >
+                {{command.label}}
+              </option>
+            </select>
+          </div>
+        </div>
       </div>
 
-      <div class="flex flex-row flex-wrap">
-         <div class="m-t-0-33em display-block">
-          <input id="_input_zoom_site_allow_pan"
-                  type="checkbox"
-                  />
-          Pan with mouse
+
+      <!-- ZOOM OPTIONS -->
+      <div class="sub-panel">
+        <div class="flex flex-row">
+          <mdicon name="magnify-plus-outline" :size="32" />
+          <h1>Manual zoom:</h1>
+        </div>
+        <div class="flex flex-column">
+          <!--
+            min, max and value need to be implemented in js as this slider
+            should use logarithmic scale
+          -->
+          <div class="flex flex-row flex-end">
+            <Button
+              v-if="zoomAspectRatioLocked"
+              label="Unlock aspect ratio"
+              icon="lock-open"
+              :fixedWidth="true"
+              @click="toggleZoomAr()"
+            >
+            </Button>
+            <Button
+              v-else
+              label="Lock aspect ratio"
+              icon="lock"
+              :fixedWidth="true"
+              @click="toggleZoomAr()"
+            >
+            </Button>
+          </div>
+          <template v-if="zoomAspectRatioLocked">
+            <input id="_input_zoom_slider"
+                    class="input-slider"
+                    type="range"
+                    step="any"
+                    min="-1"
+                    max="3"
+                    :value="zoom.x"
+                    @input="changeZoom($event.target.value)"
+                    />
+            <div style="overflow: auto" class="flex flex-row">
+              <div class="flex flex-grow medium-small x-pad-1em">
+                Zoom: {{getZoomForDisplay('x')}}
+              </div>
+              <div class="flex flex-nogrow flex-noshrink medium-small">
+                <a class="_zoom_reset x-pad-1em" @click="resetZoom()">reset</a>
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <div>Horizontal zoom</div>
+            <input id="_input_zoom_slider"
+                    class="input-slider"
+                    type="range"
+                    step="any"
+                    min="-1"
+                    max="4"
+                    :value="zoom.x"
+                    @input="changeZoom($event.target.value, 'x')"
+            />
+
+            <div>Vertical zoom</div>
+            <input id="_input_zoom_slider"
+                    class="input-slider"
+                    type="range"
+                    step="any"
+                    min="-1"
+                    max="3"
+                    :value="zoom.y"
+                    @input="changeZoom($event.target.value, 'y')"
+            />
+
+            <div style="overflow: auto" class="flex flex-row">
+              <div class="flex flex-grow medium-small x-pad-1em">
+                Zoom: {{getZoomForDisplay('x')}} x {{getZoomForDisplay('y')}}
+              </div>
+              <div class="flex flex-nogrow flex-noshrink medium-small">
+                <a class="_zoom_reset x-pad-1em" @click="resetZoom()">reset</a>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+      <div class="sub-panel">
+        <div class="flex flex-row">
+          <mdicon name="align-horizontal-center" :size="32" />
+          <h1>Video alignment:</h1>
+        </div>
+
+        <div class="flex flex-row">
+          <alignment-options-control-component
+            :eventBus="eventBus"
+          >
+          </alignment-options-control-component>
+        </div>
+
+        <div class="flex flex-row flex-wrap">
+          <div class="m-t-0-33em display-block">
+            <input id="_input_zoom_site_allow_pan"
+                    type="checkbox"
+                    />
+            Pan with mouse
+          </div>
         </div>
       </div>
     </div>
@@ -241,7 +270,8 @@ export default {
       zoom: {
         x: 0,
         y: 0
-      }
+      },
+      editMode: true,
     }
   },
   mixins: [
@@ -398,6 +428,17 @@ export default {
 <style lang="scss" src="../res-common/common.scss" scoped module></style>
 
 <style lang="scss" scoped module>
+@import '../res-common/variables';
+
+.options-bar {
+  margin: 1rem;
+  padding: 1rem;
+
+  &.isEditing {
+    background-color: $primary;
+    color: #000;
+  }
+}
 .b3 {
   width: 9rem;
   padding-left: 0.33rem;
