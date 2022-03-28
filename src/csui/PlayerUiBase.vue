@@ -3,7 +3,7 @@
     TEST CONTENT
   </div>
   <div class="popup-panel flex flex-column uw-clickable">
-    <div>
+    <div class="popup-window-header">
       <div class="popup-title">Ultrawidify <small>{{settings?.active?.version}} - {{BrowserDetect.processEnvChannel}}</small></div>
       <div class="site-support-info">
         <div class="site-support-site">{{site}}</div>
@@ -45,37 +45,21 @@
     <div class="flex flex-row">
       <div class="tab-row flex flex-column">
         <div
+          v-for="tab of tabs"
+          :key="tab.id"
           class="tab"
-          @click="selectTab('videoSettings')"
+          :class="{'active': tab.id === selectedTab}"
+          @click="selectTab(tab.id)"
         >
-          <mdicon name="crop" />
-          <span class="mdi account-edit mdi-account-edit"></span>
-          Video options
-        </div>
-        <div
-          class="tab"
-          @click="selectTab('playerDetection')"
-        >
-          Player detection
-        </div>
-        <div
-          class="tab"
-          @click="selectTab('autodetectionSettings')"
-        >
-          Autodetection options
-        </div>
-        <div
-          class="tab"
-          @click="selectTab('advancedOptions')"
-        >
-          <mdicon name="cogs" />
-          <span class="mdi account-edit mdi-cogs"></span>
-          Advanced options
-        </div>
-        <div class="tab">
-          <mdicon name="bug-outline" />
-          <span class="mdi mdi-bug-outline"></span>
-          Debugging
+          <div class="icon-container">
+            <mdicon
+              :name="tab.icon"
+              :size="48"
+            />
+          </div>
+          <div class="label">
+            {{tab.label}}
+          </div>
         </div>
       </div>
       <div class="content flex flex-column">
@@ -144,7 +128,16 @@ export default {
         resizer: {},
         player: {},
       },
-      debugDataPrettified: ''
+      debugDataPrettified: '',
+
+      tabs: [
+        {id: 'videoSettings', label: 'Video settings', icon: 'crop'},
+        {id: 'playerDetection', label: 'Player detection', icon: ''},
+        {id: 'autodetectionSettings', label: 'Autodetection options', icon: ''},
+        {id: 'advancedOptions', label: 'Advanced options', icon: 'cogs' },
+        {id: 'debugging', label: 'Debugging', icon: 'bug-outline' }
+      ],
+      selectedTab: 'videoSettings',
     };
   },
   computed: {
@@ -164,7 +157,7 @@ export default {
       return window.innerHeight;
     },
     siteSupportLevel() {
-      console.warn('\n\n\n\n\n\n\n\n\n\n\nsite support level. site:', this, this?.site, this?.settings, this?.settings?.active?.sites[this.site]);
+      // console.warn('\n\n\n\n\n\n\n\n\n\n\nsite support level. site:', this, this?.site, this?.settings, this?.settings?.active?.sites[this.site]);
       return (this.site && this.settings?.active) ? this.settings.active.sites[this.site]?.type || 'no-support' : 'waiting';
     }
   },
@@ -193,8 +186,6 @@ export default {
     this.settings = new Settings({afterSettingsSaved: this.updateConfig, logger: this.logger});
     await this.settings.init();
     this.settingsInitialized = true;
-
-    console.log("settings inited")
 
     // set up communication with client script
     window.addEventListener('message', event => {
@@ -307,10 +298,10 @@ export default {
 .site-support-info {
   display: flex;
   flex-direction: row;
-  // padding-left: 2rem;
+  align-items: center;
 
   .site-support-site {
-    font-size: 1.2em;
+    font-size: 1.5em;
   }
 
   .site-support {
@@ -318,7 +309,7 @@ export default {
     flex-direction: row;
     align-items: center;
 
-    margin-left: 2rem;
+    margin-left: 1rem;
     border-radius: 8px;
     padding: 0rem 1.5rem 0rem 1rem;
 
@@ -384,8 +375,6 @@ export default {
   }
 }
 
-
-
 .uw-hover {
   position: absolute;
   top: 10%;
@@ -423,18 +412,52 @@ export default {
 
   backdrop-filter: blur(16px) saturate(120%);
 
-  .popup-title, .popup-title h1 {
-    font-size: 48px !important;
+  .popup-window-header {
+    padding: 1rem;
+    background-color: rgba(5,5,5, 0.75);
+  }
+  .tab-row {
+    background-color: rgba(11,11,11, 0.75);
+
+    .tab {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      padding: 2rem;
+      font-size: 1.5rem;
+      height: 4rem;
+
+      border-bottom: 1px solid rgba(128, 128, 128, 0.5);
+      border-top: 1px solid rgba(128, 128, 128, 0.5);
+      opacity: 0.5;
+
+      &:hover {
+        opacity: 1;
+      }
+      &.active {
+        opacity: 1;
+        background-color: rgba(54, 31, 21, 0.5);
+        color: rgb(255, 174, 107);
+        border-bottom: 1px solid rgba(116, 78, 47, 0.5);
+        border-top: 1px solid rgba(116, 78, 47, 0.5);
+      }
+
+      .icon-container {
+        width: 64px;
+        flex-grow: 0;
+        flex-shrink: 0;
+      }
+      .label {
+        flex-grow: 1;
+        flex-shrink: 1;
+        padding: 0 !important;
+      }
+    }
   }
 
-  .tab {
-    display: block;
-    height: 42px;
-    font-size: 2.5rem;
-    background: rgb(87, 54, 26);
-  }
-  .tab:hover {
-    background-color: #f00;
+  .popup-title, .popup-title h1 {
+    font-size: 48px !important;
   }
 }
 
