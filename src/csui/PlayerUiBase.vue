@@ -9,7 +9,7 @@
         <div class="site-support-site">{{site}}</div>
         <div v-if="siteSupportLevel === 'official'" class="site-support official">
           <mdicon name="check-decagram" />
-          <div>Official</div>
+          <div>Verified</div>
           <div class="tooltip">The extension is being tested and should work on this site.</div>
         </div>
         <div v-if="siteSupportLevel === 'community'" class="site-support community">
@@ -28,7 +28,7 @@
           <div class="tooltip">
             Not officially supported. Extension will try to fix things, but no promises.<br/><br/>
             Tamius (the dev) does not test the extension on this site for various reasons
-            (unaware, not using the site, language barrier, geoblocking, requires paid subscription).
+            (unaware, not using the site, language barrier, geoblocking, paid services Tam doesn't use).
           </div>
         </div>
         <div v-if="siteSupportLevel === 'user-added'" class="site-support user-added">
