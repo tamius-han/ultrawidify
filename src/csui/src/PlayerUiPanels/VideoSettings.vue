@@ -11,7 +11,7 @@
         </div>
         <div
           class="flex-nogrow flex-noshrink"
-          @click="editMode = false"
+          @click="disableEditMode()"
         >
           Exit edit mode
         </div>
@@ -20,7 +20,7 @@
         <div class="flex-grow"></div>
         <div
           class=""
-          @click="editMode = true"
+          @click="enableEditMode()"
         >
           Edit ratios and shortcuts
         </div>
@@ -44,9 +44,54 @@
             :key="index"
             :label="command.label"
             :shortcut="getKeyboardShortcutLabel(command)"
-            @click="execAction(command)"
+            @click="editMode ? editAction(command, 'crop') : execAction(command)"
           >
           </ShortcutButton>
+        </div>
+
+        <!-- EDIT MODE PANEL -->
+        <div class="edit-action-area">
+          <div>
+            Editing options for <b>{{editModeOptions?.crop?.selected?.label}}</b>
+          </div>
+
+          <!-- Some options are only shown for type 4 (fixed) crops -->
+          <template v-if="editModeOptions?.crop?.selected.arguments.type === AspectRatioType.Fixed">
+            <div>
+              Label:  -- todo --
+            </div>
+            <div>
+              Ratio: -- todo --
+            </div>
+          </template>
+
+          <!-- editing keyboard shortcuts is always allowed -->
+          <div>
+            -- todo: edit keyboard shortcut --
+          </div>
+
+          <div>
+            ------------ <br/>>
+            present items:<br/>>
+            editModeOptions? {{!!editModeOptions}}<br/>
+            .crop? {{!!editModeOptions?.crop}}<br/>
+            .selected? {{!!editModeOptions?.crop?.selected}}<br/>
+            <br/>
+            selected action:<br/>{{editModeOptions?.crop?.selected}}
+          </div>
+
+          <!-- <select class=""
+                  :value="selectedAction"
+                  @change="setAction($event.target.value)"
+          >
+            <option :value="undefined" selected disabled>Select ...</option>
+            <option v-for="(action, key) in ActionList"
+                    :value="key"
+                    :key="key"
+            >
+              {{action.name}}
+            </option>
+          </select> -->
         </div>
 
         <div class="flex flex-row">
@@ -274,6 +319,7 @@ export default {
         y: 0
       },
       editMode: true,
+      editModeOptions: {},
       resizerConfig: {
         crop: null,
         stretch: null,
@@ -455,7 +501,26 @@ export default {
     //#endregion cropping
 
     //#region edit mode
+    enableEditMode() {
+      this.editMode = true;
+      this.editModeOptions = {};
+    },
 
+    disableEditMode() {
+      this.editMode = false;
+    },
+
+    editAction(command, actionType) {
+      try {
+        if (!this.editModeOptions[actionType]) {
+          this.editModeOptions[actionType] = {selected: command}
+        } else {
+          this.editModeOptions[actionType].selected = command;
+        }
+      } catch (e) {
+        console.error(`[Ultrawidify] there's a problem with VideoSettings.vue::editAction():`, e);
+      }
+    },
     //#endregion
 
     //#region comms and bus
@@ -488,7 +553,7 @@ export default {
       if (! command.shortcut) {
         return '';
       }
-      return KeyboardShortcutParser.getKeyboardShortcutLabel(command.shortcut);
+      return KeyboardShortcutParser.parseShortcut(command.shortcut);
     },
   }
 }
