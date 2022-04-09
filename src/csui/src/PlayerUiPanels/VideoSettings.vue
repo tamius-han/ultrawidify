@@ -37,13 +37,14 @@
           <h1>Crop video:</h1>
         </div>
         <div class="sub-panel-content flex flex-row flex-wrap">
-          <ShortcutButton v-for="(command, index) of settings?.active.commands.crop"
-                          class="flex b3 button"
-                          :class="{active: isActiveCrop(command)}"
-                          :key="index"
-                          :label="command.label"
-                          :shortcut="parseShortcut(command)"
-                          @click="execAction(command)"
+          <ShortcutButton
+            v-for="(command, index) of settings?.active.commands.crop"
+            class="flex b3 button"
+            :class="{active: isActiveCrop(command)}"
+            :key="index"
+            :label="command.label"
+            :shortcut="getKeyboardShortcutLabel(command)"
+            @click="execAction(command)"
           >
           </ShortcutButton>
         </div>
@@ -96,7 +97,7 @@
                           class="flex b3 flex-grow button"
                           :key="index"
                           :label="command.label"
-                          :shortcut="parseShortcut(command)"
+                          :shortcut="getKeyboardShortcutLabel(command)"
                           @click="execAction(command)"
           >
           </ShortcutButton>
@@ -350,16 +351,7 @@ export default {
     async openOptionsPage() {
       BrowserDetect.runtime.openOptionsPage();
     },
-    execAction(command) {
-      const cmd = JSON.parse(JSON.stringify(command));
-      this.eventBus?.sendToTunnel(cmd.action, cmd.arguments);
-    },
-    parseShortcut(command) {
-      if (! command.shortcut) {
-        return '';
-      }
-      return KeyboardShortcutParser.parseShortcut(command.shortcut);
-    },
+
 
     toggleZoomAr() {
       this.zoomAspectRatioLocked = !this.zoomAspectRatioLocked;
@@ -386,6 +378,7 @@ export default {
       newZoom = Math.pow(2, newZoom);
     },
 
+    //#region cropping
     /**
      * Sets default crop, for either site or global
      */
@@ -432,17 +425,6 @@ export default {
     },
 
     /**
-     * Handles 'uw-config-broadcast' messages
-     */
-    handleConfigBroadcast(message) {
-      if (message.type === 'ar') {
-        this.resizerConfig.crop = message.config;
-      }
-
-      this.$nextTick( () => this.$forceUpdate() );
-    },
-
-    /**
      * Determines whether a given crop command is the currently active one
      */
     isActiveCrop(cropCommand) {
@@ -467,7 +449,47 @@ export default {
       }
       // only legacy options (fitw, fith) left to handle:
       return cropCommand.arguments.type === this.resizerConfig.crop.type;
-    }
+    },
+
+
+    //#endregion cropping
+
+    //#region edit mode
+
+    //#endregion
+
+    //#region comms and bus
+
+    /**
+     * Handles 'uw-config-broadcast' messages coming to our
+     */
+    handleConfigBroadcast(message) {
+      if (message.type === 'ar') {
+        this.resizerConfig.crop = message.config;
+      }
+
+      this.$nextTick( () => this.$forceUpdate() );
+    },
+
+    /**
+     * Sends commands to main content script in parent iframe
+     * @param {*} command
+     */
+    execAction(command) {
+      const cmd = JSON.parse(JSON.stringify(command));
+      this.eventBus?.sendToTunnel(cmd.action, cmd.arguments);
+    },
+    //#endregion
+
+    /**
+     * Parses command's keyboard shortcut into human-readable label
+     */
+    getKeyboardShortcutLabel(command) {
+      if (! command.shortcut) {
+        return '';
+      }
+      return KeyboardShortcutParser.getKeyboardShortcutLabel(command.shortcut);
+    },
   }
 }
 </script>
