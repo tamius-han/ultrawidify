@@ -50,48 +50,58 @@
         </div>
 
         <!-- EDIT MODE PANEL -->
-        <div class="edit-action-area">
-          <div>
-            Editing options for <b>{{editModeOptions?.crop?.selected?.label}}</b>
-          </div>
-
-          <!-- Some options are only shown for type 4 (fixed) crops -->
-          <template v-if="editModeOptions?.crop?.selected.arguments.type === AspectRatioType.Fixed">
-            <div>
-              Label:  -- todo --
+        <div class="sub-panel-content">
+          <div class="edit-action-area">
+            <div class="edit-action-area-header">
+              Editing options for: <b>{{editModeOptions?.crop?.selected?.label}}</b>
             </div>
-            <div>
-              Ratio: -- todo --
+
+            <!-- Some options are only shown for type 4 (fixed) crops -->
+            <template v-if="editModeOptions?.crop?.selected?.arguments?.type === AspectRatioType.Fixed">
+              <div class="field">
+                <div class="label">
+                  Ratio:
+                </div>
+                <div class="input">
+                  <input v-model="editModeOptions.crop.selected.arguments.ratio">
+                </div>
+                <div class="hint">
+                  You can enter a ratio in width:height format (e.g. "21:9" or "1:2.39"), or just the factor
+                  (in this case, "1:2.39" would become "2.39" and "21:9" would become "2.33"). You should enter
+                  your numbers without quote marks. Number will be converted to factor form on save.
+                </div>
+              </div>
+              <div class="field">
+                <div class="label">
+                  Label:
+                </div>
+                <div class="input">
+                  <input v-model="editModeOptions.crop.selected.label">
+                </div>
+                <div class="hint">
+                  Label for the button. You can make it say something other than ratio.
+                </div>
+              </div>
+            </template>
+
+            <!-- editing keyboard shortcuts is always allowed -->
+            <div class="field">
+              <div class="label">Shortcut:</div>
+              <div class="">
+                <EditShortcutButton
+                  :shortcut="editModeOptions?.crop?.selected?.shortcut"
+                  @shortcutChanged="updateSelectedShortcut($event, 'crop')"
+                >
+                </EditShortcutButton>
+              </div>
+              <div class="hint">
+                <b>Note:</b> Your browser and OS already use certain key combinations that involve Ctrl and Meta (Windows) keys — and, to a lesser extent, Alt.
+                The extension doesn't (and cannot) check whether the keyboard shortcut you enter is actually free for you to use. The extension also won't override
+                any keyboard shortcuts defined by the site itself.
+              </div>
             </div>
-          </template>
 
-          <!-- editing keyboard shortcuts is always allowed -->
-          <div>
-            -- todo: edit keyboard shortcut --
           </div>
-
-          <div>
-            ------------ <br/>>
-            present items:<br/>>
-            editModeOptions? {{!!editModeOptions}}<br/>
-            .crop? {{!!editModeOptions?.crop}}<br/>
-            .selected? {{!!editModeOptions?.crop?.selected}}<br/>
-            <br/>
-            selected action:<br/>{{editModeOptions?.crop?.selected}}
-          </div>
-
-          <!-- <select class=""
-                  :value="selectedAction"
-                  @change="setAction($event.target.value)"
-          >
-            <option :value="undefined" selected disabled>Select ...</option>
-            <option v-for="(action, key) in ActionList"
-                    :value="key"
-                    :key="key"
-            >
-              {{action.name}}
-            </option>
-          </select> -->
         </div>
 
         <div class="flex flex-row">
@@ -297,6 +307,7 @@
 import Button from '../../../common/components/Button.vue'
 import KeyboardShortcutParser from '../../../common/js/KeyboardShortcutParser';
 import ShortcutButton from '../../../common/components/ShortcutButton';
+import EditShortcutButton from '../../../common/components/EditShortcutButton';
 import ComputeActionsMixin from '../../../common/mixins/ComputeActionsMixin';
 import ExecAction from '../ui-libs/ExecAction';
 import BrowserDetect from '../../../ext/conf/BrowserDetect';
@@ -319,7 +330,8 @@ export default {
         y: 0
       },
       editMode: true,
-      editModeOptions: {},
+      editModeOptions: {
+      },
       resizerConfig: {
         crop: null,
         stretch: null,
@@ -357,6 +369,7 @@ export default {
   },
   components: {
     ShortcutButton,
+    EditShortcutButton,
     Button,
     AlignmentOptionsControlComponent
   },
@@ -521,6 +534,18 @@ export default {
         console.error(`[Ultrawidify] there's a problem with VideoSettings.vue::editAction():`, e);
       }
     },
+
+    updateSelectedShortcut(shortcut, actionType) {
+      try {
+        if (!this.editModeOptions[actionType]?.selected) {
+          return;
+        } else {
+          this.editModeOptions[actionType].selected.shortcut = shortcut
+        }
+      } catch (e) {
+        console.error(`[Ultrawidify] there's a problem with VideoSettings.vue::updateShortcut():`, e);
+      }
+    },
     //#endregion
 
     //#region comms and bus
@@ -587,5 +612,14 @@ export default {
   padding-right: 16px;
   padding-bottom: 16px;
   padding-top: 8px;
+}
+
+.edit-action-area {
+  background-color: rgba($blackBg,0.5);
+  padding: 0.5rem;
+
+  .edit-action-area-header {
+    border-bottom: 1px solid rgba(255,255,255,0.5);
+  }
 }
 </style>

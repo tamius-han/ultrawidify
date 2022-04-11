@@ -226,18 +226,16 @@ small {
 }
 
 .button {
-  /*display: inline-block;*/
-  // padding-top: 8px;
-  // padding-bottom: 3px;
-  //padding-left: 5px;
-  //padding-right: 5px;
-  border: 1px solid rgb(39, 39, 39);
+  border: 1px solid transparent;
+  padding: 0.5rem 2rem;
+
   margin-top: 3px;
   margin-bottom: 3px;
+
   color: $text-dim;
   text-align: center;
   cursor: pointer;
-  user-select: none;;
+  user-select: none;
 }
 
 
