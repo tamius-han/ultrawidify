@@ -44,13 +44,21 @@
             :key="index"
             :label="command.label"
             :shortcut="getKeyboardShortcutLabel(command)"
-            @click="editMode ? editAction(command, 'crop') : execAction(command)"
+            @click="editMode ? editAction(command, index, 'crop') : execAction(command)"
           >
           </ShortcutButton>
         </div>
 
         <!-- EDIT MODE PANEL -->
-        <div class="sub-panel-content">
+        <div
+          v-if="editMode && !editModeOptions?.crop?.selected"
+          class="sub-panel-content"
+        >
+          <div class="edit-action-area">
+            Click a button to edit
+          </div>
+        </div>
+        <div v-if="editMode && editModeOptions?.crop?.selected" class="sub-panel-content">
           <div class="edit-action-area">
             <div class="edit-action-area-header">
               Editing options for: <b>{{editModeOptions?.crop?.selected?.label}}</b>
@@ -99,6 +107,19 @@
                 The extension doesn't (and cannot) check whether the keyboard shortcut you enter is actually free for you to use. The extension also won't override
                 any keyboard shortcuts defined by the site itself.
               </div>
+            </div>
+
+            <div class="flex flex-row flex-end">
+              <div
+                v-if="editModeOptions?.crop?.selected?.arguments?.type === AspectRatioType.Fixed"
+                class="button"
+                @click="deleteAction('crop')"
+              >
+                <mdicon name="delete"></mdicon> Delete
+              </div>
+              <div class="flex-grow"></div>
+              <div class="button" @click="cancelEdit('crop')">Cancel</div>
+              <div class="button" @click="saveShortcut('crop')"><mdicon name="floppy"></mdicon> Save</div>
             </div>
 
           </div>
@@ -175,6 +196,8 @@
             </select>
           </div>
         </div>
+
+
         <div class="flex flex-row">
           <div class="label">Extension default</div>
           <div class="select">
@@ -411,7 +434,6 @@ export default {
       BrowserDetect.runtime.openOptionsPage();
     },
 
-
     toggleZoomAr() {
       this.zoomAspectRatioLocked = !this.zoomAspectRatioLocked;
     },
@@ -523,12 +545,13 @@ export default {
       this.editMode = false;
     },
 
-    editAction(command, actionType) {
+    editAction(command, index, actionType) {
       try {
         if (!this.editModeOptions[actionType]) {
-          this.editModeOptions[actionType] = {selected: command}
+          this.editModeOptions[actionType] = {selected: command, selectedIndex: index}
         } else {
           this.editModeOptions[actionType].selected = command;
+          this.editModeOptions[actionType].selectedIndex = index;
         }
       } catch (e) {
         console.error(`[Ultrawidify] there's a problem with VideoSettings.vue::editAction():`, e);
@@ -546,6 +569,36 @@ export default {
         console.error(`[Ultrawidify] there's a problem with VideoSettings.vue::updateShortcut():`, e);
       }
     },
+
+    cancelEdit(actionType) {
+      try {
+        if (!this.editModeOptions[actionType]) {
+          return;
+        } else {
+          this.editModeOptions[actionType] = undefined;;
+        }
+      } catch (e) {
+        console.error(`[Ultrawidify] there's a problem with VideoSettings.vue::cancelEdit():`, e);
+      }
+    },
+
+    saveShortcut(actionType) {
+      if (!this.editModeOptions[actionType]?.selectedIndex) {
+        this.settings.active.commands[actionType].push(this.editModeOptions[actionType].selected);
+      }
+      this.settings.active.commands[actionType][this.editModeOptions[actionType].selectedIndex] = this.editModeOptions[actionType]?.selected;
+      this.settings.saveWithoutReload();
+
+      this.editModeOptions[actionType] = undefined;
+    },
+
+    deleteAction(actionType) {
+      this.settings.active.commands[actionType].splice(this.editModeOptions[actionType].selectedIndex, 1);
+      this.cancelEdit();
+
+      this.editModeOptions[actionType] = undefined;
+    },
+
     //#endregion
 
     //#region comms and bus
