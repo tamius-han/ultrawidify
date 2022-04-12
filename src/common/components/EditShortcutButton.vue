@@ -19,6 +19,9 @@
         >
       </template>
     </div>
+    <div class="button" @click="$emit('shortcutChanged', null)">
+      <mdicon name="delete"></mdicon>
+    </div>
   </div>
 </template>
 
@@ -99,7 +102,6 @@ export default {
       if (fixedShortcut.notModifier) {
         this.editing = false;
         this.$emit('shortcutChanged', this.currentKey);
-        console.log('emitted shortcut:', shortcut, 'raw event:', event);
       } else {
         // if none of the modifiers are pressed and if no other key is being held down,
         // we need to reset label back to 'pls press key'
