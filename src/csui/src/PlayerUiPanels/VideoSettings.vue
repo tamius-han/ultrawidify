@@ -40,13 +40,26 @@
           <ShortcutButton
             v-for="(command, index) of settings?.active.commands.crop"
             class="flex b3 button"
-            :class="{active: isActiveCrop(command)}"
+            :class="{active: editMode ? index === editModeOptions?.crop?.selectedIndex : isActiveCrop(command)}"
             :key="index"
             :label="command.label"
             :shortcut="getKeyboardShortcutLabel(command)"
             @click="editMode ? editAction(command, index, 'crop') : execAction(command)"
           >
           </ShortcutButton>
+
+          <!-- "Add new" button -->
+          <ShortcutButton
+            v-if="editMode"
+            class="button b3"
+            :class="{active: editMode ? editModeOptions?.crop?.selectedIndex === null : isActiveCrop(command)}"
+            label="Add new"
+            @click="editAction(
+              {action: 'set-ar', label: 'New aspect ratio', arguments: {type: AspectRatioType.Fixed}},
+              null,
+              'crop'
+            )"
+          ></ShortcutButton>
         </div>
 
         <!-- EDIT MODE PANEL -->
@@ -59,11 +72,11 @@
           </div>
         </div>
         <div v-if="editMode && editModeOptions?.crop?.selected" class="sub-panel-content">
+          <div class="edit-action-area-header">
+            <span class="text-primary">Editing options for:</span> <b>{{editModeOptions?.crop?.selected?.label}}</b>&nbsp;
+            <template v-if="editModeOptions?.crop?.selectedIndex === null && editModeOptions?.crop?.selected?.label !== 'New aspect ratio'">(New ratio)</template>
+          </div>
           <div class="edit-action-area">
-            <div class="edit-action-area-header">
-              Editing options for: <b>{{editModeOptions?.crop?.selected?.label}}</b>
-            </div>
-
             <!-- Some options are only shown for type 4 (fixed) crops -->
             <template v-if="editModeOptions?.crop?.selected?.arguments?.type === AspectRatioType.Fixed">
               <div class="field">
@@ -71,7 +84,11 @@
                   Ratio:
                 </div>
                 <div class="input">
-                  <input v-model="editModeOptions.crop.selected.arguments.ratio">
+                  <!-- We do an ugly in order to avoid spamming functions down at the bottom -->
+                  <input
+                    v-model="editModeOptions.crop.selected.arguments.ratio"
+                    @blur="editModeOptions.crop.selected.label === 'New aspect ratio' ? editModeOptions.crop.selected.label = editModeOptions.crop.selected.arguments.ratio : null"
+                  >
                 </div>
                 <div class="hint">
                   You can enter a ratio in width:height format (e.g. "21:9" or "1:2.39"), or just the factor
@@ -111,7 +128,7 @@
 
             <div class="flex flex-row flex-end">
               <div
-                v-if="editModeOptions?.crop?.selected?.arguments?.type === AspectRatioType.Fixed"
+                v-if="editModeOptions?.crop?.selected?.arguments?.type === AspectRatioType.Fixed && editModeOptions?.crop?.selectedIndex !== null"
                 class="button"
                 @click="deleteAction('crop')"
               >
@@ -119,7 +136,12 @@
               </div>
               <div class="flex-grow"></div>
               <div class="button" @click="cancelEdit('crop')">Cancel</div>
-              <div class="button" @click="saveShortcut('crop')"><mdicon name="floppy"></mdicon> Save</div>
+              <div class="button" @click="saveShortcut('crop')">
+                <mdicon name="floppy"></mdicon>
+                &nbsp;
+                <template v-if="editModeOptions?.crop?.selectedIndex === null">Add</template>
+                <template v-else>Save</template>
+              </div>
             </div>
 
           </div>
@@ -177,6 +199,14 @@
                           @click="execAction(command)"
           >
           </ShortcutButton>
+
+          <!-- "Add new" button -->
+          <ShortcutButton
+            v-if="editMode"
+            class="button b3"
+            label="Add new"
+            @click="execAction()"
+          ></ShortcutButton>
         </div>
 
         <div class="flex flex-row">
@@ -593,8 +623,15 @@ export default {
     },
 
     deleteAction(actionType) {
-      this.settings.active.commands[actionType].splice(this.editModeOptions[actionType].selectedIndex, 1);
-      this.cancelEdit();
+      const selectedIndex = this.editModeOptions[actionType].selectedIndex;
+
+      // prevent deleting first item if 'delete' button shows on 'add new' dialog
+      if (selectedIndex === undefined || selectedIndex === null) {
+        return;
+      }
+
+      this.settings.active.commands[actionType].splice(selectedIndex, 1);
+      this.settings.saveWithoutReload();
 
       this.editModeOptions[actionType] = undefined;
     },
@@ -670,9 +707,12 @@ export default {
 .edit-action-area {
   background-color: rgba($blackBg,0.5);
   padding: 0.5rem;
-
-  .edit-action-area-header {
-    border-bottom: 1px solid rgba(255,255,255,0.5);
-  }
+  margin-bottom: 2rem;
+}
+.edit-action-area-header {
+  background-color: $primary;
+  color: #000;
+  padding: 0.25rem 0.5rem;
+  padding-top: 0.5rem;
 }
 </style>
