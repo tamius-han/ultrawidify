@@ -332,6 +332,7 @@ class VideoData {
 
     this.disable();
     this.destroyed = true;
+    this.eventBus?.unsetUpstreamBus();
     try {
       this.arDetector.halt();
       this.arDetector.destroy();

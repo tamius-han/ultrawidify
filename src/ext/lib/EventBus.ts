@@ -16,6 +16,14 @@ export default class EventBus {
       this.upstreamBus.addDownstreamBus(this, true);
     }
   }
+
+  unsetUpstreamBus(stopRecursing: boolean = false) {
+    if (!stopRecursing) {
+      this.upstreamBus.removeDownstreamBus(this, false);
+    }
+    this.upstreamBus = undefined;
+  }
+
   addDownstreamBus(eventBus: EventBus, stopRecursing: boolean = false) {
     if (!this.downstreamBuses.includes(eventBus)) {
       this.downstreamBuses.push(eventBus);
@@ -23,6 +31,13 @@ export default class EventBus {
       if (!stopRecursing) {
         eventBus.setUpstreamBus(this, true);
       }
+    }
+  }
+
+  removeDownstreamBus(eventBus: EventBus, stopRecursing: boolean = false) {
+    this.downstreamBuses = this.downstreamBuses.filter(x => x !== eventBus);
+    if (!stopRecursing) {
+      eventBus.unsetUpstreamBus(true);
     }
   }
 
