@@ -7,9 +7,24 @@ export interface EventBusCommand {
 export default class EventBus {
 
   private commands: { [x: string]: EventBusCommand[]} = {};
-  private downstreamBuses: { [x: string]: EventBus } = {};
+  private downstreamBuses: EventBus[] = [];
   private upstreamBus?: EventBus;
 
+  setUpstreamBus(eventBus: EventBus, stopRecursing: boolean = false) {
+    this.upstreamBus = eventBus;
+    if (!stopRecursing) {
+      this.upstreamBus.addDownstreamBus(this, true);
+    }
+  }
+  addDownstreamBus(eventBus: EventBus, stopRecursing: boolean = false) {
+    if (!this.downstreamBuses.includes(eventBus)) {
+      this.downstreamBuses.push(eventBus);
+
+      if (!stopRecursing) {
+        eventBus.setUpstreamBus(this, true);
+      }
+    }
+  }
 
   subscribe(commandString: string, command: EventBusCommand) {
     if (!this.commands[commandString]) {
@@ -52,21 +67,26 @@ export default class EventBus {
 
 
   sendGlobal(command: string, config: any) {
-    if (!this.commands ||!this.commands[command]) {
-      // ensure send is not being called for commands that we have no subscriptions for
-      return;
-    }
+    this.send(command, config);
+    this.sendUpstream(command, config);
+    this.sendDownstream(command, config);
+  }
 
-    for (const eventBusCommand of this.commands[command]) {
-      this.sendUpstream(command, config);
-      this.sendDownstream(command, config);
+
+  sendDownstream(command: string, config: any, sourceEventBus?: EventBus) {
+    for (const eventBus of this.downstreamBuses) {
+      if (eventBus !== sourceEventBus) {
+        eventBus.send(command, config);
+        eventBus.sendDownstream(command, config);
+      }
     }
   }
 
-  sendDownstream(command: string, config: any) {
-
-  }
   sendUpstream(command: string, config: any) {
-
+    if (this.upstreamBus) {
+      this.upstreamBus.send(command, config);
+      this.upstreamBus.sendUpstream(command, config);
+      this.upstreamBus.sendDownstream(command, config, this);
+    }
   }
 }
