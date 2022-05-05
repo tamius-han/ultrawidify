@@ -90,6 +90,10 @@ class VideoData {
 
     this.eventBus = new EventBus();
 
+    if (pageInfo.eventBus) {
+      this.eventBus.setUpstreamBus(pageInfo.eventBus);
+    }
+
     this.setupStageOne();
   }
 

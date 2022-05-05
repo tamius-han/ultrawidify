@@ -135,7 +135,7 @@ export default class UWContent {
           if (this.actionHandler) {
             this.actionHandler.destroy();
           }
-          this.actionHandler = new ActionHandler(this.pageInfo);
+          this.actionHandler = new ActionHandler(this.pageInfo.eventBus, this.settings, this.logger);
           this.actionHandler.init();
 
           this.logger.log('info', 'debug', "[uw.js::setup] ActionHandler initiated.");

@@ -7,6 +7,7 @@ import Logger from '../Logger';
 import Settings from '../Settings';
 import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
 import CommsClient from '../comms/CommsClient';
+import EventBus from '../EventBus';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading PageInfo");
@@ -51,6 +52,7 @@ class PageInfo {
   logger: Logger;
   settings: Settings;
   comms: CommsClient;
+  eventBus: EventBus;
   videos: {videoData: VideoData, element: HTMLVideoElement}[] = [];
   //#endregion
 
@@ -72,6 +74,8 @@ class PageInfo {
     this.lastUrl = window.location.href;
     this.extensionMode = extensionMode;
     this.readOnly = readOnly;
+
+    this.eventBus = new EventBus();
 
     if (comms){
       this.comms = comms;
