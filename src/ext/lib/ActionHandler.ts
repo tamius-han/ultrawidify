@@ -5,6 +5,7 @@ import Logger from './Logger';
 import PageInfo from './video-data/PageInfo';
 import Settings from './Settings';
 import VideoData from './video-data/VideoData';
+import EventBus from './EventBus';
 
 if(process.env.CHANNEL !== 'stable'){
   console.info("Loading ActionHandler");
@@ -12,131 +13,48 @@ if(process.env.CHANNEL !== 'stable'){
 
 class ActionHandler {
   logger: Logger;
-  pageInfo: PageInfo;
   settings: Settings;
+  eventBus: EventBus;
 
 
   inputs: string[] = ['input', 'select', 'button', 'textarea'];
   keyboardLocalDisabled: boolean = false;
 
-  keyUpActions: any[] = [];
-  keyDownActions: any[] = [];
   mouseMoveActions: any[] = [];
-  mouseScrollUpActions: any[] = [];
-  mouseScrollDownActions: any[] = [];
-  mouseEnterActions: any[] = [];
-  mouseLeaveActions: any[] = [];
+
+  commands: any[] = [];
 
 
-  constructor(pageInfo) {
-    this.logger = pageInfo.logger;
-    this.pageInfo = pageInfo;
-    this.settings = pageInfo.settings;
+  constructor(eventBus, settings, logger) {
+    this.logger = logger;
+    this.settings = settings;
+    this.eventBus = eventBus;
+
+    this.init();
   }
 
   init() {
     this.logger.log('info', 'debug', "[ActionHandler::init] starting init");
 
-    this.keyUpActions = [];
-    this.keyDownActions = [];
-    this.mouseMoveActions = [];
-    this.mouseScrollUpActions = [];
-    this.mouseScrollDownActions = [];
-    this.mouseEnterActions = [];
-    this.mouseLeaveActions = [];
-
-    var ths = this;
-
-    var actions;
-    try {
-      if (this.settings.active.sites[window.location.hostname].actions) {
-        actions = this.settings.active.sites[window.location.hostname].actions;
-      } else {
-        actions = this.settings.active.actions;
-      }
-    } catch (e) {
-      actions = this.settings.active.actions;
-    }
-
-
-    for (var action of actions) {
-      if (!action.scopes) {
-        continue;
-      }
-      for (var scope in action.scopes) {
-        if (! action.scopes[scope].shortcut) {
-          continue;
-        }
-
-        var shortcut = action.scopes[scope].shortcut[0];
-        if (shortcut.onKeyDown) {
-          this.keyDownActions.push({
-            shortcut: shortcut,
-            cmd: action.cmd,
-            scope: scope,
-          });
-        }
-        if (shortcut.onKeyUp) {
-          this.keyUpActions.push({
-            shortcut: shortcut,
-            cmd: action.cmd,
-            scope: scope,
-          });
-        }
-        if (shortcut.onScrollUp) {
-          this.mouseScrollUpActions.push({
-            shortcut: shortcut,
-            cmd: action.cmd,
-            scope: scope,
-          });
-        }
-        if (shortcut.onScrollDown) {
-          this.mouseScrollDownActions.push({
-            shortcut: shortcut,
-            cmd: action.cmd,
-            scope: scope,
-          });
-        }
-        if (shortcut.onMouseEnter) {
-          this.mouseEnterActions.push({
-            shortcut: shortcut,
-            cmd: action.cmd,
-            scope: scope,
-          });
-        }
-        if (shortcut.onMouseLeave) {
-          this.mouseLeaveActions.push({
-            shortcut: shortcut,
-            cmd: action.cmd,
-            scope: scope,
-          });
-        }
-        if (shortcut.onMouseMove) {
-          this.mouseMoveActions.push({
-            shortcut: shortcut,
-            cmd: action.cmd,
-            scope: scope,
-          });
+    // build the action list — but only from actions that have shortcuts assigned
+    for (const key in this.settings.active.commands) {
+      for (const command of this.settings.active.commands[key]) {
+        if (command.shortcut) {
+          this.commands.push(command);
         }
       }
     }
+
 
     // events should be handled in handleEvent function. We need to do things this
     // way, otherwise we can't remove event listener
     // https://stackoverflow.com/a/19507086
-    document.addEventListener('keydown', this );
+
     document.addEventListener('keyup', this );
-
-    this.pageInfo.setActionHandler(this);
-
-    this.logger.log('info', 'debug', "[ActionHandler::init] initialization complete");
   }
 
   handleEvent(event) {
     switch(event.type) {
-      case 'keydown':
-        this.handleKeydown(event);
-        break;
       case 'keyup':
         this.handleKeyup(event);
         break;
@@ -147,7 +65,6 @@ class ActionHandler {
   }
 
   destroy() {
-    document.removeEventListener('keydown', this);
     document.removeEventListener('keyup', this);
   }
 
@@ -223,8 +140,29 @@ class ActionHandler {
     return false;
   }
 
+  ghettoLocalizeKeyboardEvent(event: KeyboardEvent) {
+    const realKey = event.key.toLocaleUpperCase();
+    const isLatin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'.indexOf(realKey) !== -1;
+
+    if (!isLatin) {
+      return event;
+    }
+
+    const nativeKey = event.code.substring(3);
+
+    if (nativeKey !== realKey) {
+      return {
+        ...event,
+        code: `Key${realKey}`
+      };
+    }
+
+    return event;
+  }
+
+
   isLatin(key) {
-    return 'abcdefghijklmnopqrstuvwxyz,.-+1234567890'.indexOf(key.toLocaleLowerCase()) !== -1;
+    return 'abcdefghijklmnopqrstuvwxyz1234567890'.indexOf(key.toLocaleLowerCase()) !== -1;
   }
 
   isActionMatchStandard(shortcut, event) {
@@ -250,104 +188,37 @@ class ActionHandler {
       this.isActionMatchStandard(shortcut, event) || this.isActionMatchKeyCode(shortcut, event);
   }
 
-  execAction(actions, event, videoData?: VideoData) {
-    this.logger.log('info', 'keyboard', "%c[ActionHandler::execAction] Trying to find and execute action for event. Actions/event: ", "color: #ff0", actions, event);
-
-    const isLatin = event.key ? this.isLatin(event.key) : true;
-
-    console.warn('You need to migrate this to new commands');
-
-    // for (var action of actions) {
-    //   if (this.isActionMatch(action.shortcut, event, isLatin)) {
-    //     this.logger.log('info', 'keyboard', "%c[ActionHandler::execAction] found an action associated with keypress/event: ", "color: #ff0", action);
-
-    //     for (var cmd of action.cmd) {
-    //       if (action.scope === 'page') {
-    //         if (cmd.action === "set-ar") {
-    //           // the entirety of this function should be moved to new command bus
-    //           // this.pageInfo.setAr({type: cmd.arg, ratio: cmd.customArg});
-    //         } else if (cmd.action === "change-zoom") {
-    //           this.pageInfo.zoomStep(cmd.arg);
-    //         } else if (cmd.action === "set-zoom") {
-    //           this.pageInfo.setZoom(cmd.arg);
-    //         } else if (cmd.action === "set-stretch") {
-    //           this.pageInfo.setStretchMode(cmd.arg);
-    //         } else if (cmd.action === "toggle-pan") {
-    //           this.pageInfo.setPanMode(cmd.arg)
-    //         } else if (cmd.action === "pan") {
-    //           if (videoData) {
-    //             videoData.panHandler(event, true);
-    //           }
-    //         } else if (cmd.action === 'set-keyboard') {
-    //           this.setKeyboardLocal(cmd.arg);
-    //         }
-    //       } else {
-    //         let site = action.scope === 'site' ? window.location.hostname : '@global';
-
-    //         if (cmd.action === "set-stretch") {
-    //           this.settings.active.sites[site].stretch = cmd.arg;
-    //         } else if (cmd.action === "set-alignment") {
-    //           this.settings.active.sites[site].videoAlignment = cmd.arg;
-    //         } else if (cmd.action === "set-extension-mode") {
-    //           this.settings.active.sites[site].mode = cmd.arg;
-    //         } else if (cmd.action === "set-autoar-mode") {
-    //           this.settings.active.sites[site].autoar = cmd.arg;
-    //         } else if (cmd.action === 'set-keyboard') {
-    //           this.settings.active.sites[site].keyboardShortcutsEnabled = cmd.arg;
-    //         } else if (cmd.action === 'set-ar-persistence') {
-    //           this.settings.active.sites[site]['cropModePersistence'] = cmd.arg;
-    //           this.pageInfo.setArPersistence(cmd.arg);
-    //           this.settings.saveWithoutReload();
-    //         }
-
-    //         if (cmd.action !== 'set-ar-persistence') {
-    //           this.settings.save();
-    //         }
-    //       }
-    //     }
-
-    //     // če smo našli dejanje za to tipko, potem ne preiskujemo naprej
-    //     // if we found an action for this key, we stop searching for a match
-    //     return;
-    //   }
-    // }
-  }
-
 
   handleKeyup(event) {
     this.logger.log('info', 'keyboard', "%c[ActionHandler::handleKeyup] we pressed a key: ", "color: #ff0", event.key , " | keyup: ", event.keyup, "event:", event);
 
     try {
       if (this.preventAction(event)) {
+        console.log('action is being prevented!');
         this.logger.log('info', 'keyboard', "[ActionHandler::handleKeyup] we are in a text box or something. Doing nothing.");
         return;
       }
 
-      this.execAction(this.keyUpActions, event);
+      this.logger.log('info', 'keyboard', "%c[ActionHandler::handleKeyup] Trying to find and execute action for event. Actions/event: ", "color: #ff0", this.commands, event);
+
+      const isLatin = this.isLatin(event.key);
+
+      for (const command of this.commands) {
+        if (this.isActionMatch(command.shortcut, event, isLatin)) {
+          this.eventBus.sendGlobal(command.action, command.arguments);
+        }
+      }
     } catch (e) {
       this.logger.log('info', 'debug', '[ActionHandler::handleKeyup] Failed to handle keyup!', e);
     }
   }
 
-  handleKeydown(event) {
-    this.logger.log('info', 'keyboard', "%c[ActionHandler::handleKeydown] we pressed a key: ", "color: #ff0", event.key , " | keydown: ", event.keydown, "event:", event)
-
-    try {
-      if (this.preventAction(event)) {
-        this.logger.log('info', 'keyboard', "[ActionHandler::handleKeydown] we are in a text box or something. Doing nothing.");
-        return;
-      }
-
-      this.execAction(this.keyDownActions, event);
-    } catch (e) {
-      this.logger.log('info', 'debug', '[ActionHandler::handleKeydown] Failed to handle keydown!', e);
-    }
-  }
 
   handleMouseMove(event, videoData?: VideoData) {
     this.logger.log('info', 'keyboard', "[ActionHandler::handleMouseMove] mouse move is being handled.\nevent:", event, "\nvideo data:", videoData);
-    videoData?.panHandler(event);
-    this.execAction(this.mouseMoveActions, event, videoData)
+    console.info('mousemove must be migrated!');
+    // videoData?.panHandler(event);
+    // this.execAction(this.mouseMoveActions, event, videoData)
   }
 
 }
