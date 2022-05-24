@@ -495,7 +495,7 @@ export default {
         x: 0,
         y: 0
       },
-      editMode: true,
+      editMode: false,
       editModeOptions: {
       },
       resizerConfig: {
@@ -548,9 +548,8 @@ export default {
       );
     },
     siteDefaultCrop()  {
-      // console.log('default crop for site:', JSON.parse(JSON.stringify(this.settings)), this.settings?.active.sites[window.location.hostname], this.settings?.active.sites[window.location.hostname].defaultCrop)
       return JSON.stringify(
-        this.settings?.getDefaultCrop() ?? {type: AspectRatioType.Automatic}
+        this.settings?.getDefaultCrop(this.site) ?? {type: AspectRatioType.Automatic}
       );
     },
     extensionDefaultStretchMode () {
@@ -560,7 +559,7 @@ export default {
     },
     siteDefaultStretchMode () {
       return JSON.stringify(
-        this.settings?.getDefaultStretchMode() ?? {type: StretchType.NoStretch}
+        this.settings?.getDefaultStretchMode(this.site) ?? {type: StretchType.NoStretch}
       );
     }
   },
@@ -616,29 +615,27 @@ export default {
     /**
      * Sets default crop, for either site or global
      */
-    setDefaultCrop($event, globalOrSite) {
+    setDefaultCrop($event, scope) {
       const commandArguments = JSON.parse($event.target.value);
 
-      // todo: account for the fact that window.host doesnt work the way we want in an iframe
-      // if (globalOrSite === 'site') {
-      //   if (!this.settings.active.sites[window.location.hostname]) {
-      //     this.settings.active.sites[window.location.hostname] = this.settings.getDefaultSiteConfiguration();
-      //   }
-      //   this.settings.active.sites[window.location.hostname].defaultCrop = commandArguments;
-      // } else {
-      //   // eventually, this 'if' will be safe to remove (and we'll be able to only
-      //   // get away with the 'else' section) Maybe in 6 months or so.
-      //   if (!this.settings.active.crop) {
-      //     console.log('active settings crop not present. Well add');
-      //     this.settings.active['crop'] = {
-      //       default: commandArguments
-      //     }
-      //   } else {
-      //     console.log('default crop settings are present:', JSON.parse(JSON.stringify(this.settings.active.crop)))
-      //     this.settings.active.crop.default = commandArguments;
-      //   }
-      // }
-      // this.settings.saveWithoutReload();
+      if (scope === 'site') {
+        if (!this.settings.active.sites[this.site]) {
+          this.settings.active.sites[this.site] = this.settings.getDefaultSiteConfiguration();
+        }
+        this.settings.active.sites[this.site].defaultCrop = commandArguments;
+      } else {
+        // eventually, this 'if' will be safe to remove (and we'll be able to only
+        // get away with the 'else' section) Maybe in 6 months or so.
+        if (!this.settings.active.crop) {
+          this.settings.active['crop'] = {
+            default: commandArguments
+          }
+        } else {
+          this.settings.active.crop.default = commandArguments;
+        }
+      }
+
+      this.settings.saveWithoutReload();
     },
 
     /**
@@ -677,10 +674,10 @@ export default {
       const commandArguments = JSON.parse($event.target.value);
 
       if (globalOrSite === 'site') {
-        if (!this.settings.active.sites[window.location.hostname]) {
-          this.setting.active.sites[window.location.hostname] = this.settings.getDefaultSiteConfiguration();
+        if (!this.settings.active.sites[this.site]) {
+          this.settings.active.sites[this.site] = this.settings.getDefaultSiteConfiguration();
         }
-        this.setting.active.sites[window.location.hostname].defaultStretch = commandArguments;
+        this.settings.active.sites[this.site].defaultStretch = commandArguments;
       } else {
           this.settings.active.stretch.default = commandArguments;
       }
