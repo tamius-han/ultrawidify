@@ -589,6 +589,9 @@ export default {
       // todo: replace eventBus with postMessage to parent
       // this.eventBus.send('set-zoom', {zoom: 1, axis: 'y'});
       // this.eventBus.send('set-zoom', {zoom: 1, axis: 'x'});
+
+      this.eventBus?.sendToTunnel('set-zoom', {zoom: 1, axis: 'y'});
+      this.eventBus?.sendToTunnel('set-zoom', {zoom: 1, axis: 'x'});
     },
     changeZoom(newZoom, axis) {
       // we store zoom logarithmically on this compnent
@@ -600,6 +603,13 @@ export default {
 
       // we do not use logarithmic zoom elsewhere, therefore we need to convert
       newZoom = Math.pow(2, newZoom);
+
+      if (this.zoomAspectRatioLocked) {
+        this.eventBus?.sendToTunnel('set-zoom', {zoom: newZoom, axis: 'y'});
+        this.eventBus?.sendToTunnel('set-zoom', {zoom: newZoom, axis: 'x'});
+      } else {
+        this.eventBus?.sendToTunnel('set-zoom', {zoom: newZoom, axis: axis ?? 'x'});
+      }
     },
 
     //#region cropping
