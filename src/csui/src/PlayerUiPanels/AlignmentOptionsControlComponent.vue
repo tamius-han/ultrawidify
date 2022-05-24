@@ -78,8 +78,7 @@ export default {
   },
   methods: {
     align(alignmentX, alignmentY) {
-      console.warn('sending set alignment:', {x: alignmentX, y: alignmentY});
-      // this.eventBus.send('set-alignment', {x: alignmentX, y: alignmentY})
+      this.eventBus?.sendToTunnel('set-alignment', {x: alignmentX, y: alignmentY})
     }
   }
 }
