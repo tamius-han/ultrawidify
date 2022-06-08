@@ -23,7 +23,6 @@
         </div>
         <div v-if="siteSupportLevel === 'no-support'" class="site-support no-support">
           <mdicon name="help-circle-outline" />
-          <span class="mdi help-circle-outline mdi-help-circle-outline"></span>
           <div>Unknown</div>
           <div class="tooltip">
             Not officially supported. Extension will try to fix things, but no promises.<br/><br/>
@@ -32,8 +31,7 @@
           </div>
         </div>
         <div v-if="siteSupportLevel === 'user-added'" class="site-support user-added">
-          <!-- <mdicon name="account" /> -->
-          <span class="mdi account-edit mdi-account-edit"></span>
+          <mdicon name="account" />
           <div>Custom</div>
           <div class="tooltip">
             You have manually changed settings for this site. The extension is doing what you told it to do.
@@ -81,10 +79,15 @@
           <!-- Panel section -->
           <template v-if="settingsInitialized">
             <VideoSettings
+              v-if="selectedTab === 'videoSettings'"
               :settings="settings"
               :eventBus="eventBus"
               :site="site"
             ></VideoSettings>
+            <PlayerDetectionPanel
+              v-if="selectedTab === 'playerDetection'"
+            >
+            </PlayerDetectionPanel>
             <!-- <ResizerDebugPanel :debugData="debugData">
             </ResizerDebugPanel> -->
           </template>
@@ -96,6 +99,7 @@
 
 <script>
 import VideoSettings from './src/PlayerUiPanels/VideoSettings.vue'
+import PlayerDetectionPanel from './src/PlayerUiPanels/PlayerDetectionPanel.vue'
 import { mapState } from 'vuex';
 // import Icon from '../common/components/Icon';
 import ResizerDebugPanel from './src/PlayerUiPanels/ResizerDebugPanelComponent';
@@ -108,7 +112,9 @@ import EventBus from '../ext/lib/EventBus';
 export default {
   components: {
     // Icon,
-    ResizerDebugPanel, VideoSettings
+    ResizerDebugPanel,
+    VideoSettings,
+    PlayerDetectionPanel
   },
   data() {
     return {
@@ -286,6 +292,7 @@ export default {
     selectTab(tab) {
       console.log('selected tab:', tab);
       console.warn('NOTE: tab selection is not syet inplemented!')
+      this.selectedTab = tab;
     }
   }
 }
