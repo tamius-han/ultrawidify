@@ -65,6 +65,8 @@ class PlayerData {
   private observer: ResizeObserver;
 
   private ui: any;
+
+  elementStack: any[] = [];
   //#endregion
 
   /**
@@ -139,7 +141,6 @@ class PlayerData {
     // window elements visible in not-fullscreen are usually double digit px tall
     return ( ihdiff < 5 && iwdiff < 5 );
   }
-
 
   /**
    *
@@ -414,162 +415,188 @@ class PlayerData {
   }
   //#endregion
 
-  getPlayer() {
+  /**
+   * Finds and returns HTML element of the player
+   */
+  getPlayer(options?: {verbose?: boolean}) {
     const host = window.location.hostname;
     let element = this.video.parentNode;
     const videoWidth = this.video.offsetWidth;
     const videoHeight = this.video.offsetHeight;
-    const elementQ = [];
-    const scorePenalty = 10;
-    const sizePenaltyMultiplier = 0.1;
-    let penaltyMultiplier = 0;
-    let score;
+    let playerCandidate;
 
-    try {
-      if(! element ){
-        this.logger.log('info', 'debug', "[PlayerDetect::_pd_getPlayer] element is not valid, doing nothing.", element)
-        if(this.element) {
-          const ths = this;
-        }
-        this.element = undefined;
-        this.dimensions = undefined;
-        return;
-      }
+    const elementStack: any[] = [{
+      element: this.video,
+      type: 'video'
+    }];
 
-      // log the entire hierarchy from <video> to root
-      if (this.logger.canLog('playerDetect')) {
-        const logObj = [];
-        logObj.push(`window size: ${window.innerWidth} x ${window.innerHeight}`);
-        let e = element;
-        while (e) {
-          logObj.push({offsetSize: {width: e.offsetWidth, height: e.offsetHeight}, clientSize: {width: e.clientWidth, height: e.clientHeight}, element: e});
-          e = e.parentNode;
-        }
-        this.logger.log('info', 'playerDetect', "\n\n[PlayerDetect::getPlayer()] element hierarchy (video->root)", logObj);
-      }
-
-      if (this.settings.active.sites[host]?.DOM?.player?.manual) {
-        if (this.settings.active.sites[host]?.DOM?.player?.useRelativeAncestor
-            && this.settings.active.sites[host]?.DOM?.player?.videoAncestor) {
-
-          let parentsLeft = this.settings.active.sites[host].DOM.player.videoAncestor - 1;
-          while (parentsLeft --> 0) {
-            element = element.parentNode;
-          }
-          if (element) {
-            return element;
-          }
-        } else if (this.settings.active.sites[host]?.DOM?.player?.querySelectors) {
-          const allSelectors = document.querySelectorAll(this.settings.active.sites[host].DOM.player.querySelectors);
-          // actually we'll also score this branch in a similar way we score the regular, auto branch
-          while (element) {
-
-            // Let's see how this works
-            if (this.collectionHas(allSelectors, element)) {
-              score = 100; // every matching element gets a baseline 100 points
-
-              // elements that match the size get a hefty bonus
-              if ( (element.offsetWidth >= videoWidth && this.equalish(element.offsetHeight, videoHeight, 2))
-                || (element.offsetHeight >= videoHeight && this.equalish(element.offsetWidth, videoHeight, 2))) {
-                  score += 75;
-              }
-
-              // elements farther away from the video get a penalty
-              score -= (scorePenalty) * 20;
-
-              // push the element on the queue/stack:
-              elementQ.push({
-                score: score,
-                element: element,
-              });
-            }
-
-            element = element.parentNode;
-          }
-
-          // log player candidates
-          this.logger.log('info', 'playerDetect', 'player detect via query selector: element queue and final element:', {queue: elementQ, bestCandidate: elementQ.length ? elementQ.sort( (a,b) => b.score - a.score)[0].element : 'n/a'});
-
-          if (elementQ.length) {
-            // return element with biggest score
-            // if video player has not been found, proceed to automatic detection
-            const playerElement = elementQ.sort( (a,b) => b.score - a.score)[0].element;
-            return playerElement;
-          }
-        }
-      }
-
-      // try to find element the old fashioned way
-
-      while (element){
-        // remove weird elements, those would break our stuff
-        if ( element.offsetWidth == 0 || element.offsetHeight == 0){
-          element = element.parentNode;
-          continue;
-        }
-
-        // element is player, if at least one of the sides is as long as the video
-        // note that we can't make any additional assumptions with regards to player
-        // size, since there are both cases where the other side is bigger _and_ cases
-        // where other side is smaller than the video.
-        //
-        // Don't bother thinking about this too much, as any "thinking" was quickly
-        // corrected by bugs caused by various edge cases.
-        if (
-          this.equalish(element.offsetHeight, videoHeight, 5)
-          || this.equalish(element.offsetWidth, videoWidth, 5)
-        ) {
-          score = 1000;
-
-          // -------------------
-          //     PENALTIES
-          // -------------------
-          //
-          // Our ideal player will be as close to the video element, and it will als
-          // be as close to the size of the video.
-
-          // prefer elements closer to <video>
-          score -= scorePenalty * penaltyMultiplier++;
-
-          // the bigger the size difference between the video and the player,
-          // the more penalty we'll incur. Since we did some grace ith
-          let playerSizePenalty = 1;
-          if ( element.offsetHeight > (videoHeight + 5)) {
-            playerSizePenalty = (element.offsetWidth - videoHeight) * sizePenaltyMultiplier;
-          }
-          if ( element.offsetWidth > (videoWidth + 5)) {
-            playerSizePenalty *= (element.offsetWidth - videoWidth) * sizePenaltyMultiplier
-          }
-
-          score -= playerSizePenalty;
-
-          elementQ.push({
-            element: element,
-            score: score,
-          });
-        }
-
-        element = element.parentNode;
-      }
-
-      // log player candidates
-      this.logger.log('info', 'playerDetect', 'player detect, auto/fallback: element queue and final element:', {queue: elementQ, bestCandidate: elementQ.length ? elementQ.sort( (a,b) => b.score - a.score)[0].element : 'n/a'});
-
-      if (elementQ.length) {
-        // return element with biggest score
-        const playerElement = elementQ.sort( (a,b) => b.score - a.score)[0].element;
-
-        return playerElement;
-      }
-
-      // if no candidates were found, something is obviously very, _very_ wrong.
-      // we return nothing. Player will be marked as invalid and setup will stop.
-      // VideoData should check for that before starting anything.
-      this.logger.log('warn', 'debug', '[PlayerData::getPlayer] no matching player was found for video', this.video, 'Extension cannot work on this site.');
-      return;
-    } catch (e) {
-      this.logger.log('crit', 'debug', '[PlayerData::getPlayer] something went wrong while detecting player:', e, 'Shutting down extension for this page');
+    // first pass to generate the element stack and translate it into array
+    while (element) {
+      elementStack.push({
+        element,
+        tagName: element.tagName,
+        classList: element.classList,
+        id: element.id,
+        width: element.offsetWidth,     // say no to reflows, don't do element.offset[width/height]
+        height: element.offsetHeight,   // repeatedly ... let's just do it once at this spot
+        heuristics: {},
+      });
+      element = element.parentElement;
     }
+    this.elementStack = elementStack;
+
+    if (this.settings.active.sites[host]?.DOM?.player?.manual) {
+      if (this.settings.active.sites[host]?.DOM?.player?.useRelativeAncestor
+        && this.settings.active.sites[host]?.DOM?.player?.videoAncestor) {
+        playerCandidate = this.getPlayerParentIndex(elementStack);
+      } else if (this.settings.active.sites[host]?.DOM?.player?.querySelectors) {
+        playerCandidate = this.getPlayerQs(elementStack, videoWidth, videoHeight);
+      }
+
+      // if 'verbose' option is passed, we also populate the elementStack
+      // with heuristics data for auto player detection.
+      if (playerCandidate && !options?.verbose) {
+        return playerCandidate;
+      }
+    }
+
+    if (options?.verbose && playerCandidate) {
+      // remember — we're only populating elementStack. If we found a player
+      // element using manual methods, we will still return that element.
+      this.getPlayerAuto(elementStack, videoWidth, videoHeight);
+      return playerCandidate;
+    } else {
+      return this.getPlayerAuto(elementStack, videoWidth, videoHeight);
+    }
+  }
+
+  private getPlayerAuto(elementStack: any[], videoWidth, videoHeight) {
+    let penaltyMultiplier = 1;
+    const sizePenaltyMultiplier = 0.1;
+    const perLevelScorePenalty = 10;
+
+    for (const element of elementStack) {
+
+      // ignore weird elements, those would break our stuff
+      if (element.width == 0 || element.height == 0) {
+        element.heuristics['invalidSize'] = true;
+        continue;
+      }
+
+      // element is player, if at least one of the sides is as long as the video
+      // note that we can't make any additional assumptions with regards to player
+      // size, since there are both cases where the other side is bigger _and_ cases
+      // where other side is smaller than the video.
+      //
+      // Don't bother thinking about this too much, as any "thinking" was quickly
+      // corrected by bugs caused by various edge cases.
+      if (
+        this.equalish(element.height, videoHeight, 5)
+        || this.equalish(element.width, videoWidth, 5)
+      ) {
+        let score = 1000;
+
+        // -------------------
+        //     PENALTIES
+        // -------------------
+        //
+        // Our ideal player will be as close to the video element, and it will als
+        // be as close to the size of the video.
+
+        const diffX = (element.width - videoWidth);
+        const diffY = (element.height - videoHeight);
+
+        // we have a minimal amount of grace before we start dinking scores for
+        // mismatched dimensions. The size of the dimension mismatch dink is
+        // proportional to area rather than circumference, meaning we multiply
+        // x and y dinks instead of adding them up.
+        let playerSizePenalty = 1;
+        if (diffY > 5) {
+          playerSizePenalty *= diffY * sizePenaltyMultiplier;
+        }
+        if (diffX > 5) {
+          playerSizePenalty *= diffX * sizePenaltyMultiplier;
+        }
+        score -= playerSizePenalty;
+
+        // we prefer elements closer to the video, so the score of each potential
+        // candidate gets dinked a bit
+        score -= perLevelScorePenalty * penaltyMultiplier;
+
+        element.autoScore = score;
+        element.heuristics['autoScoreDetails'] = {
+          playerSizePenalty,
+          diffX,
+          diffY,
+          penaltyMultiplier
+        }
+
+        // ensure next valid candidate is gonna have a harder job winning out
+        penaltyMultiplier++;
+      }
+    }
+
+    let bestCandidate: any = {autoScore: -99999999, initialValue: true};
+    for (const element of elementStack) {
+      if (element.autoScore > bestCandidate.autoScore) {
+        bestCandidate = element;
+      }
+    }
+    if (bestCandidate.initialValue) {
+      bestCandidate = null;
+    } else {
+      bestCandidate = bestCandidate.element;
+    }
+
+    return bestCandidate;
+  }
+
+  private getPlayerQs(elementStack: any[], videoWidth, videoHeight) {
+    const host = window.location.hostname;
+    const perLevelScorePenalty = 10;
+    let penaltyMultiplier = 0;
+
+    const allSelectors = document.querySelectorAll(this.settings.active.sites[host].DOM.player.querySelectors);
+
+    for (const element of elementStack) {
+      if (this.collectionHas(allSelectors, element.element)) {
+        let score = 100;
+
+        // we award points to elements which match video size in one
+        // dimension and exceed it in the other
+        if (
+          (element.width >= videoWidth && this.equalish(element.height, videoHeight, 2))
+          || (element.height >= videoHeight && this.equalish(element.width, videoWidth, 2))
+        ) {
+          score += 75;
+        }
+
+        score -= perLevelScorePenalty * penaltyMultiplier;
+        element.heuristics['qsScore'] = score;
+
+        penaltyMultiplier++;
+      }
+    }
+
+    let bestCandidate: any = {qsScore: -99999999, initialValue: true};
+    for (const element of elementStack) {
+      if (element.qsScore > bestCandidate.qsScore) {
+        bestCandidate = element;
+      }
+    }
+    if (bestCandidate.initialValue) {
+      bestCandidate = null;
+    } else {
+      bestCandidate = bestCandidate.element;
+    }
+
+    return bestCandidate;
+  }
+
+  private getPlayerParentIndex(elementStack: any[]) {
+    const host = window.location.hostname;
+    elementStack[this.settings.active.sites[host].DOM.player.videoAncestor].heuristics['manualElementByParentIndex'] = true;
+    return elementStack[this.settings.active.sites[host].DOM.player.videoAncestor].element;
   }
 
   equalish(a,b, tolerance) {
