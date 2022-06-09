@@ -96,6 +96,9 @@ class PlayerData {
       this.invalid = false;
       this.element = this.getPlayer();
 
+      this.eventBus.subscribe('get-player-tree', {function: () => this.handlePlayerTreeRequest()});
+      this.eventBus.subscribe('set-mark-element', {function: (data) => this.markElement(data)});
+
       // this.notificationService = new PlayerNotificationUi(this.element, this.settings, this.eventBus);
       this.ui = new UI('ultrawidifyUi', {parentElement: this.element, eventBus: this.eventBus});
       // this.ui.init();
@@ -413,6 +416,10 @@ class PlayerData {
     }
     return false;
   }
+
+  equalish(a,b, tolerance) {
+    return a > b - tolerance && a < b + tolerance;
+  }
   //#endregion
 
   /**
@@ -427,7 +434,10 @@ class PlayerData {
 
     const elementStack: any[] = [{
       element: this.video,
-      type: 'video'
+      type: 'video',
+      tagName: 'video',
+      classList: this.video.classList,
+      id: this.video.id,
     }];
 
     // first pass to generate the element stack and translate it into array
@@ -456,7 +466,7 @@ class PlayerData {
       // if 'verbose' option is passed, we also populate the elementStack
       // with heuristics data for auto player detection.
       if (playerCandidate && !options?.verbose) {
-        return playerCandidate;
+        return playerCandidate.element;
       }
     }
 
@@ -464,9 +474,12 @@ class PlayerData {
       // remember — we're only populating elementStack. If we found a player
       // element using manual methods, we will still return that element.
       this.getPlayerAuto(elementStack, videoWidth, videoHeight);
-      return playerCandidate;
+      playerCandidate.heuristics['activePlayer'] = true;
+      return playerCandidate.element;
     } else {
-      return this.getPlayerAuto(elementStack, videoWidth, videoHeight);
+      const playerCandidate = this.getPlayerAuto(elementStack, videoWidth, videoHeight);
+      playerCandidate.heuristics['activePlayer'] = true;
+      return playerCandidate.element;
     }
   }
 
@@ -545,7 +558,7 @@ class PlayerData {
     if (bestCandidate.initialValue) {
       bestCandidate = null;
     } else {
-      bestCandidate = bestCandidate.element;
+      bestCandidate.heuristics['autoMatch'] = true;
     }
 
     return bestCandidate;
@@ -587,7 +600,7 @@ class PlayerData {
     if (bestCandidate.initialValue) {
       bestCandidate = null;
     } else {
-      bestCandidate = bestCandidate.element;
+      bestCandidate.heuristics['qsMatch'] = true;
     }
 
     return bestCandidate;
@@ -596,11 +609,21 @@ class PlayerData {
   private getPlayerParentIndex(elementStack: any[]) {
     const host = window.location.hostname;
     elementStack[this.settings.active.sites[host].DOM.player.videoAncestor].heuristics['manualElementByParentIndex'] = true;
-    return elementStack[this.settings.active.sites[host].DOM.player.videoAncestor].element;
+    return elementStack[this.settings.active.sites[host].DOM.player.videoAncestor];
   }
 
-  equalish(a,b, tolerance) {
-    return a > b - tolerance && a < b + tolerance;
+  private handlePlayerTreeRequest() {
+    // this populates this.elementStack fully
+    this.getPlayer({verbose: true});
+
+    console.info('player-tree: emitting stack:', this.elementStack);
+    this.eventBus.send('uw-config-broadcast', {type: 'player-tree', config: JSON.parse(JSON.stringify(this.elementStack))});
+  }
+
+  private markElement(data: {parentIndex: number, enable: boolean}) {
+    console.log('mark element: got request to do border around this:', data);
+    this.elementStack[data.parentIndex].element.style.outline = data.enable ? '5px dashed #fa6' : null;
+    this.elementStack[data.parentIndex].element.style.filter = data.enable ? 'sepia(1) brightness(2) contrast(0.5)' : null;
   }
 
   forceRefreshPlayerElement() {

@@ -94,6 +94,7 @@ class VideoData {
       this.eventBus.setUpstreamBus(pageInfo.eventBus);
     }
 
+
     this.setupStageOne();
   }
 
@@ -618,7 +619,7 @@ class VideoData {
     return heightCompensationFactor;
   }
 
-  //#region AARD handlers
+  //#region AARD handlers — TODO: remove, AARD handlers shouldn't be here
   initArDetection() {
     if(this.destroyed || this.invalid) {
       // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
@@ -747,6 +748,16 @@ class VideoData {
     }
 
     return false;
+  }
+
+  /**
+   * Returns:
+   *    * number of parent elements on route from <video> to <body>
+   *    * parent index of automatically detected player element
+   *    * index of current player element
+   */
+  getPageOutline() {
+
   }
 }
 

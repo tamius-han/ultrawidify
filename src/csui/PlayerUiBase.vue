@@ -86,6 +86,9 @@
             ></VideoSettings>
             <PlayerDetectionPanel
               v-if="selectedTab === 'playerDetection'"
+              :settings="settings"
+              :eventBus="eventBus"
+              :site="site"
             >
             </PlayerDetectionPanel>
             <!-- <ResizerDebugPanel :debugData="debugData">
@@ -188,6 +191,8 @@ export default {
   },
 
   async created() {
+    console.log('player-tree: player UI base created')
+
     this.logger = new Logger();
     await this.logger.init({
         allowLogging: true,
@@ -291,7 +296,7 @@ export default {
 
     selectTab(tab) {
       console.log('selected tab:', tab);
-      console.warn('NOTE: tab selection is not syet inplemented!')
+      console.warn('NOTE: tab selection is not syet inplemented!');
       this.selectedTab = tab;
     }
   }
