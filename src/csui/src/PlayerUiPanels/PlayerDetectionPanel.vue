@@ -42,6 +42,8 @@
                 </div>
                 <div class="css-fixes">
                   <!-- todo: generate buttons with some of the common css lines I always end up adding -->
+                  <div>Width: 100%</div>
+                  <div>Height: 100%</div>
                 </div>
               </div>
             </div>
