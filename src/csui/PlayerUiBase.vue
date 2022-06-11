@@ -1,8 +1,20 @@
 <template>
-  <div class="uw-hover uv-hover-trigger-region uw-clickable">
-    TEST CONTENT
+  <div
+    v-if="uwTriggerZoneVisible"
+    class="uw-hover uv-hover-trigger-region uw-clickable"
+    :style="uwTriggerRegionConf"
+    @mouseenter="showUwWindow"
+  >
+    <h1>Aspect ratio controls</h1>
+    <div>Hover to activate</div>
   </div>
-  <div class="popup-panel flex flex-column uw-clickable">
+  <div
+    v-if="uwWindowVisible"
+    class="popup-panel flex flex-column uw-clickable"
+    :class="{'fade-out': uwWindowFadeOut}"
+    @mouseenter="cancelUwWindowHide"
+    @mouseleave="hideUwWindow"
+  >
     <div class="popup-window-header">
       <div class="popup-title">Ultrawidify <small>{{settings?.active?.version}} - {{BrowserDetect.processEnvChannel}}</small></div>
       <div class="site-support-info">
@@ -121,6 +133,21 @@ export default {
   },
   data() {
     return {
+      uwTriggerZoneVisible: false,
+      uwTriggerZoneTimeout: undefined,
+      uwTriggerRegionConf: {
+        left: "10%",
+        top: "10%",
+        height: "30%",
+        width: "30%",
+        maxWidth: "24rem",
+        maxHeight: "13.37rem",
+      },
+
+      uwWindowFadeOut: false,
+      uwWindowCloseTimeout: undefined,
+      uwWindowVisible: false,
+
       // component properties
       settings: {},
       BrowserDetect: BrowserDetect,
@@ -258,6 +285,17 @@ export default {
       }
       this.lastProbeTs = eventData.ts;
 
+      // show ultrawidify trigger zone and set it to vanish after 250ms
+      // but don't show the trigger zone behind an active popup
+      if (! this.uwWindowVisible) {
+        this.uwTriggerZoneVisible = true;
+        clearTimeout(this.uwTriggerZoneTimeout);
+        this.uwTriggerZoneTimeout = setTimeout(
+          () => this.uwTriggerZoneVisible = false,
+          250
+        )
+      }
+
       /* we check if our mouse is hovering over an element.
        *
        * gentleman's agreement: elements with uw-clickable inside the iframe will
@@ -288,6 +326,22 @@ export default {
         },
         origin
       );
+    },
+
+    showUwWindow() {
+      this.uwWindowFadeOut = false;
+      this.uwWindowVisible = true;
+      this.uwTriggerZoneVisible = false;
+    },
+
+    hideUwWindow() {
+      this.uwWindowCloseTimeout = setTimeout(() => this.uwWindowVisible = false, 1100);
+      this.uwWindowFadeOut = true;
+    },
+
+    cancelUwWindowHide() {
+      this.uwWindowFadeOut = false;
+      clearTimeout(this.uwWindowCloseTimeout);
     },
 
     handleBusTunnelIn(payload) {
@@ -399,17 +453,19 @@ export default {
 
 .uw-hover {
   position: absolute;
-  top: 10%;
-  left: 10%;
-  width: 100px;
-  height: 100px;
-  color: #fff;
-  background-color: #000;
 
   z-index: 999999999999999999;
 }
-.uw-hover:hover {
-  background-color: #f00;
+
+.uv-hover-trigger-region {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  border: 0.5rem dashed #fff;
+  color: #fff;
+  backdrop-filter: blur(0.5rem) brightness(0.5);
 }
 
 .popup-panel {
@@ -433,6 +489,12 @@ export default {
   overflow-y: auto;
 
   backdrop-filter: blur(16px) saturate(120%);
+
+  opacity: 1;
+  &.fade-out {
+    opacity: 0;
+    transition: opacity 1s;
+  }
 
   .popup-window-header {
     padding: 1rem;
