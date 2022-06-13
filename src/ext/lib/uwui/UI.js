@@ -29,6 +29,13 @@ class UI {
     }
     rootDiv.setAttribute('id', uwid);
     rootDiv.classList.add('uw-ultrawidify-container-root');
+    rootDiv.style.width = "100%";
+    rootDiv.style.height = "100%";
+    rootDiv.style.position = "absolute";
+    rootDiv.style.zIndex = "1000";
+    rootDiv.style.border = 0;
+    rootDiv.style.top = 0;
+    // rootDiv.style.pointerEvents = 'none';
 
     if (this.uiConfig?.parentElement) {
       this.uiConfig.parentElement.appendChild(rootDiv);

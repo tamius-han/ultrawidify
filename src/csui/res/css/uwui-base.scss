@@ -2,20 +2,7 @@
 @import 'colors.scss';
 @import 'common.scss';
 
-* {
-  font-family: 'Overpass';
-}
-
 .uw-ultrawidify-container-root {
-  // here's the defaults:
-  // all: initial;
-  // * {
-  //   all: unset;
-  // }
-
-  // here's things that we don't want as defaults
-  // (must come after the all: declaration, otherwise
-  // all: declaration overrides everything.)
 
   // we put our UI _over_ site's player:
   z-index: 999999;

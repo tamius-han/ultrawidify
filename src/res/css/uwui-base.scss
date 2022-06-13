@@ -1,15 +1,8 @@
 .uw-ultrawidify-container-root {
-
-  // here's the defaults:
-  all: initial;
-  * {
-    all: unset;
-  }
-
   // here's things that we don't want as defaults
   // (must come after the all: declaration, otherwise
   // all: declaration overrides everything.)
-  
+
   // we put our UI _over_ site's player:
   z-index: 999999;
   position: absolute;
@@ -23,46 +16,4 @@
 
   // we are click-through by default:
   pointer-events: none;
-
-  // defaults for some common elements:
-  p,h1,h2,h3,h4,h5,h6,div {
-    display: block;
-  }
-  h1,h2,h3,h4,h5,h6,b {
-    font-weight: bold;
-  }
-  h1 {
-    font-size: 2rem;
-    margin: .5rem 0;
-  }
-  h2 {
-    font-size: 1.69em;
-    margin: .42rem 0;
-  }
-  h3 {
-    font-size: 1.42rem;
-    margin: .25rem 0;
-  }
-  ul, ol { 
-    display: block;
-    list-style: disc outside none;
-    margin: 1em 0;
-    padding: 0 0 0 40px;
-  }
-  ol { 
-    list-style-type: decimal;
-  }
-  ul ul, ol ul { 
-    list-style-type: circle; 
-    // list-style-position: inside; 
-    margin-left: 15px; 
-  }
-  ol ol, ul ol { 
-    list-style-type: lower-latin; 
-    // list-style-position: inside; 
-    margin-left: 15px; 
-  }
-  li { 
-    display: list-item;
-  }
 }
