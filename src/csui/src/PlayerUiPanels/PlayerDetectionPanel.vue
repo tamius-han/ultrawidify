@@ -75,6 +75,8 @@
 
                   @mouseover="markElement(index, true)"
                   @mouseleave="markElement(index, false)"
+
+                  @click="setPlayer(index)"
                 >
                   <div class="tag">
                     <b>{{element.tagName}}</b> <i class="id">{{element.id ? `#`:''}}{{element.id}}</i>  @ <span class="dimensions">{{element.width}}</span>x<span class="dimensions">{{element.height}}</span>
@@ -124,7 +126,7 @@ export default({
     this.eventBus.subscribe('uw-config-broadcast', {function: (config) => this.handleElementStack(config)});
   },
   mounted() {
-    this.eventBus.sendToTunnel('get-player-tree');  // TODO: implement this in PlayerData
+    this.eventBus.sendToTunnel('get-player-tree');
   },
   computed: {},
   methods: {
@@ -135,8 +137,23 @@ export default({
       }
     },
     markElement(parentIndex, enable) {
-      console.log('will mark element:', parentIndex, enable);
       this.eventBus.sendToTunnel('set-mark-element', {parentIndex, enable});
+    },
+    async setPlayer(index) {
+      // if user agrees with ultrawidify on what element player should be,
+      // we just unset our settings for this site
+      if (this.elementStack[index].heuristics?.autoMatch) {
+        this.settings.setSiteOption(['DOM', 'player', 'manual'], false, this.site);
+        await this.settings.save();
+        this.eventBus.sendToTunnel('get-player-tree');
+      } else {
+        // ensure settings exist:
+        this.settings.setSiteOption(['DOM', 'player', 'manual'], true, this.site);
+        this.settings.setSiteOption(['DOM', 'player', 'useRelativeAncestor'], true, this.site);
+        this.settings.setSiteOption(['DOM', 'player', 'videoAncestor'], index, this.site);
+        await this.settings.save();
+        this.eventBus.sendToTunnel('get-player-tree');
+      }
     }
   }
 })
@@ -169,6 +186,8 @@ export default({
         border: 1px solid rgba(255,255,255,0.5);
         padding: 0.5rem 1rem;
 
+        max-width: 30rem;
+
         display: flex;
         flex-direction: column;
 
@@ -187,6 +206,13 @@ export default({
           display: flex;
           flex-direction: row;
           flex-wrap: wrap;
+
+          > div {
+            background-color: rgba(255,255,255,0.5);
+            border-radius: 0.25rem;
+            padding: 0.125rem 0.5rem;
+            margin: 0.125rem 0.25rem;
+          }
         }
         .dimensions {
           color: #473c85;

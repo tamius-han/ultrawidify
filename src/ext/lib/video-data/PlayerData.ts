@@ -69,6 +69,20 @@ class PlayerData {
   elementStack: any[] = [];
   //#endregion
 
+  //#region event bus configuration
+  private eventBusCommands = {
+    'get-player-tree': [{
+      function: () => this.handlePlayerTreeRequest()
+    }],
+    'set-mark-element': [{      // NOTE: is this still used?
+      function: (data) => this.markElement(data)
+    }],
+    'update-player': [{
+      function: () => this.getPlayer();
+    }]
+  }
+  //#endregion
+
   /**
    * Gets player aspect ratio. If in full screen, it returns screen aspect ratio unless settings say otherwise.
    */
@@ -95,9 +109,7 @@ class PlayerData {
       this.extensionMode = videoData.extensionMode;
       this.invalid = false;
       this.element = this.getPlayer();
-
-      this.eventBus.subscribe('get-player-tree', {function: () => this.handlePlayerTreeRequest()});
-      this.eventBus.subscribe('set-mark-element', {function: (data) => this.markElement(data)});
+      this.initEventBus();
 
       // this.notificationService = new PlayerNotificationUi(this.element, this.settings, this.eventBus);
       this.ui = new UI('ultrawidifyUi', {parentElement: this.element, eventBus: this.eventBus});
@@ -128,7 +140,14 @@ class PlayerData {
       console.error('[Ultrawidify::PlayerData::ctor] There was an error setting up player data. You should be never seeing this message. Error:', e);
       this.invalid = true;
     }
+  }
 
+  private initEventBus() {
+    for (const action in this.eventBusCommands) {
+      for (const command of this.eventBusCommands[action]) {
+        this.eventBus.subscribe(action, command);
+      }
+    }
   }
 
   /**

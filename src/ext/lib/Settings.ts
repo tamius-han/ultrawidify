@@ -622,6 +622,30 @@ class Settings {
   getDefaultStretchMode(site?: string) {
     return this.active.sites[site ?? window.location.hostname]?.defaultStretch ?? this.active.stretch.default ?? {type: StretchType.NoStretch};
   }
+
+  /**
+   * Sets a site option and initializes values if empty.
+   * Does not save settings.
+   * @param path
+   * @param value
+   * @param site
+   */
+  setSiteOption(path: string[], value: any, site?: string) {
+    site = site ?? window.location.hostname;
+
+    if (!this.active.sites[site]) {
+      this.active.sites[site] = {};
+    }
+
+    let object = this.active.sites[site];
+    for (let i = 0; i < path.length - 1; i++) {
+      if (!object[path[i]]) {
+        object[path[i]] = {};
+      }
+      object = object[path[i]];
+    }
+    object[path[path.length - 1]] = value;
+  }
 }
 
 export default Settings;
