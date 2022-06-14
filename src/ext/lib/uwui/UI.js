@@ -35,7 +35,7 @@ class UI {
     rootDiv.style.zIndex = "1000";
     rootDiv.style.border = 0;
     rootDiv.style.top = 0;
-    // rootDiv.style.pointerEvents = 'none';
+    rootDiv.style.pointerEvents = 'none';
 
     if (this.uiConfig?.parentElement) {
       this.uiConfig.parentElement.appendChild(rootDiv);
