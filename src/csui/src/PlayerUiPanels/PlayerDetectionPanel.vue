@@ -8,8 +8,7 @@
       <!-- Player element picker -->
       <div class="sub-panel">
         <div class="flex flex-row">
-          <mdicon name="crop" :size="32" />
-          <h1>Player element</h1>
+          <h1><mdicon name="television-play" :size="32" /> Player element</h1>
         </div>
         <div class="sub-panel-content">
           <p>
