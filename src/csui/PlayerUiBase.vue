@@ -51,8 +51,9 @@
         </div>
         <mdicon v-if="siteSupportLevel === 'community'" class="site-support supported" name="checkbox-marked-circle" />
       </div>
+      <div><a @click="uwWindowFadeOutDisabled = !uwWindowFadeOutDisabled">{{uwWindowFadeOutDisabled ? 'allow auto-close' : 'prevent auto-close'}}</a></div>
     </div>
-    <div class="flex flex-row">
+    <div class="tab-main flex flex-row">
       <div class="tab-row flex flex-column">
         <div
           v-for="tab of tabs"
@@ -64,7 +65,7 @@
           <div class="icon-container">
             <mdicon
               :name="tab.icon"
-              :size="48"
+              :size="32"
             />
           </div>
           <div class="label">
@@ -75,19 +76,31 @@
       <div class="content flex flex-column">
         <!-- autodetection warning -->
 
+        <div class="warning-area">
+          <div class="warning-box">
+            <div class="icon-container">
+              <mdicon name="alert" :size="32" />
+            </div>
+            <div>
+              DRM warnings will appear in this box<br/>
+              <a>Learn more ...</a>
+            </div>
+          </div>
+        </div>
+
         <div v-if="ultrawidify?.videoData?.hasDrm" class="warning-area">
           <div class="warning-box">
             <div>
               <mdicon name="alert" :size="42" />
             </div>
             <div>
-              This site uses <a href="https://en.wikipedia.org/wiki/Digital_rights_management" target="_blank">digital rights management</a> solutions that prevent this
-              extension from automatically detecting aspect ratio. You will have to adjust aspect ratio manually.
+              This site is blocking automatic aspect ratio detection. You will have to adjust aspect ratio manually.<br/>
+              <a>Learn more ...</a>
             </div>
           </div>
         </div>
 
-        <div class="flex flex-row">
+        <div class="flex flex-row panel-content">
           <!-- Panel section -->
           <template v-if="settingsInitialized">
             <VideoSettings
@@ -144,6 +157,7 @@ export default {
         maxHeight: "13.37rem",
       },
 
+      uwWindowFadeOutDisabled: false,
       uwWindowFadeOut: false,
       uwWindowCloseTimeout: undefined,
       uwWindowVisible: false,
@@ -335,6 +349,9 @@ export default {
     },
 
     hideUwWindow() {
+      if (this.uwWindowFadeOutDisabled) {
+        return;
+      }
       this.uwWindowCloseTimeout = setTimeout(() => this.uwWindowVisible = false, 1100);
       this.uwWindowFadeOut = true;
     },
@@ -370,6 +387,12 @@ export default {
 //   width: 100%;
 //   height: 100%;
 // }
+
+.tab-main {
+  flex-grow: 1;
+  flex-shrink: 1;
+  overflow: hidden;
+}
 
 .site-support-info {
   display: flex;
@@ -448,6 +471,45 @@ export default {
         fill: #ff0 !important;
       }
     }
+  }
+}
+
+.content {
+  flex-grow: 1;
+
+  .warning-area {
+    flex-grow: 0;
+    flex-shrink: 0;
+  }
+
+  .panel-content {
+    flex-grow: 1;
+    flex-shrink: 1;
+
+    overflow-y: auto;
+    padding: 1rem;
+  }
+}
+
+.warning-box {
+  background: rgb(255, 174, 107);
+  color: #000;
+  margin: 1rem;
+  padding: 1rem;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  .icon-container {
+    margin-right: 1rem;
+    flex-shrink: 0;
+    flex-grow: 0;
+  }
+
+  a {
+    color: rgba(0,0,0,0.7);
+    cursor: pointer;
   }
 }
 

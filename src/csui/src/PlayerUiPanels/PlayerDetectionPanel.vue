@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-column">
+  <div class="flex flex-column tab-root">
     <!-- ADD ANY OPTION BARS HERE -->
 
     <!-- The rest of the tab -->
@@ -88,9 +88,184 @@
                   </div>
                 </div>
                 <div class="css-fixes">
+                  <div><b>Quick fixes:</b></div>
                   <!-- todo: generate buttons with some of the common css lines I always end up adding -->
-                  <div>Width: 100%</div>
-                  <div>Height: 100%</div>
+                  <div
+                    class="ccs-line"
+                    :class="{'active': cssStack[index]?.includes('width: 100%')}"
+                    @click="toggleCssForElement(index, 'width: 100%;')"
+                  >
+                    Width: 100%
+                  </div>
+                  <div
+                    class="css-line"
+                    :class="{'active': cssStack[index]?.includes('height: 100%')}"
+                    @click="toggleCssForElement(index, 'height: 100%')"
+                  >
+                    Height: 100%
+                  </div>
+                  <div
+                    class="css-line"
+                    :class="{'active': cssStack[index]?.includes('display: flex')}"
+                    @click="toggleCssForElement(index, 'display: flex')"
+                  >
+                    Display: flex
+                  </div>
+                  <div class="css-line">
+                    Flex direction:
+                    <span
+                      class="css-line-suboption"
+                      :class="{'active': cssStack[index]?.includes('flex-direction: row')}"
+                      @click="toggleCssForElement(index, 'flex-direction', 'row')"
+                    >
+                      row
+                    </span> |
+                    <span
+                      class="css-line-suboption"
+                      :class="{'active': cssStack[index]?.includes('flex-direction: column')}"
+                      @click="toggleCssForElement(index, 'flex-direction', 'column')"
+                    >
+                      column
+                    </span>
+                  </div>
+                  <div class="css-line">
+                    Justify content:
+                    <span
+                      class="css-line-suboption"
+                      :class="{'active': cssStack[index]?.includes('justify-content: start')}"
+                      @click="toggleCssForElement(index, 'justify-content', 'start')"
+                    >
+                      start
+                    </span> |
+                    <span
+                      class="css-line-suboption"
+                      :class="{'active': cssStack[index]?.includes('justify-content: center')}"
+                      @click="toggleCssForElement(index, 'justify-content', 'center')"
+                    >
+                      center
+                    </span> |
+                    <span
+                      class="css-line-suboption"
+                      :class="{'active': cssStack[index]?.includes('justify-content: end')}"
+                      @click="toggleCssForElement(index, 'justify-content', 'end')"
+                    >
+                      end
+                    </span>
+                  </div>
+                  <div class="css-line">
+                    Align items:
+                    <span
+                      class="css-line-suboption"
+                      :class="{'active': cssStack[index]?.includes('align-items: start')}"
+                      @click="toggleCssForElement(index, 'align-items', 'start')"
+                    >
+                      start
+                    </span> |
+                    <span
+                      class="css-line-suboption"
+                      :class="{'active': cssStack[index]?.includes('align-items: center')}"
+                      @click="toggleCssForElement(index, 'align-items', 'center')"
+                    >
+                      center
+                    </span> |
+                    <span
+                      class="css-line-suboption"
+                      :class="{'active': cssStack[index]?.includes('align-items: end')}"
+                      @click="toggleCssForElement(index, 'align-items', 'end')"
+                    >
+                      end
+                    </span>
+                  </div>
+
+                  <div class="css-line">
+                    Justify self:
+                    <span
+                      class="css-line-suboption"
+                      :class="{'active': cssStack[index]?.includes('justify-self: start')}"
+                      @click="toggleCssForElement(index, 'justify-self', 'start')"
+                    >
+                      start
+                    </span> |
+                    <span
+                      class="css-line-suboption"
+                      :class="{'active': cssStack[index]?.includes('justify-self: center')}"
+                      @click="toggleCssForElement(index, 'justify-self', 'center')"
+                    >
+                      center
+                    </span> |
+                    <span
+                      class="css-line-suboption"
+                      :class="{'active': cssStack[index]?.includes('justify-self: end')}"
+                      @click="toggleCssForElement(index, 'justify-self', 'end')"
+                    >
+                      end
+                    </span>
+                  </div>
+                  <div class="css-line">
+                    Align self:
+                    <span
+                      class="css-line-suboption"
+                      :class="{'active': cssStack[index]?.includes('align-self: start')}"
+                      @click="toggleCssForElement(index, 'align-self', 'start')"
+                    >
+                      start
+                    </span> |
+                    <span
+                      class="css-line-suboption"
+                      :class="{'active': cssStack[index]?.includes('align-self: center')}"
+                      @click="toggleCssForElement(index, 'align-self', 'center')"
+                    >
+                      center
+                    </span> |
+                    <span
+                      class="css-line-suboption"
+                      :class="{'active': cssStack[index]?.includes('align-self: end')}"
+                      @click="toggleCssForElement(index, 'align-self', 'end')"
+                    >
+                      end
+                    </span>
+                  </div>
+                  <div class="css-line">
+                    Text-align:
+                    <span
+                      class="css-line-suboption"
+                      :class="{'active': cssStack[index]?.includes('text-align: left')}"
+                      @click="toggleCssForElement(index, 'align-self', 'start')"
+                    >
+                      left
+                    </span> |
+                    <span
+                      class="css-line-suboption"
+                      :class="{'active': cssStack[index]?.includes('text-align: center')}"
+                      @click="toggleCssForElement(index, 'text-align', 'center')"
+                    >
+                      center
+                    </span> |
+                    <span
+                      class="css-line-suboption"
+                      :class="{'active': cssStack[index]?.includes('text-align: right')}"
+                      @click="toggleCssForElement(index, 'text-align', 'right')"
+                    >
+                      right
+                    </span>
+                  </div>
+                  <div class="css-line">
+                    Position:
+                    <span
+                      class="css-line-suboption"
+                      :class="{'active': cssStack[index]?.includes('position: relative')}"
+                      @click="toggleCssForElement(index, 'position', 'relative')"
+                    >
+                      relative
+                    </span> |
+                    <span
+                      class="css-line-suboption"
+                      :class="{'active': cssStack[index]?.includes('position: absolute')}"
+                      @click="toggleCssForElement(index, 'position', 'absolute')"
+                    >
+                      absolute
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -111,7 +286,8 @@ export default({
   },
   data() {
     return {
-      elementStack: []
+      elementStack: [],
+      cssStack: [],
     };
   },
   mixins: [],
@@ -153,6 +329,43 @@ export default({
         await this.settings.save();
         this.eventBus.sendToTunnel('get-player-tree');
       }
+    },
+    /**
+     * Toggles active CSS for element of certain parent index.
+     * cssValue is optional and can be included in cssRule argument
+     */
+    toggleCssForElement(index, cssRule, cssValue) {
+      if (cssValue) {
+        // this is "toggle off" case for calls that put cssRule and cssValue as separate arguments
+        if (this.cssStack[index]?.includes(cssRule) && this.cssStack[index]?.includes(cssValue)) {
+          this.cssStack[index] = this.cssStack[index].filter(x => ! x.includes(cssRule));
+
+          //TODO: update settings!
+          return;
+        }
+      }
+
+      // this rule applies to current element — remove it!
+      if (this.cssStack[index]?.includes(cssRule)) {
+        this.cssStack[index] = this.cssStack[index].filter(x => ! x.includes(cssRule));
+
+        // exception: if cssValue is given separately, we aren't removing it
+        // in that case, we're overwriting it
+        if (cssValue) {
+          this.cssStack[index].push(`${cssRule}: ${cssValue};`);
+        }
+      } else {
+        if (!this.cssStack[index]) {
+          this.cssStack[index] = [];
+        }
+        if (cssValue) {
+          this.cssStack[index].push(`${cssRule}: ${cssValue};`);
+        } else {
+          this.cssStack[index].push(cssRule)
+        }
+      }
+
+      //TODO: update settings!
     }
   }
 })
@@ -219,5 +432,9 @@ export default({
       }
     }
   }
+}
+
+.tab-root {
+  width: 100%;
 }
 </style>
