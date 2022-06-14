@@ -78,7 +78,7 @@ class PlayerData {
       function: (data) => this.markElement(data)
     }],
     'update-player': [{
-      function: () => this.getPlayer();
+      function: () => this.getPlayer()
     }]
   }
   //#endregion
