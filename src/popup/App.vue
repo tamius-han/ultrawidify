@@ -104,7 +104,7 @@
             @click="selectTab('site-details')"
         >
           <div class="">
-            Advanced settings
+            Extension settings
           </div>
           <div v-if="selectedTab === 'site-details' && activeSites.length > 1"
                class=""
