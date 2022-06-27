@@ -35,7 +35,6 @@ class ArDetector {
   sampleLines
 
   canFallback: boolean = true;
-  fallbackMode: boolean = false;
 
   blackLevel: number;
 
@@ -49,7 +48,6 @@ class ArDetector {
 
   private manualTickEnabled: boolean;
   _nextTick: boolean;
-  canDoFallbackMode: boolean = false;
 
   // helper objects
   private animationFrameHandle: any;
@@ -249,28 +247,7 @@ class ArDetector {
     }
 
     //
-    // [3] detect if we're in the fallback mode and reset guardline
-    //
-
-    if (this.fallbackMode) {
-      this.logger.log('warn', 'debug', `[ArDetect::setup] <@${this.arid}>  WARNING: CANVAS RESET DETECTED/we're in fallback mode - recalculating guardLine`, "background: #000; color: #ff2");
-      // blackbar, imagebar
-      this.guardLine.reset();
-    }
-
-    //
-    // [4] see if browser supports "fallback mode" by drawing a small portion of our window
-    //
-
-    try {
-      (this.blackframeContext as any).drawWindow(window,0, 0, this.blackframeCanvas.width, this.blackframeCanvas.height, "rgba(0,0,128,1)");
-      this.canDoFallbackMode = true;
-    } catch (e) {
-      this.canDoFallbackMode = false;
-    }
-
-    //
-    // [5] do other things setup needs to do
+    // [3] do other things setup needs to do
     //
 
     this.detectionTimeoutEventCount = 0;
@@ -302,12 +279,7 @@ class ArDetector {
 
   //#region AARD control
   start() {
-    // if (this.settings.canStartAutoAr()) {
-    //   this.logger.log('info', 'debug', `"%c[ArDetect::start] <@${this.arid}> Starting automatic aspect ratio detection`, _ard_console_start);
-    // } else {
-    //   this.logger.log('warn', 'debug', `"%c[ArDetect::start] <@${this.arid}> Wanted to start automatic aspect ratio detection, but settings don't allow that. Aard won't be started.`, _ard_console_change);
-    //   return;
-    // }
+
     if (!this._ready) {
       this.init();
       return;         // we will return to this function once initialization is complete
@@ -317,10 +289,6 @@ class ArDetector {
       // ensure first autodetection will run in any case
       this.conf.resizer.setLastAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
     }
-
-    this._paused = false;
-    this._halted = false;
-    this._exited = false;
 
     // start autodetection
     this.startLoop();
@@ -353,19 +321,12 @@ class ArDetector {
   }
 
   pause() {
-    // pause only if we were running before. Don't pause if we aren't running
-    // (we are running when _halted is neither true nor undefined)
-    if (this._halted === false) {
-      this._paused = true;
-    }
     this.stop();
   }
 
   halt(){
     this.logger.log('info', 'debug', `"%c[ArDetect::stop] <@${this.arid}>  Halting automatic aspect ratio detection`, _ard_console_stop);
     this.stop();
-    this._halted = true;
-    // this.conf.resizer.setArLastAr();
   }
 
   setManualTick(manualTick) {
@@ -438,15 +399,13 @@ class ArDetector {
       clearTimeout(this.setupTimer);
     }
 
-    let ths = this;
-    this.setupTimer = setTimeout(function(){
-        ths.setupTimer = null;
-        try{
-          ths.start();
+    this.setupTimer = setTimeout( () => {
+      this.setupTimer = null;
+        try {
+          this.start();
         } catch(e) {
-          this.logger('error', 'debug', `[ArDetector::scheduleInitRestart] <@${this.arid}> Failed to start main(). Error:`,e);
+          this.logger.log('error', 'debug', `[ArDetector::scheduleInitRestart] <@${this.arid}> Failed to start main(). Error:`, e);
         }
-        ths = null;
       },
       timeout
     );
@@ -569,56 +528,23 @@ class ArDetector {
 
     let letterbox = edges.top + edges.bottom;
 
+    // Since video is stretched to fit the canvas, we need to take that into account when calculating target
+    // aspect ratio and correct our calculations to account for that
 
-    if (! this.fallbackMode) {
-      // Since video is stretched to fit the canvas, we need to take that into account when calculating target
-      // aspect ratio and correct our calculations to account for that
+    const fileAr = this.video.videoWidth / this.video.videoHeight;
+    const canvasAr = this.canvas.width / this.canvas.height;
+    let widthCorrected;
 
-      const fileAr = this.video.videoWidth / this.video.videoHeight;
-      const canvasAr = this.canvas.width / this.canvas.height;
-      let widthCorrected;
+    if (edges.top && edges.bottom) {
+      // in case of letterbox, we take canvas height as canon and assume width got stretched or squished
 
-      if (edges.top && edges.bottom) {
-        // in case of letterbox, we take canvas height as canon and assume width got stretched or squished
-
-        if (fileAr != canvasAr) {
-          widthCorrected = this.canvas.height * fileAr;
-        } else {
-          widthCorrected = this.canvas.width;
-        }
-
-        return widthCorrected / (this.canvas.height - letterbox);
-      }
-    } else {
-      // fallback mode behaves a wee bit differently
-
-      let zoomFactor = 1;
-
-      // there's stuff missing from the canvas. We need to assume canvas' actual height is bigger by a factor x, where
-      //   x = [video.zoomedHeight] / [video.unzoomedHeight]
-      //
-      // letterbox also needs to be corrected:
-      //   letterbox += [video.zoomedHeight] - [video.unzoomedHeight]
-
-      let vbr = this.video.getBoundingClientRect();
-
-      zoomFactor = vbr.height / this.video.clientHeight;
-      letterbox += vbr.height - this.video.clientHeight;
-
-      let trueHeight = this.canvas.height * zoomFactor - letterbox;
-
-      if(edges.top > 1 && edges.top <= this.settings.active.arDetect.fallbackMode.noTriggerZonePx ){
-        this.logger.log('info', 'arDetect', `%c[ArDetect::calculateArFromEdges] <@${this.arid}>  Edge is in the no-trigger zone. Aspect ratio change is not triggered.`)
-        return;
+      if (fileAr != canvasAr) {
+        widthCorrected = this.canvas.height * fileAr;
+      } else {
+        widthCorrected = this.canvas.width;
       }
 
-      // varnostno območje, ki naj ostane črno (da lahko v fallback načinu odkrijemo ožanje razmerja stranic).
-      // x2, ker je safetyBorderPx definiran za eno stran.
-      // safety border so we can detect aspect ratio narrowing (21:9 -> 16:9).
-      // x2 because safetyBorderPx is for one side.
-      trueHeight += (this.settings.active.arDetect.fallbackMode.safetyBorderPx << 1);
-
-      return this.canvas.width * zoomFactor / trueHeight;
+      return widthCorrected / (this.canvas.height - letterbox);
     }
   }
 
@@ -667,10 +593,12 @@ class ArDetector {
     id = undefined;
   }
 
+
+
   async frameCheck(){
     this.logger.log('info', 'arDetect_verbose',  `%c[ArDetect::processAr] <@${this.arid}> Starting frame check.`);
 
-    if(! this.video){
+    if (!this.video) {
       this.logger.log('error', 'debug', `%c[ArDetect::frameCheck] <@${this.arid}>  Video went missing. Destroying current instance of videoData.`);
       this.conf.destroy();
       return;
@@ -687,101 +615,24 @@ class ArDetector {
     //
     // [0] blackframe tests (they also determine whether we need fallback mode)
     //
-    try {
-      startTime = performance.now();
-
-      // do it in ghetto async. This way, other javascript function should be able to
-      // get a chance to do something _before_ we process our data
-      await new Promise<void>(
-        resolve => {
-          this.blackframeContext.drawImage(this.video, 0, 0, this.blackframeCanvas.width, this.blackframeCanvas.height);
-          resolve();
-        }
-      );
-      partialDrawImageTime += performance.now() - startTime;
-
-      this.fallbackMode = false;
-
-      // If we detected DRM and if we're here, this means we're also using Google Chrome.
-      // And if we're here while DRM is detected, we know we'll be looking at black frames.
-      // We won't be able to do anything useful, therefore we're just gonna call it quits.
-      if (this.conf.hasDrm) {
-        this.logger.log('info', 'debug', 'we have drm, doing nothing.', this.conf.hasDrm);
-        return;
-      }
-    } catch (e) {
-      this.logger.log('error', 'arDetect', `%c[ArDetect::frameCheck] <@${this.arid}>  %c[ArDetect::frameCheck] can't draw image on canvas. ${this.canDoFallbackMode ? 'Trying canvas.drawWindow instead' : 'Doing nothing as browser doesn\'t support fallback mode.'}`, "color:#000; backgroud:#f51;", e);
-
-      if (! this.canvasReadyForDrawWindow()) {
-        // this means canvas needs to be resized, so we'll just re-run setup with all those new parameters
-        this.halt();
-
-        let newCanvasWidth = window.innerHeight * (this.video.videoWidth / this.video.videoHeight);
-        let newCanvasHeight = window.innerHeight;
-
-        if (this.conf.resizer.videoAlignment.x === VideoAlignmentType.Center) {
-          this.canvasDrawWindowHOffset = Math.round((window.innerWidth - newCanvasWidth) * 0.5);
-        } else if (this.conf.resizer.videoAlignment.x === VideoAlignmentType.Left) {
-          this.canvasDrawWindowHOffset = 0;
-        } else {
-          this.canvasDrawWindowHOffset = window.innerWidth - newCanvasWidth;
-        }
-
-        this.setup(newCanvasWidth, newCanvasHeight);
-
-        return;
-      }
-      // if this is the case, we'll first draw on canvas, as we'll need intermediate canvas if we want to get a
-      // smaller sample for blackframe check
-      this.fallbackMode = true;
-
-      startTime = performance.now();
-      try {
-        (this.context as any).drawWindow(window, this.canvasDrawWindowHOffset, 0, this.canvas.width, this.canvas.height);
-      } catch (e) {
-        this.logger.log('error', 'arDetect', `%c[ArDetect::frameCheck] can't draw image on canvas with fallback mode either. This error is prolly only temporary.`, "color:#000; backgroud:#f51;", e);
-        return; // it's prolly just a fluke, so we do nothing special here
-      }
-      // draw blackframe sample from our main sample:
-      await new Promise<void>(
-        resolve => {
-          this.blackframeContext.drawImage(this.canvas, this.blackframeCanvas.width, this.blackframeCanvas.height);
-          resolve();
-        }
-      );
-      partialDrawImageTime += performance.now() - startTime;
-
-      this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] canvas.drawImage seems to have worked`, "color:#000; backgroud:#2f5;");
-    }
-
-    const bfanalysis = this.blackframeTest();
-    if (bfanalysis.isBlack) {
+    const bfAnalysis = await this.blackframeTest();
+    if (bfAnalysis.isBlack) {
       // we don't do any corrections on frames confirmed black
-      this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Black frame analysis suggests this frame is black or too dark. Doing nothing.`, "color: #fa3", bfanalysis);
+      this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Black frame analysis suggests this frame is black or too dark. Doing nothing.`, "color: #fa3", bfAnalysis);
       return;
     }
 
-    // if we are in fallback mode, then frame has already been drawn to the main canvas.
-    // if we are in normal mode though, the frame has yet to be drawn
-    if (!this.fallbackMode) {
-      startTime = performance.now();
-      await new Promise<void>(
-        resolve => {
-          this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-          resolve();
-        }
-      )
-      partialDrawImageTime += performance.now() - startTime;
-    }
-
-    this.addPerformanceTimeMeasure(this.performance.drawImage, partialDrawImageTime);
     startTime = performance.now();
+    await new Promise<void>(
+      resolve => {
+        this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+        resolve();
+      }
+    )
     const imageData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
-    this.addPerformanceTimeMeasure(this.performance.getImageData, performance.now() - startTime);
+    const imageDrawTime = performance.now() - startTime;
 
     if (! this.fastLetterboxPresenceTest(imageData, sampleCols) ) {
-      // Če ne zaznamo letterboxa, kličemo reset. Lahko, da je bilo razmerje stranic popravljeno na roke. Možno je tudi,
-      // da je letterbox izginil.
       // If we don't detect letterbox, we reset aspect ratio to aspect ratio of the video file. The aspect ratio could
       // have been corrected manually. It's also possible that letterbox (that was there before) disappeared.
       this.conf.resizer.updateAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
@@ -794,18 +645,13 @@ class ArDetector {
       return;
     }
 
-
-    // Če preverjamo naprej, potem moramo postaviti to vrednost nazaj na 'false'. V nasprotnem primeru se bo
-    // css resetiral enkrat na video/pageload namesto vsakič, ko so za nekaj časa obrobe odstranejene
     // if we look further we need to reset this value back to false. Otherwise we'll only get CSS reset once
     // per video/pageload instead of every time letterbox goes away (this can happen more than once per vid)
     this.noLetterboxCanvasReset = false;
 
-    // poglejmo, če obrežemo preveč.
     // let's check if we're cropping too much
-    const guardLineOut = this.guardLine.check(imageData, this.fallbackMode);
+    const guardLineOut = this.guardLine.check(imageData);
 
-    // če ni padla nobena izmed funkcij, potem se razmerje stranic ni spremenilo
     // if both succeed, then aspect ratio hasn't changed.
     if (!guardLineOut.imageFail && !guardLineOut.blackbarFail) {
       this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] guardLine tests were successful. (no imagefail and no blackbarfail)\n`, "color: #afa", guardLineOut);
@@ -813,28 +659,11 @@ class ArDetector {
       return;
     }
 
-    // drugače nadaljujemo, našemu vzorcu stolpcev pa dodamo tiste stolpce, ki so
-    // kršili blackbar (če obstajajo) ter jih razvrstimo
-    // otherwise we continue. We add blackbar violations to the list of the cols
-    // we'll sample and sort them
+    // otherwise we continue. We add blackbar violations to the list of the cols we'll sample and sort them
     if (guardLineOut.blackbarFail) {
       sampleCols.concat(guardLineOut.offenders).sort(
         (a: number, b: number) => a - b
       );
-    }
-
-    // if we're in fallback mode and blackbar test failed, we restore CSS and quit
-    // (since the new letterbox edge isn't present in our sample due to technical
-    // limitations)
-    if (this.fallbackMode && guardLineOut.blackbarFail) {
-      this.logger.log('warn', 'arDetect_verbose',  `%c[ArDetect::frameCheck] <@${this.arid}> We are in fallback mode and blackbar failed. Reverting to initial aspect ratio.`);
-
-      this.conf.resizer.setAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
-      this.guardLine.reset();
-      this.noLetterboxCanvasReset = true;
-
-      this.clearImageData(imageData);
-      return;
     }
 
     // If aspect ratio changes from narrower to wider, we first check for presence of pillarbox. Presence of pillarbox indicates
@@ -859,13 +688,12 @@ class ArDetector {
       this.logger.log('info', 'arDetect', `[ArDetect::frameCheck] something went wrong while checking for pillarbox. Error:\n`, e);
     }
 
-    // pa poglejmo, kje se končajo črne letvice na vrhu in na dnu videa.
     // let's see where black bars end.
     this.sampleCols_current = sampleCols.length;
 
     // blackSamples -> {res_top, res_bottom}
 
-    let edgePost = this.edgeDetector.findBars(imageData, sampleCols, EdgeDetectPrimaryDirection.Vertical, EdgeDetectQuality.Improved, guardLineOut, bfanalysis);
+    let edgePost = this.edgeDetector.findBars(imageData, sampleCols, EdgeDetectPrimaryDirection.Vertical, EdgeDetectQuality.Improved, guardLineOut, bfAnalysis);
 
     this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] edgeDetector returned this\n`,  "color: #aaf", edgePost);
 
@@ -882,26 +710,12 @@ class ArDetector {
 
     this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Triggering aspect ration change! new ar: ${newAr}`, "color: #aaf");
 
-    // we also know edges for guardline, so set them.
-    // we need to be mindful of fallbackMode though
-    // if edges are okay and not invalid, we also
+    // we also know edges for guardline, so set them. If edges are okay and not invalid, we also
     // allow automatic aspect ratio correction. If edges
-    // are bogus, we remain aspect ratio unchanged.
+    // are bogus, we keep aspect ratio unchanged.
     try {
-      if (!this.fallbackMode) {
-        // throws error if top/bottom are invalid
-        this.guardLine.setBlackbar({top: edgePost.guardLineTop, bottom: edgePost.guardLineBottom});
-      } else {
-        if (this.conf.player.dimensions){
-          this.guardLine.setBlackbarManual({
-            top: this.settings.active.arDetect.fallbackMode.noTriggerZonePx,
-            bottom: this.conf.player.dimensions.height - this.settings.active.arDetect.fallbackMode.noTriggerZonePx - 1
-          },{
-            top: edgePost.guardLineTop + this.settings.active.arDetect.guardLine.edgeTolerancePx,
-            bottom: edgePost.guardLineBottom - this.settings.active.arDetect.guardLine.edgeTolerancePx
-          })
-        }
-      }
+      // throws error if top/bottom are invalid
+      this.guardLine.setBlackbar({top: edgePost.guardLineTop, bottom: edgePost.guardLineBottom});
 
       this.processAr(newAr);
     } catch (e) {
@@ -931,14 +745,30 @@ class ArDetector {
 
   }
 
-  blackframeTest() {
+  async blackframeTest() {
     if (this.blackLevel === undefined) {
       this.logger.log('info', 'arDetect_verbose', "[ArDetect::blackframeTest] black level undefined, resetting");
       this.resetBlackLevel();
     }
 
+    /**
+     * Performs a quick black frame test
+     */
+    const bfDrawStartTime = performance.now();
+
+    await new Promise<void>(
+      resolve => {
+        this.blackframeContext.drawImage(this.video, 0, 0, this.blackframeCanvas.width, this.blackframeCanvas.height);
+        resolve();
+      }
+    );
     const rows = this.blackframeCanvas.height;
     const cols = this.blackframeCanvas.width;
+    const bfImageData = this.blackframeContext.getImageData(0, 0, cols, rows).data;
+
+    const blackFrameDraw = performance.now() - bfDrawStartTime;
+    const bfProcessStartTime = performance.now();
+
     const pixels = rows * cols;
     let cumulative_r = 0, cumulative_g = 0, cumulative_b = 0;
     let max_r = 0, max_g = 0, max_b = 0;
@@ -948,8 +778,7 @@ class ArDetector {
     let pixelMax = 0;
     let cumulativeValue = 0;
     let blackPixelCount = 0;
-    const bfImageData = this.blackframeContext.getImageData(0, 0, cols, rows).data;
-    const blackTreshold = this.blackLevel + this.settings.active.arDetect.blackbar.frameThreshold;
+    const blackThreshold = this.blackLevel + this.settings.active.arDetect.blackbar.frameThreshold;
 
 
     // we do some recon for letterbox and pillarbox. While this can't determine whether letterbox/pillarbox exists
@@ -964,7 +793,7 @@ class ArDetector {
       pixelMax = Math.max(bfImageData[i], bfImageData[i+1], bfImageData[i+2]);
       bfImageData[i+3] = pixelMax;
 
-      if (pixelMax < blackTreshold) {
+      if (pixelMax < blackThreshold) {
         if (pixelMax < this.blackLevel) {
           this.blackLevel = pixelMax;
         }
@@ -1053,6 +882,10 @@ class ArDetector {
         colMax: colMax,
       };
     }
+
+    const blackFrameProcessTime = performance.now() - bfProcessStartTime;
+    // TODO: update processing time statistics
+
     return {
       isBlack: isBlack,
       rowMax: rowMax,
