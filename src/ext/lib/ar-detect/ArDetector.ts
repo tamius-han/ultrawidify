@@ -13,6 +13,7 @@ import BrowserDetect from '../../conf/BrowserDetect';
 import Logger from '../Logger';
 import VideoData from '../video-data/VideoData';
 import Settings from '../Settings';
+import EventBus from '../EventBus';
 
 enum VideoPlaybackState {
   Playing,
@@ -44,13 +45,23 @@ export interface AardPerformanceData {
 }
 
 class ArDetector {
+
+  //#region helper objects
   logger: Logger;
   conf: VideoData;
   video: HTMLVideoElement;
   settings: Settings;
+  eventBus: EventBus;
 
   guardLine: GuardLine;
   edgeDetector: EdgeDetect;
+  //#endregion
+
+  private eventBusCommands = {
+    'get-aard-timing': [{
+      function: () => this.handlePerformanceDataRequest()
+    }]
+  }
 
   setupTimer: any;
   sampleCols: any[];
@@ -428,8 +439,212 @@ class ArDetector {
    *
    * Most of these are on "per frame" basis and averaged.
    */
-  getTimings() {
+  handlePerformanceDataRequest() {
+    let imageDrawCount = 0;
+    let blackFrameDrawCount = 0;
+    let blackFrameProcessCount = 0;
+    let fastLetterboxCount = 0;
+    let edgeDetectCount = 0;
 
+    let fastLetterboxExecCount = 0;
+    let edgeDetectExecCount = 0;
+
+    let imageDrawAverage = 0;
+    let blackFrameDrawAverage = 0;
+    let blackFrameProcessAverage = 0;
+    let fastLetterboxAverage = 0;
+    let edgeDetectAverage = 0;
+
+    let imageDrawWorst = 0;
+    let blackFrameDrawWorst = 0;
+    let blackFrameProcessWorst = 0;
+    let fastLetterboxWorst = 0;
+    let edgeDetectWorst = 0;
+
+    let imageDrawStDev = 0;
+    let blackFrameDrawStDev = 0;
+    let blackFrameProcessStDev = 0;
+    let fastLetterboxStDev = 0;
+    let edgeDetectStDev = 0;
+
+    let totalAverage = 0;
+    let totalWorst = 0;
+    let totalStDev = 0;
+
+    for (const sample of this.performance.samples) {
+      if (sample.imageDrawTime) {
+        imageDrawCount++;
+        imageDrawAverage += sample.imageDrawTime;
+        if (sample.imageDrawTime > imageDrawWorst) {
+          imageDrawWorst = sample.imageDrawTime;
+        }
+      }
+      if (sample.blackFrameDrawTime) {
+        blackFrameDrawCount++;
+        blackFrameDrawAverage += sample.blackFrameDrawTime;
+        if (sample.blackFrameDrawTime > blackFrameDrawWorst) {
+          blackFrameDrawWorst = sample.blackFrameDrawTime;
+        }
+      }
+      if (sample.blackFrameProcessTime) {
+        blackFrameProcessCount++;
+        blackFrameProcessAverage += sample.blackFrameProcessTime;
+        if (sample.blackFrameProcessTime > blackFrameProcessWorst) {
+          blackFrameProcessWorst = sample.blackFrameProcessTime;
+        }
+      }
+      if (sample.fastLetterboxTime) {
+        fastLetterboxExecCount++;
+      }
+      if (sample.edgeDetectTime) {
+        edgeDetectExecCount++;
+      }
+
+      const execTime =
+        sample.imageDrawTime ?? 0
+        + sample.blackFrameDrawTime ?? 0
+        + sample.blackFrameProcessTime ?? 0
+        + sample.fastLetterboxTime ?? 0
+        + sample.edgeDetectTime ?? 0;
+
+      totalAverage += execTime;
+      if (execTime > totalWorst) {
+        totalWorst = execTime;
+      }
+    }
+
+    imageDrawAverage /= imageDrawCount;
+    blackFrameDrawAverage /= blackFrameDrawCount;
+    blackFrameProcessAverage /= blackFrameProcessCount;
+    totalAverage /= this.performance.samples.length;
+
+    for (const sample of this.performance.lastMeasurements.fastLetterbox.samples) {
+      fastLetterboxAverage += sample;
+      if (sample > fastLetterboxWorst) {
+        fastLetterboxWorst = sample;
+      }
+    }
+    for (const sample of this.performance.lastMeasurements.edgeDetect.samples) {
+      edgeDetectAverage += sample;
+      if (sample > edgeDetectWorst) {
+        edgeDetectWorst = sample;
+      }
+    }
+    fastLetterboxCount = this.performance.lastMeasurements.fastLetterbox.samples.length;
+    edgeDetectCount = this.performance.lastMeasurements.edgeDetect.samples.length;
+
+    fastLetterboxAverage /= fastLetterboxCount;
+    edgeDetectAverage /= edgeDetectCount;
+
+    for (const sample of this.performance.samples) {
+      if (sample.imageDrawTime) {
+        imageDrawStDev += Math.pow((sample.imageDrawTime - imageDrawAverage), 2);
+      }
+      if (sample.blackFrameDrawTime) {
+        blackFrameDrawStDev += Math.pow((sample.blackFrameDrawTime - blackFrameDrawAverage), 2);
+      }
+      if (sample.blackFrameProcessTime) {
+        blackFrameProcessStDev += Math.pow((sample.blackFrameProcessTime - blackFrameProcessAverage), 2);
+      }
+
+      const execTime =
+        sample.imageDrawTime ?? 0
+        + sample.blackFrameDrawTime ?? 0
+        + sample.blackFrameProcessTime ?? 0
+        + sample.fastLetterboxTime ?? 0
+        + sample.edgeDetectTime ?? 0;
+
+      totalStDev += Math.pow((execTime - totalAverage), 2);
+    }
+    for (const sample of this.performance.lastMeasurements.fastLetterbox.samples) {
+      fastLetterboxStDev += Math.pow((sample - fastLetterboxAverage), 2);
+    }
+    for (const sample of this.performance.lastMeasurements.edgeDetect.samples) {
+      edgeDetectStDev += Math.pow((sample - edgeDetectAverage), 2);
+    }
+
+    if (imageDrawCount < 2) {
+      imageDrawStDev = 0;
+    } else {
+      imageDrawStDev = Math.sqrt(imageDrawStDev / (imageDrawCount - 1));
+    }
+
+    if (blackFrameDrawCount < 2) {
+      blackFrameDrawStDev = 0;
+    } else {
+      blackFrameDrawStDev = Math.sqrt(blackFrameDrawStDev / (blackFrameDrawCount - 1));
+    }
+
+    if (blackFrameProcessCount < 2) {
+      blackFrameProcessStDev = 0;
+    } else {
+      blackFrameProcessStDev = Math.sqrt(blackFrameProcessStDev / (blackFrameProcessCount - 1));
+    }
+
+    if (fastLetterboxCount < 2) {
+      fastLetterboxStDev = 0;
+    } else {
+      fastLetterboxStDev = Math.sqrt(fastLetterboxStDev / (fastLetterboxCount - 1));
+    }
+
+    if (edgeDetectCount < 2) {
+      edgeDetectStDev = 0;
+    } else {
+      edgeDetectStDev = Math.sqrt(edgeDetectStDev / (edgeDetectCount - 1));
+    }
+
+    if (this.performance.samples.length < 2) {
+      totalStDev = 0;
+    } else {
+      totalStDev = Math.sqrt(totalStDev / (this.performance.samples.length - 1));
+    }
+
+    const res: AardPerformanceData = {
+      total: {
+        sampleCount: this.performance.samples.length,
+        averageTime: totalAverage,
+        worstTime: totalWorst,
+        stDev: totalStDev,
+      },
+      imageDraw: {
+        sampleCount: imageDrawCount,
+        averageTime: imageDrawAverage,
+        worstTime: imageDrawWorst,
+        stDev: imageDrawStDev
+      },
+      blackFrameDraw: {
+        sampleCount: blackFrameDrawCount,
+        averageTime: blackFrameDrawAverage,
+        worstTime: blackFrameDrawWorst,
+        stDev: blackFrameDrawStDev,
+      },
+      blackFrame: {
+        sampleCount: blackFrameProcessCount,
+        averageTime: blackFrameProcessAverage,
+        worstTime: blackFrameProcessWorst,
+        stDev: blackFrameProcessStDev
+      },
+      fastLetterbox: {
+        sampleCount: fastLetterboxCount,
+        averageTime: fastLetterboxAverage,
+        worstTime: fastLetterboxWorst,
+        stDev: fastLetterboxStDev
+      },
+      edgeDetect: {
+        sampleCount: edgeDetectCount,
+        averageTime: edgeDetectAverage,
+        worstTime: edgeDetectWorst,
+        stDev: edgeDetectStDev
+      },
+
+      imageDrawCount,
+      blackFrameDrawCount,
+      blackFrameCount: blackFrameProcessCount,
+      fastLetterboxCount,
+      edgeDetectCount
+    }
+
+    this.eventBus.send('uw-config-broadcast', {type: 'aard-performance-data', config: res});
   }
   //#endregion
 
