@@ -58,18 +58,13 @@ class GuardLine {
   }
 
   check(image){
-    // izračunaj enkrat in shrani na objekt
     // calculate once and save object-instance-wide
     this.blackbarThreshold = this.aard.blackLevel + this.settings.active.arDetect.blackbar.threshold;
     this.imageThreshold = this.blackbarThreshold + this.settings.active.arDetect.blackbar.imageThreshold;
 
-    // dejansko testiranje
     // actual checks
     let guardLineResult = this.guardLineCheck(image);
 
-    // Zaznali smo kršitev črnega dela, zato nam ni treba preveriti, ali je slika
-    // prisotna. Vemo namreč, da se je razmerje stranic zmanjšalo.
-    //
     // blackbar violation detected. We don't even need to check for presence of image
     // as aspect ratio just decreased
     if(! guardLineResult.success) {
