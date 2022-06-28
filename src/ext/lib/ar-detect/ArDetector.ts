@@ -62,29 +62,19 @@ class ArDetector {
 
   arid: string;
 
-  // ar detector starts in this state. running main() sets both to false
-  _ready: boolean = false;
-  _paused: boolean;
-  _halted: boolean = true;
-  _exited: boolean = true;
+
 
   private manualTickEnabled: boolean;
   _nextTick: boolean;
 
-  // helper objects
   private animationFrameHandle: any;
   private attachedCanvas: HTMLCanvasElement;
   canvas: HTMLCanvasElement;
   private blackframeCanvas: HTMLCanvasElement;
   private context: CanvasRenderingContext2D;
   private blackframeContext: CanvasRenderingContext2D;
-  private canvasScaleFactor: number;
-  private detectionTimeoutEventCount: number;
   canvasImageDataRowLength: number;
-  private noLetterboxCanvasReset: boolean;
-  private detectedAr: any;
-  private canvasDrawWindowHOffset: number;
-  private sampleCols_current: number;
+
   private timers = {
     nextFrameCheckTime: Date.now()
   }
@@ -93,9 +83,6 @@ class ArDetector {
   }
 
   //#region debug variables
-  private performanceConfig = {
-    sampleCountForAverages: 32
-  }
   private performance = {
     samples:  [],
     currentIndex: 0,
@@ -136,6 +123,7 @@ class ArDetector {
     this.conf = videoData;
     this.video = videoData.video;
     this.settings = videoData.settings;
+    this.eventBus = videoData.eventBus;
 
     this.sampleCols = [];
 
@@ -203,11 +191,6 @@ class ArDetector {
     this.blackframeContext = this.blackframeCanvas.getContext("2d");
 
 
-    // do setup once
-    // tho we could do it for every frame
-    this.canvasScaleFactor = cheight / this.video.videoHeight;
-
-
     //
     // [2] determine places we'll use to sample our main frame
     //
@@ -241,16 +224,13 @@ class ArDetector {
     // [3] do other things setup needs to do
     //
 
-    this.detectionTimeoutEventCount = 0;
     this.resetBlackLevel();
 
     // if we're restarting ArDetect, we need to do this in order to force-recalculate aspect ratio
     this.conf.resizer.setLastAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
 
     this.canvasImageDataRowLength = cwidth << 2;
-    this.noLetterboxCanvasReset = false;
 
-    this._ready = true;
     this.start();
 
     if(Debug.debugCanvas.enabled){
@@ -322,7 +302,7 @@ class ArDetector {
   //#region helper functions (general)
 
   isRunning(){
-    return ! (this._halted || this._paused || this._exited);
+    return true;
   }
 
   private getVideoPlaybackState(): VideoPlaybackState {
@@ -474,14 +454,11 @@ class ArDetector {
       }
     }
 
-    if (this && !this._halted && !this._paused) {
+    // if (this && !this._halted && !this._paused) {
       this.animationFrameHandle = window.requestAnimationFrame( (ts) => this.animationFrameBootstrap(ts));
-    } else if (this._halted) {
-      this.logger.log('info', 'debug', `%c[ArDetect::animationFrameBootstrap] <@${this.arid}>  Main autodetection loop exited. Halted? ${this._halted}`,  _ard_console_stop);
-      this._exited = true;
-    } else {
-      this.logger.log('info', 'debug', `[ArDetect::animationFrameBootstrap] <@${this.arid}>  Not renewing animation frame for some reason. Paused? ${this._paused}; Halted?: ${this._halted}, Exited?: ${this._exited}`);
-    }
+    // } else {
+    //   this.logger.log('info', 'debug', `[ArDetect::animationFrameBootstrap] <@${this.arid}>  Not renewing animation frame for some reason. Paused? ${this._paused}; Halted?: ${this._halted}, Exited?: ${this._exited}`);
+    // }
   }
 
   calculateArFromEdges(edges) {
@@ -520,9 +497,7 @@ class ArDetector {
       this.logger.log('warn', 'debug', `[ArDetect::processAr] <@${this.arid}> Trying to change aspect ratio while AARD is paused.`);
       return;
     }
-    this.detectedAr = trueAr;
 
-    // poglejmo, če se je razmerje stranic spremenilo
     // check if aspect ratio is changed:
     let lastAr = this.conf.resizer.getLastAr();
     if (lastAr.type === AspectRatioType.AutomaticUpdate && lastAr.ratio !== null && lastAr.ratio !== undefined){
@@ -538,7 +513,6 @@ class ArDetector {
 
       const arDiff_percent = arDiff / trueAr;
 
-      // ali je sprememba v mejah dovoljenega? Če da -> fertik
       // is ar variance within acceptable levels? If yes -> we done
       this.logger.log('info', 'arDetect', `%c[ArDetect::processAr] <@${this.arid}>  New aspect ratio varies from the old one by this much:\n`,"color: #aaf","old Ar", lastAr.ratio, "current ar", trueAr, "arDiff (absolute):",arDiff,"ar diff (relative to new ar)", arDiff_percent);
 
@@ -563,6 +537,8 @@ class ArDetector {
 
   async frameCheck(){
     this.logger.log('info', 'arDetect_verbose',  `%c[ArDetect::processAr] <@${this.arid}> Starting frame check.`);
+
+    console.log('.');
 
     const timerResults = {
       imageDrawTime: null,
@@ -613,7 +589,6 @@ class ArDetector {
       // have been corrected manually. It's also possible that letterbox (that was there before) disappeared.
       this.conf.resizer.updateAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
       this.guardLine.reset();
-      this.noLetterboxCanvasReset = true;
 
       this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Letterbox not detected in fast test. Letterbox is either gone or we manually corrected aspect ratio. Nothing will be done.`, "color: #fa3");
 
@@ -621,10 +596,6 @@ class ArDetector {
       this.addPerformanceMeasurement(timerResults);
       return;
     }
-
-    // if we look further we need to reset this value back to false. Otherwise we'll only get CSS reset once
-    // per video/pageload instead of every time letterbox goes away (this can happen more than once per vid)
-    this.noLetterboxCanvasReset = false;
 
     // let's check if we're cropping too much
     const guardLineOut = this.guardLine.check(imageData);
@@ -670,9 +641,6 @@ class ArDetector {
     } catch(e) {
       this.logger.log('info', 'arDetect', `[ArDetect::frameCheck] something went wrong while checking for pillarbox. Error:\n`, e);
     }
-
-    // let's see where black bars end.
-    this.sampleCols_current = sampleCols.length;
 
     startTime = performance.now();
     let edgePost = this.edgeDetector.findBars(imageData, sampleCols, EdgeDetectPrimaryDirection.Vertical, EdgeDetectQuality.Improved, guardLineOut, bfAnalysis);
