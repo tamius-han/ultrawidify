@@ -21,6 +21,28 @@ enum VideoPlaybackState {
   Error
 }
 
+export interface AardPerformanceMeasurement {
+  sampleCount: number,
+  averageTime: number,
+  worstTime: number,
+  stDev: number,
+}
+
+export interface AardPerformanceData {
+  total: AardPerformanceMeasurement,
+  imageDraw: AardPerformanceMeasurement
+  blackFrameDraw: AardPerformanceMeasurement,
+  blackFrame: AardPerformanceMeasurement,
+  fastLetterbox: AardPerformanceMeasurement,
+  edgeDetect: AardPerformanceMeasurement,
+
+  imageDrawCount: number,
+  blackFrameDrawCount: number,
+  blackFrameCount: number,
+  fastLetterboxCount: number,
+  edgeDetectCount: number
+}
+
 class ArDetector {
   logger: Logger;
   conf: VideoData;
@@ -75,22 +97,19 @@ class ArDetector {
     sampleCountForAverages: 32
   }
   private performance = {
-    animationFrame: {
-      lastTime: 0,
-      currentIndex: 0,
-      sampleTime: []
-    },
-    drawImage: {
-      currentIndex: 0,
-      sampleTime: [],
-    },
-    getImageData: {
-      currentIndex: 0,
-      sampleTime: [],
-    },
-    aard: {
-      currentIndex: 0,
-      sampleTime: [],
+    samples:  [],
+    currentIndex: 0,
+    maxSamples: 64,
+
+    lastMeasurements: {
+      fastLetterbox: {
+        samples: [],
+        currentIndex: 0,
+      },
+      edgeDetect: {
+        samples: [],
+        currentIndex: 0
+      }
     }
   };
 
@@ -108,34 +127,6 @@ class ArDetector {
   //#endregion getters
 
   //#region debug getters
-
-  /**
-   * We get one animation frame per this many ms. This means that our autodetection
-   * stuff must run in less than this many ms. This valuz is averaged out over multiple
-   * samples for better accuracy.
-   *
-   * Returns value in ms.
-   *
-   * A very important caveat: if autodetection takes up too much time, it WILL artificially
-   * increase time budget. Therefore, you should use (and firstly even implement) getTimeBudget()
-   * that turns off autodetection for a second or so to gather accurate timing info.
-   */
-   get eyeballedTimeBudget() {
-    let sum;
-    for (let i = 0; i < this.performance.animationFrame.sampleTime.length; i++) {
-      sum += this.performance.animationFrame.sampleTime[i];
-    }
-
-    return sum / this.performance.animationFrame.sampleTime.length;
-  }
-
-  /**
-   * Converts time budget (eyeballed) into actual framerate. Since eyeballed time budget rises
-   * if our autodetection takes too long, it's still good enough for calculating framerate
-   */
-  get fps() {
-    return 1000 / this.eyeballedTimeBudget;
-  }
 
   //#endregion
 
@@ -279,12 +270,6 @@ class ArDetector {
 
   //#region AARD control
   start() {
-
-    if (!this._ready) {
-      this.init();
-      return;         // we will return to this function once initialization is complete
-    }
-
     if (this.conf.resizer.lastAr.type === AspectRatioType.AutomaticUpdate) {
       // ensure first autodetection will run in any case
       this.conf.resizer.setLastAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
@@ -292,10 +277,6 @@ class ArDetector {
 
     // start autodetection
     this.startLoop();
-
-    // automatic detection starts halted. If halted=false when main first starts, extension won't run
-    // this._paused is undefined the first time we run this function, which is effectively the same thing
-    // as false. Still, we'll explicitly fix this here.
   }
 
   startLoop() {
@@ -367,9 +348,9 @@ class ArDetector {
    * @returns
    */
   private canTriggerFrameCheck() {
-    if (this._paused || this._halted || this._exited) {
-      return false;
-    }
+    // if (this._paused || this._halted || this._exited) {
+    //   return false;
+    // }
 
     // if video was paused & we know that we already checked that frame,
     // we will not check it again.
@@ -425,20 +406,25 @@ class ArDetector {
             .appendChild(canvas);
   }
 
-  private canvasReadyForDrawWindow(){
-    this.logger.log('info', 'debug', `%c[ArDetect::canvasReadyForDrawWindow] <@${this.arid}> canvas is ${this.canvas.height === window.innerHeight ? '' : 'NOT '}ready for drawWindow(). Canvas height: ${this.canvas.height}px; window inner height: ${window.innerHeight}px.`)
-
-    return this.canvas.height == window.innerHeight
-  }
-
   /**
    * Adds execution time sample for performance metrics
    * @param performanceObject
    * @param executionTime
    */
-  private addPerformanceTimeMeasure(performanceObject, executionTime) {
-    performanceObject.sampleTime[performanceObject.currentIndex] = executionTime;
-    performanceObject.currentIndex = (performanceObject.currentIndex + 1) % this.performanceConfig.sampleCountForAverages;
+  private addPerformanceMeasurement(performanceObject) {
+    this.performance.samples[this.performance.currentIndex] = performanceObject;
+    this.performance.currentIndex = (this.performance.currentIndex + 1) % this.performance.maxSamples;
+
+    if (performanceObject.fastLetterboxTime !== null) {
+      const lastMeasurements = this.performance.lastMeasurements.fastLetterbox;
+      lastMeasurements.samples[lastMeasurements.currentIndex] = performanceObject.fastLetterboxTime;
+      lastMeasurements.currentIndex = (lastMeasurements.currentIndex + 1) % this.performance.maxSamples;
+    }
+    if (performanceObject.edgeDetectTime !== null) {
+      const lastMeasurements = this.performance.lastMeasurements.edgeDetect;
+      lastMeasurements.samples[lastMeasurements.currentIndex] = performanceObject.edgeDetectTime;
+      lastMeasurements.currentIndex = (lastMeasurements.currentIndex + 1) & this.performance.maxSamples;
+    }
   }
 
   //#endregion
@@ -463,22 +449,7 @@ class ArDetector {
    * Most of these are on "per frame" basis and averaged.
    */
   getTimings() {
-    let drawWindowTime = 0, getImageDataTime = 0, aardTime = 0;
 
-    // drawImage and getImageData are of same length and use same everything
-    for (let i = 0; i < this.performance.drawImage.sampleTime.length; i++) {
-      drawWindowTime += this.performance.drawImage.sampleTime[i] ?? 0;
-      getImageDataTime += this.performance.getImageData.sampleTime[i] ?? 0;
-    }
-    drawWindowTime /= this.performance.drawImage.sampleTime.length;
-    getImageDataTime /= this.performance.getImageData.sampleTime.length;
-
-    return {
-      eyeballedTimeBudget: this.eyeballedTimeBudget,
-      fps: this.fps,
-      drawWindowTime,
-      getImageDataTime
-    }
   }
   //#endregion
 
@@ -489,8 +460,6 @@ class ArDetector {
     // this.logger.log('info', 'arDetect_verbose', `[ArDetect::animationFrameBootstrap] <@${this.arid}>  New animation frame.\nmanualTickEnabled: ${!this.manualTickEnabled}\ncan trigger frame check? ${this.canTriggerFrameCheck()}\nnext tick? ${this._nextTick}\n => (a&b | c) => Can we do tick? ${ (!this.manualTickEnabled && this.canTriggerFrameCheck()) || this._nextTick}\n\ncan we continue running? ${this && !this._halted && !this._paused}`);
 
     // do timekeeping first
-    this.addPerformanceTimeMeasure(this.performance.animationFrame, timestamp - this.performance.animationFrame.lastTime);
-    this.performance.animationFrame.lastTime = timestamp;
 
     // trigger frame check, if we're allowed to
     if ( (!this.manualTickEnabled && this.canTriggerFrameCheck()) || this._nextTick) {
@@ -499,9 +468,7 @@ class ArDetector {
       this._nextTick = false;
 
       try {
-        const startTime = performance.now();
         await this.frameCheck();
-        this.addPerformanceTimeMeasure(this.performance.aard, performance.now() - startTime);
       } catch (e) {
         this.logger.log('error', 'debug', `%c[ArDetect::animationFrameBootstrap] <@${this.arid}>  Frame check failed:`,  "color: #000, background: #f00", e);
       }
@@ -594,9 +561,16 @@ class ArDetector {
   }
 
 
-
   async frameCheck(){
     this.logger.log('info', 'arDetect_verbose',  `%c[ArDetect::processAr] <@${this.arid}> Starting frame check.`);
+
+    const timerResults = {
+      imageDrawTime: null,
+      blackFrameDrawTime: null,
+      blackFrameProcessTime: null,
+      fastLetterboxTime: null,
+      edgeDetectTime: null
+    }
 
     if (!this.video) {
       this.logger.log('error', 'debug', `%c[ArDetect::frameCheck] <@${this.arid}>  Video went missing. Destroying current instance of videoData.`);
@@ -608,21 +582,19 @@ class ArDetector {
       this.init();
     }
 
-    let startTime;
-    let partialDrawImageTime = 0;
     let sampleCols = this.sampleCols.slice(0);
 
-    //
-    // [0] blackframe tests (they also determine whether we need fallback mode)
-    //
     const bfAnalysis = await this.blackframeTest();
     if (bfAnalysis.isBlack) {
       // we don't do any corrections on frames confirmed black
       this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Black frame analysis suggests this frame is black or too dark. Doing nothing.`, "color: #fa3", bfAnalysis);
+      timerResults.blackFrameDrawTime = bfAnalysis.processingTime.blackFrameDrawTime;
+      timerResults.blackFrameProcessTime = bfAnalysis.processingTime.blackFrameProcessTime;
+      this.addPerformanceMeasurement(timerResults);
       return;
     }
 
-    startTime = performance.now();
+    let startTime = performance.now();
     await new Promise<void>(
       resolve => {
         this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
@@ -630,9 +602,13 @@ class ArDetector {
       }
     )
     const imageData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
-    const imageDrawTime = performance.now() - startTime;
+    timerResults.imageDrawTime = performance.now() - startTime;
 
-    if (! this.fastLetterboxPresenceTest(imageData, sampleCols) ) {
+    startTime = performance.now();
+    const fastLetterboxTestRes = this.fastLetterboxPresenceTest(imageData, sampleCols);
+    timerResults.fastLetterboxTime = performance.now() - startTime;
+
+    if (! fastLetterboxTestRes) {
       // If we don't detect letterbox, we reset aspect ratio to aspect ratio of the video file. The aspect ratio could
       // have been corrected manually. It's also possible that letterbox (that was there before) disappeared.
       this.conf.resizer.updateAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
@@ -642,6 +618,7 @@ class ArDetector {
       this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Letterbox not detected in fast test. Letterbox is either gone or we manually corrected aspect ratio. Nothing will be done.`, "color: #fa3");
 
       this.clearImageData(imageData);
+      this.addPerformanceMeasurement(timerResults);
       return;
     }
 
@@ -653,25 +630,30 @@ class ArDetector {
     const guardLineOut = this.guardLine.check(imageData);
 
     // if both succeed, then aspect ratio hasn't changed.
+    // otherwise we continue. We add blackbar violations to the list of the cols we'll sample and sort them
     if (!guardLineOut.imageFail && !guardLineOut.blackbarFail) {
       this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] guardLine tests were successful. (no imagefail and no blackbarfail)\n`, "color: #afa", guardLineOut);
       this.clearImageData(imageData);
+      this.addPerformanceMeasurement(timerResults);
       return;
-    }
-
-    // otherwise we continue. We add blackbar violations to the list of the cols we'll sample and sort them
-    if (guardLineOut.blackbarFail) {
-      sampleCols.concat(guardLineOut.offenders).sort(
-        (a: number, b: number) => a - b
-      );
+    } else {
+      if (guardLineOut.blackbarFail) {
+        sampleCols.concat(guardLineOut.offenders).sort(
+          (a: number, b: number) => a - b
+        );
+      }
     }
 
     // If aspect ratio changes from narrower to wider, we first check for presence of pillarbox. Presence of pillarbox indicates
     // a chance of a logo on black background. We could cut easily cut too much. Because there's a somewhat significant chance
     // that we will cut too much, we rather avoid doing anything at all. There's gonna be a next chance.
     try{
-      if(guardLineOut.blackbarFail || guardLineOut.imageFail){
-        if(this.edgeDetector.findBars(imageData, null, EdgeDetectPrimaryDirection.Horizontal).status === 'ar_known'){
+      if (guardLineOut.blackbarFail || guardLineOut.imageFail) {
+        startTime = performance.now();
+        const edgeDetectRes = this.edgeDetector.findBars(imageData, null, EdgeDetectPrimaryDirection.Horizontal);
+        timerResults.edgeDetectTime = performance.now() - startTime;
+
+        if(edgeDetectRes.status === 'ar_known'){
           if(guardLineOut.blackbarFail){
             this.logger.log('info', 'arDetect', `[ArDetect::frameCheck] Detected blackbar violation and pillarbox. Resetting to default aspect ratio.`);
             this.conf.resizer.setAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
@@ -681,6 +663,7 @@ class ArDetector {
           }
 
           this.clearImageData(imageData);
+          this.addPerformanceMeasurement(timerResults);
           return;
         }
       }
@@ -691,18 +674,18 @@ class ArDetector {
     // let's see where black bars end.
     this.sampleCols_current = sampleCols.length;
 
-    // blackSamples -> {res_top, res_bottom}
-
+    startTime = performance.now();
     let edgePost = this.edgeDetector.findBars(imageData, sampleCols, EdgeDetectPrimaryDirection.Vertical, EdgeDetectQuality.Improved, guardLineOut, bfAnalysis);
+    timerResults.edgeDetectTime = performance.now() - startTime;
 
     this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] edgeDetector returned this\n`,  "color: #aaf", edgePost);
 
     if (edgePost.status !== EdgeStatus.ARKnown){
-      // rob ni bil zaznan, zato ne naredimo ničesar.
       // no edge was detected. Let's leave things as they were
       this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Edge wasn't detected with findBars`, "color: #fa3", edgePost, "EdgeStatus.AR_KNOWN:", EdgeStatus.ARKnown);
 
       this.clearImageData(imageData);
+      this.addPerformanceMeasurement(timerResults);
       return;
     }
 
@@ -726,7 +709,7 @@ class ArDetector {
       try {
         this.guardLine.reset();
       } catch (e) {
-        // no guardline, no bigge
+        // no guardline, no biggie
       }
       // WE DO NOT RESET ASPECT RATIO HERE IN CASE OF PROBLEMS, CAUSES UNWARRANTED RESETS:
       // (eg. here: https://www.youtube.com/watch?v=nw5Z93Yt-UQ&t=410)
@@ -734,15 +717,12 @@ class ArDetector {
       // this.conf.resizer.setAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
     }
 
+    this.addPerformanceMeasurement(timerResults);
     this.clearImageData(imageData);
   }
 
   resetBlackLevel(){
     this.blackLevel = this.settings.active.arDetect.blackbar.blackLevel;
-  }
-
-  blackLevelTest_full() {
-
   }
 
   async blackframeTest() {
@@ -766,7 +746,7 @@ class ArDetector {
     const cols = this.blackframeCanvas.width;
     const bfImageData = this.blackframeContext.getImageData(0, 0, cols, rows).data;
 
-    const blackFrameDraw = performance.now() - bfDrawStartTime;
+    const blackFrameDrawTime = performance.now() - bfDrawStartTime;
     const bfProcessStartTime = performance.now();
 
     const pixels = rows * cols;
@@ -890,6 +870,10 @@ class ArDetector {
       isBlack: isBlack,
       rowMax: rowMax,
       colMax: colMax,
+      processingTime: {
+        blackFrameDrawTime,
+        blackFrameProcessTime,
+      }
     };
   }
 
