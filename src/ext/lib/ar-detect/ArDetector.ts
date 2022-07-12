@@ -31,6 +31,7 @@ export interface AardPerformanceMeasurement {
 
 export interface AardPerformanceData {
   total: AardPerformanceMeasurement,
+  theoretical: AardPerformanceMeasurement,
   imageDraw: AardPerformanceMeasurement
   blackFrameDraw: AardPerformanceMeasurement,
   blackFrame: AardPerformanceMeasurement,
@@ -136,6 +137,8 @@ class ArDetector {
     this.settings = videoData.settings;
     this.eventBus = videoData.eventBus;
 
+    this.initEventBus();
+
     this.sampleCols = [];
 
     this.blackLevel = this.settings.active.arDetect.blackbar.blackLevel;
@@ -145,6 +148,15 @@ class ArDetector {
     // we can tick manually, for debugging
     this.logger.log('info', 'init', `[ArDetector::ctor] creating new ArDetector. arid: ${this.arid}`);
   }
+
+  private initEventBus() {
+    for (const action in this.eventBusCommands) {
+      for (const command of this.eventBusCommands[action]) {
+        this.eventBus.subscribe(action, command);
+      }
+    }
+  }
+
 
   init(){
     this.logger.log('info', 'init', `[ArDetect::init] <@${this.arid}> Initializing autodetection.`);
@@ -471,6 +483,10 @@ class ArDetector {
     let totalWorst = 0;
     let totalStDev = 0;
 
+    let theoreticalAverage = 0;
+    let theoreticalWorst = 0;
+    let theoreticalStDev = 0;
+
     for (const sample of this.performance.samples) {
       if (sample.imageDrawTime) {
         imageDrawCount++;
@@ -511,12 +527,39 @@ class ArDetector {
       if (execTime > totalWorst) {
         totalWorst = execTime;
       }
+
+      const partialExecTime =
+        sample.imageDrawTime ?? 0
+        + sample.blackFrameDrawTime ?? 0
+        + sample.blackFrameProcessTime ?? 0;
+
+      if (partialExecTime > theoreticalWorst) {
+        theoreticalWorst = partialExecTime;
+      }
     }
 
-    imageDrawAverage /= imageDrawCount;
-    blackFrameDrawAverage /= blackFrameDrawCount;
-    blackFrameProcessAverage /= blackFrameProcessCount;
-    totalAverage /= this.performance.samples.length;
+    if (imageDrawCount) {
+      imageDrawAverage /= imageDrawCount;
+    } else {
+      imageDrawAverage = 0;
+    }
+    if (blackFrameDrawCount) {
+      blackFrameDrawAverage /= blackFrameDrawCount;
+    } else {
+      blackFrameDrawAverage = 0;
+    }
+    if (blackFrameProcessCount) {
+      blackFrameProcessAverage /= blackFrameProcessCount;
+    } else {
+      blackFrameProcessAverage = 0;
+    }
+    if (this.performance.samples.length) {
+      totalAverage /= this.performance.samples.length;
+    } else {
+      totalAverage = 0;
+    }
+
+    theoreticalAverage = imageDrawAverage + blackFrameDrawAverage + blackFrameProcessAverage;
 
     for (const sample of this.performance.lastMeasurements.fastLetterbox.samples) {
       fastLetterboxAverage += sample;
@@ -533,8 +576,19 @@ class ArDetector {
     fastLetterboxCount = this.performance.lastMeasurements.fastLetterbox.samples.length;
     edgeDetectCount = this.performance.lastMeasurements.edgeDetect.samples.length;
 
-    fastLetterboxAverage /= fastLetterboxCount;
-    edgeDetectAverage /= edgeDetectCount;
+    if (fastLetterboxCount) {
+      fastLetterboxAverage /= fastLetterboxCount;
+    } else {
+      fastLetterboxAverage = 0;
+    }
+    if (edgeDetectCount) {
+      edgeDetectAverage /= edgeDetectCount;
+    } else {
+      edgeDetectAverage = 0;
+    }
+
+    theoreticalWorst += fastLetterboxWorst + edgeDetectWorst;
+    theoreticalAverage += fastLetterboxAverage + edgeDetectAverage;
 
     for (const sample of this.performance.samples) {
       if (sample.imageDrawTime) {
@@ -599,12 +653,19 @@ class ArDetector {
       totalStDev = Math.sqrt(totalStDev / (this.performance.samples.length - 1));
     }
 
+
     const res: AardPerformanceData = {
       total: {
         sampleCount: this.performance.samples.length,
         averageTime: totalAverage,
         worstTime: totalWorst,
         stDev: totalStDev,
+      },
+      theoretical: {
+        sampleCount: -1,
+        averageTime: theoreticalAverage,
+        worstTime: theoreticalWorst,
+        stDev: theoreticalStDev
       },
       imageDraw: {
         sampleCount: imageDrawCount,
@@ -644,7 +705,7 @@ class ArDetector {
       edgeDetectCount
     }
 
-    this.eventBus.send('uw-config-broadcast', {type: 'aard-performance-data', config: res});
+    this.eventBus.send('uw-config-broadcast', {type: 'aard-performance-data', performanceData: res});
   }
   //#endregion
 

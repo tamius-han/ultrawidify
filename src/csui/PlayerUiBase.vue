@@ -116,6 +116,13 @@
               :site="site"
             >
             </PlayerDetectionPanel>
+            <AutodetectionSettingsPanel
+              v-if="selectedTab === 'autodetectionSettings'"
+              :settings="settings"
+              :eventBus="eventBus"
+              :site="site"
+            >
+            </AutodetectionSettingsPanel>
             <!-- <ResizerDebugPanel :debugData="debugData">
             </ResizerDebugPanel> -->
           </template>
@@ -127,6 +134,7 @@
 
 <script>
 import VideoSettings from './src/PlayerUiPanels/VideoSettings.vue'
+import AutodetectionSettingsPanel from './src/PlayerUiPanels/AutodetectionSettingsPanel.vue'
 import PlayerDetectionPanel from './src/PlayerUiPanels/PlayerDetectionPanel.vue'
 import { mapState } from 'vuex';
 // import Icon from '../common/components/Icon';
@@ -142,7 +150,8 @@ export default {
     // Icon,
     ResizerDebugPanel,
     VideoSettings,
-    PlayerDetectionPanel
+    PlayerDetectionPanel,
+    AutodetectionSettingsPanel,
   },
   data() {
     return {
