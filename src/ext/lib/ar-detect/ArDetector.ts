@@ -198,20 +198,20 @@ class ArDetector {
     if (this.canvas) {
       this.canvas.remove();
     }
-    if (this.blackframeCanvas) {
-      this.blackframeCanvas.remove();
-    }
+    // if (this.blackframeCanvas) {
+    //   this.blackframeCanvas.remove();
+    // }
 
     // things to note: we'll be keeping canvas in memory only.
     this.canvas = document.createElement("canvas");
     this.canvas.width = cwidth;
     this.canvas.height = cheight;
-    this.blackframeCanvas = document.createElement("canvas");
-    this.blackframeCanvas.width = this.settings.active.arDetect.canvasDimensions.blackframeCanvas.width;
-    this.blackframeCanvas.height = this.settings.active.arDetect.canvasDimensions.blackframeCanvas.height;
+    // this.blackframeCanvas = document.createElement("canvas");
+    // this.blackframeCanvas.width = this.settings.active.arDetect.canvasDimensions.blackframeCanvas.width;
+    // this.blackframeCanvas.height = this.settings.active.arDetect.canvasDimensions.blackframeCanvas.height;
 
     this.context = this.canvas.getContext("2d");
-    this.blackframeContext = this.blackframeCanvas.getContext("2d");
+    // this.blackframeContext = this.blackframeCanvas.getContext("2d");
 
 
     //
@@ -836,15 +836,7 @@ class ArDetector {
 
     let sampleCols = this.sampleCols.slice(0);
 
-    const bfAnalysis = await this.blackframeTest();
-    if (bfAnalysis.isBlack) {
-      // we don't do any corrections on frames confirmed black
-      this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Black frame analysis suggests this frame is black or too dark. Doing nothing.`, "color: #fa3", bfAnalysis);
-      timerResults.blackFrameDrawTime = bfAnalysis.processingTime.blackFrameDrawTime;
-      timerResults.blackFrameProcessTime = bfAnalysis.processingTime.blackFrameProcessTime;
-      this.addPerformanceMeasurement(timerResults);
-      return;
-    }
+
 
     let startTime = performance.now();
     await new Promise<void>(
@@ -855,6 +847,16 @@ class ArDetector {
     )
     const imageData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
     timerResults.imageDrawTime = performance.now() - startTime;
+
+    const bfAnalysis = await this.blackframeTest(imageData);
+    if (bfAnalysis.isBlack) {
+      // we don't do any corrections on frames confirmed black
+      this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Black frame analysis suggests this frame is black or too dark. Doing nothing.`, "color: #fa3", bfAnalysis);
+      timerResults.blackFrameDrawTime = bfAnalysis.processingTime.blackFrameDrawTime;
+      timerResults.blackFrameProcessTime = bfAnalysis.processingTime.blackFrameProcessTime;
+      this.addPerformanceMeasurement(timerResults);
+      return;
+    }
 
     startTime = performance.now();
     const fastLetterboxTestRes = this.fastLetterboxPresenceTest(imageData, sampleCols);
@@ -969,7 +971,7 @@ class ArDetector {
     this.blackLevel = this.settings.active.arDetect.blackbar.blackLevel;
   }
 
-  async blackframeTest() {
+  async blackframeTest(imageData) {
     if (this.blackLevel === undefined) {
       this.logger.log('info', 'arDetect_verbose', "[ArDetect::blackframeTest] black level undefined, resetting");
       this.resetBlackLevel();
@@ -980,15 +982,19 @@ class ArDetector {
      */
     const bfDrawStartTime = performance.now();
 
-    await new Promise<void>(
-      resolve => {
-        this.blackframeContext.drawImage(this.video, 0, 0, this.blackframeCanvas.width, this.blackframeCanvas.height);
-        resolve();
-      }
-    );
-    const rows = this.blackframeCanvas.height;
-    const cols = this.blackframeCanvas.width;
-    const bfImageData = this.blackframeContext.getImageData(0, 0, cols, rows).data;
+    // await new Promise<void>(
+    //   resolve => {
+    //     this.blackframeContext.drawImage(this.video, 0, 0, this.blackframeCanvas.width, this.blackframeCanvas.height);
+    //     resolve();
+    //   }
+    // );
+    // const rows = this.blackframeCanvas.height;
+    // const cols = this.blackframeCanvas.width;
+    // const bfImageData = this.blackframeContext.getImageData(0, 0, cols, rows).data;
+
+    const rows = this.settings.active.arDetect.canvasDimensions.blackframeCanvas.width;
+    const cols = this.settings.active.arDetect.canvasDimensions.blackframeCanvas.height;
+    const samples = rows * cols;
 
     const blackFrameDrawTime = performance.now() - bfDrawStartTime;
     const bfProcessStartTime = performance.now();
@@ -1004,6 +1010,13 @@ class ArDetector {
     let blackPixelCount = 0;
     const blackThreshold = this.blackLevel + this.settings.active.arDetect.blackbar.frameThreshold;
 
+    const actualPixels = imageData.length / 4;
+
+    // generate some random points that we'll use for sampling black frame.
+    const sampleArray = new Array(samples);
+    for (let i = 0; i < samples; i++) {
+      sampleArray[i] = Math.round(Math.random() * actualPixels);
+    }
 
     // we do some recon for letterbox and pillarbox. While this can't determine whether letterbox/pillarbox exists
     // with sufficient level of certainty due to small sample resolution, it can still give us some hints for later
@@ -1012,10 +1025,9 @@ class ArDetector {
 
     let r: number, c: number;
 
-
-    for (let i = 0; i < bfImageData.length; i+= 4) {
-      pixelMax = Math.max(bfImageData[i], bfImageData[i+1], bfImageData[i+2]);
-      bfImageData[i+3] = pixelMax;
+    for (const i of sampleArray) {
+      pixelMax = Math.max(imageData[i], imageData[i+1], imageData[i+2]);
+      imageData[i+3] = pixelMax;
 
       if (pixelMax < blackThreshold) {
         if (pixelMax < this.blackLevel) {
@@ -1024,13 +1036,13 @@ class ArDetector {
         blackPixelCount++;
       } else {
         cumulativeValue += pixelMax;
-        cumulative_r += bfImageData[i];
-        cumulative_g += bfImageData[i+1];
-        cumulative_b += bfImageData[i+2];
+        cumulative_r += imageData[i];
+        cumulative_g += imageData[i+1];
+        cumulative_b += imageData[i+2];
 
-        max_r = max_r > bfImageData[i]   ? max_r : bfImageData[i];
-        max_g = max_g > bfImageData[i+1] ? max_g : bfImageData[i+1];
-        max_b = max_b > bfImageData[i+2] ? max_b : bfImageData[i+2];
+        max_r = max_r > imageData[i]   ? max_r : imageData[i];
+        max_g = max_g > imageData[i+1] ? max_g : imageData[i+1];
+        max_b = max_b > imageData[i+2] ? max_b : imageData[i+2];
       }
 
       r = ~~(i/rows);
@@ -1055,11 +1067,11 @@ class ArDetector {
     avg_b = (cumulative_b / imagePixels) * max_b;
 
     // second pass for color variance
-    for (let i = 0; i < bfImageData.length; i+= 4) {
-      if (bfImageData[i+3] >= this.blackLevel) {
-        var_r += Math.abs(avg_r - bfImageData[i] * max_r);
-        var_g += Math.abs(avg_g - bfImageData[i+1] * max_g);
-        var_b += Math.abs(avg_b - bfImageData[i+1] * max_b);
+    for (let i = 0; i < imageData.length; i+= 4) {
+      if (imageData[i+3] >= this.blackLevel) {
+        var_r += Math.abs(avg_r - imageData[i] * max_r);
+        var_g += Math.abs(avg_g - imageData[i+1] * max_g);
+        var_b += Math.abs(avg_b - imageData[i+1] * max_b);
       }
     }
 
