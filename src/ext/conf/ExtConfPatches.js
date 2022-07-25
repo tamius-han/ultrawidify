@@ -7,61 +7,6 @@ import BrowserDetect from './BrowserDetect';
 
 const ExtensionConfPatch = [
   {
-    forVersion: '4.5.0',
-    sites: {
-      "www.wakanim.tv": {
-        type: 'community',
-        DOM: {
-          player: {
-            manual: true,
-            querySelectors: "#jwplayer-container",
-            additionalCss: "",
-            useRelativeAncestor: false,
-            playerNodeCss: "",
-          }
-        }
-      }
-    }
-  }, {
-    forVersion: '4.5.1',
-    updateFn: (userOptions, defaultOptions) => {
-      for (const site in userOptions.sites) {
-        try {
-          delete userOptions[sites].autoarPreventConditions
-        } catch (e) {
-          // doesn't matter if site doesn't have that option,
-          // everything is still fine
-        }
-      }
-    }
-  }, {
-    forVersion: '4.5.1.1',
-    updateFn: (userOptions, defaultOptions) => {
-      if (!userOptions.sites['streamable.com']) {
-        userOptions.sites['streamable.com'] = {
-          mode: 3,
-          autoar: 3,
-          type: 'official',
-          stretch: -1,
-          videoAlignment: -1,
-          keyboardShortcutsEnabled: 0,
-          css: ".player {text-align: left}"
-        };
-      }
-      if (!userOptions.sites['streamable.com'].css) {
-        userOptions.sites['streamable.com'].css = '.player {text-align: left}'
-      };
-    }
-  }, {
-    forVersion: '4.5.1.3',
-    updateFn: (userOptions, defaultOptions) => {
-      try {
-        userOptions.sites['wwww.disneyplus.com']['css'] = ".hudson-container {\n  height: 100%;\n}";
-      } catch (e) {
-        // do nothing if disney+ is missing
-      }
-    }
-  }, {
     forVersion: '5.0.1',
     updateFn: (userOptions, defaultOptions) => {
       try {
