@@ -187,7 +187,7 @@ const ExtensionConfPatch = [
       }
     }
   }, {
-    forVersion: '5.1.3',
+    forVersion: '5.1.2',
     updateFn: (userOptions, defaultOptions) => {
       for (const actionKey in  userOptions.actions) {
         for (const cmdKey in userOptions.actions[actionKey].cmd) {
