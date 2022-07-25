@@ -782,7 +782,7 @@ const ExtensionConf: SettingsInterface = {
     name: 'Enable extension',
     label: 'Enable',
     cmd: [{
-      action: 'set-ExtensionMode',
+      action: 'set-extension-mode',
       arg: ExtensionMode.Enabled,
       persistent: true,
     }],
@@ -798,7 +798,7 @@ const ExtensionConf: SettingsInterface = {
     name: 'Enable extension on whitelisted sites only',
     label: 'On whitelist only',
     cmd: [{
-      action: 'set-ExtensionMode',
+      action: 'set-extension-mode',
       arg: ExtensionMode.Whitelist,
       persistent: true,
     }],
@@ -811,7 +811,7 @@ const ExtensionConf: SettingsInterface = {
     name: 'Extension mode: use default settings',
     label: 'Default',
     cmd: [{
-      action: 'set-ExtensionMode',
+      action: 'set-extension-mode',
       arg: ExtensionMode.Default,
       persistent: true,
     }],
@@ -824,7 +824,7 @@ const ExtensionConf: SettingsInterface = {
     name: 'Disable extension',
     label: 'Disable',
     cmd: [{
-      action: 'set-ExtensionMode',
+      action: 'set-extension-mode',
       arg: ExtensionMode.Disabled,
       persistent: true,
     }],
