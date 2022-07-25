@@ -18,6 +18,10 @@
 
 ## v5.x (current major)
 
+### v5.1.2
+
+* `set-extension-mode` turned into `set-ExtensionMode` at some point. This caused in "Enable this extension" options to vanish on certain setups.
+
 ### v5.1.1
 
 * Fixed autodetection
