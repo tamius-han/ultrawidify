@@ -848,17 +848,19 @@ class ArDetector {
     const imageData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
     timerResults.imageDrawTime = performance.now() - startTime;
 
+    startTime = performance.now();
+
     const bfAnalysis = await this.blackframeTest(imageData);
+
+    timerResults.blackFrameProcessTime = performance.now() - startTime;
+
     if (bfAnalysis.isBlack) {
       // we don't do any corrections on frames confirmed black
       this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Black frame analysis suggests this frame is black or too dark. Doing nothing.`, "color: #fa3", bfAnalysis);
-      timerResults.blackFrameDrawTime = bfAnalysis.processingTime.blackFrameDrawTime;
-      timerResults.blackFrameProcessTime = bfAnalysis.processingTime.blackFrameProcessTime;
       this.addPerformanceMeasurement(timerResults);
       return;
     }
 
-    startTime = performance.now();
     const fastLetterboxTestRes = this.fastLetterboxPresenceTest(imageData, sampleCols);
     timerResults.fastLetterboxTime = performance.now() - startTime;
 

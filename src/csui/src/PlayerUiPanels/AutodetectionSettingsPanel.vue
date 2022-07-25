@@ -33,7 +33,7 @@
                   <div class="stats">
                     <b>Average: </b>
                     <span class="draw">draw (main) {{(performanceData?.imageDraw?.averageTime ?? 0).toFixed(1)}} ms</span> |
-                    <span class="draw-blackframe">draw (blackframe) {{(performanceData?.blackFrameDraw?.averageTime ?? 0).toFixed(1)}} ms</span> |
+                    <span class="draw-blackframe">blackframe {{(performanceData?.blackFrame?.averageTime ?? 0).toFixed(1)}} ms</span> |
                     <span class="processing">
                       processing {{
                         Math.max(
@@ -53,7 +53,7 @@
                     </div>
                     <div
                       class="draw-blackframe"
-                      :style="{'width': (performanceData?.blackFrameDraw?.averageTime ?? 0) + '%'}"
+                      :style="{'width': (performanceData?.blackFrame?.averageTime ?? 0) + '%'}"
                     >
                     </div>
                     <div
@@ -74,7 +74,7 @@
                   <div class="stats">
                     <b>Worst: </b>
                     <span class="draw">draw (main) {{(performanceData?.imageDraw?.worstTime ?? 0).toFixed(1)}} ms</span> |
-                    <span class="draw-blackframe">draw (blackframe) {{(performanceData?.blackFrameDraw?.worstTime ?? 0).toFixed(1)}} ms</span> |
+                    <span class="draw-blackframe">blackframe {{(performanceData?.blackFrame?.worstTime ?? 0).toFixed(1)}} ms</span> |
                     <span class="processing">
                       processing {{
                         Math.max(
@@ -116,11 +116,10 @@
                   <div class="stats">
                     <b>AR change (average): </b>
                     <span class="draw">draw (main) {{(performanceData?.imageDraw?.averageTime ?? 0).toFixed(1)}} ms</span> |
-                    <span class="draw-blackframe">draw (blackframe) {{(performanceData?.blackFrameDraw?.averageTime ?? 0).toFixed(1)}} ms</span> |
+                    <span class="draw-blackframe">blackframe {{(performanceData?.blackFrame?.averageTime ?? 0).toFixed(1)}} ms</span> |
                     <span class="processing">processing {{
                       (
-                        (performanceData?.blackFrame?.averageTime ?? 0)
-                        + (performanceData?.fastLetterbox?.averageTime ?? 0)
+                        (performanceData?.fastLetterbox?.averageTime ?? 0)
                         + (performanceData?.edgeDetect?.averageTime ?? 0)
                       ).toFixed(1)
                       }} ms</span>
@@ -133,15 +132,14 @@
                     </div>
                     <div
                       class="draw-blackframe"
-                      :style="{'width': (performanceData?.blackFrameDraw?.averageTime ?? 0) + '%'}"
+                      :style="{'width': (performanceData?.blackFrame?.averageTime ?? 0) + '%'}"
                     >
                     </div>
                     <div
                       class="processing"
                       :style="{
                         'width': (
-                          (performanceData?.blackFrame?.averageTime ?? 0)
-                          + (performanceData?.fastLetterbox?.averageTime ?? 0)
+                          (performanceData?.fastLetterbox?.averageTime ?? 0)
                           + (performanceData?.edgeDetect?.averageTime ?? 0)
                         ) + '%'
                       }"
@@ -153,11 +151,10 @@
                   <div class="stats">
                     <b>AR change (worst): </b>
                     <span class="draw">draw (main) {{(performanceData?.imageDraw?.worstTime ?? 0).toFixed(1)}} ms</span> |
-                    <span class="draw-blackframe">draw (blackframe) {{(performanceData?.blackFrameDraw?.worstTime ?? 0).toFixed(1)}} ms</span> |
+                    <span class="draw-blackframe">blackframe {{(performanceData?.blackFrame?.worstTime ?? 0).toFixed(1)}} ms</span> |
                     <span class="processing">processing {{
                       (
-                        (performanceData?.blackFrame?.worstTime ?? 0)
-                        + (performanceData?.fastLetterbox?.worstTime ?? 0)
+                        (performanceData?.fastLetterbox?.worstTime ?? 0)
                         + (performanceData?.edgeDetect?.worstTime ?? 0)
                       ).toFixed(1)
                       }} ms</span>
@@ -170,15 +167,14 @@
                     </div>
                     <div
                       class="draw-blackframe"
-                      :style="{'width': (performanceData?.blackFrameDraw?.worstTime ?? 0) + '%'}"
+                      :style="{'width': (performanceData?.blackFrame?.worstTime ?? 0) + '%'}"
                     >
                     </div>
                     <div
                       class="processing"
                       :style="{
                         'width': (
-                          (performanceData?.blackFrame?.worstTime ?? 0)
-                          + (performanceData?.fastLetterbox?.worstTime ?? 0)
+                          (performanceData?.fastLetterbox?.worstTime ?? 0)
                           + (performanceData?.edgeDetect?.worstTime ?? 0)
                         ) + '%'
                       }"
@@ -190,6 +186,71 @@
 
             </div>
           </div>
+          <div class="settings-segment">
+            <h2>Basic settings</h2>
+
+            <div class="option">
+              <div class="name">
+                Autodetection frequency
+              </div>
+              <div class="description">
+                Shorter intervals (left side of the slider) are more responsive to changes in aspect ratio detections,
+                but requires more system resources.
+              </div>
+              <div class="indent">
+                <div class="flex flex-row row-padding">
+                  <div class="flex flex-input">
+                    More often&nbsp;<small>(~60/s)</small>
+                    <input type="range"
+                          :value="Math.log(settings.active.arDetect.timers.playing)"
+                          @change="setArCheckFrequency($event.target.value)"
+                          min="2.3"
+                          max="9.3"
+                          step="any"
+                    />
+                    &nbsp; Less often&nbsp;<small>(~1/10s)</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="option">
+              <div class="name">
+                Autodetection sensitivity
+              </div>
+              <div class="description">
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="label">Maximum allowed vertical video misalignment:</div>
+              <div class="input">
+                <input v-model="settings.active.arDetect.allowedMisaligned" />
+              </div>
+              <div class="description">
+                Ultrawidify detects letterbox only if video is vertically centered. Some people are bad at vertically
+                centering the content, though. This is how off-center the video can be before autodetection will
+                refuse to crop it.
+              </div>
+            </div>
+
+            <div class="option">
+              <div class="name">Video sample size</div>
+              <div class="input">
+                <input v-model="settings.active.arDetect.canvasDimensions.sampleCanvas.width" /> x <input v-model="settings.active.arDetect.canvasDimensions.sampleCanvas.height" />
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="label">Sample columns:</div>
+              <div class="input"><input v-model="settings.active.arDetect.sampling.staticCols" /></div>
+            </div>
+            <div class="field">
+              <div class="label">Sample rows:</div>
+              <div class="input"><input v-model="settings.active.arDetect.sampling.staticRows" /></div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
