@@ -141,7 +141,7 @@ const ExtensionConfPatch = [
     updateFn: (userOptions, defaultOptions) => {
       // 5.0.5 initially incorrectly had app.plex.tv marked as 'user-added'
       // when 'user-added' is generally reserved for marking sites with user-
-      // changed configuration. Site patches submitted by community should have 
+      // changed configuration. Site patches submitted by community should have
       // 'community' type. extConfPatch for 5.0.5 was also retroactively corrected.
       userOptions.sites['app.plex.tv'].type = 'community';
       userOptions.sites['piped.kavin.rocks'] = {
@@ -169,7 +169,7 @@ const ExtensionConfPatch = [
     updateFn: (userOptions, defaultOptions) => {
       // 5.0.5 initially incorrectly had app.plex.tv marked as 'user-added'
       // when 'user-added' is generally reserved for marking sites with user-
-      // changed configuration. Site patches submitted by community should have 
+      // changed configuration. Site patches submitted by community should have
       // 'community' type. extConfPatch for 5.0.5 was also retroactively corrected.
       userOptions.sites['www.youtube.com'].DOM.player = {
         manual: true,
@@ -184,6 +184,17 @@ const ExtensionConfPatch = [
     updateFn: (userOptions, defaultOptions) => {
       userOptions.sites['www.netflix.com'].DOM.player = {
         manual: false
+      }
+    }
+  }, {
+    forVersion: '5.1.3',
+    updateFn: (userOptions, defaultOptions) => {
+      for (const actionKey in  userOptions.actions) {
+        for (const cmdKey in userOptions.actions[actionKey].cmd) {
+          if (userOptions.actions[actionKey].cmd[cmdKey].action === 'set-ExtensionMode') {
+            userOptions.actions[actionKey].cmd[cmdKey].action = 'set-extension-mode';
+          }
+        }
       }
     }
   }
