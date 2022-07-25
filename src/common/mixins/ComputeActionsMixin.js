@@ -10,7 +10,7 @@ export default {
       }) || [];
     },
     extensionActions: function(){
-      return this.scopeActions.filter(x => x.cmd.length === 1 && x.cmd[0].action === 'set-ExtensionMode') || [];
+      return this.scopeActions.filter(x => x.cmd.length === 1 && x.cmd[0].action === 'set-extension-mode') || [];
     },
     aardActions: function(){
       return this.scopeActions.filter(x => x.cmd.length === 1 && x.cmd[0].action === 'set-autoar-mode') || [];

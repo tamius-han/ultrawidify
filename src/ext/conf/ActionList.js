@@ -179,7 +179,7 @@ var ActionList = {
       page: true,
     }
   },
-  'set-ExtensionMode': {
+  'set-extension-mode': {
     name: 'Set extension mode',
     args: [{
       name: 'Enable',

@@ -4,7 +4,7 @@ import Settings from '../../ext/lib/Settings';
 class ExecAction {
   settings: Settings;
   site: any;
-  
+
   constructor(settings, site) {
     this.settings = settings;
     this.site = site;
@@ -35,7 +35,7 @@ class ExecAction {
         // it's important to do that BEFORE the save step
         if (cmd.action === 'set-ar-persistence') {
           // even when setting global defaults, we only send message to the current tab in
-          // order to avoid problems related to 
+          // order to avoid problems related to
           const message = {
             forwardToActive: true,
             targetFrame: frame,
@@ -63,7 +63,7 @@ class ExecAction {
           this.settings.active.sites[site].stretch = cmd.arg;
         } else if (cmd.action === "set-alignment") {
           this.settings.active.sites[site].videoAlignment = cmd.arg;
-        } else if (cmd.action === "set-ExtensionMode") {
+        } else if (cmd.action === "set-extension-mode") {
           this.settings.active.sites[site].mode = cmd.arg;
         } else if (cmd.action === "set-autoar-mode") {
           this.settings.active.sites[site].autoar = cmd.arg;
