@@ -21,6 +21,7 @@
 ### v5.1.2
 
 * `set-extension-mode` turned into `set-ExtensionMode` at some point. This caused in "Enable this extension" options to vanish on certain setups.
+* Blackframe tests now run on same data as main algorithm as opposed on a smaller sample (`drawImage()` calls are _very_ expensive even for a 16x9 sample).
 
 ### v5.1.1
 
