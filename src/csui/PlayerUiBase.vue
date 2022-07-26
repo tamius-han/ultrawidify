@@ -53,6 +53,7 @@
       </div>
       <div><a @click="uwWindowFadeOutDisabled = !uwWindowFadeOutDisabled">{{uwWindowFadeOutDisabled ? 'allow auto-close' : 'prevent auto-close'}}</a></div>
     </div>
+
     <div class="tab-main flex flex-row">
       <div class="tab-row flex flex-column">
         <div
