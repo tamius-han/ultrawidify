@@ -124,6 +124,12 @@
               :site="site"
             >
             </AutodetectionSettingsPanel>
+            <DebugPanel
+              v-if="selectedTab === 'debugging'"
+              :settings="settings"
+              :eventBus="eventBus"
+              :site="site"
+            ></DebugPanel>
             <!-- <ResizerDebugPanel :debugData="debugData">
             </ResizerDebugPanel> -->
           </template>
@@ -134,6 +140,7 @@
 </template>
 
 <script>
+import DebugPanel from './src/PlayerUiPanels/DebugPanel.vue'
 import VideoSettings from './src/PlayerUiPanels/VideoSettings.vue'
 import AutodetectionSettingsPanel from './src/PlayerUiPanels/AutodetectionSettingsPanel.vue'
 import PlayerDetectionPanel from './src/PlayerUiPanels/PlayerDetectionPanel.vue'
@@ -152,7 +159,7 @@ export default {
     ResizerDebugPanel,
     VideoSettings,
     PlayerDetectionPanel,
-    AutodetectionSettingsPanel,
+    AutodetectionSettingsPanel, DebugPanel
   },
   data() {
     return {
@@ -377,7 +384,6 @@ export default {
 
     selectTab(tab) {
       console.log('selected tab:', tab);
-      console.warn('NOTE: tab selection is not syet inplemented!');
       this.selectedTab = tab;
     }
   }
