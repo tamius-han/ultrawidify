@@ -681,17 +681,14 @@ class ArDetector {
       return;
     }
 
-    if (!this.blackframeContext) {
-      this.init();
-    }
+    // if (!this.blackframeContext) {
+    //   this.init();
+    // }
 
     let startTime;
     let partialDrawImageTime = 0;
     let sampleCols = this.sampleCols.slice(0);
 
-
-
-    let startTime = performance.now();
     await new Promise<void>(
       resolve => {
         this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
@@ -699,21 +696,20 @@ class ArDetector {
       }
     )
     const imageData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
-    timerResults.imageDrawTime = performance.now() - startTime;
+    // timerResults.imageDrawTime = performance.now() - startTime;
 
     const bfAnalysis = await this.blackframeTest(imageData);
     if (bfAnalysis.isBlack) {
       // we don't do any corrections on frames confirmed black
       this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Black frame analysis suggests this frame is black or too dark. Doing nothing.`, "color: #fa3", bfAnalysis);
-      timerResults.blackFrameDrawTime = bfAnalysis.processingTime.blackFrameDrawTime;
-      timerResults.blackFrameProcessTime = bfAnalysis.processingTime.blackFrameProcessTime;
-      this.addPerformanceMeasurement(timerResults);
+      // timerResults.blackFrameDrawTime = bfAnalysis.processingTime.blackFrameDrawTime;
+      // timerResults.blackFrameProcessTime = bfAnalysis.processingTime.blackFrameProcessTime;
+      // this.addPerformanceMeasurement(timerResults);
       return;
     }
 
     startTime = performance.now();
-    const imageData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
-    this.addPerformanceTimeMeasure(this.performance.getImageData, performance.now() - startTime);
+    // this.addPerformanceTimeMeasure(this.performance.getImageData, performance.now() - startTime);
 
     if (! this.fastLetterboxPresenceTest(imageData, sampleCols) ) {
       // Če ne zaznamo letterboxa, kličemo reset. Lahko, da je bilo razmerje stranic popravljeno na roke. Možno je tudi,
@@ -801,7 +797,7 @@ class ArDetector {
 
     // blackSamples -> {res_top, res_bottom}
 
-    let edgePost = this.edgeDetector.findBars(imageData, sampleCols, EdgeDetectPrimaryDirection.Vertical, EdgeDetectQuality.Improved, guardLineOut, bfanalysis);
+    let edgePost = this.edgeDetector.findBars(imageData, sampleCols, EdgeDetectPrimaryDirection.Vertical, EdgeDetectQuality.Improved, guardLineOut, bfAnalysis);
 
     this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] edgeDetector returned this\n`,  "color: #aaf", edgePost);
 
@@ -900,8 +896,8 @@ class ArDetector {
     let pixelMax = 0;
     let cumulativeValue = 0;
     let blackPixelCount = 0;
-    const bfImageData = this.blackframeContext.getImageData(0, 0, cols, rows).data;
-    const blackTreshold = this.blackLevel + this.settings.active.arDetect.blackbar.frameThreshold;
+    // const bfImageData = this.blackframeContext.getImageData(0, 0, cols, rows).data;
+    const blackThreshold = this.blackLevel + this.settings.active.arDetect.blackbar.frameThreshold;
 
     const actualPixels = imageData.length / 4;
 
