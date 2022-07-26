@@ -206,20 +206,20 @@ class ArDetector {
     if (this.canvas) {
       this.canvas.remove();
     }
-    if (this.blackframeCanvas) {
-      this.blackframeCanvas.remove();
-    }
+    // if (this.blackframeCanvas) {
+    //   this.blackframeCanvas.remove();
+    // }
 
     // things to note: we'll be keeping canvas in memory only.
     this.canvas = document.createElement("canvas");
     this.canvas.width = cwidth;
     this.canvas.height = cheight;
-    this.blackframeCanvas = document.createElement("canvas");
-    this.blackframeCanvas.width = this.settings.active.arDetect.canvasDimensions.blackframeCanvas.width;
-    this.blackframeCanvas.height = this.settings.active.arDetect.canvasDimensions.blackframeCanvas.height;
+    // this.blackframeCanvas = document.createElement("canvas");
+    // this.blackframeCanvas.width = this.settings.active.arDetect.canvasDimensions.blackframeCanvas.width;
+    // this.blackframeCanvas.height = this.settings.active.arDetect.canvasDimensions.blackframeCanvas.height;
 
     this.context = this.canvas.getContext("2d");
-    this.blackframeContext = this.blackframeCanvas.getContext("2d");
+    // this.blackframeContext = this.blackframeCanvas.getContext("2d");
 
 
     // do setup once
@@ -689,97 +689,28 @@ class ArDetector {
     let partialDrawImageTime = 0;
     let sampleCols = this.sampleCols.slice(0);
 
-    //
-    // [0] blackframe tests (they also determine whether we need fallback mode)
-    //
-    try {
-      startTime = performance.now();
 
-      // do it in ghetto async. This way, other javascript function should be able to
-      // get a chance to do something _before_ we process our data
-      await new Promise<void>(
-        resolve => {
-          this.blackframeContext.drawImage(this.video, 0, 0, this.blackframeCanvas.width, this.blackframeCanvas.height);
-          resolve();
-        }
-      );
-      partialDrawImageTime += performance.now() - startTime;
 
-      this.fallbackMode = false;
-
-      // If we detected DRM and if we're here, this means we're also using Google Chrome.
-      // And if we're here while DRM is detected, we know we'll be looking at black frames.
-      // We won't be able to do anything useful, therefore we're just gonna call it quits.
-      if (this.conf.hasDrm) {
-        this.logger.log('info', 'debug', 'we have drm, doing nothing.', this.conf.hasDrm);
-        return;
+    let startTime = performance.now();
+    await new Promise<void>(
+      resolve => {
+        this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+        resolve();
       }
-    } catch (e) {
-      this.logger.log('error', 'arDetect', `%c[ArDetect::frameCheck] <@${this.arid}>  %c[ArDetect::frameCheck] can't draw image on canvas. ${this.canDoFallbackMode ? 'Trying canvas.drawWindow instead' : 'Doing nothing as browser doesn\'t support fallback mode.'}`, "color:#000; backgroud:#f51;", e);
+    )
+    const imageData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
+    timerResults.imageDrawTime = performance.now() - startTime;
 
-      if (! this.canvasReadyForDrawWindow()) {
-        // this means canvas needs to be resized, so we'll just re-run setup with all those new parameters
-        this.halt();
-
-        let newCanvasWidth = window.innerHeight * (this.video.videoWidth / this.video.videoHeight);
-        let newCanvasHeight = window.innerHeight;
-
-        if (this.conf.resizer.videoAlignment === VideoAlignmentType.Center) {
-          this.canvasDrawWindowHOffset = Math.round((window.innerWidth - newCanvasWidth) * 0.5);
-        } else if (this.conf.resizer.videoAlignment === VideoAlignmentType.Left) {
-          this.canvasDrawWindowHOffset = 0;
-        } else {
-          this.canvasDrawWindowHOffset = window.innerWidth - newCanvasWidth;
-        }
-
-        this.setup(newCanvasWidth, newCanvasHeight);
-
-        return;
-      }
-      // if this is the case, we'll first draw on canvas, as we'll need intermediate canvas if we want to get a
-      // smaller sample for blackframe check
-      this.fallbackMode = true;
-
-      startTime = performance.now();
-      try {
-        (this.context as any).drawWindow(window, this.canvasDrawWindowHOffset, 0, this.canvas.width, this.canvas.height);
-      } catch (e) {
-        this.logger.log('error', 'arDetect', `%c[ArDetect::frameCheck] can't draw image on canvas with fallback mode either. This error is prolly only temporary.`, "color:#000; backgroud:#f51;", e);
-        return; // it's prolly just a fluke, so we do nothing special here
-      }
-      // draw blackframe sample from our main sample:
-      await new Promise<void>(
-        resolve => {
-          this.blackframeContext.drawImage(this.canvas, this.blackframeCanvas.width, this.blackframeCanvas.height);
-          resolve();
-        }
-      );
-      partialDrawImageTime += performance.now() - startTime;
-
-      this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] canvas.drawImage seems to have worked`, "color:#000; backgroud:#2f5;");
-    }
-
-    const bfanalysis = this.blackframeTest();
-    if (bfanalysis.isBlack) {
+    const bfAnalysis = await this.blackframeTest(imageData);
+    if (bfAnalysis.isBlack) {
       // we don't do any corrections on frames confirmed black
-      this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Black frame analysis suggests this frame is black or too dark. Doing nothing.`, "color: #fa3", bfanalysis);
+      this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Black frame analysis suggests this frame is black or too dark. Doing nothing.`, "color: #fa3", bfAnalysis);
+      timerResults.blackFrameDrawTime = bfAnalysis.processingTime.blackFrameDrawTime;
+      timerResults.blackFrameProcessTime = bfAnalysis.processingTime.blackFrameProcessTime;
+      this.addPerformanceMeasurement(timerResults);
       return;
     }
 
-    // if we are in fallback mode, then frame has already been drawn to the main canvas.
-    // if we are in normal mode though, the frame has yet to be drawn
-    if (!this.fallbackMode) {
-      startTime = performance.now();
-      await new Promise<void>(
-        resolve => {
-          this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-          resolve();
-        }
-      )
-      partialDrawImageTime += performance.now() - startTime;
-    }
-
-    this.addPerformanceTimeMeasure(this.performance.drawImage, partialDrawImageTime);
     startTime = performance.now();
     const imageData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
     this.addPerformanceTimeMeasure(this.performance.getImageData, performance.now() - startTime);
@@ -932,18 +863,34 @@ class ArDetector {
     this.blackLevel = this.settings.active.arDetect.blackbar.blackLevel;
   }
 
-  blackLevelTest_full() {
-
-  }
-
-  blackframeTest() {
+  async blackframeTest(imageData) {
     if (this.blackLevel === undefined) {
       this.logger.log('info', 'arDetect_verbose', "[ArDetect::blackframeTest] black level undefined, resetting");
       this.resetBlackLevel();
     }
 
-    const rows = this.blackframeCanvas.height;
-    const cols = this.blackframeCanvas.width;
+    /**
+     * Performs a quick black frame test
+     */
+    const bfDrawStartTime = performance.now();
+
+    // await new Promise<void>(
+    //   resolve => {
+    //     this.blackframeContext.drawImage(this.video, 0, 0, this.blackframeCanvas.width, this.blackframeCanvas.height);
+    //     resolve();
+    //   }
+    // );
+    // const rows = this.blackframeCanvas.height;
+    // const cols = this.blackframeCanvas.width;
+    // const bfImageData = this.blackframeContext.getImageData(0, 0, cols, rows).data;
+
+    const rows = this.settings.active.arDetect.canvasDimensions.blackframeCanvas.width;
+    const cols = this.settings.active.arDetect.canvasDimensions.blackframeCanvas.height;
+    const samples = rows * cols;
+
+    const blackFrameDrawTime = performance.now() - bfDrawStartTime;
+    const bfProcessStartTime = performance.now();
+
     const pixels = rows * cols;
     let cumulative_r = 0, cumulative_g = 0, cumulative_b = 0;
     let max_r = 0, max_g = 0, max_b = 0;
@@ -956,6 +903,13 @@ class ArDetector {
     const bfImageData = this.blackframeContext.getImageData(0, 0, cols, rows).data;
     const blackTreshold = this.blackLevel + this.settings.active.arDetect.blackbar.frameThreshold;
 
+    const actualPixels = imageData.length / 4;
+
+    // generate some random points that we'll use for sampling black frame.
+    const sampleArray = new Array(samples);
+    for (let i = 0; i < samples; i++) {
+      sampleArray[i] = Math.round(Math.random() * actualPixels);
+    }
 
     // we do some recon for letterbox and pillarbox. While this can't determine whether letterbox/pillarbox exists
     // with sufficient level of certainty due to small sample resolution, it can still give us some hints for later
@@ -964,25 +918,24 @@ class ArDetector {
 
     let r: number, c: number;
 
+    for (const i of sampleArray) {
+      pixelMax = Math.max(imageData[i], imageData[i+1], imageData[i+2]);
+      imageData[i+3] = pixelMax;
 
-    for (let i = 0; i < bfImageData.length; i+= 4) {
-      pixelMax = Math.max(bfImageData[i], bfImageData[i+1], bfImageData[i+2]);
-      bfImageData[i+3] = pixelMax;
-
-      if (pixelMax < blackTreshold) {
+      if (pixelMax < blackThreshold) {
         if (pixelMax < this.blackLevel) {
           this.blackLevel = pixelMax;
         }
         blackPixelCount++;
       } else {
         cumulativeValue += pixelMax;
-        cumulative_r += bfImageData[i];
-        cumulative_g += bfImageData[i+1];
-        cumulative_b += bfImageData[i+2];
+        cumulative_r += imageData[i];
+        cumulative_g += imageData[i+1];
+        cumulative_b += imageData[i+2];
 
-        max_r = max_r > bfImageData[i]   ? max_r : bfImageData[i];
-        max_g = max_g > bfImageData[i+1] ? max_g : bfImageData[i+1];
-        max_b = max_b > bfImageData[i+2] ? max_b : bfImageData[i+2];
+        max_r = max_r > imageData[i]   ? max_r : imageData[i];
+        max_g = max_g > imageData[i+1] ? max_g : imageData[i+1];
+        max_b = max_b > imageData[i+2] ? max_b : imageData[i+2];
       }
 
       r = ~~(i/rows);
@@ -1007,11 +960,11 @@ class ArDetector {
     avg_b = (cumulative_b / imagePixels) * max_b;
 
     // second pass for color variance
-    for (let i = 0; i < bfImageData.length; i+= 4) {
-      if (bfImageData[i+3] >= this.blackLevel) {
-        var_r += Math.abs(avg_r - bfImageData[i] * max_r);
-        var_g += Math.abs(avg_g - bfImageData[i+1] * max_g);
-        var_b += Math.abs(avg_b - bfImageData[i+1] * max_b);
+    for (let i = 0; i < imageData.length; i+= 4) {
+      if (imageData[i+3] >= this.blackLevel) {
+        var_r += Math.abs(avg_r - imageData[i] * max_r);
+        var_g += Math.abs(avg_g - imageData[i+1] * max_g);
+        var_b += Math.abs(avg_b - imageData[i+1] * max_b);
       }
     }
 
