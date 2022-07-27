@@ -92,6 +92,10 @@ class VideoData {
 
     if (pageInfo.eventBus) {
       this.eventBus.setUpstreamBus(pageInfo.eventBus);
+      this.eventBus.subscribe('get-drm-status', {function: () => {
+        this.hasDrm = hasDrm(this.video);
+        this.eventBus.send('uw-config-broadcast', {type: 'drm-status', hasDrm: this.hasDrm});
+      }});
     }
 
 
@@ -633,6 +637,7 @@ class VideoData {
       this.arDetector.init();
     }
   }
+
 
   startArDetection() {
     this.logger.log('info', 'debug', "[VideoData::startArDetection] starting AR detection")

@@ -78,21 +78,12 @@
         <!-- autodetection warning -->
 
         <div class="warning-area">
-          <div class="warning-box">
+          <div
+            v-if="statusFlags.hasDrm"
+            class="warning-box"
+          >
             <div class="icon-container">
               <mdicon name="alert" :size="32" />
-            </div>
-            <div>
-              DRM warnings will appear in this box<br/>
-              <a>Learn more ...</a>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="ultrawidify?.videoData?.hasDrm" class="warning-area">
-          <div class="warning-box">
-            <div>
-              <mdicon name="alert" :size="42" />
             </div>
             <div>
               This site is blocking automatic aspect ratio detection. You will have to adjust aspect ratio manually.<br/>
@@ -201,6 +192,10 @@ export default {
       },
       debugDataPrettified: '',
 
+      statusFlags: {
+        hasDrm: undefined,
+      },
+
       tabs: [
         {id: 'videoSettings', label: 'Video settings', icon: 'crop'},
         {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
@@ -212,12 +207,6 @@ export default {
     };
   },
   computed: {
-    // we don't have vuex here at the moment, so no mapState yet!
-    // ...mapState([
-    //   'showUi',
-    //   'resizerDebugData',
-    //   'playerDebugData'
-    // ]),
     // LPT: NO ARROW FUNCTIONS IN COMPUTED,
     // IS SUPER HARAM
     // THINGS WILL NOT WORK IF YOU USE ARROWS
@@ -249,8 +238,6 @@ export default {
   },
 
   async created() {
-    console.log('player-tree: player UI base created')
-
     this.logger = new Logger();
     await this.logger.init({
         allowLogging: true,
@@ -277,6 +264,12 @@ export default {
           y: event.clientY
         }
       }, this.origin);
+    });
+
+    this.eventBus.subscribe('uw-config-broadcast', (data) => {
+      if (data.type === 'drm-status') {
+        this.statusFlags.hasDrm = data.hasDrm;
+      }
     });
   },
 
@@ -324,7 +317,7 @@ export default {
         this.uwTriggerZoneTimeout = setTimeout(
           () => this.uwTriggerZoneVisible = false,
           250
-        )
+        );
       }
 
       /* we check if our mouse is hovering over an element.
@@ -363,6 +356,9 @@ export default {
       this.uwWindowFadeOut = false;
       this.uwWindowVisible = true;
       this.uwTriggerZoneVisible = false;
+
+      // refresh DRM status
+      this.eventBus.send('get-drm-status');
     },
 
     hideUwWindow() {
