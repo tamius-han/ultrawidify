@@ -110,34 +110,6 @@ class ArDetector {
 
   //#region debug getters
 
-  /**
-   * We get one animation frame per this many ms. This means that our autodetection
-   * stuff must run in less than this many ms. This valuz is averaged out over multiple
-   * samples for better accuracy.
-   *
-   * Returns value in ms.
-   *
-   * A very important caveat: if autodetection takes up too much time, it WILL artificially
-   * increase time budget. Therefore, you should use (and firstly even implement) getTimeBudget()
-   * that turns off autodetection for a second or so to gather accurate timing info.
-   */
-   get eyeballedTimeBudget() {
-    let sum;
-    for (let i = 0; i < this.performance.animationFrame.sampleTime.length; i++) {
-      sum += this.performance.animationFrame.sampleTime[i];
-    }
-
-    return sum / this.performance.animationFrame.sampleTime.length;
-  }
-
-  /**
-   * Converts time budget (eyeballed) into actual framerate. Since eyeballed time budget rises
-   * if our autodetection takes too long, it's still good enough for calculating framerate
-   */
-  get fps() {
-    return 1000 / this.eyeballedTimeBudget;
-  }
-
   //#endregion
 
   //#region lifecycle
@@ -257,43 +229,17 @@ class ArDetector {
     }
 
     //
-    // [3] detect if we're in the fallback mode and reset guardline
+    // [3] do other things setup needs to do
     //
 
-    if (this.fallbackMode) {
-      this.logger.log('warn', 'debug', `[ArDetect::setup] <@${this.arid}>  WARNING: CANVAS RESET DETECTED/we're in fallback mode - recalculating guardLine`, "background: #000; color: #ff2");
-      // blackbar, imagebar
-      this.guardLine.reset();
-    }
-
-    //
-    // [4] see if browser supports "fallback mode" by drawing a small portion of our window
-    //
-
-    try {
-      (this.blackframeContext as any).drawWindow(window,0, 0, this.blackframeCanvas.width, this.blackframeCanvas.height, "rgba(0,0,128,1)");
-      this.canDoFallbackMode = true;
-    } catch (e) {
-      this.canDoFallbackMode = false;
-    }
-
-    //
-    // [5] do other things setup needs to do
-    //
-
-    this.detectionTimeoutEventCount = 0;
     this.resetBlackLevel();
 
     // if we're restarting ArDetect, we need to do this in order to force-recalculate aspect ratio
     this.conf.resizer.setLastAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
 
     this.canvasImageDataRowLength = cwidth << 2;
-    this.noLetterboxCanvasReset = false;
 
-    if (this.settings.canStartAutoAr() ) {
-      // this.main();
-      this.start();
-    }
+    this.start();
 
     if(Debug.debugCanvas.enabled){
       // this.debugCanvas.init({width: cwidth, height: cheight});
@@ -535,8 +481,6 @@ class ArDetector {
     // this.logger.log('info', 'arDetect_verbose', `[ArDetect::animationFrameBootstrap] <@${this.arid}>  New animation frame.\nmanualTickEnabled: ${!this.manualTickEnabled}\ncan trigger frame check? ${this.canTriggerFrameCheck()}\nnext tick? ${this._nextTick}\n => (a&b | c) => Can we do tick? ${ (!this.manualTickEnabled && this.canTriggerFrameCheck()) || this._nextTick}\n\ncan we continue running? ${this && !this._halted && !this._paused}`);
 
     // do timekeeping first
-    this.addPerformanceTimeMeasure(this.performance.animationFrame, timestamp - this.performance.animationFrame.lastTime);
-    this.performance.animationFrame.lastTime = timestamp;
 
     // trigger frame check, if we're allowed to
     if ( (!this.manualTickEnabled && this.canTriggerFrameCheck()) || this._nextTick) {
@@ -545,9 +489,7 @@ class ArDetector {
       this._nextTick = false;
 
       try {
-        const startTime = performance.now();
         await this.frameCheck();
-        this.addPerformanceTimeMeasure(this.performance.aard, performance.now() - startTime);
       } catch (e) {
         this.logger.log('error', 'debug', `%c[ArDetect::animationFrameBootstrap] <@${this.arid}>  Frame check failed:`,  "color: #000, background: #f00", e);
       }
@@ -574,56 +516,23 @@ class ArDetector {
 
     let letterbox = edges.top + edges.bottom;
 
+    // Since video is stretched to fit the canvas, we need to take that into account when calculating target
+    // aspect ratio and correct our calculations to account for that
 
-    if (! this.fallbackMode) {
-      // Since video is stretched to fit the canvas, we need to take that into account when calculating target
-      // aspect ratio and correct our calculations to account for that
+    const fileAr = this.video.videoWidth / this.video.videoHeight;
+    const canvasAr = this.canvas.width / this.canvas.height;
+    let widthCorrected;
 
-      const fileAr = this.video.videoWidth / this.video.videoHeight;
-      const canvasAr = this.canvas.width / this.canvas.height;
-      let widthCorrected;
+    if (edges.top && edges.bottom) {
+      // in case of letterbox, we take canvas height as canon and assume width got stretched or squished
 
-      if (edges.top && edges.bottom) {
-        // in case of letterbox, we take canvas height as canon and assume width got stretched or squished
-
-        if (fileAr != canvasAr) {
-          widthCorrected = this.canvas.height * fileAr;
-        } else {
-          widthCorrected = this.canvas.width;
-        }
-
-        return widthCorrected / (this.canvas.height - letterbox);
-      }
-    } else {
-      // fallback mode behaves a wee bit differently
-
-      let zoomFactor = 1;
-
-      // there's stuff missing from the canvas. We need to assume canvas' actual height is bigger by a factor x, where
-      //   x = [video.zoomedHeight] / [video.unzoomedHeight]
-      //
-      // letterbox also needs to be corrected:
-      //   letterbox += [video.zoomedHeight] - [video.unzoomedHeight]
-
-      let vbr = this.video.getBoundingClientRect();
-
-      zoomFactor = vbr.height / this.video.clientHeight;
-      letterbox += vbr.height - this.video.clientHeight;
-
-      let trueHeight = this.canvas.height * zoomFactor - letterbox;
-
-      if(edges.top > 1 && edges.top <= this.settings.active.arDetect.fallbackMode.noTriggerZonePx ){
-        this.logger.log('info', 'arDetect', `%c[ArDetect::calculateArFromEdges] <@${this.arid}>  Edge is in the no-trigger zone. Aspect ratio change is not triggered.`)
-        return;
+      if (fileAr != canvasAr) {
+        widthCorrected = this.canvas.height * fileAr;
+      } else {
+        widthCorrected = this.canvas.width;
       }
 
-      // varnostno območje, ki naj ostane črno (da lahko v fallback načinu odkrijemo ožanje razmerja stranic).
-      // x2, ker je safetyBorderPx definiran za eno stran.
-      // safety border so we can detect aspect ratio narrowing (21:9 -> 16:9).
-      // x2 because safetyBorderPx is for one side.
-      trueHeight += (this.settings.active.arDetect.fallbackMode.safetyBorderPx << 1);
-
-      return this.canvas.width * zoomFactor / trueHeight;
+      return widthCorrected / (this.canvas.height - letterbox);
     }
   }
 
@@ -735,7 +644,7 @@ class ArDetector {
 
     // poglejmo, če obrežemo preveč.
     // let's check if we're cropping too much
-    const guardLineOut = this.guardLine.check(imageData, this.fallbackMode);
+    const guardLineOut = this.guardLine.check(imageData, false);
 
     // če ni padla nobena izmed funkcij, potem se razmerje stranic ni spremenilo
     // if both succeed, then aspect ratio hasn't changed.
@@ -818,22 +727,10 @@ class ArDetector {
     // we need to be mindful of fallbackMode though
     // if edges are okay and not invalid, we also
     // allow automatic aspect ratio correction. If edges
-    // are bogus, we remain aspect ratio unchanged.
+    // are bogus, we keep aspect ratio unchanged.
     try {
-      if (!this.fallbackMode) {
-        // throws error if top/bottom are invalid
-        this.guardLine.setBlackbar({top: edgePost.guardLineTop, bottom: edgePost.guardLineBottom});
-      } else {
-        if (this.conf.player.dimensions){
-          this.guardLine.setBlackbarManual({
-            top: this.settings.active.arDetect.fallbackMode.noTriggerZonePx,
-            bottom: this.conf.player.dimensions.height - this.settings.active.arDetect.fallbackMode.noTriggerZonePx - 1
-          },{
-            top: edgePost.guardLineTop + this.settings.active.arDetect.guardLine.edgeTolerancePx,
-            bottom: edgePost.guardLineBottom - this.settings.active.arDetect.guardLine.edgeTolerancePx
-          })
-        }
-      }
+      // throws error if top/bottom are invalid
+      this.guardLine.setBlackbar({top: edgePost.guardLineTop, bottom: edgePost.guardLineBottom});
 
       this.processAr(newAr);
     } catch (e) {
@@ -844,7 +741,7 @@ class ArDetector {
       try {
         this.guardLine.reset();
       } catch (e) {
-        // no guardline, no bigge
+        // no guardline, no biggie
       }
       // WE DO NOT RESET ASPECT RATIO HERE IN CASE OF PROBLEMS, CAUSES UNWARRANTED RESETS:
       // (eg. here: https://www.youtube.com/watch?v=nw5Z93Yt-UQ&t=410)
