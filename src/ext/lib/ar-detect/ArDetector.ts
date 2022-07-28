@@ -466,8 +466,6 @@ class ArDetector {
     getImageDataTime /= this.performance.getImageData.sampleTime.length;
 
     return {
-      eyeballedTimeBudget: this.eyeballedTimeBudget,
-      fps: this.fps,
       drawWindowTime,
       getImageDataTime
     }
