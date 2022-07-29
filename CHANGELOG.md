@@ -18,6 +18,10 @@
 
 ## v5.x (current major)
 
+### v5.1.3
+
+* Fixed some problems with autodetection sometimes briefly resetting on dark frames ([#195](https://github.com/tamius-han/ultrawidify/issues/195), [#196](https://github.com/tamius-han/ultrawidify/issues/196))
+
 ### v5.1.2
 
 * `set-extension-mode` turned into `set-ExtensionMode` at some point. This caused in "Enable this extension" options to vanish on certain setups.
