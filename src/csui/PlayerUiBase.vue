@@ -266,11 +266,11 @@ export default {
       }, this.origin);
     });
 
-    this.eventBus.subscribe('uw-config-broadcast', (data) => {
+    this.eventBus.subscribe('uw-config-broadcast', {function: (data) => {
       if (data.type === 'drm-status') {
         this.statusFlags.hasDrm = data.hasDrm;
       }
-    });
+    }});
   },
 
   methods: {
