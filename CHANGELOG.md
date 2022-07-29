@@ -18,6 +18,15 @@
 
 ## v5.x (current major)
 
+### v5.1.3
+
+* Fixed some problems with autodetection sometimes briefly resetting on dark frames ([#195](https://github.com/tamius-han/ultrawidify/issues/195), [#196](https://github.com/tamius-han/ultrawidify/issues/196))
+
+### v5.1.2
+
+* `set-extension-mode` turned into `set-ExtensionMode` at some point. This caused in "Enable this extension" options to vanish on certain setups.
+* Blackframe tests now run on same data as main algorithm as opposed on a smaller sample (`drawImage()` calls are _very_ expensive even for a 16x9 sample).
+
 ### v5.1.1
 
 * Fixed autodetection

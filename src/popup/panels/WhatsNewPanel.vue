@@ -4,6 +4,10 @@
     <p>Full changelog for older versions <a href="https://github.com/tamius-han/ultrawidify/blob/master/CHANGELOG.md">is available here</a>.</p>
     <p class="label">6.0.0</p>
     <ul>
+      <li>Fixed some problems with autodetection sometimes briefly resetting on dark frames (<a href="https://github.com/tamius-han/ultrawidify/issues/195" target="_blank">#195</a>), <a href="https://github.com/tamius-han/ultrawidify/issues/196" target="_blank">#196</a>)</li>
+    </ul>
+    <p class="label">5.1.2</p>
+    <ul>
       <li>
         <b>In-player UI.</b><br/>
         This one took major effort to pull off. Required some changes under the hood, required me to de-spaghettify some code. The UI will only show
@@ -35,9 +39,6 @@
         Panning option that's a bit more intuitive.
       </li>
     </ul>
-    <p><small>
-      <b>Known issues:</b> zooming is limited in Chromium-based browsers. This is a browser bug that no extension can fix. Technical details about this can be found <a href="https://stuff.tamius.net/sacred-texts/2021/08/19/ultrawidify-and-chrome-2021-edition-episode-2/" target="_blank">on my blog.</a>.
-    </small></p>
   </div>
 </template>
 <script>

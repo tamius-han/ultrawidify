@@ -117,7 +117,7 @@
                         @click.native="execAction(action)"
                         >
         </ShortcutButton>
-      </div> 
+      </div>
     </div>
   </div>
 </template>
