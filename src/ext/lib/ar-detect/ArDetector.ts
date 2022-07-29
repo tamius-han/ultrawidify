@@ -876,7 +876,7 @@ class ArDetector {
     }
 
     // let's check if we're cropping too much
-    const guardLineOut = this.guardLine.check(imageData, false);
+    const guardLineOut = this.guardLine.check(imageData);
 
     // if both succeed, then aspect ratio hasn't changed.
     // otherwise we continue. We add blackbar violations to the list of the cols we'll sample and sort them
