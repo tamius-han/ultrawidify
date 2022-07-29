@@ -379,7 +379,6 @@ export default {
     },
 
     selectTab(tab) {
-      console.log('selected tab:', tab);
       this.selectedTab = tab;
     }
   }

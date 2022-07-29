@@ -212,14 +212,12 @@ class UwUi {
   }
 
   async showLogger() {
-    console.log("show logger?")
     if (!this.loggerUiInitiated) {
       await this.initLoggerUi();
     }
 
 
     try {
-      console.log("will show logger")
       this.vuexStore.dispatch('uw-show-logger');
     } catch (e) {
       console.error('Failed to dispatch vuex store', e)

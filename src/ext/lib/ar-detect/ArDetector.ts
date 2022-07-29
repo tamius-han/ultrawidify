@@ -814,8 +814,6 @@ class ArDetector {
   async frameCheck(){
     this.logger.log('info', 'arDetect_verbose',  `%c[ArDetect::processAr] <@${this.arid}> Starting frame check.`);
 
-    console.log('.');
-
     const timerResults = {
       imageDrawTime: null,
       blackFrameDrawTime: null,

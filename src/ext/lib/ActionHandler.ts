@@ -194,7 +194,6 @@ class ActionHandler {
 
     try {
       if (this.preventAction(event)) {
-        console.log('action is being prevented!');
         this.logger.log('info', 'keyboard', "[ActionHandler::handleKeyup] we are in a text box or something. Doing nothing.");
         return;
       }

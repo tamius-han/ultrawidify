@@ -312,7 +312,6 @@ export default {
        this.eventBus.sendToTunnel('get-aard-timing');
     },
     handleConfigBroadcast(data) {
-      console.log('GOT CONFIG BROADCAST!', data);
       if (data.type === 'aard-performance-data') {
         this.performanceData = data.performanceData;
         this.$nextTick( () => this.$forceUpdate() );

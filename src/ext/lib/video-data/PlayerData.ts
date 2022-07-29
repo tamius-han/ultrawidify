@@ -640,7 +640,6 @@ class PlayerData {
   }
 
   private markElement(data: {parentIndex: number, enable: boolean}) {
-    console.log('mark element: got request to do border around this:', data);
     this.elementStack[data.parentIndex].element.style.outline = data.enable ? '5px dashed #fa6' : null;
     this.elementStack[data.parentIndex].element.style.filter = data.enable ? 'sepia(1) brightness(2) contrast(0.5)' : null;
   }
