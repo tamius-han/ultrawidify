@@ -75,7 +75,6 @@ class PageInfo {
     this.extensionMode = extensionMode;
     this.readOnly = readOnly;
 
-    this.eventBus = new EventBus();
 
     if (comms){
       this.comms = comms;
@@ -84,10 +83,7 @@ class PageInfo {
     try {
       // request inject css immediately
       const playerStyleString = this.settings.active.sites[window.location.hostname].css.replace('\\n', '');
-      this.comms.sendMessage({
-        cmd: 'inject-css',
-        cssString: playerStyleString
-      });
+      this.eventBus.send('inject-css', {cssString: playerStyleString});
     } catch (e) {
       // do nothing. It's ok if there's no special settings for the player element or crop persistence
     }
@@ -110,28 +106,6 @@ class PageInfo {
     this.scheduleUrlCheck();
   }
 
-  async injectCss(cssString) {
-    await this.comms.sendMessage({
-      cmd: 'inject-css',
-      cssString: cssString
-    });
-  }
-
-  async ejectCss(cssString) {
-    await this.comms.sendMessage({
-      cmd: 'eject-css',
-      cssString: cssString
-    });
-  }
-
-  async replaceCss(oldCssString, newCssString) {
-    await this.comms.sendMessage({
-      cmd: 'replace-css',
-      newCssString,
-      oldCssString
-    });
-  }
-
   destroy() {
     this.logger.log('info', ['debug', 'init'], "[PageInfo::destroy] destroying all videos!")
     if(this.rescanTimer){
@@ -139,7 +113,7 @@ class PageInfo {
     }
     for (let video of this.videos) {
       try {
-        (this.comms.unregisterVideo as any)(video.videoData.vdid)
+        this.eventBus.send('noVideo', undefined);
         video.videoData.destroy();
       } catch (e) {
         this.logger.log('error', ['debug', 'init'], '[PageInfo::destroy] unable to destroy video! Error:', e);
@@ -148,12 +122,7 @@ class PageInfo {
 
     try {
       const playerStyleString = this.settings.active.sites[window.location.hostname].css;
-      if (playerStyleString) {
-        this.comms.sendMessage({
-          cmd: 'eject-css',
-          cssString: playerStyleString
-        });
-      }
+      this.eventBus.send('eject-css', {cssString: playerStyleString});
     } catch (e) {
       // do nothing. It's ok if there's no special settings for the player element
     }
@@ -300,10 +269,10 @@ class PageInfo {
 
         if (this.videos.length > 0) {
           // this.comms.registerVideo({host: window.location.hostname, location: window.location});
-          this.comms.registerVideo();
+          this.eventBus.send('has-video', null);
         } else {
           // this.comms.unregisterVideo({host: window.location.hostname, location: window.location});
-          this.comms.unregisterVideo();
+          this.eventBus.send('noVideo', null);
         }
       }
 
@@ -413,15 +382,6 @@ class PageInfo {
         }
       }
     }
-  }
-
-  announceZoom(scale) {
-    if (this.announceZoomTimeout) {
-      clearTimeout(this.announceZoomTimeout);
-    }
-    this.currentZoomScale = scale;
-    const ths = this;
-    this.announceZoomTimeout = setTimeout(() => ths.comms.announceZoom(scale), this.settings.active.zoom.announceDebounce);
   }
 
   setArPersistence(persistenceMode) {

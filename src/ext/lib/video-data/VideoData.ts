@@ -143,16 +143,19 @@ class VideoData {
       if (!this.mutationObserver) {
         this.setupMutationObserver();
       }
-      await this.pageInfo.injectCss(`
-        .uw-ultrawidify-base-wide-screen {
-          margin: 0px 0px 0px 0px !important;
-          width: initial !important;
-          align-self: start !important;
-          justify-self: start !important;
-          max-height: initial !important;
-          max-width: initial !important;
-        }
-      `);
+      this.eventBus.send(
+        'inject-css',
+        `
+          .uw-ultrawidify-base-wide-screen {
+            margin: 0px 0px 0px 0px !important;
+            width: initial !important;
+            align-self: start !important;
+            justify-self: start !important;
+            max-height: initial !important;
+            max-width: initial !important;
+          }
+        `
+      );
     } catch (e) {
       console.error('Failed to inject base css!', e);
     }

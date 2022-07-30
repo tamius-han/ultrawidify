@@ -1,7 +1,21 @@
+import CommsClient from './comms/CommsClient';
+import CommsServer from './comms/CommsServer';
 
 export interface EventBusCommand {
   isGlobal?: boolean,
-  function: (commandConfig: any) => void | Promise<void>
+  function: (commandConfig: any, context?: any) => void | Promise<void>
+}
+
+export interface EventBusContext {
+  stopPropagation?: boolean,
+
+  // Context stuff added by Comms
+  fromComms?: boolean,
+  comms?: {
+    sender?: any,
+    port?: any,
+    forwardTo?: 'all' | 'active' | 'contentScript' | 'sameOrigin',
+  }
 }
 
 export default class EventBus {
@@ -9,6 +23,20 @@ export default class EventBus {
   private commands: { [x: string]: EventBusCommand[]} = {};
   private downstreamBuses: EventBus[] = [];
   private upstreamBus?: EventBus;
+  private comms?: CommsClient;
+
+  //#region lifecycle
+  destroy() {
+    this.commands = null;
+    for (const bus of this.downstreamBuses) {
+      bus.destroy();
+    }
+  }
+  //#endregion
+
+  setComms(comms: CommsClient): void {
+    this.comms = comms;
+  }
 
   setUpstreamBus(eventBus: EventBus, stopRecursing: boolean = false) {
     this.upstreamBus = eventBus;
@@ -49,18 +77,18 @@ export default class EventBus {
     }
   }
 
-  send(command: string, config: any, stopPropagation?: boolean) {
+  send(command: string, config: any, context?: EventBusContext) {
     if (!this.commands ||!this.commands[command]) {
       // ensure send is not being called for commands that we have no subscriptions for
       return;
     }
 
     for (const eventBusCommand of this.commands[command]) {
-      eventBusCommand.function(config);
+      eventBusCommand.function(config, context);
 
-      if (eventBusCommand.isGlobal && !stopPropagation) {
-        this.sendUpstream(command, config);
-        this.sendDownstream(command, config);
+      if (eventBusCommand.isGlobal && !context?.stopPropagation) {
+        this.sendUpstream(command, config, context);
+        this.sendDownstream(command, config, context);
       }
     }
   }
@@ -81,14 +109,14 @@ export default class EventBus {
   }
 
 
-  sendGlobal(command: string, config: any) {
+  sendGlobal(command: string, config: any, context?: EventBusContext) {
     this.send(command, config);
     this.sendUpstream(command, config);
     this.sendDownstream(command, config);
   }
 
 
-  sendDownstream(command: string, config: any, sourceEventBus?: EventBus) {
+  sendDownstream(command: string, config: any, context?: EventBusContext, sourceEventBus?: EventBus) {
     for (const eventBus of this.downstreamBuses) {
       if (eventBus !== sourceEventBus) {
         eventBus.send(command, config);
@@ -97,11 +125,14 @@ export default class EventBus {
     }
   }
 
-  sendUpstream(command: string, config: any) {
+  sendUpstream(command: string, config: any, context?: EventBusContext) {
     if (this.upstreamBus) {
-      this.upstreamBus.send(command, config);
-      this.upstreamBus.sendUpstream(command, config);
-      this.upstreamBus.sendDownstream(command, config, this);
+      this.upstreamBus.send(command, config, context);
+      this.upstreamBus.sendUpstream(command, config, context);
+      this.upstreamBus.sendDownstream(command, config, context, this);
+    }
+    if (!this.upstreamBus && this.comms && !context?.fromComms) {
+      this.comms.sendMessage({command, config});
     }
   }
 }

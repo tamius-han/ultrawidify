@@ -132,16 +132,16 @@ class Resizer {
     }
   }
 
-  injectCss(css) {
-    this.conf.pageInfo.injectCss(css);
+  injectCss(cssString) {
+    this.eventBus.send('inject-css', {cssString});
   }
 
-  ejectCss(css) {
-    this.conf.pageInfo.ejectCss(css);
+  ejectCss(cssString) {
+    this.eventBus.send('eject-css', {cssString});
   }
 
-  replaceCss(oldCss, newCss) {
-    this.conf.pageInfo.replaceCss(oldCss, newCss);
+  replaceCss(oldCssString, newCssString) {
+    this.eventBus.send('replace-css', {oldCss: oldCssString, newCss: newCssString});
   }
 
   prepareCss(css) {

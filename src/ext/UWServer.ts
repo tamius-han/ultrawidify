@@ -7,11 +7,13 @@ import Logger, { baseLoggingOptions } from './lib/Logger';
 import { sleep } from '../common/js/utils';
 
 import { browser } from 'webextension-polyfill-ts';
+import EventBus, { EventBusCommand } from './lib/EventBus';
 
 export default class UWServer {
   settings: Settings;
   logger: Logger;
   comms: CommsServer;
+  eventBus: EventBus;
 
   ports: any[] = [];
   hasVideos: boolean;
@@ -24,6 +26,26 @@ export default class UWServer {
     'videoSettings': undefined,
   }
 
+  eventBusCommands = {
+    'popup-set-selected-tab': [{
+      function: (message) => this.setSelectedTab(message.selectedMenu, message.selectedSubitem)
+    }],
+    'has-video': [{
+      function: (message, context) => this.registerVideo(context.comms.sender)
+    }],
+    'noVideo' : [{
+      function: (message, context) => this.unregisterVideo(context.comms.sender)
+    }],
+    'inject-css': [{
+      function: (message, context) => this.injectCss(message.cssString, context.comms.sender)
+    }],
+    'eject-css': [{
+      function: (message, context) => this.removeCss(message.cssString, context.comms.sender)
+    }],
+    'replace-css': [{
+      function: (message, context) => this.replaceCss(message.oldCssString, message.newCssString, context.comms.sender)
+    }]
+  };
 
   private gcTimeout: any;
   uiLoggerInitialized: boolean = false;
@@ -52,13 +74,13 @@ export default class UWServer {
 
       this.settings = new Settings({logger: this.logger});
       await this.settings.init();
+      this.eventBus = new EventBus();
       this.comms = new CommsServer(this);
-      this.comms.subscribe('show-logger', async () => await this.initUiAndShowLogger());
-      this.comms.subscribe('init-vue', async () => await this.initUi());
-      this.comms.subscribe('uwui-vue-initialized', () => this.uiLoggerInitialized = true);
+
+
       this.comms.subscribe('emit-logs', () => {});  // we don't need to do anything, this gets forwarded to UI content script as is
 
-      browser.tabs.onActivated.addListener((m) => {this.onTabSwitched(m)});  
+      browser.tabs.onActivated.addListener((m) => {this.onTabSwitched(m)});
     } catch (e) {
       console.error(`Ultrawidify [server]: failed to start. Reason:`, e);
     }
@@ -84,7 +106,7 @@ export default class UWServer {
   async removeCss(css, sender) {
     try {
       browser.tabs.removeCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
-    } catch (e) { 
+    } catch (e) {
       this.logger.log('error','debug', '[UwServer::injectCss] Error while removing css:', {error: e, css, sender});
     }
   }
@@ -98,22 +120,22 @@ export default class UWServer {
 
   extractHostname(url){
     var hostname;
-    
+
     if (!url) {
       return "<no url>";
     }
 
-    // extract hostname  
+    // extract hostname
     if (url.indexOf("://") > -1) {    //find & remove protocol (http, ftp, etc.) and get hostname
       hostname = url.split('/')[2];
     }
     else {
       hostname = url.split('/')[0];
     }
-    
+
     hostname = hostname.split(':')[0];   //find & remove port number
     hostname = hostname.split('?')[0];   //find & remove "?"
-    
+
     return hostname;
   }
 
@@ -209,14 +231,14 @@ export default class UWServer {
           allFrames: true,
         });
       } else if (BrowserDetect.anyChromium) {
-        await new Promise<void>( resolve => 
+        await new Promise<void>( resolve =>
           chrome.tabs.executeScript({
             file: '/ext/uw-ui.js',
             allFrames: true,
           }, () => resolve())
         );
       }
-      
+
     } catch (e) {
       console.warn('Ultrawidify [server]: UI setup failed. While problematic, this problem shouldn\'t completely crash the extension.');
       this.logger.log('ERROR', 'uwbg', 'UI initialization failed. Reason:', e);
@@ -232,16 +254,16 @@ export default class UWServer {
       await this.initUi();
 
       await new Promise<void>( async (resolve, reject) => {
-        // if content script doesn't give us a response within 5 seconds, something is 
+        // if content script doesn't give us a response within 5 seconds, something is
         // obviously wrong and we stop waiting,
 
-        // oh and btw, resolve/reject do not break the loops, so we need to do that 
+        // oh and btw, resolve/reject do not break the loops, so we need to do that
         // ourselves:
         // https://stackoverflow.com/questions/55207256/will-resolve-in-promise-loop-break-loop-iteration
         let isRejected = false;
         setTimeout( async () => {isRejected = true; reject()}, 5000);
 
-        // check whether UI has been initiated on the FE. If it was, we resolve the 
+        // check whether UI has been initiated on the FE. If it was, we resolve the
         // promise and off we go
         while (!isRejected) {
           if (this.uiLoggerInitialized) {
@@ -261,7 +283,7 @@ export default class UWServer {
   }
 
   async getVideoTab() {
-    // friendly reminder: if current tab doesn't have a video, 
+    // friendly reminder: if current tab doesn't have a video,
     // there won't be anything in this.videoTabs[this.currentTabId]
 
     const ctab = await this.getCurrentTab();
@@ -295,11 +317,11 @@ export default class UWServer {
       return {
         ...this.videoTabs[ctab.id],
         host: this.extractHostname(ctab.url),
-        selected: this.selectedSubitem 
+        selected: this.selectedSubitem
       };
     }
 
-    // return something more or less empty if this tab doesn't have 
+    // return something more or less empty if this tab doesn't have
     // a video registered for it
     return {
       host: this.extractHostname(ctab.url),
@@ -308,7 +330,7 @@ export default class UWServer {
     }
   }
 
-  // chrome shitiness mitigation 
+  // chrome shitiness mitigation
   sendUnmarkPlayer(message) {
     this.comms.sendUnmarkPlayer(message);
   }

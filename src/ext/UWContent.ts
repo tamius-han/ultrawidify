@@ -7,6 +7,7 @@ import CommsClient from './lib/comms/CommsClient';
 import PageInfo from './lib/video-data/PageInfo';
 import Logger, { baseLoggingOptions } from './lib/Logger';
 import UWGlobals from './lib/UWGlobals';
+import EventBus from './lib/EventBus';
 
 export default class UWContent {
   pageInfo: PageInfo;
@@ -14,6 +15,7 @@ export default class UWContent {
   settings: Settings;
   actionHandler: ActionHandler;
   logger: Logger;
+  eventBus: EventBus;
 
   commsHandlers: {
     [x: string]: ((a: any, b?: any) => void | Promise<void>)[]
@@ -84,15 +86,12 @@ export default class UWContent {
         console.error("logger init failed!", e)
       }
 
-      // second — let's add some globals
-      if (! (window as any).ultrawidify) {
-        (window as any).ultrawidify = new UWGlobals();
-        ((window as any).ultrawidify as UWGlobals).importSubscriptionsFromCommsHandlers(this.commsHandlers);
-      }
-
       // init() is re-run any time settings change
       if (this.comms) {
         this.comms.destroy();
+      }
+      if (this.eventBus) {
+        this.eventBus.destroy();
       }
       if (!this.settings) {
         this.settings = new Settings({
@@ -102,51 +101,70 @@ export default class UWContent {
         await this.settings.init();
       }
 
-      this.comms = new CommsClient('content-main-port', this.logger, this.commsHandlers);
-
-      // če smo razširitev onemogočili v nastavitvah, ne naredimo ničesar
-      // If extension is soft-disabled, don't do shit
-
-      var extensionMode = this.settings.getExtensionMode();
-
-      this.logger.log('info', 'debug', "[uw::init] Extension mode:" + (extensionMode < 0 ? "disabled" : extensionMode == '1' ? 'basic' : 'full'));
-
-      const isSiteDisabled = extensionMode === ExtensionMode.Disabled
-
-      if (isSiteDisabled) {
-        if (this.settings.getExtensionMode('@global') === ExtensionMode.Disabled) {
-          this.logger.log('info', 'debug', "[uw::init] EXTENSION DISABLED, THEREFORE WONT BE STARTED")
-          return;
+      this.eventBus = new EventBus();
+      this.eventBus.subscribe(
+        'uw-restart',
+        {
+          function: () => this.initPhase2()
         }
-      }
+      );
+      this.comms = new CommsClient('content-main-port', this.logger, this.eventBus);
 
-      try {
-        if (this.pageInfo) {
-          this.logger.log('info', 'debug', '[uw.js::setup] An instance of pageInfo already exists and will be destroyed.');
-          this.pageInfo.destroy();
-        }
-        this.pageInfo = new PageInfo(this.comms, this.settings, this.logger, extensionMode, isSiteDisabled);
-        this.logger.log('info', 'debug', "[uw.js::setup] pageInfo initialized.");
-
-        this.logger.log('info', 'debug', "[uw.js::setup] will try to initate ActionHandler.");
-
-        // start action handler only if extension is enabled for this site
-        if (!isSiteDisabled) {
-          if (this.actionHandler) {
-            this.actionHandler.destroy();
-          }
-          this.actionHandler = new ActionHandler(this.pageInfo.eventBus, this.settings, this.logger);
-          this.actionHandler.init();
-
-          this.logger.log('info', 'debug', "[uw.js::setup] ActionHandler initiated.");
-        }
-
-      } catch (e) {
-        console.error('Ultrawidify: failed to start extension. Error:', e)
-        this.logger.log('error', 'debug', "[uw::init] FAILED TO START EXTENSION. Error:", e);
-      }
+      this.initPhase2();
     } catch (e) {
       console.error('Ultrawidify initalization failed for some reason:', e);
+    }
+  }
+
+  initPhase2() {
+    // If extension is soft-disabled, don't do shit
+    var extensionMode = this.settings.getExtensionMode();
+
+    this.logger.log('info', 'debug', "[uw::init] Extension mode:" + (extensionMode < 0 ? "disabled" : extensionMode == '1' ? 'basic' : 'full'));
+
+    const isSiteDisabled = extensionMode === ExtensionMode.Disabled
+
+    if (isSiteDisabled) {
+      this.destroy();
+      if (this.settings.getExtensionMode('@global') === ExtensionMode.Disabled) {
+        this.logger.log('info', 'debug', "[uw::init] EXTENSION DISABLED, THEREFORE WONT BE STARTED")
+        return;
+      }
+    }
+
+    try {
+      if (this.pageInfo) {
+        this.logger.log('info', 'debug', '[uw.js::setup] An instance of pageInfo already exists and will be destroyed.');
+        this.pageInfo.destroy();
+      }
+      this.pageInfo = new PageInfo(this.eventBus, this.settings, this.logger, extensionMode, isSiteDisabled);
+      this.logger.log('info', 'debug', "[uw.js::setup] pageInfo initialized.");
+
+      this.logger.log('info', 'debug', "[uw.js::setup] will try to initate ActionHandler.");
+
+      // start action handler only if extension is enabled for this site
+      if (!isSiteDisabled) {
+        if (this.actionHandler) {
+          this.actionHandler.destroy();
+        }
+        this.actionHandler = new ActionHandler(this.eventBus, this.settings, this.logger);
+        this.actionHandler.init();
+
+        this.logger.log('info', 'debug', "[uw.js::setup] ActionHandler initiated.");
+      }
+
+    } catch (e) {
+      console.error('Ultrawidify: failed to start extension. Error:', e)
+      this.logger.log('error', 'debug', "[uw::init] FAILED TO START EXTENSION. Error:", e);
+    }
+  }
+
+  destroy() {
+    if (this.pageInfo) {
+      this.pageInfo.destroy();
+    }
+    if (this.actionHandler) {
+      this.actionHandler.destroy();
     }
   }
 }
