@@ -70,17 +70,8 @@ export default class UWContent {
       // logger init is the first thing that needs to run
       try {
         if (!this.logger) {
-
           this.logger = new Logger();
           await this.logger.init(baseLoggingOptions);
-
-          // show popup if logging to file is enabled
-          if (this.logger.isLoggingAllowed() && this.logger.isLoggingToFile()) {
-            console.info("[uw::init] Logging is allowed! Initalizing vue and UI!");
-
-            // CommsClient is not initiated yet, so we use static comms to send the command
-            Comms.sendMessage({cmd: 'show-logger'});
-          }
         }
       } catch (e) {
         console.error("logger init failed!", e)

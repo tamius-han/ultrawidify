@@ -223,61 +223,6 @@ export default class UWServer {
     this.selectedSubitem[menu] = subitem;
   }
 
-  async initUi() {
-    try {
-      if (BrowserDetect.firefox) {
-        await browser.tabs.executeScript({
-          file: '/ext/uw-ui.js',
-          allFrames: true,
-        });
-      } else if (BrowserDetect.anyChromium) {
-        await new Promise<void>( resolve =>
-          chrome.tabs.executeScript({
-            file: '/ext/uw-ui.js',
-            allFrames: true,
-          }, () => resolve())
-        );
-      }
-
-    } catch (e) {
-      console.warn('Ultrawidify [server]: UI setup failed. While problematic, this problem shouldn\'t completely crash the extension.');
-      this.logger.log('ERROR', 'uwbg', 'UI initialization failed. Reason:', e);
-    }
-  }
-
-  async initUiAndShowLogger() {
-    try {
-      // this implementation is less than optimal and very hacky, but it should work
-      // just fine for our use case.
-      this.uiLoggerInitialized = false;
-
-      await this.initUi();
-
-      await new Promise<void>( async (resolve, reject) => {
-        // if content script doesn't give us a response within 5 seconds, something is
-        // obviously wrong and we stop waiting,
-
-        // oh and btw, resolve/reject do not break the loops, so we need to do that
-        // ourselves:
-        // https://stackoverflow.com/questions/55207256/will-resolve-in-promise-loop-break-loop-iteration
-        let isRejected = false;
-        setTimeout( async () => {isRejected = true; reject()}, 5000);
-
-        // check whether UI has been initiated on the FE. If it was, we resolve the
-        // promise and off we go
-        while (!isRejected) {
-          if (this.uiLoggerInitialized) {
-            resolve();
-            return;        // remember the bit about resolve() not breaking the loop?
-          }
-          await sleep(100);
-        }
-      });
-    } catch (e) {
-      console.warn('Ultrawidify [server]: failed to set up logger UI. While problematic, this problem shouldn\'t completely crash the extension.');
-    }
-  }
-
   async getCurrentTab() {
     return (await browser.tabs.query({active: true, currentWindow: true}))[0];
   }

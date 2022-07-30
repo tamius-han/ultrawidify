@@ -13,7 +13,6 @@ const config = {
   context: __dirname + '/src',
   entry: {
     'ext/uw': './ext/uw.js',
-    'ext/uw-ui': './ext/uw-ui.js',
     'ext/uw-bg': './ext/uw-bg.js',
     'popup/popup': './popup/popup.js',
     'options/options': './options/options.js',
