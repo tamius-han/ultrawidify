@@ -349,7 +349,6 @@ class Settings {
   }
 
   // -----------------------------------------
-  // Nastavitve za posamezno stran
   // Config for a given page:
   //
   // <hostname> : {
@@ -358,7 +357,6 @@ class Settings {
   //    statusEmbedded: <option>      // reserved for future... maybe
   // }
   //
-  // Veljavne vrednosti za možnosti
   // Valid values for options:
   //
   //     status, arStatus, statusEmbedded:

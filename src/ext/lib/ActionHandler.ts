@@ -25,7 +25,7 @@ class ActionHandler {
   commands: any[] = [];
 
 
-  constructor(eventBus, settings, logger) {
+  constructor(eventBus: EventBus, settings, logger) {
     this.logger = logger;
     this.settings = settings;
     this.eventBus = eventBus;
