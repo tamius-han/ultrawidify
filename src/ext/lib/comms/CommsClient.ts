@@ -68,7 +68,6 @@ class CommsClient {
     try {
       this.logger = logger;
       this.eventBus = eventBus;
-      this.eventBus.setComms(this);
 
       this.port = browser.runtime.connect(null, {name: name});
 

@@ -67,7 +67,7 @@ class PageInfo {
   actionHandler: any;
   //#endregion
 
-  constructor(comms, settings, logger, extensionMode, readOnly = false){
+  constructor(eventBus: EventBus, settings: Settings, logger: Logger, extensionMode, readOnly = false){
     this.logger = logger;
     this.settings = settings;
 
@@ -75,9 +75,8 @@ class PageInfo {
     this.extensionMode = extensionMode;
     this.readOnly = readOnly;
 
-
-    if (comms){
-      this.comms = comms;
+    if (eventBus){
+      this.eventBus = eventBus;
     }
 
     try {
@@ -88,18 +87,6 @@ class PageInfo {
       // do nothing. It's ok if there's no special settings for the player element or crop persistence
     }
 
-    // try getting default crop immediately.
-    // const cropModePersistence = this.settings.getDefaultCropPersistenceMode(window.location.hostname);
-
-    // try {
-    //   if (cropModePersistence === CropModePersistence.Forever) {
-    //     this.defaultCrop = this.settings.active.sites[window.location.hostname].defaultCrop;
-    //   } else if (cropModePersistence === CropModePersistence.CurrentSession) {
-    //     this.defaultCrop = JSON.parse(sessionStorage.getItem('uw-crop-mode-session-persistence'));
-    //   }
-    // } catch (e) {
-    //   // do nothing. It's ok if there's no special settings for the player element or crop persistence
-    // }
     this.currentCrop = this.defaultCrop;
 
     this.rescan(RescanReason.PERIODIC);
@@ -248,7 +235,7 @@ class PageInfo {
 
       // if we're left without videos on the current page, we unregister the page.
       // if we have videos, we call register.
-      if (this.comms) {
+      if (this.eventBus) {
         // We used to send "register video" requests only on the first load, or if the number of
         // videos on the page has changed. However, since Chrome Web Store started to require every
         // extension requiring "broad permissions" to undergo manual review

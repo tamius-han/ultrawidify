@@ -34,7 +34,7 @@ export default class EventBus {
   }
   //#endregion
 
-  setComms(comms: CommsClient): void {
+  setComms(comms: CommsClient) {
     this.comms = comms;
   }
 
@@ -78,19 +78,24 @@ export default class EventBus {
   }
 
   send(command: string, config: any, context?: EventBusContext) {
-    if (!this.commands ||!this.commands[command]) {
-      // ensure send is not being called for commands that we have no subscriptions for
+    // execute commands we have subscriptions for
+    if (this.commands?.[command]) {
+      for (const eventBusCommand of this.commands[command]) {
+        eventBusCommand.function(config, context);
+      }
+    }
+
+    if (this.comms && !context?.fromComms) {
+      this.comms.sendMessage({command, config});
+    }
+
+    if (context?.stopPropagation) {
       return;
     }
 
-    for (const eventBusCommand of this.commands[command]) {
-      eventBusCommand.function(config, context);
-
-      if (eventBusCommand.isGlobal && !context?.stopPropagation) {
-        this.sendUpstream(command, config, context);
-        this.sendDownstream(command, config, context);
-      }
-    }
+    // propagate commands across the bus
+    this.sendUpstream(command, config, context);
+    this.sendDownstream(command, config, context);
   }
 
   /**
@@ -109,17 +114,11 @@ export default class EventBus {
   }
 
 
-  sendGlobal(command: string, config: any, context?: EventBusContext) {
-    this.send(command, config);
-    this.sendUpstream(command, config);
-    this.sendDownstream(command, config);
-  }
-
-
   sendDownstream(command: string, config: any, context?: EventBusContext, sourceEventBus?: EventBus) {
     for (const eventBus of this.downstreamBuses) {
       if (eventBus !== sourceEventBus) {
-        eventBus.send(command, config);
+        // prevent eventBus.send from auto-propagating the command
+        eventBus.send(command, config, {...context, stopPropagation: true});
         eventBus.sendDownstream(command, config);
       }
     }
@@ -127,12 +126,10 @@ export default class EventBus {
 
   sendUpstream(command: string, config: any, context?: EventBusContext) {
     if (this.upstreamBus) {
-      this.upstreamBus.send(command, config, context);
+      // prevent eventBus.send from auto-propagating the command
+      this.upstreamBus.send(command, config, {...context, stopPropagation: true});
       this.upstreamBus.sendUpstream(command, config, context);
       this.upstreamBus.sendDownstream(command, config, context, this);
-    }
-    if (!this.upstreamBus && this.comms && !context?.fromComms) {
-      this.comms.sendMessage({command, config});
     }
   }
 }

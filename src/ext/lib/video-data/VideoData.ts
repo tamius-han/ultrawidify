@@ -65,8 +65,6 @@ class VideoData {
   }
 
   constructor(video, settings, pageInfo){
-    (window as any).ultrawidify.addVideo(this);
-
     this.logger = pageInfo.logger;
     this.arSetupComplete = false;
     this.video = video;
@@ -97,7 +95,6 @@ class VideoData {
         this.eventBus.send('uw-config-broadcast', {type: 'drm-status', hasDrm: this.hasDrm});
       }});
     }
-
 
     this.setupStageOne();
   }

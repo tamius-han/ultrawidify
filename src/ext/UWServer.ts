@@ -75,10 +75,14 @@ export default class UWServer {
       this.settings = new Settings({logger: this.logger});
       await this.settings.init();
       this.eventBus = new EventBus();
+
+      for (const action in this.eventBusCommands) {
+        for (const command of this.eventBusCommands[action]) {
+          this.eventBus.subscribe(action, command);
+        }
+      }
+
       this.comms = new CommsServer(this);
-
-
-      this.comms.subscribe('emit-logs', () => {});  // we don't need to do anything, this gets forwarded to UI content script as is
 
       browser.tabs.onActivated.addListener((m) => {this.onTabSwitched(m)});
     } catch (e) {

@@ -204,7 +204,7 @@ class ActionHandler {
 
       for (const command of this.commands) {
         if (this.isActionMatch(command.shortcut, event, isLatin)) {
-          this.eventBus.sendGlobal(command.action, command.arguments);
+          this.eventBus.send(command.action, command.arguments);
         }
       }
     } catch (e) {

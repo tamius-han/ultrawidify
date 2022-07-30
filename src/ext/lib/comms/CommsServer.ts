@@ -222,13 +222,13 @@ class CommsServer {
   async processReceivedMessage(message, port){
     this.logger.log('info', 'comms', "[CommsServer.js::processReceivedMessage] Received message from popup/content script!", message, "port", port);
 
-    this.eventBus.send(message, {port, fromComms: true});
+    this.eventBus.send(message.command, message.config, {comms: {port}, fromComms: true});
   }
 
   processReceivedMessage_nonpersistent(message, sender){
     this.logger.log('info', 'comms', "%c[CommsServer.js::processMessage_nonpersistent] Received message from background script!", "background-color: #11D; color: #aad", message, sender);
 
-    this.eventBus.send(message, {sender, fromComms: true});
+    this.eventBus.send(message.command, message.config, {comms: {sender}, fromComms: true});
   }
 
   // chrome shitiness mitigation

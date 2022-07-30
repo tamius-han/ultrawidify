@@ -141,7 +141,7 @@ class Resizer {
   }
 
   replaceCss(oldCssString, newCssString) {
-    this.eventBus.send('replace-css', {oldCss: oldCssString, newCss: newCssString});
+    this.eventBus.send('replace-css', {oldCssString, newCssString});
   }
 
   prepareCss(css) {

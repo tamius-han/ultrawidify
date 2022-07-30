@@ -100,6 +100,8 @@ export default class UWContent {
         }
       );
       this.comms = new CommsClient('content-main-port', this.logger, this.eventBus);
+      this.eventBus.setComms(this.comms);
+
 
       this.initPhase2();
     } catch (e) {
