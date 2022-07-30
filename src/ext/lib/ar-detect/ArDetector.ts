@@ -42,7 +42,9 @@ export interface AardPerformanceData {
   blackFrameDrawCount: number,
   blackFrameCount: number,
   fastLetterboxCount: number,
-  edgeDetectCount: number
+  edgeDetectCount: number,
+
+  aardActive: boolean,    // whether autodetection is currently running or not
 }
 
 class ArDetector {
@@ -91,7 +93,8 @@ class ArDetector {
     nextFrameCheckTime: Date.now()
   }
   private status = {
-    lastVideoStatus: VideoPlaybackState.Playing
+    lastVideoStatus: VideoPlaybackState.Playing,
+    aardActive: false,
   }
 
   //#region debug variables
@@ -156,7 +159,6 @@ class ArDetector {
       }
     }
   }
-
 
   init(){
     this.logger.log('info', 'init', `[ArDetect::init] <@${this.arid}> Initializing autodetection.`);
@@ -287,11 +289,14 @@ class ArDetector {
       window.cancelAnimationFrame(this.animationFrameHandle);
     }
 
+    this.status.aardActive = true;
     this.animationFrameHandle = window.requestAnimationFrame( (ts) => this.animationFrameBootstrap(ts));
     this.logger.log('info', 'debug', `"%c[ArDetect::startLoop] <@${this.arid}> AARD loop started.`, _ard_console_start);
   }
 
   stop() {
+    this.status.aardActive = false;
+
     if (this.animationFrameHandle) {
       this.logger.log('info', 'debug', `"%c[ArDetect::stop] <@${this.arid}>  Stopping AnimationFrame loop.`, _ard_console_stop);
       window.cancelAnimationFrame(this.animationFrameHandle);
@@ -325,7 +330,7 @@ class ArDetector {
   //#region helper functions (general)
 
   isRunning(){
-    return true;
+    return this.status.aardActive;
   }
 
   private getVideoPlaybackState(): VideoPlaybackState {
@@ -702,7 +707,8 @@ class ArDetector {
       blackFrameDrawCount,
       blackFrameCount: blackFrameProcessCount,
       fastLetterboxCount,
-      edgeDetectCount
+      edgeDetectCount,
+      aardActive: this.status.aardActive,
     }
 
     this.eventBus.send('uw-config-broadcast', {type: 'aard-performance-data', performanceData: res});
@@ -777,9 +783,6 @@ class ArDetector {
     // check if aspect ratio is changed:
     let lastAr = this.conf.resizer.getLastAr();
     if (lastAr.type === AspectRatioType.AutomaticUpdate && lastAr.ratio !== null && lastAr.ratio !== undefined){
-      // spremembo lahko zavrnemo samo, če uporabljamo avtomatski način delovanja in če smo razmerje stranic
-      // že nastavili.
-      //
       // we can only deny aspect ratio changes if we use automatic mode and if aspect ratio was set from here.
 
       let arDiff = trueAr - lastAr.ratio;
