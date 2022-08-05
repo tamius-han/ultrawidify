@@ -18,6 +18,10 @@
 
 ## v5.x (current major)
 
+### v5.1.4
+
+* Fixed some problems with autodetection not returning to 16:9 when necessary if autodetection already changed aspect ratio ([#198](https://github.com/tamius-han/ultrawidify/issues/198))
+
 ### v5.1.3
 
 * Fixed some problems with autodetection sometimes briefly resetting on dark frames ([#195](https://github.com/tamius-han/ultrawidify/issues/195), [#196](https://github.com/tamius-han/ultrawidify/issues/196))
