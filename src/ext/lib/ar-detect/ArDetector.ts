@@ -480,11 +480,11 @@ class ArDetector {
       }
     }
 
-    // if (this && !this._halted && !this._paused) {
+    if (this && !this._halted && !this._paused) {
       this.animationFrameHandle = window.requestAnimationFrame( (ts) => this.animationFrameBootstrap(ts));
-    // } else {
-    //   this.logger.log('info', 'debug', `[ArDetect::animationFrameBootstrap] <@${this.arid}>  Not renewing animation frame for some reason. Paused? ${this._paused}; Halted?: ${this._halted}, Exited?: ${this._exited}`);
-    // }
+    } else {
+      this.logger.log('info', 'debug', `[ArDetect::animationFrameBootstrap] <@${this.arid}>  Not renewing animation frame for some reason. Paused? ${this._paused}; Halted?: ${this._halted}, Exited?: ${this._exited}`);
+    }
   }
 
   calculateArFromEdges(edges) {
@@ -570,13 +570,7 @@ class ArDetector {
       return;
     }
 
-    if (!this.blackframeContext) {
-      this.init();
-    }
-
     let sampleCols = this.sampleCols.slice(0);
-
-
 
     await new Promise<void>(
       resolve => {
