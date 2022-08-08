@@ -298,15 +298,20 @@ class ArDetector {
 
   stop() {
     if (this.animationFrameHandle) {
-      this.logger.log('info', 'debug', `"%c[ArDetect::stop] <@${this.arid}>  Stopping AnimationFrame loop.`, _ard_console_stop);
+      this.logger.log('info', 'debug', `%c[ArDetect::stop] <@${this.arid}>  Stopping AnimationFrame loop.`, _ard_console_stop);
       window.cancelAnimationFrame(this.animationFrameHandle);
     } else {
-      this.logger.log('info', 'debug', `"%c[ArDetect::stop] <@${this.arid}>  AnimationFrame loop is already paused (due to an earlier call of this function).`);
+      this.logger.log('info', 'debug', `%c[ArDetect::stop] <@${this.arid}>  AnimationFrame loop is already paused (due to an earlier call of this function).`);
     }
   }
 
   unpause() {
-    this.startLoop();
+    // unpause only when paused, otherwise we get an unnecessary reset
+    if (this._paused) {
+      this.startLoop();
+    } else {
+      this.logger.log('info', 'debug', `%c[ArDetect::unpause] <@${this.arid}  We are trying to unpause video, but video is not paused. This is potentially haram.`, 'color: #ff0');
+    }
   }
 
   pause() {
