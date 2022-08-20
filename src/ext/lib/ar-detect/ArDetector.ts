@@ -593,27 +593,25 @@ class ArDetector {
     }
 
     const fastLetterboxTestRes = this.fastLetterboxPresenceTest(imageData, sampleCols);
+
+    // If we don't detect letterbox, we reset aspect ratio to aspect ratio of the video file. The aspect ratio could
+    // have been corrected manually. It's also possible that letterbox (that was there before) disappeared.
     if (! fastLetterboxTestRes) {
-      // If we don't detect letterbox, we reset aspect ratio to aspect ratio of the video file. The aspect ratio could
-      // have been corrected manually. It's also possible that letterbox (that was there before) disappeared.
+      this.logger.log('info', 'arDetect', `%c[ArDetect::frameCheck] Letterbox not detected in fast test. Letterbox is either gone or we manually corrected aspect ratio. Video will be reset back to default aspect ratio.`, "color: #fa3");
+
       this.conf.resizer.updateAr({type: AspectRatioType.Automatic, ratio: this.defaultAr});
       this.guardLine.reset();
       this.noLetterboxCanvasReset = true;
-
-      this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Letterbox not detected in fast test. Letterbox is either gone or we manually corrected aspect ratio. Nothing will be done.`, "color: #fa3");
 
       this.clearImageData(imageData);
       return;
     }
 
 
-    // Če preverjamo naprej, potem moramo postaviti to vrednost nazaj na 'false'. V nasprotnem primeru se bo
-    // css resetiral enkrat na video/pageload namesto vsakič, ko so za nekaj časa obrobe odstranejene
     // if we look further we need to reset this value back to false. Otherwise we'll only get CSS reset once
     // per video/pageload instead of every time letterbox goes away (this can happen more than once per vid)
     this.noLetterboxCanvasReset = false;
 
-    // poglejmo, če obrežemo preveč.
     // let's check if we're cropping too much
     const guardLineOut = this.guardLine.check(imageData, false);
 
@@ -655,9 +653,7 @@ class ArDetector {
       this.logger.log('info', 'arDetect', `[ArDetect::frameCheck] something went wrong while checking for pillarbox. Error:\n`, e);
     }
 
-    // pa poglejmo, kje se končajo črne letvice na vrhu in na dnu videa.
     let edgePost = this.edgeDetector.findBars(imageData, sampleCols, EdgeDetectPrimaryDirection.Vertical, EdgeDetectQuality.Improved, guardLineOut, bfAnalysis);
-
     this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] edgeDetector returned this\n`,  "color: #aaf", edgePost);
 
     if (edgePost.status !== EdgeStatus.ARKnown){
@@ -669,8 +665,7 @@ class ArDetector {
     }
 
     let newAr = this.calculateArFromEdges(edgePost);
-
-    this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Triggering aspect ration change! new ar: ${newAr}`, "color: #aaf");
+    this.logger.log('info', 'arDetect', `%c[ArDetect::frameCheck] Triggering aspect ration change! new ar: ${newAr}`, "color: #aaf");
 
     // we also know edges for guardline, so set them. If edges are okay and not invalid, we also
     // allow automatic aspect ratio correction. If edges
@@ -678,7 +673,6 @@ class ArDetector {
     try {
       // throws error if top/bottom are invalid
       this.guardLine.setBlackbar({top: edgePost.guardLineTop, bottom: edgePost.guardLineBottom});
-
       this.processAr(newAr);
     } catch (e) {
       // edges weren't gucci, so we'll just reset
@@ -858,7 +852,8 @@ class ArDetector {
   }
 
   /**
-   * Does a quick test to see if the aspect ratio is correct
+   * Does a quick test to see if the aspect ratio is correct by checking the topmost
+   * row of a video.
    * Returns 'true' if there's a chance of letterbox existing, false if not.
    * @param imageData
    * @param sampleCols
@@ -871,25 +866,31 @@ class ArDetector {
 
     // If we detect anything darker than blackLevel, we modify blackLevel to the new lowest value
     const rowOffset = this.canvas.width * (this.canvas.height - 1);
-    let currentMin = 255, currentMax = 0, colOffset_r, colOffset_g, colOffset_b, colOffset_rb, colOffset_gb, colOffset_bb, blthreshold = this.settings.active.arDetect.blackbar.threshold;
+    let currentMin = 255, currentMax = 0, colOffset_r, colOffset_g, colOffset_b, colOffset_rb, colOffset_gb, colOffset_bb, blThreshold = this.settings.active.arDetect.blackbar.threshold;
 
     // detect black level. if currentMax comes above blackbar + blackbar threshold, we know we aren't letterboxed
+
+    let violationCount = 0;
+    let currentBrightPixelThreshold = this.blackLevel + blThreshold;
+    const maxViolations = sampleCols.length / 3;
 
     for (let i = 0; i < sampleCols.length; ++i){
       colOffset_r = sampleCols[i] << 2;
       colOffset_g = colOffset_r + 1;
       colOffset_b = colOffset_r + 2;
-      colOffset_rb = colOffset_r + rowOffset;
-      colOffset_gb = colOffset_g + rowOffset;
-      colOffset_bb = colOffset_b + rowOffset;
+      // colOffset_rb = colOffset_r + rowOffset;
+      // colOffset_gb = colOffset_g + rowOffset;
+      // colOffset_bb = colOffset_b + rowOffset;
 
-      currentMax = Math.max(
-        imageData[colOffset_r],  imageData[colOffset_g],  imageData[colOffset_b],
-        // imageData[colOffset_rb], imageData[colOffset_gb], imageData[colOffset_bb],
-        currentMax
-      );
+      if (
+        imageData[colOffset_r] > currentBrightPixelThreshold
+        || imageData[colOffset_g] > currentBrightPixelThreshold
+        || imageData[colOffset_g] > currentBrightPixelThreshold
+      ) {
+        violationCount++;
+      }
 
-      if (currentMax > this.blackLevel + blthreshold) {
+      if (violationCount > maxViolations) {
         // we search no further
         if (currentMin < this.blackLevel) {
           this.blackLevel = currentMin;
@@ -897,13 +898,17 @@ class ArDetector {
         return false;
       }
 
+      currentMax = Math.max(
+        imageData[colOffset_r],  imageData[colOffset_g],  imageData[colOffset_b],
+        // imageData[colOffset_rb], imageData[colOffset_gb], imageData[colOffset_bb],
+        currentMax
+      );
+
       currentMin = Math.min(
         currentMax,
         currentMin
       );
     }
-
-
 
     if (currentMin < this.blackLevel) {
       this.blackLevel = currentMin
