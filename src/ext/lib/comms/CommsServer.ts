@@ -13,9 +13,9 @@ class CommsServer {
 
 
   ports: {
-    [tab: string | number] : {
-      [frame: string | number] : {
-        [port: string | number]: any
+    [tab: string] : {
+      [frame: string] : {
+        [port: string]: any
       }
     }
   } = {};
