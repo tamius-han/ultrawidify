@@ -298,20 +298,15 @@ class ArDetector {
     this.status.aardActive = false;
 
     if (this.animationFrameHandle) {
-      this.logger.log('info', 'debug', `%c[ArDetect::stop] <@${this.arid}>  Stopping AnimationFrame loop.`, _ard_console_stop);
+      this.logger.log('info', 'debug', `"%c[ArDetect::stop] <@${this.arid}>  Stopping AnimationFrame loop.`, _ard_console_stop);
       window.cancelAnimationFrame(this.animationFrameHandle);
     } else {
-      this.logger.log('info', 'debug', `%c[ArDetect::stop] <@${this.arid}>  AnimationFrame loop is already paused (due to an earlier call of this function).`);
+      this.logger.log('info', 'debug', `"%c[ArDetect::stop] <@${this.arid}>  AnimationFrame loop is already paused (due to an earlier call of this function).`);
     }
   }
 
   unpause() {
-    // unpause only when paused, otherwise we get an unnecessary reset
-    if (this._paused) {
-      this.startLoop();
-    } else {
-      this.logger.log('info', 'debug', `%c[ArDetect::unpause] <@${this.arid}  We are trying to unpause video, but video is not paused. This is potentially haram.`, 'color: #ff0');
-    }
+    this.startLoop();
   }
 
   pause() {
@@ -741,11 +736,11 @@ class ArDetector {
       }
     }
 
-    if (this && !this._halted && !this._paused) {
+    // if (this && !this._halted && !this._paused) {
       this.animationFrameHandle = window.requestAnimationFrame( (ts) => this.animationFrameBootstrap(ts));
-    } else {
-      this.logger.log('info', 'debug', `[ArDetect::animationFrameBootstrap] <@${this.arid}>  Not renewing animation frame for some reason. Paused? ${this._paused}; Halted?: ${this._halted}, Exited?: ${this._exited}`);
-    }
+    // } else {
+    //   this.logger.log('info', 'debug', `[ArDetect::animationFrameBootstrap] <@${this.arid}>  Not renewing animation frame for some reason. Paused? ${this._paused}; Halted?: ${this._halted}, Exited?: ${this._exited}`);
+    // }
   }
 
   calculateArFromEdges(edges) {
@@ -836,6 +831,10 @@ class ArDetector {
       return;
     }
 
+    if (!this.blackframeContext) {
+      this.init();
+    }
+
     let sampleCols = this.sampleCols.slice(0);
 
 
@@ -871,6 +870,8 @@ class ArDetector {
       // have been corrected manually. It's also possible that letterbox (that was there before) disappeared.
       this.conf.resizer.updateAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
       this.guardLine.reset();
+
+      this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Letterbox not detected in fast test. Letterbox is either gone or we manually corrected aspect ratio. Nothing will be done.`, "color: #fa3");
 
       this.clearImageData(imageData);
       this.addPerformanceMeasurement(timerResults);
@@ -938,7 +939,8 @@ class ArDetector {
     }
 
     let newAr = this.calculateArFromEdges(edgePost);
-    this.logger.log('info', 'arDetect', `%c[ArDetect::frameCheck] Triggering aspect ration change! new ar: ${newAr}`, "color: #aaf");
+
+    this.logger.log('info', 'arDetect_verbose', `%c[ArDetect::frameCheck] Triggering aspect ration change! new ar: ${newAr}`, "color: #aaf");
 
     // we also know edges for guardline, so set them. If edges are okay and not invalid, we also
     // allow automatic aspect ratio correction. If edges
@@ -946,6 +948,7 @@ class ArDetector {
     try {
       // throws error if top/bottom are invalid
       this.guardLine.setBlackbar({top: edgePost.guardLineTop, bottom: edgePost.guardLineBottom});
+
       this.processAr(newAr);
     } catch (e) {
       // edges weren't gucci, so we'll just reset
@@ -1134,8 +1137,7 @@ class ArDetector {
   }
 
   /**
-   * Does a quick test to see if the aspect ratio is correct by checking the topmost
-   * row of a video.
+   * Does a quick test to see if the aspect ratio is correct
    * Returns 'true' if there's a chance of letterbox existing, false if not.
    * @param imageData
    * @param sampleCols
@@ -1148,37 +1150,17 @@ class ArDetector {
 
     // If we detect anything darker than blackLevel, we modify blackLevel to the new lowest value
     const rowOffset = this.canvas.width * (this.canvas.height - 1);
-    let currentMin = 255, currentMax = 0, colOffset_r, colOffset_g, colOffset_b, colOffset_rb, colOffset_gb, colOffset_bb, blThreshold = this.settings.active.arDetect.blackbar.threshold;
+    let currentMin = 255, currentMax = 0, colOffset_r, colOffset_g, colOffset_b, colOffset_rb, colOffset_gb, colOffset_bb, blthreshold = this.settings.active.arDetect.blackbar.threshold;
 
     // detect black level. if currentMax comes above blackbar + blackbar threshold, we know we aren't letterboxed
-
-    let violationCount = 0;
-    let currentBrightPixelThreshold = this.blackLevel + blThreshold;
-    const maxViolations = sampleCols.length / 3;
 
     for (let i = 0; i < sampleCols.length; ++i){
       colOffset_r = sampleCols[i] << 2;
       colOffset_g = colOffset_r + 1;
       colOffset_b = colOffset_r + 2;
-      // colOffset_rb = colOffset_r + rowOffset;
-      // colOffset_gb = colOffset_g + rowOffset;
-      // colOffset_bb = colOffset_b + rowOffset;
-
-      if (
-        imageData[colOffset_r] > currentBrightPixelThreshold
-        || imageData[colOffset_g] > currentBrightPixelThreshold
-        || imageData[colOffset_g] > currentBrightPixelThreshold
-      ) {
-        violationCount++;
-      }
-
-      if (violationCount > maxViolations) {
-        // we search no further
-        if (currentMin < this.blackLevel) {
-          this.blackLevel = currentMin;
-        }
-        return false;
-      }
+      colOffset_rb = colOffset_r + rowOffset;
+      colOffset_gb = colOffset_g + rowOffset;
+      colOffset_bb = colOffset_b + rowOffset;
 
       currentMax = Math.max(
         imageData[colOffset_r],  imageData[colOffset_g],  imageData[colOffset_b],
@@ -1186,11 +1168,21 @@ class ArDetector {
         currentMax
       );
 
+      if (currentMax > this.blackLevel + blthreshold) {
+        // we search no further
+        if (currentMin < this.blackLevel) {
+          this.blackLevel = currentMin;
+        }
+        return false;
+      }
+
       currentMin = Math.min(
         currentMax,
         currentMin
       );
     }
+
+
 
     if (currentMin < this.blackLevel) {
       this.blackLevel = currentMin
