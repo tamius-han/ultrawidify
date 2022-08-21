@@ -4,7 +4,7 @@
 # command from the root directory of the project. Running it in
 # any other way probably isn't going to work.
 
-# pre-build steps: 
+# pre-build steps:
 mkdir -p ./build/old
 npm run pre-build
 rm ./dist-zip/uw-amo-source.zip
@@ -14,7 +14,7 @@ mv -f ./dist-zip/*.zip ./build/old
 # export NODE_OPTIONS=--max_old_space_size=4096
 
 # build the version for each browser and create a zip afterwards
-# step 1: define build functions 
+# step 1: define build functions
 #function buildFF {
   npm run build
   node scripts/build-zip.js ff

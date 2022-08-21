@@ -13,15 +13,17 @@ class CommsServer {
 
 
   ports: {
-    [frame: string] : {
-      [port: string]: any
+    [tab: string | number] : {
+      [frame: string | number] : {
+        [port: string | number]: any
+      }
     }
-  }[] = [];
+  } = {};
   popupPort: any;
 
   /**
    * commands — functions that handle incoming messages
-   * functions can have the following arguments, which are, 
+   * functions can have the following arguments, which are,
    * in this order:
    *       message      — the message we received
    *       port|sender  — on persistent channels, second argument is port on which the server
@@ -107,7 +109,7 @@ class CommsServer {
     'autoar-set-interval': [
       (message) => {
         this.logger.log('info', 'comms', `[uw-bg] trying to set new interval for autoAr. New interval is, ${message.timeout} ms`);
-    
+
         // set fairly liberal limit
         var timeout = message.timeout < 4 ? 4 : message.timeout;
         this.settings.active.arDetect.timers.playing = timeout;
@@ -170,7 +172,7 @@ class CommsServer {
     else {
       hostname = url.split('/')[0];
     }
-    
+
     hostname = hostname.split(':')[0];   //find & remove port number
     hostname = hostname.split('?')[0];   //find & remove "?"
 
@@ -178,7 +180,8 @@ class CommsServer {
   }
 
   sendToAll(message){
-    for(const tab of this.ports){
+    for(const tid in this.ports){
+      const tab = this.ports[tid];
       for(const frame in tab){
         for (const port in tab[frame]) {
           tab[frame][port].postMessage(message);
@@ -261,7 +264,7 @@ class CommsServer {
     var tabId = port.sender.tab.id;
     var frameId = port.sender.frameId;
     if (! this.ports[tabId]){
-      this.ports[tabId] = {}; 
+      this.ports[tabId] = {};
     }
     if (! this.ports[tabId][frameId]) {
       this.ports[tabId][frameId] = {};
@@ -271,9 +274,9 @@ class CommsServer {
 
     this.ports[tabId][frameId][port.name].onDisconnect.addListener( (p) => {
       try {
-        delete this.ports[p.sender.tab.id][p.sender.frameId][port.name]; 
+        delete this.ports[p.sender.tab.id][p.sender.frameId][port.name];
       } catch (e) {
-        // no biggie if the thing above doesn't exist. 
+        // no biggie if the thing above doesn't exist.
       }
       if (Object.keys(this.ports[tabId][frameId].length === 0)) {
         delete this.ports[tabId][frameId];
@@ -307,7 +310,7 @@ class CommsServer {
 
   async handleMessage(message, portOrSender) {
     await this.execCmd(message, portOrSender);
-    
+
     if (message.forwardToSameFramePort) {
       this.sendToFrameContentScripts(message, portOrSender.tab.id, portOrSender.frameId, message.port);
     }
@@ -333,7 +336,7 @@ class CommsServer {
 
   processReceivedMessage_nonpersistent(message, sender){
     this.logger.log('info', 'comms', "%c[CommsServer.js::processMessage_nonpersistent] Received message from background script!", "background-color: #11D; color: #aad", message, sender);
-    
+
     this.handleMessage(message, sender);
   }
 
