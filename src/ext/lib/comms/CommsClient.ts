@@ -25,22 +25,34 @@ if (process.env.CHANNEL !== 'stable'){
  *
  * EventBus is started first. Other components (including commsClient) follow later.
  *
+ * Messages that pass through CommsServer need to define context object with
+ * context.comms.forwardTo field defined, with one of the following values:
+ *
+ *     -              all :  all content scripts of ALL TABS
+ *     -           active :  all content scripts in CURRENT TAB
+ *     -    contentScript :  specific content script (requires other EventBusContext fields!)
+ *     - backgroundScript :  background script (considered default behaviour)
+ *     -       sameOrigin :  ???
+ *     -            popup :  extension popup
+ *
+ *
+ *
  *
  *                    fig 0. ULTRAWIDIFY COMMUNICATION MAP
  *
  *       CS EVENT BUS
  *   (accessible within tab scripts)
- *            |                                     NOT EVENT BUS
- *  PageInfo  x                                (accessible within popup)
+ *            |                                      BG EVENT BUS
+ *  PageInfo  x                                (accessible within background page)
  *            x                                           |
  *      :     :                                           x UWServer
  *            x CommsClient <---------------x CommsServer x
- *            | (Connect to popup)
- *            |
- *            x eventBus.sendToTunnel()
- *                <iframe tunnel>
- *                     A
- *                     |
+ *            | (Connect to popup)                 X                POPUP EVENT BUS
+ *            |                                    A           (accessible within popup)  /todo
+ *            x eventBus.sendToTunnel()            |                      |
+ *                <iframe tunnel>                  \----------------> ??? X
+ *                     A                                                  |
+ *                     |                                                  X App.vue
  *                     V
  *              x <iframe tunnel>
  *              |
@@ -99,7 +111,7 @@ class CommsClient {
   }
   //#endregion
 
-  async sendMessage(message){
+  async sendMessage(message, context?){
     message = JSON.parse(JSON.stringify(message)); // vue quirk. We should really use vue store instead
     return browser.runtime.sendMessage(null, message, null);
   }

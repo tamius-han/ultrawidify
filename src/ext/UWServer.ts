@@ -44,11 +44,21 @@ export default class UWServer {
     }],
     'replace-css': [{
       function: (message, context) => this.replaceCss(message.oldCssString, message.newCssString, context.comms.sender)
+    }],
+    'get-current-site': [{
+      function: (message, context) => this.getCurrentSite()
     }]
   };
 
   private gcTimeout: any;
   uiLoggerInitialized: boolean = false;
+
+
+  //#region getters
+  get activeTab() {
+    return browser.tabs.query({currentWindow: true, active: true});
+  }
+  //#endregion
 
   constructor() {
     this.setup();
@@ -227,9 +237,25 @@ export default class UWServer {
     this.selectedSubitem[menu] = subitem;
   }
 
+  async getCurrentSite() {
+    this.eventBus.send(
+      'set-current-site',
+      {
+        site: await this.getVideoTab(),
+        tabHostname: await this.getCurrentTabHostname(),
+      },
+      {
+        comms: {
+          forwardTo: 'popup'
+        }
+      }
+    )
+  }
+
   async getCurrentTab() {
     return (await browser.tabs.query({active: true, currentWindow: true}))[0];
   }
+
 
   async getVideoTab() {
     // friendly reminder: if current tab doesn't have a video,
@@ -279,8 +305,27 @@ export default class UWServer {
     }
   }
 
-  // chrome shitiness mitigation
-  sendUnmarkPlayer(message) {
-    this.comms.sendUnmarkPlayer(message);
+  async getCurrentTabHostname() {
+    const activeTab = await this.activeTab;
+
+    if (!activeTab || activeTab.length < 1) {
+      this.logger.log('warn', 'comms', 'There is no active tab for some reason. activeTab:', activeTab);
+    }
+
+    const url = activeTab[0].url;
+
+    var hostname;
+
+    if (url.indexOf("://") > -1) {    //find & remove protocol (http, ftp, etc.) and get hostname
+      hostname = url.split('/')[2];
+    }
+    else {
+      hostname = url.split('/')[0];
+    }
+
+    hostname = hostname.split(':')[0];   //find & remove port number
+    hostname = hostname.split('?')[0];   //find & remove "?"
+
+    return hostname;
   }
 }

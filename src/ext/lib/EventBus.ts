@@ -14,7 +14,8 @@ export interface EventBusContext {
   comms?: {
     sender?: any,
     port?: any,
-    forwardTo?: 'all' | 'active' | 'contentScript' | 'sameOrigin',
+    frame?: any,
+    forwardTo?: 'all' | 'active' | 'contentScript' | 'server' | 'sameOrigin' | 'popup',
   }
 }
 
@@ -23,7 +24,7 @@ export default class EventBus {
   private commands: { [x: string]: EventBusCommand[]} = {};
   private downstreamBuses: EventBus[] = [];
   private upstreamBus?: EventBus;
-  private comms?: CommsClient;
+  private comms?: CommsClient | CommsServer;
 
   //#region lifecycle
   destroy() {
@@ -34,7 +35,7 @@ export default class EventBus {
   }
   //#endregion
 
-  setComms(comms: CommsClient) {
+  setComms(comms: CommsClient | CommsServer) {
     this.comms = comms;
   }
 
@@ -86,7 +87,7 @@ export default class EventBus {
     }
 
     if (this.comms && !context?.fromComms) {
-      this.comms.sendMessage({command, config});
+      this.comms.sendMessage({command, config}, context);
     }
 
     if (context?.stopPropagation) {
@@ -114,7 +115,7 @@ export default class EventBus {
   }
 
 
-  sendDownstream(command: string, config: any, context?: EventBusContext, sourceEventBus?: EventBus) {
+  private sendDownstream(command: string, config: any, context?: EventBusContext, sourceEventBus?: EventBus) {
     for (const eventBus of this.downstreamBuses) {
       if (eventBus !== sourceEventBus) {
         // prevent eventBus.send from auto-propagating the command
@@ -124,7 +125,7 @@ export default class EventBus {
     }
   }
 
-  sendUpstream(command: string, config: any, context?: EventBusContext) {
+  private sendUpstream(command: string, config: any, context?: EventBusContext) {
     if (this.upstreamBus) {
       // prevent eventBus.send from auto-propagating the command
       this.upstreamBus.send(command, config, {...context, stopPropagation: true});

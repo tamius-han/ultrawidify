@@ -25,7 +25,7 @@
   </div>
   <pre>
     ---- site:
-{{site}}
+    {{site}}
 
     ----
   </pre>
@@ -93,9 +93,11 @@ export default {
     // get info about current site from background script
     while (true) {
       try {
+        console.log('trying to get site ...');
         this.getSite();
+        console.log('site gottne');
       } catch (e) {
-
+        console.warn('failed to load site:', e);
       }
       await this.sleep(5000);
     }
