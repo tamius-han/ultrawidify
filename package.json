@@ -1,6 +1,6 @@
 {
   "name": "ultrawidify",
-  "version": "5.1.4",
+  "version": "5.1.5",
   "description": "Aspect ratio fixer for youtube and other sites, with automatic aspect ratio detection. Supports ultrawide and other ratios.",
   "author": "Tamius Han <tamius.han@gmail.com>",
   "scripts": {
@@ -67,7 +67,7 @@
     "vue-cli-plugin-vue-next": "~0.1.4",
     "vue-loader": "^16.0.0",
     "web-ext-types": "^2.3.0",
-    "webextension-polyfill": "^0.6.0",
+    "webextension-polyfill": "^0.10.0",
     "webpack": "^4.44.0",
     "webpack-chrome-extension-reloader": "^0.8.3",
     "webpack-cli": "^3.3.12",
