@@ -20,7 +20,7 @@
     "dev-ff": "cross-env NODE_ENV=development CHANNEL=dev BROWSER=firefox npm run build:dev -- --watch",
     "dev-chrome": "cross-env NODE_ENV=development CHANNEL=dev BROWSER=chrome npm run build:dev -- --watch",
     "dev-edge": "cross-env NODE_ENV=development CHANNEL=dev BROWSER=edge npm run build:dev -- --watch",
-    "pre-build": "rm -rf ./dist-ff; rm -rf ./dist-chrome; rm -rf ./node_modules; npm ci",
+    "pre-build": "rm -rf ./dist-ff; rm -rf ./dist-chrome; rm -rf ./dist-edge; rm -rf ./node_modules; npm ci",
     "start": "npm run dev",
     "start:windows": "npm run dev:windows"
   },

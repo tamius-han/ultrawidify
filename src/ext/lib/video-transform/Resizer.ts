@@ -247,6 +247,8 @@ class Resizer {
 
     this.logger.log('info', 'debug', '[Resizer::setAr] <rid:'+this.resizerId+'> trying to set ar. New ar:', ar);
 
+    this.logger.log('info', 'debug', '%c[Resizer::setAr] <rid:'+this.resizerId+'> trying to set ar. New ar:', 'background-color: #4c3a2f, color: #ffa349', ar);
+
     if (ar == null) {
       return;
     }
@@ -678,6 +680,8 @@ class Resizer {
       x: wdiff * 0.5,
       y: hdiff * 0.5,
     };
+
+
 
 
     if (this.pan.relativeOffsetX || this.pan.relativeOffsetY) {

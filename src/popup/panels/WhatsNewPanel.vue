@@ -4,7 +4,7 @@
     <p>Full changelog for older versions <a href="https://github.com/tamius-han/ultrawidify/blob/master/CHANGELOG.md">is available here</a>.</p>
     <p class="label">6.0.0</p>
     <ul>
-      <li>Fixed some problems with autodetection sometimes briefly resetting on dark frames (<a href="https://github.com/tamius-han/ultrawidify/issues/195" target="_blank">#195</a>), <a href="https://github.com/tamius-han/ultrawidify/issues/196" target="_blank">#196</a>)</li>
+      <li>Fixed laginess in Chromium-based browsers on Windows. Details in <a href="https://github.com/tamius-han/ultrawidify/issues/199#issuecomment-1221383134" target="blank">#199</a>.</li>
     </ul>
     <p class="label">5.1.2</p>
     <ul>

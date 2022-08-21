@@ -15,10 +15,12 @@ class CommsServer {
 
 
   ports: {
-    [frame: string] : {
-      [port: string]: any
+    [tab: string] : {
+      [frame: string] : {
+        [port: string]: any
+      }
     }
-  }[] = [];
+  } = {};
   popupPort: any;
 
   /**
@@ -118,8 +120,9 @@ class CommsServer {
     }
   }
 
-  private sendToAll(message){
-    for(const tab of this.ports){
+  sendToAll(message){
+    for(const tid in this.ports){
+      const tab = this.ports[tid];
       for(const frame in tab){
         for (const port in tab[frame]) {
           tab[frame][port].postMessage(message);
