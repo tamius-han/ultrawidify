@@ -111,12 +111,7 @@ export default {
 
     // get info about current site from background script
     while (true) {
-      try {
-        console.log('trying to get site ...');
-        this.requestSite();
-      } catch (e) {
-        console.warn('failed to load site:', e);
-      }
+      this.requestSite();
       await this.sleep(5000);
     }
   },
@@ -150,7 +145,6 @@ export default {
     requestSite() {
       try {
         this.logger.log('info','popup', '[popup::getSite] Requesting current site ...')
-        console.info('requesting current site')
         // CSM.port.postMessage({command: 'get-current-site'});
         this.eventBus.send(
           'get-current-site',
@@ -162,9 +156,6 @@ export default {
       } catch (e) {
         this.logger.log('error','popup','[popup::getSite] sending get-current-site failed for some reason. Reason:', e);
       }
-    },
-    setSite(data) {
-
     },
     getRandomColor() {
       return `rgb(${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)})`;

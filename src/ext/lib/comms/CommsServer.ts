@@ -81,15 +81,11 @@ class CommsServer {
     // cross-pollination between content scripts running in different
     // tabs.
 
-    console.log('sendmessage of comms server. Received message:', message, 'and context:', context);
-
     if (context?.origin !== CommsOrigin.ContentScript) {
-      console.log('origin is NOT content script. This means forwarding to content scripts is okay!');
       if (context?.comms.forwardTo === 'all') {
         return this.sendToAll(message);
       }
       if (context?.comms.forwardTo === 'active') {
-        console.log('forwarding message to active tab:', message);
         return this.sendToActive(message);
       }
       if (context?.comms.forwardTo === 'contentScript') {
@@ -182,8 +178,6 @@ class CommsServer {
   }
 
   private async processReceivedMessage(message, port){
-    console.log('processing received message!', {message, portName: port.name, port})
-
     // this triggers events
     this.eventBus.send(
       message.command,
