@@ -10,55 +10,52 @@
   -->
   <div v-if="settingsInitialized"
        class="popup flex flex-column no-overflow"
-       :class="{'popup-chrome': ! BrowserDetect.firefox}"
+       :class="{'popup-chrome': ! BrowserDetect?.firefox}"
   >
     <div class="flex-row flex-nogrow flex-noshrink relative"
          :class="{'header': !narrowPopup, 'header-small': narrowPopup}"
     >
       <span class="smallcaps">Ultrawidify</span>: <small>Quick settings</small>
-      <div class="absolute channel-info" v-if="BrowserDetect.processEnvChannel !== 'stable'">
-        Build channel: {{BrowserDetect.processEnvChannel}}
+      <div class="absolute channel-info" v-if="BrowserDetect?.processEnvChannel !== 'stable'">
+        Build channel: {{BrowserDetect?.processEnvChannel}}
       </div>
     </div>
     <div class="flex flex-row body no-overflow flex-grow">
+
+      <pre>
+        ---- site:
+        {{site}}
+
+        ----
+      </pre>
+
     </div>
   </div>
-  <pre>
-    ---- site:
-    {{site}}
 
-    ----
-  </pre>
 </template>
 
 <script>
-import WhatsNewPanel from './panels/WhatsNewPanel.vue';
-import SiteDetailsPanel from './panels/SiteDetailsPanel.vue';
-import Donate from '../common/misc/Donate.vue';
 import Debug from '../ext/conf/Debug';
 import BrowserDetect from '../ext/conf/BrowserDetect';
 import Comms from '../ext/lib/comms/Comms';
-import VideoPanel from './panels/VideoPanel';
-import PerformancePanel from './panels/PerformancePanel';
+import CommsClient from '../ext/lib/comms/CommsClient';
 import Settings from '../ext/lib/Settings';
-import ExecAction from './js/ExecAction';
-import DefaultSettingsPanel from './panels/DefaultSettingsPanel';
-import AboutPanel from './panels/AboutPanel';
-import ExtensionMode from '../common/enums/ExtensionMode.enum';
 import Logger from '../ext/lib/Logger';
+import EventBus from '../ext/lib/EventBus';
 import {ChromeShittinessMitigations as CSM} from '../common/js/ChromeShittinessMitigations';
 import { browser } from 'webextension-polyfill-ts';
 
 export default {
   data () {
     return {
-      comms: new Comms(),
+      comms: undefined,
+      eventBus: new EventBus(),
       settings: {},
       settingsInitialized: false,
       narrowPopup: null,
       sideMenuVisible: null,
       logger: undefined,
-      site: undefined
+      site: undefined,
     }
   },
   async created() {
@@ -71,9 +68,31 @@ export default {
     await this.settings.init();
     this.settingsInitialized = true;
 
-    const port = browser.runtime.connect({name: 'popup-port'});
-    port.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
-    CSM.setProperty('port', port);
+    // const port = browser.runtime.connect({name: 'popup-port'});
+    // port.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
+    // CSM.setProperty('port', port);
+
+    this.eventBus = new EventBus();
+    this.eventBus.subscribe(
+      'set-current-site',
+      {
+        function: (config, context) => {
+          if (this.site) {
+            if (!this.site.host) {
+              // dunno why this fix is needed, but sometimes it is
+              this.site.host = config.site.host;
+            }
+          }
+          this.site = config.site;
+          this.selectedSite = this.selectedSite || config.site.host;
+
+          this.loadFrames(this.site);
+        }
+      }
+    );
+
+    this.comms = new CommsClient('popup-port', this.logger, this.eventBus);
+    this.eventBus.setComms(this.comms);
 
 
     // ensure we'll clean player markings on popup close
@@ -94,8 +113,7 @@ export default {
     while (true) {
       try {
         console.log('trying to get site ...');
-        this.getSite();
-        console.log('site gottne');
+        this.requestSite();
       } catch (e) {
         console.warn('failed to load site:', e);
       }
@@ -129,13 +147,24 @@ export default {
     toObject(obj) {
       return JSON.parse(JSON.stringify(obj));
     },
-    getSite() {
+    requestSite() {
       try {
         this.logger.log('info','popup', '[popup::getSite] Requesting current site ...')
-        CSM.port.postMessage({cmd: 'get-current-site'});
+        console.info('requesting current site')
+        // CSM.port.postMessage({command: 'get-current-site'});
+        this.eventBus.send(
+          'get-current-site',
+          undefined,
+          {
+            comms: {forwardTo: 'active'}
+          }
+        );
       } catch (e) {
         this.logger.log('error','popup','[popup::getSite] sending get-current-site failed for some reason. Reason:', e);
       }
+    },
+    setSite(data) {
+
     },
     getRandomColor() {
       return `rgb(${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)})`;
@@ -143,8 +172,9 @@ export default {
 
     processReceivedMessage(message, port) {
       this.logger.log('info', 'popup', '[popup::processReceivedMessage] received message:', message)
+      console.info('[popup::processReceivedMessage] got message:', message);
 
-      if (message.cmd === 'set-current-site'){
+      if (message.command === 'set-current-site'){
         if (this.site) {
           if (!this.site.host) {
             // dunno why this fix is needed, but sometimes it is

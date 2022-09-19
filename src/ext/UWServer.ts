@@ -84,6 +84,7 @@ export default class UWServer {
 
       this.settings = new Settings({logger: this.logger});
       await this.settings.init();
+
       this.eventBus = new EventBus();
 
       for (const action in this.eventBusCommands) {
@@ -93,6 +94,7 @@ export default class UWServer {
       }
 
       this.comms = new CommsServer(this);
+      this.eventBus.setComms(this.comms);
 
       browser.tabs.onActivated.addListener((m) => {this.onTabSwitched(m)});
     } catch (e) {

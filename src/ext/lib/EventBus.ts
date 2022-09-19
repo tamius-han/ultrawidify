@@ -1,4 +1,4 @@
-import CommsClient from './comms/CommsClient';
+import CommsClient, { CommsOrigin } from './comms/CommsClient';
 import CommsServer from './comms/CommsServer';
 
 export interface EventBusCommand {
@@ -10,7 +10,7 @@ export interface EventBusContext {
   stopPropagation?: boolean,
 
   // Context stuff added by Comms
-  fromComms?: boolean,
+  origin?: CommsOrigin,
   comms?: {
     sender?: any,
     port?: any,
@@ -86,8 +86,10 @@ export default class EventBus {
       }
     }
 
-    if (this.comms && !context?.fromComms) {
-      this.comms.sendMessage({command, config}, context);
+    // preventing messages from flowing back to their original senders is
+    // CommsServer's job. EventBus does not have enough data for this decision.
+    if (this.comms) {
+      this.comms.sendMessage({command, config, context}, context);
     }
 
     if (context?.stopPropagation) {

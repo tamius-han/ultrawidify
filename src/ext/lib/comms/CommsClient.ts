@@ -3,7 +3,7 @@ import BrowserDetect from '../../conf/BrowserDetect';
 import Logger from '../Logger';
 import { browser } from 'webextension-polyfill-ts';
 import Settings from '../Settings';
-import EventBus from '../EventBus';
+import EventBus, { EventBusContext } from '../EventBus';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading CommsClient");
@@ -50,7 +50,7 @@ if (process.env.CHANNEL !== 'stable'){
  *            | (Connect to popup)                 X                POPUP EVENT BUS
  *            |                                    A           (accessible within popup)  /todo
  *            x eventBus.sendToTunnel()            |                      |
- *                <iframe tunnel>                  \----------------> ??? X
+ *                <iframe tunnel>                  \--------> CommsClient X
  *                     A                                                  |
  *                     |                                                  X App.vue
  *                     V
@@ -63,9 +63,15 @@ if (process.env.CHANNEL !== 'stable'){
  * (accessible within player UI)
  */
 
+export enum CommsOrigin {
+  ContentScript = 1,
+  Popup = 2,
+  Server = 3
+}
 
 class CommsClient {
   commsId: string;
+  origin: CommsOrigin;
 
   logger: Logger;
   settings: any;   // sus?
@@ -80,6 +86,12 @@ class CommsClient {
     try {
       this.logger = logger;
       this.eventBus = eventBus;
+
+      if (name === 'popup-port') {
+        this.origin = CommsOrigin.Popup;
+      } else {
+        this.origin = CommsOrigin.ContentScript;
+      }
 
       this.port = browser.runtime.connect(null, {name: name});
 
@@ -111,13 +123,18 @@ class CommsClient {
   }
   //#endregion
 
-  async sendMessage(message, context?){
+  async sendMessage(message, context?: EventBusContext){
     message = JSON.parse(JSON.stringify(message)); // vue quirk. We should really use vue store instead
+
+    // content script client and popup client differ in this one thing
+    if (this.origin === CommsOrigin.Popup) {
+      return this.port.postMessage(message, context);
+    }
     return browser.runtime.sendMessage(null, message, null);
   }
 
   processReceivedMessage(message){
-    this.eventBus.send(message.command, message.config, {fromComms: true});
+    this.eventBus.send(message.command, message.config, {origin: CommsOrigin.Server});
   }
 }
 

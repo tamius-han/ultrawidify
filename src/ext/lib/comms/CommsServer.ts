@@ -5,6 +5,7 @@ import Settings from '../Settings';
 import { browser } from 'webextension-polyfill-ts';
 import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
 import EventBus from '../EventBus';
+import { CommsOrigin } from './CommsClient';
 
 
 class CommsServer {
@@ -76,17 +77,29 @@ class CommsServer {
   //#endregion
 
   sendMessage(message, context?) {
-    if (context?.comms.forwardTo === 'all') {
-      return this.sendToAll(message);
+    // stop messages from returning where they came from, and prevent
+    // cross-pollination between content scripts running in different
+    // tabs.
+
+    console.log('sendmessage of comms server. Received message:', message, 'and context:', context);
+
+    if (context?.origin !== CommsOrigin.ContentScript) {
+      console.log('origin is NOT content script. This means forwarding to content scripts is okay!');
+      if (context?.comms.forwardTo === 'all') {
+        return this.sendToAll(message);
+      }
+      if (context?.comms.forwardTo === 'active') {
+        console.log('forwarding message to active tab:', message);
+        return this.sendToActive(message);
+      }
+      if (context?.comms.forwardTo === 'contentScript') {
+        return this.sendToFrame(message, context.tab, context.frame, context.port);
+      }
     }
-    if (context?.comms.forwardTo === 'active') {
-      return this.sendToActive(message);
-    }
-    if (context?.comms.forwardTo === 'contentScript') {
-      return this.sendToFrame(message, context.tab, context.frame, context.port);
-    }
-    if (context?.comms.forwardTo === 'popup') {
-      return this.sendToPopup(message);
+    if (context?.origin !== CommsOrigin.Popup) {
+      if (context?.comms.forwardTo === 'popup') {
+        return this.sendToPopup(message);
+      }
     }
   }
 
@@ -169,7 +182,7 @@ class CommsServer {
   }
 
   private async processReceivedMessage(message, port){
-    this.logger.log('info', 'comms', "[CommsServer.js::processReceivedMessage] Received message from popup/content script!", message, "port", port);
+    console.log('processing received message!', {message, portName: port.name, port})
 
     // this triggers events
     this.eventBus.send(
@@ -177,8 +190,14 @@ class CommsServer {
       message.config,
       {
         ...message.context,
-        comms: {port},
-        fromComms: true
+        comms: {
+          ...message.context?.comms,
+          port
+        },
+
+        // origin is required to stop cross-pollination between content scripts, while still
+        // preserving the ability to send messages directly between popup and content scripts
+        origin: port.name === 'popup-port' ? CommsOrigin.Popup : CommsOrigin.ContentScript
       }
     );
   }
@@ -186,7 +205,17 @@ class CommsServer {
   private processReceivedMessage_nonpersistent(message, sender){
     this.logger.log('info', 'comms', "%c[CommsServer.js::processMessage_nonpersistent] Received message from background script!", "background-color: #11D; color: #aad", message, sender);
 
-    this.eventBus.send(message.command, message.config, {comms: {sender}, fromComms: true});
+    this.eventBus.send(
+      message.command,
+      message.config, {
+        ...message.context,
+        comms: {
+          ...message.context?.comms,
+          sender
+        },
+        origin: CommsOrigin.Server
+      }
+    );
   }
 }
 
