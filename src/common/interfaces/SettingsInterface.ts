@@ -175,6 +175,16 @@ interface SettingsInterface {
   crop: {
     default: any;
   },
+  stretch: {
+    default: any;
+    conditionalDifferencePercent: number  // black bars less than this wide will trigger stretch
+                                        // if mode is set to '1'. 1.0=100%
+  },
+  kbmHandler: {
+    enabled: boolean,          // if keyboard/mouse handler service will run
+    keyboardEnabled: boolean,  // if keyboard shortcuts are processed
+    mouseEnabled: boolean,     // if mouse movement is processed
+  }
 
   zoom: {
     minLogZoom: number,
@@ -189,11 +199,7 @@ interface SettingsInterface {
     mousePanReverseMouse: boolean,
     defaultAr?: any
   },
-  stretch: {
-    default: any;
-    conditionalDifferencePercent: number  // black bars less than this wide will trigger stretch
-                                        // if mode is set to '1'. 1.0=100%
-  },
+
   resizer: {
     setStyleString: {
       maxRetries: number,

@@ -99,6 +99,7 @@ class UI {
      * like current zoom levels & current aspect ratio & stuff. Some of these things are
      * necessary for UI display in the popup.
      */
+
     this.eventBus.subscribe(
       'uw-config-broadcast',
       {

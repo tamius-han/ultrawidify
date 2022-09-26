@@ -5,27 +5,46 @@ import Logger from './Logger';
 import PageInfo from './video-data/PageInfo';
 import Settings from './Settings';
 import VideoData from './video-data/VideoData';
-import EventBus from './EventBus';
+import EventBus, { EventBusCommand } from './EventBus';
 
 if(process.env.CHANNEL !== 'stable'){
   console.info("Loading ActionHandler");
 }
 
-class ActionHandler {
+/**
+ * Handles keypresses and mouse movement
+ */
+class KbmHandler {
   logger: Logger;
   settings: Settings;
   eventBus: EventBus;
+
+  allowShortcuts: boolean = true;
 
 
   inputs: string[] = ['input', 'select', 'button', 'textarea'];
   keyboardLocalDisabled: boolean = false;
 
+  keyboardEnabled: boolean = false;
+  mouseEnabled: boolean = false;
+
   mouseMoveActions: any[] = [];
+  keypressActions: any[] = [];
 
-  commands: any[] = [];
+  eventBusCommands: { [x: string]: EventBusCommand } = {
+    'kbm-enable': {
+      function: () => this.enable()
+    },
+    'kbm-disable': {
+      function: () => this.disable()
+    },
+    'kbm-set-config': {
+      function: (data: {config: any, temporary?: boolean}) => this.setConfig(data.config, data.temporary),
+    },
+  }
 
-
-  constructor(eventBus: EventBus, settings, logger) {
+  //#region lifecycle
+  constructor(eventBus: EventBus, settings: Settings, logger: Logger) {
     this.logger = logger;
     this.settings = settings;
     this.eventBus = eventBus;
@@ -40,17 +59,43 @@ class ActionHandler {
     for (const key in this.settings.active.commands) {
       for (const command of this.settings.active.commands[key]) {
         if (command.shortcut) {
-          this.commands.push(command);
+          this.keypressActions.push(command);
         }
       }
     }
 
+    this.load();
+  }
 
+  load() {
+    this.settings.active.kbmHandler.enabled ? this.addListener() : this.removeListener();
+    this.keyboardEnabled = this.settings.active.kbmHandler.keyboardEnabled;
+    this.mouseEnabled = this.settings.active.kbmHandler.mouseEnabled;
+  }
+
+  destroy() {
+    this.removeListener();
+  }
+
+  // convenience methods
+  addListener() {
     // events should be handled in handleEvent function. We need to do things this
     // way, otherwise we can't remove event listener
     // https://stackoverflow.com/a/19507086
 
     document.addEventListener('keyup', this );
+  }
+  removeListener() {
+    document.removeEventListener('keyup', this);
+  }
+  //#endregion
+
+  enable() {
+    this.addListener();
+  }
+
+  disable() {
+    this.removeListener();
   }
 
   handleEvent(event) {
@@ -64,9 +109,36 @@ class ActionHandler {
     }
   }
 
-  destroy() {
-    document.removeEventListener('keyup', this);
+  /**
+   * Sets configuration parameter for KbmHandler
+   * @param config
+   */
+  setConfig(config, temporary = false) {
+    if (temporary) {
+      for (const confKey in config) {
+        switch (confKey) {
+          case 'enabled':
+            config[confKey] ? this.enable() : this.disable();
+            break;
+          case 'keyboardEnabled':
+            this.keyboardEnabled = config[confKey];
+            break;
+          case 'mouseEnabled':
+            this.mouseEnabled = config[confKey];
+            break;
+        }
+      }
+      return;
+    }
+
+    for (const confKey in config) {
+      this.settings.active.kbmHandler[confKey] = config[confKey];
+    }
+
+    this.settings.save();
+    this.load();
   }
+
 
   registerHandleMouse(videoData) {
     this.logger.log('info', ['actionHandler', 'mousemove'], "[ActionHandler::registerHandleMouse] registering handle mouse for videodata:", videoData.id)
@@ -190,6 +262,10 @@ class ActionHandler {
 
 
   handleKeyup(event) {
+    if (!this.keyboardEnabled) {
+      this.logger.log('info', 'keyboard', "%c[ActionHandler::handleKeyup] kbmHandler.keyboardEnabled is set to false. Doing nothing.");
+      return;
+    }
     this.logger.log('info', 'keyboard', "%c[ActionHandler::handleKeyup] we pressed a key: ", "color: #ff0", event.key , " | keyup: ", event.keyup, "event:", event);
 
     try {
@@ -198,11 +274,11 @@ class ActionHandler {
         return;
       }
 
-      this.logger.log('info', 'keyboard', "%c[ActionHandler::handleKeyup] Trying to find and execute action for event. Actions/event: ", "color: #ff0", this.commands, event);
+      this.logger.log('info', 'keyboard', "%c[ActionHandler::handleKeyup] Trying to find and execute action for event. Actions/event: ", "color: #ff0", this.keypressActions, event);
 
       const isLatin = this.isLatin(event.key);
 
-      for (const command of this.commands) {
+      for (const command of this.keypressActions) {
         if (this.isActionMatch(command.shortcut, event, isLatin)) {
           this.eventBus.send(command.action, command.arguments);
         }
@@ -214,6 +290,11 @@ class ActionHandler {
 
 
   handleMouseMove(event, videoData?: VideoData) {
+    if (!this.mouseEnabled) {
+      this.logger.log('info', 'keyboard', "%c[ActionHandler::handleKeyup] kbmHandler.keyboardEnabled is set to false. Doing nothing.");
+      return;
+    }
+
     this.logger.log('info', 'keyboard', "[ActionHandler::handleMouseMove] mouse move is being handled.\nevent:", event, "\nvideo data:", videoData);
     console.info('mousemove must be migrated!');
     // videoData?.panHandler(event);
@@ -226,4 +307,4 @@ if(process.env.CHANNEL !== 'stable'){
   console.info("ActionHandler loaded");
 }
 
-export default ActionHandler;
+export default KbmHandler;

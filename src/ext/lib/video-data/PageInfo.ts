@@ -132,14 +132,6 @@ class PageInfo {
     }
   }
 
-  setActionHandler(actionHandler) {
-    this.actionHandler = actionHandler;
-    for (let item of this.actionHandlerInitQueue) {
-      this.actionHandler.registerHandleMouse(item);
-    }
-    this.actionHandlerInitQueue = [];
-  }
-
   getVideos(host) {
     if (this.settings.active.sites[host]?.DOM?.video?.manual
         && this.settings.active.sites[host]?.DOM?.video?.querySelectors){
@@ -333,42 +325,6 @@ class PageInfo {
     }
 
     this.scheduleUrlCheck();
-  }
-
-
-  // these need to be called on tab switch
-  pauseProcessing(playingOnly){
-    if (playingOnly) {
-      for(let vd of this.videos){
-        if (vd.videoData.isPlaying()) {
-          vd.videoData.disable();
-        }
-      }
-    } else {
-      for(let vd of this.videos){
-        vd.videoData.disable();
-      }
-    }
-  }
-
-  resumeProcessing(resumeAutoar = false, playingOnly = false){
-    if (playingOnly) {
-      for(let vd of this.videos){
-        if (vd.videoData.isPlaying()) {
-          vd.videoData.enable();
-          if(resumeAutoar){
-            vd.videoData.resumeAutoAr();
-          }
-        }
-      }
-    } else {
-      for(let vd of this.videos){
-        vd.videoData.enable();
-        if(resumeAutoar){
-          vd.videoData.resumeAutoAr();
-        }
-      }
-    }
   }
 
   setArPersistence(persistenceMode) {
