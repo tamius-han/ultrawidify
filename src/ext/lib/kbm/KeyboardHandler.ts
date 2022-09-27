@@ -19,7 +19,7 @@ if(process.env.CHANNEL !== 'stable'){
  *    kbm-disable       disables keyboard shortcuts and mouse panning
  *    kbm-set-config    sets configuration for this module.
  */
-class KeyboardHandler {
+export class KeyboardHandler {
   logger: Logger;
   settings: Settings;
   eventBus: EventBus;
@@ -133,9 +133,6 @@ class KeyboardHandler {
       case 'keyup':
         this.handleKeyup(event);
         break;
-      case 'mousemove':
-        this.handleMouseMove(event);
-        break;
     }
   }
 
@@ -143,7 +140,7 @@ class KeyboardHandler {
    * Enables KeyboardHandler
    */
   enable() {
-    this.addListener();
+    this.load();
   }
 
   /**
@@ -164,12 +161,6 @@ class KeyboardHandler {
           case 'enabled':
             config[confKey] ? this.enable() : this.disable();
             break;
-          case 'keyboardEnabled':
-            this.keyboardEnabled = config[confKey];
-            break;
-          case 'mouseEnabled':
-            this.mouseEnabled = config[confKey];
-            break;
         }
       }
       return;
@@ -181,23 +172,6 @@ class KeyboardHandler {
 
     this.settings.save();
     this.load();
-  }
-
-
-  registerHandleMouse(videoData) {
-    this.logger.log('info', ['KeyboardHandler', 'mousemove'], "[KeyboardHandler::registerHandleMouse] registering handle mouse for videodata:", videoData.id)
-
-    var ths = this;
-    if (videoData.player && videoData.player.element) {
-      videoData.player.element.addEventListener('mousemove', (event) => ths.handleMouseMove(event, videoData));
-    }
-  }
-
-  unregisterHandleMouse(videoData) {
-    var ths = this;
-    if (videoData.player && videoData.player.element) {
-      videoData.player.element.removeEventListener('mousemove', (event) => ths.handleMouseMove(event, videoData));
-    }
   }
 
   setKeyboardLocal(state) {
@@ -306,10 +280,10 @@ class KeyboardHandler {
 
 
   handleKeyup(event) {
-    if (!this.keyboardEnabled) {
-      this.logger.log('info', 'keyboard', "%c[KeyboardHandler::handleKeyup] kbmHandler.keyboardEnabled is set to false. Doing nothing.");
-      return;
-    }
+    // if (!this.keyboardEnabled) {
+    //   this.logger.log('info', 'keyboard', "%c[KeyboardHandler::handleKeyup] kbmHandler.keyboardEnabled is set to false. Doing nothing.");
+    //   return;
+    // }
     this.logger.log('info', 'keyboard', "%c[KeyboardHandler::handleKeyup] we pressed a key: ", "color: #ff0", event.key , " | keyup: ", event.keyup, "event:", event);
 
     try {
@@ -330,19 +304,6 @@ class KeyboardHandler {
     } catch (e) {
       this.logger.log('info', 'debug', '[KeyboardHandler::handleKeyup] Failed to handle keyup!', e);
     }
-  }
-
-
-  handleMouseMove(event, videoData?: VideoData) {
-    if (!this.mouseEnabled) {
-      this.logger.log('info', 'keyboard', "%c[KeyboardHandler::handleKeyup] kbmHandler.keyboardEnabled is set to false. Doing nothing.");
-      return;
-    }
-
-    this.logger.log('info', 'keyboard', "[KeyboardHandler::handleMouseMove] mouse move is being handled.\nevent:", event, "\nvideo data:", videoData);
-    console.info('mousemove must be migrated!');
-    // videoData?.panHandler(event);
-    // this.execAction(this.mouseMoveActions, event, videoData)
   }
 
 }

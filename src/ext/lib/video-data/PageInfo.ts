@@ -61,7 +61,7 @@ class PageInfo {
   extensionMode: ExtensionMode;
   defaultCrop: any;
   currentCrop: any;
-  kbmHandlerInitQueue: any[] = [];
+  keyboardHandlerInitQueue: any[] = [];
   currentZoomScale: number = 1;
 
   keyboardHandler: any;
