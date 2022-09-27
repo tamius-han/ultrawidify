@@ -422,15 +422,15 @@ class Settings {
     }
   }
 
-  canStartExtension(site) {
-    // returns 'true' if extension can be started on a given site. Returns false if we shouldn't run.
+  /**
+   * Returns whether extension can start on a given site or not.
+   * @param site — default value fof this argument is window.location.hostname
+   * @returns true if extension can run on this site, false otherwise
+   */
+  isEnabledForSite(site = window.location.hostname) {
     if (!site) {
-      site = window.location.hostname;
-
-      if (!site) {
-        this.logger?.log('info', 'settings', `[Settings::canStartExtension] window.location.hostname is null or undefined: ${window.location.hostname} \nactive settings:`, this.active);
-        return false;
-      }
+      this.logger?.log('info', 'settings', `[Settings::canStartExtension] window.location.hostname is null or undefined: ${window.location.hostname} \nactive settings:`, this.active);
+      return false;
     }
 
     // if (Debug.debug) {
@@ -484,10 +484,6 @@ class Settings {
 
   extensionEnabled(){
     return this.active.sites['@global'].mode !== ExtensionMode.Disabled
-  }
-
-  extensionEnabledForSite(site) {
-    return this.canStartExtension(site);
   }
 
   canStartAutoAr(site?: string) {
