@@ -180,7 +180,7 @@ interface SettingsInterface {
     conditionalDifferencePercent: number  // black bars less than this wide will trigger stretch
                                         // if mode is set to '1'. 1.0=100%
   },
-  kbmHandler: {
+  kbm: {
     enabled: boolean,          // if keyboard/mouse handler service will run
     keyboardEnabled: boolean,  // if keyboard shortcuts are processed
     mouseEnabled: boolean,     // if mouse movement is processed

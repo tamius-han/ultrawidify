@@ -79,7 +79,7 @@ class KeyboardHandler {
   }
 
   load() {
-    if (!this.settings.isEnabledForSite() || this.settings.active.kbmHandler.enabled) {
+    if (!this.settings.isEnabledForSite() || this.settings.active.kbm.enabled) {
       return;
     }
     this.addListener();
@@ -95,7 +95,7 @@ class KeyboardHandler {
     // way, otherwise we can't remove event listener
     // https://stackoverflow.com/a/19507086
 
-    if (this.settings.active.kbmHandler.keyboardEnabled) {
+    if (this.settings.active.kbm.keyboardEnabled) {
       document.addEventListener('keyup', this );
     }
   }
@@ -111,11 +111,11 @@ class KeyboardHandler {
     if (element) {
       this.playerElements.push(element);
 
-      if (this.settings.active.kbmHandler.mouseEnabled) {
+      if (this.settings.active.kbm.mouseEnabled) {
         element.addEventListener('mousemove', this);
       }
     } else {
-      if (this.settings.active.kbmHandler.mouseEnabled) {
+      if (this.settings.active.kbm.mouseEnabled) {
         for (const playerElement of this.playerElements) {
           playerElement.addEventListener('mousemove', this);
         }
@@ -176,7 +176,7 @@ class KeyboardHandler {
     }
 
     for (const confKey in config) {
-      this.settings.active.kbmHandler[confKey] = config[confKey];
+      this.settings.active.kbm[confKey] = config[confKey];
     }
 
     this.settings.save();
