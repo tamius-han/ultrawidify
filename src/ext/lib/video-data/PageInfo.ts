@@ -64,7 +64,7 @@ class PageInfo {
   kbmHandlerInitQueue: any[] = [];
   currentZoomScale: number = 1;
 
-  kbmHandler: any;
+  keyboardHandler: any;
   //#endregion
 
   constructor(eventBus: EventBus, settings: Settings, logger: Logger, extensionMode, readOnly = false){
@@ -125,10 +125,10 @@ class PageInfo {
   }
 
   initMouseActionHandler(videoData) {
-    if (this.kbmHandler) {
-      this.kbmHandler.registerHandleMouse(videoData);
+    if (this.keyboardHandler) {
+      this.keyboardHandler.registerHandleMouse(videoData);
     } else {
-      this.kbmHandlerInitQueue.push(videoData);
+      this.keyboardHandlerInitQueue.push(videoData);
     }
   }
 

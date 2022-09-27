@@ -1,7 +1,7 @@
 import Debug from './conf/Debug';
 import ExtensionMode from '../common/enums/ExtensionMode.enum';
 import Settings from './lib/Settings';
-import KbmHandler from './lib/KbmHandler';
+import KeyboardHandler from '../../../../KeyboardHandler';
 import Comms from './lib/comms/Comms';
 import CommsClient from './lib/comms/CommsClient';
 import PageInfo from './lib/video-data/PageInfo';
@@ -13,7 +13,7 @@ export default class UWContent {
   pageInfo: PageInfo;
   comms: CommsClient;
   settings: Settings;
-  kbmHandler: KbmHandler;
+  keyboardHandler: KeyboardHandler;
   logger: Logger;
   eventBus: EventBus;
 
@@ -133,17 +133,17 @@ export default class UWContent {
       this.pageInfo = new PageInfo(this.eventBus, this.settings, this.logger, extensionMode, isSiteDisabled);
       this.logger.log('info', 'debug', "[uw.js::setup] pageInfo initialized.");
 
-      this.logger.log('info', 'debug', "[uw.js::setup] will try to initate KbmHandler.");
+      this.logger.log('info', 'debug', "[uw.js::setup] will try to initate KeyboardHandler.");
 
       // start action handler only if extension is enabled for this site
       if (!isSiteDisabled) {
-        if (this.kbmHandler) {
-          this.kbmHandler.destroy();
+        if (this.keyboardHandler) {
+          this.keyboardHandler.destroy();
         }
-        this.kbmHandler = new KbmHandler(this.eventBus, this.settings, this.logger);
-        this.kbmHandler.init();
+        this.keyboardHandler = new KeyboardHandler(this.eventBus, this.settings, this.logger);
+        this.keyboardHandler.init();
 
-        this.logger.log('info', 'debug', "[uw.js::setup] KbmHandler initiated.");
+        this.logger.log('info', 'debug', "[uw.js::setup] KeyboardHandler initiated.");
       }
 
     } catch (e) {
@@ -156,8 +156,8 @@ export default class UWContent {
     if (this.pageInfo) {
       this.pageInfo.destroy();
     }
-    if (this.kbmHandler) {
-      this.kbmHandler.destroy();
+    if (this.keyboardHandler) {
+      this.keyboardHandler.destroy();
     }
   }
 }
