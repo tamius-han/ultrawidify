@@ -22,7 +22,7 @@ export const baseLoggingOptions: LoggerConfig = {
     "settings": true,
     "keyboard": true,
     "mousemove": false,
-    "actionHandler": true,
+    "kbmHandler": true,
     "comms": true,
     "playerDetect": true,
     "resizer": true,
@@ -47,7 +47,7 @@ export interface LoggingOptions {
   settings?: boolean;
   keyboard?: boolean;
   mousemove?: boolean;
-  actionHandler?: boolean;
+  kbmHandler?: boolean;
   comms?: boolean;
   playerDetect?: boolean;
   resizer?: boolean;

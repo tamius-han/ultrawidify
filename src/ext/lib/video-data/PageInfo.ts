@@ -61,10 +61,10 @@ class PageInfo {
   extensionMode: ExtensionMode;
   defaultCrop: any;
   currentCrop: any;
-  actionHandlerInitQueue: any[] = [];
+  kbmHandlerInitQueue: any[] = [];
   currentZoomScale: number = 1;
 
-  actionHandler: any;
+  kbmHandler: any;
   //#endregion
 
   constructor(eventBus: EventBus, settings: Settings, logger: Logger, extensionMode, readOnly = false){
@@ -125,10 +125,10 @@ class PageInfo {
   }
 
   initMouseActionHandler(videoData) {
-    if (this.actionHandler) {
-      this.actionHandler.registerHandleMouse(videoData);
+    if (this.kbmHandler) {
+      this.kbmHandler.registerHandleMouse(videoData);
     } else {
-      this.actionHandlerInitQueue.push(videoData);
+      this.kbmHandlerInitQueue.push(videoData);
     }
   }
 

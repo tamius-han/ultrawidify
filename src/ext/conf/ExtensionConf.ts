@@ -150,6 +150,11 @@ const ExtensionConf: SettingsInterface = {
     maxLogZoom: 3,
     announceDebounce: 200     // we wait this long before announcing new zoom
   },
+  kbmHandler: {
+    enabled: true,
+    keyboardEnabled: true,
+    mouseEnabled: true
+  },
   miscSettings: {
     mousePan: {
       enabled: false
