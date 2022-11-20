@@ -6,6 +6,7 @@ import PageInfo from '../video-data/PageInfo';
 import Settings from '../Settings';
 import VideoData from '../video-data/VideoData';
 import EventBus, { EventBusCommand } from '../EventBus';
+import KbmBase from './KbmBase';
 
 if(process.env.CHANNEL !== 'stable'){
   console.info("Loading KeyboardHandler");
@@ -19,7 +20,7 @@ if(process.env.CHANNEL !== 'stable'){
  *    kbm-disable       disables keyboard shortcuts and mouse panning
  *    kbm-set-config    sets configuration for this module.
  */
-export class KeyboardHandler {
+export class KeyboardHandler extends KbmBase {
   logger: Logger;
   settings: Settings;
   eventBus: EventBus;
@@ -56,9 +57,7 @@ export class KeyboardHandler {
 
   //#region lifecycle
   constructor(eventBus: EventBus, settings: Settings, logger: Logger) {
-    this.logger = logger;
-    this.settings = settings;
-    this.eventBus = eventBus;
+    super(eventBus, settings, logger);
 
     this.init();
   }

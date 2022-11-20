@@ -1,6 +1,7 @@
 import EventBus, { EventBusCommand } from '../EventBus';
 import Logger from '../Logger';
 import Settings from '../Settings';
+import KbmBase from './KbmBase';
 
 if(process.env.CHANNEL !== 'stable'){
   console.info("Loading PlayerMouseHandler");
@@ -10,10 +11,8 @@ if(process.env.CHANNEL !== 'stable'){
 /**
  * Handles keypress
  */
-export class MouseHandler {
-  logger: Logger;
-  settings: Settings;
-  eventBus: EventBus;
+export class MouseHandler extends KbmBase {
+
   playerElement: HTMLElement;
 
   eventBusCommands: { [x: string]: EventBusCommand } = {
@@ -36,12 +35,15 @@ export class MouseHandler {
 
   //#region lifecycle
   constructor(playerElement: HTMLElement, eventBus: EventBus, settings: Settings, logger: Logger) {
+    super(eventBus, settings, logger);
+
     this.logger = logger;
     this.settings = settings;
     this.eventBus = eventBus;
     this.playerElement = playerElement;
 
     this.init();
+
   }
 
   init() {
