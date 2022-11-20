@@ -20,8 +20,13 @@
         Build channel: {{BrowserDetect?.processEnvChannel}}
       </div>
     </div>
+    <div class="">
+      TODO: force open UI button
+    </div>
     <div class="flex flex-row body no-overflow flex-grow">
-
+      <div class="">
+        side menu
+      </div>
       <pre>
         ---- site:
         {{site}}
@@ -262,7 +267,7 @@ html {
   padding-top: 8px;
   padding-left: 15px;
   padding-bottom: 1px;
-  font-size: 2.7em;
+  font-size: 1.75rem;
 }
 .header-small {
   overflow: hidden;
