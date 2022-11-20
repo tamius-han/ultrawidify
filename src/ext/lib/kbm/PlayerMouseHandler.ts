@@ -12,6 +12,7 @@ if(process.env.CHANNEL !== 'stable'){
  * Handles keypress
  */
 export class MouseHandler extends KbmBase {
+  listenFor: string[] = ['mousemove'];
 
   playerElement: HTMLElement;
 
@@ -64,16 +65,6 @@ export class MouseHandler extends KbmBase {
   //#endregion
 
   //#region listener setup, teardown, handling
-  private addListener() {
-    if (this.settings.active.kbm.enabled && this.settings.active.kbm.mouseEnabled) {
-      this.playerElement.addEventListener('mousemove', this);
-    }
-  }
-
-  private removeListener() {
-    this.playerElement.removeEventListener('mousemove', this);
-  }
-
   handleEvent(event: MouseEvent) {
     switch (event.type) {
       case 'mousemove':
@@ -89,12 +80,6 @@ export class MouseHandler extends KbmBase {
   disable() {
     this.removeListener();
   }
-
-  private setConfig(config, isTemporary?) {
-
-  }
-
-
 
   private handleMouseMove(event: MouseEvent) {
 

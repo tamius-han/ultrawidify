@@ -21,6 +21,7 @@ if(process.env.CHANNEL !== 'stable'){
  *    kbm-set-config    sets configuration for this module.
  */
 export class KeyboardHandler extends KbmBase {
+  listenFor: string[] = ['keyup'];
   logger: Logger;
   settings: Settings;
   eventBus: EventBus;
@@ -38,21 +39,7 @@ export class KeyboardHandler extends KbmBase {
   keypressActions: any[] = [];
 
   eventBusCommands: { [x: string]: EventBusCommand } = {
-    'kbm-enable': {
-      function: () => this.enable()
-    },
-    'kbm-disable': {
-      function: () => this.disable()
-    },
-    'kbm-set-config': {
-      function: (data: {config: any, temporary?: boolean}) => this.setConfig(data.config, data.temporary),
-    },
-    'uw-enable': {
-      function: () => this.load()
-    },
-    'uw-disable': {
-      function: () => this.disable()
-    },
+
   }
 
   //#region lifecycle
@@ -77,29 +64,8 @@ export class KeyboardHandler extends KbmBase {
     this.load();
   }
 
-  load() {
-    if (! (this.settings.isEnabledForSite() && this.settings.active.kbm.enabled)) {
-      return;
-    }
-    this.addListener();
-  }
-
   destroy() {
     this.removeListener();
-  }
-
-  // convenience methods
-  addListener() {
-    // events should be handled in handleEvent function. We need to do things this
-    // way, otherwise we can't remove event listener
-    // https://stackoverflow.com/a/19507086
-
-    if (this.settings.active.kbm.keyboardEnabled) {
-      document.addEventListener('keyup', this );
-    }
-  }
-  removeListener() {
-    document.removeEventListener('keyup', this);
   }
 
   /**
@@ -133,44 +99,6 @@ export class KeyboardHandler extends KbmBase {
         this.handleKeyup(event);
         break;
     }
-  }
-
-  /**
-   * Enables KeyboardHandler
-   */
-  enable() {
-    this.load();
-  }
-
-  /**
-   * Disables KeyboardHandler
-   */
-  disable() {
-    this.removeListener();
-  }
-
-  /**
-   * Sets configuration parameter for KeyboardHandler
-   * @param config
-   */
-  setConfig(config, temporary = false) {
-    if (temporary) {
-      for (const confKey in config) {
-        switch (confKey) {
-          case 'enabled':
-            config[confKey] ? this.enable() : this.disable();
-            break;
-        }
-      }
-      return;
-    }
-
-    for (const confKey in config) {
-      this.settings.active.kbm[confKey] = config[confKey];
-    }
-
-    this.settings.save();
-    this.load();
   }
 
   setKeyboardLocal(state) {
