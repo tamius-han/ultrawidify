@@ -27,6 +27,14 @@
       <div class="">
         side menu
       </div>
+      <div>
+        <PopupVideoSettings
+          :settings="settings"
+          :eventBus="eventBus"
+          :site="site"
+          :frame="site.frame[0]"
+        ></PopupVideoSettings>
+      </div>
       <pre>
         ---- site:
         {{site}}
