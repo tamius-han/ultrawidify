@@ -78,7 +78,7 @@ export class KeyboardHandler extends KbmBase {
   }
 
   load() {
-    if (!this.settings.isEnabledForSite() || this.settings.active.kbm.enabled) {
+    if (! (this.settings.isEnabledForSite() && this.settings.active.kbm.enabled)) {
       return;
     }
     this.addListener();
