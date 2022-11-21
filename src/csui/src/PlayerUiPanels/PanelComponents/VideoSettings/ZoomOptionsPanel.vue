@@ -108,6 +108,12 @@ export default {
     'isEditing'
   ],
   methods: {
+    getZoomForDisplay(axis) {
+      // zoom is internally handled logarithmically, because we want to have x0.5, x1, x2, x4 ... magnifications
+      // spaced out at regular intervals. When displaying, we need to convert that to non-logarithmic values.
+
+      return `${(Math.pow(2, this.zoom[axis]) * 100).toFixed()}%`
+    },
     toggleZoomAr() {
       this.zoomAspectRatioLocked = !this.zoomAspectRatioLocked;
     },
