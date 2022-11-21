@@ -32,7 +32,7 @@
           :settings="settings"
           :eventBus="eventBus"
           :site="site"
-          :frame="site.frame[0]"
+          :frame="selectedFrame"
         ></PopupVideoSettings>
       </div>
       <pre>
@@ -48,10 +48,11 @@
 </template>
 
 <script>
+import PopupVideoSettings from './panels/PopupVideoSettings.vue'
 import Debug from '../ext/conf/Debug';
 import BrowserDetect from '../ext/conf/BrowserDetect';
 import Comms from '../ext/lib/comms/Comms';
-import CommsClient from '../ext/lib/comms/CommsClient';
+import CommsClient, {CommsOrigin} from '../ext/lib/comms/CommsClient';
 import Settings from '../ext/lib/Settings';
 import Logger from '../ext/lib/Logger';
 import EventBus from '../ext/lib/EventBus';
@@ -69,6 +70,8 @@ export default {
       sideMenuVisible: null,
       logger: undefined,
       site: undefined,
+
+      selectedFrame: '__playing',
     }
   },
   async created() {
@@ -99,13 +102,25 @@ export default {
           this.site = config.site;
           this.selectedSite = this.selectedSite || config.site.host;
 
+          this.eventBus.setupPopupTunnelWorkaround({
+            origin: CommsOrigin.Popup,
+            comms: {
+              forwardTo: 'active'
+            }
+          });
+
           this.loadFrames(this.site);
+
         }
       }
     );
 
     this.comms = new CommsClient('popup-port', this.logger, this.eventBus);
     this.eventBus.setComms(this.comms);
+    this.eventBus.setupPopupTunnelWorkaround({
+      origin: CommsOrigin.Popup,
+      comms: {forwardTo: 'active'}
+    });
 
 
     // ensure we'll clean player markings on popup close
@@ -144,7 +159,7 @@ export default {
   },
   components: {
     Debug,
-    BrowserDetect,
+    BrowserDetect, PopupVideoSettings
   },
   methods: {
     async sleep(t) {

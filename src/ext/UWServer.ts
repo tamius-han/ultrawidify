@@ -312,6 +312,7 @@ export default class UWServer {
 
     if (!activeTab || activeTab.length < 1) {
       this.logger.log('warn', 'comms', 'There is no active tab for some reason. activeTab:', activeTab);
+      return null;
     }
 
     const url = activeTab[0].url;

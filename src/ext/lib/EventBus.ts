@@ -26,6 +26,14 @@ export default class EventBus {
   private upstreamBus?: EventBus;
   private comms?: CommsClient | CommsServer;
 
+  private disableTunnel: boolean = false;
+  private popupContext: any = {};
+
+  setupPopupTunnelWorkaround(context: EventBusContext): void {
+    this.disableTunnel = true;
+    this.popupContext = context;
+  }
+
   //#region lifecycle
   destroy() {
     this.commands = null;
@@ -107,13 +115,22 @@ export default class EventBus {
    * @param config
    */
   sendToTunnel(command: string, config: any) {
-    window.parent.postMessage(
-      {
-        action: 'uw-bus-tunnel',
-        payload: {action: command, config}
-      },
-      '*'
-    );
+    if (!this.disableTunnel) {
+      window.parent.postMessage(
+        {
+          action: 'uw-bus-tunnel',
+          payload: {action: command, config}
+        },
+        '*'
+      );
+    } else {
+      // because iframe UI components get reused in the popup, we
+      // also need to set up a detour because the tunnel is closed
+      // in the popup
+      if (this.comms) {
+        this.comms.sendMessage({command, config, context: this.popupContext}, this.popupContext);
+      }
+    }
   }
 
 

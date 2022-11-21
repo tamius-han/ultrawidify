@@ -134,7 +134,7 @@ class CommsServer {
       return;
     }
     for (const framePort in this.ports[tab][frame]) {
-      this.ports[tab][frame][framePort].postMessage(message);
+      this.ports[tab][frame][framePort].postMessage(JSON.parse(JSON.stringify(message)));
     }
   }
 
@@ -156,6 +156,7 @@ class CommsServer {
     this.logger.log('info', 'comms', `%c[CommsServer::sendToFrame] attempting to send message to tab ${tab}, frame ${frame}`, "background: #dda; color: #11D", message);
 
     try {
+
       this.sendToFrameContentScripts(message, tab, frame, port);
     } catch (e) {
       this.logger.log('error', 'comms', `%c[CommsServer::sendToFrame] Sending message failed. Reason:`, "background: #dda; color: #11D", e);

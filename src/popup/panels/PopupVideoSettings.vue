@@ -19,6 +19,7 @@
 </template>
 
 <script>
+import CropOptionsPanel from '../../csui/src/PlayerUiPanels/PanelComponents/VideoSettings/CropOptionsPanel.vue'
 import ExecAction from '../../csui/src/ui-libs/ExecAction';
 
 export default {
@@ -36,6 +37,9 @@ export default {
     'eventBus',
     'site'
   ],
+  components: {
+    CropOptionsPanel
+  },
   created() {
     this.exec = new ExecAction(this.settings, window.location.hostname);
     this.eventBus.subscribe('uw-config-broadcast', {function: (config) => this.handleConfigBroadcast(config)});
