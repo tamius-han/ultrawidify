@@ -210,14 +210,14 @@ export default {
     EditShortcutButton,
   },
   computed: {
-    extensionDefaultCrop() {
+    extensionDefaultStretch() {
       return JSON.stringify(
-        this.settings?.active.crop?.default ?? {type: AspectRatioType.Automatic}
+        this.settings?.active.stretch?.default ?? {type: StretchMode.NoStretch}
       );
     },
-    siteDefaultCrop()  {
+    siteDefaultStretch() {
       return JSON.stringify(
-        this.settings?.getDefaultCrop(this.site) ?? {type: AspectRatioType.Automatic}
+        this.settings?.getDefaultStretch(this.site) ?? {type: StretchMode.NoStretch}
       );
     },
   },

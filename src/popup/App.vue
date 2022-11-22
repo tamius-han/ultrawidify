@@ -27,7 +27,7 @@
       <div class="">
         side menu
       </div>
-      <div>
+      <div class="scrollable">
         <PopupVideoSettings
           :settings="settings"
           :eventBus="eventBus"
@@ -35,12 +35,12 @@
           :frame="selectedFrame"
         ></PopupVideoSettings>
       </div>
-      <pre>
+      <!-- <pre>
         ---- site:
         {{site}}
 
         ----
-      </pre>
+      </pre> -->
 
     </div>
   </div>
@@ -304,6 +304,10 @@ html {
   font-size: 1.27em;
 }
 
+.scrollable {
+  height: 100%;
+  overflow-y: auto;
+}
 
 .menu-item-inline-desc{
   font-size: 0.60em;

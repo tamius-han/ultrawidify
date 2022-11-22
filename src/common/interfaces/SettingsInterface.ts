@@ -29,6 +29,7 @@ interface RestrictionsSettings {
   minAllowedWidth?: number;           // if player is less than this many px wide, ultrawidify will disable itself
   minAllowedHeight?: number;          // if player is less than this many px tall, ultrawidify will disable itself
   onlyAllowInFullscreen?: boolean;    // if enabled, ultrawidify will be disabled when not in full screen regardless of what previous two options say
+  onlyAllowAutodetectionInFullScreen?: boolean;  // if enabled, autodetection will only start once in full screen
 }
 
 export interface CommandInterface {

@@ -108,6 +108,11 @@
               :site="site"
             >
             </PlayerDetectionPanel>
+            <BaseExtensionSettings
+              v-if="selectedTab === 'extensionSettings'"
+              :settings="settings"
+              :site="site"
+            ></BaseExtensionSettings>
             <AutodetectionSettingsPanel
               v-if="selectedTab === 'autodetectionSettings'"
               :settings="settings"
@@ -131,6 +136,7 @@
 </template>
 
 <script>
+import BaseExtensionSettings from './src/PlayerUiPanels/BaseExtensionSettings.vue'
 import DebugPanel from './src/PlayerUiPanels/DebugPanel.vue'
 import VideoSettings from './src/PlayerUiPanels/VideoSettings.vue'
 import AutodetectionSettingsPanel from './src/PlayerUiPanels/AutodetectionSettingsPanel.vue'
@@ -150,7 +156,7 @@ export default {
     ResizerDebugPanel,
     VideoSettings,
     PlayerDetectionPanel,
-    AutodetectionSettingsPanel, DebugPanel
+    AutodetectionSettingsPanel, DebugPanel, BaseExtensionSettings
   },
   data() {
     return {
@@ -199,6 +205,7 @@ export default {
       tabs: [
         {id: 'videoSettings', label: 'Video settings', icon: 'crop'},
         {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
+        {id: 'extensionSettings', label: 'Extension options', icon: 'cogs' },
         {id: 'autodetectionSettings', label: 'Autodetection options', icon: ''},
         {id: 'advancedOptions', label: 'Advanced options', icon: 'cogs' },
         {id: 'debugging', label: 'Debugging', icon: 'bug-outline' }
