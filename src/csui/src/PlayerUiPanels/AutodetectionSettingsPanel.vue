@@ -17,7 +17,7 @@
             better performance.
           </p>
           <p>
-            Note that some browsers <a href="https://developer.mozilla.org/en-US/docs/Web/API/Performance/now" target="_blank">limit the accuracy of time measurements</a>.
+            Note that some browsers <a href="https://developer.mozilla.org/en-US/docs/Web/API/Performance/now" target="_blank">limit the accuracy of time measurements</a>, though once the bars go past the blue line those limitations are largely inconsequential.
           </p>
           <div class="performance-graph-container">
             <div class="performance-graph">

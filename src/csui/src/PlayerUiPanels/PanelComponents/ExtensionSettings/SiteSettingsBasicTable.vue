@@ -12,9 +12,9 @@
       </tr>
     </thead>
     <tbody>
-      <template v-for="site in settings.active.sites" :key="site">
+      <template v-for="(site, key) in settings.active.sites" :key="key">
         <tr>
-          <!-- host -->                 <td>{{site}}</td>
+          <!-- host -->                 <td>{{key}}</td>
           <!-- official status? -->     <td>{{settings.active.sites[site].type}}</td>
           <!-- enabled? -->             <td>todo: add</td>
           <!-- full screen only? -->    <td>{{settings.active.sites[site].restrictions?.fullScreenOnly}}</td>
