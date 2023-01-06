@@ -104,7 +104,6 @@ export default {
     'frame',
     'eventBus',
     'site',
-    'exec',
     'isEditing'
   ],
   methods: {

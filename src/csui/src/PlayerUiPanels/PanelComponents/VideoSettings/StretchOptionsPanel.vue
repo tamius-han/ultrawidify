@@ -202,7 +202,6 @@ export default {
     'frame',
     'eventBus',
     'site',
-    'exec',
     'isEditing'
   ],
   components: {
