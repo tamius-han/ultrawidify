@@ -6,39 +6,42 @@
       <div class="popup-title">Ultrawidify <small>{{settings?.active?.version}} - {{BrowserDetect.processEnvChannel}}</small></div>
       <div class="site-support-info">
         <div class="site-support-site">{{site}}</div>
-        <div v-if="siteSupportLevel === 'official'" class="site-support official">
-          <mdicon name="check-decagram" />
-          <div>Verified</div>
-          <div class="tooltip">The extension is being tested and should work on this site.</div>
-        </div>
-        <div v-if="siteSupportLevel === 'community'" class="site-support community">
-          <mdicon name="handshake" />
-          <div>Community</div>
-          <div class="tooltip">
-            People say extension works on this site (or have provided help getting the extension to work if it didn't).<br/><br/>
-            Tamius (the dev) does not test the extension on this site, probably because it requires a subscription or
-            is geoblocked.
+        <template v-if="inPlayer">
+          <div v-if="siteSupportLevel === 'official'" class="site-support official">
+            <mdicon name="check-decagram" />
+            <div>Verified</div>
+            <div class="tooltip">The extension is being tested and should work on this site.</div>
           </div>
-        </div>
-        <div v-if="siteSupportLevel === 'no-support'" class="site-support no-support">
-          <mdicon name="help-circle-outline" />
-          <div>Unknown</div>
-          <div class="tooltip">
-            Not officially supported. Extension will try to fix things, but no promises.<br/><br/>
-            Tamius (the dev) does not test the extension on this site for various reasons
-            (unaware, not using the site, language barrier, geoblocking, paid services Tam doesn't use).
+          <div v-if="siteSupportLevel === 'community'" class="site-support community">
+            <mdicon name="handshake" />
+            <div>Community</div>
+            <div class="tooltip">
+              People say extension works on this site (or have provided help getting the extension to work if it didn't).<br/><br/>
+              Tamius (the dev) does not test the extension on this site, probably because it requires a subscription or
+              is geoblocked.
+            </div>
           </div>
-        </div>
-        <div v-if="siteSupportLevel === 'user-added'" class="site-support user-added">
-          <mdicon name="account" />
-          <div>Custom</div>
-          <div class="tooltip">
-            You have manually changed settings for this site. The extension is doing what you told it to do.
+          <div v-if="siteSupportLevel === 'no-support'" class="site-support no-support">
+            <mdicon name="help-circle-outline" />
+            <div>Unknown</div>
+            <div class="tooltip">
+              Not officially supported. Extension will try to fix things, but no promises.<br/><br/>
+              Tamius (the dev) does not test the extension on this site for various reasons
+              (unaware, not using the site, language barrier, geoblocking, paid services Tam doesn't use).
+            </div>
           </div>
-        </div>
-        <mdicon v-if="siteSupportLevel === 'community'" class="site-support supported" name="checkbox-marked-circle" />
+          <div v-if="siteSupportLevel === 'user-added'" class="site-support user-added">
+            <mdicon name="account" />
+            <div>Custom</div>
+            <div class="tooltip">
+              You have manually changed settings for this site. The extension is doing what you told it to do.
+            </div>
+          </div>
+          <mdicon v-if="siteSupportLevel === 'community'" class="site-support supported" name="checkbox-marked-circle" />
+        </template>
       </div>
-      <div><a @click="uwWindowFadeOutDisabled = !uwWindowFadeOutDisabled">{{uwWindowFadeOutDisabled ? 'allow auto-close' : 'prevent auto-close'}}</a></div>
+
+      <div><a @click="setPreventClose(!preventClose)">{{preventClose ? 'allow auto-close' : 'prevent auto-close'}}</a></div>
     </div>
 
     <div class="tab-main flex flex-row">
@@ -81,39 +84,37 @@
 
         <div class="flex flex-row panel-content">
           <!-- Panel section -->
-          <template v-if="settingsInitialized">
-            <VideoSettings
-              v-if="selectedTab === 'videoSettings'"
-              :settings="settings"
-              :eventBus="eventBus"
-              :site="site"
-            ></VideoSettings>
-            <PlayerDetectionPanel
-              v-if="selectedTab === 'playerDetection'"
-              :settings="settings"
-              :eventBus="eventBus"
-              :site="site"
-            >
-            </PlayerDetectionPanel>
-            <BaseExtensionSettings
-              v-if="selectedTab === 'extensionSettings'"
-              :settings="settings"
-              :site="site"
-            ></BaseExtensionSettings>
-            <AutodetectionSettingsPanel
-              v-if="selectedTab === 'autodetectionSettings'"
-              :settings="settings"
-              :eventBus="eventBus"
-              :site="site"
-            >
-            </AutodetectionSettingsPanel>
-            <DebugPanel
-              v-if="selectedTab === 'debugging'"
-              :settings="settings"
-              :eventBus="eventBus"
-              :site="site"
-            ></DebugPanel>
-          </template>
+          <VideoSettings
+            v-if="selectedTab === 'videoSettings'"
+            :settings="settings"
+            :eventBus="eventBus"
+            :site="site"
+          ></VideoSettings>
+          <PlayerDetectionPanel
+            v-if="selectedTab === 'playerDetection'"
+            :settings="settings"
+            :eventBus="eventBus"
+            :site="site"
+          >
+          </PlayerDetectionPanel>
+          <BaseExtensionSettings
+            v-if="selectedTab === 'extensionSettings'"
+            :settings="settings"
+            :site="site"
+          ></BaseExtensionSettings>
+          <AutodetectionSettingsPanel
+            v-if="selectedTab === 'autodetectionSettings'"
+            :settings="settings"
+            :eventBus="eventBus"
+            :site="site"
+          >
+          </AutodetectionSettingsPanel>
+          <DebugPanel
+            v-if="selectedTab === 'debugging'"
+            :settings="settings"
+            :eventBus="eventBus"
+            :site="site"
+          ></DebugPanel>
         </div>
       </div>
     </div>
@@ -152,13 +153,24 @@ export default {
       ],
       selectedTab: 'videoSettings',
       BrowserDetect: BrowserDetect,
+      preventClose: false,
     }
   },
   props: [
     'settings',
     'eventBus',
-    'logger'
+    'logger',
+    'in-player',
+    'site'
   ],
+  computed: {
+    // LPT: NO ARROW FUNCTIONS IN COMPUTED,
+    // IS SUPER HARAM
+    // THINGS WILL NOT WORK IF YOU USE ARROWS
+    siteSupportLevel() {
+      return (this.site && this.settings?.active) ? this.settings.active.sites[this.site]?.type || 'no-support' : 'waiting';
+    }
+  },
   methods: {
     /**
      * Gets URL of the browser settings page (i think?)
@@ -168,6 +180,10 @@ export default {
     },
     selectTab(tab) {
       this.selectedTab = tab;
+    },
+    setPreventClose(bool) {
+      this.preventClose = bool;
+      this.$emit('preventClose', bool);
     }
   }
 }
@@ -311,33 +327,12 @@ export default {
   }
 }
 
+
 .popup-panel {
-  position: absolute;
-
-  top: 10%;
-  left: 10%;
-
-  z-index: 999999999999999999;
-
-  width: 2500px;
-  height: 1200px;
-  max-width: 80%;
-  max-height: 80%;
-
-  pointer-events: all !important;
-
   background-color: rgba(0,0,0,0.50);
   color: #fff;
 
   overflow-y: auto;
-
-  backdrop-filter: blur(16px) saturate(120%);
-
-  opacity: 1;
-  &.fade-out {
-    opacity: 0;
-    transition: opacity 1s;
-  }
 
   .popup-window-header {
     padding: 1rem;
@@ -391,5 +386,6 @@ export default {
 pre {
   white-space: pre-wrap;
 }
+
 
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="uwTriggerZoneVisible"
+    v-if="settingsInitialized && uwTriggerZoneVisible"
     class="uw-hover uv-hover-trigger-region uw-clickable"
     :style="uwTriggerRegionConf"
     @mouseenter="showUwWindow"
@@ -8,134 +8,32 @@
     <h1>Aspect ratio controls</h1>
     <div>Hover to activate</div>
   </div>
+
+
+
+  <!-- sss -->
+
   <div
-    v-if="uwWindowVisible"
-    class="popup-panel flex flex-column uw-clickable"
+    v-if="settingsInitialized && uwWindowVisible"
+    class="uw-window flex flex-column uw-clickable"
     :class="{'fade-out': uwWindowFadeOut}"
     @mouseenter="cancelUwWindowHide"
     @mouseleave="hideUwWindow"
   >
-    <div class="popup-window-header">
-      <div class="popup-title">Ultrawidify <small>{{settings?.active?.version}} - {{BrowserDetect.processEnvChannel}}</small></div>
-      <div class="site-support-info">
-        <div class="site-support-site">{{site}}</div>
-        <div v-if="siteSupportLevel === 'official'" class="site-support official">
-          <mdicon name="check-decagram" />
-          <div>Verified</div>
-          <div class="tooltip">The extension is being tested and should work on this site.</div>
-        </div>
-        <div v-if="siteSupportLevel === 'community'" class="site-support community">
-          <mdicon name="handshake" />
-          <div>Community</div>
-          <div class="tooltip">
-            People say extension works on this site (or have provided help getting the extension to work if it didn't).<br/><br/>
-            Tamius (the dev) does not test the extension on this site, probably because it requires a subscription or
-            is geoblocked.
-          </div>
-        </div>
-        <div v-if="siteSupportLevel === 'no-support'" class="site-support no-support">
-          <mdicon name="help-circle-outline" />
-          <div>Unknown</div>
-          <div class="tooltip">
-            Not officially supported. Extension will try to fix things, but no promises.<br/><br/>
-            Tamius (the dev) does not test the extension on this site for various reasons
-            (unaware, not using the site, language barrier, geoblocking, paid services Tam doesn't use).
-          </div>
-        </div>
-        <div v-if="siteSupportLevel === 'user-added'" class="site-support user-added">
-          <mdicon name="account" />
-          <div>Custom</div>
-          <div class="tooltip">
-            You have manually changed settings for this site. The extension is doing what you told it to do.
-          </div>
-        </div>
-        <mdicon v-if="siteSupportLevel === 'community'" class="site-support supported" name="checkbox-marked-circle" />
-      </div>
-      <div><a @click="uwWindowFadeOutDisabled = !uwWindowFadeOutDisabled">{{uwWindowFadeOutDisabled ? 'allow auto-close' : 'prevent auto-close'}}</a></div>
-    </div>
-
-    <div class="tab-main flex flex-row">
-      <div class="tab-row flex flex-column">
-        <div
-          v-for="tab of tabs"
-          :key="tab.id"
-          class="tab"
-          :class="{'active': tab.id === selectedTab}"
-          @click="selectTab(tab.id)"
-        >
-          <div class="icon-container">
-            <mdicon
-              :name="tab.icon"
-              :size="32"
-            />
-          </div>
-          <div class="label">
-            {{tab.label}}
-          </div>
-        </div>
-      </div>
-      <div class="content flex flex-column">
-        <!-- autodetection warning -->
-
-        <div class="warning-area">
-          <div
-            v-if="statusFlags.hasDrm"
-            class="warning-box"
-          >
-            <div class="icon-container">
-              <mdicon name="alert" :size="32" />
-            </div>
-            <div>
-              This site is blocking automatic aspect ratio detection. You will have to adjust aspect ratio manually.<br/>
-              <a>Learn more ...</a>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex flex-row panel-content">
-          <!-- Panel section -->
-          <template v-if="settingsInitialized">
-            <VideoSettings
-              v-if="selectedTab === 'videoSettings'"
-              :settings="settings"
-              :eventBus="eventBus"
-              :site="site"
-            ></VideoSettings>
-            <PlayerDetectionPanel
-              v-if="selectedTab === 'playerDetection'"
-              :settings="settings"
-              :eventBus="eventBus"
-              :site="site"
-            >
-            </PlayerDetectionPanel>
-            <BaseExtensionSettings
-              v-if="selectedTab === 'extensionSettings'"
-              :settings="settings"
-              :site="site"
-            ></BaseExtensionSettings>
-            <AutodetectionSettingsPanel
-              v-if="selectedTab === 'autodetectionSettings'"
-              :settings="settings"
-              :eventBus="eventBus"
-              :site="site"
-            >
-            </AutodetectionSettingsPanel>
-            <DebugPanel
-              v-if="selectedTab === 'debugging'"
-              :settings="settings"
-              :eventBus="eventBus"
-              :site="site"
-            ></DebugPanel>
-            <!-- <ResizerDebugPanel :debugData="debugData">
-            </ResizerDebugPanel> -->
-          </template>
-        </div>
-      </div>
-    </div>
+    <PlayerUIWindow
+      :settings="settings"
+      :eventBus="eventBus"
+      :logger="logger"
+      :in-player="true"
+      :site="site"
+      @close="uwWindowVisible = false"
+      @preventClose="(event) => uwWindowFadeOutDisabled = event"
+    ></PlayerUIWindow>
   </div>
 </template>
 
 <script>
+import PlayerUIWindow from './src/PlayerUIWindow.vue'
 import BaseExtensionSettings from './src/PlayerUiPanels/BaseExtensionSettings.vue'
 import DebugPanel from './src/PlayerUiPanels/DebugPanel.vue'
 import VideoSettings from './src/PlayerUiPanels/VideoSettings.vue'
@@ -157,7 +55,10 @@ export default {
     ResizerDebugPanel,
     VideoSettings,
     PlayerDetectionPanel,
-    AutodetectionSettingsPanel, DebugPanel, BaseExtensionSettings
+    AutodetectionSettingsPanel,
+    DebugPanel,
+    BaseExtensionSettings,
+    PlayerUIWindow
   },
   mixins: [
     UIProbeMixin
@@ -227,10 +128,6 @@ export default {
     windowHeight() {
       return window.innerHeight;
     },
-    siteSupportLevel() {
-      // console.warn('\n\n\n\n\n\n\n\n\n\n\nsite support level. site:', this, this?.site, this?.settings, this?.settings?.active?.sites[this.site]);
-      return (this.site && this.settings?.active) ? this.settings.active.sites[this.site]?.type || 'no-support' : 'waiting';
-    }
   },
   watch: {
     showUi(visible) {
@@ -356,136 +253,6 @@ export default {
 @import 'res/css/common.scss';
 @import './src/res-common/_variables';
 
-// .relative-wrapper {
-//   position: relative;
-//   width: 100%;
-//   height: 100%;
-// }
-
-.tab-main {
-  flex-grow: 1;
-  flex-shrink: 1;
-  overflow: hidden;
-}
-
-.site-support-info {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  .site-support-site {
-    font-size: 1.5em;
-  }
-
-  .site-support {
-    display: inline-flex;
-    flex-direction: row;
-    align-items: center;
-
-    margin-left: 1rem;
-    border-radius: 8px;
-    padding: 0rem 1.5rem 0rem 1rem;
-
-    position: relative;
-
-    .tooltip {
-      padding: 1rem;
-      display: none;
-      position: absolute;
-      bottom: 0;
-      transform: translateY(110%);
-      width: 42em;
-
-      background-color: rgba(0,0,0,0.90);
-      color: #ccc;
-    }
-    &:hover {
-      .tooltip {
-        display: block;
-      }
-    }
-
-    .mdi {
-      margin-right: 1rem;
-    }
-
-    &.official {
-      background-color: #fa6;
-      color: #000;
-
-      .mdi {
-        fill: #000 !important;
-      }
-    }
-
-    &.community {
-      background-color: rgb(47, 47, 97);
-      color: #fff;
-
-      .mdi {
-        fill: #fff !important;
-      }
-    }
-
-    &.no-support {
-      background-color: rgb(138, 65, 126);
-      color: #eee;
-
-      .mdi {
-        fill: #eee !important;
-      }
-    }
-
-    &.user-added {
-      border: 1px solid #ff0;
-
-      color: #ff0;
-
-      .mdi {
-        fill: #ff0 !important;
-      }
-    }
-  }
-}
-
-.content {
-  flex-grow: 1;
-
-  .warning-area {
-    flex-grow: 0;
-    flex-shrink: 0;
-  }
-
-  .panel-content {
-    flex-grow: 1;
-    flex-shrink: 1;
-
-    overflow-y: auto;
-    padding: 1rem;
-  }
-}
-
-.warning-box {
-  background: rgb(255, 174, 107);
-  color: #000;
-  margin: 1rem;
-  padding: 1rem;
-
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  .icon-container {
-    margin-right: 1rem;
-    flex-shrink: 0;
-    flex-grow: 0;
-  }
-
-  a {
-    color: rgba(0,0,0,0.7);
-    cursor: pointer;
-  }
-}
 
 .uw-hover {
   position: absolute;
@@ -504,7 +271,7 @@ export default {
   backdrop-filter: blur(0.5rem) brightness(0.5);
 }
 
-.popup-panel {
+.uw-window {
   position: absolute;
 
   top: 10%;
@@ -519,70 +286,14 @@ export default {
 
   pointer-events: all !important;
 
-  background-color: rgba(0,0,0,0.50);
-  color: #fff;
-
-  overflow-y: auto;
-
+  opacity: 1;
   backdrop-filter: blur(16px) saturate(120%);
 
-  opacity: 1;
   &.fade-out {
     opacity: 0;
-    transition: opacity 1s;
+    transition: opacity 0.5s;
+    transition-delay: 0.5s;
   }
-
-  .popup-window-header {
-    padding: 1rem;
-    background-color: rgba(5,5,5, 0.75);
-  }
-  .tab-row {
-    background-color: rgba(11,11,11, 0.75);
-
-    .tab {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-
-      padding: 2rem;
-      font-size: 1.5rem;
-      height: 4rem;
-
-      border-bottom: 1px solid rgba(128, 128, 128, 0.5);
-      border-top: 1px solid rgba(128, 128, 128, 0.5);
-      opacity: 0.5;
-
-      &:hover {
-        opacity: 1;
-      }
-      &.active {
-        opacity: 1.0;
-        background-color: $primaryBg;
-        color: rgb(255, 174, 107);
-        border-bottom: 1px solid rgba(116, 78, 47, 0.5);
-        border-top: 1px solid rgba(116, 78, 47, 0.5);
-      }
-
-      .icon-container {
-        width: 64px;
-        flex-grow: 0;
-        flex-shrink: 0;
-      }
-      .label {
-        flex-grow: 1;
-        flex-shrink: 1;
-        padding: 0 !important;
-      }
-    }
-  }
-
-  .popup-title, .popup-title h1 {
-    font-size: 48px !important;
-  }
-}
-
-pre {
-  white-space: pre-wrap;
 }
 
 </style>
