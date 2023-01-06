@@ -55,7 +55,7 @@
     "copy-webpack-plugin": "^11.0.0",
     "cross-env": "^5.2.0",
     "css-loader": "^6.7.3",
-    "ejs": "^2.7.4",
+    "ejs": "^3.1.7",
     "file-loader": "^6.2.0",
     "fs-extra": "^7.0.1",
     "mini-css-extract-plugin": "^2.7.2",
