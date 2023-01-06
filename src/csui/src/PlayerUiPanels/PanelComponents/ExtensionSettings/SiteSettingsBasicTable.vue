@@ -27,7 +27,7 @@
 <script>
 export default {
   data() {
-
+    return {};
   },
   props: [
     'settings',
