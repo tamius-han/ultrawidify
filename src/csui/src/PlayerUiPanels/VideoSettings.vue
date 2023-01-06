@@ -110,6 +110,7 @@
 </template>
 
 <script>
+import ZoomOptionsPanel from './PanelComponents/VideoSettings/ZoomOptionsPanel.vue'
 import CropOptionsPanel from './PanelComponents/VideoSettings/CropOptionsPanel'
 import StretchOptionsPanel from './PanelComponents/VideoSettings/StretchOptionsPanel'
 import Button from '../../../common/components/Button.vue'
@@ -160,7 +161,7 @@ export default {
     Button,
     AlignmentOptionsControlComponent,
     StretchOptionsPanel,
-    CropOptionsPanel
+    CropOptionsPanel, ZoomOptionsPanel
   },
   methods: {
 
