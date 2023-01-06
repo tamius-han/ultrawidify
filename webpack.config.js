@@ -1,9 +1,8 @@
 const webpack = require('webpack');
 const ejs = require('ejs');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const WebpackShellPlugin = require('webpack-shell-plugin');
+const WebpackShellPlugin = require('webpack-shell-plugin-next');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const ChromeExtensionReloader = require('webpack-chrome-extension-reloader');
 const { VueLoaderPlugin } = require('vue-loader');
 
 const config = {
@@ -34,14 +33,14 @@ const config = {
   },
   module: {
     rules: [
-      { 
+      {
         test: /\.ts$/,
         loader: 'ts-loader',
         exclude: /node_modules/
       },
       {
         test: /\.vue$/,
-        loaders: 'vue-loader',
+        loader: 'vue-loader',
       },
       {
         test: /\.js$/,
@@ -115,80 +114,85 @@ const config = {
     new MiniCssExtractPlugin({
       filename: '[name].css',
     }),
-    new CopyWebpackPlugin([
-      { from: 'res', to: 'res', ignore: ['css', 'css/**']},
-      { from: 'ext', to: 'ext', ignore: ['conf/*', 'lib/**']},
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'res', to: 'res', globOptions: { ignore: [ 'css', 'css/**' ] } },
+        { from: 'ext', to: 'ext', globOptions: { ignore: ['conf/*', 'lib/**'] } },
 
-      // we need to get webextension-polyfill and put it in common/lib
-      { from: '../node_modules/webextension-polyfill/dist/browser-polyfill.js', to: 'common/lib/browser-polyfill.js'},
+        // we need to get webextension-polyfill and put it in common/lib
+        { from: '../node_modules/webextension-polyfill/dist/browser-polyfill.js', to: 'common/lib/browser-polyfill.js'},
 
-      // This is a hack to get bootstrap icons svg file in /res/icons
-      { from: '../node_modules/bootstrap-icons/bootstrap-icons.svg', to: 'res/icons/bootstrap-icons.svg'},
+        // This is a hack to get bootstrap icons svg file in /res/icons
+        { from: '../node_modules/bootstrap-icons/bootstrap-icons.svg', to: 'res/icons/bootstrap-icons.svg'},
 
-      // This is extension icon, as used on extension lists and/or extension's action button
-      // This folder does not contain any GUI icons — these are in /res/icons. 
-      // (TODO: check if this copy is even necessary — /icons has same content as /res/icons)
-      { from: 'icons', to: 'icons', ignore: ['icon.xcf'] },
-      { from: 'popup/popup.html', to: 'popup/popup.html', transform: transformHtml },
-      { from: 'options/options.html', to: 'options/options.html', transform: transformHtml },
-      // { from: 'install/first-time/first-time.html', to: 'install/first-time/first-time.html', transform: transformHtml},
-      {
-        from: 'manifest.json',
-        to: 'manifest.json',
-        transform: (content) => {
-          const jsonContent = JSON.parse(content);
-          // jsonContent.version = version;
+        // This is extension icon, as used on extension lists and/or extension's action button
+        // This folder does not contain any GUI icons — these are in /res/icons.
+        // (TODO: check if this copy is even necessary — /icons has same content as /res/icons)
+        { from: 'icons', to: 'icons', globOptions: { ignore: ['icon.xcf'] } },
+        { from: 'popup/popup.html', to: 'popup/popup.html', transform: transformHtml },
+        { from: 'options/options.html', to: 'options/options.html', transform: transformHtml },
+        // { from: 'install/first-time/first-time.html', to: 'install/first-time/first-time.html', transform: transformHtml},
+        {
+          from: 'manifest.json',
+          to: 'manifest.json',
+          transform: (content) => {
+            const jsonContent = JSON.parse(content);
+            // jsonContent.version = version;
 
-          if (config.mode === 'development') {
-            jsonContent['content_security_policy'] = "script-src 'self' 'unsafe-eval'; object-src 'self'";
-          }
+            if (config.mode === 'development') {
+              jsonContent['content_security_policy'] = "script-src 'self' 'unsafe-eval'; object-src 'self'";
+            }
 
-          if (process.env.CHANNEL === 'nightly') {
-            jsonContent.name = "Ultrawidify - nightly";
-            jsonContent.description = "FOR TESTING ONLY -- THIS BUILD USES ONLY THE FRESHEST COMMITS FROM GITHUB AND MAY THEREFORE BE COMPLETELY BROKEN";
+            if (process.env.CHANNEL === 'nightly') {
+              jsonContent.name = "Ultrawidify - nightly";
+              jsonContent.description = "FOR TESTING ONLY -- THIS BUILD USES ONLY THE FRESHEST COMMITS FROM GITHUB AND MAY THEREFORE BE COMPLETELY BROKEN";
 
-            // version numbers for nightly builds: YYMM.DD.BUILD_NUMBER
-            jsonContent.version = `${new Date()
-                                            .toISOString()     // YYYY-MM-DDTHH:MM:SS...
-                                            .split('T')[0]     // gives YYYY-MM-DD
-                                            .substr(2)         // YYYY -> YY
-                                            .replace('-', '')  // YY-MM-DD -> YYMM-DD
-                                            .replace('-', '.') // YYMM-DD -> YYMM.DD
-                                    }.${process.env.BUILD_NUMBER === undefined ? 0 : process.env.BUILD_NUMBER}`;
-            jsonContent.browser_action.default_title = "Ultrawidify Nightly";
-            
-            // because we don't want web-ext to submit this as proper release
-            delete jsonContent.applications;
-          } else if (process.env.CHANNEL === 'testing') {
-            jsonContent.name = "Ultrawidify - testing";
-            jsonContent.description = "FOR TESTING ONLY -- this build is intended for testing a fix of certain bugs. It's not fit for normal use.";
+              // version numbers for nightly builds: YYMM.DD.BUILD_NUMBER
+              jsonContent.version = `${new Date()
+                                              .toISOString()     // YYYY-MM-DDTHH:MM:SS...
+                                              .split('T')[0]     // gives YYYY-MM-DD
+                                              .substr(2)         // YYYY -> YY
+                                              .replace('-', '')  // YY-MM-DD -> YYMM-DD
+                                              .replace('-', '.') // YYMM-DD -> YYMM.DD
+                                      }.${process.env.BUILD_NUMBER === undefined ? 0 : process.env.BUILD_NUMBER}`;
+              jsonContent.browser_action.default_title = "Ultrawidify Nightly";
 
-            // version numbers for nightly builds: YYMM.DD.BUILD_NUMBER
-            jsonContent.version = `${new Date()
-                                            .toISOString()     // YYYY-MM-DDTHH:MM:SS...
-                                            .split('T')[0]     // gives YYYY-MM-DD
-                                            .substr(2)         // YYYY -> YY
-                                            .replace('-', '')  // YY-MM-DD -> YYMM-DD
-                                            .replace('-', '.') // YYMM-DD -> YYMM.DD
-                                    }.${process.env.BUILD_NUMBER === undefined ? 0 : process.env.BUILD_NUMBER}`;
-            jsonContent.browser_action.default_title = "Ultrawidify Testing";
-            
-            // because we don't want web-ext to submit this as proper release
-            delete jsonContent.applications;
-          }
+              // because we don't want web-ext to submit this as proper release
+              delete jsonContent.applications;
+            } else if (process.env.CHANNEL === 'testing') {
+              jsonContent.name = "Ultrawidify - testing";
+              jsonContent.description = "FOR TESTING ONLY -- this build is intended for testing a fix of certain bugs. It's not fit for normal use.";
 
-          if (process.env.BROWSER !== 'firefox') {
-            jsonContent.version = jsonContent.version.replace(/[a-zA-Z-]/g, '');
-            delete jsonContent.applications;
-            delete jsonContent.options_ui.browser_style;
-          }
+              // version numbers for nightly builds: YYMM.DD.BUILD_NUMBER
+              jsonContent.version = `${new Date()
+                                              .toISOString()     // YYYY-MM-DDTHH:MM:SS...
+                                              .split('T')[0]     // gives YYYY-MM-DD
+                                              .substr(2)         // YYYY -> YY
+                                              .replace('-', '')  // YY-MM-DD -> YYMM-DD
+                                              .replace('-', '.') // YYMM-DD -> YYMM.DD
+                                      }.${process.env.BUILD_NUMBER === undefined ? 0 : process.env.BUILD_NUMBER}`;
+              jsonContent.browser_action.default_title = "Ultrawidify Testing";
 
-          return JSON.stringify(jsonContent, null, 2);
+              // because we don't want web-ext to submit this as proper release
+              delete jsonContent.applications;
+            }
+
+            if (process.env.BROWSER !== 'firefox') {
+              jsonContent.version = jsonContent.version.replace(/[a-zA-Z-]/g, '');
+              delete jsonContent.applications;
+              delete jsonContent.options_ui.browser_style;
+            }
+
+            return JSON.stringify(jsonContent, null, 2);
+          },
         },
-      },
-    ]),
+      ]
+    }),
     new WebpackShellPlugin({
-      onBuildEnd: ['node scripts/remove-evals.js'],
+      onBuildEnd: [
+        'node scripts/remove-evals.js',
+
+      ],
     }),
     new webpack.DefinePlugin({
       'process.env.BROWSER': JSON.stringify(process.env.BROWSER),
@@ -213,7 +217,7 @@ if (config.mode === 'production') {
     new webpack.DefinePlugin({
       '__VUE_OPTIONS_API__': true,
       '__VUE_PROD_DEVTOOLS__': false,
-      
+
       'process.env': {
         NODE_ENV: '"production"',
       },
@@ -221,11 +225,6 @@ if (config.mode === 'production') {
   ]);
 }
 
-if (process.env.HMR === 'true') {
-  config.plugins = (config.plugins || []).concat([
-    new ChromeExtensionReloader(),
-  ]);
-}
 
 function transformHtml(content) {
   return ejs.render(content.toString(), {

@@ -1,5 +1,4 @@
 import { createApp } from 'vue';
-import { createStore } from 'vuex';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: UI");
@@ -29,9 +28,6 @@ class UI {
   }
 
   async initVue() {
-    if (this.storeConfig) {
-      this.vuexStore = createStore(this.storeConfig);
-    }
 
     this.initUi();
   }
@@ -65,7 +61,7 @@ class UI {
 
   /**
    * Replaces ui config and re-inits the UI
-   * @param {*} newUiConfig 
+   * @param {*} newUiConfig
    */
   replace(newUiConfig) {
     this.element?.remove();

@@ -1,5 +1,4 @@
 import UI from './UI';
-import VuexWebExtensions from 'vuex-webextensions';
 import PlayerUiComponent from '../../../csui/PlayerUiComponent.vue';
 
 if (process.env.CHANNEL !== 'stable'){
@@ -19,7 +18,7 @@ class PlayerUi extends UI {
   constructor (
     playerElement,
     settings
-  ) {    
+  ) {
     super(
       'ultrawidifyUi',
       PlayerUi.getStoreConfig(),
@@ -38,11 +37,7 @@ class PlayerUi extends UI {
     //       so we won't have to look up the documentation in order to get them working
     return {
       plugins: [
-        VuexWebExtensions({
-          persistentStates: [
-            'showUi'
-          ],
-        }),
+
       ],
       state: {
         showUi: true,

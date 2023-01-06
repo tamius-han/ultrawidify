@@ -1,5 +1,3 @@
-import browser from "vuex-webextensions/dist/browser";
-
 if (process.env.CHANNEL !== 'stable') {
   console.info('Loaded BrowserDetect');
 }
@@ -26,7 +24,7 @@ const BrowserDetect = {
   isEdgeUA: detectEdgeUA(),
   browserObj: getBrowserObj(),
   getURL: (url) => getURL(url),
-} 
+}
 
 if (process.env.CHANNEL !== 'stable') {
   console.info("BrowserDetect loaded:\n\nprocess.env.BROWSER:", process.env.BROWSER, "\nExporting BrowserDetect:", BrowserDetect);

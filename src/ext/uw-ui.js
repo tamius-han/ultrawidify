@@ -1,8 +1,5 @@
 // vue dependency imports
 import { createApp } from 'vue';
-import { createStore } from 'vuex';
-import VuexWebExtensions from 'vuex-webextensions';
-import LoggerUi from '../csui/LoggerUi';
 
 // extension classes
 import Logger from './lib/Logger';
@@ -14,7 +11,7 @@ class UwUi {
 
   constructor() {
     this.vueInitiated = false;
-    this.loggerUiInitiated = false;
+    // this.loggerUiInitiated = false;
     this.playerUiInitiated = false;
 
     this.vuexStore = null;
@@ -76,15 +73,12 @@ class UwUi {
         if (this.logger.isLoggingAllowed()) {
           console.info("[uw::init] Logging is allowed! Initalizing vue and UI!");
           this.initVue();
-          this.initLoggerUi();
-          this.logger.setVuexStore(this.vuexStore);
         }
 
         // show popup if logging to file is enabled
         if (this.logger.isLoggingToFile()) {
           console.info('[uw::init] Logging to file is enabled. Will show popup!');
           try {
-            this.vuexStore.dispatch('uw-show-logger');
           } catch (e) {
             console.error('[uw::init] Failed to open popup!', e)
           }
@@ -123,51 +117,6 @@ class UwUi {
       return;
     }
 
-    this.vuexStore = createStore({
-        plugins: [
-          VuexWebExtensions({
-            persistentStates: [
-              'uwLog',
-              'showLogger',
-              'loggingEnded',
-            ],
-          }),
-        ],
-        state: {
-          uwLog: '',
-          showLogger: false,
-          loggingEnded: false,
-        },
-        mutations: {
-          'uw-set-log'(state, payload) {
-            state['uwLog'] = payload;
-          },
-          'uw-show-logger'(state) {
-            state['showLogger'] = true;
-          },
-          'uw-hide-logger'(state) {
-            state['showLogger'] = false;
-          },
-          'uw-logging-ended'(state) {
-            state['loggingEnded'] = state;
-          }
-        },
-        actions: {
-          'uw-set-log' ({commit}, payload) {
-            commit('uw-set-log', payload);
-          },
-          'uw-show-logger'({commit}) {
-            commit('uw-show-logger');
-          },
-          'uw-hide-logger'({commit}) {
-            commit('uw-hide-logger');
-          },
-          'uw-logging-ended'({commit}, payload) {
-            commit('uw-logging-ended', payload);
-          }
-        }
-      });
-
     // make sure we don't init twice
     this.vueInitiated = true;
 
@@ -175,75 +124,12 @@ class UwUi {
     Comms.sendMessage({cmd: 'uwui-vue-initialized'});
   }
 
-  async initLoggerUi() {
-    const random = Math.round(Math.random() * 69420);
-    const uwid = `uw-ui-root-${random}`;
-
-    const rootDiv = document.createElement('div');
-    rootDiv.setAttribute("style", "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999; pointer-events: none");
-    rootDiv.setAttribute("id", uwid);
-    rootDiv.classList.add('uw-ultrawidify-container-root');
-
-    document.body.appendChild(rootDiv);
-   
-    try {
-      createApp(LoggerUi)
-        .use(this.vuexStore)
-        .mount(`#${uwid}`);
-
-      // new Vue({
-      //   el: `#${uwid}`,
-      //   components: {
-      //     LoggerUi: LoggerUi
-      //   },
-      //   store: this.vuexStore,
-      //   render(h) {
-      //     return h('logger-ui');
-      //   }
-      // });
-    } catch (e) {
-      console.error("Error while initiating vue:", e)
-    }
-
-    this.loggerUiInitiated = true;
-  }
-
-  async showLogger() {
-    console.log("show logger?")
-    if (!this.loggerUiInitiated) {
-      await this.initLoggerUi();
-    }
-
-    
-    try {
-      console.log("will show logger")
-      this.vuexStore.dispatch('uw-show-logger');
-    } catch (e) {
-      console.error('Failed to dispatch vuex store', e)
-    }
-  }
-  hideLogger() {
-    if (this.vueInitiated && this.vuexStore !== undefined) {
-      this.vuexStore.dispatch('uw-hide-logger');
-    }
-  }
-
-  addLogs(message) {
-    this.logger.appendLog(JSON.parse(message.payload));
-
-    // since this gets called _after_ logging has been finished,
-    // we also inform logger UI to save current settings
-    if (this.vueInitiated && this.vuexStore !== undefined) {
-      console.log("got add logs. payload:", message.payload);
-      this.vuexStore.dispatch('uw-logging-ended', true);
-    }
-  }
 }
 
 // leave a mark, so this script won't get executed more than once on a given page
 const markerId = 'ultrawidify-marker-5aeaf521-7afe-447f-9a17-3428f62d0970';
 
-// if this script has already been executed, don't execute it again. 
+// if this script has already been executed, don't execute it again.
 if (! document.getElementById(markerId)) {
   const markerDiv = document.createElement('div');
   markerDiv.setAttribute("style", "display: none");

@@ -1,5 +1,4 @@
 import UI from './UI';
-import VuexWebExtensions from 'vuex-webextensions';
 import NotificationUi from '../../../csui/NotificationUi.vue';
 import Notifications from '../../../common/data/notifications';
 
@@ -17,7 +16,7 @@ class PlayerNotificationUi extends UI {
   constructor (
     playerElement,
     settings
-  ) {    
+  ) {
     super(
       'notification',
       PlayerNotificationUi.getStoreConfig(),
@@ -33,13 +32,6 @@ class PlayerNotificationUi extends UI {
   // we will move some things out of the constructor in order to keep things clean
   static getStoreConfig() {
     return {
-      plugins: [
-        VuexWebExtensions({
-          persistentStates: [
-            'notificationConfig'
-          ],
-        }),
-      ],
       state: {
         // should be null by default!
         notificationConfig: {
@@ -85,9 +77,9 @@ class PlayerNotificationUi extends UI {
 
   /**
    * Show notification on screen.
-   * 
+   *
    * @param notificationConfig notification config (or ID of notification config in /common/data/notifications.js)
-   * 
+   *
    * notificationConfig should resemble this:
    * {
    *    timeout: number  — how long we'll be displaying the notification. If empty, 10s. -1: until user dismisses it
@@ -104,7 +96,7 @@ class PlayerNotificationUi extends UI {
    *      // more of notificationActions but with special case
    *    ]
    * }
-   * 
+   *
    * When notificationConfig is a string, the function will add two additional notifications on the notificationActionsPile
    *    * never show this notification ever again on any site
    *    * never show this notification again on this site
@@ -170,7 +162,7 @@ class PlayerNotificationUi extends UI {
   }
 
   isNotificationMuted(notificationId) {
-    return this.settings.active.mutedNotifications?.[notificationId]?.$global 
+    return this.settings.active.mutedNotifications?.[notificationId]?.$global
       || this.settings.active.mutedNotifications?.[notificationId]?.[window.location.hostname];
   }
 }

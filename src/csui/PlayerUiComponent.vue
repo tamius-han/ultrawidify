@@ -9,7 +9,7 @@
         Video options
       </div>
     </div>
-    <div>sudpo 
+    <div>sudpo
       <!-- Panel section -->
       <template v-if="settingsInitialized">
         <VideoSettings
@@ -24,7 +24,6 @@
 
 <script>
 import VideoSettings from './PlayerUiPanels/VideoSettings.vue'
-import { mapState } from 'vuex';
 import Icon from '../common/components/Icon';
 import ResizerDebugPanel from './PlayerUiPanels/ResizerDebugPanelComponent';
 import BrowserDetect from '../ext/conf/BrowserDetect';
@@ -54,11 +53,6 @@ export default {
     };
   },
   computed: {
-    ...mapState([
-      'showUi',
-      'resizerDebugData',
-      'playerDebugData'
-    ]),
     windowWidth: () => {
       return window.innerWidth;
     },
@@ -140,7 +134,7 @@ export default {
 
     top: 10%;
     left: 10%;
-    
+
     z-index: 999999999999999999;
 
     width: 2500px;
