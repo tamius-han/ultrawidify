@@ -48,21 +48,25 @@ export class SiteSettings {
     }
 
 
-    // 'undefined' default here means use default
-    this.data.defaults.crop = this.data.defaults.crop ?? _cp(this.defaultSettings.defaults.crop);
-
-    // these can contain default options, but can also be undefined
-    if (this.data.defaults?.stretch === StretchType.Default || this.data.defaults?.stretch === undefined) {
-      this.data.defaults.stretch = _cp(this.defaultSettings.defaults.stretch);
-    }
-    if (this.data.defaults?.alignment === undefined) {  // distinguish between undefined and 0!
-      this.data.defaults.alignment = _cp(this.defaultSettings.defaults.alignment);
+    if (!this.data.defaults) {
+      this.data.defaults = _cp(this.defaultSettings.defaults);
     } else {
-      if (this.data.defaults?.alignment.x === VideoAlignmentType.Default) {
-        this.data.defaults.alignment.x = _cp(this.defaultSettings.defaults.alignment.x);
+      // 'undefined' default here means use default
+      this.data.defaults.crop = this.data.defaults.crop ?? _cp(this.defaultSettings.defaults.crop);
+
+      // these can contain default options, but can also be undefined
+      if (this.data.defaults?.stretch === StretchType.Default || this.data.defaults?.stretch === undefined) {
+        this.data.defaults.stretch = _cp(this.defaultSettings.defaults.stretch);
       }
-      if (this.data.defaults.alignment.y === VideoAlignmentType.Default) {
-        this.data.defaults.alignment.y = _cp(this.defaultSettings.defaults.alignment.y);
+      if (this.data.defaults?.alignment === undefined) {  // distinguish between undefined and 0!
+        this.data.defaults.alignment = _cp(this.defaultSettings.defaults.alignment);
+      } else {
+        if (this.data.defaults?.alignment.x === VideoAlignmentType.Default) {
+          this.data.defaults.alignment.x = _cp(this.defaultSettings.defaults.alignment.x);
+        }
+        if (this.data.defaults.alignment.y === VideoAlignmentType.Default) {
+          this.data.defaults.alignment.y = _cp(this.defaultSettings.defaults.alignment.y);
+        }
       }
     }
 

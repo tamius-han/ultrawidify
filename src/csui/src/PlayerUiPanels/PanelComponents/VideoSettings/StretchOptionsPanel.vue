@@ -198,10 +198,9 @@ export default {
     CommsMixin
   ],
   props: [
-    'settings',
-    'frame',
+    'settings',      // required for buttons and actions, which are global
+    'siteSettings',
     'eventBus',
-    'site',
     'isEditing'
   ],
   components: {
@@ -209,14 +208,9 @@ export default {
     EditShortcutButton,
   },
   computed: {
-    extensionDefaultStretch() {
-      return JSON.stringify(
-        this.settings?.active.stretch?.default ?? {type: StretchMode.NoStretch}
-      );
-    },
     siteDefaultStretch() {
       return JSON.stringify(
-        this.settings?.getDefaultStretch(this.site) ?? {type: StretchMode.NoStretch}
+        this.siteSettings.data.defaults.stretch
       );
     },
   },

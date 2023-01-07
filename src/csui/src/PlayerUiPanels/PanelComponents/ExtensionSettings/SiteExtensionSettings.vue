@@ -131,8 +131,7 @@ export default {
 
   ],
   props: [
-    'settings',
-    'site',
+    'siteSettings',
     'isDefaultConfiguration'
   ],
   components: {
@@ -141,12 +140,12 @@ export default {
   computed: {
     siteDefaultCrop() {
       return JSON.stringify(
-        this.settings?.getDefaultCrop(this.site) ?? {type: this.site === '@global' ? AspectRatioType.Automatic : AspectRatioType.Default}
+        this.siteSettings.data.defaults.crop
       );
     },
     siteDefaultStretch() {
       return JSON.stringify(
-        this.settings?.getDefaultStretch(this.site) ?? {type: this.site === '@global' ? StretchMode.NoStretch : StretchMode.Default}
+        this.siteSettings.data.defaults.stretch
       );
     },
     siteDefaultCropPersistence() {

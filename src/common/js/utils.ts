@@ -8,5 +8,11 @@ export async function sleep(timeout) {
  * @returns
  */
 export function _cp(obj) {
-  return JSON.parse(JSON.stringify(obj));
+  try {
+    return JSON.parse(JSON.stringify(obj));
+  } catch (e) {
+    console.error('Failed to parse json. This probably means that the data we received was not an object. Will return data as-is');
+    console.error('data in:', obj, 'error:', e);
+    return obj;
+  }
 }

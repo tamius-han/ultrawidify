@@ -165,10 +165,9 @@ export default {
     CommsMixin
   ],
   props: [
-    'settings',
-    'frame',
+    'settings',      // required for buttons and actions, which are global
+    'siteSettings',
     'eventBus',
-    'site',
     'isEditing'
   ],
   components: {
@@ -176,14 +175,9 @@ export default {
     EditShortcutButton,
   },
   computed: {
-    extensionDefaultCrop() {
-      return JSON.stringify(
-        this.settings?.active.crop?.default ?? {type: AspectRatioType.Automatic}
-      );
-    },
     siteDefaultCrop()  {
       return JSON.stringify(
-        this.settings?.getDefaultCrop(this.site) ?? {type: AspectRatioType.Automatic}
+        this.siteSettings.data.defaults.crop
       );
     },
   },
@@ -215,7 +209,7 @@ export default {
         return false;
       }
 
-      const defaultCrop = this.settings.getDefaultCrop(this.site);
+      const defaultCrop = this.siteSettings.data.defaults.crop;
 
       if (cropCommand.arguments.type === AspectRatioType.Automatic) {
         return this.resizerConfig.crop.type === AspectRatioType.Automatic

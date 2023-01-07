@@ -100,10 +100,9 @@ export default {
 
   ],
   props: [
-    'settings',
-    'frame',
+    'settings',      // required for buttons and actions, which are global
+    'siteSettings',
     'eventBus',
-    'site',
     'isEditing'
   ],
   methods: {

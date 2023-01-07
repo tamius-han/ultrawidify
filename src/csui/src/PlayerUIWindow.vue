@@ -87,12 +87,14 @@
           <VideoSettings
             v-if="selectedTab === 'videoSettings'"
             :settings="settings"
+            :siteSettings="siteSettings"
             :eventBus="eventBus"
             :site="site"
           ></VideoSettings>
           <PlayerDetectionPanel
             v-if="selectedTab === 'playerDetection'"
             :settings="settings"
+            :siteSettings="siteSettings"
             :eventBus="eventBus"
             :site="site"
           >
@@ -100,11 +102,13 @@
           <BaseExtensionSettings
             v-if="selectedTab === 'extensionSettings'"
             :settings="settings"
+            :siteSettings="siteSettings"
             :site="site"
           ></BaseExtensionSettings>
           <AutodetectionSettingsPanel
             v-if="selectedTab === 'autodetectionSettings'"
             :settings="settings"
+            :siteSettings="siteSettings"
             :eventBus="eventBus"
             :site="site"
           >

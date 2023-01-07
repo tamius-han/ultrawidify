@@ -39,10 +39,8 @@
 
         <CropOptionsPanel
           :settings="settings"
-          :frame="frame"
-          :exec="exec"
+          :siteSettings="siteSettings"
           :eventBus="eventBus"
-          :site="site"
           :isEditing="editMode"
         >
         </CropOptionsPanel>
@@ -57,10 +55,8 @@
 
         <StretchOptionsPanel
           :settings="settings"
-          :frame="frame"
-          :exec="exec"
+          :siteSettings="siteSettings"
           :eventBus="eventBus"
-          :site="site"
           :isEditing="editMode"
         ></StretchOptionsPanel>
       </div>
@@ -75,10 +71,9 @@
 
         <ZoomOptionsPanel
           :settings="settings"
-          :frame="frame"
-          :exec="exec"
+          :siteSettings="siteSettings"
           :eventBus="eventBus"
-          :site="site"
+          :isEditing="editMode"
         ></ZoomOptionsPanel>
       </div>
 
@@ -142,7 +137,8 @@ export default {
     CommsMixin,
   ],
   props: [
-    'settings',
+    'settings',      // required for buttons and actions, which are global
+    'siteSettings',
     'frame',
     'eventBus',
     'site'
