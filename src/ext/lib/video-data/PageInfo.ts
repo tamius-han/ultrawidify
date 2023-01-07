@@ -8,6 +8,7 @@ import Settings from '../Settings';
 import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
 import CommsClient from '../comms/CommsClient';
 import EventBus from '../EventBus';
+import { SiteSettings } from '../settings/SiteSettings';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading PageInfo");
@@ -40,6 +41,7 @@ class PageInfo {
   readOnly: boolean = false;
   hasVideos: boolean = false;
   siteDisabled: boolean = false;
+  isFullscreen: boolean = false;
   //#endregion
 
   //#region timers and timeouts
@@ -51,6 +53,7 @@ class PageInfo {
   //#region helper objects
   logger: Logger;
   settings: Settings;
+  siteSettings: SiteSettings;
   comms: CommsClient;
   eventBus: EventBus;
   videos: {videoData: VideoData, element: HTMLVideoElement}[] = [];
@@ -71,9 +74,13 @@ class PageInfo {
     this.logger = logger;
     this.settings = settings;
 
+    this.siteSettings = new SiteSettings(settings, window.location.hostname);
+
     this.lastUrl = window.location.href;
     this.extensionMode = extensionMode;
     this.readOnly = readOnly;
+
+    this.isFullscreen = !!document.fullscreenElement;
 
     if (eventBus){
       this.eventBus = eventBus;
@@ -81,7 +88,7 @@ class PageInfo {
 
     try {
       // request inject css immediately
-      const playerStyleString = this.settings.active.sites[window.location.hostname].css.replace('\\n', '');
+      const playerStyleString = this.siteSettings.data.currentDOMConfig?.customCss?.replace('\\n', '');
       this.eventBus.send('inject-css', {cssString: playerStyleString});
     } catch (e) {
       // do nothing. It's ok if there's no special settings for the player element or crop persistence
@@ -91,6 +98,8 @@ class PageInfo {
 
     this.rescan(RescanReason.PERIODIC);
     this.scheduleUrlCheck();
+
+    document.addEventListener('fullscreenchange', this.fullscreenHandler);
   }
 
   destroy() {
@@ -108,11 +117,38 @@ class PageInfo {
     }
 
     try {
-      const playerStyleString = this.settings.active.sites[window.location.hostname].css;
+      const playerStyleString = this.siteSettings.data.currentDOMConfig?.customCss?.replace('\\n', '');
       this.eventBus.send('eject-css', {cssString: playerStyleString});
     } catch (e) {
       // do nothing. It's ok if there's no special settings for the player element
     }
+  }
+
+  /**
+   * Handler for fullscreenchanged event.
+   */
+  fullscreenHandler() {
+    this.isFullscreen = !!document.fullscreenElement;
+
+    if (this.isFullscreen) {
+      this.enterFullscreen();
+    } else {
+      this.exitFullscreen();
+    }
+  }
+
+  /**
+   * Runs when browser enters full screen.
+   */
+  enterFullscreen() {
+    this.eventBus.send('page-fs-enter', {});
+  }
+
+  /**
+   * Runs when browser exits full screen
+   */
+  exitFullscreen() {
+    this.eventBus.send('page-fs-exit', {});
   }
 
   reset() {
@@ -133,9 +169,9 @@ class PageInfo {
   }
 
   getVideos(host) {
-    if (this.settings.active.sites[host]?.DOM?.video?.manual
-        && this.settings.active.sites[host]?.DOM?.video?.querySelectors){
-      const videos = document.querySelectorAll(this.settings.active.sites[host].DOM.video.querySelectors) as NodeListOf<HTMLVideoElement>;
+    const videoQs = this.siteSettings.getCustomDOMQuerySelector('video');
+    if (videoQs){
+      const videos = document.querySelectorAll(videoQs) as NodeListOf<HTMLVideoElement>;
 
       if (videos.length) {
         return videos;
@@ -214,7 +250,7 @@ class PageInfo {
         this.logger.log('info', 'videoRescan', "[PageInfo::rescan] found new video candidate:", videoElement, "NOTE:: Video initialization starts here:\n--------------------------------\n")
 
         try {
-          const newVideo = new VideoData(videoElement, this.settings, this);
+          const newVideo = new VideoData(videoElement, this.siteSettings, this);
           this.videos.push({videoData: newVideo, element: videoElement});
         } catch (e) {
           this.logger.log('error', 'debug', "rescan error: failed to initialize videoData. Skipping this video.",e);
@@ -327,51 +363,21 @@ class PageInfo {
     this.scheduleUrlCheck();
   }
 
-  setArPersistence(persistenceMode) {
-    // name of this function is mildly misleading — we don't really _set_ ar persistence. (Ar persistence
-    // mode is set and saved via popup or keyboard shortcuts, if user defined them) We just save the current
-    // aspect ratio whenever aspect ratio persistence mode changes.
-    if (persistenceMode === CropModePersistence.CurrentSession) {
-      sessionStorage.setItem('uw-crop-mode-session-persistence', JSON.stringify(this.currentCrop));
-    } else if (persistenceMode === CropModePersistence.Forever) {
-      if (this.settings.active.sites[window.location.hostname]) {
-        //                                              | key may be missing, so we do this
-        this.settings.active.sites[window.location.hostname]['defaultAr'] = this.currentCrop;
-      } else {
-        this.settings.active.sites[window.location.hostname] = this.settings.getDefaultOption();
-        this.settings.active.sites[window.location.hostname]['defaultAr'] = this.currentCrop;
-      }
-
-      this.settings.saveWithoutReload();
-    }
-  }
-
+  /**
+   * Updates current crop configuration.
+   *
+   * If crop persistence is set to;    then
+   *                      disabled     do nothing
+   *              until tab reload     set this.defaultCrop
+   *               current session     set current AR to session storage
+   *                       forever     save settings
+   * @param ar
+   * @returns
+   */
   updateCurrentCrop(ar) {
     this.currentCrop = ar;
-    // This means crop persistance is disabled. If crop persistance is enabled, then settings for current
-    // site MUST exist (crop persistence mode is disabled by default)
 
-    const cropModePersistence = this.settings.getDefaultCropPersistenceMode(window.location.hostname);
-
-    if (cropModePersistence === CropModePersistence.Disabled) {
-      return;
-    }
-
-    this.defaultCrop = ar;
-
-    if (cropModePersistence === CropModePersistence.CurrentSession) {
-      sessionStorage.setItem('uw-crop-mode-session-persistence', JSON.stringify(ar));
-    } else if (cropModePersistence === CropModePersistence.Forever) {
-      if (this.settings.active.sites[window.location.hostname]) {
-        //                                              | key may be missing, so we do this
-        this.settings.active.sites[window.location.hostname]['defaultAr'] = ar;
-      } else {
-        this.settings.active.sites[window.location.hostname] = this.settings.getDefaultOption();
-        this.settings.active.sites[window.location.hostname]['defaultAr'] = ar;
-      }
-
-      this.settings.saveWithoutReload();
-    }
+    this.siteSettings.updatePersistentOption('crop', ar);
   }
 }
 

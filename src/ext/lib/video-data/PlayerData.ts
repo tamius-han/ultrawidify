@@ -57,6 +57,8 @@ class PlayerData {
   invalid: boolean = false;
   private periodicallyRefreshPlayerElement: boolean = false;
   halted: boolean = true;
+  isFullscreen: boolean = !!document.fullscreenElement;
+  isTheaterMode: boolean = false;  // note: fullscreen mode will count as theaterMode if player was in theater mode before fs switch. This is desired, so far.
 
   //#region misc stuff
   extensionMode: any;
@@ -79,7 +81,7 @@ class PlayerData {
     }],
     'update-player': [{
       function: () => this.getPlayer()
-    }]
+    }],
   }
   //#endregion
 
@@ -88,7 +90,7 @@ class PlayerData {
    */
   get aspectRatio() {
     try {
-      if (this.dimensions?.fullscreen && !this.settings.getSettingsForSite()?.usePlayerArInFullscreen) {
+      if (this.isFullscreen && !this.settings.getSettingsForSite()?.usePlayerArInFullscreen) {
         return window.innerWidth / window.innerHeight;
       }
 
@@ -151,40 +153,47 @@ class PlayerData {
   }
 
   /**
-   * Returns whether we're in fullscreen mode or not.
+   * Detects whether player element is in theater mode or not.
+   * If theater mode changed, emits event.
+   * @returns whether player is in theater mode
    */
-  static isFullScreen(){
-    const ihdiff = Math.abs(window.screen.height - window.innerHeight);
-    const iwdiff = Math.abs(window.screen.width - window.innerWidth);
+  private detectTheaterMode() {
+    const oldTheaterMode = this.isTheaterMode;
+    const newTheaterMode = this.equalish(window.innerWidth, this.element.offsetWidth, 32);
 
-    // Chrome on linux on X on mixed PPI displays may return ever so slightly different values
-    // for innerHeight vs screen.height abd innerWidth vs. screen.width, probably courtesy of
-    // fractional scaling or something. This means we'll give ourself a few px of margin — the
-    // window elements visible in not-fullscreen are usually double digit px tall
-    return ( ihdiff < 5 && iwdiff < 5 );
+    this.isTheaterMode = newTheaterMode;
+
+    // theater mode changed
+    if (oldTheaterMode !== newTheaterMode) {
+      if (newTheaterMode) {
+        this.eventBus.send('player-theater-enter', {});
+      } else {
+        this.eventBus.send('player-theater-exit', {});
+      }
+    }
+
+    return newTheaterMode;
   }
 
   /**
    *
    */
   trackDimensionChanges() {
-
     // get player dimensions _once_
     let currentPlayerDimensions;
-    const isFullScreen = PlayerData.isFullScreen();
 
-    if (isFullScreen) {
+    if (this.isFullscreen) {
       currentPlayerDimensions = {
         width: window.innerWidth,
         height: window.innerHeight,
-        fullscreen: true
       };
     } else {
       currentPlayerDimensions = {
         width: this.element.offsetWidth,
-        height: this.element.offsetHeight,
-        fullscreen: false,
-      }
+        height: this.element.offsetHeight
+      };
+
+      this.detectTheaterMode();
     }
 
     // if dimensions of the player box are the same as the last known
@@ -216,7 +225,7 @@ class PlayerData {
   private handleSizeConstraints(currentPlayerDimensions: PlayerDimensions) {
 
     // never disable ultrawidify in full screen
-    if (currentPlayerDimensions.fullscreen) {
+    if (this.isFullscreen) {
       this.enable();
       return;
     }

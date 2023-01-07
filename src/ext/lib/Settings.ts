@@ -50,7 +50,7 @@ class Settings {
     browser.storage.onChanged.addListener((changes, area) => {this.storageChangeListener(changes, area)});
   }
 
-  storageChangeListener(changes, area) {
+  private storageChangeListener(changes, area) {
     if (!changes.uwSettings) {
       return;
     }
@@ -84,7 +84,7 @@ class Settings {
     return Settings.getExtensionVersion();
   }
 
-  compareExtensionVersions(a, b) {
+  private compareExtensionVersions(a, b) {
     let aa = a.split('.');
     let bb = b.split('.');
 
@@ -135,7 +135,7 @@ class Settings {
     }
   }
 
-  getPrereleaseVersionHierarchy(version) {
+  private getPrereleaseVersionHierarchy(version) {
     if (version.startsWith('dev')) {
       return 0;
     }
@@ -148,15 +148,15 @@ class Settings {
     return 3;
   }
 
-  sortConfPatches(patchesIn) {
+  private sortConfPatches(patchesIn) {
     return patchesIn.sort( (a, b) => this.compareExtensionVersions(a.forVersion, b.forVersion));
   }
 
-  findFirstNecessaryPatch(version, extconfPatches) {
+  private findFirstNecessaryPatch(version, extconfPatches) {
     const sorted = this.sortConfPatches(extconfPatches);
     return sorted.findIndex(x => this.compareExtensionVersions(x.forVersion, version) > 0);
   }
-  applySettingsPatches(oldVersion, patches) {
+  private applySettingsPatches(oldVersion, patches) {
     let index = this.findFirstNecessaryPatch(oldVersion, patches);
     if (index === -1) {
       this.logger?.log('info','settings','[Settings::applySettingsPatches] There are no pending conf patches.');

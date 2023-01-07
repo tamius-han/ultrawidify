@@ -12,7 +12,15 @@ import PageInfo from './PageInfo';
 import { sleep } from '../../../common/js/utils';
 import { hasDrm } from '../ar-detect/DrmDetecor';
 import EventBus from '../EventBus';
+import { SiteSettings } from '../settings/SiteSettings';
 
+/**
+ * VideoData — handles CSS for the video element.
+ *
+ * To quickly disable or revert all modifications extension has made to the
+ * video element, you can call disable() function. Calling disable() also
+ * toggles autodetection off.
+ */
 class VideoData {
   private baseCssName: string = 'uw-ultrawidify-base-wide-screen';
 
@@ -46,7 +54,7 @@ class VideoData {
 
   //#region helper objects
   logger: Logger;
-  settings: Settings;
+  siteSettings: SiteSettings;
   pageInfo: PageInfo;
   player: PlayerData;
   resizer: Resizer;
@@ -64,12 +72,12 @@ class VideoData {
     }
   }
 
-  constructor(video, settings, pageInfo){
+  constructor(video, siteSettings: SiteSettings, pageInfo){
     this.logger = pageInfo.logger;
     this.arSetupComplete = false;
     this.video = video;
     this.destroyed = false;
-    this.settings = settings;
+    this.siteSettings = siteSettings;
     this.pageInfo = pageInfo;
     this.extensionMode = pageInfo.extensionMode;
     this.videoStatusOk = false;
@@ -96,7 +104,7 @@ class VideoData {
       }});
     }
 
-    this.setupStageOne();
+    this.setupEventListeners();
   }
 
   async onVideoLoaded() {
@@ -181,10 +189,10 @@ class VideoData {
 
   //#region lifecycle-ish
   /**
-   * Injects base CSS and sets up handlers for <video> tag events
+   * Sets up event listeners for this video
    */
-  async setupStageOne() {
-    this.logger.log('info', 'init', '%c[VideoData::setupStageOne] ——————————— Starting setup stage one! ———————————', 'color: #0f9');
+  async setupEventListeners() {
+    this.logger.log('info', 'init', '%c[VideoData::setupEventListeners] ——————————— Starting event listener setup! ———————————', 'color: #0f9');
 
     // this is in case extension loads before the video
     this.video.addEventListener('loadeddata', this.onLoadedData.bind(this));
@@ -193,7 +201,7 @@ class VideoData {
     // this one is in case extension loads after the video is loaded
     this.video.addEventListener('timeupdate', this.onTimeUpdate.bind(this));
 
-    this.logger.log('info', 'init', '%c[VideoData::setupStageOne] ——————————— Setup stage one complete! ———————————', 'color: #0f9');
+    this.logger.log('info', 'init', '%c[VideoData::setupEventListeners] ——————————— Event listeners setup complete! ———————————', 'color: #0f9');
   }
 
   /**
@@ -218,21 +226,11 @@ class VideoData {
     // after we receive a "please crop" or "please stretch".
 
     // Time to apply any crop from address of crop mode persistence
-    const defaultCrop = this.settings.getDefaultCrop();
-    const defaultStretch = this.settings.getDefaultStretchMode();
+    const defaultCrop = this.siteSettings.getDefaultOption('crop');
+    const defaultStretch = this.siteSettings.getDefaultOption('stretch');
 
-    // Crop mode persistence is intended to avoid resetting video aspect ratio to site or extension default
-    // when going from one video to another. As such, crop persistence takes priority over site defaults.
-    // This option should only trigger if we have modified the aspect ratio manually.
-    if (
-      this.settings.getDefaultCropPersistenceMode(window.location.hostname) !== CropModePersistence.Disabled
-      && this.pageInfo.defaultCrop
-    ) {
-      this.resizer.setAr(this.pageInfo.defaultCrop);
-    } else {
-      this.resizer.setAr(defaultCrop);
-      this.resizer.setStretchMode(defaultStretch);
-    }
+    this.resizer.setAr(defaultCrop);
+    this.resizer.setStretchMode(defaultStretch);
   }
 
   /**
