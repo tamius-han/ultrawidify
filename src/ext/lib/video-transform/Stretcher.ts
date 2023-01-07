@@ -1,3 +1,4 @@
+import { SiteSettings } from './../settings/SiteSettings';
 import StretchType from '../../../common/enums/StretchType.enum';
 import BrowserDetect from '../../conf/BrowserDetect';
 import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
@@ -19,6 +20,7 @@ class Stretcher {
   conf: VideoData;
   logger: Logger;
   settings: Settings;
+  siteSettings: SiteSettings;
   //#endregion
 
   //#region misc data
@@ -30,14 +32,15 @@ class Stretcher {
   constructor(videoData) {
     this.conf = videoData;
     this.logger = videoData.logger;
+    this.siteSettings = videoData.siteSettings;
     this.settings = videoData.settings;
-    this.mode = this.settings.getDefaultStretchMode_legacy(window.location.hostname);
+    this.mode = this.siteSettings.data.defaults.stretch;
     this.fixedStretchRatio = undefined;
   }
 
   setStretchMode(stretchMode, fixedStretchRatio?) {
     if (stretchMode === StretchType.Default) {
-      this.mode = this.settings.getDefaultStretchMode_legacy(window.location.hostname);
+      this.mode = this.siteSettings.data.defaults.stretch;
     } else {
       if (stretchMode === StretchType.Fixed || stretchMode == StretchType.FixedSource) {
         this.fixedStretchRatio = fixedStretchRatio;

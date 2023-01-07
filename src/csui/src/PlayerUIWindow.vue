@@ -154,6 +154,7 @@ export default {
       selectedTab: 'videoSettings',
       BrowserDetect: BrowserDetect,
       preventClose: false,
+      siteSettings: null,
     }
   },
   props: [
@@ -168,8 +169,11 @@ export default {
     // IS SUPER HARAM
     // THINGS WILL NOT WORK IF YOU USE ARROWS
     siteSupportLevel() {
-      return (this.site && this.settings?.active) ? this.settings.active.sites[this.site]?.type || 'no-support' : 'waiting';
+      return (this.site && this.siteSettings) ? this.siteSettings.data.type || 'no-support' : 'waiting';
     }
+  },
+  created() {
+    this.siteSettings = this.settings.getSiteSettings(this.site);
   },
   methods: {
     /**

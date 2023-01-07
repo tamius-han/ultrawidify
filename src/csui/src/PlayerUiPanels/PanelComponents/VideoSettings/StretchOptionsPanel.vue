@@ -235,16 +235,7 @@ export default {
      */
     setDefaultStretchingMode($event, globalOrSite) {
       const commandArguments = JSON.parse($event.target.value);
-
-      if (globalOrSite === 'site') {
-        if (!this.settings.active.sites[this.site]) {
-          this.settings.active.sites[this.site] = this.settings.getDefaultSiteConfiguration();
-        }
-        this.settings.active.sites[this.site].defaultStretch = commandArguments;
-      } else {
-          this.settings.active.stretch.default = commandArguments;
-      }
-      this.settings.saveWithoutReload();
+      this.siteSettings.set('defaults.stretch', commandArguments);
     },
 
     /**

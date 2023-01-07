@@ -39,11 +39,9 @@ import DebugPanel from './src/PlayerUiPanels/DebugPanel.vue'
 import VideoSettings from './src/PlayerUiPanels/VideoSettings.vue'
 import AutodetectionSettingsPanel from './src/PlayerUiPanels/AutodetectionSettingsPanel.vue'
 import PlayerDetectionPanel from './src/PlayerUiPanels/PlayerDetectionPanel.vue'
-import { mapState } from 'vuex';
 // import Icon from '../common/components/Icon';
 import ResizerDebugPanel from './src/PlayerUiPanels/ResizerDebugPanelComponent';
 import BrowserDetect from '../ext/conf/BrowserDetect';
-import ExecAction from './src/ui-libs/ExecAction';
 import Logger from '../ext/lib/Logger';
 import Settings from '../ext/lib/Settings';
 import EventBus from '../ext/lib/EventBus';
@@ -85,7 +83,6 @@ export default {
       settings: {},
       BrowserDetect: BrowserDetect,
       settingsInitialized: false,
-      execAction: new ExecAction(),
       eventBus: new EventBus(),
       logger: null,
 

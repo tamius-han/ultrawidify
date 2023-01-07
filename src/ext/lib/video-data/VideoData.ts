@@ -13,6 +13,7 @@ import { sleep } from '../../../common/js/utils';
 import { hasDrm } from '../ar-detect/DrmDetecor';
 import EventBus from '../EventBus';
 import { SiteSettings } from '../settings/SiteSettings';
+import { Ar } from '../../../common/interfaces/ArInterface';
 
 /**
  * VideoData — handles CSS for the video element.
@@ -226,7 +227,7 @@ class VideoData {
     // after we receive a "please crop" or "please stretch".
 
     // Time to apply any crop from address of crop mode persistence
-    const defaultCrop = this.siteSettings.getDefaultOption('crop');
+    const defaultCrop = this.siteSettings.getDefaultOption('crop') as Ar;
     const defaultStretch = this.siteSettings.getDefaultOption('stretch');
 
     this.resizer.setAr(defaultCrop);

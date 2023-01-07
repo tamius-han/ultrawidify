@@ -1,6 +1,7 @@
 import EventBus, { EventBusCommand } from '../EventBus';
 import Logger from '../Logger';
 import Settings from '../Settings';
+import { SiteSettings } from '../settings/SiteSettings';
 import KbmBase from './KbmBase';
 
 if(process.env.CHANNEL !== 'stable'){
@@ -35,11 +36,12 @@ export class MouseHandler extends KbmBase {
   }
 
   //#region lifecycle
-  constructor(playerElement: HTMLElement, eventBus: EventBus, settings: Settings, logger: Logger) {
-    super(eventBus, settings, logger);
+  constructor(playerElement: HTMLElement, eventBus: EventBus, siteSettings: SiteSettings, settings: Settings, logger: Logger) {
+    super(eventBus, siteSettings, settings, logger);
 
     this.logger = logger;
     this.settings = settings;
+    this.siteSettings = siteSettings;
     this.eventBus = eventBus;
     this.playerElement = playerElement;
 
@@ -52,10 +54,7 @@ export class MouseHandler extends KbmBase {
   }
 
   load() {
-    if (!this.settings.isEnabledForSite() || this.settings.active.kbm.enabled) {
-      return;
-    }
-
+    // todo: process whether mouse movement should be enabled or disabled
     this.addListener();
   }
 

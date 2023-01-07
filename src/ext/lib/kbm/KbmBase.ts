@@ -1,11 +1,13 @@
 import EventBus, { EventBusCommand } from '../EventBus';
 import Logger from '../Logger';
 import Settings from '../Settings';
+import { SiteSettings } from '../settings/SiteSettings';
 
 export class KbmBase {
   listenFor: string[] = [];
   logger: Logger;
   settings: Settings;
+  siteSettings: SiteSettings;
   eventBus: EventBus;
 
   eventBusCommands: { [x: string]: EventBusCommand } = {
@@ -26,7 +28,7 @@ export class KbmBase {
     },
   }
 
-  constructor(eventBus: EventBus, settings: Settings, logger: Logger) {
+  constructor(eventBus: EventBus, siteSettings: SiteSettings, settings: Settings, logger: Logger) {
     this.logger = logger;
     this.settings = settings;
     this.eventBus = eventBus;
@@ -90,9 +92,10 @@ export class KbmBase {
   }
 
   load() {
-    if (! (this.settings.isEnabledForSite() && this.settings.active.kbm.enabled)) {
-      return;
-    }
+    // if (! (this.settings.isEnabledForSite() && this.settings.active.kbm.enabled)) {
+    //   return;
+    // }
+    // todo: detect if this is enabled or not
     this.addListener();
   }
 

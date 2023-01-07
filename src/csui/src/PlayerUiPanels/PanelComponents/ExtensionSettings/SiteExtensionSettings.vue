@@ -191,26 +191,7 @@ export default {
         commandArguments = $event.target.value;
       }
 
-      if (!this.settings.active.sites[this.site]) {
-        this.settings.active.sites[this.site] = this.settings.getDefaultSiteConfiguration();
-      }
-
-      const optionPath = option.split('.');
-      if (optionPath.length < 2) {
-        this.settings.active.sites[this.site][option] = commandArguments;
-      } else {
-        let currentOptionObject = this.settings.active.sites[this.site][optionPath[0]];
-        let i;
-        for (i = 1; i < optionPath.length - 1; i++) {
-          if (currentOptionObject[optionPath[i]] === undefined) {
-            currentOptionObject[optionPath[i]] = {};
-          }
-          currentOptionObject = currentOptionObject[optionPath[i]];
-        }
-        currentOptionObject[optionPath[optionPath.length - 1]] = commandArguments;
-      }
-
-      this.settings.saveWithoutReload();
+      this.siteSettings.set(option, commandArguments);
     }
   }
 

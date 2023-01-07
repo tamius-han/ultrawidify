@@ -67,7 +67,6 @@
 import ZoomOptionsPanel from '../../csui/src/PlayerUiPanels/PanelComponents/VideoSettings/ZoomOptionsPanel.vue'
 import StretchOptionsPanel from '../../csui/src/PlayerUiPanels/PanelComponents/VideoSettings/StretchOptionsPanel.vue'
 import CropOptionsPanel from '../../csui/src/PlayerUiPanels/PanelComponents/VideoSettings/CropOptionsPanel.vue'
-import ExecAction from '../../csui/src/ui-libs/ExecAction';
 
 export default {
   data() {
@@ -88,7 +87,6 @@ export default {
     CropOptionsPanel, StretchOptionsPanel, ZoomOptionsPanel
   },
   created() {
-    this.exec = new ExecAction(this.settings, window.location.hostname);
     this.eventBus.subscribe('uw-config-broadcast', {function: (config) => this.handleConfigBroadcast(config)});
   },
   mounted() {

@@ -4,10 +4,12 @@ import { SiteSettingsInterface } from '../../../common/interfaces/SettingsInterf
 import { _cp } from '../../../common/js/utils';
 import Settings from '../Settings';
 import { browser } from 'webextension-polyfill-ts';
+import StretchType from '../../../common/enums/StretchType.enum';
+import VideoAlignmentType from '../../../common/enums/VideoAlignmentType.enum';
 
 export class SiteSettings {
   private settings: Settings;
-  private site: string;;
+  private site: string;
 
   data: SiteSettingsInterface;
   temporaryData: SiteSettingsInterface;
@@ -45,8 +47,24 @@ export class SiteSettings {
       return;
     }
 
-    this.data.defaultCrop = this.data.defaultCrop ?? _cp(this.defaultSettings.defaultCrop);
-    this.data.defaultStretch = this.data.defaultStretch ?? _cp(this.defaultSettings.defaultStretch);
+
+    // 'undefined' default here means use default
+    this.data.defaults.crop = this.data.defaults.crop ?? _cp(this.defaultSettings.defaults.crop);
+
+    // these can contain default options, but can also be undefined
+    if (this.data.defaults?.stretch === StretchType.Default || this.data.defaults?.stretch === undefined) {
+      this.data.defaults.stretch = _cp(this.defaultSettings.defaults.stretch);
+    }
+    if (this.data.defaults?.alignment === undefined) {  // distinguish between undefined and 0!
+      this.data.defaults.alignment = _cp(this.defaultSettings.defaults.alignment);
+    } else {
+      if (this.data.defaults?.alignment.x === VideoAlignmentType.Default) {
+        this.data.defaults.alignment.x = _cp(this.defaultSettings.defaults.alignment.x);
+      }
+      if (this.data.defaults.alignment.y === VideoAlignmentType.Default) {
+        this.data.defaults.alignment.y = _cp(this.defaultSettings.defaults.alignment.y);
+      }
+    }
 
 
     for (const enableSegment of ['enable', 'enableAard', 'enableKeyboard']) {
@@ -97,8 +115,9 @@ export class SiteSettings {
   }
   //#endregion
 
+  //#region get shit
   /**
-   * Gets custom query selector for player or video, if element exists, is manually defined, and has querySelectors property.
+   * Gets custom query selector for player or video, if configuration for it exists, is manually defined, and has querySelectors property.
    * @param element player or video
    * @returns querySelector if possible, undefined otherwise
    */
@@ -106,6 +125,80 @@ export class SiteSettings {
     return this.data.currentDOMConfig?.elements?.[element]?.manual && this.data.currentDOMConfig?.elements?.[element]?.querySelectors || undefined;
   }
 
+  /**
+   * Gets custom element index for player, if configuration for player exists, is manually defined, and has index property defined.
+   * NOTE: while querySelector should take priority over index, this function does NOT take that into account.
+   * @returns parent element index if possible, undefined otherwise
+   */
+  getPlayerIndex(): number | undefined {
+    return this.data.currentDOMConfig?.elements?.player?.manual && this.data.currentDOMConfig?.elements?.player?.index || undefined;
+  }
+
+  /**
+   * Gets default crop mode for extension, while taking persistence settings into account
+   */
+  getDefaultOption(option: 'crop' | 'stretch' | 'alignment') {
+    const persistenceLevel = this.data.persistOption[option];
+
+    switch (persistenceLevel) {
+      case CropModePersistence.UntilPageReload:
+        return this.temporaryData.defaults[option];
+      case CropModePersistence.CurrentSession:
+        return this.sessionData.defaults[option];
+      case CropModePersistence.Disabled:
+      case CropModePersistence.Default:
+      case CropModePersistence.Forever:
+      default:
+        return this.data.defaults[option];
+    }
+  }
+
+  private _getEnvironment(isTheater: boolean, isFullscreen: boolean): 'fullscreen' | 'theater' | 'normal' {
+    if (isFullscreen) {
+      return 'fullscreen';
+    }
+    if (isTheater) {
+      return 'theater';
+    }
+    return 'normal';
+  }
+
+  /**
+   * Is extension allowed to run in current environment
+   * @param isTheater
+   * @param isFullscreen
+   * @returns
+   */
+  isEnabledForEnvironment(isTheater: boolean, isFullscreen: boolean) {
+    const env = this._getEnvironment(isTheater, isFullscreen);
+    return this.data.enable[env];
+  }
+
+  /**
+   * Is autodetection allowed to run, given current environment
+   * @param isTheater
+   * @param isFullscreen
+   * @returns
+   */
+  isAardEnabledForEnvironment(isTheater: boolean, isFullscreen: boolean) {
+    const env = this._getEnvironment(isTheater, isFullscreen);
+    return this.data.enableAard[env];
+  }
+
+  /**
+   * Returns whether keyboard interactions are enabled in current environment
+   * @param isTheater
+   * @param isFullscreen
+   * @returns
+   */
+  isKeyboardEnabledForEnvironment(isTheater: boolean, isFullscreen: boolean) {
+    const env = this._getEnvironment(isTheater, isFullscreen);
+    return this.data.enableKeyboard[env];
+  }
+
+  //#endregion
+
+  //#region set shit
   /**
    * Sets option value.
    * @param optionPath path to value in object notation (dot separated)
@@ -123,6 +216,9 @@ export class SiteSettings {
     let iterator = this.settings.active.sites[this.site];
     let i;
     for (i = 0; i < pathParts.length - 1; i++) {
+      if (!iterator[pathParts[i]]) { // some optional paths may still be undefined, even after cloning empty object
+        iterator[pathParts[i]] = {};
+      }
       iterator = iterator[pathParts[i]];
     }
     iterator[pathParts[i]] = optionValue;
@@ -169,25 +265,6 @@ export class SiteSettings {
   }
 
   /**
-   * Gets default crop mode for extension, while taking persistence settings into account
-   */
-  getDefaultOption(option: 'crop' | 'stretch' | 'alignment') {
-    const persistenceLevel = this.data.persistOption[option];
-
-    switch (persistenceLevel) {
-      case CropModePersistence.UntilPageReload:
-        return this.temporaryData.defaults[option];
-      case CropModePersistence.CurrentSession:
-        return this.sessionData.defaults[option];
-      case CropModePersistence.Disabled:
-      case CropModePersistence.Default:
-      case CropModePersistence.Forever:
-      default:
-        return this.data.defaults[option];
-    }
-  }
-
-  /**
    * Updates options while accounting for persistence settings
    * @param option
    * @param value
@@ -209,5 +286,6 @@ export class SiteSettings {
         return;
     }
   }
+  //#endregion
 
 }

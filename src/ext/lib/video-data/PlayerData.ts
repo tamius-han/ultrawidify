@@ -10,6 +10,7 @@ import Settings from '../Settings';
 import Logger from '../Logger';
 import EventBus from '../EventBus';
 import UI from '../uwui/UI';
+import { SiteSettings } from '../settings/SiteSettings';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: PlayerData.js");
@@ -41,7 +42,7 @@ class PlayerData {
   //#region helper objects
   logger: Logger;
   videoData: VideoData;
-  settings: Settings;
+  siteSettings: SiteSettings;
   notificationService: PlayerNotificationUi;
   eventBus: EventBus;
   //#endregion
@@ -90,7 +91,7 @@ class PlayerData {
    */
   get aspectRatio() {
     try {
-      if (this.isFullscreen && !this.settings.getSettingsForSite()?.usePlayerArInFullscreen) {
+      if (this.isFullscreen) {
         return window.innerWidth / window.innerHeight;
       }
 
@@ -106,7 +107,7 @@ class PlayerData {
       this.logger = videoData.logger;
       this.videoData = videoData;
       this.video = videoData.video;
-      this.settings = videoData.settings;
+      this.siteSettings = videoData.siteSettings;
       this.eventBus = videoData.eventBus;
       this.extensionMode = videoData.extensionMode;
       this.invalid = false;
@@ -122,7 +123,7 @@ class PlayerData {
 
       this.periodicallyRefreshPlayerElement = false;
       try {
-        this.periodicallyRefreshPlayerElement = this.settings.active.sites[window.location.hostname].DOM.player.periodicallyRefreshPlayerElement;
+        this.periodicallyRefreshPlayerElement = this.siteSettings.data.currentDOMConfig.periodicallyRefreshPlayerElement;
       } catch (e) {
         // no biggie — that means we don't have any special settings for this site.
       }
@@ -225,30 +226,28 @@ class PlayerData {
   private handleSizeConstraints(currentPlayerDimensions: PlayerDimensions) {
 
     // never disable ultrawidify in full screen
-    if (this.isFullscreen) {
-      this.enable();
-      return;
-    }
-
-    const restrictions = this.settings.getSettingsForSite()?.restrictions ?? this.settings.active?.restrictions;
+    // if (this.isFullscreen) {
+    //   this.enable();
+    //   return;
+    // }
 
     // if 'disable on small players' option is not enabled, the extension will run in any case
-    if (!restrictions?.disableOnSmallPlayers) {
-      this.enable();
-      return;
-    }
+    // if (!restrictions?.disableOnSmallPlayers) {
+    //   this.enable();
+    //   return;
+    // }
 
     // If we only allow ultrawidify in full screen, we disable it when not in full screen
-    if (restrictions.onlyAllowInFullscreen && !currentPlayerDimensions.fullscreen) {
-      this.disable();
-      return;
-    }
+    // if (restrictions.onlyAllowInFullscreen && !currentPlayerDimensions.fullscreen) {
+    //   this.disable();
+    //   return;
+    // }
 
     // if current width or height are smaller than the minimum, the extension will not run
-    if (restrictions.minAllowedHeight > currentPlayerDimensions?.height || restrictions.minAllowedWidth > currentPlayerDimensions?.width) {
-      this.disable();
-      return;
-    }
+    // if (restrictions.minAllowedHeight > currentPlayerDimensions?.height || restrictions.minAllowedWidth > currentPlayerDimensions?.width) {
+    //   this.disable();
+    //   return;
+    // }
 
     // in this case, the player is big enough to warrant enabling Ultrawidify
     this.enable();
@@ -483,26 +482,20 @@ class PlayerData {
     }
     this.elementStack = elementStack;
 
-    if (this.settings.active.sites[host]?.DOM?.player?.manual) {
-      if (this.settings.active.sites[host]?.DOM?.player?.useRelativeAncestor
-        && this.settings.active.sites[host]?.DOM?.player?.videoAncestor) {
-        playerCandidate = this.getPlayerParentIndex(elementStack);
-      } else if (this.settings.active.sites[host]?.DOM?.player?.querySelectors) {
-        playerCandidate = this.getPlayerQs(elementStack, videoWidth, videoHeight);
-      }
+    const playerQs = this.siteSettings.getCustomDOMQuerySelector('player');
+    const playerIndex = this.siteSettings.getPlayerIndex();
 
-      // if 'verbose' option is passed, we also populate the elementStack
-      // with heuristics data for auto player detection.
-      if (playerCandidate && !options?.verbose) {
-        return playerCandidate.element;
-      }
+    if (playerQs) {
+      playerCandidate = this.getPlayerQs(playerQs, elementStack, videoWidth, videoHeight);
+    } else if (playerIndex) { // btw 0 is not a valid index for player
+      playerCandidate = elementStack[playerIndex];
     }
 
-    if (options?.verbose && playerCandidate) {
-      // remember — we're only populating elementStack. If we found a player
-      // element using manual methods, we will still return that element.
-      this.getPlayerAuto(elementStack, videoWidth, videoHeight);
-      playerCandidate.heuristics['activePlayer'] = true;
+    if (playerCandidate) {
+      if (options?.verbose) {
+        this.getPlayerAuto(elementStack, videoWidth, videoHeight);
+        playerCandidate.heuristics['activePlayer'] = true;
+      }
       return playerCandidate.element;
     } else {
       const playerCandidate = this.getPlayerAuto(elementStack, videoWidth, videoHeight);
@@ -511,6 +504,13 @@ class PlayerData {
     }
   }
 
+  /**
+   * Gets player based on some assumptions, without us defining shit.
+   * @param elementStack
+   * @param videoWidth
+   * @param videoHeight
+   * @returns
+   */
   private getPlayerAuto(elementStack: any[], videoWidth, videoHeight) {
     let penaltyMultiplier = 1;
     const sizePenaltyMultiplier = 0.1;
@@ -592,12 +592,29 @@ class PlayerData {
     return bestCandidate;
   }
 
-  private getPlayerQs(elementStack: any[], videoWidth, videoHeight) {
-    const host = window.location.hostname;
+  /**
+   * Gets player element based on a query string.
+   *
+   * Since query string does not necessarily uniquely identify an element, this function also
+   * tries to evaluate which candidate of element that match the query selector is the most
+   * likely the one element we're looking for.
+   *
+   * Function prefers elements that are:
+   *      1. closer to the video
+   *      2. about the same size as the video
+   *      3. they must appear between video and root of the DOM hierarchy
+   *
+   * @param queryString query string for player element
+   * @param elementStack branch of DOM hierarchy that ends with a video
+   * @param videoWidth width of the video
+   * @param videoHeight height of the video
+   * @returns best candidate or null, if nothing in elementStack matches our query selector
+   */
+  private getPlayerQs(queryString: string, elementStack: any[], videoWidth, videoHeight) {
     const perLevelScorePenalty = 10;
     let penaltyMultiplier = 0;
 
-    const allSelectors = document.querySelectorAll(this.settings.active.sites[host].DOM.player.querySelectors);
+    const allSelectors = document.querySelectorAll(queryString);
 
     for (const element of elementStack) {
       if (this.collectionHas(allSelectors, element.element)) {
@@ -634,17 +651,12 @@ class PlayerData {
     return bestCandidate;
   }
 
-  private getPlayerParentIndex(elementStack: any[]) {
-    const host = window.location.hostname;
-    elementStack[this.settings.active.sites[host].DOM.player.videoAncestor].heuristics['manualElementByParentIndex'] = true;
-    return elementStack[this.settings.active.sites[host].DOM.player.videoAncestor];
-  }
-
+  /**
+   * Lists elements between video and DOM root for display in player selector (UI)
+   */
   private handlePlayerTreeRequest() {
     // this populates this.elementStack fully
     this.getPlayer({verbose: true});
-
-    console.info('player-tree: emitting stack:', this.elementStack);
     this.eventBus.send('uw-config-broadcast', {type: 'player-tree', config: JSON.parse(JSON.stringify(this.elementStack))});
   }
 

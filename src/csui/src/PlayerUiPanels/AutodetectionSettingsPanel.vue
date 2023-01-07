@@ -262,7 +262,6 @@ import Button from '../../../common/components/Button.vue'
 import KeyboardShortcutParser from '../../../common/js/KeyboardShortcutParser';
 import ShortcutButton from '../../../common/components/ShortcutButton';
 import EditShortcutButton from '../../../common/components/EditShortcutButton';
-import ExecAction from '../ui-libs/ExecAction';
 import BrowserDetect from '../../../ext/conf/BrowserDetect';
 import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
 import StretchType from '../../../common/enums/StretchType.enum';
@@ -286,7 +285,6 @@ export default {
     'site'
   ],
   created() {
-    this.exec = new ExecAction(this.settings, window.location.hostname);
     this.eventBus.subscribe('uw-config-broadcast', {function: (config) => this.handleConfigBroadcast(config)});
   },
   mounted() {

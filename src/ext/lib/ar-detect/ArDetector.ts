@@ -252,7 +252,7 @@ class ArDetector {
     this.resetBlackLevel();
 
     // if we're restarting ArDetect, we need to do this in order to force-recalculate aspect ratio
-    this.conf.resizer.setLastAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
+    this.conf.resizer.lastAr = {type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr};
 
     this.canvasImageDataRowLength = cwidth << 2;
 
@@ -277,7 +277,7 @@ class ArDetector {
   start() {
     if (this.conf.resizer.lastAr.type === AspectRatioType.AutomaticUpdate) {
       // ensure first autodetection will run in any case
-      this.conf.resizer.setLastAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
+      this.conf.resizer.lastAr = {type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr};
     }
 
     // start autodetection
@@ -781,7 +781,7 @@ class ArDetector {
     }
 
     // check if aspect ratio is changed:
-    let lastAr = this.conf.resizer.getLastAr();
+    let lastAr = this.conf.resizer.lastAr;
     if (lastAr.type === AspectRatioType.AutomaticUpdate && lastAr.ratio !== null && lastAr.ratio !== undefined){
       // we can only deny aspect ratio changes if we use automatic mode and if aspect ratio was set from here.
 

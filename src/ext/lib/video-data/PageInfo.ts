@@ -61,7 +61,6 @@ class PageInfo {
 
   //#region misc stuff
   lastUrl: string;
-  extensionMode: ExtensionMode;
   defaultCrop: any;
   currentCrop: any;
   keyboardHandlerInitQueue: any[] = [];
@@ -70,14 +69,12 @@ class PageInfo {
   keyboardHandler: any;
   //#endregion
 
-  constructor(eventBus: EventBus, settings: Settings, logger: Logger, extensionMode, readOnly = false){
+  constructor(eventBus: EventBus, siteSettings: SiteSettings, settings: Settings, logger: Logger, readOnly = false){
     this.logger = logger;
     this.settings = settings;
-
-    this.siteSettings = new SiteSettings(settings, window.location.hostname);
+    this.siteSettings = siteSettings;
 
     this.lastUrl = window.location.href;
-    this.extensionMode = extensionMode;
     this.readOnly = readOnly;
 
     this.isFullscreen = !!document.fullscreenElement;

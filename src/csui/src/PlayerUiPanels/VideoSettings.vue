@@ -117,7 +117,6 @@ import Button from '../../../common/components/Button.vue'
 import ShortcutButton from '../../../common/components/ShortcutButton';
 import EditShortcutButton from '../../../common/components/EditShortcutButton';
 import ComputeActionsMixin from '../../../common/mixins/ComputeActionsMixin';
-import ExecAction from '../ui-libs/ExecAction';
 import BrowserDetect from '../../../ext/conf/BrowserDetect';
 import AlignmentOptionsControlComponent from './AlignmentOptionsControlComponent.vue';
 import CommsMixin from '../utils/CommsMixin';
@@ -149,7 +148,6 @@ export default {
     'site'
   ],
   created() {
-    this.exec = new ExecAction(this.settings, window.location.hostname);
     this.eventBus.subscribe('uw-config-broadcast', {function: (config) => this.handleConfigBroadcast(config)});
   },
   mounted() {

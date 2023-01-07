@@ -8,11 +8,13 @@ import Logger, { baseLoggingOptions } from './lib/Logger';
 import UWGlobals from './lib/UWGlobals';
 import EventBus from './lib/EventBus';
 import KeyboardHandler from './lib/kbm/KeyboardHandler';
+import { SiteSettings } from './lib/settings/SiteSettings';
 
 export default class UWContent {
   pageInfo: PageInfo;
   comms: CommsClient;
   settings: Settings;
+  siteSettings: SiteSettings;
   keyboardHandler: KeyboardHandler;
   logger: Logger;
   eventBus: EventBus;
@@ -90,6 +92,7 @@ export default class UWContent {
           logger: this.logger
         });
         await this.settings.init();
+        this.siteSettings = this.settings.getSiteSettings();
       }
 
       this.eventBus = new EventBus();
@@ -109,42 +112,25 @@ export default class UWContent {
     }
   }
 
+  // we always initialize extension, even if it's disabled.
   initPhase2() {
-    // If extension is soft-disabled, don't do shit
-    var extensionMode = this.settings.getExtensionMode();
-
-    this.logger.log('info', 'debug', "[uw::init] Extension mode:" + (extensionMode < 0 ? "disabled" : extensionMode == '1' ? 'basic' : 'full'));
-
-    const isSiteDisabled = extensionMode === ExtensionMode.Disabled
-
-    if (isSiteDisabled) {
-      this.destroy();
-      if (this.settings.getExtensionMode('@global') === ExtensionMode.Disabled) {
-        this.logger.log('info', 'debug', "[uw::init] EXTENSION DISABLED, THEREFORE WONT BE STARTED")
-        return;
-      }
-    }
-
     try {
       if (this.pageInfo) {
         this.logger.log('info', 'debug', '[uw.js::setup] An instance of pageInfo already exists and will be destroyed.');
         this.pageInfo.destroy();
       }
-      this.pageInfo = new PageInfo(this.eventBus, this.settings, this.logger, extensionMode, isSiteDisabled);
+      this.pageInfo = new PageInfo(this.eventBus, this.siteSettings, this.settings, this.logger);
       this.logger.log('info', 'debug', "[uw.js::setup] pageInfo initialized.");
 
       this.logger.log('info', 'debug', "[uw.js::setup] will try to initate KeyboardHandler.");
 
-      // start action handler only if extension is enabled for this site
-      if (!isSiteDisabled) {
-        if (this.keyboardHandler) {
-          this.keyboardHandler.destroy();
-        }
-        this.keyboardHandler = new KeyboardHandler(this.eventBus, this.settings, this.logger);
-        this.keyboardHandler.init();
-
-        this.logger.log('info', 'debug', "[uw.js::setup] KeyboardHandler initiated.");
+      if (this.keyboardHandler) {
+        this.keyboardHandler.destroy();
       }
+      this.keyboardHandler = new KeyboardHandler(this.eventBus, this.siteSettings, this.settings, this.logger);
+      this.keyboardHandler.init();
+
+      this.logger.log('info', 'debug', "[uw.js::setup] KeyboardHandler initiated.");
 
     } catch (e) {
       console.error('Ultrawidify: failed to start extension. Error:', e)

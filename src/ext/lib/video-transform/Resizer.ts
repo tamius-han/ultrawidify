@@ -1,3 +1,4 @@
+import { SiteSettings } from './../settings/SiteSettings';
 import Debug from '../../conf/Debug';
 import Scaler, { CropStrategy, VideoDimensions } from './Scaler';
 import Stretcher from './Stretcher';
@@ -10,9 +11,12 @@ import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
 import CropModePersistance from '../../../common/enums/CropModePersistence.enum';
 import { sleep } from '../Util';
 import Logger from '../Logger';
-import Settings from '../Settings';
+import siteSettings from '../Settings';
 import VideoData from '../video-data/VideoData';
 import EventBus from '../EventBus';
+import { _cp } from '../../../common/js/utils';
+import Settings from '../Settings';
+import { Ar } from '../../../common/interfaces/ArInterface';
 
 if(Debug.debug) {
   console.log("Loading: Resizer.js");
@@ -28,6 +32,7 @@ class Resizer {
   //#region helper objects
   logger: Logger;
   settings: Settings;
+  siteSettings: SiteSettings;
   scaler: Scaler;
   stretcher: Stretcher;
   zoom: Zoom;
@@ -47,8 +52,8 @@ class Resizer {
   currentCssValidFor: any;
   currentVideoSettings: any;
 
-  _lastAr: {type: any, ratio?: number} = {type: AspectRatioType.Initial};
-  set lastAr(x: {type: any, ratio?: number}) {
+  _lastAr: Ar = {type: AspectRatioType.Initial};
+  set lastAr(x: Ar) {
     this._lastAr = x;
     // emit updates for UI when setting lastAr
     this.eventBus.send('uw-config-broadcast', {type: 'ar', config: x})
@@ -101,6 +106,7 @@ class Resizer {
     this.logger = videoData.logger;
     this.video = videoData.video;
     this.settings = videoData.settings;
+    this.siteSettings = videoData.siteSettings;
     this.eventBus = videoData.eventBus;
     this.initEventBus();
 
@@ -108,18 +114,15 @@ class Resizer {
     this.stretcher = new Stretcher(this.conf);
     this.zoom = new Zoom(this.conf);
 
-    this.videoAlignment = {
-      x: this.settings.getDefaultVideoAlignment(window.location.hostname),
-      y: VideoAlignmentType.Center
-    }; // this is initial video alignment
+    this.videoAlignment = this.siteSettings.getDefaultOption('alignment') as {x: VideoAlignmentType, y: VideoAlignmentType} // this is initial video alignment
 
     this.destroyed = false;
 
-    if (this.settings.active.pan) {
-      this.canPan = this.settings.active.miscSettings.mousePan.enabled;
-    } else {
-      this.canPan = false;
-    }
+    // if (this.siteSettings.active.pan) {
+    //   this.canPan = this.siteSettings.active.miscSettings.mousePan.enabled;
+    // } else {
+    //   this.canPan = false;
+    // }
 
     this.userCssClassName = videoData.userCssClassName;
   }
@@ -215,7 +218,7 @@ class Resizer {
     }
   }
 
-  async setAr(ar: {type: any, ratio?: number}, lastAr?: {type: any, ratio?: number}) {
+  async setAr(ar: Ar, lastAr?: Ar) {
     if (this.destroyed) {
       return;
     }
@@ -253,7 +256,6 @@ class Resizer {
       return;
     }
 
-    const siteSettings = this.settings.active.sites[window.location.hostname];
     let stretchFactors: {xFactor: number, yFactor: number, arCorrectionFactor?: number, ratio?: number} | any;
 
     // reset zoom, but only on aspect ratio switch. We also know that aspect ratio gets converted to
@@ -271,8 +273,7 @@ class Resizer {
     // this means here's the optimal place to set or forget aspect ratio. Saving of current crop ratio
     // is handled in pageInfo.updateCurrentCrop(), which also makes sure to persist aspect ratio if ar
     // is set to persist between videos / through current session / until manual reset.
-    if (ar.type === AspectRatioType.Automatic ||
-        ar.type === AspectRatioType.Reset ||
+    if (ar.type === AspectRatioType.Reset ||
         ar.type === AspectRatioType.Initial ) {
       // reset/undo default
       this.conf.pageInfo.updateCurrentCrop(undefined);
@@ -391,13 +392,6 @@ class Resizer {
     this.lastAr = {type: AspectRatioType.Initial};
   }
 
-  setLastAr(override){
-    this.lastAr = override;
-  }
-
-  getLastAr(){
-    return this.lastAr;
-  }
 
   setStretchMode(stretchMode, fixedStretchRatio?){
     this.stretcher.setStretchMode(stretchMode, fixedStretchRatio);
@@ -481,7 +475,7 @@ class Resizer {
   }
 
   reset(){
-    this.setStretchMode(this.settings.active.sites[window.location.hostname]?.stretch ?? this.settings.active.sites['@global'].stretch);
+    this.setStretchMode(this.siteSettings.getDefaultOption('stretch'));
     this.zoom.setZoom(1);
     this.resetPan();
     this.setAr({type: AspectRatioType.Reset});
@@ -647,7 +641,7 @@ class Resizer {
 
   private _computeOffsetsRecursionGuard: boolean = false;
   computeOffsets(stretchFactors: VideoDimensions){
-    this.logger.log('info', 'debug', "[Resizer::computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.settings.active.sites['@global'].videoAlignment);
+    this.logger.log('info', 'debug', "[Resizer::computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.videoAlignment);
 
     const {realVideoWidth, realVideoHeight, marginX, marginY} = this.computeVideoDisplayedDimensions();
 
@@ -831,7 +825,7 @@ class Resizer {
 
     let extraStyleString;
     try {
-      extraStyleString = this.settings.active.sites[window.location.hostname].DOM.video.additionalCss;
+      extraStyleString = this.siteSettings.data.currentDOMConfig.customCss;
     } catch (e) {
       // do nothing. It's ok if no special settings are defined for this site, we'll just do defaults
     }

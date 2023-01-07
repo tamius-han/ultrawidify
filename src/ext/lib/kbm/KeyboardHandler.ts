@@ -7,6 +7,7 @@ import Settings from '../Settings';
 import VideoData from '../video-data/VideoData';
 import EventBus, { EventBusCommand } from '../EventBus';
 import KbmBase from './KbmBase';
+import { SiteSettings } from '../settings/SiteSettings';
 
 if(process.env.CHANNEL !== 'stable'){
   console.info("Loading KeyboardHandler");
@@ -24,6 +25,7 @@ export class KeyboardHandler extends KbmBase {
   listenFor: string[] = ['keyup'];
   logger: Logger;
   settings: Settings;
+  siteSettings: SiteSettings;
   eventBus: EventBus;
 
   playerElements: HTMLElement[] = [];
@@ -43,8 +45,8 @@ export class KeyboardHandler extends KbmBase {
   }
 
   //#region lifecycle
-  constructor(eventBus: EventBus, settings: Settings, logger: Logger) {
-    super(eventBus, settings, logger);
+  constructor(eventBus: EventBus, siteSettings: SiteSettings, settings: Settings, logger: Logger) {
+    super(eventBus, siteSettings, settings, logger);
 
     this.init();
   }
@@ -124,7 +126,7 @@ export class KeyboardHandler extends KbmBase {
       "\nis type === 'text'? (yes -> prevent):", activeElement.getAttribute("type") === "text",
       "\nevent.target.isContentEditable? (yes -> prevent):", event.target.isContentEditable,
       "\nis keyboard local disabled? (yes -> prevent):", this.keyboardLocalDisabled,
-      "\nis keyboard enabled in settings? (no -> prevent)", this.settings.keyboardShortcutsEnabled(window.location.hostname),
+      // "\nis keyboard enabled in settings? (no -> prevent)", this.settings.keyboardShortcutsEnabled(window.location.hostname),
       "\nwill the action be prevented? (yes -> prevent)", preventAction,
       "\n-----------------{ extra debug info }-------------------",
       "\ntag name? (lowercase):", activeElement.tagName, activeElement.tagName.toLocaleLowerCase(),
@@ -139,9 +141,9 @@ export class KeyboardHandler extends KbmBase {
     if (this.keyboardLocalDisabled) {
       return true;
     }
-    if (!this.settings.keyboardShortcutsEnabled(window.location.hostname)) {
-      return true;
-    }
+    // if (!this.settings.keyboardShortcutsEnabled(window.location.hostname)) {
+    //   return true;
+    // }
     if (this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1) {
       return true;
     }

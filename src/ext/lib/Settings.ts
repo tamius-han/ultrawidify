@@ -12,6 +12,7 @@ import Logger from './Logger';
 import SettingsInterface from '../../common/interfaces/SettingsInterface';
 import { browser } from 'webextension-polyfill-ts';
 import AspectRatioType from '../../common/enums/AspectRatioType.enum';
+import { SiteSettings } from './settings/SiteSettings';
 
 if(process.env.CHANNEL !== 'stable'){
   console.info("Loading Settings");
@@ -348,189 +349,6 @@ class Settings {
     return JSON.parse(JSON.stringify(this.default));
   }
 
-  // -----------------------------------------
-  // Config for a given page:
-  //
-  // <hostname> : {
-  //    status: <option>              // should extension work on this site?
-  //    arStatus: <option>            // should we do autodetection on this site?
-  //    statusEmbedded: <option>      // reserved for future... maybe
-  // }
-  //
-  // Valid values for options:
-  //
-  //     status, arStatus, statusEmbedded:
-  //
-  //    * enabled     — always allow
-  //    * basic       — only allow fullscreen
-  //    * default     — allow if default is to allow, block if default is to block
-  //    * disabled    — never allow
-
-
-  getActionsForSite(site) {
-    if (!site) {
-      return this.active.actions;
-    }
-    if (this.active.sites[site] && this.active.sites[site].actions && this.active.sites[site].actions.length > 0) {
-      return this.active.sites[site].actions;
-    }
-    return this.active.actions;
-  }
-
-  getSettingsForSite(site?) {
-    if (!site) {
-      site = window.location.hostname;
-    }
-
-    return this.active.sites[site];
-  }
-
-  getExtensionMode(site?: string) {
-    if (!site) {
-      site = window.location.hostname;
-
-      if (!site) {
-        this.logger?.log('info', 'settings', `[Settings::canStartExtension] window.location.hostname is null or undefined: ${window.location.hostname} \nactive settings:`, this.active);
-        return ExtensionMode.Disabled;
-      }
-    }
-
-    try {
-      // if site-specific settings don't exist for the site, we use default mode:
-      if (! this.active.sites[site]) {
-        return this.getExtensionMode('@global');
-      }
-
-      if (this.active.sites[site].mode === ExtensionMode.Enabled) {
-        return ExtensionMode.Enabled;
-      } else if (this.active.sites[site].mode === ExtensionMode.Basic) {
-        return ExtensionMode.Basic;
-      }  else if (this.active.sites[site].mode === ExtensionMode.Disabled) {
-        return ExtensionMode.Disabled;
-      } else {
-        if (site !== '@global') {
-          return this.getExtensionMode('@global');
-        } else {
-          return ExtensionMode.Disabled;
-        }
-      }
-
-    } catch(e){
-      this.logger?.log('error', 'settings', "[Settings.js::canStartExtension] Something went wrong — are settings defined/has init() been called?\n\nerror:", e, "\n\nSettings object:", this)
-
-      return ExtensionMode.Disabled;
-    }
-  }
-
-  /**
-   * Returns whether extension can start on a given site or not.
-   * @param site — default value fof this argument is window.location.hostname
-   * @returns true if extension can run on this site, false otherwise
-   */
-  isEnabledForSite(site = window.location.hostname) {
-    if (!site) {
-      this.logger?.log('info', 'settings', `[Settings::canStartExtension] window.location.hostname is null or undefined: ${window.location.hostname} \nactive settings:`, this.active);
-      return false;
-    }
-
-    // if (Debug.debug) {
-    //   // let's just temporarily disable debugging while recursively calling
-    //   // this function to get extension status on current site without duplo
-    //   // console logs (and without endless recursion)
-    //   Debug.debug = false;
-    //   const cse = this.canStartExtension(site);
-    //   Debug.debug = true;
-    // }
-    try{
-    // if site is not defined, we use default mode:
-      if (! this.active.sites[site] || this.active.sites[site].mode === ExtensionMode.Default) {
-        return this.active.sites['@global'].mode === ExtensionMode.Enabled;
-      }
-
-      if (this.active.sites['@global'].mode === ExtensionMode.Enabled) {
-        return this.active.sites[site].mode !== ExtensionMode.Disabled;
-      } else if (this.active.sites['@global'].mode === ExtensionMode.Whitelist) {
-        return this.active.sites[site].mode === ExtensionMode.Enabled;
-      } else {
-        return false;
-      }
-    } catch(e) {
-      this.logger?.log('error', 'settings', "[Settings.js::canStartExtension] Something went wrong — are settings defined/has init() been called?\nSettings object:", this);
-      return false;
-    }
-  }
-
-  keyboardShortcutsEnabled(site) {
-    if (!site) {
-      site = window.location.hostname;
-    }
-    if (!site) {
-      return false;
-    }
-
-    try {
-      if (!this.active.sites[site]
-          || this.active.sites[site].keyboardShortcutsEnabled === undefined
-          || this.active.sites[site].keyboardShortcutsEnabled === ExtensionMode.Default) {
-        return this.keyboardShortcutsEnabled('@global');
-      } else {
-        return this.active.sites[site].keyboardShortcutsEnabled === ExtensionMode.Enabled;
-      }
-    } catch (e) {
-      this.logger?.log('info', 'settings',"[Settings.js::keyboardDisabled] something went wrong:", e);
-      return false;
-    }
-  }
-
-  extensionEnabled(){
-    return this.active.sites['@global'].mode !== ExtensionMode.Disabled
-  }
-
-  canStartAutoAr(site?: string) {
-    // 'site' argument is only ever used when calling this function recursively for debugging
-    if (!site) {
-      site = window.location.hostname;
-
-      if (!site) {
-        this.logger?.log('warn', ['settings', 'init', 'debug'], `[Settings::canStartAutoAr] No site — even window.location.hostname returned nothing!: ${window.location.hostname}`);
-        return false;
-      }
-    }
-
-    // if (Debug.debug) {
-      // let's just temporarily disable debugging while recursively calling
-      // this function to get extension status on current site without duplo
-      // console logs (and without endless recursion)
-      // Debug.debug = false;
-      // const csar = this.canStartAutoAr(site);
-      // Debug.debug = true;
-
-      this.logger?.log('info', ['settings', 'init', 'debug'], "[Settings::canStartAutoAr] ----------------\nCAN WE START AUTOAR ON SITE", site,
-                                          "?\n\nsettings.active.sites[site]=", this.active.sites[site], "settings.active.sites[@global]=", this.active.sites['@global'],
-                                          "\nAutoar mode (global)?", this.active.sites['@global'].autoar,
-                                          `\nAutoar mode (${site})`, this.active.sites[site] ? this.active.sites[site].autoar : '<not defined>',
-                                          // "\nCan autoar be started?", csar
-      );
-    // }
-
-    // if site is not defined, we use default mode:
-    if (! this.active.sites[site]) {
-      this.logger?.log('info', ['settings', 'aard', 'init', 'debug'], "[Settings::canStartAutoAr] Settings not defined for this site, returning defaults.", site, this.active.sites[site], this.active.sites);
-      return this.active.sites['@global'].autoar === ExtensionMode.Enabled;
-    }
-
-    if (this.active.sites['@global'].autoar === ExtensionMode.Enabled) {
-      this.logger?.log('info', ['settings', 'aard', 'init', 'debug'], `[Settings::canStartAutoAr] Aard is enabled by default. Extension can run unless disabled for this site.`, this.active.sites[site].autoar);
-      return this.active.sites[site].autoar !== ExtensionMode.Disabled;
-    } else if (this.active.sites['@global'].autoar === ExtensionMode.Whitelist) {
-      this.logger?.log('info', ['settings', 'init', 'debug'], "canStartAutoAr — can(not) start aard because extension is in whitelist mode, and this site is (not) equal to", ExtensionMode.Enabled)
-      return this.active.sites[site].autoar === ExtensionMode.Enabled;
-    } else {
-      this.logger?.log('info', ['settings', 'init', 'debug'], "canStartAutoAr — cannot start aard because extension is globally disabled")
-      return false;
-    }
-  }
-
   getDefaultOption(option?) {
     const allDefault = {
       mode: ExtensionMode.Default,
@@ -545,40 +363,6 @@ class Settings {
     }
 
     return allDefault[option];
-  }
-
-  getDefaultAr(site) {
-    // site = this.getSiteSettings(site);
-
-    // if (site.defaultAr) {
-    //   return site.defaultAr;
-    // }
-    return this.active.miscSettings.defaultAr;
-  }
-
-  getDefaultStretchMode_legacy(site) {
-    if (site && (this.active.sites[site]?.stretch ?? StretchType.Default) !== StretchType.Default) {
-      return this.active.sites[site].stretch;
-    }
-
-    return this.active.sites['@global'].stretch;
-  }
-
-  getDefaultCropPersistenceMode(site) {
-    if (site && (this.active.sites[site]?.cropModePersistence ?? StretchType.Default) !== StretchType.Default) {
-      return this.active.sites[site].cropModePersistence;
-    }
-
-    // persistence mode thing is missing from settings by default
-    return this.active.sites['@global'].cropModePersistence || CropModePersistence.Disabled;
-  }
-
-  getDefaultVideoAlignment(site) {
-    if ( (this.active.sites[site]?.videoAlignment ?? VideoAlignmentType.Default) !== VideoAlignmentType.Default) {
-      return this.active.sites[site].videoAlignment;
-    }
-
-    return this.active.sites['@global'].videoAlignment;
   }
 
   /**
@@ -597,48 +381,8 @@ class Settings {
     }
   }
 
-  /**
-   * Gets default cropping mode for extension.
-   * Returns site default if defined, otherwise it returns extension default.
-   * If extension default is not defined because extension updated but the
-   * settings didn't port over, we return automatic.
-   */
-  getDefaultCrop(site?: string) {
-    return this.active.sites[site ?? window.location.hostname]?.defaultCrop ?? this.active.crop?.default ?? {type: AspectRatioType.Automatic};
-  }
-
-  /**
-   * Gets default stretching mode for extension.
-   * Returns site default if defined, otherwise it returns extension default.
-   * If extension default is not defined because extension updated but the
-   * settings didn't port over, we return automatic.
-   */
-  getDefaultStretchMode(site?: string) {
-    return this.active.sites[site ?? window.location.hostname]?.defaultStretch ?? this.active.stretch.default ?? {type: StretchType.NoStretch};
-  }
-
-  /**
-   * Sets a site option and initializes values if empty.
-   * Does not save settings.
-   * @param path
-   * @param value
-   * @param site
-   */
-  setSiteOption(path: string[], value: any, site?: string) {
-    site = site ?? window.location.hostname;
-
-    if (!this.active.sites[site]) {
-      this.active.sites[site] = {};
-    }
-
-    let object = this.active.sites[site];
-    for (let i = 0; i < path.length - 1; i++) {
-      if (!object[path[i]]) {
-        object[path[i]] = {};
-      }
-      object = object[path[i]];
-    }
-    object[path[path.length - 1]] = value;
+  getSiteSettings(site: string = window.location.hostname): SiteSettings {
+    return new SiteSettings(this, site);
   }
 }
 

@@ -33,7 +33,7 @@
           Never
         </div>
       </div>
-      
+
       <h1>Do you want to see update notes when extension receives updates?</h1>
       <p>Update notes will open a new tab, just like this one.</p>
       <div class="flex flex-row">
@@ -73,7 +73,6 @@ export default {
       performance: {},
       site: null,
       currentZoom: 1,
-      execAction: new ExecAction(),
       settings: {},
       settingsInitialized: false,
       logger: {},

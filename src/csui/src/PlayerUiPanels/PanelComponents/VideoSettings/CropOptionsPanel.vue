@@ -132,23 +132,6 @@
         </select>
       </div>
     </div>
-    <div class="field">
-      <div class="label">Extension default</div>
-      <div class="select">
-        <select
-          :value="extensionDefaultCrop"
-          @click="setDefaultCrop($event, 'global')"
-        >
-          <option
-            v-for="(command, index) of settings?.active.commands.crop"
-            :key="index"
-            :value="JSON.stringify(command.arguments)"
-          >
-            {{command.label}}
-          </option>
-        </select>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -220,23 +203,7 @@ export default {
     setDefaultCrop($event, scope) {
       const commandArguments = JSON.parse($event.target.value);
 
-      if (scope === 'site') {
-        if (!this.settings.active.sites[this.site]) {
-          this.settings.active.sites[this.site] = this.settings.getDefaultSiteConfiguration();
-        }
-        this.settings.active.sites[this.site].defaultCrop = commandArguments;
-      } else {
-        // eventually, this 'if' will be safe to remove (and we'll be able to only
-        // get away with the 'else' section) Maybe in 6 months or so.
-        if (!this.settings.active.crop) {
-          this.settings.active['crop'] = {
-            default: commandArguments
-          }
-        } else {
-          this.settings.active.crop.default = commandArguments;
-        }
-      }
-
+      this.siteSettings.set('defaults.crop', commandArguments);
       this.settings.saveWithoutReload();
     },
 
