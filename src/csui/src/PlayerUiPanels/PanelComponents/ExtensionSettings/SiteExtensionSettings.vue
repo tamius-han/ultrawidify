@@ -2,6 +2,29 @@
   <div>
     <h3>Extension settings</h3>
     <div class="field">
+      <div class="label">
+        Enable extension under the following conditions:
+      </div>
+      <ul>
+        <li>while in full screen</li>
+        <li>while in theater mode</li>
+        <li>during normal playback</li>
+      </ul>
+    </div>
+
+    <div class="field">
+      <div class="label">
+        Enable automatic aspect ratio detection under the following conditions:
+      </div>
+      <ul>
+        <li>while in full screen</li>
+        <li>while in theater mode</li>
+        <li>during normal playback</li>
+      </ul>
+      <div class=""></div>
+    </div>
+
+    <div class="field">
       <div class="label">Default crop:</div>
       <div class="select">
         <select
@@ -23,8 +46,9 @@
           </option>
         </select>
       </div>
-      <div class="hint">'Auto' option will enable autodetection. 'Reset' will disable extension until manually activated.</div>
+      <div class="hint">This is how extension will crop video if/when autodetection is disabled. Pick 'Reset' option to keep aspect ratio as-is by default.</div>
     </div>
+
     <div class="field">
       <div class="label">Default stretch:</div>
       <div class="select">
@@ -48,6 +72,7 @@
         </select>
       </div>
     </div>
+
     <div class="field">
       <div class="label">Persist crop mode between videos</div>
       <div class="select">
@@ -70,33 +95,26 @@
     </div>
 
     <div class="field">
-      <div class="label">Disable extension when not in full screen</div>
+      <div class="label">Persist stretch mode between videos (TODO — this is not yet implemented)</div>
       <div class="select">
         <select
-          v-model="siteDefaultFullScreenOnly"
-          @click="setOption('restrictions.onlyAllowInFullScreen', $event)"
+          v-model="siteDefaultCropModePersistence"
+          @click="setOption('cropModePersistence')"
         >
-          <option :value="undefined">Use default ({{defaultFullScreenOnly}})</option>
-          <option :value="true">Yes</option>
-          <option :value="false">No</option>
+          <option
+            v-if="site !== '@global'"
+            :value="CropModePersistence.Default"
+          >
+            Use default ({{defaultCropPersistence}})
+          </option>
+          <option :value="CropModePersistence.Disabled">Disabled</option>
+          <option :value="CropModePersistence.UntilPageReload">Until page reload</option>
+          <option :value="CropModePersistence.CurrentSession">Current session</option>
+          <option :value="CropModePersistence.Forever">Always persist</option>
         </select>
       </div>
-      <div class="hint">This option will disable entire extension (including user interface and keyboard shortcuts) while not in full screen. If you use theater mode, you will want to set this option to 'No'.</div>
     </div>
-    <div class="field">
-      <div class="label">Disable autodetection when not in full screen</div>
-      <div class="select">
-        <select
-          v-model="siteDefaultAardFullScreenOnly"
-          @click="setOption('restrictions.onlyAllowInFullScreen', $event)"
-        >
-          <option :value="undefined">Use default ({{defaultAardFullScreenOnly}})</option>
-          <option :value="true">Yes</option>
-          <option :value="false">No</option>
-        </select>
-      </div>
-      <div class="hint">This option will disable autodetection while not in full screen. Other extension functionalities will keep functioning. If you want autodetection in theater mode, you will want to set this option to 'No'.</div>
-    </div>
+
   </div>
 </template>
 
@@ -115,6 +133,7 @@ export default {
   props: [
     'settings',
     'site',
+    'isDefaultConfiguration'
   ],
   components: {
 

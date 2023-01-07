@@ -52,9 +52,9 @@
       </div>
     </div>
 
-    <SiteSettingsBasicTable
+    <!-- <SiteSettingsBasicTable
       :settings="settings"
-    ></SiteSettingsBasicTable>
+    ></SiteSettingsBasicTable> -->
 
   </div>
 </template>
