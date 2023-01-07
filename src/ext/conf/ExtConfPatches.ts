@@ -5,6 +5,7 @@ import ExtensionMode from '../../common/enums/ExtensionMode.enum';
 import VideoAlignmentType from '../../common/enums/VideoAlignmentType.enum';
 import BrowserDetect from './BrowserDetect';
 import SettingsInterface from '../../common/interfaces/SettingsInterface';
+import { _cp } from '../../common/js/utils';
 
 const ExtensionConfPatch = [
   {
@@ -127,6 +128,78 @@ const ExtensionConfPatch = [
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
       // add new commands
       userOptions.commands = defaultOptions.commands;
+    }
+  }, {
+    // NOTE - when releasing shit, ensure ALL alpha migrations are combined together in one function
+    forVersion: '6.0.0-alpha2',
+    updateFn: (userOptions, defaultOptions) => {
+      userOptions.commands = defaultOptions.commands;
+
+      // migrates old settings regarding whether extension is enabled or not
+      const copyEnabled = (site) => {
+        userOptions.sites[site].enable = {
+          fullscreen: userOptions.sites[site].mode,
+          theater: userOptions.sites[site].mode,
+          normal: ExtensionMode.Disabled
+        };
+        userOptions.sites[site].enableKeyboard = {
+          fullscreen: userOptions.sites[site].keyboardShortcutsEnabled,
+          theater: userOptions.sites[site].keyboardShortcutsEnabled,
+          normal: ExtensionMode.Disabled
+        };
+        userOptions.sites[site].enableAard = {
+          fullscreen: userOptions.sites[site].autoar,
+          theater: userOptions.sites[site].autoar,
+          normal: ExtensionMode.Disabled
+        };
+
+        userOptions.sites[site].stretchModePersistence = userOptions.sites[site].cropModePersistence;
+
+        // remove old options
+        delete userOptions.sites[site].mode;
+        delete userOptions.sites[site].keyboardShortcutsEnabled;
+        delete userOptions.sites[site].autoar;
+      }
+
+      // globals get carried over before other sites:
+      copyEnabled('@global');
+
+      // we make another guess about a new option we just added
+
+
+      for (const key in userOptions.sites) {
+        // we already had this
+        if (key === '@global') {
+          continue;
+        }
+
+        copyEnabled(key);
+
+        userOptions.sites[key].DOMConfig = _cp(defaultOptions.sites[key].DOMConfig)
+
+        // convert old site.DOM to site.DOMConfig[]
+        if (userOptions.sites[key].type === 'user-defined') {
+          const DOM = userOptions.sites[key].DOM;
+          if (DOM) {
+            userOptions.sites[key].DOMConfig['user-defined'] = {
+              type: 'user-1',
+              customCss: DOM?.css,
+              periodicallyRefreshPlayerElement: DOM?.player?.periodicallyRefreshPlayerElement,
+              elements: !(DOM?.player) ? undefined : {
+                player: {
+                  manual: DOM?.player?.manual,
+                  querySelectors: DOM?.player?.useRelativeAncestor ? undefined : DOM?.player?.querySelectors,
+                  index: DOM?.player?.useRelativeAncestor ? DOM?.player?.videoAncestor : undefined,
+                }
+              }
+            }
+            userOptions.sites[key].activeDOMConfig = 'user-1';
+
+            // remove old configuration
+            delete userOptions.sites[key].DOM;
+          }
+        }
+      }
     }
   }
 ];

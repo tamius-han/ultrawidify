@@ -32,6 +32,12 @@ interface RestrictionsSettings {
   onlyAllowAutodetectionInFullScreen?: boolean;  // if enabled, autodetection will only start once in full screen
 }
 
+interface ExtensionEnvironmentSettingsInterface {
+  normal: ExtensionMode,
+  theater: ExtensionMode,
+  fullscreen: ExtensionMode,
+}
+
 export interface CommandInterface {
   action: string,
   label: string,
@@ -294,49 +300,112 @@ interface SettingsInterface {
   //    * disabled    — never allow
   //
   sites: {
-    [x: string]: {
-      defaultCrop?: any,                          // v6 new
-      defaultStretch?: any,                       // v6 new
-
-                                                  // everything 'superseded by' needs to be implemented
-                                                  // as well as ported from the old settings
-      mode?: ExtensionMode,                       // v6 — superseded by defaultCrop
-      autoar?: ExtensionMode,                     // v6 — superseded by defaultCrop
-      autoarFallback?: ExtensionMode,             // v6 — deprecated, no replacement
-      stretch?: StretchType,                      // v6 — superseded by defaultStretch
-      videoAlignment?: VideoAlignmentType,
-      keyboardShortcutsEnabled?: ExtensionMode,
-      type?: string,
-      override?: boolean,
-      arPersistence?: boolean,
-      actions?: any;
-
-      cropModePersistence?: CropModePersistence;
-
-      DOM?: {
-        player?: {
-          manual?: boolean,
-          querySelectors?: string,
-          additionalCss?: string,
-          useRelativeAncestor?: boolean,
-          videoAncestor?: any,
-          playerNodeCss?: string,
-          periodicallyRefreshPlayerElement?: boolean
-        },
-        video?: {
-          manual?: boolean,
-          querySelectors?: string,
-          additionalCss?: string,
-          useRelativeAncestor?: boolean,
-          playerNodeCss?: string
-        }
-      },
-      css?: string;
-      usePlayerArInFullscreen?: boolean;
-
-      restrictions?: RestrictionsSettings;
-    }
+    [x: string]: SiteSettingsInterface,
   }
+  // sites: {
+  //   [x: string]: {
+  //     defaultCrop?: any,                          // v6 new
+  //     defaultStretch?: any,                       // v6 new
+  //     enabled: ExtensionEnvironmentSettingsInterface,     // v6 new
+  //     enabledAard: ExtensionEnvironmentSettingsInterface,// v6 new
+
+  //                                                 // everything 'superseded by' needs to be implemented
+  //                                                 // as well as ported from the old settings
+  //     mode?: ExtensionMode,                       // v6 — superseded by looking at enableIn
+  //     autoar?: ExtensionMode,                     // v6 — superseded by looking at enableIn
+  //     autoarFallback?: ExtensionMode,             // v6 — deprecated, no replacement
+  //     stretch?: StretchType,                      // v6 — superseded by defaultStretch
+  //     videoAlignment?: VideoAlignmentType,
+  //     keyboardShortcutsEnabled?: ExtensionMode,
+  //     type?: string,
+  //     override?: boolean,
+  //     arPersistence?: boolean,
+  //     actions?: any;
+
+  //     cropModePersistence?: CropModePersistence;
+
+  //     DOM?: {
+  //       player?: {
+  //         manual?: boolean,
+  //         querySelectors?: string,
+  //         additionalCss?: string,
+  //         useRelativeAncestor?: boolean,
+  //         videoAncestor?: any,
+  //         playerNodeCss?: string,
+  //         periodicallyRefreshPlayerElement?: boolean
+  //       },
+  //       video?: {
+  //         manual?: boolean,
+  //         querySelectors?: string,
+  //         additionalCss?: string,
+  //         useRelativeAncestor?: boolean,
+  //         playerNodeCss?: string
+  //       }
+  //     },
+  //     css?: string;
+  //     usePlayerArInFullscreen?: boolean;
+
+  //     restrictions?: RestrictionsSettings;
+  //   }
+  // }
+}
+
+export interface SiteSettingsInterface {
+  enable: ExtensionEnvironmentSettingsInterface;
+  enableAard: ExtensionEnvironmentSettingsInterface;
+  enableKeyboard: ExtensionEnvironmentSettingsInterface;
+
+  type?: 'official' | 'community' | 'user-defined' | 'testing' | 'officially-disabled';
+
+  persistOption?: {  // must be defined in @global and @empty
+    crop?: CropModePersistence,
+    stretch?: CropModePersistence,
+    alignment?: CropModePersistence
+  },
+
+  defaults?: {       // must be defined in @global and @empty
+    crop?: {type: AspectRatioType, [x: string]: any},
+    stretch?: StretchType,
+    alignment?: any,
+  }
+
+  cropModePersistence?: CropModePersistence;
+  stretchModePersistence?: CropModePersistence;
+  alignmentPersistence?: CropModePersistence;
+
+
+  activeDOMConfig?: string;
+  DOMConfig?: { [x: string]: SiteDOMSettingsInterface };
+
+  // the following script are for extension caching and shouldn't be saved.
+  // if they _are_ saved, they will be overwritten
+  currentDOMConfig?: SiteDOMSettingsInterface;
+
+  // the following fields are for use with extension update script
+  override?: boolean;   // whether settings for this site will be overwritten by extension upgrade script
+}
+
+export interface SiteDOMSettingsInterface {
+  type: 'official' | 'community' | 'user-defined' | undefined;
+  elements?: {
+    player?: SiteDOMElementSettingsInterface,
+    video?: SiteDOMElementSettingsInterface,
+    other?: { [x: number]: SiteDOMElementSettingsInterface }
+  };
+  customCss?: string;
+  periodicallyRefreshPlayerElement?: boolean;
+
+  // the following script are for extension caching and shouldn't be saved.
+  // if they _are_ saved, they will be overwritten
+  anchorElementIndex?: number;
+  anchorElement?: HTMLElement;
+}
+
+export interface SiteDOMElementSettingsInterface {
+  manual?: boolean;
+  querySelectors?: string;
+  index?: number; // previously: useRelativeAncestor + videoAncestor
+  nodeCss?: {[x: string]: string};
 }
 
 export default SettingsInterface;

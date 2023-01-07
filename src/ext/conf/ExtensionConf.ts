@@ -8,6 +8,7 @@ import AspectRatioType from '../../common/enums/AspectRatioType.enum';
 import CropModePersistence from '../../common/enums/CropModePersistence.enum';
 import SettingsInterface from '../../common/interfaces/SettingsInterface';
 import BrowserDetect from './BrowserDetect';
+import { Extension } from 'typescript';
 
 if(Debug.debug)
   console.log("Loading: ExtensionConf.js");
@@ -1389,252 +1390,449 @@ const ExtensionConf: SettingsInterface = {
   //    * disabled    — never allow
   //
   sites: {
-    "@global": {                        // global defaults. Possible options will state site-only options in order
-                                        // to avoid writing this multiple times. Tags:
-                                        //      #g — only available in @global
-                                        //      #s   — only available for specific site
-      mode: ExtensionMode.Enabled,      //  How should extension work:
-                                        //       'enabled'   - work everywhere except blacklist
-                                        //       'whitelist' - only work on whitelisted sites (#g)
-                                        //       'disabled'  - work nowhere
-                                        //       'basic'     - (Possible future use)
-                                        //       'default'   - follow global rules (#s)
-      autoar: ExtensionMode.Enabled,    //  Should we try to automatically detect aspect ratio?
-                                        //  Options: 'enabled', 'whitelist' (#g), 'default' (#s), 'disabled'
-      autoarFallback: currentBrowser.firefox ?     // if autoAr fails, try fallback mode?
-                       ExtensionMode.Enabled :     // Options same as in autoar.
-                       ExtensionMode.Disabled,     // if autoar is disabled, this setting is irrelevant
-      stretch: StretchType.NoStretch,                  // Default stretch mode.
-      videoAlignment: VideoAlignmentType.Center,       // Video alignment
-      keyboardShortcutsEnabled: ExtensionMode.Enabled,
+    "@global": {                            // global defaults. Possible options will state site-only options in order
+                                            // to avoid writing this multiple times. Tags:
+                                            //      #g — only available in @global
+                                            //      #s   — only available for specific site
+      enable: {                             //  How should extension work:
+        fullscreen: ExtensionMode.Enabled,  //       'enabled'   - work everywhere except blacklist
+        theater: ExtensionMode.Enabled,     //       'whitelist' - only work on whitelisted sites (#g)
+        normal: ExtensionMode.Disabled,     //       'disabled'  - work nowhere
+      },                                    //       'default'   - follow global rules (#s)
+      enableAard: {                         //  Should we try to automatically detect aspect ratio?
+        fullscreen: ExtensionMode.Enabled,  //  Options: 'enabled', 'whitelist' (#g), 'default' (#s), 'disabled'
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Disabled,
+      },
+      enableKeyboard: {
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Disabled
+      },
+
+      persistOption: {
+        crop: CropModePersistence.Disabled,
+        stretch: CropModePersistence.Disabled,
+        alignment: CropModePersistence.Disabled,
+      },
+
+      defaults: {
+        crop: {type: AspectRatioType.Reset},  // does NOT override Aard
+        stretch: StretchType.NoStretch,
+      }
+
+    },
+    "@empty": {                             // placeholder settings object with fallbacks to @global
+      enable: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
+      },
+      enableAard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
+      },
+      enableKeyboard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
+      },
+      type: 'user-defined',
+      persistOption: {
+        crop: CropModePersistence.Default,
+        stretch: CropModePersistence.Default,
+        alignment: CropModePersistence.Default,
+      },
+      defaults: {
+        crop: null,
+        stretch: StretchType.Default,
+      }
     },
     "www.youtube.com" : {
-      mode: ExtensionMode.Enabled,
-      autoar: ExtensionMode.Enabled,
-      autoarFallback: ExtensionMode.Enabled,
+      enable: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
+      },
+      enableAard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
+      },
+      enableKeyboard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
+      },
       override: false,                  // ignore value localStorage in favour of this
       type: 'official',                 // is officially supported? (Alternatives are 'community' and 'user-defined')
-      actions: null,                    // overrides global keyboard shortcuts and button configs. Is array, is optional.
-      stretch: StretchType.Default,
-      videoAlignment: VideoAlignmentType.Default,
-      keyboardShortcutsEnabled: ExtensionMode.Default,
-      DOM: {
-        player: {
-          manual: true,
-          querySelectors: "#movie_player, #player, #c4-player",
-          additionalCss: "",
-          useRelativeAncestor: false,
-          playerNodeCss: "",
+
+      activeDOMConfig: 'official',
+      DOMConfig: {
+        'official': {
+          type: 'official',
+          elements: {
+            player: {
+              manual: true,
+              querySelectors: "#movie_player, #player, #c4-player",
+            }
+          }
         }
       }
     },
     "www.netflix.com" : {
-      mode: ExtensionMode.Enabled,
-      autoar: ExtensionMode.Enabled,
+      enable: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
+      },
+      enableAard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
+      },
+      enableKeyboard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Disabled
+      },
       override: false,
-      type: 'official',
-      stretch: StretchType.Default,
-      videoAlignment: VideoAlignmentType.Default,
-      keyboardShortcutsEnabled: ExtensionMode.Default,
-      arPersistence: true,              // persist aspect ratio between different videos
-      DOM: {
-        player: {
-          manual: false,                // as of 2021-09, netflix no longer requires manual player class. This may change in the future tho.
-        }
-      }
+      type: 'community',
     },
     "www.disneyplus.com" : {
-      mode: ExtensionMode.Enabled,
-      autoar: ExtensionMode.Enabled,
-      override: false,
-      type: 'community',
-      stretch: StretchType.Default,
-      videoAlignment: VideoAlignmentType.Default,
-      keyboardShortcutsEnabled: ExtensionMode.Default,
-      arPersistence: true,              // persist aspect ratio between different videos
-      DOM: {
-        "player": {
-          "manual": true,
-          "querySelectors": ".btm-media-client-element",
-          "additionalCss": "",
-          "useRelativeAncestor": false,
-          "videoAncestor": 1,
-          "playerNodeCss": ""
-        }
+      enable: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
       },
-      css: ".hudson-container { height: 100%; }",
+      enableAard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
+      },
+      enableKeyboard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
+      },
+      type: 'community',
+      activeDOMConfig: 'community-mstefan99',
+      DOMConfig: {
+        'community-mstefan99': {
+          type: 'official',
+          elements: {
+            player: {
+              manual: true,
+              querySelectors: ".btm-media-player",
+            },
+            video: {
+              manual: true,
+              querySelectors: ".btm-media-client-element"
+            }
+          },
+          customCss: ".hudson-container { height: 100%; }"
+        }
+      }
     },
     "www.twitch.tv": {
-      mode: ExtensionMode.Enabled,
-      autoar: ExtensionMode.Enabled,
-      override: true,
+      enable: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
+      },
+      enableAard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
+      },
+      enableKeyboard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
+      },
       type: 'official',
-      stretch: StretchType.Default,
-      videoAlignment: VideoAlignmentType.Default,
-      keyboardShortcutsEnabled: ExtensionMode.Default,
-      DOM: {
-        player: {
-          manual: false,
-          querySelectors: "",
-          additionalCss: "",
-          useRelativeAncestor: false,
-          playerNodeCss: ""
-        }
-      }
     },
     "streamable.com": {
-      mode: 3,
-      autoar: 3,
-      type: 'official',
-      stretch: -1,
-      videoAlignment: -1,
-      keyboardShortcutsEnabled: 0,
-      css: ".player {text-align: left}"
-    },
-    "vimeo.com": {
-      mode: 3,
-      autoar: 3,
-      type: 'official',
-      stretch: -1,
-      videoAlignment: -1,
-      keyboardShortcutsEnabled: 0,
-      DOM: {
-        player: {
-          manual: true,
-          querySelectors: ".player_outro_area",
-          useRelativeAncestor: false,
-        },
+      enable: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
       },
-      css: ".player_outro_area {\n  width: 100% !important;\n  display: flex !important;\n  justify-content: center !important;\n}\n\n.player_container, .player {\n  width: 100% !important; \n}"
-    },
-    "old.reddit.com" : {
-      mode: ExtensionMode.Enabled,
-      autoar:ExtensionMode.Enabled,
-      override: false,
-      type: 'testing',
-      stretch: StretchType.Default,
-      videoAlignment: VideoAlignmentType.Default,
-      keyboardShortcutsEnabled: ExtensionMode.Default,
-      DOM: {
-        player: {
-          manual: false,
-          useRelativeAncestor: false,
-          querySelectors: '.reddit-video-player-root, .media-preview-content'
-        }
+      enableAard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
       },
-      css: 'video {\n  width: 100% !important;\n  height: 100% !important;\n}',
-    },
-    "www.reddit.com" : {
-      mode: ExtensionMode.Enabled,
-      autoar: ExtensionMode.Enabled,
-      override: false,
-      type: 'testing',
-      stretch: StretchType.Default,
-      videoAlignment: VideoAlignmentType.Default,
-      keyboardShortcutsEnabled: ExtensionMode.Default,
-      DOM: {
-        player: {
-          manual: false,
-          useRelativeAncestor: false,
-          querySelectors: '.reddit-video-player-root, .media-preview-content'
-        }
+      enableKeyboard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
       },
-      css: 'video {\n  width: 100% !important;\n  height: 100% !important;\n}',
-    },
-    "imgur.com": {
-      mode: -1,
-      autoar: -1,
-      autoarFallback: 0,
-      stretch: -1,
-      videoAlignment: 1,
       type: 'official',
-    },
-    "gfycat.com": {
-      mode: -1,
-      autoar: -1,
-      autoarFallback: 0,
-      stretch: -1,
-      videoAlignment: 1,
-      type: 'official,'
-    },
-    "giant.gfycat.com": {
-      mode: -1,
-      autoar: -1,
-      autoarFallback: 0,
-      stretch: -1,
-      videoAlignment: 1,
-      type: 'official',
-    },
-    "www.wakanim.tv": {
-      type: 'community',
-      DOM: {
-        player: {
-          manual: true,
-          querySelectors: "#jwplayer-container",
-          additionalCss: "",
-          useRelativeAncestor: false,
-          playerNodeCss: "",
+      activeDOMConfig: 'official',
+      DOMConfig: {
+        'official': {
+          type: 'official',
+          customCss: ".player {text-align: left}"
         }
       }
     },
-    "app.plex.tv": {
-      mode: 3,
-      autoar: 3,
-      type: "community",
-      stretch: -1,
-      videoAlignment: -1,
-      keyboardShortcutsEnabled: 0,
-      DOM: {
-        player: {
-          manual: false,
-          querySelectors: "",
-          additionalCss: "",
-          useRelativeAncestor: false,
-          playerNodeCss: ""
+    "vimeo.com": {
+      enable: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
+      },
+      enableAard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
+      },
+      enableKeyboard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
+      },
+      type: 'official',
+      activeDOMConfig: 'official',
+      DOMConfig: {
+        'official': {
+          type: 'official',
+          customCss: ".player_outro_area {\n  width: 100% !important;\n  display: flex !important;\n  justify-content: center !important;\n}\n\n.player_container, .player {\n  width: 100% !important; \n}",
+          elements: {
+            player: {
+              manual: true,
+              querySelectors: ".player_outro_area",
+            }
+          }
         }
       },
-      css: "body {\n  background-color: #000;\n}\n\n.application {\n  background-color: #000;\n}"
+    },
+    "old.reddit.com" : {
+      enable: {
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,
+        normal: ExtensionMode.Disabled,
+      },
+      enableAard: {
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,
+        normal: ExtensionMode.Disabled,
+      },
+      enableKeyboard: {
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,
+        normal: ExtensionMode.Disabled,
+      },
+      type: 'officially-disabled',
+      activeDOMConfig: 'official',
+      DOMConfig: {
+        'official': {
+          type: 'official',
+          customCss:  'video {\n  width: 100% !important;\n  height: 100% !important;\n}',
+          elements: {
+            player: {
+              manual: false,
+              querySelectors: '.reddit-video-player-root, .media-preview-content'
+            }
+          }
+        }
+      },
+    },
+    "www.reddit.com" : {
+      enable: {
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,
+        normal: ExtensionMode.Disabled,
+      },
+      enableAard: {
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,
+        normal: ExtensionMode.Disabled,
+      },
+      enableKeyboard: {
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,
+        normal: ExtensionMode.Disabled,
+      },
+      type: 'officially-disabled',
+      activeDOMConfig: 'official',
+      DOMConfig: {
+        'official': {
+          type: 'official',
+          customCss:  'video {\n  width: 100% !important;\n  height: 100% !important;\n}',
+          elements: {
+            player: {
+              manual: false,
+              querySelectors: '.reddit-video-player-root, .media-preview-content'
+            }
+          }
+        }
+      },
+    },
+    "imgur.com": {
+      enable: {
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,
+        normal: ExtensionMode.Disabled,
+      },
+      enableAard: {
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,
+        normal: ExtensionMode.Disabled,
+      },
+      enableKeyboard: {
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,
+        normal: ExtensionMode.Disabled,
+      },
+      type: 'officially-disabled',
+    },
+    "gfycat.com": {
+      enable: {
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,
+        normal: ExtensionMode.Disabled,
+      },
+      enableAard: {
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,
+        normal: ExtensionMode.Disabled,
+      },
+      enableKeyboard: {
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,
+        normal: ExtensionMode.Disabled,
+      },
+      type: 'officially-disabled',
+    },
+    "giant.gfycat.com": {
+      enable: {
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,
+        normal: ExtensionMode.Disabled,
+      },
+      enableAard: {
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,
+        normal: ExtensionMode.Disabled,
+      },
+      enableKeyboard: {
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,
+        normal: ExtensionMode.Disabled,
+      },
+      type: 'officially-disabled',
+    },
+    "www.wakanim.tv": {
+      enable: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
+      },
+      enableAard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
+      },
+      enableKeyboard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
+      },
+      type: 'community',
+      activeDOMConfig: 'community',
+      DOMConfig: {
+        'community': {
+          type: 'community',
+          elements: {
+            player: {
+              manual: true,
+              querySelectors: "#jwplayer-container"
+            }
+          }
+        }
+      },
+    },
+    "app.plex.tv": {
+      enable: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
+      },
+      enableAard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
+      },
+      enableKeyboard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
+      },
+      type: 'community',
+      activeDOMConfig: 'community',
+      DOMConfig: {
+        'community': {
+          type: 'community',
+          customCss: "body {\n  background-color: #000;\n}\n\n.application {\n  background-color: #000;\n}"
+        }
+      }
     },
     "metaivi.com": {
-      mode: 0,
-      autoar: 0,
+      enable: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
+      },
+      enableAard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
+      },
+      enableKeyboard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
+      },
       type: "community",
-      stretch: -1,
-      videoAlignment: -1,
-      DOM: {
-        video: {
-          manual: false,
-          querySelectors: "",
-          additionalCss: "position: absolute !important;"
-        },
-        player: {
-          manual: false,
-          querySelectors: "",
-          additionalCss: "",
-          useRelativeAncestor: false,
-          playerNodeCss: ""
+      activeDOMConfig: 'community',
+      DOMConfig: {
+        'community': {
+          type: 'community',
+          elements: {
+            video: {
+              nodeCss: {'position': 'absolute !important'}
+            }
+          }
         }
       },
-      "css": ""
     },
     "piped.kavin.rocks": {
-      mode: 0,
-      autoar: 0,
-      type: 'community',
-      autoarFallback: 0,
-      stretch: 0,
-      videoAlignment: -1,
-      keyboardShortcutsEnabled: 0,
-      DOM: {
-        player: {
-          manual: false,
-          querySelectors: "",
-          additionalCss: "",
-          useRelativeAncestor: false,
-          playerNodeCss: ""
-        }
+      enable: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
       },
-      css: ".shaka-video-container {\n  flex-direction: column !important;\n}"
+      enableAard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
+      },
+      enableKeyboard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
+      },
+      type: "community",
+      activeDOMConfig: 'community',
+      DOMConfig: {
+        'community': {
+          type: 'community',
+          customCss: ".shaka-video-container {\n  flex-direction: column !important;\n}"
+        }
+      }
     },
   }
 }
