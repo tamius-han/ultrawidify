@@ -6,6 +6,7 @@ import VideoAlignmentType from '../../common/enums/VideoAlignmentType.enum';
 import BrowserDetect from './BrowserDetect';
 import SettingsInterface from '../../common/interfaces/SettingsInterface';
 import { _cp } from '../../common/js/utils';
+import CropModePersistence from '../../common/enums/CropModePersistence.enum';
 
 const ExtensionConfPatch = [
   {
@@ -200,6 +201,15 @@ const ExtensionConfPatch = [
           }
         }
       }
+    }
+  }, {
+    forVersion: '6.0.0-alpha3',
+    updateFn: (userOptions: SettingsInterface, defaultOptions) => {
+      delete (userOptions as any).sites['@global'].persistOption;
+      delete (userOptions as any).sites['@empty'].persistOption;
+
+      userOptions.sites['@global'].persistCSA = CropModePersistence.Disabled;
+      userOptions.sites['@empty'].persistCSA = CropModePersistence.Disabled;
     }
   }
 ];

@@ -147,24 +147,6 @@
         </div>
       </div>
     </div>
-
-    <div class="field">
-      <div class="label">Extension default:</div>
-      <div class="select">
-        <select
-          v-model="extensionDefaultStretchMode"
-          @click="setDefaultStretchingMode($event, 'global')"
-        >
-          <option
-            v-for="(command, index) of settings?.active.commands.stretch"
-            :key="index"
-            :value="JSON.stringify(command.arguments)"
-          >
-            {{command.label}}
-          </option>
-        </select>
-      </div>
-    </div>
   </div>
 </template>
 

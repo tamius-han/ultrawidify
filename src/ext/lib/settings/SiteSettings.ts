@@ -7,19 +7,28 @@ import { browser } from 'webextension-polyfill-ts';
 import StretchType from '../../../common/enums/StretchType.enum';
 import VideoAlignmentType from '../../../common/enums/VideoAlignmentType.enum';
 
+/**
+ * Contains settings that are currently in effect for a given site. If a certain option
+ * doesn't have a value — or if it has 'default' option, SiteSettings.data will contain
+ * the value that "default" should stand for.
+ *
+ * SiteSettings.raw also contains settings object as it actually exist in the config.
+ */
 export class SiteSettings {
   private settings: Settings;
   private site: string;
 
-  data: SiteSettingsInterface;
+  raw: SiteSettingsInterface;       // actual settings
+  data: SiteSettingsInterface;      // effective settings
   temporaryData: SiteSettingsInterface;
   sessionData: SiteSettingsInterface;
-  private defaultSettings: SiteSettingsInterface;
+  readonly defaultSettings: SiteSettingsInterface;
 
   //#region lifecycle
   constructor(settings: Settings, site: string) {
     this.settings = settings;
     this.data = settings.active.sites[site];
+    this.site = site;
     this.defaultSettings = settings.default.sites['@global'];
 
     this.compileSettingsObject();
@@ -42,11 +51,12 @@ export class SiteSettings {
    * Alan pls ensure default settings object follows the correct structure
    */
   private compileSettingsObject() {
+    this.raw = _cp(this.settings.active.sites[this.site] ?? {})
+
     if (!this.data) {
       this.data = _cp(this.defaultSettings);
       return;
     }
-
 
     if (!this.data.defaults) {
       this.data.defaults = _cp(this.defaultSettings.defaults);
@@ -82,16 +92,9 @@ export class SiteSettings {
       }
     }
 
-    // ensure data.persistOption exists:
-    if (!this.data.persistOption) {
-      this.data.persistOption = {} as any;  // this will get populated correctly soon
+    if (!this.data.persistCSA || this.data.persistCSA === CropModePersistence.Default) {
+      this.data.persistCSA = this.defaultSettings.persistCSA ?? CropModePersistence.Disabled;
     }
-    for (const persistOption of ['crop', 'stretch', 'alignment']) {
-      if ( (this.data.persistOption[persistOption] ?? CropModePersistence.Default) === CropModePersistence.Default ) {
-        this.data.persistOption[persistOption] = this.defaultSettings.persistOption[persistOption];
-      }
-    }
-
 
     if (this.data.activeDOMConfig && this.data.DOMConfig) {
       this.data.currentDOMConfig = this.data.DOMConfig[this.data.activeDOMConfig];
@@ -113,7 +116,9 @@ export class SiteSettings {
 
     const parsedSettings = JSON.parse(changes.uwSettings.newValue);
     this.data = parsedSettings.active.sites[this.site];
-    this.defaultSettings = parsedSettings.active.sites['@global'];
+
+    // we ignore 'readonly' property this once
+    (this as any).defaultSettings = parsedSettings.active.sites['@global'];
 
     this.compileSettingsObject();
   }
@@ -142,7 +147,7 @@ export class SiteSettings {
    * Gets default crop mode for extension, while taking persistence settings into account
    */
   getDefaultOption(option: 'crop' | 'stretch' | 'alignment') {
-    const persistenceLevel = this.data.persistOption[option];
+    const persistenceLevel = this.data.persistCSA;
 
     switch (persistenceLevel) {
       case CropModePersistence.UntilPageReload:
@@ -217,15 +222,19 @@ export class SiteSettings {
 
     const pathParts = optionPath.split('.');
 
-    let iterator = this.settings.active.sites[this.site];
-    let i;
-    for (i = 0; i < pathParts.length - 1; i++) {
-      if (!iterator[pathParts[i]]) { // some optional paths may still be undefined, even after cloning empty object
-        iterator[pathParts[i]] = {};
+    if (pathParts.length === 1) {
+      this.settings.active.sites[this.site][optionPath] = optionValue;
+    } else {
+      let iterator = this.settings.active.sites[this.site];
+      let i;
+      for (i = 0; i < pathParts.length - 1; i++) {
+        if (!iterator[pathParts[i]]) { // some optional paths may still be undefined, even after cloning empty object
+          iterator[pathParts[i]] = {};
+        }
+        iterator = iterator[pathParts[i]];
       }
-      iterator = iterator[pathParts[i]];
+      iterator[pathParts[i]] = optionValue;
     }
-    iterator[pathParts[i]] = optionValue;
 
     if (reload) {
       this.settings.save();
@@ -275,7 +284,7 @@ export class SiteSettings {
    * @returns
    */
   async updatePersistentOption(option: 'crop' | 'stretch' | 'alignment', value) {
-    const persistenceLevel = this.data.persistOption[option];
+    const persistenceLevel = this.data.persistCSA;
     switch (persistenceLevel) {
       case CropModePersistence.Disabled:
         return;

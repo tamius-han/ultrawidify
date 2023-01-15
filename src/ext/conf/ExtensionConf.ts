@@ -1410,11 +1410,7 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Disabled
       },
 
-      persistOption: {
-        crop: CropModePersistence.Disabled,
-        stretch: CropModePersistence.Disabled,
-        alignment: CropModePersistence.Disabled,
-      },
+      persistCSA: CropModePersistence.Disabled,
 
       defaults: {
         crop: {type: AspectRatioType.Reset},  // does NOT override Aard
@@ -1439,11 +1435,7 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Default
       },
       type: 'user-defined',
-      persistOption: {
-        crop: CropModePersistence.Default,
-        stretch: CropModePersistence.Default,
-        alignment: CropModePersistence.Default,
-      },
+      persistCSA: CropModePersistence.Default,
       defaults: {
         crop: null,
         stretch: StretchType.Default,

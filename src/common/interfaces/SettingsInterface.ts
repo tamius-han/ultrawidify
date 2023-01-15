@@ -357,11 +357,8 @@ export interface SiteSettingsInterface {
 
   type?: 'official' | 'community' | 'user-defined' | 'testing' | 'officially-disabled';
 
-  persistOption?: {  // must be defined in @global and @empty
-    crop?: CropModePersistence,
-    stretch?: CropModePersistence,
-    alignment?: CropModePersistence
-  },
+  // must be defined in @global and @empty
+  persistCSA?: CropModePersistence,  // CSA - crop, stretch, alignment
 
   defaults?: {       // must be defined in @global and @empty
     crop?: {type: AspectRatioType, [x: string]: any},
