@@ -284,35 +284,10 @@ class Settings {
     }
   }
 
-  fixSitesSettings(sites) {
-    for (const site in sites) {
-      if (site === '@global') {
-        continue;
-      }
-      if (sites[site].mode === undefined) {
-        sites[site].mode = ExtensionMode.Default;
-      }
-      if (sites[site].autoar === undefined) {
-        sites[site].autoar = ExtensionMode.Default;
-      }
-      if (sites[site].stretch === undefined) {
-        sites[site].stretch = StretchType.Default;
-      }
-      if (sites[site].videoAlignment === undefined) {
-        sites[site].videoAlignment = VideoAlignmentType.Default;
-      }
-      if (sites[site].keyboardShortcutsEnabled === undefined) {
-        sites[site].keyboardShortcutsEnabled = ExtensionMode.Default;
-      }
-    }
-  }
-
   async set(extensionConf, options?) {
     if (!options || !options.forcePreserveVersion) {
       extensionConf.version = this.version;
     }
-
-    this.fixSitesSettings(extensionConf.sites);
 
     this.logger?.log('info', 'settings', "[Settings::set] setting new settings:", extensionConf)
 
