@@ -112,7 +112,8 @@ function detectANGLEBackend(): AngleVersion {
   (gl as any).compileShader(shader);
 
   if (!(gl as any).getShaderParameter(shader, (gl as any).COMPILE_STATUS)) {
-    return console.error("invalid shader", (gl as any).getShaderInfoLog(shader));
+    console.error("invalid shader", (gl as any).getShaderInfoLog(shader));
+    return AngleVersion.NotAvailable;
   }
 
   const source = ext.getTranslatedShaderSource(shader);
