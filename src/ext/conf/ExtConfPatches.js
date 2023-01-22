@@ -197,6 +197,24 @@ const ExtensionConfPatch = [
         }
       }
     }
+  }, {
+    forVersion: '5.1.6',
+    updateFn: (userOptions, defaultOptions) => {
+      userOptions.sites['www.disneyplus.com'].DOM = {
+        "player": {
+          "manual": true,
+          "querySelectors": ".btm-media-player",
+          "additionalCss": "",
+          "useRelativeAncestor": false,
+          "playerNodeCss": ""
+        },
+        "video": {
+          "manual": true,
+          "querySelectors": ".btm-media-client-element",
+          "additionalCss": ""
+        }
+      }
+    }
   }
 ];
 
