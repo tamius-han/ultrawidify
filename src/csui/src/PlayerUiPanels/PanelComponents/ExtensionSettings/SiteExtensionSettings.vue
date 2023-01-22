@@ -214,7 +214,7 @@
             v-if="!isDefaultConfiguration"
             :value="CropModePersistence.Default"
           >
-            Use default ({{defaultPersistanceLabel()}})
+            Use default ({{defaultPersistanceLabel}})
           </option>
           <option :value="CropModePersistence.Disabled">Disabled</option>
           <option :value="CropModePersistence.UntilPageReload">Until page reload</option>

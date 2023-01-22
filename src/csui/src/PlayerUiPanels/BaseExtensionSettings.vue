@@ -1,12 +1,43 @@
 <template>
   <div class="flex flex-column w-100">
 
-    <SiteExtensionSettings
-      v-if="settings"
-      :settings="settings"
-      :siteSettings="globalSettings"
-      :isDefaultConfiguration="true"
-    ></SiteExtensionSettings>
+    <!-- TAB ROW -->
+    <div class="flex flex-row">
+      <div
+        class="tab"
+        :class="{'active': tab === 'siteSettings'}"
+        @click="setTab('siteSettings')"
+      >
+        Settings for current site<br/>
+        <small>{{ site }}</small>
+      </div>
+      <div
+        class="tab"
+        :class="{'active': tab === 'extensionSettings'}"
+        @click="setTab(tab = 'extensionSettings')"
+      >
+        Default settings for extension
+      </div>
+    </div>
+
+    <template v-if="tab === 'siteSettings' && siteSettings">
+      <SiteExtensionSettings
+        v-if="settings"
+        :settings="settings"
+        :siteSettings="siteSettings"
+        :isDefaultConfiguration="false"
+      ></SiteExtensionSettings>
+    </template>
+
+    <template v-if="tab === 'extensionSettings' && globalSettings">
+      not site settings
+      <SiteExtensionSettings
+        v-if="settings"
+        :settings="settings"
+        :siteSettings="globalSettings"
+        :isDefaultConfiguration="true"
+      ></SiteExtensionSettings>
+    </template>
 
     <!-- <SiteSettingsBasicTable
       :settings="settings"
@@ -22,6 +53,7 @@ import SiteExtensionSettings from './PanelComponents/ExtensionSettings/SiteExten
 export default {
   data() {
     return {
+      tab: 'siteSettings'
     }
   },
   mixins: [
@@ -38,6 +70,17 @@ export default {
   computed: {
     globalSettings() {
       return this.settings?.getSiteSettings('@global') ?? null;
+    },
+    siteSettings() {
+      if (this.site) {
+        return  this.settings?.getSiteSettings(this.site) ?? null;
+      }
+      return null;
+    }
+  },
+  methods: {
+    setTab(tab) {
+      this.tab = tab;
     }
   }
 
