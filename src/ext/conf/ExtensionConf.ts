@@ -1063,14 +1063,18 @@ const ExtensionConf: SettingsInterface = {
       videoAlignment: VideoAlignmentType.Default,
       keyboardShortcutsEnabled: ExtensionMode.Default,
       arPersistence: true,              // persist aspect ratio between different videos
-      DOM: {
+      "DOM": {
         "player": {
           "manual": true,
-          "querySelectors": ".btm-media-client-element",
+          "querySelectors": ".btm-media-player",
           "additionalCss": "",
           "useRelativeAncestor": false,
-          "videoAncestor": 1,
           "playerNodeCss": ""
+        },
+        "video": {
+          "manual": true,
+          "querySelectors": ".btm-media-client-element",
+          "additionalCss": ""
         }
       },
       css: ".hudson-container { height: 100%; }",
