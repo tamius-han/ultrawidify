@@ -18,6 +18,11 @@
 
 ## v5.x (current major)
 
+### v5.1.6
+
+* Added new config for disney+ (courtesy of @MStefan99)
+* Chrome hardware acceleration is bugged and cannot be worked around in-extension. Only way to fix this is for users to change their Google Chrome settings. Added naggathon with instructions into the extension popup.
+
 ### v5.1.5
 
 * Fixed laginess in Chromium-based browsers on Windows. Details in [#199](https://github.com/tamius-han/ultrawidify/issues/199#issuecomment-1221383134)
