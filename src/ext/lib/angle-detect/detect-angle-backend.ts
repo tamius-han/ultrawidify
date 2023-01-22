@@ -85,7 +85,7 @@ function detectBackend(str) {
  * Known limitations: D11on12 cannot be detected.
  * @returns
  */
-function detectANGLEBackend(): AngleVersion {
+export function detectANGLEBackend(): AngleVersion {
   const canvas = document.createElement("canvas");
   const gl = canvas.getContext("webgl2") ||
     canvas.getContext("webgl") ||
@@ -112,7 +112,8 @@ function detectANGLEBackend(): AngleVersion {
   (gl as any).compileShader(shader);
 
   if (!(gl as any).getShaderParameter(shader, (gl as any).COMPILE_STATUS)) {
-    return console.error("invalid shader", (gl as any).getShaderInfoLog(shader));
+    console.error("invalid shader", (gl as any).getShaderInfoLog(shader));
+    return AngleVersion.NotAvailable;
   }
 
   const source = ext.getTranslatedShaderSource(shader);

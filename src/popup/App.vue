@@ -20,6 +20,16 @@
         Build channel: {{BrowserDetect.processEnvChannel}}
       </div>
     </div>
+    <!-- ANGLE warning for chrome/edge -->
+    <div v-if="warnings.angleBackend" class="flex flex-column">
+      <div class="warning-lite">
+        <b style="padding-left: 0.5rem">Hardware acceleration in <template v-if="BrowserDetect.edge">Edge</template><template v-else>Chrome</template> is broken</b><br/>
+      <small> This causes videos to be stretched incorrectly.
+        This is a bug with <template v-if="BrowserDetect.edge">Edge</template><template v-else>Chrome</template>, not with this addon.</small><br/>
+        To fix the problem, visit <code style="background-color: rgba(255,128,64, 0.2)"><template v-if="BrowserDetect.edge">edge</template><template v-else>chrome</template>://flags#use-angle</code> and choose <b>D3D9</b> or <b>OpenGL</b> from available options.
+      </div>
+    </div>
+
     <div
       v-if="narrowPopup"
       class="w100 show-more flex flex-row flex-center flex-cross-center menu-button"
@@ -212,9 +222,13 @@ import ExtensionMode from '../common/enums/ExtensionMode.enum';
 import Logger from '../ext/lib/Logger';
 import {ChromeShittinessMitigations as CSM} from '../common/js/ChromeShittinessMitigations';
 import { browser } from 'webextension-polyfill-ts';
+import { detectANGLEBackend, AngleVersion } from '../ext/lib/angle-detect/detect-angle-backend';
 
 export default {
   data () {
+    const angleBackend = detectANGLEBackend();
+    const gibAngleWarning = BrowserDetect.anyChromium && angleBackend !== AngleVersion.OpenGL && angleBackend !== AngleVersion.D3D9;
+
     return {
       selectedTab: 'video',
       selectedFrame: '__all',
@@ -238,6 +252,9 @@ export default {
       BrowserDetect: BrowserDetect,
       narrowPopup: null,
       sideMenuVisible: null,
+      warnings: {
+        angleBackend: gibAngleWarning
+      }
     }
   },
   async created() {
