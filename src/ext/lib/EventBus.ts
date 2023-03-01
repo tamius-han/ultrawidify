@@ -15,7 +15,7 @@ export interface EventBusContext {
     sender?: any,
     port?: any,
     frame?: any,
-    forwardTo?: 'all' | 'active' | 'contentScript' | 'server' | 'sameOrigin' | 'popup',
+    forwardTo?: 'all' | 'active' | 'contentScript' | 'server' | 'sameOrigin' | 'popup' | 'all-frames',
   }
 }
 
@@ -28,6 +28,11 @@ export default class EventBus {
 
   private disableTunnel: boolean = false;
   private popupContext: any = {};
+  // private uiUri = window.location.href;
+
+  constructor() {
+    this.setupIframeTunnelling();
+  }
 
   setupPopupTunnelWorkaround(context: EventBusContext): void {
     this.disableTunnel = true;
@@ -40,6 +45,7 @@ export default class EventBus {
     for (const bus of this.downstreamBuses) {
       bus.destroy();
     }
+    this.destroyIframeTunnelling();
   }
   //#endregion
 
@@ -47,6 +53,7 @@ export default class EventBus {
     this.comms = comms;
   }
 
+  //#region bus hierarchy management (single page)
   setUpstreamBus(eventBus: EventBus, stopRecursing: boolean = false) {
     this.upstreamBus = eventBus;
     if (!stopRecursing) {
@@ -86,18 +93,18 @@ export default class EventBus {
     }
   }
 
-  send(command: string, config: any, context?: EventBusContext) {
+  send(command: string, commandData: any, context?: EventBusContext) {
     // execute commands we have subscriptions for
     if (this.commands?.[command]) {
       for (const eventBusCommand of this.commands[command]) {
-        eventBusCommand.function(config, context);
+        eventBusCommand.function(commandData, context);
       }
     }
 
     // preventing messages from flowing back to their original senders is
     // CommsServer's job. EventBus does not have enough data for this decision.
     if (this.comms) {
-      this.comms.sendMessage({command, config, context}, context);
+      this.comms.sendMessage({command, config: commandData, context}, context);
     }
 
     if (context?.stopPropagation) {
@@ -105,9 +112,10 @@ export default class EventBus {
     }
 
     // propagate commands across the bus
-    this.sendUpstream(command, config, context);
-    this.sendDownstream(command, config, context);
+    this.sendUpstream(command, commandData, context);
+    this.sendDownstream(command, commandData, context);
   }
+  //#endregion
 
   /**
    * Send, but intended for sending commands from iframe to content scripts
@@ -133,7 +141,6 @@ export default class EventBus {
     }
   }
 
-
   private sendDownstream(command: string, config: any, context?: EventBusContext, sourceEventBus?: EventBus) {
     for (const eventBus of this.downstreamBuses) {
       if (eventBus !== sourceEventBus) {
@@ -152,4 +159,18 @@ export default class EventBus {
       this.upstreamBus.sendDownstream(command, config, context, this);
     }
   }
+
+  //#region iframe tunnelling
+  private setupIframeTunnelling() {
+    window.addEventListener('message', this.handleIframeMessage);
+  }
+  private destroyIframeTunnelling() {
+    window.removeEventListener('message', this.handleIframeMessage);
+  }
+  private handleIframeMessage(event: any) {
+    console.log('GOT IFRAME MESSAGE!', event)
+  }
+
+  //#endregion
+
 }

@@ -1,3 +1,4 @@
+import { EventBusContext } from './../EventBus';
 import Debug from '../../conf/Debug';
 import BrowserDetect from '../../conf/BrowserDetect';
 import Logger from '../Logger';
@@ -14,10 +15,39 @@ class CommsServer {
   settings: Settings;
   eventBus: EventBus;
 
+  /**
+   * We can send messages to various ports.
+   *
+   * Ports start with a list of browser tabs (one for every tab of the browser), and each contain
+   * a list of frames. Content of the tab is a frame, and so are any iframes inside the tab. Each
+   * frame has at least one script (that's us 👋👋👋).
+   *
+   * For a page with no iframes, the ports object should look like this:
+   *
+   * ports
+   *  :
+   *  +-+ [our tab]
+   *  | +-+ [the only frame]
+   *  :   +-- [the only port]
+   *
+   * For a page with iframes, the ports object should look like this:
+   *
+   * ports
+   *  :
+   *  +-+ [our tab]
+   *  | +-+ [main frame]
+   *  | | +-- [content script]
+   *  | |
+   *  | +-+ [iframe]
+   *  | | +-- [content script]
+   *  : :
+   *
+   * And, again, we always need to call the content script.
+   */
   ports: {
-    [tab: string] : {
-      [frame: string] : {
-        [port: string]: any
+    [tab: string] : {           // tab of a browser
+      [frame: string] : {       // iframe inside of the tab
+        [port: string]: any     // script inside the iframe.
       }
     }
   } = {};
@@ -57,7 +87,7 @@ class CommsServer {
       this.ports[tabId][frameId] = {};
     }
     this.ports[tabId][frameId][port.name] = port;
-    this.ports[tabId][frameId][port.name].onMessage.addListener( (m,p) => this.processReceivedMessage(m, p));
+    this.ports[tabId][frameId][port.name].onMessage.addListener( (m,p) => this.processReceivedMessage(m, p, {tabId, frameId}));
 
     this.ports[tabId][frameId][port.name].onDisconnect.addListener( (p) => {
       try {
@@ -95,6 +125,14 @@ class CommsServer {
     if (context?.origin !== CommsOrigin.Popup) {
       if (context?.comms.forwardTo === 'popup') {
         return this.sendToPopup(message);
+      }
+    }
+
+    // okay I lied! Messages originating from content script can be forwarded to
+    // content scripts running in _other_ frames of the tab
+    if (context?.origin === CommsOrigin.ContentScript) {
+      if (context?.comms.forwardTo === 'all-frames') {
+        this.sendToOtherFrames(message, context);
       }
     }
   }
@@ -138,6 +176,22 @@ class CommsServer {
     }
   }
 
+  /**
+   * Forwards messages to other content scripts within the same tab
+   * @param message
+   * @param tab
+   * @param frame
+   */
+  private async sendToOtherFrames(message, context) {
+    const sender = context.comms.sourceFrame;
+
+    for (const frame in this.ports[sender.tabId]) {
+      if (frame !== sender.frameId) {
+        this.sendToFrameContentScripts(message, sender.tabId, sender.frameId);
+      }
+    }
+  }
+
   private async sendToFrame(message, tab, frame, port?) {
     this.logger.log('info', 'comms', `%c[CommsServer::sendToFrame] attempting to send message to tab ${tab}, frame ${frame}`, "background: #dda; color: #11D", message);
 
@@ -178,7 +232,8 @@ class CommsServer {
     }
   }
 
-  private async processReceivedMessage(message, port){
+
+  private async processReceivedMessage(message, port, sender?: {frameId: string, tabId: string}){
     // this triggers events
     this.eventBus.send(
       message.command,
@@ -187,7 +242,8 @@ class CommsServer {
         ...message.context,
         comms: {
           ...message.context?.comms,
-          port
+          port,
+          sourceFrame: sender,
         },
 
         // origin is required to stop cross-pollination between content scripts, while still
@@ -202,7 +258,8 @@ class CommsServer {
 
     this.eventBus.send(
       message.command,
-      message.config, {
+      message.config,
+      {
         ...message.context,
         comms: {
           ...message.context?.comms,
