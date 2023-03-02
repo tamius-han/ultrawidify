@@ -133,8 +133,26 @@ class CommsClient {
     return browser.runtime.sendMessage(null, message, null);
   }
 
-  processReceivedMessage(message){
-    this.eventBus.send(message.command, message.config, {origin: CommsOrigin.Server});
+  processReceivedMessage(receivedMessage){
+    // when sending between frames, message will be enriched with two new properties
+    const {_sourceFrame, _sourcePort, ...message} = receivedMessage;
+
+    let comms;
+    if (_sourceFrame || _sourcePort) {
+      comms = {
+        port: _sourcePort,
+        sourceFrame: _sourceFrame
+      }
+    }
+
+    this.eventBus.send(
+      message.command,
+      message.config,
+      {
+        comms,
+        origin: CommsOrigin.Server
+      }
+    );
   }
 }
 

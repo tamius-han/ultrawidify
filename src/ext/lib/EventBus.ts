@@ -15,6 +15,7 @@ export interface EventBusContext {
     sender?: any,
     port?: any,
     frame?: any,
+    sourceFrame?: IframeData
     forwardTo?: 'all' | 'active' | 'contentScript' | 'server' | 'sameOrigin' | 'popup' | 'all-frames',
   }
 }

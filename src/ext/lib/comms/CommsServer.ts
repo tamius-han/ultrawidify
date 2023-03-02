@@ -185,9 +185,15 @@ class CommsServer {
   private async sendToOtherFrames(message, context) {
     const sender = context.comms.sourceFrame;
 
+    const enrichedMessage = {
+      message,
+      _sourceFrame: context.comms.sourceFrame,
+      _sourcePort: context.comms.port
+    }
+
     for (const frame in this.ports[sender.tabId]) {
       if (frame !== sender.frameId) {
-        this.sendToFrameContentScripts(message, sender.tabId, sender.frameId);
+        this.sendToFrameContentScripts(enrichedMessage, sender.tabId, sender.frameId);
       }
     }
   }
