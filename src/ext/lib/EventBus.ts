@@ -3,7 +3,7 @@ import CommsServer from './comms/CommsServer';
 
 export interface EventBusCommand {
   isGlobal?: boolean,
-  function: (commandConfig: any, context?: any) => void | Promise<void>
+  function: (commandData: any, context?: any) => void | Promise<void>
 }
 
 export interface EventBusContext {
