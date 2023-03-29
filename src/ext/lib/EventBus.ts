@@ -1,3 +1,4 @@
+import { IframeData } from './video-data/IframeManager';
 import CommsClient, { CommsOrigin } from './comms/CommsClient';
 import CommsServer from './comms/CommsServer';
 
@@ -169,7 +170,7 @@ export default class EventBus {
     window.removeEventListener('message', this.handleIframeMessage);
   }
   private handleIframeMessage(event: any) {
-    console.log('GOT IFRAME MESSAGE!', event)
+    // console.log('GOT IFRAME MESSAGE!', event)
   }
 
   //#endregion

@@ -69,12 +69,28 @@ class Resizer {
   pan: any = null;
   //#endregion
 
+  cycleableAspectRatios: Ar[];
+  nextCycleOptionIndex = 0;
+
+
   //#region event bus configuration
   private eventBusCommands = {
     'set-ar': [{
       function: (config: any) => {
         this.manualZoom = false; // this only gets called from UI or keyboard shortcuts, making this action safe.
-        this.setAr(config);
+
+        if (config.type !== AspectRatioType.Cycle) {
+          this.setAr(config);
+        } else {
+          // if we manually switched to a different aspect ratio, cycle from that ratio forward
+          const lastArIndex = this.cycleableAspectRatios.findIndex(x => x.type === this.lastAr.type && x.ratio === this.lastAr.ratio);
+          if (lastArIndex !== -1) {
+            this.nextCycleOptionIndex = (lastArIndex + 1) % this.cycleableAspectRatios.length;
+          }
+
+          this.setAr(this.cycleableAspectRatios[this.nextCycleOptionIndex]);
+          this.nextCycleOptionIndex = (this.nextCycleOptionIndex + 1) % this.cycleableAspectRatios.length;
+        }
       }
     }],
     'set-alignment': [{
@@ -124,6 +140,12 @@ class Resizer {
     //   this.canPan = false;
     // }
 
+    this.cycleableAspectRatios =
+      (this.settings?.active?.commands?.crop ?? [])
+        .filter(x => [AspectRatioType.FitHeight, AspectRatioType.FitWidth, AspectRatioType.Fixed, AspectRatioType.Reset].includes(x?.arguments?.type))
+        .map(x => x.arguments) as Ar[];
+
+    this.nextCycleOptionIndex = 0;
     this.userCssClassName = videoData.userCssClassName;
   }
 

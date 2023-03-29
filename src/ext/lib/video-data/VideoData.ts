@@ -227,7 +227,7 @@ class VideoData {
     this.resizer = new Resizer(this);
     this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevents ArDetector from starting
 
-    this.logger.log('info', ['debug', 'init'], '[VideoData::ctor] Created videoData with vdid', this.vdid, '\nextension mode:', this.extensionMode)
+    this.logger.log('info', ['debug', 'init'], '[VideoData::ctor] Created videoData with vdid', this.vdid);
 
 
     // Everything is set up at this point. However, we are still purely "read-only" at this point. Player CSS should not be changed until

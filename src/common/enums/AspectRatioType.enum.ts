@@ -1,4 +1,5 @@
 enum AspectRatioType {
+  Cycle = -2,
   Initial = -1,        // page default
   Reset = 0,           // reset to initial
   Automatic = 1,       // we want to request automatic aspect ratio detection

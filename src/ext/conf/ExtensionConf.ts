@@ -249,6 +249,23 @@ const ExtensionConf: SettingsInterface = {
         onKeyUp: true,
         onKeyDown: false,
       }
+    },{
+      action: 'set-ar',
+      label: 'Cycle',
+      comment: 'Cycle through crop options',
+      arguments: {
+        type: AspectRatioType.Cycle
+      },
+      shortcut: {
+        key: 'c',
+        code: 'KeyC',
+        ctrlKey: false,
+        metaKey: false,
+        altKey: false,
+        shiftKey: false,
+        onKeyUp: true,
+        onKeyDown: false,
+      }
     }, {
       action: 'set-ar',
       label: '21:9',
@@ -680,6 +697,13 @@ const ExtensionConf: SettingsInterface = {
       path: 'crop'
     }
   }, {
+    name: 'Cycle aspect ratio',
+    label: 'Cycle',
+    cmd: [{
+      action: 'set-ar',
+      arg: AspectRatioType.Cycle
+    }]
+  },{
     userAdded: true,
     name: 'Set aspect ratio to 16:9',
     label: '16:9',
