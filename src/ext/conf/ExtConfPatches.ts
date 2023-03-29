@@ -243,6 +243,15 @@ const ExtensionConfPatch = [
           onKeyDown: false,
         }
       });
+      userOptions.commands.crop.push({
+        action: 'set-ar',
+        label: '32:9',
+        comment: 'Crop for 32:9 aspect ratio',
+        arguments: {
+          type: AspectRatioType.Fixed,
+          ratio: 3.56
+        },
+      })
     }
   }
 ];

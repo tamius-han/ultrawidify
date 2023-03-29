@@ -302,6 +302,14 @@ const ExtensionConf: SettingsInterface = {
         onKeyUp: false,
         onKeyDown: true,
       }
+    }, {
+      action: 'set-ar',
+      label: '32:9',
+      comment: 'Crop for 32:9 aspect ratio',
+      arguments: {
+        type: AspectRatioType.Fixed,
+        ratio: 3.56
+      },
     }],
     stretch: [{
       action: 'set-stretch',
