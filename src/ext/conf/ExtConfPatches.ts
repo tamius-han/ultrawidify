@@ -7,6 +7,7 @@ import BrowserDetect from './BrowserDetect';
 import SettingsInterface from '../../common/interfaces/SettingsInterface';
 import { _cp } from '../../common/js/utils';
 import CropModePersistence from '../../common/enums/CropModePersistence.enum';
+import AspectRatioType from '../../common/enums/AspectRatioType.enum';
 
 const ExtensionConfPatch = [
   {
@@ -125,14 +126,14 @@ const ExtensionConfPatch = [
       }
     }
   }, {
-    forVersion: '6.0.0-alpha1',
+    forVersion: '5.99.0-1',
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
       // add new commands
       userOptions.commands = defaultOptions.commands;
     }
   }, {
     // NOTE - when releasing shit, ensure ALL alpha migrations are combined together in one function
-    forVersion: '6.0.0-alpha2',
+    forVersion: '5.99.0-2',
     updateFn: (userOptions, defaultOptions) => {
       userOptions.commands = defaultOptions.commands;
 
@@ -203,13 +204,45 @@ const ExtensionConfPatch = [
       }
     }
   }, {
-    forVersion: '6.0.0-alpha3',
+    forVersion: '5.99.0-3',
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
       delete (userOptions as any).sites['@global'].persistOption;
       delete (userOptions as any).sites['@empty'].persistOption;
 
       userOptions.sites['@global'].persistCSA = CropModePersistence.Disabled;
       userOptions.sites['@empty'].persistCSA = CropModePersistence.Disabled;
+    }
+  },  {
+    forVersion: '5.99.0-4',
+    updateFn: (userOptions: SettingsInterface, defaultOptions) => {
+
+      // deprecated much?
+      userOptions.actions.push({
+        name: 'Cycle aspect ratio',
+        label: 'Cycle',
+        cmd: [{
+          action: 'set-ar',
+          arg: AspectRatioType.Cycle
+        }]
+      });
+      userOptions.commands.crop.push({
+        action: 'set-ar',
+        label: 'Cycle',
+        comment: 'Cycle through crop options',
+        arguments: {
+          type: AspectRatioType.Cycle
+        },
+        shortcut: {
+          key: 'c',
+          code: 'KeyC',
+          ctrlKey: false,
+          metaKey: false,
+          altKey: false,
+          shiftKey: false,
+          onKeyUp: true,
+          onKeyDown: false,
+        }
+      });
     }
   }
 ];
