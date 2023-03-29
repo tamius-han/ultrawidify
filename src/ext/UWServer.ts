@@ -187,7 +187,6 @@ export default class UWServer {
     const tabHostname = this.extractHostname(sender.tab.url);
     const frameHostname = this.extractHostname(sender.url);
 
-    // preveri za osirotele/zastarele vrednosti ter jih po potrebi izbriši
     // check for orphaned/outdated values and remove them if neccessary
     if (this.videoTabs[sender.tab.id]?.host != tabHostname) {
       delete this.videoTabs[sender.tab.id]
