@@ -9,6 +9,7 @@ import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
 import CommsClient from '../comms/CommsClient';
 import EventBus from '../EventBus';
 import { SiteSettings } from '../settings/SiteSettings';
+import IframeManager from './IframeManager';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading PageInfo");
@@ -57,6 +58,7 @@ class PageInfo {
   comms: CommsClient;
   eventBus: EventBus;
   videos: {videoData: VideoData, element: HTMLVideoElement}[] = [];
+  iframeManager: IframeManager;
   //#endregion
 
   //#region misc stuff
@@ -78,6 +80,7 @@ class PageInfo {
     this.readOnly = readOnly;
 
     this.isFullscreen = !!document.fullscreenElement;
+    this.iframeManager = new IframeManager({eventBus});
 
     if (eventBus){
       this.eventBus = eventBus;
@@ -122,19 +125,6 @@ class PageInfo {
   }
 
   /**
-   * Handler for fullscreenchanged event.
-   */
-  fullscreenHandler() {
-    this.isFullscreen = !!document.fullscreenElement;
-
-    if (this.isFullscreen) {
-      this.enterFullscreen();
-    } else {
-      this.exitFullscreen();
-    }
-  }
-
-  /**
    * Runs when browser enters full screen.
    */
   enterFullscreen() {
@@ -147,6 +137,19 @@ class PageInfo {
   exitFullscreen() {
     this.eventBus.send('page-fs-exit', {});
   }
+
+  /**
+   * Handler for fullscreenchanged event.
+   */
+    fullscreenHandler() {
+      this.isFullscreen = !!document.fullscreenElement;
+
+      if (this.isFullscreen) {
+        this.enterFullscreen();
+      } else {
+        this.exitFullscreen();
+      }
+    }
 
   reset() {
     for(let video of this.videos) {
@@ -247,7 +250,7 @@ class PageInfo {
         this.logger.log('info', 'videoRescan', "[PageInfo::rescan] found new video candidate:", videoElement, "NOTE:: Video initialization starts here:\n--------------------------------\n")
 
         try {
-          const newVideo = new VideoData(videoElement, this.siteSettings, this);
+          const newVideo = new VideoData(videoElement, this.settings, this.siteSettings, this);
           this.videos.push({videoData: newVideo, element: videoElement});
         } catch (e) {
           this.logger.log('error', 'debug', "rescan error: failed to initialize videoData. Skipping this video.",e);
@@ -376,6 +379,8 @@ class PageInfo {
 
     this.siteSettings.updatePersistentOption('crop', ar);
   }
+
+
 }
 
 if (process.env.CHANNEL !== 'stable'){

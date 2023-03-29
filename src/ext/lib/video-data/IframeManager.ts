@@ -18,7 +18,6 @@ export type IframeData = {
 }
 
 export type IframeManagerConfiguration = {
-  isIframe: boolean
   eventBus: EventBus,
 }
 
@@ -33,7 +32,7 @@ export default class IframeManager {
 
   constructor(config: IframeManagerConfiguration) {
     this.eventBus = config.eventBus;
-    this.isIframe = config.isIframe;
+    this.isIframe = window.self !== window.top;
 
     if (this.isIframe) {
       window.addEventListener('beforeunload', this.destroy);

@@ -46,7 +46,6 @@ class VideoData {
     attributeFilter: ['class', 'style'],
     attributeOldValue: true,
   };
-  extensionMode: any;
   userCssClassName: string;
   validationId: number;
   dimensions: any;
@@ -55,6 +54,7 @@ class VideoData {
 
   //#region helper objects
   logger: Logger;
+  settings: Settings; // AARD needs it
   siteSettings: SiteSettings;
   pageInfo: PageInfo;
   player: PlayerData;
@@ -73,14 +73,21 @@ class VideoData {
     }
   }
 
-  constructor(video, siteSettings: SiteSettings, pageInfo){
+  /**
+   * Creates new VideoData object
+   * @param video
+   * @param settings NEEDED FOR AARD
+   * @param siteSettings
+   * @param pageInfo
+   */
+  constructor(video, settings: Settings, siteSettings: SiteSettings, pageInfo: PageInfo){
     this.logger = pageInfo.logger;
     this.arSetupComplete = false;
     this.video = video;
     this.destroyed = false;
+    this.settings = settings;
     this.siteSettings = siteSettings;
     this.pageInfo = pageInfo;
-    this.extensionMode = pageInfo.extensionMode;
     this.videoStatusOk = false;
 
     this.userCssClassName = `uw-fuck-you-and-do-what-i-tell-you_${this.vdid}`;

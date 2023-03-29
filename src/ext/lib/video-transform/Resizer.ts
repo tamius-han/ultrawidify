@@ -225,10 +225,10 @@ class Resizer {
 
     // handle autodetection stuff
     if (ar.type === AspectRatioType.Automatic) {
-      this.conf.arDetector.start();
+      this.conf.arDetector?.start();
       return;
     } else if (ar.type !== AspectRatioType.AutomaticUpdate) {
-      this.conf.arDetector.stop();
+      this.conf.arDetector?.stop();
     }
 
     // unless we're trying to reset aspect ratio, we need to tell VideoData that this would

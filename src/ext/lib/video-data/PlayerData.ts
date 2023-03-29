@@ -109,7 +109,6 @@ class PlayerData {
       this.video = videoData.video;
       this.siteSettings = videoData.siteSettings;
       this.eventBus = videoData.eventBus;
-      this.extensionMode = videoData.extensionMode;
       this.invalid = false;
       this.element = this.getPlayer();
       this.initEventBus();
@@ -134,9 +133,8 @@ class PlayerData {
         return;
       }
 
-      if (this.extensionMode === ExtensionMode.Enabled) {
-        this.trackDimensionChanges();
-      }
+
+      this.trackDimensionChanges();
       this.startChangeDetection();
 
     } catch (e) {
@@ -200,9 +198,8 @@ class PlayerData {
     // if dimensions of the player box are the same as the last known
     // dimensions, we don't have to do anything
     if (
-      this.dimensions
-      && this.dimensions.width == currentPlayerDimensions.width
-      && this.dimensions.height == currentPlayerDimensions.height
+      this.dimensions?.width == currentPlayerDimensions.width
+      && this.dimensions?.height == currentPlayerDimensions.height
     ) {
       this.dimensions = currentPlayerDimensions;
       return;
@@ -321,7 +318,7 @@ class PlayerData {
       if (BrowserDetect.firefox) {
         this.observer = new ResizeObserver(
           _.debounce(           // don't do this too much:
-            this.onPlayerDimensionsChanged,
+            () => this.onPlayerDimensionsChanged,
             250,                // do it once per this many ms
             {
               leading: true,    // do it when we call this fallback first
