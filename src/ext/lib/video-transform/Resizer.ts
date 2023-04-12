@@ -36,7 +36,7 @@ class Resizer {
   scaler: Scaler;
   stretcher: Stretcher;
   zoom: Zoom;
-  conf: VideoData;
+  videoData: VideoData;
   eventBus: EventBus;
   //#endregion
 
@@ -118,7 +118,7 @@ class Resizer {
 
   constructor(videoData) {
     this.resizerId = (Math.random()*100).toFixed(0);
-    this.conf = videoData;
+    this.videoData = videoData;
     this.logger = videoData.logger;
     this.video = videoData.video;
     this.settings = videoData.settings;
@@ -126,9 +126,9 @@ class Resizer {
     this.eventBus = videoData.eventBus;
     this.initEventBus();
 
-    this.scaler = new Scaler(this.conf);
-    this.stretcher = new Stretcher(this.conf);
-    this.zoom = new Zoom(this.conf);
+    this.scaler = new Scaler(this.videoData);
+    this.stretcher = new Stretcher(this.videoData);
+    this.zoom = new Zoom(this.videoData);
 
     this.videoAlignment = this.siteSettings.getDefaultOption('alignment') as {x: VideoAlignmentType, y: VideoAlignmentType} // this is initial video alignment
 
@@ -186,24 +186,24 @@ class Resizer {
     // handles "legacy" options, such as 'fit to widht', 'fit to height' and AspectRatioType.Reset. No zoom tho
     let ratioOut;
 
-    if (!this.conf.video) {
-      this.logger.log('info', 'debug', "[Scaler.js::modeToAr] No video??",this.conf.video, "killing videoData");
-      this.conf.destroy();
+    if (!this.videoData.video) {
+      this.logger.log('info', 'debug', "[Scaler.js::modeToAr] No video??",this.videoData.video, "killing videoData");
+      this.videoData.destroy();
       return null;
     }
 
 
-    if (! this.conf.player.dimensions) {
+    if (! this.videoData.player.dimensions) {
       ratioOut = screen.width / screen.height;
     } else {
-      this.logger.log('info', 'debug', `[Resizer::calculateRatioForLegacyOptions] <rid:${this.resizerId}> Player dimensions:`, this.conf.player.dimensions.width ,'x', this.conf.player.dimensions.height,'aspect ratio:', this.conf.player.dimensions.width / this.conf.player.dimensions.height)
-      ratioOut = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
+      this.logger.log('info', 'debug', `[Resizer::calculateRatioForLegacyOptions] <rid:${this.resizerId}> Player dimensions:`, this.videoData.player.dimensions.width ,'x', this.videoData.player.dimensions.height,'aspect ratio:', this.videoData.player.dimensions.width / this.videoData.player.dimensions.height)
+      ratioOut = this.videoData.player.dimensions.width / this.videoData.player.dimensions.height;
     }
 
     // IMPORTANT NOTE: lastAr needs to be set after _res_setAr() is called, as _res_setAr() assumes we're
     // setting a static aspect ratio (even if the function is called from here or ArDetect).
 
-    let fileAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
+    let fileAr = this.videoData.video.videoWidth / this.videoData.video.videoHeight;
 
     if (ar.type === AspectRatioType.FitWidth){
       ar.ratio = ratioOut > fileAr ? ratioOut : fileAr;
@@ -247,10 +247,10 @@ class Resizer {
 
     // handle autodetection stuff
     if (ar.type === AspectRatioType.Automatic) {
-      this.conf.arDetector?.start();
+      this.videoData.arDetector?.start();
       return;
     } else if (ar.type !== AspectRatioType.AutomaticUpdate) {
-      this.conf.arDetector?.stop();
+      this.videoData.arDetector?.stop();
     }
 
     // unless we're trying to reset aspect ratio, we need to tell VideoData that this would
@@ -258,7 +258,7 @@ class Resizer {
     //
     // CSS, et. al. initialization is deferred in order to avoid breaking wonky sites by default.
     if (ar.type !== AspectRatioType.Reset && ar.type !== AspectRatioType.Initial) {
-      await this.conf.preparePage();
+      await this.videoData.preparePage();
     }
 
     if (ar.type !== AspectRatioType.AutomaticUpdate) {
@@ -267,7 +267,7 @@ class Resizer {
 
     if (!this.video.videoWidth || !this.video.videoHeight) {
       this.logger.log('warning', 'debug', '[Resizer::setAr] <rid:'+this.resizerId+'> Video has no width or no height. This is not allowed. Aspect ratio will not be set, and videoData will be uninitialized.');
-      this.conf.videoUnloaded();
+      this.videoData.videoUnloaded();
     }
 
     this.logger.log('info', 'debug', '[Resizer::setAr] <rid:'+this.resizerId+'> trying to set ar. New ar:', ar);
@@ -286,7 +286,7 @@ class Resizer {
       (ar.type !== AspectRatioType.Fixed && ar.type !== AspectRatioType.Manual) // anything not these two _always_ changes AR
       || ar.type !== this.lastAr.type                                   // this also means aspect ratio has changed
       || ar.ratio !== this.lastAr.ratio                                 // this also means aspect ratio has changed
-      ) {
+    ) {
       this.zoom.reset();
       this.resetPan();
     }
@@ -296,11 +296,12 @@ class Resizer {
     // is handled in pageInfo.updateCurrentCrop(), which also makes sure to persist aspect ratio if ar
     // is set to persist between videos / through current session / until manual reset.
     if (ar.type === AspectRatioType.Reset ||
-        ar.type === AspectRatioType.Initial ) {
+        ar.type === AspectRatioType.Initial
+    ) {
       // reset/undo default
-      this.conf.pageInfo.updateCurrentCrop(undefined);
+      this.videoData.pageInfo.updateCurrentCrop(undefined);
     } else {
-      this.conf.pageInfo.updateCurrentCrop(ar);
+      this.videoData.pageInfo.updateCurrentCrop(ar);
     }
 
     if (lastAr) {
@@ -318,7 +319,7 @@ class Resizer {
     }
 
     if (! this.video) {
-      this.conf.destroy();
+      this.videoData.destroy();
     }
 
     // pause AR on:
@@ -327,24 +328,25 @@ class Resizer {
     //
     // unpause when using other modes
     if (ar.type !== AspectRatioType.Automatic || this.stretcher.mode === StretchType.Basic) {
-      this.conf?.arDetector?.pause();
+      this.videoData?.arDetector?.pause();
     } else {
       if (this.lastAr.type === AspectRatioType.Automatic) {
-        this.conf?.arDetector?.unpause();
+        this.videoData?.arDetector?.unpause();
       }
     }
 
     // do stretch thingy
     if (this.stretcher.mode === StretchType.NoStretch
         || this.stretcher.mode === StretchType.Conditional
-        || this.stretcher.mode === StretchType.FixedSource){
+        || this.stretcher.mode === StretchType.FixedSource
+    ){
 
       stretchFactors = this.scaler.calculateCrop(ar);
 
       if(! stretchFactors || stretchFactors.error){
         this.logger.log('error', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> failed to set AR due to problem with calculating crop. Error:`, stretchFactors?.error);
         if (stretchFactors?.error === 'no_video'){
-          this.conf.destroy();
+          this.videoData.destroy();
           return;
         }
 
@@ -353,7 +355,7 @@ class Resizer {
         // of the two means video is loaded or playing, and that means video has proper dimensions), it will
         // try to reset or re-apply aspect ratio when the video is finally ready.
         if (stretchFactors?.error === 'illegal_video_dimensions') {
-          this.conf.videoDimensionsLoaded = false;
+          this.videoData.videoDimensionsLoaded = false;
           return;
         }
       }
@@ -395,7 +397,7 @@ class Resizer {
 
     // let the UI know
     if(!options?.noAnnounce) {
-      this.conf.eventBus.send('announce-zoom', {x: stretchFactors.xFactor, y: stretchFactors.yFactor});
+      this.videoData.eventBus.send('announce-zoom', {x: stretchFactors.xFactor, y: stretchFactors.yFactor});
     }
 
     let translate = this.computeOffsets(stretchFactors);
@@ -422,7 +424,7 @@ class Resizer {
 
   panHandler(event, forcePan) {
     if (this.canPan || forcePan) {
-      if(!this.conf.player || !this.conf.player.element) {
+      if(!this.videoData.player || !this.videoData.player.element) {
         return;
       }
       // dont allow weird floats
@@ -433,7 +435,7 @@ class Resizer {
         this.toFixedAr();
       }
 
-      const player = this.conf.player.element;
+      const player = this.videoData.player.element;
 
       const relativeX = (event.pageX - player.offsetLeft) / player.offsetWidth;
       const relativeY = (event.pageY - player.offsetTop) / player.offsetHeight;
@@ -563,11 +565,11 @@ class Resizer {
    * We make the assumption of the
    */
   computeVideoDisplayedDimensions() {
-    const offsetWidth = this.conf.video.offsetWidth;
-    const offsetHeight = this.conf.video.offsetHeight;
+    const offsetWidth = this.videoData.video.offsetWidth;
+    const offsetHeight = this.videoData.video.offsetHeight;
 
-    const scaleX = offsetWidth / this.conf.video.videoWidth;
-    const scaleY = offsetHeight / this.conf.video.videoHeight;
+    const scaleX = offsetWidth / this.videoData.video.videoWidth;
+    const scaleY = offsetHeight / this.videoData.video.videoHeight;
 
     // if differences between the scale factors are minimal, we presume offsetWidth and
     // offsetHeight are the accurate enough for our needs
@@ -581,13 +583,13 @@ class Resizer {
     }
 
     // if we're still here, we need to calculate real video dimensions
-    const diffX = Math.abs(scaleY * this.conf.video.videoWidth - offsetWidth);
-    const diffY = Math.abs(scaleX * this.conf.video.videoHeight - offsetHeight);
+    const diffX = Math.abs(scaleY * this.videoData.video.videoWidth - offsetWidth);
+    const diffY = Math.abs(scaleX * this.videoData.video.videoHeight - offsetHeight);
 
     // in this case, we want to base our real dimensions off scaleX
     // otherwise, we want to base it off scaleY
     if (diffX < diffY) {
-      const realHeight = this.conf.video.videoHeight * scaleX;
+      const realHeight = this.videoData.video.videoHeight * scaleX;
       return {
         realVideoWidth: offsetWidth,
         realVideoHeight: realHeight,
@@ -595,7 +597,7 @@ class Resizer {
         marginY: (offsetHeight - realHeight) * 0.5
       }
     } else {
-      const realWidth = this.conf.video.videoWidth * scaleY;
+      const realWidth = this.videoData.video.videoWidth * scaleY;
       return {
         realVideoWidth: realWidth,
         realVideoHeight: offsetHeight,
@@ -608,8 +610,8 @@ class Resizer {
   computeCroppedAreas(stretchFactors) {
     // PSA: offsetWidth and offsetHeight DO NOT INCLUDE
     // ZOOM APPLIED THROUGH THE MAGIC OF CSS TRANSFORMS
-    const sourceWidth = this.conf.video.offsetWidth;
-    const sourceHeight = this.conf.video.offsetHeight;
+    const sourceWidth = this.videoData.video.offsetWidth;
+    const sourceHeight = this.videoData.video.offsetHeight;
 
     // this is the size of the video AFTER zooming was applied but does
     // not account for cropping. It may be bigger than the player in
@@ -618,8 +620,8 @@ class Resizer {
     const postZoomHeight = sourceHeight * stretchFactors.yFactor;
 
     // this is the size of the video after crop is applied
-    const displayedWidth = Math.min(this.conf.player.dimensions.width, postZoomWidth);
-    const displayedHeight = Math.min(this.conf.player.dimensions.height, postZoomHeight);
+    const displayedWidth = Math.min(this.videoData.player.dimensions.width, postZoomWidth);
+    const displayedHeight = Math.min(this.videoData.player.dimensions.height, postZoomHeight);
 
     // these two are cropped areas. Negative values mean additional
     // letterboxing or pillarboxing. We assume center alignment for
@@ -678,19 +680,19 @@ class Resizer {
       stretchFactors.cropStrategy === CropStrategy.CropLetterbox
       && (!stretchFactors.styleHeightCompensationFactor || stretchFactors.styleHeightCompensationFactor === 1)
     ) {
-      autoHeightCompensationFactor = this.computeAutoHeightCompensationFactor(realVideoWidth, realVideoHeight, this.conf.player.dimensions.width, this.conf.player.dimensions.height, 'height');
+      autoHeightCompensationFactor = this.computeAutoHeightCompensationFactor(realVideoWidth, realVideoHeight, this.videoData.player.dimensions.width, this.videoData.player.dimensions.height, 'height');
       stretchFactors.xFactor *= autoHeightCompensationFactor;
       stretchFactors.yFactor *= autoHeightCompensationFactor;
     }
 
-    const offsetWidth = this.conf.video.offsetWidth;
-    const offsetHeight = this.conf.video.offsetHeight;
+    const offsetWidth = this.videoData.video.offsetWidth;
+    const offsetHeight = this.videoData.video.offsetHeight;
 
-    const wdiff = this.conf.player.dimensions.width - realVideoWidth;
-    const hdiff = this.conf.player.dimensions.height - realVideoHeight;
+    const wdiff = this.videoData.player.dimensions.width - realVideoWidth;
+    const hdiff = this.videoData.player.dimensions.height - realVideoHeight;
 
-    const wdiffAfterZoom = realVideoWidth * stretchFactors.xFactor - this.conf.player.dimensions.width;
-    const hdiffAfterZoom = realVideoHeight * stretchFactors.yFactor - this.conf.player.dimensions.height;
+    const wdiffAfterZoom = realVideoWidth * stretchFactors.xFactor - this.videoData.player.dimensions.width;
+    const hdiffAfterZoom = realVideoHeight * stretchFactors.yFactor - this.videoData.player.dimensions.height;
 
     const translate = {
       x: wdiff * 0.5,
@@ -725,11 +727,11 @@ class Resizer {
     this.logger.log(
       'info', ['debug', 'resizer'], "[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> calculated offsets:",
       '\n\n---- elements ----',
-      '\nplayer element:       ', this.conf.player.element,
-      '\nvideo element:        ', this.conf.video,
+      '\nplayer element:       ', this.videoData.player.element,
+      '\nvideo element:        ', this.videoData.video,
       '\n\n---- data in ----',
-      '\nplayer dimensions:    ', {w: this.conf.player.dimensions.width, h: this.conf.player.dimensions.height},
-      '\nvideo dimensions:     ', {w: this.conf.video.offsetWidth, h: this.conf.video.offsetHeight},
+      '\nplayer dimensions:    ', {w: this.videoData.player.dimensions.width, h: this.videoData.player.dimensions.height},
+      '\nvideo dimensions:     ', {w: this.videoData.video.offsetWidth, h: this.videoData.video.offsetHeight},
       '\nreal video dimensions:', {w: realVideoWidth, h: realVideoHeight},
       '\nauto compensation:    ', 'x', autoHeightCompensationFactor,
       '\nstretch factors:      ', stretchFactors,
@@ -750,8 +752,8 @@ class Resizer {
     // conditions are true at the same time, we need to go 'chiny reckon' and recheck our player
     // element. Chances are our video is not getting aligned correctly
     if (
-      (this.conf.video.offsetWidth > this.conf.player.dimensions.width && this.conf.video.offsetHeight > this.conf.player.dimensions.height) ||
-      (this.conf.video.offsetWidth < this.conf.player.dimensions.width && this.conf.video.offsetHeight < this.conf.player.dimensions.height)
+      (this.videoData.video.offsetWidth > this.videoData.player.dimensions.width && this.videoData.video.offsetHeight > this.videoData.player.dimensions.height) ||
+      (this.videoData.video.offsetWidth < this.videoData.player.dimensions.width && this.videoData.video.offsetHeight < this.videoData.player.dimensions.height)
     ) {
       this.logger.log('warn', ['debugger', 'resizer'], `[Resizer::_res_computeOffsets] <rid:${this.resizerId}> We are getting some incredibly funny results here.\n\n`,
         `Video seems to be both wider and taller (or shorter and narrower) than player element at the same time. This is super duper not supposed to happen.\n\n`,
@@ -762,7 +764,7 @@ class Resizer {
       // There seems to be no way to reproduce it.
       if (! this._computeOffsetsRecursionGuard) {
         this._computeOffsetsRecursionGuard = true;
-        this.conf.player.trackDimensionChanges();
+        this.videoData.player.trackDimensionChanges();
         this._computeOffsetsRecursionGuard = false;
       }
     }
@@ -832,7 +834,7 @@ class Resizer {
     if (! this.video) {
       this.logger.log('warn', 'debug', "[Resizer::applyCss] <rid:"+this.resizerId+"> Video went missing, doing nothing.");
 
-      this.conf.destroy();
+      this.videoData.destroy();
       return;
     }
 
@@ -840,7 +842,7 @@ class Resizer {
 
     // save stuff for quick tests (before we turn numbers into css values):
     this.currentVideoSettings = {
-      validFor:  this.conf.player.dimensions,
+      validFor:  this.videoData.player.dimensions,
       // videoWidth: dimensions.width,
       // videoHeight: dimensions.height
     }
@@ -876,7 +878,7 @@ class Resizer {
   }
 
   setStyleString (styleString) {
-    this.currentCssValidFor = this.conf.player.dimensions;
+    this.currentCssValidFor = this.videoData.player.dimensions;
     const newCssString = this.prepareCss(styleString);
 
     // inject new CSS or replace existing one

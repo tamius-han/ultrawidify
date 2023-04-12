@@ -11,6 +11,7 @@ import Logger from '../Logger';
 import EventBus from '../EventBus';
 import UI from '../uwui/UI';
 import { SiteSettings } from '../settings/SiteSettings';
+import PageInfo from './PageInfo';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: PlayerData.js");
@@ -42,13 +43,14 @@ class PlayerData {
   //#region helper objects
   logger: Logger;
   videoData: VideoData;
+  pageInfo: PageInfo;
   siteSettings: SiteSettings;
   notificationService: PlayerNotificationUi;
   eventBus: EventBus;
   //#endregion
 
   //#region HTML objects
-  video: any;
+  videoElement: any;
   element: any;
   overlayNode: any;
   //#endregion
@@ -102,13 +104,18 @@ class PlayerData {
     }
   }
 
+  //#region lifecycle
   constructor(videoData) {
     try {
+      // set all our helper objects
       this.logger = videoData.logger;
       this.videoData = videoData;
-      this.video = videoData.video;
+      this.videoElement = videoData.video;
+      this.pageInfo = videoData.pageInfo;
       this.siteSettings = videoData.siteSettings;
       this.eventBus = videoData.eventBus;
+
+      // do the rest
       this.invalid = false;
       this.element = this.getPlayer();
       this.initEventBus();
@@ -136,7 +143,6 @@ class PlayerData {
 
       this.trackDimensionChanges();
       this.startChangeDetection();
-
     } catch (e) {
       console.error('[Ultrawidify::PlayerData::ctor] There was an error setting up player data. You should be never seeing this message. Error:', e);
       this.invalid = true;
@@ -149,6 +155,38 @@ class PlayerData {
         this.eventBus.subscribe(action, command);
       }
     }
+  }
+
+  destroy() {
+    this.stopChangeDetection();
+    this.destroyOverlay();
+    this.notificationService?.destroy();
+  }
+  //#endregion
+
+  /**
+   * Enables ultrawidify for this video by adding the relevant classes
+   * to the video and player element.
+   */
+  enable() {
+    this.enabled = true;
+    this.element.classList.add(this.playerCssClass);
+    this.startChangeDetection();
+    this.videoData.enable({fromPlayer: true});
+  }
+
+  /**
+   * Disables ultrawidify for this video by removing the relevant classes
+   * from the video and player elements.
+   *
+   * NOTE: it is very important to keep change detection active while disabled,
+   * because otherwise ultrawidify will otherwise remain inactive after
+   * switching (back to) full screen.
+   */
+  disable() {
+    this.enabled = false;
+    this.element.classList.remove(this.playerCssClass);
+    this.videoData.disable({fromPlayer: true});
   }
 
   /**
@@ -272,40 +310,10 @@ class PlayerData {
     }
   }
 
-  /**
-   * Enables ultrawidify for this video by adding the relevant classes
-   * to the video and player element.
-   */
-  enable() {
-    this.enabled = true;
-    this.element.classList.add(this.playerCssClass);
-    this.startChangeDetection();
-    this.videoData.enable({fromPlayer: true});
-  }
-
-  /**
-   * Disables ultrawidify for this video by removing the relevant classes
-   * from the video and player elements.
-   *
-   * NOTE: it is very important to keep change detection active while disabled,
-   * because otherwise ultrawidify will otherwise remain inactive after
-   * switching (back to) full screen.
-   */
-  disable() {
-    this.enabled = false;
-    this.element.classList.remove(this.playerCssClass);
-    this.videoData.disable({fromPlayer: true});
-  }
 
 
   onPlayerDimensionsChanged(mutationList?, observer?) {
     this.trackDimensionChanges();
-  }
-
-  destroy() {
-    this.stopChangeDetection();
-    this.destroyOverlay();
-    this.notificationService?.destroy();
   }
 
   //#region player element change detection
@@ -451,17 +459,17 @@ class PlayerData {
    */
   getPlayer(options?: {verbose?: boolean}) {
     const host = window.location.hostname;
-    let element = this.video.parentNode;
-    const videoWidth = this.video.offsetWidth;
-    const videoHeight = this.video.offsetHeight;
+    let element = this.videoElement.parentNode;
+    const videoWidth = this.videoElement.offsetWidth;
+    const videoHeight = this.videoElement.offsetHeight;
     let playerCandidate;
 
     const elementStack: any[] = [{
-      element: this.video,
+      element: this.videoElement,
       type: 'video',
       tagName: 'video',
-      classList: this.video.classList,
-      id: this.video.id,
+      classList: this.videoElement.classList,
+      id: this.videoElement.id,
     }];
 
     // first pass to generate the element stack and translate it into array
@@ -666,10 +674,6 @@ class PlayerData {
     this.element = this.getPlayer();
     // this.notificationService?.replace(this.element);
     this.trackDimensionChanges();
-  }
-
-  showNotification(notificationId) {
-    // this.notificationService?.showNotification(notificationId);
   }
 }
 
