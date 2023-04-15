@@ -269,7 +269,7 @@ class ArDetector {
   destroy(){
     this.logger.log('info', 'init', `%c[ArDetect::destroy] <@${this.arid}> Destroying aard.`, _ard_console_stop);
     // this.debugCanvas.destroy();
-    this.halt();
+    this.stop();
   }
   //#endregion lifecycle
 
@@ -310,11 +310,6 @@ class ArDetector {
   }
 
   pause() {
-    this.stop();
-  }
-
-  halt(){
-    this.logger.log('info', 'debug', `"%c[ArDetect::stop] <@${this.arid}>  Halting automatic aspect ratio detection`, _ard_console_stop);
     this.stop();
   }
 

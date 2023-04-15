@@ -345,7 +345,7 @@ class VideoData {
     this.destroyed = true;
     this.eventBus?.unsetUpstreamBus();
     try {
-      this.arDetector.halt();
+      this.arDetector.stop();
       this.arDetector.destroy();
     } catch (e) {}
     this.arDetector = undefined;
@@ -389,7 +389,7 @@ class VideoData {
   disable(options?: {fromPlayer?: boolean}) {
     this.enabled = false;
 
-    this.stopArDetection();
+    this.arDetector?.stop();
 
     this.video.classList.remove(this.baseCssName);
     this.video.classList.remove(this.userCssClassName);
@@ -677,7 +677,7 @@ class VideoData {
 
   stopArDetection() {
     if (this.arDetector) {
-      this.arDetector.halt();
+      this.arDetector.stop();
     }
   }
   //#endregion
