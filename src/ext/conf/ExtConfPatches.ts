@@ -253,6 +253,17 @@ const ExtensionConfPatch = [
         },
       })
     }
+  }, {
+    forVersion: '5.99.5',
+    updateFn: (userOptions: SettingsInterface, defaultOptions) => {
+      if (!userOptions.sites['@global'].defaults.alignment || !userOptions.sites['@global'].defaults.alignment.x || !userOptions.sites['@global'].defaults.alignment.y) {
+        userOptions.sites['@global'].defaults.alignment = {
+          x: VideoAlignmentType.Center,
+          y: VideoAlignmentType.Center
+        };
+      }
+      userOptions.sites['@empty'].defaults.alignment = {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default};
+    }
   }
 ];
 

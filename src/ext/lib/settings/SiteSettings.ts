@@ -66,16 +66,16 @@ export class SiteSettings {
 
       // these can contain default options, but can also be undefined
       if (this.data.defaults?.stretch === StretchType.Default || this.data.defaults?.stretch === undefined) {
-        this.data.defaults.stretch = _cp(this.defaultSettings.defaults.stretch);
+        this.data.defaults.stretch = _cp(this.defaultSettings.defaults.stretch ?? StretchType.NoStretch);
       }
       if (this.data.defaults?.alignment === undefined) {  // distinguish between undefined and 0!
-        this.data.defaults.alignment = _cp(this.defaultSettings.defaults.alignment);
+        this.data.defaults.alignment = _cp(this.defaultSettings.defaults.alignment ?? {x: VideoAlignmentType.Center, y: VideoAlignmentType.Center});
       } else {
         if (this.data.defaults?.alignment.x === VideoAlignmentType.Default) {
-          this.data.defaults.alignment.x = _cp(this.defaultSettings.defaults.alignment.x);
+          this.data.defaults.alignment.x = _cp(this.defaultSettings.defaults.alignment.x ?? VideoAlignmentType.Center);
         }
         if (this.data.defaults.alignment.y === VideoAlignmentType.Default) {
-          this.data.defaults.alignment.y = _cp(this.defaultSettings.defaults.alignment.y);
+          this.data.defaults.alignment.y = _cp(this.defaultSettings.defaults.alignment.y ?? VideoAlignmentType.Center);
         }
       }
     }

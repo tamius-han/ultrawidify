@@ -1447,8 +1447,8 @@ const ExtensionConf: SettingsInterface = {
       defaults: {
         crop: {type: AspectRatioType.Reset},  // does NOT override Aard
         stretch: StretchType.NoStretch,
+        alignment: {x: VideoAlignmentType.Center, y: VideoAlignmentType.Center},
       }
-
     },
     "@empty": {                             // placeholder settings object with fallbacks to @global
       enable: {
@@ -1471,6 +1471,7 @@ const ExtensionConf: SettingsInterface = {
       defaults: {
         crop: null,
         stretch: StretchType.Default,
+        alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default},
       }
     },
     "www.youtube.com" : {
