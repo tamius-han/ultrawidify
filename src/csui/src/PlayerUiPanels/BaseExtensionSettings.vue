@@ -18,9 +18,19 @@
       >
         Default settings for extension
       </div>
+      <div
+        class="tab"
+        :class="{'active': tab === 'otherSites'}"
+        @click="setTab(tab = 'otherSites')"
+      >
+        Settings for other sites
+      </div>
     </div>
 
     <template v-if="tab === 'siteSettings' && siteSettings">
+      <!-- <div class="button">
+        Reset settings for site
+      </div> -->
       <SiteExtensionSettings
         v-if="settings"
         :settings="settings"
@@ -30,7 +40,6 @@
     </template>
 
     <template v-if="tab === 'extensionSettings' && globalSettings">
-      not site settings
       <SiteExtensionSettings
         v-if="settings"
         :settings="settings"

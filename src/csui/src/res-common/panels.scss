@@ -10,3 +10,13 @@
   margin-top: 1.5rem;
 }
 
+.tab {
+  border-bottom: 1px solid black;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 1rem 2rem;
+
+  &:hover, &.active {
+    border-bottom: 1px solid #fa6;
+    background-color:rgba(0, 0, 0, 0.75)
+  }
+}
