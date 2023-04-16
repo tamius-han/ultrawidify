@@ -96,6 +96,9 @@ class PlayerData {
       if (this.isFullscreen) {
         return window.innerWidth / window.innerHeight;
       }
+      if (!this.dimensions) {
+        this.trackDimensionChanges();
+      }
 
       return this.dimensions.width / this.dimensions.height;
     } catch (e) {
@@ -140,9 +143,10 @@ class PlayerData {
         return;
       }
 
-
       this.trackDimensionChanges();
       this.startChangeDetection();
+
+      document.addEventListener('fullscreenchange', this.trackDimensionChanges);
     } catch (e) {
       console.error('[Ultrawidify::PlayerData::ctor] There was an error setting up player data. You should be never seeing this message. Error:', e);
       this.invalid = true;
@@ -158,6 +162,7 @@ class PlayerData {
   }
 
   destroy() {
+    document.removeEventListener('fullscreenchange', this.trackDimensionChanges);
     this.stopChangeDetection();
     this.destroyOverlay();
     this.notificationService?.destroy();
@@ -218,6 +223,7 @@ class PlayerData {
   trackDimensionChanges() {
     // get player dimensions _once_
     let currentPlayerDimensions;
+    this.isFullscreen = !!document.fullscreenElement;
 
     if (this.isFullscreen) {
       currentPlayerDimensions = {
@@ -255,10 +261,26 @@ class PlayerData {
 
 
   /**
-   * Handles size restrictions (if any)
+   * Checks if extension is allowed to run in current environment.
    * @param currentPlayerDimensions
    */
   private handleSizeConstraints(currentPlayerDimensions: PlayerDimensions) {
+
+    // Check if extension is allowed to run in current combination of theater + full screen
+    const canEnable = this.siteSettings.isEnabledForEnvironment(this.isFullscreen, this.isTheaterMode);
+
+    // Enable/disable
+    if (!this.enabled && canEnable) {
+      this.enable();
+    } else if (this.enabled && !canEnable) {
+      this.disable();
+      return;
+    }
+
+    // Check if autodetection is allowed to run in current combination of theater + full screen
+    // if (this.siteSettings.isAardEnabledForEnvironment(this.isFullscreen, this.isTheaterMode)) {
+    //   this.eventBus.send('disable-aard');
+    // }
 
     // never disable ultrawidify in full screen
     // if (this.isFullscreen) {
@@ -309,8 +331,6 @@ class PlayerData {
       this.videoData.resizer?.restore();
     }
   }
-
-
 
   onPlayerDimensionsChanged(mutationList?, observer?) {
     this.trackDimensionChanges();
