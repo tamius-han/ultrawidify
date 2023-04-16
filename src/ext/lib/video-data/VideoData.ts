@@ -654,8 +654,7 @@ class VideoData {
 
     try {
       if (hasDrm(this.video)) {
-        this.player.showNotification('AARD_DRM');
-        this.hasDrm = true;
+         this.hasDrm = true;
       } else {
         this.hasDrm = false;
       }
