@@ -14,6 +14,7 @@ import { hasDrm } from '../ar-detect/DrmDetecor';
 import EventBus from '../EventBus';
 import { SiteSettings } from '../settings/SiteSettings';
 import { Ar } from '../../../common/interfaces/ArInterface';
+import { ExtensionStatus } from './ExtensionStatus';
 
 /**
  * VideoData — handles CSS for the video element.
@@ -33,7 +34,7 @@ class VideoData {
   videoStatusOk: boolean = false;
   videoLoaded: boolean = false;
   videoDimensionsLoaded: boolean = false;
-  paused: boolean = false;
+  active: boolean = false;
   //#endregion
 
   //#region misc stuff
@@ -61,6 +62,7 @@ class VideoData {
   resizer: Resizer;
   arDetector: ArDetector;
   eventBus: EventBus;
+  extensionStatus: ExtensionStatus;
   //#endregion
 
 
@@ -104,12 +106,15 @@ class VideoData {
 
     this.eventBus = new EventBus();
 
+    this.extensionStatus = new ExtensionStatus(siteSettings, pageInfo.eventBus, pageInfo.fsStatus);
+
     if (pageInfo.eventBus) {
       this.eventBus.setUpstreamBus(pageInfo.eventBus);
       this.eventBus.subscribe('get-drm-status', {function: () => {
         this.hasDrm = hasDrm(this.video);
         this.eventBus.send('uw-config-broadcast', {type: 'drm-status', hasDrm: this.hasDrm});
       }});
+      // this.eventBus.subscribe('')
     }
 
     this.setupEventListeners();

@@ -69,6 +69,8 @@ class PageInfo {
   currentZoomScale: number = 1;
 
   keyboardHandler: any;
+
+  fsStatus = {fullscreen: true};  // fsStatus needs to be passed to VideoData, so fullScreen property is shared between videoData instances
   //#endregion
 
   constructor(eventBus: EventBus, siteSettings: SiteSettings, settings: Settings, logger: Logger, readOnly = false){
@@ -81,6 +83,8 @@ class PageInfo {
 
     this.isFullscreen = !!document.fullscreenElement;
     this.iframeManager = new IframeManager({eventBus});
+
+
 
     if (eventBus){
       this.eventBus = eventBus;
@@ -128,6 +132,7 @@ class PageInfo {
    * Runs when browser enters full screen.
    */
   enterFullscreen() {
+    this.fsStatus.fullscreen = true;
     this.eventBus.send('page-fs-enter', {});
   }
 
@@ -135,6 +140,7 @@ class PageInfo {
    * Runs when browser exits full screen
    */
   exitFullscreen() {
+    this.fsStatus.fullscreen = false;
     this.eventBus.send('page-fs-exit', {});
   }
 

@@ -22,6 +22,13 @@ if(Debug.debug) {
   console.log("Loading: Resizer.js");
 }
 
+/**
+ * Resizer is the top class and is responsible for figuring out which component needs to crop, which
+ * component needs to zoom, and which component needs to stretch.
+ *
+ * It also kinda does lots of the work that should prolly be moved to Scaler.
+ *
+ */
 class Resizer {
   //#region flags
   canPan: boolean = false;
