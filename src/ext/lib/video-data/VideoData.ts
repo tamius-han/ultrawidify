@@ -178,7 +178,6 @@ class VideoData {
       console.error('Failed to inject base css!', e);
     }
   }
-
   unsetBaseClass() {
     this.mutationObserver.disconnect();
     this.mutationObserver = undefined;

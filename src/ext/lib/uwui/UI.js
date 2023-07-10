@@ -66,32 +66,48 @@ class UI {
      */
 
 
-    iframe.onload = function() {
-      document.addEventListener('mousemove', (event) => {
-        const coords = {
-          x: event.pageX - iframe.offsetLeft,
-          y: event.pageY - iframe.offsetTop
-        };
+    // set uiIframe for handleMessage
+    this.uiIframe = iframe;
 
-        // ask the iframe to check whether there's a clickable element
-        iframe.contentWindow.postMessage(
-          {
-            action: 'uwui-probe',
-            coords,
-            ts: +new Date()   // this should be accurate enough for our purposes
-          },
-          uiURI
-        );
-      }, true);
+    const fn = (event) => {
+      // remove self on fucky wuckies
+      if (!iframe?.contentWindow ) {
+        document.removeEventListener('mousemove', fn, true);
+        return;
+      }
+
+      const coords = {
+        x: event.pageX - this.uiIframe.offsetLeft,
+        y: event.pageY - this.uiIframe.offsetTop
+      };
+
+      // ask the iframe to check whether there's a clickable element
+      this.uiIframe.contentWindow.postMessage(
+        {
+          action: 'uwui-probe',
+          coords,
+          ts: +new Date()   // this should be accurate enough for our purposes
+        },
+        uiURI
+      );
+    }
+
+    iframe.onload = function() {
+      document.addEventListener('mousemove', fn, true);
     }
 
     rootDiv.appendChild(iframe);
 
-    // subscribe to events coming back to us
-    window.addEventListener('message', (event) => this.handleMessage(event));
+    // subscribe to events coming back to us. Unsubscribe if iframe vanishes.
+    const messageHandlerFn = (message) => {
+      if (!iframe?.contentWindow) {
+        window.removeEventListener('message', messageHandlerFn);
+        return;
+      }
+      this.handleMessage(message);
+    }
+    window.addEventListener('message', messageHandlerFn);
 
-    // set uiIframe for handleMessage
-    this.uiIframe = iframe;
 
     /* set up event bus tunnel from content script to UI — necessary if we want to receive
      * like current zoom levels & current aspect ratio & stuff. Some of these things are
@@ -102,18 +118,35 @@ class UI {
       'uw-config-broadcast',
       {
         function: (config) => {
-          iframe.contentWindow.postMessage(
-            {
-              action: 'uw-bus-tunnel',
-              payload: {action: 'uw-config-broadcast', config}
-            },
-            uiURI
-          )
+          // because existence of UI is not guaranteed — UI is not shown when extension is inactive.
+          // If extension is inactive due to "player element isn't big enough to justify it", however,
+          // we can still receive eventBus messages.
+          if (this.element && this.uiIframe) {
+            this.uiIframe.contentWindow.postMessage(
+              {
+                action: 'uw-bus-tunnel',
+                payload: {action: 'uw-config-broadcast', config}
+              },
+              uiURI
+            )
+          }
         }
       }
     );
   }
 
+  async enable() {
+    // if root element is not present, we need to init the UI.
+    if (!this.element) {
+      await this.init();
+    }
+    // otherwise, we don't have to do anything
+  }
+  disable() {
+    if (this.element) {
+      this.destroy();
+    }
+  }
 
   /**
    * Handles events received from the iframe.
@@ -139,14 +172,21 @@ class UI {
    * @param {*} newUiConfig
    */
   replace(newUiConfig) {
-    this.element?.remove();
     this.uiConfig = newUiConfig;
-    this.init();
+
+    if (this.element) {
+      this.element?.remove();
+      this.init();
+    }
   }
 
   destroy() {
     // this.comms?.destroy();
+    this.uiIframe?.remove();
     this.element?.remove();
+
+    this.uiIframe = undefined;
+    this.element = undefined;
   }
 }
 

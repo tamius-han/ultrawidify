@@ -176,7 +176,7 @@ export class SiteSettings {
    * Is extension allowed to run in current environment
    * @param isTheater
    * @param isFullscreen
-   * @returns
+   * @returns ExtensionMode
    */
   isEnabledForEnvironment(isTheater: boolean, isFullscreen: boolean) {
     const env = this._getEnvironment(isTheater, isFullscreen);

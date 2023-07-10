@@ -125,7 +125,6 @@ class PlayerData {
 
       // this.notificationService = new PlayerNotificationUi(this.element, this.settings, this.eventBus);
       this.ui = new UI('ultrawidifyUi', {parentElement: this.element, eventBus: this.eventBus});
-      // this.ui.init();
 
       this.dimensions = undefined;
       this.overlayNode = undefined;
@@ -178,6 +177,7 @@ class PlayerData {
     this.element.classList.add(this.playerCssClass);
     this.startChangeDetection();
     this.videoData.enable({fromPlayer: true});
+    this.ui.enable();
   }
 
   /**
@@ -192,6 +192,7 @@ class PlayerData {
     this.enabled = false;
     this.element.classList.remove(this.playerCssClass);
     this.videoData.disable({fromPlayer: true});
+    this.ui.disable();
   }
 
   /**
@@ -251,7 +252,6 @@ class PlayerData {
 
     // in every other case, we need to check if the player is still
     // big enough to warrant our extension running.
-
     this.handleSizeConstraints(currentPlayerDimensions);
     this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
 
@@ -265,49 +265,26 @@ class PlayerData {
    * @param currentPlayerDimensions
    */
   private handleSizeConstraints(currentPlayerDimensions: PlayerDimensions) {
-
     // Check if extension is allowed to run in current combination of theater + full screen
-    const canEnable = this.siteSettings.isEnabledForEnvironment(this.isFullscreen, this.isTheaterMode);
+    const canEnable = this.siteSettings.isEnabledForEnvironment(this.isFullscreen, this.isTheaterMode) === ExtensionMode.Enabled;
 
     // Enable/disable
-    if (!this.enabled && canEnable) {
-      this.enable();
-    } else if (this.enabled && !canEnable) {
-      this.disable();
+    if (canEnable) {
+      if (!this.enabled) {
+        // we should really check other constraints first before enabling
+        this.enable();
+        this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
+        return;
+      }
+    } else {
+      // if canEnable comes out negative, there's no amount of constraints that will
+      // cause PlayerData to be enabled.
+      if (this.enabled) {
+        this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
+        this.disable();
+      }
       return;
     }
-
-    // Check if autodetection is allowed to run in current combination of theater + full screen
-    // if (this.siteSettings.isAardEnabledForEnvironment(this.isFullscreen, this.isTheaterMode)) {
-    //   this.eventBus.send('disable-aard');
-    // }
-
-    // never disable ultrawidify in full screen
-    // if (this.isFullscreen) {
-    //   this.enable();
-    //   return;
-    // }
-
-    // if 'disable on small players' option is not enabled, the extension will run in any case
-    // if (!restrictions?.disableOnSmallPlayers) {
-    //   this.enable();
-    //   return;
-    // }
-
-    // If we only allow ultrawidify in full screen, we disable it when not in full screen
-    // if (restrictions.onlyAllowInFullscreen && !currentPlayerDimensions.fullscreen) {
-    //   this.disable();
-    //   return;
-    // }
-
-    // if current width or height are smaller than the minimum, the extension will not run
-    // if (restrictions.minAllowedHeight > currentPlayerDimensions?.height || restrictions.minAllowedWidth > currentPlayerDimensions?.width) {
-    //   this.disable();
-    //   return;
-    // }
-
-    // in this case, the player is big enough to warrant enabling Ultrawidify
-    this.enable();
   }
 
 
@@ -343,31 +320,18 @@ class PlayerData {
     }
 
     try {
-      if (BrowserDetect.firefox) {
-        this.observer = new ResizeObserver(
-          _.debounce(           // don't do this too much:
-            () => this.onPlayerDimensionsChanged,
-            250,                // do it once per this many ms
-            {
-              leading: true,    // do it when we call this fallback first
-              trailing: true    // do it after the timeout if we call this callback few more times
-            }
-          )
-        );
-      } else {
-        // Chrome for some reason insists that this.onPlayerDimensionsChanged is not a function
-        // when it's not wrapped into an anonymous function
-        this.observer = new ResizeObserver(
-          _.debounce(           // don't do this too much:
-            (m,o) => this.onPlayerDimensionsChanged(m,o),
-            250,                // do it once per this many ms
-            {
-              leading: true,    // do it when we call this fallback first
-              trailing: true    // do it after the timeout if we call this callback few more times
-            }
-          )
-        );
-      }
+      this.observer = new ResizeObserver(
+        _.debounce(           // don't do this too much:
+          (m,o) => {
+            this.onPlayerDimensionsChanged(m,o)
+          },
+          250,                // do it once per this many ms
+          {
+            leading: true,    // do it when we call this fallback first
+            trailing: true    // do it after the timeout if we call this callback few more times
+          }
+        )
+      );
 
       const observerConf = {
         attributes: true,
