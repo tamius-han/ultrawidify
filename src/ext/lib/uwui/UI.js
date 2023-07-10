@@ -14,8 +14,6 @@ class UI {
     this.extensionBase = browser.runtime.getURL('').replace(/\/$/, "");
 
     this.eventBus = uiConfig.eventBus;
-
-    this.init();
   }
 
   async init() {

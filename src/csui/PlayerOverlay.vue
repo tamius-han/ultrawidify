@@ -154,28 +154,11 @@ export default {
     await this.settings.init();
     this.settingsInitialized = true;
 
-    // set up communication with client script
+    // set up communication with client script.
+    // NOTE: companion onmousemove is set up in UIProbeMixin
     window.addEventListener('message', event => {
       this.handleMessage(event);
     });
-
-    /**
-     * Setup the "companion" onMouseMove handler to the one in the content script.
-     * We can handle events with the same function we use to handle events from
-     * the content script.
-     */
-
-    // this is handled in UIProbeMixin.js now — if UIProbeMixin works, then
-    // this can be safely removed. Note to self — leave the comment explaining
-    // UI probes are set in the mixin.
-    // document.addEventListener('mousemove', (event) => {
-    //   this.handleProbe({
-    //     coords: {
-    //       x: event.clientX,
-    //       y: event.clientY
-    //     }
-    //   }, this.origin);
-    // });
 
     this.eventBus.subscribe('uw-config-broadcast', {function: (data) => {
       if (data.type === 'drm-status') {
