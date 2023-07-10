@@ -85,14 +85,13 @@ export default class UWServer {
       this.settings = new Settings({logger: this.logger});
       await this.settings.init();
 
-      this.eventBus = new EventBus();
+      this.eventBus = new EventBus({isUWServer: true});
 
       for (const action in this.eventBusCommands) {
         for (const command of this.eventBusCommands[action]) {
           this.eventBus.subscribe(action, command);
         }
       }
-
       this.comms = new CommsServer(this);
       this.eventBus.setComms(this.comms);
 
@@ -109,11 +108,32 @@ export default class UWServer {
   }
 
   async injectCss(css, sender) {
+    if (!css) {
+      return;
+    }
     try {
-      if (BrowserDetect.firefox || BrowserDetect.edge) {
-        browser.tabs.insertCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
-      } else if (BrowserDetect.anyChromium) {
-        chrome.tabs.insertCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
+      if (BrowserDetect.firefox) {
+        browser.scripting.insertCSS({
+          target: {
+            tabId: sender.tab.id,
+            frameIds: [
+              sender.frameId
+            ]
+          },
+          css,
+          origin: "USER"
+        });
+      } else {
+        await chrome.scripting.insertCSS({
+          target: {
+            tabId: sender.tab.id,
+            frameIds: [
+              sender.frameId
+            ]
+          },
+          css,
+          origin: "USER"
+        });
       }
     } catch (e) {
       this.logger.log('error','debug', '[UwServer::injectCss] Error while injecting css:', {error: e, css, sender});
@@ -121,7 +141,30 @@ export default class UWServer {
   }
   async removeCss(css, sender) {
     try {
-      browser.tabs.removeCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
+      if (BrowserDetect.firefox) {
+        browser.scripting.removeCSS({
+          target: {
+            tabId: sender.tab.id,
+            frameIds: [
+              sender.frameId
+            ]
+          },
+          css,
+          origin: "USER"
+        });
+      } else {
+
+        await chrome.scripting.removeCSS({
+          target: {
+            tabId: sender.tab.id,
+            frameIds: [
+              sender.frameId
+            ]
+          },
+          css,
+          origin: "USER"
+        });
+      }
     } catch (e) {
       this.logger.log('error','debug', '[UwServer::injectCss] Error while removing css:', {error: e, css, sender});
     }
@@ -129,8 +172,8 @@ export default class UWServer {
 
   async replaceCss(oldCss, newCss, sender) {
     if (oldCss !== newCss) {
-      this.injectCss(newCss, sender);
       this.removeCss(oldCss, sender);
+      this.injectCss(newCss, sender);
     }
   }
 
