@@ -5,7 +5,11 @@ if (process.env.CHANNEL !== 'stable') {
 }
 
 function detectEdgeUA() {
-  return /Edg\/(\.?[0-9]*)*$/.test(window.navigator.userAgent);
+  try {
+    return /Edg\/(\.?[0-9]*)*$/.test(window.navigator.userAgent);
+  } catch {
+    return undefined;
+  }
 }
 
 function getBrowserObj() {
@@ -31,7 +35,7 @@ const BrowserDetect = {
   browserObj: getBrowserObj(),
   runtime: getRuntime(),
   getURL: (url) => getURL(url),
-} 
+}
 
 if (process.env.CHANNEL !== 'stable') {
   console.info("BrowserDetect loaded:\n\nprocess.env.BROWSER:", process.env.BROWSER, "\nExporting BrowserDetect:", BrowserDetect);

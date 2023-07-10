@@ -32,8 +32,10 @@ export default class EventBus {
   private popupContext: any = {};
   // private uiUri = window.location.href;
 
-  constructor() {
-    this.setupIframeTunnelling();
+  constructor(options?: {isUWServer?: boolean}) {
+    if (!options?.isUWServer) {
+      this.setupIframeTunnelling();
+    }
   }
 
   setupPopupTunnelWorkaround(context: EventBusContext): void {

@@ -65,5 +65,5 @@ export class ExtensionStatus {
     this.refreshExtensionStatus();
   }
 
-  updateFullScreen()
+  updateFullScreen() {}
 }
