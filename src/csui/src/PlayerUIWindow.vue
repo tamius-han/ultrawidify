@@ -267,7 +267,7 @@ export default {
     }
 
     &.community {
-      background-color: rgb(47, 47, 97);
+      background-color: rgb(85, 85, 179);
       color: #fff;
 
       .mdi {

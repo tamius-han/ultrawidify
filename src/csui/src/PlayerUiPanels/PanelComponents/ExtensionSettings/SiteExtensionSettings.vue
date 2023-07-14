@@ -408,8 +408,6 @@ export default {
     setExtensionMode(component, event) {
       const option = event.target.value;
 
-      console.log('setting option', component, 'to', event.target.value);
-
       if (option === 'complex') {
         return;
       }
@@ -458,3 +456,8 @@ export default {
 <style lang="scss" src="../../../../../res/css/flex.scss" scoped></style>
 <style lang="scss" src="../../../res-common/panels.scss" scoped></style>
 <style lang="scss" src="../../../res-common/common.scss" scoped></style>
+<style scoped>
+.button-hover:hover {
+  color: #fa6;
+}
+</style>

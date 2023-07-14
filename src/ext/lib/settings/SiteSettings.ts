@@ -80,7 +80,6 @@ export class SiteSettings {
       }
     }
 
-
     for (const enableSegment of ['enable', 'enableAard', 'enableKeyboard']) {
       if (!this.data[enableSegment]) {
         this.data[enableSegment] = {};

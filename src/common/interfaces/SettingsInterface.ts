@@ -355,7 +355,8 @@ export interface SiteSettingsInterface {
   enableAard: ExtensionEnvironmentSettingsInterface;
   enableKeyboard: ExtensionEnvironmentSettingsInterface;
 
-  type?: 'official' | 'community' | 'user-defined' | 'testing' | 'officially-disabled';
+  type?: 'official' | 'community' | 'user-defined' | 'testing' | 'officially-disabled' | 'unknown' | 'modified';
+  defaultType: 'official' | 'community' | 'user-defined' | 'testing' | 'officially-disabled' | 'unknown' | 'modified';
 
   // must be defined in @global and @empty
   persistCSA?: CropModePersistence,  // CSA - crop, stretch, alignment

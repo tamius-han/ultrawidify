@@ -264,6 +264,15 @@ const ExtensionConfPatch = [
       }
       userOptions.sites['@empty'].defaults.alignment = {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default};
     }
+  }, {
+    forVersion: '5.99.6',
+    updateFn: (userOptions: SettingsInterface, defaultOptions) => {
+      for (const site in userOptions.sites) {
+        userOptions.sites[site].defaultType = userOptions.sites[site].type as any;
+      }
+      userOptions.sites['@global'].defaultType = 'unknown';
+      userOptions.sites['@empty'].defaultType = 'modified';
+    }
   }
 ];
 

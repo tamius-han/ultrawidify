@@ -389,3 +389,8 @@ small {
 .monospace {
   font-family: 'Overpass Mono';
 }
+
+.pointer {
+  cursor: pointer;
+  user-select: none;
+}

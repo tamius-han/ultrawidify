@@ -1441,7 +1441,7 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Enabled,
         normal: ExtensionMode.Disabled
       },
-
+      defaultType: 'unknown',
       persistCSA: CropModePersistence.Disabled,
 
       defaults: {
@@ -1467,6 +1467,7 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Default
       },
       type: 'user-defined',
+      defaultType: 'user-defined',
       persistCSA: CropModePersistence.Default,
       defaults: {
         crop: null,
@@ -1492,6 +1493,8 @@ const ExtensionConf: SettingsInterface = {
       },
       override: false,                  // ignore value localStorage in favour of this
       type: 'official',                 // is officially supported? (Alternatives are 'community' and 'user-defined')
+      defaultType: 'official',          // if user mucks around with settings, type changes to 'user-defined'.
+                                        // We still want to know what the original type was, hence defaultType
 
       activeDOMConfig: 'official',
       DOMConfig: {
@@ -1524,6 +1527,7 @@ const ExtensionConf: SettingsInterface = {
       },
       override: false,
       type: 'community',
+      defaultType: 'community',
     },
     "www.disneyplus.com" : {
       enable: {
@@ -1542,6 +1546,7 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Default
       },
       type: 'community',
+      defaultType: 'community',
       activeDOMConfig: 'community-mstefan99',
       DOMConfig: {
         'community-mstefan99': {
@@ -1577,32 +1582,34 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Default
       },
       type: 'official',
+      defaultType: 'official',
     },
-    "streamable.com": {
-      enable: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default,
-      },
-      enableAard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default,
-      },
-      enableKeyboard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default
-      },
-      type: 'official',
-      activeDOMConfig: 'official',
-      DOMConfig: {
-        'official': {
-          type: 'official',
-          customCss: ".player {text-align: left}"
-        }
-      }
-    },
+    // "streamable.com": {
+    //   enable: {
+    //     fullscreen: ExtensionMode.Default,
+    //     theater: ExtensionMode.Default,
+    //     normal: ExtensionMode.Default,
+    //   },
+    //   enableAard: {
+    //     fullscreen: ExtensionMode.Default,
+    //     theater: ExtensionMode.Default,
+    //     normal: ExtensionMode.Default,
+    //   },
+    //   enableKeyboard: {
+    //     fullscreen: ExtensionMode.Default,
+    //     theater: ExtensionMode.Default,
+    //     normal: ExtensionMode.Default
+    //   },
+    //   type: 'official',
+    //   type: 'defaultType',
+    //   activeDOMConfig: 'official',
+    //   DOMConfig: {
+    //     'official': {
+    //       type: 'official',
+    //       customCss: ".player {text-align: left}"
+    //     }
+    //   }
+    // },
     "vimeo.com": {
       enable: {
         fullscreen: ExtensionMode.Default,
@@ -1620,6 +1627,7 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Default
       },
       type: 'official',
+      defaultType: 'official',
       activeDOMConfig: 'official',
       DOMConfig: {
         'official': {
@@ -1651,6 +1659,7 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Disabled,
       },
       type: 'officially-disabled',
+      defaultType: 'officially-disabled',
       activeDOMConfig: 'official',
       DOMConfig: {
         'official': {
@@ -1682,6 +1691,7 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Disabled,
       },
       type: 'officially-disabled',
+      defaultType: 'officially-disabled',
       activeDOMConfig: 'official',
       DOMConfig: {
         'official': {
@@ -1713,6 +1723,7 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Disabled,
       },
       type: 'officially-disabled',
+      defaultType: 'officially-disabled',
     },
     "gfycat.com": {
       enable: {
@@ -1731,6 +1742,7 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Disabled,
       },
       type: 'officially-disabled',
+      defaultType: 'officially-disabled',
     },
     "giant.gfycat.com": {
       enable: {
@@ -1749,6 +1761,7 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Disabled,
       },
       type: 'officially-disabled',
+      defaultType: 'officially-disabled',
     },
     "www.wakanim.tv": {
       enable: {
@@ -1767,6 +1780,7 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Default
       },
       type: 'community',
+      defaultType: 'community',
       activeDOMConfig: 'community',
       DOMConfig: {
         'community': {
@@ -1797,6 +1811,7 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Default
       },
       type: 'community',
+      defaultType: 'community',
       activeDOMConfig: 'community',
       DOMConfig: {
         'community': {
@@ -1822,6 +1837,7 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Default
       },
       type: "community",
+      defaultType: "community",
       activeDOMConfig: 'community',
       DOMConfig: {
         'community': {
@@ -1851,6 +1867,7 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Default
       },
       type: "community",
+      defaultType: "community",
       activeDOMConfig: 'community',
       DOMConfig: {
         'community': {

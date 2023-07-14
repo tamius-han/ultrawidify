@@ -48,6 +48,13 @@
       ></SiteExtensionSettings>
     </template>
 
+    <template v-if="tab === 'otherSites'">
+      <OtherSiteSettings
+        v-if="settings"
+        :settings="settings"
+      >
+      </OtherSiteSettings>
+    </template>
     <!-- <SiteSettingsBasicTable
       :settings="settings"
     ></SiteSettingsBasicTable> -->
@@ -56,8 +63,9 @@
 </template>
 
 <script>
-import SiteSettingsBasicTable from './PanelComponents/ExtensionSettings/SiteSettingsBasicTable.vue'
-import SiteExtensionSettings from './PanelComponents/ExtensionSettings/SiteExtensionSettings.vue'
+import SiteSettingsBasicTable from './PanelComponents/ExtensionSettings/SiteSettingsBasicTable.vue';
+import SiteExtensionSettings from './PanelComponents/ExtensionSettings/SiteExtensionSettings.vue';
+import OtherSiteSettings from './PanelComponents/ExtensionSettings/OtherSiteSettings.vue';
 
 export default {
   data() {
@@ -74,8 +82,9 @@ export default {
   ],
   components: {
     SiteExtensionSettings,
-    SiteSettingsBasicTable
-  },
+    SiteSettingsBasicTable,
+    OtherSiteSettings
+},
   computed: {
     globalSettings() {
       return this.settings?.getSiteSettings('@global') ?? null;
