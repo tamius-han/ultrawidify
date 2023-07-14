@@ -55,15 +55,11 @@
       >
       </OtherSiteSettings>
     </template>
-    <!-- <SiteSettingsBasicTable
-      :settings="settings"
-    ></SiteSettingsBasicTable> -->
 
   </div>
 </template>
 
 <script>
-import SiteSettingsBasicTable from './PanelComponents/ExtensionSettings/SiteSettingsBasicTable.vue';
 import SiteExtensionSettings from './PanelComponents/ExtensionSettings/SiteExtensionSettings.vue';
 import OtherSiteSettings from './PanelComponents/ExtensionSettings/OtherSiteSettings.vue';
 
@@ -82,7 +78,6 @@ export default {
   ],
   components: {
     SiteExtensionSettings,
-    SiteSettingsBasicTable,
     OtherSiteSettings
 },
   computed: {
