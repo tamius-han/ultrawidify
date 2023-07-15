@@ -343,22 +343,15 @@ export default {
     },
 
     getCommandValue(availableCommands, command) {
-      console.log('command:', command, 'from available commands', availableCommands);
-
       for (const cmd of availableCommands) {
-        console.log('——— processing command:', cmd)
-        console.log('comparing', JSON.stringify(command), 'to', JSON.stringify(cmd.arguments));
         if (JSON.stringify(cmd.arguments) === JSON.stringify(command)) {
           return cmd.label;
         }
       }
-
       return 'Unknown command';
     },
 
     getAlignmentLabel(alignment) {
-      console.log('alignment for site. ----------------------------', alignment);
-
       // in case default settings don't have this set
       if (!alignment) {
         return 'Center'

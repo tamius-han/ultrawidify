@@ -146,10 +146,31 @@ class PlayerData {
       this.startChangeDetection();
 
       document.addEventListener('fullscreenchange', this.trackDimensionChanges);
+
+      // we want to reload on storage changes
+      this.siteSettings.subscribeToStorageChange('PlayerData', () => this.reloadPlayerDataConfig());
     } catch (e) {
       console.error('[Ultrawidify::PlayerData::ctor] There was an error setting up player data. You should be never seeing this message. Error:', e);
       this.invalid = true;
     }
+  }
+
+  private reloadPlayerDataConfig() {
+    console.log('reloading config ...')
+    this.element = this.getPlayer();
+
+    console.log('got player:', this.element);
+
+    this.periodicallyRefreshPlayerElement = false;
+    try {
+      this.periodicallyRefreshPlayerElement = this.siteSettings.data.currentDOMConfig.periodicallyRefreshPlayerElement;
+    } catch (e) {
+      // no biggie — that means we don't have any special settings for this site.
+    }
+
+    // because this is often caused by the UI
+    console.log('tree request:');
+    this.handlePlayerTreeRequest();
   }
 
   private initEventBus() {
@@ -474,10 +495,32 @@ class PlayerData {
     const playerQs = this.siteSettings.getCustomDOMQuerySelector('player');
     const playerIndex = this.siteSettings.getPlayerIndex();
 
-    if (playerQs) {
-      playerCandidate = this.getPlayerQs(playerQs, elementStack, videoWidth, videoHeight);
-    } else if (playerIndex) { // btw 0 is not a valid index for player
-      playerCandidate = elementStack[playerIndex];
+    // on verbose, get both qs and index player
+    if (options.verbose) {
+      if (playerIndex) {
+        playerCandidate = elementStack[playerIndex];
+        playerCandidate.heuristics['manualElementByParentIndex'] = true;
+      }
+      if (playerQs) {
+        playerCandidate = this.getPlayerQs(playerQs, elementStack, videoWidth, videoHeight);
+      }
+    }
+    // if mode is given, we follow the preference
+    if (this.siteSettings.data.currentDOMConfig?.elements?.player?.mode) {
+      if (this.siteSettings.data.currentDOMConfig?.elements?.player?.mode === 'qs') {
+        playerCandidate = this.getPlayerQs(playerQs, elementStack, videoWidth, videoHeight);
+      } else {
+        playerCandidate = elementStack[playerIndex];
+        playerCandidate.heuristics['manualElementByParentIndex'] = true;
+      }
+    } else {
+      // try to figure it out based on what we have, with playerQs taking priority
+      if (playerQs) {
+        playerCandidate = this.getPlayerQs(playerQs, elementStack, videoWidth, videoHeight);
+      } else if (playerIndex) { // btw 0 is not a valid index for player
+        playerCandidate = elementStack[playerIndex];
+        playerCandidate.heuristics['manualElementByParentIndex'] = true;
+      }
     }
 
     if (playerCandidate) {
@@ -644,8 +687,10 @@ class PlayerData {
    * Lists elements between video and DOM root for display in player selector (UI)
    */
   private handlePlayerTreeRequest() {
+    console.log('aya')
     // this populates this.elementStack fully
     this.getPlayer({verbose: true});
+    console.log('tree:', JSON.parse(JSON.stringify(this.elementStack)));
     this.eventBus.send('uw-config-broadcast', {type: 'player-tree', config: JSON.parse(JSON.stringify(this.elementStack))});
   }
 

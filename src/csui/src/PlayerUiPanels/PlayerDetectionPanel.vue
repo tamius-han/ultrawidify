@@ -73,7 +73,8 @@
                       </div>
                     </th>
                     <th>Element</th>
-                    <th>Quick fixes</th>
+                    <th>Actions</th>
+                    <!-- <th>Quick fixes</th> -->
                   </tr>
                 </thead>
                 <tbody>
@@ -137,6 +138,11 @@
                       </div>
                     </td>
                     <td>
+                      <div class="flex flex-row">
+                        <!-- <div @click="designatePlayer(index)">Set as player {{ index }}</div> -->
+                      </div>
+                    </td>
+                    <!-- <td>
                       <div
                         class="css-fixes"
                       >
@@ -318,7 +324,7 @@
                           </span>
                         </div>
                       </div>
-                    </td>
+                    </td> -->
                   </tr>
                 </tbody>
               </table>
@@ -352,7 +358,7 @@ export default({
   },
   mixins: [],
   props: [
-    'settings',
+    'siteSettings',
     'frame',
     'eventBus',
     'site'
@@ -375,18 +381,22 @@ export default({
       this.eventBus.sendToTunnel('set-mark-element', {parentIndex, enable});
     },
     async setPlayer(index) {
+      // yup.
+      this.siteSettings.getDOMConfig('modified', 'original');
+      await this.siteSettings.setUpdateFlags(['PlayerData']);
+      await this.siteSettings.set('DOMConfig.modified.type', 'modified', {noSave: true});
+      await this.siteSettings.set('activeDOMConfig', 'modified', {noSave: true});
+
       // if user agrees with ultrawidify on what element player should be,
       // we just unset our settings for this site
       if (this.elementStack[index].heuristics?.autoMatch) {
-        this.settings.setSiteOption(['DOM', 'player', 'manual'], false, this.site);
-        await this.settings.save();
+        await this.siteSettings.set('DOMConfig.modified.player.manual', false);
         this.eventBus.sendToTunnel('get-player-tree');
       } else {
         // ensure settings exist:
-        this.settings.setSiteOption(['DOM', 'player', 'manual'], true, this.site);
-        this.settings.setSiteOption(['DOM', 'player', 'useRelativeAncestor'], true, this.site);
-        this.settings.setSiteOption(['DOM', 'player', 'videoAncestor'], index, this.site);
-        await this.settings.save();
+        await this.siteSettings.set('DOMConfig.modified.player.manual', true, {noSave: true});
+        await this.siteSettings.set('DOMConfig.modified.player.mode', 'index', {noSave: true});
+        await this.siteSettings.set('DOMConfig.modified.player.index', index, true);
         this.eventBus.sendToTunnel('get-player-tree');
       }
     },
@@ -428,7 +438,6 @@ export default({
 
       //TODO: update settings!
     }
-
   }
 })
 </script>

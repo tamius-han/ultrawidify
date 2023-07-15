@@ -93,7 +93,6 @@
           ></VideoSettings>
           <PlayerDetectionPanel
             v-if="selectedTab === 'playerDetection'"
-            :settings="settings"
             :siteSettings="siteSettings"
             :eventBus="eventBus"
             :site="site"

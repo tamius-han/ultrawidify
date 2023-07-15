@@ -1,6 +1,6 @@
 import CropModePersistence from '../../../common/enums/CropModePersistence.enum';
 import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
-import { SiteSettingsInterface } from '../../../common/interfaces/SettingsInterface';
+import { SettingsReloadComponent, SettingsReloadFlags, SiteSettingsInterface } from '../../../common/interfaces/SettingsInterface';
 import { _cp } from '../../../common/js/utils';
 import Settings from '../Settings';
 import { browser } from 'webextension-polyfill-ts';
@@ -23,6 +23,8 @@ export class SiteSettings {
   temporaryData: SiteSettingsInterface;
   sessionData: SiteSettingsInterface;
   readonly defaultSettings: SiteSettingsInterface;
+
+  storageChangeSubscriptions: {[x: string]: ((newSiteConf, changes, area) => void)[]} = {};
 
   //#region lifecycle
   constructor(settings: Settings, site: string) {
@@ -114,12 +116,53 @@ export class SiteSettings {
     }
 
     const parsedSettings = JSON.parse(changes.uwSettings.newValue);
-    this.data = parsedSettings.active.sites[this.site];
+    this.data = parsedSettings.sites[this.site];
 
     // we ignore 'readonly' property this once
-    (this as any).defaultSettings = parsedSettings.active.sites['@global'];
+    (this as any).defaultSettings = parsedSettings.sites['@global'];
 
     this.compileSettingsObject();
+
+    console.log('changes:', parsedSettings);
+
+    // trigger any subscriptions on change
+    if (parsedSettings._updateFlags) {
+      console.log('update flags yay!')
+      if (parsedSettings._updateFlags?.forSite === this.site) {
+        if (parsedSettings._updateFlags?.requireReload === true) {
+          for (const key in this.storageChangeSubscriptions) {
+            for (const fn of this.storageChangeSubscriptions[key]) {
+              fn(this, changes, area);
+            }
+          }
+        }
+        else if (parsedSettings._updateFlags?.requireReload) {
+          for (const key of parsedSettings._updateFlags?.requireReload) {
+            console.log('reload required for:', key, this.storageChangeSubscriptions)
+            for (const fn of this.storageChangeSubscriptions[key]) {
+              fn(this, changes, area);
+            }
+          }
+        }
+      }
+
+      // we aren't stepping on any other toes by doing this, since everyone
+      // gets the first change
+      this.settings.active._updateFlags = undefined;
+      this.settings.saveWithoutReload();
+    }
+  }
+
+  subscribeToStorageChange(component: SettingsReloadComponent, fn: (newSiteConf, changes, area) => void) {
+    if (!this.storageChangeSubscriptions[component]) {
+      this.storageChangeSubscriptions[component] = [];
+    }
+    this.storageChangeSubscriptions[component].push(fn);
+  }
+  unsubscribeToStorageChange(component: SettingsReloadComponent, fn: (newSiteConf, changes, area) => void) {
+    if (this.storageChangeSubscriptions[component]) {
+      this.storageChangeSubscriptions[component] = this.storageChangeSubscriptions[component].filter(x => x != fn);
+    }
   }
   //#endregion
 
@@ -206,6 +249,23 @@ export class SiteSettings {
 
   //#endregion
 
+  //#region get
+  /**
+   * Gets DOMConfig. If DOMConfig with given name doesn't exist, we create a new one.
+   * @param configName We want to fetch this DOM config
+   * @param copyFrom If DOMConfig data doesn't exist, we copy things from DOMConfig with
+   *                 this name. If DOMConfig with this name doesn't exist, we copy last
+   *                 active DOMConfig. If that fails, we copy original DOMConfig.
+   * @returns Current DOMConfig object for this site
+   */
+  getDOMConfig(configName: string, copyFrom?: string) {
+    if (! this.data.DOMConfig[configName]) {
+      this.data.DOMConfig[configName] = _cp(this.data.DOMConfig[copyFrom ?? this.data.activeDOMConfig ?? 'original']);
+    }
+    return this.data.currentDOMConfig[configName];
+  }
+  //#endregion
+
   //#region set shit
   /**
    * Sets option value.
@@ -213,7 +273,7 @@ export class SiteSettings {
    * @param optionValue new value of option
    * @param reload whether we should trigger a reload in components that require it
    */
-  async set(optionPath: string, optionValue: any, reload: boolean = false) {
+  async set(optionPath: string, optionValue: any, options: {reload?: boolean, noSave?: boolean} = {reload: false}) {
     // if no settings exist for this site, create an empty object
     if (!this.settings.active.sites[this.site]) {
       this.settings.active.sites[this.site] = _cp(this.settings.active.sites['@empty']);
@@ -226,21 +286,37 @@ export class SiteSettings {
     } else {
       let iterator = this.settings.active.sites[this.site];
       let i;
+      let iterated = '';
+
       for (i = 0; i < pathParts.length - 1; i++) {
+        iterated = `${iterated}.${pathParts[i]}`
+
         if (!iterator[pathParts[i]]) { // some optional paths may still be undefined, even after cloning empty object
           iterator[pathParts[i]] = {};
         }
         iterator = iterator[pathParts[i]];
       }
+      iterated = `${iterated}.${pathParts[i]}`
+
       iterator[pathParts[i]] = optionValue;
     }
 
-    if (reload) {
-      this.settings.save();
-    } else {
-      this.settings.saveWithoutReload();
+    if (! options.noSave) {
+      if (options.reload) {
+        await this.settings.save();
+      } else {
+        await this.settings.saveWithoutReload();
+      }
     }
   }
+
+  async setUpdateFlags(flags: SettingsReloadFlags) {
+    this.settings.active._updateFlags = {
+      requireReload: flags,
+      forSite: this.site
+    };
+  }
+
 
   /**
    * Sets temporary option value (for Persistence.UntilReload)

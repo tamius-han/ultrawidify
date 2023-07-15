@@ -48,7 +48,15 @@ export interface CommandInterface {
   actionId?: string,
 }
 
+export type SettingsReloadComponent = 'PlayerData' | 'VideoData';
+export type SettingsReloadFlags = true | SettingsReloadComponent;
+
 interface SettingsInterface {
+  _updateFlags?: {
+    requireReload?: SettingsReloadFlags,
+    forSite?: string
+  }
+
   arDetect: {
     disabledReason: string,     // if automatic aspect ratio has been disabled, show reason
     allowedMisaligned: number,  // top and bottom letterbox thickness can differ by this much.
@@ -384,7 +392,7 @@ export interface SiteSettingsInterface {
 }
 
 export interface SiteDOMSettingsInterface {
-  type: 'official' | 'community' | 'user-defined' | undefined;
+  type: 'official' | 'community' | 'user-defined' | 'modified' | undefined;
   elements?: {
     player?: SiteDOMElementSettingsInterface,
     video?: SiteDOMElementSettingsInterface,
@@ -403,6 +411,7 @@ export interface SiteDOMElementSettingsInterface {
   manual?: boolean;
   querySelectors?: string;
   index?: number; // previously: useRelativeAncestor + videoAncestor
+  mode?: 'index' | 'qs';
   nodeCss?: {[x: string]: string};
 }
 

@@ -34,13 +34,6 @@
 
 <script>
 import PlayerUIWindow from './src/PlayerUIWindow.vue'
-import BaseExtensionSettings from './src/PlayerUiPanels/BaseExtensionSettings.vue'
-import DebugPanel from './src/PlayerUiPanels/DebugPanel.vue'
-import VideoSettings from './src/PlayerUiPanels/VideoSettings.vue'
-import AutodetectionSettingsPanel from './src/PlayerUiPanels/AutodetectionSettingsPanel.vue'
-import PlayerDetectionPanel from './src/PlayerUiPanels/PlayerDetectionPanel.vue'
-// import Icon from '../common/components/Icon';
-import ResizerDebugPanel from './src/PlayerUiPanels/ResizerDebugPanelComponent';
 import BrowserDetect from '../ext/conf/BrowserDetect';
 import Logger from '../ext/lib/Logger';
 import Settings from '../ext/lib/Settings';
@@ -49,13 +42,6 @@ import UIProbeMixin from './src/utils/UIProbeMixin';
 
 export default {
   components: {
-    // Icon,
-    ResizerDebugPanel,
-    VideoSettings,
-    PlayerDetectionPanel,
-    AutodetectionSettingsPanel,
-    DebugPanel,
-    BaseExtensionSettings,
     PlayerUIWindow
   },
   mixins: [
