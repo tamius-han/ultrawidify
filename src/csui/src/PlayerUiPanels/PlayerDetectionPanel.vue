@@ -390,13 +390,13 @@ export default({
       // if user agrees with ultrawidify on what element player should be,
       // we just unset our settings for this site
       if (this.elementStack[index].heuristics?.autoMatch) {
-        await this.siteSettings.set('DOMConfig.modified.player.manual', false);
+        await this.siteSettings.set('DOMConfig.modified.elements.player.manual', false);
         this.eventBus.sendToTunnel('get-player-tree');
       } else {
         // ensure settings exist:
-        await this.siteSettings.set('DOMConfig.modified.player.manual', true, {noSave: true});
-        await this.siteSettings.set('DOMConfig.modified.player.mode', 'index', {noSave: true});
-        await this.siteSettings.set('DOMConfig.modified.player.index', index, true);
+        await this.siteSettings.set('DOMConfig.modified.elements.player.manual', true, {noSave: true});
+        await this.siteSettings.set('DOMConfig.modified.elements.player.mode', 'index', {noSave: true});
+        await this.siteSettings.set('DOMConfig.modified.elements.player.index', index, true);
         this.eventBus.sendToTunnel('get-player-tree');
       }
     },

@@ -131,6 +131,9 @@ export class SiteSettings {
       if (parsedSettings._updateFlags?.forSite === this.site) {
         if (parsedSettings._updateFlags?.requireReload === true) {
           for (const key in this.storageChangeSubscriptions) {
+            if (!this.storageChangeSubscriptions[key]) {
+              continue;
+            }
             for (const fn of this.storageChangeSubscriptions[key]) {
               fn(this, changes, area);
             }
@@ -138,7 +141,10 @@ export class SiteSettings {
         }
         else if (parsedSettings._updateFlags?.requireReload) {
           for (const key of parsedSettings._updateFlags?.requireReload) {
-            console.log('reload required for:', key, this.storageChangeSubscriptions)
+            console.log('reload required for:', key, this.storageChangeSubscriptions);
+
+            if (! this.storageChangeSubscriptions[key]) continue;
+
             for (const fn of this.storageChangeSubscriptions[key]) {
               fn(this, changes, area);
             }

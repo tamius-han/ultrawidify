@@ -148,15 +148,16 @@ class PlayerData {
       document.addEventListener('fullscreenchange', this.trackDimensionChanges);
 
       // we want to reload on storage changes
-      this.siteSettings.subscribeToStorageChange('PlayerData', () => this.reloadPlayerDataConfig());
+      this.siteSettings.subscribeToStorageChange('PlayerData', (siteConfUpdate) => this.reloadPlayerDataConfig(siteConfUpdate));
     } catch (e) {
       console.error('[Ultrawidify::PlayerData::ctor] There was an error setting up player data. You should be never seeing this message. Error:', e);
       this.invalid = true;
     }
   }
 
-  private reloadPlayerDataConfig() {
+  private reloadPlayerDataConfig(siteConfUpdate) {
     console.log('reloading config ...')
+    // this.siteSettings = siteConfUpdate;
     this.element = this.getPlayer();
 
     console.log('got player:', this.element);
@@ -496,7 +497,7 @@ class PlayerData {
     const playerIndex = this.siteSettings.getPlayerIndex();
 
     // on verbose, get both qs and index player
-    if (options.verbose) {
+    if (options?.verbose) {
       if (playerIndex) {
         playerCandidate = elementStack[playerIndex];
         playerCandidate.heuristics['manualElementByParentIndex'] = true;
@@ -505,15 +506,22 @@ class PlayerData {
         playerCandidate = this.getPlayerQs(playerQs, elementStack, videoWidth, videoHeight);
       }
     }
+
     // if mode is given, we follow the preference
-    if (this.siteSettings.data.currentDOMConfig?.elements?.player?.mode) {
+    console.log('we prefer manual mode:', this.siteSettings, this.siteSettings.data.currentDOMConfig?.elements?.player);
+
+    if (this.siteSettings.data.currentDOMConfig?.elements?.player?.manual && this.siteSettings.data.currentDOMConfig?.elements?.player?.mode) {
+      console.log('we prefer manual mode:', this.siteSettings.data.currentDOMConfig?.elements?.player?.mode);
       if (this.siteSettings.data.currentDOMConfig?.elements?.player?.mode === 'qs') {
         playerCandidate = this.getPlayerQs(playerQs, elementStack, videoWidth, videoHeight);
+        console.log('got qs player candidate');
       } else {
         playerCandidate = elementStack[playerIndex];
         playerCandidate.heuristics['manualElementByParentIndex'] = true;
+        console.log('got index player candidate')
       }
     } else {
+      console.log('no preference.')
       // try to figure it out based on what we have, with playerQs taking priority
       if (playerQs) {
         playerCandidate = this.getPlayerQs(playerQs, elementStack, videoWidth, videoHeight);
