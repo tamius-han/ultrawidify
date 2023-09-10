@@ -73,6 +73,13 @@ class PageInfo {
   fsStatus = {fullscreen: true};  // fsStatus needs to be passed to VideoData, so fullScreen property is shared between videoData instances
   //#endregion
 
+  fsEventListener = {
+    that: this,
+    handleEvent: function(event: Event) {
+      this.that.fullscreenHandler();
+    }
+  };
+
   constructor(eventBus: EventBus, siteSettings: SiteSettings, settings: Settings, logger: Logger, readOnly = false){
     this.logger = logger;
     this.settings = settings;
@@ -83,8 +90,6 @@ class PageInfo {
 
     this.isFullscreen = !!document.fullscreenElement;
     this.iframeManager = new IframeManager({eventBus});
-
-
 
     if (eventBus){
       this.eventBus = eventBus;
@@ -103,7 +108,7 @@ class PageInfo {
     this.rescan(RescanReason.PERIODIC);
     this.scheduleUrlCheck();
 
-    document.addEventListener('fullscreenchange', this.fullscreenHandler);
+    document.addEventListener('fullscreenchange', this.fsEventListener);
   }
 
   destroy() {
@@ -147,15 +152,15 @@ class PageInfo {
   /**
    * Handler for fullscreenchanged event.
    */
-    fullscreenHandler() {
-      this.isFullscreen = !!document.fullscreenElement;
+  fullscreenHandler() {
+    this.isFullscreen = !!document.fullscreenElement;
 
-      if (this.isFullscreen) {
-        this.enterFullscreen();
-      } else {
-        this.exitFullscreen();
-      }
+    if (this.isFullscreen) {
+      this.enterFullscreen();
+    } else {
+      this.exitFullscreen();
     }
+  }
 
   reset() {
     for(let video of this.videos) {

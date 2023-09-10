@@ -69,7 +69,7 @@ class PlayerData {
   private playerIdElement: any;
   private observer: ResizeObserver;
 
-  private ui: any;
+  private ui: UI;
 
   elementStack: any[] = [];
   //#endregion
@@ -87,6 +87,13 @@ class PlayerData {
     }],
   }
   //#endregion
+
+  private dimensionChangeListener = {
+    that: this,
+    handleEvent: function(event: Event) {
+      this.that.trackDimensionChanges()
+    }
+  }
 
   /**
    * Gets player aspect ratio. If in full screen, it returns screen aspect ratio unless settings say otherwise.
@@ -145,7 +152,7 @@ class PlayerData {
       this.trackDimensionChanges();
       this.startChangeDetection();
 
-      document.addEventListener('fullscreenchange', this.trackDimensionChanges);
+      document.addEventListener('fullscreenchange', this.dimensionChangeListener);
 
       // we want to reload on storage changes
       this.siteSettings.subscribeToStorageChange('PlayerData', (siteConfUpdate) => this.reloadPlayerDataConfig(siteConfUpdate));
@@ -183,7 +190,7 @@ class PlayerData {
   }
 
   destroy() {
-    document.removeEventListener('fullscreenchange', this.trackDimensionChanges);
+    document.removeEventListener('fullscreenchange', this.dimensionChangeListener);
     this.stopChangeDetection();
     this.destroyOverlay();
     this.notificationService?.destroy();
