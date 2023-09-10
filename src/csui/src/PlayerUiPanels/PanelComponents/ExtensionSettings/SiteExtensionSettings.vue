@@ -446,7 +446,7 @@ export default {
 }
 </script>
 
-<style lang="scss" src="../../../../../res/css/flex.scss" scoped></style>
+<style lang="scss" src="../../../../res/css/flex.scss" scoped></style>
 <style lang="scss" src="../../../res-common/panels.scss" scoped></style>
 <style lang="scss" src="../../../res-common/common.scss" scoped></style>
 <style scoped>

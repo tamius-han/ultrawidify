@@ -35,7 +35,7 @@
 </template>
 
 <script>
-import JsonObject from '../../../common/components/JsonEditor/JsonObject.vue'
+import JsonObject from '../components/JsonEditor/JsonObject.vue'
 import Logger, { baseLoggingOptions } from '../../../ext/lib/Logger';
 
 export default {

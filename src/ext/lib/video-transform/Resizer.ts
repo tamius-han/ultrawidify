@@ -87,6 +87,7 @@ class Resizer {
         this.manualZoom = false; // this only gets called from UI or keyboard shortcuts, making this action safe.
 
         if (config.type !== AspectRatioType.Cycle) {
+          console.log('setting AR from event bus command')
           this.setAr(config);
         } else {
           // if we manually switched to a different aspect ratio, cycle from that ratio forward
@@ -164,17 +165,6 @@ class Resizer {
     }
   }
 
-  injectCss(cssString) {
-    this.eventBus.send('inject-css', {cssString});
-  }
-
-  ejectCss(cssString) {
-    this.eventBus.send('eject-css', {cssString});
-  }
-
-  replaceCss(oldCssString, newCssString) {
-    this.eventBus.send('replace-css', {oldCssString, newCssString});
-  }
 
   prepareCss(css) {
     return `.${this.userCssClassName} {${css}}`;
@@ -266,6 +256,10 @@ class Resizer {
     // CSS, et. al. initialization is deferred in order to avoid breaking wonky sites by default.
     if (ar.type !== AspectRatioType.Reset && ar.type !== AspectRatioType.Initial) {
       await this.videoData.preparePage();
+    } else {
+      console.log('Disabling videoData')
+      this.videoData.disable();
+      return;
     }
 
     if (ar.type !== AspectRatioType.AutomaticUpdate) {
@@ -302,14 +296,14 @@ class Resizer {
     // this means here's the optimal place to set or forget aspect ratio. Saving of current crop ratio
     // is handled in pageInfo.updateCurrentCrop(), which also makes sure to persist aspect ratio if ar
     // is set to persist between videos / through current session / until manual reset.
-    if (ar.type === AspectRatioType.Reset ||
-        ar.type === AspectRatioType.Initial
-    ) {
-      // reset/undo default
-      this.videoData.pageInfo.updateCurrentCrop(undefined);
-    } else {
+    // if (ar.type === AspectRatioType.Reset ||
+    //     ar.type === AspectRatioType.Initial
+    // ) {
+    //   // reset/undo default
+    //   this.videoData.pageInfo.updateCurrentCrop(undefined);
+    // } else {
       this.videoData.pageInfo.updateCurrentCrop(ar);
-    }
+    // }
 
     if (lastAr) {
       this.lastAr = this.calculateRatioForLegacyOptions(lastAr);
@@ -510,6 +504,7 @@ class Resizer {
     this.zoom.setZoom(1);
     this.resetPan();
     this.setAr({type: AspectRatioType.Reset});
+    this.unsetStyleString();
   }
 
   setPanMode(mode) {
@@ -892,16 +887,37 @@ class Resizer {
     if (!this.userCss) {
       this.logger.log('info', ['debug', 'resizer'], "[Resizer::setStyleString] <rid:"+this.resizerId+"> Setting new css: ", newCssString);
 
-      this.injectCss(newCssString);
+      this.eventBus.send('inject-css', {cssString: newCssString});
       this.userCss = newCssString;
     } else if (newCssString !== this.userCss) {
       this.logger.log('info', ['debug', 'resizer'], "[Resizer::setStyleString] <rid:"+this.resizerId+"> Replacing css.\nOld string:", this.userCss, "\nNew string:", newCssString);
       // we only replace css if it
-      this.replaceCss(this.userCss, newCssString);
+      this.eventBus.send('replace-css', {oldCssString: this.userCss, newCssString});
+
       this.userCss = newCssString;
     } else {
       this.logger.log('info', ['debug', 'resizer'], "[Resizer::setStyleString] <rid:"+this.resizerId+"> Existing css is still valid, doing nothing.");
     }
+  }
+
+  /**
+   * If no adjustments to crop or stretch are being made, we remove all CSS
+   * that we have previously injected.
+   * @param options:
+   *   - options.force: remove our CSS regardless of current crop and stretch options
+   */
+  unsetStyleString(options?: {force: boolean}) {
+
+    // check whether it's safe to remove CSS.
+    if (!options?.force) {
+      if (
+        [AspectRatioType.Reset, AspectRatioType.Initial].includes(this.lastAr.type)
+      ) {
+        return;
+      }
+    }
+
+    this.videoData.disable();
   }
   //#endregion
 }

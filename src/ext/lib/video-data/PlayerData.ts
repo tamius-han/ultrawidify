@@ -202,6 +202,7 @@ class PlayerData {
    * to the video and player element.
    */
   enable() {
+    console.log('enabling UI')
     this.enabled = true;
     this.element.classList.add(this.playerCssClass);
     this.startChangeDetection();
@@ -218,6 +219,7 @@ class PlayerData {
    * switching (back to) full screen.
    */
   disable() {
+    console.log('disabling UI')
     this.enabled = false;
     this.element.classList.remove(this.playerCssClass);
     this.videoData.disable({fromPlayer: true});
@@ -294,6 +296,7 @@ class PlayerData {
    * @param currentPlayerDimensions
    */
   private handleSizeConstraints(currentPlayerDimensions: PlayerDimensions) {
+    console.log('handling resize constraints');
     // Check if extension is allowed to run in current combination of theater + full screen
     const canEnable = this.siteSettings.isEnabledForEnvironment(this.isFullscreen, this.isTheaterMode) === ExtensionMode.Enabled;
 
@@ -318,6 +321,7 @@ class PlayerData {
 
 
   private handleDimensionChanges(newDimensions: PlayerDimensions, oldDimensions: PlayerDimensions) {
+    console.log('handling dimension changes');
     if (!this.enabled) {
       this.logger.log('info', 'debug', "[PlayerDetect] player size changed, but PlayerDetect is in disabled state. The player element is probably too small.");
       return;

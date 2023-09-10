@@ -258,10 +258,10 @@
 </template>
 
 <script>
-import Button from '../../../common/components/Button.vue'
+import Button from '../components/Button.vue'
 import KeyboardShortcutParser from '../../../common/js/KeyboardShortcutParser';
-import ShortcutButton from '../../../common/components/ShortcutButton';
-import EditShortcutButton from '../../../common/components/EditShortcutButton';
+import ShortcutButton from '../components/ShortcutButton';
+import EditShortcutButton from '../components/EditShortcutButton';
 import BrowserDetect from '../../../ext/conf/BrowserDetect';
 import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
 import StretchType from '../../../common/enums/StretchType.enum';
@@ -319,7 +319,7 @@ export default {
 }
 </script>
 
-<style lang="scss" src="../../../res/css/flex.scss" scoped module></style>
+<style lang="scss" src="../../res/css/flex.scss" scoped module></style>
 <style lang="scss" src="../res-common/panels.scss" scoped module></style>
 <style lang="scss" src="../res-common/common.scss" scoped module></style>
 

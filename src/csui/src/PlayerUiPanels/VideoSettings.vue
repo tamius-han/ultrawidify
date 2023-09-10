@@ -108,9 +108,9 @@
 import ZoomOptionsPanel from './PanelComponents/VideoSettings/ZoomOptionsPanel.vue'
 import CropOptionsPanel from './PanelComponents/VideoSettings/CropOptionsPanel'
 import StretchOptionsPanel from './PanelComponents/VideoSettings/StretchOptionsPanel'
-import Button from '../../../common/components/Button.vue'
-import ShortcutButton from '../../../common/components/ShortcutButton';
-import EditShortcutButton from '../../../common/components/EditShortcutButton';
+import Button from '../components/Button.vue'
+import ShortcutButton from '../components/ShortcutButton';
+import EditShortcutButton from '../components/EditShortcutButton';
 import ComputeActionsMixin from '../../../common/mixins/ComputeActionsMixin';
 import BrowserDetect from '../../../ext/conf/BrowserDetect';
 import AlignmentOptionsControlComponent from './AlignmentOptionsControlComponent.vue';
@@ -167,6 +167,6 @@ export default {
 }
 </script>
 
-<style lang="scss" src="../../../res/css/flex.scss" scoped module></style>
+<style lang="scss" src="../../res/css/flex.scss" scoped module></style>
 <style lang="scss" src="../res-common/panels.scss" scoped module></style>
 <style lang="scss" src="../res-common/common.scss" scoped module></style>

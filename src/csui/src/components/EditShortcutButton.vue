@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import KeyboardShortcutParser from '../js/KeyboardShortcutParser';
+import KeyboardShortcutParser from '../../../common/js/KeyboardShortcutParser';
 
 export default {
   props: {
@@ -172,9 +172,9 @@ export default {
 
 </script>
 
-<style lang="scss" src="../../csui/src/res-common/common.scss" scoped></style>
+<style lang="scss" src="../res-common/common.scss" scoped></style>
 <style lang="scss" scoped>
-@import "../../csui/src/res-common/variables";
+@import "../res-common/variables";
 
 .center-text {
   text-align: center;

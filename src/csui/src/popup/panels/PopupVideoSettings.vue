@@ -8,10 +8,8 @@
     <CropOptionsPanel
       style="margin-top: -2rem"
       :settings="settings"
-      :frame="frame"
-      :exec="exec"
       :eventBus="eventBus"
-      :site="site"
+      :siteSettings="siteSettings"
       :isEditing="false"
     >
     </CropOptionsPanel>
@@ -24,10 +22,8 @@
     <StretchOptionsPanel
       style="margin-top: -2rem"
       :settings="settings"
-      :frame="frame"
-      :exec="exec"
       :eventBus="eventBus"
-      :site="site"
+      :siteSettings="siteSettings"
       :isEditing="false"
     ></StretchOptionsPanel>
 
@@ -39,11 +35,10 @@
     <ZoomOptionsPanel
       style="margin-top: -2rem"
       :settings="settings"
-      :frame="frame"
-      :exec="exec"
       :eventBus="eventBus"
-      :site="site"
-      :isEditing="false">
+      :siteSettings="siteSettings"
+      :isEditing="false"
+    >
     </ZoomOptionsPanel>
 
     <div class="flex flex-row">
@@ -64,9 +59,9 @@
 </template>
 
 <script>
-import ZoomOptionsPanel from '../../csui/src/PlayerUiPanels/PanelComponents/VideoSettings/ZoomOptionsPanel.vue'
-import StretchOptionsPanel from '../../csui/src/PlayerUiPanels/PanelComponents/VideoSettings/StretchOptionsPanel.vue'
-import CropOptionsPanel from '../../csui/src/PlayerUiPanels/PanelComponents/VideoSettings/CropOptionsPanel.vue'
+import CropOptionsPanel from '../../PlayerUiPanels/PanelComponents/VideoSettings/CropOptionsPanel';
+import StretchOptionsPanel from '../../PlayerUiPanels/PanelComponents/VideoSettings/StretchOptionsPanel.vue';
+import ZoomOptionsPanel from '../../PlayerUiPanels/PanelComponents/VideoSettings/ZoomOptionsPanel.vue';
 
 export default {
   data() {
@@ -79,9 +74,8 @@ export default {
   ],
   props: [
     'settings',
-    'frame',
+    'siteSettings',
     'eventBus',
-    'site'
   ],
   components: {
     CropOptionsPanel, StretchOptionsPanel, ZoomOptionsPanel
@@ -97,3 +91,4 @@ export default {
   }
 }
 </script>
+

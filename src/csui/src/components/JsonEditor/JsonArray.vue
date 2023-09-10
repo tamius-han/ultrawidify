@@ -2,7 +2,7 @@
   <div class="flex flex-column json-level-indent">
     <div class="flex flex-row" @click="expanded_internal = !expanded_internal">
       <div v-if="value_internal.key" class="item-key">
-        "{{value_internal.key}}" <b>:</b> 
+        "{{value_internal.key}}" <b>:</b>
         <span v-if="!expanded_internal"><b> [</b> ... <b>]</b>,</span>
         <template v-else><b>[</b></template>
       </div>

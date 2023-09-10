@@ -14,8 +14,7 @@ const config = {
   entry: {
     'ext/uw': './ext/uw.js',
     'uw-bg': './uw-bg.js',
-    'popup/popup': './popup/popup.js',
-    'options/options': './options/options.js',
+    'csui/csui-popup': './csui/csui-popup.js',
     'csui/csui': './csui/csui.js',
     // 'install/first-time/first-time':'./install/first-time/first-time.js',
   },
@@ -127,9 +126,8 @@ const config = {
       // This folder does not contain any GUI icons — these are in /res/icons.
       // (TODO: check if this copy is even necessary — /icons has same content as /res/icons)
       { from: 'icons', to: 'icons', ignore: ['icon.xcf'] },
-      { from: 'popup/popup.html', to: 'popup/popup.html', transform: transformHtml },
+      { from: 'csui/csui-popup.html', to: 'csui/csui-popup.html', transform: transformHtml },
       { from: 'csui/csui.html', to: 'csui/csui.html', transform: transformHtml },
-      { from: 'options/options.html', to: 'options/options.html', transform: transformHtml },
       // { from: 'install/first-time/first-time.html', to: 'install/first-time/first-time.html', transform: transformHtml},
       {
         from: 'manifest.json',

@@ -136,8 +136,8 @@
 </template>
 
 <script>
-import ShortcutButton from '../../../../../common/components/ShortcutButton.vue';
-import EditShortcutButton from '../../../../../common/components/EditShortcutButton';
+import ShortcutButton from '../../../components/ShortcutButton.vue';
+import EditShortcutButton from '../../../components/EditShortcutButton';
 import EditModeMixin from '../../../utils/EditModeMixin';
 import KeyboardShortcutParserMixin from '../../../utils/KeyboardShortcutParserMixin';
 import CommsMixin from '../../../utils/CommsMixin';
@@ -231,6 +231,6 @@ export default {
 }
 </script>
 
-<style lang="scss" src="../../../../../res/css/flex.scss" scoped></style>
+<style lang="scss" src="../../../../res/css/flex.scss" scoped></style>
 <style lang="scss" src="../../../res-common/panels.scss" scoped></style>
 <style lang="scss" src="../../../res-common/common.scss" scoped></style>

@@ -28,12 +28,14 @@
         side menu
       </div>
       <div class="scrollable">
-        <PopupVideoSettings
-          :settings="settings"
-          :eventBus="eventBus"
-          :site="site"
-          :frame="selectedFrame"
-        ></PopupVideoSettings>
+        site: {{site}}, settings: {{ settings }}
+        <template v-if="settings && siteSettings">
+          <PopupVideoSettings
+            :settings="settings"
+            :eventBus="eventBus"
+            :siteSettings="siteSettings"
+          ></PopupVideoSettings>
+        </template>
       </div>
       <!-- <pre>
         ---- site:
@@ -48,7 +50,7 @@
 </template>
 
 <script>
-import PopupVideoSettings from './panels/PopupVideoSettings.vue'
+import PopupVideoSettings from './src/popup/panels/PopupVideoSettings.vue'
 import Debug from '../ext/conf/Debug';
 import BrowserDetect from '../ext/conf/BrowserDetect';
 import Comms from '../ext/lib/comms/Comms';
@@ -57,7 +59,6 @@ import Settings from '../ext/lib/Settings';
 import Logger from '../ext/lib/Logger';
 import EventBus from '../ext/lib/EventBus';
 import {ChromeShittinessMitigations as CSM} from '../common/js/ChromeShittinessMitigations';
-import { browser } from 'webextension-polyfill-ts';
 
 export default {
   data () {
@@ -70,7 +71,7 @@ export default {
       sideMenuVisible: null,
       logger: undefined,
       site: undefined,
-
+      siteSettings: undefined,
       selectedFrame: '__playing',
     }
   },
@@ -159,7 +160,8 @@ export default {
   },
   components: {
     Debug,
-    BrowserDetect, PopupVideoSettings
+    BrowserDetect,
+    PopupVideoSettings
   },
   methods: {
     async sleep(t) {
@@ -253,186 +255,3 @@ export default {
   }
 }
 </script>
-
-<style src="../res/css/font/overpass.css"></style>
-<style src="../res/css/font/overpass-mono.css"></style>
-<style src="../res/css/flex.scss"></style>
-<style src="../res/css/common.scss"></style>
-
-<style lang="scss" scoped>
-html {
-  // width: 800px !important;
-  // max-width: 800px !important;
-  padding: 0px;
-  margin: 0px;
-}
-
-.zero-width {
-  width: 0px !important;
-  overflow: hidden;
-}
-
-.header .header-small, .narrow-content {
-  padding: 8px;
-}
-
-#tablist {
-  min-width: 275px;
-  max-width: 300px;
-}
-
-.header {
-  overflow: hidden;
-  background-color: #7f1416;
-  color: #fff;
-  margin: 0px;
-  margin-top: 0px;
-  padding-top: 8px;
-  padding-left: 15px;
-  padding-bottom: 1px;
-  font-size: 1.75rem;
-}
-.header-small {
-  overflow: hidden;
-  background-color: #7f1416;
-  color: #fff;
-  margin: 0px;
-  margin-top: 0px;
-  padding-top: 8px;
-  padding-left: 15px;
-  padding-bottom: 1px;
-  font-size: 1.27em;
-}
-
-.scrollable {
-  height: 100%;
-  overflow-y: auto;
-}
-
-.menu-item-inline-desc{
-  font-size: 0.60em;
-  font-weight: 300;
-  font-variant: normal;
-}
-
-.menu-item {
-  flex-grow: 0;
-  padding-left: 15px;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  font-variant: small-caps;
-  border-left: transparent 5px solid;
-  cursor: pointer;
-  user-select: none;
-}
-
-.menu-item-darker {
-  color: #999;
-}
-
-.suboption {
-  display: block;
-  padding-left: 15px;
-  padding-right: 15px;
-  padding-top: 5px;
-  padding-bottom: 20px;
-  min-height: 250px;
-}
-
-
-#no-videos-display {
-  height: 100%;
-  padding-top: 50px;
-/*       text-align: center; */
-}
-
-.tabitem-container {
-  padding-top: 0.5em;
-}
-
-.selected-tab {
-  background-color: initial;
-  border-left: #f18810 5px solid;
-}
-
-.tabitem {
-  font-variant: normal;
-  // font-size: 0.69em;
-  // margin-left: 16px;
-  border-left: transparent 3px solid;
-  padding-left: 12px;
-  margin-left: -10px;
-}
-
-.site-list {
-  max-height: 200px;
-}
-
-.tabitem-selected {
-  color: #fff !important;
-  background-color: initial;
-  border-left: #f0c089 3px solid !important;
-}
-
-.tabitem-selected::before {
-  padding-right: 8px;
-}
-
-.tabitem-disabled {
-  color: #cc3b0f !important;
-}
-
-.tabitem-iframe::after {
-  content: "</>";
-  padding-left: 0.33em;
-}
-
-.menu-button {
-  margin-bottom: 4px;
-  padding: 4px;
-  border-bottom: #f18810 1px solid !important;
-  font-size: 1.5rem !important;
-  cursor: pointer;
-  user-select: none;;
-}
-
-.popup {
-  height: 600px;
-}
-
-/**
-  This was written at the top, but it's worth repeating.
-
-  NOTE — the code that makes ultrawidify popup work in firefox regardless of whether the
-  extension is being displayed in a normal or a small/overflow popup breaks the popup
-  behaviour on Chrome (where the popup would never reach the full width of 800px)
-
-  Since I'm tired and the hour is getting late, we'll just add an extra CSS class for
-  non-firefox builds of this extension and be done with it. No need to complicate things
-  further than that.
-
-  It also seems that Chrome doesn't like if we set the width of the popup all the way to
-  800px (probably something something scrollbar), so let's just take away a few px.
- */
-.popup-chrome {
-  width: 780px !important;
-}
-
-.relative {
-  position: relative;
-}
-.absolute {
-  position: absolute;
-}
-.channel-info {
-  height: 0px;
-  right: 1.5rem;
-  bottom: 0.85rem;
-  font-size: 0.75rem;
-}
-
-.show-more {
-  padding-top: 12px;
-  font-size: 0.9rem;
-}
-</style>

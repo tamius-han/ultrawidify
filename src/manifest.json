@@ -9,7 +9,7 @@
   },
   "action": {
     "default_title": "Ultrawidify",
-    "default_popup": "popup/popup.html"
+    "default_popup": "csui/csui-popup.html"
   },
 
 
@@ -29,12 +29,6 @@
     "scripts": [
       "uw-bg.js"
     ]
-  },
-
-  "options_ui": {
-    "page": "options/options.html",
-    "browser_style": false,
-    "open_in_tab": true
   },
 
   "web_accessible_resources": [

@@ -245,6 +245,7 @@ class VideoData {
    * Must be triggered on first action. TODO
    */
   preparePage() {
+    console.log('preparing page ...')
     this.injectBaseCss();
     this.pageInfo.initMouseActionHandler(this);
 
