@@ -111,7 +111,7 @@ import StretchOptionsPanel from './PanelComponents/VideoSettings/StretchOptionsP
 import Button from '../components/Button.vue'
 import ShortcutButton from '../components/ShortcutButton';
 import EditShortcutButton from '../components/EditShortcutButton';
-import ComputeActionsMixin from '../../../common/mixins/ComputeActionsMixin';
+import ComputeActionsMixin from '../mixins/ComputeActionsMixin';
 import BrowserDetect from '../../../ext/conf/BrowserDetect';
 import AlignmentOptionsControlComponent from './AlignmentOptionsControlComponent.vue';
 import CommsMixin from '../utils/CommsMixin';
