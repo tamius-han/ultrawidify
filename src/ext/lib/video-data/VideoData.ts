@@ -25,6 +25,14 @@ import { ExtensionStatus } from './ExtensionStatus';
  */
 class VideoData {
   private baseCssName: string = 'uw-ultrawidify-base-wide-screen';
+  private baseVideoCss = `.uw-ultrawidify-base-wide-screen {
+    margin: 0px 0px 0px 0px !important;
+    width: initial !important;
+    align-self: start !important;
+    justify-self: start !important;
+    max-height: initial !important;
+    max-width: initial !important;
+  }`;
 
   //#region flags
   arSetupComplete: boolean = false;
@@ -161,19 +169,7 @@ class VideoData {
       if (!this.mutationObserver) {
         this.setupMutationObserver();
       }
-      this.eventBus.send(
-        'inject-css',
-        `
-          .uw-ultrawidify-base-wide-screen {
-            margin: 0px 0px 0px 0px !important;
-            width: initial !important;
-            align-self: start !important;
-            justify-self: start !important;
-            max-height: initial !important;
-            max-width: initial !important;
-          }
-        `
-      );
+      this.eventBus.send('inject-css', this.baseVideoCss);
     } catch (e) {
       console.error('Failed to inject base css!', e);
     }
