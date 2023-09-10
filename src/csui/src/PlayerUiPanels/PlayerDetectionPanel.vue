@@ -361,16 +361,24 @@ export default({
     'siteSettings',
     'frame',
     'eventBus',
-    'site'
+    'site',
+    'isPopup'
   ],
   created() {
     this.eventBus.subscribe('uw-config-broadcast', {function: (config) => this.handleElementStack(config)});
   },
   mounted() {
-    this.eventBus.sendToTunnel('get-player-tree');
+    this.getPlayerTree();
   },
   computed: {},
   methods: {
+    getPlayerTree() {
+      if (this.isPopup) {
+        this.eventBus.send('get-player-tree');
+      } else {
+        this.eventBus.sendToTunnel('get-player-tree');
+      }
+    },
     handleElementStack(configBroadcast) {
       if (configBroadcast.type === 'player-tree') {
         this.elementStack = configBroadcast.config;
@@ -391,13 +399,13 @@ export default({
       // we just unset our settings for this site
       if (this.elementStack[index].heuristics?.autoMatch) {
         await this.siteSettings.set('DOMConfig.modified.elements.player.manual', false);
-        this.eventBus.sendToTunnel('get-player-tree');
+        this.getPlayerTree();
       } else {
         // ensure settings exist:
         await this.siteSettings.set('DOMConfig.modified.elements.player.manual', true, {noSave: true});
         await this.siteSettings.set('DOMConfig.modified.elements.player.mode', 'index', {noSave: true});
         await this.siteSettings.set('DOMConfig.modified.elements.player.index', index, true);
-        this.eventBus.sendToTunnel('get-player-tree');
+        this.getPlayerTree();
       }
     },
     /**

@@ -20,29 +20,59 @@
         Build channel: {{BrowserDetect?.processEnvChannel}}
       </div>
     </div>
-    <div class="">
-      TODO: force open UI button
-    </div>
+
+
+    <!-- CONTAINER ROOT -->
     <div class="flex flex-row body no-overflow flex-grow">
-      <div class="">
-        side menu
+
+      <!-- TABS -->
+      <div class="flex flex-col">
+        <div
+          v-for="tab of tabs"
+          :key="tab.id"
+          class="tab"
+          :class="{'active': tab.id === selectedTab}"
+          @click="selectTab(tab.id)"
+        >
+          <div class="icon-container">
+            <mdicon
+              :name="tab.icon"
+              :size="32"
+            />
+          </div>
+          <div class="label">
+            {{tab.label}}
+          </div>
+        </div>
       </div>
+
+      <!-- CONTENT -->
       <div class="scrollable">
-        site: {{site}}, settings: {{ settings }}
         <template v-if="settings && siteSettings">
           <PopupVideoSettings
+            v-if="selectedTab === 'videoSettings'"
             :settings="settings"
             :eventBus="eventBus"
             :siteSettings="siteSettings"
           ></PopupVideoSettings>
+          <PlayerDetectionPanel
+            v-if="selectedTab === 'playerDetection'"
+            :settings="settings"
+            :eventBus="eventBus"
+            :siteSettings="siteSettings"
+            :site="site.host"
+          >
+          </PlayerDetectionPanel>
+          <BaseExtensionSettings
+            v-if="selectedTab === 'extensionSettings'"
+            :settings="settings"
+            :eventBus="eventBus"
+            :siteSettings="siteSettings"
+            :site="site.host"
+          >
+          </BaseExtensionSettings>
         </template>
       </div>
-      <!-- <pre>
-        ---- site:
-        {{site}}
-
-        ----
-      </pre> -->
 
     </div>
   </div>
@@ -50,6 +80,8 @@
 </template>
 
 <script>
+import BaseExtensionSettings from './src/PlayerUiPanels/BaseExtensionSettings.vue'
+import PlayerDetectionPanel from './src/PlayerUiPanels/PlayerDetectionPanel.vue'
 import PopupVideoSettings from './src/popup/panels/PopupVideoSettings.vue'
 import Debug from '../ext/conf/Debug';
 import BrowserDetect from '../ext/conf/BrowserDetect';
@@ -72,7 +104,14 @@ export default {
       logger: undefined,
       site: undefined,
       siteSettings: undefined,
-      selectedFrame: '__playing',
+      selectedTab: 'playerUiCtl',
+      tabs: [
+        // see this for icons: https://pictogrammers.com/library/mdi/
+        {id: 'playerUiCtl', label: 'In-player UI', icon: 'artboard'},
+        {id: 'videoSettings', label: 'Video settings', icon: 'crop'},
+        {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
+        {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
+      ],
     }
   },
   async created() {
@@ -101,7 +140,8 @@ export default {
             }
           }
           this.site = config.site;
-          this.selectedSite = this.selectedSite || config.site.host;
+          // this.selectedSite = this.selectedSite || config.site.host;
+          this.siteSettings = this.settings.getSiteSettings(this.site.host);
 
           this.eventBus.setupPopupTunnelWorkaround({
             origin: CommsOrigin.Popup,
@@ -161,7 +201,7 @@ export default {
   components: {
     Debug,
     BrowserDetect,
-    PopupVideoSettings
+    PopupVideoSettings, PlayerDetectionPanel, BaseExtensionSettings
   },
   methods: {
     async sleep(t) {
@@ -190,7 +230,9 @@ export default {
     getRandomColor() {
       return `rgb(${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)})`;
     },
-
+    selectTab(tab) {
+      this.selectedTab = tab;
+    },
     processReceivedMessage(message, port) {
       this.logger.log('info', 'popup', '[popup::processReceivedMessage] received message:', message)
       console.info('[popup::processReceivedMessage] got message:', message);
@@ -247,7 +289,7 @@ export default {
       // }
 
       // update whether video tab can be shown
-      this.updateCanShowVideoTab();
+      // this.updateCanShowVideoTab();
     },
     getRandomColor() {
       return `rgb(${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)})`;
