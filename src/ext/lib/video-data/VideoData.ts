@@ -395,7 +395,7 @@ class VideoData {
     this.video.classList.remove(this.baseCssName);
     this.video.classList.remove(this.userCssClassName);
 
-    if (!options.fromPlayer) {
+    if (!options?.fromPlayer) {
       this.player?.disable();
     }
   }

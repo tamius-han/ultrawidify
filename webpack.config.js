@@ -8,6 +8,9 @@ const { VueLoaderPlugin } = require('vue-loader');
 const path = require('path');
 
 const config = {
+  watchOptions: {
+    ignored: /node_modules/
+  },
   mode: process.env.NODE_ENV,
   devtool: `${process.env.CHANNEL === 'stable' ? undefined : "inline-source-map"}`,
   context: __dirname + '/src',
@@ -176,8 +179,12 @@ const config = {
 
           if (process.env.BROWSER !== 'firefox') {
             jsonContent.version = jsonContent.version.replace(/[a-zA-Z-]/g, '');
-            delete jsonContent.options_ui.browser_style;
-            delete jsonContent.background.scripts;
+            try {
+              delete jsonContent.options_ui.browser_style;
+            } catch (e) { }
+            try {
+              delete jsonContent.background.scripts;
+            } catch (e) {}
           } else {
             delete jsonContent.background.service_worker;
           }
