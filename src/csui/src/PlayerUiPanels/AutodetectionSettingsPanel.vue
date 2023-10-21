@@ -39,7 +39,7 @@
                         Math.max(
                           (performanceData?.total?.averageTime ?? 0)
                             - (performanceData?.imageDraw?.averageTime ?? 0)
-                            - (performanceData?.imageDraw?.averageTime ?? 0),
+                            - (performanceData?.blackFrame?.averageTime ?? 0),
                           0
                         ).toFixed(1)
                       }} ms
@@ -62,7 +62,7 @@
                         'width': Math.max(
                           (performanceData?.total?.averageTime ?? 0)
                             - (performanceData?.imageDraw?.averageTime ?? 0)
-                            - (performanceData?.imageDraw?.averageTime ?? 0),
+                            - (performanceData?.blackFrame?.averageTime ?? 0),
                           0
                         ) + '%'
                       }"
@@ -80,7 +80,7 @@
                         Math.max(
                           (performanceData?.total?.worstTime ?? 0)
                             - (performanceData?.imageDraw?.worstTime ?? 0)
-                            - (performanceData?.blackFrameDraw?.worstTime ?? 0),
+                            - (performanceData?.blackFrame?.worstTime ?? 0),
                           0
                         ).toFixed(1)
                       }} ms
@@ -94,7 +94,7 @@
                     </div>
                     <div
                       class="draw-blackframe"
-                      :style="{'width': (performanceData?.blackFrameDraw?.worstTime ?? 0) + '%'}"
+                      :style="{'width': (performanceData?.blackFrame?.worstTime ?? 0) + '%'}"
                     >
                     </div>
                     <div
@@ -103,7 +103,7 @@
                         'width': Math.max(
                           (performanceData?.total?.worstTime ?? 0)
                             - (performanceData?.imageDraw?.worstTime ?? 0)
-                            - (performanceData?.blackFrameDraw?.worstTime ?? 0),
+                            - (performanceData?.blackFrame?.worstTime ?? 0),
                           0
                         ) + '%'
                       }"
