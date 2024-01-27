@@ -18,6 +18,10 @@
 
 ## v5.x (current major)
 
+### v5.1.7 (firefox only)
+
+* When aligning videos, ensure video is never translated by a fractional value
+
 ### v5.1.6
 
 * Added new config for disney+ (courtesy of @MStefan99)
