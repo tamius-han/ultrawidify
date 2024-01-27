@@ -711,7 +711,7 @@ class Resizer {
 
     // add remaining elements
     if (stretchFactors) {
-      styleArray.push(`transform: translate(${translate.x}px, ${translate.y}px) scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor}) !important;`);
+      styleArray.push(`transform: translate(${Math.floor(translate.x)}px, ${Math.floor(translate.y)}px) scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor}) !important;`);
 
       // important — guarantees video will be properly aligned
       // Note that position:absolute cannot be put here, otherwise old.reddit /w RES breaks — videos embedded
