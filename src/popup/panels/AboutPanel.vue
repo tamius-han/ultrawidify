@@ -7,8 +7,7 @@
     <span class="label">Having an issue?</span><br/> Report <strike>undocumented features</strike> bugs using one of the following options (in order of preference):
       <ul>
         <li> <a target="_blank" href="https://github.com/tamius-han/ultrawidify/issues"><b>Github (preferred)</b></a><br/></li>
-        <li>Email: <a target="_blank" :href="mailtoLink">tamius.han@gmail.com</a></li>
-        <li>PM me on <a target="_blank" :href="redditLink">reddit</a><br/></li>
+        <li>Email: <a target="_blank" :href="mailtoLink">{{gmailLink}}</a></li>
       </ul>
     </div>
 
@@ -41,6 +40,11 @@ import Comms from '../../ext/lib/comms/Comms';
 import ShortcutButton from '../../common/components/ShortcutButton';
 import BrowserDetect from '../../ext/conf/BrowserDetect';
 
+
+
+b64="dGFtaXVzLmhhbkBnbWFpbC5jb20";
+gmailLink=atob(b64);
+
 export default {
   components: {
     ShortcutButton,
@@ -54,7 +58,6 @@ export default {
       loggerSettingsError: false,
       lastLoadedLoggerSettings: undefined,
       mailtoLink: '',
-      redditLink: '',
       showEasterEgg: false,
     }
   },
@@ -74,8 +77,7 @@ Browser-related stuff (please ensure this section is correct):
 * Operating system: ${window.navigator.platform}
 `
       );
-    this.mailtoLink = `mailto:tamius.han@gmail.com?subject=%5BUltrawidify%5D%20ENTER%20SUMMARY%20OF%20YOUR%20ISSUE%20HERE&body=${messageTemplate}`;
-    this.redditLink = `https://www.reddit.com/message/compose?to=xternal7&subject=[Ultrawidify]%20ENTER%20SUMMARY%20OF%20YOUR%20PROBLEM%20HERE&message=${messageTemplate}`;
+    this.mailtoLink = `mailto:${gmailLink}?subject=%5BUltrawidify%5D%20ENTER%20SUMMARY%20OF%20YOUR%20ISSUE%20HERE&body=${messageTemplate}`;
   },
   methods: {
     async updateLoggerSettings(allowLogging) {
