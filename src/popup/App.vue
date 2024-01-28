@@ -22,12 +22,10 @@
     </div>
     <!-- ANGLE warning for chrome/edge -->
     <div v-if="warnings.angleBackend" class="flex flex-column">
-      <div class="warning-lite">
-        <b style="padding-left: 0.5rem">Hardware acceleration in <template v-if="BrowserDetect.edge">Edge</template><template v-else>Chrome</template> is broken</b><br/>
-      <small> This causes videos to be stretched incorrectly.
-        This is a bug with <template v-if="BrowserDetect.edge">Edge</template><template v-else>Chrome</template>, not with this addon.</small><br/>
-        To fix the problem, visit <code style="background-color: rgba(255,128,64, 0.2)"><template v-if="BrowserDetect.edge">edge</template><template v-else>chrome</template>://flags#use-angle</code> and choose <b>D3D9</b> or <b>OpenGL</b> from available options.
-      </div>
+      <!-- <div class="warning-lite">
+        <template v-if="BrowserDetect.edge">Edge</template><template v-else>Chrome</template>'s hardware acceleration has a history of bugs that may
+        cause videos to be stretched incorrectly. If videos are stretched incorrectly, visit <code style="background-color: rgba(255,128,64, 0.2)"><template v-if="BrowserDetect.edge">edge</template><template v-else>chrome</template>://flags#use-angle</code> and try changing this option to <b>D3D9</b>, <b>OpenGL</b>, or something other than the currently selected option.
+      </div> -->
     </div>
 
     <div
@@ -227,7 +225,8 @@ import { detectANGLEBackend, AngleVersion } from '../ext/lib/angle-detect/detect
 export default {
   data () {
     const angleBackend = detectANGLEBackend();
-    const gibAngleWarning = BrowserDetect.anyChromium && angleBackend !== AngleVersion.OpenGL && angleBackend !== AngleVersion.D3D9;
+    // const gibAngleWarning = BrowserDetect.anyChromium && angleBackend !== AngleVersion.OpenGL && angleBackend !== AngleVersion.D3D9;
+    const gibAngleWarning = false;
 
     return {
       selectedTab: 'video',
