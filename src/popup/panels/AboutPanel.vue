@@ -41,10 +41,6 @@ import ShortcutButton from '../../common/components/ShortcutButton';
 import BrowserDetect from '../../ext/conf/BrowserDetect';
 
 
-
-b64="dGFtaXVzLmhhbkBnbWFpbC5jb20";
-gmailLink=atob(b64);
-
 export default {
   components: {
     ShortcutButton,
@@ -59,9 +55,12 @@ export default {
       lastLoadedLoggerSettings: undefined,
       mailtoLink: '',
       showEasterEgg: false,
+      gmailLink: '',
     }
   },
   async created() {
+    const b64="dGFtaXVzLmhhbkBnbWFpbC5jb20";
+    this.gmailLink = atob(b64);
     const messageTemplate = encodeURIComponent(
 `Describe your issue in more detail. In case of misaligned videos, please provide screenshots. When reporting\
  issues with autodetection not detecting aspect ratio correctly, please provide a link with timestamp to the\
@@ -77,7 +76,7 @@ Browser-related stuff (please ensure this section is correct):
 * Operating system: ${window.navigator.platform}
 `
       );
-    this.mailtoLink = `mailto:${gmailLink}?subject=%5BUltrawidify%5D%20ENTER%20SUMMARY%20OF%20YOUR%20ISSUE%20HERE&body=${messageTemplate}`;
+    this.mailtoLink = `mailto:${this.gmailLink}?subject=%5BUltrawidify%5D%20ENTER%20SUMMARY%20OF%20YOUR%20ISSUE%20HERE&body=${messageTemplate}`;
   },
   methods: {
     async updateLoggerSettings(allowLogging) {
