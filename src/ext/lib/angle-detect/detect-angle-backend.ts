@@ -18,15 +18,19 @@ export enum AngleVersion {
  * @returns
  */
 function detectDX(shaderSource: string) {
-  const glsl = shaderSource.match(/#version (\d+)( es)?$/m);
+  try {
+    const glsl = shaderSource.match(/#version (\d+)( es)?$/m);
 
-  const glslVer = +glsl[1];
+    const glslVer = +glsl[1];
 
-  if (glslVer >= 300) {
-    return AngleVersion.D3D11;
-  }
-  if (glslVer >= 100) {
-    return AngleVersion.D3D9;
+    if (glslVer >= 300) {
+      return AngleVersion.D3D11;
+    }
+    if (glslVer >= 100) {
+      return AngleVersion.D3D9;
+    }
+  } catch (e) {
+    return AngleVersion.NotAvailable;
   }
 }
 
@@ -68,16 +72,19 @@ function detectGl(shaderSource: string) {
  * @returns
  */
 function detectBackend(str) {
+  try {
+    if (str.match(/metal::float4/)) {
+      return AngleVersion.Metal;
+    }
 
-  if (str.match(/metal::float4/)) {
-    return AngleVersion.Metal;
+    if (str.match(/VS_OUTPUT main\(/)) {
+      return detectDX(str);
+    }
+
+    return detectGl(str);
+  } catch (e) {
+    return AngleVersion.NotAvailable;
   }
-
-  if (str.match(/VS_OUTPUT main\(/)) {
-    return detectDX(str);
-  }
-
-  return detectGl(str);
 }
 
 /**
