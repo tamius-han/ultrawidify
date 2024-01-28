@@ -18,9 +18,12 @@
 
 ## v5.x (current major)
 
-### v5.1.7 (firefox only)
+### v5.1.7
 
 * When aligning videos, ensure video is never translated by a fractional value
+* As of recent nVidia driver update in Edge, Angle detection fails in a way that prevents popup from showing up. This problem should be fixed now.
+
+The angle detection problem was fixed by disabling the angle detection check for now, as Chrome, et al. appear to have fixed buggy video hardware acceleration.
 
 ### v5.1.6
 
