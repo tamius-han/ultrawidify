@@ -5,7 +5,7 @@
 #
 # Script assumes we're in basedir of the repository and that extension has been built and zipped to /dist-zip
 # using the crx name we want (same name as zip, except different extension)
-# 
+#
 # also this doesn't check for errors ever so
 #
 

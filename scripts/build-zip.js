@@ -24,7 +24,7 @@ const buildZip = (src, dist, zipFilename) => {
 
   const archive = archiver('zip', { zlib: { level: 9 }});
   const stream = fs.createWriteStream(path.join(dist, zipFilename));
-  
+
   return new Promise((resolve, reject) => {
     archive
       .directory(src, false)
@@ -46,14 +46,14 @@ const main = () => {
     browserPostfix = browser;
   }
   const destDir = path.join(__dirname, `../dist-${browserPostfix}`);
-  const zipDir = path.join(__dirname, '../dist-zip'); 
+  const zipDir = path.join(__dirname, '../dist-zip');
   const {name, version} = extractExtensionData(browserPostfix);
 
   // collapse spaces and dashes into single dash
   const baseFilename = `${name.replace(/[ -]+/g, '-')}-${version}`;
 
   let realZipDir;
-  
+
   if (!!testingOrNightly) {
     realZipDir = path.join(zipDir, version);
   } else {
@@ -61,7 +61,7 @@ const main = () => {
   }
 
   const zipFilename = `${baseFilename}-${browser}.zip`;
-  
+
   try {
     makeDirIfNotExists(realZipDir, {recursive: true});
   } catch (e) {
@@ -70,7 +70,7 @@ const main = () => {
   }
   buildZip(destDir, realZipDir, zipFilename)
     .then(() => console.info('OK'))
-    .catch(console.err); 
+    .catch(console.err);
 };
 
 main();
