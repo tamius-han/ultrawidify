@@ -4,7 +4,8 @@
     <p>Full changelog for older versions <a href="https://github.com/tamius-han/ultrawidify/blob/master/CHANGELOG.md">is available here</a>.</p>
     <p class="label">5.1.7</p>
     <ul>
-      <li>In some situations, video aligned would move the video by non-whole number of pixels. On some hardware configuration, this would introduce a thin vertical white line. This issue <i>should</i> be fixed now.</li>
+      <li>(Firefox) In some situations, video aligned would move the video by non-whole number of pixels. On some hardware configuration, this would introduce a thin vertical white line. This issue <i>should</i> be fixed now.</li>
+      <li>(Edge) As of recent nVidia driver update in Edge, Angle detection fails in a way that prevents popup from showing up. This problem should be fixed now.</li>
     </ul>
   </div>
 </template>
