@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-column">
+  <div class="flex flex-column" style="position: relative; width: 100%;">
     <!-- 'Change UI' options is a tiny bit in upper right corner. -->
     <div
       class="options-bar flex flex-row"
@@ -28,77 +28,82 @@
     </div>
 
     <!-- The rest of the tab is under 'edit ratios and shortcuts' row -->
-    <div class="flex flex-row flex-wrap" style="padding-bottom: 20px">
+    <div class="flex flex-row flex-wrap" style="width: 100%">
 
-      <!-- CROP OPTIONS -->
-      <div v-if="settings" class="sub-panel">
-        <div class="flex flex-row">
-          <mdicon name="crop" :size="32" />
-          <h1>Crop video:</h1>
-        </div>
-
-        <CropOptionsPanel
-          :settings="settings"
-          :siteSettings="siteSettings"
-          :eventBus="eventBus"
-          :isEditing="editMode"
-        >
-        </CropOptionsPanel>
-      </div>
-
-      <!-- STRETCH OPTIONS -->
-      <div v-if="settings" class="sub-panel">
-        <div class="flex flex-row">
-          <mdicon name="stretch-to-page-outline" :size="32" />
-          <h1>Stretch video:</h1>
-        </div>
-
-        <StretchOptionsPanel
-          :settings="settings"
-          :siteSettings="siteSettings"
-          :eventBus="eventBus"
-          :isEditing="editMode"
-        ></StretchOptionsPanel>
-      </div>
-
-
-      <!-- ZOOM OPTIONS -->
-      <div class="sub-panel">
-        <div class="flex flex-row">
-          <mdicon name="magnify-plus-outline" :size="32" />
-          <h1>Manual zoom:</h1>
-        </div>
-
-        <ZoomOptionsPanel
-          :settings="settings"
-          :siteSettings="siteSettings"
-          :eventBus="eventBus"
-          :isEditing="editMode"
-        ></ZoomOptionsPanel>
-      </div>
-
-      <!-- VIDEO ALIGNMENT -->
-      <div class="sub-panel">
-        <div class="flex flex-row">
-          <mdicon name="align-horizontal-center" :size="32" />
-          <h1>Video alignment:</h1>
-        </div>
-
-        <div class="flex flex-row">
-          <alignment-options-control-component
-            :eventBus="eventBus"
-          >
-          </alignment-options-control-component>
-        </div>
-
-        <div class="flex flex-row flex-wrap">
-          <div class="m-t-0-33em display-block">
-            <input id="_input_zoom_site_allow_pan"
-                    type="checkbox"
-                    />
-            Pan with mouse
+      <div class="flex flex-col">
+        <!-- CROP OPTIONS -->
+        <div v-if="settings" class="sub-panel">
+          <div class="flex flex-row">
+            <mdicon name="crop" :size="32" />
+            <h1>Crop video:</h1>
           </div>
+
+          <CropOptionsPanel
+            :settings="settings"
+            :siteSettings="siteSettings"
+            :eventBus="eventBus"
+            :isEditing="editMode"
+          >
+          </CropOptionsPanel>
         </div>
+
+        <!-- STRETCH OPTIONS -->
+        <div v-if="settings" class="sub-panel">
+          <div class="flex flex-row">
+            <mdicon name="stretch-to-page-outline" :size="32" />
+            <h1>Stretch video:</h1>
+          </div>
+
+          <StretchOptionsPanel
+            :settings="settings"
+            :siteSettings="siteSettings"
+            :eventBus="eventBus"
+            :isEditing="editMode"
+          ></StretchOptionsPanel>
+        </div>
+      </div>
+
+      <div class="flex flex-col">
+
+        <!-- VIDEO ALIGNMENT -->
+        <div class="sub-panel">
+          <div class="flex flex-row">
+            <mdicon name="align-horizontal-center" :size="32" />
+            <h1>Video alignment:</h1>
+          </div>
+
+          <div class="flex flex-row">
+            <alignment-options-control-component
+              :eventBus="eventBus"
+            >
+            </alignment-options-control-component>
+          </div>
+
+          <!-- <div class="flex flex-row flex-wrap">
+            <div class="m-t-0-33em display-block">
+              <input id="_input_zoom_site_allow_pan"
+                      type="checkbox"
+                      />
+              Pan with mouse
+            </div>
+          </div> -->
+        </div>
+
+        <!-- ZOOM OPTIONS -->
+        <div class="sub-panel">
+          <div class="flex flex-row">
+            <mdicon name="magnify-plus-outline" :size="32" />
+            <h1>Manual zoom:</h1>
+          </div>
+
+          <ZoomOptionsPanel
+            :settings="settings"
+            :siteSettings="siteSettings"
+            :eventBus="eventBus"
+            :isEditing="editMode"
+          ></ZoomOptionsPanel>
+        </div>
+
       </div>
     </div>
   </div>
