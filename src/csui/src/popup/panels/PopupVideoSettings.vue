@@ -1,8 +1,8 @@
 <template>
   <div class="flex flex-column" style="padding-bottom: 20px">
     <div class="flex flex-row">
-      <mdicon name="crop" :size="32" />
-      <h3>Crop video:</h3>
+      <mdicon name="crop" :size="24" />&nbsp;&nbsp;
+      <h1>Crop video:</h1>
     </div>
 
     <CropOptionsPanel
@@ -15,8 +15,8 @@
     </CropOptionsPanel>
 
     <div class="flex flex-row">
-      <mdicon name="crop" :size="32" />
-      <h3>Stretch video:</h3>
+      <mdicon name="crop" :size="24" />&nbsp;&nbsp;
+      <h1>Stretch video:</h1>
     </div>
 
     <StretchOptionsPanel
@@ -28,8 +28,8 @@
     ></StretchOptionsPanel>
 
     <div class="flex flex-row">
-      <mdicon name="crop" :size="32" />
-      <h3>Zoom:</h3>
+      <mdicon name="crop" :size="24" />&nbsp;&nbsp;
+      <h1>Zoom:</h1>
     </div>
 
     <ZoomOptionsPanel
@@ -42,8 +42,8 @@
     </ZoomOptionsPanel>
 
     <div class="flex flex-row">
-      <mdicon name="crop" :size="32" />
-      <h3>Video alignment:</h3>
+      <mdicon name="crop" :size="24" />&nbsp;&nbsp;
+      <h1>Video alignment:</h1>
     </div>
 
     <div class="flex flex-row">
