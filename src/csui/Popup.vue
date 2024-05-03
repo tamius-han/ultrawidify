@@ -1,88 +1,91 @@
 <template>
-  <!--
-    NOTE — the code that makes ultrawidify popup work in firefox regardless of whether the
-    extension is being displayed in a normal or a small/overflow popup breaks the popup
-    behaviour on Chrome (where the popup would never reach the full width of 800px)
+  <div class="popup-panel">
+    <!--
+      NOTE — the code that makes ultrawidify popup work in firefox regardless of whether the
+      extension is being displayed in a normal or a small/overflow popup breaks the popup
+      behaviour on Chrome (where the popup would never reach the full width of 800px)
 
-    Since I'm tired and the hour is getting late, we'll just add an extra CSS class for
-    non-firefox builds of this extension and be done with it. No need to complicate things
-    further than that.
-  -->
-  <div v-if="settingsInitialized"
-       class="popup flex flex-column no-overflow"
-       :class="{'popup-chrome': ! BrowserDetect?.firefox}"
-  >
-    <div class="flex-row flex-nogrow flex-noshrink relative"
-         :class="{'header': !narrowPopup, 'header-small': narrowPopup}"
+      Since I'm tired and the hour is getting late, we'll just add an extra CSS class for
+      non-firefox builds of this extension and be done with it. No need to complicate things
+      further than that.
+    -->
+    <div v-if="settingsInitialized"
+        class="popup flex flex-column no-overflow"
+        :class="{'popup-chrome': ! BrowserDetect?.firefox}"
     >
-      <span class="smallcaps">Ultrawidify</span>: <small>Quick settings</small>
-      <div class="absolute channel-info" v-if="BrowserDetect?.processEnvChannel !== 'stable'">
-        Build channel: {{BrowserDetect?.processEnvChannel}}
-      </div>
-    </div>
-
-
-    <!-- CONTAINER ROOT -->
-    <div class="flex flex-row body no-overflow flex-grow">
-
-      <!-- TABS -->
-      <div class="flex flex-col">
-        <div
-          v-for="tab of tabs"
-          :key="tab.id"
-          class="tab"
-          :class="{'active': tab.id === selectedTab}"
-          @click="selectTab(tab.id)"
-        >
-          <div class="icon-container">
-            <mdicon
-              :name="tab.icon"
-              :size="32"
-            />
-          </div>
-          <div class="label">
-            {{tab.label}}
-          </div>
+      <div class="flex-row flex-nogrow flex-noshrink relative"
+          :class="{'header': !narrowPopup, 'header-small': narrowPopup}"
+      >
+        <span class="smallcaps">Ultrawidify</span>: <small>Quick settings</small>
+        <div class="absolute channel-info" v-if="BrowserDetect?.processEnvChannel !== 'stable'">
+          Build channel: {{BrowserDetect?.processEnvChannel}}
         </div>
       </div>
 
-      <!-- CONTENT -->
-      <div class="scrollable">
-        <template v-if="settings && siteSettings">
-          <PopupVideoSettings
-            v-if="selectedTab === 'videoSettings'"
-            :settings="settings"
-            :eventBus="eventBus"
-            :siteSettings="siteSettings"
-          ></PopupVideoSettings>
-          <PlayerDetectionPanel
-            v-if="selectedTab === 'playerDetection'"
-            :settings="settings"
-            :eventBus="eventBus"
-            :siteSettings="siteSettings"
-            :site="site.host"
-          >
-          </PlayerDetectionPanel>
-          <BaseExtensionSettings
-            v-if="selectedTab === 'extensionSettings'"
-            :settings="settings"
-            :eventBus="eventBus"
-            :siteSettings="siteSettings"
-            :site="site.host"
-          >
-          </BaseExtensionSettings>
-        </template>
-      </div>
 
+      <!-- CONTAINER ROOT -->
+      <div class="flex flex-row body no-overflow flex-grow">
+
+        <!-- TABS -->
+        <div class="flex flex-col tab-row" style="flex: 3 3; border-right: 1px solid #222;">
+          <div
+            v-for="tab of tabs"
+            :key="tab.id"
+            class="tab flex flex-row"
+            :class="{'active': tab.id === selectedTab}"
+            @click="selectTab(tab.id)"
+          >
+            <div class="icon-container">
+              <mdicon
+                :name="tab.icon"
+                :size="32"
+              />
+            </div>
+            <div class="label">
+              {{tab.label}}
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="scrollable" style="flex: 7 7; padding: 1rem;">
+          <template v-if="settings && siteSettings">
+            <InPlayerUIAdvertisement v-if="selectedTab === 'playerUiCtl'" />
+            <PopupVideoSettings
+              v-if="selectedTab === 'videoSettings'"
+              :settings="settings"
+              :eventBus="eventBus"
+              :siteSettings="siteSettings"
+            ></PopupVideoSettings>
+            <!-- <PlayerDetectionPanel
+              v-if="selectedTab === 'playerDetection'"
+              :settings="settings"
+              :eventBus="eventBus"
+              :siteSettings="siteSettings"
+              :site="site.host"
+            >
+            </PlayerDetectionPanel> -->
+            <BaseExtensionSettings
+              v-if="selectedTab === 'extensionSettings'"
+              :settings="settings"
+              :eventBus="eventBus"
+              :siteSettings="siteSettings"
+              :site="site.host"
+            >
+            </BaseExtensionSettings>
+          </template>
+        </div>
+
+      </div>
     </div>
   </div>
-
 </template>
 
 <script>
 import BaseExtensionSettings from './src/PlayerUiPanels/BaseExtensionSettings.vue'
 import PlayerDetectionPanel from './src/PlayerUiPanels/PlayerDetectionPanel.vue'
 import PopupVideoSettings from './src/popup/panels/PopupVideoSettings.vue'
+import InPlayerUIAdvertisement from './src/PlayerUiPanels/InPlayerUiAdvertisement.vue';
 import Debug from '../ext/conf/Debug';
 import BrowserDetect from '../ext/conf/BrowserDetect';
 import Comms from '../ext/lib/comms/Comms';
@@ -109,7 +112,7 @@ export default {
         // see this for icons: https://pictogrammers.com/library/mdi/
         {id: 'playerUiCtl', label: 'In-player UI', icon: 'artboard'},
         {id: 'videoSettings', label: 'Video settings', icon: 'crop'},
-        {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
+        // {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
         {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
       ],
     }
@@ -201,7 +204,7 @@ export default {
   components: {
     Debug,
     BrowserDetect,
-    PopupVideoSettings, PlayerDetectionPanel, BaseExtensionSettings
+    PopupVideoSettings, PlayerDetectionPanel, BaseExtensionSettings, InPlayerUIAdvertisement
   },
   methods: {
     async sleep(t) {
@@ -299,11 +302,199 @@ export default {
 </script>
 
 <style lang="scss">
-@import 'res/css/uwui-base.scss';
+// @import 'res/css/uwui-base.scss';
 @import 'res/css/colors.scss';
 @import 'res/css/font/overpass.css';
 @import 'res/css/font/overpass-mono.css';
 @import 'res/css/common.scss';
 @import './src/res-common/_variables';
 
+
+.site-support-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  .site-support-site {
+    font-size: 1.5em;
+  }
+
+  .site-support {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+
+    margin-left: 1rem;
+    border-radius: 8px;
+    padding: 0rem 1.5rem 0rem 1rem;
+
+    position: relative;
+
+    .tooltip {
+      padding: 1rem;
+      display: none;
+      position: absolute;
+      bottom: 0;
+      transform: translateY(110%);
+      width: 42em;
+
+      background-color: rgba(0,0,0,0.90);
+      color: #ccc;
+    }
+    &:hover {
+      .tooltip {
+        display: block;
+      }
+    }
+
+    .mdi {
+      margin-right: 1rem;
+    }
+
+    &.official {
+      background-color: #fa6;
+      color: #000;
+
+      .mdi {
+        fill: #000 !important;
+      }
+    }
+
+    &.community {
+      background-color: rgb(85, 85, 179);
+      color: #fff;
+
+      .mdi {
+        fill: #fff !important;
+      }
+    }
+
+    &.no-support {
+      background-color: rgb(138, 65, 126);
+      color: #eee;
+
+      .mdi {
+        fill: #eee !important;
+      }
+    }
+
+    &.user-added {
+      border: 1px solid #ff0;
+
+      color: #ff0;
+
+      .mdi {
+        fill: #ff0 !important;
+      }
+    }
+  }
+}
+
+.content {
+  flex-grow: 1;
+
+  .warning-area {
+    flex-grow: 0;
+    flex-shrink: 0;
+  }
+
+  .panel-content {
+    flex-grow: 1;
+    flex-shrink: 1;
+
+    overflow-y: auto;
+    padding: 1rem;
+  }
+}
+
+.warning-box {
+  background: rgb(255, 174, 107);
+  color: #000;
+  margin: 1rem;
+  padding: 1rem;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  .icon-container {
+    margin-right: 1rem;
+    flex-shrink: 0;
+    flex-grow: 0;
+  }
+
+  a {
+    color: rgba(0,0,0,0.7);
+    cursor: pointer;
+  }
+}
+
+
+.popup-panel {
+  background-color: rgba(0,0,0,0.50);
+  color: #fff;
+
+  overflow-y: auto;
+
+  .popup-window-header {
+    padding: 1rem;
+    background-color: rgba(5,5,5, 0.75);
+  }
+  .tab-row {
+    background-color: rgba(11,11,11, 0.75);
+
+    .tab {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      padding: 1rem;
+      font-size: 1.25rem;
+      // height: rem;
+      min-height: 3rem;
+
+      border-bottom: 1px solid rgba(128, 128, 128, 0.5);
+      border-top: 1px solid rgba(128, 128, 128, 0.5);
+      opacity: 0.5;
+
+      &:hover {
+        opacity: 1;
+      }
+      &.active {
+        opacity: 1.0;
+        background-color: $primaryBg;
+        color: rgb(255, 174, 107);
+        border-bottom: 1px solid rgba(116, 78, 47, 0.5);
+        border-top: 1px solid rgba(116, 78, 47, 0.5);
+      }
+
+      .icon-container {
+        width: 64px;
+        flex-grow: 0;
+        flex-shrink: 0;
+      }
+      .label {
+        flex-grow: 1;
+        flex-shrink: 1;
+        padding: 0 !important;
+      }
+    }
+  }
+
+  .popup-title, .popup-title h1 {
+    font-size: 48px !important;
+  }
+}
+
+pre {
+  white-space: pre-wrap;
+}
+
+.button {
+  border: 1px solid #222 !important;
+}
+
+h1 {
+  margin: 0; padding: 0; font-weight: 400; font-size:24px;
+}
 </style>
