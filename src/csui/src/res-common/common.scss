@@ -117,11 +117,16 @@ h1, h2, h3 {
 }
 
 .options-bar {
+  position: absolute;
+  width: calc(100% - 4rem);
+  top: 0;
+
   margin: 1rem;
   padding: 1rem;
 
   &.isEditing {
     background-color: $primary;
+    position: relative;
     color: #000;
   }
 }
