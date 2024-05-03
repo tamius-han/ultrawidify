@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-row flex-wrap">
+  <div class="sub-panel-content flex flex-row flex-wrap">
     <ShortcutButton
       v-for="(command, index) of settings?.active.commands.stretch"
       class="b3 button"
