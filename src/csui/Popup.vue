@@ -297,3 +297,13 @@ export default {
   }
 }
 </script>
+
+<style lang="scss">
+@import 'res/css/uwui-base.scss';
+@import 'res/css/colors.scss';
+@import 'res/css/font/overpass.css';
+@import 'res/css/font/overpass-mono.css';
+@import 'res/css/common.scss';
+@import './src/res-common/_variables';
+
+</style>
