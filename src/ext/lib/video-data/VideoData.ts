@@ -15,6 +15,7 @@ import EventBus from '../EventBus';
 import { SiteSettings } from '../settings/SiteSettings';
 import { Ar } from '../../../common/interfaces/ArInterface';
 import { ExtensionStatus } from './ExtensionStatus';
+import { RunLevel } from '../../enum/run-level.enum';
 
 /**
  * VideoData — handles CSS for the video element.
@@ -37,6 +38,7 @@ class VideoData {
   //#region flags
   arSetupComplete: boolean = false;
   enabled: boolean;
+  runLevel: RunLevel;
   destroyed: boolean = false;
   invalid: boolean = false;
   videoStatusOk: boolean = false;
@@ -381,6 +383,33 @@ class VideoData {
       this.player?.enable();
     }
     // this.restoreCrop();
+  }
+
+
+  setRunLevel(runLevel: RunLevel, options?: {fromPlayer?: boolean}) {
+    if (this.runLevel === runLevel) {
+      return; // also no need to propagate to the player
+    }
+
+    // Run level decreases towards 'off'
+    if (this.runLevel > runLevel) {
+      if (runLevel < RunLevel.CustomCSSActive) {
+        this.video.classList.remove(this.baseCssName);
+        this.video.classList.remove(this.userCssClassName);
+        this.enabled = false;
+      }
+    } else { // Run level increases towards 'everything runs'*
+      if (runLevel >= RunLevel.CustomCSSActive) {
+        this.video.classList.add(this.baseCssName);
+        this.video.classList.add(this.userCssClassName);
+        this.enabled = true;
+      }
+    }
+
+    this.runLevel = runLevel;
+    if (!options?.fromPlayer) {
+      this.player.setRunLevel(runLevel);
+    }
   }
 
   /**
