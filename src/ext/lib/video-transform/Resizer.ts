@@ -246,7 +246,7 @@ class Resizer {
       return;
     }
 
-    if ([AspectRatioType.Reset].includes(ar.type)) {
+    if ([AspectRatioType.Reset, AspectRatioType.Initial].includes(ar.type)) {
       this.eventBus.send('set-run-level', RunLevel.UIOnly);
     } else {
       this.eventBus.send('set-run-level', RunLevel.CustomCSSActive);
@@ -260,18 +260,6 @@ class Resizer {
       this.videoData.arDetector?.stop();
     }
 
-    // unless we're trying to reset aspect ratio, we need to tell VideoData that this would
-    // be a good time to start injecting CSS modifications into the page.
-    //
-    // CSS, et. al. initialization is deferred in order to avoid breaking wonky sites by default.
-    if (ar.type !== AspectRatioType.Reset && ar.type !== AspectRatioType.Initial) {
-      await this.videoData.preparePage();
-    } else {
-      console.log('Disabling videoData')
-      this.videoData.disable();
-      return;
-    }
-
     if (ar.type !== AspectRatioType.AutomaticUpdate) {
       this.manualZoom = false;
     }
@@ -280,8 +268,6 @@ class Resizer {
       this.logger.log('warning', 'debug', '[Resizer::setAr] <rid:'+this.resizerId+'> Video has no width or no height. This is not allowed. Aspect ratio will not be set, and videoData will be uninitialized.');
       this.videoData.videoUnloaded();
     }
-
-    this.logger.log('info', 'debug', '[Resizer::setAr] <rid:'+this.resizerId+'> trying to set ar. New ar:', ar);
 
     this.logger.log('info', 'debug', '%c[Resizer::setAr] <rid:'+this.resizerId+'> trying to set ar. New ar:', 'background-color: #4c3a2f, color: #ffa349', ar);
 
@@ -351,7 +337,6 @@ class Resizer {
         || this.stretcher.mode === StretchType.Conditional
         || this.stretcher.mode === StretchType.FixedSource
     ){
-
       stretchFactors = this.scaler.calculateCrop(ar);
 
       if(! stretchFactors || stretchFactors.error){

@@ -402,6 +402,10 @@ class VideoData {
       if (runLevel >= RunLevel.CustomCSSActive) {
         this.video.classList.add(this.baseCssName);
         this.video.classList.add(this.userCssClassName);
+
+        // inject custom CSS classes
+        this.preparePage();
+
         this.enabled = true;
       }
     }
