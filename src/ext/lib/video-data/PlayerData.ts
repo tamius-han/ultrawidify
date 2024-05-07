@@ -12,6 +12,7 @@ import EventBus from '../EventBus';
 import UI from '../uwui/UI';
 import { SiteSettings } from '../settings/SiteSettings';
 import PageInfo from './PageInfo';
+import { RunLevel } from '../../enum/run-level.enum';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: PlayerData.js");
@@ -35,6 +36,22 @@ interface PlayerDimensions {
 
  * If list of names is provided, the function returns dimensions of the first element that contains any name from the list in either
  * id or class.
+ *
+ *
+ * RUN LEVELS
+ * Run are there to ensure only the necessary functions run.
+ *
+ *  * Off:
+ *    * Extension is effectively disabled. However, even in this quasi-disabled state,
+ *      certain functions of the class should still be active.
+ *        1. Player size monitoring
+ *           (Run level could be set to 'off' due to player being too small)
+ *        2. Event bus
+ *           (Actions from popup may cause RunLevel to increase)
+ *
+ *  * UiOnly:
+ *    * Extension should show in-player UI, but it should not inject any
+ *      unnecessary CSS.
  */
 
 class PlayerData {
@@ -56,6 +73,7 @@ class PlayerData {
   //#endregion
 
   //#region flags
+  runLevel: RunLevel;
   enabled: boolean;
   invalid: boolean = false;
   private periodicallyRefreshPlayerElement: boolean = false;
@@ -85,6 +103,9 @@ class PlayerData {
     'update-player': [{
       function: () => this.getPlayer()
     }],
+    'set-run-level': [{
+      function: (runLevel) => this.setRunLevel(runLevel)
+    }]
   }
   //#endregion
 
@@ -163,11 +184,8 @@ class PlayerData {
   }
 
   private reloadPlayerDataConfig(siteConfUpdate) {
-    console.log('reloading config ...')
     // this.siteSettings = siteConfUpdate;
     this.element = this.getPlayer();
-
-    console.log('got player:', this.element);
 
     this.periodicallyRefreshPlayerElement = false;
     try {
@@ -177,10 +195,12 @@ class PlayerData {
     }
 
     // because this is often caused by the UI
-    console.log('tree request:');
     this.handlePlayerTreeRequest();
   }
 
+  /**
+   * Initializes event bus
+   */
   private initEventBus() {
     for (const action in this.eventBusCommands) {
       for (const command of this.eventBusCommands[action]) {
@@ -189,6 +209,9 @@ class PlayerData {
     }
   }
 
+  /**
+   * Completely stops everything the extension is doing
+   */
   destroy() {
     document.removeEventListener('fullscreenchange', this.dimensionChangeListener);
     this.stopChangeDetection();
@@ -208,6 +231,37 @@ class PlayerData {
     this.startChangeDetection();
     this.videoData.enable({fromPlayer: true});
     this.ui.enable();
+  }
+
+  /**
+   * Sets extension runLevel
+   * @param runLevel
+   * @returns
+   */
+  setRunLevel(runLevel: RunLevel) {
+    if (this.runLevel === runLevel) {
+      return;
+    }
+
+    // increasing runLevel works differently than decreasing
+    if (this.runLevel > runLevel) {
+      if (runLevel < RunLevel.CustomCSSActive) {
+        this.element.classList.remove(this.playerCssClass);
+      }
+      if (runLevel < RunLevel.UIOnly) {
+        this.ui.disable();
+      }
+    } else {
+      if (runLevel >= RunLevel.UIOnly) {
+        this.ui.enable();
+        this.startChangeDetection();
+      }
+      if (runLevel >= RunLevel.CustomCSSActive) {
+        this.element.classList.add(this.playerCssClass);
+      }
+    }
+
+    this.runLevel = runLevel;
   }
 
   /**
@@ -300,6 +354,10 @@ class PlayerData {
     // Check if extension is allowed to run in current combination of theater + full screen
     const canEnable = this.siteSettings.isEnabledForEnvironment(this.isFullscreen, this.isTheaterMode) === ExtensionMode.Enabled;
 
+    // TODO: if canEnable is 'true' and runLevel is OFF, we should
+    // call restoreAr function of resizer and let it figure out the necessary run level.
+    // Function that restores the last user-set AR may also need to be written.
+
     // Enable/disable
     if (canEnable) {
       if (!this.enabled) {
@@ -338,7 +396,8 @@ class PlayerData {
       || newDimensions?.fullscreen != oldDimensions?.fullscreen
     ){
       // If player size changes, we restore aspect ratio
-      this.videoData.resizer?.restore();
+      this.eventBus.send('restore-ar', null);
+      // this.videoData.resizer?.restore();
     }
   }
 
@@ -347,6 +406,10 @@ class PlayerData {
   }
 
   //#region player element change detection
+  /**
+   * Starts change detection.
+   * @returns
+   */
   startChangeDetection(){
     if (this.invalid) {
       return;

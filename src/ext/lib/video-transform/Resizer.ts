@@ -17,6 +17,7 @@ import EventBus from '../EventBus';
 import { _cp } from '../../../common/js/utils';
 import Settings from '../Settings';
 import { Ar } from '../../../common/interfaces/ArInterface';
+import { RunLevel } from '../../enum/run-level.enum';
 
 if(Debug.debug) {
   console.log("Loading: Resizer.js");
@@ -120,6 +121,9 @@ class Resizer {
     }],
     'get-ar': [{
       function: () => this.eventBus.send('uw-config-broadcast', {type: 'ar', config: this.lastAr})
+    }],
+    'restore-ar': [{
+      function: () => this.restore()
     }]
   }
   //#endregion
@@ -240,6 +244,12 @@ class Resizer {
   async setAr(ar: Ar, lastAr?: Ar) {
     if (this.destroyed) {
       return;
+    }
+
+    if ([AspectRatioType.Reset].includes(ar.type)) {
+      this.eventBus.send('set-run-level', RunLevel.UIOnly);
+    } else {
+      this.eventBus.send('set-run-level', RunLevel.CustomCSSActive);
     }
 
     // handle autodetection stuff
