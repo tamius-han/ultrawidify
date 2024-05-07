@@ -73,7 +73,7 @@ class PlayerData {
   //#endregion
 
   //#region flags
-  runLevel: RunLevel;
+  runLevel: RunLevel = RunLevel.Off;
   enabled: boolean;
   invalid: boolean = false;
   private periodicallyRefreshPlayerElement: boolean = false;
@@ -221,20 +221,7 @@ class PlayerData {
   //#endregion
 
   /**
-   * Enables ultrawidify for this video by adding the relevant classes
-   * to the video and player element.
-   */
-  enable() {
-    console.log('enabling UI')
-    this.enabled = true;
-    this.element.classList.add(this.playerCssClass);
-    this.startChangeDetection();
-    this.videoData.enable({fromPlayer: true});
-    this.ui.enable();
-  }
-
-  /**
-   * Sets extension runLevel
+   * Sets extension runLevel and sets or unsets appropriate css classes as necessary
    * @param runLevel
    * @returns
    */
@@ -262,22 +249,6 @@ class PlayerData {
     }
 
     this.runLevel = runLevel;
-  }
-
-  /**
-   * Disables ultrawidify for this video by removing the relevant classes
-   * from the video and player elements.
-   *
-   * NOTE: it is very important to keep change detection active while disabled,
-   * because otherwise ultrawidify will otherwise remain inactive after
-   * switching (back to) full screen.
-   */
-  disable() {
-    console.log('disabling UI')
-    this.enabled = false;
-    this.element.classList.remove(this.playerCssClass);
-    this.videoData.disable({fromPlayer: true});
-    this.ui.disable();
   }
 
   /**
@@ -354,26 +325,14 @@ class PlayerData {
     // Check if extension is allowed to run in current combination of theater + full screen
     const canEnable = this.siteSettings.isEnabledForEnvironment(this.isFullscreen, this.isTheaterMode) === ExtensionMode.Enabled;
 
-    // TODO: if canEnable is 'true' and runLevel is OFF, we should
-    // call restoreAr function of resizer and let it figure out the necessary run level.
-    // Function that restores the last user-set AR may also need to be written.
-
-    // Enable/disable
-    if (canEnable) {
-      if (!this.enabled) {
-        // we should really check other constraints first before enabling
-        this.enable();
-        this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
-        return;
-      }
-    } else {
-      // if canEnable comes out negative, there's no amount of constraints that will
-      // cause PlayerData to be enabled.
-      if (this.enabled) {
-        this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
-        this.disable();
-      }
-      return;
+    if (this.runLevel === RunLevel.Off && canEnable) {
+      this.eventBus.send('restore-ar', null);
+      // must be called after
+      this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
+    } else if (!canEnable && this.runLevel !== RunLevel.Off) {
+      // must be called before
+      this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
+      this.setRunLevel(RunLevel.Off);
     }
   }
 

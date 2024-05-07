@@ -38,7 +38,7 @@ class VideoData {
   //#region flags
   arSetupComplete: boolean = false;
   enabled: boolean;
-  runLevel: RunLevel;
+  runLevel: RunLevel = RunLevel.Off;
   destroyed: boolean = false;
   invalid: boolean = false;
   videoStatusOk: boolean = false;
@@ -85,6 +85,18 @@ class VideoData {
     }
   }
 
+  private eventBusCommands = {
+    'get-drm-status': [{
+      function: () => {
+        this.hasDrm = hasDrm(this.video);
+        this.eventBus.send('uw-config-broadcast', {type: 'drm-status', hasDrm: this.hasDrm});
+      }
+    }],
+    'set-run-level': [{
+      function: (runLevel: RunLevel) => this.setRunLevel(runLevel)
+    }]
+  }
+
   /**
    * Creates new VideoData object
    * @param video
@@ -120,11 +132,12 @@ class VideoData {
 
     if (pageInfo.eventBus) {
       this.eventBus.setUpstreamBus(pageInfo.eventBus);
-      this.eventBus.subscribe('get-drm-status', {function: () => {
-        this.hasDrm = hasDrm(this.video);
-        this.eventBus.send('uw-config-broadcast', {type: 'drm-status', hasDrm: this.hasDrm});
-      }});
-      // this.eventBus.subscribe('')
+
+      for (const action in this.eventBusCommands) {
+        for (const command of this.eventBusCommands[action]) {
+          this.eventBus.subscribe(action, command);
+        }
+      }
     }
 
     this.setupEventListeners();
@@ -251,10 +264,6 @@ class VideoData {
     this.injectBaseCss();
     this.pageInfo.initMouseActionHandler(this);
 
-    // aspect ratio autodetection cannot be properly initialized at this time,
-    // so we'll avoid doing that
-    this.enable();
-
     // start fallback video/player size detection
     this.fallbackChangeDetection();
   }
@@ -344,9 +353,10 @@ class VideoData {
       this.video.removeEventListener('ontimeupdate', this.onTimeUpdate);
     }
 
-    this.disable();
+    this.eventBus.send('set-run-level', RunLevel.Off);
     this.destroyed = true;
     this.eventBus?.unsetUpstreamBus();
+
     try {
       this.arDetector.stop();
       this.arDetector.destroy();
@@ -367,32 +377,18 @@ class VideoData {
   }
   //#endregion
 
-  /**
-   * Enables ultrawidify in general.
-   * @param options
-   */
-  enable(options?: {fromPlayer?: boolean}) {
-    this.enabled = true;
-
-    // NOTE — since base class for our <video> element depends on player aspect ratio,
-    // we handle it in PlayerData class.
-    this.video.classList.add(this.baseCssName);
-    this.video.classList.add(this.userCssClassName); // this also needs to be applied BEFORE we initialize resizer! — O RLY? NEEDS TO BE CHECKED
-
-    if (!options?.fromPlayer) {
-      this.player?.enable();
-    }
-    // this.restoreCrop();
-  }
-
 
   setRunLevel(runLevel: RunLevel, options?: {fromPlayer?: boolean}) {
+    console.log('setting new runlevel for videodata. current:', this.runLevel, 'new', runLevel)
     if (this.runLevel === runLevel) {
       return; // also no need to propagate to the player
     }
 
+    console.log('setting run level ...')
+
     // Run level decreases towards 'off'
     if (this.runLevel > runLevel) {
+      console.log('decreasing css.')
       if (runLevel < RunLevel.CustomCSSActive) {
         this.video.classList.remove(this.baseCssName);
         this.video.classList.remove(this.userCssClassName);
@@ -428,9 +424,6 @@ class VideoData {
     this.video.classList.remove(this.baseCssName);
     this.video.classList.remove(this.userCssClassName);
 
-    if (!options?.fromPlayer) {
-      this.player?.disable();
-    }
   }
 
   //#region video status

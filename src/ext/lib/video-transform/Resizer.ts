@@ -911,8 +911,6 @@ class Resizer {
         return;
       }
     }
-
-    this.videoData.disable();
   }
   //#endregion
 }
