@@ -268,8 +268,18 @@ class Logger {
   //   return logfileStr;
   // }
   getFileLogJSONString() {
+    let site;
+
+    // NOTE: no more window object on UWServer side of things!
+    // (or rather, we could get it, but we don't care enough to get it in this instance)
+    try {
+      site = window && window.location;
+    } catch {
+      site = 'uw-bg';
+    }
+
     return {
-      site: window && window.location,
+      site,
       log: JSON.stringify(this.history),
     }
   }

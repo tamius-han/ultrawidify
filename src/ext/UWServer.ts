@@ -71,11 +71,32 @@ export default class UWServer {
   }
 
   async injectCss(css, sender) {
+    if (!css) {
+      return;
+    }
     try {
-      if (BrowserDetect.firefox || BrowserDetect.edge) {
-        browser.tabs.insertCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
-      } else if (BrowserDetect.anyChromium) {
-        chrome.tabs.insertCSS(sender.tab.id, {code: css, cssOrigin: 'user', frameId: sender.frameId});
+      if (BrowserDetect.firefox) {
+        browser.scripting.insertCSS({
+          target: {
+            tabId: sender.tab.id,
+            frameIds: [
+              sender.frameId
+            ]
+          },
+          css,
+          origin: "USER"
+        });
+      } else {
+        await chrome.scripting.insertCSS({
+          target: {
+            tabId: sender.tab.id,
+            frameIds: [
+              sender.frameId
+            ]
+          },
+          css,
+          origin: "USER"
+        });
       }
     } catch (e) {
       this.logger.log('error','debug', '[UwServer::injectCss] Error while injecting css:', {error: e, css, sender});
@@ -91,8 +112,8 @@ export default class UWServer {
 
   async replaceCss(oldCss, newCss, sender) {
     if (oldCss !== newCss) {
-      this.injectCss(newCss, sender);
       this.removeCss(oldCss, sender);
+      this.injectCss(newCss, sender);
     }
   }
 
