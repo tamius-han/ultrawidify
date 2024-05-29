@@ -1,17 +1,21 @@
 {
-  "manifest_version": 3,
+  "manifest_version": 2,
   "name": "Ultrawidify",
   "description": "Removes black bars on ultrawide videos and offers advanced options to fix aspect ratio.",
-  "version": "5.1.7",
+  "version": "5.99.5",
+  "applications": {
+    "gecko": {
+      "id": "{cf02b1a7-a01a-4e37-a609-516a283f1ed3}"
+    }
+  },
   "icons": {
     "32":"res/icons/uw-32.png",
     "64":"res/icons/uw-64.png"
   },
-  "action": {
+  "browser_action": {
     "default_title": "Ultrawidify",
     "default_popup": "popup/popup.html"
   },
-
 
   "content_scripts": [{
     "matches": ["*://*/*"],
@@ -19,19 +23,13 @@
       "common/lib/browser-polyfill.js",
       "ext/uw.js"
     ],
-    "css": [
-      "ext/uw-ui.css",
-      "ext/uw.css"
-    ],
     "all_frames": true
   }],
 
-  "minimum_chrome_version": "93",
   "background": {
-    "service_worker": "uw-bg.js",
-    "module": true,
+    "persistent": true,
     "scripts": [
-      "uw-bg.js"
+      "ext/uw-bg.js"
     ]
   },
 
@@ -41,31 +39,20 @@
     "open_in_tab": true
   },
 
-
   "web_accessible_resources": [
-    {
-      "resources": [
-        "./*",
-        "ext/*",
-        "res/fonts/*",
-        "res/css/*",
-        "res/img/settings/about-bg.png",
-        "res/icons/*",
-        "res/img/*",
-        "csui/*"
-      ],
-      "matches": [
-        "*://*/*"
-      ]
-    }
+    "./*",
+    "ext/*",
+    "res/fonts/*",
+    "res/css/*",
+    "res/img/settings/about-bg.png",
+    "res/icons/*",
+    "res/img/*",
+    "csui/*"
   ],
   "permissions": [
     "storage",
     "activeTab",
-    "scripting"
-  ],
-  "host_permissions": [
-    "*://*/*"
+    "<all_urls>"
   ],
   "optional_permissions": [
     "downloads"

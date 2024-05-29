@@ -139,9 +139,9 @@ const config = {
           const jsonContent = JSON.parse(content);
           // jsonContent.version = version;
 
-          if (config.mode === 'development') {
-            jsonContent['content_security_policy'] = "script-src 'self' 'unsafe-eval'; object-src 'self'";
-          }
+          // if (config.mode === 'development') {
+          //   jsonContent['content_security_policy'] = "script-src 'self' 'unsafe-eval'; object-src 'self'";
+          // }
 
           if (process.env.CHANNEL === 'nightly') {
             jsonContent.name = "Ultrawidify - nightly";
@@ -179,8 +179,10 @@ const config = {
 
           if (process.env.BROWSER !== 'firefox') {
             jsonContent.version = jsonContent.version.replace(/[a-zA-Z-]/g, '');
-            delete jsonContent.applications;
             delete jsonContent.options_ui.browser_style;
+            delete jsonContent.background.scripts;
+          } else {
+            delete jsonContent.background.service_worker;
           }
 
           return JSON.stringify(jsonContent, null, 2);
