@@ -3,10 +3,7 @@ import BrowserDetect from './conf/BrowserDetect';
 import CommsServer from './lib/comms/CommsServer';
 import Settings from './lib/Settings';
 import Logger, { baseLoggingOptions } from './lib/Logger';
-
 import { sleep } from '../common/js/utils';
-
-import { browser } from 'webextension-polyfill-ts';
 import EventBus, { EventBusCommand } from './lib/EventBus';
 
 export default class UWServer {
@@ -56,7 +53,7 @@ export default class UWServer {
 
   //#region getters
   get activeTab() {
-    return browser.tabs.query({currentWindow: true, active: true});
+    return chrome.tabs.query({currentWindow: true, active: true});
   }
   //#endregion
 
@@ -95,7 +92,7 @@ export default class UWServer {
       this.comms = new CommsServer(this);
       this.eventBus.setComms(this.comms);
 
-      browser.tabs.onActivated.addListener((m) => {this.onTabSwitched(m)});
+      chrome.tabs.onActivated.addListener((m) => {this.onTabSwitched(m)});
     } catch (e) {
       console.error(`Ultrawidify [server]: failed to start. Reason:`, e);
     }
@@ -113,7 +110,7 @@ export default class UWServer {
     }
     try {
       if (BrowserDetect.firefox) {
-        browser.scripting.insertCSS({
+        chrome.scripting.insertCSS({
           target: {
             tabId: sender.tab.id,
             frameIds: [
@@ -142,7 +139,7 @@ export default class UWServer {
   async removeCss(css, sender) {
     try {
       if (BrowserDetect.firefox) {
-        browser.scripting.removeCSS({
+        chrome.scripting.removeCSS({
           target: {
             tabId: sender.tab.id,
             frameIds: [
@@ -206,7 +203,7 @@ export default class UWServer {
 
       let tab;
       if (BrowserDetect.firefox) {
-        tab = await browser.tabs.get(this.currentTabId);
+        tab = await chrome.tabs.get(this.currentTabId);
       } else if (BrowserDetect.anyChromium) {
         tab = await this._promisifyTabsGet(chrome, this.currentTabId);
       }
@@ -297,7 +294,7 @@ export default class UWServer {
   }
 
   async getCurrentTab() {
-    return (await browser.tabs.query({active: true, currentWindow: true}))[0];
+    return (await chrome.tabs.query({active: true, currentWindow: true}))[0];
   }
 
 

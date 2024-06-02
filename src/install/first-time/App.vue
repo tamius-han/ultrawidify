@@ -65,7 +65,7 @@ export default {
       selectedSite: '',
       activeFrames: [],
       activeSites: [],
-      port: BrowserDetect.firefox ? browser.runtime.connect({name: 'popup-port'}) : chrome.runtime.connect({name: 'popup-port'}),
+      port: BrowserDetect.firefox ? chrome.runtime.connect({name: 'popup-port'}) : chrome.runtime.connect({name: 'popup-port'}),
       comms: new Comms(),
       frameStore: {},
       frameStoreCount: 0,

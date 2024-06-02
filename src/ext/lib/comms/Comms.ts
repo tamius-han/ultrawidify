@@ -1,6 +1,5 @@
 import Debug from '../../conf/Debug';
 import BrowserDetect from '../../conf/BrowserDetect';
-import { browser } from 'webextension-polyfill-ts';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading Comms");
@@ -8,7 +7,7 @@ if (process.env.CHANNEL !== 'stable'){
 
 class Comms {
   static async sendMessage(message){
-    browser.runtime.sendMessage(message);
+    chrome.runtime.sendMessage(message);
   }
 }
 

@@ -3,7 +3,6 @@ import Debug from '../../conf/Debug';
 import BrowserDetect from '../../conf/BrowserDetect';
 import Logger from '../Logger';
 import Settings from '../Settings';
-import { browser } from 'webextension-polyfill-ts';
 import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
 import EventBus from '../EventBus';
 import { CommsOrigin } from './CommsClient';
@@ -55,7 +54,7 @@ class CommsServer {
 
   //#region getters
   get activeTab() {
-    return browser.tabs.query({currentWindow: true, active: true});
+    return chrome.tabs.query({currentWindow: true, active: true});
   }
   //#endregion
 
@@ -66,8 +65,8 @@ class CommsServer {
     this.settings = server.settings;
     this.eventBus = server.eventBus;
 
-    browser.runtime.onConnect.addListener(p => this.onConnect(p));
-    browser.runtime.onMessage.addListener((m, sender) => this.processReceivedMessage_nonpersistent(m, sender));
+    chrome.runtime.onConnect.addListener(p => this.onConnect(p));
+    chrome.runtime.onMessage.addListener((m, sender) => this.processReceivedMessage_nonpersistent(m, sender));
   }
 
   private onConnect(port){
