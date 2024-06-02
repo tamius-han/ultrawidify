@@ -1,6 +1,6 @@
 <template>
   <div
-    class="popup-panel flex flex-column uw-clickable"
+    class="popup-panel flex flex-column uw-clickable h-full"
   >
     <div class="popup-window-header">
       <div class="popup-title">Ultrawidify <small>{{settings?.active?.version}} - {{BrowserDetect.processEnvChannel}}</small></div>
@@ -177,6 +177,15 @@ export default {
   },
   created() {
     this.siteSettings = this.settings.getSiteSettings(this.site);
+
+    this.eventBus.subscribe(
+      'uw-show-ui',
+      () => {
+        if (this.inPlayer) {
+          return; // show-ui is only intended for global overlay
+        }
+      }
+    )
   },
   methods: {
     /**

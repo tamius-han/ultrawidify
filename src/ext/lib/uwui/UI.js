@@ -5,11 +5,14 @@ if (process.env.CHANNEL !== 'stable'){
 class UI {
   constructor(
     interfaceId,
-    uiConfig, // {component, parentElement?}
+    uiConfig, // {parentElement?, eventBus?}
   ) {
     this.interfaceId = interfaceId;
     this.uiConfig = uiConfig;
     this.lastProbeResponseTs = null;
+
+    this.isGlobal = uiConfig.isGlobal ?? false;
+    // TODO: at some point, UI should be different for global popup and in-player UI
     this.uiURI = browser.runtime.getURL('/csui/csui.html');
     this.extensionBase = browser.runtime.getURL('').replace(/\/$/, "");
 
@@ -94,6 +97,12 @@ class UI {
 
     iframe.onload = function() {
       document.addEventListener('mousemove', fn, true);
+
+      if (this.isGlobal) {
+        this.uiIframe.contentWindow.postMessage({
+          action: 'set-as-global'
+        });
+      }
     }
 
     rootDiv.appendChild(iframe);
@@ -118,21 +127,19 @@ class UI {
       'uw-config-broadcast',
       {
         function: (config) => {
-          // because existence of UI is not guaranteed — UI is not shown when extension is inactive.
-          // If extension is inactive due to "player element isn't big enough to justify it", however,
-          // we can still receive eventBus messages.
-          if (this.element && this.uiIframe) {
-            this.uiIframe.contentWindow.postMessage(
-              {
-                action: 'uw-bus-tunnel',
-                payload: {action: 'uw-config-broadcast', config}
-              },
-              uiURI
-            )
-          }
+          this.sendToIframe('uw-config-broadcast', config, uiURI);
         }
       }
     );
+    this.eventBus.subscribe(
+      'uw-set-ui-state',
+      {
+        function: (config) => {
+          console.log('hello');
+          this.sendToIframe('uw-set-ui-state', config, uiURI);
+        }
+      }
+    )
   }
 
   async enable() {
@@ -165,6 +172,24 @@ class UI {
         this.eventBus.send(busCommand.action, busCommand.config);
       }
     }
+  }
+
+  /**
+   * Sends message to iframe
+   */
+  sendToIframe(action, actionConfig, uiURI = this.uiURI) {
+    // because existence of UI is not guaranteed — UI is not shown when extension is inactive.
+    // If extension is inactive due to "player element isn't big enough to justify it", however,
+    // we can still receive eventBus messages.
+    if (this.element && this.uiIframe) {
+      this.uiIframe.contentWindow.postMessage(
+        {
+          action: 'uw-bus-tunnel',
+          payload: {action, config: actionConfig}
+        },
+        uiURI
+      )
+    };
   }
 
   /**

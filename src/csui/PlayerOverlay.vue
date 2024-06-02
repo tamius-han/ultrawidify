@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="settingsInitialized && uwTriggerZoneVisible"
+    v-if="settingsInitialized && uwTriggerZoneVisible && !isGlobal"
     class="uw-hover uv-hover-trigger-region uw-clickable"
     :style="uwTriggerRegionConf"
     @mouseenter="showUwWindow"
@@ -9,10 +9,7 @@
     <div>Hover to activate</div>
   </div>
 
-
-
   <!-- sss -->
-
   <div
     v-if="settingsInitialized && uwWindowVisible"
     class="uw-window flex flex-column uw-clickable"
@@ -24,7 +21,7 @@
       :settings="settings"
       :eventBus="eventBus"
       :logger="logger"
-      :in-player="true"
+      :in-player="!isGlobal"
       :site="site"
       @close="uwWindowVisible = false"
       @preventClose="(event) => uwWindowFadeOutDisabled = event"
@@ -78,6 +75,8 @@ export default {
       site: null,
       origin: '*', // will be set appropriately once the first uwui-probe event is received
       lastProbeTs: null,
+
+      isGlobal: false,
 
       uiVisible: true,
       debugData: {
@@ -146,10 +145,24 @@ export default {
       this.handleMessage(event);
     });
 
+    console.log('UW UI INITALIZED!');
+
     this.eventBus.subscribe('uw-config-broadcast', {function: (data) => {
       if (data.type === 'drm-status') {
         this.statusFlags.hasDrm = data.hasDrm;
       }
+    }});
+
+    this.eventBus.subscribe('set-as-global', {function: (data) => {
+      this.isGlobal = true;
+    }});
+
+    this.eventBus.subscribe('uw-set-ui-state', { function: (data) => {
+      console.log('received set ui statW!', data, 'are we global?', this.isGlobal);
+      if (!this.isGlobal) {
+        return; // only intended for global overlay
+      }
+      this.uiVisible = data.uiVisible;
     }});
   },
 
