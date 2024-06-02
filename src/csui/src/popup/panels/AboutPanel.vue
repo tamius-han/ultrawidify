@@ -48,7 +48,7 @@ export default {
   data() {
     return {
       // reminder — webextension-polyfill doesn't seem to work in vue!
-      addonVersion: BrowserDetect.firefox ? browser.runtime.getManifest().version : chrome.runtime.getManifest().version,
+      addonVersion: BrowserDetect.firefox ? chrome.runtime.getManifest().version : chrome.runtime.getManifest().version,
       loggingEnabled: false,
       loggerSettings: '',
       loggerSettingsError: false,

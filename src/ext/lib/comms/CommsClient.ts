@@ -1,7 +1,6 @@
 import Debug from '../../conf/Debug';
 import BrowserDetect from '../../conf/BrowserDetect';
 import Logger from '../Logger';
-import { browser } from 'webextension-polyfill-ts';
 import Settings from '../Settings';
 import EventBus, { EventBusContext } from '../EventBus';
 
@@ -71,6 +70,7 @@ export enum CommsOrigin {
 
 class CommsClient {
   commsId: string;
+  name: string;
   origin: CommsOrigin;
 
   logger: Logger;
@@ -79,10 +79,11 @@ class CommsClient {
   eventBus: EventBus;
 
   _listener: (m: any) => void;
-  port: any;
+  port: chrome.runtime.Port;
 
   //#region lifecycle
   constructor(name: string, logger: Logger, eventBus: EventBus) {
+    this.name = name;
     try {
       this.logger = logger;
       this.eventBus = eventBus;
@@ -93,7 +94,12 @@ class CommsClient {
         this.origin = CommsOrigin.ContentScript;
       }
 
-      this.port = browser.runtime.connect(null, {name: name});
+      // if (BrowserDetect.firefox) {
+      //   this.port = chrome.runtime.connect(null, {name: name});
+      // } else {
+      // this connects to the background page
+      this.port = chrome.runtime.connect(null, {name: name});
+      // }
 
       this.logger.onLogEnd(
         (history) => {

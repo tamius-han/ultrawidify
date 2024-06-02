@@ -86,6 +86,7 @@
             >
             </BaseExtensionSettings>
           </template>
+          <template v-else>No settings or site settings found.</template>
         </div>
 
       </div>
@@ -139,7 +140,7 @@ export default {
     await this.settings.init();
     this.settingsInitialized = true;
 
-    // const port = browser.runtime.connect({name: 'popup-port'});
+    // const port = chrome.runtime.connect({name: 'popup-port'});
     // port.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
     // CSM.setProperty('port', port);
 
@@ -148,6 +149,7 @@ export default {
       'set-current-site',
       {
         function: (config, context) => {
+          console.log('Received set-current-site', config);
           if (this.site) {
             if (!this.site.host) {
               // dunno why this fix is needed, but sometimes it is

@@ -3,7 +3,6 @@ import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
 import { SettingsReloadComponent, SettingsReloadFlags, SiteSettingsInterface } from '../../../common/interfaces/SettingsInterface';
 import { _cp } from '../../../common/js/utils';
 import Settings from '../Settings';
-import { browser } from 'webextension-polyfill-ts';
 import StretchType from '../../../common/enums/StretchType.enum';
 import VideoAlignmentType from '../../../common/enums/VideoAlignmentType.enum';
 
@@ -45,7 +44,7 @@ export class SiteSettings {
       sessionStorage.setItem('uw-session-defaults', JSON.stringify(this.sessionData));
     }
 
-    browser.storage.onChanged.addListener((changes, area) => {this.storageChangeListener(changes, area)})
+    chrome.storage.onChanged.addListener((changes, area) => {this.storageChangeListener(changes, area)})
   }
 
   /**

@@ -41,7 +41,7 @@
     "vue-style-loader": "^4.1.3",
     "vuex": "^4.0.2",
     "vuex-webextensions": "^1.3.3",
-    "webextension-polyfill-ts": "^0.26.0"
+    "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
     "@babel/core": "^7.16.0",
@@ -53,6 +53,9 @@
     "@types/firefox": "0.0.31",
     "@types/lodash": "^4.14.176",
     "@types/node": "^14.17.32",
+    "web-ext-types": "^0.10.7",
+    "@vue/cli": "^4.5.15",
+    "@vue/cli-plugin-typescript": "^4.5.15",
     "@vue/compiler-sfc": "^3.2.21",
     "archiver": "^3.0.0",
     "babel-loader": "^8.2.3",
@@ -70,12 +73,9 @@
     "vue-cli-plugin-vue-next": "~0.1.4",
     "vue-loader": "^16.8.2",
     "web-ext-types": "^2.3.0",
-    "webextension-polyfill": "^0.6.0",
     "webpack": "^4.46.0",
     "webpack-chrome-extension-reloader": "^0.8.3",
     "webpack-cli": "^3.3.12",
-    "webpack-shell-plugin": "^0.5.0",
-    "@vue/cli": "^4.5.15",
-    "@vue/cli-plugin-typescript": "^4.5.15"
+    "webpack-shell-plugin": "^0.5.0"
   }
 }

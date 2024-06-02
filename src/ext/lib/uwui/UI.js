@@ -13,8 +13,8 @@ class UI {
 
     this.isGlobal = uiConfig.isGlobal ?? false;
     // TODO: at some point, UI should be different for global popup and in-player UI
-    this.uiURI = browser.runtime.getURL('/csui/csui.html');
-    this.extensionBase = browser.runtime.getURL('').replace(/\/$/, "");
+    this.uiURI = chrome.runtime.getURL('/csui/csui.html');
+    this.extensionBase = chrome.runtime.getURL('').replace(/\/$/, "");
 
     this.eventBus = uiConfig.eventBus;
   }

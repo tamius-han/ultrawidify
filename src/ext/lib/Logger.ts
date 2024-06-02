@@ -1,7 +1,6 @@
 import { decycle } from 'json-cyclic';
 import Comms from './comms/Comms';
 import BrowserDetect from '../conf/BrowserDetect';
-import { browser } from 'webextension-polyfill-ts';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info('Loading Logger');
@@ -92,7 +91,7 @@ class Logger {
     this.vuexStore = options?.vuexStore;
     this.uwInstance = options?.uwInstance;
 
-    browser.storage.onChanged.addListener((changes, area) => {
+    chrome.storage.onChanged.addListener((changes, area) => {
       this.storageChangeListener(changes, area)
     });
   }
@@ -102,11 +101,11 @@ class Logger {
       console.info('Saving logger conf:', conf)
     }
 
-    browser.storage.local.set( {'uwLogger': JSON.stringify(conf)});
+    chrome.storage.local.set( {'uwLogger': JSON.stringify(conf)});
   }
 
   static syncConfig(callback: (x) => void) {
-    browser.storage.onChanged.addListener( (changes, area) => {
+    chrome.storage.onChanged.addListener( (changes, area) => {
       if (changes.uwLogger) {
         const newLoggerConf = JSON.parse(changes.uwLogger.newValue)
         if (process.env.CHANNEL === 'dev') {
@@ -121,10 +120,10 @@ class Logger {
     let ret;
 
     // if (BrowserDetect.firefox) {
-      ret = await browser.storage.local.get('uwLogger');
+      ret = await chrome.storage.local.get('uwLogger');
     // } else if (BrowserDetect.anyChromium) {
     //   ret = await new Promise( (resolve, reject) => {
-    //     browser.storage.local.get('uwLogger', (res) => resolve(res));
+    //     chrome.storage.local.get('uwLogger', (res) => resolve(res));
     //   });
     // }
 
@@ -171,7 +170,7 @@ class Logger {
     this.temp_disable = false;
     this.stopTime = this.conf.timeout ? performance.now() + (this.conf.timeout * 1000) : undefined;
 
-    browser.storage.onChanged.addListener( (changes, area) => {
+    chrome.storage.onChanged.addListener( (changes, area) => {
       if (process.env.CHANNEL === 'dev') {
         if (!changes.uwLogger) {
           // console.info('[Logger::<storage/on change> No new logger settings!');

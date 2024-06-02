@@ -10,7 +10,6 @@ import CropModePersistence from '../../common/enums/CropModePersistence.enum';
 import BrowserDetect from '../conf/BrowserDetect';
 import Logger from './Logger';
 import SettingsInterface from '../../common/interfaces/SettingsInterface';
-import { browser } from 'webextension-polyfill-ts';
 import AspectRatioType from '../../common/enums/AspectRatioType.enum';
 import { SiteSettings } from './settings/SiteSettings';
 
@@ -48,7 +47,7 @@ class Settings {
     this.default = ExtensionConf;
     this.default['version'] = this.getExtensionVersion();
 
-    browser.storage.onChanged.addListener((changes, area) => {this.storageChangeListener(changes, area)});
+    chrome.storage.onChanged.addListener((changes, area) => {this.storageChangeListener(changes, area)});
   }
 
   private storageChangeListener(changes, area) {
@@ -79,7 +78,7 @@ class Settings {
   }
 
   static getExtensionVersion(): string {
-    return browser.runtime.getManifest().version;
+    return chrome.runtime.getManifest().version;
   }
   getExtensionVersion(): string {
     return Settings.getExtensionVersion();
@@ -273,7 +272,7 @@ class Settings {
   async get() {
     let ret;
 
-    ret = await browser.storage.local.get('uwSettings');
+    ret = await chrome.storage.local.get('uwSettings');
 
     this.logger?.log('info', 'settings', 'Got settings:', ret && ret.uwSettings && JSON.parse(ret.uwSettings));
 
@@ -291,7 +290,7 @@ class Settings {
 
     this.logger?.log('info', 'settings', "[Settings::set] setting new settings:", extensionConf)
 
-    return browser.storage.local.set( {'uwSettings': JSON.stringify(extensionConf)});
+    return chrome.storage.local.set( {'uwSettings': JSON.stringify(extensionConf)});
   }
 
   async setActive(activeSettings) {
