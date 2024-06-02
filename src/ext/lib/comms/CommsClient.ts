@@ -134,9 +134,17 @@ class CommsClient {
 
     // content script client and popup client differ in this one thing
     if (this.origin === CommsOrigin.Popup) {
-      return this.port.postMessage(message, context);
+      try {
+        return this.port.postMessage(message);
+      } catch (e) {
+        console.log('chrome is shit, lets try to bruteforce ...', e);
+        const port = chrome.runtime.connect(null, {name: this.name});
+        port.onMessage.addListener(this._listener);
+        return port.postMessage(message);
+      }
     }
-    return browser.runtime.sendMessage(null, message, null);
+    // send to server
+    return chrome.runtime.sendMessage(null, message, null);
   }
 
   /**
