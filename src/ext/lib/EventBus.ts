@@ -98,6 +98,7 @@ export default class EventBus {
   }
 
   send(command: string, commandData: any, context?: EventBusContext) {
+    console.log('sending command ....', command, commandData, context);
     // execute commands we have subscriptions for
     if (this.commands?.[command]) {
       for (const eventBusCommand of this.commands[command]) {
@@ -166,6 +167,7 @@ export default class EventBus {
 
   //#region iframe tunnelling
   private setupIframeTunnelling() {
+    // forward messages coming from iframe tunnels
     window.addEventListener('message', this.handleIframeMessage);
   }
   private destroyIframeTunnelling() {

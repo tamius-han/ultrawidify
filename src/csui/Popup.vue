@@ -13,12 +13,21 @@
         class="popup flex flex-column no-overflow"
         :class="{'popup-chrome': ! BrowserDetect?.firefox}"
     >
-      <div class="flex-row flex-nogrow flex-noshrink relative"
-          :class="{'header': !narrowPopup, 'header-small': narrowPopup}"
+      <div class="flex-row flex-nogrow flex-noshrink relative header"
       >
-        <span class="smallcaps">Ultrawidify</span>: <small>Quick settings</small>
-        <div class="absolute channel-info" v-if="BrowserDetect?.processEnvChannel !== 'stable'">
-          Build channel: {{BrowserDetect?.processEnvChannel}}
+        <div class="grow shrink">
+          <h1>
+            <span class="smallcaps">Ultrawidify</span>: <small>Quick settings</small>
+          </h1>
+        </div>
+        <div v-if="BrowserDetect?.processEnvChannel !== 'stable'" class="absolute channel-info version-info">
+          Build channel: {{BrowserDetect?.processEnvChannel}} <br/>
+          <label>Version:</label> <br/>
+          {{ settings.getExtensionVersion() }}
+        </div>
+        <div v-else class="version-info">
+          <label>Version:</label> <br/>
+          {{ settings.getExtensionVersion() }}
         </div>
       </div>
 
@@ -50,7 +59,10 @@
         <!-- CONTENT -->
         <div class="scrollable" style="flex: 7 7; padding: 1rem;">
           <template v-if="settings && siteSettings">
-            <InPlayerUIAdvertisement v-if="selectedTab === 'playerUiCtl'" />
+            <InPlayerUIAdvertisement
+              v-if="selectedTab === 'playerUiCtl'"
+              :eventBus="eventBus"
+            />
             <PopupVideoSettings
               v-if="selectedTab === 'videoSettings'"
               :settings="settings"
@@ -221,7 +233,6 @@ export default {
         // CSM.port.postMessage({command: 'get-current-site'});
         this.eventBus.send(
           'get-current-site',
-          undefined,
           {
             comms: {forwardTo: 'active'}
           }
@@ -309,6 +320,30 @@ export default {
 @import 'res/css/common.scss';
 @import './src/res-common/_variables';
 
+.header {
+  background-color: rgb(90, 28, 13);
+  color: #fff;
+  padding: 8px;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  .version-info {
+    text-align: right;
+    font-size: 0.8rem;
+    opacity: 0.8;
+    label {
+      opacity: 0.5;
+    }
+  }
+
+}
 
 .site-support-info {
   display: flex;

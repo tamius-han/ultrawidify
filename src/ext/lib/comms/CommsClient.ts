@@ -133,7 +133,12 @@ class CommsClient {
     return browser.runtime.sendMessage(null, message, null);
   }
 
-  processReceivedMessage(receivedMessage){
+  /**
+   * Processes message we received from CommsServer, and forwards it to eventBus.
+   * @param receivedMessage
+   */
+  private processReceivedMessage(receivedMessage){
+    console.log('message popped out of the comms', receivedMessage, 'event bus:', this.eventBus);
     // when sending between frames, message will be enriched with two new properties
     const {_sourceFrame, _sourcePort, ...message} = receivedMessage;
 

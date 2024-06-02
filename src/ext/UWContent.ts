@@ -9,6 +9,7 @@ import UWGlobals from './lib/UWGlobals';
 import EventBus from './lib/EventBus';
 import KeyboardHandler from './lib/kbm/KeyboardHandler';
 import { SiteSettings } from './lib/settings/SiteSettings';
+import UI from './lib/uwui/UI';
 
 export default class UWContent {
   pageInfo: PageInfo;
@@ -19,6 +20,8 @@ export default class UWContent {
   logger: Logger;
   eventBus: EventBus;
   isIframe: boolean = false;
+
+  globalUi: any;
 
   commsHandlers: {
     [x: string]: ((a: any, b?: any) => void | Promise<void>)[]
@@ -77,12 +80,6 @@ export default class UWContent {
           function: () => this.initPhase2()
         }
       );
-      this.eventBus.subscribe(
-        'uw-show-ui',
-        {
-          function: () => {}
-        }
-      );
       this.comms = new CommsClient('content-main-port', this.logger, this.eventBus);
       this.eventBus.setComms(this.comms);
 
@@ -112,6 +109,8 @@ export default class UWContent {
       this.keyboardHandler.init();
 
       this.logger.log('info', 'debug', "[uw.js::setup] KeyboardHandler initiated.");
+
+      this.globalUi = new UI('ultrawidify-global-ui', {eventBus: this.eventBus, isGlobal: true})
 
     } catch (e) {
       console.error('Ultrawidify: failed to start extension. Error:', e)

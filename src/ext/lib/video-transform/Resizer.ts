@@ -88,7 +88,6 @@ class Resizer {
         this.manualZoom = false; // this only gets called from UI or keyboard shortcuts, making this action safe.
 
         if (config.type !== AspectRatioType.Cycle) {
-          console.log('setting AR from event bus command')
           this.setAr(config);
         } else {
           // if we manually switched to a different aspect ratio, cycle from that ratio forward
@@ -247,6 +246,7 @@ class Resizer {
     }
 
     if ([AspectRatioType.Reset, AspectRatioType.Initial].includes(ar.type)) {
+      console.log('run level is UI only because aspect ratio type is', ar.type)
       this.eventBus.send('set-run-level', RunLevel.UIOnly);
     } else {
       this.eventBus.send('set-run-level', RunLevel.CustomCSSActive);
@@ -902,7 +902,6 @@ class Resizer {
    *   - options.force: remove our CSS regardless of current crop and stretch options
    */
   unsetStyleString(options?: {force: boolean}) {
-
     // check whether it's safe to remove CSS.
     if (!options?.force) {
       if (
