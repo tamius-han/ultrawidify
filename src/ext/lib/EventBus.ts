@@ -98,7 +98,6 @@ export default class EventBus {
   }
 
   send(command: string, commandData: any, context?: EventBusContext) {
-    console.log('sending command ....', command, commandData, context);
     // execute commands we have subscriptions for
     if (this.commands?.[command]) {
       for (const eventBusCommand of this.commands[command]) {

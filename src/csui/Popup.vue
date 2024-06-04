@@ -149,7 +149,6 @@ export default {
       'set-current-site',
       {
         function: (config, context) => {
-          console.log('Received set-current-site', config);
           if (this.site) {
             if (!this.site.host) {
               // dunno why this fix is needed, but sometimes it is
@@ -251,7 +250,6 @@ export default {
     },
     processReceivedMessage(message, port) {
       this.logger.log('info', 'popup', '[popup::processReceivedMessage] received message:', message)
-      console.info('[popup::processReceivedMessage] got message:', message);
 
       if (message.command === 'set-current-site'){
         if (this.site) {

@@ -1,6 +1,14 @@
+import { EventBusConnector } from '../EventBus';
+
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: UI");
 }
+
+const csuiVersions = {
+  'normal': 'csui',         // csui-overlay-normal.html, maps to csui.html
+  'light': 'csui-light',    // csui-overlay-light.html,  maps to csui-light.html
+  'dark': 'csui-dark'       // csui-overlay-dark.html,   maps to csui-dark.html
+};
 
 class UI {
   constructor(
@@ -13,13 +21,24 @@ class UI {
 
     this.isGlobal = uiConfig.isGlobal ?? false;
     // TODO: at some point, UI should be different for global popup and in-player UI
-    this.uiURI = chrome.runtime.getURL('/csui/csui.html');
+    const preferredScheme =  window.getComputedStyle( document.body ,null).getPropertyValue('color-scheme');
+    const csuiVersion = csuiVersions[preferredScheme] ?? csuiVersions.normal;
+
+    this.uiURI = chrome.runtime.getURL(`/csui/${csuiVersion}.html`);
     this.extensionBase = chrome.runtime.getURL('').replace(/\/$/, "");
 
     this.eventBus = uiConfig.eventBus;
+    this.disablePointerEvents = false;
+
+    this.saveState = undefined;
   }
 
   async init() {
+    this.initIframes();
+    this.initMessaging();
+  }
+
+  initIframes() {
     const random = Math.round(Math.random() * 69420);
     const uwid = `uw-ultrawidify-${this.interfaceId}-root-${random}`
 
@@ -30,10 +49,10 @@ class UI {
     }
     rootDiv.setAttribute('id', uwid);
     rootDiv.classList.add('uw-ultrawidify-container-root');
-    rootDiv.style.width = "100%";
-    rootDiv.style.height = "100%";
-    rootDiv.style.position = "absolute";
-    rootDiv.style.zIndex = "1000";
+    // rootDiv.style.width = "100%";
+    // rootDiv.style.height = "100%";
+    rootDiv.style.position = this.isGlobal ? "fixed" : "absolute";
+    rootDiv.style.zIndex = this.isGlobal ? '90009' : '90000';
     rootDiv.style.border = 0;
     rootDiv.style.top = 0;
     rootDiv.style.pointerEvents = 'none';
@@ -52,12 +71,14 @@ class UI {
 
     const iframe = document.createElement('iframe');
     iframe.setAttribute('src', uiURI);
-    iframe.style.width = "100%";
-    iframe.style.height = "100%";
+    iframe.setAttribute("allowTransparency", 'true');
+    // iframe.style.width = "100%";
+    // iframe.style.height = "100%";
     iframe.style.position = "absolute";
-    iframe.style.zIndex = "1000";
+    iframe.style.zIndex =  this.isGlobal ? '90009' : '90000';
     iframe.style.border = 0;
     iframe.style.pointerEvents = 'none';
+    iframe.style.backgroundColor = 'transparent !important';
 
     /* so we have a problem: we want iframe to be clickthrough everywhere except
      * on our actual overlay. There's no nice way of doing that, so we need some
@@ -71,6 +92,9 @@ class UI {
 
     // set uiIframe for handleMessage
     this.uiIframe = iframe;
+
+    // set not visible by default
+    this.setUiVisibility(false);
 
     const fn = (event) => {
       // remove self on fucky wuckies
@@ -95,21 +119,21 @@ class UI {
       );
     }
 
+    // NOTE: you cannot communicate with UI iframe inside onload function.
+    // onload triggers after iframe is initialized, but BEFORE vue finishes
+    // setting up all the components.
+    // If we need to have any data inside the vue component, we need to
+    // request that data from vue components.
     iframe.onload = function() {
       document.addEventListener('mousemove', fn, true);
-
-      if (this.isGlobal) {
-        this.uiIframe.contentWindow.postMessage({
-          action: 'set-as-global'
-        });
-      }
     }
 
     rootDiv.appendChild(iframe);
-
+  }
+  initMessaging() {
     // subscribe to events coming back to us. Unsubscribe if iframe vanishes.
     const messageHandlerFn = (message) => {
-      if (!iframe?.contentWindow) {
+      if (!this.uiIframe?.contentWindow) {
         window.removeEventListener('message', messageHandlerFn);
         return;
       }
@@ -126,20 +150,50 @@ class UI {
     this.eventBus.subscribe(
       'uw-config-broadcast',
       {
-        function: (config) => {
-          this.sendToIframe('uw-config-broadcast', config, uiURI);
+        function: (config, routingData) => {
+          this.sendToIframe('uw-config-broadcast', config, routingData);
         }
       }
     );
     this.eventBus.subscribe(
       'uw-set-ui-state',
       {
-        function: (config) => {
-          console.log('hello');
-          this.sendToIframe('uw-set-ui-state', config, uiURI);
+        function: (config, routingData)  => {
+          if (config.globalUiVisible !== undefined) {
+            if (this.isGlobal) {
+              this.setUiVisibility(config.globalUiVisible);
+            } else {
+              this.setUiVisibility(!config.globalUiVisible);
+            }
+          }
+          this.sendToIframe('uw-set-ui-state', {...config, isGlobal: this.isGlobal}, routingData);
         }
       }
     )
+    this.eventBus.subscribe(
+      'uw-restore-ui-state', {
+        function: (config, routingData) => {
+          if (!this.isGlobal) {
+            this.setUiVisibility(true);
+            this.sendToIframe('uw-restore-ui-state', config, routingData);
+          }
+        }
+      }
+    )
+  }
+
+  setUiVisibility(visible) {
+    if (visible) {
+      this.element.style.width = '100%';
+      this.element.style.height = '100%';
+      this.uiIframe.style.width = '100%';
+      this.uiIframe.style.height = '100%';
+    } else {
+      this.element.style.width = '0px';
+      this.element.style.height = '0px';
+      this.uiIframe.style.width = '0px';
+      this.uiIframe.style.height = '0px';
+    }
   }
 
   async enable() {
@@ -161,35 +215,86 @@ class UI {
    */
   handleMessage(event) {
     if (event.origin === this.extensionBase) {
-      if (event.data.action === 'uwui-clickable') {
-        if (event.data.ts < this.lastProbeResponseTs) {
-          return;
-        }
-        this.lastProbeResponseTs = event.data.ts;
-        this.uiIframe.style.pointerEvents = event.data.clickable ? 'auto' : 'none';
-      } else if (event.data.action === 'uw-bus-tunnel') {
-        const busCommand = event.data.payload;
-        this.eventBus.send(busCommand.action, busCommand.config);
+      switch(event.data.action) {
+        case 'uwui-clickable':
+          if (event.data.ts < this.lastProbeResponseTs) {
+            return;
+          }
+          if (this.disablePointerEvents) {
+            return;
+          }
+          this.lastProbeResponseTs = event.data.ts;
+          this.uiIframe.style.pointerEvents = event.data.clickable ? 'auto' : 'none';
+          break;
+        case 'uw-bus-tunnel':
+          const busCommand = event.data.payload;
+          this.eventBus.send(busCommand.action, busCommand.config, busCommand.routingData);
+          break;
+        case 'uwui-get-role':
+          this.sendToIframeLowLevel('uwui-set-role', {role: this.isGlobal ? 'global' : 'player'});
+          break;
+        case 'uwui-interface-ready':
+          this.setUiVisibility(!this.isGlobal);
+          break;
+        case 'uwui-global-window-hidden':
+          if (!this.isGlobal) {
+            return; // This shouldn't even happen in non-global windows
+          }
+          this.setUiVisibility(false);
+          this.eventBus.send('uw-restore-ui-state', {});
       }
     }
   }
 
   /**
-   * Sends message to iframe
+   * Sends messages to iframe. Messages sent with this function _generally_
+   * bypass eventBus on the receiving end.
+   * @param {*} action
+   * @param {*} payload
+   * @param {*} uiURI
    */
-  sendToIframe(action, actionConfig, uiURI = this.uiURI) {
+  sendToIframeLowLevel(action, payload, uiURI = this.uiURI) {
     // because existence of UI is not guaranteed — UI is not shown when extension is inactive.
     // If extension is inactive due to "player element isn't big enough to justify it", however,
     // we can still receive eventBus messages.
     if (this.element && this.uiIframe) {
-      this.uiIframe.contentWindow.postMessage(
+      this.uiIframe.contentWindow?.postMessage(
         {
-          action: 'uw-bus-tunnel',
-          payload: {action, config: actionConfig}
+          action,
+          payload
         },
         uiURI
       )
     };
+  }
+
+  /**
+   * Sends message to iframe. Messages sent with this function will be routed to eventbus.
+   */
+  sendToIframe(action, actionConfig, routingData, uiURI = this.uiURI) {
+    // if (routingData) {
+    //   if (routingData.crossedConnections?.includes(EventBusConnector.IframeBoundaryIn)) {
+    //     console.warn('Denied message propagation. It has already crossed INTO an iframe once.');
+    //     return;
+    //   }
+    // }
+    // if (!routingData) {
+    //   routingData = { };
+    // }
+    // if (!routingData.crossedConnections) {
+    //   routingData.crossedConnections = [];
+    // }
+    // routingData.crossedConnections.push(EventBusConnector.IframeBoundaryIn);
+
+    this.sendToIframeLowLevel(
+      'uw-bus-tunnel',
+      {
+        action,
+        config: actionConfig,
+        routingData
+      },
+      uiURI
+    );
   }
 
   /**

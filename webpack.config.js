@@ -130,7 +130,9 @@ const config = {
       // (TODO: check if this copy is even necessary — /icons has same content as /res/icons)
       { from: 'icons', to: 'icons', ignore: ['icon.xcf'] },
       { from: 'csui/csui-popup.html', to: 'csui/csui-popup.html', transform: transformHtml },
-      { from: 'csui/csui.html', to: 'csui/csui.html', transform: transformHtml },
+      { from: 'csui/csui-overlay-normal.html', to: 'csui/csui.html', transform: transformHtml },
+      { from: 'csui/csui-overlay-dark.html', to: 'csui/csui-dark.html', transform: transformHtml },
+      { from: 'csui/csui-overlay-light.html', to: 'csui/csui-light.html', transform: transformHtml },
       // { from: 'install/first-time/first-time.html', to: 'install/first-time/first-time.html', transform: transformHtml},
       {
         from: 'manifest.json',

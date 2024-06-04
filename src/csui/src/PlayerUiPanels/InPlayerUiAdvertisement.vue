@@ -11,6 +11,7 @@
     <p></p>
     <p></p>
     <p>In-player UI should show and hide automatically as you start or stop moving your mouse inside the player window.</p>
+    <p>Note that by default, in-player UI doesn't show if player window is not big enough.</p>
   </div>
 </template>
 
@@ -26,7 +27,7 @@ export default {
   ],
   methods: {
     showInPlayerUi() {
-      this.eventBus.send('uw-set-ui-state', {uiVisible: true}, {comms: {forwardTo: 'active'}});
+      this.eventBus.send('uw-set-ui-state', {globalUiVisible: true}, {comms: {forwardTo: 'active'}});
     }
   }
 }
