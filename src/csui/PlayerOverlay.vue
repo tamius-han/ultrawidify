@@ -1,4 +1,5 @@
 <template>
+
   <div
     v-if="settingsInitialized && uwTriggerZoneVisible && !isGlobal"
     class="uw-hover uv-hover-trigger-region uw-clickable"
@@ -9,13 +10,12 @@
     <div>Hover to activate</div>
   </div>
 
-  <!-- sss -->
   <div
     v-if="settingsInitialized && uwWindowVisible"
     class="uw-window flex flex-column uw-clickable"
     :class="{'fade-out': uwWindowFadeOut}"
     @mouseenter="cancelUwWindowHide"
-    @mouseleave="hideUwWindow"
+    @mouseleave="hideUwWindow()"
   >
     <PlayerUIWindow
       :settings="settings"
@@ -76,7 +76,8 @@ export default {
       origin: '*', // will be set appropriately once the first uwui-probe event is received
       lastProbeTs: null,
 
-      isGlobal: false,
+      isGlobal: true,
+      disabled: false,
 
       uiVisible: true,
       debugData: {
@@ -85,9 +86,16 @@ export default {
       },
       debugDataPrettified: '',
 
+      // in global overlay, this property is used to determine
+      // if closing the window should emit uw-set-ui-state
+      // event on eventBus
+      showPlayerUIAfterClose: false,
+
       statusFlags: {
         hasDrm: undefined,
       },
+
+      saveState: {},
 
       tabs: [
         {id: 'videoSettings', label: 'Video settings', icon: 'crop'},
@@ -145,25 +153,58 @@ export default {
       this.handleMessage(event);
     });
 
-    console.log('UW UI INITALIZED!');
-
     this.eventBus.subscribe('uw-config-broadcast', {function: (data) => {
       if (data.type === 'drm-status') {
         this.statusFlags.hasDrm = data.hasDrm;
       }
     }});
 
-    this.eventBus.subscribe('set-as-global', {function: (data) => {
-      this.isGlobal = true;
-    }});
 
     this.eventBus.subscribe('uw-set-ui-state', { function: (data) => {
-      console.log('received set ui statW!', data, 'are we global?', this.isGlobal);
-      if (!this.isGlobal) {
-        return; // only intended for global overlay
+      if (data.globalUiVisible !== undefined) {
+        if (this.isGlobal) {
+          if (data.globalUiVisible) {
+            this.showUwWindow();
+          } else {
+            this.hideUwWindow(true);
+          }
+          // this.showPlayerUIAfterClose = data.showPlayerUIAfterClose;
+        } else {
+          // non global UIs are hidden while global overlay
+          // is visible and vice versa
+          // this.disabled = data.globalUiVisible;
+          this.saveState = {
+            uwWindowVisible: this.uwWindowVisible,
+            uwWindowFadeOutDisabled: this.uwWindowFadeOutDisabled,
+            uwWindowFadeOut: this.uwWindowFadeOut
+          };
+          this.uwWindowFadeOutDisabled = false;
+          this.hideUwWindow(true);
+        }
       }
-      this.uiVisible = data.uiVisible;
     }});
+
+    this.eventBus.subscribe(
+      'uw-restore-ui-state',
+      {
+        function: (data) => {
+          if (this.saveState) {
+            if (this.saveState.uwWindowVisible) {
+              this.showUwWindow();
+            }
+            this.uwWindowFadeOutDisabled = this.saveState.uwWindowFadeOutDisabled;
+            this.uwWindowFadeOut = this.saveState.uwWindowFadeOut;
+          }
+          this.saveState = {};
+        }
+      }
+    );
+
+    this.sendToParentLowLevel('uwui-get-role', null);
+    this.sendToParentLowLevel('uwui-get-theme', null);
+
+    //
+
   },
 
   methods: {
@@ -180,15 +221,32 @@ export default {
      * to the correct function down the line.
      */
     handleMessage(event) {
-      if (event.data.action === 'uwui-probe') {
-        if (!this.site) {
-          this.origin = event.origin;
-          this.site = event.origin.split('//')[1];
-        }
-        this.handleProbe(event.data, event.origin); // handleProbe is defined in UIProbeMixin
-      } else if (event.data.action === 'uw-bus-tunnel') {
-        this.handleBusTunnelIn(event.data.payload);
+      switch (event.data.action) {
+        case 'uwui-probe':
+          if (!this.site) {
+            this.origin = event.origin;
+            this.site = event.origin.split('//')[1];
+          }
+          return this.handleProbe(event.data, event.origin); // handleProbe is defined in UIProbeMixin
+        case 'uw-bus-tunnel':
+          return this.handleBusTunnelIn(event.data.payload);
+        case 'uwui-set-role':
+          this.isGlobal = event.data.payload.role === 'global';
+          this.sendToParentLowLevel('uwui-interface-ready', true);
+          break;
       }
+    },
+
+    /**
+     * Sends message to parent _without_ using event bus.
+     */
+    sendToParentLowLevel(action, payload, lowLevelExtras = {}) {
+      window.parent.postMessage(
+        {
+          action, payload, ...lowLevelExtras
+        },
+        '*'
+      );
     },
 
     showUwWindow() {
@@ -198,13 +256,30 @@ export default {
 
       // refresh DRM status
       this.eventBus.send('get-drm-status');
+
+      // if (this.isGlobal) {
+      //   this.sendToParentLowLevel('uwui-clickable', undefined, {clickable: true});
+      // }
     },
 
-    hideUwWindow() {
+    hideUwWindow(skipTimeout = false) {
       if (this.uwWindowFadeOutDisabled) {
         return;
       }
-      this.uwWindowCloseTimeout = setTimeout(() => this.uwWindowVisible = false, 1100);
+
+      const timeout = skipTimeout ? 0 : 1100;
+
+      this.uwWindowCloseTimeout = setTimeout(
+        () => {
+          this.uwWindowVisible = false;
+
+          // Global UI has some extra housekeeping to do when window gets hidden
+          if (this.isGlobal) {
+            this.sendToParentLowLevel('uwui-global-window-hidden', {});
+          }
+        },
+        timeout
+      );
       this.uwWindowFadeOut = true;
     },
 
@@ -214,7 +289,7 @@ export default {
     },
 
     handleBusTunnelIn(payload) {
-      this.eventBus.send(payload.action, payload.config);
+      this.eventBus.send(payload.action, payload.config, payload.routingData);
     },
 
     selectTab(tab) {
