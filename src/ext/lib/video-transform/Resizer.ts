@@ -682,42 +682,39 @@ class Resizer {
       stretchFactors.yFactor *= autoHeightCompensationFactor;
     }
 
-    const offsetWidth = this.videoData.video.offsetWidth;
-    const offsetHeight = this.videoData.video.offsetHeight;
-
-    const wdiff = this.videoData.player.dimensions.width - realVideoWidth;
-    const hdiff = this.videoData.player.dimensions.height - realVideoHeight;
-
-    const wdiffAfterZoom = realVideoWidth * stretchFactors.xFactor - this.videoData.player.dimensions.width;
-    const hdiffAfterZoom = realVideoHeight * stretchFactors.yFactor - this.videoData.player.dimensions.height;
-
+    // NOTE: transform: scale() is self-centering by default.
+    // we only need to compensate if alignment is set to anything other than center center
+    // compensation is equal to half the difference between (zoomed) video size and player size.
     const translate = {
-      x: wdiff * 0.5,
-      y: hdiff * 0.5,
+      x: 0,
+      y: 0,
     };
 
-
-
+    // NOTE: manual panning is probably broken now.
+    // TODO: FIXME:
+    // (argument could be made that manual panning was also broken before)
+    const alignXOffset = (realVideoWidth * stretchFactors.xFactor - this.videoData.player.dimensions.width) * 0.5;
+    const alignYOffset = (realVideoHeight * stretchFactors.yFactor - this.videoData.player.dimensions.height) * 0.5;
 
     if (this.pan.relativeOffsetX || this.pan.relativeOffsetY) {
       // don't offset when video is smaller than player
-      if(wdiffAfterZoom >= 0 || hdiffAfterZoom >= 0) {
-        translate.x += wdiffAfterZoom * this.pan.relativeOffsetX * this.zoom.scale;
-        translate.y += hdiffAfterZoom * this.pan.relativeOffsetY * this.zoom.scale;
+      if(alignXOffset >= 0 || alignYOffset >= 0) {
+        translate.x += alignXOffset * this.pan.relativeOffsetX * this.zoom.scale;
+        translate.y += alignYOffset * this.pan.relativeOffsetY * this.zoom.scale;
       }
     } else {
       // correct horizontal alignment according to the settings
       if (this.videoAlignment.x == VideoAlignmentType.Left) {
-        translate.x += wdiffAfterZoom * 0.5;
+        translate.x += alignXOffset;
       } else if (this.videoAlignment.x == VideoAlignmentType.Right) {
-        translate.x -= wdiffAfterZoom * 0.5;
+        translate.x -= alignXOffset
       }
 
       // correct vertical alignment according to the settings
       if (this.videoAlignment.y == VideoAlignmentType.Top) {
-        translate.y += hdiffAfterZoom * 0.5;
+        translate.y += alignYOffset;
       } else if (this.videoAlignment.y == VideoAlignmentType.Bottom) {
-        translate.y -= hdiffAfterZoom * 0.5;
+        translate.y -= alignYOffset;
       }
     }
 
@@ -730,11 +727,12 @@ class Resizer {
       '\nplayer dimensions:    ', {w: this.videoData.player.dimensions.width, h: this.videoData.player.dimensions.height},
       '\nvideo dimensions:     ', {w: this.videoData.video.offsetWidth, h: this.videoData.video.offsetHeight},
       '\nreal video dimensions:', {w: realVideoWidth, h: realVideoHeight},
+      '\nalign. base offset:   ', {alignXOffset, alignYOffset},
       '\nauto compensation:    ', 'x', autoHeightCompensationFactor,
       '\nstretch factors:      ', stretchFactors,
       '\npan & zoom:           ', this.pan, this.zoom.scale,
-      '\nwdiff, hdiff:         ', wdiff, 'x', hdiff,
-      '\nwdiff, hdiffAfterZoom:', wdiffAfterZoom, 'x', hdiffAfterZoom,
+      // '\nwdiff, hdiff:         ', wdiff, 'x', hdiff,
+      // '\nwdiff, hdiffAfterZoom:', wdiffAfterZoom, 'x', hdiffAfterZoom,
       '\n\n---- data out ----\n',
       'translate:', translate
     );
@@ -860,13 +858,13 @@ class Resizer {
       // important — guarantees video will be properly aligned
       // Note that position:absolute cannot be put here, otherwise old.reddit /w RES breaks — videos embedded
       // from certain hosts will get a height: 0px. This is bad.
-      styleArray.push("top: 0px !important; left: 0px !important; bottom: 0px !important; right: 0px;");
+      // styleArray.push("top: 0px !important; left: 0px !important; bottom: 0px !important; right: 0px;");
 
       // important — some websites (cough reddit redesign cough) may impose some dumb max-width and max-height
       // restrictions. If site has dumb shit like 'max-width: 100%' and 'max-height: 100vh' in their CSS, that
       // shit will prevent us from applying desired crop. This means we need to tell websites to fuck off with
       // that crap. We know better.
-      styleArray.push("max-width: none !important; max-height: none !important;");
+      // styleArray.push("max-width: none !important; max-height: none !important;");
     }
     const styleString = `${this.buildStyleString(styleArray)}${extraStyleString || ''}`; // string returned by buildStyleString() should end with ; anyway
 
