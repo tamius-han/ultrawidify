@@ -186,17 +186,17 @@ export class KeyboardHandler extends KbmBase {
 
   isActionMatchStandard(shortcut, event) {
     return shortcut.key      === event.key     &&
-           shortcut.ctrlKey  === event.ctrlKey &&
-           shortcut.metaKey  === event.metaKey &&
-           shortcut.altKey   === event.altKey  &&
-           shortcut.shiftKey === event.shiftKey
+         !!shortcut.ctrlKey  === event.ctrlKey &&
+         !!shortcut.metaKey  === event.metaKey &&
+         !!shortcut.altKey   === event.altKey  &&
+         !!shortcut.shiftKey === event.shiftKey;
   }
   isActionMatchKeyCode(shortcut, event) {
     return shortcut.code     === event.code    &&
-           shortcut.ctrlKey  === event.ctrlKey &&
-           shortcut.metaKey  === event.metaKey &&
-           shortcut.altKey   === event.altKey  &&
-           shortcut.shiftKey === event.shiftKey
+         !!shortcut.ctrlKey  === event.ctrlKey &&
+         !!shortcut.metaKey  === event.metaKey &&
+         !!shortcut.altKey   === event.altKey  &&
+         !!shortcut.shiftKey === event.shiftKey
   }
 
   isActionMatch(shortcut, event, isLatin = true) {
