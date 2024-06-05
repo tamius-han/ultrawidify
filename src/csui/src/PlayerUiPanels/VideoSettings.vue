@@ -6,8 +6,12 @@
       :class="{isEditing: editMode}"
     >
       <template v-if="editMode">
+        <div style="height: 100%; display: flex; flex-direction: column; justify-content: center; flex: 0 0; padding-right: 8px;">
+          <mdicon name="alert" size="32" />
+        </div>
         <div class="flex-grow">
-          You are currently editing options and shortcuts.
+          You are currently editing options and shortcuts.<br/>
+          <b>NOTE: changes will take effect after page reload.</b>
         </div>
         <div
           class="flex-nogrow flex-noshrink"
