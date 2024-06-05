@@ -25,8 +25,9 @@ class KeyboardShortcutParser {
   static generateShortcutFromKeypress(event) {
     return {
       ctrlKey: event.ctrlKey,
-      shiftKey: event.altKey,
       altKey: event.altKey,
+      shiftKey: event.shiftKey,
+      metaKey: event.metaKey,
       code: event.code,
       key: event.key,
       keyup: true,
