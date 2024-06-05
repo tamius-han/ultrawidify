@@ -3,45 +3,62 @@
     class="popup-panel flex flex-column uw-clickable h-full"
   >
     <div class="popup-window-header">
-      <div class="popup-title">Ultrawidify <small>{{settings?.active?.version}} - {{BrowserDetect.processEnvChannel}}</small></div>
-      <div class="site-support-info">
-        <div class="site-support-site">{{site}}</div>
-        <template v-if="inPlayer">
-          <div v-if="siteSupportLevel === 'official'" class="site-support official">
-            <mdicon name="check-decagram" />
-            <div>Verified</div>
-            <div class="tooltip">The extension is being tested and should work on this site.</div>
-          </div>
-          <div v-if="siteSupportLevel === 'community'" class="site-support community">
-            <mdicon name="handshake" />
-            <div>Community</div>
-            <div class="tooltip">
-              People say extension works on this site (or have provided help getting the extension to work if it didn't).<br/><br/>
-              Tamius (the dev) does not test the extension on this site, probably because it requires a subscription or
-              is geoblocked.
+      <div class="header-title">
+        <div class="popup-title">Ultrawidify <small>{{settings?.active?.version}} - {{BrowserDetect.processEnvChannel}}</small></div>
+        <div class="site-support-info">
+          <div class="site-support-site">{{site}}</div>
+          <template v-if="inPlayer">
+            <div v-if="siteSupportLevel === 'official'" class="site-support official">
+              <mdicon name="check-decagram" />
+              <div>Verified</div>
+              <div class="tooltip">The extension is being tested and should work on this site.</div>
             </div>
-          </div>
-          <div v-if="siteSupportLevel === 'no-support'" class="site-support no-support">
-            <mdicon name="help-circle-outline" />
-            <div>Unknown</div>
-            <div class="tooltip">
-              Not officially supported. Extension will try to fix things, but no promises.<br/><br/>
-              Tamius (the dev) does not test the extension on this site for various reasons
-              (unaware, not using the site, language barrier, geoblocking, paid services Tam doesn't use).
+            <div v-if="siteSupportLevel === 'community'" class="site-support community">
+              <mdicon name="handshake" />
+              <div>Community</div>
+              <div class="tooltip">
+                People say extension works on this site (or have provided help getting the extension to work if it didn't).<br/><br/>
+                Tamius (the dev) does not test the extension on this site, probably because it requires a subscription or
+                is geoblocked.
+              </div>
             </div>
-          </div>
-          <div v-if="siteSupportLevel === 'user-added'" class="site-support user-added">
-            <mdicon name="account" />
-            <div>Custom</div>
-            <div class="tooltip">
-              You have manually changed settings for this site. The extension is doing what you told it to do.
+            <div v-if="siteSupportLevel === 'no-support'" class="site-support no-support">
+              <mdicon name="help-circle-outline" />
+              <div>Unknown</div>
+              <div class="tooltip">
+                Not officially supported. Extension will try to fix things, but no promises.<br/><br/>
+                Tamius (the dev) does not test the extension on this site for various reasons
+                (unaware, not using the site, language barrier, geoblocking, paid services Tam doesn't use).
+              </div>
             </div>
-          </div>
-          <mdicon v-if="siteSupportLevel === 'community'" class="site-support supported" name="checkbox-marked-circle" />
-        </template>
+            <div v-if="siteSupportLevel === 'user-added'" class="site-support user-added">
+              <mdicon name="account" />
+              <div>Custom</div>
+              <div class="tooltip">
+                You have manually changed settings for this site. The extension is doing what you told it to do.
+              </div>
+            </div>
+            <mdicon v-if="siteSupportLevel === 'community'" class="site-support supported" name="checkbox-marked-circle" />
+          </template>
+        </div>
       </div>
-
-      <div><a @click="setPreventClose(!preventClose)">{{preventClose ? 'allow auto-close' : 'prevent auto-close'}}</a></div>
+      <div class="header-buttons">
+        <div
+          class="header-button"
+          :class="{'button-active': preventClose}"
+          @click="setPreventClose(!preventClose)"
+        >
+          <mdicon v-if="!preventClose" name="pin-outline" :size="32" />
+          <mdicon v-else name="pin" :size="32" />
+        </div>
+        <dv
+          class="header-button close-button"
+          @click="$emit('close')"
+        >
+          <mdicon name="close" :size="36"></mdicon>
+        </dv>
+        <!-- <a >{{preventClose ? 'allow auto-close' : 'prevent auto-close'}}</a> -->
+      </div>
     </div>
 
     <div class="tab-main flex flex-row">
@@ -353,6 +370,45 @@ export default {
   .popup-window-header {
     padding: 1rem;
     background-color: rgba(5,5,5, 0.75);
+
+    display: flex;
+    flex-direction: row;
+
+    .header-title {
+      flex: 1 1;
+    }
+    .header-buttons {
+      flex: 0 0;
+      display: flex;
+      flex-direction: row;
+
+      .header-button {
+        cursor: pointer;
+        border-radius: 50%;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        &.button-active {
+          background-color: #fa6;
+          color: #000;
+
+          &:hover {
+            color: #ccc;
+          }
+        }
+
+        &.close-button {
+          color: #f00;
+        }
+
+        &:hover {
+          color: #fa6;
+        }
+      }
+    }
   }
   .tab-row {
     background-color: rgba(11,11,11, 0.75);
