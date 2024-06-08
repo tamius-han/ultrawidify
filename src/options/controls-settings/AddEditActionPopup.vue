@@ -2,7 +2,7 @@
   <div class="full-screen"
        @click="cancel()"
   >
-    <div class="dialog-box flex flex-column" @click="$event.stopPropagation()">
+    <div class="dialog-box flex flex-col" @click="$event.stopPropagation()">
       <div class="window-title">
         {{actionIndex < 0 ? 'Add new action' : 'Edit action'}}
       </div>
@@ -24,7 +24,7 @@
         </CommandAddEdit>
       </div>
 
-      <div class="flex flex-column section-pad">
+      <div class="flex flex-col section-pad">
         <div class="flex flex-row">
           <div class="flex label-secondary form-label">
             <span class="w100">
@@ -95,13 +95,13 @@
                         @click.native="cancel()"
         />
       </div>
-      
+
     </div>
   </div>
 </template>
 
 <script>
-import ShortcutButton from '../../common/components/ShortcutButton.vue' 
+import ShortcutButton from '../../common/components/ShortcutButton.vue'
 import StretchType from '../../common/enums/StretchType.enum';
 import KeyboardShortcutParser from '../../common/js/KeyboardShortcutParser';
 import CommandChain from './command-builder/CommandChain';

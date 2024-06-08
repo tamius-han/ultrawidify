@@ -10,7 +10,7 @@
       further than that.
     -->
     <div v-if="settingsInitialized"
-        class="popup flex flex-column no-overflow"
+        class="popup flex flex-col no-overflow"
         :class="{'popup-chrome': ! BrowserDetect?.firefox}"
     >
       <div class="flex-row flex-nogrow flex-noshrink relative header"

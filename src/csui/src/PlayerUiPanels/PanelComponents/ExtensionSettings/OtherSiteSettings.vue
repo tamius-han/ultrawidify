@@ -4,7 +4,7 @@
       <div style="margin-top: 1rem; margin-bottom: 1rem;">
         <b>NOTE:</b> Sites not on this list use default extension settings.
       </div>
-      <div v-for="site of sites" :key="site.key" @click="selectedSite = site.key" class="flex flex-column container pointer" style="margin-top: 4px; padding: 0.5rem 1rem;">
+      <div v-for="site of sites" :key="site.key" @click="selectedSite = site.key" class="flex flex-col container pointer" style="margin-top: 4px; padding: 0.5rem 1rem;">
         <div class="flex flex-row">
           <div class="flex-grow pointer">
             <b>{{ site.key }}</b>

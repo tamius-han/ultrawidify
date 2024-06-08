@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-column tab-root">
+  <div class="flex flex-col tab-root">
     <!-- ADD ANY OPTION BARS HERE -->
 
     <!-- The rest of the tab -->

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="popup-panel flex flex-column uw-clickable h-full"
+    class="popup-panel flex flex-col uw-clickable h-full"
   >
     <div class="popup-window-header">
       <div class="header-title">
@@ -62,7 +62,7 @@
     </div>
 
     <div class="tab-main flex flex-row">
-      <div class="tab-row flex flex-column grow-0 shrink-0">
+      <div class="tab-row flex flex-col grow-0 shrink-0">
         <div
           v-for="tab of tabs"
           :key="tab.id"
@@ -85,7 +85,7 @@
           </div>
         </div>
       </div>
-      <div class="content flex flex-column">
+      <div class="content flex flex-col">
         <!-- autodetection warning -->
 
         <div class="warning-area">

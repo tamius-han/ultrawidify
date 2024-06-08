@@ -12,7 +12,7 @@
       </div>
     </div>
     <div class="command-details">
-      <div class="flex flex-column cmd-container cd-pad">
+      <div class="flex flex-col cmd-container cd-pad">
         <div class="flex bold">
           Command:
         </div>
@@ -22,7 +22,7 @@
       </div>
 
      <!-- SCOPES -->
-      <div class="flex flex-column scopes-container cd-pad">
+      <div class="flex flex-col scopes-container cd-pad">
         <div class="flex bold">Popup tabs:</div>
 
         <!-- global scope -->

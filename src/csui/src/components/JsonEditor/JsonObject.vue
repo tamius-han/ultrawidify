@@ -1,12 +1,12 @@
 <template>
-  <div class="flex flex-column json-level-indent">
+  <div class="flex flex-col json-level-indent">
     <div class="flex flex-row" @click="expanded_internal = !expanded_internal">
       <div class="item-key-line">
         <template v-if="label">
           <b>
             <span class="item-key">"{{label}}"</span>
           :
-          </b> 
+          </b>
         </template>
         <span v-if="!expanded_internal"><b> {</b> ... <b>}</b>,</span>
         <template v-else><b>{</b></template>

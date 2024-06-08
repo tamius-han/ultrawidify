@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-column flex-center">
+  <div class="flex flex-col flex-center">
     <div class="flex flex-self-center">
       {{label}}
     </div>

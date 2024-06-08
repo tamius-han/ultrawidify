@@ -1,17 +1,17 @@
 <template>
-  <div class="flex flex-column">
+  <div class="flex flex-col">
     <div v-if="!editing && !adding" class="flex flex-row">
       <div class="">
         <b>Query selector:</b> {{qs.string}}<br/>
         <b>Additional CSS:</b> {{qs.css || 'no style rules'}}
       </div>
-      <div class="flex flex-column flex-nogrow">
+      <div class="flex flex-col flex-nogrow">
         <a @click="editing = true">Edit</a>
         <a @click="$emit('delete')">Delete</a>
       </div>
     </div>
     <div v-else class="flex flex-row">
-      <div class="flex flex-column">
+      <div class="flex flex-col">
         <div class="flex flex-row">
           <div class="flex label-secondary form-label">
             Query selector:

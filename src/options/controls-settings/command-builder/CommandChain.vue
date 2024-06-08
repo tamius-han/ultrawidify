@@ -11,7 +11,7 @@
                     @move-right="$emit('move-left', (index + 1))"
       >
       </CommandBlock>
-      <div class="new-command h100 flex flex-column flex-center flex-cross-center"
+      <div class="new-command h100 flex flex-col flex-center flex-cross-center"
            @click="$emit('new-command')"
       >
         <div><b>+</b></div>

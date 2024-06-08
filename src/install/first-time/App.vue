@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-column h100">
+  <div class="flex flex-col h100">
     <div class="header flex-nogrow flex-noshrink">
       Ultrawidify has been updated.
     </div>

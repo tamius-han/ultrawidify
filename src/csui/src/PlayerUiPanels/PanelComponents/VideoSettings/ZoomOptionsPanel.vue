@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-column">
+  <div class="flex flex-col">
     <!--
       min, max and value need to be implemented in js as this slider
       should use logarithmic scale

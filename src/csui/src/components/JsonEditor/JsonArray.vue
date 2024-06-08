@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-column json-level-indent">
+  <div class="flex flex-col json-level-indent">
     <div class="flex flex-row" @click="expanded_internal = !expanded_internal">
       <div v-if="value_internal.key" class="item-key">
         "{{value_internal.key}}" <b>:</b>

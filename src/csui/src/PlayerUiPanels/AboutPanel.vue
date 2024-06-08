@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-column w-full h-full gap-2">
+  <div class="flex flex-col w-full h-full gap-2">
     <h1>About Ultrawidify</h1>
     <p>
       Ultrawidify version: <b>{{addonVersion}}</b><br>
