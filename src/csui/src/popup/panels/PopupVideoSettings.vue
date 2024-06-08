@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-column" style="padding-bottom: 20px">
+  <div class="flex flex-col" style="padding-bottom: 20px">
     <div class="flex flex-row">
       <mdicon name="crop" :size="24" />&nbsp;&nbsp;
       <h1>Crop video:</h1>

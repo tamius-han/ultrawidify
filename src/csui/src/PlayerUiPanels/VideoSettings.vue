@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-column" style="position: relative; width: 100%;">
+  <div class="flex flex-col" style="position: relative; width: 100%;">
     <!-- 'Change UI' options is a tiny bit in upper right corner. -->
     <div
       class="options-bar flex flex-row"

@@ -12,7 +12,7 @@
 
   <div
     v-if="settingsInitialized && uwWindowVisible"
-    class="uw-window flex flex-column uw-clickable"
+    class="uw-window flex flex-col uw-clickable"
     :class="{'fade-out': uwWindowFadeOut}"
     @mouseenter="cancelUwWindowHide"
     @mouseleave="hideUwWindow()"

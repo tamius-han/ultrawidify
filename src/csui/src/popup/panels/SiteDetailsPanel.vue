@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-column" style="padding-bottom: 20px; position: relative">
+  <div class="flex flex-col" style="padding-bottom: 20px; position: relative">
     <!-- <div class="">
       <div class="label">Player picker</div>
       <div class="desc">
@@ -58,7 +58,7 @@
       </div>
 
       <div v-if="playerManualQs">
-        <div v-if="!playerByNodeIndex" class="flex flex-column">
+        <div v-if="!playerByNodeIndex" class="flex flex-col">
           <div class="">Query selectors for player:</div>
           <input type="text"
                 v-model="playerQs"
@@ -115,7 +115,7 @@
     <div class="description">
       This css will be inserted into webpage every time it loads.
     </div>
-    <div class="flex flex-column">
+    <div class="flex flex-col">
         <textarea
                v-model="playerCss"
                @change="updatePlayerCss"
@@ -135,7 +135,7 @@
                 type="checkbox"
         /> Detect automatically
       </div>
-      <div class="flex flex-column">
+      <div class="flex flex-col">
         <div class="flex label-secondary form-label">Query selectors</div>
         <input type="text"
                v-model="videoQs"
@@ -144,7 +144,7 @@
                @blur="updateVideoQuerySelector"
         />
       </div>
-      <div class="flex flex-column">
+      <div class="flex flex-col">
         <div class="flex label-secondary form-label">Additional style for video element</div>
         <input type="text"
                v-model="videoCss"
@@ -160,10 +160,10 @@
         Sometimes, the extension may misbehave as a result of issues and bugs present in your browser, operating system or your GPU driver.
         Some of the issues can be fixed by limiting certain functionalities of this addon.
       </div>
-      <div class="flex flex-column">
+      <div class="flex flex-col">
         <div
           v-if="BrowserDetect.anyChromium"
-          class="workaround flex flex-column"
+          class="workaround flex flex-col"
         >
           <div class="flex label-secondary form-label">
             <input :checked="settings?.active?.mitigations?.zoomLimit?.enabled"

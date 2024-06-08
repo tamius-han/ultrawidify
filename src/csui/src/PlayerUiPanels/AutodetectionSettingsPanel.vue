@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-column tab-root">
+  <div class="flex flex-col tab-root">
     <div class="flex flex-row flex-wrap">
 
       <!-- AARD performance metrics -->

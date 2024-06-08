@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-column h100">
+  <div class="flex flex-col h100">
     <div class="row">
       <span class="label">Ultrawidify version:</span><br/> {{addonVersion}}
     </div>

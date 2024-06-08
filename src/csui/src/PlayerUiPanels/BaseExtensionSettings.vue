@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-column w-100">
+  <div class="flex flex-col w-100">
 
     <!-- TAB ROW -->
     <div class="flex flex-row">
