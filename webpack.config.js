@@ -52,21 +52,12 @@ const config = {
         exclude: /node_modules/,
       },
       {
-        test: /\.(sc|c)ss$/,
+        test: /\.scss$/,
         use: [
           // MiniCssExtractPlugin.loader,
           'vue-style-loader',
           {
             loader: 'css-loader',
-            // modules: {
-            //   localIdentName: "[name]-[hash]"
-            // }
-            // options: {
-            //   modules: true,
-            //   // localIdentName: "🔶uw_[local]"
-            //   localIdentName: "[name]-[hash]"
-            //   // localIdentName: "uw_[local]"
-            // }
           },
           {
             loader: 'sass-loader',
@@ -76,8 +67,22 @@ const config = {
           }
         ],
       },
+      {
+        test: /\.css$/,
+        use: [
+          // MiniCssExtractPlugin.loader,
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              importLoaders: 1,
+            }
+          },
+          'postcss-loader',
+        ],
+      },
       // {
-      //   test: /\.scss$/,
+      //   test: /\.css$/,
       //   use: [
       //     // MiniCssExtractPlugin.loader,
       //     'css-loader',
