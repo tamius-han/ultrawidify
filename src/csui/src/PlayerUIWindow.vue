@@ -181,7 +181,7 @@ export default {
         // {id: 'advancedOptions', label: 'Advanced options', icon: 'cogs' },
         // {id: 'debugging', label: 'Debugging', icon: 'bug-outline' }
         {id: 'changelog', label: 'What\'s new', icon: 'information-box-outline' },
-        {id: 'about', label: 'About', icon: ''}
+        {id: 'about', label: 'About', icon: 'star-four-points-circle'}
       ],
       selectedTab: 'videoSettings',
       BrowserDetect: BrowserDetect,
@@ -246,6 +246,12 @@ export default {
 //   width: 100%;
 //   height: 100%;
 // }
+
+.tab-row {
+  width: 22rem;
+  flex-grow: 0;
+  flex-shrink: 0;
+}
 
 .tab-main {
   flex-grow: 1;

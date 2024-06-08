@@ -7,7 +7,7 @@
     </p>
 
     <div class="flex flex-row gap-2 bg-black">
-      <div class="w-[1/2]">
+      <div class="w-[1/2]" style="width: 50%">
         <h2>Report a problem</h2>
         <p>
           You may report <strike>undocumented features</strike> bugs using one of the following options (in order of preference):
@@ -35,7 +35,7 @@
         </p>
       </div>
 
-      <div class="w-[1/2]">
+      <div class="w-[1/2]" style="width: 50%">
         <h2>Thank you monies</h2>
         <p>
           If you think I deserve money for the work I did up to this point, you can bankroll my caffeine addiction.
