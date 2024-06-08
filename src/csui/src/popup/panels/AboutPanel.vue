@@ -8,7 +8,6 @@
       <ul>
         <li> <a target="_blank" href="https://github.com/tamius-han/ultrawidify/issues"><b>Github (preferred)</b></a><br/></li>
         <li>Email: <a target="_blank" :href="mailtoLink">tamius.han@gmail.com</a></li>
-        <li>PM me on <a target="_blank" :href="redditLink">reddit</a><br/></li>
       </ul>
     </div>
 
@@ -75,7 +74,6 @@ Browser-related stuff (please ensure this section is correct):
 `
       );
     this.mailtoLink = `mailto:tamius.han@gmail.com?subject=%5BUltrawidify%5D%20ENTER%20SUMMARY%20OF%20YOUR%20ISSUE%20HERE&body=${messageTemplate}`;
-    this.redditLink = `https://www.reddit.com/message/compose?to=xternal7&subject=[Ultrawidify]%20ENTER%20SUMMARY%20OF%20YOUR%20PROBLEM%20HERE&message=${messageTemplate}`;
   },
   methods: {
     async updateLoggerSettings(allowLogging) {

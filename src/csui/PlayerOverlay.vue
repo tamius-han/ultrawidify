@@ -97,14 +97,6 @@ export default {
 
       saveState: {},
 
-      tabs: [
-        {id: 'videoSettings', label: 'Video settings', icon: 'crop'},
-        {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
-        {id: 'extensionSettings', label: 'Extension options', icon: 'cogs' },
-        {id: 'autodetectionSettings', label: 'Autodetection options', icon: ''},
-        {id: 'advancedOptions', label: 'Advanced options', icon: 'cogs' },
-        {id: 'debugging', label: 'Debugging', icon: 'bug-outline' }
-      ],
       selectedTab: 'videoSettings',
     };
   },

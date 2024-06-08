@@ -22,7 +22,7 @@
     <div class="flex flex-row"
          :class="{'blur': anyOpenedPopups}"
     >
-    
+
       <div class="header flex flex-column">
         <div class="flex extension-name text-sink-anchor">
           <div class="text-sink title-sink-pad w100 text-center">
@@ -104,7 +104,7 @@
         </div>
       </div>
     </div>
-    
+
   </div>
 </template>
 
@@ -152,7 +152,7 @@ export default {
 
     this.settings = new Settings({updateCallback: this.updateSettings, logger: this.logger});
     await this.settings.init();
-    
+
     this.settingsInitialized = true;
   },
   components: {

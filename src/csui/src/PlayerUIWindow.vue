@@ -62,16 +62,20 @@
     </div>
 
     <div class="tab-main flex flex-row">
-      <div class="tab-row flex flex-column">
+      <div class="tab-row flex flex-column grow-0 shrink-0">
         <div
           v-for="tab of tabs"
           :key="tab.id"
           class="tab"
-          :class="{'active': tab.id === selectedTab}"
+          :class="{
+            'active': tab.id === selectedTab,
+            'highlight-tab': tab.hasChanges,
+          }"
           @click="selectTab(tab.id)"
         >
           <div class="icon-container">
             <mdicon
+              v-if="tab.icon"
               :name="tab.icon"
               :size="32"
             />
@@ -135,6 +139,10 @@
             :eventBus="eventBus"
             :site="site"
           ></DebugPanel>
+          <AboutPanel
+            v-if="selectedTab === 'about'"
+          >
+          </AboutPanel>
         </div>
       </div>
     </div>
@@ -147,6 +155,7 @@ import BaseExtensionSettings from './PlayerUiPanels/BaseExtensionSettings.vue'
 import PlayerDetectionPanel from './PlayerUiPanels/PlayerDetectionPanel.vue'
 import VideoSettings from './PlayerUiPanels/VideoSettings.vue'
 import BrowserDetect from '../../ext/conf/BrowserDetect'
+import AboutPanel from './PlayerUiPanels/AboutPanel.vue'
 
 export default {
   components: {
@@ -154,7 +163,8 @@ export default {
     PlayerDetectionPanel,
     BaseExtensionSettings,
     AutodetectionSettingsPanel,
-    DebugPanel
+    DebugPanel,
+    AboutPanel
   },
   mixins: [],
   data() {
@@ -167,9 +177,11 @@ export default {
         {id: 'videoSettings', label: 'Video settings', icon: 'crop'},
         {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
         {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
-        {id: 'autodetectionSettings', label: 'Autodetection options', icon: ''},
+        // {id: 'autodetectionSettings', label: 'Autodetection options', icon: ''},
         // {id: 'advancedOptions', label: 'Advanced options', icon: 'cogs' },
-        {id: 'debugging', label: 'Debugging', icon: 'bug-outline' }
+        // {id: 'debugging', label: 'Debugging', icon: 'bug-outline' }
+        {id: 'changelog', label: 'What\'s new', icon: 'information-box-outline' },
+        {id: 'about', label: 'About', icon: ''}
       ],
       selectedTab: 'videoSettings',
       BrowserDetect: BrowserDetect,
@@ -446,6 +458,14 @@ export default {
         flex-grow: 1;
         flex-shrink: 1;
         padding: 0 !important;
+      }
+
+      &.highlight-tab {
+        color: #eee;
+
+        .label {
+          color: rgb(255, 174, 107);
+        }
       }
     }
   }
