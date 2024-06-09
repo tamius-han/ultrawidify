@@ -139,6 +139,9 @@
             :eventBus="eventBus"
             :site="site"
           ></DebugPanel>
+          <ChangelogPanel
+            v-if="selectedTab === 'changelog'"
+          ></ChangelogPanel>
           <AboutPanel
             v-if="selectedTab === 'about'"
           >
@@ -155,6 +158,7 @@ import BaseExtensionSettings from './PlayerUiPanels/BaseExtensionSettings.vue'
 import PlayerDetectionPanel from './PlayerUiPanels/PlayerDetectionPanel.vue'
 import VideoSettings from './PlayerUiPanels/VideoSettings.vue'
 import BrowserDetect from '../../ext/conf/BrowserDetect'
+import ChangelogPanel from './PlayerUiPanels/ChangelogPanel.vue'
 import AboutPanel from './PlayerUiPanels/AboutPanel.vue'
 
 export default {
@@ -164,6 +168,7 @@ export default {
     BaseExtensionSettings,
     AutodetectionSettingsPanel,
     DebugPanel,
+    ChangelogPanel,
     AboutPanel
   },
   mixins: [],
