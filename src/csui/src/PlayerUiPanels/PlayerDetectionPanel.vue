@@ -12,8 +12,7 @@
         </div>
         <div class="sub-panel-content">
           <p>
-            You're probably on this page because Ultrawidify doesn't crop the player correctly. If you want to know more about
-            why this happens, explanation can be found on <a href="https://github.com/tamius-han/ultrawidify/wiki/2.-Player-detection-(and-related-problems)#why-does-ultrawidify-have-this-problem-when-this-other-extension-doesnt" target="_blank">the wiki page</a>.
+            You're probably on this page because Ultrawidify doesn't crop the player correctly.
           </p>
           <p>
             If you hover over the boxes below, the corresponding element will change (sepia filter + higher brightness + reduced contrast + it gets an outline). Player element
