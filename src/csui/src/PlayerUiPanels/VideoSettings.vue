@@ -76,7 +76,7 @@
             <h1>Video alignment:</h1>
           </div>
 
-          <div class="flex flex-row">
+          <div class="flex flex-row justify-center mt-4">
             <alignment-options-control-component
               :eventBus="eventBus"
             >
@@ -94,7 +94,7 @@
         </div>
 
         <!-- ZOOM OPTIONS -->
-        <div class="sub-panel">
+        <!-- <div class="sub-panel">
           <div class="flex flex-row">
             <mdicon name="magnify-plus-outline" :size="32" />
             <h1>Manual zoom:</h1>
@@ -106,7 +106,7 @@
             :eventBus="eventBus"
             :isEditing="editMode"
           ></ZoomOptionsPanel>
-        </div>
+        </div> -->
 
       </div>
     </div>
@@ -179,3 +179,14 @@ export default {
 <style lang="scss" src="../../res/css/flex.scss" scoped module></style>
 <style lang="scss" src="../res-common/panels.scss" scoped module></style>
 <style lang="scss" src="../res-common/common.scss" scoped module></style>
+<style lang="scss" scoped>
+.justify-center {
+  justify-content: center;
+}
+.items-center {
+  align-items: center;
+}
+.mt-4{
+  margin-top: 1rem;
+}
+</style>

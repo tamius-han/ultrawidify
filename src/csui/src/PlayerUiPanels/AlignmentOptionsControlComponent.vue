@@ -105,41 +105,70 @@ export default {
     flex: 0 0 33%;
 
     display: flex;
-
-    .alignment-ui {
-      width: 50%;
-      height: 50%;
-    }
-
     align-items: center;
     justify-content: center;
+
+    background-color: rgba(0,0,0,0.25);
+    cursor: pointer;
+
+    margin: 0.125rem;
+    padding: 0.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+
+    border-bottom: 1px solid transparent;
+
+    .alignment-ui {
+
+      width: 50%;
+      height: 50%;
+
+      border-style: solid;
+      border-width: 0px;
+      border-color: #fff;
+    }
+
+    &:hover {
+      background-color: rgba(0,0,0,0.5);
+      border-bottom: 1px solid #fa6;
+
+      .alignment-ui {
+        border-color: #fa6 !important;
+      }
+
+      &.center.ycenter {
+        .alignment-ui {
+          background-color: #fa6;
+        }
+      }
+    }
 
     &.top  {
       align-items: flex-start;
 
       .alignment-ui {
-        border-top: 3px solid #fff;
+        border-top-width: 3px;
       }
     }
     &.bottom  {
       align-items: flex-end;
 
       .alignment-ui {
-        border-bottom: 3px solid #fff;
+        border-bottom-width: 3px;
       }
     }
     &.left {
       justify-content: flex-start;
 
       .alignment-ui {
-        border-left: 3px solid #fff;
+        border-left-width: 3px;
       }
     }
     &.right {
       justify-content: flex-end;
 
       .alignment-ui {
-        border-right: 3px solid #fff;
+        border-right-width: 3px;
       }
     }
 
