@@ -178,6 +178,10 @@ class Resizer {
     this.destroyed = true;
   }
 
+  getFileAr() {
+    return this.videoData.video.videoWidth / this.videoData.video.videoHeight;
+  }
+
   calculateRatioForLegacyOptions(ar){
     // also present as modeToAr in Scaler.js
     if (ar.type !== AspectRatioType.FitWidth && ar.type !== AspectRatioType.FitHeight && ar.ratio) {
@@ -203,7 +207,7 @@ class Resizer {
     // IMPORTANT NOTE: lastAr needs to be set after _res_setAr() is called, as _res_setAr() assumes we're
     // setting a static aspect ratio (even if the function is called from here or ArDetect).
 
-    let fileAr = this.videoData.video.videoWidth / this.videoData.video.videoHeight;
+    let fileAr = this.getFileAr();
 
     if (ar.type === AspectRatioType.FitWidth){
       ar.ratio = ratioOut > fileAr ? ratioOut : fileAr;
@@ -465,6 +469,28 @@ class Resizer {
   }
 
   setVideoAlignment(videoAlignmentX: VideoAlignmentType, videoAlignmentY?: VideoAlignmentType) {
+    // if aspect ratio is unset or initial, CSS fixes are inactive by design.
+    // because of that, we need to set a manual aspect ratio first.
+    console.log('last aspect ratio:', this.lastAr);
+    if (!this.lastAr) {
+      console.warn('[Resizer.js::setVideoAlignment] Aspect ratio not set. This is illegal. This function will do nothing.');
+      this.setAr({
+        type: AspectRatioType.Fixed,
+        ratio: this.getFileAr()
+      });
+    }
+    if ([AspectRatioType.Reset, AspectRatioType.Initial].includes(this.lastAr.type)) {
+      if (this.lastAr.ratio) {
+        this.lastAr.type = AspectRatioType.Fixed;
+      } else {
+        this.setAr({
+          type: AspectRatioType.Fixed,
+          ratio: this.getFileAr()
+        });
+      }
+    }
+
+
     this.videoAlignment = {
       x: videoAlignmentX ?? VideoAlignmentType.Default,
       y: videoAlignmentY ?? VideoAlignmentType.Default
