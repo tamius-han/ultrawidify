@@ -141,6 +141,11 @@ class Resizer {
     this.stretcher = new Stretcher(this.videoData);
     this.zoom = new Zoom(this.videoData);
 
+    const defaultCrop = this.siteSettings.getDefaultOption('crop') as {type: AspectRatioType, ratio?: number };
+    if (defaultCrop.type !== AspectRatioType.Reset) {
+      this.lastAr = defaultCrop;
+    }
+
     this.videoAlignment = this.siteSettings.getDefaultOption('alignment') as {x: VideoAlignmentType, y: VideoAlignmentType} // this is initial video alignment
 
     this.destroyed = false;
