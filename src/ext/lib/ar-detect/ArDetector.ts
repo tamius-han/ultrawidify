@@ -84,9 +84,7 @@ class ArDetector {
   private animationFrameHandle: any;
   private attachedCanvas: HTMLCanvasElement;
   canvas: HTMLCanvasElement;
-  private blackframeCanvas: HTMLCanvasElement;
   private context: CanvasRenderingContext2D;
-  private blackframeContext: CanvasRenderingContext2D;
   canvasImageDataRowLength: number;
 
   private timers = {
@@ -213,8 +211,6 @@ class ArDetector {
     // this.blackframeCanvas.height = this.settings.active.arDetect.canvasDimensions.blackframeCanvas.height;
 
     this.context = this.canvas.getContext("2d");
-    // this.blackframeContext = this.blackframeCanvas.getContext("2d");
-
 
     //
     // [2] determine places we'll use to sample our main frame
@@ -826,7 +822,7 @@ class ArDetector {
       return;
     }
 
-    if (!this.blackframeContext) {
+    if (!this.context) {
       this.init();
     }
 
@@ -979,16 +975,6 @@ class ArDetector {
      * Performs a quick black frame test
      */
     const bfDrawStartTime = performance.now();
-
-    // await new Promise<void>(
-    //   resolve => {
-    //     this.blackframeContext.drawImage(this.video, 0, 0, this.blackframeCanvas.width, this.blackframeCanvas.height);
-    //     resolve();
-    //   }
-    // );
-    // const rows = this.blackframeCanvas.height;
-    // const cols = this.blackframeCanvas.width;
-    // const bfImageData = this.blackframeContext.getImageData(0, 0, cols, rows).data;
 
     const rows = this.settings.active.arDetect.canvasDimensions.blackframeCanvas.width;
     const cols = this.settings.active.arDetect.canvasDimensions.blackframeCanvas.height;
