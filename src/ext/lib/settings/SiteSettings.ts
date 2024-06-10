@@ -256,6 +256,12 @@ export class SiteSettings {
 
   //#region get
   /**
+   * TODO: check what this function is really doing — implementation didn't make sense
+   * and didn't quite agree with the comment.
+   *
+   * specifically, this function used to always return currentDOMConfig, and the stuff
+   * done inside if block appeared to not be affected. It is also only used in one spot.
+   *
    * Gets DOMConfig. If DOMConfig with given name doesn't exist, we create a new one.
    * @param configName We want to fetch this DOM config
    * @param copyFrom If DOMConfig data doesn't exist, we copy things from DOMConfig with
@@ -264,10 +270,34 @@ export class SiteSettings {
    * @returns Current DOMConfig object for this site
    */
   getDOMConfig(configName: string, copyFrom?: string) {
+    // NOTE: this was added because
+    // there are no DOMConfig objects for this site
+    if (!this.data.DOMConfig) {
+      this.data.DOMConfig = {
+        'original': {
+          type: undefined,
+          elements: {
+            player: undefined,
+            video: undefined,
+            other: undefined,
+          },
+        },
+        'modified': {
+          type: undefined,
+          elements: {
+            player: undefined,
+            video: undefined,
+            other: undefined,
+          },
+        },
+      };
+    }
+
+    // TODO: check what's with that and if this can be removed? This if looks rather useless
     if (! this.data.DOMConfig[configName]) {
       this.data.DOMConfig[configName] = _cp(this.data.DOMConfig[copyFrom ?? this.data.activeDOMConfig ?? 'original']);
     }
-    return this.data.currentDOMConfig[configName];
+    return this.data.DOMConfig[configName];
   }
   //#endregion
 
