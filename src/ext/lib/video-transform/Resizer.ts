@@ -121,6 +121,16 @@ class Resizer {
     'get-ar': [{
       function: () => this.eventBus.send('uw-config-broadcast', {type: 'ar', config: this.lastAr})
     }],
+    'get-resizer-config': [{
+      function: () => this.eventBus.send(
+        'uw-resizer-config-broadcast',
+        {
+          ar: this.lastAr,
+          stretchMode: this.stretcher.mode,
+          videoAlignment: this.videoAlignment
+        }
+      )
+    }],
     'restore-ar': [{
       function: () => this.restore()
     }]
