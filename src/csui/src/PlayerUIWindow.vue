@@ -51,12 +51,12 @@
           <mdicon v-if="!preventClose" name="pin-outline" :size="32" />
           <mdicon v-else name="pin" :size="32" />
         </div>
-        <dv
+        <div
           class="header-button close-button"
           @click="$emit('close')"
         >
           <mdicon name="close" :size="36"></mdicon>
-        </dv>
+        </div>
         <!-- <a >{{preventClose ? 'allow auto-close' : 'prevent auto-close'}}</a> -->
       </div>
     </div>
