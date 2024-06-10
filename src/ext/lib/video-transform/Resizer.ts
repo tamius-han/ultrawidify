@@ -328,11 +328,13 @@ class Resizer {
     // * ar.type is auto, but stretch is set to basic basic stretch
     //
     // unpause when using other modes
-    if (ar.type !== AspectRatioType.Automatic || this.stretcher.mode === StretchType.Basic) {
+    if ((ar.type !== AspectRatioType.Automatic && ar.type !== AspectRatioType.AutomaticUpdate) || this.stretcher.mode === StretchType.Basic) {
       this.videoData?.arDetector?.pause();
     } else {
-      if (this.lastAr.type === AspectRatioType.Automatic) {
-        this.videoData?.arDetector?.unpause();
+      if (ar.type !== AspectRatioType.AutomaticUpdate) {
+        if (this.lastAr.type === AspectRatioType.Automatic || this.lastAr.type === AspectRatioType.AutomaticUpdate) {
+          this.videoData?.arDetector?.unpause();
+        }
       }
     }
 
@@ -489,7 +491,6 @@ class Resizer {
         });
       }
     }
-
 
     this.videoAlignment = {
       x: videoAlignmentX ?? VideoAlignmentType.Default,
