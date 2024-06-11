@@ -273,6 +273,15 @@ const ExtensionConfPatch = [
       userOptions.sites['@global'].defaultType = 'unknown';
       userOptions.sites['@empty'].defaultType = 'modified';
     }
+  }, {
+    forVersion: '6.0.0',
+    updateFn: (userOptions: SettingsInterface, defaultOptions) => {
+      // remove custom CSS, as it is no longer needed
+      for (const site in userOptions.sites) {
+        for (const domOption in userOptions.sites[site].DOMConfig)
+        userOptions.sites[site].DOMConfig[domOption].customCss;
+      }
+    }
   }
 ];
 

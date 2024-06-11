@@ -120,7 +120,7 @@
       <div class="select">
         <select
           :value="siteDefaultCrop"
-          @click="setDefaultCrop($event, 'site')"
+          @change="setDefaultCrop($event, 'site')"
         >
           <option
             v-for="(command, index) of settings?.active.commands.crop"

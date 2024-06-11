@@ -132,11 +132,11 @@
       <div class="select">
         <select
           v-model="siteDefaultCrop"
-          @click="setOption('defaults.crop', $event)"
+          @change="setOption('defaults.crop', $event)"
         >
           <option
             v-if="!isDefaultConfiguration"
-            :value="undefined"
+            :value="JSON.stringify({useDefault: true})"
           >
             Use default ({{getCommandValue(settings?.active.commands.crop, siteSettings.data.defaults.crop)}})
           </option>
@@ -158,11 +158,11 @@
       <div class="select">
         <select
           v-model="siteDefaultStretch"
-          @click="setOption('defaults.stretch', $event)"
+          @change="setOption('defaults.stretch', $event)"
         >
           <option
             v-if="!isDefaultConfiguration"
-            :value="undefined"
+            :value="JSON.stringify({useDefault: true})"
           >
             Use default ({{getCommandValue(settings?.active.commands.stretch, siteSettings.data.defaults.stretch)}})
           </option>
@@ -183,11 +183,11 @@
       <div class="select">
         <select
           v-model="siteDefaultAlignment"
-          @click="setOption('defaults.alignment', $event)"
+          @change="setOption('defaults.alignment', $event)"
         >
           <option
             v-if="!isDefaultConfiguration"
-            :value="undefined"
+            :value="JSON.stringify({useDefault: true})"
           >
             Use default ({{getAlignmentLabel(siteSettings.data.defaults.alignment)}})
           </option>
@@ -268,13 +268,14 @@ export default {
       }
     },
     siteDefaultCrop() {
-      return this.siteSettings.raw?.defaults?.crop ? JSON.stringify(this.siteSettings.raw?.defaults?.crop) : undefined;
+      // console.log('Getting default site crop:', this.siteSettings.raw?.defaults?.crop ? 'yay' : '{useDefault}', this.siteSettings.raw?.defaults?.crop)
+      return this.siteSettings.raw?.defaults?.crop ? JSON.stringify(this.siteSettings.raw?.defaults?.crop) : JSON.stringify({useDefault: true});
     },
     siteDefaultStretch() {
-      return this.siteSettings.raw?.defaults?.stretch ? JSON.stringify(this.siteSettings.raw?.defaults?.stretch) : undefined;
+      return this.siteSettings.raw?.defaults?.stretch ? JSON.stringify(this.siteSettings.raw?.defaults?.stretch) : JSON.stringify({useDefault: true});
     },
     siteDefaultAlignment() {
-      return this.siteSettings.raw?.defaults?.alignment ? JSON.stringify(this.siteSettings.raw?.defaults?.alignment) : undefined;
+      return this.siteSettings.raw?.defaults?.alignment ? JSON.stringify(this.siteSettings.raw?.defaults?.alignment) : JSON.stringify({useDefault: true});
     },
     siteDefaultCropPersistence() {
       return this.siteSettings.raw?.persistCSA ?? undefined;
@@ -386,17 +387,24 @@ export default {
     getOption(option) {
 
     },
-    setOption(option, $event) {
+    async setOption(option, $event) {
+      const value = $event.target.value;
       let commandArguments;
 
       // if argument is json, parse json. Otherwise, pass the value as-is
       try {
-        commandArguments = $event.target.value !== undefined ? JSON.parse($event.target.value) : undefined;
+        commandArguments = value !== undefined ? JSON.parse(value) : undefined;
       } catch(e) {
-        commandArguments = $event.target.value;
+        commandArguments = value;
       }
 
-      this.siteSettings.set(option, commandArguments);
+      if (commandArguments.useDefault) {
+        commandArguments = undefined;
+      }
+
+      // console.log('setting option', option, 'to cmd:', commandArguments, 'event data in:', value);
+      await this.siteSettings.set(option, commandArguments);
+      this.$nextTick( () => this.$forceUpdate() );
     },
     setExtensionMode(component, event) {
       const option = event.target.value;
