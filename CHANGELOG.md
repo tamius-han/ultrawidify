@@ -11,12 +11,30 @@
 ## v7.0 (planned major)
  * WebGL autodetection
 
-## v6.0 (next major)
+## v6.0 (current major)
 
- * in-player GUI
- * Fix UI logger
+Chrome only, because I needed to rush manifest v3 migration before ensuring things work in Firefox.
 
-## v5.x (current major)
+ * In player UI
+ * New alignment options (can align video both vertically, as well as horizontally)
+ * Extension does a little bit of a better job differentiating between levels of support for a given site
+ * Changed how cropping and panning works. This should lead to fewer problems and better generic support.
+  * REGRESSION: no manual panning with shift + mouse movement
+ * "Player select" screen, which provides a GUI way for picking HTML element that acts as the video player area
+
+Regressions and potential issues:
+ * Settings were largely not migrated from previous versions. This is as intended, since changes to cropping (and some other aspects)
+   rendered certain old settings obsolete.
+ * Extension can no longer discriminate between iframes — extension popup commands get sent to ALL iframes on page
+ * Extension probably can't discriminate between multiple videos on a single page
+
+## v5.x 
+
+### v5.1.7
+
+Firefox-only.
+
+* When cropping and panning video, CSS' `transform: translate(x,y)` now uses integers _always_. Before that fix, `translate(x,y)` could be offset by x.5 px, and that half of a pixel introduced a 1px thick line on the portion of the left edge of the video.
 
 ### v5.1.6
 
