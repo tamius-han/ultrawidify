@@ -69,7 +69,7 @@
           class="tab"
           :class="{
             'active': tab.id === selectedTab,
-            'highlight-tab': tab.hasChanges,
+            'highlight-tab': tab.highlight,
           }"
           @click="selectTab(tab.id)"
         >
@@ -141,6 +141,7 @@
           ></DebugPanel>
           <ChangelogPanel
             v-if="selectedTab === 'changelog'"
+            :settings="settings"
           ></ChangelogPanel>
           <AboutPanel
             v-if="selectedTab === 'about'"
@@ -211,6 +212,7 @@ export default {
   },
   created() {
     this.siteSettings = this.settings.getSiteSettings(this.site);
+    this.tabs.find(x => x.id === 'changelog').highlight = !this.settings.active.whatsNewChecked;
 
     this.eventBus.subscribe(
       'uw-show-ui',
@@ -472,11 +474,12 @@ export default {
       }
 
       &.highlight-tab {
+        opacity: 0.9;
         color: #eee;
 
-        .label {
-          color: rgb(255, 174, 107);
-        }
+        // .label {
+        //   color: rgb(239, 192, 152);
+        // }
       }
     }
   }
