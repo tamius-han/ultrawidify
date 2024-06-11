@@ -324,7 +324,7 @@ export class SiteSettings {
       let iterated = '';
 
       for (i = 0; i < pathParts.length - 1; i++) {
-        iterated = `${iterated}.${pathParts[i]}`
+        iterated = `${iterated}.${pathParts[i]}`;
 
         if (!iterator[pathParts[i]]) { // some optional paths may still be undefined, even after cloning empty object
           iterator[pathParts[i]] = {};
@@ -341,6 +341,7 @@ export class SiteSettings {
         await this.settings.save();
       } else {
         await this.settings.saveWithoutReload();
+        this.compileSettingsObject();
       }
     }
   }

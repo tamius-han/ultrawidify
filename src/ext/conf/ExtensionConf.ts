@@ -1445,7 +1445,7 @@ const ExtensionConf: SettingsInterface = {
       persistCSA: CropModePersistence.Disabled,
 
       defaults: {
-        crop: {type: AspectRatioType.Reset},  // does NOT override Aard
+        crop: {type: AspectRatioType.Automatic},
         stretch: StretchType.NoStretch,
         alignment: {x: VideoAlignmentType.Center, y: VideoAlignmentType.Center},
       }
@@ -1561,7 +1561,7 @@ const ExtensionConf: SettingsInterface = {
               querySelectors: ".btm-media-client-element"
             }
           },
-          customCss: ".hudson-container { height: 100%; }"
+          // customCss: ".hudson-container { height: 100%; }"
         }
       }
     },
@@ -1584,32 +1584,6 @@ const ExtensionConf: SettingsInterface = {
       type: 'official',
       defaultType: 'official',
     },
-    // "streamable.com": {
-    //   enable: {
-    //     fullscreen: ExtensionMode.Default,
-    //     theater: ExtensionMode.Default,
-    //     normal: ExtensionMode.Default,
-    //   },
-    //   enableAard: {
-    //     fullscreen: ExtensionMode.Default,
-    //     theater: ExtensionMode.Default,
-    //     normal: ExtensionMode.Default,
-    //   },
-    //   enableKeyboard: {
-    //     fullscreen: ExtensionMode.Default,
-    //     theater: ExtensionMode.Default,
-    //     normal: ExtensionMode.Default
-    //   },
-    //   type: 'official',
-    //   type: 'defaultType',
-    //   activeDOMConfig: 'official',
-    //   DOMConfig: {
-    //     'official': {
-    //       type: 'official',
-    //       customCss: ".player {text-align: left}"
-    //     }
-    //   }
-    // },
     "vimeo.com": {
       enable: {
         fullscreen: ExtensionMode.Default,
@@ -1632,7 +1606,7 @@ const ExtensionConf: SettingsInterface = {
       DOMConfig: {
         'official': {
           type: 'official',
-          customCss: ".player_outro_area {\n  width: 100% !important;\n  display: flex !important;\n  justify-content: center !important;\n}\n\n.player_container, .player {\n  width: 100% !important; \n}",
+          // customCss: ".player_outro_area {\n  width: 100% !important;\n  display: flex !important;\n  justify-content: center !important;\n}\n\n.player_container, .player {\n  width: 100% !important; \n}",
           elements: {
             player: {
               manual: true,
@@ -1664,7 +1638,7 @@ const ExtensionConf: SettingsInterface = {
       DOMConfig: {
         'official': {
           type: 'official',
-          customCss:  'video {\n  width: 100% !important;\n  height: 100% !important;\n}',
+          // customCss:  'video {\n  width: 100% !important;\n  height: 100% !important;\n}',
           elements: {
             player: {
               manual: false,
@@ -1696,7 +1670,7 @@ const ExtensionConf: SettingsInterface = {
       DOMConfig: {
         'official': {
           type: 'official',
-          customCss:  'video {\n  width: 100% !important;\n  height: 100% !important;\n}',
+          // customCss:  'video {\n  width: 100% !important;\n  height: 100% !important;\n}',
           elements: {
             player: {
               manual: false,
@@ -1816,7 +1790,7 @@ const ExtensionConf: SettingsInterface = {
       DOMConfig: {
         'community': {
           type: 'community',
-          customCss: "body {\n  background-color: #000;\n}\n\n.application {\n  background-color: #000;\n}"
+          // customCss: "body {\n  background-color: #000;\n}\n\n.application {\n  background-color: #000;\n}"
         }
       }
     },
@@ -1872,7 +1846,7 @@ const ExtensionConf: SettingsInterface = {
       DOMConfig: {
         'community': {
           type: 'community',
-          customCss: ".shaka-video-container {\n  flex-direction: column !important;\n}"
+          // customCss: ".shaka-video-container {\n  flex-direction: column !important;\n}"
         }
       }
     },

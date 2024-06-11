@@ -134,7 +134,7 @@
         <div class="select">
           <select
             v-model="siteDefaultStretchMode"
-            @click="setDefaultStretchingMode($event, 'site')"
+            @change="setDefaultStretchingMode($event, 'site')"
           >
             <option
               v-for="(command, index) of settings?.active.commands.stretch"
