@@ -112,7 +112,7 @@ export default {
     }
   },
   mounted() {
-    
+
   },
   props: {
     action: Object,

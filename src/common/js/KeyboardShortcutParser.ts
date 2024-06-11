@@ -1,7 +1,7 @@
 class KeyboardShortcutParser {
   static parseShortcut(keypress) {
     let shortcutCombo = '';
-  
+
     if (keypress.ctrlKey) {
       shortcutCombo += 'Ctrl + ';
     }
@@ -20,6 +20,20 @@ class KeyboardShortcutParser {
       shortcutCombo += '<mouse action>'
     }
     return shortcutCombo;
+  }
+
+  static generateShortcutFromKeypress(event) {
+    return {
+      ctrlKey: event.ctrlKey,
+      altKey: event.altKey,
+      shiftKey: event.shiftKey,
+      metaKey: event.metaKey,
+      code: event.code,
+      key: event.key,
+      keyup: true,
+      keydown: false,
+      type: event.type,     // only needed for purposes of EditShortcutButton
+    }
   }
 }
 

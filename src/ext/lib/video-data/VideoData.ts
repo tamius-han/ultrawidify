@@ -3,6 +3,7 @@ import PlayerData from './PlayerData';
 import Resizer from '../video-transform/Resizer';
 import ArDetector from '../ar-detect/ArDetector';
 import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
+import CropModePersistence from '../../../common/enums/CropModePersistence.enum';
 import * as _ from 'lodash';
 import BrowserDetect from '../../conf/BrowserDetect';
 import Logger from '../Logger';
@@ -10,16 +11,40 @@ import Settings from '../Settings';
 import PageInfo from './PageInfo';
 import { sleep } from '../../../common/js/utils';
 import { hasDrm } from '../ar-detect/DrmDetecor';
+import EventBus from '../EventBus';
+import { SiteSettings } from '../settings/SiteSettings';
+import { Ar } from '../../../common/interfaces/ArInterface';
+import { ExtensionStatus } from './ExtensionStatus';
+import { RunLevel } from '../../enum/run-level.enum';
 
+/**
+ * VideoData — handles CSS for the video element.
+ *
+ * To quickly disable or revert all modifications extension has made to the
+ * video element, you can call disable() function. Calling disable() also
+ * toggles autodetection off.
+ */
 class VideoData {
+  private baseCssName: string = 'uw-ultrawidify-base-wide-screen';
+  private baseVideoCss = `.uw-ultrawidify-base-wide-screen {
+    margin: 0px 0px 0px 0px !important;
+    width: initial !important;
+    align-self: start !important;
+    justify-self: start !important;
+    max-height: initial !important;
+    max-width: initial !important;
+  }`;
+
   //#region flags
   arSetupComplete: boolean = false;
+  enabled: boolean;
+  runLevel: RunLevel = RunLevel.Off;
   destroyed: boolean = false;
   invalid: boolean = false;
   videoStatusOk: boolean = false;
   videoLoaded: boolean = false;
   videoDimensionsLoaded: boolean = false;
-  paused: boolean = false;
+  active: boolean = false;
   //#endregion
 
   //#region misc stuff
@@ -32,7 +57,6 @@ class VideoData {
     attributeFilter: ['class', 'style'],
     attributeOldValue: true,
   };
-  extensionMode: any;
   userCssClassName: string;
   validationId: number;
   dimensions: any;
@@ -41,11 +65,14 @@ class VideoData {
 
   //#region helper objects
   logger: Logger;
-  settings: Settings;
+  settings: Settings; // AARD needs it
+  siteSettings: SiteSettings;
   pageInfo: PageInfo;
   player: PlayerData;
   resizer: Resizer;
   arDetector: ArDetector;
+  eventBus: EventBus;
+  extensionStatus: ExtensionStatus;
   //#endregion
 
 
@@ -57,16 +84,34 @@ class VideoData {
       return 1;
     }
   }
-  
-  constructor(video, settings, pageInfo){
-    this.vdid = (Math.random()*100).toFixed();
+
+  private eventBusCommands = {
+    'get-drm-status': [{
+      function: () => {
+        this.hasDrm = hasDrm(this.video);
+        this.eventBus.send('uw-config-broadcast', {type: 'drm-status', hasDrm: this.hasDrm});
+      }
+    }],
+    'set-run-level': [{
+      function: (runLevel: RunLevel) => this.setRunLevel(runLevel)
+    }]
+  }
+
+  /**
+   * Creates new VideoData object
+   * @param video
+   * @param settings NEEDED FOR AARD
+   * @param siteSettings
+   * @param pageInfo
+   */
+  constructor(video, settings: Settings, siteSettings: SiteSettings, pageInfo: PageInfo){
     this.logger = pageInfo.logger;
     this.arSetupComplete = false;
     this.video = video;
     this.destroyed = false;
     this.settings = settings;
+    this.siteSettings = siteSettings;
     this.pageInfo = pageInfo;
-    this.extensionMode = pageInfo.extensionMode;
     this.videoStatusOk = false;
 
     this.userCssClassName = `uw-fuck-you-and-do-what-i-tell-you_${this.vdid}`;
@@ -81,20 +126,34 @@ class VideoData {
       height: this.video.offsetHeight,
     };
 
-    this.setupStageOne();
+    this.eventBus = new EventBus();
+
+    this.extensionStatus = new ExtensionStatus(siteSettings, pageInfo.eventBus, pageInfo.fsStatus);
+
+    if (pageInfo.eventBus) {
+      this.eventBus.setUpstreamBus(pageInfo.eventBus);
+
+      for (const action in this.eventBusCommands) {
+        for (const command of this.eventBusCommands[action]) {
+          this.eventBus.subscribe(action, command);
+        }
+      }
+    }
+
+    this.setupEventListeners();
   }
 
   async onVideoLoaded() {
     if (!this.videoLoaded) {
-      
+
       /**
        * video.readyState 101:
-       * 0 — no info. Can't play. 
+       * 0 — no info. Can't play.
        * 1 — we have metadata but nothing else
        * 2 — we have data for current playback position, but not future      <--- meaning current frame, meaning Aard can work here or higher
        * 3 — we have a lil bit for the future
        * 4 — we'll survive to the end
-       */ 
+       */
       if (!this.video?.videoWidth || !this.video?.videoHeight || this.video.readyState < 2) {
         return; // onVideoLoaded is a lie in this case
       }
@@ -125,21 +184,11 @@ class VideoData {
       if (!this.mutationObserver) {
         this.setupMutationObserver();
       }
-      await this.pageInfo.injectCss(`
-        .uw-ultrawidify-base-wide-screen {
-          margin: 0px 0px 0px 0px !important;
-          width: initial !important;
-          align-self: start !important;
-          justify-self: start !important;
-          max-height: initial !important;
-          max-width: initial !important;
-        }
-      `);
+      this.eventBus.send('inject-css', this.baseVideoCss);
     } catch (e) {
       console.error('Failed to inject base css!', e);
     }
   }
-
   unsetBaseClass() {
     this.mutationObserver.disconnect();
     this.mutationObserver = undefined;
@@ -160,14 +209,13 @@ class VideoData {
   }
   //#endregion
 
+
   //#region lifecycle-ish
   /**
-   * Injects base CSS and sets up handlers for <video> tag events
+   * Sets up event listeners for this video
    */
-  async setupStageOne() {
-    this.logger.log('info', 'init', '%c[VideoData::setupStageOne] ——————————— Starting setup stage one! ———————————', 'color: #0f9');
-    // ensure base css is loaded before doing anything
-    this.injectBaseCss();
+  async setupEventListeners() {
+    this.logger.log('info', 'init', '%c[VideoData::setupEventListeners] ——————————— Starting event listener setup! ———————————', 'color: #0f9');
 
     // this is in case extension loads before the video
     this.video.addEventListener('loadeddata', this.onLoadedData.bind(this));
@@ -176,7 +224,7 @@ class VideoData {
     // this one is in case extension loads after the video is loaded
     this.video.addEventListener('timeupdate', this.onTimeUpdate.bind(this));
 
-    this.logger.log('info', 'init', '%c[VideoData::setupStageOne] ——————————— Setup stage one complete! ———————————', 'color: #0f9');
+    this.logger.log('info', 'init', '%c[VideoData::setupEventListeners] ——————————— Event listeners setup complete! ———————————', 'color: #0f9');
   }
 
   /**
@@ -184,20 +232,46 @@ class VideoData {
    * for our standards)
    */
   async setupStageTwo() {
-    // POZOR: VRSTNI RED JE POMEMBEN (arDetect mora bit zadnji)
     // NOTE: ORDERING OF OBJ INITIALIZATIONS IS IMPORTANT (arDetect needs to go last)
     this.player = new PlayerData(this);
+
     if (this.player.invalid) {
       this.invalid = true;
       return;
     }
-
     this.resizer = new Resizer(this);
+    this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevents ArDetector from starting
 
-    // INIT OBSERVERS
+    this.logger.log('info', ['debug', 'init'], '[VideoData::ctor] Created videoData with vdid', this.vdid);
+
+
+    // Everything is set up at this point. However, we are still purely "read-only" at this point. Player CSS should not be changed until
+    // after we receive a "please crop" or "please stretch".
+
+    // Time to apply any crop from address of crop mode persistence
+    const defaultCrop = this.siteSettings.getDefaultOption('crop') as Ar;
+    const defaultStretch = this.siteSettings.getDefaultOption('stretch');
+
+    this.resizer.setAr(defaultCrop);
+    this.resizer.setStretchMode(defaultStretch);
+  }
+
+  /**
+   * Must be triggered on first action. TODO
+   */
+  preparePage() {
+    console.log('preparing page ...')
+    this.injectBaseCss();
+    this.pageInfo.initMouseActionHandler(this);
+
+    // start fallback video/player size detection
+    this.fallbackChangeDetection();
+  }
+
+  initializeObservers() {
     try {
       if (BrowserDetect.firefox) {
-        this.observer = new ResizeObserver( 
+        this.observer = new ResizeObserver(
           _.debounce(
             this.onVideoDimensionsChanged,
             250,
@@ -210,11 +284,11 @@ class VideoData {
       } else {
         // Chrome for some reason insists that this.onPlayerDimensionsChanged is not a function
         // when it's not wrapped into an anonymous function
-        this.observer = new ResizeObserver( 
+        this.observer = new ResizeObserver(
           _.debounce(
             (m, o) => {
               this.onVideoDimensionsChanged(m, o)
-            }, 
+            },
             250,
             {
               leading: true,
@@ -227,47 +301,6 @@ class VideoData {
       console.error('[VideoData] Observer setup failed:', e);
     }
     this.observer.observe(this.video);
-
-    // INIT AARD
-    this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevets ardetdctor from starting
-    // player dimensions need to be in:
-    // this.player.dimensions
-
-    // apply default align and stretch
-    this.logger.log('info', 'debug', "%c[VideoData::ctor] Initial resizer reset!", "background: #afd, color: #132");
-    this.resizer.reset();
-
-    this.logger.log('info', ['debug', 'init'], '[VideoData::ctor] Created videoData with vdid', this.vdid, '\nextension mode:', this.extensionMode)
-
-    this.pageInfo.initMouseActionHandler(this);
-    
-    // NOTE — since base class for our <video> element depends on player aspect ratio,
-    // we handle it in PlayerData class.
-    this.video.classList.add('uw-ultrawidify-base-wide-screen'); 
-    this.video.classList.add(this.userCssClassName); // this also needs to be applied BEFORE we initialize resizer!
-
-
-    // start fallback video/player size detection
-    this.fallbackChangeDetection();
-
-    // force reload last aspect ratio (if default crop ratio exists), but only after the video is 
-    if (this.pageInfo.defaultCrop) {
-      this.resizer.setAr(this.pageInfo.defaultCrop);
-    }
-
-    try {
-      if (!this.pageInfo.defaultCrop) {
-        if (!this.invalid) {
-          this.initArDetection();
-        } else {
-          this.logger.log('error', 'debug', '[VideoData::secondStageSetup] Video is invalid. Aard not started.', this.video);
-        }
-      } else {
-        this.logger.log('info', 'debug', '[VideoData::secondStageSetup] Default crop is specified for this site. Not starting aard.');
-      }
-    } catch (e) {
-      this.logger.log('error', 'init', `[VideoData::secondStageSetup] Error with aard initialization (or error with default aspect ratio application)`, e)
-    }
   }
 
   setupMutationObserver() {
@@ -313,17 +346,19 @@ class VideoData {
 
     if (this.video) {
       this.video.classList.remove(this.userCssClassName);
-      this.video.classList.remove('uw-ultrawidify-base-wide-screen'); 
+      this.video.classList.remove('uw-ultrawidify-base-wide-screen');
 
       this.video.removeEventListener('onloadeddata', this.onLoadedData);
       this.video.removeEventListener('onloadedmetadata', this.onLoadedMetadata);
       this.video.removeEventListener('ontimeupdate', this.onTimeUpdate);
     }
 
-    this.pause();
+    this.eventBus.send('set-run-level', RunLevel.Off);
     this.destroyed = true;
+    this.eventBus?.unsetUpstreamBus();
+
     try {
-      this.arDetector.halt();
+      this.arDetector.stop();
       this.arDetector.destroy();
     } catch (e) {}
     this.arDetector = undefined;
@@ -342,6 +377,55 @@ class VideoData {
   }
   //#endregion
 
+
+  setRunLevel(runLevel: RunLevel, options?: {fromPlayer?: boolean}) {
+    console.log('setting new runlevel for videodata. current:', this.runLevel, 'new', runLevel)
+    if (this.runLevel === runLevel) {
+      return; // also no need to propagate to the player
+    }
+
+    console.log('setting run level ...')
+
+    // Run level decreases towards 'off'
+    if (this.runLevel > runLevel) {
+      console.log('decreasing css.')
+      if (runLevel < RunLevel.CustomCSSActive) {
+        this.video.classList.remove(this.baseCssName);
+        this.video.classList.remove(this.userCssClassName);
+        this.enabled = false;
+      }
+    } else { // Run level increases towards 'everything runs'*
+      if (runLevel >= RunLevel.CustomCSSActive) {
+        this.video.classList.add(this.baseCssName);
+        this.video.classList.add(this.userCssClassName);
+
+        // inject custom CSS classes
+        this.preparePage();
+
+        this.enabled = true;
+      }
+    }
+
+    this.runLevel = runLevel;
+    if (!options?.fromPlayer) {
+      this.player.setRunLevel(runLevel);
+    }
+  }
+
+  /**
+   * Disables ultrawidify in general.
+   * @param options
+   */
+  disable(options?: {fromPlayer?: boolean}) {
+    this.enabled = false;
+
+    this.arDetector?.stop();
+
+    this.video.classList.remove(this.baseCssName);
+    this.video.classList.remove(this.userCssClassName);
+
+  }
+
   //#region video status
   isVideoPlaying() {
     return this.video && !!(this.video.currentTime > 0 && !this.video.paused && !this.video.ended && this.video.readyState > 2);
@@ -352,14 +436,19 @@ class VideoData {
   }
   //#endregion
 
-  restoreCrop() {  
+  restoreCrop() {
+    if (!this.resizer) {
+      this.logger.log('warn', 'debug', '[VideoData::restoreCrop] Resizer has not been initialized yet. Crop will not be restored.');
+      return;
+    }
     this.logger.log('info', 'debug', '[VideoData::restoreCrop] Attempting to reset aspect ratio.')
     // if we have default crop set for this page, apply this.
     // otherwise, reset crop
+
     if (this.pageInfo.defaultCrop) {
       this.resizer.setAr(this.pageInfo.defaultCrop);
     } else {
-    this.resizer.reset();
+      this.resizer.reset();
 
       try {
         this.stopArDetection();
@@ -397,11 +486,16 @@ class VideoData {
       return;
     }
 
+    if (!this.enabled) {
+      this.logger.log('info', 'info', '[VideoData::onVideoMutation] mutation was triggered, but the extension is disabled. Is the player window too small?');
+      return;
+    }
+
     for(const mutation of mutationList) {
       if (mutation.type === 'attributes') {
-        if( mutation.attributeName === 'class' 
-            && mutation.oldValue.indexOf('uw-ultrawidify-base-wide-screen') !== -1
-            && !this.video.classList.contains('uw-ultrawidify-base-wide-screen')
+        if( mutation.attributeName === 'class'
+            && mutation.oldValue.indexOf(this.baseCssName) !== -1
+            && !this.video.classList.contains(this.baseCssName)
         ) {
           // force the page to include our class in classlist, if the classlist has been removed
           // while classList.add() doesn't duplicate classes (does nothing if class is already added),
@@ -411,7 +505,7 @@ class VideoData {
 
           confirmAspectRatioRestore = true;
           this.video.classList.add(this.userCssClassName);
-          this.video.classList.add('uw-ultrawidify-base-wide-screen'); 
+          this.video.classList.add(this.baseCssName);
         } else if (mutation.attributeName === 'style') {
           confirmAspectRatioRestore = true;
         }
@@ -420,10 +514,16 @@ class VideoData {
 
     this.processDimensionsChanged();
   }
-
   onVideoDimensionsChanged(mutationList, observer) {
     if (!mutationList || this.video === undefined) {  // something's wrong
       if (observer && this.video) {
+        this.logger.log(
+          'warn', 'debug',
+          'onVideoDimensionChanged encountered a weird state. video and observer exist, but mutationlist does not.\n\nmutationList:', mutationList,
+          '\nobserver:', observer,
+          '\nvideo:', this.video,
+          '\n\nObserver will be disconnected.'
+        );
         observer.disconnect();
       }
       return;
@@ -438,7 +538,8 @@ class VideoData {
    */
   private _processDimensionsChanged() {
     if (!this.player) {
-      this.logger.log('warn', 'debug', `[VideoData::_processDimensionsChanged] Player is not defined. This is super haram.`, this.player)
+      this.logger.log('warn', 'debug', `[VideoData::_processDimensionsChanged] Player is not defined. This is super haram.`, this.player);
+      return;
     }
     // adding player observer taught us that if element size gets triggered by a class, then
     // the 'style' attributes don't necessarily trigger. This means we also need to trigger
@@ -495,10 +596,10 @@ class VideoData {
           && this.isWithin(vh, (ph - (translateY * 2)), 2)
           && this.isWithin(vw, (pw - (translateX * 2)), 2)) {
       } else {
-        this.player.forceDetectPlayerElementChange();
-        this.restoreAr();
+        // this.player.forceRefreshPlayerElement();
+        // this.restoreAr();
       }
-      
+
     } catch(e) {
       console.error('Validating video offsets failed:', e)
     }
@@ -516,7 +617,7 @@ class VideoData {
     // This will _always_ give us an array. Empty string gives an array
     // that contains one element. That element is an empty string.
     const styleArray = (this.video.getAttribute('style') || '').split(';');
-    
+
     const styleObject = {};
 
     for (const style of styleArray) {
@@ -535,10 +636,10 @@ class VideoData {
   }
 
   /**
-   * Some sites try to accomodate ultrawide users by "cropping" videos
+   * Some sites try to accommodate ultrawide users by "cropping" videos
    * by setting 'style' attribute of the video element to 'height: X%',
    * where 'X' is something greater than 100.
-   * 
+   *
    * This function gets that percentage and converts it into a factor.
    */
   getHeightCompensationFactor() {
@@ -554,16 +655,8 @@ class VideoData {
     }
     return heightCompensationFactor;
   }
-  firstTimeArdInit(){
-    if(this.destroyed || this.invalid) {
-      // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
-      return;
-    }
-    if(! this.arSetupComplete){
-      this.arDetector = new ArDetector(this);
-    }
-  }
 
+  //#region AARD handlers — TODO: remove, AARD handlers shouldn't be here
   initArDetection() {
     if(this.destroyed || this.invalid) {
       // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
@@ -577,7 +670,8 @@ class VideoData {
       this.arDetector.init();
     }
   }
-  
+
+
   startArDetection() {
     this.logger.log('info', 'debug', "[VideoData::startArDetection] starting AR detection")
     if(this.destroyed || this.invalid) {
@@ -585,57 +679,19 @@ class VideoData {
       return;
     }
 
-    if (hasDrm(this.video)) {
-      this.player.showNotification('AARD_DRM');
-      this.hasDrm = true;
-    } else {
-      this.hasDrm = false;
-    }
-
-    if (!this.arDetector) {
-      this.initArDetection();
-    }
-    this.arDetector.start();
-  }
-
-  rebootArDetection() {
-    if(this.destroyed || this.invalid) {
-      // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
-      return;
-    }
-    this.arDetector.init();
-  }
-
-  stopArDetection() {
-    if (this.arDetector) {
-      this.arDetector.halt();
-    }
-  }
-
-  pause(){
-    this.paused = true;
-    if(this.arDetector){
-      this.arDetector.halt();
-    }
-    if(this.player){
-      this.player.stop();
-    }
-  }
-
-  resume(){
-    if(this.destroyed || this.invalid) {
-      // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
-      return;
-    }
-    this.paused = false;
     try {
-      // this.resizer.start();
-      if (this.player) {
-        this.player.start();
+      if (hasDrm(this.video)) {
+         this.hasDrm = true;
+      } else {
+        this.hasDrm = false;
       }
+
+      if (!this.arDetector) {
+        this.initArDetection();
+      }
+      this.arDetector.start();
     } catch (e) {
-      this.logger.log('error', 'debug', "[VideoData.js::resume] cannot resume for reasons. Will destroy videoData. Error here:", e);
-      this.destroy();
+      this.logger.log('warn', 'debug', '[VideoData::startArDetection()] Could not start aard for some reason. Was the function was called too early?', e);
     }
   }
 
@@ -645,50 +701,14 @@ class VideoData {
     }
   }
 
-  setManualTick(manualTick) {
-    if(this.arDetector){
-      this.arDetector.setManualTick(manualTick);
+  stopArDetection() {
+    if (this.arDetector) {
+      this.arDetector.stop();
     }
   }
+  //#endregion
 
-  tick() {
-    if(this.arDetector){
-      this.arDetector.tick();
-    }
-  }
-
-  setLastAr(lastAr){
-    if (this.invalid) {
-      return;
-    }
-    this.resizer.setLastAr(lastAr);
-  }
-
-  setAr(ar, lastAr?){
-    if (this.invalid) {
-      return;
-    }
-    
-    if (ar.type === AspectRatioType.Fixed || ar.type === AspectRatioType.FitHeight || ar.type === AspectRatioType.FitHeight) {
-      this.player.forceRefreshPlayerElement();
-    }
-
-    this.resizer.setAr(ar, lastAr);
-  }
-
-  resetAr() {
-    if (this.invalid) {
-      return;
-    }
-    this.resizer.reset();
-  }
-
-  resetLastAr() {
-    if (this.invalid) {
-      return;
-    }
-    this.resizer.setLastAr('original');
-  }
+  //#region shit that gets propagated to resizer and should be removed. Implement an event bus instead
 
   panHandler(event, forcePan?: boolean) {
     if (this.invalid) {
@@ -712,46 +732,11 @@ class VideoData {
     this.resizer.setPanMode(mode);
   }
 
-  setVideoAlignment(videoAlignment) {
-    if (this.invalid) {
-      return;
-    }
-    this.resizer.setVideoAlignment(videoAlignment);
-  }
-
   restoreAr(){
     if (this.invalid) {
       return;
     }
     this.resizer.restore();
-  }
-
-  setStretchMode(stretchMode, fixedStretchRatio){
-    if (this.invalid) {
-      return;
-    }
-    this.resizer.setStretchMode(stretchMode, fixedStretchRatio);
-  }
-
-  setZoom(zoomLevel, no_announce){
-    if (this.invalid) {
-      return;
-    }
-    this.resizer.setZoom(zoomLevel, no_announce);
-  }
-
-  zoomStep(step){
-    if (this.invalid) {
-      return;
-    }
-    this.resizer.zoomStep(step);
-  }
-
-  announceZoom(scale){
-    if (this.invalid) {
-      return;
-    }
-    this.pageInfo.announceZoom(scale);
   }
 
   markPlayer(name, color) {
@@ -762,6 +747,7 @@ class VideoData {
       this.player.markPlayer(name, color)
     }
   }
+
   unmarkPlayer() {
     this.player.unmarkPlayer();
   }
@@ -769,6 +755,7 @@ class VideoData {
   isPlaying() {
     return this.video && this.video.currentTime > 0 && !this.video.paused && !this.video.ended;
   }
+  //#endregion
 
   checkVideoSizeChange(){
     const videoWidth = this.video.offsetWidth;
@@ -786,7 +773,7 @@ class VideoData {
         this.logger.log('info', 'debug', "[VideoDetect] player size changed. reason: dimension change. Old dimensions?", this.dimensions.width, this.dimensions.height, "new dimensions:", this.video.offsetWidth, this.video.offsetHeight);
       }
     }
-    
+
     // if size doesn't match, update & return true
     if (this.dimensions?.width != videoWidth
         || this.dimensions?.height != videoHeight ){
@@ -798,6 +785,16 @@ class VideoData {
     }
 
     return false;
+  }
+
+  /**
+   * Returns:
+   *    * number of parent elements on route from <video> to <body>
+   *    * parent index of automatically detected player element
+   *    * index of current player element
+   */
+  getPageOutline() {
+
   }
 }
 

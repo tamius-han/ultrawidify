@@ -5,8 +5,7 @@ const fs = require('fs');
 
 const BUNDLE_DIR = path.join(__dirname, `../dist-${process.env.BROWSER === 'firefox' ? 'ff' : process.env.BROWSER}`);
 const bundles = [
-  'popup/popup.js',
-  'options/options.js',
+  'csui/csui-popup.js',
 ];
 
 const evalRegexForProduction = /;([a-z])=function\(\){return this}\(\);try{\1=\1\|\|Function\("return this"\)\(\)\|\|\(0,eval\)\("this"\)}catch\(t\){"object"==typeof window&&\(\1=window\)}/g;

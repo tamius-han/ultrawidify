@@ -5,17 +5,20 @@ const WebpackShellPlugin = require('webpack-shell-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ChromeExtensionReloader = require('webpack-chrome-extension-reloader');
 const { VueLoaderPlugin } = require('vue-loader');
+const path = require('path');
 
 const config = {
+  watchOptions: {
+    ignored: /node_modules/
+  },
   mode: process.env.NODE_ENV,
   devtool: `${process.env.CHANNEL === 'stable' ? undefined : "inline-source-map"}`,
   context: __dirname + '/src',
   entry: {
     'ext/uw': './ext/uw.js',
-    'ext/uw-ui': './ext/uw-ui.js',
-    'ext/uw-bg': './ext/uw-bg.js',
-    'popup/popup': './popup/popup.js',
-    'options/options': './options/options.js',
+    'uw-bg': './uw-bg.js',
+    'csui/csui-popup': './csui/csui-popup.js',
+    'csui/csui': './csui/csui.js',
     // 'install/first-time/first-time':'./install/first-time/first-time.js',
   },
   output: {
@@ -26,7 +29,7 @@ const config = {
   devtool: "source-map",
 
   resolve: {
-    // maybe we'll move to TS some day, but today is not the day
+    // maybe we'll move vue stuff to TS some day, but today is not the day
     extensions: [
       '.ts', '.tsx',
       '.js', '.vue'
@@ -34,7 +37,7 @@ const config = {
   },
   module: {
     rules: [
-      { 
+      {
         test: /\.ts$/,
         loader: 'ts-loader',
         exclude: /node_modules/
@@ -49,45 +52,44 @@ const config = {
         exclude: /node_modules/,
       },
       {
-        test: /\.css$/,
+        test: /\.(sc|c)ss$/,
         use: [
-          MiniCssExtractPlugin.loader, {
-          loader: 'css-loader',
-          // options: {
-          //   importLoaders: 2,
-          //   modules: {
-          //     localIdentName: "🔶uw_[local]"
-          //   }
-          // }
-        }],
-      },
-      {
-        test: /\.scss$/,
-        use: [
-          MiniCssExtractPlugin.loader,
-          // 'css-loader',
-         {
+          // MiniCssExtractPlugin.loader,
+          'vue-style-loader',
+          {
             loader: 'css-loader',
+            // modules: {
+            //   localIdentName: "[name]-[hash]"
+            // }
             // options: {
-            //   // importLoaders: 1,
-            //   modules: {
-            //     localIdentName: "🔶uw_[local]"
-            //   }
+            //   modules: true,
+            //   // localIdentName: "🔶uw_[local]"
+            //   localIdentName: "[name]-[hash]"
+            //   // localIdentName: "uw_[local]"
             // }
           },
-          'sass-loader'
+          {
+            loader: 'sass-loader',
+            options: {
+              sourceMap: true
+            }
+          }
         ],
       },
       // {
-      //   test: /\.sass$/,
-      //   use: [MiniCssExtractPlugin.loader, {
-      //     loader: 'css-loader',
-      //     options: {
-      //       importLoaders: 2,
-      //       modules: true,
-      //       localIdentName: "🔶uw_[local]"
-      //     }
-      //   }, 'sass-loader?indentedSyntax'],
+      //   test: /\.scss$/,
+      //   use: [
+      //     // MiniCssExtractPlugin.loader,
+      //     'css-loader',
+      //   //  {
+      //   //     loader: 'css-loader',
+      //   //     // options: {
+      //   //     //   modules: true,
+      //   //     //   localIdentName: "🔶uw_[local]"
+      //   //     // }
+      //   //   },
+      //     'sass-loader'
+      //   ],
       // },
       {
         test: /\.(png|jpg|gif|svg|ico)$/,
@@ -118,19 +120,19 @@ const config = {
     new CopyWebpackPlugin([
       { from: 'res', to: 'res', ignore: ['css', 'css/**']},
       { from: 'ext', to: 'ext', ignore: ['conf/*', 'lib/**']},
+      { from: 'csui', to: 'csui', ignore: ['src']},
 
       // we need to get webextension-polyfill and put it in common/lib
       { from: '../node_modules/webextension-polyfill/dist/browser-polyfill.js', to: 'common/lib/browser-polyfill.js'},
 
-      // This is a hack to get bootstrap icons svg file in /res/icons
-      { from: '../node_modules/bootstrap-icons/bootstrap-icons.svg', to: 'res/icons/bootstrap-icons.svg'},
-
       // This is extension icon, as used on extension lists and/or extension's action button
-      // This folder does not contain any GUI icons — these are in /res/icons. 
+      // This folder does not contain any GUI icons — these are in /res/icons.
       // (TODO: check if this copy is even necessary — /icons has same content as /res/icons)
       { from: 'icons', to: 'icons', ignore: ['icon.xcf'] },
-      { from: 'popup/popup.html', to: 'popup/popup.html', transform: transformHtml },
-      { from: 'options/options.html', to: 'options/options.html', transform: transformHtml },
+      { from: 'csui/csui-popup.html', to: 'csui/csui-popup.html', transform: transformHtml },
+      { from: 'csui/csui-overlay-normal.html', to: 'csui/csui.html', transform: transformHtml },
+      { from: 'csui/csui-overlay-dark.html', to: 'csui/csui-dark.html', transform: transformHtml },
+      { from: 'csui/csui-overlay-light.html', to: 'csui/csui-light.html', transform: transformHtml },
       // { from: 'install/first-time/first-time.html', to: 'install/first-time/first-time.html', transform: transformHtml},
       {
         from: 'manifest.json',
@@ -156,7 +158,7 @@ const config = {
                                             .replace('-', '.') // YYMM-DD -> YYMM.DD
                                     }.${process.env.BUILD_NUMBER === undefined ? 0 : process.env.BUILD_NUMBER}`;
             jsonContent.browser_action.default_title = "Ultrawidify Nightly";
-            
+
             // because we don't want web-ext to submit this as proper release
             delete jsonContent.applications;
           } else if (process.env.CHANNEL === 'testing') {
@@ -172,15 +174,19 @@ const config = {
                                             .replace('-', '.') // YYMM-DD -> YYMM.DD
                                     }.${process.env.BUILD_NUMBER === undefined ? 0 : process.env.BUILD_NUMBER}`;
             jsonContent.browser_action.default_title = "Ultrawidify Testing";
-            
+
             // because we don't want web-ext to submit this as proper release
             delete jsonContent.applications;
           }
 
           if (process.env.BROWSER !== 'firefox') {
             jsonContent.version = jsonContent.version.replace(/[a-zA-Z-]/g, '');
-            delete jsonContent.options_ui.browser_style;
-            delete jsonContent.background.scripts;
+            try {
+              delete jsonContent.options_ui.browser_style;
+            } catch (e) { }
+            try {
+              delete jsonContent.background.scripts;
+            } catch (e) {}
           } else {
             delete jsonContent.background.service_worker;
           }
@@ -215,7 +221,7 @@ if (config.mode === 'production') {
     new webpack.DefinePlugin({
       '__VUE_OPTIONS_API__': true,
       '__VUE_PROD_DEVTOOLS__': false,
-      
+
       'process.env': {
         NODE_ENV: '"production"',
       },

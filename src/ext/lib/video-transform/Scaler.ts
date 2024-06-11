@@ -8,10 +8,10 @@ import Logger from '../Logger';
 export enum CropStrategy {
   /**
    * Nomenclature explained:
-   * 
+   *
    * SP - stream AR < player AR
    * PS - the opposite of ↑
-   * 
+   *
    * ArDominant - given aspect ratio is bigger than stream AR and player AR
    * PSDominant - stream AR or player AR are bigger than given aspect ratio
    */
@@ -31,7 +31,6 @@ export type VideoDimensions = {
   actualHeight?: number;
 }
 
-// računa velikost videa za približevanje/oddaljevanje
 // does video size calculations for zooming/cropping
 
 
@@ -46,14 +45,12 @@ class Scaler {
     this.conf = videoData;
     this.logger = videoData.logger;
   }
-  
 
-  // Skrbi za "stare" možnosti, kot na primer "na širino zaslona", "na višino zaslona" in "ponastavi". 
-  // Približevanje opuščeno.
-  // handles "legacy" options, such as 'fit to widht', 'fit to height' and AspectRatioType.Reset. No zoom tho
+
+  // handles "legacy" options, such as 'fit to width', 'fit to height' and AspectRatioType.Reset. No zoom tho
   modeToAr (ar) {
     if (ar.type !== AspectRatioType.FitWidth && ar.type !== AspectRatioType.FitHeight && ar.ratio) {
-      return ar.ratio; 
+      return ar.ratio;
     }
 
     let ratioOut;
@@ -64,21 +61,18 @@ class Scaler {
       return null;
     }
 
-    
+
     if (!this.conf.player.dimensions) {
       ratioOut = screen.width / screen.height;
     } else {
       ratioOut = this.conf.player.dimensions.width / this.conf.player.dimensions.height;
     }
-    
-    // POMEMBNO: lastAr je potrebno nastaviti šele po tem, ko kličemo _res_setAr(). _res_setAr() predvideva,
-    // da želimo nastaviti statično (type: 'static') razmerje stranic — tudi, če funkcijo kličemo tu oz. v ArDetect.
-    //
+
     // IMPORTANT NOTE: lastAr needs to be set after _res_setAr() is called, as _res_setAr() assumes we're
-    // setting a static aspect ratio (even if the function is called from here or ArDetect). 
-    
+    // setting a static aspect ratio (even if the function is called from here or ArDetect).
+
     let fileAr = this.conf.video.videoWidth / this.conf.video.videoHeight;
-      
+
     if (ar.type === AspectRatioType.FitWidth) {
       ratioOut > fileAr ? ratioOut : fileAr
       ar.ratio = ratioOut;
@@ -102,16 +96,16 @@ class Scaler {
     /**
      * STEP 1: NORMALIZE ASPECT RATIO
      *
-     * Video width is normalized based on 100% of the parent. That means if the player AR 
+     * Video width is normalized based on 100% of the parent. That means if the player AR
      * is narrower than video ar, we need to pre-downscale the video. This scaling already
-     * undoes any zoom that style="height:123%" on the video element adds. 
-     * 
-     * There are few exceptions and additional caveatss:
+     * undoes any zoom that style="height:123%" on the video element adds.
+     *
+     * There are few exceptions and additional caveats:
      *   * AspectRatioType.FitHeight: we don't want to pre-downscale the video at all, as things
      *     will be scaled to fit height as-is.
      *   * When player is wider than stream, we want to undo any height compensations site
      *     tacks on the video tag.
-     * 
+     *
      * Quick notes:
      *   * when I say 'video AR', I actually mean aspect ratio after we've compensated for
      *     any possible 'height:' stuffs in the style attribute of the video tag
@@ -135,7 +129,7 @@ class Scaler {
 
     if(!this.conf.video){
       this.logger.log('info', 'debug', "[Scaler::calculateCrop] ERROR — no video detected. Conf:", this.conf, "video:", this.conf.video, "video dimensions:", this.conf.video && this.conf.video.videoWidth, '×', this.conf.video && this.conf.video.videoHeight);
-      
+
       this.conf.destroy();
       return {error: "no_video"};
     }
@@ -164,19 +158,17 @@ class Scaler {
       return {error: "this.conf.player.dimensions_error"};
     }
 
-    // zdaj lahko končno začnemo računati novo velikost videa
     // we can finally start computing required video dimensions now:
 
-    // Dejansko razmerje stranic datoteke/<video> značke
     // Actual aspect ratio of the file/<video> tag
 
     if (ar.type === AspectRatioType.Initial || !ar.ratio) {
       ar.ratio = streamAr;
     }
 
-  
+
     this.logger.log('info', 'scaler', "[Scaler::calculateCrop] ar is " ,ar.ratio, ", file ar is", streamAr, ", this.conf.player.dimensions are ", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
-    
+
     const videoDimensions: VideoDimensions = {
       xFactor: 1,
       yFactor: 1,
@@ -185,19 +177,19 @@ class Scaler {
       arCorrectionFactor: arCorrectionFactor,
       styleHeightCompensationFactor: heightCompensationFactor
     }
-  
+
     this.calculateCropCore(videoDimensions, ar.ratio, streamAr, playerAr)
-    
+
     return videoDimensions;
   }
 
   /**
    * The act of calculating aspect ratio is separated due to resue elsewhere in the extension.
    * We are doing that to avoid surprise recursions.
-   * @param {*} videoDimensions 
-   * @param {*} ar 
-   * @param {*} streamAr 
-   * @param {*} playerAr 
+   * @param {*} videoDimensions
+   * @param {*} ar
+   * @param {*} streamAr
+   * @param {*} playerAr
    */
   calculateCropCore(videoDimensions: VideoDimensions, ar: number, streamAr: number, playerAr: number) {
     if (streamAr < playerAr) {
@@ -232,7 +224,7 @@ class Scaler {
     }
 
     this.logger.log('info', 'scaler', "[Scaler::calculateCrop] Crop factor calculated — ", videoDimensions.xFactor);
- 
+
     // correct the scale factor
     if (videoDimensions.arCorrectionFactor) {
       videoDimensions.xFactor *= videoDimensions.arCorrectionFactor;

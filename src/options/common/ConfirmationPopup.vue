@@ -2,7 +2,7 @@
   <div class="full-screen"
        @click="cancel()"
   >
-    <div class="dialog-box flex flex-column" @click="$event.stopPropagation()">
+    <div class="dialog-box flex flex-col" @click="$event.stopPropagation()">
       <div>
         {{dialogText}}
       </div>
@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import ShortcutButton from '../../common/components/ShortcutButton.vue' 
+import ShortcutButton from '../../common/components/ShortcutButton.vue'
 
 export default {
   props: {

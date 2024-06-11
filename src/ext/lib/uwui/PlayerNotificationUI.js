@@ -16,16 +16,19 @@ class PlayerNotificationUi extends UI {
 
   constructor (
     playerElement,
-    settings
-  ) {    
+    settings,
+    eventBus,
+  ) {
     super(
       'notification',
       PlayerNotificationUi.getStoreConfig(),
       PlayerNotificationUi.getUiConfig(playerElement),
-      PlayerNotificationUi.getCommsConfig()
+      PlayerNotificationUi.getCommsConfig(),
+      { eventBus }
     );
 
     this.settings = settings;
+    this.eventBus = eventBus;
   }
 
 
@@ -79,15 +82,15 @@ class PlayerNotificationUi extends UI {
 
   //#region lifecycle
   replace(playerElement) {
-    super.replace(this.getUiConfig(playerElement));
+    super.replace(PlayerNotificationUi.getUiConfig(playerElement));
   }
   //#endregion
 
   /**
    * Show notification on screen.
-   * 
+   *
    * @param notificationConfig notification config (or ID of notification config in /common/data/notifications.js)
-   * 
+   *
    * notificationConfig should resemble this:
    * {
    *    timeout: number  — how long we'll be displaying the notification. If empty, 10s. -1: until user dismisses it
@@ -104,7 +107,7 @@ class PlayerNotificationUi extends UI {
    *      // more of notificationActions but with special case
    *    ]
    * }
-   * 
+   *
    * When notificationConfig is a string, the function will add two additional notifications on the notificationActionsPile
    *    * never show this notification ever again on any site
    *    * never show this notification again on this site
@@ -170,7 +173,7 @@ class PlayerNotificationUi extends UI {
   }
 
   isNotificationMuted(notificationId) {
-    return this.settings.active.mutedNotifications?.[notificationId]?.$global 
+    return this.settings.active.mutedNotifications?.[notificationId]?.$global
       || this.settings.active.mutedNotifications?.[notificationId]?.[window.location.hostname];
   }
 }

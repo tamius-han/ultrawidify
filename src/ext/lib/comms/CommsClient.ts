@@ -1,126 +1,178 @@
 import Debug from '../../conf/Debug';
 import BrowserDetect from '../../conf/BrowserDetect';
 import Logger from '../Logger';
-import { browser } from 'webextension-polyfill-ts';
 import Settings from '../Settings';
+import EventBus, { EventBusContext } from '../EventBus';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading CommsClient");
 }
 
+/**
+ * Ultrawidify communication spans a few different "domains" that require a few different
+ * means of communication. The four isolated domains are:
+ *
+ *     > content script event bus (CS)
+ *     > player UI event bus (UI)
+ *     > UWServer event bus (BG)
+ *     > popup event bus
+ *
+ * It is our goal to route messages between various domains. It is our goal that eventBus
+ * instances in different parts of our script are at least somewhat interoperable between
+ * each other. As such, scripts sending commands should be unaware that Comms object even
+ * exists.
+ *
+ * EventBus is started first. Other components (including commsClient) follow later.
+ *
+ * Messages that pass through CommsServer need to define context object with
+ * context.comms.forwardTo field defined, with one of the following values:
+ *
+ *     -              all :  all content scripts of ALL TABS
+ *     -           active :  all content scripts in CURRENT TAB
+ *     -    contentScript :  specific content script (requires other EventBusContext fields!)
+ *     - backgroundScript :  background script (considered default behaviour)
+ *     -       sameOrigin :  ???
+ *     -            popup :  extension popup
+ *
+ *
+ *
+ *
+ *                    fig 0. ULTRAWIDIFY COMMUNICATION MAP
+ *
+ *       CS EVENT BUS
+ *   (accessible within tab scripts)
+ *            |                                      BG EVENT BUS
+ *  PageInfo  x                                (accessible within background page)
+ *            x                                           |
+ *      :     :                                           x UWServer
+ *            x CommsClient <---------------x CommsServer x
+ *            | (Connect to popup)                 X                POPUP EVENT BUS
+ *            |                                    A           (accessible within popup)  /todo
+ *            x eventBus.sendToTunnel()            |                      |
+ *                <iframe tunnel>                  \--------> CommsClient X
+ *                     A                                                  |
+ *                     |                                                  X App.vue
+ *                     V
+ *              x <iframe tunnel>
+ *              |
+ * PlayerUIBase x
+ *      :       :
+ *              |
+ *       UI EVENT BUS
+ * (accessible within player UI)
+ */
+
+export enum CommsOrigin {
+  ContentScript = 1,
+  Popup = 2,
+  Server = 3
+}
+
 class CommsClient {
   commsId: string;
+  name: string;
+  origin: CommsOrigin;
 
   logger: Logger;
   settings: any;   // sus?
 
-
-  commands: {[x: string]: any[]};
-
-
+  eventBus: EventBus;
 
   _listener: (m: any) => void;
-  port: any;
+  port: chrome.runtime.Port;
 
-
-  constructor(name, logger, commands) {
+  //#region lifecycle
+  constructor(name: string, logger: Logger, eventBus: EventBus) {
+    this.name = name;
     try {
-    this.logger = logger;
+      this.logger = logger;
+      this.eventBus = eventBus;
 
-    this.port = browser.runtime.connect(null, {name: name});
-
-    this.logger.onLogEnd(
-      (history) => {
-        this.logger.log('info', 'comms', 'Sending logging-stop-and-save to background script ...');
-        try {
-          this.port.postMessage({cmd: 'logging-stop-and-save', host: window.location.hostname, history})
-        } catch (e) {
-          this.logger.log('error', 'comms', 'Failed to send message to background script. Error:', e);
-        }
+      if (name === 'popup-port') {
+        this.origin = CommsOrigin.Popup;
+      } else {
+        this.origin = CommsOrigin.ContentScript;
       }
-    );
 
-    this._listener = m => this.processReceivedMessage(m);
-    this.port.onMessage.addListener(this._listener);
+      // if (BrowserDetect.firefox) {
+      //   this.port = chrome.runtime.connect(null, {name: name});
+      // } else {
+      // this connects to the background page
+      this.port = chrome.runtime.connect(null, {name: name});
+      // }
 
-    this.commsId = (Math.random() * 20).toFixed(0);
+      this.logger.onLogEnd(
+        (history) => {
+          this.logger.log('info', 'comms', 'Sending logging-stop-and-save to background script ...');
+          try {
+            this.port.postMessage({cmd: 'logging-stop-and-save', host: window.location.hostname, history})
+          } catch (e) {
+            this.logger.log('error', 'comms', 'Failed to send message to background script. Error:', e);
+          }
+        }
+      );
 
-    this.commands = commands;
+      this._listener = m => this.processReceivedMessage(m);
+      this.port.onMessage.addListener(this._listener);
+
+      this.commsId = (Math.random() * 20).toFixed(0);
+
     } catch (e) {
       console.error("CONSTRUCOTR FAILED:", e)
     }
   }
-  
+
   destroy() {
     if (!BrowserDetect.edge) { // edge is a very special browser made by outright morons.
       this.port.onMessage.removeListener(this._listener);
     }
   }
+  //#endregion
 
-  subscribe(command, callback) {
-    if (!this.commands[command]) {
-      this.commands[command] = [callback];
-    } else {
-      this.commands[command].push(callback);
-    }
-  }
+  async sendMessage(message, context?: EventBusContext){
+    message = JSON.parse(JSON.stringify(message)); // vue quirk. We should really use vue store instead
 
-  processReceivedMessage(message){
-    this.logger.log('info', 'comms', `[CommsClient.js::processMessage] <${this.commsId}> Received message from background script!`, message);
-
-    if (this.commands[message.cmd]) {
-      for (const c of this.commands[message.cmd]) {
-        c(message);
+    // content script client and popup client differ in this one thing
+    if (this.origin === CommsOrigin.Popup) {
+      try {
+        return this.port.postMessage(message);
+      } catch (e) {
+        console.log('chrome is shit, lets try to bruteforce ...', e);
+        const port = chrome.runtime.connect(null, {name: this.name});
+        port.onMessage.addListener(this._listener);
+        return port.postMessage(message);
       }
     }
+    // send to server
+    return chrome.runtime.sendMessage(null, message, null);
   }
 
-  async sendMessage_nonpersistent(message){
-    message = JSON.parse(JSON.stringify(message)); // vue quirk. We should really use vue store instead
-    return browser.runtime.sendMessage(null, message, null);
-  }
+  /**
+   * Processes message we received from CommsServer, and forwards it to eventBus.
+   * @param receivedMessage
+   */
+  private processReceivedMessage(receivedMessage){
+    console.log('message popped out of the comms', receivedMessage, 'event bus:', this.eventBus);
+    // when sending between frames, message will be enriched with two new properties
+    const {_sourceFrame, _sourcePort, ...message} = receivedMessage;
 
-
-  // TODO: sus function — does it get any use?
-  async requestSettings(){
-    this.logger.log('info', 'comms', "%c[CommsClient::requestSettings] sending request for congif!", "background: #11D; color: #aad");
-   
-    var response = await this.sendMessage_nonpersistent({cmd: 'get-config'});
-   
-    this.logger.log('info', 'comms', "%c[CommsClient::requestSettings] received settings response!", "background: #11D; color: #aad", response);
-
-    if(! response || response.extensionConf){
-      return Promise.resolve(false);
+    let comms;
+    if (_sourceFrame || _sourcePort) {
+      comms = {
+        port: _sourcePort,
+        sourceFrame: _sourceFrame
+      }
     }
 
-    this.settings = {active: JSON.parse(response.extensionConf)};
-    return Promise.resolve(true);
+    this.eventBus.send(
+      message.command,
+      message.config,
+      {
+        comms,
+        origin: CommsOrigin.Server
+      }
+    );
   }
-
-  async sendMessage(message) {
-    return this.sendMessage_nonpersistent(message);
-  }
-
-  registerVideo(){
-    this.logger.log('info', 'comms', `[CommsClient::registerVideo] <${this.commsId}>`, "Registering video for current page.");
-    this.port.postMessage({cmd: "has-video"});
-  }
-
-  sendPerformanceUpdate(message){
-    this.port.postMessage({cmd: 'performance-update', message: message});
-  }
-
-  unregisterVideo(){
-    this.logger.log('info', 'comms', `[CommsClient::unregisterVideo] <${this.commsId}>`, "Unregistering video for current page.");
-    this.port.postMessage({cmd: "noVideo"});  // ayymd
-  }
-
-  announceZoom(scale){
-    this.port.postMessage({cmd: "announce-zoom", zoom: scale});
-    this.registerVideo();
-  }
-
-
 }
 
 if (process.env.CHANNEL !== 'stable'){
