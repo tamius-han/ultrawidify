@@ -32,12 +32,12 @@
           <li>
             The in-player UI should now display a warning whenever Ultrawidify detects automatic aspect ratio detection isn't happening because the site uses DRM.
           </li>
-          <li>
+          <!-- <li>
             Better zooming. The slider is back, baby.
-          </li>
-          <li>
+          </li> -->
+          <!-- <li>
             Panning option that's a bit more intuitive.
-          </li>
+          </li> -->
         </ul>
         <h3>Unbaked features</h3>
         <ul>
