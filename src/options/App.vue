@@ -22,8 +22,8 @@
     <div class="flex flex-row"
          :class="{'blur': anyOpenedPopups}"
     >
-    
-      <div class="header flex flex-column">
+
+      <div class="header flex flex-col">
         <div class="flex extension-name text-sink-anchor">
           <div class="text-sink title-sink-pad w100 text-center">
             Ultrawidify
@@ -31,7 +31,7 @@
         </div>
 
         <!-- MENU ITEMS HERE -->
-        <div class="flex flex-column menu">
+        <div class="flex flex-col menu">
           <div class="menu-item"
               :class="{'selected-tab': selectedTab === 'general'}"
               @click="setSelectedTab('general')"
@@ -71,7 +71,7 @@
         </div>
       </div>
 
-      <div class="flex content-area flex-column">
+      <div class="flex content-area flex-col">
         <div class="flex content-title text-sink-anchor">
           <div class="text-sink title-sink-pad">
             {{selectedTabTitle}}
@@ -104,7 +104,7 @@
         </div>
       </div>
     </div>
-    
+
   </div>
 </template>
 
@@ -152,7 +152,7 @@ export default {
 
     this.settings = new Settings({updateCallback: this.updateSettings, logger: this.logger});
     await this.settings.init();
-    
+
     this.settingsInitialized = true;
   },
   components: {

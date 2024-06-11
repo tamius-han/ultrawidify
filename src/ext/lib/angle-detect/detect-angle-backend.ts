@@ -92,7 +92,7 @@ function detectBackend(str) {
  * Known limitations: D11on12 cannot be detected.
  * @returns
  */
-export function detectANGLEBackend(): AngleVersion {
+function detectANGLEBackend(): AngleVersion {
   const canvas = document.createElement("canvas");
   const gl = canvas.getContext("webgl2") ||
     canvas.getContext("webgl") ||

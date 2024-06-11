@@ -2,79 +2,130 @@ import Debug from '../../conf/Debug';
 import ExtensionMode from '../../../common/enums/ExtensionMode.enum'
 import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
 import PlayerNotificationUi from '../uwui/PlayerNotificationUI';
-import PlayerUi from '../uwui/PlayerUI';
 import BrowserDetect from '../../conf/BrowserDetect';
 import * as _ from 'lodash';
 import { sleep } from '../../../common/js/utils';
 import VideoData from './VideoData';
 import Settings from '../Settings';
 import Logger from '../Logger';
+import EventBus from '../EventBus';
+import UI from '../uwui/UI';
+import { SiteSettings } from '../settings/SiteSettings';
+import PageInfo from './PageInfo';
+import { RunLevel } from '../../enum/run-level.enum';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: PlayerData.js");
 }
 
-/* sprejme <video> tag (element) in seznam imen, ki se lahko pojavijo v razredih oz. id staršev.
-// vrne dimenzije predvajalnika (širina, višina)
-// 
-// Na youtube v theater mode je razširitev rahlo pokvarjena. Video tag ostane večji od predvajalnika, ko se zapusti
-// celozaslonski način. Ta funkcija skuša to težavo rešiti tako, da poišče element predvajalnika, ki je zavit okoli videa.
-// 
-// Funkcija izkorišča lastnost, da bi načeloma moral biti vsak zunanji element večji od notranjega. Najmanjši element od
-// <video> značke pa do korena drevesa bi tako moral biti predvajalnik.
-// 
-// Če je podan seznam imen, potem funkcija vrne dimenzije prvega elementa, ki v id oz. razredu vsebuje katerokoli ime iz seznama
-// 
-// | EN |
-//
-// accepts <video> tag (element) and list of names that can appear in id or class 
-// returns player dimensions (width, height)
-//
-// Theater mode is mildly broken on youtube. <video> tag remains bigger than the player after leaving the fullscreen mode, and
-// there's nothing we can do about that. This function aims to solve the problem by finding the player element that's wrapped around
-// the <video> tag.
-// 
-// In general, an outer tag should be bigger than the inner tag. Therefore the smallest element between <video> tag and the document
-// root should be the player.
-//
-// If list of names is provided, the function returns dimensions of the first element that contains any name from the list in either
-// id or class.
-*/
+interface PlayerDimensions {
+  width?: number;
+  height?: number;
+  fullscreen?: boolean;
+}
+
+/**
+ * accepts <video> tag (element) and list of names that can appear in id or class
+ * returns player dimensions (width, height)
+ * Theater mode is mildly broken on youtube. <video> tag remains bigger than the player after leaving the fullscreen mode, and
+ * there's nothing we can do about that. This function aims to solve the problem by finding the player element that's wrapped around
+ * the <video> tag.
+
+ * In general, an outer tag should be bigger than the inner tag. Therefore the smallest element between <video> tag and the document
+ * root should be the player.
+
+ * If list of names is provided, the function returns dimensions of the first element that contains any name from the list in either
+ * id or class.
+ *
+ *
+ * RUN LEVELS
+ * Run are there to ensure only the necessary functions run.
+ *
+ *  * Off:
+ *    * Extension is effectively disabled. However, even in this quasi-disabled state,
+ *      certain functions of the class should still be active.
+ *        1. Player size monitoring
+ *           (Run level could be set to 'off' due to player being too small)
+ *        2. Event bus
+ *           (Actions from popup may cause RunLevel to increase)
+ *
+ *  * UiOnly:
+ *    * Extension should show in-player UI, but it should not inject any
+ *      unnecessary CSS.
+ */
 
 class PlayerData {
-  
+  private playerCssClass = 'uw-ultrawidify-player-css';
+
   //#region helper objects
   logger: Logger;
   videoData: VideoData;
-  settings: Settings;
+  pageInfo: PageInfo;
+  siteSettings: SiteSettings;
   notificationService: PlayerNotificationUi;
+  eventBus: EventBus;
   //#endregion
 
   //#region HTML objects
-  video: any;
+  videoElement: any;
   element: any;
   overlayNode: any;
   //#endregion
 
   //#region flags
+  runLevel: RunLevel = RunLevel.Off;
+  enabled: boolean;
   invalid: boolean = false;
   private periodicallyRefreshPlayerElement: boolean = false;
   halted: boolean = true;
+  isFullscreen: boolean = !!document.fullscreenElement;
+  isTheaterMode: boolean = false;  // note: fullscreen mode will count as theaterMode if player was in theater mode before fs switch. This is desired, so far.
 
   //#region misc stuff
   extensionMode: any;
-  dimensions: {width?: number, height?: number, fullscreen?: boolean};
+  dimensions: PlayerDimensions;
   private playerIdElement: any;
   private observer: ResizeObserver;
+
+  private ui: UI;
+
+  elementStack: any[] = [];
   //#endregion
+
+  //#region event bus configuration
+  private eventBusCommands = {
+    'get-player-tree': [{
+      function: () => this.handlePlayerTreeRequest()
+    }],
+    'set-mark-element': [{      // NOTE: is this still used?
+      function: (data) => this.markElement(data)
+    }],
+    'update-player': [{
+      function: () => this.getPlayer()
+    }],
+    'set-run-level': [{
+      function: (runLevel) => this.setRunLevel(runLevel)
+    }]
+  }
+  //#endregion
+
+  private dimensionChangeListener = {
+    that: this,
+    handleEvent: function(event: Event) {
+      this.that.trackDimensionChanges()
+    }
+  }
 
   /**
    * Gets player aspect ratio. If in full screen, it returns screen aspect ratio unless settings say otherwise.
    */
   get aspectRatio() {
     try {
-      if (this.dimensions?.fullscreen && !this.settings.getSettingsForSite()?.usePlayerArInFullscreen) {
+      if (this.isFullscreen) {
         return window.innerWidth / window.innerHeight;
+      }
+      if (!this.dimensions) {
+        this.trackDimensionChanges();
       }
 
       return this.dimensions.width / this.dimensions.height;
@@ -84,24 +135,31 @@ class PlayerData {
     }
   }
 
+  //#region lifecycle
   constructor(videoData) {
     try {
+      // set all our helper objects
       this.logger = videoData.logger;
       this.videoData = videoData;
-      this.video = videoData.video;
-      this.settings = videoData.settings;
-      this.extensionMode = videoData.extensionMode;
+      this.videoElement = videoData.video;
+      this.pageInfo = videoData.pageInfo;
+      this.siteSettings = videoData.siteSettings;
+      this.eventBus = videoData.eventBus;
+
+      // do the rest
       this.invalid = false;
       this.element = this.getPlayer();
+      this.initEventBus();
 
-      this.notificationService = new PlayerNotificationUi(this.element, this.settings);
+      // this.notificationService = new PlayerNotificationUi(this.element, this.settings, this.eventBus);
+      this.ui = new UI('ultrawidifyUi', {parentElement: this.element, eventBus: this.eventBus});
 
       this.dimensions = undefined;
       this.overlayNode = undefined;
 
       this.periodicallyRefreshPlayerElement = false;
       try {
-        this.periodicallyRefreshPlayerElement = this.settings.active.sites[window.location.hostname].DOM.player.periodicallyRefreshPlayerElement;
+        this.periodicallyRefreshPlayerElement = this.siteSettings.data.currentDOMConfig.periodicallyRefreshPlayerElement;
       } catch (e) {
         // no biggie — that means we don't have any special settings for this site.
       }
@@ -112,92 +170,230 @@ class PlayerData {
         return;
       }
 
-      if (this.extensionMode === ExtensionMode.Enabled) {
-        this.checkPlayerSizeChange();
-      }
+      this.trackDimensionChanges();
       this.startChangeDetection();
 
+      document.addEventListener('fullscreenchange', this.dimensionChangeListener);
+
+      // we want to reload on storage changes
+      this.siteSettings.subscribeToStorageChange('PlayerData', (siteConfUpdate) => this.reloadPlayerDataConfig(siteConfUpdate));
     } catch (e) {
       console.error('[Ultrawidify::PlayerData::ctor] There was an error setting up player data. You should be never seeing this message. Error:', e);
       this.invalid = true;
     }
   }
 
-  /**
-   * Returns whether we're in fullscreen mode or not.
-   */
-  static isFullScreen(){
-    const ihdiff = Math.abs(window.screen.height - window.innerHeight);
-    const iwdiff = Math.abs(window.screen.width - window.innerWidth);
+  private reloadPlayerDataConfig(siteConfUpdate) {
+    // this.siteSettings = siteConfUpdate;
+    this.element = this.getPlayer();
 
-    // Chrome on linux on X on mixed PPI displays may return ever so slightly different values
-    // for innerHeight vs screen.height abd innerWidth vs. screen.width, probably courtesy of
-    // fractional scaling or something. This means we'll give ourself a few px of margin — the
-    // window elements visible in not-fullscreen are usually double digit px tall
-    return ( ihdiff < 5 && iwdiff < 5 );
+    this.periodicallyRefreshPlayerElement = false;
+    try {
+      this.periodicallyRefreshPlayerElement = this.siteSettings.data.currentDOMConfig.periodicallyRefreshPlayerElement;
+    } catch (e) {
+      // no biggie — that means we don't have any special settings for this site.
+    }
+
+    // because this is often caused by the UI
+    this.handlePlayerTreeRequest();
   }
 
-  
-  onPlayerDimensionsChanged(mutationList?, observer?) {
-    if (this?.checkPlayerSizeChange()) {
-      this.videoData.resizer.restore();
+  /**
+   * Initializes event bus
+   */
+  private initEventBus() {
+    for (const action in this.eventBusCommands) {
+      for (const command of this.eventBusCommands[action]) {
+        this.eventBus.subscribe(action, command);
+      }
     }
   }
 
-
-  start(){
-    this.startChangeDetection();
-  }
-
-  stop(){
-    this.halted = true;
-    this.stopChangeDetection();
-  }
-
+  /**
+   * Completely stops everything the extension is doing
+   */
   destroy() {
+    document.removeEventListener('fullscreenchange', this.dimensionChangeListener);
     this.stopChangeDetection();
     this.destroyOverlay();
     this.notificationService?.destroy();
   }
+  //#endregion
 
+  /**
+   * Sets extension runLevel and sets or unsets appropriate css classes as necessary
+   * @param runLevel
+   * @returns
+   */
+  setRunLevel(runLevel: RunLevel) {
+    if (this.runLevel === runLevel) {
+      return;
+    }
+
+    // increasing runLevel works differently than decreasing
+    if (this.runLevel > runLevel) {
+      if (runLevel < RunLevel.CustomCSSActive) {
+        this.element.classList.remove(this.playerCssClass);
+      }
+      if (runLevel < RunLevel.UIOnly) {
+        this.ui.disable();
+      }
+    } else {
+      if (runLevel >= RunLevel.UIOnly) {
+        this.ui.enable();
+        this.startChangeDetection();
+      }
+      if (runLevel >= RunLevel.CustomCSSActive) {
+        this.element.classList.add(this.playerCssClass);
+      }
+    }
+
+    this.runLevel = runLevel;
+  }
+
+  /**
+   * Detects whether player element is in theater mode or not.
+   * If theater mode changed, emits event.
+   * @returns whether player is in theater mode
+   */
+  private detectTheaterMode() {
+    const oldTheaterMode = this.isTheaterMode;
+    const newTheaterMode = this.equalish(window.innerWidth, this.element.offsetWidth, 32);
+
+    this.isTheaterMode = newTheaterMode;
+
+    // theater mode changed
+    if (oldTheaterMode !== newTheaterMode) {
+      if (newTheaterMode) {
+        this.eventBus.send('player-theater-enter', {});
+      } else {
+        this.eventBus.send('player-theater-exit', {});
+      }
+    }
+
+    return newTheaterMode;
+  }
+
+  /**
+   *
+   */
+  trackDimensionChanges() {
+    // get player dimensions _once_
+    let currentPlayerDimensions;
+    this.isFullscreen = !!document.fullscreenElement;
+
+    if (this.isFullscreen) {
+      currentPlayerDimensions = {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      };
+    } else {
+      currentPlayerDimensions = {
+        width: this.element.offsetWidth,
+        height: this.element.offsetHeight
+      };
+
+      this.detectTheaterMode();
+    }
+
+    // if dimensions of the player box are the same as the last known
+    // dimensions, we don't have to do anything
+    if (
+      this.dimensions?.width == currentPlayerDimensions.width
+      && this.dimensions?.height == currentPlayerDimensions.height
+    ) {
+      this.dimensions = currentPlayerDimensions;
+      return;
+    }
+
+    // in every other case, we need to check if the player is still
+    // big enough to warrant our extension running.
+    this.handleSizeConstraints(currentPlayerDimensions);
+    this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
+
+    // Save current dimensions to avoid triggering this function pointlessly
+    this.dimensions = currentPlayerDimensions;
+  }
+
+
+  /**
+   * Checks if extension is allowed to run in current environment.
+   * @param currentPlayerDimensions
+   */
+  private handleSizeConstraints(currentPlayerDimensions: PlayerDimensions) {
+    console.log('handling resize constraints');
+    // Check if extension is allowed to run in current combination of theater + full screen
+    const canEnable = this.siteSettings.isEnabledForEnvironment(this.isFullscreen, this.isTheaterMode) === ExtensionMode.Enabled;
+
+    if (this.runLevel === RunLevel.Off && canEnable) {
+      this.eventBus.send('restore-ar', null);
+      // must be called after
+      this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
+    } else if (!canEnable && this.runLevel !== RunLevel.Off) {
+      // must be called before
+      this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
+      this.setRunLevel(RunLevel.Off);
+    }
+  }
+
+
+  private handleDimensionChanges(newDimensions: PlayerDimensions, oldDimensions: PlayerDimensions) {
+    console.log('handling dimension changes');
+    if (!this.enabled) {
+      this.logger.log('info', 'debug', "[PlayerDetect] player size changed, but PlayerDetect is in disabled state. The player element is probably too small.");
+      return;
+    }
+
+    // this 'if' is just here for debugging — real code starts later. It's safe to collapse and
+    // ignore the contents of this if (unless we need to change how logging works)
+    this.logger.log('info', 'debug', "[PlayerDetect] player size potentially changed.\n\nold dimensions:", oldDimensions, '\nnew dimensions:', newDimensions);
+
+    // if size doesn't match, trigger onPlayerDimensionChange
+    if (
+      newDimensions?.width != oldDimensions?.width
+      || newDimensions?.height != oldDimensions?.height
+      || newDimensions?.fullscreen != oldDimensions?.fullscreen
+    ){
+      // If player size changes, we restore aspect ratio
+      this.eventBus.send('restore-ar', null);
+      // this.videoData.resizer?.restore();
+    }
+  }
+
+  onPlayerDimensionsChanged(mutationList?, observer?) {
+    this.trackDimensionChanges();
+  }
+
+  //#region player element change detection
+  /**
+   * Starts change detection.
+   * @returns
+   */
   startChangeDetection(){
     if (this.invalid) {
       return;
     }
 
     try {
-      if (BrowserDetect.firefox) {
-        this.observer = new ResizeObserver(
-          _.debounce(           // don't do this too much:
-            this.onPlayerDimensionsChanged,
-            250,                // do it once per this many ms
-            {
-              leading: true,    // do it when we call this fallback first
-              trailing: true    // do it after the timeout if we call this callback few more times
-            }
-          )
-        );
-      } else {
-        // Chrome for some reason insists that this.onPlayerDimensionsChanged is not a function
-        // when it's not wrapped into an anonymous function
-        this.observer = new ResizeObserver(
-          _.debounce(           // don't do this too much:
-            (m,o) => this.onPlayerDimensionsChanged(m,o),
-            250,                // do it once per this many ms
-            {
-              leading: true,    // do it when we call this fallback first
-              trailing: true    // do it after the timeout if we call this callback few more times
-            }
-          )
-        );
-      }
+      this.observer = new ResizeObserver(
+        _.debounce(           // don't do this too much:
+          (m,o) => {
+            this.onPlayerDimensionsChanged(m,o)
+          },
+          250,                // do it once per this many ms
+          {
+            leading: true,    // do it when we call this fallback first
+            trailing: true    // do it after the timeout if we call this callback few more times
+          }
+        )
+      );
 
       const observerConf = {
         attributes: true,
         // attributeFilter: ['style', 'class'],
         attributeOldValue: true,
       };
-      
+
       this.observer.observe(this.element);
     } catch (e) {
       console.error("failed to set observer",e )
@@ -211,7 +407,7 @@ class PlayerData {
     while (!this.halted) {
       await sleep(1000);
       try {
-        this.doPeriodicPlayerElementChangeCheck();
+        this.forceRefreshPlayerElement();
       } catch (e) {
         console.error('[PlayerData::legacycd] this message is pretty high on the list of messages you shouldn\'t see', e);
       }
@@ -220,7 +416,7 @@ class PlayerData {
 
   doPeriodicPlayerElementChangeCheck() {
     if (this.periodicallyRefreshPlayerElement) {
-      this.forceDetectPlayerElementChange();
+      this.forceRefreshPlayerElement();
     }
   }
 
@@ -228,6 +424,7 @@ class PlayerData {
     this.observer.disconnect();
   }
 
+  //#region interface
   makeOverlay() {
     if (!this.overlayNode) {
       this.destroyOverlay();
@@ -278,7 +475,10 @@ class PlayerData {
     }
     this.playerIdElement = undefined;
   }
+  //#endregion
 
+
+  //#region helper functions
   collectionHas(collection, element) {
     for (let i = 0, len = collection.length; i < len; i++) {
       if (collection[i] == element) {
@@ -288,291 +488,262 @@ class PlayerData {
     return false;
   }
 
-  updatePlayerDimensions(element) {
-    const isFullScreen = PlayerData.isFullScreen();
-
-    if (element.offsetWidth !== this.dimensions?.width
-        || element.offsetHeight !== this.dimensions?.height
-        || isFullScreen !== this.dimensions?.fullscreen) {
-
-      // update dimensions only if they've changed, _before_ we do a restore (not after)
-      this.dimensions = {
-        width: element.offsetWidth,
-        height: element.offsetHeight,
-        fullscreen: isFullScreen
-      };
-
-      // actually re-calculate zoom when player size changes, but only if videoData.resizer
-      // is defined. Since resizer needs a PlayerData object to exist, videoData.resizer will
-      // be undefined the first time this function will run.
-      this.videoData.resizer?.restore();
-
-      // NOTE: it's possible that notificationService hasn't been initialized yet at this point.
-      //       no biggie if it wasn't, we just won't replace the notification UI
-      this.notificationService?.replace(this.element);
-    }
-  }
-
-  getPlayer() {
-    const host = window.location.hostname;
-    let element = this.video.parentNode;
-    const videoWidth = this.video.offsetWidth;
-    const videoHeight = this.video.offsetHeight;
-    const elementQ = [];
-    const scorePenalty = 10;
-    const sizePenaltyMultiplier = 0.1;
-    let penaltyMultiplier = 0;
-    let score;
-
-    try {
-      if(! element ){
-        this.logger.log('info', 'debug', "[PlayerDetect::_pd_getPlayer] element is not valid, doing nothing.", element)
-        if(this.element) {
-          const ths = this;
-        }
-        this.element = undefined;
-        this.dimensions = undefined;
-        return;
-      }
-
-      // log the entire hierarchy from <video> to root
-      if (this.logger.canLog('playerDetect')) {
-        const logObj = [];
-        logObj.push(`window size: ${window.innerWidth} x ${window.innerHeight}`);
-        let e = element;
-        while (e) {
-          logObj.push({offsetSize: {width: e.offsetWidth, height: e.offsetHeight}, clientSize: {width: e.clientWidth, height: e.clientHeight}, element: e});
-          e = e.parentNode;
-        }
-        this.logger.log('info', 'playerDetect', "\n\n[PlayerDetect::getPlayer()] element hierarchy (video->root)", logObj);
-      }
-
-      if (this.settings.active.sites[host]?.DOM?.player?.manual) {
-        if (this.settings.active.sites[host]?.DOM?.player?.useRelativeAncestor
-            && this.settings.active.sites[host]?.DOM?.player?.videoAncestor) {
-
-          let parentsLeft = this.settings.active.sites[host].DOM.player.videoAncestor - 1;
-          while (parentsLeft --> 0) {
-            element = element.parentNode;
-          }
-          if (element) {
-            this.updatePlayerDimensions(element);
-            return element;
-          }
-        } else if (this.settings.active.sites[host]?.DOM?.player?.querySelectors) {
-          const allSelectors = document.querySelectorAll(this.settings.active.sites[host].DOM.player.querySelectors);
-          // actually we'll also score this branch in a similar way we score the regular, auto branch
-          while (element) {
-
-            // Let's see how this works
-            if (this.collectionHas(allSelectors, element)) {
-              score = 100; // every matching element gets a baseline 100 points
-              
-              // elements that match the size get a hefty bonus
-              if ( (element.offsetWidth >= videoWidth && this.equalish(element.offsetHeight, videoHeight, 2))
-                || (element.offsetHeight >= videoHeight && this.equalish(element.offsetWidth, videoHeight, 2))) {
-                  score += 75;
-              }
-
-              // elements farther away from the video get a penalty
-              score -= (scorePenalty) * 20;
-
-              // push the element on the queue/stack:
-              elementQ.push({
-                score: score,
-                element: element,
-              });
-            }
-
-            element = element.parentNode;
-          }
-
-          // log player candidates
-          this.logger.log('info', 'playerDetect', 'player detect via query selector: element queue and final element:', {queue: elementQ, bestCandidate: elementQ.length ? elementQ.sort( (a,b) => b.score - a.score)[0].element : 'n/a'});
-
-          if (elementQ.length) {
-            // return element with biggest score
-            // if video player has not been found, proceed to automatic detection
-            const playerElement = elementQ.sort( (a,b) => b.score - a.score)[0].element;
-            this.updatePlayerDimensions(playerElement);
-            return playerElement;
-          }
-        }
-      }
-
-      // try to find element the old fashioned way
-
-      while (element){
-        // odstranimo čudne elemente, ti bi pokvarili zadeve
-        // remove weird elements, those would break our stuff
-        if ( element.offsetWidth == 0 || element.offsetHeight == 0){
-          element = element.parentNode;
-          continue;
-        }
-    
-        // element is player, if at least one of the sides is as long as the video
-        // note that we can't make any additional assumptions with regards to player
-        // size, since there are both cases where the other side is bigger _and_ cases
-        // where other side is smaller than the video.
-        // 
-        // Don't bother thinking about this too much, as any "thinking" was quickly
-        // corrected by bugs caused by various edge cases.
-        if (
-          this.equalish(element.offsetHeight, videoHeight, 5)
-          || this.equalish(element.offsetWidth, videoWidth, 5)
-        ) {
-          score = 1000;
-
-          // -------------------
-          //     PENALTIES
-          // -------------------
-          //
-          // Our ideal player will be as close to the video element, and it will als
-          // be as close to the size of the video.
-
-          // prefer elements closer to <video>
-          score -= scorePenalty * penaltyMultiplier++;
-
-          // the bigger the size difference between the video and the player,
-          // the more penalty we'll incur. Since we did some grace ith 
-          let playerSizePenalty = 1;
-          if ( element.offsetHeight > (videoHeight + 5)) {
-            playerSizePenalty = (element.offsetWidth - videoHeight) * sizePenaltyMultiplier;
-          }
-          if ( element.offsetWidth > (videoWidth + 5)) {
-            playerSizePenalty *= (element.offsetWidth - videoWidth) * sizePenaltyMultiplier
-          }
-
-          score -= playerSizePenalty;
-
-          elementQ.push({
-            element: element,
-            score: score,
-          });
-        }
-        
-        element = element.parentNode;
-      }
-
-      // log player candidates
-      this.logger.log('info', 'playerDetect', 'player detect, auto/fallback: element queue and final element:', {queue: elementQ, bestCandidate: elementQ.length ? elementQ.sort( (a,b) => b.score - a.score)[0].element : 'n/a'});
-
-      if (elementQ.length) {
-        // return element with biggest score
-        const playerElement = elementQ.sort( (a,b) => b.score - a.score)[0].element;
-        
-        this.updatePlayerDimensions(playerElement);
-        return playerElement;
-      }
-
-      // if no candidates were found, something is obviously very, _very_ wrong.
-      // we return nothing. Player will be marked as invalid and setup will stop.
-      // VideoData should check for that before starting anything.
-      this.logger.log('warn', 'debug', '[PlayerData::getPlayer] no matching player was found for video', this.video, 'Extension cannot work on this site.');
-      return;
-    } catch (e) {
-      this.logger.log('crit', 'debug', '[PlayerData::getPlayer] something went wrong while detecting player:', e, 'Shutting down extension for this page');
-    }
-  }
-
   equalish(a,b, tolerance) {
     return a > b - tolerance && a < b + tolerance;
   }
+  //#endregion
 
-  forceDetectPlayerElementChange() {
-    // Player dimension changes get calculated every time updatePlayerDimensions is called (which happens
-    // every time getPlayer() detects an element). If updatePlayerDimension detects dimensions were changed,
-    // it will always re-apply current crop, rendering this function little more than a fancy alias for 
-    // getPlayer().
-    this.getPlayer();
-  }
+  /**
+   * Finds and returns HTML element of the player
+   */
+  getPlayer(options?: {verbose?: boolean}) {
+    const host = window.location.hostname;
+    let element = this.videoElement.parentNode;
+    const videoWidth = this.videoElement.offsetWidth;
+    const videoHeight = this.videoElement.offsetHeight;
+    let playerCandidate;
 
-  forceRefreshPlayerElement() {
-    this.getPlayer();
-  }
+    const elementStack: any[] = [{
+      element: this.videoElement,
+      type: 'video',
+      tagName: 'video',
+      classList: this.videoElement.classList,
+      id: this.videoElement.id,
+    }];
 
-  checkPlayerSizeChange() {
-    // this 'if' is just here for debugging — real code starts later. It's safe to collapse and
-    // ignore the contents of this if (unless we need to change how logging works)
-    if (this.logger.canLog('debug')){
-      if (this.dimensions?.fullscreen){
-        if(! PlayerData.isFullScreen()){
-          this.logger.log('info', 'debug', "[PlayerDetect] player size changed. reason: exited fullscreen");
-        }
+    // first pass to generate the element stack and translate it into array
+    while (element) {
+      elementStack.push({
+        element,
+        tagName: element.tagName,
+        classList: element.classList,
+        id: element.id,
+        width: element.offsetWidth,     // say no to reflows, don't do element.offset[width/height]
+        height: element.offsetHeight,   // repeatedly ... let's just do it once at this spot
+        heuristics: {},
+      });
+      element = element.parentElement;
+    }
+    this.elementStack = elementStack;
+
+    const playerQs = this.siteSettings.getCustomDOMQuerySelector('player');
+    const playerIndex = this.siteSettings.getPlayerIndex();
+
+    // on verbose, get both qs and index player
+    if (options?.verbose) {
+      if (playerIndex) {
+        playerCandidate = elementStack[playerIndex];
+        playerCandidate.heuristics['manualElementByParentIndex'] = true;
       }
-      if(! this.element) {
-        this.logger.log('info', 'playerDetect', "[PlayerDetect] player element isn't defined");
-      }
-
-      if ( this.element &&
-           ( +this.dimensions?.width != +this.element?.offsetWidth ||
-             +this.dimensions?.height != +this.element?.offsetHeight )
-      ) {
-        this.logger.log('info', 'debug', "[PlayerDetect] player size changed. reason: dimension change. Old dimensions?", this.dimensions?.width, this.dimensions?.height, "new dimensions:", this.element?.offsetWidth, this.element?.offsetHeight);
+      if (playerQs) {
+        playerCandidate = this.getPlayerQs(playerQs, elementStack, videoWidth, videoHeight);
       }
     }
 
-    // if size doesn't match, update & return true
-    if (this.dimensions?.width != this.element.offsetWidth 
-        || this.dimensions?.height != this.element.offsetHeight ){
-      
-      const isFullScreen = PlayerData.isFullScreen();
+    // if mode is given, we follow the preference
+    console.log('we prefer manual mode:', this.siteSettings, this.siteSettings.data.currentDOMConfig?.elements?.player);
 
-      if (isFullScreen) {
-        this.dimensions = {
-          width: window.innerWidth,
-          height: window.innerHeight,
-          fullscreen: true
-        }
+    if (this.siteSettings.data.currentDOMConfig?.elements?.player?.manual && this.siteSettings.data.currentDOMConfig?.elements?.player?.mode) {
+      console.log('we prefer manual mode:', this.siteSettings.data.currentDOMConfig?.elements?.player?.mode);
+      if (this.siteSettings.data.currentDOMConfig?.elements?.player?.mode === 'qs') {
+        playerCandidate = this.getPlayerQs(playerQs, elementStack, videoWidth, videoHeight);
+        console.log('got qs player candidate');
       } else {
-        this.dimensions = {
-          width: this.element.offsetWidth,
-          height: this.element.offsetHeight,
-          fullscreen: isFullScreen
-        };
+        playerCandidate = elementStack[playerIndex];
+        playerCandidate.heuristics['manualElementByParentIndex'] = true;
+        console.log('got index player candidate')
       }
-      return true;
-    }
-    return false;
-  }
-
-  checkFullscreenChange() {
-    const isFs = PlayerData.isFullScreen();
-
-    if (this.dimensions) {
-      if (this.dimensions.fullscreen != isFs) {
-        this.dimensions = {
-          fullscreen: isFs,
-          width: isFs ? screen.width : this.video.offsetWidth,
-          height: isFs ? screen.height : this.video.offsetHeight
-        };
-        return true;
+    } else {
+      console.log('no preference.')
+      // try to figure it out based on what we have, with playerQs taking priority
+      if (playerQs) {
+        playerCandidate = this.getPlayerQs(playerQs, elementStack, videoWidth, videoHeight);
+      } else if (playerIndex) { // btw 0 is not a valid index for player
+        playerCandidate = elementStack[playerIndex];
+        playerCandidate.heuristics['manualElementByParentIndex'] = true;
       }
-      return false;
     }
 
-    this.logger.log('info', 'debug', "[PlayerData::checkFullscreenChange] this.dimensions is not defined. Assuming fs change happened and setting default values.")
-
-    this.dimensions = {
-      fullscreen: isFs,
-      width: isFs ? screen.width : this.video.offsetWidth,
-      height: isFs ? screen.height : this.video.offsetHeight
-    };
-
-    return true;
-  }
-
-  showNotification(notificationId) {
-    this.notificationService?.showNotification(notificationId);
+    if (playerCandidate) {
+      if (options?.verbose) {
+        this.getPlayerAuto(elementStack, videoWidth, videoHeight);
+        playerCandidate.heuristics['activePlayer'] = true;
+      }
+      return playerCandidate.element;
+    } else {
+      const playerCandidate = this.getPlayerAuto(elementStack, videoWidth, videoHeight);
+      playerCandidate.heuristics['activePlayer'] = true;
+      return playerCandidate.element;
+    }
   }
 
   /**
-   * NOTE: this method needs to be deleted once Edge gets its shit together.
+   * Gets player based on some assumptions, without us defining shit.
+   * @param elementStack
+   * @param videoWidth
+   * @param videoHeight
+   * @returns
    */
-  showEdgeNotification() {
-    // if (BrowserDetect.isEdgeUA && !this.settings.active.mutedNotifications?.browserSpecific?.edge?.brokenDrm?.[window.hostname]) {
-    //   this.ui = new PlayerUi(this.element, this.settings);
-    // }
+  private getPlayerAuto(elementStack: any[], videoWidth, videoHeight) {
+    let penaltyMultiplier = 1;
+    const sizePenaltyMultiplier = 0.1;
+    const perLevelScorePenalty = 10;
+
+    for (const element of elementStack) {
+
+      // ignore weird elements, those would break our stuff
+      if (element.width == 0 || element.height == 0) {
+        element.heuristics['invalidSize'] = true;
+        continue;
+      }
+
+      // element is player, if at least one of the sides is as long as the video
+      // note that we can't make any additional assumptions with regards to player
+      // size, since there are both cases where the other side is bigger _and_ cases
+      // where other side is smaller than the video.
+      //
+      // Don't bother thinking about this too much, as any "thinking" was quickly
+      // corrected by bugs caused by various edge cases.
+      if (
+        this.equalish(element.height, videoHeight, 5)
+        || this.equalish(element.width, videoWidth, 5)
+      ) {
+        let score = 1000;
+
+        // -------------------
+        //     PENALTIES
+        // -------------------
+        //
+        // Our ideal player will be as close to the video element, and it will als
+        // be as close to the size of the video.
+
+        const diffX = (element.width - videoWidth);
+        const diffY = (element.height - videoHeight);
+
+        // we have a minimal amount of grace before we start dinking scores for
+        // mismatched dimensions. The size of the dimension mismatch dink is
+        // proportional to area rather than circumference, meaning we multiply
+        // x and y dinks instead of adding them up.
+        let playerSizePenalty = 1;
+        if (diffY > 5) {
+          playerSizePenalty *= diffY * sizePenaltyMultiplier;
+        }
+        if (diffX > 5) {
+          playerSizePenalty *= diffX * sizePenaltyMultiplier;
+        }
+        score -= playerSizePenalty;
+
+        // we prefer elements closer to the video, so the score of each potential
+        // candidate gets dinked a bit
+        score -= perLevelScorePenalty * penaltyMultiplier;
+
+        element.autoScore = score;
+        element.heuristics['autoScoreDetails'] = {
+          playerSizePenalty,
+          diffX,
+          diffY,
+          penaltyMultiplier
+        }
+
+        // ensure next valid candidate is gonna have a harder job winning out
+        penaltyMultiplier++;
+      }
+    }
+
+    let bestCandidate: any = {autoScore: -99999999, initialValue: true};
+    for (const element of elementStack) {
+      if (element.autoScore > bestCandidate.autoScore) {
+        bestCandidate = element;
+      }
+    }
+    if (bestCandidate.initialValue) {
+      bestCandidate = null;
+    } else {
+      bestCandidate.heuristics['autoMatch'] = true;
+    }
+
+    return bestCandidate;
+  }
+
+  /**
+   * Gets player element based on a query string.
+   *
+   * Since query string does not necessarily uniquely identify an element, this function also
+   * tries to evaluate which candidate of element that match the query selector is the most
+   * likely the one element we're looking for.
+   *
+   * Function prefers elements that are:
+   *      1. closer to the video
+   *      2. about the same size as the video
+   *      3. they must appear between video and root of the DOM hierarchy
+   *
+   * @param queryString query string for player element
+   * @param elementStack branch of DOM hierarchy that ends with a video
+   * @param videoWidth width of the video
+   * @param videoHeight height of the video
+   * @returns best candidate or null, if nothing in elementStack matches our query selector
+   */
+  private getPlayerQs(queryString: string, elementStack: any[], videoWidth, videoHeight) {
+    const perLevelScorePenalty = 10;
+    let penaltyMultiplier = 0;
+
+    const allSelectors = document.querySelectorAll(queryString);
+
+    for (const element of elementStack) {
+      if (this.collectionHas(allSelectors, element.element)) {
+        let score = 100;
+
+        // we award points to elements which match video size in one
+        // dimension and exceed it in the other
+        if (
+          (element.width >= videoWidth && this.equalish(element.height, videoHeight, 2))
+          || (element.height >= videoHeight && this.equalish(element.width, videoWidth, 2))
+        ) {
+          score += 75;
+        }
+
+        score -= perLevelScorePenalty * penaltyMultiplier;
+        element.heuristics['qsScore'] = score;
+
+        penaltyMultiplier++;
+      }
+    }
+
+    let bestCandidate: any = {qsScore: -99999999, initialValue: true};
+    for (const element of elementStack) {
+      if (element.qsScore > bestCandidate.qsScore) {
+        bestCandidate = element;
+      }
+    }
+    if (bestCandidate.initialValue) {
+      bestCandidate = null;
+    } else {
+      bestCandidate.heuristics['qsMatch'] = true;
+    }
+
+    return bestCandidate;
+  }
+
+  /**
+   * Lists elements between video and DOM root for display in player selector (UI)
+   */
+  private handlePlayerTreeRequest() {
+    console.log('aya')
+    // this populates this.elementStack fully
+    this.getPlayer({verbose: true});
+    console.log('tree:', JSON.parse(JSON.stringify(this.elementStack)));
+    this.eventBus.send('uw-config-broadcast', {type: 'player-tree', config: JSON.parse(JSON.stringify(this.elementStack))});
+  }
+
+  private markElement(data: {parentIndex: number, enable: boolean}) {
+    this.elementStack[data.parentIndex].element.style.outline = data.enable ? '5px dashed #fa6' : null;
+    this.elementStack[data.parentIndex].element.style.filter = data.enable ? 'sepia(1) brightness(2) contrast(0.5)' : null;
+  }
+
+  forceRefreshPlayerElement() {
+    this.element = this.getPlayer();
+    // this.notificationService?.replace(this.element);
+    this.trackDimensionChanges();
   }
 }
 

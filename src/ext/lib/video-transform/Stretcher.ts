@@ -1,3 +1,4 @@
+import { SiteSettings } from './../settings/SiteSettings';
 import StretchType from '../../../common/enums/StretchType.enum';
 import BrowserDetect from '../../conf/BrowserDetect';
 import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
@@ -8,7 +9,7 @@ import Settings from '../Settings';
 // računa vrednosti za transform-scale (x, y)
 // transform: scale(x,y) se uporablja za raztegovanje videa, ne pa za približevanje
 // calculates values for transform scale(x, y)
-// transform: scale(x,y) is used for stretching, not zooming. 
+// transform: scale(x,y) is used for stretching, not zooming.
 
 class Stretcher {
   //#region flags
@@ -19,6 +20,7 @@ class Stretcher {
   conf: VideoData;
   logger: Logger;
   settings: Settings;
+  siteSettings: SiteSettings;
   //#endregion
 
   //#region misc data
@@ -30,14 +32,15 @@ class Stretcher {
   constructor(videoData) {
     this.conf = videoData;
     this.logger = videoData.logger;
+    this.siteSettings = videoData.siteSettings;
     this.settings = videoData.settings;
-    this.mode = this.settings.getDefaultStretchMode(window.location.hostname);
+    this.mode = this.siteSettings.data.defaults.stretch;
     this.fixedStretchRatio = undefined;
   }
 
   setStretchMode(stretchMode, fixedStretchRatio?) {
     if (stretchMode === StretchType.Default) {
-      this.mode = this.settings.getDefaultStretchMode(window.location.hostname);
+      this.mode = this.siteSettings.data.defaults.stretch;
     } else {
       if (stretchMode === StretchType.Fixed || stretchMode == StretchType.FixedSource) {
         this.fixedStretchRatio = fixedStretchRatio;
@@ -83,11 +86,11 @@ class Stretcher {
   }
 
   calculateBasicStretch() {
-    // video.videoWidth in video.videoHeight predstavljata velikost datoteke. 
-    // velikost video datoteke je lahko drugačna kot velikost <video> elementa. 
+    // video.videoWidth in video.videoHeight predstavljata velikost datoteke.
+    // velikost video datoteke je lahko drugačna kot velikost <video> elementa.
     // Zaradi tega lahko pride do te situacije:
     //     * Ločljivost videa je 850x480 (videoWidth & videoHeight)
-    //     * Velikost <video> značke je 1920x720. 
+    //     * Velikost <video> značke je 1920x720.
     // Znotraj te video značke bo video prikazan v 1280x720 pravokotniku. Raztegovanje
     // torej hočemo računati z uporabo vrednosti 1280 in 720. Teh vrednosti pa ne
     // poznamo. Torej jih moramo računati.
@@ -98,7 +101,7 @@ class Stretcher {
     // This can leave us with the following situation:
     //     * Video resolution is 850x480-ish (as reported by videoWidth and videoHeight)
     //     * Size of the <video> tag is 1920x720
-    // The video will be displayed in a 1280x720 rectangle inside that <video> tag. 
+    // The video will be displayed in a 1280x720 rectangle inside that <video> tag.
     // This means we want to calculate stretching using those values, but we don't know
     // them. This means we have to calculate them.
 
@@ -193,7 +196,7 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
         // player > video > actual — double pillarbox
         stretchFactors.xFactor = actualAr /  playerAr;
         stretchFactors.yFactor = 1;
-        
+
         this.logger.log('info', 'stretcher', "[Stretcher.js::calculateStretch] stretching strategy 3")
       }
 
@@ -210,7 +213,7 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
 
         this.logger.log('info', 'stretcher', "[Stretcher.js::calculateStretch] stretching strategy 4")
       } else if ( actualAr < streamAr ) {
-        // NEEDS CHECKING 
+        // NEEDS CHECKING
 
         // video > actual > player
         // video is letterboxed by player
@@ -242,10 +245,10 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
 
   /**
    * Ensure that <video> element is never both taller-ish and wider-ish than the screen, while in fullscreen
-   * on Chromium-based browsers. 
-   * 
+   * on Chromium-based browsers.
+   *
    * Workaround for Chrome/Edge issue where zooming too much results in video being stretched incorrectly.
-   * 
+   *
    * Bug description — if the following are true:
    *   * user is using Chrome or Edge (but surprisingly not Opera)
    *   * user is using hardware acceleration
@@ -253,10 +256,10 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
    *   * user is in full screen mode
    *   * the video is both roughly taller and roughly wider than the monitor
    * Then the video will do StretchType.Basic no matter what you put in `transform: scale(x,y)`.
-   * 
+   *
    * In practice, the issue appears slightly _before_ the last condition is met (video needs to be ~3434 px wide
    * in order for this bug to trigger on my 3440x1440 display).
-   * 
+   *
    * Because this issue happens regardless of how you upscale the video (doesn't matter if you use transform:scale
    * or width+height or anything else), the aspect ratio needs to be limited _before_ applying arCorrectionFactor
    * (note that arCorrectionFactor is usually <= 1, as it conpensates for zooming that height=[>100%] on <video>
@@ -264,13 +267,13 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
    */
   chromeBugMitigation(stretchFactors) {
     if (
-      BrowserDetect.anyChromium 
+      BrowserDetect.anyChromium
       && (this.conf.player?.dimensions?.fullscreen || ! this.settings?.active?.mitigations?.zoomLimit?.fullscreenOnly)
       && this.settings?.active?.mitigations?.zoomLimit?.enabled
     ) {
       const playerAr = this.conf.player.aspectRatio;
       const streamAr = this.conf.aspectRatio;
-      
+
       let maxSafeAr: number;
       let arLimitFactor = this.settings?.active?.mitigations?.zoomLimit?.limit ?? 0.997;
 
@@ -282,9 +285,9 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
         // in some cases, we tolerate minor stretch to avoid tiny black bars
         return;
       }
-      
+
       const maxSafeStretchFactor = this.conf.resizer.scaler.calculateCropCore(
-        { 
+        {
           xFactor: 1,
           yFactor: 1,
           arCorrectionFactor: stretchFactors.arCorrectionFactor

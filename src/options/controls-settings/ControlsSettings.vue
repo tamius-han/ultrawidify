@@ -24,7 +24,7 @@
       </Button>
     </div>
 
-    <div class="flex flex-column">
+    <div class="flex flex-col">
       <div class="action-item-category-header">
         Crop actions
       </div>
@@ -71,7 +71,7 @@
         <ActionAlt v-if="action.cmd.length === 1 && (
                             action.cmd[0].action === 'change-zoom' ||
                             action.cmd[0].action === 'set-zoom' ||
-                            action.cmd[0].action === 'set-pan' || 
+                            action.cmd[0].action === 'set-pan' ||
                             action.cmd[0].action === 'pan' ||
                             action.cmd[0].action === 'set-pan'
                         )"

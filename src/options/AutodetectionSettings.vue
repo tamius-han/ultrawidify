@@ -28,7 +28,7 @@
       How sensitive should aspect ratio detection be?
     </div>
     <div class="description">
-      Sensitive preset will allow the extension to correct aspect ratio even when letterbox isn't clearly defined. This 
+      Sensitive preset will allow the extension to correct aspect ratio even when letterbox isn't clearly defined. This
       can result in aspect ratio detection correcting aspect ratio when it shouldn't.
       Accurate preset will take a more conservative approach to determining aspect ratio, correcting aspect ratio only when
       it's absolutely sure that the aspect ratio needs changing. This option results in fewer incorrect aspect ratio corrections,
@@ -56,7 +56,7 @@
       <Button label="Custom (changed below)"
               :selected="getSensitivity() === 'user-defined'"
       />
-    </div>    
+    </div>
 
     <h2 style="padding-top: 150px">Autodetection settings in detail</h2>
     <!-- <div>
@@ -75,11 +75,11 @@
     </div>
 
     <div class="info">Note that tick rate must be smaller than check frequency.
-      <!-- <a v-if="!showAdvancedOptions" 
+      <!-- <a v-if="!showAdvancedOptions"
          href="#"
          @click="showAdvancedOptions = true"
       >Show advanced options</a> -->
-    </div> 
+    </div>
 
     <div class="indent">
       <div class="flex flex-row row-padding">
@@ -127,7 +127,7 @@
       </div>
     </div>
 
-    
+
 
     <div class="label">Fallback mode</div>
     <div class="description">
@@ -344,7 +344,7 @@
         us from wasting precious time trying to detect aspect ratio on frames that are too dark for reliable aspect ratio detection.<br/>
         <b>Sample width, height:</b> Sample size. Since we're checking <i>every</i> pixel in this sample, dimensions should be kept small.<br/>
         <b>Color variance treshold:</b> In videos (such as movie trailers), any text that appears on the black background is usually of
-        a roughly the same color, while dark movie footage is not. This allows us to trigger autodetection on dark movie footage and 
+        a roughly the same color, while dark movie footage is not. This allows us to trigger autodetection on dark movie footage and
         to not trigger autodetection when movie trailer flashes some text on black background. If color variance is greater than this value,
         blackframe detection will use 'lax' (lower) cummulative threshold to determine whether the frame is black or not. If color variance
         is less than this value, 'strict' (higher) cummulative threshold will be used to determine whether the frame is black or not instead.<br/>
@@ -419,7 +419,7 @@
     <div class="label">Edge detection</div>
     <div class="description">
       Options in this section govern edge detection.<br/>
-      <b>Sample width</b> — In a bid to detect "false" edges, we take two samples this many pixels wide near the point of our potential edge. One sample must be completely black, the other must contain a set 
+      <b>Sample width</b> — In a bid to detect "false" edges, we take two samples this many pixels wide near the point of our potential edge. One sample must be completely black, the other must contain a set
       amount of non-black pixels.<br/>
       <b>Detection threshold</b> — non-black sample mentioned above needs to contain at least this many non-black pixels.<br/>
       <b>Thickness quorum (per edge)</b> — amount of samples that agree on the thincknes of the blackbar that we need in order to establish aspect ratio. Every edge needs to have at least this many. Values higher than {{~~(settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold / 2)}} (quorum (total)/2) are pointless.<br/>
@@ -454,7 +454,7 @@
           Thickness quorum (per edge):
         </div>
         <div class="flex flex-input">
-          <input 
+          <input
                  v-model="settings.active.arDetect.edgeDetection.confirmationThreshold"
           />
         </div>
@@ -464,7 +464,7 @@
           Thicnkess quorum (total):
         </div>
         <div class="flex flex-input">
-          <input 
+          <input
                  v-model="settings.active.arDetect.edgeDetection.singleSideConfirmationThreshold"
           />
         </div>
@@ -474,7 +474,7 @@
           Logo threshold:
         </div>
         <div class="flex flex-input">
-          <input 
+          <input
                  v-model="settings.active.arDetect.edgeDetection.logoThreshold"
           />
         </div>
@@ -484,7 +484,7 @@
           Ignore middle area:
         </div>
         <div class="flex flex-input">
-          <input 
+          <input
                  v-model="settings.active.arDetect.edgeDetection.middleIgnoredArea"
           />
         </div>
@@ -494,7 +494,7 @@
           Detect limit:
         </div>
         <div class="flex flex-input">
-          <input 
+          <input
                  v-model="settings.active.arDetect.edgeDetection.minColsForSearch"
           />
         </div>
@@ -503,7 +503,7 @@
 
     <div class="label">Guard line</div>
     <div class="description">
-      Quick test to determine whether aspect ratio hasn't changed. Test is performed by taking two samples on each edge of the image — 
+      Quick test to determine whether aspect ratio hasn't changed. Test is performed by taking two samples on each edge of the image —
       one in the last row of the letterbox (blackbar), and one in the first row of the video (image).<br/>
       <b>Ignore edge margin:</b> We don't take blackbar and image samples {width * this} many pixels from left and right edge.<br/>
       <b>Image threshold:</b> If all pixels in blackbar are black and this fraction (0-1) of pixels in image are non-black, we presume that aspect ratio hasn't changed.<br/>
@@ -655,7 +655,7 @@ export default {
       // this.lastSettings = JSON.parse(JSON.stringify(this.settings.active));
       const ths = this;
       this.$nextTick( () => {
-        ths.parsedSettings = JSON.stringify(ths.lastSettings, null, 2) 
+        ths.parsedSettings = JSON.stringify(ths.lastSettings, null, 2)
         ths.lastSettings = JSON.parse(JSON.stringify(ths.settings.active))
       });
     },

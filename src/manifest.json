@@ -2,14 +2,14 @@
   "manifest_version": 3,
   "name": "Ultrawidify",
   "description": "Removes black bars on ultrawide videos and offers advanced options to fix aspect ratio.",
-  "version": "5.1.7",
+  "version": "6.0.0",
   "icons": {
     "32":"res/icons/uw-32.png",
     "64":"res/icons/uw-64.png"
   },
   "action": {
     "default_title": "Ultrawidify",
-    "default_popup": "popup/popup.html"
+    "default_popup": "csui/csui-popup.html"
   },
 
 
@@ -18,10 +18,6 @@
     "js": [
       "common/lib/browser-polyfill.js",
       "ext/uw.js"
-    ],
-    "css": [
-      "ext/uw-ui.css",
-      "ext/uw.css"
     ],
     "all_frames": true
   }],
@@ -34,13 +30,6 @@
       "uw-bg.js"
     ]
   },
-
-  "options_ui": {
-    "page": "options/options.html",
-    "browser_style": false,
-    "open_in_tab": true
-  },
-
 
   "web_accessible_resources": [
     {
