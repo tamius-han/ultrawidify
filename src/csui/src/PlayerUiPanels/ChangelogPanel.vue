@@ -5,6 +5,9 @@
         <h1>What's new</h1>
         <p>Full changelog for older versions <a href="https://github.com/tamius-han/ultrawidify/blob/master/CHANGELOG.md" target="_blank">is available here</a>.</p>
 
+        <h2>6.0.1</h2>
+        <p>Fixed external links.</p>
+
         <h2>6.0.0</h2>
         <p>
           I don't think I need to write a changelog for this one. I've also been working on this, on and (mostly) off, for ... a long time, so I might have "kinda forgot" some minor things.

@@ -185,6 +185,12 @@ interface SettingsInterface {
     }
   },
 
+  ui: {
+    inPlayer: {
+      enabled: boolean
+    }
+  }
+
   restrictions?: RestrictionsSettings;
 
   crop: {
@@ -310,52 +316,6 @@ interface SettingsInterface {
   sites: {
     [x: string]: SiteSettingsInterface,
   }
-  // sites: {
-  //   [x: string]: {
-  //     defaultCrop?: any,                          // v6 new
-  //     defaultStretch?: any,                       // v6 new
-  //     enabled: ExtensionEnvironmentSettingsInterface,     // v6 new
-  //     enabledAard: ExtensionEnvironmentSettingsInterface,// v6 new
-
-  //                                                 // everything 'superseded by' needs to be implemented
-  //                                                 // as well as ported from the old settings
-  //     mode?: ExtensionMode,                       // v6 — superseded by looking at enableIn
-  //     autoar?: ExtensionMode,                     // v6 — superseded by looking at enableIn
-  //     autoarFallback?: ExtensionMode,             // v6 — deprecated, no replacement
-  //     stretch?: StretchType,                      // v6 — superseded by defaultStretch
-  //     videoAlignment?: VideoAlignmentType,
-  //     keyboardShortcutsEnabled?: ExtensionMode,
-  //     type?: string,
-  //     override?: boolean,
-  //     arPersistence?: boolean,
-  //     actions?: any;
-
-  //     cropModePersistence?: CropModePersistence;
-
-  //     DOM?: {
-  //       player?: {
-  //         manual?: boolean,
-  //         querySelectors?: string,
-  //         additionalCss?: string,
-  //         useRelativeAncestor?: boolean,
-  //         videoAncestor?: any,
-  //         playerNodeCss?: string,
-  //         periodicallyRefreshPlayerElement?: boolean
-  //       },
-  //       video?: {
-  //         manual?: boolean,
-  //         querySelectors?: string,
-  //         additionalCss?: string,
-  //         useRelativeAncestor?: boolean,
-  //         playerNodeCss?: string
-  //       }
-  //     },
-  //     css?: string;
-  //     usePlayerArInFullscreen?: boolean;
-
-  //     restrictions?: RestrictionsSettings;
-  //   }
-  // }
 }
 
 export interface SiteSettingsInterface {
