@@ -739,19 +739,6 @@ class VideoData {
     this.resizer.restore();
   }
 
-  markPlayer(name, color) {
-    if (this.invalid) {
-      return;
-    }
-    if (this.player) {
-      this.player.markPlayer(name, color)
-    }
-  }
-
-  unmarkPlayer() {
-    this.player.unmarkPlayer();
-  }
-
   isPlaying() {
     return this.video && this.video.currentTime > 0 && !this.video.paused && !this.video.ended;
   }

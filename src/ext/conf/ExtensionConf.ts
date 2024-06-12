@@ -141,6 +141,13 @@ const ExtensionConf: SettingsInterface = {
       testRowOffset: 0.02     // we test this % of height from detected edge
     }
   },
+
+  ui: {
+    inPlayer: {
+      enabled: true, // enable by default on new installs
+    }
+  },
+
   crop: {
     default: {
       type: AspectRatioType.Automatic,

@@ -152,7 +152,15 @@ class PlayerData {
       this.initEventBus();
 
       // this.notificationService = new PlayerNotificationUi(this.element, this.settings, this.eventBus);
-      this.ui = new UI('ultrawidifyUi', {parentElement: this.element, eventBus: this.eventBus});
+      if (this.videoData.settings.active.ui?.inPlayer?.enabled) {
+        this.ui = new UI(
+          'ultrawidifyUi',
+          {
+            parentElement: this.element,
+            eventBus: this.eventBus
+          }
+        );
+      }
 
       this.dimensions = undefined;
       this.overlayNode = undefined;
@@ -215,7 +223,6 @@ class PlayerData {
   destroy() {
     document.removeEventListener('fullscreenchange', this.dimensionChangeListener);
     this.stopChangeDetection();
-    this.destroyOverlay();
     this.notificationService?.destroy();
   }
   //#endregion
@@ -326,11 +333,14 @@ class PlayerData {
     const canEnable = this.siteSettings.isEnabledForEnvironment(this.isFullscreen, this.isTheaterMode) === ExtensionMode.Enabled;
 
     if (this.runLevel === RunLevel.Off && canEnable) {
+      console.log('runLevel: off -> [anything]');
       this.eventBus.send('restore-ar', null);
       // must be called after
       this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
     } else if (!canEnable && this.runLevel !== RunLevel.Off) {
       // must be called before
+      console.log('runLevel: [anything] -> off');
+
       this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
       this.setRunLevel(RunLevel.Off);
     }
@@ -338,8 +348,8 @@ class PlayerData {
 
 
   private handleDimensionChanges(newDimensions: PlayerDimensions, oldDimensions: PlayerDimensions) {
-    console.log('handling dimension changes');
-    if (!this.enabled) {
+    console.log('handling dimension changes\n\nold dimensions:', oldDimensions, '\nnew dimensions:', newDimensions, '\n\nis enabled:', this.enabled, this.runLevel, RunLevel);
+    if (this.runLevel === RunLevel.Off ) {
       this.logger.log('info', 'debug', "[PlayerDetect] player size changed, but PlayerDetect is in disabled state. The player element is probably too small.");
       return;
     }
@@ -354,8 +364,10 @@ class PlayerData {
       || newDimensions?.height != oldDimensions?.height
       || newDimensions?.fullscreen != oldDimensions?.fullscreen
     ){
+      console.log('dimensions changed + we are enabled. Sending restore-ar ...');
       // If player size changes, we restore aspect ratio
       this.eventBus.send('restore-ar', null);
+      this.eventBus.send('delayed-restore-ar', {delay: 500});
       // this.videoData.resizer?.restore();
     }
   }
@@ -423,59 +435,6 @@ class PlayerData {
   stopChangeDetection(){
     this.observer.disconnect();
   }
-
-  //#region interface
-  makeOverlay() {
-    if (!this.overlayNode) {
-      this.destroyOverlay();
-    }
-
-    let overlay = document.createElement('div');
-    overlay.style.width = '100%';
-    overlay.style.height = '100%';
-    overlay.style.position = 'absolute';
-    overlay.style.top = '0';
-    overlay.style.left = '0';
-    overlay.style.zIndex = '1000000000';
-    overlay.style.pointerEvents = 'none';
-
-    this.overlayNode = overlay;
-    this.element.appendChild(overlay);
-  }
-
-  destroyOverlay() {
-    if(this.playerIdElement) {
-      this.playerIdElement.remove();
-      this.playerIdElement = undefined;
-    }
-    if (this.overlayNode) {
-      this.overlayNode.remove();
-      this.overlayNode = undefined;
-    }
-  }
-
-  markPlayer(name, color) {
-    if (!this.overlayNode) {
-      this.makeOverlay();
-    }
-    if (this.playerIdElement) {
-      this.playerIdElement.remove();
-    }
-    this.playerIdElement = document.createElement('div');
-    this.playerIdElement.innerHTML = `<div style="background-color: ${color}; color: #fff; position: absolute; top: 0; left: 0">${name}</div>`;
-
-    this.overlayNode.appendChild(this.playerIdElement);
-  }
-
-  unmarkPlayer() {
-    this.logger.log('info', 'debug', "[PlayerData::unmarkPlayer] unmarking player!", {playerIdElement: this.playerIdElement});
-    if (this.playerIdElement) {
-      this.playerIdElement.innerHTML = '';
-      this.playerIdElement.remove();
-    }
-    this.playerIdElement = undefined;
-  }
-  //#endregion
 
 
   //#region helper functions

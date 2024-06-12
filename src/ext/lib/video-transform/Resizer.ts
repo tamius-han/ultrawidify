@@ -18,6 +18,7 @@ import { _cp } from '../../../common/js/utils';
 import Settings from '../Settings';
 import { Ar } from '../../../common/interfaces/ArInterface';
 import { RunLevel } from '../../enum/run-level.enum';
+import * as _ from 'lodash';
 
 if(Debug.debug) {
   console.log("Loading: Resizer.js");
@@ -133,6 +134,18 @@ class Resizer {
     }],
     'restore-ar': [{
       function: () => this.restore()
+    }],
+    'delayed-restore-ar': [{
+      function: () => {
+        _.debounce(
+          this.restore,
+          500,
+          {
+            leading: true,
+            trailing: true
+          }
+        )
+      }
     }]
   }
   //#endregion
@@ -738,7 +751,7 @@ class Resizer {
     const alignXOffset = (realVideoWidth * stretchFactors.xFactor - this.videoData.player.dimensions.width) * 0.5;
     const alignYOffset = (realVideoHeight * stretchFactors.yFactor - this.videoData.player.dimensions.height) * 0.5;
 
-    if (this.pan.relativeOffsetX || this.pan.relativeOffsetY) {
+    if (this.pan?.relativeOffsetX || this.pan?.relativeOffsetY) {
       // don't offset when video is smaller than player
       if(alignXOffset >= 0 || alignYOffset >= 0) {
         translate.x += alignXOffset * this.pan.relativeOffsetX * this.zoom.scale;

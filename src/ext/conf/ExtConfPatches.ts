@@ -11,129 +11,14 @@ import AspectRatioType from '../../common/enums/AspectRatioType.enum';
 
 const ExtensionConfPatch = [
   {
-    forVersion: '5.0.5',
-    sites: {
-      "app.plex.tv": {
-        mode: 3,
-        autoar: 3,
-        type: "community",
-        stretch: -1,
-        videoAlignment: -1,
-        keyboardShortcutsEnabled: 0,
-        DOM: {
-          player: {
-            manual: false,
-            querySelectors: "",
-            additionalCss: "",
-            useRelativeAncestor: false,
-            playerNodeCss: ""
-          }
-        },
-        css: "body {\n  background-color: #000;\n}\n\n.application {\n  background-color: #000;\n}"
-      }
-    }
-  }, {
-    forVersion: '5.0.6',
-    sites: {
-      "metaivi.com": {
-        mode: 0,
-        autoar: 0,
-        type: "community",
-        stretch: -1,
-        videoAlignment: -1,
-        DOM: {
-          video: {
-            manual: false,
-            querySelectors: "",
-            additionalCss: "position: absolute !important;"
-          },
-          player: {
-            manual: false,
-            querySelectors: "",
-            additionalCss: "",
-            useRelativeAncestor: false,
-            playerNodeCss: ""
-          }
-        },
-        "css": ""
-      },
-      "piped.kavin.rocks": {
-        mode: 0,
-        autoar: 0,
-        type: 'community',
-        autoarFallback: 0,
-        stretch: 0,
-        videoAlignment: -1,
-        keyboardShortcutsEnabled: 0,
-        DOM: {
-          player: {
-            manual: false,
-            querySelectors: "",
-            additionalCss: "",
-            useRelativeAncestor: false,
-            playerNodeCss: ""
-          }
-        },
-        css: ".shaka-video-container {\n  flex-direction: column !important;\n}"
-      },
-    },
-    updateFn: (userOptions, defaultOptions) => {
-      // 5.0.5 initially incorrectly had app.plex.tv marked as 'user-added'
-      // when 'user-added' is generally reserved for marking sites with user-
-      // changed configuration. Site patches submitted by community should have
-      // 'community' type. extConfPatch for 5.0.5 was also retroactively corrected.
-      userOptions.sites['app.plex.tv'].type = 'community';
-      userOptions.sites['piped.kavin.rocks'] = {
-        mode: 0,
-        autoar: 0,
-        type: 'community',
-        autoarFallback: 0,
-        stretch: 0,
-        videoAlignment: -1,
-        keyboardShortcutsEnabled: 0,
-        DOM: {
-          player: {
-            manual: false,
-            querySelectors: "",
-            additionalCss: "",
-            useRelativeAncestor: false,
-            playerNodeCss: ""
-          }
-        },
-        css: ".shaka-video-container {\n  flex-direction: column !important;\n}"
-      };
-    }
-  }, {
-    forVersion: '5.0.7',
-    updateFn: (userOptions, defaultOptions) => {
-      // 5.0.5 initially incorrectly had app.plex.tv marked as 'user-added'
-      // when 'user-added' is generally reserved for marking sites with user-
-      // changed configuration. Site patches submitted by community should have
-      // 'community' type. extConfPatch for 5.0.5 was also retroactively corrected.
-      userOptions.sites['www.youtube.com'].DOM.player = {
-        manual: true,
-        querySelectors: "#movie_player, #player, #c4-player",
-        additionalCss: "",
-        useRelativeAncestor: false,
-        playerNodeCss: "",
-      }
-    }
-  }, {
-    forVersion: '5.0.8',
-    updateFn: (userOptions, defaultOptions) => {
-      userOptions.sites['www.netflix.com'].DOM.player = {
-        manual: false
-      }
-    }
-  }, {
-    forVersion: '5.99.0-1',
+    forVersion: '6.0.1-1',
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
       // add new commands
       userOptions.commands = defaultOptions.commands;
     }
   }, {
     // NOTE - when releasing shit, ensure ALL alpha migrations are combined together in one function
-    forVersion: '5.99.0-2',
+    forVersion: '6.0.1-2',
     updateFn: (userOptions, defaultOptions) => {
       userOptions.commands = defaultOptions.commands;
 
@@ -204,7 +89,7 @@ const ExtensionConfPatch = [
       }
     }
   }, {
-    forVersion: '5.99.0-3',
+    forVersion: '6.0.1-3',
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
       delete (userOptions as any).sites['@global'].persistOption;
       delete (userOptions as any).sites['@empty'].persistOption;
@@ -213,7 +98,7 @@ const ExtensionConfPatch = [
       userOptions.sites['@empty'].persistCSA = CropModePersistence.Disabled;
     }
   },  {
-    forVersion: '5.99.0-4',
+    forVersion: '6.0.1-4',
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
 
       // deprecated much?
@@ -254,7 +139,7 @@ const ExtensionConfPatch = [
       })
     }
   }, {
-    forVersion: '5.99.5',
+    forVersion: '6.0.1-5',
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
       if (!userOptions.sites['@global'].defaults.alignment || !userOptions.sites['@global'].defaults.alignment.x || !userOptions.sites['@global'].defaults.alignment.y) {
         userOptions.sites['@global'].defaults.alignment = {
@@ -265,7 +150,7 @@ const ExtensionConfPatch = [
       userOptions.sites['@empty'].defaults.alignment = {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default};
     }
   }, {
-    forVersion: '5.99.6',
+    forVersion: '6.0.1-6',
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
       for (const site in userOptions.sites) {
         userOptions.sites[site].defaultType = userOptions.sites[site].type as any;
@@ -274,12 +159,17 @@ const ExtensionConfPatch = [
       userOptions.sites['@empty'].defaultType = 'modified';
     }
   }, {
-    forVersion: '6.0.0',
+    forVersion: '6.0.1-7',
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
       // remove custom CSS, as it is no longer needed
       for (const site in userOptions.sites) {
         for (const domOption in userOptions.sites[site].DOMConfig)
         userOptions.sites[site].DOMConfig[domOption].customCss;
+      }
+      userOptions.ui = {
+        inPlayer: {
+          enabled: false, // keep disabled for existing users
+        }
       }
     }
   }
