@@ -13,6 +13,12 @@
 
 ## v6.0 (current major)
 
+### v6.0.1
+
+* Fixed external links
+
+### v6.0.0
+
 Chrome only, because I needed to rush manifest v3 migration before ensuring things work in Firefox.
 
  * In player UI
