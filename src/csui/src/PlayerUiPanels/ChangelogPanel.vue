@@ -3,7 +3,7 @@
     <div class="flex flex-row gap-2 bg-black">
       <div class="w-[1/2]" style="width: 50%">
         <h1>What's new</h1>
-        <p>Full changelog for older versions <a href="https://github.com/tamius-han/ultrawidify/blob/master/CHANGELOG.md">is available here</a>.</p>
+        <p>Full changelog for older versions <a href="https://github.com/tamius-han/ultrawidify/blob/master/CHANGELOG.md" target="_blank">is available here</a>.</p>
 
         <h2>6.0.0</h2>
         <p>
@@ -72,7 +72,7 @@
           If you think I deserve money for the work I did up to this point, you can bankroll my caffeine addiction.
         </p>
         <p class="text-center">
-          <a class="donate" href="https://www.paypal.com/paypalme/tamius">Donate on Paypal</a>
+          <a class="donate" href="https://www.paypal.com/paypalme/tamius" target="_blank">Donate on Paypal</a>
         </p>
         <h2>Fun stuff</h2>
         <p>

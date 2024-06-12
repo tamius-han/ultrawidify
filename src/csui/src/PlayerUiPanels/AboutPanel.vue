@@ -41,7 +41,7 @@
           If you think I deserve money for the work I did up to this point, you can bankroll my caffeine addiction.
         </p>
         <p class="text-center">
-          <a class="donate" href="https://www.paypal.com/paypalme/tamius">Donate on Paypal</a>
+          <a class="donate" href="https://www.paypal.com/paypalme/tamius" target="_blank">Donate on Paypal</a>
         </p>
         <h2>Fun stuff</h2>
         <p>
