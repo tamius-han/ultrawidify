@@ -29,7 +29,7 @@
         </ul>
         <p>
           <small>
-            [1] If using anything other than Firefox, Chrome, or Edge, please check if issue also happens in Chrome or Edge. Bugs affecting Opera will only get fixed if they also affect Chrome, because <a href="https://stuff.tamius.net/sacred-texts/2024/06/08/why-im-boycotting-opera/">I'm salty</a>.<br/>
+            [1] If using anything other than Firefox, Chrome, or Edge, please check if issue also happens in Chrome or Edge. Bugs affecting Opera will only get fixed if they also affect Chrome, because <a target="_blank" href="https://stuff.tamius.net/sacred-texts/2024/06/08/why-im-boycotting-opera/">I'm salty</a>.<br/>
             [2] It is recommended that users of Microsoft Edge install Ultrawidify from the Microsoft Edge Addons source
           </small>
         </p>
