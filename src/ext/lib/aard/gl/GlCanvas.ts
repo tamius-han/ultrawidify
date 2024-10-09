@@ -82,6 +82,12 @@ export class GlCanvas {
   private programInfo: GlCanvasProgramInfo;
   private projectionMatrix: mat4;
 
+  get width() {
+    return this.canvas.width;
+  }
+  get height() {
+    return this.canvas.height;
+  }
 
   constructor(options: GlCanvasOptions) {
     this.canvas = document.createElement('canvas');
@@ -115,6 +121,18 @@ export class GlCanvas {
   getImageData(): Uint8Array {
     this.gl.readPixels(0, 0, this.canvas.width, this.canvas.height, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.frameBuffer);
     return this.frameBuffer;
+  }
+
+  /**
+   * Cleans up after itself
+   */
+  destroy() {
+    this.gl.deleteProgram(this.programInfo.program);
+    this.gl.deleteBuffer(this.buffers.position);
+    this.gl.deleteBuffer(this.buffers.normal);
+    this.gl.deleteBuffer(this.buffers.textureCoord);
+    this.gl.deleteBuffer(this.buffers.indices);
+    this.gl.deleteTexture(this.texture);
   }
 
   private initWebgl() {

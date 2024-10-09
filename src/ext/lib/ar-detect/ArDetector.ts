@@ -14,6 +14,7 @@ import Logger from '../Logger';
 import VideoData from '../video-data/VideoData';
 import Settings from '../Settings';
 import EventBus from '../EventBus';
+import { GlCanvas } from '../aard/gl/GlCanvas';
 
 enum VideoPlaybackState {
   Playing,
@@ -82,10 +83,9 @@ class ArDetector {
   _nextTick: boolean;
 
   private animationFrameHandle: any;
-  private attachedCanvas: HTMLCanvasElement;
-  canvas: HTMLCanvasElement;
-  private context: CanvasRenderingContext2D;
   canvasImageDataRowLength: number;
+
+  glCanvas: GlCanvas;
 
   private timers = {
     nextFrameCheckTime: Date.now()
@@ -189,43 +189,24 @@ class ArDetector {
     //
     // [1] initiate canvases
     //
-
-    if (!cwidth) {
-      cwidth = this.settings.active.arDetect.canvasDimensions.sampleCanvas.width;
-      cheight = this.settings.active.arDetect.canvasDimensions.sampleCanvas.height;
+    if (this.glCanvas) {
+      this.glCanvas.destroy();
     }
-
-    if (this.canvas) {
-      this.canvas.remove();
-    }
-    // if (this.blackframeCanvas) {
-    //   this.blackframeCanvas.remove();
-    // }
-
-    // things to note: we'll be keeping canvas in memory only.
-    this.canvas = document.createElement("canvas");
-    this.canvas.width = cwidth;
-    this.canvas.height = cheight;
-    // this.blackframeCanvas = document.createElement("canvas");
-    // this.blackframeCanvas.width = this.settings.active.arDetect.canvasDimensions.blackframeCanvas.width;
-    // this.blackframeCanvas.height = this.settings.active.arDetect.canvasDimensions.blackframeCanvas.height;
-
-    this.context = this.canvas.getContext("2d");
+    this.glCanvas = new GlCanvas(this.settings.active.arDetect.canvasDimensions.sampleCanvas);
 
     //
     // [2] determine places we'll use to sample our main frame
     //
-
     let ncol = this.settings.active.arDetect.sampling.staticCols;
     let nrow = this.settings.active.arDetect.sampling.staticRows;
 
-    let colSpacing = this.canvas.width / ncol;
-    let rowSpacing = (this.canvas.height << 2) / nrow;
+    let colSpacing = this.glCanvas.width / ncol;
+    let rowSpacing = (this.glCanvas.height << 2) / nrow;
 
     this.sampleLines = [];
     this.sampleCols = [];
 
-    for(let i = 0; i < ncol; i++){
+    for (let i = 0; i < ncol; i++){
       if(i < ncol - 1)
         this.sampleCols.push(Math.round(colSpacing * i));
       else{
@@ -233,7 +214,7 @@ class ArDetector {
       }
     }
 
-    for(let i = 0; i < nrow; i++){
+    for (let i = 0; i < nrow; i++){
       if(i < ncol - 5)
         this.sampleLines.push(Math.round(rowSpacing * i));
       else{
@@ -244,7 +225,6 @@ class ArDetector {
     //
     // [3] do other things setup needs to do
     //
-
     this.resetBlackLevel();
 
     // if we're restarting ArDetect, we need to do this in order to force-recalculate aspect ratio
@@ -253,11 +233,10 @@ class ArDetector {
     this.canvasImageDataRowLength = cwidth << 2;
 
     this.start();
-
-    if(Debug.debugCanvas.enabled){
+    // if(Debug.debugCanvas.enabled){
       // this.debugCanvas.init({width: cwidth, height: cheight});
       // DebugCanvas.draw("test marker","test","rect", {x:5, y:5}, {width: 5, height: 5});
-    }
+    // }
 
     this.conf.arSetupComplete = true;
   }
@@ -389,20 +368,6 @@ class ArDetector {
       },
       timeout
     );
-  }
-
-  private attachCanvas(canvas){
-    if(this.attachedCanvas)
-      this.attachedCanvas.remove();
-
-    // todo: place canvas on top of the video instead of random location
-    canvas.style.position = "absolute";
-    canvas.style.left = "200px";
-    canvas.style.top = "1200px";
-    canvas.style.zIndex = 10000;
-
-    document.getElementsByTagName("body")[0]
-            .appendChild(canvas);
   }
 
   /**
@@ -749,19 +714,19 @@ class ArDetector {
     // aspect ratio and correct our calculations to account for that
 
     const fileAr = this.video.videoWidth / this.video.videoHeight;
-    const canvasAr = this.canvas.width / this.canvas.height;
+    const canvasAr = this.glCanvas.width / this.glCanvas.height;
     let widthCorrected;
 
     if (edges.top && edges.bottom) {
       // in case of letterbox, we take canvas height as canon and assume width got stretched or squished
 
       if (fileAr != canvasAr) {
-        widthCorrected = this.canvas.height * fileAr;
+        widthCorrected = this.glCanvas.height * fileAr;
       } else {
-        widthCorrected = this.canvas.width;
+        widthCorrected = this.glCanvas.width;
       }
 
-      return widthCorrected / (this.canvas.height - letterbox);
+      return widthCorrected / (this.glCanvas.height - letterbox);
     }
   }
 
@@ -822,22 +787,19 @@ class ArDetector {
       return;
     }
 
-    if (!this.context) {
+    if (!this.glCanvas) {
       this.init();
     }
 
     let sampleCols = this.sampleCols.slice(0);
 
-
-
     let startTime = performance.now();
-    await new Promise<void>(
+    const imageData = await new Promise<Uint8Array>(
       resolve => {
-        this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-        resolve();
+        this.glCanvas.drawVideoFrame(this.video);
+        resolve(this.glCanvas.getImageData());
       }
     )
-    const imageData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
     timerResults.imageDrawTime = performance.now() - startTime;
 
     startTime = performance.now();
@@ -1130,7 +1092,7 @@ class ArDetector {
     // returns 'false' if we found a non-black edge pixel.
 
     // If we detect anything darker than blackLevel, we modify blackLevel to the new lowest value
-    const rowOffset = this.canvas.width * (this.canvas.height - 1);
+    const rowOffset = this.glCanvas.width * (this.glCanvas.height - 1);
     let currentMin = 255, currentMax = 0, colOffset_r, colOffset_g, colOffset_b, colOffset_rb, colOffset_gb, colOffset_bb, blthreshold = this.settings.active.arDetect.blackbar.threshold;
 
     // detect black level. if currentMax comes above blackbar + blackbar threshold, we know we aren't letterboxed

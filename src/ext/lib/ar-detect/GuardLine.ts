@@ -42,7 +42,7 @@ class GuardLine {
 
     // to odstrani vse neveljavne nastavitve in vse možnosti, ki niso smiselne
     // this removes any configs with invalid values or values that dont make sense
-    if (bbTop < 0 || bbBottom >= this.aard.canvas.height ){
+    if (bbTop < 0 || bbBottom >= this.aard.glCanvas.height ){
       throw {error: "INVALID_SETTINGS_IN_GUARDLINE", bbTop, bbBottom}
     }
 
@@ -99,7 +99,7 @@ class GuardLine {
       return { success: true };
     }
 
-    let offset = (this.aard.canvas.width * this.settings.active.arDetect.guardLine.ignoreEdgeMargin) << 2;
+    let offset = (this.aard.glCanvas.width * this.settings.active.arDetect.guardLine.ignoreEdgeMargin) << 2;
 
     let offenders = [];
     let offenderCount = -1; // doing it this way means first offender has offenderCount==0. Ez index.
@@ -117,8 +117,8 @@ class GuardLine {
 
     // <<<=======| checking upper row |========>>>
 
-    rowStart = ((edge_upper * this.aard.canvas.width) << 2) + offset;
-    rowEnd = rowStart + ( this.aard.canvas.width << 2 ) - (offset * 2);
+    rowStart = ((edge_upper * this.aard.glCanvas.width) << 2) + offset;
+    rowEnd = rowStart + ( this.aard.glCanvas.width << 2 ) - (offset * 2);
 
     if (Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine) {
       // offenderCount = this._gl_debugRowCheck(image, rowStart, rowEnd, offenders, offenderCount);
@@ -127,8 +127,8 @@ class GuardLine {
     }
     // <<<=======| checking lower row |========>>>
 
-    rowStart = ((edge_lower * this.aard.canvas.width) << 2) + offset;
-    rowEnd = rowStart + ( this.aard.canvas.width << 2 ) - (offset * 2);
+    rowStart = ((edge_lower * this.aard.glCanvas.width) << 2) + offset;
+    rowEnd = rowStart + ( this.aard.glCanvas.width << 2 ) - (offset * 2);
 
     if (Debug.debugCanvas.enabled && Debug.debugCanvas.guardLine) {
       // offenderCount = this._gl_debugRowCheck(image, rowStart, rowEnd, offenders, offenderCount);
@@ -158,7 +158,7 @@ class GuardLine {
     if(!this.imageBar.top || !this.imageBar.bottom)
       return { success: false };
 
-    let offset = (this.aard.canvas.width * this.settings.active.arDetect.guardLine.ignoreEdgeMargin) << 2;
+    let offset = (this.aard.glCanvas.width * this.settings.active.arDetect.guardLine.ignoreEdgeMargin) << 2;
 
     // TODO: implement logo check.
 
@@ -167,14 +167,14 @@ class GuardLine {
 
     // how many non-black pixels we need to consider this check a success. We only need to detect enough pixels
     // on one edge (one of the edges can be black as long as both aren't)
-    let successThreshold = (this.aard.canvas.width * this.settings.active.arDetect.guardLine.imageTestThreshold);
+    let successThreshold = (this.aard.glCanvas.width * this.settings.active.arDetect.guardLine.imageTestThreshold);
     let rowStart, rowEnd;
 
 
     // <<<=======| checking upper row |========>>>
 
-    rowStart = ((edge_upper * this.aard.canvas.width) << 2) + offset;
-    rowEnd = rowStart + ( this.aard.canvas.width << 2 ) - (offset * 2);
+    rowStart = ((edge_upper * this.aard.glCanvas.width) << 2) + offset;
+    rowEnd = rowStart + ( this.aard.glCanvas.width << 2 ) - (offset * 2);
 
     let res = false;
 
@@ -190,7 +190,7 @@ class GuardLine {
 
     // <<<=======| checking lower row |========>>>
 
-    rowStart = ((edge_lower * this.aard.canvas.width) << 2) + offset;
+    rowStart = ((edge_lower * this.aard.glCanvas.width) << 2) + offset;
     // rowEnd = rowStart + ( this.conf.canvas.width << 2 ) - (offset * 2);
 
 
