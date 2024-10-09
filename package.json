@@ -31,6 +31,7 @@
     "@types/resize-observer-browser": "^0.1.6",
     "concurrently": "^5.3.0",
     "fs-extra": "^7.0.1",
+    "gl-matrix": "^3.4.3",
     "json-cyclic": "0.0.3",
     "lodash": "^4.17.21",
     "mdi-vue": "^3.0.11",
@@ -72,8 +73,6 @@
     "webpack": "^4.46.0",
     "webpack-chrome-extension-reloader": "^0.8.3",
     "webpack-cli": "^3.3.12",
-    "webpack-shell-plugin": "^0.5.0",
-    "@vue/cli": "^4.5.15",
-    "@vue/cli-plugin-typescript": "^4.5.15"
+    "webpack-shell-plugin": "^0.5.0"
   }
 }
