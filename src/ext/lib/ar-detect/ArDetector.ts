@@ -123,7 +123,6 @@ class ArDetector {
     }
     return ratio;
   }
-
   //#endregion getters
 
   //#region debug getters
@@ -800,12 +799,11 @@ class ArDetector {
         resolve(this.glCanvas.getImageData());
       }
     )
+    console.log('image data received ...')
     timerResults.imageDrawTime = performance.now() - startTime;
 
     startTime = performance.now();
-
     const bfAnalysis = await this.blackframeTest(imageData);
-
     timerResults.blackFrameProcessTime = performance.now() - startTime;
 
     if (bfAnalysis.isBlack) {
