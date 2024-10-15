@@ -10,8 +10,20 @@ import { AardStatus, initAardStatus } from './interfaces/aard-status.interface';
 import { AardTestResults, initAardTestResults } from './interfaces/aard-test-results.interface';
 import { AardTimers, initAardTimers } from './interfaces/aard-timers.interface';
 
-// Automatic Aspect Ratio Detector
-// Here's how it works:
+
+/**
+ *           /\
+ *          //\\         Automatic
+ *         //  \\         Aspect
+ *        //    \\         Ratio
+ *               \\         Detector
+ *      //XXXX    \\
+ *     //          \\    (Totes not a Witcher reference)
+ *    //            \\       (Witcher 2 best Witcher)
+ *   //XXXXXXXXXXXXXX\\
+ *
+ * How it works:
+ */
 /**
  *  [ ] Draw frame to canvas
  *   |
@@ -256,6 +268,8 @@ class Aard {
 
     // we can tick manually, for debugging
     this.logger.log('info', 'init', `[ArDetector::ctor] creating new ArDetector. arid: ${this.arid}`);
+
+    this.init();
   }
 
   private initEventBus() {
@@ -313,6 +327,8 @@ class Aard {
           }
         );
 
+        // STEP 1:
+        // Test if corners are black. If they're not, we can immediately quit the loop.
         this.getBlackLevelFast(
           imageData, 3, 1,
           this.settings.active.arDetect.canvasDimensions.sampleCanvas.width,
@@ -324,11 +340,28 @@ class Aard {
           break;
         }
 
+        // STEP 2:
+        // Check if previously detected aspect ratio is still gucci. If it is, then
+        // we can quit the loop without applying any aspect ratios (unless subtitle
+        // detection is enabled, in which case we still run the subtitle test)
         this.checkLetterboxShrink(
           imageData,
           this.settings.active.arDetect.canvasDimensions.sampleCanvas.width,
           this.settings.active.arDetect.canvasDimensions.sampleCanvas.height
         );
+        if (! this.testResults.guardLine.invalidated) {
+          this.checkLetterboxGrow(
+            imageData,
+            this.settings.active.arDetect.canvasDimensions.sampleCanvas.width,
+            this.settings.active.arDetect.canvasDimensions.sampleCanvas.height
+          );
+        }
+        if (! this.testResults.imageLine.invalidated) {
+          // TODO: ensure no aspect ratio changes happen
+          this.testResults.lastStage = 2;
+          break;
+        }
+
 
 
       } while (false);
@@ -504,7 +537,11 @@ class Aard {
 
 
   /**
-   * Checks if letterbox has shrunk.
+   * Checks if letterbox has shrunk. If letterbox has shrunk (image portion of the frame grows), we invalidate
+   * guard line data. Note that this function only sets testResults.guardline.invalidated=true, but does not
+   * override current guardline values.
+   * NOTE: if guardLine is invalidated, the function will also helpfully invalidate imageLine results. This
+   * will happen because invalid blackLine logically implies invalid imageLine.
    * @param imageData
    * @param width
    * @param height
@@ -555,6 +592,7 @@ class Aard {
         }
         if (imageData[i] > this.testResults.blackThreshold) {
           this.testResults.guardLine.invalidated = true;
+          this.testResults.imageLine.invalidated = true;
           return; // no need to check further,
         }
       }
@@ -601,6 +639,7 @@ class Aard {
         }
         if (imageData[i] > this.testResults.blackThreshold) {
           this.testResults.guardLine.invalidated = true;
+          this.testResults.imageLine.invalidated = true;
           return; // no need to check further,
         }
       }
@@ -640,13 +679,18 @@ class Aard {
 
     if (dirtyCount > maxInvalidCorners) {
       this.testResults.guardLine.invalidated = true;
+      this.testResults.imageLine.invalidated = true;
     } else {
       this.testResults.guardLine.invalidated = false;
     }
   }
 
   /**
-   * Checks if letterbox has grown
+   * Checks if letterbox has grown. This test is super-efficient on frames that aren't dark,
+   * but is also rather inefficient if the frame is overly dark. Note that this function merely
+   * sets testResults.imageLine.invalidated to `true`. Correcting actual values is done during
+   * aspect ratio detection.
+   * TODO: maybe consider checking fewer pixels per line
    * @param imageData
    * @param width
    * @param height
@@ -661,6 +705,198 @@ class Aard {
       this.testResults.imageLine.invalidated = true;
       return;
     }
+
+    let edgePosition = 0.25;  // TODO: unhardcode and put into settings. Is % of total width.
+    const segmentPixels = width * edgePosition;
+    const edgeSegmentSize = segmentPixels * 4;
+
+    const detectionThreshold = width * 0.1; // TODO: unhardcoide and put into settings. Is % of total width.
+    let imagePixel = false;
+    let pixelCount = 0;
+
+    // check the top
+    {
+      const rowStart = this.testResults.imageLine.top * width * 4;
+      const firstSegment = rowStart + edgeSegmentSize;
+      const rowEnd = rowStart + (width * 4) - 4;
+      const secondSegment = rowEnd - edgeSegmentSize;
+
+      let i = rowStart;
+
+      // we don't run image detection in corners that may contain logos, as such corners
+      // may not be representative
+      if (! this.testResults.guardLine.cornerViolations[Corner.TopLeft]) {
+        while (i < firstSegment) {
+          imagePixel = false;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+
+          if (imagePixel && ++pixelCount > detectionThreshold) {
+            return;
+          };
+          i++; // skip over alpha channel
+        }
+      }
+      while (i < secondSegment) {
+        imagePixel = false;
+        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+
+        if (imagePixel && ++pixelCount > detectionThreshold) {
+          return;
+        };
+        i++; // skip over alpha channel
+      }
+      if (! this.testResults.guardLine.cornerViolations[Corner.TopRight]) {
+        while (i < rowEnd) {
+          imagePixel = false;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+
+          if (imagePixel && ++pixelCount > detectionThreshold) {
+            return;
+          };
+          i++; // skip over alpha channel
+        }
+      }
+
+      // we don't run image detection in corners that may contain logos, as such corners
+      // may not be representative
+      if (! this.testResults.guardLine.cornerViolations[Corner.TopLeft]) {
+        while (i < firstSegment) {
+          imagePixel = false;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+
+          if (imagePixel && ++pixelCount > detectionThreshold) {
+            return;
+          };
+          i++; // skip over alpha channel
+        }
+      }
+      while (i < secondSegment) {
+        imagePixel = false;
+        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+
+        if (imagePixel && ++pixelCount > detectionThreshold) {
+          return;
+        };
+        i++; // skip over alpha channel
+      }
+      if (! this.testResults.guardLine.cornerViolations[Corner.TopRight]) {
+        while (i < rowEnd) {
+          imagePixel = false;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+
+          if (imagePixel && ++pixelCount > detectionThreshold) {
+            return;
+          };
+          i++; // skip over alpha channel
+        }
+      }
+    }
+
+    // check the bottom
+    {
+      const rowStart = this.testResults.imageLine.bottom * width * 4;
+      const firstSegment = rowStart + edgeSegmentSize;
+      const rowEnd = rowStart + (width * 4) - 4;
+      const secondSegment = rowEnd - edgeSegmentSize;
+
+      let i = rowStart;
+
+      // we don't run image detection in corners that may contain logos, as such corners
+      // may not be representative
+      if (! this.testResults.guardLine.cornerViolations[Corner.TopLeft]) {
+        while (i < firstSegment) {
+          imagePixel = false;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+
+          if (imagePixel && ++pixelCount > detectionThreshold) {
+            return;
+          };
+          i++; // skip over alpha channel
+        }
+      }
+      while (i < secondSegment) {
+        imagePixel = false;
+        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+
+        if (imagePixel && ++pixelCount > detectionThreshold) {
+          return;
+        };
+        i++; // skip over alpha channel
+      }
+      if (! this.testResults.guardLine.cornerViolations[Corner.TopRight]) {
+        while (i < rowEnd) {
+          imagePixel = false;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+
+          if (imagePixel && ++pixelCount > detectionThreshold) {
+            return;
+          };
+          i++; // skip over alpha channel
+        }
+      }
+
+      // we don't run image detection in corners that may contain logos, as such corners
+      // may not be representative
+      if (! this.testResults.guardLine.cornerViolations[Corner.TopLeft]) {
+        while (i < firstSegment) {
+          imagePixel = false;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+
+          if (imagePixel && ++pixelCount > detectionThreshold) {
+            return;
+          };
+          i++; // skip over alpha channel
+        }
+      }
+      while (i < secondSegment) {
+        imagePixel = false;
+        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+
+        if (imagePixel && ++pixelCount > detectionThreshold) {
+          return;
+        };
+        i++; // skip over alpha channel
+      }
+      if (! this.testResults.guardLine.cornerViolations[Corner.TopRight]) {
+        while (i < rowEnd) {
+          imagePixel = false;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+
+          if (imagePixel && ++pixelCount > detectionThreshold) {
+            return;
+          };
+          i++; // skip over alpha channel
+        }
+      }
+    }
+
+    // if we came this far, we didn't get enough non-black pixels in order
+    // to detect image. imageLine needs to be invalidated.
+    this.testResults.imageLine.invalidated = true;
   }
 
 }
