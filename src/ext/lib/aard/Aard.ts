@@ -6,6 +6,7 @@ import VideoData from '../video-data/VideoData';
 import { Corner } from './enums/corner.enum';
 import { GlCanvas } from './gl/GlCanvas';
 import { AardCanvasStore } from './interfaces/aard-canvas-store.interface';
+import { AardDetectionSample, generateSampleArray } from './interfaces/aard-detection-sample.interface';
 import { AardStatus, initAardStatus } from './interfaces/aard-status.interface';
 import { AardTestResults, initAardTestResults } from './interfaces/aard-test-results.interface';
 import { AardTimers, initAardTimers } from './interfaces/aard-timers.interface';
@@ -233,7 +234,8 @@ class Aard {
   public status: AardStatus = initAardStatus();
   private timers: AardTimers = initAardTimers();
   private canvasStore: AardCanvasStore;
-  private testResults: AardTestResults = initAardTestResults();
+  private testResults: AardTestResults;
+  private canvasSamples: AardDetectionSample;
   //#endregion
 
   //#region getters
@@ -258,6 +260,8 @@ class Aard {
     this.video = videoData.video;
     this.settings = videoData.settings;
     this.eventBus = videoData.eventBus;
+
+    this.testResults = initAardTestResults(this.settings.active.arDetect)
 
     this.initEventBus();
 
@@ -285,8 +289,21 @@ class Aard {
       main: new GlCanvas(new GlCanvas(this.settings.active.arDetect.canvasDimensions.sampleCanvas)),
     };
 
+    this.canvasSamples = {
+      top: generateSampleArray(
+        this.settings.active.arDetect.sampling.staticCols,
+        this.settings.active.arDetect.canvasDimensions.sampleCanvas.width
+      ),
+      bottom: generateSampleArray(
+        this.settings.active.arDetect.sampling.staticCols,
+        this.settings.active.arDetect.canvasDimensions.sampleCanvas.width
+      ),
+    };
+
+
     this.start();
   }
+
 
   //#endregion
   start() {
@@ -362,6 +379,8 @@ class Aard {
           break;
         }
 
+        // STEP 3:
+        // If we are here, we must do full aspect ratio detection.
 
 
       } while (false);
@@ -519,10 +538,12 @@ class Aard {
       }
     }
 
-    avg = avg / samples * 4;
+    // Avg only contains highest subpixel,
+    // but there's 4 subpixels per sample.
+    avg = avg / (samples * 4);
 
     // TODO: unhardcode these values
-    this.testResults.notLetterbox = avg > 16;
+    this.testResults.notLetterbox = avg > (this.testResults.blackLevel);
 
     // only update black level if not letterbox.
     // NOTE: but maybe we could, if blackLevel can only get lower than
@@ -561,7 +582,7 @@ class Aard {
     const cornerViolations = [0,0,0,0];
     let subpixelViolation = false;
 
-    let edgePosition = 0.25;  // TODO: unhardcode and put into settings. Is % of total width
+    let edgePosition = this.settings.active.arDetect.sampling.edgePosition;
     const segmentPixels = width * edgePosition;
     const edgeSegmentSize = segmentPixels * 4;
 
@@ -577,35 +598,35 @@ class Aard {
       let i = rowStart;
       while (i < firstSegment) {
         subpixelViolation = false;
-        subpixelViolation ||= imageData[i++] > this.testResults.blackThreshold;
-        subpixelViolation ||= imageData[i++] > this.testResults.blackThreshold;
-        subpixelViolation ||= imageData[i++] > this.testResults.blackThreshold;
 
-        if (subpixelViolation) {
+        if (
+          imageData[i] > this.testResults.blackThreshold
+          || imageData[i + 1] > this.testResults.blackThreshold
+          || imageData[i + 2] > this.testResults.blackThreshold
+        ) {
           cornerViolations[Corner.TopLeft]++;
         }
-        i++; // skip over alpha channel
+        i += 4;
       }
       while (i < secondSegment) {
-        if (i % 4 === 3) {
-          continue; // don't check alpha
-        }
-        if (imageData[i] > this.testResults.blackThreshold) {
-          this.testResults.guardLine.invalidated = true;
-          this.testResults.imageLine.invalidated = true;
-          return; // no need to check further,
-        }
+        if (
+          imageData[i] > this.testResults.blackThreshold
+          || imageData[i + 1] > this.testResults.blackThreshold
+          || imageData[i + 2] > this.testResults.blackThreshold
+        ) {
+          return;
+        };
+        i += 4;
       }
       while (i < rowEnd) {
-        subpixelViolation = false;
-        subpixelViolation ||= imageData[i++] > this.testResults.blackThreshold;
-        subpixelViolation ||= imageData[i++] > this.testResults.blackThreshold;
-        subpixelViolation ||= imageData[i++] > this.testResults.blackThreshold;
-
-        if (subpixelViolation) {
+        if (
+          imageData[i] > this.testResults.blackThreshold
+          || imageData[i + 1] > this.testResults.blackThreshold
+          || imageData[i + 2] > this.testResults.blackThreshold
+        ) {
           cornerViolations[Corner.TopRight]++;
         }
-        i++; // skip over alpha channel
+        i += 4; // skip over alpha channel
       }
     }
     // check bottom
@@ -620,42 +641,40 @@ class Aard {
         i += 4 - (i % 4);
       }
       while (i < firstSegment) {
-        subpixelViolation = false;
-        subpixelViolation ||= imageData[i++] > this.testResults.blackThreshold;
-        subpixelViolation ||= imageData[i++] > this.testResults.blackThreshold;
-        subpixelViolation ||= imageData[i++] > this.testResults.blackThreshold;
-
-        if (subpixelViolation) {
+        if (
+          imageData[i] > this.testResults.blackThreshold
+          || imageData[i + 1] > this.testResults.blackThreshold
+          || imageData[i + 2] > this.testResults.blackThreshold
+        ) {
           cornerViolations[Corner.BottomLeft]++;
         }
-        i++; // skip over alpha channel
+        i += 4; // skip over alpha channel
       }
       if (i % 4) {
         i += 4 - (i % 4);
       }
       while (i < secondSegment) {
-        if (i % 4 === 3) {
-          continue; // don't check alpha
-        }
-        if (imageData[i] > this.testResults.blackThreshold) {
-          this.testResults.guardLine.invalidated = true;
-          this.testResults.imageLine.invalidated = true;
-          return; // no need to check further,
-        }
+        if (
+          imageData[i] > this.testResults.blackThreshold
+          || imageData[i + 1] > this.testResults.blackThreshold
+          || imageData[i + 2] > this.testResults.blackThreshold
+        ) {
+          return;
+        };
+        i += 4;
       }
       if (i % 4) {
         i += 4 - (i % 4);
       }
       while (i < rowEnd) {
-        subpixelViolation = false;
-        subpixelViolation ||= imageData[i++] > this.testResults.blackThreshold;
-        subpixelViolation ||= imageData[i++] > this.testResults.blackThreshold;
-        subpixelViolation ||= imageData[i++] > this.testResults.blackThreshold;
-
-        if (subpixelViolation) {
+        if (
+          imageData[i] > this.testResults.blackThreshold
+          || imageData[i + 1] > this.testResults.blackThreshold
+          || imageData[i + 2] > this.testResults.blackThreshold
+        ) {
           cornerViolations[Corner.BottomRight]++;
         }
-        i++; // skip over alpha channel
+        i += 4; // skip over alpha channel
       }
     }
 
@@ -706,7 +725,7 @@ class Aard {
       return;
     }
 
-    let edgePosition = 0.25;  // TODO: unhardcode and put into settings. Is % of total width.
+    let edgePosition = this.settings.active.arDetect.sampling.edgePosition;
     const segmentPixels = width * edgePosition;
     const edgeSegmentSize = segmentPixels * 4;
 
@@ -898,5 +917,571 @@ class Aard {
     // to detect image. imageLine needs to be invalidated.
     this.testResults.imageLine.invalidated = true;
   }
+
+  /**
+   * Tries to detect aspect ratio.
+   *
+   *                           ———< FAQ >———
+   *                      Why not binary search?
+   *
+   *    - Binary search is prone to false detections in certain
+   *    scenarios where multiple horizontal dark and bright areas
+   *    are present in the frame, e.g. window blinds
+   *
+   *
+   *    P.S.:
+   *    Future Tam, don't fucking think about that. I did the homework,
+   *    you aren't getting paid enough to find a way to make binary
+   *    search work. Go and work on a neat mini or an ambitious cosplay,
+   *    Chrome Web Store absolutely does not deserve this level of effort,
+   *    If you wanna chase imaginary internet approval points, then cosplay
+   *    and minis ripped from GW2 and Styx require much less sanity and
+   *    provide much more imaginary reddit points.
+   *
+   *    Also maybe finish that story you're writing since 2009 if you
+   *    haven't already. Or learn Godot.
+   */
+  private aspectRatioCheck(imageData: Uint8Array, width: number, height: number) {
+
+    // this costs us tiny bit of overhead, but it makes code slightly more
+    // manageable. We'll be making this tradeoff here, mostly due to the
+    // fact that it makes the 'if' statement governing gradient detection
+    // bit more nicely visible (instead of hidden among spagheti)
+    this.edgeScan(imageData, width, height);
+    this.validateEdgeScan(imageData, width, height);
+
+    // TODO: _if gradient detection is enabled, then:
+    this.sampleForGradient(imageData, width, height);
+
+    this.processScanResults(imageData, width, height);
+
+  }
+
+  /**
+   * Detects positions where frame stops being black and begins to contain image.
+   * @param imageData
+   * @param width
+   * @param height
+   */
+  private edgeScan(imageData: Uint8Array, width: number, height: number) {
+    const detectionLimit = 8; // TODO: unhardcode
+
+    let mid = ~~(height / 2);
+
+    let topStart = 0;
+    let topEnd = mid;
+    let bottomStart = height;
+    let bottomEnd = mid;
+
+    let rowOffset = 0;
+
+    /**
+     *  We can use invalidated blackbar and imagebar data to make some inferences
+     *  about where to find our letterbox. This test is all the data we need to check
+     *  if valid guardLine has ever been set, since guardLine and imageLine are set
+     *  in tandem (either both exist, or neither does (-1)).
+     */
+    if (this.testResults.guardLine.top > 0) {
+      // if guardLine is invalidated, then the new edge of image frame must be
+      // above former guardline. Otherwise, it's below it.
+      if (this.testResults.guardLine.invalidated) {
+        topEnd = this.testResults.guardLine.top;
+        bottomEnd = this.testResults.guardLine.bottom;
+      } else {
+        topStart = this.testResults.imageLine.top;
+        bottomStart = this.testResults.imageLine.bottom;
+      }
+    }
+
+    let row: number, i: number, x: number, isImage: boolean, finishedRows: number;
+
+    // Detect upper edge
+    {
+      row = topStart;
+      x = 0;
+      isImage = false;
+      finishedRows = 0;
+      while (row < topEnd) {
+        i = 0;
+        rowOffset = row * 4 * width;
+
+        // test the entire row
+        while (i < this.canvasSamples.top.length) {
+          // read x offset for the row we're testing, after this `i` points to the
+          // result location
+          x = this.canvasSamples.top[i++];
+
+          // check for image, after we're done `x` points to alpha channel
+          isImage =
+            imageData[rowOffset + x++] > this.testResults.blackLevel
+            || imageData[rowOffset + x++] > this.testResults.blackLevel
+            || imageData[rowOffset + x++] > this.testResults.blackLevel;
+
+          if (!isImage) {
+            // TODO: maybe some day mark this pixel as checked by writing to alpha channel
+            i++;
+            continue;
+          }
+          if (!this.canvasSamples.top[i]) {
+            this.canvasSamples.top[i] = row;
+            finishedRows++;
+          }
+          i++;
+        }
+
+        // quit test early if we can
+        if (finishedRows >= detectionLimit) {
+          break;
+        }
+
+        row++;
+      }
+    }
+
+    // Detect lower edge
+    // NOTE: this part of the frame is checked less efficiently, because testResults
+    // array is not oriented in optimal way. It could be fixed but refer to the `P.S.`
+    // section of this function's description.
+    {
+      row = bottomStart;
+      i = 0;
+      x = 0;
+      isImage = false;
+      finishedRows = 0;
+
+      while (row --> bottomEnd) {
+        i = 0;
+        rowOffset = row * 4 * width;
+
+        // test the entire row
+        while (i < this.canvasSamples.bottom.length) {
+          // read x offset for the row we're testing, after this `i` points to the
+          // result location
+          x = this.canvasSamples.bottom[i++];
+
+          // check for image, after we're done `x` points to alpha channel
+          isImage =
+            imageData[rowOffset + x++] > this.testResults.blackLevel
+            || imageData[rowOffset + x++] > this.testResults.blackLevel
+            || imageData[rowOffset + x++] > this.testResults.blackLevel;
+
+          if (!isImage) {
+            // TODO: maybe some day mark this pixel as checked by writing to alpha channel
+            i++;
+            continue;
+          }
+          if (!this.canvasSamples.bottom[i]) {
+            this.canvasSamples.bottom[i] = row;
+            finishedRows++;
+          }
+          i++;
+        }
+
+        // quit test early if we can
+        if (finishedRows >= detectionLimit) {
+          break;
+        }
+
+        row++;
+      }
+    }
+  }
+
+  /**
+   * Validates edge scan results.
+   *
+   * We check _n_ pixels to the left and to the right of detection, one row above
+   * the detection (or under, when checking the bottom letterbox). If there's anything
+   * non-black in this area, we invalidate the detection by setting the relevant
+   * `canvasSample` to -1.
+   *
+   * For bottom rows, this function also converts row to the offset from the bottom.
+   *
+   * Note that this function returns nothing — instead it modifies properties of this
+   * class. We do this in order to reduce garbage generation. This code runs often,
+   * therefore we prefer reusing variables to generating new ones whenever reasonably
+   * possible (though not always).
+   *
+   * @param imageData
+   * @param width
+   * @param height
+   */
+  private validateEdgeScan(imageData: Uint8Array, width: number, height: number) {
+    let i = 0;
+    let xs: number, xe: number, row: number;
+    const slopeTestSample = this.settings.active.arDetect.edgeDetection.slopeTestWidth * 4;
+
+    while (i < this.canvasSamples.top.length) {
+      // calculate row offset:
+      row = (this.canvasSamples.top[i + 1] - 1) * width * 4;
+      xs = row + this.canvasSamples.top[i] - slopeTestSample;
+      xe = row + this.canvasSamples.top[i] + slopeTestSample;
+
+      while (xs < xe) {
+        if (
+          imageData[xs] > this.testResults.blackThreshold
+          || imageData[xs + 1] > this.testResults.blackThreshold
+          || imageData[xs + 2] > this.testResults.blackThreshold
+        ) {
+          this.canvasSamples.top[i + 1] = -1;
+          break;
+        }
+        xs += 4;
+      }
+      i += 2;
+    }
+
+    i = 0;
+    let i1 = 0;
+    while (i < this.canvasSamples.bottom.length) {
+      // calculate row offset:
+      i1 = i + 1;
+      row = (this.canvasSamples.bottom[i1] - 1) * width * 4;
+      xs = row + this.canvasSamples.bottom[i] - slopeTestSample;
+      xe = row + this.canvasSamples.bottom[i] + slopeTestSample;
+
+      while (xs < xe) {
+        if (
+          imageData[xs] > this.testResults.blackThreshold
+          || imageData[xs + 1] > this.testResults.blackThreshold
+          || imageData[xs + 2] > this.testResults.blackThreshold
+        ) {
+          this.canvasSamples.bottom[i1] = -1;
+          i += 2;
+          break;
+        }
+        xs += 4;
+      }
+
+      if (this.canvasSamples.bottom[i1]) {
+        this.canvasSamples.bottom[i1] = height - this.canvasSamples.bottom[i1];
+      }
+
+      i += 2;
+    }
+  }
+
+  /**
+   * Tries to detect whether our detection is detecting a hard edge, or a gradient.
+   * Gradients shouldn't count as detection.
+   * @param imageData
+   * @param width
+   * @param height
+   */
+  private sampleForGradient(imageData: Uint8Array, width: number, height: number) {
+
+    let j = 0, maxSubpixel = 0, lastSubpixel = 0, firstSubpixel = 0, pixelOffset = 0;
+    const sampleLimit = this.settings.active.arDetect.edgeDetection.gradientTestSamples;
+    const blackThreshold = this.testResults.blackLevel + this.settings.active.arDetect.edgeDetection.gradientTestBlackThreshold;
+
+    const realWidth = width * 4;
+
+    upperEdgeCheck:
+    for (let i = 1; i < this.canvasSamples.top.length; i += 2) {
+      pixelOffset = this.canvasSamples.top[i] * realWidth + this.canvasSamples.top[i - 1] * 4;
+
+      lastSubpixel = imageData[pixelOffset] > imageData[pixelOffset + 1] ? imageData[pixelOffset] : imageData[pixelOffset + 1];
+      lastSubpixel = lastSubpixel > imageData[pixelOffset + 1] ? lastSubpixel : imageData[pixelOffset];
+      firstSubpixel = lastSubpixel; // save it
+
+      j = 1;
+      while (j < sampleLimit) {
+        maxSubpixel = imageData[pixelOffset] > imageData[pixelOffset + 1] ? imageData[pixelOffset] : imageData[pixelOffset + 1];
+        maxSubpixel = maxSubpixel > imageData[pixelOffset + 2] ? maxSubpixel : imageData[pixelOffset + 2];
+
+        /**
+         * Some assumptions.
+         *
+         *   * If max subpixel is above max threshold, we probs aren't in a gradient (as it would imply
+         *     too sudden of a change in pixel brightness)
+         *   * if we are looking at a gradient, then we expect every pixel to be brighter than the
+         *     previous one. If it isn't, then we probably aren't in a gradient.
+         *   * if delta is too big, we probably aren't looking at a gradient, either
+         */
+        if (
+          maxSubpixel > blackThreshold
+          || maxSubpixel < lastSubpixel
+          || maxSubpixel - lastSubpixel > this.settings.active.arDetect.edgeDetection.gradientTestDeltaThreshold
+        ) {
+          continue upperEdgeCheck;
+        }
+
+        lastSubpixel = maxSubpixel;
+        pixelOffset -= realWidth;
+        j++;
+      }
+      // if we came this far, we're probably looking at a gradient — unless the last pixel of our sample
+      // didn't change meaningfully from the first, in which chance we aren't. If the brightness increased
+      // anywhere between 'not enough' and 'too much', we mark the measurement as invalid.
+      if (lastSubpixel - firstSubpixel > this.settings.active.arDetect.edgeDetection.gradientTestMinDelta) {
+        this.canvasSamples.top[i] = -1;
+      }
+    }
+
+    lowerEdgeCheck:
+    for (let i = 1; i < this.canvasSamples.bottom.length; i += 2) {
+      pixelOffset = (height - this.canvasSamples.bottom[i]) * realWidth + this.canvasSamples.bottom[i - 1] * 4;
+
+      lastSubpixel = imageData[pixelOffset] > imageData[pixelOffset + 1] ? imageData[pixelOffset] : imageData[pixelOffset + 1];
+      lastSubpixel = lastSubpixel > imageData[pixelOffset + 1] ? lastSubpixel : imageData[pixelOffset];
+      firstSubpixel = lastSubpixel; // save it
+
+      j = 1;
+      while (j < sampleLimit) {
+        maxSubpixel = imageData[pixelOffset] > imageData[pixelOffset + 1] ? imageData[pixelOffset] : imageData[pixelOffset + 1];
+        maxSubpixel = maxSubpixel > imageData[pixelOffset + 2] ? maxSubpixel : imageData[pixelOffset + 2];
+
+        /**
+         * Some assumptions.
+         *
+         *   * If max subpixel is above max threshold, we probs aren't in a gradient (as it would imply
+         *     too sudden of a change in pixel brightness)
+         *   * if we are looking at a gradient, then we expect every pixel to be brighter than the
+         *     previous one. If it isn't, then we probably aren't in a gradient.
+         *   * if delta is too big, we probably aren't looking at a gradient, either
+         */
+        if (
+          maxSubpixel > blackThreshold
+          || maxSubpixel < lastSubpixel
+          || maxSubpixel - lastSubpixel > this.settings.active.arDetect.edgeDetection.gradientTestDeltaThreshold
+        ) {
+          continue lowerEdgeCheck;
+        }
+
+        lastSubpixel = maxSubpixel;
+        pixelOffset -= realWidth;
+        j++;
+      }
+      // if we came this far, we're probably looking at a gradient — unless the last pixel of our sample
+      // didn't change meaningfully from the first, in which chance we aren't. If the brightness increased
+      // anywhere between 'not enough' and 'too much', we mark the measurement as invalid.
+      if (lastSubpixel - firstSubpixel > this.settings.active.arDetect.edgeDetection.gradientTestMinDelta) {
+        this.canvasSamples.top[i] = -1;
+      }
+
+    }
+  }
+
+  private similarityMatrix = new Uint16Array(21
+
+  );
+  private processScanResults(imageData: Uint8Array, width: number, height: number) {
+    /**
+     * Few things to note —
+     * our canvasSamples are positioned like this:
+     *
+     * |---0---1---2---3---|
+     * 0                   19
+     *
+     * We need to figure out how many positions lie before and
+     * after our cutoff mark (25% and 75% of width, respectively):
+     *
+     * |---0:--1---2--:3---|
+     * |    :         :    |
+     * 0    5         15   19
+     *
+     * In order to accurately determine whether column belongs
+     * to edge region or not, we need to invent two extra imaginary
+     * sampling position, in order to keep sampling position 0 at
+     * 20% of the width.
+     *
+     * (NOTE: it was too late for me to actually think about whether this
+     * holds any water, but it prolly doesn't matter too much anyway)
+     */
+    const fullFence = this.settings.active.arDetect.sampling.staticCols + 1;
+    const edgePosition = this.settings.active.arDetect.sampling.edgePosition;
+
+    // remember: array has two places per sample position — hence x2 on the results
+    const leftEdgeBoundary = ~~(fullFence * edgePosition) * 2;
+    const rightEdgeBoundary = (this.settings.active.arDetect.sampling.staticCols - leftEdgeBoundary) * 2;
+
+    let i: number;
+    // Process top edge:
+    i = 1;
+    {
+      // We'll just unroll this loop, too much overhead for 3 items
+      this.testResults.aspectRatioCheck.topRows[0] = Infinity;
+      this.testResults.aspectRatioCheck.topRows[1] = Infinity;
+      this.testResults.aspectRatioCheck.topRows[2] = Infinity;
+      this.testResults.aspectRatioCheck.topQuality[0] = 0;
+      this.testResults.aspectRatioCheck.topQuality[1] = 0;
+      this.testResults.aspectRatioCheck.topQuality[2] = 0;
+
+      while (i < leftEdgeBoundary) {
+        if (this.canvasSamples.top[i] > -1) {
+          if (this.canvasSamples.top[i] <= this.testResults.aspectRatioCheck.topRows[0]) {
+            this.testResults.aspectRatioCheck.topRows[0] = this.canvasSamples.top[i];
+            this.testResults.aspectRatioCheck.topQuality[0] = 0;
+          } else if (this.canvasSamples.top[i] === this.testResults.aspectRatioCheck.topRows[0]) {
+            this.testResults.aspectRatioCheck.topQuality[0]++;
+          }
+        }
+        i += 2;
+      }
+
+      while (i < rightEdgeBoundary) {
+        if (this.canvasSamples.top[i] > -1) {
+          if (this.canvasSamples.top[i] <= this.testResults.aspectRatioCheck.topRows[1]) {
+            this.testResults.aspectRatioCheck.topRows[1] = this.canvasSamples.top[i];
+            this.testResults.aspectRatioCheck.topQuality[1] = 0;
+          } else if (this.canvasSamples.top[i] === this.testResults.aspectRatioCheck.topRows[1]) {
+            this.testResults.aspectRatioCheck.topQuality[1]++;
+          }
+        }
+        i += 2;
+      }
+
+      while (i < this.canvasSamples.top.length) {
+        if (this.canvasSamples.top[i] > -1) {
+          if (this.canvasSamples.top[i] <= this.testResults.aspectRatioCheck.topRows[2]) {
+            this.testResults.aspectRatioCheck.topRows[2] = this.canvasSamples.top[i];
+            this.testResults.aspectRatioCheck.topQuality[2] = 0;
+          } else if (this.canvasSamples.top[i] === this.testResults.aspectRatioCheck.topRows[2]) {
+            this.testResults.aspectRatioCheck.topQuality[2]++;
+          }
+        }
+        i += 2;
+      }
+    }
+
+    // Process bottom edge
+    i = 1;
+    {
+      // We'll just unroll this loop, too much overhead for 3 items
+      this.testResults.aspectRatioCheck.bottomRows[0] = Infinity;
+      this.testResults.aspectRatioCheck.bottomRows[1] = Infinity;
+      this.testResults.aspectRatioCheck.bottomRows[2] = Infinity;
+      this.testResults.aspectRatioCheck.bottomQuality[0] = 0;
+      this.testResults.aspectRatioCheck.bottomQuality[1] = 0;
+      this.testResults.aspectRatioCheck.bottomQuality[2] = 0;
+
+      while (i < leftEdgeBoundary) {
+        if (this.canvasSamples.bottom[i] > -1) {
+          if (this.canvasSamples.bottom[i] <= this.testResults.aspectRatioCheck.bottomRows[0]) {
+            this.testResults.aspectRatioCheck.bottomRows[0] = this.canvasSamples.bottom[i];
+            this.testResults.aspectRatioCheck.bottomQuality[0] = 0;
+          } else if (this.canvasSamples.bottom[i] === this.testResults.aspectRatioCheck.bottomRows[0]) {
+            this.testResults.aspectRatioCheck.bottomQuality[0]++;
+          }
+        }
+        i += 2;
+      }
+
+      while (i < rightEdgeBoundary) {
+        if (this.canvasSamples.bottom[i] > -1) {
+          if (this.canvasSamples.bottom[i] <= this.testResults.aspectRatioCheck.bottomRows[1]) {
+            this.testResults.aspectRatioCheck.bottomRows[1] = this.canvasSamples.bottom[i];
+            this.testResults.aspectRatioCheck.bottomQuality[1] = 0;
+          } else if (this.canvasSamples.bottom[i] === this.testResults.aspectRatioCheck.bottomRows[1]) {
+            this.testResults.aspectRatioCheck.bottomQuality[1]++;
+          }
+        }
+        i += 2;
+      }
+
+      while (i < this.canvasSamples.bottom.length) {
+        if (this.canvasSamples.bottom[i] > -1) {
+          if (this.canvasSamples.bottom[i] <= this.testResults.aspectRatioCheck.bottomRows[2]) {
+            this.testResults.aspectRatioCheck.bottomRows[2] = this.canvasSamples.bottom[i];
+            this.testResults.aspectRatioCheck.bottomQuality[2] = 0;
+          } else if (this.canvasSamples.bottom[i] === this.testResults.aspectRatioCheck.bottomRows[2]) {
+            this.testResults.aspectRatioCheck.bottomQuality[2]++;
+          }
+        }
+        i += 2;
+      }
+    }
+
+    /**
+     * Determining our best edge candidate goes something like this:
+     *
+     *  [ start ]
+     *      |
+     *     < > Are detections from all three sections on the same row
+     *    /   \
+     *  yes    no ————> further testing needed
+     *   V                    |
+     *  valid candidate       |
+     *                       < > Are corner sections different?
+     *                       / \
+     *                     yes  no —————+
+     *                      |           |   is center section closer
+     * does any section     |          < >  to the edge of the frame?
+     * match with center?  < >         / \
+     *                     / \       no    yes ——> center gets authority
+     *                   yes  no     V
+     *                  /     |      Center result is probably bad, regardless
+     * Is center above |      |      of score. No logo + edge gets authority.
+     * the mismatched  |      |
+     *       section? < >     Topmost (closest-to-frame-edge) option wins,
+     *               /   \    but detection quality is shit.
+     *             yes    no
+     *              V       \
+     *       Not a logo.   Center authority,
+     *              V
+     * Center authority.
+     *
+     *
+     */
+    if (
+      this.testResults.aspectRatioCheck.topRows[0] === this.testResults.aspectRatioCheck.topRows[1]
+      && this.testResults.aspectRatioCheck.topRows[0] === this.testResults.aspectRatioCheck.topRows[2]
+    ) {
+      this.testResults.aspectRatioCheck.topCandidate = this.testResults.aspectRatioCheck.topRows[0];
+      this.testResults.aspectRatioCheck.topCandidateQuality =
+        this.testResults.aspectRatioCheck.topQuality[0]
+        + this.testResults.aspectRatioCheck.topQuality[1]
+        + this.testResults.aspectRatioCheck.topQuality[2];
+    } else if (
+      this.testResults.aspectRatioCheck.topRows[0] === this.testResults.aspectRatioCheck.topRows[2]
+    ) {
+
+    }
+
+    /**
+     * Check that both top and bottom candidates are approximately equally distant
+     * from the edge. If top and bottom candidates do not match, or fail to meet
+     * the edge detection threshold, then we set 'unreliable detection' flag, which
+     * will cause aspect ratio detection to be postponed.
+     *
+     * Otherwise, we set letterbox width (px from edge on detection canvas) and how
+     * far the frame is shifted off-center.
+     *
+     * If frame shifts too much off-center, we also set the 'unreliable detection' flag.
+     */
+
+    /**
+     * Calculate how dissimilar each sampling segment is from.
+     *
+     * Similarity matrix can tell us a few things:
+     *
+     * 1. If a corner is not dissimilar from center and the other corner on its respective side, then we probably don't have a logo.
+     *    our edge is also probably accurate.
+     *      * that is, unless other
+     * 2. If corner varies a lot from center and other corner, but center and other corner are similar, then we're looking at a logo
+     *
+     *
+     */
+    let r: number;
+    for (let i = 0; i < 3; i += 3) {
+      r = i * 3;
+      // similarity top - top
+      this.similarityMatrix[r] = this.testResults.aspectRatioCheck.topRows[i] - this.testResults.aspectRatioCheck.topRows[(i + 1) % 3];
+      this.similarityMatrix[r + 1] = this.testResults.aspectRatioCheck.topRows[i] - this.testResults.aspectRatioCheck.topRows[(i + 2) % 3];
+
+      // similarity top - bottom
+      this.similarityMatrix[r + 2] = this.testResults.aspectRatioCheck.topRows[i] - this.testResults.aspectRatioCheck.bottomRows[0];
+      this.similarityMatrix[r + 3] = this.testResults.aspectRatioCheck.topRows[i] - this.testResults.aspectRatioCheck.bottomRows[1];
+      this.similarityMatrix[r + 4] = this.testResults.aspectRatioCheck.topRows[i] - this.testResults.aspectRatioCheck.bottomRows[2];
+
+      // similarity bottom - bottom
+      this.similarityMatrix[r + 5] = this.testResults.aspectRatioCheck.bottomRows[i] - this.testResults.aspectRatioCheck.bottomRows[(i + 1) % 3];
+      this.similarityMatrix[r + 6] = this.testResults.aspectRatioCheck.bottomRows[i] - this.testResults.aspectRatioCheck.bottomRows[(i + 2) % 3];
+    }
+
+
+
+  }
+  //#endregion
 
 }
