@@ -381,7 +381,12 @@ class Aard {
 
         // STEP 3:
         // If we are here, we must do full aspect ratio detection.
-
+        // After aspectRatioCheck is finished, we know how wide the letterbox is.
+        this.aspectRatioCheck(
+          imageData,
+          this.settings.active.arDetect.canvasDimensions.sampleCanvas.width,
+          this.settings.active.arDetect.canvasDimensions.sampleCanvas.height
+        );
 
       } while (false);
 
@@ -964,7 +969,7 @@ class Aard {
    * @param height
    */
   private edgeScan(imageData: Uint8Array, width: number, height: number) {
-    const detectionLimit = 8; // TODO: unhardcode
+    const detectionLimit = this.settings.active.arDetect.edgeDetection.thresholds.edgeDetectionLimit;
 
     let mid = ~~(height / 2);
 
@@ -1262,9 +1267,14 @@ class Aard {
     }
   }
 
-  private similarityMatrix = new Uint16Array(21
-
-  );
+  /**
+   * Processes data gathered by edgeScan, validateEdgeScan, and sampleForGradient.
+   * It takes samples and determines how wide the letterbox actually is.
+   * @param imageData
+   * @param width
+   * @param height
+   * @returns
+   */
   private processScanResults(imageData: Uint8Array, width: number, height: number) {
     /**
      * Few things to note —
@@ -1393,7 +1403,8 @@ class Aard {
     }
 
     /**
-     * Determining our best edge candidate goes something like this:
+     * Determining our best edge candidate should, in theory, go
+     * something like this:
      *
      *  [ start ]
      *      |
@@ -1422,65 +1433,141 @@ class Aard {
      * Center authority.
      *
      *
+     * ... however ...
+     * In practice: if there's too much mismatch, we just label detection
+     * as inconclusive and do nothing. Not paid enough to figure out the
+     * worst 5% of cases.
      */
+
+    // TOP:
     if (
       this.testResults.aspectRatioCheck.topRows[0] === this.testResults.aspectRatioCheck.topRows[1]
       && this.testResults.aspectRatioCheck.topRows[0] === this.testResults.aspectRatioCheck.topRows[2]
     ) {
+      // All three detections are the same
       this.testResults.aspectRatioCheck.topCandidate = this.testResults.aspectRatioCheck.topRows[0];
       this.testResults.aspectRatioCheck.topCandidateQuality =
         this.testResults.aspectRatioCheck.topQuality[0]
         + this.testResults.aspectRatioCheck.topQuality[1]
         + this.testResults.aspectRatioCheck.topQuality[2];
-    } else if (
-      this.testResults.aspectRatioCheck.topRows[0] === this.testResults.aspectRatioCheck.topRows[2]
+    } else if (this.testResults.aspectRatioCheck.topRows[0] === this.testResults.aspectRatioCheck.topRows[2]) {
+      // Corners are the same, but different from center
+      if (this.testResults.aspectRatioCheck.topRows[0] > this.testResults.aspectRatioCheck.topRows[1]) {
+        // Corners are above center.
+        this.testResults.aspectRatioCheck.topCandidate = this.testResults.aspectRatioCheck.topRows[0];
+        this.testResults.aspectRatioCheck.topCandidateQuality =
+          this.testResults.aspectRatioCheck.topQuality[0]
+          + this.testResults.aspectRatioCheck.topQuality[2]
+      } else {
+        // Corners are below center
+        this.testResults.aspectRatioCheck.topCandidate = this.testResults.aspectRatioCheck.topRows[1];
+        this.testResults.aspectRatioCheck.topCandidateQuality = this.testResults.aspectRatioCheck.topQuality[1]
+      }
+    } else {
+      // Corners are different.
+      if (
+        this.testResults.aspectRatioCheck.topRows[0] !== this.testResults.aspectRatioCheck.topRows[1]
+        && this.testResults.aspectRatioCheck.topRows[2] !== this.testResults.aspectRatioCheck.topRows[1]
+      ) {
+        // Center and matches neither of the corners.
+        // TODO: maybe we can figure out to guess aspect ratio in scenarios like this.
+        // But for the time being, just slap it with "inconclusive".
+        this.testResults.aspectRatioUncertain = true;
+        return;
+      } else {
+        // center matches one of the corners
+        this.testResults.aspectRatioCheck.topCandidate = this.testResults.aspectRatioCheck.topRows[1];
+        this.testResults.aspectRatioCheck.topCandidateQuality = this.testResults.aspectRatioCheck.topQuality[1];
+
+        if (this.testResults.aspectRatioCheck.topRows[0] === this.testResults.aspectRatioCheck.topRows[1]) {
+          this.testResults.aspectRatioCheck.topCandidateQuality += this.testResults.aspectRatioCheck.topRows[0];
+        } else {
+          this.testResults.aspectRatioCheck.topCandidateQuality += this.testResults.aspectRatioCheck.topRows[2];
+        }
+      }
+    }
+
+    // BOTTOM:
+    if (
+      this.testResults.aspectRatioCheck.bottomRows[0] === this.testResults.aspectRatioCheck.bottomRows[1]
+      && this.testResults.aspectRatioCheck.bottomRows[0] === this.testResults.aspectRatioCheck.bottomRows[2]
     ) {
+      // All three detections are the same
+      this.testResults.aspectRatioCheck.bottomCandidate = this.testResults.aspectRatioCheck.bottomRows[0];
+      this.testResults.aspectRatioCheck.bottomCandidateQuality =
+        this.testResults.aspectRatioCheck.bottomQuality[0]
+        + this.testResults.aspectRatioCheck.bottomQuality[1]
+        + this.testResults.aspectRatioCheck.bottomQuality[2];
+    } else if (this.testResults.aspectRatioCheck.bottomRows[0] === this.testResults.aspectRatioCheck.bottomRows[2]) {
+      // Corners are the same, but different from center
+      if (this.testResults.aspectRatioCheck.bottomRows[0] > this.testResults.aspectRatioCheck.bottomRows[1]) {
+        // Corners are above center.
+        this.testResults.aspectRatioCheck.bottomCandidate = this.testResults.aspectRatioCheck.bottomRows[0];
+        this.testResults.aspectRatioCheck.bottomCandidateQuality =
+          this.testResults.aspectRatioCheck.bottomQuality[0]
+          + this.testResults.aspectRatioCheck.bottomQuality[2]
+      } else {
+        // Corners are below center
+        this.testResults.aspectRatioCheck.bottomCandidate = this.testResults.aspectRatioCheck.bottomRows[1];
+        this.testResults.aspectRatioCheck.bottomCandidateQuality = this.testResults.aspectRatioCheck.bottomQuality[1]
+      }
+    } else {
+      // Corners are different.
+      if (
+        this.testResults.aspectRatioCheck.bottomRows[0] !== this.testResults.aspectRatioCheck.bottomRows[1]
+        && this.testResults.aspectRatioCheck.bottomRows[2] !== this.testResults.aspectRatioCheck.bottomRows[1]
+      ) {
+        // Center and matches neither of the corners.
+        // TODO: maybe we can figure out to guess aspect ratio in scenarios like this.
+        // But for the time being, just slap it with "inconclusive".
+        this.testResults.aspectRatioUncertain = true;
+        return;
+      } else {
+        // center matches one of the corners
+        this.testResults.aspectRatioCheck.bottomCandidate = this.testResults.aspectRatioCheck.bottomRows[1];
+        this.testResults.aspectRatioCheck.bottomCandidateQuality = this.testResults.aspectRatioCheck.bottomQuality[1];
 
+        if (this.testResults.aspectRatioCheck.bottomRows[0] === this.testResults.aspectRatioCheck.bottomRows[1]) {
+          this.testResults.aspectRatioCheck.bottomCandidateQuality += this.testResults.aspectRatioCheck.bottomRows[0];
+        } else {
+          this.testResults.aspectRatioCheck.bottomCandidateQuality += this.testResults.aspectRatioCheck.bottomRows[2];
+        }
+      }
     }
 
     /**
-     * Check that both top and bottom candidates are approximately equally distant
-     * from the edge. If top and bottom candidates do not match, or fail to meet
-     * the edge detection threshold, then we set 'unreliable detection' flag, which
-     * will cause aspect ratio detection to be postponed.
-     *
-     * Otherwise, we set letterbox width (px from edge on detection canvas) and how
-     * far the frame is shifted off-center.
-     *
-     * If frame shifts too much off-center, we also set the 'unreliable detection' flag.
+     * Get final results.
+     * Let candidateA hold better-quality candidate, and let the candidateB hold the lower-quality candidate.
+     * candidateA must match or exceed minQualitySingleEdge and candidateB must match or exceed minQualitySecondEdge.
      */
-
-    /**
-     * Calculate how dissimilar each sampling segment is from.
-     *
-     * Similarity matrix can tell us a few things:
-     *
-     * 1. If a corner is not dissimilar from center and the other corner on its respective side, then we probably don't have a logo.
-     *    our edge is also probably accurate.
-     *      * that is, unless other
-     * 2. If corner varies a lot from center and other corner, but center and other corner are similar, then we're looking at a logo
-     *
-     *
-     */
-    let r: number;
-    for (let i = 0; i < 3; i += 3) {
-      r = i * 3;
-      // similarity top - top
-      this.similarityMatrix[r] = this.testResults.aspectRatioCheck.topRows[i] - this.testResults.aspectRatioCheck.topRows[(i + 1) % 3];
-      this.similarityMatrix[r + 1] = this.testResults.aspectRatioCheck.topRows[i] - this.testResults.aspectRatioCheck.topRows[(i + 2) % 3];
-
-      // similarity top - bottom
-      this.similarityMatrix[r + 2] = this.testResults.aspectRatioCheck.topRows[i] - this.testResults.aspectRatioCheck.bottomRows[0];
-      this.similarityMatrix[r + 3] = this.testResults.aspectRatioCheck.topRows[i] - this.testResults.aspectRatioCheck.bottomRows[1];
-      this.similarityMatrix[r + 4] = this.testResults.aspectRatioCheck.topRows[i] - this.testResults.aspectRatioCheck.bottomRows[2];
-
-      // similarity bottom - bottom
-      this.similarityMatrix[r + 5] = this.testResults.aspectRatioCheck.bottomRows[i] - this.testResults.aspectRatioCheck.bottomRows[(i + 1) % 3];
-      this.similarityMatrix[r + 6] = this.testResults.aspectRatioCheck.bottomRows[i] - this.testResults.aspectRatioCheck.bottomRows[(i + 2) % 3];
+    let candidateA, candidateB;
+    if (this.testResults.aspectRatioCheck.bottomCandidateQuality > this.testResults.aspectRatioCheck.topCandidateQuality) {
+      candidateA = this.testResults.aspectRatioCheck.bottomCandidate;
+      candidateB = this.testResults.aspectRatioCheck.topCandidate;
+    } else {
+      candidateA = this.testResults.aspectRatioCheck.topCandidate;
+      candidateB = this.testResults.aspectRatioCheck.bottomCandidate;
     }
 
+    if (
+      candidateA < this.settings.active.arDetect.edgeDetection.thresholds.minQualitySingleEdge
+      || candidateB < this.settings.active.arDetect.edgeDetection.thresholds.minQualitySecondEdge
+    ) {
+      this.testResults.aspectRatioUncertain = true;
+      return;
+    }
 
+    const maxOffset = ~~(height * this.settings.active.arDetect.edgeDetection.maxLetterboxOffset)
+    const diff = this.testResults.aspectRatioCheck.topCandidate - this.testResults.aspectRatioCheck.bottomCandidate;
+    const candidateAvg = ~~((this.testResults.aspectRatioCheck.topCandidate + this.testResults.aspectRatioCheck.bottomCandidate) / 2);
 
+    if (diff > maxOffset) {
+      this.testResults.aspectRatioUncertain = true;
+      return;
+    }
+    this.testResults.aspectRatioUncertain = false;
+    this.testResults.letterboxWidth = candidateAvg;
+    this.testResults.letterboxOffset = diff;
   }
   //#endregion
 

@@ -23,8 +23,13 @@ export interface AardTestResults {
     bottomRows: [number, number, number],
     bottomQuality: [number, number, number],
     topCandidate: number,
-    topCandidateQuality: number
+    topCandidateQuality: number,
+    bottomCandidate: number,
+    bottomCandidateQuality: number,
   },
+  aspectRatioUncertain: boolean,
+  letterboxWidth: number,
+  letterboxOffset: number,
   logoDetected: [boolean, boolean, boolean, boolean]
 }
 
@@ -52,8 +57,12 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
       bottomRows: [-1, -1, -1],
       bottomQuality: [0, 0, 0],
       topCandidate: 0,
-      topCandidateQuality: 0
+      topCandidateQuality: 0,
+      bottomCandidate: 0,
+      bottomCandidateQuality: 0,
     },
+    letterboxWidth: 0,
+    letterboxOffset: 0,
     logoDetected: [false, false, false, false]
 
   }
