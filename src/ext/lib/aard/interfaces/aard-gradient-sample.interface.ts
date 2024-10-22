@@ -37,7 +37,7 @@ export function resetGradientSamples(samples: AardGradientSamples) {
     }
   }
   if (samples.left) {
-    for (let i = 0; i < samples.left.length, i++) {
+    for (let i = 0; i < samples.left.length; i++) {
       for (let j = 0; j < samples.left[i].length; j++) {
         samples.left[i][j] = 0;
       }

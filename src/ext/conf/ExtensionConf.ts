@@ -89,8 +89,14 @@ const ExtensionConf: SettingsInterface = {
       thresholdStep: 8,                   // when failing to set aspect ratio, increase threshold by this much
       increaseAfterConsecutiveResets: 2   // increase if AR resets this many times in a row
     },
+    blackLevels: {
+      defaultBlack: 16,
+      blackTolerance: 4,
+      imageDelta: 16,
+    },
     sampling: {
-      staticCols: 9,      // we take a column at [0-n]/n-th parts along the width and sample it
+      edgePosition: 0.25,
+      staticCols: 16,      // we take a column at [0-n]/n-th parts along the width and sample it
       randomCols: 0,      // we add this many randomly selected columns to the static columns
       staticRows: 9,      // forms grid with staticSampleCols. Determined in the same way. For black frame checks
     },
@@ -103,16 +109,25 @@ const ExtensionConf: SettingsInterface = {
       edgeTolerancePx: 2,         // black edge violation is performed this far from reported 'last black pixel'
       edgeTolerancePercent: null  // unused. same as above, except use % of canvas height instead of pixels
     },
-    fallbackMode: {
-      enabled: true,
-      safetyBorderPx: 5,        // determines the thickness of safety border in fallback mode
-      noTriggerZonePx: 8        // if we detect edge less than this many pixels thick, we don't correct.
-    },
     arSwitchLimiter: {          // to be implemented
       switches: 2,              // we can switch this many times
         period: 2.0             // per this period
     },
     edgeDetection: {
+      slopeTestWidth: 8,
+      gradientTestSamples: 8,
+      gradientTestBlackThreshold: 16,
+      gradientTestDeltaThreshold: 32,
+      gradientTestMinDelta: 8,
+
+      thresholds: {
+        edgeDetectionLimit: 8,
+        minQualitySingleEdge: 6,
+        minQualitySecondEdge: 3,
+      },
+
+      maxLetterboxOffset: 0.1,
+
       sampleWidth: 8,        // we take a sample this wide for edge detection
       detectionThreshold: 4,  // sample needs to have this many non-black pixels to be a valid edge
       confirmationThreshold: 1,  //

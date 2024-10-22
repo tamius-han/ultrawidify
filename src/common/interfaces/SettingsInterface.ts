@@ -166,9 +166,9 @@ export interface AardSettings {
     gradientTestMinDelta: number,        // if last pixels of the test sample is less than this brighter than the first -> not gradient
 
     thresholds: {
-      edgeDetectionLimit: 8,             // during scanning of the edge, quit after edge gets detected at this many points
-      minQualitySingleEdge: 6,           // At least one of the detected must reach this quality
-      minQualitySecondEdge: 3,           // The other edge must reach this quality (must be smaller or equal to single edge quality)
+      edgeDetectionLimit: number,             // during scanning of the edge, quit after edge gets detected at this many points
+      minQualitySingleEdge: number,           // At least one of the detected must reach this quality
+      minQualitySecondEdge: number,           // The other edge must reach this quality (must be smaller or equal to single edge quality)
     }
 
     maxLetterboxOffset: 0.1,             // Upper and lower letterbox can be different by this many (% of height)
