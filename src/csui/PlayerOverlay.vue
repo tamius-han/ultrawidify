@@ -6,9 +6,60 @@
     :style="uwTriggerRegionConf"
     @mouseenter="showUwWindow"
   >
-    <h1>Aspect ratio controls</h1>
-    <div>Hover to activate</div>
+    <!-- <h1>Aspect ratio controls</h1>
+    <div>Hover to activate</div> -->
+    [ |> ]
+
   </div>
+
+  <div class="context-spawn uw-clickable">
+
+    <GhettoContextMenu alignment="right">
+      <template v-slot:activator>
+        <div class="context-item">
+          Ultrawidify
+        </div>
+        </template>
+      <slot>
+        <div class="menu-width">
+        <GhettoContextMenu alignment="right">
+          <template v-slot:activator>
+            <div class="context-item">
+              Crop
+            </div>
+          </template>
+          <slot>
+            <div>MEnu item 1</div>
+            <div>Menu item 2</div>
+            <div>Menu item 3</div>
+          </slot>
+        </GhettoContextMenu>
+        <GhettoContextMenu alignment="right">
+          <template v-slot:activator>
+            <div class="context-item">
+              Stretch
+            </div>
+          </template>
+          <slot>
+            <div>Menu item 4</div>
+            <div>Menu item 5</div>
+            <div>Menu item 6</div>
+          </slot>
+        </GhettoContextMenu>
+        <GhettoContextMenu alignment="right">
+          <template v-slot:activator>
+            <div class="context-item">
+              Align
+            </div>
+          </template>
+        </GhettoContextMenu>
+        <button @click="showUiWindow()">Extension settings</button>
+        <button @click="showUiWindow()">Not working?</button>
+        </div>
+      </slot>
+    </GhettoContextMenu>
+  </div>
+
 
   <div
     v-if="settingsInitialized && uwWindowVisible"
@@ -30,7 +81,8 @@
 </template>
 
 <script>
-import PlayerUIWindow from './src/PlayerUIWindow.vue'
+import PlayerUIWindow from './src/PlayerUIWindow.vue';
+import GhettoContextMenu from './src/components/GhettoContextMenu.vue';
 import BrowserDetect from '../ext/conf/BrowserDetect';
 import Logger from '../ext/lib/Logger';
 import Settings from '../ext/lib/Settings';
@@ -39,7 +91,8 @@ import UIProbeMixin from './src/utils/UIProbeMixin';
 
 export default {
   components: {
-    PlayerUIWindow
+    PlayerUIWindow,
+    GhettoContextMenu
   },
   mixins: [
     UIProbeMixin
@@ -302,7 +355,6 @@ export default {
 
 .uw-hover {
   position: absolute;
-
   z-index: 999999999999999999;
 }
 
@@ -339,6 +391,33 @@ export default {
     opacity: 0;
     transition: opacity 0.5s;
     transition-delay: 0.5s;
+  }
+}
+
+
+.context-spawn {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  align-items: center;
+  // width: 100%;
+  // height: 100%;
+
+  padding: 2rem;
+
+  color: #fff;
+
+  .context-item {
+    font-size: .95rem;
+    padding: 1rem 1.6rem;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(16px) saturate(120%);
+
+    white-space: nowrap;
   }
 }
 
