@@ -709,38 +709,11 @@ class VideoData {
   //#endregion
 
   //#region shit that gets propagated to resizer and should be removed. Implement an event bus instead
-
-  panHandler(event, forcePan?: boolean) {
-    if (this.invalid) {
-      return;
-    }
-    if(this.destroyed) {
-      // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
-      return;
-    }
-    if(!this.resizer) {
-      this.destroy();
-      return;
-    }
-    this.resizer.panHandler(event, forcePan);
-  }
-
-  setPanMode(mode) {
-    if (this.invalid) {
-      return;
-    }
-    this.resizer.setPanMode(mode);
-  }
-
   restoreAr(){
     if (this.invalid) {
       return;
     }
     this.resizer.restore();
-  }
-
-  isPlaying() {
-    return this.video && this.video.currentTime > 0 && !this.video.paused && !this.video.ended;
   }
   //#endregion
 

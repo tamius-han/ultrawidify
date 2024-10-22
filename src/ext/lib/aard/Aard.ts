@@ -8,7 +8,7 @@ import { GlCanvas } from './gl/GlCanvas';
 import { AardCanvasStore } from './interfaces/aard-canvas-store.interface';
 import { AardDetectionSample, generateSampleArray } from './interfaces/aard-detection-sample.interface';
 import { AardStatus, initAardStatus } from './interfaces/aard-status.interface';
-import { AardTestResults, initAardTestResults } from './interfaces/aard-test-results.interface';
+import { AardTestResults, initAardTestResults, resetAardTestResults } from './interfaces/aard-test-results.interface';
 import { AardTimers, initAardTimers } from './interfaces/aard-timers.interface';
 
 
@@ -214,7 +214,7 @@ class Aard {
 
   //#region configuration parameters
   private logger: Logger;
-  private conf: VideoData;
+  private videoData: VideoData;
   private settings: Settings;
   private eventBus: EventBus;
   private arid: string;
@@ -256,7 +256,7 @@ class Aard {
   //#region lifecycle
   constructor(videoData: VideoData){
     this.logger = videoData.logger;
-    this.conf = videoData;
+    this.videoData = videoData;
     this.video = videoData.video;
     this.settings = videoData.settings;
     this.eventBus = videoData.eventBus;
@@ -284,6 +284,10 @@ class Aard {
     }
   }
 
+  /**
+   * Initializes Aard with default values and starts autodetection loop.
+   * This method should only ever be called from constructor.
+   */
   private init() {
     this.canvasStore = {
       main: new GlCanvas(new GlCanvas(this.settings.active.arDetect.canvasDimensions.sampleCanvas)),
@@ -300,16 +304,17 @@ class Aard {
       ),
     };
 
-
     this.start();
   }
-
-
   //#endregion
+
+  /**
+   * Starts autodetection loop.
+   */
   start() {
-    if (this.conf.resizer.lastAr.type === AspectRatioType.AutomaticUpdate) {
+    if (this.videoData.resizer.lastAr.type === AspectRatioType.AutomaticUpdate) {
       // ensure first autodetection will run in any case
-      this.conf.resizer.lastAr = {type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr};
+      this.videoData.resizer.lastAr = {type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr};
     }
 
     if (this.animationFrame) {
@@ -318,15 +323,63 @@ class Aard {
 
     this.status.aardActive = true;
     this.animationFrame = window.requestAnimationFrame( (ts: DOMHighResTimeStamp) => this.onAnimationFrame(ts));
-    // this.logger.log('info', 'debug', `"%c[ArDetect::startLoop] <@${this.arid}> AARD loop started.`, _ard_console_start);
+  }
+
+  /**
+   * Runs autodetection ONCE.
+   * If autodetection loop is running, this will also stop autodetection loop.
+   */
+  step() {
+    this.stop();
+    this.main();
+  }
+
+  /**
+   * Stops autodetection.
+   */
+  stop() {
+    if (this.animationFrame) {
+      window.cancelAnimationFrame(this.animationFrame);
+    }
+  }
+
+  //#region animationFrame, scheduling, and other shit
+  /**
+   * Checks whether conditions for granting a frame check are fulfilled
+   * @returns
+   */
+  private canTriggerFrameCheck() {
+    // if (this._paused || this._halted || this._exited) {
+    //   return false;
+    // }
+
+    // if video was paused & we know that we already checked that frame,
+    // we will not check it again.
+    const videoState = this.getVideoPlaybackState();
+
+    if (videoState !== VideoPlaybackState.Playing) {
+      if (this.status.lastVideoStatus === videoState) {
+        return false;
+      }
+    }
+    this.status.lastVideoStatus = videoState;
+
+    if (Date.now() < this.timers.nextFrameCheckTime) {
+      return false;
+    }
+
+    this.timers.nextFrameCheckTime = Date.now() + this.settings.active.arDetect.timers.playing;
+    return true;
   }
 
   private onAnimationFrame(ts: DOMHighResTimeStamp) {
     if (this.canTriggerFrameCheck()) {
+      resetAardTestResults(this.testResults);
       this.main();
     }
     this.animationFrame = window.requestAnimationFrame( (ts: DOMHighResTimeStamp) => this.onAnimationFrame(ts));
   }
+  //#endregion
 
   /**
    * Main loop for scanning aspect ratio changes
@@ -390,41 +443,32 @@ class Aard {
 
       } while (false);
 
+      // TODO: subtitle check goes here.
+      // Note that subtitle check should reset aspect ratio outright, regardless of what other tests revealed.
+      // Also note that subtitle check should run on newest aspect ratio data, rather than lag one frame behind
+      // But implementation details are something for future Tam to figure out
+
+      // if detection is uncertain, we don't do anything at all
+      if (this.testResults.aspectRatioUncertain) {
+        return;
+      }
+
       // TODO: emit debug values if debugging is enabled
       this.testResults.isFinished = true;
+
+      // if edge width changed, emit update event.
+      if (this.testResults.aspectRatioUpdated) {
+        this.videoData.resizer.updateAr({
+          type: AspectRatioType.AutomaticUpdate,
+          ratio: this.getAr(),
+          offset: this.testResults.letterboxOffset
+        });
+      }
     } catch (e) {
       console.warn('[Ultrawidify] Aspect ratio autodetection crashed for some reason.\n\nsome reason:', e);
+      this.videoData.resizer.setAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
     }
   }
-
-  /**
-   * Checks whether conditions for granting a frame check are fulfilled
-   * @returns
-   */
-  private canTriggerFrameCheck() {
-    // if (this._paused || this._halted || this._exited) {
-    //   return false;
-    // }
-
-    // if video was paused & we know that we already checked that frame,
-    // we will not check it again.
-    const videoState = this.getVideoPlaybackState();
-
-    if (videoState !== VideoPlaybackState.Playing) {
-      if (this.status.lastVideoStatus === videoState) {
-        return false;
-      }
-    }
-    this.status.lastVideoStatus = videoState;
-
-    if (Date.now() < this.timers.nextFrameCheckTime) {
-      return false;
-    }
-
-    this.timers.nextFrameCheckTime = Date.now() + this.settings.active.arDetect.timers.playing;
-    return true;
-  }
-
 
   private getVideoPlaybackState(): VideoPlaybackState {
     try {
@@ -1568,7 +1612,22 @@ class Aard {
     this.testResults.aspectRatioUncertain = false;
     this.testResults.letterboxWidth = candidateAvg;
     this.testResults.letterboxOffset = diff;
+    this.testResults.aspectRatioUpdated = true;
   }
+
+  /**
+   * Calculates video's current aspect ratio based on data in testResults.
+   * @returns
+   */
+  private getAr() {
+    const fileAr = this.video.videoWidth / this.video.videoHeight;
+    const canvasAr = this.canvasStore.main.width / this.canvasStore.main.height;
+
+    const compensatedWidth = fileAr === canvasAr ? this.canvasStore.main.width : this.canvasStore.main.width * fileAr;
+
+    return compensatedWidth / (this.canvasStore.main.height - (this.testResults.letterboxWidth * 2));
+  }
+
   //#endregion
 
 }

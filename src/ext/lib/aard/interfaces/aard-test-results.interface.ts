@@ -28,6 +28,7 @@ export interface AardTestResults {
     bottomCandidateQuality: number,
   },
   aspectRatioUncertain: boolean,
+  aspectRatioUpdated: boolean,
   letterboxWidth: number,
   letterboxOffset: number,
   logoDetected: [boolean, boolean, boolean, boolean]
@@ -61,10 +62,11 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
       bottomCandidate: 0,
       bottomCandidateQuality: 0,
     },
+    aspectRatioUncertain: false,
+    aspectRatioUpdated: false,
     letterboxWidth: 0,
     letterboxOffset: 0,
     logoDetected: [false, false, false, false]
-
   }
 }
 
@@ -77,4 +79,7 @@ export function resetAardTestResults(results: AardTestResults): void {
   results.guardLine.cornerViolations[1] = false;
   results.guardLine.cornerViolations[2] = false;
   results.guardLine.cornerViolations[3] = false;
+  results.letterboxWidth = 0;
+  results.letterboxOffset = 0;
+  results.aspectRatioUpdated = false;
 }
