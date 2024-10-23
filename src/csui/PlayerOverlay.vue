@@ -1,18 +1,10 @@
 <template>
-
   <div
-    v-if="settingsInitialized && uwTriggerZoneVisible && !isGlobal"
-    class="uw-hover uv-hover-trigger-region uw-clickable"
-    :style="uwTriggerRegionConf"
-    @mouseenter="showUwWindow"
+    v-if="contextMenuActive || settingsInitialized && uwTriggerZoneVisible && !isGlobal"
+    class="context-spawn uw-clickable"
+    @mouseenter="preventContextMenuHide()"
+    @mouseleave="allowContextMenuHide()"
   >
-    <!-- <h1>Aspect ratio controls</h1>
-    <div>Hover to activate</div> -->
-    [ |> ]
-
-  </div>
-
-  <div class="context-spawn uw-clickable">
 
     <GhettoContextMenu alignment="right">
       <template v-slot:activator>
@@ -22,28 +14,43 @@
         </template>
       <slot>
         <div class="menu-width">
+        <GhettoContextMenuItem :disableHover="true" :css="{'ard-blocked': true}">
+          <div v-if="statusFlags.hasDrm || true" class="smallcaps text-center">
+            <b>NOTE:</b><br/>
+            <b>Autodetection<br/>blocked by website</b>
+          </div>
+          <div>
+
+          </div>
+        </GhettoContextMenuItem>
         <GhettoContextMenu alignment="right">
           <template v-slot:activator>
-            <div class="context-item">
-              Crop
-            </div>
+            Crop
           </template>
           <slot>
-            <div>MEnu item 1</div>
-            <div>Menu item 2</div>
-            <div>Menu item 3</div>
+            <GhettoContextMenuOption
+              v-for="(command, index) of settings?.active.commands.crop"
+              :key="index"
+              :label="command.label"
+              :shortcut="getKeyboardShortcutLabel(command)"
+              @click="execAction(command)"
+            >
+            </GhettoContextMenuOption>
           </slot>
         </GhettoContextMenu>
         <GhettoContextMenu alignment="right">
           <template v-slot:activator>
-            <div class="context-item">
-              Stretch
-            </div>
+            Stretch
           </template>
           <slot>
-            <div>Menu item 4</div>
-            <div>Menu item 5</div>
-            <div>Menu item 6</div>
+            <GhettoContextMenuOption
+              v-for="(command, index) of settings?.active.commands.stretch"
+              :key="index"
+              :label="command.label"
+              :shortcut="getKeyboardShortcutLabel(command)"
+              @click="execAction(command)"
+            >
+            </GhettoContextMenuOption>
           </slot>
         </GhettoContextMenu>
         <GhettoContextMenu alignment="right">
@@ -52,9 +59,21 @@
               Align
             </div>
           </template>
+          <slot>
+            <GhettoContextMenuItem :disableHover="true" :css="{'reduced-padding': true}">
+              <AlignmentOptionsControlComponent
+                :eventBus="eventBus"
+              >
+              </AlignmentOptionsControlComponent>
+            </GhettoContextMenuItem>
+          </slot>
         </GhettoContextMenu>
-        <button @click="showUiWindow()">Extension settings</button>
-        <button @click="showUiWindow()">Not working?</button>
+        <GhettoContextMenuOption
+          @click="showUwWindow()"
+          label="Extension settings"
+        >
+        </GhettoContextMenuOption>
+        <button @click="showUwWindow()">Not working?</button>
         </div>
       </slot>
     </GhettoContextMenu>
@@ -65,8 +84,6 @@
     v-if="settingsInitialized && uwWindowVisible"
     class="uw-window flex flex-col uw-clickable"
     :class="{'fade-out': uwWindowFadeOut}"
-    @mouseenter="cancelUwWindowHide"
-    @mouseleave="hideUwWindow()"
   >
     <PlayerUIWindow
       :settings="settings"
@@ -83,19 +100,29 @@
 <script>
 import PlayerUIWindow from './src/PlayerUIWindow.vue';
 import GhettoContextMenu from './src/components/GhettoContextMenu.vue';
+import GhettoContextMenuItem from './src/components/GhettoContextMenuItem.vue';
+import GhettoContextMenuOption from './src/components/GhettoContextMenuOption.vue';
+import AlignmentOptionsControlComponent from './src/PlayerUiPanels/AlignmentOptionsControlComponent.vue';
 import BrowserDetect from '../ext/conf/BrowserDetect';
 import Logger from '../ext/lib/Logger';
 import Settings from '../ext/lib/Settings';
 import EventBus from '../ext/lib/EventBus';
 import UIProbeMixin from './src/utils/UIProbeMixin';
+import KeyboardShortcutParserMixin from './src/utils/KeyboardShortcutParserMixin';
+import CommsMixin from './src/utils/CommsMixin';
 
 export default {
   components: {
     PlayerUIWindow,
-    GhettoContextMenu
+    GhettoContextMenu,
+    GhettoContextMenuItem,
+    GhettoContextMenuOption,
+    AlignmentOptionsControlComponent,
   },
   mixins: [
-    UIProbeMixin
+    UIProbeMixin,
+    KeyboardShortcutParserMixin,
+    CommsMixin
   ],
   data() {
     return {
@@ -131,6 +158,8 @@ export default {
 
       isGlobal: true,
       disabled: false,
+
+      contextMenuActive: false,
 
       uiVisible: true,
       debugData: {
@@ -294,6 +323,15 @@ export default {
       );
     },
 
+    preventContextMenuHide() {
+      console.log('entered context menu ...');
+      this.contextMenuActive = true;
+    },
+    allowContextMenuHide() {
+      console.log('exited context menu ...');
+      this.contextMenuActive = false;
+    },
+
     showUwWindow() {
       this.uwWindowFadeOut = false;
       this.uwWindowVisible = true;
@@ -343,7 +381,12 @@ export default {
   }
 }
 </script>
-
+<style lang="scss">
+.ard-blocked {
+  color: rgb(219, 125, 48) !important;
+  background-color: rgba(0,0,0,0.85) !important;
+}
+</style>
 <style lang="scss" scoped>
 @import 'res/css/uwui-base.scss';
 @import 'res/css/colors.scss';
@@ -352,10 +395,13 @@ export default {
 @import 'res/css/common.scss';
 @import './src/res-common/_variables';
 
-
 .uw-hover {
   position: absolute;
   z-index: 999999999999999999;
+}
+
+.reduced-padding {
+  padding: 1rem !important;
 }
 
 .uv-hover-trigger-region {
@@ -394,6 +440,14 @@ export default {
   }
 }
 
+.gib-bg {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(16px) saturate(120%);
+
+  width: fit-content;
+  block-size: fit-content;
+}
+
 
 .context-spawn {
   position: absolute;
@@ -411,14 +465,14 @@ export default {
 
   color: #fff;
 
-  .context-item {
-    font-size: .95rem;
-    padding: 1rem 1.6rem;
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(16px) saturate(120%);
+  // .context-item {
+  //   font-size: .95rem;
+  //   padding: 1rem 1.6rem;
+  //   background-color: rgba(0, 0, 0, 0.5);
+  //   backdrop-filter: blur(16px) saturate(120%);
 
-    white-space: nowrap;
-  }
+  //   white-space: nowrap;
+  // }
 }
 
 </style>

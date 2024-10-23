@@ -1,28 +1,37 @@
 <template>
   <div class="context-container" @mouseleave="hideContextMenu()">
-    <div class="activator"
+    <GhettoContextMenuItem
+      class="activator"
+      :css="{
+        'expand-left': alignment === 'left',
+        'expand-right': alignment === 'right',
+      }"
       @click="showContextMenu()"
       @mouseenter="showContextMenu()"
     >
       <slot name="activator"></slot>
+    </GhettoContextMenuItem>
+    <div
+      v-if="contextMenuVisible"
+      class="context-menu"
+      :class="{
+        'menu-left': alignment === 'left',
+        'menu-right': alignment === 'right'
+      }"
+      @mouseleave="hideContextMenu()"
+    >
+      <slot></slot>
     </div>
-      <div
-        v-if="contextMenuVisible"
-        class="context-menu"
-        :class="{
-          'menu-left': alignment === 'left',
-          'menu-right': alignment !== 'left'
-        }"
-        @mouseleave="hideContextMenu()"
-      >
-        <slot></slot>
-      </div>
   </div>
 
 </template>
 <script>
+import GhettoContextMenuItem from './GhettoContextMenuItem.vue';
 
 export default {
+  components: {
+    GhettoContextMenuItem,
+  },
   props: {
     alignment: String,
   },
@@ -40,12 +49,12 @@ export default {
     hideContextMenu() {
       this.contextMenuHideTimeout = setTimeout( () => {
         this.contextMenuVisible = false;
-      }, 250);
+      }, 50);
     }
   }
 }
 </script>
-<style>
+<style lang="scss" scoped>
 .context-container {
   position: relative;
 }
@@ -67,5 +76,44 @@ export default {
 .menu-right {
   left: 100%;
 }
+</style>
+<style lang="scss">
+.activator {
+  position: relative;
+  padding: 1rem 1.6rem;
 
+  font-size: .95rem;
+  padding: 1rem 1.6rem;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(16px) saturate(120%);
+
+  white-space: nowrap;
+  &:hover {
+    background-color: rgba(255, 128, 64, 0.5);
+  }
+
+  &.expand-left {
+    padding-left: 2.2rem;
+  }
+  &.expand-right {
+    padding-right: 2.2rem;
+  }
+
+  &.expand-left::before,
+  &.expand-right::after {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.88rem;
+  }
+
+  &.expand-left::before {
+    content: '⮜';
+    left: 0.5rem;
+  }
+  &.expand-right::after {
+    content: '⮞';
+    right: 0.5rem;
+  }
+}
 </style>

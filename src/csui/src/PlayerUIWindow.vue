@@ -105,13 +105,13 @@
 
         <div class="flex flex-row panel-content">
           <!-- Panel section -->
-          <VideoSettings
+          <!-- <VideoSettings
             v-if="selectedTab === 'videoSettings'"
             :settings="settings"
             :siteSettings="siteSettings"
             :eventBus="eventBus"
             :site="site"
-          ></VideoSettings>
+          ></VideoSettings> -->
           <PlayerDetectionPanel
             v-if="selectedTab === 'playerDetection'"
             :siteSettings="siteSettings"
@@ -180,16 +180,16 @@ export default {
       },
 
       tabs: [
-        {id: 'videoSettings', label: 'Video settings', icon: 'crop'},
-        {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
+        // {id: 'videoSettings', label: 'Video settings', icon: 'crop'},
         {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
+        {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
         // {id: 'autodetectionSettings', label: 'Autodetection options', icon: ''},
         // {id: 'advancedOptions', label: 'Advanced options', icon: 'cogs' },
         // {id: 'debugging', label: 'Debugging', icon: 'bug-outline' }
         {id: 'changelog', label: 'What\'s new', icon: 'information-box-outline' },
         {id: 'about', label: 'About', icon: 'star-four-points-circle'}
       ],
-      selectedTab: 'videoSettings',
+      selectedTab: 'extensionSettings',
       BrowserDetect: BrowserDetect,
       preventClose: false,
       siteSettings: null,
