@@ -4,6 +4,7 @@ import { GlCanvasBuffers, initBuffers } from './gl-init';
 export interface GlCanvasOptions {
   width: number;
   height: number;
+  id?: string;
 }
 
 // Vertex shader program
@@ -91,17 +92,19 @@ export class GlCanvas {
 
   constructor(options: GlCanvasOptions) {
     this.canvas = document.createElement('canvas');
+    this.canvas.setAttribute('width', `${options.width}`);
+    this.canvas.setAttribute('height', `${options.height}`);
+
     this.gl = this.canvas.getContext('webgl');
 
     if (!this.gl) {
       throw new Error('WebGL not supported');
     }
-
-    this.canvas.width = options.width;
-    this.canvas.height = options.height;
+    if(options.id) {
+      this.canvas.setAttribute('id', options.id);
+    }
 
     this.frameBufferSize = options.width * options.height * 4;
-
     this.initWebgl();
   }
 
@@ -121,6 +124,24 @@ export class GlCanvas {
   getImageData(): Uint8Array {
     this.gl.readPixels(0, 0, this.canvas.width, this.canvas.height, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.frameBuffer);
     return this.frameBuffer;
+  }
+
+  showCanvas() {
+    this.canvas.style.display = 'block';
+    this.canvas.style.position = 'fixed';
+    this.canvas.style.left = '0px';
+    this.canvas.style.top = '0px';
+    this.canvas.style.border = '1px dotted red';
+    this.canvas.style.zIndex = '1000000';
+    document.body.appendChild(this.canvas);
+  }
+
+  hideCanvas() {
+    this.canvas.style.display = '';
+    this.canvas.style.position = '';
+    this.canvas.style.left = '';
+    this.canvas.style.top = '';
+    this.canvas.remove();
   }
 
   /**

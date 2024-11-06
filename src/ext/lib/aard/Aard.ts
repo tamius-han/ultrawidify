@@ -290,8 +290,9 @@ class Aard {
    */
   private init() {
     this.canvasStore = {
-      main: new GlCanvas(new GlCanvas(this.settings.active.arDetect.canvasDimensions.sampleCanvas)),
+      main: new GlCanvas(new GlCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-gl'})),
     };
+
 
     this.canvasSamples = {
       top: generateSampleArray(
