@@ -4,9 +4,10 @@ import Logger from '../Logger';
 import Settings from '../Settings';
 import VideoData from '../video-data/VideoData';
 import { Corner } from './enums/corner.enum';
+import { VideoPlaybackState } from './enums/video-playback-state.enum';
 import { GlCanvas } from './gl/GlCanvas';
 import { AardCanvasStore } from './interfaces/aard-canvas-store.interface';
-import { AardDetectionSample, generateSampleArray } from './interfaces/aard-detection-sample.interface';
+import { AardDetectionSample, generateSampleArray, resetSamples } from './interfaces/aard-detection-sample.interface';
 import { AardStatus, initAardStatus } from './interfaces/aard-status.interface';
 import { AardTestResults, initAardTestResults, resetAardTestResults } from './interfaces/aard-test-results.interface';
 import { AardTimers, initAardTimers } from './interfaces/aard-timers.interface';
@@ -210,7 +211,7 @@ import { AardTimers, initAardTimers } from './interfaces/aard-timers.interface';
  *  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
  *
  */
-class Aard {
+export class Aard {
 
   //#region configuration parameters
   private logger: Logger;
@@ -376,7 +377,9 @@ class Aard {
   private onAnimationFrame(ts: DOMHighResTimeStamp) {
     if (this.canTriggerFrameCheck()) {
       resetAardTestResults(this.testResults);
+      resetSamples(this.canvasSamples);
       this.main();
+    } else {
     }
     this.animationFrame = window.requestAnimationFrame( (ts: DOMHighResTimeStamp) => this.onAnimationFrame(ts));
   }
@@ -427,7 +430,8 @@ class Aard {
             this.settings.active.arDetect.canvasDimensions.sampleCanvas.height
           );
         }
-        if (! this.testResults.imageLine.invalidated) {
+        // Both need to be checked
+        if (! (this.testResults.imageLine.invalidated || this.testResults.guardLine.invalidated)) {
           // TODO: ensure no aspect ratio changes happen
           this.testResults.lastStage = 2;
           break;
@@ -625,6 +629,10 @@ class Aard {
       || this.testResults.guardLine.bottom < 0
       || this.testResults.guardLine.bottom > height
     ) {
+      // we also need to reset guardline if out-of-bounds was detected,
+      // otherwise edgeScan might not work correctly
+      this.testResults.guardLine.top = -1;
+      this.testResults.guardLine.bottom = -1;
       this.testResults.guardLine.invalidated = true;
       return;
     }
@@ -1047,7 +1055,7 @@ class Aard {
 
     // Detect upper edge
     {
-      row = topStart;
+      row = Math.max(topStart, 0);
       x = 0;
       isImage = false;
       finishedRows = 0;
@@ -1063,16 +1071,16 @@ class Aard {
 
           // check for image, after we're done `x` points to alpha channel
           isImage =
-            imageData[rowOffset + x++] > this.testResults.blackLevel
-            || imageData[rowOffset + x++] > this.testResults.blackLevel
-            || imageData[rowOffset + x++] > this.testResults.blackLevel;
+            imageData[rowOffset + x] > this.testResults.blackLevel
+            || imageData[rowOffset + x + 1] > this.testResults.blackLevel
+            || imageData[rowOffset + x + 2] > this.testResults.blackLevel;
 
           if (!isImage) {
             // TODO: maybe some day mark this pixel as checked by writing to alpha channel
             i++;
             continue;
           }
-          if (!this.canvasSamples.top[i]) {
+          if (this.canvasSamples.top[i] === -1) {
             this.canvasSamples.top[i] = row;
             finishedRows++;
           }
@@ -1111,16 +1119,16 @@ class Aard {
 
           // check for image, after we're done `x` points to alpha channel
           isImage =
-            imageData[rowOffset + x++] > this.testResults.blackLevel
-            || imageData[rowOffset + x++] > this.testResults.blackLevel
-            || imageData[rowOffset + x++] > this.testResults.blackLevel;
+            imageData[rowOffset + x] > this.testResults.blackLevel
+            || imageData[rowOffset + x + 1] > this.testResults.blackLevel
+            || imageData[rowOffset + x + 2] > this.testResults.blackLevel;
 
           if (!isImage) {
             // TODO: maybe some day mark this pixel as checked by writing to alpha channel
             i++;
             continue;
           }
-          if (!this.canvasSamples.bottom[i]) {
+          if (this.canvasSamples.bottom[i] === -1) {
             this.canvasSamples.bottom[i] = row;
             finishedRows++;
           }
@@ -1131,8 +1139,6 @@ class Aard {
         if (finishedRows >= detectionLimit) {
           break;
         }
-
-        row++;
       }
     }
   }
@@ -1306,7 +1312,7 @@ class Aard {
       // didn't change meaningfully from the first, in which chance we aren't. If the brightness increased
       // anywhere between 'not enough' and 'too much', we mark the measurement as invalid.
       if (lastSubpixel - firstSubpixel > this.settings.active.arDetect.edgeDetection.gradientTestMinDelta) {
-        this.canvasSamples.top[i] = -1;
+        this.canvasSamples.bottom[i] = -1;
       }
 
     }
@@ -1609,6 +1615,12 @@ class Aard {
     if (diff > maxOffset) {
       this.testResults.aspectRatioUncertain = true;
       return;
+    }
+    if (maxOffset > 2) {
+      this.testResults.imageLine.top = this.testResults.aspectRatioCheck.topCandidate === Infinity ? -1 : this.testResults.aspectRatioCheck.topCandidate;
+      this.testResults.imageLine.bottom = this.testResults.aspectRatioCheck.bottomCandidate === Infinity ? -1 : this.testResults.aspectRatioCheck.bottomCandidate;
+      this.testResults.guardLine.top = Math.max(this.testResults.imageLine.top - 2, 0);
+      this.testResults.guardLine.bottom = Math.max(this.testResults.imageLine.bottom + 2, this.canvasStore.main.height - 1);
     }
     this.testResults.aspectRatioUncertain = false;
     this.testResults.letterboxWidth = candidateAvg;

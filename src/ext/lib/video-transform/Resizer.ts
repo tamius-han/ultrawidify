@@ -286,10 +286,10 @@ class Resizer {
 
     // handle autodetection stuff
     if (ar.type === AspectRatioType.Automatic) {
-      this.videoData.arDetector?.start();
+      this.videoData.aard?.start();
       return;
     } else if (ar.type !== AspectRatioType.AutomaticUpdate) {
-      this.videoData.arDetector?.stop();
+      this.videoData.aard?.stop();
     }
 
     if (ar.type !== AspectRatioType.AutomaticUpdate) {
@@ -357,11 +357,11 @@ class Resizer {
     //
     // unpause when using other modes
     if ((ar.type !== AspectRatioType.Automatic && ar.type !== AspectRatioType.AutomaticUpdate) || this.stretcher.mode === StretchType.Basic) {
-      this.videoData?.arDetector?.pause();
+      this.videoData?.aard?.stop();
     } else {
       if (ar.type !== AspectRatioType.AutomaticUpdate) {
         if (this.lastAr.type === AspectRatioType.Automatic || this.lastAr.type === AspectRatioType.AutomaticUpdate) {
-          this.videoData?.arDetector?.unpause();
+          this.videoData?.aard?.stop();
         }
       }
     }

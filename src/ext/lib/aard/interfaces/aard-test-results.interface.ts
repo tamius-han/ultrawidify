@@ -74,7 +74,8 @@ export function resetAardTestResults(results: AardTestResults): void {
   results.isFinished = false;
   results.lastStage = 0;
   results.notLetterbox = false;
-  results.guardLine.invalidated = false
+  results.imageLine.invalidated = false;
+  results.guardLine.invalidated = false;
   results.guardLine.cornerViolations[0] = false;
   results.guardLine.cornerViolations[1] = false;
   results.guardLine.cornerViolations[2] = false;

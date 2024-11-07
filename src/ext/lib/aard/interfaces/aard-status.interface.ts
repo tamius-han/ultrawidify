@@ -1,3 +1,5 @@
+import {VideoPlaybackState} from '../enums/video-playback-state.enum';
+
 export interface AardStatus {
   aardActive: boolean,
   checkInProgress: boolean,

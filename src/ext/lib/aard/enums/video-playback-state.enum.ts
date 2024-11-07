@@ -1,4 +1,4 @@
-enum VideoPlaybackState {
+export enum VideoPlaybackState {
   NotInitialized,
   Playing,
   Paused,

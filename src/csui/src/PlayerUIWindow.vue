@@ -183,7 +183,7 @@ export default {
         // {id: 'videoSettings', label: 'Video settings', icon: 'crop'},
         {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
         {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
-        // {id: 'autodetectionSettings', label: 'Autodetection options', icon: ''},
+        {id: 'autodetectionSettings', label: 'Autodetection options', icon: ''},
         // {id: 'advancedOptions', label: 'Advanced options', icon: 'cogs' },
         // {id: 'debugging', label: 'Debugging', icon: 'bug-outline' }
         {id: 'changelog', label: 'What\'s new', icon: 'information-box-outline' },

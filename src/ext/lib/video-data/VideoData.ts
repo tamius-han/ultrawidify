@@ -1,7 +1,6 @@
 import Debug from '../../conf/Debug';
 import PlayerData from './PlayerData';
 import Resizer from '../video-transform/Resizer';
-import ArDetector from '../ar-detect/ArDetector';
 import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
 import CropModePersistence from '../../../common/enums/CropModePersistence.enum';
 import * as _ from 'lodash';
@@ -16,6 +15,7 @@ import { SiteSettings } from '../settings/SiteSettings';
 import { Ar } from '../../../common/interfaces/ArInterface';
 import { ExtensionStatus } from './ExtensionStatus';
 import { RunLevel } from '../../enum/run-level.enum';
+import { Aard } from '../aard/Aard';
 
 /**
  * VideoData — handles CSS for the video element.
@@ -70,7 +70,9 @@ class VideoData {
   pageInfo: PageInfo;
   player: PlayerData;
   resizer: Resizer;
-  arDetector: ArDetector;
+
+  aard: Aard;
+
   eventBus: EventBus;
   extensionStatus: ExtensionStatus;
   //#endregion
@@ -240,7 +242,15 @@ class VideoData {
       return;
     }
     this.resizer = new Resizer(this);
-    this.arDetector = new ArDetector(this);  // this starts Ar detection. needs optional parameter that prevents ArDetector from starting
+
+    console.log('before init aard');
+    try {
+      this.aard = new Aard(this);  // this starts Ar detection. needs optional parameter that prevents ArDetector from starting
+      console.log('after init aard');
+    } catch (e) {
+      console.error('Failed to start Aard!', e);
+    }
+
 
     this.logger.log('info', ['debug', 'init'], '[VideoData::ctor] Created videoData with vdid', this.vdid);
 
@@ -358,10 +368,10 @@ class VideoData {
     this.eventBus?.unsetUpstreamBus();
 
     try {
-      this.arDetector.stop();
-      this.arDetector.destroy();
+      this.aard.stop();
+      // this.arDetector.destroy();
     } catch (e) {}
-    this.arDetector = undefined;
+    this.aard = undefined;
     try {
       this.resizer.destroy();
     } catch (e) {}
@@ -419,7 +429,7 @@ class VideoData {
   disable(options?: {fromPlayer?: boolean}) {
     this.enabled = false;
 
-    this.arDetector?.stop();
+    this.aard?.stop();
 
     this.video.classList.remove(this.baseCssName);
     this.video.classList.remove(this.userCssClassName);
@@ -662,12 +672,8 @@ class VideoData {
       // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
       return;
     }
-    if (this.arDetector){
-      this.arDetector.init();
-    }
-    else{
-      this.arDetector = new ArDetector(this);
-      this.arDetector.init();
+    if (! this.aard){
+      this.aard = new Aard(this);
     }
   }
 
@@ -686,24 +692,24 @@ class VideoData {
         this.hasDrm = false;
       }
 
-      if (!this.arDetector) {
+      if (!this.aard) {
         this.initArDetection();
       }
-      this.arDetector.start();
+      this.aard.start();
     } catch (e) {
       this.logger.log('warn', 'debug', '[VideoData::startArDetection()] Could not start aard for some reason. Was the function was called too early?', e);
     }
   }
 
   resumeAutoAr(){
-    if(this.arDetector){
+    if(this.aard){
       this.startArDetection();
     }
   }
 
   stopArDetection() {
-    if (this.arDetector) {
-      this.arDetector.stop();
+    if (this.aard) {
+      this.aard.stop();
     }
   }
   //#endregion
