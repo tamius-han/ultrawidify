@@ -634,9 +634,6 @@ export class Aard {
       return;
     }
 
-    const cornerViolations = [0,0,0,0];
-    let subpixelViolation = false;
-
     let edgePosition = this.settings.active.arDetect.sampling.edgePosition;
     const segmentPixels = width * edgePosition;
     const edgeSegmentSize = segmentPixels * 4;
@@ -652,14 +649,12 @@ export class Aard {
 
       let i = rowStart;
       while (i < firstSegment) {
-        subpixelViolation = false;
-
         if (
           imageData[i] > this.testResults.blackThreshold
           || imageData[i + 1] > this.testResults.blackThreshold
           || imageData[i + 2] > this.testResults.blackThreshold
         ) {
-          cornerViolations[Corner.TopLeft]++;
+          this.testResults.guardLine.cornerPixelsViolated[Corner.TopLeft]++;
         }
         i += 4;
       }
@@ -669,6 +664,10 @@ export class Aard {
           || imageData[i + 1] > this.testResults.blackThreshold
           || imageData[i + 2] > this.testResults.blackThreshold
         ) {
+          // DONT FORGET TO INVALIDATE GUARDL LINE
+          this.testResults.guardLine.top = -1;
+          this.testResults.guardLine.bottom = -1;
+          this.testResults.guardLine.invalidated = true;
           return;
         };
         i += 4;
@@ -679,7 +678,7 @@ export class Aard {
           || imageData[i + 1] > this.testResults.blackThreshold
           || imageData[i + 2] > this.testResults.blackThreshold
         ) {
-          cornerViolations[Corner.TopRight]++;
+          this.testResults.guardLine.cornerPixelsViolated[Corner.TopRight]++;
         }
         i += 4; // skip over alpha channel
       }
@@ -701,7 +700,7 @@ export class Aard {
           || imageData[i + 1] > this.testResults.blackThreshold
           || imageData[i + 2] > this.testResults.blackThreshold
         ) {
-          cornerViolations[Corner.BottomLeft]++;
+          this.testResults.guardLine.cornerPixelsViolated[Corner.BottomLeft]++;
         }
         i += 4; // skip over alpha channel
       }
@@ -714,6 +713,10 @@ export class Aard {
           || imageData[i + 1] > this.testResults.blackThreshold
           || imageData[i + 2] > this.testResults.blackThreshold
         ) {
+          // DONT FORGET TO INVALIDATE GUARDL LINE
+          this.testResults.guardLine.top = -1;
+          this.testResults.guardLine.bottom = -1;
+          this.testResults.guardLine.invalidated = true;
           return;
         };
         i += 4;
@@ -727,7 +730,7 @@ export class Aard {
           || imageData[i + 1] > this.testResults.blackThreshold
           || imageData[i + 2] > this.testResults.blackThreshold
         ) {
-          cornerViolations[Corner.BottomRight]++;
+          this.testResults.guardLine.cornerPixelsViolated[Corner.BottomRight]++;
         }
         i += 4; // skip over alpha channel
       }
@@ -735,21 +738,23 @@ export class Aard {
 
     const maxViolations = segmentPixels * 0.20; // TODO: move the 0.2 threshold into settings
 
+    console.log('Corner violations counts — segment px & max violations,', segmentPixels, maxViolations )
+
     // we won't do a loop for this few elements
     // corners with stuff in them will also be skipped in image test
-    this.testResults.guardLine.cornerViolations[0] = cornerViolations[0] > maxViolations;
-    this.testResults.guardLine.cornerViolations[1] = cornerViolations[1] > maxViolations;
-    this.testResults.guardLine.cornerViolations[2] = cornerViolations[2] > maxViolations;
-    this.testResults.guardLine.cornerViolations[3] = cornerViolations[3] > maxViolations;
+    this.testResults.guardLine.cornerViolated[0] = this.testResults.guardLine.cornerPixelsViolated[0] > maxViolations;
+    this.testResults.guardLine.cornerViolated[1] = this.testResults.guardLine.cornerPixelsViolated[1] > maxViolations;
+    this.testResults.guardLine.cornerViolated[2] = this.testResults.guardLine.cornerPixelsViolated[2] > maxViolations;
+    this.testResults.guardLine.cornerViolated[3] = this.testResults.guardLine.cornerPixelsViolated[3] > maxViolations;
 
     const maxInvalidCorners = 1; // TODO: move this into settings — by default, we allow one corner to extend past the
                                  // guard line in order to prevent watermarks/logos from preventing cropping the video
 
     // this works because +true converts to 1 and +false converts to 0
-    const dirtyCount = +this.testResults.guardLine.cornerViolations[0]
-      + +this.testResults.guardLine.cornerViolations[1]
-      + +this.testResults.guardLine.cornerViolations[2]
-      + +this.testResults.guardLine.cornerViolations[3];
+    const dirtyCount = +this.testResults.guardLine.cornerViolated[0]
+      + +this.testResults.guardLine.cornerViolated[1]
+      + +this.testResults.guardLine.cornerViolated[2]
+      + +this.testResults.guardLine.cornerViolated[3];
 
     if (dirtyCount > maxInvalidCorners) {
       this.testResults.guardLine.invalidated = true;
@@ -799,7 +804,7 @@ export class Aard {
 
       // we don't run image detection in corners that may contain logos, as such corners
       // may not be representative
-      if (! this.testResults.guardLine.cornerViolations[Corner.TopLeft]) {
+      if (! this.testResults.guardLine.cornerViolated[Corner.TopLeft]) {
         while (i < firstSegment) {
           imagePixel = false;
           imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
@@ -823,7 +828,7 @@ export class Aard {
         };
         i++; // skip over alpha channel
       }
-      if (! this.testResults.guardLine.cornerViolations[Corner.TopRight]) {
+      if (! this.testResults.guardLine.cornerViolated[Corner.TopRight]) {
         while (i < rowEnd) {
           imagePixel = false;
           imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
@@ -839,7 +844,7 @@ export class Aard {
 
       // we don't run image detection in corners that may contain logos, as such corners
       // may not be representative
-      if (! this.testResults.guardLine.cornerViolations[Corner.TopLeft]) {
+      if (! this.testResults.guardLine.cornerViolated[Corner.TopLeft]) {
         while (i < firstSegment) {
           imagePixel = false;
           imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
@@ -863,7 +868,7 @@ export class Aard {
         };
         i++; // skip over alpha channel
       }
-      if (! this.testResults.guardLine.cornerViolations[Corner.TopRight]) {
+      if (! this.testResults.guardLine.cornerViolated[Corner.TopRight]) {
         while (i < rowEnd) {
           imagePixel = false;
           imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
@@ -889,7 +894,7 @@ export class Aard {
 
       // we don't run image detection in corners that may contain logos, as such corners
       // may not be representative
-      if (! this.testResults.guardLine.cornerViolations[Corner.TopLeft]) {
+      if (! this.testResults.guardLine.cornerViolated[Corner.TopLeft]) {
         while (i < firstSegment) {
           imagePixel = false;
           imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
@@ -913,7 +918,7 @@ export class Aard {
         };
         i++; // skip over alpha channel
       }
-      if (! this.testResults.guardLine.cornerViolations[Corner.TopRight]) {
+      if (! this.testResults.guardLine.cornerViolated[Corner.TopRight]) {
         while (i < rowEnd) {
           imagePixel = false;
           imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
@@ -929,7 +934,7 @@ export class Aard {
 
       // we don't run image detection in corners that may contain logos, as such corners
       // may not be representative
-      if (! this.testResults.guardLine.cornerViolations[Corner.TopLeft]) {
+      if (! this.testResults.guardLine.cornerViolated[Corner.TopLeft]) {
         while (i < firstSegment) {
           imagePixel = false;
           imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
@@ -953,7 +958,7 @@ export class Aard {
         };
         i++; // skip over alpha channel
       }
-      if (! this.testResults.guardLine.cornerViolations[Corner.TopRight]) {
+      if (! this.testResults.guardLine.cornerViolated[Corner.TopRight]) {
         while (i < rowEnd) {
           imagePixel = false;
           imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
@@ -1535,7 +1540,9 @@ export class Aard {
       }
     }
 
-    // BOTTOM:
+    // BOTTOM
+    // Note that bottomRows candidates are measured from the top
+    // Well have to invert our candidate after we're done
     if (
       this.testResults.aspectRatioCheck.bottomRows[0] === this.testResults.aspectRatioCheck.bottomRows[1]
       && this.testResults.aspectRatioCheck.bottomRows[0] === this.testResults.aspectRatioCheck.bottomRows[2]

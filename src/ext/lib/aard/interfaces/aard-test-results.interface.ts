@@ -10,7 +10,8 @@ export interface AardTestResults {
     top: number,            // is cumulative
     bottom: number,         // is cumulative
     invalidated: boolean,
-    cornerViolations: [boolean, boolean, boolean, boolean],
+    cornerViolated: [boolean, boolean, boolean, boolean],
+    cornerPixelsViolated: [0,0,0,0]
   },
   imageLine: {
     top: number,            // is cumulative
@@ -25,6 +26,7 @@ export interface AardTestResults {
     topCandidate: number,
     topCandidateQuality: number,
     bottomCandidate: number,
+    bottomCandidateDistance: number,
     bottomCandidateQuality: number,
   },
   aspectRatioUncertain: boolean,
@@ -45,7 +47,8 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
       top: -1,
       bottom: -1,
       invalidated: false,
-      cornerViolations: [false, false, false, false],
+      cornerViolated: [false, false, false, false],
+      cornerPixelsViolated: [0,0,0,0]
     },
     imageLine: {
       top: -1,
@@ -60,6 +63,7 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
       topCandidate: 0,
       topCandidateQuality: 0,
       bottomCandidate: 0,
+      bottomCandidateDistance: 0,
       bottomCandidateQuality: 0,
     },
     aspectRatioUncertain: false,
@@ -76,10 +80,14 @@ export function resetAardTestResults(results: AardTestResults): void {
   results.notLetterbox = false;
   results.imageLine.invalidated = false;
   results.guardLine.invalidated = false;
-  results.guardLine.cornerViolations[0] = false;
-  results.guardLine.cornerViolations[1] = false;
-  results.guardLine.cornerViolations[2] = false;
-  results.guardLine.cornerViolations[3] = false;
+  results.guardLine.cornerViolated[0] = false;
+  results.guardLine.cornerViolated[1] = false;
+  results.guardLine.cornerViolated[2] = false;
+  results.guardLine.cornerViolated[3] = false;
+  results.guardLine.cornerPixelsViolated[0] = 0;
+  results.guardLine.cornerPixelsViolated[1] = 0;
+  results.guardLine.cornerPixelsViolated[2] = 0;
+  results.guardLine.cornerPixelsViolated[3] = 0;
   results.letterboxWidth = 0;
   results.letterboxOffset = 0;
   results.aspectRatioUpdated = false;
