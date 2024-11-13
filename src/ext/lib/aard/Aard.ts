@@ -262,13 +262,7 @@ export class Aard {
     this.settings = videoData.settings;
     this.eventBus = videoData.eventBus;
 
-    this.testResults = initAardTestResults(this.settings.active.arDetect)
-
     this.initEventBus();
-
-    // this.sampleCols = [];
-    // this.blackLevel = this.settings.active.arDetect.blackbar.blackLevel;
-
     this.arid = (Math.random()*100).toFixed();
 
     // we can tick manually, for debugging
@@ -318,6 +312,9 @@ export class Aard {
       // ensure first autodetection will run in any case
       this.videoData.resizer.lastAr = {type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr};
     }
+
+    // do full reset of test samples
+    this.testResults = initAardTestResults(this.settings.active.arDetect);
 
     if (this.animationFrame) {
       window.cancelAnimationFrame(this.animationFrame);
