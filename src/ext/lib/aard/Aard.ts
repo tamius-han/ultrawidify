@@ -1590,6 +1590,9 @@ export class Aard {
       }
     }
 
+    // Convert bottom candidate to letterbox width
+    this.testResults.aspectRatioCheck.bottomCandidateDistance = this.testResults.aspectRatioCheck.bottomCandidate === Infinity ? -1 : height - this.testResults.aspectRatioCheck.bottomCandidate;
+
     /**
      * Get final results.
      * Let candidateA hold better-quality candidate, and let the candidateB hold the lower-quality candidate.
@@ -1613,8 +1616,8 @@ export class Aard {
     }
 
     const maxOffset = ~~(height * this.settings.active.arDetect.edgeDetection.maxLetterboxOffset)
-    const diff = this.testResults.aspectRatioCheck.topCandidate - this.testResults.aspectRatioCheck.bottomCandidate;
-    const candidateAvg = ~~((this.testResults.aspectRatioCheck.topCandidate + this.testResults.aspectRatioCheck.bottomCandidate) / 2);
+    const diff = this.testResults.aspectRatioCheck.topCandidate - this.testResults.aspectRatioCheck.bottomCandidateDistance;
+    const candidateAvg = ~~((this.testResults.aspectRatioCheck.topCandidate + this.testResults.aspectRatioCheck.bottomCandidateDistance) / 2);
 
     if (diff > maxOffset) {
       this.testResults.aspectRatioUncertain = true;
@@ -1624,7 +1627,7 @@ export class Aard {
       this.testResults.imageLine.top = this.testResults.aspectRatioCheck.topCandidate === Infinity ? -1 : this.testResults.aspectRatioCheck.topCandidate;
       this.testResults.imageLine.bottom = this.testResults.aspectRatioCheck.bottomCandidate === Infinity ? -1 : this.testResults.aspectRatioCheck.bottomCandidate;
       this.testResults.guardLine.top = Math.max(this.testResults.imageLine.top - 2, 0);
-      this.testResults.guardLine.bottom = Math.max(this.testResults.imageLine.bottom + 2, this.canvasStore.main.height - 1);
+      this.testResults.guardLine.bottom = Math.min(this.testResults.imageLine.bottom + 2, this.canvasStore.main.height - 1);
     }
     this.testResults.aspectRatioUncertain = false;
     this.testResults.letterboxWidth = candidateAvg;
