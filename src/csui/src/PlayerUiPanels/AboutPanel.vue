@@ -43,26 +43,8 @@
         <p class="text-center">
           <a class="donate" href="https://www.paypal.com/paypalme/tamius" target="_blank">Donate on Paypal</a>
         </p>
-        <h2>Fun stuff</h2>
         <p>
-          This is probably a bad idea but—
-        </p>
-        <p>
-          Are you attending Isle of Wonders on Cres, Croatia, between 28. 6. and 30. 6.? So am I, by official duty.
-        </p>
-        <p>
-          Club Amulet D20 is forecasted to have a stand there, and I am forecasted to be in the general vicinity of it (barring any unexpected circumstances). I'll be either taking photos, painting minis, or doing heatstroke any% in rather rudamentary costume.
-        </p>
-        <p>
-          If you're there, you can swing around to say 'hi' or provide some validation, or paint some minis. Rumor has it Conquest will have paint&take event.
-        </p>
-        <p>
-          — Tamius
-        </p>
-        <p>
-        </p>
-        <p>
-          <small>I am not paid to shill this.</small>
+          I also have <a href="https://instagram.com/shaman_urkog" target="_blank">instagram with nerdy shit</a> <small>(mini painting + various fantasy events)</small>.
         </p>
       </div>
     </div>

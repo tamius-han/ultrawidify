@@ -13,7 +13,7 @@ const csuiVersions = {
 class UI {
   constructor(
     interfaceId,
-    uiConfig, // {parentElement?, eventBus?}
+    uiConfig, // {parentElement?, eventBus?, isGlobal?, playerData}
   ) {
     this.interfaceId = interfaceId;
     this.uiConfig = uiConfig;
@@ -31,6 +31,9 @@ class UI {
     this.disablePointerEvents = false;
 
     this.saveState = undefined;
+    this.playerData = uiConfig.playerData;
+    this.uiSettings = uiConfig.uiSettings;
+
   }
 
   async init() {
@@ -108,12 +111,16 @@ class UI {
         y: event.pageY - this.uiIframe.offsetTop
       };
 
+      const playerData = this.canShowUI(coords);
+
       // ask the iframe to check whether there's a clickable element
       this.uiIframe.contentWindow.postMessage(
         {
           action: 'uwui-probe',
           coords,
-          ts: +new Date()   // this should be accurate enough for our purposes
+          playerDimensions: playerData.playerDimensions,
+          canShowUI: playerData.canShowUI,
+          ts: +new Date()   // this should be accurate enough for our purposes,
         },
         uiURI
       );
@@ -130,6 +137,7 @@ class UI {
 
     rootDiv.appendChild(iframe);
   }
+
   initMessaging() {
     // subscribe to events coming back to us. Unsubscribe if iframe vanishes.
     const messageHandlerFn = (message) => {
@@ -207,6 +215,51 @@ class UI {
     if (this.element) {
       this.destroy();
     }
+  }
+
+  /**
+   * Checks whether mouse is moving over either:
+   *   * <video> element
+   *   * player element ()
+   *   * uwui-clickable element
+   */
+  canShowUI(coords) {
+    const playerCssClass = 'uw-ultrawidify-player-css';
+
+    const result = {
+      playerDimensions: undefined,
+      canShowUI: false
+    }
+
+    if (this.playerData?.dimensions) {
+      result.playerDimensions = this.playerData.dimensions;
+    }
+
+    // if player is not wide enough, we do nothing
+    if (
+      !this.isGlobal &&                 // this.isGlobal is basically 'yes, do as I say'
+      !document.fullscreenElement &&    // if we are in full screen, we allow it in every case as player detection is not 100% reliable,
+      result.playerDimensions?.width && // which makes playerDimensions.width unreliable as well (we assume nobody uses browser in
+                                        // fullscreen mode unless watching videos)
+      result.playerDimensions.width < window.screen.width * (this.uiSettings.inPlayer.minEnabledWidth ?? 0)
+    ) {
+      result.canShowUI = false;
+      return result;
+    }
+
+    const elements = document.elementsFromPoint(coords.x, coords.y);
+
+    for (const element of elements) {
+      if (
+        element instanceof HTMLVideoElement
+        || element.classList.contains(playerCssClass)
+      ) {
+        result.canShowUI = true;
+        return result;
+      }
+    }
+
+    return result;
   }
 
   /**

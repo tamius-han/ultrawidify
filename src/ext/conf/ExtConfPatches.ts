@@ -159,7 +159,7 @@ const ExtensionConfPatch = [
       userOptions.sites['@empty'].defaultType = 'modified';
     }
   }, {
-    forVersion: '6.0.1-7',
+    forVersion: '6.0.2-0',
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
       // remove custom CSS, as it is no longer needed
       for (const site in userOptions.sites) {
@@ -168,9 +168,18 @@ const ExtensionConfPatch = [
       }
       userOptions.ui = {
         inPlayer: {
-          enabled: false, // keep disabled for existing users
+          enabled: true, // enable by default on new installs
+          minEnabledWidth: 0.75,
+          activation: 'player',
+          triggerZoneDimensions: {
+            width: 0.5,
+            height: 0.5,
+            offsetX: -50,
+            offsetY: 0,
+          }
         }
-      }
+      },
+      userOptions.newFeatureTracker['uw6.ui-popup'] = {show: 10};
     }
   }
 ];

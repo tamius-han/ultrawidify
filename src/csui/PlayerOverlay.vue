@@ -1,12 +1,29 @@
 <template>
   <div
+    class="context-spawn uw-ui-trigger"
+    style="z-index: 1000"
+    @mouseenter="(ev) => setTriggerZoneActive(true, ev)"
+    @mouseleave="(ev) => setTriggerZoneActive(false, ev)"
+  >
+    <div
+      class="spawn-container uw-trigger"
+      :style="triggerZoneStyles"
+    >
+      &nbsp;
+    </div>
+  </div>
+
+  <div
     v-if="contextMenuActive || settingsInitialized && uwTriggerZoneVisible && !isGlobal"
     class="context-spawn uw-clickable"
+    style="z-index: 1001"
     @mouseenter="preventContextMenuHide()"
     @mouseleave="allowContextMenuHide()"
   >
-
-    <GhettoContextMenu alignment="right">
+    <GhettoContextMenu
+      alignment="right" class="uw-menu"
+      @mouseenter="newFeatureViewUpdate('uw6.ui-popup')"
+    >
       <template v-slot:activator>
         <div class="context-item">
           Ultrawidify
@@ -68,12 +85,38 @@
             </GhettoContextMenuItem>
           </slot>
         </GhettoContextMenu>
+
+        <!-- shortcut for configuring UI  -->
+        <GhettoContextMenuOption
+          v-if="settings.active.newFeatureTracker?.['uw6.ui-popup']?.show > 0"
+          @click="showUwWindow('ui-config')"
+        >
+          <span style="color: #fa6;">I hate this popup<br/></span>
+          <span style="font-size: 0.8em">
+            <span style="text-transform: uppercase; font-size: 0.8em">
+              <a @click="showUwWindow('ui-config')">
+                Do something about it
+              </a> × <a @click="acknowledgeNewFeature('uw6.ui-popup')">keep the popup</a>
+            </span>
+            <br/>
+            <span style="opacity: 0.5">This menu option will show {{settings.active.newFeatureTracker?.['uw6.ui-popup']?.show}} more<br/> times; or until clicked or dismissed.<br/>
+            Also accessible via <span style="font-variant: small-caps">extension settings</span>.
+            </span>
+          </span>
+        </GhettoContextMenuOption>
+
+        <!--  -->
+
         <GhettoContextMenuOption
           @click="showUwWindow()"
           label="Extension settings"
         >
         </GhettoContextMenuOption>
-        <button @click="showUwWindow()">Not working?</button>
+        <GhettoContextMenuOption
+          @click="showUwWindow('about')"
+          label="Not working?"
+        >
+        </GhettoContextMenuOption>
         </div>
       </slot>
     </GhettoContextMenu>
@@ -160,6 +203,7 @@ export default {
       disabled: false,
 
       contextMenuActive: false,
+      triggerZoneActive: false,
 
       uiVisible: true,
       debugData: {
@@ -312,6 +356,34 @@ export default {
     },
 
     /**
+     * Handles trigger zone
+     */
+    handleTriggerZone(mouseInside) {
+      console.log('handing trigger zone!', mouseInside);
+      // this.triggerZoneActive = mouseInside;
+    },
+
+    acknowledgeNewFeature(featureKey) {
+      delete this.settings.active.newFeatureTracker[featureKey];
+      this.settings.saveWithoutReload();
+    },
+    newFeatureViewUpdate(featureKey) {
+      if (!this.settings.active.newFeatureTracker[featureKey]) {
+        return;
+      }
+      try {
+        this.settings.active.newFeatureTracker[featureKey].show--;
+        this.settings.saveWithoutReload();
+
+        if (this.settings.active.newFeatureTracker[featureKey]?.show < 0) {
+          this.acknowledgeNewFeature(featureKey);
+        }
+      } catch (e) {
+        // do nothing
+      }
+    },
+
+    /**
      * Sends message to parent _without_ using event bus.
      */
     sendToParentLowLevel(action, payload, lowLevelExtras = {}) {
@@ -324,12 +396,14 @@ export default {
     },
 
     preventContextMenuHide() {
-      console.log('entered context menu ...');
       this.contextMenuActive = true;
     },
     allowContextMenuHide() {
-      console.log('exited context menu ...');
       this.contextMenuActive = false;
+    },
+
+    setTriggerZoneActive(active, event) {
+      this.triggerZoneActive = active;
     },
 
     showUwWindow() {
@@ -472,6 +546,10 @@ export default {
   //   backdrop-filter: blur(16px) saturate(120%);
 
   //   white-space: nowrap;
+  // }
+
+  // .spawn-container {
+    // border: 1px solid white;
   // }
 }
 

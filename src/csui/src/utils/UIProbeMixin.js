@@ -14,7 +14,29 @@ export default {
           }, this.origin);
         });
   },
+  data() {
+    return {
+      playerDimensions: undefined,
+      triggerZoneStyles: {
+        height: '50dvh',
+        width: '50dvw',
+        transform: 'translateX(-50%)'
+      },
+    }
+  },
   methods: {
+    playerDimensionsUpdate(dimensions) {
+      if (dimensions?.width !== this.playerDimensions?.width || dimensions?.height !== this.playerDimensions?.height) {
+        this.playerDimensions = dimensions;
+
+        this.triggerZoneStyles = {
+          height: `${this.playerDimensions.height * 0.5}px`,
+          width: `${this.playerDimensions.width * 0.5}px`,
+          transform: `translate(${(this.settings.active.ui.inPlayer.triggerZoneDimensions.offsetX)}%, ${this.settings.active.ui.inPlayer.triggerZoneDimensions.offsetY}%)`,
+        };
+      }
+    },
+
     /**
      * Handles 'uwui-probe' events. It checks whether there's a clickable element under
      * cursor, and sends a reply to the content scripts that indicates whether pointer-events
@@ -26,16 +48,6 @@ export default {
       }
       this.lastProbeTs = eventData.ts;
 
-      // show ultrawidify trigger zone and set it to vanish after 250ms
-      // but don't show the trigger zone behind an active popup
-      if (! this.uwWindowVisible) {
-        this.uwTriggerZoneVisible = true;
-        clearTimeout(this.uwTriggerZoneTimeout);
-        this.uwTriggerZoneTimeout = setTimeout(
-          () => this.uwTriggerZoneVisible = false,
-          250
-        );
-      }
 
       /* we check if our mouse is hovering over an element.
        *
@@ -47,16 +59,36 @@ export default {
        * our top-level element.
        */
       let isClickable = false;
-      let element = document.elementFromPoint(eventData.coords.x, eventData.coords.y);
+      let isOverTriggerZone = false;
+      const elements = document.elementsFromPoint(eventData.coords.x, eventData.coords.y);
 
-      while (element) {
-        if (element?.classList.contains('uw-clickable')) {
-          // we could set 'pointerEvents' here and now & simply use return, but that
-          // might cause us a problem if we ever try to add more shit to this function
+      for (const element of elements) {
+        if (element.classList?.contains('uw-clickable')) {
           isClickable = true;
-          break;
         }
-        element = element.parentElement;
+        if (element.classList?.contains('uw-ui-trigger')) {
+          isOverTriggerZone = true;
+        }
+      }
+
+      this.triggerZoneActive = isOverTriggerZone;
+
+      // show ultrawidify trigger zone and set it to vanish after 250ms
+      // but don't show the trigger zone behind an active popup
+      if (
+        eventData.canShowUI
+        && (this.settings.active.ui.inPlayer.activation !== 'player' || isOverTriggerZone)
+      ) {
+        if (! this.uwWindowVisible) {
+          this.uwTriggerZoneVisible = true;
+          clearTimeout(this.uwTriggerZoneTimeout);
+          this.uwTriggerZoneTimeout = setTimeout(
+            () => this.uwTriggerZoneVisible = false,
+            250
+          );
+        }
+      } else {
+        this.uwTriggerZoneVisible = false;
       }
 
       window.parent.postMessage(

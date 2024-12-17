@@ -213,7 +213,15 @@ interface SettingsInterface {
 
   ui: {
     inPlayer: {
-      enabled: boolean
+      enabled: boolean,
+      minEnabledWidth: number,                 // don't show UI if player is narrower than % of screen width
+      activation: 'trigger-zone' | 'player',   // what needs to be hovered in order for UI to be visible
+      triggerZoneDimensions: {                 // how large the trigger zone is (relative to player size)
+        width: number
+        height: number,
+        offsetX: number,                       // fed to translateX(offsetX + '%'). Valid range [-100,   0]
+        offsetY: number                        // fed to translateY(offsetY + '%'). Valid range [-100, 100]
+      },
     }
   }
 
@@ -311,6 +319,7 @@ interface SettingsInterface {
     internal?: CommandInterface[],
   },
   whatsNewChecked: boolean,
+  newFeatureTracker: any,
   // -----------------------------------------
   //       ::: SITE CONFIGURATION :::
   // -----------------------------------------

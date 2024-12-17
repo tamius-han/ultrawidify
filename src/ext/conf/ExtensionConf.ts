@@ -160,6 +160,14 @@ const ExtensionConf: SettingsInterface = {
   ui: {
     inPlayer: {
       enabled: true, // enable by default on new installs
+      minEnabledWidth: 0.75,
+      activation: 'player',
+      triggerZoneDimensions: {
+        width: 0.5,
+        height: 0.5,
+        offsetX: -50,
+        offsetY: 0
+      }
     }
   },
 
@@ -1415,6 +1423,9 @@ const ExtensionConf: SettingsInterface = {
     }
   },
   whatsNewChecked: true,
+  newFeatureTracker: {
+    'uw6.ui-popup': {show: 10}
+  },
   // -----------------------------------------
   //       ::: SITE CONFIGURATION :::
   // -----------------------------------------

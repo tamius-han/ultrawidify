@@ -157,7 +157,9 @@ class PlayerData {
           'ultrawidifyUi',
           {
             parentElement: this.element,
-            eventBus: this.eventBus
+            eventBus: this.eventBus,
+            playerData: this,
+            uiSettings: this.videoData.settings.active.ui
           }
         );
       }

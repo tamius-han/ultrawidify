@@ -1,7 +1,12 @@
 <template>
 <div>
   <GhettoContextMenuItem>
-    {{label}} {{shortcut ? `(${shortcut})` : ''}}
+    <template v-if="label">
+      {{label}} {{shortcut ? `(${shortcut})` : ''}}
+    </template>
+    <template v-else>
+      <slot></slot>
+    </template>
   </GhettoContextMenuItem>
   </div>
 </template>

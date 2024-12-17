@@ -1,7 +1,7 @@
 <template>
   <div class="context-container" @mouseleave="hideContextMenu()">
     <GhettoContextMenuItem
-      class="activator"
+      class="activator uw-clickable"
       :css="{
         'expand-left': alignment === 'left',
         'expand-right': alignment === 'right',
@@ -13,7 +13,7 @@
     </GhettoContextMenuItem>
     <div
       v-if="contextMenuVisible"
-      class="context-menu"
+      class="context-menu uw-clickable"
       :class="{
         'menu-left': alignment === 'left',
         'menu-right': alignment === 'right'
