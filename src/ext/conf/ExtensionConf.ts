@@ -160,8 +160,10 @@ const ExtensionConf: SettingsInterface = {
   ui: {
     inPlayer: {
       enabled: true, // enable by default on new installs
+      enabledFullscreenOnly: false,
       minEnabledWidth: 0.75,
       activation: 'player',
+      popupAlignment: 'left',
       triggerZoneDimensions: {
         width: 0.5,
         height: 0.5,
