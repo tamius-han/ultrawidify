@@ -200,7 +200,8 @@ export default {
     'eventBus',
     'logger',
     'in-player',
-    'site'
+    'site',
+    'defaultTab'
   ],
   computed: {
     // LPT: NO ARROW FUNCTIONS IN COMPUTED,
@@ -211,6 +212,9 @@ export default {
     }
   },
   created() {
+    if (this.defaultTab) {
+      this.selectedTab = this.defaultTab;
+    }
     this.siteSettings = this.settings.getSiteSettings(this.site);
     this.tabs.find(x => x.id === 'changelog').highlight = !this.settings.active.whatsNewChecked;
 

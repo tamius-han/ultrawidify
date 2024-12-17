@@ -134,6 +134,7 @@
       :logger="logger"
       :in-player="!isGlobal"
       :site="site"
+      :defaultTab="defaultWindowTab"
       @close="uwWindowVisible = false"
       @preventClose="(event) => uwWindowFadeOutDisabled = event"
     ></PlayerUIWindow>
@@ -220,10 +221,9 @@ export default {
       statusFlags: {
         hasDrm: undefined,
       },
+      defaultWindowTab: 'videoSettings',
 
       saveState: {},
-
-      selectedTab: 'videoSettings',
     };
   },
   computed: {
@@ -406,10 +406,13 @@ export default {
       this.triggerZoneActive = active;
     },
 
-    showUwWindow() {
+    showUwWindow(tab) {
+      this.defaultWindowTab = tab; // can be undefined
+
       this.uwWindowFadeOut = false;
       this.uwWindowVisible = true;
       this.uwTriggerZoneVisible = false;
+      this.allowContextMenuHide();
 
       // refresh DRM status
       this.eventBus.send('get-drm-status');
@@ -447,10 +450,6 @@ export default {
 
     handleBusTunnelIn(payload) {
       this.eventBus.send(payload.action, payload.config, payload.routingData);
-    },
-
-    selectTab(tab) {
-      this.selectedTab = tab;
     }
   }
 }
