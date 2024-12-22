@@ -71,7 +71,7 @@ export class GlCanvas {
 
   private frameBufferSize: number;
   private _frameBuffer: Uint8Array;
-  private set frameBuffer(x: Uint8Array) {
+  protected set frameBuffer(x: Uint8Array) {
     this._frameBuffer = x;
   }
   public get frameBuffer(): Uint8Array {
@@ -118,7 +118,7 @@ export class GlCanvas {
   }
 
   /**
-   * Reads pixels from the canvas
+   * Reads pixels from the canvas into framebuffer, and returns pointer to the framebuffer
    * @returns
    */
   getImageData(): Uint8Array {
@@ -156,7 +156,7 @@ export class GlCanvas {
     this.gl.deleteTexture(this.texture);
   }
 
-  private initWebgl() {
+  protected initWebgl() {
     // Initialize the GL context
     this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
