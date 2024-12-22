@@ -5,6 +5,19 @@
         <h1>What's new</h1>
         <p>Full changelog for older versions <a href="https://github.com/tamius-han/ultrawidify/blob/master/CHANGELOG.md" target="_blank">is available here</a>.</p>
 
+        <h2>6.2.0</h2>
+        <p>
+          There's been another major change that skips a version.
+        </p>
+        <ul>
+          <li>Parts of automatic aspect ratio detection use WebGL now. This should result in improved performance. Slightly underwhelming blog post about this issue can be found <a href="https://stuff.tamius.net/sacred-texts/2024/10/02/hot-dang-i-shouldnt-have-given-on-webgl/" target="_blank">here</a>.</li>
+          <li>In-player UI now indicates whether a site is having a problem with automatic aspect ratio detection.</li>
+          <li>UI improvements</li>
+        </ul>
+        <p>
+          Since automatic aspect ratio detection had to be rewritten completely and since the new version needs to be out 5 days ago, there are some regressions in the automatic aspect ratio detection.
+        </p>
+
         <h2>6.0.1</h2>
         <p>Fixed external links.</p>
 
@@ -41,17 +54,6 @@
           <!-- <li>
             Panning option that's a bit more intuitive.
           </li> -->
-        </ul>
-        <h3>Unbaked features</h3>
-        <ul>
-          <li>
-            <b>Player UI settings</b>. Ultrawidify doesn't always correctly identify which area the video should fill, especially when not in full screen mode.
-            Version 6.0.0 was intended to come with UI that makes it easier for you to "help" ultrawidify by identifying the correct player element. Alas, I was
-            busier than expected and manifest v3 deadline came faster than expected.
-          </li>
-          <li>
-            <b>Disabling Ultrawidify UI trigger zone, or otherwise changing target area size and position, is not possible</b>.
-          </li>
         </ul>
         <h3>Regressions</h3>
         <ul>
