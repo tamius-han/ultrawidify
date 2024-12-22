@@ -89,12 +89,12 @@
         <!-- shortcut for configuring UI  -->
         <GhettoContextMenuOption
           v-if="settings.active.newFeatureTracker?.['uw6.ui-popup']?.show > 0"
-          @click="showUwWindow('ui-config')"
+          @click="showUwWindow('playerUiSettings')"
         >
           <span style="color: #fa6;">I hate this popup<br/></span>
           <span style="font-size: 0.8em">
             <span style="text-transform: uppercase; font-size: 0.8em">
-              <a @click="showUwWindow('ui-config')">
+              <a @click="showUwWindow('playerUiSettings')">
                 Do something about it
               </a> × <a @click="acknowledgeNewFeature('uw6.ui-popup')">keep the popup</a>
             </span>
