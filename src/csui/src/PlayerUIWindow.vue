@@ -44,14 +44,6 @@
       </div>
       <div class="header-buttons">
         <div
-          class="header-button"
-          :class="{'button-active': preventClose}"
-          @click="setPreventClose(!preventClose)"
-        >
-          <mdicon v-if="!preventClose" name="pin-outline" :size="32" />
-          <mdicon v-else name="pin" :size="32" />
-        </div>
-        <div
           class="header-button close-button"
           @click="$emit('close')"
         >
@@ -119,6 +111,13 @@
             :site="site"
           >
           </PlayerDetectionPanel>
+          <PlayerUiSettings
+            v-if="selectedTab === 'playerUiSettings'"
+            :settings="settings"
+            :eventBus="eventBus"
+          >
+
+          </PlayerUiSettings>
           <BaseExtensionSettings
             v-if="selectedTab === 'extensionSettings'"
             :settings="settings"
@@ -161,6 +160,7 @@ import VideoSettings from './PlayerUiPanels/VideoSettings.vue'
 import BrowserDetect from '../../ext/conf/BrowserDetect'
 import ChangelogPanel from './PlayerUiPanels/ChangelogPanel.vue'
 import AboutPanel from './PlayerUiPanels/AboutPanel.vue'
+import PlayerUiSettings from './PlayerUiPanels/PlayerUiSettings.vue'
 
 export default {
   components: {
@@ -169,6 +169,7 @@ export default {
     BaseExtensionSettings,
     AutodetectionSettingsPanel,
     DebugPanel,
+    PlayerUiSettings,
     ChangelogPanel,
     AboutPanel
   },
@@ -182,11 +183,12 @@ export default {
       tabs: [
         // {id: 'videoSettings', label: 'Video settings', icon: 'crop'},
         {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
+        {id: 'playerUiSettings', label: 'In-player interface', icon: 'movie-cog-outline' },
         {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
         {id: 'autodetectionSettings', label: 'Autodetection options', icon: ''},
         // {id: 'advancedOptions', label: 'Advanced options', icon: 'cogs' },
         // {id: 'debugging', label: 'Debugging', icon: 'bug-outline' }
-        {id: 'changelog', label: 'What\'s new', icon: 'information-box-outline' },
+        {id: 'changelog', label: 'What\'s new', icon: 'newspaper-plus' },
         {id: 'about', label: 'About', icon: 'star-four-points-circle'}
       ],
       selectedTab: 'extensionSettings',
