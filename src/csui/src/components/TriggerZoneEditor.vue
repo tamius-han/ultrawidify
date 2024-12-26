@@ -8,28 +8,24 @@
       @mousedown="(event) => handleMouseDown('offset', event)"
     >
       <div
-        class="uw-clickable tl"
+        class="uw-clickable corner tl"
         @mousedown.stop="(event) => handleMouseDown('tl', event)"
       >
-        XX
       </div>
       <div
-        class="uw-clickable tr"
+        class="uw-clickable corner tr"
         @mousedown.stop="(event) => handleMouseDown('tr', event)"
       >
-        XX
       </div>
       <div
-        class="uw-clickable bl"
+        class="uw-clickable corner bl"
         @mousedown.stop="(event) => handleMouseDown('bl', event)"
       >
-        XX
       </div>
       <div
-        class="uw-clickable br"
+        class="uw-clickable corner br"
         @mousedown.stop="(event) => handleMouseDown('br', event)"
       >
-        XX
       </div>
     </div>
   </div>
@@ -58,6 +54,7 @@ export default {
   created() {
     document.addEventListener("mouseup", this.handleMouseUp);
     document.addEventListener("mousemove", this.handleMouseMove);
+    updateTriggerZones();
   },
   methods: {
     updateTriggerZones() {
@@ -169,6 +166,8 @@ export default {
 <style lang="scss" scoped>
 .active-trigger-area {
   background-image: url('/res/img/grid_512.webp');
+  background-position: center;
+  background-attachment: fixed;
 }
 
 .trigger-zone-editor {
@@ -176,8 +175,14 @@ export default {
   height: 100%;
   position: relative;
 
-  > * {
+  > .corner {
     position: absolute;
+    width: 32px;
+    height: 32px;
+    background-color: #000;
+    background-image: url('/res/img/corner-marker_64.webp');
+    background-size: cover;
+
   }
   .tr, .tl {
     top: 0;
@@ -190,6 +195,15 @@ export default {
   }
   .tr, .br {
     right: 0;
+  }
+  .br {
+    transform: rotate(90deg);
+  }
+  .bl {
+    transform: rotate(180deg);
+  }
+  .tl {
+    transform: rotate(-90deg);
   }
 }
 
