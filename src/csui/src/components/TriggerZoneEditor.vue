@@ -39,7 +39,6 @@ export default {
   ],
   watch: {
     playerDimensions(newVal, oldVal) {
-      console.log('triggerzone -- dimensions changed!', this.playerDimensions, newVal, oldVal);
       this.updateTriggerZones();
     }
   },
@@ -54,7 +53,7 @@ export default {
   created() {
     document.addEventListener("mouseup", this.handleMouseUp);
     document.addEventListener("mousemove", this.handleMouseMove);
-    updateTriggerZones();
+    this.updateTriggerZones();
   },
   methods: {
     updateTriggerZones() {

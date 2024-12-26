@@ -55,7 +55,7 @@
 
         <div class="field">
           <div class="label">Edit trigger zone:</div>
-          <button>Edit</button>
+          <button @click="startTriggerZoneEdit()">Edit</button>
         </div>
 
         <div v-if="settings.active.ui.inPlayer.activation === 'trigger-zone'">
@@ -195,8 +195,9 @@ export default {
       this.settings.active.ui.inPlayer.triggerZoneDimensions[key] = size;
       this.settings.saveWithoutReload();
     },
-
-
+    startTriggerZoneEdit() {
+      this.eventBus.send('start-trigger-zone-edit');
+    },
     async openOptionsPage() {
       BrowserDetect.runtime.openOptionsPage();
     },

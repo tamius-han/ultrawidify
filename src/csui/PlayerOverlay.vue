@@ -1,12 +1,12 @@
 <template>
   <div
-    class="context-spawn uw-ui-trigger"
-    style="z-index: 1000"
+    class="context-spawn debug-1"
+    style="z-index: 1000;"
+    v-if="!triggerZoneEditorVisible"
   >
     <div
-      class="spawn-container uw-trigger"
+      class="spawn-container uw-ui-trigger debug-2"
       :style="triggerZoneStyles"
-      @mouseenter="(ev) => setTriggerZoneActive(true, ev)"
     >
       &nbsp;
     </div>
@@ -167,8 +167,9 @@
   </div>
 
   <div
-    class="context-spawn uw-ui-trigger"
-    style="z-index: 1000;"
+    v-if="triggerZoneEditorVisible"
+    class="context-spawn"
+    style="z-index: 1000; border: 2px dashed red"
   >
     <TriggerZoneEditor
       class="uw-clickable"
@@ -228,6 +229,7 @@ export default {
       uwWindowFadeOut: false,
       uwWindowCloseTimeout: undefined,
       uwWindowVisible: false,
+      triggerZoneEditorVisible: false,
 
       // component properties
       settings: {},
@@ -386,6 +388,17 @@ export default {
         // this.;
       }
     });
+
+    this.eventBus.subscribe(
+      'start-trigger-zone-edit',
+      {
+        function: () => {
+          console.log('Showing trigger zone editor!');
+          this.triggerZoneEditorVisible = true;
+          this.uwWindowVisible = false;
+        }
+      }
+    );
 
     this.sendToParentLowLevel('uwui-get-role', null);
     this.sendToParentLowLevel('uwui-get-theme', null);
