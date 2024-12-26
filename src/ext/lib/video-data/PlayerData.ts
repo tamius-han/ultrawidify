@@ -97,6 +97,16 @@ class PlayerData {
     'get-player-tree': [{
       function: () => this.handlePlayerTreeRequest()
     }],
+    'get-player-dimensions': [{
+      function: () => {
+        console.log('received get player dimensions! -- returning:', this.dimensions)
+
+        this.eventBus.send('uw-config-broadcast', {
+          type: 'player-dimensions',
+          data: this.dimensions
+        });
+      }
+    }],
     'set-mark-element': [{      // NOTE: is this still used?
       function: (data) => this.markElement(data)
     }],
@@ -371,12 +381,17 @@ class PlayerData {
       this.eventBus.send('restore-ar', null);
       this.eventBus.send('delayed-restore-ar', {delay: 500});
       // this.videoData.resizer?.restore();
+      this.eventBus.send('uw-config-broadcast', {
+        type: 'player-dimensions',
+        data: newDimensions
+      });
     }
   }
 
   onPlayerDimensionsChanged(mutationList?, observer?) {
     this.trackDimensionChanges();
   }
+
 
   //#region player element change detection
   /**

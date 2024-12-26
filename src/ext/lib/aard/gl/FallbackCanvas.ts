@@ -7,7 +7,6 @@ export class FallbackCanvas extends GlCanvas {
 
   constructor(options: GlCanvasOptions) {
     super(options);
-    this.context = this.canvas.getContext('2d');
   }
 
   /**
@@ -18,9 +17,14 @@ export class FallbackCanvas extends GlCanvas {
 
   destroy() {  }
 
-  protected initWebgl() {  }
+  protected initContext() {
+    this.context = this.canvas.getContext('2d', {desynchronized: true});
+  }
+
+  protected initWebgl() { }
 
   drawVideoFrame(video: HTMLVideoElement) {
+    console.log('context:', this.context, 'canvas:', this.canvas );
     this.context.drawImage(video, this.context.canvas.width, this.context.canvas.height);
   }
 

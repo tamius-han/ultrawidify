@@ -5,14 +5,14 @@ export default {
      * We can handle events with the same function we use to handle events from
      * the content script.
      */
-        document.addEventListener('mousemove', (event) => {
-          this.handleProbe({
-            coords: {
-              x: event.clientX,
-              y: event.clientY
-            }
-          }, this.origin);
-        });
+    document.addEventListener('mousemove', (event) => {
+      this.handleProbe({
+        coords: {
+          x: event.clientX,
+          y: event.clientY
+        }
+      }, this.origin);
+    });
   },
   data() {
     return {
@@ -26,14 +26,28 @@ export default {
   },
   methods: {
     playerDimensionsUpdate(dimensions) {
+      if (!dimensions.width || !dimensions.height) {
+        this.playerDimensions = undefined;
+      }
+      console.log('player dimensions update received:', dimensions);
       if (dimensions?.width !== this.playerDimensions?.width || dimensions?.height !== this.playerDimensions?.height) {
-        this.playerDimensions = dimensions;
+        console.log('Player dimensions changed!', dimensions);
 
+        this.playerDimensions = dimensions;
+        this.updateTriggerZones();
+      }
+    },
+    updateTriggerZones() {
+      console.log('triggered zone style recheck. player dims:', this.playerDimensions, 'in player settings:', this.settings.active.ui);
+      if (this.playerDimensions && this.settings) {
         this.triggerZoneStyles = {
-          height: `${this.playerDimensions.height * 0.5}px`,
-          width: `${this.playerDimensions.width * 0.5}px`,
+          width: `${Math.round(this.playerDimensions.width * this.settings.active.ui.inPlayer.triggerZoneDimensions.width)}px`,
+          height: `${Math.round(this.playerDimensions.height * this.settings.active.ui.inPlayer.triggerZoneDimensions.height)}px`,
           transform: `translate(${(this.settings.active.ui.inPlayer.triggerZoneDimensions.offsetX)}%, ${this.settings.active.ui.inPlayer.triggerZoneDimensions.offsetY}%)`,
         };
+        console.log(
+          'player trigger zone css:', this.triggerZoneStyles
+        );
       }
     },
 

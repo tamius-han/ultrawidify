@@ -95,16 +95,7 @@ export class GlCanvas {
     this.canvas.setAttribute('width', `${options.width}`);
     this.canvas.setAttribute('height', `${options.height}`);
 
-    this.gl = this.canvas.getContext('webgl');
-
-    if (!this.gl) {
-      throw new Error('WebGL not supported');
-    }
-    if(options.id) {
-      this.canvas.setAttribute('id', options.id);
-    }
-
-    this.frameBufferSize = options.width * options.height * 4;
+    this.initContext(options);
     this.initWebgl();
   }
 
@@ -154,6 +145,24 @@ export class GlCanvas {
     this.gl.deleteBuffer(this.buffers.textureCoord);
     this.gl.deleteBuffer(this.buffers.indices);
     this.gl.deleteTexture(this.texture);
+  }
+
+  protected initContext(options: GlCanvasOptions) {
+    this.gl = this.canvas.getContext(
+      'webgl2',
+      {
+        preserveDrawingBuffer: true
+      }
+    );
+
+    if (!this.gl) {
+      throw new Error('WebGL not supported');
+    }
+    if(options.id) {
+      this.canvas.setAttribute('id', options.id);
+    }
+
+    this.frameBufferSize = options.width * options.height * 4;
   }
 
   protected initWebgl() {

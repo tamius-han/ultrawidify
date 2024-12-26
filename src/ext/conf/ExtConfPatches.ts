@@ -166,6 +166,7 @@ const ExtensionConfPatch = [
         for (const domOption in userOptions.sites[site].DOMConfig)
         userOptions.sites[site].DOMConfig[domOption].customCss;
       }
+      userOptions.arDetect.aardType = 'auto';
       userOptions.ui = {
         inPlayer: {
           enabled: true, // enable by default on new installs

@@ -36,6 +36,9 @@ class Settings {
   //#region callbacks
   onSettingsChanged: any;
   afterSettingsSaved: any;
+
+  onChangedCallbacks: any[] = [];
+  afterSettingsChangedCallbacks: any[] = [];
   //#endregion
 
   constructor(options) {
@@ -63,13 +66,29 @@ class Settings {
 
     this.logger?.log('info', 'debug', 'Does parsedSettings.preventReload exist?', parsedSettings.preventReload, "Does callback exist?", !!this.onSettingsChanged);
 
-    if (!parsedSettings.preventReload && this.onSettingsChanged) {
+    if (!parsedSettings.preventReload) {
       try {
-        this.onSettingsChanged();
+        for (const fn of this.onChangedCallbacks) {
+          try {
+            fn();
+          } catch (e) {
+            this.logger?.log('warn', 'settings', "[Settings] afterSettingsChanged fallback failed. It's possible that a vue component got destroyed, and this function is nothing more than vestigal remains. It would be nice if we implemented something that allows us to remove callback functions from array, and remove vue callbacks from the callback array when their respective UI component gets destroyed. Or this could be an error with the function itself. IDK, here's the error.", e)
+          }
+        }
+        if (this.onSettingsChanged) {
+          this.onSettingsChanged();
+        }
 
         this.logger?.log('info', 'settings', '[Settings] Update callback finished.')
       } catch (e) {
         this.logger?.log('error', 'settings', "[Settings] CALLING UPDATE CALLBACK FAILED. Reason:", e)
+      }
+    }
+    for (const fn of this.afterSettingsChangedCallbacks) {
+      try {
+        fn();
+      } catch (e) {
+        this.logger?.log('warn', 'settings', "[Settings] afterSettingsChanged fallback failed. It's possible that a vue component got destroyed, and this function is nothing more than vestigal remains. It would be nice if we implemented something that allows us to remove callback functions from array, and remove vue callbacks from the callback array when their respective UI component gets destroyed. Or this could be an error with the function itself. IDK, here's the error.", e)
       }
     }
     if (this.afterSettingsSaved) {
@@ -179,6 +198,7 @@ class Settings {
           updateFn(this.active, this.getDefaultSettings());
         } catch (e) {
           this.logger?.log('error', 'settings', '[Settings::applySettingsPatches] Failed to execute update function. Keeping settings object as-is. Error:', e);
+
         }
       }
 
@@ -357,6 +377,13 @@ class Settings {
 
   getSiteSettings(site: string = window.location.hostname): SiteSettings {
     return new SiteSettings(this, site);
+  }
+
+  listenOnChange(fn: () => void): void {
+    this.onChangedCallbacks.push(fn);
+  }
+  listenAfterChange(fn: () => void): void {
+    this.afterSettingsChangedCallbacks.push(fn);
   }
 }
 

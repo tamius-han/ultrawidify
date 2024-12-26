@@ -52,6 +52,8 @@ export type SettingsReloadComponent = 'PlayerData' | 'VideoData';
 export type SettingsReloadFlags = true | SettingsReloadComponent;
 
 export interface AardSettings {
+  aardType: 'webgl' | 'legacy' | 'auto';
+
   disabledReason: string,     // if automatic aspect ratio has been disabled, show reason
   allowedMisaligned: number,  // top and bottom letterbox thickness can differ by this much.
                               // Any more and we don't adjust ar.

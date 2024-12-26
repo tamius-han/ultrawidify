@@ -92,7 +92,7 @@ export default({
   ],
   mounted() {
     this.settings.active.whatsNewChecked = true;
-    this.settings.save();
+    this.settings.saveWithoutReload();
   }
 });
 </script>

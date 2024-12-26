@@ -2,12 +2,11 @@
   <div
     class="context-spawn uw-ui-trigger"
     style="z-index: 1000"
-    @mouseenter="(ev) => setTriggerZoneActive(true, ev)"
-    @mouseleave="(ev) => setTriggerZoneActive(false, ev)"
   >
     <div
       class="spawn-container uw-trigger"
       :style="triggerZoneStyles"
+      @mouseenter="(ev) => setTriggerZoneActive(true, ev)"
     >
       &nbsp;
     </div>
@@ -30,98 +29,125 @@
         </div>
         </template>
       <slot>
-        <div class="menu-width">
-        <GhettoContextMenuItem :disableHover="true" :css="{'ard-blocked': true}">
-          <div v-if="statusFlags.hasDrm || true" class="smallcaps text-center">
-            <b>NOTE:</b><br/>
-            <b>Autodetection<br/>blocked by website</b>
-          </div>
-          <div>
 
+        <!--
+          Didn't manage to ensure that extension status pops up above other menu items in less than 3 minutes with z-index,
+          so wrapping 'status' and 'real menu items' in two different divs, ordering them in the opposite way, and then
+          ensuring correct ordering with flex-direction: column-reverse ended up being easier and faster.
+        -->
+        <div class="menu-width flex-reverse-order">
+          <div style="z-index: 1000">
+            <GhettoContextMenu alignment="right">
+              <template v-slot:activator>
+                Crop
+              </template>
+              <slot>
+                <GhettoContextMenuOption
+                  v-for="(command, index) of settings?.active.commands.crop"
+                  :key="index"
+                  :label="command.label"
+                  :shortcut="getKeyboardShortcutLabel(command)"
+                  @click="execAction(command)"
+                >
+                </GhettoContextMenuOption>
+              </slot>
+            </GhettoContextMenu>
+            <GhettoContextMenu alignment="right">
+              <template v-slot:activator>
+                Stretch
+              </template>
+              <slot>
+                <GhettoContextMenuOption
+                  v-for="(command, index) of settings?.active.commands.stretch"
+                  :key="index"
+                  :label="command.label"
+                  :shortcut="getKeyboardShortcutLabel(command)"
+                  @click="execAction(command)"
+                >
+                </GhettoContextMenuOption>
+              </slot>
+            </GhettoContextMenu>
+            <GhettoContextMenu alignment="right">
+              <template v-slot:activator>
+                <div class="context-item">
+                  Align
+                </div>
+              </template>
+              <slot>
+                <GhettoContextMenuItem :disableHover="true" :css="{'reduced-padding': true}">
+                  <AlignmentOptionsControlComponent
+                    :eventBus="eventBus"
+                  >
+                  </AlignmentOptionsControlComponent>
+                </GhettoContextMenuItem>
+              </slot>
+            </GhettoContextMenu>
+
+            <!-- shortcut for configuring UI  -->
+            <GhettoContextMenuOption
+              v-if="settings.active.newFeatureTracker?.['uw6.ui-popup']?.show > 0"
+              @click="showUwWindow('playerUiSettings')"
+            >
+              <span style="color: #fa6;">I hate this popup<br/></span>
+              <span style="font-size: 0.8em">
+                <span style="text-transform: uppercase; font-size: 0.8em">
+                  <a @click="showUwWindow('playerUiSettings')">
+                    Do something about it
+                  </a> × <a @click="acknowledgeNewFeature('uw6.ui-popup')">keep the popup</a>
+                </span>
+                <br/>
+                <span style="opacity: 0.5">This menu option will show {{settings.active.newFeatureTracker?.['uw6.ui-popup']?.show}} more<br/> times; or until clicked or dismissed.<br/>
+                Also accessible via <span style="font-variant: small-caps">extension settings</span>.
+                </span>
+              </span>
+            </GhettoContextMenuOption>
+
+            <!--  -->
+            <GhettoContextMenuOption
+              @click="showUwWindow()"
+              label="Extension settings"
+            >
+            </GhettoContextMenuOption>
+            <GhettoContextMenuOption
+              @click="showUwWindow('playerDetection')"
+              label="Incorrect cropping?"
+            >
+            </GhettoContextMenuOption>
+            <GhettoContextMenuOption
+              @click="showUwWindow('about')"
+              label="Not working?"
+            >
+            </GhettoContextMenuOption>
           </div>
-        </GhettoContextMenuItem>
-        <GhettoContextMenu alignment="right">
-          <template v-slot:activator>
-            Crop
-          </template>
-          <slot>
-            <GhettoContextMenuOption
-              v-for="(command, index) of settings?.active.commands.crop"
-              :key="index"
-              :label="command.label"
-              :shortcut="getKeyboardShortcutLabel(command)"
-              @click="execAction(command)"
+
+          <div style="z-index: 10000">
+            <GhettoContextMenuItem
+              class="extension-status-messages"
+              :disableHover="true"
             >
-            </GhettoContextMenuOption>
-          </slot>
-        </GhettoContextMenu>
-        <GhettoContextMenu alignment="right">
-          <template v-slot:activator>
-            Stretch
-          </template>
-          <slot>
-            <GhettoContextMenuOption
-              v-for="(command, index) of settings?.active.commands.stretch"
-              :key="index"
-              :label="command.label"
-              :shortcut="getKeyboardShortcutLabel(command)"
-              @click="execAction(command)"
-            >
-            </GhettoContextMenuOption>
-          </slot>
-        </GhettoContextMenu>
-        <GhettoContextMenu alignment="right">
-          <template v-slot:activator>
-            <div class="context-item">
-              Align
-            </div>
-          </template>
-          <slot>
-            <GhettoContextMenuItem :disableHover="true" :css="{'reduced-padding': true}">
-              <AlignmentOptionsControlComponent
-                :eventBus="eventBus"
+              Site compatibility:
+              <SupportLevelIndicator
+                :siteSupportLevel="siteSupportLevel"
               >
-              </AlignmentOptionsControlComponent>
+              </SupportLevelIndicator>
+              <div v-if="statusFlags.hasDrm" class="aard-blocked">
+                Autodetection potentially<br/>
+                unavailable due to <a href="https://en.wikipedia.org/wiki/Digital_rights_management">DRM</a>.
+              </div>
+              <div v-else-if="statusFlags.aardErrors?.cors" class="aard-blocked">
+                Autodetection blocked<br/>
+                by site/browser (CORS).
+              </div>
+              <div v-else-if="statusFlags.aardErrors?.webglError" class="aard-blocked">
+                Autodetection unavailable<br/>
+                due to webgl error.
+              </div>
             </GhettoContextMenuItem>
-          </slot>
-        </GhettoContextMenu>
-
-        <!-- shortcut for configuring UI  -->
-        <GhettoContextMenuOption
-          v-if="settings.active.newFeatureTracker?.['uw6.ui-popup']?.show > 0"
-          @click="showUwWindow('playerUiSettings')"
-        >
-          <span style="color: #fa6;">I hate this popup<br/></span>
-          <span style="font-size: 0.8em">
-            <span style="text-transform: uppercase; font-size: 0.8em">
-              <a @click="showUwWindow('playerUiSettings')">
-                Do something about it
-              </a> × <a @click="acknowledgeNewFeature('uw6.ui-popup')">keep the popup</a>
-            </span>
-            <br/>
-            <span style="opacity: 0.5">This menu option will show {{settings.active.newFeatureTracker?.['uw6.ui-popup']?.show}} more<br/> times; or until clicked or dismissed.<br/>
-            Also accessible via <span style="font-variant: small-caps">extension settings</span>.
-            </span>
-          </span>
-        </GhettoContextMenuOption>
-
-        <!--  -->
-
-        <GhettoContextMenuOption
-          @click="showUwWindow()"
-          label="Extension settings"
-        >
-        </GhettoContextMenuOption>
-        <GhettoContextMenuOption
-          @click="showUwWindow('about')"
-          label="Not working?"
-        >
-        </GhettoContextMenuOption>
+          </div>
         </div>
       </slot>
     </GhettoContextMenu>
   </div>
-
 
   <div
     v-if="settingsInitialized && uwWindowVisible"
@@ -139,6 +165,19 @@
       @preventClose="(event) => uwWindowFadeOutDisabled = event"
     ></PlayerUIWindow>
   </div>
+
+  <div
+    class="context-spawn uw-ui-trigger"
+    style="z-index: 1000;"
+  >
+    <TriggerZoneEditor
+      class="uw-clickable"
+      :settings="settings"
+      :playerDimensions="playerDimensions"
+    >
+    </TriggerZoneEditor>
+  </div>
+
 </template>
 
 <script>
@@ -154,6 +193,8 @@ import EventBus from '../ext/lib/EventBus';
 import UIProbeMixin from './src/utils/UIProbeMixin';
 import KeyboardShortcutParserMixin from './src/utils/KeyboardShortcutParserMixin';
 import CommsMixin from './src/utils/CommsMixin';
+import SupportLevelIndicator from './src/components/SupportLevelIndicator.vue';
+import TriggerZoneEditor from './src/components/TriggerZoneEditor.vue';
 
 export default {
   components: {
@@ -162,6 +203,8 @@ export default {
     GhettoContextMenuItem,
     GhettoContextMenuOption,
     AlignmentOptionsControlComponent,
+    SupportLevelIndicator,
+    TriggerZoneEditor,
   },
   mixins: [
     UIProbeMixin,
@@ -220,10 +263,13 @@ export default {
 
       statusFlags: {
         hasDrm: undefined,
+        aardErrors: undefined,
       },
       defaultWindowTab: 'videoSettings',
 
       saveState: {},
+      siteSettings: undefined,
+      previewZoneVisible: false,
     };
   },
   computed: {
@@ -236,6 +282,12 @@ export default {
     windowHeight() {
       return window.innerHeight;
     },
+    // LPT: NO ARROW FUNCTIONS IN COMPUTED,
+    // IS SUPER HARAM
+    // THINGS WILL NOT WORK IF YOU USE ARROWS
+    siteSupportLevel() {
+      return (this.site && this.siteSettings) ? this.siteSettings.data.type || 'no-support' : 'waiting';
+    }
   },
   watch: {
     showUi(visible) {
@@ -262,6 +314,8 @@ export default {
     });
 
     this.settings = new Settings({afterSettingsSaved: this.updateConfig, logger: this.logger});
+    this.settings.listenAfterChange(() => this.updateTriggerZones());
+
     await this.settings.init();
     this.settingsInitialized = true;
 
@@ -272,11 +326,19 @@ export default {
     });
 
     this.eventBus.subscribe('uw-config-broadcast', {function: (data) => {
-      if (data.type === 'drm-status') {
-        this.statusFlags.hasDrm = data.hasDrm;
+      switch (data.type) {
+        case 'drm-status':
+          this.statusFlags.hasDrm = data.hasDrm;
+          break;
+        case 'aard-error':
+          this.statusFlags.aardErrors = data.aardErrors;
+          break;
+        case 'player-dimensions':
+          console.log('player dimensions response received.', data);
+          this.playerDimensionsUpdate(data.data);
+          break;
       }
     }});
-
 
     this.eventBus.subscribe('uw-set-ui-state', { function: (data) => {
       if (data.globalUiVisible !== undefined) {
@@ -318,11 +380,19 @@ export default {
       }
     );
 
+    this.eventBus.subscribe('ui-trigger-zone-update', {
+      function: (data) => {
+        this.showTriggerZonePreview = data.previewZoneVisible;
+        // this.;
+      }
+    });
+
     this.sendToParentLowLevel('uwui-get-role', null);
     this.sendToParentLowLevel('uwui-get-theme', null);
 
-    //
-
+    this.sendToParentLowLevel('uw-bus-tunnel', {
+      action: 'get-player-dimensions'
+    });
   },
 
   methods: {
@@ -344,6 +414,7 @@ export default {
           if (!this.site) {
             this.origin = event.origin;
             this.site = event.origin.split('//')[1];
+            this.siteSettings = this.settings.getSiteSettings(this.site);
           }
           return this.handleProbe(event.data, event.origin); // handleProbe is defined in UIProbeMixin
         case 'uw-bus-tunnel':
@@ -550,6 +621,36 @@ export default {
   // .spawn-container {
     // border: 1px solid white;
   // }
+}
+
+.extension-status-messages {
+  z-index: 1000;
+  text-transform: uppercase;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+
+  width: 112.25%;
+  transform: translate(-12.5%, 12.5%) scale(0.75);
+
+  > * {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+}
+
+.flex-reverse-order {
+  display: flex;
+  flex-direction: column-reverse;
+
+}
+
+.aard-blocked {
+  color: #fa6;
+}
+
+.trigger-zone-preview {
+  border: 4px solid #fa4;
 }
 
 </style>

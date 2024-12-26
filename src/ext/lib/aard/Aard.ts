@@ -5,6 +5,7 @@ import Settings from '../Settings';
 import VideoData from '../video-data/VideoData';
 import { Corner } from './enums/corner.enum';
 import { VideoPlaybackState } from './enums/video-playback-state.enum';
+import { FallbackCanvas } from './gl/FallbackCanvas';
 import { GlCanvas } from './gl/GlCanvas';
 import { AardCanvasStore } from './interfaces/aard-canvas-store.interface';
 import { AardDetectionSample, generateSampleArray, resetSamples } from './interfaces/aard-detection-sample.interface';
@@ -234,6 +235,8 @@ export class Aard {
   //#region internal state
   public status: AardStatus = initAardStatus();
   private timers: AardTimers = initAardTimers();
+  private inFallback: boolean = false;
+  private fallbackReason: any;
   private canvasStore: AardCanvasStore;
   private testResults: AardTestResults;
   private canvasSamples: AardDetectionSample;
@@ -244,6 +247,8 @@ export class Aard {
     if (!this.video) {
       return undefined;
     }
+
+    this.video.setAttribute('crossOrigin', 'anonymous');
 
     const ratio = this.video.videoWidth / this.video.videoHeight;
     if (isNaN(ratio)) {
@@ -284,8 +289,10 @@ export class Aard {
    * This method should only ever be called from constructor.
    */
   private init() {
+
+
     this.canvasStore = {
-      main: new GlCanvas(new GlCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-gl'})),
+      main: this.createCanvas('main-gl')
     };
 
 
@@ -301,6 +308,42 @@ export class Aard {
     };
 
     this.start();
+  }
+
+  private createCanvas(canvasId: string, canvasType?: 'webgl' | 'fallback') {
+    if (canvasType) {
+      if (canvasType === this.settings.active.arDetect.aardType || this.settings.active.arDetect.aardType === 'auto') {
+        if (canvasType === 'webgl') {
+          return new GlCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-gl'});
+        } else if (canvasType === 'fallback') {
+          return new FallbackCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-fallback'});
+        } else {
+          // TODO: throw error
+        }
+      } else {
+        // TODO: throw error
+      }
+
+    }
+
+    if (['auto', 'webgl'].includes(this.settings.active.arDetect.aardType)) {
+      try {
+        return new GlCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-gl'});
+      } catch (e) {
+        if (this.settings.active.arDetect.aardType !== 'webgl') {
+          return new FallbackCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-fallback'});
+        }
+        console.error('[ultrawidify|Aard::createCanvas] could not create webgl canvas:', e);
+        this.eventBus.send('uw-config-broadcast', {type: 'aard-error', aardErrors: {webglError: true}});
+        throw e;
+      }
+    } else if (this.settings.active.arDetect.aardType === 'legacy') {
+      return new FallbackCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-fallback'});
+    } else {
+      console.error('[ultrawidify|Aard::createCanvas] invalid value in settings.arDetect.aardType:', this.settings.active.arDetect.aardType);
+      this.eventBus.send('uw-config-broadcast', {type: 'aard-error', aardErrors: {invalidSettings: true}});
+      throw 'AARD_INVALID_SETTINGS';
+    }
   }
   //#endregion
 
@@ -393,8 +436,35 @@ export class Aard {
       do {
         const imageData = await new Promise<Uint8Array>(
           resolve => {
-            this.canvasStore.main.drawVideoFrame(this.video);
-            resolve(this.canvasStore.main.getImageData());
+            try {
+              this.canvasStore.main.drawVideoFrame(this.video);
+              resolve(this.canvasStore.main.getImageData());
+            } catch (e) {
+              if (e.name === 'SecurityError') {
+                this.eventBus.send('uw-config-broadcast', {type: 'aard-error', aardErrors: {cors: true}});
+                this.stop();
+              }
+              if (this.canvasStore.main instanceof FallbackCanvas) {
+                if (this.inFallback) {
+                  this.eventBus.send('uw-config-broadcast', {type: 'aard-error', aardErrors: this.fallbackReason});
+                  this.stop();
+                } else {
+                  this.eventBus.send('uw-config-broadcast', {type: 'aard-error', aardErrors: {fallbackCanvasError: true}});
+                  this.stop();
+                }
+              } else {
+                if (this.settings.active.arDetect.aardType === 'auto') {
+                  this.canvasStore.main.destroy();
+                  this.canvasStore.main = this.createCanvas('main-gl', 'fallback');
+                }
+                this.inFallback = true;
+                this.fallbackReason = {cors: true};
+
+                if (this.settings.active.arDetect.aardType !== 'auto') {
+                  this.stop();
+                }
+              }
+            }
           }
         );
 
@@ -407,6 +477,7 @@ export class Aard {
         );
         if (this.testResults.notLetterbox) {
           // TODO: reset aspect ratio to "AR not applied"
+          console.log('NOT LETTERBOX!');
           this.testResults.lastStage = 1;
           break;
         }
@@ -420,6 +491,7 @@ export class Aard {
           this.settings.active.arDetect.canvasDimensions.sampleCanvas.width,
           this.settings.active.arDetect.canvasDimensions.sampleCanvas.height
         );
+        console.log('LETTERBOX SHRINK CHECK RESULT — IS GUARDLINE INVALIDATED?', this.testResults.guardLine.invalidated)
         if (! this.testResults.guardLine.invalidated) {
           this.checkLetterboxGrow(
             imageData,
@@ -452,11 +524,16 @@ export class Aard {
 
       // if detection is uncertain, we don't do anything at all
       if (this.testResults.aspectRatioUncertain) {
+        console.info('aspect ratio not cettain.');
+        console.warn('check finished:', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
+
         return;
       }
 
       // TODO: emit debug values if debugging is enabled
       this.testResults.isFinished = true;
+
+      console.warn('check finished:', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
 
       // if edge width changed, emit update event.
       if (this.testResults.aspectRatioUpdated) {
@@ -1008,7 +1085,12 @@ export class Aard {
     // fact that it makes the 'if' statement governing gradient detection
     // bit more nicely visible (instead of hidden among spagheti)
     this.edgeScan(imageData, width, height);
+
+    console.log('edge scan:', JSON.parse(JSON.stringify(this.canvasSamples)));
+
     this.validateEdgeScan(imageData, width, height);
+    console.log('edge scan post valid:', JSON.parse(JSON.stringify(this.canvasSamples)));
+
 
     // TODO: _if gradient detection is enabled, then:
     this.sampleForGradient(imageData, width, height);
@@ -1061,6 +1143,7 @@ export class Aard {
       x = 0;
       isImage = false;
       finishedRows = 0;
+
       while (row < topEnd) {
         i = 0;
         rowOffset = row * 4 * width;
@@ -1126,6 +1209,7 @@ export class Aard {
             || imageData[rowOffset + x + 2] > this.testResults.blackLevel;
 
           if (!isImage) {
+            // console.log('(row:', row, ')', 'val:', imageData[rowOffset + x], 'col', x >> 2, x, 'pxoffset:', rowOffset + x, 'len:', imageData.length)
             // TODO: maybe some day mark this pixel as checked by writing to alpha channel
             i++;
             continue;
@@ -1272,6 +1356,7 @@ export class Aard {
       // didn't change meaningfully from the first, in which chance we aren't. If the brightness increased
       // anywhere between 'not enough' and 'too much', we mark the measurement as invalid.
       if (lastSubpixel - firstSubpixel > this.settings.active.arDetect.edgeDetection.gradientTestMinDelta) {
+        console.log('sample invalidated cus gradient:');
         this.canvasSamples.top[i] = -1;
       }
     }
@@ -1644,6 +1729,26 @@ export class Aard {
     const canvasAr = this.canvasStore.main.width / this.canvasStore.main.height;
 
     const compensatedWidth = fileAr === canvasAr ? this.canvasStore.main.width : this.canvasStore.main.width * fileAr;
+
+
+    console.log(`
+      ———— ASPECT RATIO CALCULATION: —————
+
+      canvas size: ${this.canvasStore.main.width} x ${this.canvasStore.main.height} (1:${this.canvasStore.main.width / this.canvasStore.main.height})
+      file size: ${this.video.videoWidth} x ${this.video.videoHeight} (1:${this.video.videoWidth / this.video.videoHeight})
+
+      compensated size: ${compensatedWidth} x ${this.canvasStore.main.height} (1:${compensatedWidth / this.canvasStore.main.height})
+
+      letterbox height: ${this.testResults.letterboxWidth}
+      net video height: ${this.canvasStore.main.height - (this.testResults.letterboxWidth * 2)}
+
+      calculated aspect ratio -----
+
+             ${compensatedWidth}               ${compensatedWidth}         ${compensatedWidth}
+        ——————————————— = —————————————— = —————— =  ${compensatedWidth / (this.canvasStore.main.height - (this.testResults.letterboxWidth * 2))}
+         ${this.canvasStore.main.height} - 2 x ${this.testResults.letterboxWidth}       ${this.canvasStore.main.height} - ${2 * this.testResults.letterboxWidth}       ${this.canvasStore.main.height - (this.testResults.letterboxWidth * 2)}
+    `);
+
 
     return compensatedWidth / (this.canvasStore.main.height - (this.testResults.letterboxWidth * 2));
   }

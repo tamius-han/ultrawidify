@@ -5,41 +5,13 @@
     <div class="popup-window-header">
       <div class="header-title">
         <div class="popup-title">Ultrawidify <small>{{settings?.active?.version}} - {{BrowserDetect.processEnvChannel}}</small></div>
-        <div class="site-support-info">
+        <div class="site-support-info flex flex-row">
           <div class="site-support-site">{{site}}</div>
-          <template v-if="inPlayer">
-            <div v-if="siteSupportLevel === 'official'" class="site-support official">
-              <mdicon name="check-decagram" />
-              <div>Verified</div>
-              <div class="tooltip">The extension is being tested and should work on this site.</div>
-            </div>
-            <div v-if="siteSupportLevel === 'community'" class="site-support community">
-              <mdicon name="handshake" />
-              <div>Community</div>
-              <div class="tooltip">
-                People say extension works on this site (or have provided help getting the extension to work if it didn't).<br/><br/>
-                Tamius (the dev) does not test the extension on this site, probably because it requires a subscription or
-                is geoblocked.
-              </div>
-            </div>
-            <div v-if="siteSupportLevel === 'no-support'" class="site-support no-support">
-              <mdicon name="help-circle-outline" />
-              <div>Unknown</div>
-              <div class="tooltip">
-                Not officially supported. Extension will try to fix things, but no promises.<br/><br/>
-                Tamius (the dev) does not test the extension on this site for various reasons
-                (unaware, not using the site, language barrier, geoblocking, paid services Tam doesn't use).
-              </div>
-            </div>
-            <div v-if="siteSupportLevel === 'user-added'" class="site-support user-added">
-              <mdicon name="account" />
-              <div>Custom</div>
-              <div class="tooltip">
-                You have manually changed settings for this site. The extension is doing what you told it to do.
-              </div>
-            </div>
-            <mdicon v-if="siteSupportLevel === 'community'" class="site-support supported" name="checkbox-marked-circle" />
-          </template>
+          <SupportLevelIndicator
+            v-if="inPlayer"
+            :siteSupportLevel="siteSupportLevel"
+          >
+          </SupportLevelIndicator>
         </div>
       </div>
       <div class="header-buttons">
@@ -116,7 +88,6 @@
             :settings="settings"
             :eventBus="eventBus"
           >
-
           </PlayerUiSettings>
           <BaseExtensionSettings
             v-if="selectedTab === 'extensionSettings'"
@@ -146,6 +117,11 @@
             v-if="selectedTab === 'about'"
           >
           </AboutPanel>
+          <ResetBackupPanel
+            v-if="selectedTab === 'resetBackup'"
+            :settings="settings"
+          >
+          </ResetBackupPanel>
         </div>
       </div>
     </div>
@@ -161,6 +137,9 @@ import BrowserDetect from '../../ext/conf/BrowserDetect'
 import ChangelogPanel from './PlayerUiPanels/ChangelogPanel.vue'
 import AboutPanel from './PlayerUiPanels/AboutPanel.vue'
 import PlayerUiSettings from './PlayerUiPanels/PlayerUiSettings.vue'
+import ResetBackupPanel from './PlayerUiPanels/ResetBackupPanel.vue'
+
+import SupportLevelIndicator from './components/SupportLevelIndicator.vue'
 
 export default {
   components: {
@@ -171,7 +150,9 @@ export default {
     DebugPanel,
     PlayerUiSettings,
     ChangelogPanel,
-    AboutPanel
+    AboutPanel,
+    SupportLevelIndicator,
+    ResetBackupPanel,
   },
   mixins: [],
   data() {
@@ -185,11 +166,12 @@ export default {
         {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
         {id: 'playerUiSettings', label: 'In-player interface', icon: 'movie-cog-outline' },
         {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
-        {id: 'autodetectionSettings', label: 'Autodetection options', icon: ''},
+        {id: 'autodetectionSettings', label: 'Autodetection options', icon: 'auto-fix'},
         // {id: 'advancedOptions', label: 'Advanced options', icon: 'cogs' },
         // {id: 'debugging', label: 'Debugging', icon: 'bug-outline' }
-        {id: 'changelog', label: 'What\'s new', icon: 'newspaper-plus' },
-        {id: 'about', label: 'About', icon: 'star-four-points-circle'}
+        {id: 'changelog', label: 'What\'s new', icon: 'alert-decagram' },
+        {id: 'about', label: 'About', icon: 'information-outline'},
+        {id: 'resetBackup', label: 'Reset and backup', icon: 'file-restore-outline'},
       ],
       selectedTab: 'extensionSettings',
       BrowserDetect: BrowserDetect,
@@ -272,86 +254,6 @@ export default {
   overflow: hidden;
 }
 
-.site-support-info {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  .site-support-site {
-    font-size: 1.5em;
-  }
-
-  .site-support {
-    display: inline-flex;
-    flex-direction: row;
-    align-items: center;
-
-    margin-left: 1rem;
-    border-radius: 8px;
-    padding: 0rem 1.5rem 0rem 1rem;
-
-    position: relative;
-
-    .tooltip {
-      padding: 1rem;
-      display: none;
-      position: absolute;
-      bottom: 0;
-      transform: translateY(110%);
-      width: 42em;
-
-      background-color: rgba(0,0,0,0.90);
-      color: #ccc;
-    }
-    &:hover {
-      .tooltip {
-        display: block;
-      }
-    }
-
-    .mdi {
-      margin-right: 1rem;
-    }
-
-    &.official {
-      background-color: #fa6;
-      color: #000;
-
-      .mdi {
-        fill: #000 !important;
-      }
-    }
-
-    &.community {
-      background-color: rgb(85, 85, 179);
-      color: #fff;
-
-      .mdi {
-        fill: #fff !important;
-      }
-    }
-
-    &.no-support {
-      background-color: rgb(138, 65, 126);
-      color: #eee;
-
-      .mdi {
-        fill: #eee !important;
-      }
-    }
-
-    &.user-added {
-      border: 1px solid #ff0;
-
-      color: #ff0;
-
-      .mdi {
-        fill: #ff0 !important;
-      }
-    }
-  }
-}
-
 .content {
   flex-grow: 1;
 
@@ -391,6 +293,16 @@ export default {
   }
 }
 
+
+.site-support-info {
+  display: flex;
+  flex-direction: row;
+  align-items: bottom;
+
+  .site-support-site {
+    font-size: 1.5em;
+  }
+}
 
 .popup-panel {
   background-color: rgba(0,0,0,0.50);

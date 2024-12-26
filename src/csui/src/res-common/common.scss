@@ -30,7 +30,7 @@ h1, h2, h3 {
   padding: 0;
 }
 
-.button {
+button, .button {
   background-color: rgba($blackBg, $normalTransparentOpacity);
 
   padding: 0.5rem 2rem;
@@ -50,6 +50,11 @@ h1, h2, h3 {
     color: $primary;
     background-color: $primaryBg;
     border-color: rgba($primary, .5);
+  }
+
+  &.danger {
+    background-color: #ff2211 !important;
+    color:#000;
   }
 }
 .b3 {
