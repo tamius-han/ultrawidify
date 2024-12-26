@@ -106,9 +106,17 @@ class UI {
         return;
       }
 
+      const rect = this.uiIframe.getBoundingClientRect();
+      const offsets = {
+        top: window.scrollY + rect.top,
+        left: window.scrollX + rect.left
+      };
+
+
       const coords = {
-        x: event.pageX - this.uiIframe.offsetLeft,
-        y: event.pageY - this.uiIframe.offsetTop
+        x: event.pageX - offsets.left,
+        y: event.pageY - offsets.top,
+        frameOffset: offsets,
       };
 
       const playerData = this.canShowUI(coords);
