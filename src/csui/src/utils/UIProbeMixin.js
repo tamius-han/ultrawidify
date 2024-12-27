@@ -6,12 +6,16 @@ export default {
      * the content script.
      */
     document.addEventListener('mousemove', (event) => {
-      this.handleProbe({
-        coords: {
-          x: event.clientX,
-          y: event.clientY
-        }
-      }, this.origin);
+      this.handleProbe(
+        {
+          coords: {
+            x: event.clientX,
+            y: event.clientY
+          },
+          isCompanion: true,
+        },
+        this.origin
+      );
     });
   },
   data() {
@@ -74,6 +78,7 @@ export default {
        */
       let isClickable = false;
       let isOverTriggerZone = false;
+      let isOverUIArea = false;
       const elements = document.elementsFromPoint(eventData.coords.x, eventData.coords.y);
 
       for (const element of elements) {
@@ -83,6 +88,9 @@ export default {
         if (element.classList?.contains('uw-ui-trigger')) {
           isOverTriggerZone = true;
         }
+        if (element.classList?.contains('uw-ui-area')) {
+          isOverUIArea = true;
+        }
       }
 
       this.triggerZoneActive = isOverTriggerZone;
@@ -91,18 +99,22 @@ export default {
       // but don't show the trigger zone behind an active popup
       if (
         eventData.canShowUI
-        && (this.settings.active.ui.inPlayer.activation !== 'player' || isOverTriggerZone)
+        && (this.settings.active.ui.inPlayer.activation === 'player' ? isOverUIArea : isOverTriggerZone)
       ) {
         if (! this.uwWindowVisible) {
           this.uwTriggerZoneVisible = true;
           clearTimeout(this.uwTriggerZoneTimeout);
           this.uwTriggerZoneTimeout = setTimeout(
-            () => this.uwTriggerZoneVisible = false,
-            250
+            () => {
+              this.uwTriggerZoneVisible = false;
+              // this.$forceRefresh();
+            },
+            750
           );
         }
       } else {
-        this.uwTriggerZoneVisible = false;
+        // console.log('[UI] hiding UI because conditions were not met. canShowUI:', eventData.canShowUI, 'isOverTriggerZone', isOverTriggerZone);
+        // this.uwTriggerZoneVisible = false;
       }
 
       window.parent.postMessage(

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="context-spawn"
+    class="context-spawn uw-ui-area"
     style="z-index: 1000;"
     v-if="!triggerZoneEditorVisible"
   >
@@ -14,14 +14,14 @@
 
   <div
     v-if="contextMenuActive || settingsInitialized && uwTriggerZoneVisible && !isGlobal"
-    class="context-spawn uw-clickable"
+    class="context-spawn uw-clickable uw-ui-area"
     style="z-index: 1001"
-    @mouseenter="preventContextMenuHide()"
-    @mouseleave="allowContextMenuHide()"
+
   >
     <GhettoContextMenu
       alignment="right" class="uw-menu"
-      @mouseenter="newFeatureViewUpdate('uw6.ui-popup')"
+      @mouseenter="() => {preventContextMenuHide(); newFeatureViewUpdate('uw6.ui-popup')}"
+      @mouseleave="allowContextMenuHide()"
     >
       <template v-slot:activator>
         <div class="context-item">
@@ -151,7 +151,7 @@
 
   <div
     v-if="settingsInitialized && uwWindowVisible"
-    class="uw-window flex flex-col uw-clickable"
+    class="uw-window flex flex-col uw-clickable uw-ui-area"
     :class="{'fade-out': uwWindowFadeOut}"
   >
     <PlayerUIWindow
@@ -168,17 +168,16 @@
 
   <div
     v-if="triggerZoneEditorVisible"
-    class="context-spawn"
+    class="context-spawn uw-ui-area"
     style="z-index: 1000; border: 2px dashed red; overflow: hidden;"
   >
     <TriggerZoneEditor
-      class="uw-clickable"
       :settings="settings"
+      :eventBus="eventBus"
       :playerDimensions="playerDimensions"
     >
     </TriggerZoneEditor>
   </div>
-
 </template>
 
 <script>
@@ -393,9 +392,18 @@ export default {
       'start-trigger-zone-edit',
       {
         function: () => {
-          console.log('Showing trigger zone editor!');
           this.triggerZoneEditorVisible = true;
           this.uwWindowVisible = false;
+        }
+      }
+    );
+
+     this.eventBus.subscribe(
+      'finish-trigger-zone-edit',
+      {
+        function: () => {
+          this.triggerZoneEditorVisible = false;
+          this.showUwWindow('playerUiSettings');
         }
       }
     );
@@ -544,13 +552,11 @@ export default {
   background-color: rgba(0,0,0,0.85) !important;
 }
 </style>
+
+<style lang="scss" src="./src/res-common/panels.scss" scoped module></style>
+<style lang="scss" src="./src/res-common/common.scss" scoped module></style>
+
 <style lang="scss" scoped>
-@import 'res/css/uwui-base.scss';
-@import 'res/css/colors.scss';
-@import 'res/css/font/overpass.css';
-@import 'res/css/font/overpass-mono.css';
-@import 'res/css/common.scss';
-@import './src/res-common/_variables';
 
 .uw-hover {
   position: absolute;
@@ -670,4 +676,18 @@ export default {
   border: 4px solid #fa4;
 }
 
+.debug-1 {
+  border: 1px solid yellow;
+
+  &:hover {
+    background-color: rbba(255,255,0,0.5);
+  }
+}
+.debug-2 {
+  border: 1px solid blue;
+
+  &:hover {
+    background-color: rbba(0,0,255,.5);
+  }
+}
 </style>

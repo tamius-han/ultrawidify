@@ -117,11 +117,11 @@
             v-if="selectedTab === 'about'"
           >
           </AboutPanel>
-          <ResetBackupPanel
+          <!-- <ResetBackupPanel
             v-if="selectedTab === 'resetBackup'"
             :settings="settings"
           >
-          </ResetBackupPanel>
+          </ResetBackupPanel> -->
         </div>
       </div>
     </div>
@@ -171,7 +171,7 @@ export default {
         // {id: 'debugging', label: 'Debugging', icon: 'bug-outline' }
         {id: 'changelog', label: 'What\'s new', icon: 'alert-decagram' },
         {id: 'about', label: 'About', icon: 'information-outline'},
-        {id: 'resetBackup', label: 'Reset and backup', icon: 'file-restore-outline'},
+        // {id: 'resetBackup', label: 'Reset and backup', icon: 'file-restore-outline'},
       ],
       selectedTab: 'extensionSettings',
       BrowserDetect: BrowserDetect,

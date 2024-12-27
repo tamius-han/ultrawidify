@@ -107,11 +107,11 @@ class UI {
       }
 
       const rect = this.uiIframe.getBoundingClientRect();
+
       const offsets = {
         top: window.scrollY + rect.top,
         left: window.scrollX + rect.left
       };
-
 
       const coords = {
         x: event.pageX - offsets.left,
@@ -231,12 +231,12 @@ class UI {
    *   * player element ()
    *   * uwui-clickable element
    */
-  canShowUI(coords) {
+  canShowUI() {
     const playerCssClass = 'uw-ultrawidify-player-css';
 
     const result = {
       playerDimensions: undefined,
-      canShowUI: false
+      canShowUI: false,
     }
 
     if (this.playerData?.dimensions) {
@@ -251,22 +251,10 @@ class UI {
                                         // fullscreen mode unless watching videos)
       result.playerDimensions.width < window.screen.width * (this.uiSettings.inPlayer.minEnabledWidth ?? 0)
     ) {
-      result.canShowUI = false;
       return result;
     }
 
-    const elements = document.elementsFromPoint(coords.x, coords.y);
-
-    for (const element of elements) {
-      if (
-        element instanceof HTMLVideoElement
-        || element.classList.contains(playerCssClass)
-      ) {
-        result.canShowUI = true;
-        return result;
-      }
-    }
-
+    result.canShowUI = true;
     return result;
   }
 
