@@ -56,6 +56,21 @@
       </OtherSiteSettings>
     </template>
 
+
+
+    <!-- Reset options -->
+    <div class="flex flex-col" style="margin-top: 2rem">
+      <h2>Reset and backup</h2>
+      <p>
+        Pressing the button will reset settings to default without asking.
+      </p>
+      <button
+        class="danger"
+        @click="resetSettings"
+      >
+        Reset settings
+      </button>
+    </div>
   </div>
 </template>
 
