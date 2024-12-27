@@ -1,4 +1,6 @@
 <template>
+
+  <!-- Preview + editor -->
   <div
     v-if="settings?.active?.ui"
     class="active-trigger-area uw-clickable"
@@ -29,12 +31,126 @@
       </div>
     </div>
   </div>
+
+  <!-- Sliders -->
+  <div
+    class="trigger-zone-editor-sliders-container"
+  >
+    <div class="panel uw-clickable">
+      <div class="trigger-zone-editor-window">
+        <div class="heading">
+          <h2>Trigger zone editor</h2>
+        </div>
+        <div>
+          <p>
+            Trigger zone is represented by this very obvious gold grid. Ultrawidify menu button will only show when mouse enters the area marked by the grid.
+          </p>
+          <p>
+            Note that interacting with the grid area is slightly broken. The distance dragged doesn't correspond with the amount of resizing. I don't plan on
+            fixing that because the amount of effort required to get it working perfectly doesn't correspond with the amount of utility this part of the UI will
+            see. Like, it works well enough and I want to enjoy some of my end-of-year PTO.
+          </p>
+          <p>
+            Sliders work as they should.
+          </p>
+        </div>
+        <div class="field">
+          <div class="label">Trigger zone width:</div>
+          <div class="input range-input">
+            <input
+              :value="settings.active.ui.inPlayer.triggerZoneDimensions.width"
+              class="slider"
+              type="range"
+              min="0.1"
+              max="1"
+              step="0.01"
+              @input="(event) => setTriggerZoneOffset('width', event.target.value, true)"
+            >
+            <input
+              :value="triggerZoneWidth"
+              @input="(event) => setTriggerZoneSize('width', event.target.value)"
+              @change="(event) => updateSettings()"
+            >
+          </div>
+          <div class="hint">
+            Width of the trigger zone (% of player area).
+          </div>
+        </div>
+        <div class="field">
+          <div class="label">Trigger zone height:</div>
+          <div class="input range-input">
+            <input
+              :value="settings.active.ui.inPlayer.triggerZoneDimensions.height"
+              type="range"
+              min="0.1"
+              max="1"
+              step="0.01"
+              @input="(event) => setTriggerZoneOffset('height', event.target.value, true)"
+            >
+            <input
+              :value="triggerZoneHeight"
+              @input="(event) => setTriggerZoneSize('height', event.target.value)"
+              @change="(event) => updateSettings()"
+            >
+          </div>
+          <div class="hint">
+            Height of the trigger zone (% of player area).
+          </div>
+        </div>
+        <div class="field">
+          <div class="label">Trigger zone horizontal offset:</div>
+          <div class="input range-input">
+            <input
+              v-model="settings.active.ui.inPlayer.triggerZoneDimensions.offsetX"
+              type="range"
+              min="-100"
+              max="100"
+              @input="(event) => setTriggerZoneOffset('offsetX', event.target.value, true)"
+            >
+            <input
+              :value="settings.active.ui.inPlayer.triggerZoneDimensions.offsetX"
+              @input="(event) => setTriggerZoneOffset('offsetX', event.target.value)"
+              @change="(event) => updateSettings()"
+            >
+          </div>
+          <div class="hint">
+            By default, trigger zone is centered around the button. This option moves trigger zone left and right.
+          </div>
+        </div>
+        <div class="field">
+          <div class="label">Trigger zone vertical offset:</div>
+          <div class="input range-input">
+            <input
+              v-model="settings.active.ui.inPlayer.triggerZoneDimensions.offsetY"
+              type="range"
+              min="-100"
+              max="100"
+              @input="(event) => setTriggerZoneOffset('offsetY', event.target.value, true)"
+            >
+            <input
+              :value="settings.active.ui.inPlayer.triggerZoneDimensions.offsetY"
+              @input="(event) => setTriggerZoneOffset('offsetY', event.target.value)"
+              @change="(event) => updateSettings()"
+            >
+          </div>
+          <div class="hint">
+            By default, trigger zone is centered around the button. This option moves trigger zone up and down.
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button @click="finishTriggerZoneEdit">Finish editing</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 <script>
 
 export default {
   props: [
     'settings',
+    'eventBus',
     'playerDimensions',
   ],
   watch: {
@@ -53,10 +169,26 @@ export default {
   created() {
     document.addEventListener("mouseup", this.handleMouseUp);
     document.addEventListener("mousemove", this.handleMouseMove);
-    this.updateTriggerZones();
+    this.updateTriggerZones(false);
+  },
+  computed: {
+    triggerZoneWidth() {
+      const v = this.settings.active.ui.inPlayer.triggerZoneDimensions.width * 100;
+      return this.optionalToFixed(v, 2);
+    },
+    triggerZoneHeight() {
+      const v = this.settings.active.ui.inPlayer.triggerZoneDimensions.height * 100;
+      return this.optionalToFixed(v, 2);
+    }
   },
   methods: {
-    updateTriggerZones() {
+    optionalToFixed(v, n) {
+      if ((`${v}`.split('.')[1]?.length ?? 0) > n) {
+        return v.toFixed(2);
+      }
+      return v;
+    },
+    updateTriggerZones(forceRefresh = true) {
       if (this.playerDimensions && this.settings?.active?.ui?.inPlayer?.triggerZoneDimensions) {
         this.triggerZoneStyles = {
           width: `${Math.round(this.playerDimensions.width * this.settings.active.ui.inPlayer.triggerZoneDimensions.width)}px`,
@@ -64,6 +196,9 @@ export default {
           transform: `translate(${(this.settings.active.ui.inPlayer.triggerZoneDimensions.offsetX)}%, ${this.settings.active.ui.inPlayer.triggerZoneDimensions.offsetY}%)`,
         };
       }
+      // if (forceRefresh) {
+      //   this.$forceUpdate();
+      // }
     },
     handleMouseDown(corner, event) {
       this.activeCornerDrag = corner;
@@ -130,8 +265,8 @@ export default {
       }
 
       // ensure everything is properly limited
-      const cw = Math.min(0.95, Math.max(0.125, nw));
-      const ch = Math.min(0.95, Math.max(0.125, nh));
+      const cw = Math.min(1, Math.max(0.125, nw));
+      const ch = Math.min(1, Math.max(0.125, nh));
 
       // // update properties
       this.settings.active.ui.inPlayer.triggerZoneDimensions.width = cw;
@@ -157,11 +292,58 @@ export default {
 
       this.settings.active.ui.inPlayer.triggerZoneDimensions.offsetX = cx;
       this.settings.active.ui.inPlayer.triggerZoneDimensions.offsetY = cy;
-    }
+    },
+
+
+
+    //#region slider window
+    forceNumber(value) {
+      //       Change EU format to US if needed
+      //                  |       remove everything after second period if necessary
+      //                  |               |            |   remove non-numeric characters
+      //                  |               |            |           |
+      return value.replaceAll(',', '.').split('.', 2).join('.').replace(/[^0-9.\-]/g, '');
+    },
+    setTriggerZoneSize(key, value, instantUpdate) {
+      console.log('setting trigger zone size:', key, value);
+      let size = (+this.forceNumber(value) / 100);
+
+      if (isNaN(+size)) {
+        size = 0.5;
+      }
+
+      this.settings.active.ui.inPlayer.triggerZoneDimensions[key] = size;
+
+      if (instantUpdate) {
+        this.updateSettings();
+      }
+    },
+    setTriggerZoneOffset(key, value, instantUpdate) {
+      let offset = +this.forceNumber(value);
+
+      this.settings.active.ui.inPlayer.triggerZoneDimensions[key] = offset;
+
+      if (instantUpdate) {
+        this.updateSettings();
+      }
+    },
+    updateSettings() {
+      this.settings.saveWithoutReload();
+      this.updateTriggerZones();
+    },
+
+    //#endregion
+    finishTriggerZoneEdit() {
+      this.eventBus.send('finish-trigger-zone-edit');
+    },
+
   }
 }
 
 </script>
+
+<style lang="scss" src="../res-common/panels.scss" scoped module></style>
+<style lang="scss" src="../res-common/common.scss" scoped module></style>
 <style lang="scss" scoped>
 .active-trigger-area {
   background-image: url('/res/img/grid_512.webp');
@@ -203,6 +385,77 @@ export default {
   }
   .tl {
     transform: rotate(-90deg);
+  }
+}
+
+.trigger-zone-editor-window {
+  max-width: 69rem;
+}
+
+.trigger-zone-editor-sliders-container {
+  position: fixed;
+  width: 100dvw;
+  height: 100dvh;
+  top: 0;
+  left: 0;
+  z-index: 2000;
+
+  pointer-events: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .panel {
+    backdrop-filter: blur(0.5rem) brightness(0.5);
+    color: #ccc;
+    pointer-events: all;
+
+    padding: 1rem;
+  }
+
+  .range-input {
+    display: flex;
+    flex-direction: row;
+
+    * {
+      margin-left: 0.5rem;
+      margin-right: 0.5rem;
+    }
+
+
+    input {
+      max-width: 5rem;
+    }
+
+    input[type=range] {
+      max-width: none;
+    }
+  }
+  .trigger-zone-editor {
+    padding-bottom: 2rem;
+
+    .field {
+      margin-bottom: -1em;
+    }
+  }
+}
+
+.range-input {
+  display: flex;
+  flex-direction: row;
+
+  * {
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+  }
+
+  input {
+    max-width: 5rem;
+  }
+
+  input[type=range] {
+    max-width: none;
   }
 }
 

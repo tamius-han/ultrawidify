@@ -2,148 +2,99 @@
   <div class="flex flex-col" style="position: relative; width: 100%;">
     <!-- The rest of the tab is under 'edit ratios and shortcuts' row -->
     <div class="flex flex-col" style="width: 100%">
-
       <h2>Player UI options</h2>
 
-      <div class="field">
-        <div class="label">Enable in-player UI</div>
-        <input type="checkbox" v-model="settings.active.ui.inPlayer.enabled" />
+      <div class="flex flex-col compact-form">
+        <div class="field">
+          <div class="label">Enable in-player UI</div>
+          <input type="checkbox" v-model="settings.active.ui.inPlayer.enabled" />
+        </div>
+        <div
+          class="flex flex-col field-group compact-form"
+          :class="{disabled: !settings.active.ui.inPlayer.enabled}"
+        >
+          <div class="field">
+            <div class="label">Enable only in full screen</div>
+            <input type="checkbox" v-model="settings.active.ui.inPlayer.enabledFullscreenOnly" />
+          </div>
+
+          <div class="field">
+            <div class="label">
+              Popup activator position:
+            </div>
+            <div class="select">
+              <select
+                v-model="settings.active.ui.inPlayer.alignment"
+                @click="setUiOption('alignment', $event)"
+              >
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="label">
+              Activate in-player UI:
+            </div>
+            <div class="select">
+              <select
+                v-model="settings.active.ui.inPlayer.activation"
+                @click="setUiOption('', $event)"
+              >
+                <option value="player">
+                  When mouse hovers over player
+                </option>
+                <option value="trigger-zone">
+                  When mouse hovers over trigger zone
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field" :class="{disabled: settings.active.ui.inPlayer.activation !== 'trigger-zone'}">
+            <div class="label">Edit trigger zone:</div>
+            <button @click="startTriggerZoneEdit()">Edit</button>
+          </div>
+
+          <div class="field">
+            <div class="label">
+              Do not show in-player UI when video player is narrower than (% of screen width)
+            </div>
+            <div>TODO: slider</div>
+          </div>
+        </div>
       </div>
 
-      <div
-        class="flex flex-col"
-        :class="{disabled: settings.active.ui.inPlayer.enabled}"
-      >
-        <div class="field">
-          <div class="label">Enable only in full screen</div>
-          <input type="checkbox" v-model="settings.active.ui.inPlayer.enabledFullscreenOnly" />
+      <h2>Menu options and keyboard shortcuts</h2>
+      <div class="flex flex-row">
+        <!-- CROP OPTIONS -->
+        <div>
+          <div class="flex flex-row">
+            <mdicon name="crop" :size="32" />
+            <h3>Crop video:</h3>
+          </div>
+
+          <CropOptionsPanel
+            :settings="settings"
+            :eventBus="eventBus"
+            :isEditing="true"
+          >
+          </CropOptionsPanel>
         </div>
 
-        <div class="field">
-          <div class="label">
-            Popup activator position:
+        <!-- STRETCH OPTIONS -->
+        <div>
+          <div class="flex flex-row">
+            <mdicon name="stretch-to-page-outline" :size="32" />
+            <h3>Stretch video:</h3>
           </div>
-          <div class="select">
-            <select
-              v-model="settings.active.ui.inPlayer.alignment"
-              @click="setUiOption('alignment', $event)"
-            >
-              <option value="left">Left</option>
-              <option value="right">Right</option>
-            </select>
-          </div>
-        </div>
 
-        <div class="field">
-          <div class="label">
-            Activate in-player UI:
-          </div>
-          <div class="select">
-            <select
-              v-model="settings.active.ui.inPlayer.activation"
-              @click="setUiOption('', $event)"
-            >
-              <option value="player">
-                When mouse hovers over player
-              </option>
-              <option value="trigger-zone">
-                When mouse hovers over trigger zone
-              </option>
-            </select>
-          </div>
-        </div>
-
-        <div class="field">
-          <div class="label">Edit trigger zone:</div>
-          <button @click="startTriggerZoneEdit()">Edit</button>
-        </div>
-
-        <div v-if="settings.active.ui.inPlayer.activation === 'trigger-zone'">
-          <div class="trigger-zone-editor">
-            <div class="heading">
-              <h3>Trigger zone editor</h3>
-            </div>
-            <div class="field">
-              <div class="label">Trigger zone width:</div>
-              <div class="input range-input">
-                <input
-                  v-model="settings.active.ui.inPlayer.triggerZoneDimensions.width"
-                  class="slider"
-                  type="range"
-                  min="0.1"
-                  max="1"
-                  step="0.01"
-                >
-                <input
-                  :value="(settings.active.ui.inPlayer.triggerZoneDimensions.width * 100).toFixed(2)"
-                  @input="(event) => setTriggerZoneSize('width', event.target.value)"
-                >
-              </div>
-              <div class="hint">
-                Width of the trigger zone (% of player area).
-              </div>
-            </div>
-            <div class="field">
-              <div class="label">Trigger zone height:</div>
-              <div class="input range-input">
-                <input
-                  v-model="settings.active.ui.inPlayer.triggerZoneDimensions.height"
-                  type="range"
-                  min="0.1"
-                  max="1"
-                  step="0.01"
-                >
-                <input
-                  :value="(settings.active.ui.inPlayer.triggerZoneDimensions.height * 100).toFixed(2)"
-                  @input="(event) => setTriggerZoneSize('width', event.target.value)"
-                >
-              </div>
-              <div class="hint">
-                Height of the trigger zone (% of player area).
-              </div>
-            </div>
-            <div class="field">
-              <div class="label">Trigger zone horizontal offset:</div>
-              <div class="input range-input">
-                <input
-                  v-model="settings.active.ui.inPlayer.triggerZoneDimensions.offsetX"
-                  type="range"
-                  min="-100"
-                  max="100"
-                >
-                <input
-                  v-model="settings.active.ui.inPlayer.triggerZoneDimensions.offsetX"
-                >
-              </div>
-              <div class="hint">
-                By default, trigger zone is centered around the button. This option moves trigger zone left and right.
-              </div>
-            </div>
-            <div class="field">
-              <div class="label">Trigger zone vertical offset:</div>
-              <div class="input range-input">
-                <input
-                  v-model="settings.active.ui.inPlayer.triggerZoneDimensions.offsetY"
-                  type="range"
-                  min="-100"
-                  max="100"
-                >
-                <input
-                  v-model="settings.active.ui.inPlayer.triggerZoneDimensions.offsetY"
-                >
-              </div>
-              <div class="hint">
-                By default, trigger zone is centered around the button. This option moves trigger zone up and down.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="field">
-          <div class="label">
-            Do not show in-player UI when video player is narrower than (% of screen width)
-          </div>
-          <div>TODO: slider</div>
+          <StretchOptionsPanel
+            :settings="settings"
+            :eventBus="eventBus"
+            :isEditing="true"
+          ></StretchOptionsPanel>
         </div>
       </div>
 
@@ -154,8 +105,15 @@
 <script>
 import Button from '../components/Button.vue'
 import BrowserDetect from '../../../ext/conf/BrowserDetect';
+import CropOptionsPanel from './PanelComponents/VideoSettings/CropOptionsPanel.vue'
+import StretchOptionsPanel from './PanelComponents/VideoSettings/StretchOptionsPanel.vue'
 
 export default {
+  components: {
+    Button,
+    CropOptionsPanel,
+    StretchOptionsPanel
+  },
   data() {
     return {
 
@@ -171,30 +129,11 @@ export default {
   },
   mounted() {
   },
-  components: {
-    Button,
-  },
   methods: {
     setUiPage(key, event) {
 
     },
-    forceNumber(value) {
-      //       Change EU format to US if needed
-      //                  |       remove everything after second period if necessary
-      //                  |               |            |   remove non-numeric characters
-      //                  |               |            |           |
-      return value.replaceAll(',', '.').split('.', 2).join('.').replace(/[^0-9.]/g, '');
-    },
-    setTriggerZoneSize(key, value) {
-      let size = (+this.forceNumber(value) / 100);
 
-      if (isNaN(+size)) {
-        size = 0.5;
-      }
-
-      this.settings.active.ui.inPlayer.triggerZoneDimensions[key] = size;
-      this.settings.saveWithoutReload();
-    },
     startTriggerZoneEdit() {
       this.eventBus.send('start-trigger-zone-edit');
     },
@@ -250,6 +189,21 @@ export default {
   .field {
     margin-bottom: -1em;
   }
-
 }
+
+.disabled {
+  pointer-events: none;
+  /* color: #666; */
+  filter: contrast(50%) brightness(40%) grayscale(100%);
+}
+
+.compact-form {
+
+
+  > .field, > .field-group {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+}
+
 </style>
