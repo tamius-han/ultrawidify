@@ -1,6 +1,6 @@
 <template>
   <div
-    class="context-spawn debug-1"
+    class="context-spawn"
     style="z-index: 1000;"
     v-if="!triggerZoneEditorVisible"
   >
@@ -169,7 +169,7 @@
   <div
     v-if="triggerZoneEditorVisible"
     class="context-spawn"
-    style="z-index: 1000; border: 2px dashed red"
+    style="z-index: 1000; border: 2px dashed red; overflow: hidden;"
   >
     <TriggerZoneEditor
       class="uw-clickable"
@@ -573,7 +573,7 @@ export default {
 }
 
 .uw-window {
-  position: absolute;
+  position: fixed;
 
   top: 10%;
   left: 10%;
@@ -608,17 +608,21 @@ export default {
 
 .context-spawn {
   position: absolute;
-  top: 50%;
+  top: 0;
   left: 0;
-  transform: translateY(-50%);
+
+  width: 100dvw;
+  height: 100dvh;
+
+  box-sizing: border-box;
+  overflow: hidden;
+
   display: flex;
   flex-direction: row;
   align-content: center;
   align-items: center;
   // width: 100%;
   // height: 100%;
-
-  padding: 2rem;
 
   color: #fff;
 
