@@ -268,7 +268,6 @@ export default {
       }
     },
     siteDefaultCrop() {
-      // console.log('Getting default site crop:', this.siteSettings.raw?.defaults?.crop ? 'yay' : '{useDefault}', this.siteSettings.raw?.defaults?.crop)
       return this.siteSettings.raw?.defaults?.crop ? JSON.stringify(this.siteSettings.raw?.defaults?.crop) : JSON.stringify({useDefault: true});
     },
     siteDefaultStretch() {
@@ -402,7 +401,6 @@ export default {
         commandArguments = undefined;
       }
 
-      // console.log('setting option', option, 'to cmd:', commandArguments, 'event data in:', value);
       await this.siteSettings.set(option, commandArguments);
       this.$nextTick( () => this.$forceUpdate() );
     },

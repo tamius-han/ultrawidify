@@ -287,7 +287,6 @@ export default {
 
       const observer = new IntersectionObserver(
         ([e]) => {
-          // console.log('observer triggered. intersection ratio?', e.intersectionRatio)
           saveButton.classList.toggle('floating', e.intersectionRatio < 0.95);
         },
         {threshold: [0, 0.5, 0.9, 0.95, 1]}

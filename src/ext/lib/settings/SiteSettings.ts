@@ -122,11 +122,8 @@ export class SiteSettings {
 
     this.compileSettingsObject();
 
-    console.log('changes:', parsedSettings);
-
     // trigger any subscriptions on change
     if (parsedSettings._updateFlags) {
-      console.log('update flags yay!')
       if (parsedSettings._updateFlags?.forSite === this.site) {
         if (parsedSettings._updateFlags?.requireReload === true) {
           for (const key in this.storageChangeSubscriptions) {
@@ -140,9 +137,9 @@ export class SiteSettings {
         }
         else if (parsedSettings._updateFlags?.requireReload) {
           for (const key of parsedSettings._updateFlags?.requireReload) {
-            console.log('reload required for:', key, this.storageChangeSubscriptions);
-
-            if (! this.storageChangeSubscriptions[key]) continue;
+            if (! this.storageChangeSubscriptions[key]) {
+              continue;
+            }
 
             for (const fn of this.storageChangeSubscriptions[key]) {
               fn(this, changes, area);

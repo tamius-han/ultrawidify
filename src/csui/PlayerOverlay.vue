@@ -5,7 +5,7 @@
     v-if="!triggerZoneEditorVisible"
   >
     <div
-      class="spawn-container uw-ui-trigger debug-2"
+      class="spawn-container uw-ui-trigger"
       :style="triggerZoneStyles"
     >
       &nbsp;
@@ -169,7 +169,7 @@
   <div
     v-if="triggerZoneEditorVisible"
     class="context-spawn uw-ui-area"
-    style="z-index: 1000; border: 2px dashed red; overflow: hidden;"
+    style="z-index: 1000;"
   >
     <TriggerZoneEditor
       :settings="settings"
@@ -335,7 +335,6 @@ export default {
           this.statusFlags.aardErrors = data.aardErrors;
           break;
         case 'player-dimensions':
-          console.log('player dimensions response received.', data);
           this.playerDimensionsUpdate(data.data);
           break;
       }
@@ -451,7 +450,6 @@ export default {
      * Handles trigger zone
      */
     handleTriggerZone(mouseInside) {
-      console.log('handing trigger zone!', mouseInside);
       // this.triggerZoneActive = mouseInside;
     },
 

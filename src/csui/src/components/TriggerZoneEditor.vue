@@ -210,8 +210,6 @@ export default {
         y: event.clientY
       };
       this.dragStartConfiguration = JSON.parse(JSON.stringify(this.settings.active.ui.inPlayer.triggerZoneDimensions));
-
-      console.log(`Mousedown on ${corner}`);
     },
     handleMouseUp(event) {
       if (!this.activeCornerDrag) {
@@ -305,7 +303,6 @@ export default {
       return value.replaceAll(',', '.').split('.', 2).join('.').replace(/[^0-9.\-]/g, '');
     },
     setTriggerZoneSize(key, value, instantUpdate) {
-      console.log('setting trigger zone size:', key, value);
       let size = (+this.forceNumber(value) / 100);
 
       if (isNaN(+size)) {

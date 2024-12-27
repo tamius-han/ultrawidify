@@ -43,7 +43,6 @@ export default {
   },
   methods: {
     showContextMenu() {
-      console.log('will show context menu.')
       this.contextMenuVisible = true;
     },
     hideContextMenu() {

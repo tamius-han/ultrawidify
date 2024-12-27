@@ -33,25 +33,18 @@ export default {
       if (!dimensions.width || !dimensions.height) {
         this.playerDimensions = undefined;
       }
-      console.log('player dimensions update received:', dimensions);
       if (dimensions?.width !== this.playerDimensions?.width || dimensions?.height !== this.playerDimensions?.height) {
-        console.log('Player dimensions changed!', dimensions);
-
         this.playerDimensions = dimensions;
         this.updateTriggerZones();
       }
     },
     updateTriggerZones() {
-      console.log('triggered zone style recheck. player dims:', this.playerDimensions, 'in player settings:', this.settings.active.ui);
       if (this.playerDimensions && this.settings) {
         this.triggerZoneStyles = {
           width: `${Math.round(this.playerDimensions.width * this.settings.active.ui.inPlayer.triggerZoneDimensions.width)}px`,
           height: `${Math.round(this.playerDimensions.height * this.settings.active.ui.inPlayer.triggerZoneDimensions.height)}px`,
           transform: `translate(${(this.settings.active.ui.inPlayer.triggerZoneDimensions.offsetX)}%, ${this.settings.active.ui.inPlayer.triggerZoneDimensions.offsetY}%)`,
         };
-        console.log(
-          'player trigger zone css:', this.triggerZoneStyles
-        );
       }
     },
 
@@ -113,7 +106,6 @@ export default {
           );
         }
       } else {
-        // console.log('[UI] hiding UI because conditions were not met. canShowUI:', eventData.canShowUI, 'isOverTriggerZone', isOverTriggerZone);
         // this.uwTriggerZoneVisible = false;
       }
 

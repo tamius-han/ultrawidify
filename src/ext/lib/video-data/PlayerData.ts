@@ -99,8 +99,6 @@ class PlayerData {
     }],
     'get-player-dimensions': [{
       function: () => {
-        console.log('received get player dimensions! -- returning:', this.dimensions)
-
         this.eventBus.send('uw-config-broadcast', {
           type: 'player-dimensions',
           data: this.dimensions
