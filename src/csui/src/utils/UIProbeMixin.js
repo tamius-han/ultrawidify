@@ -100,9 +100,8 @@ export default {
           this.uwTriggerZoneTimeout = setTimeout(
             () => {
               this.uwTriggerZoneVisible = false;
-              // this.$forceRefresh();
             },
-            750
+            500
           );
         }
       } else {
