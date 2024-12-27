@@ -164,7 +164,7 @@ export default {
       tabs: [
         // {id: 'videoSettings', label: 'Video settings', icon: 'crop'},
         {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
-        {id: 'playerUiSettings', label: 'In-player interface', icon: 'movie-cog-outline' },
+        {id: 'playerUiSettings', label: 'UI and keyboard', icon: 'movie-cog-outline' },
         {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
         {id: 'autodetectionSettings', label: 'Autodetection options', icon: 'auto-fix'},
         // {id: 'advancedOptions', label: 'Advanced options', icon: 'cogs' },

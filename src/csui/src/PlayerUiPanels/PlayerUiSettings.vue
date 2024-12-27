@@ -66,13 +66,15 @@
         </div>
       </div>
 
-      <h2>Menu options and keyboard shortcuts</h2>
-      <div class="flex flex-row">
+      <h2 class="mt2r">Menu options and keyboard shortcuts</h2>
+      <div>
+        Click 'add new' to add a new option. Click a button to edit or remove the keyboard shortcut.
+      </div>
+      <div class="keyboard-settings">
         <!-- CROP OPTIONS -->
         <div>
           <div class="flex flex-row">
-            <mdicon name="crop" :size="32" />
-            <h3>Crop video:</h3>
+            <h3 class="mth3">CROP OPTIONS</h3>
           </div>
 
           <CropOptionsPanel
@@ -86,8 +88,7 @@
         <!-- STRETCH OPTIONS -->
         <div>
           <div class="flex flex-row">
-            <mdicon name="stretch-to-page-outline" :size="32" />
-            <h3>Stretch video:</h3>
+            <h3 class="mth3">STRETCH OPTIONS</h3>
           </div>
 
           <StretchOptionsPanel
@@ -206,4 +207,22 @@ export default {
   }
 }
 
+.keyboard-settings {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1rem;
+
+  > * {
+    width: calc(50% - 0.5rem);
+  }
+}
+
+.mt2r {
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+.mth3 {
+  margin-top: 1.5rem;
+}
 </style>

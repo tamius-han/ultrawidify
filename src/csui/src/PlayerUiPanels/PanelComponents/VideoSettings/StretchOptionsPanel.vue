@@ -127,7 +127,7 @@
     </div>
   </div>
 
-  <div class="edit-action-area">
+  <div v-if="siteSettings" class="edit-action-area">
     <div class="field">
       <div class="label">Default for this site:</div>
       <div class="select">
@@ -191,10 +191,18 @@ export default {
   },
   computed: {
     siteDefaultStretch() {
+      if (!this.siteSettings) {
+        return null;
+      }
       return JSON.stringify(
         this.siteSettings.data.defaults.stretch
       );
     },
+  },
+  created() {
+    if (this.isEditing) {
+      this.enableEditMode();
+    }
   },
   watch: {
     isEditing(newValue, oldValue) {
@@ -210,6 +218,9 @@ export default {
      * Sets default stretching mode, for either site or global
      */
     setDefaultStretchingMode($event, globalOrSite) {
+      if (!this.siteSettings) {
+        return;
+      }
       const commandArguments = JSON.parse($event.target.value);
       this.siteSettings.set('defaults.stretch', commandArguments);
     },
@@ -218,7 +229,7 @@ export default {
      * Determines whether a given stretch command is the currently active one
      */
     isActiveStretch(stretchCommand) {
-      if (! this.resizerConfig.stretch) {
+      if (! this.resizerConfig.stretch || !this.siteSettings) {
         return false;
       }
 

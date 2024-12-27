@@ -1,9 +1,6 @@
 <template>
-  <!-- <div class="flex flex-row">
-    <mdicon name="crop" :size="32" />
-    <h1>Crop video:</h1>
-  </div> -->
   <div class="sub-panel-content flex flex-row flex-wrap">
+
     <ShortcutButton
       v-for="(command, index) of settings?.active.commands.crop"
       class="flex b3 button"
@@ -19,7 +16,7 @@
     <ShortcutButton
       v-if="editMode"
       class="button b3"
-      :class="{active: editMode ? editModeOptions?.crop?.selectedIndex === null : isActiveCrop(command)}"
+     :class="{active: editMode ? editModeOptions?.crop?.selectedIndex === null : isActiveCrop(command)}"
       label="Add new"
       @click="editAction(
         {action: 'set-ar', label: 'New aspect ratio', arguments: {type: AspectRatioType.Fixed}},
@@ -114,7 +111,7 @@
     </div>
   </div>
 
-  <div class="edit-action-area">
+  <div v-if="siteSettings" class="edit-action-area">
     <div class="field">
       <div class="label">Default for this site</div>
       <div class="select">
@@ -176,10 +173,18 @@ export default {
   },
   computed: {
     siteDefaultCrop()  {
+      if (!this.siteSettings) {
+        return null;
+      }
       return JSON.stringify(
         this.siteSettings.data.defaults.crop
       );
     },
+  },
+  created() {
+    if (this.isEditing) {
+      this.enableEditMode();
+    }
   },
   watch: {
     isEditing(newValue, oldValue) {
@@ -195,6 +200,9 @@ export default {
      * Sets default crop, for either site or global
      */
     setDefaultCrop($event, scope) {
+      if (!this.siteSettings) {
+        return;
+      }
       const commandArguments = JSON.parse($event.target.value);
 
       this.siteSettings.set('defaults.crop', commandArguments);
@@ -205,7 +213,7 @@ export default {
      * Determines whether a given crop command is the currently active one
      */
     isActiveCrop(cropCommand) {
-      if (! this.resizerConfig.crop) {
+      if (! this.resizerConfig.crop || !this.siteSettings) {
         return false;
       }
 
