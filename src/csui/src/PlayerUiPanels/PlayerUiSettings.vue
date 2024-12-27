@@ -7,7 +7,11 @@
       <div class="flex flex-col compact-form">
         <div class="field">
           <div class="label">Enable in-player UI</div>
-          <input type="checkbox" v-model="settings.active.ui.inPlayer.enabled" />
+          <input
+            type="checkbox"
+            v-model="settings.active.ui.inPlayer.enabled"
+            @change="saveSettings()"
+          />
         </div>
         <div
           class="flex flex-col field-group compact-form"
@@ -26,6 +30,7 @@
               <select
                 v-model="settings.active.ui.inPlayer.alignment"
                 @click="setUiOption('alignment', $event)"
+                @change="saveSettings()"
               >
                 <option value="left">Left</option>
                 <option value="right">Right</option>
@@ -41,6 +46,7 @@
               <select
                 v-model="settings.active.ui.inPlayer.activation"
                 @click="setUiOption('', $event)"
+                @change="saveSettings()"
               >
                 <option value="player">
                   When mouse hovers over player
@@ -134,7 +140,9 @@ export default {
     setUiPage(key, event) {
 
     },
-
+    saveSettings() {
+      this.settings.saveWithoutReload();
+    },
     startTriggerZoneEdit() {
       this.eventBus.send('start-trigger-zone-edit');
     },
