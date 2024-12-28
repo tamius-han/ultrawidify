@@ -22,7 +22,7 @@
             <input type="checkbox" v-model="settings.active.ui.inPlayer.enabledFullscreenOnly" />
           </div>
 
-          <div class="field">
+          <div class="field disabled">
             <div class="label">
               Popup activator position:
             </div>
@@ -56,7 +56,7 @@
             </div>
           </div>
 
-          <div class="field" :class="{disabled: settings.active.ui.inPlayer.activation !== 'trigger-zone'}">
+          <div class="field" :class="{'disabled': settings.active.ui.inPlayer.activation !== 'trigger-zone'}">
             <div class="label">Edit trigger zone:</div>
             <button @click="startTriggerZoneEdit()">Edit</button>
           </div>
@@ -67,18 +67,19 @@
             </div>
             <div class="input range-input">
               <input
-                :value="settings.active.ui.inPlayer.minEnabledWidth"
+                :value="settings.active.ui.inPlayer.maxEnabledWidth"
                 class="slider"
                 type="range"
                 min="0"
                 max="1"
                 step="0.01"
-                @input="(event) => setPlayerRestrictions('minEnabledWidth', event.target.value, true)"
+                @input="(event) => setPlayerRestrictions('maxEnabledWidth', event.target.value)"
+                @change="(event) => saveSettings()"
               >
               <input
-                :value="settings.active.ui.inPlayer.minEnabledWidth"
-                @input="(event) => setPlayerRestrictions('minEnabledWidth', event.target.value)"
-                @change="(event) => saveSettings()"
+                :value="maxEnabledWidth"
+                @input="(event) => setPlayerRestrictions('maxEnabledWidth', event.target.value, true)"
+                @change="(event) => saveSettings(true)"
               >
             </div>
           </div>
@@ -95,12 +96,13 @@
                 min="0"
                 max="1"
                 step="0.01"
-                @input="(event) => setPlayerRestrictions('minEnabledHeight', event.target.value, true)"
+                @input="(event) => setPlayerRestrictions('minEnabledHeight', event.target.value)"
+                @change="(event) => saveSettings()"
               >
               <input
                 :value="minEnabledHeight"
-                @input="(event) => setPlayerRestrictions('minEnabledHeight', event.target.value)"
-                @change="(event) => saveSettings()"
+                @input="(event) => setPlayerRestrictions('minEnabledHeight', event.target.value, true)"
+                @change="(event) => saveSettings(true)"
               >
             </div>
           </div>
@@ -169,14 +171,46 @@ export default {
   ],
   created() {
   },
-  mounted() {
+  computed: {
+    maxEnabledWidth() {
+      const v = this.settings.active.ui.inPlayer.maxEnabledWidth * 100;
+      return this.optionalToFixed(v, 0);
+    },
+    minEnabledHeight() {
+      const v = this.settings.active.ui.inPlayer.minEnabledHeight * 100;
+      return this.optionalToFixed(v, 0);
+    }
   },
   methods: {
-    setUiPage(key, event) {
-
+    forcePositiveNumber(value) {
+      //       Change EU format to US if needed
+      //                  |       remove everything after second period if necessary
+      //                  |               |            |   remove non-numeric characters
+      //                  |               |            |           |
+      return value.replaceAll(',', '.').split('.', 2).join('.').replace(/[^0-9.]/g, '');
     },
-    saveSettings() {
+    optionalToFixed(v, n) {
+      if ((`${v}`.split('.')[1]?.length ?? 0) > n) {
+        return v.toFixed(n);
+      }
+      return v;
+    },
+    setPlayerRestrictions(key, value, isTextInput) {
+      if (isTextInput) {
+        value = (+this.forcePositiveNumber(value) / 100);
+      }
+      if (isNaN(+value)) {
+        value = 0.5;
+      }
+
+      this.settings.active.ui.inPlayer[key] = value;
+    },
+    saveSettings(forceRefresh) {
       this.settings.saveWithoutReload();
+
+      if (forceRefresh) {
+        this.$nextTick( () => this.$forceRefresh() );
+      }
     },
     startTriggerZoneEdit() {
       this.eventBus.send('start-trigger-zone-edit');
