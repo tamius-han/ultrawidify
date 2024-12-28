@@ -67,7 +67,44 @@
             <div class="label">
               Do not show in-player UI when video player is narrower than (% of screen width)
             </div>
-            <div>TODO: slider</div>
+            <div class="input range-input">
+              <input
+                :value="settings.active.ui.inPlayer.minEnabledWidth"
+                class="slider"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                @input="(event) => setPlayerRestrictions('minEnabledWidth', event.target.value, true)"
+              >
+              <input
+                :value="settings.active.ui.inPlayer.minEnabledWidth"
+                @input="(event) => setPlayerRestrictions('minEnabledWidth', event.target.value)"
+                @change="(event) => saveSettings()"
+              >
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="label">
+              Do not show in-player UI when video player is shorter than (% of screen width)
+            </div>
+            <div class="input range-input">
+              <input
+                :value="settings.active.ui.inPlayer.minEnabledHeight"
+                class="slider"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                @input="(event) => setPlayerRestrictions('minEnabledHeight', event.target.value, true)"
+              >
+              <input
+                :value="minEnabledHeight"
+                @input="(event) => setPlayerRestrictions('minEnabledHeight', event.target.value)"
+                @change="(event) => saveSettings()"
+              >
+            </div>
           </div>
         </div>
       </div>
@@ -207,8 +244,6 @@ export default {
 }
 
 .compact-form {
-
-
   > .field, > .field-group {
     margin-top: 0;
     margin-bottom: 0;
