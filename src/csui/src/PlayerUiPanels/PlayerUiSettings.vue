@@ -28,8 +28,7 @@
             </div>
             <div class="select">
               <select
-                v-model="settings.active.ui.inPlayer.alignment"
-                @click="setUiOption('alignment', $event)"
+                v-model="settings.active.ui.inPlayer.popupAlignment"
                 @change="saveSettings()"
               >
                 <option value="left">Left</option>
@@ -45,7 +44,6 @@
             <div class="select">
               <select
                 v-model="settings.active.ui.inPlayer.activation"
-                @click="setUiOption('', $event)"
                 @change="saveSettings()"
               >
                 <option value="player">
