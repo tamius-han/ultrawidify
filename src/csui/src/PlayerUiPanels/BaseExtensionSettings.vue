@@ -104,6 +104,10 @@ export default {
         return  this.settings?.getSiteSettings(this.site) ?? null;
       }
       return null;
+    },
+    resetSettings() {
+      this.settings.active = JSON.parse(JSON.stringify(this.settings.default));
+      this.settings.saveWithoutReload();
     }
   },
   methods: {

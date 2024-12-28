@@ -163,6 +163,7 @@ const ExtensionConf: SettingsInterface = {
       enabled: true, // enable by default on new installs
       enabledFullscreenOnly: false,
       minEnabledWidth: 0.75,
+      minEnabledHeight: 0.75,
       activation: 'player',
       popupAlignment: 'left',
       triggerZoneDimensions: {

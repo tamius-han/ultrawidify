@@ -184,7 +184,7 @@ export default {
   methods: {
     optionalToFixed(v, n) {
       if ((`${v}`.split('.')[1]?.length ?? 0) > n) {
-        return v.toFixed(2);
+        return v.toFixed(n);
       }
       return v;
     },
@@ -291,8 +291,6 @@ export default {
       this.settings.active.ui.inPlayer.triggerZoneDimensions.offsetX = cx;
       this.settings.active.ui.inPlayer.triggerZoneDimensions.offsetY = cy;
     },
-
-
 
     //#region slider window
     forceNumber(value) {

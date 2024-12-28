@@ -219,6 +219,7 @@ interface SettingsInterface {
       enabledFullscreenOnly: boolean,
       popupAlignment: 'left' | 'right',
       minEnabledWidth: number,                 // don't show UI if player is narrower than % of screen width
+      minEnabledHeight: number,                // don't show UI if player is narrower than % of screen height
       activation: 'trigger-zone' | 'player',   // what needs to be hovered in order for UI to be visible
       triggerZoneDimensions: {                 // how large the trigger zone is (relative to player size)
         width: number
