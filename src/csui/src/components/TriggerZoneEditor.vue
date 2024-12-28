@@ -64,12 +64,13 @@
               min="0.1"
               max="1"
               step="0.01"
-              @input="(event) => setTriggerZoneOffset('width', event.target.value, true)"
+              @input="(event) => setValue('width', event.target.value)"
+              @change="(event) => updateSettings(true)"
             >
             <input
-              :value="triggerZoneWidth"
-              @input="(event) => setTriggerZoneSize('width', event.target.value)"
-              @change="(event) => updateSettings()"
+              :value="ghettoComputed.width"
+              @input="(event) => setValue('width', event.target.value, true)"
+              @change="(event) => updateSettings(true)"
             >
           </div>
           <div class="hint">
@@ -85,12 +86,13 @@
               min="0.1"
               max="1"
               step="0.01"
-              @input="(event) => setTriggerZoneOffset('height', event.target.value, true)"
+              @input="(event) => setValue('height', event.target.value)"
+              @change="(event) => updateSettings(true)"
             >
             <input
-              :value="triggerZoneHeight"
-              @input="(event) => setTriggerZoneSize('height', event.target.value)"
-              @change="(event) => updateSettings()"
+              :value="ghettoComputed.height"
+              @input="(event) => setValue('height', event.target.value, true)"
+              @change="(event) => updateSettings(true)"
             >
           </div>
           <div class="hint">
@@ -105,12 +107,13 @@
               type="range"
               min="-100"
               max="100"
-              @input="(event) => setTriggerZoneOffset('offsetX', event.target.value, true)"
+              @input="(event) => setValue('offsetX', event.target.value)"
+              @change="(event) => updateSettings(true)"
             >
             <input
               :value="settings.active.ui.inPlayer.triggerZoneDimensions.offsetX"
-              @input="(event) => setTriggerZoneOffset('offsetX', event.target.value)"
-              @change="(event) => updateSettings()"
+              @input="(event) => setValue('offsetX', event.target.value)"
+              @change="(event) => updateSettings(true)"
             >
           </div>
           <div class="hint">
@@ -125,12 +128,13 @@
               type="range"
               min="-100"
               max="100"
-              @input="(event) => setTriggerZoneOffset('offsetY', event.target.value, true)"
+              @input="(event) => setValue('offsetY', event.target.value)"
+              @change="(event) => updateSettings(true)"
             >
             <input
               :value="settings.active.ui.inPlayer.triggerZoneDimensions.offsetY"
-              @input="(event) => setTriggerZoneOffset('offsetY', event.target.value)"
-              @change="(event) => updateSettings()"
+              @input="(event) => setValue('offsetY', event.target.value)"
+              @change="(event) => updateSettings(true)"
             >
           </div>
           <div class="hint">
@@ -164,27 +168,26 @@ export default {
       activeCornerDrag: undefined,
       dragStartPosition: undefined,
       dragStartConfiguration: undefined,
+      ghettoComputed: { }
     }
   },
   created() {
     document.addEventListener("mouseup", this.handleMouseUp);
     document.addEventListener("mousemove", this.handleMouseMove);
+    this.ghettoComputed = {
+      width: this.optionalToFixed(this.settings.active.ui.inPlayer.triggerZoneDimensions.width * 100, 0),
+      height: this.optionalToFixed(this.settings.active.ui.inPlayer.triggerZoneDimensions.height * 100, 0)
+    };
     this.updateTriggerZones(false);
-  },
-  computed: {
-    triggerZoneWidth() {
-      const v = this.settings.active.ui.inPlayer.triggerZoneDimensions.width * 100;
-      return this.optionalToFixed(v, 2);
-    },
-    triggerZoneHeight() {
-      const v = this.settings.active.ui.inPlayer.triggerZoneDimensions.height * 100;
-      return this.optionalToFixed(v, 2);
-    }
   },
   methods: {
     optionalToFixed(v, n) {
-      if ((`${v}`.split('.')[1]?.length ?? 0) > n) {
-        return v.toFixed(n);
+      try {
+        if ((`${v}`.split('.')[1]?.length ?? 0) > n) {
+          return v.toFixed(n);
+        }
+      } catch (e) {
+
       }
       return v;
     },
@@ -228,7 +231,6 @@ export default {
       } else {
         this.handleResize(event);
       }
-
 
       this.updateTriggerZones();
     },
@@ -300,31 +302,38 @@ export default {
       //                  |               |            |           |
       return value.replaceAll(',', '.').split('.', 2).join('.').replace(/[^0-9.\-]/g, '');
     },
-    setTriggerZoneSize(key, value, instantUpdate) {
-      let size = (+this.forceNumber(value) / 100);
+    setValue(key, originalValue, isTextInput) {
+      console.log('trying to set value:', key, value, isTextInput);
 
-      if (isNaN(+size)) {
-        size = 0.5;
+      let value = originalValue;
+      if (isTextInput) {
+        value = (+this.forceNumber(value) / 100);
+      } else {
+        value = +this.forceNumber(value);
       }
 
-      this.settings.active.ui.inPlayer.triggerZoneDimensions[key] = size;
+      console.log('rocessed value:', value);
 
-      if (instantUpdate) {
-        this.updateSettings();
+      if (isNaN(+value)) {
+        value = 0.5;
       }
+
+      this.settings.active.ui.inPlayer.triggerZoneDimensions[key] = value;
+      if (isTextInput) {
+        this.ghettoComputed[key] = this.optionalToFixed(originalValue, 0);
+      } else {
+        this.ghettoComputed[key] = this.optionalToFixed(originalValue * 100, 0);
+      }
+      this.updateSettings();
     },
-    setTriggerZoneOffset(key, value, instantUpdate) {
-      let offset = +this.forceNumber(value);
 
-      this.settings.active.ui.inPlayer.triggerZoneDimensions[key] = offset;
-
-      if (instantUpdate) {
-        this.updateSettings();
-      }
-    },
-    updateSettings() {
+    updateSettings(forceRefresh) {
       this.settings.saveWithoutReload();
       this.updateTriggerZones();
+
+      if (forceRefresh) {
+        this.$nextTick( () => this.$forceUpdate() );
+      }
     },
 
     //#endregion
@@ -454,4 +463,10 @@ export default {
   }
 }
 
+.action-row {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
 </style>

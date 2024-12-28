@@ -88,17 +88,13 @@
               v-if="settings.active.newFeatureTracker?.['uw6.ui-popup']?.show > 0"
               @click="showUwWindow('playerUiSettings')"
             >
-              <span style="color: #fa6;">I hate this popup<br/></span>
-              <span style="font-size: 0.8em">
-                <span style="text-transform: uppercase; font-size: 0.8em">
-                  <a @click="showUwWindow('playerUiSettings')">
-                    Do something about it
-                  </a> × <a @click="acknowledgeNewFeature('uw6.ui-popup')">keep the popup</a>
+              <span style="color: #fa6;">Change when and if<br/>this popup appears</span>
+              <span style="font-size: 0.8rem">
+                <span style="font-size: 0.8rem; opacity: 0.5">This menu option will show {{settings.active.newFeatureTracker?.['uw6.ui-popup']?.show}} more<br/> times; or until clicked or dismissed.<br/>
+                Also accessible via:<br/> <span style="font-size: 0.85em">EXTENSION SETTINGS > UI AND KEYBOARD</span>.
                 </span>
                 <br/>
-                <span style="opacity: 0.5">This menu option will show {{settings.active.newFeatureTracker?.['uw6.ui-popup']?.show}} more<br/> times; or until clicked or dismissed.<br/>
-                Also accessible via <span style="font-variant: small-caps">extension settings</span>.
-                </span>
+                <a style="color: #fa6; cursor: pointer;" @click="() => acknowledgeNewFeature('uw6.ui-popup')">Dismiss this option</a>
               </span>
             </GhettoContextMenuOption>
 

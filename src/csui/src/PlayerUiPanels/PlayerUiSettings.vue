@@ -67,18 +67,18 @@
             </div>
             <div class="input range-input">
               <input
-                :value="settings.active.ui.inPlayer.maxEnabledWidth"
+                :value="settings.active.ui.inPlayer.minEnabledWidth"
                 class="slider"
                 type="range"
                 min="0"
                 max="1"
                 step="0.01"
-                @input="(event) => setPlayerRestrictions('maxEnabledWidth', event.target.value)"
+                @input="(event) => setPlayerRestrictions('minEnabledWidth', event.target.value)"
                 @change="(event) => saveSettings()"
               >
               <input
-                :value="maxEnabledWidth"
-                @input="(event) => setPlayerRestrictions('maxEnabledWidth', event.target.value, true)"
+                :value="ghettoComputed.minEnabledWidth"
+                @input="(event) => setPlayerRestrictions('minEnabledWidth', event.target.value, true)"
                 @change="(event) => saveSettings(true)"
               >
             </div>
@@ -100,7 +100,7 @@
                 @change="(event) => saveSettings()"
               >
               <input
-                :value="minEnabledHeight"
+                :value="ghettoComputed.minEnabledHeight"
                 @input="(event) => setPlayerRestrictions('minEnabledHeight', event.target.value, true)"
                 @change="(event) => saveSettings(true)"
               >
@@ -160,7 +160,7 @@ export default {
   },
   data() {
     return {
-
+      ghettoComputed: { }
     }
   },
   mixins: [
@@ -169,16 +169,10 @@ export default {
     'settings',      // required for buttons and actions, which are global
     'eventBus',
   ],
-  created() {
-  },
-  computed: {
-    maxEnabledWidth() {
-      const v = this.settings.active.ui.inPlayer.maxEnabledWidth * 100;
-      return this.optionalToFixed(v, 0);
-    },
-    minEnabledHeight() {
-      const v = this.settings.active.ui.inPlayer.minEnabledHeight * 100;
-      return this.optionalToFixed(v, 0);
+  mounted() {
+    this.ghettoComputed = {
+      minEnabledWidth: this.optionalToFixed(this.settings.active.ui.inPlayer.minEnabledWidth * 100, 0),
+      minEnabledHeight: this.optionalToFixed(this.settings.active.ui.inPlayer.minEnabledHeight * 100, 0),
     }
   },
   methods: {
@@ -204,6 +198,12 @@ export default {
       }
 
       this.settings.active.ui.inPlayer[key] = value;
+
+      if (isTextInput) {
+        this.ghettoComputed[key] = this.optionalToFixed(value, 0);
+      } else {
+        this.ghettoComputed[key] = this.optionalToFixed(value * 100, 0);
+      }
     },
     saveSettings(forceRefresh) {
       this.settings.saveWithoutReload();
