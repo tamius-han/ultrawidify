@@ -14,7 +14,7 @@
 
   <div
     v-if="contextMenuActive || settingsInitialized && uwTriggerZoneVisible && !isGlobal"
-    class="context-spawn uw-clickable uw-ui-area"
+    class="context-spawn uw-ui-area"
     style="z-index: 1001"
 
   >
@@ -24,18 +24,17 @@
       @mouseleave="allowContextMenuHide()"
     >
       <template v-slot:activator>
-        <div class="context-item">
+        <div class="context-item uw-clickable">
           Ultrawidify
         </div>
         </template>
       <slot>
-
         <!--
           Didn't manage to ensure that extension status pops up above other menu items in less than 3 minutes with z-index,
           so wrapping 'status' and 'real menu items' in two different divs, ordering them in the opposite way, and then
           ensuring correct ordering with flex-direction: column-reverse ended up being easier and faster.
         -->
-        <div class="menu-width flex-reverse-order">
+        <div class="uw-clickable menu-width flex-reverse-order">
           <div style="z-index: 1000">
             <GhettoContextMenu alignment="right">
               <template v-slot:activator>
