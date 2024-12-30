@@ -29,6 +29,14 @@ export type VideoDimensions = {
   styleHeightCompensationFactor?: number;
   actualWidth?: number;
   actualHeight?: number;
+  relativeCropLimits?: {
+    top: number;
+    left: number;
+  },
+  preventAlignment?: {
+    x: boolean,
+    y: boolean
+  }
 }
 
 // does video size calculations for zooming/cropping
@@ -92,7 +100,7 @@ class Scaler {
     return null;
   }
 
-  calculateCrop(ar: {type: AspectRatioType, ratio?: number}) {
+  calculateCrop(ar: {type: AspectRatioType, ratio?: number}): VideoDimensions | {error: string, [x: string]: any} {
     /**
      * STEP 1: NORMALIZE ASPECT RATIO
      *
@@ -142,7 +150,16 @@ class Scaler {
     }
 
     if (ar.type === AspectRatioType.Reset){
-      return {xFactor: arCorrectionFactor, yFactor: arCorrectionFactor, arCorrectionFactor: arCorrectionFactor};
+      return {
+        xFactor: arCorrectionFactor,
+        yFactor: arCorrectionFactor,
+        arCorrectionFactor: arCorrectionFactor,
+
+        relativeCropLimits: {
+          top: 0,
+          left: 0,
+        }
+      };
     }
 
     // handle fuckie-wuckies
@@ -175,7 +192,11 @@ class Scaler {
       actualWidth: 0,   // width of the video (excluding pillarbox) when <video> tag height is equal to width
       actualHeight: 0,  // height of the video (excluding letterbox) when <video> tag height is equal to height
       arCorrectionFactor: arCorrectionFactor,
-      styleHeightCompensationFactor: heightCompensationFactor
+      styleHeightCompensationFactor: heightCompensationFactor,
+      relativeCropLimits: {
+        top: 0,
+        left: 0
+      }
     }
 
     this.calculateCropCore(videoDimensions, ar.ratio, streamAr, playerAr)
@@ -223,12 +244,22 @@ class Scaler {
       }
     }
 
-    this.logger.log('info', 'scaler', "[Scaler::calculateCrop] Crop factor calculated — ", videoDimensions.xFactor);
-
     // correct the scale factor
     if (videoDimensions.arCorrectionFactor) {
       videoDimensions.xFactor *= videoDimensions.arCorrectionFactor;
       videoDimensions.yFactor *= videoDimensions.arCorrectionFactor;
+    }
+
+    // Add crop limits — needed for vertical alignment in order to
+    const letterboxRatio = (1 - (playerAr / ar));
+
+    videoDimensions.relativeCropLimits = {
+      top:  ar > streamAr ? ( ar > playerAr ? (letterboxRatio * -0.5) : 0) : 0,
+      left: ar < streamAr ? ( ar < playerAr ? (-0.5 / letterboxRatio) : 0) : 0,
+    }
+    videoDimensions.preventAlignment = {
+      x: ar > playerAr, // video is wider than player, so it's full width already
+      y: ar < playerAr, // video is narrower than player, so it's full height already
     }
 
     return videoDimensions;

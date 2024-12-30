@@ -278,7 +278,7 @@ class Resizer {
     }
 
     if ([AspectRatioType.Reset, AspectRatioType.Initial].includes(ar.type)) {
-      console.log('run level is UI only because aspect ratio type is', ar.type)
+      // console.log('run level is UI only because aspect ratio type is', ar.type)
       this.eventBus.send('set-run-level', RunLevel.UIOnly);
     } else {
       this.eventBus.send('set-run-level', RunLevel.CustomCSSActive);
@@ -307,7 +307,7 @@ class Resizer {
       return;
     }
 
-    let stretchFactors: {xFactor: number, yFactor: number, arCorrectionFactor?: number, ratio?: number} | any;
+    let stretchFactors: VideoDimensions | any;
 
     // reset zoom, but only on aspect ratio switch. We also know that aspect ratio gets converted to
     // AspectRatioType.Fixed when zooming, so let's keep that in mind
@@ -419,10 +419,10 @@ class Resizer {
       );
     }
 
-    this.applyScaling(stretchFactors);
+    this.applyScaling(stretchFactors as VideoDimensions);
   }
 
-  applyScaling(stretchFactors, options?: {noAnnounce?: boolean}) {
+  applyScaling(stretchFactors: VideoDimensions, options?: {noAnnounce?: boolean, ar?: Ar}) {
     this.stretcher.chromeBugMitigation(stretchFactors);
 
     // let the UI know
@@ -430,7 +430,7 @@ class Resizer {
       this.videoData.eventBus.send('announce-zoom', {x: stretchFactors.xFactor, y: stretchFactors.yFactor});
     }
 
-    let translate = this.computeOffsets(stretchFactors);
+    let translate = this.computeOffsets(stretchFactors, options?.ar);
     this.applyCss(stretchFactors, translate);
   }
 
@@ -457,7 +457,7 @@ class Resizer {
       if(!this.videoData.player || !this.videoData.player.element) {
         return;
       }
-      // dont allow weird floats
+      // don't allow weird floats
       this.videoAlignment.x = VideoAlignmentType.Center;
 
       // because non-fixed aspect ratios reset panning:
@@ -501,14 +501,14 @@ class Resizer {
   setVideoAlignment(videoAlignmentX: VideoAlignmentType, videoAlignmentY?: VideoAlignmentType) {
     // if aspect ratio is unset or initial, CSS fixes are inactive by design.
     // because of that, we need to set a manual aspect ratio first.
-    console.log('last aspect ratio:', this.lastAr);
-    if (!this.lastAr) {
-      console.warn('[Resizer.js::setVideoAlignment] Aspect ratio not set. This is illegal. This function will do nothing.');
+
+    if (!this.lastAr?.ratio) {
       this.setAr({
-        type: AspectRatioType.Fixed,
+        type: AspectRatioType.AutomaticUpdate,
         ratio: this.getFileAr()
       });
     }
+
     if ([AspectRatioType.Reset, AspectRatioType.Initial].includes(this.lastAr.type)) {
       if (this.lastAr.ratio) {
         this.lastAr.type = AspectRatioType.Fixed;
@@ -659,36 +659,6 @@ class Resizer {
     }
   }
 
-  computeCroppedAreas(stretchFactors) {
-    // PSA: offsetWidth and offsetHeight DO NOT INCLUDE
-    // ZOOM APPLIED THROUGH THE MAGIC OF CSS TRANSFORMS
-    const sourceWidth = this.videoData.video.offsetWidth;
-    const sourceHeight = this.videoData.video.offsetHeight;
-
-    // this is the size of the video AFTER zooming was applied but does
-    // not account for cropping. It may be bigger than the player in
-    // both dimensions. It may be smaller than player in both dimensions
-    const postZoomWidth = sourceWidth * stretchFactors.xFactor;
-    const postZoomHeight = sourceHeight * stretchFactors.yFactor;
-
-    // this is the size of the video after crop is applied
-    const displayedWidth = Math.min(this.videoData.player.dimensions.width, postZoomWidth);
-    const displayedHeight = Math.min(this.videoData.player.dimensions.height, postZoomHeight);
-
-    // these two are cropped areas. Negative values mean additional
-    // letterboxing or pillarboxing. We assume center alignment for
-    // the time being - we will correct that later if need be
-    const croppedX = (postZoomWidth - displayedWidth) * 0.5;
-    const croppedY = (postZoomHeight - displayedHeight) * 0.5;
-
-    return {
-      sourceVideoDimensions: {width: sourceWidth, height: sourceHeight},
-      postZoomVideoDimensions: {width: postZoomWidth, height: postZoomHeight},
-      displayedVideoDimensions: {width: displayedWidth, height: displayedHeight},
-      crop: {left: croppedX, top: croppedY},
-    };
-  }
-
   /**
    * Sometimes, sites (e.g. new reddit) will guarantee that video fits width of its container
    * and let the browser figure out the height through the magic of height:auto. This is bad,
@@ -716,14 +686,12 @@ class Resizer {
   }
 
   private _computeOffsetsRecursionGuard: boolean = false;
-  computeOffsets(stretchFactors: VideoDimensions){
+  computeOffsets(stretchFactors: VideoDimensions, ar?: Ar){
     this.logger.log('info', 'debug', "[Resizer::computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.videoAlignment);
 
     const {realVideoWidth, realVideoHeight, marginX, marginY} = this.computeVideoDisplayedDimensions();
 
-    const {postZoomVideoDimensions, displayedVideoDimensions, crop} = this.computeCroppedAreas(stretchFactors);
-
-    // correct any remaining element size discrepencies (applicable only to certain crop strategies!)
+    // correct any remaining element size discrepancies (applicable only to certain crop strategies!)
     // NOTE: it's possible that we might also need to apply a similar measure for CropPillarbox strategy
     // (but we'll wait for bug reports before doing so).
     // We also don't compensate for height:auto if height is provided via element style
@@ -732,7 +700,11 @@ class Resizer {
       stretchFactors.cropStrategy === CropStrategy.CropLetterbox
       && (!stretchFactors.styleHeightCompensationFactor || stretchFactors.styleHeightCompensationFactor === 1)
     ) {
-      autoHeightCompensationFactor = this.computeAutoHeightCompensationFactor(realVideoWidth, realVideoHeight, this.videoData.player.dimensions.width, this.videoData.player.dimensions.height, 'height');
+      autoHeightCompensationFactor = this.computeAutoHeightCompensationFactor(
+        realVideoWidth, realVideoHeight,
+        this.videoData.player.dimensions.width, this.videoData.player.dimensions.height,
+        'height'
+      );
       stretchFactors.xFactor *= autoHeightCompensationFactor;
       stretchFactors.yFactor *= autoHeightCompensationFactor;
     }
@@ -759,17 +731,21 @@ class Resizer {
       }
     } else {
       // correct horizontal alignment according to the settings
-      if (this.videoAlignment.x == VideoAlignmentType.Left) {
-        translate.x += alignXOffset;
-      } else if (this.videoAlignment.x == VideoAlignmentType.Right) {
-        translate.x -= alignXOffset
+      if (!stretchFactors.preventAlignment?.x) {
+        if (this.videoAlignment.x == VideoAlignmentType.Left) {
+          translate.x += stretchFactors?.relativeCropLimits?.left ? (this.videoData.player.dimensions.width * stretchFactors.relativeCropLimits.left): alignXOffset;
+        } else if (this.videoAlignment.x == VideoAlignmentType.Right) {
+          translate.x -= stretchFactors?.relativeCropLimits?.left ? (this.videoData.player.dimensions.width * stretchFactors.relativeCropLimits.left): alignXOffset
+        }
       }
 
       // correct vertical alignment according to the settings
-      if (this.videoAlignment.y == VideoAlignmentType.Top) {
-        translate.y += alignYOffset;
-      } else if (this.videoAlignment.y == VideoAlignmentType.Bottom) {
-        translate.y -= alignYOffset;
+      if (!stretchFactors.preventAlignment?.y) {
+        if (this.videoAlignment.y == VideoAlignmentType.Top) {
+          translate.y += stretchFactors?.relativeCropLimits?.top ? (this.videoData.player.dimensions.height * stretchFactors?.relativeCropLimits?.top): alignYOffset;
+        } else if (this.videoAlignment.y == VideoAlignmentType.Bottom) {
+          translate.y -= stretchFactors?.relativeCropLimits?.top ? (this.videoData.player.dimensions.height * stretchFactors?.relativeCropLimits?.top): alignYOffset;
+        }
       }
     }
 
