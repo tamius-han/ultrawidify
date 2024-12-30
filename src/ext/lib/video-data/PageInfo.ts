@@ -179,16 +179,22 @@ class PageInfo {
     }
   }
 
-  getVideos(host) {
+  getVideos(): HTMLVideoElement[] {
     const videoQs = this.siteSettings.getCustomDOMQuerySelector('video');
-    if (videoQs){
-      const videos = document.querySelectorAll(videoQs) as NodeListOf<HTMLVideoElement>;
+    let videos: HTMLVideoElement[] = [];
 
-      if (videos.length) {
-        return videos;
-      }
+    if (videoQs){
+      videos = Array.from(document.querySelectorAll(videoQs) as NodeListOf<HTMLVideoElement> ?? []);
+    } else{
+      videos = Array.from(document.getElementsByTagName('video') ?? []);
     }
-    return document.getElementsByTagName('video');
+
+    // filter out videos that aren't big enough
+    videos = videos.filter(
+      (v: HTMLVideoElement) => v.clientHeight > 720 && v.clientWidth > 1208
+    );
+
+    return videos;
   }
 
   hasVideo() {
@@ -206,6 +212,7 @@ class PageInfo {
     // is there any video data objects that had their HTML elements removed but not yet
     // destroyed? We clean that up here.
     const orphans = this.videos.filter(x => !document.body.contains(x.element));
+
     for (const orphan of orphans) {
       orphan.videoData.destroy();
     }
@@ -215,7 +222,7 @@ class PageInfo {
 
     // add new videos
     try{
-      let vids = this.getVideos(window.location.hostname);
+      let vids = this.getVideos();
 
       if(!vids || vids.length == 0){
         this.hasVideos = false;

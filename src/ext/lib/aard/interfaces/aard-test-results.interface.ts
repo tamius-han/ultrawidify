@@ -34,6 +34,7 @@ export interface AardTestResults {
   letterboxWidth: number,
   letterboxOffset: number,
   logoDetected: [boolean, boolean, boolean, boolean]
+  aspectRatioUncertainReason?: string
 }
 
 export function initAardTestResults(settings: AardSettings): AardTestResults {
@@ -91,4 +92,5 @@ export function resetAardTestResults(results: AardTestResults): void {
   results.letterboxWidth = 0;
   results.letterboxOffset = 0;
   results.aspectRatioUpdated = false;
+  results.aspectRatioUncertainReason = null;
 }

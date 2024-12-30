@@ -222,9 +222,9 @@ export class Aard {
   private arid: string;
 
   private eventBusCommands = {
-    //   'get-aard-timing': [{
+    //   'get-aard-timing': {
     //     function: () => this.handlePerformanceDataRequest()
-      // }]
+      // }
   };
   //#endregion
 
@@ -240,6 +240,8 @@ export class Aard {
   private canvasStore: AardCanvasStore;
   private testResults: AardTestResults;
   private canvasSamples: AardDetectionSample;
+
+  private forceFullRecheck: boolean = true;
   //#endregion
 
   //#region getters
@@ -267,7 +269,8 @@ export class Aard {
     this.settings = videoData.settings;
     this.eventBus = videoData.eventBus;
 
-    this.initEventBus();
+    this.eventBus.subscribeMulti(this.eventBusCommands, this);
+
     this.arid = (Math.random()*100).toFixed();
 
     // we can tick manually, for debugging
@@ -276,20 +279,11 @@ export class Aard {
     this.init();
   }
 
-  private initEventBus() {
-    for (const action in this.eventBusCommands) {
-      for (const command of this.eventBusCommands[action]) {
-        this.eventBus.subscribe(action, command);
-      }
-    }
-  }
-
   /**
    * Initializes Aard with default values and starts autodetection loop.
    * This method should only ever be called from constructor.
    */
   private init() {
-
 
     this.canvasStore = {
       main: this.createCanvas('main-gl')
@@ -351,6 +345,7 @@ export class Aard {
    * Starts autodetection loop.
    */
   start() {
+    this.forceFullRecheck = true;
     if (this.videoData.resizer.lastAr.type === AspectRatioType.AutomaticUpdate) {
       // ensure first autodetection will run in any case
       this.videoData.resizer.lastAr = {type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr};
@@ -406,11 +401,14 @@ export class Aard {
     }
     this.status.lastVideoStatus = videoState;
 
-    if (Date.now() < this.timers.nextFrameCheckTime) {
+    const now = Date.now();
+
+    if (now < (this.videoData.player.isTooSmall ? this.timers.reducedPollingNextCheckTime : this.timers.nextFrameCheckTime)) {
       return false;
     }
 
-    this.timers.nextFrameCheckTime = Date.now() + this.settings.active.arDetect.timers.playing;
+    this.timers.nextFrameCheckTime = now + this.settings.active.arDetect.timers.playing;
+    this.timers.reducedPollingNextCheckTime = now + this.settings.active.arDetect.timers.playingReduced;
     return true;
   }
 
@@ -419,6 +417,7 @@ export class Aard {
       resetAardTestResults(this.testResults);
       resetSamples(this.canvasSamples);
       this.main();
+      this.forceFullRecheck = false;
     } else {
     }
     this.animationFrame = window.requestAnimationFrame( (ts: DOMHighResTimeStamp) => this.onAnimationFrame(ts));
@@ -477,7 +476,6 @@ export class Aard {
         );
         if (this.testResults.notLetterbox) {
           // TODO: reset aspect ratio to "AR not applied"
-          console.log('NOT LETTERBOX!');
           this.testResults.lastStage = 1;
           break;
         }
@@ -486,19 +484,29 @@ export class Aard {
         // Check if previously detected aspect ratio is still gucci. If it is, then
         // we can quit the loop without applying any aspect ratios (unless subtitle
         // detection is enabled, in which case we still run the subtitle test)
-        this.checkLetterboxShrink(
-          imageData,
-          this.settings.active.arDetect.canvasDimensions.sampleCanvas.width,
-          this.settings.active.arDetect.canvasDimensions.sampleCanvas.height
-        );
-        console.log('LETTERBOX SHRINK CHECK RESULT — IS GUARDLINE INVALIDATED?', this.testResults.guardLine.invalidated)
-        if (! this.testResults.guardLine.invalidated) {
-          this.checkLetterboxGrow(
+        // If we stopped autodetection because of manual aspect ratio input, then
+        // checkLetterboxShrink and checkLetterboxGrow may return invalid results.
+        // This is why we skip this check and force full recheck if forceFullRecheck
+        // flag is set.
+        if (this.forceFullRecheck) {
+          this.testResults.imageLine.invalidated = true;
+          this.testResults.guardLine.invalidated = true;
+        } else {
+          this.checkLetterboxShrink(
             imageData,
             this.settings.active.arDetect.canvasDimensions.sampleCanvas.width,
             this.settings.active.arDetect.canvasDimensions.sampleCanvas.height
           );
+
+          if (! this.testResults.guardLine.invalidated) {
+            this.checkLetterboxGrow(
+              imageData,
+              this.settings.active.arDetect.canvasDimensions.sampleCanvas.width,
+              this.settings.active.arDetect.canvasDimensions.sampleCanvas.height
+            );
+          }
         }
+
         // Both need to be checked
         if (! (this.testResults.imageLine.invalidated || this.testResults.guardLine.invalidated)) {
           // TODO: ensure no aspect ratio changes happen
@@ -522,10 +530,23 @@ export class Aard {
       // Also note that subtitle check should run on newest aspect ratio data, rather than lag one frame behind
       // But implementation details are something for future Tam to figure out
 
-      // if detection is uncertain, we don't do anything at all
+      // If forceFullRecheck is set, then 'not letterbox' should always force-reset the aspect ratio
+      // (as aspect ratio may have been set manually while autodetection was off)
+      if (this.testResults.notLetterbox) {
+        this.videoData.resizer.updateAr({
+          type: AspectRatioType.AutomaticUpdate,
+          ratio: this.defaultAr,
+        })
+      }
+
+      // if detection is uncertain, we don't do anything at all (unless if guardline was broken, in which case we reset)
       if (this.testResults.aspectRatioUncertain) {
-        console.info('aspect ratio not cettain.');
+        console.info('aspect ratio not certain:', this.testResults.aspectRatioUncertainReason);
         console.warn('check finished:', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
+
+        if (this.testResults.guardLine.invalidated) {
+          this.videoData.resizer.setAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
+        }
 
         return;
       }
@@ -533,7 +554,10 @@ export class Aard {
       // TODO: emit debug values if debugging is enabled
       this.testResults.isFinished = true;
 
-      console.warn('check finished:', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
+      console.warn(
+        `[${(+new Date() % 10000) / 100} | ${this.arid}]`,'check finished — aspect ratio updated:', this.testResults.aspectRatioUpdated,
+        '\nis video playing?', this.getVideoPlaybackState() === VideoPlaybackState.Playing,
+         '\n\n', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
 
       // if edge width changed, emit update event.
       if (this.testResults.aspectRatioUpdated) {
@@ -543,11 +567,14 @@ export class Aard {
           offset: this.testResults.letterboxOffset
         });
       }
+
+      // if we got "no letterbox" OR aspectRatioUpdated
     } catch (e) {
       console.warn('[Ultrawidify] Aspect ratio autodetection crashed for some reason.\n\nsome reason:', e);
       this.videoData.resizer.setAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
     }
   }
+
 
   private getVideoPlaybackState(): VideoPlaybackState {
     try {
@@ -677,6 +704,8 @@ export class Aard {
     // NOTE: but maybe we could, if blackLevel can only get lower than
     // the default value.
     if (this.testResults.notLetterbox) {
+      this.testResults.aspectRatioUncertain = false;
+
       if (min < this.testResults.blackLevel) {
         this.testResults.blackLevel = min;
         this.testResults.blackThreshold = min + 16;
@@ -1611,6 +1640,7 @@ export class Aard {
         // TODO: maybe we can figure out to guess aspect ratio in scenarios like this.
         // But for the time being, just slap it with "inconclusive".
         this.testResults.aspectRatioUncertain = true;
+        this.testResults.aspectRatioUncertainReason = 'TOP_ROW_MISMATCH';
         return;
       } else {
         // center matches one of the corners
@@ -1661,6 +1691,7 @@ export class Aard {
         // TODO: maybe we can figure out to guess aspect ratio in scenarios like this.
         // But for the time being, just slap it with "inconclusive".
         this.testResults.aspectRatioUncertain = true;
+        this.testResults.aspectRatioUncertainReason += 'BOTTOM_ROW_MISMATCH';
         return;
       } else {
         // center matches one of the corners
@@ -1697,6 +1728,7 @@ export class Aard {
       || candidateB < this.settings.active.arDetect.edgeDetection.thresholds.minQualitySecondEdge
     ) {
       this.testResults.aspectRatioUncertain = true;
+      this.testResults.aspectRatioUncertainReason = 'INSUFFICIENT_EDGE_DETECTION_QUALITY';
       return;
     }
 
@@ -1706,6 +1738,7 @@ export class Aard {
 
     if (diff > maxOffset) {
       this.testResults.aspectRatioUncertain = true;
+      this.testResults.aspectRatioUncertainReason = 'LETTERBOX_NOT_CENTERED_ENOUGH';
       return;
     }
     if (maxOffset > 2) {
@@ -1731,23 +1764,23 @@ export class Aard {
     const compensatedWidth = fileAr === canvasAr ? this.canvasStore.main.width : this.canvasStore.main.width * fileAr;
 
 
-    console.log(`
-      ———— ASPECT RATIO CALCULATION: —————
+    // console.log(`
+    //   ———— ASPECT RATIO CALCULATION: —————
 
-      canvas size: ${this.canvasStore.main.width} x ${this.canvasStore.main.height} (1:${this.canvasStore.main.width / this.canvasStore.main.height})
-      file size: ${this.video.videoWidth} x ${this.video.videoHeight} (1:${this.video.videoWidth / this.video.videoHeight})
+    //   canvas size: ${this.canvasStore.main.width} x ${this.canvasStore.main.height} (1:${this.canvasStore.main.width / this.canvasStore.main.height})
+    //   file size: ${this.video.videoWidth} x ${this.video.videoHeight} (1:${this.video.videoWidth / this.video.videoHeight})
 
-      compensated size: ${compensatedWidth} x ${this.canvasStore.main.height} (1:${compensatedWidth / this.canvasStore.main.height})
+    //   compensated size: ${compensatedWidth} x ${this.canvasStore.main.height} (1:${compensatedWidth / this.canvasStore.main.height})
 
-      letterbox height: ${this.testResults.letterboxWidth}
-      net video height: ${this.canvasStore.main.height - (this.testResults.letterboxWidth * 2)}
+    //   letterbox height: ${this.testResults.letterboxWidth}
+    //   net video height: ${this.canvasStore.main.height - (this.testResults.letterboxWidth * 2)}
 
-      calculated aspect ratio -----
+    //   calculated aspect ratio -----
 
-             ${compensatedWidth}               ${compensatedWidth}         ${compensatedWidth}
-        ——————————————— = —————————————— = —————— =  ${compensatedWidth / (this.canvasStore.main.height - (this.testResults.letterboxWidth * 2))}
-         ${this.canvasStore.main.height} - 2 x ${this.testResults.letterboxWidth}       ${this.canvasStore.main.height} - ${2 * this.testResults.letterboxWidth}       ${this.canvasStore.main.height - (this.testResults.letterboxWidth * 2)}
-    `);
+    //          ${compensatedWidth}               ${compensatedWidth}         ${compensatedWidth}
+    //     ——————————————— = —————————————— = —————— =  ${compensatedWidth / (this.canvasStore.main.height - (this.testResults.letterboxWidth * 2))}
+    //      ${this.canvasStore.main.height} - 2 x ${this.testResults.letterboxWidth}       ${this.canvasStore.main.height} - ${2 * this.testResults.letterboxWidth}       ${this.canvasStore.main.height - (this.testResults.letterboxWidth * 2)}
+    // `);
 
 
     return compensatedWidth / (this.canvasStore.main.height - (this.testResults.letterboxWidth * 2));

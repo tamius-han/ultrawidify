@@ -204,12 +204,18 @@ export default {
 
     this.eventBus.subscribe(
       'uw-show-ui',
-      () => {
-        if (this.inPlayer) {
-          return; // show-ui is only intended for global overlay
-        }
+      {
+        source: this,
+        function: () => {
+          if (this.inPlayer) {
+            return; // show-ui is only intended for global overlay
+          }
+        },
       }
     )
+  },
+  destroyed() {
+    this.eventBus.unsubscribeAll(this);
   },
   methods: {
     /**

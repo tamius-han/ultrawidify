@@ -36,18 +36,24 @@ export default class IframeManager {
 
     if (this.isIframe) {
       window.addEventListener('beforeunload', this.destroy);
+
       this.eventBus.subscribe(
-        'uw-frame-ping', {function: (cmd, context) => this.handleIframePing(context)}
+        'uw-frame-ping',
+        {
+          source: this,
+          function: (cmd, context) => this.handleIframePing(context)
+        }
       );
       this.eventBus.send(
         'uw-frame-register', {host: window.location.hostname}, {comms: {forwardTo: 'all-frames'}}
       );
     } else {
-      this.eventBus.subscribe(
-        'uw-frame-register', {function: (data, context) => this.handleIframeRegister(data, context)}
-      );
-      this.eventBus.subscribe(
-        'uw-frame-destroyed', {function: (cmd, context) => this.handleFrameDestroyed(context)}
+      this.eventBus.subscribeMulti(
+        {
+          'uw-frame-register': {function: (data, context) => this.handleIframeRegister(data, context)},
+          'uw-frame-destroyed': {function: (cmd, context) => this.handleFrameDestroyed(context)}
+        },
+        this
       );
 
       // register all frames to re-register themselves
@@ -69,6 +75,7 @@ export default class IframeManager {
         }
       },
     )
+    this.eventBus.unsubscribeAll(this);
   }
 
   private handleIframePing(context) {

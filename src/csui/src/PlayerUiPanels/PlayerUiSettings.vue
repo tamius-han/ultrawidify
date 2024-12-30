@@ -241,24 +241,7 @@ export default {
   max-width: 24rem;
 }
 
-.range-input {
-  display: flex;
-  flex-direction: row;
 
-  * {
-    margin-left: 0.5rem;
-    margin-right: 0.5rem;
-  }
-
-
-  input {
-    max-width: 5rem;
-  }
-
-  input[type=range] {
-    max-width: none;
-  }
-}
 
 .trigger-zone-editor {
   background-color: rgba(0,0,0,0.25);

@@ -303,16 +303,12 @@ export default {
       return value.replaceAll(',', '.').split('.', 2).join('.').replace(/[^0-9.\-]/g, '');
     },
     setValue(key, originalValue, isTextInput) {
-      console.log('trying to set value:', key, value, isTextInput);
-
       let value = originalValue;
       if (isTextInput) {
         value = (+this.forceNumber(value) / 100);
       } else {
         value = +this.forceNumber(value);
       }
-
-      console.log('rocessed value:', value);
 
       if (isNaN(+value)) {
         value = 0.5;

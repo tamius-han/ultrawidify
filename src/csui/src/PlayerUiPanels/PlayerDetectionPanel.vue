@@ -373,10 +373,19 @@ export default({
     'isPopup'
   ],
   created() {
-    this.eventBus.subscribe('uw-config-broadcast', {function: (config) => this.handleElementStack(config)});
+    this.eventBus.subscribe(
+      'uw-config-broadcast',
+      {
+        source: this,
+        function: (config) => this.handleElementStack(config)
+      }
+    );
   },
   mounted() {
     this.getPlayerTree();
+  },
+  destroyed() {
+    this.eventBus.unsubscribeAll(this);
   },
   computed: {},
   methods: {

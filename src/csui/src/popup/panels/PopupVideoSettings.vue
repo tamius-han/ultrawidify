@@ -32,28 +32,6 @@
       <h1>Zoom:</h1>
     </div>
 
-    <ZoomOptionsPanel
-      style="margin-top: -2rem"
-      :settings="settings"
-      :eventBus="eventBus"
-      :siteSettings="siteSettings"
-      :isEditing="false"
-    >
-    </ZoomOptionsPanel>
-
-    <div class="flex flex-row">
-      <mdicon name="crop" :size="24" />&nbsp;&nbsp;
-      <h1>Video alignment:</h1>
-    </div>
-
-    <div class="flex flex-row">
-      <alignment-options-control-component
-        :eventBus="eventBus"
-      >
-      </alignment-options-control-component>
-    </div>
-
-
   </div>
 
 </template>
@@ -81,10 +59,19 @@ export default {
     CropOptionsPanel, StretchOptionsPanel, ZoomOptionsPanel
   },
   created() {
-    this.eventBus.subscribe('uw-config-broadcast', {function: (config) => this.handleConfigBroadcast(config)});
+    this.eventBus.subscribe(
+      'uw-config-broadcast',
+      {
+        source: this,
+        function: (config) => this.handleConfigBroadcast(config)
+      }
+    );
   },
   mounted() {
     this.eventBus.sendToTunnel('get-ar');
+  },
+  destroyed() {
+    this.eventBus.unsubscribeAll(this);
   },
   methods: {
 

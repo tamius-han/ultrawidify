@@ -54,12 +54,20 @@ export type SettingsReloadFlags = true | SettingsReloadComponent;
 export interface AardSettings {
   aardType: 'webgl' | 'legacy' | 'auto';
 
+  earlyStopOptions: {
+    stopAfterFirstDetection: boolean;
+    stopAfterTimeout: boolean;
+    stopTimeout: number;
+  },
+
+
   disabledReason: string,     // if automatic aspect ratio has been disabled, show reason
   allowedMisaligned: number,  // top and bottom letterbox thickness can differ by this much.
                               // Any more and we don't adjust ar.
   allowedArVariance: number,  // amount by which old ar can differ from the new (1 = 100%)
   timers: {                   // autodetection frequency
     playing: number,            // while playing
+    playingReduced: number,     // while video/player element has insufficient size
     paused: number,             // while paused
     error: number,              // after error
     minimumTimeout: number,
@@ -86,51 +94,6 @@ export interface AardSettings {
     },
   },
 
-  // NOTE: Black Frame is currently not in use.
-  blackframe: {
-    sufficientColorVariance: number,  // calculate difference between average intensity and pixel, for every pixel for every color
-                                    // component. Average intensity is normalized to where 0 is black and 1 is biggest value for
-                                    // that component. If sum of differences between normalized average intensity and normalized
-                                    // component varies more than this % between color components, we can afford to use less strict
-                                    // cumulative threshold.
-    cumulativeThresholdLax: number,
-    cumulativeThresholdStrict: number,// if we add values of all pixels together and get more than this, the frame is bright enough.
-                               // (note: blackframe is 16x9 px -> 144px total. cumulative threshold can be reached fast)
-    blackPixelsCondition: number, // How much pixels must be black (1 all, 0 none) before we consider frame as black. Takes
-                               // precedence over cumulative threshold: if blackPixelsCondition is met, the frame is dark
-                               // regardless of whether cumulative threshold has been reached.
-  },
-
-  // Used by old aspect ratio detection algorithm. Pls remove.
-  blackbar: {
-    blackLevel: number,         // everything darker than 10/255 across all RGB components is considered black by
-                            // default. blackLevel can decrease if we detect darker black.
-    threshold: number,          // if pixel is darker than the sum of black level and this value, we count it as black
-                            // on 0-255. Needs to be fairly high (8 might not cut it) due to compression
-                            // artifacts in the video itself
-    frameThreshold: number,      // threshold, but when doing blackframe test
-    imageThreshold: number,     // in order to detect pixel as "not black", the pixel must be brighter than
-                            // the sum of black level, threshold and this value.
-    gradientThreshold: number,   // When trying to determine thickness of the black bars, we take 2 values: position of
-                            // the last pixel that's darker than our threshold, and position of the first pixel that's
-                            // brighter than our image threshold. If positions are more than this many pixels apart,
-                            // we assume we aren't looking at letterbox and thus don't correct the aspect ratio.
-    gradientSampleSize: number, // How far do we look to find the gradient
-    maxGradient: number,         // if two neighboring pixels in gradientSampleSize differ by more than this, then we aren't
-                            // looking at a gradient
-    gradientNegativeTreshold: number,
-    gradientMaxSD: number,    // reserved for future use
-    antiGradientMode: AntiGradientMode
-  },
-  // Also not in use, probs.
-  variableBlackbarThresholdOptions: {    // In case of poor bitrate videos, jpeg artifacts may cause us issues
-    // FOR FUTURE USE
-    enabled: boolean,                      // allow increasing blackbar threshold
-    disableArDetectOnMax: boolean,         // disable autodetection when threshold goes over max blackbar threshold
-    maxBlackbarThreshold: number,            // max threshold (don't increase past this)
-    thresholdStep: number,                   // when failing to set aspect ratio, increase threshold by this much
-    increaseAfterConsecutiveResets: number   // increase if AR resets this many times in a row
-  },
   blackLevels: {
     defaultBlack: number,    // By default, pixels darker than this are considered black.
                              // (If detection algorithm detects darker blacks, black is considered darkest detected pixel)
@@ -144,20 +107,6 @@ export interface AardSettings {
     randomCols: number,      // we add this many randomly selected columns to the static columns
     staticRows: number,      // forms grid with staticSampleCols. Determined in the same way. For black frame checks,
   },
-  guardLine: {              // all pixels on the guardline need to be black, or else we trigger AR recalculation
-                            // (if AR fails to be recalculated, we reset AR)
-    enabled: boolean,
-    ignoreEdgeMargin: number, // we ignore anything that pokes over the black line this close to the edge
-                            // (relative to width of the sample)
-    imageTestThreshold: number, // when testing for image, this much pixels must be over blackbarThreshold
-    edgeTolerancePx: number,         // black edge violation is performed this far from reported 'last black pixel'
-    edgeTolerancePercent: null  // unused. same as above, except use % of canvas height instead of pixels
-  },
-  arSwitchLimiter: {          // to be implemented
-    switches: number,              // we can switch this many times
-      period: number             // per this period
-  },
-
 
   // pls deprecate and move things used
   edgeDetection: {

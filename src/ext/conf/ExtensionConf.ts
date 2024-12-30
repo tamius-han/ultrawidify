@@ -16,12 +16,20 @@ if(Debug.debug)
 const ExtensionConf: SettingsInterface = {
   arDetect: {
     aardType: 'auto',
+
+    earlyStopOptions: {
+      stopAfterFirstDetection: false,
+      stopAfterTimeout: false,
+      stopTimeout: 30,
+    },
+
     disabledReason: "",       // if automatic aspect ratio has been disabled, show reason
     allowedMisaligned: 0.05,  // top and bottom letterbox thickness can differ by this much.
                               // Any more and we don't adjust ar.
     allowedArVariance: 0.075, // amount by which old ar can differ from the new (1 = 100%)
     timers: {                 // autodetection frequency
       playing: 333,           // while playing
+      playingReduced: 5000,   // while playing at small sizes
       paused: 3000,           // while paused
       error: 3000,            // after error
       minimumTimeout: 5,
@@ -48,48 +56,6 @@ const ExtensionConf: SettingsInterface = {
       },
     },
 
-    // samplingInterval: 10,     // we sample at columns at (width/this) * [ 1 .. this - 1]
-    blackframe: {
-      sufficientColorVariance: 0.10,  // calculate difference between average intensity and pixel, for every pixel for every color
-                                      // component. Average intensity is normalized to where 0 is black and 1 is biggest value for
-                                      // that component. If sum of differences between normalized average intensity and normalized
-                                      // component varies more than this % between color components, we can afford to use less strict
-                                      // cumulative threshold.
-      cumulativeThresholdLax: 1600,
-      cumulativeThresholdStrict: 2560,// if we add values of all pixels together and get more than this, the frame is bright enough.
-                                 // (note: blackframe is 16x9 px -> 144px total. cumulative threshold can be reached fast)
-      blackPixelsCondition: 0.6, // How much pixels must be black (1 all, 0 none) before we consider frame as black. Takes
-                                 // precedence over cumulative threshold: if blackPixelsCondition is met, the frame is dark
-                                 // regardless of whether cumulative threshold has been reached.
-    },
-    blackbar: {
-      blackLevel: 10,         // everything darker than 10/255 across all RGB components is considered black by
-                              // default. blackLevel can decrease if we detect darker black.
-      threshold: 16,          // if pixel is darker than the sum of black level and this value, we count it as black
-                              // on 0-255. Needs to be fairly high (8 might not cut it) due to compression
-                              // artifacts in the video itself
-      frameThreshold: 4,      // threshold, but when doing blackframe test
-      imageThreshold: 16,     // in order to detect pixel as "not black", the pixel must be brighter than
-                              // the sum of black level, threshold and this value.
-      gradientThreshold: 2,   // When trying to determine thickness of the black bars, we take 2 values: position of
-                              // the last pixel that's darker than our threshold, and position of the first pixel that's
-                              // brighter than our image threshold. If positions are more than this many pixels apart,
-                              // we assume we aren't looking at letterbox and thus don't correct the aspect ratio.
-      gradientSampleSize: 16, // How far do we look to find the gradient
-      maxGradient: 6,         // if two neighboring pixels in gradientSampleSize differ by more than this, then we aren't
-                              // looking at a gradient
-      gradientNegativeTreshold: -2,
-      gradientMaxSD: 6,    // reserved for future use
-      antiGradientMode: AntiGradientMode.Lax,
-    },
-    variableBlackbarThresholdOptions: {    // In case of poor bitrate videos, jpeg artifacts may cause us issues
-      // FOR FUTURE USE
-      enabled: true,                      // allow increasing blackbar threshold
-      disableArDetectOnMax: true,         // disable autodetection when threshold goes over max blackbar threshold
-      maxBlackbarThreshold: 48,            // max threshold (don't increase past this)
-      thresholdStep: 8,                   // when failing to set aspect ratio, increase threshold by this much
-      increaseAfterConsecutiveResets: 2   // increase if AR resets this many times in a row
-    },
     blackLevels: {
       defaultBlack: 16,
       blackTolerance: 4,
@@ -100,19 +66,6 @@ const ExtensionConf: SettingsInterface = {
       staticCols: 16,      // we take a column at [0-n]/n-th parts along the width and sample it
       randomCols: 0,      // we add this many randomly selected columns to the static columns
       staticRows: 9,      // forms grid with staticSampleCols. Determined in the same way. For black frame checks
-    },
-    guardLine: {              // all pixels on the guardline need to be black, or else we trigger AR recalculation
-                              // (if AR fails to be recalculated, we reset AR)
-      enabled: true,
-      ignoreEdgeMargin: 0.20, // we ignore anything that pokes over the black line this close to the edge
-                              // (relative to width of the sample)
-      imageTestThreshold: 0.1, // when testing for image, this much pixels must be over blackbarThreshold
-      edgeTolerancePx: 2,         // black edge violation is performed this far from reported 'last black pixel'
-      edgeTolerancePercent: null  // unused. same as above, except use % of canvas height instead of pixels
-    },
-    arSwitchLimiter: {          // to be implemented
-      switches: 2,              // we can switch this many times
-        period: 2.0             // per this period
     },
     edgeDetection: {
       slopeTestWidth: 8,

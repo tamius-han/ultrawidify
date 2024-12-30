@@ -4,6 +4,7 @@ import CommsServer from './comms/CommsServer';
 
 export interface EventBusCommand {
   isGlobal?: boolean,
+  source?: any,
   function: (commandData: any, context?: any) => void | Promise<void>
 }
 
@@ -24,8 +25,6 @@ export interface EventBusContext {
 export default class EventBus {
 
   private commands: { [x: string]: EventBusCommand[]} = {};
-  private downstreamBuses: EventBus[] = [];
-  private upstreamBus?: EventBus;
   private comms?: CommsClient | CommsServer;
 
   private disableTunnel: boolean = false;
@@ -46,47 +45,12 @@ export default class EventBus {
   //#region lifecycle
   destroy() {
     this.commands = null;
-    for (const bus of this.downstreamBuses) {
-      bus.destroy();
-    }
     this.destroyIframeTunnelling();
   }
   //#endregion
 
   setComms(comms: CommsClient | CommsServer) {
     this.comms = comms;
-  }
-
-  //#region bus hierarchy management (single page)
-  setUpstreamBus(eventBus: EventBus, stopRecursing: boolean = false) {
-    this.upstreamBus = eventBus;
-    if (!stopRecursing) {
-      this.upstreamBus.addDownstreamBus(this, true);
-    }
-  }
-
-  unsetUpstreamBus(stopRecursing: boolean = false) {
-    if (!stopRecursing) {
-      this.upstreamBus.removeDownstreamBus(this, false);
-    }
-    this.upstreamBus = undefined;
-  }
-
-  addDownstreamBus(eventBus: EventBus, stopRecursing: boolean = false) {
-    if (!this.downstreamBuses.includes(eventBus)) {
-      this.downstreamBuses.push(eventBus);
-
-      if (!stopRecursing) {
-        eventBus.setUpstreamBus(this, true);
-      }
-    }
-  }
-
-  removeDownstreamBus(eventBus: EventBus, stopRecursing: boolean = false) {
-    this.downstreamBuses = this.downstreamBuses.filter(x => x !== eventBus);
-    if (!stopRecursing) {
-      eventBus.unsetUpstreamBus(true);
-    }
   }
 
   subscribe(commandString: string, command: EventBusCommand) {
@@ -97,8 +61,31 @@ export default class EventBus {
     }
   }
 
+  subscribeMulti(commands: {[commandString: string]: EventBusCommand}, source?: any) {
+    for (const key in commands) {
+      this.subscribe(
+        key,
+        {
+          ...commands[key],
+          source: source ?? commands[key].source
+        }
+      );
+    }
+  }
+
+  /**
+   * Removes all commands from a given source
+   * @param source
+   */
+  unsubscribeAll(source: any) {
+    for (const commandString in this.commands) {
+      this.commands[commandString] = this.commands[commandString].filter(x => x.source !== source);
+    }
+  }
+
   send(command: string, commandData: any, context?: EventBusContext) {
     // execute commands we have subscriptions for
+
     if (this.commands?.[command]) {
       for (const eventBusCommand of this.commands[command]) {
         eventBusCommand.function(commandData, context);
@@ -114,10 +101,6 @@ export default class EventBus {
     if (context?.stopPropagation) {
       return;
     }
-
-    // propagate commands across the bus
-    this.sendUpstream(command, commandData, context);
-    this.sendDownstream(command, commandData, context);
   }
   //#endregion
 
@@ -127,6 +110,7 @@ export default class EventBus {
    * @param config
    */
   sendToTunnel(command: string, config: any) {
+    console.log('sending to tunnel from eventBus ....', this)
     if (!this.disableTunnel) {
       window.parent.postMessage(
         {
@@ -142,25 +126,6 @@ export default class EventBus {
       if (this.comms) {
         this.comms.sendMessage({command, config, context: this.popupContext}, this.popupContext);
       }
-    }
-  }
-
-  private sendDownstream(command: string, config: any, context?: EventBusContext, sourceEventBus?: EventBus) {
-    for (const eventBus of this.downstreamBuses) {
-      if (eventBus !== sourceEventBus) {
-        // prevent eventBus.send from auto-propagating the command
-        eventBus.send(command, config, {...context, stopPropagation: true});
-        eventBus.sendDownstream(command, config);
-      }
-    }
-  }
-
-  private sendUpstream(command: string, config: any, context?: EventBusContext) {
-    if (this.upstreamBus) {
-      // prevent eventBus.send from auto-propagating the command
-      this.upstreamBus.send(command, config, {...context, stopPropagation: true});
-      this.upstreamBus.sendUpstream(command, config, context);
-      this.upstreamBus.sendDownstream(command, config, context, this);
     }
   }
 

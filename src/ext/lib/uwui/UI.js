@@ -148,14 +148,7 @@ class UI {
 
   initMessaging() {
     // subscribe to events coming back to us. Unsubscribe if iframe vanishes.
-    const messageHandlerFn = (message) => {
-      if (!this.uiIframe?.contentWindow) {
-        window.removeEventListener('message', messageHandlerFn);
-        return;
-      }
-      this.handleMessage(message);
-    }
-    window.addEventListener('message', messageHandlerFn);
+    window.addEventListener('message', this.messageHandlerFn);
 
 
     /* set up event bus tunnel from content script to UI — necessary if we want to receive
@@ -163,39 +156,45 @@ class UI {
      * necessary for UI display in the popup.
      */
 
-    this.eventBus.subscribe(
-      'uw-config-broadcast',
+    this.eventBus.subscribeMulti(
       {
-        function: (config, routingData) => {
-          this.sendToIframe('uw-config-broadcast', config, routingData);
-        }
-      }
-    );
-    this.eventBus.subscribe(
-      'uw-set-ui-state',
-      {
-        function: (config, routingData)  => {
-          if (config.globalUiVisible !== undefined) {
-            if (this.isGlobal) {
-              this.setUiVisibility(config.globalUiVisible);
-            } else {
-              this.setUiVisibility(!config.globalUiVisible);
+        'uw-config-broadcast': {
+          function: (config, routingData) => {
+            console.log('sending config broadcast from eventBus subscription:', this.eventBus)
+            this.sendToIframe('uw-config-broadcast', config, routingData);
+          }
+        },
+        'uw-set-ui-state': {
+          function: (config, routingData)  => {
+            if (config.globalUiVisible !== undefined) {
+              if (this.isGlobal) {
+                this.setUiVisibility(config.globalUiVisible);
+              } else {
+                this.setUiVisibility(!config.globalUiVisible);
+              }
+            }
+            this.sendToIframe('uw-set-ui-state', {...config, isGlobal: this.isGlobal}, routingData);
+          }
+        },
+        'uw-restore-ui-state': {
+          function: (config, routingData) => {
+            if (!this.isGlobal) {
+              this.setUiVisibility(true);
+              this.sendToIframe('uw-restore-ui-state', config, routingData);
             }
           }
-          this.sendToIframe('uw-set-ui-state', {...config, isGlobal: this.isGlobal}, routingData);
         }
-      }
-    )
-    this.eventBus.subscribe(
-      'uw-restore-ui-state', {
-        function: (config, routingData) => {
-          if (!this.isGlobal) {
-            this.setUiVisibility(true);
-            this.sendToIframe('uw-restore-ui-state', config, routingData);
-          }
-        }
-      }
-    )
+      },
+      this
+    );
+  }
+
+  messageHandlerFn = (message) => {
+    if (!this.uiIframe?.contentWindow) {
+      window.removeEventListener('message', this.messageHandlerFn);
+      return;
+    }
+    this.handleMessage(message);
   }
 
   setUiVisibility(visible) {
@@ -280,6 +279,7 @@ class UI {
           this.eventBus.send(busCommand.action, busCommand.config, busCommand.routingData);
           break;
         case 'uwui-get-role':
+          console.log('handle get role!');
           this.sendToIframeLowLevel('uwui-set-role', {role: this.isGlobal ? 'global' : 'player'});
           break;
         case 'uwui-interface-ready':
@@ -306,6 +306,7 @@ class UI {
     // because existence of UI is not guaranteed — UI is not shown when extension is inactive.
     // If extension is inactive due to "player element isn't big enough to justify it", however,
     // we can still receive eventBus messages.
+    console.log('sending to iframe - low level.')
     if (this.element && this.uiIframe) {
       this.uiIframe.contentWindow?.postMessage(
         {
@@ -335,6 +336,7 @@ class UI {
     // }
     // routingData.crossedConnections.push(EventBusConnector.IframeBoundaryIn);
 
+    console.warn('send to iframe — uw bus tunnel. Action:', action, actionConfig)
     this.sendToIframeLowLevel(
       'uw-bus-tunnel',
       {
@@ -360,6 +362,8 @@ class UI {
   }
 
   destroy() {
+    window.removeEventListener('message', this.messageHandlerFn);
+    this.eventBus.unsubscribeAll(this);
     // this.comms?.destroy();
     this.uiIframe?.remove();
     this.element?.remove();

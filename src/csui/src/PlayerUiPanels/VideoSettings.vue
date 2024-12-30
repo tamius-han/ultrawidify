@@ -66,49 +66,6 @@
           ></StretchOptionsPanel>
         </div>
       </div>
-
-      <div class="flex flex-col">
-
-        <!-- VIDEO ALIGNMENT -->
-        <div class="sub-panel">
-          <div class="flex flex-row">
-            <mdicon name="align-horizontal-center" :size="32" />
-            <h1>Video alignment:</h1>
-          </div>
-
-          <div class="flex flex-row justify-center mt-4">
-            <alignment-options-control-component
-              :eventBus="eventBus"
-            >
-            </alignment-options-control-component>
-          </div>
-
-          <!-- <div class="flex flex-row flex-wrap">
-            <div class="m-t-0-33em display-block">
-              <input id="_input_zoom_site_allow_pan"
-                      type="checkbox"
-                      />
-              Pan with mouse
-            </div>
-          </div> -->
-        </div>
-
-        <!-- ZOOM OPTIONS -->
-        <!-- <div class="sub-panel">
-          <div class="flex flex-row">
-            <mdicon name="magnify-plus-outline" :size="32" />
-            <h1>Manual zoom:</h1>
-          </div>
-
-          <ZoomOptionsPanel
-            :settings="settings"
-            :siteSettings="siteSettings"
-            :eventBus="eventBus"
-            :isEditing="editMode"
-          ></ZoomOptionsPanel>
-        </div> -->
-
-      </div>
     </div>
   </div>
 </template>
@@ -153,10 +110,19 @@ export default {
     'site'
   ],
   created() {
-    this.eventBus.subscribe('uw-config-broadcast', {function: (config) => this.handleConfigBroadcast(config)});
+    this.eventBus.subscribe(
+      'uw-config-broadcast',
+      {
+        source: this,
+        function: (config) => this.handleConfigBroadcast(config)
+      }
+    );
   },
   mounted() {
     this.eventBus.sendToTunnel('get-ar');
+  },
+  destroyed() {
+    this.eventBus.unsubscribeAll(this);
   },
   components: {
     ShortcutButton,

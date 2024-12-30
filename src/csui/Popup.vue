@@ -148,6 +148,7 @@ export default {
     this.eventBus.subscribe(
       'set-current-site',
       {
+        source: this,
         function: (config, context) => {
           if (this.site) {
             if (!this.site.host) {
@@ -169,7 +170,7 @@ export default {
           this.loadFrames(this.site);
 
         }
-      }
+      },
     );
 
     this.comms = new CommsClient('popup-port', this.logger, this.eventBus);

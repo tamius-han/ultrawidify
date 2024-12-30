@@ -321,95 +321,107 @@ export default {
       this.handleMessage(event);
     });
 
-    this.eventBus.subscribe('uw-config-broadcast', {function: (data) => {
-      switch (data.type) {
-        case 'drm-status':
-          this.statusFlags.hasDrm = data.hasDrm;
-          break;
-        case 'aard-error':
-          this.statusFlags.aardErrors = data.aardErrors;
-          break;
-        case 'player-dimensions':
-          this.playerDimensionsUpdate(data.data);
-          break;
-      }
-    }});
-
-    this.eventBus.subscribe('uw-set-ui-state', { function: (data) => {
-      if (data.globalUiVisible !== undefined) {
-        if (this.isGlobal) {
-          if (data.globalUiVisible) {
-            this.showUwWindow();
-          } else {
-            this.hideUwWindow(true);
-          }
-          // this.showPlayerUIAfterClose = data.showPlayerUIAfterClose;
-        } else {
-          // non global UIs are hidden while global overlay
-          // is visible and vice versa
-          // this.disabled = data.globalUiVisible;
-          this.saveState = {
-            uwWindowVisible: this.uwWindowVisible,
-            uwWindowFadeOutDisabled: this.uwWindowFadeOutDisabled,
-            uwWindowFadeOut: this.uwWindowFadeOut
-          };
-          this.uwWindowFadeOutDisabled = false;
-          this.hideUwWindow(true);
-        }
-      }
-    }});
-
-    this.eventBus.subscribe(
-      'uw-restore-ui-state',
+    this.eventBus.subscribeMulti(
       {
-        function: (data) => {
-          if (this.saveState) {
-            if (this.saveState.uwWindowVisible) {
-              this.showUwWindow();
+        'uw-config-broadcast': {
+          function:
+            (data) => {
+              switch (data.type) {
+                case 'drm-status':
+                  this.statusFlags.hasDrm = data.hasDrm;
+                  break;
+                case 'aard-error':
+                  this.statusFlags.aardErrors = data.aardErrors;
+                  break;
+                case 'player-dimensions':
+                  this.playerDimensionsUpdate(data.data);
+                  break;
+              }
             }
-            this.uwWindowFadeOutDisabled = this.saveState.uwWindowFadeOutDisabled;
-            this.uwWindowFadeOut = this.saveState.uwWindowFadeOut;
+        },
+        'uw-set-ui-state': {
+          function: (data) => {
+            if (data.globalUiVisible !== undefined) {
+              if (this.isGlobal) {
+                if (data.globalUiVisible) {
+                  this.showUwWindow();
+                } else {
+                  this.hideUwWindow(true);
+                }
+                // this.showPlayerUIAfterClose = data.showPlayerUIAfterClose;
+              } else {
+                // non global UIs are hidden while global overlay
+                // is visible and vice versa
+                // this.disabled = data.globalUiVisible;
+                this.saveState = {
+                  uwWindowVisible: this.uwWindowVisible,
+                  uwWindowFadeOutDisabled: this.uwWindowFadeOutDisabled,
+                  uwWindowFadeOut: this.uwWindowFadeOut
+                };
+                this.uwWindowFadeOutDisabled = false;
+                this.hideUwWindow(true);
+              }
+            }
           }
-          this.saveState = {};
-        }
-      }
-    );
-
-    this.eventBus.subscribe('ui-trigger-zone-update', {
-      function: (data) => {
-        this.showTriggerZonePreview = data.previewZoneVisible;
-        // this.;
-      }
-    });
-
-    this.eventBus.subscribe(
-      'start-trigger-zone-edit',
-      {
-        function: () => {
-          this.triggerZoneEditorVisible = true;
-          this.uwWindowVisible = false;
-        }
-      }
-    );
-
-     this.eventBus.subscribe(
-      'finish-trigger-zone-edit',
-      {
-        function: () => {
-          this.triggerZoneEditorVisible = false;
-          this.showUwWindow('playerUiSettings');
-        }
-      }
+        },
+        'uw-restore-ui-state': {
+          function: (data) => {
+            if (this.saveState) {
+              if (this.saveState.uwWindowVisible) {
+                this.showUwWindow();
+              }
+              this.uwWindowFadeOutDisabled = this.saveState.uwWindowFadeOutDisabled;
+              this.uwWindowFadeOut = this.saveState.uwWindowFadeOut;
+            }
+            this.saveState = {};
+          }
+        },
+        'uw-restore-ui-state': {
+          function: (data) => {
+            if (this.saveState) {
+              if (this.saveState.uwWindowVisible) {
+                this.showUwWindow();
+              }
+              this.uwWindowFadeOutDisabled = this.saveState.uwWindowFadeOutDisabled;
+              this.uwWindowFadeOut = this.saveState.uwWindowFadeOut;
+            }
+            this.saveState = {};
+          }
+        },
+        'ui-trigger-zone-update': {
+          function: (data) => {
+            this.showTriggerZonePreview = data.previewZoneVisible;
+            // this.;
+          }
+        },
+        'start-trigger-zone-edit': {
+          function: () => {
+            this.triggerZoneEditorVisible = true;
+            this.uwWindowVisible = false;
+          }
+        },
+        'finish-trigger-zone-edit': {
+          function: () => {
+            this.triggerZoneEditorVisible = false;
+            this.showUwWindow('playerUiSettings');
+          }
+        },
+      },
+      this
     );
 
     this.sendToParentLowLevel('uwui-get-role', null);
     this.sendToParentLowLevel('uwui-get-theme', null);
 
+    console.log('player overlay created — get player dims:')
     this.sendToParentLowLevel('uw-bus-tunnel', {
       action: 'get-player-dimensions'
     });
   },
 
+  destroyed() {
+    this.eventBus.unsubscribeAll(this)
+  },
   methods: {
     /**
      * Gets URL of the browser settings page (i think?)

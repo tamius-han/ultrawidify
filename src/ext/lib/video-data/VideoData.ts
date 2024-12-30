@@ -88,15 +88,15 @@ class VideoData {
   }
 
   private eventBusCommands = {
-    'get-drm-status': [{
+    'get-drm-status': {
       function: () => {
         this.hasDrm = hasDrm(this.video);
         this.eventBus.send('uw-config-broadcast', {type: 'drm-status', hasDrm: this.hasDrm});
       }
-    }],
-    'set-run-level': [{
+    },
+    'set-run-level': {
       function: (runLevel: RunLevel) => this.setRunLevel(runLevel)
-    }]
+    }
   }
 
   /**
@@ -128,19 +128,18 @@ class VideoData {
       height: this.video.offsetHeight,
     };
 
-    this.eventBus = new EventBus();
+    if (!pageInfo.eventBus) {
+      this.eventBus = new EventBus();
+    } else {
+      this.eventBus = pageInfo.eventBus;
+    }
 
     this.extensionStatus = new ExtensionStatus(siteSettings, pageInfo.eventBus, pageInfo.fsStatus);
 
-    if (pageInfo.eventBus) {
-      this.eventBus.setUpstreamBus(pageInfo.eventBus);
-
-      for (const action in this.eventBusCommands) {
-        for (const command of this.eventBusCommands[action]) {
-          this.eventBus.subscribe(action, command);
-        }
-      }
-    }
+    this.eventBus.subscribeMulti(
+      this.eventBusCommands,
+      this
+    );
 
     this.setupEventListeners();
   }
@@ -270,7 +269,6 @@ class VideoData {
    * Must be triggered on first action. TODO
    */
   preparePage() {
-    console.log('preparing page ...')
     this.injectBaseCss();
     this.pageInfo.initMouseActionHandler(this);
 
@@ -365,7 +363,7 @@ class VideoData {
 
     this.eventBus.send('set-run-level', RunLevel.Off);
     this.destroyed = true;
-    this.eventBus?.unsetUpstreamBus();
+    this.eventBus.unsubscribeAll(this);
 
     try {
       this.aard.stop();
@@ -389,16 +387,12 @@ class VideoData {
 
 
   setRunLevel(runLevel: RunLevel, options?: {fromPlayer?: boolean}) {
-    console.log('setting new runlevel for videodata. current:', this.runLevel, 'new', runLevel)
     if (this.runLevel === runLevel) {
       return; // also no need to propagate to the player
     }
 
-    console.log('setting run level ...')
-
     // Run level decreases towards 'off'
     if (this.runLevel > runLevel) {
-      console.log('decreasing css.')
       if (runLevel < RunLevel.CustomCSSActive) {
         this.video.classList.remove(this.baseCssName);
         this.video.classList.remove(this.userCssClassName);

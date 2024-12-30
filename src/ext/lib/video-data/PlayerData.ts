@@ -80,12 +80,15 @@ class PlayerData {
   halted: boolean = true;
   isFullscreen: boolean = !!document.fullscreenElement;
   isTheaterMode: boolean = false;  // note: fullscreen mode will count as theaterMode if player was in theater mode before fs switch. This is desired, so far.
+  isTooSmall: boolean = true;
 
   //#region misc stuff
   extensionMode: any;
   dimensions: PlayerDimensions;
   private playerIdElement: any;
   private observer: ResizeObserver;
+
+  private trackChangesTimeout: any;
 
   private ui: UI;
 
@@ -99,7 +102,8 @@ class PlayerData {
     }],
     'get-player-dimensions': [{
       function: () => {
-        this.eventBus.send('uw-config-broadcast', {
+        console.log('got get-player-dimensions');
+        this.eventBus.send('—————————————————————————— uw-config-broadcast', {
           type: 'player-dimensions',
           data: this.dimensions
         });
@@ -157,20 +161,12 @@ class PlayerData {
       // do the rest
       this.invalid = false;
       this.element = this.getPlayer();
+      this.isTooSmall = (this.element.clientWidth < 1208 || this.element.clientHeight < 720);
+
       this.initEventBus();
 
-      // this.notificationService = new PlayerNotificationUi(this.element, this.settings, this.eventBus);
-      if (this.videoData.settings.active.ui?.inPlayer?.enabled) {
-        this.ui = new UI(
-          'ultrawidifyUi',
-          {
-            parentElement: this.element,
-            eventBus: this.eventBus,
-            playerData: this,
-            uiSettings: this.videoData.settings.active.ui
-          }
-        );
-      }
+      // we defer UI creation until player element is big enough
+      // this happens in trackDimensionChanges!
 
       this.dimensions = undefined;
       this.overlayNode = undefined;
@@ -233,9 +229,45 @@ class PlayerData {
   destroy() {
     document.removeEventListener('fullscreenchange', this.dimensionChangeListener);
     this.stopChangeDetection();
+    this.ui?.destroy();
     this.notificationService?.destroy();
   }
   //#endregion
+
+  deferredUiInitialization(playerDimensions) {
+    if (this.ui || ! this.videoData.settings.active.ui?.inPlayer?.enabled) {
+      return;
+    }
+
+    if (
+      this.isFullscreen
+      || (
+        playerDimensions.width > 1208
+        && playerDimensions.height > 720
+      )
+    ) {
+      this.ui = new UI(
+        'ultrawidifyUi',
+        {
+          parentElement: this.element,
+          eventBus: this.eventBus,
+          playerData: this,
+          uiSettings: this.videoData.settings.active.ui
+        }
+      );
+
+      if (this.runLevel < RunLevel.UIOnly) {
+        this.ui?.disable();
+      }
+      if (this.runLevel >= RunLevel.UIOnly) {
+        this.ui?.enable();
+        this.startChangeDetection();
+      }
+      if (this.runLevel >= RunLevel.CustomCSSActive) {
+        this.element.classList.add(this.playerCssClass);
+      }
+    }
+  }
 
   /**
    * Sets extension runLevel and sets or unsets appropriate css classes as necessary
@@ -253,11 +285,11 @@ class PlayerData {
         this.element.classList.remove(this.playerCssClass);
       }
       if (runLevel < RunLevel.UIOnly) {
-        this.ui.disable();
+        this.ui?.disable();
       }
     } else {
       if (runLevel >= RunLevel.UIOnly) {
-        this.ui.enable();
+        this.ui?.enable();
         this.startChangeDetection();
       }
       if (runLevel >= RunLevel.CustomCSSActive) {
@@ -313,12 +345,20 @@ class PlayerData {
       this.detectTheaterMode();
     }
 
+    // defer creating UI
+    this.deferredUiInitialization(currentPlayerDimensions);
+
     // if dimensions of the player box are the same as the last known
-    // dimensions, we don't have to do anything
+    // dimensions, we don't have to do anything ... in theory. In practice,
+    // sometimes restore-ar doesn't appear to register the first time, and
+    // this function doesn't really run often enough to warrant finding a
+    // real, optimized fix.
     if (
       this.dimensions?.width == currentPlayerDimensions.width
       && this.dimensions?.height == currentPlayerDimensions.height
     ) {
+      this.eventBus.send('restore-ar', null);
+      this.eventBus.send('delayed-restore-ar', {delay: 500});
       this.dimensions = currentPlayerDimensions;
       return;
     }
@@ -326,7 +366,7 @@ class PlayerData {
     // in every other case, we need to check if the player is still
     // big enough to warrant our extension running.
     this.handleSizeConstraints(currentPlayerDimensions);
-    this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
+    // this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
 
     // Save current dimensions to avoid triggering this function pointlessly
     this.dimensions = currentPlayerDimensions;
@@ -343,14 +383,11 @@ class PlayerData {
     const canEnable = this.siteSettings.isEnabledForEnvironment(this.isFullscreen, this.isTheaterMode) === ExtensionMode.Enabled;
 
     if (this.runLevel === RunLevel.Off && canEnable) {
-      console.log('runLevel: off -> [anything]');
       this.eventBus.send('restore-ar', null);
       // must be called after
       this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
     } else if (!canEnable && this.runLevel !== RunLevel.Off) {
       // must be called before
-      console.log('runLevel: [anything] -> off');
-
       this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
       this.setRunLevel(RunLevel.Off);
     }
@@ -358,7 +395,6 @@ class PlayerData {
 
 
   private handleDimensionChanges(newDimensions: PlayerDimensions, oldDimensions: PlayerDimensions) {
-    console.log('handling dimension changes\n\nold dimensions:', oldDimensions, '\nnew dimensions:', newDimensions, '\n\nis enabled:', this.enabled, this.runLevel, RunLevel);
     if (this.runLevel === RunLevel.Off ) {
       this.logger.log('info', 'debug', "[PlayerDetect] player size changed, but PlayerDetect is in disabled state. The player element is probably too small.");
       return;
@@ -374,7 +410,6 @@ class PlayerData {
       || newDimensions?.height != oldDimensions?.height
       || newDimensions?.fullscreen != oldDimensions?.fullscreen
     ){
-      console.log('dimensions changed + we are enabled. Sending restore-ar ...');
       // If player size changes, we restore aspect ratio
       this.eventBus.send('restore-ar', null);
       this.eventBus.send('delayed-restore-ar', {delay: 500});
@@ -383,6 +418,9 @@ class PlayerData {
         type: 'player-dimensions',
         data: newDimensions
       });
+
+
+      this.isTooSmall = !newDimensions.fullscreen && (newDimensions.width < 1208 || newDimensions.height < 720);
     }
   }
 
@@ -706,6 +744,7 @@ class PlayerData {
     // this populates this.elementStack fully
     this.getPlayer({verbose: true});
     console.log('tree:', JSON.parse(JSON.stringify(this.elementStack)));
+    console.log('————————————————————— handling player tree request!')
     this.eventBus.send('uw-config-broadcast', {type: 'player-tree', config: JSON.parse(JSON.stringify(this.elementStack))});
   }
 

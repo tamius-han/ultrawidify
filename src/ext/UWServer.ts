@@ -24,27 +24,27 @@ export default class UWServer {
   }
 
   eventBusCommands = {
-    'popup-set-selected-tab': [{
+    'popup-set-selected-tab': {
       function: (message) => this.setSelectedTab(message.selectedMenu, message.selectedSubitem)
-    }],
-    'has-video': [{
+    },
+    'has-video': {
       function: (message, context) => this.registerVideo(context.comms.sender)
-    }],
-    'noVideo' : [{
+    },
+    'noVideo' : {
       function: (message, context) => this.unregisterVideo(context.comms.sender)
-    }],
-    'inject-css': [{
+    },
+    'inject-css': {
       function: (message, context) => this.injectCss(message.cssString, context.comms.sender)
-    }],
-    'eject-css': [{
+    },
+    'eject-css': {
       function: (message, context) => this.removeCss(message.cssString, context.comms.sender)
-    }],
-    'replace-css': [{
+    },
+    'replace-css': {
       function: (message, context) => this.replaceCss(message.oldCssString, message.newCssString, context.comms.sender)
-    }],
-    'get-current-site': [{
+    },
+    'get-current-site': {
       function: (message, context) => this.getCurrentSite()
-    }]
+    }
   };
 
   private gcTimeout: any;
@@ -84,11 +84,8 @@ export default class UWServer {
 
       this.eventBus = new EventBus({isUWServer: true});
 
-      for (const action in this.eventBusCommands) {
-        for (const command of this.eventBusCommands[action]) {
-          this.eventBus.subscribe(action, command);
-        }
-      }
+      this.eventBus.subscribeMulti(this.eventBusCommands, this);
+
       this.comms = new CommsServer(this);
       this.eventBus.setComms(this.comms);
 

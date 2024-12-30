@@ -77,6 +77,7 @@ export default class UWContent {
       this.eventBus.subscribe(
         'uw-restart',
         {
+          source: this,
           function: () => this.initPhase2()
         }
       );
@@ -121,6 +122,7 @@ export default class UWContent {
   }
 
   destroy() {
+    this.eventBus.unsubscribeAll(this);
     if (this.pageInfo) {
       this.pageInfo.destroy();
     }
