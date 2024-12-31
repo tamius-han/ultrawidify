@@ -11,14 +11,15 @@ import AspectRatioType from '../../common/enums/AspectRatioType.enum';
 
 const ExtensionConfPatch = [
   {
-    forVersion: '6.0.1-1',
+    forVersion: '6.1.1',
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
       // add new commands
       userOptions.commands = defaultOptions.commands;
+      userOptions.actions = defaultOptions.actions;
     }
   }, {
     // NOTE - when releasing shit, ensure ALL alpha migrations are combined together in one function
-    forVersion: '6.0.1-2',
+    forVersion: '6.1.2',
     updateFn: (userOptions, defaultOptions) => {
       userOptions.commands = defaultOptions.commands;
 
@@ -89,7 +90,7 @@ const ExtensionConfPatch = [
       }
     }
   }, {
-    forVersion: '6.0.1-3',
+    forVersion: '6.0.3',
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
       delete (userOptions as any).sites['@global'].persistOption;
       delete (userOptions as any).sites['@empty'].persistOption;
@@ -98,7 +99,7 @@ const ExtensionConfPatch = [
       userOptions.sites['@empty'].persistCSA = CropModePersistence.Disabled;
     }
   },  {
-    forVersion: '6.0.1-4',
+    forVersion: '6.0.4',
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
 
       // deprecated much?
@@ -110,36 +111,36 @@ const ExtensionConfPatch = [
           arg: AspectRatioType.Cycle
         }]
       });
-      userOptions.commands.crop.push({
-        action: 'set-ar',
-        label: 'Cycle',
-        comment: 'Cycle through crop options',
-        arguments: {
-          type: AspectRatioType.Cycle
-        },
-        shortcut: {
-          key: 'c',
-          code: 'KeyC',
-          ctrlKey: false,
-          metaKey: false,
-          altKey: false,
-          shiftKey: false,
-          onKeyUp: true,
-          onKeyDown: false,
-        }
-      });
-      userOptions.commands.crop.push({
-        action: 'set-ar',
-        label: '32:9',
-        comment: 'Crop for 32:9 aspect ratio',
-        arguments: {
-          type: AspectRatioType.Fixed,
-          ratio: 3.56
-        },
-      })
+      // userOptions.commands.crop.push({
+      //   action: 'set-ar',
+      //   label: 'Cycle',
+      //   comment: 'Cycle through crop options',
+      //   arguments: {
+      //     type: AspectRatioType.Cycle
+      //   },
+      //   shortcut: {
+      //     key: 'c',
+      //     code: 'KeyC',
+      //     ctrlKey: false,
+      //     metaKey: false,
+      //     altKey: false,
+      //     shiftKey: false,
+      //     onKeyUp: true,
+      //     onKeyDown: false,
+      //   }
+      // });
+      // userOptions.commands.crop.push({
+      //   action: 'set-ar',
+      //   label: '32:9',
+      //   comment: 'Crop for 32:9 aspect ratio',
+      //   arguments: {
+      //     type: AspectRatioType.Fixed,
+      //     ratio: 3.56
+      //   },
+      // })
     }
   }, {
-    forVersion: '6.0.1-5',
+    forVersion: '6.1.5',
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
       if (!userOptions.sites['@global'].defaults.alignment || !userOptions.sites['@global'].defaults.alignment.x || !userOptions.sites['@global'].defaults.alignment.y) {
         userOptions.sites['@global'].defaults.alignment = {
@@ -150,7 +151,7 @@ const ExtensionConfPatch = [
       userOptions.sites['@empty'].defaults.alignment = {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default};
     }
   }, {
-    forVersion: '6.0.1-6',
+    forVersion: '6.1.1-6',
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
       for (const site in userOptions.sites) {
         userOptions.sites[site].defaultType = userOptions.sites[site].type as any;
@@ -159,7 +160,7 @@ const ExtensionConfPatch = [
       userOptions.sites['@empty'].defaultType = 'modified';
     }
   }, {
-    forVersion: '6.0.2-0',
+    forVersion: '6.1.2-0',
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
       // remove custom CSS, as it is no longer needed
       for (const site in userOptions.sites) {
@@ -184,6 +185,13 @@ const ExtensionConfPatch = [
         }
       },
       userOptions.newFeatureTracker['uw6.ui-popup'] = {show: 10};
+    }
+  }, {
+    forVersion: '6.1.9',
+    updateFn: (userOptions: SettingsInterface, defaultOptions) => {
+      userOptions.ui = defaultOptions.ui;
+      userOptions.arDetect = defaultOptions.arDetect;
+      userOptions.newFeatureTracker = defaultOptions.newFeatureTracker;
     }
   }
 ];

@@ -1801,7 +1801,6 @@ export class Aard {
     }
 
     this.testResults.aspectRatioUncertain = false;
-    console.log('Updating letterboxWidth - as normal')
 
     this.testResults.letterboxWidth = candidateAvg;
     this.testResults.letterboxOffset = diff;

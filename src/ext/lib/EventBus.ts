@@ -110,7 +110,6 @@ export default class EventBus {
    * @param config
    */
   sendToTunnel(command: string, config: any) {
-    console.log('sending to tunnel from eventBus ....', this)
     if (!this.disableTunnel) {
       window.parent.postMessage(
         {
