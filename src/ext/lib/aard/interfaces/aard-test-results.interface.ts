@@ -85,6 +85,21 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
   }
 }
 
+export function resetGuardLine(results: AardTestResults) {
+  results.guardLine.top = -1;
+  results.guardLine.bottom = -1;
+  results.imageLine.invalidated = false;
+  results.guardLine.invalidated = false;
+  results.guardLine.cornerViolated[0] = false;
+  results.guardLine.cornerViolated[1] = false;
+  results.guardLine.cornerViolated[2] = false;
+  results.guardLine.cornerViolated[3] = false;
+  results.guardLine.cornerPixelsViolated[0] = 0;
+  results.guardLine.cornerPixelsViolated[1] = 0;
+  results.guardLine.cornerPixelsViolated[2] = 0;
+  results.guardLine.cornerPixelsViolated[3] = 0;
+}
+
 export function resetAardTestResults(results: AardTestResults): void {
   results.isFinished = false;
   results.lastStage = 0;

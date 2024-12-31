@@ -112,7 +112,7 @@ class PageInfo {
   }
 
   destroy() {
-    this.logger.log('info', ['debug', 'init'], "[PageInfo::destroy] destroying all videos!")
+    // this.logger.log('info', ['debug', 'init'], "[PageInfo::destroy] destroying all videos!")
     if(this.rescanTimer){
       clearTimeout(this.rescanTimer);
     }

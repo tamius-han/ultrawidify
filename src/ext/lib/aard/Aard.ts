@@ -10,7 +10,7 @@ import { GlCanvas } from './gl/GlCanvas';
 import { AardCanvasStore } from './interfaces/aard-canvas-store.interface';
 import { AardDetectionSample, generateSampleArray, resetSamples } from './interfaces/aard-detection-sample.interface';
 import { AardStatus, initAardStatus } from './interfaces/aard-status.interface';
-import { AardTestResults, initAardTestResults, resetAardTestResults } from './interfaces/aard-test-results.interface';
+import { AardTestResults, initAardTestResults, resetAardTestResults, resetGuardLine } from './interfaces/aard-test-results.interface';
 import { AardTimers, initAardTimers } from './interfaces/aard-timers.interface';
 
 
@@ -477,8 +477,12 @@ export class Aard {
         if (this.testResults.notLetterbox) {
           // TODO: reset aspect ratio to "AR not applied"
           this.testResults.lastStage = 1;
+
+          // we have a few things to do
+          // console.log('NOT LETTERBOX - resetting letterbox data')
           this.testResults.letterboxWidth = 0;
           this.testResults.letterboxOffset = 0;
+          resetGuardLine(this.testResults);
           break;
         }
 
@@ -500,7 +504,14 @@ export class Aard {
             this.settings.active.arDetect.canvasDimensions.sampleCanvas.height
           );
 
-          if (! this.testResults.guardLine.invalidated) {
+          // If guardline was invalidated, letterbox width and offset are unreliable.
+          // If guardLine is fine but imageLine is invalidated, we still keep last letterbox settings
+          if (this.testResults.guardLine.invalidated) {
+          // console.log('GUARD LINE INVALIDATED - resetting letterbox data')
+
+            this.testResults.letterboxWidth = 0;
+            this.testResults.letterboxOffset = 0;
+          } else {
             this.checkLetterboxGrow(
               imageData,
               this.settings.active.arDetect.canvasDimensions.sampleCanvas.width,
@@ -514,10 +525,6 @@ export class Aard {
           // TODO: ensure no aspect ratio changes happen
           this.testResults.lastStage = 2;
           break;
-        } else {
-          // our current letterbox width is now no longer accurate. Time to wipe.
-          this.testResults.letterboxWidth = 0;
-          this.testResults.letterboxOffset = 0;
         }
 
         // STEP 3:
@@ -539,19 +546,17 @@ export class Aard {
       // If forceFullRecheck is set, then 'not letterbox' should always force-reset the aspect ratio
       // (as aspect ratio may have been set manually while autodetection was off)
       if (this.testResults.notLetterbox) {
-        this.videoData.resizer.updateAr({
-          type: AspectRatioType.AutomaticUpdate,
-          ratio: this.defaultAr,
-        })
+        // console.log('————not letterbox')
+        this.updateAspectRatio(this.defaultAr);
       }
 
       // if detection is uncertain, we don't do anything at all (unless if guardline was broken, in which case we reset)
       if (this.testResults.aspectRatioUncertain && this.testResults.guardLine.invalidated) {
-        console.info('aspect ratio not certain:', this.testResults.aspectRatioUncertainReason);
-        console.warn('check finished:', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
+        // console.info('aspect ratio not certain:', this.testResults.aspectRatioUncertainReason);
+        // console.warn('check finished:', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
 
         if (this.testResults.guardLine.invalidated) {
-          this.videoData.resizer.setAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
+          this.updateAspectRatio(this.defaultAr);
         }
 
         return;
@@ -560,10 +565,11 @@ export class Aard {
       // TODO: emit debug values if debugging is enabled
       this.testResults.isFinished = true;
 
-      console.warn(
-        `[${(+new Date() % 10000) / 100} | ${this.arid}]`,'check finished — aspect ratio updated:', this.testResults.aspectRatioUpdated,
-        '\nis video playing?', this.getVideoPlaybackState() === VideoPlaybackState.Playing,
-         '\n\n', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
+      // console.warn(
+      //   `[${(+new Date() % 10000) / 100} | ${this.arid}]`,'check finished — aspect ratio updated:', this.testResults.aspectRatioUpdated,
+      //   '\ndetected ar:', this.testResults.activeAspectRatio, '->', this.getAr(),
+      //   '\nis video playing?', this.getVideoPlaybackState() === VideoPlaybackState.Playing,
+      //    '\n\n', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
 
       // if edge width changed, emit update event.
       // except aspectRatioUpdated doesn't get set reliably, so we just call update every time, and update
@@ -1793,6 +1799,8 @@ export class Aard {
     }
 
     this.testResults.aspectRatioUncertain = false;
+    console.log('Updating letterboxWidth - as normal')
+
     this.testResults.letterboxWidth = candidateAvg;
     this.testResults.letterboxOffset = diff;
     this.testResults.aspectRatioUpdated = true;
@@ -1801,14 +1809,14 @@ export class Aard {
   /**
    * Updates aspect ratio if new aspect ratio is different enough from the old one
    */
-  private updateAspectRatio() {
-    const ar = this.getAr();
+  private updateAspectRatio(overrideAr?: number) {
+    const ar = overrideAr ?? this.getAr();
 
     // Calculate difference between two ratios
     const maxRatio = Math.max(ar, this.testResults.activeAspectRatio);
     const diff = Math.abs(ar - this.testResults.activeAspectRatio);
 
-    if ((diff / maxRatio) > this.settings.active.arDetect.allowedArVariance) {
+    if (overrideAr || (diff / maxRatio) > this.settings.active.arDetect.allowedArVariance) {
       this.videoData.resizer.updateAr({
         type: AspectRatioType.AutomaticUpdate,
         ratio: this.getAr(),
