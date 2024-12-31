@@ -477,6 +477,8 @@ export class Aard {
         if (this.testResults.notLetterbox) {
           // TODO: reset aspect ratio to "AR not applied"
           this.testResults.lastStage = 1;
+          this.testResults.letterboxWidth = 0;
+          this.testResults.letterboxOffset = 0;
           break;
         }
 
@@ -512,6 +514,10 @@ export class Aard {
           // TODO: ensure no aspect ratio changes happen
           this.testResults.lastStage = 2;
           break;
+        } else {
+          // our current letterbox width is now no longer accurate. Time to wipe.
+          this.testResults.letterboxWidth = 0;
+          this.testResults.letterboxOffset = 0;
         }
 
         // STEP 3:
@@ -540,7 +546,7 @@ export class Aard {
       }
 
       // if detection is uncertain, we don't do anything at all (unless if guardline was broken, in which case we reset)
-      if (this.testResults.aspectRatioUncertain) {
+      if (this.testResults.aspectRatioUncertain && this.testResults.guardLine.invalidated) {
         console.info('aspect ratio not certain:', this.testResults.aspectRatioUncertainReason);
         console.warn('check finished:', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
 
@@ -560,13 +566,11 @@ export class Aard {
          '\n\n', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
 
       // if edge width changed, emit update event.
-      if (this.testResults.aspectRatioUpdated) {
-        this.videoData.resizer.updateAr({
-          type: AspectRatioType.AutomaticUpdate,
-          ratio: this.getAr(),
-          offset: this.testResults.letterboxOffset
-        });
-      }
+      // except aspectRatioUpdated doesn't get set reliably, so we just call update every time, and update
+      // if detected aspect ratio is different from the current aspect ratio
+      // if (this.testResults.aspectRatioUpdated) {
+        this.updateAspectRatio();
+      // }
 
       // if we got "no letterbox" OR aspectRatioUpdated
     } catch (e) {
@@ -844,8 +848,6 @@ export class Aard {
 
     const maxViolations = segmentPixels * 0.20; // TODO: move the 0.2 threshold into settings
 
-    console.log('Corner violations counts — segment px & max violations,', segmentPixels, maxViolations )
-
     // we won't do a loop for this few elements
     // corners with stuff in them will also be skipped in image test
     this.testResults.guardLine.cornerViolated[0] = this.testResults.guardLine.cornerPixelsViolated[0] > maxViolations;
@@ -853,8 +855,9 @@ export class Aard {
     this.testResults.guardLine.cornerViolated[2] = this.testResults.guardLine.cornerPixelsViolated[2] > maxViolations;
     this.testResults.guardLine.cornerViolated[3] = this.testResults.guardLine.cornerPixelsViolated[3] > maxViolations;
 
-    const maxInvalidCorners = 1; // TODO: move this into settings — by default, we allow one corner to extend past the
+    const maxInvalidCorners = 0; // TODO: move this into settings — by default, we allow one corner to extend past the
                                  // guard line in order to prevent watermarks/logos from preventing cropping the video
+                                 // .... _except_ this doesn't really work because https://youtu.be/-YJwPXipJbo?t=459
 
     // this works because +true converts to 1 and +false converts to 0
     const dirtyCount = +this.testResults.guardLine.cornerViolated[0]
@@ -1114,12 +1117,7 @@ export class Aard {
     // fact that it makes the 'if' statement governing gradient detection
     // bit more nicely visible (instead of hidden among spagheti)
     this.edgeScan(imageData, width, height);
-
-    console.log('edge scan:', JSON.parse(JSON.stringify(this.canvasSamples)));
-
     this.validateEdgeScan(imageData, width, height);
-    console.log('edge scan post valid:', JSON.parse(JSON.stringify(this.canvasSamples)));
-
 
     // TODO: _if gradient detection is enabled, then:
     this.sampleForGradient(imageData, width, height);
@@ -1151,18 +1149,20 @@ export class Aard {
      *  about where to find our letterbox. This test is all the data we need to check
      *  if valid guardLine has ever been set, since guardLine and imageLine are set
      *  in tandem (either both exist, or neither does (-1)).
+     *
+     *  But maybe we _can't really_, because https://youtu.be/-YJwPXipJbo?t=460 is having problems detecting change
      */
-    if (this.testResults.guardLine.top > 0) {
-      // if guardLine is invalidated, then the new edge of image frame must be
-      // above former guardline. Otherwise, it's below it.
-      if (this.testResults.guardLine.invalidated) {
-        topEnd = this.testResults.guardLine.top;
-        bottomEnd = this.testResults.guardLine.bottom;
-      } else {
-        topStart = this.testResults.imageLine.top;
-        bottomStart = this.testResults.imageLine.bottom;
-      }
-    }
+    // if (this.testResults.guardLine.top > 0) {
+    //   // if guardLine is invalidated, then the new edge of image frame must be
+    //   // above former guardline. Otherwise, it's below it.
+    //   if (this.testResults.guardLine.invalidated) {
+    //     topEnd = this.testResults.guardLine.top;
+    //     bottomEnd = this.testResults.guardLine.bottom;
+    //   } else {
+    //     topStart = this.testResults.imageLine.top;
+    //     bottomStart = this.testResults.imageLine.bottom;
+    //   }
+    // }
 
     let row: number, i: number, x: number, isImage: boolean, finishedRows: number;
 
@@ -1385,7 +1385,6 @@ export class Aard {
       // didn't change meaningfully from the first, in which chance we aren't. If the brightness increased
       // anywhere between 'not enough' and 'too much', we mark the measurement as invalid.
       if (lastSubpixel - firstSubpixel > this.settings.active.arDetect.edgeDetection.gradientTestMinDelta) {
-        console.log('sample invalidated cus gradient:');
         this.canvasSamples.top[i] = -1;
       }
     }
@@ -1471,6 +1470,8 @@ export class Aard {
     // remember: array has two places per sample position — hence x2 on the results
     const leftEdgeBoundary = ~~(fullFence * edgePosition) * 2;
     const rightEdgeBoundary = (this.settings.active.arDetect.sampling.staticCols - leftEdgeBoundary) * 2;
+    const edgeTolerance = this.settings.active.arDetect.edgeDetection.edgeMismatchTolerancePx;
+
 
     let i: number;
     // Process top edge:
@@ -1486,7 +1487,7 @@ export class Aard {
 
       while (i < leftEdgeBoundary) {
         if (this.canvasSamples.top[i] > -1) {
-          if (this.canvasSamples.top[i] <= this.testResults.aspectRatioCheck.topRows[0]) {
+          if (this.canvasSamples.top[i] < this.testResults.aspectRatioCheck.topRows[0]) {
             this.testResults.aspectRatioCheck.topRows[0] = this.canvasSamples.top[i];
             this.testResults.aspectRatioCheck.topQuality[0] = 0;
           } else if (this.canvasSamples.top[i] === this.testResults.aspectRatioCheck.topRows[0]) {
@@ -1498,7 +1499,7 @@ export class Aard {
 
       while (i < rightEdgeBoundary) {
         if (this.canvasSamples.top[i] > -1) {
-          if (this.canvasSamples.top[i] <= this.testResults.aspectRatioCheck.topRows[1]) {
+          if (this.canvasSamples.top[i] < this.testResults.aspectRatioCheck.topRows[1]) {
             this.testResults.aspectRatioCheck.topRows[1] = this.canvasSamples.top[i];
             this.testResults.aspectRatioCheck.topQuality[1] = 0;
           } else if (this.canvasSamples.top[i] === this.testResults.aspectRatioCheck.topRows[1]) {
@@ -1510,7 +1511,7 @@ export class Aard {
 
       while (i < this.canvasSamples.top.length) {
         if (this.canvasSamples.top[i] > -1) {
-          if (this.canvasSamples.top[i] <= this.testResults.aspectRatioCheck.topRows[2]) {
+          if (this.canvasSamples.top[i] < this.testResults.aspectRatioCheck.topRows[2]) {
             this.testResults.aspectRatioCheck.topRows[2] = this.canvasSamples.top[i];
             this.testResults.aspectRatioCheck.topQuality[2] = 0;
           } else if (this.canvasSamples.top[i] === this.testResults.aspectRatioCheck.topRows[2]) {
@@ -1518,6 +1519,17 @@ export class Aard {
           }
         }
         i += 2;
+      }
+
+      // remove any stray infinities
+      if (this.testResults.aspectRatioCheck.topRows[0] === Infinity) {
+        this.testResults.aspectRatioCheck.topRows[0] = 0;
+      }
+      if (this.testResults.aspectRatioCheck.topRows[1] === Infinity) {
+        this.testResults.aspectRatioCheck.topRows[1] = 0;
+      }
+      if (this.testResults.aspectRatioCheck.topRows[2] === Infinity) {
+        this.testResults.aspectRatioCheck.topRows[2] = 0;
       }
     }
 
@@ -1534,7 +1546,7 @@ export class Aard {
 
       while (i < leftEdgeBoundary) {
         if (this.canvasSamples.bottom[i] > -1) {
-          if (this.canvasSamples.bottom[i] <= this.testResults.aspectRatioCheck.bottomRows[0]) {
+          if (this.canvasSamples.bottom[i] < this.testResults.aspectRatioCheck.bottomRows[0]) {
             this.testResults.aspectRatioCheck.bottomRows[0] = this.canvasSamples.bottom[i];
             this.testResults.aspectRatioCheck.bottomQuality[0] = 0;
           } else if (this.canvasSamples.bottom[i] === this.testResults.aspectRatioCheck.bottomRows[0]) {
@@ -1546,7 +1558,7 @@ export class Aard {
 
       while (i < rightEdgeBoundary) {
         if (this.canvasSamples.bottom[i] > -1) {
-          if (this.canvasSamples.bottom[i] <= this.testResults.aspectRatioCheck.bottomRows[1]) {
+          if (this.canvasSamples.bottom[i] < this.testResults.aspectRatioCheck.bottomRows[1]) {
             this.testResults.aspectRatioCheck.bottomRows[1] = this.canvasSamples.bottom[i];
             this.testResults.aspectRatioCheck.bottomQuality[1] = 0;
           } else if (this.canvasSamples.bottom[i] === this.testResults.aspectRatioCheck.bottomRows[1]) {
@@ -1558,7 +1570,7 @@ export class Aard {
 
       while (i < this.canvasSamples.bottom.length) {
         if (this.canvasSamples.bottom[i] > -1) {
-          if (this.canvasSamples.bottom[i] <= this.testResults.aspectRatioCheck.bottomRows[2]) {
+          if (this.canvasSamples.bottom[i] < this.testResults.aspectRatioCheck.bottomRows[2]) {
             this.testResults.aspectRatioCheck.bottomRows[2] = this.canvasSamples.bottom[i];
             this.testResults.aspectRatioCheck.bottomQuality[2] = 0;
           } else if (this.canvasSamples.bottom[i] === this.testResults.aspectRatioCheck.bottomRows[2]) {
@@ -1607,60 +1619,63 @@ export class Aard {
      */
 
     // TOP:
-    if (
-      this.testResults.aspectRatioCheck.topRows[0] === this.testResults.aspectRatioCheck.topRows[1]
-      && this.testResults.aspectRatioCheck.topRows[0] === this.testResults.aspectRatioCheck.topRows[2]
+
+    // DifferenceMatrix:
+    //      0   - center <> left
+    //      1   - center <> right
+    //      2   - left <> right
+    this.testResults.aspectRatioCheck.topRowsDifferenceMatrix[0] = Math.abs(this.testResults.aspectRatioCheck.topRows[1] - this.testResults.aspectRatioCheck.topRows[0]);
+    this.testResults.aspectRatioCheck.topRowsDifferenceMatrix[1] = Math.abs(this.testResults.aspectRatioCheck.topRows[1] - this.testResults.aspectRatioCheck.topRows[2]);
+    this.testResults.aspectRatioCheck.topRowsDifferenceMatrix[2] = Math.abs(this.testResults.aspectRatioCheck.topRows[0] - this.testResults.aspectRatioCheck.topRows[2]);
+    this.testResults.aspectRatioCheck.bottomRowsDifferenceMatrix[0] = Math.abs(this.testResults.aspectRatioCheck.bottomRows[0] - this.testResults.aspectRatioCheck.bottomRows[1]);
+    this.testResults.aspectRatioCheck.bottomRowsDifferenceMatrix[1] = Math.abs(this.testResults.aspectRatioCheck.bottomRows[1] - this.testResults.aspectRatioCheck.bottomRows[2]);
+    this.testResults.aspectRatioCheck.bottomRowsDifferenceMatrix[2] = Math.abs(this.testResults.aspectRatioCheck.bottomRows[0] - this.testResults.aspectRatioCheck.bottomRows[2]);
+
+    // We need to write if-statements in order of importance.
+    if (                                                                                              // BEST: center matches both corners
+      this.testResults.aspectRatioCheck.topRowsDifferenceMatrix[0] <= edgeTolerance
+      && this.testResults.aspectRatioCheck.topRowsDifferenceMatrix[1] <= edgeTolerance
     ) {
-      // All three detections are the same
       this.testResults.aspectRatioCheck.topCandidate = this.testResults.aspectRatioCheck.topRows[0];
       this.testResults.aspectRatioCheck.topCandidateQuality =
         this.testResults.aspectRatioCheck.topQuality[0]
         + this.testResults.aspectRatioCheck.topQuality[1]
         + this.testResults.aspectRatioCheck.topQuality[2];
-    } else if (this.testResults.aspectRatioCheck.topRows[0] === this.testResults.aspectRatioCheck.topRows[2]) {
-      // Corners are the same, but different from center
-      if (this.testResults.aspectRatioCheck.topRows[0] > this.testResults.aspectRatioCheck.topRows[1]) {
-        // Corners are above center.
+    } else if (                                                                                       // Second best: center matches one of the corners
+      this.testResults.aspectRatioCheck.topRowsDifferenceMatrix[0] <= edgeTolerance
+      || this.testResults.aspectRatioCheck.topRowsDifferenceMatrix[1] <= edgeTolerance
+    ) {
+      this.testResults.aspectRatioCheck.topCandidate = this.testResults.aspectRatioCheck.topRows[1];
+        this.testResults.aspectRatioCheck.topCandidateQuality = this.testResults.aspectRatioCheck.topQuality[1];
+
+        if (this.testResults.aspectRatioCheck.topRows[0] === this.testResults.aspectRatioCheck.topRows[1]) {
+          this.testResults.aspectRatioCheck.topCandidateQuality += this.testResults.aspectRatioCheck.topQuality[0];
+        } else {
+          this.testResults.aspectRatioCheck.topCandidateQuality += this.testResults.aspectRatioCheck.topQuality[2];
+        }
+    } else if (this.testResults.aspectRatioCheck.topRowsDifferenceMatrix[2] <= edgeTolerance) {       // Third best: corners match, but are different from center
+      if (this.testResults.aspectRatioCheck.topRows[0] < this.testResults.aspectRatioCheck.topRows[1]) {
+        // Corners are above center -> corner authority
         this.testResults.aspectRatioCheck.topCandidate = this.testResults.aspectRatioCheck.topRows[0];
         this.testResults.aspectRatioCheck.topCandidateQuality =
           this.testResults.aspectRatioCheck.topQuality[0]
           + this.testResults.aspectRatioCheck.topQuality[2]
       } else {
-        // Corners are below center
+        // Corners are below center - center authority
         this.testResults.aspectRatioCheck.topCandidate = this.testResults.aspectRatioCheck.topRows[1];
         this.testResults.aspectRatioCheck.topCandidateQuality = this.testResults.aspectRatioCheck.topQuality[1]
       }
-    } else {
-      // Corners are different.
-      if (
-        this.testResults.aspectRatioCheck.topRows[0] !== this.testResults.aspectRatioCheck.topRows[1]
-        && this.testResults.aspectRatioCheck.topRows[2] !== this.testResults.aspectRatioCheck.topRows[1]
-      ) {
-        // Center and matches neither of the corners.
-        // TODO: maybe we can figure out to guess aspect ratio in scenarios like this.
-        // But for the time being, just slap it with "inconclusive".
-        this.testResults.aspectRatioUncertain = true;
-        this.testResults.aspectRatioUncertainReason = 'TOP_ROW_MISMATCH';
-        return;
-      } else {
-        // center matches one of the corners
-        this.testResults.aspectRatioCheck.topCandidate = this.testResults.aspectRatioCheck.topRows[1];
-        this.testResults.aspectRatioCheck.topCandidateQuality = this.testResults.aspectRatioCheck.topQuality[1];
-
-        if (this.testResults.aspectRatioCheck.topRows[0] === this.testResults.aspectRatioCheck.topRows[1]) {
-          this.testResults.aspectRatioCheck.topCandidateQuality += this.testResults.aspectRatioCheck.topRows[0];
-        } else {
-          this.testResults.aspectRatioCheck.topCandidateQuality += this.testResults.aspectRatioCheck.topRows[2];
-        }
-      }
+    } else {                                                                                          // Worst: no matches, kinda like my tinder
+        this.testResults.topRowUncertain = true;
+        // we can second-wind this, so no returns yet.
     }
 
     // BOTTOM
     // Note that bottomRows candidates are measured from the top
     // Well have to invert our candidate after we're done
-    if (
-      this.testResults.aspectRatioCheck.bottomRows[0] === this.testResults.aspectRatioCheck.bottomRows[1]
-      && this.testResults.aspectRatioCheck.bottomRows[0] === this.testResults.aspectRatioCheck.bottomRows[2]
+    if (                                                                                                 // BEST: center matches both corners
+      this.testResults.aspectRatioCheck.bottomRowsDifferenceMatrix[0] <= edgeTolerance
+      && this.testResults.aspectRatioCheck.bottomRowsDifferenceMatrix[1] <= edgeTolerance
     ) {
       // All three detections are the same
       this.testResults.aspectRatioCheck.bottomCandidate = this.testResults.aspectRatioCheck.bottomRows[0];
@@ -1668,46 +1683,76 @@ export class Aard {
         this.testResults.aspectRatioCheck.bottomQuality[0]
         + this.testResults.aspectRatioCheck.bottomQuality[1]
         + this.testResults.aspectRatioCheck.bottomQuality[2];
-    } else if (this.testResults.aspectRatioCheck.bottomRows[0] === this.testResults.aspectRatioCheck.bottomRows[2]) {
-      // Corners are the same, but different from center
+    } else if (                                                                                          // Second best: center matches one of the corners
+      this.testResults.aspectRatioCheck.bottomRowsDifferenceMatrix[0] <= edgeTolerance
+      || this.testResults.aspectRatioCheck.bottomRowsDifferenceMatrix[1] <= edgeTolerance
+    ) {
+      this.testResults.aspectRatioCheck.bottomCandidate = this.testResults.aspectRatioCheck.bottomRows[1];
+      this.testResults.aspectRatioCheck.bottomCandidateQuality = this.testResults.aspectRatioCheck.bottomQuality[1];
+
+      if (this.testResults.aspectRatioCheck.bottomRows[0] === this.testResults.aspectRatioCheck.bottomRows[1]) {
+        this.testResults.aspectRatioCheck.bottomCandidateQuality += this.testResults.aspectRatioCheck.bottomQuality[0];
+      } else {
+        this.testResults.aspectRatioCheck.bottomCandidateQuality += this.testResults.aspectRatioCheck.bottomQuality[2];
+      }
+    } else if (this.testResults.aspectRatioCheck.bottomRowsDifferenceMatrix[2] <= edgeTolerance) {       // Third best: corners match, but are different from center
       if (this.testResults.aspectRatioCheck.bottomRows[0] > this.testResults.aspectRatioCheck.bottomRows[1]) {
-        // Corners are above center.
+        // Corners closer to the edges than center. Note that bigger number = closer to edge
         this.testResults.aspectRatioCheck.bottomCandidate = this.testResults.aspectRatioCheck.bottomRows[0];
         this.testResults.aspectRatioCheck.bottomCandidateQuality =
           this.testResults.aspectRatioCheck.bottomQuality[0]
           + this.testResults.aspectRatioCheck.bottomQuality[2]
       } else {
-        // Corners are below center
+        // Center is closer to the edge than corners
         this.testResults.aspectRatioCheck.bottomCandidate = this.testResults.aspectRatioCheck.bottomRows[1];
         this.testResults.aspectRatioCheck.bottomCandidateQuality = this.testResults.aspectRatioCheck.bottomQuality[1]
       }
-    } else {
-      // Corners are different.
-      if (
-        this.testResults.aspectRatioCheck.bottomRows[0] !== this.testResults.aspectRatioCheck.bottomRows[1]
-        && this.testResults.aspectRatioCheck.bottomRows[2] !== this.testResults.aspectRatioCheck.bottomRows[1]
-      ) {
-        // Center and matches neither of the corners.
-        // TODO: maybe we can figure out to guess aspect ratio in scenarios like this.
-        // But for the time being, just slap it with "inconclusive".
-        this.testResults.aspectRatioUncertain = true;
-        this.testResults.aspectRatioUncertainReason += 'BOTTOM_ROW_MISMATCH';
-        return;
-      } else {
-        // center matches one of the corners
-        this.testResults.aspectRatioCheck.bottomCandidate = this.testResults.aspectRatioCheck.bottomRows[1];
-        this.testResults.aspectRatioCheck.bottomCandidateQuality = this.testResults.aspectRatioCheck.bottomQuality[1];
+    } else {                                                                                             // Worst: nothing matches
+      // We'll try to figure out aspect ratio later in second wind
+      this.testResults.bottomRowUncertain = true;
 
-        if (this.testResults.aspectRatioCheck.bottomRows[0] === this.testResults.aspectRatioCheck.bottomRows[1]) {
-          this.testResults.aspectRatioCheck.bottomCandidateQuality += this.testResults.aspectRatioCheck.bottomRows[0];
-        } else {
-          this.testResults.aspectRatioCheck.bottomCandidateQuality += this.testResults.aspectRatioCheck.bottomRows[2];
-        }
-      }
+      // console.log('BOTTOM ROW MISMATCH:', this.testResults.aspectRatioCheck.bottomRows[0], this.testResults.aspectRatioCheck.bottomRows[1], this.testResults.aspectRatioCheck.bottomRows[2]);
+      // return;
+    }
+
+    if (this.testResults.topRowUncertain && this.testResults.bottomRowUncertain) {
+      this.testResults.aspectRatioUncertain = true;
+      this.testResults.aspectRatioUncertainReason = 'TOP_AND_BOTTOM_ROW_MISMATCH';
     }
 
     // Convert bottom candidate to letterbox width
     this.testResults.aspectRatioCheck.bottomCandidateDistance = this.testResults.aspectRatioCheck.bottomCandidate === Infinity ? -1 : height - this.testResults.aspectRatioCheck.bottomCandidate;
+
+    const maxOffset = ~~(height * this.settings.active.arDetect.edgeDetection.maxLetterboxOffset)
+
+    // attempt second-wind:
+    // if any of the top candidates matches the best bottom candidate sufficiently,
+    // we'll just promote it to the candidate status
+    if (this.testResults.topRowUncertain) {
+      if (this.testResults.aspectRatioCheck.bottomCandidateDistance - this.testResults.aspectRatioCheck.topRows[0] < edgeTolerance + maxOffset) {
+        this.testResults.aspectRatioCheck.topCandidate = this.testResults.aspectRatioCheck.topRows[0];
+        this.testResults.aspectRatioCheck.topCandidateQuality = this.testResults.aspectRatioCheck.topQuality[0] + this.testResults.aspectRatioCheck.bottomCandidateQuality;
+      } else if (this.testResults.aspectRatioCheck.bottomCandidateDistance - this.testResults.aspectRatioCheck.topRows[1] < edgeTolerance + maxOffset) {
+        this.testResults.aspectRatioCheck.topCandidate = this.testResults.aspectRatioCheck.topRows[1];
+        this.testResults.aspectRatioCheck.topCandidateQuality = this.testResults.aspectRatioCheck.topQuality[1] + this.testResults.aspectRatioCheck.bottomCandidateQuality;
+      } else if (this.testResults.aspectRatioCheck.bottomCandidateDistance - this.testResults.aspectRatioCheck.topRows[2] < edgeTolerance + maxOffset) {
+        this.testResults.aspectRatioCheck.topCandidate = this.testResults.aspectRatioCheck.topRows[2];
+        this.testResults.aspectRatioCheck.topCandidateQuality = this.testResults.aspectRatioCheck.topQuality[2] + this.testResults.aspectRatioCheck.bottomCandidateQuality;
+      }
+    } else if (this.testResults.bottomRowUncertain) {
+      const bottomEdgeEquivalent = height - this.testResults.aspectRatioCheck.topCandidate;
+
+      if (bottomEdgeEquivalent - this.testResults.aspectRatioCheck.bottomRows[0] < edgeTolerance + maxOffset) {
+        this.testResults.aspectRatioCheck.bottomCandidate = this.testResults.aspectRatioCheck.bottomRows[0];
+        this.testResults.aspectRatioCheck.bottomCandidateQuality = this.testResults.aspectRatioCheck.bottomQuality[0] + this.testResults.aspectRatioCheck.topCandidateQuality;
+      } else if (bottomEdgeEquivalent - this.testResults.aspectRatioCheck.bottomRows[1] < edgeTolerance + maxOffset) {
+        this.testResults.aspectRatioCheck.bottomCandidate = this.testResults.aspectRatioCheck.bottomRows[1];
+        this.testResults.aspectRatioCheck.bottomCandidateQuality = this.testResults.aspectRatioCheck.bottomQuality[1] + this.testResults.aspectRatioCheck.topCandidateQuality;
+      } else if (bottomEdgeEquivalent - this.testResults.aspectRatioCheck.bottomRows[2] < edgeTolerance + maxOffset) {
+        this.testResults.aspectRatioCheck.bottomCandidate = this.testResults.aspectRatioCheck.bottomRows[2];
+        this.testResults.aspectRatioCheck.bottomCandidateQuality = this.testResults.aspectRatioCheck.bottomQuality[2] + this.testResults.aspectRatioCheck.topCandidateQuality;
+      }
+    }
 
     /**
      * Get final results.
@@ -1732,7 +1777,6 @@ export class Aard {
       return;
     }
 
-    const maxOffset = ~~(height * this.settings.active.arDetect.edgeDetection.maxLetterboxOffset)
     const diff = this.testResults.aspectRatioCheck.topCandidate - this.testResults.aspectRatioCheck.bottomCandidateDistance;
     const candidateAvg = ~~((this.testResults.aspectRatioCheck.topCandidate + this.testResults.aspectRatioCheck.bottomCandidateDistance) / 2);
 
@@ -1747,10 +1791,31 @@ export class Aard {
       this.testResults.guardLine.top = Math.max(this.testResults.imageLine.top - 2, 0);
       this.testResults.guardLine.bottom = Math.min(this.testResults.imageLine.bottom + 2, this.canvasStore.main.height - 1);
     }
+
     this.testResults.aspectRatioUncertain = false;
     this.testResults.letterboxWidth = candidateAvg;
     this.testResults.letterboxOffset = diff;
     this.testResults.aspectRatioUpdated = true;
+  }
+
+  /**
+   * Updates aspect ratio if new aspect ratio is different enough from the old one
+   */
+  private updateAspectRatio() {
+    const ar = this.getAr();
+
+    // Calculate difference between two ratios
+    const maxRatio = Math.max(ar, this.testResults.activeAspectRatio);
+    const diff = Math.abs(ar - this.testResults.activeAspectRatio);
+
+    if ((diff / maxRatio) > this.settings.active.arDetect.allowedArVariance) {
+      this.videoData.resizer.updateAr({
+        type: AspectRatioType.AutomaticUpdate,
+        ratio: this.getAr(),
+        offset: this.testResults.letterboxOffset
+      });
+      this.testResults.activeAspectRatio = ar;
+    }
   }
 
   /**

@@ -26,7 +26,7 @@ const ExtensionConf: SettingsInterface = {
     disabledReason: "",       // if automatic aspect ratio has been disabled, show reason
     allowedMisaligned: 0.05,  // top and bottom letterbox thickness can differ by this much.
                               // Any more and we don't adjust ar.
-    allowedArVariance: 0.075, // amount by which old ar can differ from the new (1 = 100%)
+    allowedArVariance: 0.0125,// amount by which old ar can differ from the new (1 = 100%)
     timers: {                 // autodetection frequency
       playing: 333,           // while playing
       playingReduced: 5000,   // while playing at small sizes
@@ -75,7 +75,7 @@ const ExtensionConf: SettingsInterface = {
       gradientTestMinDelta: 8,
 
       thresholds: {
-        edgeDetectionLimit: 8,
+        edgeDetectionLimit: 12,
         minQualitySingleEdge: 6,
         minQualitySecondEdge: 3,
       },
@@ -96,6 +96,8 @@ const ExtensionConf: SettingsInterface = {
       minColsForSearch: 0.5,       // if we hit the edge of blackbars for all but this many columns (%-wise), we don't
                                    // continue with search. It's pointless, because black edge is higher/lower than we
                                    // are now. (NOTE: keep this less than 1 in case we implement logo detection)
+
+      edgeMismatchTolerancePx: 3,  // corners and center are considered equal if they differ by at most this many px
     },
     pillarTest: {
       ignoreThinPillarsPx: 5, // ignore pillars that are less than this many pixels thick.

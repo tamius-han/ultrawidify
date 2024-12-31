@@ -122,7 +122,7 @@ export interface AardSettings {
       minQualitySecondEdge: number,           // The other edge must reach this quality (must be smaller or equal to single edge quality)
     }
 
-    maxLetterboxOffset: 0.1,             // Upper and lower letterbox can be different by this many (% of height)
+    maxLetterboxOffset: number,             // Upper and lower letterbox can be different by this many (% of height)
 
     // Previous iteration variables VVVV
     sampleWidth: number,        // we take a sample this wide for edge detection
@@ -132,13 +132,14 @@ export interface AardSettings {
                                            // to confirm an edge in case there's no edges on top or bottom (other
                                           // than logo, of course)
     logoThreshold: number,     // if edge candidate sits with count greater than this*all_samples, it can't be logo
-                            // or watermark.
+                               // or watermark.
     edgeTolerancePx?: number,          // we check for black edge violation this far from detection point
     edgeTolerancePercent?: number,  // we check for black edge detection this % of height from detection point. unused
     middleIgnoredArea: number,      // we ignore this % of canvas height towards edges while detecting aspect ratios
     minColsForSearch: number,       // if we hit the edge of blackbars for all but this many columns (%-wise), we don't
-                                 // continue with search. It's pointless, because black edge is higher/lower than we
-                                 // are now. (NOTE: keep this less than 1 in case we implement logo detection)
+                                    // continue with search. It's pointless, because black edge is higher/lower than we
+                                    // are now. (NOTE: keep this less than 1 in case we implement logo detection)
+    edgeMismatchTolerancePx: number,// corners and center are considered equal if they differ by at most this many px
   },
   pillarTest: {
     ignoreThinPillarsPx: number, // ignore pillars that are less than this many pixels thick.

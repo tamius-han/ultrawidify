@@ -137,7 +137,7 @@ class CommsClient {
       try {
         return this.port.postMessage(message);
       } catch (e) {
-        console.log('chrome is shit, lets try to bruteforce ...', e);
+        // console.log('chrome is shit, lets try to bruteforce ...', e);
         const port = chrome.runtime.connect(null, {name: this.name});
         port.onMessage.addListener(this._listener);
         return port.postMessage(message);
@@ -152,7 +152,7 @@ class CommsClient {
    * @param receivedMessage
    */
   private processReceivedMessage(receivedMessage){
-    console.log('message popped out of the comms', receivedMessage, 'event bus:', this.eventBus);
+    // console.log('message popped out of the comms', receivedMessage, 'event bus:', this.eventBus);
     // when sending between frames, message will be enriched with two new properties
     const {_sourceFrame, _sourcePort, ...message} = receivedMessage;
 

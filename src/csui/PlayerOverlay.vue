@@ -413,7 +413,7 @@ export default {
     this.sendToParentLowLevel('uwui-get-role', null);
     this.sendToParentLowLevel('uwui-get-theme', null);
 
-    console.log('player overlay created — get player dims:')
+    // console.log('player overlay created — get player dims:')
     this.sendToParentLowLevel('uw-bus-tunnel', {
       action: 'get-player-dimensions'
     });

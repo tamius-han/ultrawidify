@@ -28,9 +28,14 @@ export interface AardTestResults {
     bottomCandidate: number,
     bottomCandidateDistance: number,
     bottomCandidateQuality: number,
+    topRowsDifferenceMatrix: [number, number, number],
+    bottomRowsDifferenceMatrix: [number, number, number],
   },
   aspectRatioUncertain: boolean,
+  topRowUncertain: boolean,
+  bottomRowUncertain: boolean,
   aspectRatioUpdated: boolean,
+  activeAspectRatio: number,  // is cumulative
   letterboxWidth: number,
   letterboxOffset: number,
   logoDetected: [boolean, boolean, boolean, boolean]
@@ -66,9 +71,14 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
       bottomCandidate: 0,
       bottomCandidateDistance: 0,
       bottomCandidateQuality: 0,
+      topRowsDifferenceMatrix: [0, 0, 0],
+      bottomRowsDifferenceMatrix: [0, 0, 0],
     },
     aspectRatioUncertain: false,
+    topRowUncertain: false,
+    bottomRowUncertain: false,
     aspectRatioUpdated: false,
+    activeAspectRatio: 0,
     letterboxWidth: 0,
     letterboxOffset: 0,
     logoDetected: [false, false, false, false]
@@ -89,8 +99,10 @@ export function resetAardTestResults(results: AardTestResults): void {
   results.guardLine.cornerPixelsViolated[1] = 0;
   results.guardLine.cornerPixelsViolated[2] = 0;
   results.guardLine.cornerPixelsViolated[3] = 0;
-  results.letterboxWidth = 0;
-  results.letterboxOffset = 0;
+  // results.letterboxWidth = 0;
+  // results.letterboxOffset = 0;
   results.aspectRatioUpdated = false;
   results.aspectRatioUncertainReason = null;
+  results.topRowUncertain = false;
+  results.bottomRowUncertain = false;
 }

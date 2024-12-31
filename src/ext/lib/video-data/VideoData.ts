@@ -242,10 +242,8 @@ class VideoData {
     }
     this.resizer = new Resizer(this);
 
-    console.log('before init aard');
     try {
       this.aard = new Aard(this);  // this starts Ar detection. needs optional parameter that prevents ArDetector from starting
-      console.log('after init aard');
     } catch (e) {
       console.error('Failed to start Aard!', e);
     }

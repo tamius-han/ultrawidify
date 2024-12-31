@@ -297,8 +297,6 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
         playerAr
       ).xFactor;
 
-      // console.info('Stretch factors before:', stretchFactors.xFactor, stretchFactors.yFactor, "max safe:", maxSafeStretchFactor, "max safe ar:", maxSafeAr);
-
       stretchFactors.xFactor = Math.min(stretchFactors.xFactor, maxSafeStretchFactor);
       stretchFactors.yFactor = Math.min(stretchFactors.yFactor, maxSafeStretchFactor);
 

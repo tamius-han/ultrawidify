@@ -102,7 +102,6 @@ class PlayerData {
     }],
     'get-player-dimensions': [{
       function: () => {
-        console.log('got get-player-dimensions');
         this.eventBus.send('—————————————————————————— uw-config-broadcast', {
           type: 'player-dimensions',
           data: this.dimensions
@@ -378,7 +377,6 @@ class PlayerData {
    * @param currentPlayerDimensions
    */
   private handleSizeConstraints(currentPlayerDimensions: PlayerDimensions) {
-    console.log('handling resize constraints');
     // Check if extension is allowed to run in current combination of theater + full screen
     const canEnable = this.siteSettings.isEnabledForEnvironment(this.isFullscreen, this.isTheaterMode) === ExtensionMode.Enabled;
 
@@ -553,20 +551,15 @@ class PlayerData {
     }
 
     // if mode is given, we follow the preference
-    console.log('we prefer manual mode:', this.siteSettings, this.siteSettings.data.currentDOMConfig?.elements?.player);
 
     if (this.siteSettings.data.currentDOMConfig?.elements?.player?.manual && this.siteSettings.data.currentDOMConfig?.elements?.player?.mode) {
-      console.log('we prefer manual mode:', this.siteSettings.data.currentDOMConfig?.elements?.player?.mode);
       if (this.siteSettings.data.currentDOMConfig?.elements?.player?.mode === 'qs') {
         playerCandidate = this.getPlayerQs(playerQs, elementStack, videoWidth, videoHeight);
-        console.log('got qs player candidate');
       } else {
         playerCandidate = elementStack[playerIndex];
         playerCandidate.heuristics['manualElementByParentIndex'] = true;
-        console.log('got index player candidate')
       }
     } else {
-      console.log('no preference.')
       // try to figure it out based on what we have, with playerQs taking priority
       if (playerQs) {
         playerCandidate = this.getPlayerQs(playerQs, elementStack, videoWidth, videoHeight);
@@ -740,7 +733,6 @@ class PlayerData {
    * Lists elements between video and DOM root for display in player selector (UI)
    */
   private handlePlayerTreeRequest() {
-    console.log('aya')
     // this populates this.elementStack fully
     this.getPlayer({verbose: true});
     console.log('tree:', JSON.parse(JSON.stringify(this.elementStack)));

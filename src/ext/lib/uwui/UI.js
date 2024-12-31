@@ -160,7 +160,6 @@ class UI {
       {
         'uw-config-broadcast': {
           function: (config, routingData) => {
-            console.log('sending config broadcast from eventBus subscription:', this.eventBus)
             this.sendToIframe('uw-config-broadcast', config, routingData);
           }
         },
@@ -279,7 +278,6 @@ class UI {
           this.eventBus.send(busCommand.action, busCommand.config, busCommand.routingData);
           break;
         case 'uwui-get-role':
-          console.log('handle get role!');
           this.sendToIframeLowLevel('uwui-set-role', {role: this.isGlobal ? 'global' : 'player'});
           break;
         case 'uwui-interface-ready':
@@ -306,7 +304,6 @@ class UI {
     // because existence of UI is not guaranteed — UI is not shown when extension is inactive.
     // If extension is inactive due to "player element isn't big enough to justify it", however,
     // we can still receive eventBus messages.
-    console.log('sending to iframe - low level.')
     if (this.element && this.uiIframe) {
       this.uiIframe.contentWindow?.postMessage(
         {
@@ -336,7 +333,6 @@ class UI {
     // }
     // routingData.crossedConnections.push(EventBusConnector.IframeBoundaryIn);
 
-    console.warn('send to iframe — uw bus tunnel. Action:', action, actionConfig)
     this.sendToIframeLowLevel(
       'uw-bus-tunnel',
       {
