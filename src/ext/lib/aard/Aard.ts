@@ -754,6 +754,7 @@ export class Aard {
     const segmentPixels = width * edgePosition;
     const edgeSegmentSize = segmentPixels * 4;
 
+
     // check the top
     {
       // no use in doing guardline tests if guardline hasn't been measured yet, or if
@@ -764,6 +765,7 @@ export class Aard {
       const secondSegment = rowEnd - edgeSegmentSize;
 
       let i = rowStart;
+
       while (i < firstSegment) {
         if (
           imageData[i] > this.testResults.blackThreshold
@@ -1835,7 +1837,6 @@ export class Aard {
     const canvasAr = this.canvasStore.main.width / this.canvasStore.main.height;
 
     const compensatedWidth = fileAr === canvasAr ? this.canvasStore.main.width : this.canvasStore.main.width * fileAr;
-
 
     // console.log(`
     //   ———— ASPECT RATIO CALCULATION: —————
