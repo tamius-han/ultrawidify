@@ -183,26 +183,31 @@ class Settings {
     }
 
     // apply all remaining patches
-    this.logger?.log('info', 'settings', `[Settings::applySettingsPatches] There are ${patches.length - index} settings patches to apply`);
-    while (index < patches.length) {
-      const updateFn = patches[index].updateFn;
-      delete patches[index].forVersion;
-      delete patches[index].updateFn;
+    try {
+      this.logger?.log('info', 'settings', `[Settings::applySettingsPatches] There are ${patches.length - index} settings patches to apply`);
+      while (index < patches.length) {
+        const updateFn = patches[index].updateFn;
+        delete patches[index].forVersion;
+        delete patches[index].updateFn;
 
-      if (Object.keys(patches[index]).length > 0) {
-        ObjectCopy.overwrite(this.active, patches[index]);
-      }
-      if (updateFn) {
-
-        try {
-          updateFn(this.active, this.getDefaultSettings());
-        } catch (e) {
-          this.logger?.log('error', 'settings', '[Settings::applySettingsPatches] Failed to execute update function. Keeping settings object as-is. Error:', e);
-
+        if (Object.keys(patches[index]).length > 0) {
+          ObjectCopy.overwrite(this.active, patches[index]);
         }
-      }
+        if (updateFn) {
 
-      index++;
+          try {
+            updateFn(this.active, this.getDefaultSettings());
+          } catch (e) {
+            this.logger?.log('error', 'settings', '[Settings::applySettingsPatches] Failed to execute update function. Keeping settings object as-is. Error:', e);
+
+          }
+        }
+
+        index++;
+      }
+    } catch (e) {
+      this.setActive(this.getDefaultSettings());
+      this.save();
     }
   }
 

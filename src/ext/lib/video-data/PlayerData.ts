@@ -89,6 +89,7 @@ class PlayerData {
   private observer: ResizeObserver;
 
   private trackChangesTimeout: any;
+  private markedElement: HTMLElement;
 
   private ui: UI;
 
@@ -741,8 +742,37 @@ class PlayerData {
   }
 
   private markElement(data: {parentIndex: number, enable: boolean}) {
-    this.elementStack[data.parentIndex].element.style.outline = data.enable ? '5px dashed #fa6' : null;
-    this.elementStack[data.parentIndex].element.style.filter = data.enable ? 'sepia(1) brightness(2) contrast(0.5)' : null;
+    if (data.enable === false) {
+      this.markedElement.remove();
+      return;
+    }
+
+
+    if (this.markedElement) {
+      this.markedElement.remove();
+    }
+
+    const elementBB = this.elementStack[data.parentIndex].element.getBoundingClientRect();
+
+    // console.log('element bounding box:', elementBB);
+
+    const div = document.createElement('div');
+    div.style.position = 'fixed';
+    div.style.top = `${elementBB.top}px`;
+    div.style.left = `${elementBB.left}px`;
+    div.style.width = `${elementBB.width}px`;
+    div.style.height = `${elementBB.height}px`;
+    div.style.zIndex = '100';
+    div.style.border = '5px dashed #fa6';
+    div.style.pointerEvents = 'none';
+    div.style.boxSizing = 'border-box';
+    div.style.backgroundColor = 'rgba(255, 128, 64, 0.25)';
+
+    document.body.insertBefore(div, document.body.firstChild);
+    this.markedElement = div;
+
+    // this.elementStack[data.parentIndex].element.style.outline = data.enable ? '5px dashed #fa6' : null;
+    // this.elementStack[data.parentIndex].element.style.filter = data.enable ? 'sepia(1) brightness(2) contrast(0.5)' : null;
   }
 
   forceRefreshPlayerElement() {

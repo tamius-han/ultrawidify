@@ -1,351 +1,433 @@
 <template>
-  <div class="flex flex-col tab-root">
-    <!-- ADD ANY OPTION BARS HERE -->
+  <div class="flex flex-col">
+    <div class="flex flex-row">
+      <h1>Video player options</h1>
+    </div>
+    <div class="flex flex-row">
+      <div style="width: 48%">
+        NEW PLAYER SELECTOR
+        <div class="sub-panel-content">
+          <p>
+            You're probably on this page because Ultrawidify doesn't crop the player correctly.
+          </p>
+          <p>
+            If you hover over the boxes below, the corresponding element will be highlighted with golden outline. Player should be the first element that covers the video player on the page.
+          </p>
+          <p>
+            You need to reload the page for changes to take effect.
+          </p>
 
-    <!-- The rest of the tab -->
-    <div class="flex flex-row flex-wrap">
+          <!-- <p>
+            <a @click="showAdvancedOptions = !showAdvancedOptions">
+              <template v-if="showAdvancedOptions">Hide advanced options</template>
+              <template v-else>Show advanced options</template>
+            </a>
+          </p> -->
 
-      <!-- Player element picker -->
-      <div class="sub-panel">
-        <div class="flex flex-row">
-          <h1><mdicon name="television-play" :size="32" /> Player element</h1>
-        </div>
-        <div class="flex flex-row">
-          <div class="sub-panel-content">
-            <p>
-              You're probably on this page because Ultrawidify doesn't crop the player correctly.
-            </p>
-            <p>
-              If you hover over the boxes below, the corresponding element will change (sepia filter + higher brightness + reduced contrast + it gets an outline). Player element
-              should be the closest element to the video element, for which the sepia/brightness effect covers the area you expect the video will cover.
-            </p>
-            <p>
-              You need to reload the page for changes to take effect.
-            </p>
-
-            <!-- <p>
-              <a @click="showAdvancedOptions = !showAdvancedOptions">
-                <template v-if="showAdvancedOptions">Hide advanced options</template>
-                <template v-else>Show advanced options</template>
-              </a>
-            </p> -->
-
-            <div v-if="showAdvancedOptions" style="display: flex; flex-direction: row">
-              <div style="display: flex; flex-direction: column">
-                <div>
-                  <input :checked="playerManualQs"
-                          @change="togglePlayerManualQs"
-                          type="checkbox"
-                  />
-                  <div>
-                    Use <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors" target="_blank">CSS selector</a> for player<br/>
-                    <small>If defining multiple selectors, separate them with commas.</small>
-                  </div>
-                </div>
-                <div>Selector</div>
-                <input type="text"
-                  v-model="playerQs"
-                  @change="updatePlayerQuerySelector"
-                  @blur="updatePlayerQuerySelector"
-                  :disabled="playerByNodeIndex || !playerManualQs"
+          <div v-if="showAdvancedOptions" style="display: flex; flex-direction: row">
+            <div style="display: flex; flex-direction: column">
+              <div>
+                <input :checked="playerManualQs"
+                        @change="togglePlayerManualQs"
+                        type="checkbox"
                 />
-              </div>
-              <div style="display: flex; flex-direction: column">
-                <b>Custom CSS for site</b>
-                <textarea></textarea>
-              </div>
-            </div>
-
-            <div style="display: flex; flex-direction: row;">
-              <div class="element-tree">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>
-                        <div class="status-relative">
-                          Status <mdicon name="help-circle" @click="showLegend = !showLegend" />
-
-                          <div v-if="showLegend" class="element-symbol-legend">
-                            <b>Symbols:</b><br />
-                            <mdicon name="alert-remove" class="invalid" /> Element of invalid dimensions<br />
-                            <mdicon name="refresh-auto" class="auto-match" /> Ultrawidify's player detection thinks this should be the player<br />
-                            <mdicon name="bookmark" class="parent-offset-match" /> Site settings say this should be the player (based on counting parents)<br />
-                            <mdicon name="crosshairs" class="qs-match" /> Site settings say this should be the player (based on query selectors)<br />
-                            <mdicon name="check-circle" class="activePlayer" /> Element that is actually the player
-                          </div>
-                        </div>
-                      </th>
-                      <th>Element</th>
-                      <!-- <th>Actions</th> -->
-                      <!-- <th>Quick fixes</th> -->
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      v-for="(element, index) of elementStack"
-                      :key="index"
-                      class="element-row"
-                    >
-                      <td>
-                        <div class="status">
-                          <div
-                            v-if="element.heuristics?.invalidSize"
-                            class="invalid"
-                          >
-                            <mdicon name="alert-remove" />
-                          </div>
-                          <div
-                            v-if="element.heuristics?.autoMatch"
-                            class="auto-match"
-                          >
-                            <mdicon name="refresh-auto" />
-                          </div>
-                          <div
-                            v-if="element.heuristics?.qsMatch"
-                            class="qs-match"
-                          >
-                            <mdicon name="crosshairs" />
-                          </div>
-                          <div
-                            v-if="element.heuristics?.manualElementByParentIndex"
-                            class="parent-offset-match"
-                          >
-                            <mdicon name="bookmark" />
-                          </div>
-                          <div
-                            v-if="element.heuristics?.activePlayer"
-                            class="activePlayer"
-                          >
-                            <mdicon name="check-circle" />
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div
-                          class="element-data"
-
-                          @mouseover="markElement(index, true)"
-                          @mouseleave="markElement(index, false)"
-
-                          @click="setPlayer(index)"
-                        >
-                          <div class="tag">
-                            <b>{{element.tagName}}</b> <i class="id">{{element.id ? `#`:''}}{{element.id}}</i>  @ <span class="dimensions">{{element.width}}</span>x<span class="dimensions">{{element.height}}</span>
-
-                          </div>
-                          <div v-if="element.classList" class="class-list">
-                            <div v-for="cls of element.classList" :key="cls">
-                              {{cls}}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="flex flex-row">
-                          <!-- <div @click="designatePlayer(index)">Set as player {{ index }}</div> -->
-                        </div>
-                      </td>
-                      <!-- <td>
-                        <div
-                          class="css-fixes"
-                        >
-                          <div style="width: 100%"><b>Quick fixes:</b></div>
-                          <div
-                            class="css-line"
-                            :class="{'active': cssStack[index]?.includes('width: 100%;')}"
-                            @click="toggleCssForElement(index, 'width: 100%;')"
-                          >
-                            Width: 100%
-                          </div>
-                          <div
-                            class="css-line"
-                            :class="{'active': cssStack[index]?.includes('height: 100%;')}"
-                            @click="toggleCssForElement(index, 'height: 100%;')"
-                          >
-                            Height: 100%
-                          </div>
-                          <div
-                            class="css-line"
-                            :class="{'active': cssStack[index]?.includes('display: flex;')}"
-                            @click="toggleCssForElement(index, 'display: flex;')"
-                          >
-                            Display: flex
-                          </div>
-                          <div class="css-line">
-                            Flex direction:
-                            <span
-                              class="css-line-suboption"
-                              :class="{'active': cssStack[index]?.includes('flex-direction: row;')}"
-                              @click="toggleCssForElement(index, 'flex-direction', 'row')"
-                            >
-                              row
-                            </span> |
-                            <span
-                              class="css-line-suboption"
-                              :class="{'active': cssStack[index]?.includes('flex-direction: column;')}"
-                              @click="toggleCssForElement(index, 'flex-direction', 'column')"
-                            >
-                              column
-                            </span>
-                          </div>
-                          <div class="css-line">
-                            Justify content:
-                            <span
-                              class="css-line-suboption"
-                              :class="{'active': cssStack[index]?.includes('justify-content: start;')}"
-                              @click="toggleCssForElement(index, 'justify-content', 'start')"
-                            >
-                              start
-                            </span> |
-                            <span
-                              class="css-line-suboption"
-                              :class="{'active': cssStack[index]?.includes('justify-content: center;')}"
-                              @click="toggleCssForElement(index, 'justify-content', 'center')"
-                            >
-                              center
-                            </span> |
-                            <span
-                              class="css-line-suboption"
-                              :class="{'active': cssStack[index]?.includes('justify-content: end;')}"
-                              @click="toggleCssForElement(index, 'justify-content', 'end')"
-                            >
-                              end
-                            </span>
-                          </div>
-                          <div class="css-line">
-                            Align items:
-                            <span
-                              class="css-line-suboption"
-                              :class="{'active': cssStack[index]?.includes('align-items: start;')}"
-                              @click="toggleCssForElement(index, 'align-items', 'start')"
-                            >
-                              start
-                            </span> |
-                            <span
-                              class="css-line-suboption"
-                              :class="{'active': cssStack[index]?.includes('align-items: center;')}"
-                              @click="toggleCssForElement(index, 'align-items', 'center')"
-                            >
-                              center
-                            </span> |
-                            <span
-                              class="css-line-suboption"
-                              :class="{'active': cssStack[index]?.includes('align-items: end;')}"
-                              @click="toggleCssForElement(index, 'align-items', 'end')"
-                            >
-                              end
-                            </span>
-                          </div>
-
-                          <div class="css-line">
-                            Justify self:
-                            <span
-                              class="css-line-suboption"
-                              :class="{'active': cssStack[index]?.includes('justify-self: start;')}"
-                              @click="toggleCssForElement(index, 'justify-self', 'start')"
-                            >
-                              start
-                            </span> |
-                            <span
-                              class="css-line-suboption"
-                              :class="{'active': cssStack[index]?.includes('justify-self: center;')}"
-                              @click="toggleCssForElement(index, 'justify-self', 'center')"
-                            >
-                              center
-                            </span> |
-                            <span
-                              class="css-line-suboption"
-                              :class="{'active': cssStack[index]?.includes('justify-self: end;')}"
-                              @click="toggleCssForElement(index, 'justify-self', 'end')"
-                            >
-                              end
-                            </span>
-                          </div>
-                          <div class="css-line">
-                            Align self:
-                            <span
-                              class="css-line-suboption"
-                              :class="{'active': cssStack[index]?.includes('align-self: start;')}"
-                              @click="toggleCssForElement(index, 'align-self', 'start')"
-                            >
-                              start
-                            </span> |
-                            <span
-                              class="css-line-suboption"
-                              :class="{'active': cssStack[index]?.includes('align-self: center;')}"
-                              @click="toggleCssForElement(index, 'align-self', 'center')"
-                            >
-                              center
-                            </span> |
-                            <span
-                              class="css-line-suboption"
-                              :class="{'active': cssStack[index]?.includes('align-self: end;')}"
-                              @click="toggleCssForElement(index, 'align-self', 'end')"
-                            >
-                              end
-                            </span>
-                          </div>
-                          <div class="css-line">
-                            Text-align:
-                            <span
-                              class="css-line-suboption"
-                              :class="{'active': cssStack[index]?.includes('text-align: left;')}"
-                              @click="toggleCssForElement(index, 'text-align', 'left')"
-                            >
-                              left
-                            </span> |
-                            <span
-                              class="css-line-suboption"
-                              :class="{'active': cssStack[index]?.includes('text-align: center;')}"
-                              @click="toggleCssForElement(index, 'text-align', 'center')"
-                            >
-                              center
-                            </span> |
-                            <span
-                              class="css-line-suboption"
-                              :class="{'active': cssStack[index]?.find(x => x.includes('text-align: right'))}"
-                              @click="toggleCssForElement(index, 'text-align', 'right')"
-                            >
-                              right
-                            </span>
-                          </div>
-                          <div class="css-line">
-                            Position:
-                            <span
-                              class="css-line-suboption"
-                              :class="{'active': cssStack[index]?.includes('position: relative;')}"
-                              @click="toggleCssForElement(index, 'position', 'relative')"
-                            >
-                              relative
-                            </span> |
-                            <span
-                              class="css-line-suboption"
-                              :class="{'active': cssStack[index]?.includes('position: absolute;')}"
-                              @click="toggleCssForElement(index, 'position', 'absolute')"
-                            >
-                              absolute
-                            </span>
-                          </div>
-                        </div>
-                      </td> -->
-                    </tr>
-                  </tbody>
-                </table>
-                <div class="element-config">
+                <div>
+                  Use <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors" target="_blank">CSS selector</a> for player<br/>
+                  <small>If defining multiple selectors, separate them with commas.</small>
                 </div>
               </div>
-
-              <!-- <div class="css-preview">
-                {{cssStack}}
-              </div> -->
+              <div>Selector</div>
+              <input type="text"
+                v-model="playerQs"
+                @change="updatePlayerQuerySelector"
+                @blur="updatePlayerQuerySelector"
+                :disabled="playerByNodeIndex || !playerManualQs"
+              />
+            </div>
+            <div style="display: flex; flex-direction: column">
+              <b>Custom CSS for site</b>
+              <textarea></textarea>
             </div>
           </div>
 
-          <!-- <div class="sub-panel-content">
-            <h2>Advanced settings</h2>
-          </div> -->
+          <div style="display: flex; flex-direction: row;">
+            <div class="element-tree">
+              <table>
+                <thead>
+                  <tr>
+                    <th>
+                      <div class="status-relative">
+                        Status <mdicon name="help-circle" @click="showLegend = !showLegend" />
+
+                        <div v-if="showLegend" class="element-symbol-legend">
+                          <b>Symbols:</b><br />
+                          <mdicon name="alert-remove" class="invalid" /> Element of invalid dimensions<br />
+                          <mdicon name="refresh-auto" class="auto-match" /> Ultrawidify's player detection thinks this should be the player<br />
+                          <mdicon name="bookmark" class="parent-offset-match" /> Site settings say this should be the player (based on counting parents)<br />
+                          <mdicon name="crosshairs" class="qs-match" /> Site settings say this should be the player (based on query selectors)<br />
+                          <mdicon name="check-circle" class="activePlayer" /> Element that is actually the player
+                        </div>
+                      </div>
+                    </th>
+                    <th>Element</th>
+                    <!-- <th>Actions</th> -->
+                    <!-- <th>Quick fixes</th> -->
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(element, index) of elementStack"
+                    :key="index"
+                    class="element-row"
+                  >
+                    <td>
+                      <div class="status">
+                        <div
+                          v-if="element.heuristics?.invalidSize"
+                          class="invalid"
+                        >
+                          <mdicon name="alert-remove" />
+                        </div>
+                        <div
+                          v-if="element.heuristics?.autoMatch"
+                          class="auto-match"
+                        >
+                          <mdicon name="refresh-auto" />
+                        </div>
+                        <div
+                          v-if="element.heuristics?.qsMatch"
+                          class="qs-match"
+                        >
+                          <mdicon name="crosshairs" />
+                        </div>
+                        <div
+                          v-if="element.heuristics?.manualElementByParentIndex"
+                          class="parent-offset-match"
+                        >
+                          <mdicon name="bookmark" />
+                        </div>
+                        <div
+                          v-if="element.heuristics?.activePlayer"
+                          class="activePlayer"
+                        >
+                          <mdicon name="check-circle" />
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div
+                        class="element-data"
+
+                        @mouseover="markElement(index, true)"
+                        @mouseleave="markElement(index, false)"
+
+                        @click="setPlayer(index)"
+                      >
+                        <div class="tag">
+                          <b>{{element.tagName}}</b> <i class="id">{{element.id ? `#`:''}}{{element.id}}</i>  @ <span class="dimensions">{{element.width}}</span>x<span class="dimensions">{{element.height}}</span>
+
+                        </div>
+                        <div v-if="element.classList" class="class-list">
+                          <div v-for="cls of element.classList" :key="cls">
+                            {{cls}}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="flex flex-row">
+                        <!-- <div @click="designatePlayer(index)">Set as player {{ index }}</div> -->
+                      </div>
+                    </td>
+                    <!-- <td>
+                      <div
+                        class="css-fixes"
+                      >
+                        <div style="width: 100%"><b>Quick fixes:</b></div>
+                        <div
+                          class="css-line"
+                          :class="{'active': cssStack[index]?.includes('width: 100%;')}"
+                          @click="toggleCssForElement(index, 'width: 100%;')"
+                        >
+                          Width: 100%
+                        </div>
+                        <div
+                          class="css-line"
+                          :class="{'active': cssStack[index]?.includes('height: 100%;')}"
+                          @click="toggleCssForElement(index, 'height: 100%;')"
+                        >
+                          Height: 100%
+                        </div>
+                        <div
+                          class="css-line"
+                          :class="{'active': cssStack[index]?.includes('display: flex;')}"
+                          @click="toggleCssForElement(index, 'display: flex;')"
+                        >
+                          Display: flex
+                        </div>
+                        <div class="css-line">
+                          Flex direction:
+                          <span
+                            class="css-line-suboption"
+                            :class="{'active': cssStack[index]?.includes('flex-direction: row;')}"
+                            @click="toggleCssForElement(index, 'flex-direction', 'row')"
+                          >
+                            row
+                          </span> |
+                          <span
+                            class="css-line-suboption"
+                            :class="{'active': cssStack[index]?.includes('flex-direction: column;')}"
+                            @click="toggleCssForElement(index, 'flex-direction', 'column')"
+                          >
+                            column
+                          </span>
+                        </div>
+                        <div class="css-line">
+                          Justify content:
+                          <span
+                            class="css-line-suboption"
+                            :class="{'active': cssStack[index]?.includes('justify-content: start;')}"
+                            @click="toggleCssForElement(index, 'justify-content', 'start')"
+                          >
+                            start
+                          </span> |
+                          <span
+                            class="css-line-suboption"
+                            :class="{'active': cssStack[index]?.includes('justify-content: center;')}"
+                            @click="toggleCssForElement(index, 'justify-content', 'center')"
+                          >
+                            center
+                          </span> |
+                          <span
+                            class="css-line-suboption"
+                            :class="{'active': cssStack[index]?.includes('justify-content: end;')}"
+                            @click="toggleCssForElement(index, 'justify-content', 'end')"
+                          >
+                            end
+                          </span>
+                        </div>
+                        <div class="css-line">
+                          Align items:
+                          <span
+                            class="css-line-suboption"
+                            :class="{'active': cssStack[index]?.includes('align-items: start;')}"
+                            @click="toggleCssForElement(index, 'align-items', 'start')"
+                          >
+                            start
+                          </span> |
+                          <span
+                            class="css-line-suboption"
+                            :class="{'active': cssStack[index]?.includes('align-items: center;')}"
+                            @click="toggleCssForElement(index, 'align-items', 'center')"
+                          >
+                            center
+                          </span> |
+                          <span
+                            class="css-line-suboption"
+                            :class="{'active': cssStack[index]?.includes('align-items: end;')}"
+                            @click="toggleCssForElement(index, 'align-items', 'end')"
+                          >
+                            end
+                          </span>
+                        </div>
+
+                        <div class="css-line">
+                          Justify self:
+                          <span
+                            class="css-line-suboption"
+                            :class="{'active': cssStack[index]?.includes('justify-self: start;')}"
+                            @click="toggleCssForElement(index, 'justify-self', 'start')"
+                          >
+                            start
+                          </span> |
+                          <span
+                            class="css-line-suboption"
+                            :class="{'active': cssStack[index]?.includes('justify-self: center;')}"
+                            @click="toggleCssForElement(index, 'justify-self', 'center')"
+                          >
+                            center
+                          </span> |
+                          <span
+                            class="css-line-suboption"
+                            :class="{'active': cssStack[index]?.includes('justify-self: end;')}"
+                            @click="toggleCssForElement(index, 'justify-self', 'end')"
+                          >
+                            end
+                          </span>
+                        </div>
+                        <div class="css-line">
+                          Align self:
+                          <span
+                            class="css-line-suboption"
+                            :class="{'active': cssStack[index]?.includes('align-self: start;')}"
+                            @click="toggleCssForElement(index, 'align-self', 'start')"
+                          >
+                            start
+                          </span> |
+                          <span
+                            class="css-line-suboption"
+                            :class="{'active': cssStack[index]?.includes('align-self: center;')}"
+                            @click="toggleCssForElement(index, 'align-self', 'center')"
+                          >
+                            center
+                          </span> |
+                          <span
+                            class="css-line-suboption"
+                            :class="{'active': cssStack[index]?.includes('align-self: end;')}"
+                            @click="toggleCssForElement(index, 'align-self', 'end')"
+                          >
+                            end
+                          </span>
+                        </div>
+                        <div class="css-line">
+                          Text-align:
+                          <span
+                            class="css-line-suboption"
+                            :class="{'active': cssStack[index]?.includes('text-align: left;')}"
+                            @click="toggleCssForElement(index, 'text-align', 'left')"
+                          >
+                            left
+                          </span> |
+                          <span
+                            class="css-line-suboption"
+                            :class="{'active': cssStack[index]?.includes('text-align: center;')}"
+                            @click="toggleCssForElement(index, 'text-align', 'center')"
+                          >
+                            center
+                          </span> |
+                          <span
+                            class="css-line-suboption"
+                            :class="{'active': cssStack[index]?.find(x => x.includes('text-align: right'))}"
+                            @click="toggleCssForElement(index, 'text-align', 'right')"
+                          >
+                            right
+                          </span>
+                        </div>
+                        <div class="css-line">
+                          Position:
+                          <span
+                            class="css-line-suboption"
+                            :class="{'active': cssStack[index]?.includes('position: relative;')}"
+                            @click="toggleCssForElement(index, 'position', 'relative')"
+                          >
+                            relative
+                          </span> |
+                          <span
+                            class="css-line-suboption"
+                            :class="{'active': cssStack[index]?.includes('position: absolute;')}"
+                            @click="toggleCssForElement(index, 'position', 'absolute')"
+                          >
+                            absolute
+                          </span>
+                        </div>
+                      </div>
+                    </td> -->
+                  </tr>
+                </tbody>
+              </table>
+              <div class="element-config">
+              </div>
+            </div>
+
+            <!-- <div class="css-preview">
+              {{cssStack}}
+            </div> -->
+          </div>
         </div>
       </div>
+      <div style="width: 48%">
+        <div>EXAMPLE <small style="opacity: 0.5"><br/>ps: i know this ui is shit, no need to tell me</small></div>
+        <div class="demo-images">
+          <div class="fig1">
+            <img src="/res/img/player-select-demo/uw_player_select___too_little.webp" />
+            <div>If you see this when hovering over the element, you need to select further down the list.</div>
+          </div>
+          <div class="fig2">
+            <div>
+              <p>
+                If you see this when hovering over the element, you're hovering over the correct element.
+              </p>
+              <p>
+                In case there's more than one element that covers the entire player and nothing more, select the option that's closest to the top of the list, otherwise in-player UI could break.
+              </p>
+              <p>
+                If in-player UI breaks, you can make the settings window appear from the extension popup.
+              </p>
+              </div>
+            <img src="/res/img/player-select-demo/uw_player_select___just-right.webp" />
+          </div>
+          <div class="fig1">
+            <img src="/res/img/player-select-demo/uw_player_select___too_much.webp" />
+            <div>If you see this when hovering over the element, you need to select an element closer to the top of the list.</div>
+          </div>
+        </div>
+      </div>
+      <div style="width: 48%" v-if="false">
+        <h2>Legacy advanced settings</h2>
+
+        <div class="">
+          <h3>Player element</h3>
+          <div class="field">
+            <div class="label">Manually specify player</div>
+            <input type="checkbox" />
+          </div>
+          <div class="field">
+            <div class="label">Select player by/as:</div>
+            <div class="select">
+              <select>
+                <option>n-th parent of video</option>
+                <option>Query selectors</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <div class="label">Player is n-th parent of video</div>
+            <div class="range-input">
+              <input type="range" min="0" max="100" />
+              <input />
+            </div>
+          </div>
+          <div class="field">
+            <div class="label">Query selector for player element</div>
+            <div class="input">
+              <input />
+            </div>
+          </div>
+          <div class="field">
+            <div class="label">In full screen, calculate crop based on monitor resolution</div>
+            <input type="checkbox" />
+          </div>
+
+          <h3>Video element</h3>
+          <div class="field">
+            <div class="label">Select video element automatically</div>
+            <input type="checkbox">
+          </div>
+          <div class="field">
+            <div class="label">Query selectors</div>
+            <div class="input">
+              <input>
+            </div>
+          </div>
+          <div class="field">
+            <div class="label">Additional styles for video element</div>
+            <div class="input">
+              <textarea></textarea>
+            </div>
+          </div>
+
+          <h3>Additional css for this page</h3>
+          <div class="field">
+            <div class="label">Additional CSS for this page</div>
+            <textarea></textarea>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- <div class="sub-panel-content">
+        <h2>Advanced settings</h2>
+      </div> -->
     </div>
   </div>
 </template>
@@ -467,6 +549,9 @@ export default({
 })
 </script>
 
+<style lang="scss" src="../../res/css/flex.scss" scoped module></style>
+<style lang="scss" src="../res-common/panels.scss" scoped module></style>
+<style lang="scss" src="../res-common/common.scss" scoped module></style>
 <style lang="scss" scoped>
 p {
   font-size: 1rem;
@@ -574,5 +659,33 @@ p {
 
 .tab-root {
   width: 100%;
+}
+
+.demo-images {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+
+  padding-top: 2rem;
+
+  .fig1, .fig2 {
+    margin-top: -2rem;
+    max-height: 18rem;
+    width: 100%;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+  .fig1 {
+    align-self: start;
+  }
+  .fig2 {
+    align-self: end;
+  }
+
+  img {
+    max-width: 32rem;
+  }
 }
 </style>
