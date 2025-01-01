@@ -50,7 +50,7 @@ class Resizer {
   //#endregion
 
   //#region HTML elements
-  video: any;
+  video: HTMLVideoElement;
   //#endregion
 
   //#region data
@@ -692,6 +692,7 @@ class Resizer {
     this.logger.log('info', 'debug', "[Resizer::computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.videoAlignment);
 
     const {realVideoWidth, realVideoHeight, marginX, marginY} = this.computeVideoDisplayedDimensions();
+    const computedStyles = getComputedStyle(this.video);
 
     // correct any remaining element size discrepancies (applicable only to certain crop strategies!)
     // NOTE: it's possible that we might also need to apply a similar measure for CropPillarbox strategy
@@ -715,8 +716,8 @@ class Resizer {
     // we only need to compensate if alignment is set to anything other than center center
     // compensation is equal to half the difference between (zoomed) video size and player size.
     const translate = {
-      x: 0,
-      y: 0,
+      x: -Math.round(+ (computedStyles.left.replace('px', ''))),
+      y: -Math.round(+ (computedStyles.top.replace('px', '')))
     };
 
     // NOTE: manual panning is probably broken now.
@@ -887,17 +888,6 @@ class Resizer {
     // add remaining elements
     if (stretchFactors) {
       styleArray.push(`transform: translate(${Math.round(translate.x)}px, ${Math.round(translate.y)}px) scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor}) !important;`);
-
-      // important — guarantees video will be properly aligned
-      // Note that position:absolute cannot be put here, otherwise old.reddit /w RES breaks — videos embedded
-      // from certain hosts will get a height: 0px. This is bad.
-      // styleArray.push("top: 0px !important; left: 0px !important; bottom: 0px !important; right: 0px;");
-
-      // important — some websites (cough reddit redesign cough) may impose some dumb max-width and max-height
-      // restrictions. If site has dumb shit like 'max-width: 100%' and 'max-height: 100vh' in their CSS, that
-      // shit will prevent us from applying desired crop. This means we need to tell websites to fuck off with
-      // that crap. We know better.
-      // styleArray.push("max-width: none !important; max-height: none !important;");
     }
     const styleString = `${this.buildStyleString(styleArray)}${extraStyleString || ''}`; // string returned by buildStyleString() should end with ; anyway
 
