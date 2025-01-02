@@ -720,7 +720,7 @@ class Resizer {
       y: 0
     };
 
-    const problemStats = getElementStyles(this.video, ['top', 'left', 'transform']);
+    const problemStats = getElementStyles(this.video, ['top', 'left', 'transform'], ['transform']);
     if (problemStats.left?.css && problemStats.top?.css && problemStats.transform?.css?.includes(`translate(-${problemStats.left.css}, -${problemStats.top.css})`)) {
       translate.x -= ~~problemStats.left.pxValue;
       translate.y -= ~~problemStats.top.pxValue;

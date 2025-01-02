@@ -49,7 +49,7 @@ function getPixelValue(value: string, element?: HTMLElement, prop?: string) {
   }
 };
 
-export default function getElementStyles(element: HTMLElement, props: string[]): ProcessedElementStyles {
+export default function getElementStyles(element: HTMLElement, props: string[], theoryProps?: string[]): ProcessedElementStyles {
   const stylesheets = document.styleSheets;
   const computedStyles = getComputedStyle(element);
   const stylesOut = {};
@@ -68,12 +68,17 @@ export default function getElementStyles(element: HTMLElement, props: string[]):
               }
 
               const cssValue = rule.style.getPropertyValue(property);
+
+              if (theoryProps?.includes(property)) {
+                stylesOut[property] = {css: cssValue};
+              }
+
               const actualValue = computedStyles.getPropertyValue(property);
 
               const theory = getPixelValue(cssValue, element, property);
               const practice = getPixelValue(actualValue, element, property);
 
-              if (theory === practice) {
+              if (theory && practice && (Math.abs(theory - practice) < 1)) {
                 stylesOut[property] = {
                   css: cssValue,
                   pxValue: theory
