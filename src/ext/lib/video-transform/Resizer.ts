@@ -19,6 +19,7 @@ import Settings from '../Settings';
 import { Ar } from '../../../common/interfaces/ArInterface';
 import { RunLevel } from '../../enum/run-level.enum';
 import * as _ from 'lodash';
+import getElementStyles from '../../util/getElementStyles';
 
 if(Debug.debug) {
   console.log("Loading: Resizer.js");
@@ -692,7 +693,6 @@ class Resizer {
     this.logger.log('info', 'debug', "[Resizer::computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.videoAlignment);
 
     const {realVideoWidth, realVideoHeight, marginX, marginY} = this.computeVideoDisplayedDimensions();
-    const computedStyles = getComputedStyle(this.video);
 
     // correct any remaining element size discrepancies (applicable only to certain crop strategies!)
     // NOTE: it's possible that we might also need to apply a similar measure for CropPillarbox strategy
@@ -716,9 +716,15 @@ class Resizer {
     // we only need to compensate if alignment is set to anything other than center center
     // compensation is equal to half the difference between (zoomed) video size and player size.
     const translate = {
-      x: -Math.round(+ (computedStyles.left.replace('px', ''))),
-      y: -Math.round(+ (computedStyles.top.replace('px', '')))
+      x: 0,
+      y: 0
     };
+
+    const problemStats = getElementStyles(this.video, ['top', 'left', 'transform']);
+    if (problemStats.left?.css && problemStats.top?.css && problemStats.transform?.css?.includes(`translate(-${problemStats.left.css}, -${problemStats.top.css})`)) {
+      translate.x -= ~~problemStats.left.pxValue;
+      translate.y -= ~~problemStats.top.pxValue;
+    }
 
     // NOTE: manual panning is probably broken now.
     // TODO: FIXME:
@@ -889,6 +895,7 @@ class Resizer {
     if (stretchFactors) {
       styleArray.push(`transform: translate(${Math.round(translate.x)}px, ${Math.round(translate.y)}px) scale(${stretchFactors.xFactor}, ${stretchFactors.yFactor}) !important;`);
     }
+
     const styleString = `${this.buildStyleString(styleArray)}${extraStyleString || ''}`; // string returned by buildStyleString() should end with ; anyway
 
     // build style string back
