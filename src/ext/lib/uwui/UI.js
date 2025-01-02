@@ -4,10 +4,19 @@ if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: UI");
 }
 
+// When this was first coded in summer of 2024, websites using color-scheme other than 'normal'
+// displayed a black square over the video instead of a transparent iframe that we expect.
+// StackOverflow said that this was a workaround for the issue, and it worked just fine. However,
+// 6 months later, this fix is no longer working. Using csui-overlay-normal even on dark mode websites
+// appears to give us a transparent iframe, as we require.
+// Twitter is an example of a site using this color-scheme=dark property, so any changes to this code
+// should be tested on this video:
+// https://x.com/TheKhelIndia/status/1874019989357027511?mx=2
+// As of 1. 1. 2025, 'light' and 'dark' are commented out in order to force 'csui-overlay-normal' everywhere.
 const csuiVersions = {
   'normal': 'csui',         // csui-overlay-normal.html, maps to csui.html
-  'light': 'csui-light',    // csui-overlay-light.html,  maps to csui-light.html
-  'dark': 'csui-dark'       // csui-overlay-dark.html,   maps to csui-dark.html
+  // 'light': 'csui-light',    // csui-overlay-light.html,  maps to csui-light.html
+  // 'dark': 'csui-dark'       // csui-overlay-dark.html,   maps to csui-dark.html
 };
 
 class UI {
