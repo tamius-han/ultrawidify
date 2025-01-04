@@ -280,8 +280,13 @@ class Resizer {
       return;
     }
 
-    if ([AspectRatioType.Reset, AspectRatioType.Initial].includes(ar.type)) {
-      // console.log('run level is UI only because aspect ratio type is', ar.type)
+    // If no aspect ratio is applied AND if no stretch mode is active,
+    // we disable our CSS in order to prevent breaking websites by default,
+    // without any human interaction
+    if (
+      [AspectRatioType.Reset, AspectRatioType.Initial].includes(ar.type) &&
+      [StretchType.NoStretch, StretchType.Default].includes(this.stretcher.mode)
+    ) {
       this.eventBus.send('set-run-level', RunLevel.UIOnly);
     } else {
       this.eventBus.send('set-run-level', RunLevel.CustomCSSActive);
