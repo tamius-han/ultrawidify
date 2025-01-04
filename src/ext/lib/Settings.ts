@@ -206,6 +206,7 @@ class Settings {
         index++;
       }
     } catch (e) {
+      console.error('Failed to upgrade settings.', e);
       this.setActive(this.getDefaultSettings());
       this.save();
     }
