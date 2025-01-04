@@ -24,7 +24,7 @@
       @mouseleave="allowContextMenuHide()"
     >
       <template v-slot:activator>
-        <div class="context-item uw-clickable">
+        <div class="context-item uw-clickable uw-menu-trigger">
           Ultrawidify
         </div>
         </template>
@@ -300,7 +300,6 @@ export default {
       this.debugDataPrettified = JSON.stringify(this.debugData, null, 2);
     }
   },
-
   async created() {
     this.logger = new Logger();
 

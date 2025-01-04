@@ -72,6 +72,7 @@ export default {
       let isClickable = false;
       let isOverTriggerZone = false;
       let isOverUIArea = false;
+      let isOverMenuTrigger = false;
       const elements = document.elementsFromPoint(eventData.coords.x, eventData.coords.y);
 
       for (const element of elements) {
@@ -83,6 +84,9 @@ export default {
         }
         if (element.classList?.contains('uw-ui-area')) {
           isOverUIArea = true;
+        }
+        if (element.classList?.contains('uw-menu-trigger')) {
+          isOverMenuTrigger = true;
         }
       }
 
@@ -112,6 +116,12 @@ export default {
         {
           action: 'uwui-clickable',
           clickable: isClickable,
+          hoverStats: {
+            isOverTriggerZone,
+            isOverMenuTrigger,
+            isOverUIArea,
+            hasMouse: !!document.querySelector(':hover'),
+          },
           ts: +new Date()
         },
         origin

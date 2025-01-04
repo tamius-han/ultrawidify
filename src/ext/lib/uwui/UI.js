@@ -19,6 +19,8 @@ const csuiVersions = {
   // 'dark': 'csui-dark'       // csui-overlay-dark.html,   maps to csui-dark.html
 };
 
+const MAX_IFRAME_ERROR_COUNT = 5;
+
 class UI {
   constructor(
     interfaceId,
@@ -43,6 +45,8 @@ class UI {
     this.playerData = uiConfig.playerData;
     this.uiSettings = uiConfig.uiSettings;
 
+    this.iframeErrorCount = 0;
+    this.iframeConfirmed = false;
   }
 
   async init() {
@@ -280,7 +284,43 @@ class UI {
             return;
           }
           this.lastProbeResponseTs = event.data.ts;
+
+          // If iframe returns 'yes, we are clickable' and iframe is currently set to pointerEvents=auto,
+          // but hasMouse is false, then UI is attached to the wrong element. This probably means our
+          // detected player element is wrong. We need to perform this check if we aren't in global UI
+          /**
+           * action: 'uwui-clickable',
+           * clickable: isClickable,
+           * hoverStats: {
+           *   isOverTriggerZone,
+           *   isOverMenuTrigger,
+           *   isOverUIArea,
+           *   hasMouse: !!document.querySelector(':hover'),
+           * },
+           * ts: +new Date()
+           */
+
+          if (!this.global) {
+            if (
+              this.uiIframe.style.pointerEvents === 'auto'
+            ) {
+              if (
+                event.data.hoverStats.isOverTriggerZone
+                && !event.data.hoverStats.hasMouse
+              ) {
+                if (!this.iframeConfirmed) {
+                  if (this.iframeErrorCount++ > MAX_IFRAME_ERROR_COUNT) {
+                    // this.
+                  }
+                }
+              } else {
+                this.iframeConfirmed = true;
+              }
+            }
+          }
+
           this.uiIframe.style.pointerEvents = event.data.clickable ? 'auto' : 'none';
+          this.uiIframe.style.display = event.data.opacity ? '100' : '0';
           break;
         case 'uw-bus-tunnel':
           const busCommand = event.data.payload;
