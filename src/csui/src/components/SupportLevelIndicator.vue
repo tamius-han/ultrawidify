@@ -8,7 +8,7 @@
     </div>
   </div>
   <div v-if="siteSupportLevel === 'community'" class="site-support community">
-    <mdicon name="handshake" />
+    <mdicon name="account-group" />
     <div v-if="!small">Community</div>
     <div class="tooltip">
       <template v-if="small">Community&nbsp;—&nbsp;</template>
@@ -35,7 +35,7 @@
       You have manually changed settings for this site. The extension is doing what you told it to do.
     </div>
   </div>
-  <div v-if="siteSupportLevel === 'community'">
+  <div v-if="siteSupportLevel === 'officially-disabled'" class="site-support officially-disabled">
     <mdicon  class="site-support no-support" name="checkbox-marked-circle" />
     <div v-if="!small">Not supported</div>
     <div class="tooltip">
@@ -113,8 +113,17 @@ export default {
       }
     }
 
-    &.no-support {
+    &.officially-disabled {
       background-color: rgb(132, 24, 40);
+      color: #eee;
+
+      .mdi {
+        fill: #eee !important;
+      }
+    }
+
+    &.no-support {
+      background-color: rgb(83, 76, 77);
       color: #eee;
 
       .mdi {
