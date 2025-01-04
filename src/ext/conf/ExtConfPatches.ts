@@ -187,7 +187,7 @@ const ExtensionConfPatch = [
       userOptions.newFeatureTracker['uw6.ui-popup'] = {show: 10};
     }
   }, {
-    forVersion: '6.1.9',
+    forVersion: '6.2.1',
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
       userOptions.ui = defaultOptions.ui;
       userOptions.arDetect = defaultOptions.arDetect;
