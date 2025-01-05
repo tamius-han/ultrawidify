@@ -127,7 +127,7 @@
               </SupportLevelIndicator>
               <div v-if="statusFlags.hasDrm" class="aard-blocked">
                 Autodetection potentially<br/>
-                unavailable due to <a href="https://en.wikipedia.org/wiki/Digital_rights_management">DRM</a>.
+                unavailable due to <a style="color: #fff" href="https://en.wikipedia.org/wiki/Digital_rights_management" target="_blank">DRM</a>.
               </div>
               <div v-else-if="statusFlags.aardErrors?.cors" class="aard-blocked">
                 Autodetection blocked<br/>
@@ -327,6 +327,7 @@ export default {
             (data) => {
               switch (data.type) {
                 case 'drm-status':
+                  console.log('got DRM status!');
                   this.statusFlags.hasDrm = data.hasDrm;
                   break;
                 case 'aard-error':
@@ -493,6 +494,9 @@ export default {
 
     preventContextMenuHide() {
       this.contextMenuActive = true;
+
+      // refresh DRM status
+      this.eventBus.sendToTunnel('get-drm-status');
     },
     allowContextMenuHide() {
       this.contextMenuActive = false;
@@ -511,7 +515,7 @@ export default {
       this.allowContextMenuHide();
 
       // refresh DRM status
-      this.eventBus.send('get-drm-status');
+      this.eventBus.sendToTunnel('get-drm-status');
 
       // if (this.isGlobal) {
       //   this.sendToParentLowLevel('uwui-clickable', undefined, {clickable: true});

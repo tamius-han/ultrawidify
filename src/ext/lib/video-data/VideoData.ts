@@ -146,7 +146,6 @@ class VideoData {
 
   async onVideoLoaded() {
     if (!this.videoLoaded) {
-
       /**
        * video.readyState 101:
        * 0 — no info. Can't play.
@@ -160,6 +159,12 @@ class VideoData {
       }
       this.logger.log('info', 'init', '%c[VideoData::onVideoLoaded] ——————————— Initiating phase two of videoData setup ———————————', 'color: #0f9');
 
+      this.hasDrm = hasDrm(this.video);
+      this.eventBus.send(
+        'uw-config-broadcast', {
+        type: 'drm-status',
+        hasDrm: this.hasDrm
+      });
       this.videoLoaded = true;
       this.videoDimensionsLoaded = true;
       try {
@@ -678,11 +683,12 @@ class VideoData {
     }
 
     try {
-      if (hasDrm(this.video)) {
-         this.hasDrm = true;
-      } else {
-        this.hasDrm = false;
-      }
+      this.hasDrm = !!hasDrm(this.video);
+      this.eventBus.send(
+        'uw-config-broadcast', {
+        type: 'drm-status',
+        hasDrm: this.hasDrm
+      });
 
       if (!this.aard) {
         this.initArDetection();

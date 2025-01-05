@@ -1,5 +1,5 @@
 /**
- * Checks whether video we're trying to play is protected by DRM. 
+ * Checks whether video we're trying to play is protected by DRM.
  * @param {*} video video we're trying to check
  */
 export function hasDrm(video) {
