@@ -26,6 +26,12 @@ export default {
         width: '50dvw',
         transform: 'translateX(-50%)'
       },
+      hoverStats: {
+        isOverTriggerZone: false,
+        isOverMenuTrigger: false,
+        isOverUIArea: false,
+        hasMouse: false,
+      }
     }
   },
   methods: {
@@ -75,6 +81,10 @@ export default {
       let isOverMenuTrigger = false;
       const elements = document.elementsFromPoint(eventData.coords.x, eventData.coords.y);
 
+      if (!elements.length) {
+        return;
+      }
+
       for (const element of elements) {
         if (element.classList?.contains('uw-clickable')) {
           isClickable = true;
@@ -89,6 +99,7 @@ export default {
           isOverMenuTrigger = true;
         }
       }
+
 
       this.triggerZoneActive = isOverTriggerZone;
 
@@ -112,15 +123,22 @@ export default {
         // this.uwTriggerZoneVisible = false;
       }
 
+      const hasMouse = !!document.querySelector(':hover');
+
+      this.hoverStats.isOverTriggerZone = isOverTriggerZone;
+      this.hoverStats.isOverMenuTrigger = isOverMenuTrigger;
+      this.hoverStats.isOverUIArea = isOverUIArea;
+      this.hoverStats.hasMouse = hasMouse
+
       window.parent.postMessage(
         {
           action: 'uwui-clickable',
           clickable: isClickable,
           hoverStats: {
-            isOverTriggerZone,
-            isOverMenuTrigger,
-            isOverUIArea,
-            hasMouse: !!document.querySelector(':hover'),
+            isOverTriggerZone: isOverTriggerZone,
+            isOverMenuTrigger: isOverMenuTrigger,
+            isOverUIArea: isOverUIArea,
+            hasMouse: hasMouse
           },
           ts: +new Date()
         },

@@ -24,6 +24,16 @@ interface PlayerDimensions {
   fullscreen?: boolean;
 }
 
+interface ElementData {
+  element: HTMLElement,
+  type: string,
+  tagName?: string,
+  classList?: any,
+  id?: string
+}
+
+type ElementStack = ElementData[];
+
 /**
  * accepts <video> tag (element) and list of names that can appear in id or class
  * returns player dimensions (width, height)
@@ -67,9 +77,8 @@ class PlayerData {
   //#endregion
 
   //#region HTML objects
-  videoElement: any;
-  element: any;
-  overlayNode: any;
+  videoElement: HTMLVideoElement;
+  element: HTMLElement;
   //#endregion
 
   //#region flags
@@ -93,7 +102,7 @@ class PlayerData {
 
   private ui: UI;
 
-  elementStack: any[] = [];
+  elementStack: ElementStack = [] as ElementStack;
   //#endregion
 
   //#region event bus configuration
@@ -103,7 +112,7 @@ class PlayerData {
     }],
     'get-player-dimensions': [{
       function: () => {
-        this.eventBus.send('—————————————————————————— uw-config-broadcast', {
+        this.eventBus.send('uw-config-broadcast', {
           type: 'player-dimensions',
           data: this.dimensions
         });
@@ -117,6 +126,10 @@ class PlayerData {
     }],
     'set-run-level': [{
       function: (runLevel) => this.setRunLevel(runLevel)
+    }],
+    'change-player-element': [{
+      function: () => {
+        this.nextPlayerElement();
     }]
   }
   //#endregion
@@ -169,7 +182,6 @@ class PlayerData {
       // this happens in trackDimensionChanges!
 
       this.dimensions = undefined;
-      this.overlayNode = undefined;
 
       this.periodicallyRefreshPlayerElement = false;
       try {
@@ -504,16 +516,7 @@ class PlayerData {
   }
   //#endregion
 
-  /**
-   * Finds and returns HTML element of the player
-   */
-  getPlayer(options?: {verbose?: boolean}) {
-    const host = window.location.hostname;
-    let element = this.videoElement.parentNode;
-    const videoWidth = this.videoElement.offsetWidth;
-    const videoHeight = this.videoElement.offsetHeight;
-    let playerCandidate;
-
+  private getElementStack(): ElementStack {
     const elementStack: any[] = [{
       element: this.videoElement,
       type: 'video',
@@ -521,6 +524,7 @@ class PlayerData {
       classList: this.videoElement.classList,
       id: this.videoElement.id,
     }];
+    let element = this.videoElement.parentNode as HTMLElement;
 
     // first pass to generate the element stack and translate it into array
     while (element) {
@@ -535,8 +539,23 @@ class PlayerData {
       });
       element = element.parentElement;
     }
+
     this.elementStack = elementStack;
 
+    return this.elementStack;
+  }
+
+  /**
+   * Finds and returns HTML element of the player
+   */
+  getPlayer(options?: {verbose?: boolean}): HTMLElement {
+    const host = window.location.hostname;
+    let element = this.videoElement.parentNode;
+    const videoWidth = this.videoElement.offsetWidth;
+    const videoHeight = this.videoElement.offsetHeight;
+    let playerCandidate;
+
+    const elementStack = this.getElementStack();
     const playerQs = this.siteSettings.getCustomDOMQuerySelector('player');
     const playerIndex = this.siteSettings.getPlayerIndex();
 
@@ -583,6 +602,35 @@ class PlayerData {
     }
   }
 
+
+  private nextPlayerElement() {
+    const currentIndex = this.siteSettings.data.playerAutoConfig?.currentIndex ?? this.siteSettings.data.playerAutoConfig?.initialIndex;
+
+    if (!currentIndex) {
+      // console.warn('Player Element not valid.');
+      return;
+    }
+
+    const nextIndex = currentIndex + 1;
+    const elementStack = this.getElementStack();
+
+    if (
+      this.equalish(elementStack[currentIndex].element.offsetWidth, elementStack[nextIndex].element.offsetWidth, 2)
+      && this.equalish(elementStack[currentIndex].element.offsetHeight, elementStack[nextIndex].element.offsetHeight, 2)
+    ) {
+      this.siteSettings.set('playerAutoConfig.initialIndex', this.siteSettings.data.playerAutoConfig.initialIndex + 1, {noSave: true});
+      this.siteSettings.set('playerAutoConfig.modified', true);
+      console.log('updated site settings:', this.siteSettings.data.playerAutoConfig);
+      this.videoData.settings.saveWithoutReload();
+
+      this.ui?.destroy();
+      this.ui = undefined;
+
+      this.element = elementStack[nextIndex].element;
+      this.trackDimensionChanges();
+    }
+  }
+
   /**
    * Gets player based on some assumptions, without us defining shit.
    * @param elementStack
@@ -595,7 +643,8 @@ class PlayerData {
     const sizePenaltyMultiplier = 0.1;
     const perLevelScorePenalty = 10;
 
-    for (const element of elementStack) {
+    for (const [index, element] of elementStack.entries()) {
+      element.index = index;
 
       // ignore weird elements, those would break our stuff
       if (element.width == 0 || element.height == 0) {
@@ -666,6 +715,9 @@ class PlayerData {
       bestCandidate = null;
     } else {
       bestCandidate.heuristics['autoMatch'] = true;
+      if (this.siteSettings.data.playerAutoConfig?.initialIndex !== bestCandidate.index) {
+        this.siteSettings.set('playerAutoConfig.initialIndex', bestCandidate.index, {reload: false});
+      }
     }
 
     return bestCandidate;
@@ -776,6 +828,8 @@ class PlayerData {
   }
 
   forceRefreshPlayerElement() {
+    this.ui?.destroy();
+    this.ui = undefined;
     this.element = this.getPlayer();
     // this.notificationService?.replace(this.element);
     this.trackDimensionChanges();

@@ -184,7 +184,9 @@ export class SiteSettings {
    * @returns parent element index if possible, undefined otherwise
    */
   getPlayerIndex(): number | undefined {
-    return this.data.currentDOMConfig?.elements?.player?.manual && this.data.currentDOMConfig?.elements?.player?.index || undefined;
+    return this.data.currentDOMConfig?.elements?.player?.manual && this.data.currentDOMConfig?.elements?.player?.index
+      || this.data.playerAutoConfig?.modified && this.data.playerAutoConfig?.currentIndex
+      || undefined;
   }
 
   /**

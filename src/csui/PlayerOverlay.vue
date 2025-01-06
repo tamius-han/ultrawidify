@@ -24,7 +24,17 @@
       @mouseleave="allowContextMenuHide()"
     >
       <template v-slot:activator>
-        <div class="context-item uw-clickable uw-menu-trigger">
+        <div class="context-item uw-clickable uw-menu-trigger relative">
+          <div v-if="hoverStats.isOverTriggerMenu && !hoverStats.hasMouse" class="absolute ui-warning">
+            <b>Video player is not being detected correctly</b><br/>
+            <p>
+              That's why this menu doesn't work correctly.
+            </p>
+            <p>
+              It may start working if you move your mouse over the button a few times. If it doesn't, open the UI from the extension popup.
+            </p>
+          </div>
+
           Ultrawidify
         </div>
         </template>
@@ -327,7 +337,6 @@ export default {
             (data) => {
               switch (data.type) {
                 case 'drm-status':
-                  console.log('got DRM status!');
                   this.statusFlags.hasDrm = data.hasDrm;
                   break;
                 case 'aard-error':
@@ -617,6 +626,22 @@ export default {
 
   width: fit-content;
   block-size: fit-content;
+}
+
+.ui-warning {
+  position: absolute;
+  top: 0;
+  transform: translateY(-100%);
+
+  max-width: 16rem;
+  width: 16rem;
+
+  overflow: hidden;
+  overflow-wrap: break-word;
+
+  white-space: normal;
+  word-break: break-word;
+  word-wrap: break-word;
 }
 
 

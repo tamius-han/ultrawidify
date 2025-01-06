@@ -47,6 +47,7 @@ class UI {
 
     this.iframeErrorCount = 0;
     this.iframeConfirmed = false;
+    this.iframeRejected = false;
   }
 
   async init() {
@@ -305,15 +306,17 @@ class UI {
               this.uiIframe.style.pointerEvents === 'auto'
             ) {
               if (
-                event.data.hoverStats.isOverTriggerZone
+                event.data.hoverStats.isOverMenuTrigger
                 && !event.data.hoverStats.hasMouse
               ) {
                 if (!this.iframeConfirmed) {
-                  if (this.iframeErrorCount++ > MAX_IFRAME_ERROR_COUNT) {
-                    // this.
+                  if (this.iframeErrorCount++ > MAX_IFRAME_ERROR_COUNT && !this.iframeRejected) {
+                    this.iframeRejected = true;
+                    this.eventBus.send('change-player-element');
+                    return;
                   }
                 }
-              } else {
+              } else if (event.data.hoverStats.isOverMenuTrigger && event.data.hoverStats.hasMouse) {
                 this.iframeConfirmed = true;
               }
             }

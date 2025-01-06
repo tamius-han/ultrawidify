@@ -329,6 +329,7 @@ export interface SiteSettingsInterface {
   stretchModePersistence?: CropModePersistence;
   alignmentPersistence?: CropModePersistence;
 
+  playerAutoConfig?: PlayerAutoConfigInterface;
 
   activeDOMConfig?: string;
   DOMConfig?: { [x: string]: SiteDOMSettingsInterface };
@@ -339,6 +340,12 @@ export interface SiteSettingsInterface {
 
   // the following fields are for use with extension update script
   override?: boolean;   // whether settings for this site will be overwritten by extension upgrade script
+}
+
+export interface PlayerAutoConfigInterface {
+  modified: boolean;
+  initialIndex: number;
+  currentIndex: number;
 }
 
 export interface SiteDOMSettingsInterface {
