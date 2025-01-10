@@ -130,6 +130,7 @@ class PlayerData {
     'change-player-element': [{
       function: () => {
         this.nextPlayerElement();
+      }
     }]
   }
   //#endregion

@@ -18,8 +18,21 @@
           Since automatic aspect ratio detection had to be rewritten completely and since the new version needs to be out 5 days ago, there are some regressions in the automatic aspect ratio detection.
         </p>
 
-        <h2>6.0.1</h2>
-        <p>Fixed external links.</p>
+        Minor revisions:
+
+        <h3>6.2.1</h3>
+        <ul>
+          <li>Fixed offset issue on Netflix</li>
+          <li>Fixed issue with overlay iframe not being transparent on twitter</li>
+        </ul>
+
+        <h3>6.2.2</h3>
+        <ul>
+          <li>Fixed the issue where stretching was not applied if no cropping was used</li>
+          <li>Half-fixed in-player UI on sites where player is not detected correctly</li>
+        </ul>
+
+        <hr/>
 
         <h2>6.0.0</h2>
         <p>
@@ -70,6 +83,9 @@
             Hope the UI is worth the regressions, because getting UI to work has been a MAJOR pain in the ass.
           </li>
         </ul>
+        <p>Minor revisions:</p>
+        <h2>6.0.1</h2>
+        <p>Fixed external links.</p>
       </div>
       <div class="w-[1/2]" style="width: 50%; padding-left: 1rem; padding-top: 5rem;">
         <h2>Thank you monies</h2>
