@@ -550,8 +550,8 @@ export default({
 </script>
 
 <style lang="scss" src="../../res/css/flex.scss" scoped module></style>
-<style lang="scss" src="../res-common/panels.scss" scoped module></style>
-<style lang="scss" src="../res-common/common.scss" scoped module></style>
+<style lang="scss" src="@csui/src/res-common/panels.scss" scoped module></style>
+<style lang="scss" src="@csui/src/res-common/common.scss" scoped module></style>
 <style lang="scss" scoped>
 p {
   font-size: 1rem;

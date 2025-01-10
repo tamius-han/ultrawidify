@@ -29,6 +29,10 @@ const config = {
   devtool: "source-map",
 
   resolve: {
+    alias: {
+      '@src': path.resolve(__dirname, 'src'),
+      '@csui': path.resolve(__dirname, 'src/csui'),
+    },
     // maybe we'll move vue stuff to TS some day, but today is not the day
     extensions: [
       '.ts', '.tsx',

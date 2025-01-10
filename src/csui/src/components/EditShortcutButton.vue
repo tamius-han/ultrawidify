@@ -172,7 +172,7 @@ export default {
 
 </script>
 
-<style lang="scss" src="../res-common/common.scss" scoped></style>
+<style lang="scss" src="@csui/src/res-common/common.scss" scoped></style>
 <style lang="scss" scoped>
 @import "../res-common/variables";
 
