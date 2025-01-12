@@ -186,20 +186,21 @@
 </template>
 
 <script>
-import PlayerUIWindow from './src/PlayerUIWindow.vue';
-import GhettoContextMenu from './src/components/GhettoContextMenu.vue';
-import GhettoContextMenuItem from './src/components/GhettoContextMenuItem.vue';
-import GhettoContextMenuOption from './src/components/GhettoContextMenuOption.vue';
-import AlignmentOptionsControlComponent from './src/PlayerUiPanels/AlignmentOptionsControlComponent.vue';
-import BrowserDetect from '../ext/conf/BrowserDetect';
-import Logger from '../ext/lib/Logger';
-import Settings from '../ext/lib/Settings';
-import EventBus from '../ext/lib/EventBus';
-import UIProbeMixin from './src/utils/UIProbeMixin';
-import KeyboardShortcutParserMixin from './src/utils/KeyboardShortcutParserMixin';
-import CommsMixin from './src/utils/CommsMixin';
-import SupportLevelIndicator from './src/components/SupportLevelIndicator.vue';
-import TriggerZoneEditor from './src/components/TriggerZoneEditor.vue';
+import PlayerUIWindow from '@csui/src/PlayerUIWindow.vue';
+import GhettoContextMenu from '@csui/src/components/GhettoContextMenu.vue';
+import GhettoContextMenuItem from '@csui/src/components/GhettoContextMenuItem.vue';
+import GhettoContextMenuOption from '@csui/src/components/GhettoContextMenuOption.vue';
+import AlignmentOptionsControlComponent from '@csui/src/PlayerUiPanels/AlignmentOptionsControlComponent.vue';
+import BrowserDetect from '@src/ext/conf/BrowserDetect';
+import Logger from '@src/ext/lib/Logger';
+import Settings from '@src/ext/lib/Settings';
+import EventBus from '@src/ext/lib/EventBus';
+import UIProbeMixin from '@csui/src/utils/UIProbeMixin';
+import KeyboardShortcutParserMixin from '@csui/src/utils/KeyboardShortcutParserMixin';
+import CommsMixin from '@csui/src/utils/CommsMixin';
+import SupportLevelIndicator from '@csui/src/components/SupportLevelIndicator.vue';
+import TriggerZoneEditor from '@csui/src/components/TriggerZoneEditor.vue';
+import ZoomControl from '@csui/src/popup/player-menu/ZoomControl.vue';
 
 export default {
   components: {
@@ -570,9 +571,8 @@ export default {
 }
 </style>
 
-<style lang="scss" src="./src/res-common/panels.scss" scoped module></style>
-<style lang="scss" src="./src/res-common/common.scss" scoped module></style>
-
+<style lang="scss" src="@csui/src/res-common/panels.scss" scoped module></style>
+<style lang="scss" src="@csui/src/res-common/common.scss" scoped module></style>
 <style lang="scss" scoped>
 
 .uw-hover {
