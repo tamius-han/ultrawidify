@@ -78,6 +78,29 @@
             </GhettoContextMenu>
             <GhettoContextMenu alignment="right">
               <template v-slot:activator>
+                Zoom
+              </template>
+              <slot>
+                <GhettoContextMenuOption
+                  v-for="(command, index) of settings?.active.commands.zoom"
+                  :key="index"
+                  :label="command.label"
+                  :shortcut="getKeyboardShortcutLabel(command)"
+                  @click="execAction(command)"
+                >
+                </GhettoContextMenuOption>
+                <GhettoContextMenuItem
+                  :disableHover="true"
+                >
+                  <ZoomControl
+                    :settings="settings"
+                    :eventBus="eventBus"
+                  />
+                </GhettoContextMenuItem>
+              </slot>
+            </GhettoContextMenu>
+            <GhettoContextMenu alignment="right">
+              <template v-slot:activator>
                 <div class="context-item">
                   Align
                 </div>
@@ -211,6 +234,7 @@ export default {
     AlignmentOptionsControlComponent,
     SupportLevelIndicator,
     TriggerZoneEditor,
+    ZoomControl,
   },
   mixins: [
     UIProbeMixin,
