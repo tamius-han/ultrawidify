@@ -95,6 +95,7 @@ class UI {
     iframe.style.zIndex =  this.isGlobal ? '90009' : '90000';
     iframe.style.border = 0;
     iframe.style.pointerEvents = 'none';
+    iframe.style.opacity = 0;
     iframe.style.backgroundColor = 'transparent !important';
 
     /* so we have a problem: we want iframe to be clickthrough everywhere except
@@ -323,7 +324,7 @@ class UI {
           }
 
           this.uiIframe.style.pointerEvents = event.data.clickable ? 'auto' : 'none';
-          this.uiIframe.style.display = event.data.opacity ? '100' : '0';
+          this.uiIframe.style.opacity = event.data.opacity ? '100' : '0';
           break;
         case 'uw-bus-tunnel':
           const busCommand = event.data.payload;
@@ -334,6 +335,9 @@ class UI {
           break;
         case 'uwui-interface-ready':
           this.setUiVisibility(!this.isGlobal);
+          break;
+        case 'uwui-hidden':
+          this.uiIframe.style.opacity = event.data.opacity ? '100' : '0';
           break;
         case 'uwui-global-window-hidden':
           if (!this.isGlobal) {

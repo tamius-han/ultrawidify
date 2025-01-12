@@ -112,9 +112,16 @@ export default {
         if (! this.uwWindowVisible) {
           this.uwTriggerZoneVisible = true;
           clearTimeout(this.uwTriggerZoneTimeout);
+
+          const windowParent = window.parent;
           this.uwTriggerZoneTimeout = setTimeout(
             () => {
               this.uwTriggerZoneVisible = false;
+
+              windowParent.postMessage(
+                {action: 'uwui-hidden', opacity: false},
+                origin
+              );
             },
             500
           );
@@ -134,6 +141,7 @@ export default {
         {
           action: 'uwui-clickable',
           clickable: isClickable,
+          opacity: isClickable || this.contextMenuActive || this.uwTriggerZoneVisible,
           hoverStats: {
             isOverTriggerZone: isOverTriggerZone,
             isOverMenuTrigger: isOverMenuTrigger,
