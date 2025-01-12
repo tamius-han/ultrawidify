@@ -63,7 +63,7 @@
 
           <div class="field">
             <div class="label">
-              Do not show in-player UI when video player is narrower than (% of screen width)
+              Do not show in-player UI when video player is narrower than
             </div>
             <div class="input range-input">
               <input
@@ -77,16 +77,18 @@
                 @change="(event) => saveSettings()"
               >
               <input
+                style="margin-right: 0.6rem;"
                 :value="ghettoComputed.minEnabledWidth"
                 @input="(event) => setPlayerRestrictions('minEnabledWidth', event.target.value, true)"
                 @change="(event) => saveSettings(true)"
               >
+              <div class="unit">% of screen</div>
             </div>
           </div>
 
           <div class="field">
             <div class="label">
-              Do not show in-player UI when video player is shorter than (% of screen width)
+              Do not show in-player UI when video player is shorter than
             </div>
             <div class="input range-input">
               <input
@@ -100,10 +102,12 @@
                 @change="(event) => saveSettings()"
               >
               <input
+                style="margin-right: 0.6rem;"
                 :value="ghettoComputed.minEnabledHeight"
                 @input="(event) => setPlayerRestrictions('minEnabledHeight', event.target.value, true)"
                 @change="(event) => saveSettings(true)"
               >
+              <div class="unit">% of screen</div>
             </div>
           </div>
         </div>
@@ -241,8 +245,6 @@ export default {
 .input {
   max-width: 24rem;
 }
-
-
 
 .trigger-zone-editor {
   background-color: rgba(0,0,0,0.25);
