@@ -37,7 +37,8 @@
 
           Ultrawidify
         </div>
-        </template>
+
+      </template>
       <slot>
         <!--
           Didn't manage to ensure that extension status pops up above other menu items in less than 3 minutes with z-index,

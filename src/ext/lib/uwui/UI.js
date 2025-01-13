@@ -190,6 +190,24 @@ class UI {
             this.sendToIframe('uw-set-ui-state', {...config, isGlobal: this.isGlobal}, routingData);
           }
         },
+        'uw-get-page-stats': {
+          function: (config, routingData) => {
+            console.log('got get page stats!');
+            this.eventBus.send(
+              'uw-page-stats',
+              {
+                pcsDark: window.matchMedia('(prefers-color-scheme: dark)').matches,
+                pcsLight: window.matchMedia('(prefers-color-scheme: light)').matches,
+                colorScheme: window.getComputedStyle( document.body ,null).getPropertyValue('color-scheme')
+              },
+              {
+                comms: {
+                  forwardTo: 'popup'
+                }
+              }
+            );
+          }
+        },
         'uw-restore-ui-state': {
           function: (config, routingData) => {
             if (!this.isGlobal) {
@@ -324,7 +342,7 @@ class UI {
           }
 
           this.uiIframe.style.pointerEvents = event.data.clickable ? 'auto' : 'none';
-          this.uiIframe.style.opacity = event.data.opacity ? '100' : '0';
+          this.uiIframe.style.opacity = event.data.opacity || this.isGlobal ? '100' : '0';
           break;
         case 'uw-bus-tunnel':
           const busCommand = event.data.payload;
@@ -337,7 +355,7 @@ class UI {
           this.setUiVisibility(!this.isGlobal);
           break;
         case 'uwui-hidden':
-          this.uiIframe.style.opacity = event.data.opacity ? '100' : '0';
+          this.uiIframe.style.opacity = event.data.opacity || this.isGlobal ? '100' : '0';
           break;
         case 'uwui-global-window-hidden':
           if (!this.isGlobal) {

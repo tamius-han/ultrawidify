@@ -135,7 +135,7 @@ import PlayerDetectionPanel from './PlayerUiPanels/PlayerDetectionPanel.vue'
 import VideoSettings from './PlayerUiPanels/VideoSettings.vue'
 import BrowserDetect from '../../ext/conf/BrowserDetect'
 import ChangelogPanel from './PlayerUiPanels/ChangelogPanel.vue'
-import AboutPanel from './PlayerUiPanels/AboutPanel.vue'
+import AboutPanel from '@csui/src/PlayerUiPanels/AboutPanel.vue'
 import PlayerUiSettings from './PlayerUiPanels/PlayerUiSettings.vue'
 import ResetBackupPanel from './PlayerUiPanels/ResetBackupPanel.vue'
 
