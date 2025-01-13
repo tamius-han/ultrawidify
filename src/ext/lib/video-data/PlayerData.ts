@@ -560,6 +560,8 @@ class PlayerData {
     const playerQs = this.siteSettings.getCustomDOMQuerySelector('player');
     const playerIndex = this.siteSettings.getPlayerIndex();
 
+    console.log('player index:', playerIndex, 'player qs:', playerQs)
+
     // on verbose, get both qs and index player
     if (options?.verbose) {
       if (playerIndex) {
@@ -589,6 +591,8 @@ class PlayerData {
         playerCandidate.heuristics['manualElementByParentIndex'] = true;
       }
     }
+
+    console.log('got player candidate from manual selection?:', playerCandidate);
 
     if (playerCandidate) {
       if (options?.verbose) {
@@ -713,8 +717,10 @@ class PlayerData {
       }
     }
     if (bestCandidate.initialValue) {
+      console.log('No candidates found:', bestCandidate, 'element stack:', elementStack);
       bestCandidate = null;
     } else {
+      console.log('Got auto-matched candidate', bestCandidate);
       bestCandidate.heuristics['autoMatch'] = true;
       if (this.siteSettings.data.playerAutoConfig?.initialIndex !== bestCandidate.index) {
         this.siteSettings.set('playerAutoConfig.initialIndex', bestCandidate.index, {reload: false});
