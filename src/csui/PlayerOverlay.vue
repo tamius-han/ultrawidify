@@ -77,7 +77,7 @@
                 </GhettoContextMenuOption>
               </slot>
             </GhettoContextMenu>
-            <GhettoContextMenu alignment="right">
+            <!-- <GhettoContextMenu alignment="right">
               <template v-slot:activator>
                 Zoom
               </template>
@@ -99,7 +99,7 @@
                   />
                 </GhettoContextMenuItem>
               </slot>
-            </GhettoContextMenu>
+            </GhettoContextMenu> -->
             <GhettoContextMenu alignment="right">
               <template v-slot:activator>
                 <div class="context-item">
