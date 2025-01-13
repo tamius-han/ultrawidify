@@ -7,44 +7,20 @@
     <span class="label">Having an issue?</span><br/> Report <strike>undocumented features</strike> bugs using one of the following options (in order of preference):
       <ul>
         <li> <a target="_blank" href="https://github.com/tamius-han/ultrawidify/issues"><b>Github (preferred)</b></a><br/></li>
-        <li>Email: <a target="_blank" :href="mailtoLink">tamius.han@gmail.com</a></li>
+        <li>Email: <a target="_blank" :href="mailtoLink">{{gmailLink}}</a></li>
       </ul>
-    </div>
-
-    <div class="flex-grow"></div>
-
-    <div class="row">
-      <span class="label">Swatter mode (logging)</span><br/>
-    </div>
-    <div v-if="showEasterEgg" class="center"><small>You've made plenty of marks, all in the wrong places!</small></div>
-    <div class="flex flex-row">
-      <ShortcutButton class="flex flex-grow button"
-                      label="Show logger"
-                      :active="loggingEnabled"
-                      @click.native="showLogger()"
-      ></ShortcutButton>
-      <ShortcutButton class="flex flex-grow button"
-                      label="Make a mark"
-                      @click.native="sendMark()"
-      ></ShortcutButton>
-      <ShortcutButton class="flex flex-grow button"
-                      label="Hide logger"
-                      @click.native="hideLogger()"
-      ></ShortcutButton>
     </div>
   </div>
 </template>
 
 <script>
-import Comms from '../../ext/lib/comms/Comms';
-import ShortcutButton from '../../common/components/ShortcutButton';
-import BrowserDetect from '../../ext/conf/BrowserDetect';
-
+// import Comms from '@src/ext/lib/comms/Comms';
+// import ShortcutButton from '@src/common/components/ShortcutButton';
+import BrowserDetect from '@src/ext/conf/BrowserDetect';
 
 export default {
   components: {
-    ShortcutButton,
- },
+  },
   data() {
     return {
       // reminder — webextension-polyfill doesn't seem to work in vue!
@@ -76,7 +52,7 @@ Browser-related stuff (please ensure this section is correct):
 * Operating system: ${window.navigator.platform}
 `
       );
-    this.mailtoLink = `mailto:tamius.han@gmail.com?subject=%5BUltrawidify%5D%20ENTER%20SUMMARY%20OF%20YOUR%20ISSUE%20HERE&body=${messageTemplate}`;
+    this.mailtoLink = `mailto:${this.gmailLink}?subject=%5BUltrawidify%5D%20ENTER%20SUMMARY%20OF%20YOUR%20ISSUE%20HERE&body=${messageTemplate}`;
   },
   methods: {
     async updateLoggerSettings(allowLogging) {
@@ -94,15 +70,15 @@ Browser-related stuff (please ensure this section is correct):
       //   Logger.saveConfig({allowLogging: allowLogging, ...lastLoadedLoggerSettings});
       // }
     },
-    showLogger() {
-      Comms.sendMessage({cmd: 'show-logger', forwardToActive: true});
-    },
-    sendMark() {
-      this.showEasterEgg = !this.showEasterEgg;
-    },
-    hideLogger() {
-      Comms.sendMessage({cmd: 'hide-logger', forwardToActive: true});
-    }
+    // showLogger() {
+    //   Comms.sendMessage({cmd: 'show-logger', forwardToActive: true});
+    // },
+    // sendMark() {
+    //   this.showEasterEgg = !this.showEasterEgg;
+    // },
+    // hideLogger() {
+    //   Comms.sendMessage({cmd: 'hide-logger', forwardToActive: true});
+    // }
   }
 }
 </script>

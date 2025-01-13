@@ -85,6 +85,11 @@
               :site="site.host"
             >
             </BaseExtensionSettings>
+
+            <AboutPanel
+              v-if="selectedTab === 'about'"
+            >
+            </AboutPanel>
           </template>
           <template v-else>No settings or site settings found.</template>
         </div>
@@ -99,6 +104,7 @@ import BaseExtensionSettings from './src/PlayerUiPanels/BaseExtensionSettings.vu
 import PlayerDetectionPanel from './src/PlayerUiPanels/PlayerDetectionPanel.vue'
 import PopupVideoSettings from './src/popup/panels/PopupVideoSettings.vue'
 import InPlayerUIAdvertisement from './src/PlayerUiPanels/InPlayerUiAdvertisement.vue';
+import AboutPanel from '@csui/src/popup/panels/AboutPanel.vue'
 import Debug from '../ext/conf/Debug';
 import BrowserDetect from '../ext/conf/BrowserDetect';
 import Comms from '../ext/lib/comms/Comms';
@@ -109,6 +115,15 @@ import EventBus from '../ext/lib/EventBus';
 import {ChromeShittinessMitigations as CSM} from '../common/js/ChromeShittinessMitigations';
 
 export default {
+  components: {
+    Debug,
+    BrowserDetect,
+    PopupVideoSettings,
+    PlayerDetectionPanel,
+    BaseExtensionSettings,
+    InPlayerUIAdvertisement,
+    AboutPanel
+  },
   data () {
     return {
       comms: undefined,
@@ -127,6 +142,7 @@ export default {
         {id: 'videoSettings', label: 'Video settings', icon: 'crop'},
         // {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
         {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
+        {id: 'about', label: 'About', icon: 'information-outline'},
       ],
     }
   },
@@ -215,11 +231,7 @@ export default {
       this.narrowPopup = body.offsetWidth < 600;
     }
   },
-  components: {
-    Debug,
-    BrowserDetect,
-    PopupVideoSettings, PlayerDetectionPanel, BaseExtensionSettings, InPlayerUIAdvertisement
-  },
+
   methods: {
     async sleep(t) {
       return new Promise( (resolve,reject) => {
