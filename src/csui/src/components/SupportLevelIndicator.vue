@@ -27,11 +27,11 @@
       (unaware, not using the site, language barrier, geoblocking, paid services Tam doesn't use).
     </div>
   </div>
-  <div v-if="siteSupportLevel === 'user-added'" class="site-support user-added">
+  <div v-if="siteSupportLevel === 'user-added' || siteSupportLevel === 'user-defined'" class="site-support user-added">
     <mdicon name="account" />
-    <div v-if="!small">Custom</div>
+    <div v-if="!small">Modified by you</div>
     <div class="tooltip">
-      <template v-if="small">Custom&nbsp;—&nbsp;</template>
+      <template v-if="small">Modified by you&nbsp;—&nbsp;</template>
       You have manually changed settings for this site. The extension is doing what you told it to do.
     </div>
   </div>
