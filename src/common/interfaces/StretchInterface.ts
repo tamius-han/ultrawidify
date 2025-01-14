@@ -2,5 +2,6 @@ import StretchType from '../enums/StretchType.enum';
 
 export interface Stretch {
   type: StretchType,
-  ratio?: number
+  ratio?: number,
+  limit?: number,
 }

@@ -24,10 +24,7 @@ class Stretcher {
   siteSettings: SiteSettings;
   //#endregion
 
-  //#region misc data
   stretch: Stretch;
-  fixedStretchRatio: any;
-  //#endregion
 
   // functions
   constructor(videoData) {
@@ -65,11 +62,11 @@ class Stretcher {
       actualWidth = newWidth;
     }
 
-    let minW = this.conf.player.dimensions.width * (1 - this.settings.active.stretch.conditionalDifferencePercent);
-    let maxW = this.conf.player.dimensions.width * (1 + this.settings.active.stretch.conditionalDifferencePercent);
+    let minW = this.conf.player.dimensions.width * (1 - this.stretch.limit);
+    let maxW = this.conf.player.dimensions.width * (1 + this.stretch.limit);
 
-    let minH = this.conf.player.dimensions.height * (1 - this.settings.active.stretch.conditionalDifferencePercent);
-    let maxH = this.conf.player.dimensions.height * (1 + this.settings.active.stretch.conditionalDifferencePercent);
+    let minH = this.conf.player.dimensions.height * (1 - this.stretch.limit);
+    let maxH = this.conf.player.dimensions.height * (1 + this.stretch.limit);
 
     if (actualWidth >= minW && actualWidth <= maxW) {
       stretchFactors.xFactor *= this.conf.player.dimensions.width / actualWidth;
@@ -80,16 +77,6 @@ class Stretcher {
   }
 
   calculateBasicStretch() {
-    // video.videoWidth in video.videoHeight predstavljata velikost datoteke.
-    // velikost video datoteke je lahko drugačna kot velikost <video> elementa.
-    // Zaradi tega lahko pride do te situacije:
-    //     * Ločljivost videa je 850x480 (videoWidth & videoHeight)
-    //     * Velikost <video> značke je 1920x720.
-    // Znotraj te video značke bo video prikazan v 1280x720 pravokotniku. Raztegovanje
-    // torej hočemo računati z uporabo vrednosti 1280 in 720. Teh vrednosti pa ne
-    // poznamo. Torej jih moramo računati.
-    //
-    //
     // video.videoWidth and video.videoHeight describe the size of the video file.
     // Size of the video file can be different than the size of the <video> tag.
     // This can leave us with the following situation:
@@ -117,7 +104,7 @@ class Stretcher {
     const streamAr = this.conf.aspectRatio;
     const playerAr = this.conf.player.aspectRatio;
 
-    const squeezeFactor = this.fixedStretchRatio / streamAr;
+    const squeezeFactor = this.stretch.ratio / streamAr;
 
     // Whether squeezing happens on X or Y axis depends on whether required AR is wider or narrower than
     // the player, in which the video is displayed
@@ -126,7 +113,7 @@ class Stretcher {
 
     this.logger.log('info', 'stretcher', `[Stretcher::applyStretchFixedSource] here's what we got:
 postCropStretchFactors: x=${postCropStretchFactors.xFactor} y=${postCropStretchFactors.yFactor}
-fixedStretchRatio:      ${this.fixedStretchRatio}
+fixedStretchRatio:      ${this.stretch.ratio}
 videoAr:                ${streamAr}
 playerAr:               ${playerAr}
 squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
@@ -139,7 +126,7 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
   }
 
   calculateStretchFixed(actualAr) {
-    return this.calculateStretch(actualAr, this.fixedStretchRatio);
+    return this.calculateStretch(actualAr, this.stretch.ratio);
   }
 
   getArCorrectionFactor() {
