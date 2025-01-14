@@ -401,8 +401,15 @@ export default {
         commandArguments = undefined;
       }
 
-      await this.siteSettings.set(option, commandArguments);
-      this.$nextTick( () => this.$forceUpdate() );
+      await this.siteSettings.set(option, commandArguments, {reload: false});
+
+      // changing alignment options doesn't trigger re-compute, so we need to do it ourselves.
+      // note that this re-computes siteDefaultAlignment even when setting other options, but
+      // it's _too late AM_ and hit to performance probably isn't bad enough to warrant
+      // spending time on a more correct solution tomorrow
+      this._computedWatchers.siteDefaultAlignment.run();
+
+      this.$nextTick( () => this.$forceUpdate());
     },
     setExtensionMode(component, event) {
       const option = event.target.value;
