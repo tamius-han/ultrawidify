@@ -193,6 +193,15 @@ const ExtensionConfPatch = [
       userOptions.arDetect = defaultOptions.arDetect;
       userOptions.newFeatureTracker = defaultOptions.newFeatureTracker;
     }
+  }, {
+    forVersion: '6.2.3',
+    updateFn: (userOptions: SettingsInterface, defaultOptions) => {
+      for (const site in userOptions.sites) {
+        if (userOptions.sites[site].defaults?.stretch && !userOptions.sites[site].defaults?.stretch.type) {
+          userOptions.sites[site].defaults.stretch = {type: userOptions.sites[site].defaults?.stretch as any as StretchType};
+        }
+      }
+    }
   }
 ];
 

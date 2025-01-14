@@ -16,6 +16,7 @@ import { Ar } from '../../../common/interfaces/ArInterface';
 import { ExtensionStatus } from './ExtensionStatus';
 import { RunLevel } from '../../enum/run-level.enum';
 import { Aard } from '../aard/Aard';
+import { Stretch } from '../../../common/interfaces/StretchInterface';
 
 /**
  * VideoData — handles CSS for the video element.
@@ -262,7 +263,7 @@ class VideoData {
 
     // Time to apply any crop from address of crop mode persistence
     const defaultCrop = this.siteSettings.getDefaultOption('crop') as Ar;
-    const defaultStretch = this.siteSettings.getDefaultOption('stretch');
+    const defaultStretch = this.siteSettings.getDefaultOption('stretch') as Stretch;
 
     this.resizer.setAr(defaultCrop);
     this.resizer.setStretchMode(defaultStretch);

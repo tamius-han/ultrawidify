@@ -32,6 +32,11 @@
           <li>Half-fixed in-player UI on sites where player is not detected correctly</li>
         </ul>
 
+        <h3>6.2.3</h3>
+        <ul>
+          <li>Fixed default persistent mode</li>
+        </ul>
+
         <hr/>
 
         <h2>6.0.0</h2>

@@ -1438,7 +1438,7 @@ const ExtensionConf: SettingsInterface = {
 
       defaults: {
         crop: {type: AspectRatioType.Automatic},
-        stretch: StretchType.NoStretch,
+        stretch: {type: StretchType.NoStretch},
         alignment: {x: VideoAlignmentType.Center, y: VideoAlignmentType.Center},
       }
     },
@@ -1463,7 +1463,7 @@ const ExtensionConf: SettingsInterface = {
       persistCSA: CropModePersistence.Default,
       defaults: {
         crop: null,
-        stretch: StretchType.Default,
+        stretch: {type: StretchType.Default},
         alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default},
       }
     },

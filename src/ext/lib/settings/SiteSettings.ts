@@ -66,7 +66,7 @@ export class SiteSettings {
       this.data.defaults.crop = this.data.defaults.crop ?? _cp(this.defaultSettings.defaults.crop);
 
       // these can contain default options, but can also be undefined
-      if (this.data.defaults?.stretch === StretchType.Default || this.data.defaults?.stretch === undefined) {
+      if ([undefined, StretchType.Default].includes(this.data.defaults?.stretch?.type)) {
         this.data.defaults.stretch = _cp(this.defaultSettings.defaults.stretch ?? StretchType.NoStretch);
       }
       if (this.data.defaults?.alignment === undefined) {  // distinguish between undefined and 0!

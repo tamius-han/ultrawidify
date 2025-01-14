@@ -20,6 +20,7 @@ import { Ar } from '../../../common/interfaces/ArInterface';
 import { RunLevel } from '../../enum/run-level.enum';
 import * as _ from 'lodash';
 import getElementStyles from '../../util/getElementStyles';
+import { Stretch } from '../../../common/interfaces/StretchInterface';
 
 if(Debug.debug) {
   console.log("Loading: Resizer.js");
@@ -113,7 +114,7 @@ class Resizer {
     'set-stretch': [{
       function: (config: any) => {
         this.manualZoom = false; // we also need to unset manual aspect ratio when doing this
-        this.setStretchMode(config.type, config.ratio)
+        this.setStretchMode(config)
       }
     }],
     'set-zoom': [{
@@ -130,7 +131,7 @@ class Resizer {
         'uw-resizer-config-broadcast',
         {
           ar: this.lastAr,
-          stretchMode: this.stretcher.mode,
+          stretchMode: this.stretcher.stretch,
           videoAlignment: this.videoAlignment
         }
       )
@@ -285,7 +286,7 @@ class Resizer {
     // without any human interaction
     if (
       [AspectRatioType.Reset, AspectRatioType.Initial].includes(ar.type) &&
-      [StretchType.NoStretch, StretchType.Default].includes(this.stretcher.mode)
+      [StretchType.NoStretch, StretchType.Default].includes(this.stretcher.stretch.type)
     ) {
       this.eventBus.send('set-run-level', RunLevel.UIOnly);
     } else {
@@ -364,7 +365,7 @@ class Resizer {
     // * ar.type is auto, but stretch is set to basic basic stretch
     //
     // unpause when using other modes
-    if ((ar.type !== AspectRatioType.Automatic && ar.type !== AspectRatioType.AutomaticUpdate) || this.stretcher.mode === StretchType.Basic) {
+    if ((ar.type !== AspectRatioType.Automatic && ar.type !== AspectRatioType.AutomaticUpdate) || this.stretcher.stretch.type === StretchType.Basic) {
       this.videoData?.aard?.stop();
     } else {
       if (ar.type !== AspectRatioType.AutomaticUpdate) {
@@ -375,10 +376,7 @@ class Resizer {
     }
 
     // do stretch thingy
-    if (this.stretcher.mode === StretchType.NoStretch
-        || this.stretcher.mode === StretchType.Conditional
-        || this.stretcher.mode === StretchType.FixedSource
-    ){
+    if ([StretchType.NoStretch, StretchType.Conditional, StretchType.FixedSource].includes(this.stretcher.stretch.type)) {
       stretchFactors = this.scaler.calculateCrop(ar);
 
       if(! stretchFactors || stretchFactors.error){
@@ -398,23 +396,23 @@ class Resizer {
         }
       }
 
-      if (this.stretcher.mode === StretchType.Conditional){
+      if (this.stretcher.stretch.type === StretchType.Conditional){
         this.stretcher.applyConditionalStretch(stretchFactors, ar.ratio);
-      } else if (this.stretcher.mode === StretchType.FixedSource) {
+      } else if (this.stretcher.stretch.type === StretchType.FixedSource) {
         this.stretcher.applyStretchFixedSource(stretchFactors);
       }
       this.logger.log('info', 'debug', "[Resizer::setAr] Processed stretch factors for ",
-                      this.stretcher.mode === StretchType.NoStretch ? 'stretch-free crop.' :
-                        this.stretcher.mode === StretchType.Conditional ? 'crop with conditional StretchType.' : 'crop with fixed stretch',
+                      this.stretcher.stretch.type === StretchType.NoStretch ? 'stretch-free crop.' :
+                        this.stretcher.stretch.type === StretchType.Conditional ? 'crop with conditional StretchType.' : 'crop with fixed stretch',
                       'Stretch factors are:', stretchFactors
       );
 
-    } else if (this.stretcher.mode === StretchType.Hybrid) {
+    } else if (this.stretcher.stretch.type === StretchType.Hybrid) {
       stretchFactors = this.stretcher.calculateStretch(ar.ratio);
       this.logger.log('info', 'debug', '[Resizer::setAr] Processed stretch factors for hybrid stretch/crop. Stretch factors are:', stretchFactors);
-    } else if (this.stretcher.mode === StretchType.Fixed) {
+    } else if (this.stretcher.stretch.type === StretchType.Fixed) {
       stretchFactors = this.stretcher.calculateStretchFixed(ar.ratio)
-    } else if (this.stretcher.mode === StretchType.Basic) {
+    } else if (this.stretcher.stretch.type === StretchType.Basic) {
       stretchFactors = this.stretcher.calculateBasicStretch();
       this.logger.log('info', 'debug', '[Resizer::setAr] Processed stretch factors for basic StretchType. Stretch factors are:', stretchFactors);
     } else {
@@ -455,8 +453,8 @@ class Resizer {
   }
 
 
-  setStretchMode(stretchMode, fixedStretchRatio?){
-    this.stretcher.setStretchMode(stretchMode, fixedStretchRatio);
+  setStretchMode(stretch: {type: StretchType, ratio?: number}) {
+    this.stretcher.setStretchMode(stretch);
     this.restore();
   }
 
@@ -558,7 +556,7 @@ class Resizer {
   }
 
   reset(){
-    this.setStretchMode(this.siteSettings.getDefaultOption('stretch'));
+    this.setStretchMode(this.siteSettings.getDefaultOption('stretch') as Stretch);
     this.zoom.setZoom(1);
     this.resetPan();
     this.setAr({type: AspectRatioType.Reset});
@@ -596,7 +594,7 @@ class Resizer {
   }
 
   resetStretch(){
-    this.stretcher.setStretchMode(StretchType.NoStretch);
+    this.stretcher.setStretchMode({type: StretchType.NoStretch});
     this.restore();
   }
 

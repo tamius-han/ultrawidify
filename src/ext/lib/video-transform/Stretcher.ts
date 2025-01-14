@@ -5,6 +5,7 @@ import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
 import VideoData from '../video-data/VideoData';
 import Logger from '../Logger';
 import Settings from '../Settings';
+import { Stretch } from '../../../common/interfaces/StretchInterface';
 
 // računa vrednosti za transform-scale (x, y)
 // transform: scale(x,y) se uporablja za raztegovanje videa, ne pa za približevanje
@@ -24,7 +25,7 @@ class Stretcher {
   //#endregion
 
   //#region misc data
-  mode: any;
+  stretch: Stretch;
   fixedStretchRatio: any;
   //#endregion
 
@@ -34,19 +35,12 @@ class Stretcher {
     this.logger = videoData.logger;
     this.siteSettings = videoData.siteSettings;
     this.settings = videoData.settings;
-    this.mode = this.siteSettings.data.defaults.stretch;
-    this.fixedStretchRatio = undefined;
+
+    this.setStretchMode(this.siteSettings.getDefaultOption('stretch') as Stretch);
   }
 
-  setStretchMode(stretchMode, fixedStretchRatio?) {
-    if (stretchMode === StretchType.Default) {
-      this.mode = this.siteSettings.data.defaults.stretch;
-    } else {
-      if (stretchMode === StretchType.Fixed || stretchMode == StretchType.FixedSource) {
-        this.fixedStretchRatio = fixedStretchRatio;
-      }
-      this.mode = stretchMode;
-    }
+  setStretchMode(stretch: Stretch) {
+    this.stretch = stretch;
   }
 
   applyConditionalStretch(stretchFactors, actualAr){

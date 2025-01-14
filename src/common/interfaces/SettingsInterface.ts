@@ -321,7 +321,7 @@ export interface SiteSettingsInterface {
 
   defaults?: {       // must be defined in @global and @empty
     crop?: {type: AspectRatioType, [x: string]: any},
-    stretch?: StretchType,
+    stretch?: {type: StretchType, ratio?: number},
     alignment?: {x: VideoAlignmentType, y: VideoAlignmentType},
   }
 

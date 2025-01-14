@@ -349,22 +349,6 @@ class Settings {
     return JSON.parse(JSON.stringify(this.default));
   }
 
-  getDefaultOption(option?) {
-    const allDefault = {
-      mode: ExtensionMode.Default,
-      autoar: ExtensionMode.Default,
-      autoarFallback: ExtensionMode.Default,
-      stretch: StretchType.Default,
-      videoAlignment: VideoAlignmentType.Default,
-    };
-
-    if (!option || allDefault[option] === undefined) {
-      return allDefault;
-    }
-
-    return allDefault[option];
-  }
-
   /**
    * Gets default site configuration. Only returns essential settings.
    * @returns
