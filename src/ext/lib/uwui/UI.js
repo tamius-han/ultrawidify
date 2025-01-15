@@ -211,6 +211,65 @@ class UI {
     this.handleMessage(message);
   }
 
+
+  /**
+   * Generates marker positions for bug mitigations
+   */
+  generateDebugMarker(x, y) {
+    const [parentMainDimension, parentCrossDimension] = y === 'center' ? ['height', 'width'] : ['width', 'height'];
+
+    let anchorStyle;
+
+    if (x === 'center' && x === y) {
+      anchorStyle = 'left: 50%; top: 50%; transform: translate(-50%, -50%);';
+    } else {
+      switch (x) {
+        case 'left':
+          anchorStyle = 'left: 0px;';
+          break;
+        case 'center':
+          anchorStyle = 'left: 50%; transform: translateX(-50%);';
+          break;
+        case 'right':
+          anchorStyle = 'right: 0px;';
+          break;
+      }
+      switch (y) {
+        case 'top':
+          anchorStyle = `${anchorStyle} top: 0px;`;
+          break;
+        case 'center':
+          anchorStyle = `${anchorStyle} top: 50%; transform: translateY(-50%);`;
+          break;
+        case 'bottom':
+          anchorStyle = `${anchorStyle} bottom: 0px;`;
+          break;
+      }
+    }
+
+
+    let [mainAxis, crossAxis] = y === 'center' ? ['left', 'top'] : ['top', 'left'];
+
+    const template = document.createElement('template');
+    template.innerHTML = `
+      <div style="position: absolute; ${anchorStyle} ${parentMainDimension}: 4px; ${parentCrossDimension}: 1px; pointer-events: none;">
+        <div style="position: relative; width: 100%; height: 100%">
+          <div style="position: absolute; ${mainAxis}: 0px; ${crossAxis}: 0px; width: 1px; height: 1px; background-color: #000102"></div>
+          <div style="position: absolute; ${mainAxis}: 1px; ${crossAxis}: 0px; width: 1px; height: 1px; background-color: #030405"></div>
+          <div style="position: absolute; ${mainAxis}: 2px; ${crossAxis}: 0px; width: 1px; height: 1px; background-color: #050403"></div>
+          <div style="position: absolute; ${mainAxis}: 3px; ${crossAxis}: 0px; width: 1px; height: 1px; background-color: #020100"></div>
+        </div>
+        <div style="top: 5px; left: 5px; opacity: 0">
+          This marker is Chrome Shitiness Mitigation mechanism for Ultrawidify. It turns out that as of 2025-01, Chrome does not correctly respect
+          allowTransparency property on certain iframes, and will force white or black background across the entire element. It is unclear what's
+          causing the issue — so far, it seems to appear randomly.
+        </div>
+      </div>
+    `;
+
+    return template.content.firstChild;
+  }
+
   setUiVisibility(visible) {
     if (visible) {
       this.element.style.width = '100%';
