@@ -95,7 +95,7 @@ class UI {
     iframe.style.zIndex =  this.isGlobal ? '90009' : '90000';
     iframe.style.border = 0;
     iframe.style.pointerEvents = 'none';
-    // iframe.style.opacity = 0;
+    iframe.style.opacity = 0;
     iframe.style.backgroundColor = 'transparent !important';
 
     /* so we have a problem: we want iframe to be clickthrough everywhere except
@@ -158,18 +158,6 @@ class UI {
       document.addEventListener('mousemove', fn, true);
     }
 
-    // Add some squares to the page.
-    // Sets up checks for conditions that cause these two mutually exclusive issues:
-    //     * https://github.com/tamius-han/ultrawidify/issues/262
-    //     * https://github.com/tamius-han/ultrawidify/issues/259
-    for (const x of ['left', 'center', 'right']) {
-      for (const y of ['top', 'center', 'bottom']) {
-        if (x !== y) {
-          rootDiv.appendChild(this.generateDebugMarker(x, y));
-        }
-      }
-    }
-
     rootDiv.appendChild(iframe);
   }
 
@@ -202,6 +190,24 @@ class UI {
             this.sendToIframe('uw-set-ui-state', {...config, isGlobal: this.isGlobal}, routingData);
           }
         },
+        'uw-get-page-stats': {
+          function: (config, routingData) => {
+            console.log('got get page stats!');
+            this.eventBus.send(
+              'uw-page-stats',
+              {
+                pcsDark: window.matchMedia('(prefers-color-scheme: dark)').matches,
+                pcsLight: window.matchMedia('(prefers-color-scheme: light)').matches,
+                colorScheme: window.getComputedStyle( document.body ,null).getPropertyValue('color-scheme')
+              },
+              {
+                comms: {
+                  forwardTo: 'popup'
+                }
+              }
+            );
+          }
+        },
         'uw-restore-ui-state': {
           function: (config, routingData) => {
             if (!this.isGlobal) {
@@ -221,65 +227,6 @@ class UI {
       return;
     }
     this.handleMessage(message);
-  }
-
-
-  /**
-   * Generates marker positions for bug mitigations
-   */
-  generateDebugMarker(x, y) {
-    const [parentMainDimension, parentCrossDimension] = y === 'center' ? ['height', 'width'] : ['width', 'height'];
-
-    let anchorStyle;
-
-    if (x === 'center' && x === y) {
-      anchorStyle = 'left: 50%; top: 50%; transform: translate(-50%, -50%);';
-    } else {
-      switch (x) {
-        case 'left':
-          anchorStyle = 'left: 0px;';
-          break;
-        case 'center':
-          anchorStyle = 'left: 50%; transform: translateX(-50%);';
-          break;
-        case 'right':
-          anchorStyle = 'right: 0px;';
-          break;
-      }
-      switch (y) {
-        case 'top':
-          anchorStyle = `${anchorStyle} top: 0px;`;
-          break;
-        case 'center':
-          anchorStyle = `${anchorStyle} top: 50%; transform: translateY(-50%);`;
-          break;
-        case 'bottom':
-          anchorStyle = `${anchorStyle} bottom: 0px;`;
-          break;
-      }
-    }
-
-
-    let [mainAxis, crossAxis] = y === 'center' ? ['left', 'top'] : ['top', 'left'];
-
-    const template = document.createElement('template');
-    template.innerHTML = `
-      <div style="position: absolute; ${anchorStyle} ${parentMainDimension}: 4px; ${parentCrossDimension}: 1px; pointer-events: none;">
-        <div style="position: relative; width: 100%; height: 100%">
-          <div style="position: absolute; ${mainAxis}: 0px; ${crossAxis}: 0px; width: 1px; height: 1px; background-color: #000102"></div>
-          <div style="position: absolute; ${mainAxis}: 1px; ${crossAxis}: 0px; width: 1px; height: 1px; background-color: #030405"></div>
-          <div style="position: absolute; ${mainAxis}: 2px; ${crossAxis}: 0px; width: 1px; height: 1px; background-color: #050403"></div>
-          <div style="position: absolute; ${mainAxis}: 3px; ${crossAxis}: 0px; width: 1px; height: 1px; background-color: #020100"></div>
-        </div>
-        <div style="top: 5px; left: 5px; opacity: 0">
-          This marker is Chrome Shitiness Mitigation mechanism for Ultrawidify. It turns out that as of 2025-01, Chrome does not correctly respect
-          allowTransparency property on certain iframes, and will force white or black background across the entire element. It is unclear what's
-          causing the issue — so far, it seems to appear randomly.
-        </div>
-      </div>
-    `;
-
-    return template.content.firstChild;
   }
 
   setUiVisibility(visible) {
@@ -395,7 +342,7 @@ class UI {
           }
 
           this.uiIframe.style.pointerEvents = event.data.clickable ? 'auto' : 'none';
-          this.setUiVisibility(event.data.opacity || this.isGlobal);
+          this.uiIframe.style.opacity = event.data.opacity || this.isGlobal ? '100' : '0';
           break;
         case 'uw-bus-tunnel':
           const busCommand = event.data.payload;
@@ -408,7 +355,7 @@ class UI {
           this.setUiVisibility(!this.isGlobal);
           break;
         case 'uwui-hidden':
-          this.setUiVisibility(event.data.opacity || this.isGlobal);
+          this.uiIframe.style.opacity = event.data.opacity || this.isGlobal ? '100' : '0';
           break;
         case 'uwui-global-window-hidden':
           if (!this.isGlobal) {
