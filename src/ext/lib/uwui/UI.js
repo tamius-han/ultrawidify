@@ -383,7 +383,7 @@ class UI {
           }
 
           this.uiIframe.style.pointerEvents = event.data.clickable ? 'auto' : 'none';
-          this.uiIframe.style.opacity = event.data.opacity || this.isGlobal ? '100' : '0';
+          this.setUiVisibility(event.data.opacity || this.isGlobal);
           break;
         case 'uw-bus-tunnel':
           const busCommand = event.data.payload;
@@ -396,7 +396,7 @@ class UI {
           this.setUiVisibility(!this.isGlobal);
           break;
         case 'uwui-hidden':
-          this.uiIframe.style.opacity = event.data.opacity || this.isGlobal ? '100' : '0';
+          this.setUiVisibility(event.data.opacity || this.isGlobal);
           break;
         case 'uwui-global-window-hidden':
           if (!this.isGlobal) {
