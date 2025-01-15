@@ -164,20 +164,7 @@ interface SettingsInterface {
   arDetect: AardSettings,
 
   ui: {
-    inPlayer: {
-      enabled: boolean,
-      enabledFullscreenOnly: boolean,
-      popupAlignment: 'left' | 'right',
-      minEnabledWidth: number,                 // don't show UI if player is narrower than % of screen width
-      minEnabledHeight: number,                // don't show UI if player is narrower than % of screen height
-      activation: 'trigger-zone' | 'player',   // what needs to be hovered in order for UI to be visible
-      triggerZoneDimensions: {                 // how large the trigger zone is (relative to player size)
-        width: number
-        height: number,
-        offsetX: number,                       // fed to translateX(offsetX + '%'). Valid range [-100,   0]
-        offsetY: number                        // fed to translateY(offsetY + '%'). Valid range [-100, 100]
-      },
-    }
+    inPlayer: InPlayerUISettingsInterface
   }
 
   restrictions?: RestrictionsSettings;
@@ -305,13 +292,16 @@ interface SettingsInterface {
   //
   sites: {
     [x: string]: SiteSettingsInterface,
-  }
+  },
+
+  telemetry?: UwTelemetryInterface
 }
 
 export interface SiteSettingsInterface {
   enable: ExtensionEnvironmentSettingsInterface;
   enableAard: ExtensionEnvironmentSettingsInterface;
   enableKeyboard: ExtensionEnvironmentSettingsInterface;
+  ui?: InPlayerUISettingsInterface,
 
   type?: 'official' | 'community' | 'user-defined' | 'testing' | 'officially-disabled' | 'unknown' | 'modified';
   defaultType: 'official' | 'community' | 'user-defined' | 'testing' | 'officially-disabled' | 'unknown' | 'modified';
@@ -340,6 +330,12 @@ export interface SiteSettingsInterface {
 
   // the following fields are for use with extension update script
   override?: boolean;   // whether settings for this site will be overwritten by extension upgrade script
+
+  workarounds?: {
+    disableColorSchemeAwareness?: boolean;
+    forceColorScheme?: 'normal' | 'light' | 'dark',
+    lastColorSchemeAwarenessCheck?: Date;
+  }
 }
 
 export interface PlayerAutoConfigInterface {
@@ -370,6 +366,30 @@ export interface SiteDOMElementSettingsInterface {
   index?: number; // previously: useRelativeAncestor + videoAncestor
   mode?: 'index' | 'qs';
   nodeCss?: {[x: string]: string};
+}
+
+export interface InPlayerUISettingsInterface {
+  enabled: boolean,
+  enabledFullscreenOnly: boolean,
+  popupAlignment: 'left' | 'right',
+  minEnabledWidth: number,                 // don't show UI if player is narrower than % of screen width
+  minEnabledHeight: number,                // don't show UI if player is narrower than % of screen height
+  activation: 'trigger-zone' | 'player',   // what needs to be hovered in order for UI to be visible
+  triggerZoneDimensions: {                 // how large the trigger zone is (relative to player size)
+    width: number
+    height: number,
+    offsetX: number,                       // fed to translateX(offsetX + '%'). Valid range [-100,   0]
+    offsetY: number                        // fed to translateY(offsetY + '%'). Valid range [-100, 100]
+  },
+}
+
+export interface UwTelemetryInterface {
+  iframeTransparency?: {
+    [siteName: string]: {
+      reportedWithColorSchemeAllowed?: boolean;
+      reportedWithColorSchemeDisabled?: boolean;
+    }
+  }
 }
 
 export default SettingsInterface;

@@ -5,6 +5,9 @@ import Settings from './lib/Settings';
 import Logger, { baseLoggingOptions } from './lib/Logger';
 import { sleep } from '../common/js/utils';
 import EventBus, { EventBusCommand } from './lib/EventBus';
+import { IframeTransparencyVerifier, IframeVerificationPlayerData } from './lib/IframeTransparencyVerifier';
+import { MessageSender } from './lib/comms/ChromeTabInterfaces';
+import axios from 'axios';
 
 export default class UWServer {
   settings: Settings;
@@ -17,6 +20,8 @@ export default class UWServer {
   currentSite: string = '';
   videoTabs: any = {};
   currentTabId: number = 0;
+
+  IframeTransparencyVerifier: IframeTransparencyVerifier = new IframeTransparencyVerifier()
 
   selectedSubitem: any = {
     'siteSettings': undefined,
@@ -44,6 +49,11 @@ export default class UWServer {
     },
     'get-current-site': {
       function: (message, context) => this.getCurrentSite()
+    },
+    'verify-iframe-transparency': {
+      function: (message, context) => {
+        this.verifyUiTransparency(message.playerData, context.comms.sender, message.telemetryData);
+      }
     }
   };
 
@@ -101,7 +111,7 @@ export default class UWServer {
     });
   }
 
-  async injectCss(css, sender) {
+  async injectCss(css, sender: MessageSender) {
     if (!css) {
       return;
     }
@@ -133,7 +143,7 @@ export default class UWServer {
       this.logger.log('error','debug', '[UwServer::injectCss] Error while injecting css:', {error: e, css, sender});
     }
   }
-  async removeCss(css, sender) {
+  async removeCss(css, sender: MessageSender) {
     try {
       if (BrowserDetect.firefox) {
         chrome.scripting.removeCSS({
@@ -366,5 +376,35 @@ export default class UWServer {
     hostname = hostname.split('?')[0];   //find & remove "?"
 
     return hostname;
+  }
+
+  async verifyUiTransparency(verificationData: IframeVerificationPlayerData, sender: MessageSender, telemetryData?: any) {
+    const hasTransparency = this.IframeTransparencyVerifier.verifyUiTransparency(
+      sender.tab.windowId,
+      {
+        player: verificationData,
+        tab: {
+          width: sender.tab.width,
+          height: sender.tab.height,
+        }
+      }
+    );
+
+    this.eventBus.send(
+      'iframe-transparency-results',
+      {
+        comms: {
+          forwardTo: 'active'
+        }
+      }
+    );
+
+    axios.post(
+      'https://uw-telemetry.tamius.net/iframe-transparency',
+      {
+        ...telemetryData,
+        transparencyCheckResult: hasTransparency,
+      }
+    );
   }
 }

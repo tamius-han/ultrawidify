@@ -117,6 +117,29 @@ class CommsClient {
 
       this.commsId = (Math.random() * 20).toFixed(0);
 
+      this.eventBus.subscribeMulti(
+        {
+          'uw-get-page-stats': {
+            function: (config, routingData) => {
+              this.eventBus.send(
+                'uw-page-stats',
+                {
+                  pcsDark: window.matchMedia('(prefers-color-scheme: dark)').matches,
+                  pcsLight: window.matchMedia('(prefers-color-scheme: light)').matches,
+                  colorScheme: window.getComputedStyle( document.body ,null).getPropertyValue('color-scheme')
+                },
+                {
+                  comms: {
+                    forwardTo: 'popup'
+                  }
+                }
+              );
+            }
+          },
+        },
+        this
+      );
+
     } catch (e) {
       console.error("CONSTRUCOTR FAILED:", e)
     }

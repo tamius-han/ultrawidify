@@ -29,6 +29,7 @@
     "@mdi/font": "^6.5.95",
     "@mdi/js": "^6.4.95",
     "@types/resize-observer-browser": "^0.1.6",
+    "axios": "^1.7.9",
     "concurrently": "^5.3.0",
     "fs-extra": "^7.0.1",
     "gl-matrix": "^3.4.3",

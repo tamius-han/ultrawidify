@@ -1842,6 +1842,9 @@ const ExtensionConf: SettingsInterface = {
         }
       }
     },
+  },
+
+  telemetry: {
   }
 }
 

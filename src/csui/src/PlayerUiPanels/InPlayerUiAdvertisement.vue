@@ -62,7 +62,9 @@ export default {
         'uw-page-stats': {
           function: (data) => {
             console.log('got page statss:', data);
-            this.pageData = data;
+            this.pageData = JSON.parse(JSON.stringify(data));
+
+            this.$nextTick( () => this.$forceUpdate());
           }
         }
       },
