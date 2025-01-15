@@ -94,8 +94,8 @@ class UI {
     iframe.style.position = "absolute";
     iframe.style.zIndex =  this.isGlobal ? '90009' : '90000';
     iframe.style.border = 0;
+    iframe.style.opacity = 0;
     iframe.style.pointerEvents = 'none';
-    // iframe.style.opacity = 0;
     iframe.style.backgroundColor = 'transparent !important';
 
     /* so we have a problem: we want iframe to be clickthrough everywhere except
@@ -156,6 +156,19 @@ class UI {
     // request that data from vue components.
     iframe.onload = function() {
       document.addEventListener('mousemove', fn, true);
+    }
+
+    // Add some squares to the page.
+    // Sets up checks for conditions that cause these two mutually exclusive issues:
+    //     * https://github.com/tamius-han/ultrawidify/issues/262
+    //     * https://github.com/tamius-han/ultrawidify/issues/259
+    for (const x of ['left', 'center', 'right']) {
+      for (const y of ['top', 'center', 'bottom']) {
+        console.log('')
+        if (x !== y) {
+          rootDiv.appendChild(this.generateDebugMarker(x, y));
+        }
+      }
     }
 
     rootDiv.appendChild(iframe);
@@ -265,7 +278,7 @@ class UI {
           causing the issue — so far, it seems to appear randomly.
         </div>
       </div>
-    `;
+    `.replace(/\s+/g, ' ').trim();
 
     return template.content.firstChild;
   }
@@ -384,6 +397,7 @@ class UI {
 
           this.uiIframe.style.pointerEvents = event.data.clickable ? 'auto' : 'none';
           this.uiIframe.style.opacity = event.data.opacity || this.isGlobal ? '100' : '0';
+          // this.setUiVisibility( event.data.opacity || this.isGlobal );
           break;
         case 'uw-bus-tunnel':
           const busCommand = event.data.payload;
@@ -397,6 +411,7 @@ class UI {
           break;
         case 'uwui-hidden':
           this.uiIframe.style.opacity = event.data.opacity || this.isGlobal ? '100' : '0';
+          // this.setUiVisibility(event.data.opacity || this.isGlobal);
           break;
         case 'uwui-global-window-hidden':
           if (!this.isGlobal) {
