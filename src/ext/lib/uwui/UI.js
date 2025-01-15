@@ -95,7 +95,7 @@ class UI {
     iframe.style.zIndex =  this.isGlobal ? '90009' : '90000';
     iframe.style.border = 0;
     iframe.style.pointerEvents = 'none';
-    iframe.style.opacity = 0;
+    // iframe.style.opacity = 0;
     iframe.style.backgroundColor = 'transparent !important';
 
     /* so we have a problem: we want iframe to be clickthrough everywhere except
@@ -188,24 +188,6 @@ class UI {
               }
             }
             this.sendToIframe('uw-set-ui-state', {...config, isGlobal: this.isGlobal}, routingData);
-          }
-        },
-        'uw-get-page-stats': {
-          function: (config, routingData) => {
-            console.log('got get page stats!');
-            this.eventBus.send(
-              'uw-page-stats',
-              {
-                pcsDark: window.matchMedia('(prefers-color-scheme: dark)').matches,
-                pcsLight: window.matchMedia('(prefers-color-scheme: light)').matches,
-                colorScheme: window.getComputedStyle( document.body ,null).getPropertyValue('color-scheme')
-              },
-              {
-                comms: {
-                  forwardTo: 'popup'
-                }
-              }
-            );
           }
         },
         'uw-restore-ui-state': {
