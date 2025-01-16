@@ -379,7 +379,7 @@ export default class UWServer {
   }
 
   async verifyUiTransparency(verificationData: IframeVerificationPlayerData, sender: MessageSender, telemetryData?: any) {
-    const hasTransparency = this.IframeTransparencyVerifier.verifyUiTransparency(
+    const transparencyVerificationResult = await this.IframeTransparencyVerifier.verifyUiTransparency(
       sender.tab.windowId,
       {
         player: verificationData,
@@ -390,8 +390,13 @@ export default class UWServer {
       }
     );
 
+    console.log('Transparency confirmed.');
+
     this.eventBus.send(
       'iframe-transparency-results',
+      {
+        transparencyVerificationResult
+      },
       {
         comms: {
           forwardTo: 'active'
@@ -399,12 +404,12 @@ export default class UWServer {
       }
     );
 
-    axios.post(
-      'https://uw-telemetry.tamius.net/iframe-transparency',
-      {
-        ...telemetryData,
-        transparencyCheckResult: hasTransparency,
-      }
-    );
+    // axios.post(
+    //   'https://uw-telemetry.tamius.net/iframe-transparency',
+    //   {
+    //     ...telemetryData,
+    //     transparencyCheckResult: hasTransparency,
+    //   }
+    // );
   }
 }

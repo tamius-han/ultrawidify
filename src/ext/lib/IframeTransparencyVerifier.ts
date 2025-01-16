@@ -34,16 +34,18 @@ interface IframeCheckPosition {
 
 export class IframeTransparencyVerifier {
 
-  async verifyUiTransparency(windowId: number, tabDimensions: IframeVerificationData): Promise<TransparencyVerificationResult> {
+  async verifyUiTransparency(windowId: number, tabDimensions: IframeVerificationData): Promise<{result: TransparencyVerificationResult, dataUrl?: string}> {    console.info('Verifying UI transparency:', tabDimensions);
+
     const {visibleX, visibleY} = this.getVisibleMarkers(tabDimensions);
-    if (!visibleX.length || visibleY.length) {
-      return TransparencyVerificationResult.NoVisibleElements;
+    if (!visibleX.length || !visibleY.length) {
+      console.warn('[transparency check] No visible elements.');
+      return {result: TransparencyVerificationResult.NoVisibleElements};
     }
 
     const checkPositions = this.processMarkers(visibleX, visibleY);
 
     const dataUrl = await chrome.tabs.captureVisibleTab(
-      windowId,
+      undefined, // windowId,
       {
         format: "png"
       }
@@ -53,21 +55,31 @@ export class IframeTransparencyVerifier {
       const canvas = new OffscreenCanvas(tabDimensions.tab.width, tabDimensions.tab.height);
       const ctx = canvas.getContext('2d')!;
 
-      const image = new Image();
-      const imageLoadPromise = new Promise(r => image.onload = r);
-      image.src = dataUrl;
-      await imageLoadPromise;
-      (ctx as any).drawImage(image, 0, 0);
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+
+      const bitmap = createImageBitmap(blob);
+
+      (ctx as any).drawImage(bitmap, 0, 0);
 
       const imageData = (ctx as any).getImageData(0, 0, tabDimensions.tab.width, tabDimensions.tab.height).data;
 
       if (this.detectMarkers(checkPositions, tabDimensions.tab.width, imageData)) {
-        return TransparencyVerificationResult.Ok;
+        console.info('Verified transparency');
+        return {
+          result: TransparencyVerificationResult.Ok,
+          dataUrl: dataUrl
+        };
       } else {
-        return TransparencyVerificationResult.Fail;
+        console.info('Transparency checks came back negative');
+        return {
+          result: TransparencyVerificationResult.Fail,
+          dataUrl: dataUrl
+        };
       }
     } catch (e) {
-      return TransparencyVerificationResult.Error;
+      console.error('[transparency check] Error while checking for transparency:', e);
+      return {result: TransparencyVerificationResult.Error};
     }
   }
 
@@ -78,6 +90,8 @@ export class IframeTransparencyVerifier {
     // Determine which markers should be visible.
 
     // Visibility: TOP ROW
+    console.log('player:', player.y, tab.height);
+
     if (player.y >= 0 && player.y < tab.height) {
       visibleY.push({
         position:  'top',
@@ -87,7 +101,7 @@ export class IframeTransparencyVerifier {
 
     // Visibility: CENTER
     const yHalfPosition = Math.floor(player.y + player.height / 2);
-    if (player.y + yHalfPosition - 2 > 0 || player.y + yHalfPosition + 2 < tab.height) {
+    if (player.y + yHalfPosition - 2 > 0 && player.y + yHalfPosition + 2 < tab.height) {
       visibleY.push({
         position: 'center',
         offset: player.y + yHalfPosition,
@@ -95,7 +109,7 @@ export class IframeTransparencyVerifier {
     }
 
     // Visibility: BOTTOM ROW
-    if (player.y + player.height - 1 > 0 || player.y + player.height + 1 < tab.height) {
+    if (player.y + player.height - 1 > 0 && player.y + player.height + 1 < tab.height) {
       visibleY.push({
         position: 'bottom',
         offset: player.y + player.height - 1,
@@ -112,20 +126,22 @@ export class IframeTransparencyVerifier {
 
     // Visibility: X CENTER
     const xHalfPosition = Math.floor(player.x + player.width / 2);
-    if (player.x + xHalfPosition - 2 > 0 || player.x + xHalfPosition + 2 < tab.width) {
-      visibleY.push({
+    if (player.x + xHalfPosition - 2 > 0 && player.x + xHalfPosition + 2 < tab.width) {
+      visibleX.push({
         position: 'center',
         offset: player.x + xHalfPosition,
       });
     }
 
     // Visibility: RIGHT SIDE
-    if (player.x + player.width - 1 > 0 || player.x + player.width + 1 < tab.width) {
+    if (player.x + player.width - 1 > 0 && player.x + player.width + 1 < tab.width) {
       visibleX.push({
         position: 'right',
         offset: player.x + player.width - 1,
       });
     }
+
+    console.log('visible candidates', visibleX, visibleY);
 
     return {
       visibleX,

@@ -29,14 +29,10 @@ class UI {
     this.interfaceId = interfaceId;
     this.uiConfig = uiConfig;
     this.lastProbeResponseTs = null;
+    this.isVisible = false;
+    this.isOpaque = false;
 
     this.isGlobal = uiConfig.isGlobal ?? false;
-    // TODO: at some point, UI should be different for global popup and in-player UI
-    const preferredScheme =  window.getComputedStyle( document.body ,null).getPropertyValue('color-scheme');
-    const csuiVersion = csuiVersions[preferredScheme] ?? csuiVersions.normal;
-
-    this.uiURI = chrome.runtime.getURL(`/csui/${csuiVersion}.html`);
-    this.extensionBase = chrome.runtime.getURL('').replace(/\/$/, "");
 
     this.eventBus = uiConfig.eventBus;
     this.disablePointerEvents = false;
@@ -44,15 +40,44 @@ class UI {
     this.saveState = undefined;
     this.playerData = uiConfig.playerData;
     this.uiSettings = uiConfig.uiSettings;
+    this.siteSettings = uiConfig.siteSettings;
+    this.settings = uiConfig.settings;
 
     this.iframeErrorCount = 0;
     this.iframeConfirmed = false;
     this.iframeRejected = false;
+
+    this.preventHiding = false;
+    this.wantsToHide = false;
+    this.wantsToTransparent = false;
+    this.performedTransparencyCheck = false;
+
+    // TODO: at some point, UI should be different for global popup and in-player UI
+    const csuiVersion = this.getCsuiVersion();
+    this.uiURI = chrome.runtime.getURL(`/csui/${csuiVersion}.html`);
+    this.extensionBase = chrome.runtime.getURL('').replace(/\/$/, "");
   }
 
   async init() {
+    try {
     this.initIframes();
     this.initMessaging();
+    } catch (e) {
+      console.error('failed to init ui:', e)
+    }
+  }
+
+
+  getCsuiVersion() {
+    if (this.siteSettings?.workarounds?.forceColorScheme) {
+      return csuiVersions[this.siteSettings.workarounds.forceColorScheme];
+    }
+    if (this.siteSettings?.workarounds?.disableColorSchemeAwareness) {
+      return csuiVersions.normal;
+    }
+
+    const preferredScheme =  window.getComputedStyle( document.body ,null).getPropertyValue('color-scheme');
+    return csuiVersions[preferredScheme] ?? csuiVersions.normal;
   }
 
   initIframes() {
@@ -164,7 +189,6 @@ class UI {
     //     * https://github.com/tamius-han/ultrawidify/issues/259
     for (const x of ['left', 'center', 'right']) {
       for (const y of ['top', 'center', 'bottom']) {
-        console.log('')
         if (x !== y) {
           rootDiv.appendChild(this.generateDebugMarker(x, y));
         }
@@ -210,6 +234,11 @@ class UI {
               this.sendToIframe('uw-restore-ui-state', config, routingData);
             }
           }
+        },
+        'iframe-transparency-results': {
+          function: (data, routingData) => {
+            console.log('——————————— iframe transparency results are back!', data);
+          }
         }
       },
       this
@@ -224,6 +253,69 @@ class UI {
     this.handleMessage(message);
   }
 
+
+  verifyIframeTransparency() {
+    if (this.isGlobal) {
+      return;
+    }
+    if (!this.siteSettings || !this.settings) {
+      console.warn('settings not provided, not verifying transparency');
+      return;
+    }
+    if (this.performedTransparencyCheck || !this.isOpaque || !this.uiConfig?.parentElement) {
+      // console.warn('transparency was already checked, opacity is zero, or parent element isnt a thing:', this.performedTransparencyCheck, 'is opaque:', this.isOpaque, this.uiConfig?.parentElement);
+      return;
+    }
+
+    let reportTelemetry = true;
+
+    // if (this.siteSettings.data.workarounds?.disableSchemeAwareness) {
+    //   if (this.settings.active.telemetry?.iframeTransparency?.[window.location.hostname]?.reportedWithColorSchemeDisabled) {
+    //     reportTelemetry = false;
+    //   } else {
+    //     this.settings.setProp(['telemetry', window.location.hostname, 'reportedWithColorSchemaDisabled'], true)
+    //   }
+    // } else {
+    //   if (this.settings.active.telemetry?.iframeTransparency?.[window.location.hostname]?.reportedWithColorSchemeAllowed) {
+    //     reportTelemetry = false;
+    //   } else {
+    //     this.settings.setProp(['telemetry', window.location.hostname, 'reportedWithColorSchemeAllowed'], true)
+    //   }
+    // }
+
+    const rect = this.uiConfig.parentElement.getBoundingClientRect();
+
+    this.preventHiding = true;
+    setTimeout( () => {
+      this.eventBus.send(
+        'verify-iframe-transparency',
+        {
+          playerData: {
+            y: rect.top,
+            x: rect.left,
+            width: rect.width,
+            height: rect.height,
+          },
+          telemetryData: {
+            reportTelemetry,
+          }
+        }
+      );
+    }, 50);
+    this.performedTransparencyCheck = true;
+
+    setTimeout(() => {
+      this.preventHiding = false;
+      if (this.wantsToHide) {
+        this.setUiVisibility(false);
+      }
+      if (this.wantsToTransparent) {
+        this.setUiOpacity(false);
+      }
+      this.wantsToHide = false;
+      this.wantsToTransparent = false;
+    });
+  }
 
   /**
    * Generates marker positions for bug mitigations
@@ -283,7 +375,29 @@ class UI {
     return template.content.firstChild;
   }
 
+
+  setUiOpacity(visible) {
+    if (!visible && this.isVisible && this.preventHiding) {
+      this.wantsToTransparent = true;
+      return;
+
+    }
+    this.uiIframe.style.opacity = visible ? '100' : '0';
+    this.isOpaque = visible;
+
+    if (visible) {
+      this.verifyIframeTransparency();
+    }
+  }
+
   setUiVisibility(visible) {
+    if (!visible && this.isVisible && this.preventHiding) {
+      this.wantsToHide = true;
+      return;
+    }
+
+    this.isVisible = visible;
+
     if (visible) {
       this.element.style.width = '100%';
       this.element.style.height = '100%';
@@ -295,6 +409,7 @@ class UI {
       this.uiIframe.style.width = '0px';
       this.uiIframe.style.height = '0px';
     }
+
   }
 
   async enable() {
@@ -396,7 +511,7 @@ class UI {
           }
 
           this.uiIframe.style.pointerEvents = event.data.clickable ? 'auto' : 'none';
-          this.uiIframe.style.opacity = event.data.opacity || this.isGlobal ? '100' : '0';
+          this.setUiOpacity(event.data.opacity || this.isGlobal);
           // this.setUiVisibility( event.data.opacity || this.isGlobal );
           break;
         case 'uw-bus-tunnel':
@@ -410,7 +525,7 @@ class UI {
           this.setUiVisibility(!this.isGlobal);
           break;
         case 'uwui-hidden':
-          this.uiIframe.style.opacity = event.data.opacity || this.isGlobal ? '100' : '0';
+          this.setUiOpacity(event.data.opacity || this.isGlobal);
           // this.setUiVisibility(event.data.opacity || this.isGlobal);
           break;
         case 'uwui-global-window-hidden':

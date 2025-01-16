@@ -111,7 +111,7 @@ export default class UWContent {
 
       this.logger.log('info', 'debug', "[uw.js::setup] KeyboardHandler initiated.");
 
-      this.globalUi = new UI('ultrawidify-global-ui', {eventBus: this.eventBus, isGlobal: true});
+      this.globalUi = new UI('ultrawidify-global-ui', {eventBus: this.eventBus, isGlobal: true, siteSettings: this.siteSettings});
       this.globalUi.enable();
       this.globalUi.setUiVisibility(false);
 

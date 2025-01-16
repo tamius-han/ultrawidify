@@ -248,7 +248,11 @@ class PlayerData {
   //#endregion
 
   deferredUiInitialization(playerDimensions) {
-    if (this.ui || ! this.videoData.settings.active.ui?.inPlayer?.enabled) {
+    if (
+      this.ui
+      || ! this.videoData.settings.active.ui?.inPlayer?.enabled
+      || (this.siteSettings.data.ui && !this.siteSettings.data.ui.enabled)
+    ) {
       return;
     }
 
@@ -265,7 +269,9 @@ class PlayerData {
           parentElement: this.element,
           eventBus: this.eventBus,
           playerData: this,
-          uiSettings: this.videoData.settings.active.ui
+          uiSettings: this.videoData.settings.active.ui,
+          settings: this.videoData.settings,
+          siteSettings: this.siteSettings
         }
       );
 

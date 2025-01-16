@@ -50,7 +50,8 @@
   ],
   "permissions": [
     "storage",
-    "scripting"
+    "scripting",
+    "<all_urls>"
   ],
   "host_permissions": [
     "*://*/*"
