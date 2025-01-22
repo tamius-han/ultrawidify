@@ -16,6 +16,27 @@
           <li> <a target="_blank" href="https://github.com/tamius-han/ultrawidify/issues"><b>Github (preferred)</b></a><br/></li>
           <li>Email: <a target="_blank" :href="mailtoLink">tamius.han@gmail.com</a></li>
         </ul>
+
+      <hr />
+
+      <b>Is your screen entirely white or entirely black?</b>
+
+      <p>This appears to be a rare issue that happens to some people. If you're experiencing this issue, please consider contacting me and sharing the following data:</p>
+
+      <ul>
+        <li>Which sites this problem appears on and whether it happens on youtube. If you use youtube premium, please try signing out of youtube (or use a new profile in Google Chrome) in order to see whether youtube premium is required.</li>
+        <li>your browser (get full version from <code>chrome://settings/help</code>). if using browsers other than Chrome, please try to reproduce this issue in Chrome</li>
+        <li>your operating system</li>
+        <li>your graphics card</li>
+        <li>whether you're using dark theme in your OS, and whether you're using website's built-in dark/light theme.</li>
+      </ul>
+
+      <p>Please post this info to <a href="https://github.com/tamius-han/ultrawidify/issues/262" target="_blank">this thread</a>, or message me via e-mail.</p>
+
+      <p>Then, disable the in-player UI.</p>
+
+      <hr />
+
         <p>
           When reporting bugs, please include the following information:
         </p>
@@ -67,6 +88,7 @@ export default {
       mailtoLink: '',
       redditLink: '',
       showEasterEgg: false,
+      pageData: {}
     }
   },
   async created() {
