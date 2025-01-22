@@ -36,51 +36,51 @@ export class IframeTransparencyVerifier {
 
   async verifyUiTransparency(windowId: number, tabDimensions: IframeVerificationData): Promise<{result: TransparencyVerificationResult, dataUrl?: string}> {    console.info('Verifying UI transparency:', tabDimensions);
 
-    const {visibleX, visibleY} = this.getVisibleMarkers(tabDimensions);
-    if (!visibleX.length || !visibleY.length) {
-      console.warn('[transparency check] No visible elements.');
+    // const {visibleX, visibleY} = this.getVisibleMarkers(tabDimensions);
+    // if (!visibleX.length || !visibleY.length) {
+      // console.warn('[transparency check] No visible elements.');
       return {result: TransparencyVerificationResult.NoVisibleElements};
-    }
+    // }
 
-    const checkPositions = this.processMarkers(visibleX, visibleY);
+    // const checkPositions = this.processMarkers(visibleX, visibleY);
 
-    const dataUrl = await chrome.tabs.captureVisibleTab(
-      undefined, // windowId,
-      {
-        format: "png"
-      }
-    );
+    // const dataUrl = await chrome.tabs.captureVisibleTab(
+    //   undefined, // windowId,
+    //   {
+    //     format: "png"
+    //   }
+    // );
 
-    try {
-      const canvas = new OffscreenCanvas(tabDimensions.tab.width, tabDimensions.tab.height);
-      const ctx = canvas.getContext('2d')!;
+    // try {
+    //   const canvas = new OffscreenCanvas(tabDimensions.tab.width, tabDimensions.tab.height);
+    //   const ctx = canvas.getContext('2d')!;
 
-      const res = await fetch(dataUrl);
-      const blob = await res.blob();
+    //   const res = await fetch(dataUrl);
+    //   const blob = await res.blob();
 
-      const bitmap = createImageBitmap(blob);
+    //   const bitmap = createImageBitmap(blob);
 
-      (ctx as any).drawImage(bitmap, 0, 0);
+    //   (ctx as any).drawImage(bitmap, 0, 0);
 
-      const imageData = (ctx as any).getImageData(0, 0, tabDimensions.tab.width, tabDimensions.tab.height).data;
+    //   const imageData = (ctx as any).getImageData(0, 0, tabDimensions.tab.width, tabDimensions.tab.height).data;
 
-      if (this.detectMarkers(checkPositions, tabDimensions.tab.width, imageData)) {
-        console.info('Verified transparency');
-        return {
-          result: TransparencyVerificationResult.Ok,
-          dataUrl: dataUrl
-        };
-      } else {
-        console.info('Transparency checks came back negative');
-        return {
-          result: TransparencyVerificationResult.Fail,
-          dataUrl: dataUrl
-        };
-      }
-    } catch (e) {
-      console.error('[transparency check] Error while checking for transparency:', e);
-      return {result: TransparencyVerificationResult.Error};
-    }
+    //   if (this.detectMarkers(checkPositions, tabDimensions.tab.width, imageData)) {
+    //     console.info('Verified transparency');
+    //     return {
+    //       result: TransparencyVerificationResult.Ok,
+    //       dataUrl: dataUrl
+    //     };
+    //   } else {
+    //     console.info('Transparency checks came back negative');
+    //     return {
+    //       result: TransparencyVerificationResult.Fail,
+    //       dataUrl: dataUrl
+    //     };
+    //   }
+    // } catch (e) {
+    //   console.error('[transparency check] Error while checking for transparency:', e);
+    //   return {result: TransparencyVerificationResult.Error};
+    // }
   }
 
   private getVisibleMarkers({tab, player}: IframeVerificationData) {
