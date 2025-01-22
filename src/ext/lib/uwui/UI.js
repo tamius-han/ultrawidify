@@ -15,8 +15,8 @@ if (process.env.CHANNEL !== 'stable'){
 // As of 1. 1. 2025, 'light' and 'dark' are commented out in order to force 'csui-overlay-normal' everywhere.
 const csuiVersions = {
   'normal': 'csui',         // csui-overlay-normal.html, maps to csui.html
-  // 'light': 'csui-light',    // csui-overlay-light.html,  maps to csui-light.html
-  // 'dark': 'csui-dark'       // csui-overlay-dark.html,   maps to csui-dark.html
+  'light': 'csui-light',    // csui-overlay-light.html,  maps to csui-light.html
+  'dark': 'csui-dark'       // csui-overlay-dark.html,   maps to csui-dark.html
 };
 
 const MAX_IFRAME_ERROR_COUNT = 5;
@@ -72,7 +72,7 @@ class UI {
     if (this.siteSettings?.workarounds?.forceColorScheme) {
       return csuiVersions[this.siteSettings.workarounds.forceColorScheme];
     }
-    if (this.siteSettings?.workarounds?.disableColorSchemeAwareness) {
+    if (this.siteSettings?.data?.workarounds?.disableColorSchemeAwareness !== false) {
       return csuiVersions.normal;
     }
 
@@ -210,6 +210,11 @@ class UI {
 
     this.eventBus.subscribeMulti(
       {
+        'uw-reload-window': {
+          function: () => {
+            window.location.reload();
+          }
+        },
         'uw-config-broadcast': {
           function: (config, routingData) => {
             this.sendToIframe('uw-config-broadcast', config, routingData);
@@ -239,7 +244,20 @@ class UI {
           function: (data, routingData) => {
             console.log('——————————— iframe transparency results are back!', data);
           }
-        }
+        },
+        'uw-get-page-stats': {
+            function: (config, routingData) => {
+              console.log('uw:Č Got page stats request')
+              this.sendToIframeLowLevel(
+                'uw-page-stats',
+                {
+                  pcsDark: window.matchMedia('(prefers-color-scheme: dark)').matches,
+                  pcsLight: window.matchMedia('(prefers-color-scheme: light)').matches,
+                  colorScheme: window.getComputedStyle( document.body ,null).getPropertyValue('color-scheme')
+                },
+              );
+            }
+          },
       },
       this
     );

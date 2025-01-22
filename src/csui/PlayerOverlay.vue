@@ -36,6 +36,17 @@
           </div>
 
           Ultrawidify
+
+          <div
+            v-if="!siteSettings?.data.workarounds?.iframeTransparencyWarningDismissed"
+          class="absolute ui-warning small uw-clickable">
+            If all you see is white or black screen,<br/>disable UI and report your GPU to github.<br/>Open.<br/>
+
+            <br />
+            <br /> You can also <a href="" @click="iframeAutofix()">click here to attempt a fix</a>.
+            <br />
+            <br /> If you experience no issues, <a href="" @click="iframeDismiss()">click here to hide this warning.</a>
+          </div>
         </div>
 
       </template>
@@ -452,6 +463,7 @@ export default {
     this.sendToParentLowLevel('uw-bus-tunnel', {
       action: 'get-player-dimensions'
     });
+    this.sendToParentLowLevel('uw-get-page-stats', null);
   },
 
   destroyed() {
@@ -585,6 +597,22 @@ export default {
 
     handleBusTunnelIn(payload) {
       this.eventBus.send(payload.action, payload.config, payload.routingData);
+    },
+
+    async iframeAutofix() {
+      console.log('site:', this.site, this.siteSettings);
+      if (this.siteSettings?.data.workarounds?.disableColorSchemeAwareness === false) {
+        await this.settings.setProp(['sites', this.site, 'workarounds', 'disableColorSchemeAwareness'], true);
+      } else {
+        await this.settings.setProp(['sites', this.site, 'workarounds', 'disableColorSchemeAwareness'], false);
+      }
+      await this.settings.saveWithoutReload();
+      this.eventBus.sendToTunnel('uw-reload-window');
+    },
+    async iframeDismiss() {
+      await this.settings.setProp(['sites', this.site, 'workarounds', 'iframeTransparencyWarningDismissed'], true);
+      await this.settings.save();
+      this.eventBus.sendToTunnel('uw-reload-window');
     }
   }
 }
@@ -656,10 +684,14 @@ export default {
 .ui-warning {
   position: absolute;
   top: 0;
+  left: 0;
   transform: translateY(-100%);
 
-  max-width: 16rem;
-  width: 16rem;
+  max-width: 20rem;
+  width: 20rem;
+
+  padding: 1rem;
+  box-sizing: border-box;
 
   overflow: hidden;
   overflow-wrap: break-word;
@@ -667,6 +699,17 @@ export default {
   white-space: normal;
   word-break: break-word;
   word-wrap: break-word;
+
+  &.small {
+    font-size: 0.85rem;
+    color: #888;
+    background-color: rgba(0,0,0,0.69);
+
+    a {
+      color: #fa6;
+      opacity: 0.69;
+    }
+  }
 }
 
 

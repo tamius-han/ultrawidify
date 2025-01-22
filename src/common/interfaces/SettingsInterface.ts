@@ -332,6 +332,7 @@ export interface SiteSettingsInterface {
   override?: boolean;   // whether settings for this site will be overwritten by extension upgrade script
 
   workarounds?: {
+    iframeTransparencyWarningDismissed?: boolean;
     disableColorSchemeAwareness?: boolean;
     forceColorScheme?: 'normal' | 'light' | 'dark',
     lastColorSchemeAwarenessCheck?: Date;
