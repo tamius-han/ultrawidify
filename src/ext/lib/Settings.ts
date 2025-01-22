@@ -345,14 +345,14 @@ class Settings {
       if (!currentPath[currentProp]) {
         currentPath[currentProp] = {};
       }
-      this.setProp(propPath, value, options, currentPath[currentProp]);
+      return this.setProp(propPath, value, options, currentPath[currentProp]);
     } else {
       currentPath[currentProp] = value;
 
       if (options?.forceReload) {
-        this.save();
+        return this.save();
       } else {
-        this.saveWithoutReload();
+        return this.saveWithoutReload();
       }
     }
   }
