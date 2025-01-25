@@ -323,8 +323,38 @@ class Settings {
     this.active = activeSettings;
   }
 
-  async setProp(prop, value) {
-    this.active[prop] = value;
+  /**
+   * Sets value of a prop at given path.
+   * @param propPath path to property we want to set. If prop path does not exist,
+   * this function will recursively create it. It is assumed that uninitialized properties
+   * are objects.
+   * @param value
+   */
+  async setProp(propPath: string | string[], value: any, options?: {forceReload?: boolean}, currentPath?: any) {
+    if (!Array.isArray(propPath)) {
+      propPath = propPath.split('.');
+    }
+
+    if (!currentPath) {
+      currentPath = this.active;
+    }
+
+    const currentProp = propPath.shift();
+
+    if (propPath.length) {
+      if (!currentPath[currentProp]) {
+        currentPath[currentProp] = {};
+      }
+      this.setProp(propPath, value, options, currentPath[currentProp]);
+    } else {
+      currentPath[currentProp] = value;
+
+      if (options?.forceReload) {
+        this.save();
+      } else {
+        this.saveWithoutReload();
+      }
+    }
   }
 
   async save(options?) {
