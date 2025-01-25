@@ -4,15 +4,6 @@ if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: UI");
 }
 
-// When this was first coded in summer of 2024, websites using color-scheme other than 'normal'
-// displayed a black square over the video instead of a transparent iframe that we expect.
-// StackOverflow said that this was a workaround for the issue, and it worked just fine. However,
-// 6 months later, this fix is no longer working. Using csui-overlay-normal even on dark mode websites
-// appears to give us a transparent iframe, as we require.
-// Twitter is an example of a site using this color-scheme=dark property, so any changes to this code
-// should be tested on this video:
-// https://x.com/TheKhelIndia/status/1874019989357027511?mx=2
-// As of 1. 1. 2025, 'light' and 'dark' are commented out in order to force 'csui-overlay-normal' everywhere.
 const csuiVersions = {
   'normal': 'csui',         // csui-overlay-normal.html, maps to csui.html
   // 'light': 'csui-light',    // csui-overlay-light.html,  maps to csui-light.html
@@ -48,11 +39,41 @@ class UI {
     this.iframeErrorCount = 0;
     this.iframeConfirmed = false;
     this.iframeRejected = false;
+
+    // TODO: at some point, UI should be different for global popup and in-player UI
+    this.csuiScheme = this.getCsuiScheme();
+    const csuiVersion = this.getCsuiVersion(this.csuiScheme.contentScheme);
+    this.uiURI = chrome.runtime.getURL(`/csui/${csuiVersion}.html`);
+    this.extensionBase = chrome.runtime.getURL('').replace(/\/$/, "");
   }
 
   async init() {
     this.initIframes();
     this.initMessaging();
+  }
+
+
+  /**
+   * Returns color scheme we need to use.
+   *
+   * contentScheme is used to select the correct HTML template.
+   * iframeScheme gets applied to the iframe as style
+   * @returns {contentScheme: string, iframeScheme: string}
+   */
+  getCsuiScheme() {
+    return {
+      contentScheme: window.getComputedStyle( document.body ,null).getPropertyValue('color-scheme'),
+      iframeScheme: document.documentElement.style.colorScheme || document.body.style.colorScheme || undefined
+    };
+  }
+
+  /**
+   * Returns correct template for given preferredScheme parameter
+   * @param {*} preferredScheme
+   * @returns
+   */
+  getCsuiVersion(preferredScheme) {
+    return csuiVersions[preferredScheme] ?? csuiVersions.normal;
   }
 
   initIframes() {
@@ -98,6 +119,12 @@ class UI {
     iframe.style.opacity = 0;
     iframe.style.backgroundColor = 'transparent !important';
 
+    // If colorScheme is defined via CSS on the HTML or BODY elements, then we need to also
+    // put a matching style to the iframe itself. Using the correct UI template is not enough.
+    if (this.csuiScheme.iframeScheme) {
+      iframe.style.colorScheme = this.csuiScheme.iframeScheme;
+    }
+
     /* so we have a problem: we want iframe to be clickthrough everywhere except
      * on our actual overlay. There's no nice way of doing that, so we need some
      * extra javascript to deal with this.
@@ -106,7 +133,6 @@ class UI {
      * will not work (as all events will be hijacked by the iframe). This means
      * that iframe also needs to run its own instance of onMouseMove.
      */
-
 
     // set uiIframe for handleMessage
     this.uiIframe = iframe;
