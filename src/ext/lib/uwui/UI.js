@@ -6,8 +6,8 @@ if (process.env.CHANNEL !== 'stable'){
 
 const csuiVersions = {
   'normal': 'csui',         // csui-overlay-normal.html, maps to csui.html
-  // 'light': 'csui-light',    // csui-overlay-light.html,  maps to csui-light.html
-  // 'dark': 'csui-dark'       // csui-overlay-dark.html,   maps to csui-dark.html
+  'light': 'csui-light',    // csui-overlay-light.html,  maps to csui-light.html
+  'dark': 'csui-dark'       // csui-overlay-dark.html,   maps to csui-dark.html
 };
 
 const MAX_IFRAME_ERROR_COUNT = 5;
@@ -22,12 +22,6 @@ class UI {
     this.lastProbeResponseTs = null;
 
     this.isGlobal = uiConfig.isGlobal ?? false;
-    // TODO: at some point, UI should be different for global popup and in-player UI
-    const preferredScheme =  window.getComputedStyle( document.body ,null).getPropertyValue('color-scheme');
-    const csuiVersion = csuiVersions[preferredScheme] ?? csuiVersions.normal;
-
-    this.uiURI = chrome.runtime.getURL(`/csui/${csuiVersion}.html`);
-    this.extensionBase = chrome.runtime.getURL('').replace(/\/$/, "");
 
     this.eventBus = uiConfig.eventBus;
     this.disablePointerEvents = false;
