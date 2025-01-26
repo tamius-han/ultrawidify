@@ -1419,8 +1419,8 @@ const ExtensionConf: SettingsInterface = {
                                             //      #g — only available in @global
                                             //      #s   — only available for specific site
       enable: {                             //  How should extension work:
-        fullscreen: ExtensionMode.Enabled,  //       'enabled'   - work everywhere except blacklist
-        theater: ExtensionMode.Enabled,     //       'whitelist' - only work on whitelisted sites (#g)
+        fullscreen: ExtensionMode.Disabled,  //       'enabled'   - work everywhere except blacklist
+        theater: ExtensionMode.Disabled,     //       'whitelist' - only work on whitelisted sites (#g)
         normal: ExtensionMode.Disabled,     //       'disabled'  - work nowhere
       },                                    //       'default'   - follow global rules (#s)
       enableAard: {                         //  Should we try to automatically detect aspect ratio?
