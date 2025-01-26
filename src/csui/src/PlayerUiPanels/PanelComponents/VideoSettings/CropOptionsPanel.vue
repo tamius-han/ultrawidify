@@ -112,7 +112,7 @@
     </div>
   </div>
 
-  <div v-if="siteSettings" class="edit-action-area">
+  <div v-if="siteSettings && allowSettingSiteDefault" class="edit-action-area">
     <div class="field">
       <div class="label">Default for this site</div>
       <div class="select">
@@ -166,7 +166,8 @@ export default {
     'settings',      // required for buttons and actions, which are global
     'siteSettings',
     'eventBus',
-    'isEditing'
+    'isEditing',
+    'allowSettingSiteDefault'
   ],
   components: {
     ShortcutButton,
