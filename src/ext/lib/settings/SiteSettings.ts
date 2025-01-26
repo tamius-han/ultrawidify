@@ -224,7 +224,7 @@ export class SiteSettings {
    * @param isFullscreen
    * @returns ExtensionMode
    */
-  isEnabledForEnvironment(isTheater: boolean, isFullscreen: boolean) {
+  isEnabledForEnvironment(isTheater: boolean, isFullscreen: boolean): ExtensionMode {
     const env = this._getEnvironment(isTheater, isFullscreen);
     return this.data.enable[env];
   }
@@ -235,7 +235,7 @@ export class SiteSettings {
    * @param isFullscreen
    * @returns
    */
-  isAardEnabledForEnvironment(isTheater: boolean, isFullscreen: boolean) {
+  isAardEnabledForEnvironment(isTheater: boolean, isFullscreen: boolean): ExtensionMode {
     const env = this._getEnvironment(isTheater, isFullscreen);
     return this.data.enableAard[env];
   }
@@ -246,7 +246,7 @@ export class SiteSettings {
    * @param isFullscreen
    * @returns
    */
-  isKeyboardEnabledForEnvironment(isTheater: boolean, isFullscreen: boolean) {
+  isKeyboardEnabledForEnvironment(isTheater: boolean, isFullscreen: boolean): ExtensionMode {
     const env = this._getEnvironment(isTheater, isFullscreen);
     return this.data.enableKeyboard[env];
   }

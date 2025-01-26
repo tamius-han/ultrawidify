@@ -138,8 +138,7 @@ import ChangelogPanel from './PlayerUiPanels/ChangelogPanel.vue'
 import AboutPanel from '@csui/src/PlayerUiPanels/AboutPanel.vue'
 import PlayerUiSettings from './PlayerUiPanels/PlayerUiSettings.vue'
 import ResetBackupPanel from './PlayerUiPanels/ResetBackupPanel.vue'
-
-import SupportLevelIndicator from './components/SupportLevelIndicator.vue'
+import SupportLevelIndicator from '@csui/src/components/SupportLevelIndicator.vue'
 
 export default {
   components: {

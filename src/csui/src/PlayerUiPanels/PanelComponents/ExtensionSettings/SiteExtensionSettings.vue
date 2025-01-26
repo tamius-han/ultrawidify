@@ -3,7 +3,8 @@
     <!-- Enable extension -->
     <div class="field">
       <div class="label">
-        Enable extension under the following conditions:
+        Enable <span class="color-emphasis">extension</span>
+        <span class="sub-label"><br/>under the following conditions:</span>
       </div>
       <div class="select">
         <select
@@ -18,7 +19,7 @@
           </option>
           <template v-if="isDefaultConfiguration">
             <option value="disabled">
-              Disabled (unless enabled for specific site)
+              Disabled by default
             </option>
           </template>
           <template v-else>
@@ -42,185 +43,224 @@
       </div>
     </div>
 
-    <!-- Enable AARD -->
-    <div class="field">
-      <div class="label">
-        Enable automatic aspect ratio detection under the following conditions:
-      </div>
-      <div class="select">
-        <select
-          v-model="simpleExtensionSettings.enableAard"
-          @click="setExtensionMode('enableAard', $event)"
-        >
-          <option
-            v-if="simpleExtensionSettings.enable === 'complex'"
-            value="complex"
+    <!-- The rest of the menu is disabled when extension is disabled -->
+    <div :class="{disabled: simpleExtensionSettings.enable === 'disabled' }">
+      <!-- Enable AARD -->
+      <div class="field">
+        <div class="label">
+          Enable <span class="color-emphasis">automatic aspect ratio detection</span>
+          <span class="sub-label"><br/>under the following conditions:</span>
+        </div>
+        <div class="select">
+          <select
+            v-model="simpleExtensionSettings.enableAard"
+            @click="setExtensionMode('enableAard', $event)"
           >
-            (Site uses advanced settings)
-          </option>
-          <template v-if="isDefaultConfiguration">
-            <option value="disabled">
-              Disabled (unless enabled for specific site)
+            <option
+              v-if="simpleExtensionSettings.enable === 'complex'"
+              value="complex"
+            >
+              (Site uses advanced settings)
             </option>
-          </template>
-          <template v-else>
-            <option value="default">
-              Use default ()
+            <template v-if="isDefaultConfiguration">
+              <option value="disabled">
+                Disabled by default
+              </option>
+            </template>
+            <template v-else>
+              <option value="default">
+                Use default ()
+              </option>
+              <option value="disabled">
+                Never
+              </option>
+            </template>
+            <option value="fs">
+              Fullscreen only
             </option>
-            <option value="disabled">
-              Never
+            <option value="theater">
+              Fullscreen and theater mode
             </option>
-          </template>
-          <option value="fs">
-            Fullscreen only
-          </option>
-          <option value="theater">
-            Fullscreen and theater mode
-          </option>
-          <option value="enabled">
-            Always
-          </option>
-        </select>
+            <option value="enabled">
+              Always
+            </option>
+          </select>
+        </div>
       </div>
-    </div>
 
-    <!-- Enable keyboard -->
-    <div class="field">
-      <div class="label">
-        Enable keyboard shortcuts under the following conditions
-      </div>
-      <div class="select">
-        <select
-          v-model="simpleExtensionSettings.enableKeyboard"
-          @click="setExtensionMode('enableKeyboard', $event)"
-        >
-          <option
-            v-if="simpleExtensionSettings.enable === 'complex'"
-            value="complex"
+      <!-- Enable keyboard -->
+      <div class="field">
+        <div class="label">
+          Enable <span class="color-emphasis">keyboard shortcuts</span>
+          <span class="sub-label"><br/>under the following conditions:</span>
+        </div>
+        <div class="select">
+          <select
+            v-model="simpleExtensionSettings.enableKeyboard"
+            @click="setExtensionMode('enableKeyboard', $event)"
           >
-            (Site uses advanced settings)
-          </option>
-          <template v-if="isDefaultConfiguration">
-            <option value="disabled">
-              Disabled (unless enabled for specific site)
+            <option
+              v-if="simpleExtensionSettings.enable === 'complex'"
+              value="complex"
+            >
+              (Site uses advanced settings)
             </option>
-          </template>
-          <template v-else>
-            <option value="default">
-              Use default ()
+            <template v-if="isDefaultConfiguration">
+              <option value="disabled">
+                Disabled by default
+              </option>
+            </template>
+            <template v-else>
+              <option value="default">
+                Use default ()
+              </option>
+              <option value="disabled">
+                Never
+              </option>
+            </template>
+            <option value="fs">
+              Fullscreen only
             </option>
-            <option value="disabled">
-              Never
+            <option value="theater">
+              Fullscreen and theater mode
             </option>
-          </template>
-          <option value="fs">
-            Fullscreen only
-          </option>
-          <option value="theater">
-            Fullscreen and theater mode
-          </option>
-          <option value="enabled">
-            Always
-          </option>
-        </select>
+            <option value="enabled">
+              Always
+            </option>
+          </select>
+        </div>
       </div>
-    </div>
 
-    <!-- Default crop -->
-    <div class="field">
-      <div class="label">Default crop:</div>
-      <div class="select">
-        <select
-          v-model="siteDefaultCrop"
-          @change="setOption('defaults.crop', $event)"
-        >
-          <option
-            v-if="!isDefaultConfiguration"
-            :value="JSON.stringify({useDefault: true})"
+      <!-- Enable keyboard -->
+      <div class="field">
+        <div class="label">
+          Enable <span class="color-emphasis">in-player UI</span>
+          <span class="sub-label"><br/>under the following conditions:</span>
+        </div>
+        <div class="select">
+          <select
+            v-model="simpleExtensionSettings.enableUI"
+            @click="setExtensionMode('enableUI', $event)"
           >
-            Use default ({{getCommandValue(settings?.active.commands.crop, siteSettings.data.defaults.crop)}})
-          </option>
-          <option
-            v-for="(command, index) of settings?.active.commands.crop"
-            :key="index"
-            :value="JSON.stringify(command.arguments)"
+            <template v-if="isDefaultConfiguration">
+              <option value="disabled">
+                Disabled by default
+              </option>
+            </template>
+            <template v-else>
+              <option value="default">
+                Use default ()
+              </option>
+              <option value="disabled">
+                Never
+              </option>
+            </template>
+            <option value="fs">
+              Fullscreen only
+            </option>
+            <option value="theater">
+              Always where possible
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Default crop -->
+      <div class="field">
+        <div class="label">Default crop:</div>
+        <div class="select">
+          <select
+            v-model="siteDefaultCrop"
+            @change="setOption('defaults.crop', $event)"
           >
-            {{command.label}}
-          </option>
-        </select>
+            <option
+              v-if="!isDefaultConfiguration"
+              :value="JSON.stringify({useDefault: true})"
+            >
+              Use default ({{getCommandValue(settings?.active.commands.crop, siteSettings.data.defaults.crop)}})
+            </option>
+            <option
+              v-for="(command, index) of settings?.active.commands.crop"
+              :key="index"
+              :value="JSON.stringify(command.arguments)"
+            >
+              {{command.label}}
+            </option>
+          </select>
+        </div>
       </div>
       <div class="hint">This is how extension will crop video if/when autodetection is disabled. Pick 'Reset' option to keep aspect ratio as-is by default.</div>
-    </div>
 
-    <!-- Default stretch -->
-    <div class="field">
-      <div class="label">Default stretch:</div>
-      <div class="select">
-        <select
-          v-model="siteDefaultStretch"
-          @change="setOption('defaults.stretch', $event)"
-        >
-          <option
-            v-if="!isDefaultConfiguration"
-            :value="JSON.stringify({useDefault: true})"
+      <!-- Default stretch -->
+      <div class="field">
+        <div class="label">Default stretch:</div>
+        <div class="select">
+          <select
+            v-model="siteDefaultStretch"
+            @change="setOption('defaults.stretch', $event)"
           >
-            Use default ({{getCommandValue(settings?.active.commands.stretch, siteSettings.data.defaults.stretch)}})
-          </option>
-          <option
-            v-for="(command, index) of settings?.active.commands.stretch"
-            :key="index"
-            :value="JSON.stringify(command.arguments)"
-          >
-            {{command.label}}
-          </option>
-        </select>
+            <option
+              v-if="!isDefaultConfiguration"
+              :value="JSON.stringify({useDefault: true})"
+            >
+              Use default ({{getCommandValue(settings?.active.commands.stretch, siteSettings.data.defaults.stretch)}})
+            </option>
+            <option
+              v-for="(command, index) of settings?.active.commands.stretch"
+              :key="index"
+              :value="JSON.stringify(command.arguments)"
+            >
+              {{command.label}}
+            </option>
+          </select>
+        </div>
       </div>
-    </div>
 
-    <!-- Default alignment -->
-    <div class="field">
-      <div class="label">Default alignment:</div>
-      <div class="select">
-        <select
-          v-model="siteDefaultAlignment"
-          @change="setOption('defaults.alignment', $event)"
-        >
-          <option
-            v-if="!isDefaultConfiguration"
-            :value="JSON.stringify({useDefault: true})"
+      <!-- Default alignment -->
+      <div class="field">
+        <div class="label">Default alignment:</div>
+        <div class="select">
+          <select
+            v-model="siteDefaultAlignment"
+            @change="setOption('defaults.alignment', $event)"
           >
-            Use default ({{getAlignmentLabel(siteSettings.data.defaults.alignment)}})
-          </option>
-          <option
-            v-for="(command, index) of alignmentOptions"
-            :key="index"
-            :value="JSON.stringify(command.arguments)"
-          >
-            {{command.label}}
-          </option>
-        </select>
+            <option
+              v-if="!isDefaultConfiguration"
+              :value="JSON.stringify({useDefault: true})"
+            >
+              Use default ({{getAlignmentLabel(siteSettings.data.defaults.alignment)}})
+            </option>
+            <option
+              v-for="(command, index) of alignmentOptions"
+              :key="index"
+              :value="JSON.stringify(command.arguments)"
+            >
+              {{command.label}}
+            </option>
+          </select>
+        </div>
       </div>
-    </div>
 
-    <!-- Crop, et. al. Persistence -->
-    <div class="field">
-      <div class="label">Persist crop, stretch, and alignment between videos</div>
-      <div class="select">
-        <select
-          v-model="siteDefaultCropPersistence"
-          @click="setOption('persistCSA', $event)"
-        >
-          <option
-            v-if="!isDefaultConfiguration"
-            :value="CropModePersistence.Default"
+      <!-- Crop, et. al. Persistence -->
+      <div class="field">
+        <div class="label">Persist crop, stretch, and alignment between videos</div>
+        <div class="select">
+          <select
+            v-model="siteDefaultCropPersistence"
+            @click="setOption('persistCSA', $event)"
           >
-            Use default ({{defaultPersistanceLabel}})
-          </option>
-          <option :value="CropModePersistence.Disabled">Disabled</option>
-          <option :value="CropModePersistence.UntilPageReload">Until page reload</option>
-          <option :value="CropModePersistence.CurrentSession">Current session</option>
-          <option :value="CropModePersistence.Forever">Always persist</option>
-        </select>
+            <option
+              v-if="!isDefaultConfiguration"
+              :value="CropModePersistence.Default"
+            >
+              Use default ({{defaultPersistanceLabel}})
+            </option>
+            <option :value="CropModePersistence.Disabled">Disabled</option>
+            <option :value="CropModePersistence.UntilPageReload">Until page reload</option>
+            <option :value="CropModePersistence.CurrentSession">Current session</option>
+            <option :value="CropModePersistence.Forever">Always persist</option>
+          </select>
+        </div>
       </div>
     </div>
   </div>
@@ -401,13 +441,20 @@ export default {
         commandArguments = undefined;
       }
 
+      console.log('saving settings ...');
       await this.siteSettings.set(option, commandArguments, {reload: false});
+      console.log('settings saved.');
 
-      // changing alignment options doesn't trigger re-compute, so we need to do it ourselves.
-      // note that this re-computes siteDefaultAlignment even when setting other options, but
-      // it's _too late AM_ and hit to performance probably isn't bad enough to warrant
-      // spending time on a more correct solution tomorrow
-      this._computedWatchers.siteDefaultAlignment.run();
+      // we also need to force re-compute all watchers, otherwise UI will lag behind
+      // actual state of settings until reload
+      this._computedWatchers?.simpleExtensionSettings?.run();
+      this._computedWatchers?.siteDefaultCrop?.run();
+      this._computedWatchers?.siteDefaultStretch?.run();
+      this._computedWatchers?.siteDefaultAlignment?.run();
+      this._computedWatchers?.siteDefaultCropPersistence?.run();
+      this._computedWatchers?.defaultPersistanceLabel?.run();
+
+      console.log('watchers recomputed');
 
       this.$nextTick( () => this.$forceUpdate());
     },

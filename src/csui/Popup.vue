@@ -19,6 +19,13 @@
           <h1>
             <span class="smallcaps">Ultrawidify</span>: <small>Quick settings</small>
           </h1>
+          <div v-if="site && siteSettings" style="transform: scale(0.75) translateX(-12.5%); margin-bottom: -0.5rem; align-content: center" class="flex flex-row">
+            <div>site: {{site.host}}</div>
+            <SupportLevelIndicator
+              :siteSupportLevel="siteSupportLevel"
+            >
+            </SupportLevelIndicator>
+          </div>
         </div>
         <div v-if="BrowserDetect?.processEnvChannel !== 'stable'" class="absolute channel-info version-info">
           Build channel: {{BrowserDetect?.processEnvChannel}} <br/>
@@ -113,6 +120,7 @@ import Settings from '../ext/lib/Settings';
 import Logger from '../ext/lib/Logger';
 import EventBus from '../ext/lib/EventBus';
 import {ChromeShittinessMitigations as CSM} from '../common/js/ChromeShittinessMitigations';
+import SupportLevelIndicator from '@csui/src/components/SupportLevelIndicator.vue'
 
 export default {
   components: {
@@ -122,6 +130,7 @@ export default {
     PlayerDetectionPanel,
     BaseExtensionSettings,
     InPlayerUIAdvertisement,
+    SupportLevelIndicator,
     AboutPanel
   },
   data () {
@@ -144,6 +153,11 @@ export default {
         {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
         {id: 'about', label: 'About', icon: 'information-outline'},
       ],
+    }
+  },
+  computed: {
+    siteSupportLevel() {
+      return (this.site && this.siteSettings) ? this.siteSettings.data.type || 'no-support' : 'waiting';
     }
   },
   async created() {

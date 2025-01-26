@@ -16,7 +16,7 @@
     <ShortcutButton
       v-if="editMode"
       class="button b3"
-     :class="{active: editMode ? editModeOptions?.crop?.selectedIndex === null : isActiveCrop(command)}"
+      :class="{active: editMode ? editModeOptions?.crop?.selectedIndex === null : isActiveCrop(command)}"
       label="Add new"
       @click="editAction(
         {action: 'set-ar', label: 'New aspect ratio', arguments: {type: AspectRatioType.Fixed}},
@@ -54,12 +54,13 @@
               @blur="editModeOptions.crop.selected.label === 'New aspect ratio' ? editModeOptions.crop.selected.label = editModeOptions.crop.selected.arguments.ratio : null"
             >
           </div>
-          <div class="hint">
-            You can enter a ratio in width:height format (e.g. "21:9" or "1:2.39"), or just the factor
-            (in this case, "1:2.39" would become "2.39" and "21:9" would become "2.33"). You should enter
-            your numbers without quote marks. Number will be converted to factor form on save.
-          </div>
         </div>
+        <div class="hint">
+          You can enter a ratio in width:height format (e.g. "21:9" or "1:2.39"), or just the factor
+          (in this case, "1:2.39" would become "2.39" and "21:9" would become "2.33"). You should enter
+          your numbers without quote marks. Number will be converted to factor form on save.
+        </div>
+
         <div class="field">
           <div class="label">
             Label:
@@ -67,9 +68,9 @@
           <div class="input">
             <input v-model="editModeOptions.crop.selected.label">
           </div>
-          <div class="hint">
-            Label for the button. You can make it say something other than ratio.
-          </div>
+        </div>
+        <div class="hint">
+          Label for the button. You can make it say something other than ratio.
         </div>
       </template>
 
@@ -83,11 +84,11 @@
           >
           </EditShortcutButton>
         </div>
-        <div class="hint">
-          <b>Note:</b> Your browser and OS already use certain key combinations that involve Ctrl and Meta (Windows) keys — and, to a lesser extent, Alt.
-          The extension doesn't (and cannot) check whether the keyboard shortcut you enter is actually free for you to use. The extension also won't override
-          any keyboard shortcuts defined by the site itself.
-        </div>
+      </div>
+      <div class="hint">
+        <b>Note:</b> Your browser and OS already use certain key combinations that involve Ctrl and Meta (Windows) keys — and, to a lesser extent, Alt.
+        The extension doesn't (and cannot) check whether the keyboard shortcut you enter is actually free for you to use. The extension also won't override
+        any keyboard shortcuts defined by the site itself.
       </div>
 
       <div class="flex flex-row flex-end">

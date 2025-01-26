@@ -115,7 +115,9 @@ button, .button {
 .field {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
 
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
@@ -129,28 +131,39 @@ button, .button {
 
   .label {
     flex: 0 0 25%;
+    min-width: 16rem;
     text-align: right;
     padding-right: 1rem;
+
+    .color-emphasis {
+      color: #fa6;
+    }
+    .sub-label {
+      font-size: 0.9em;
+      opacity: 0.69;
+    }
   }
 
   .input, .range-input {
-    flex: 0 0 70%;
+    flex-grow: 1;
+    flex-shrink: 1;
     max-width: 24rem;
   }
 
-  .hint {
-    padding-left: calc(25% + 1rem);
-    font-size: 0.8rem;
-    opacity: 0.7;
-    margin-top: 0.25rem;
-    width: 100%;
+  .has-hint {
+    display: flex;
+    flex-direction: column;
   }
+
   .select {
+    flex-grow: 1;
+    flex-shrink: 1;
 
     select {
       background: rgba($blackBg, $hoverTransparentOpacity);
       color: #fff;
-      border: 0px solid transparent;
+      // border: 0px solid transparent;
+      border: 1px solid rgba(255, 171, 102, 0.42);
 
       padding: 0.5rem 1rem 0.25rem;
       outline: none;
@@ -159,6 +172,15 @@ button, .button {
       font-size: inherit;
     }
   }
+}
+.hint {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-top: 0.25rem;
+  margin-bottom: 0.75rem;
+  margin-left: 5rem;
+  // width: 100%;
+  box-sizing:border-box;
 }
 
 .options-bar {

@@ -73,10 +73,11 @@
               @change="(event) => updateSettings(true)"
             >
           </div>
-          <div class="hint">
-            Width of the trigger zone (% of player area).
-          </div>
         </div>
+        <div class="hint">
+          Width of the trigger zone (% of player area).
+        </div>
+
         <div class="field">
           <div class="label">Trigger zone height:</div>
           <div class="input range-input">
@@ -95,10 +96,11 @@
               @change="(event) => updateSettings(true)"
             >
           </div>
-          <div class="hint">
-            Height of the trigger zone (% of player area).
-          </div>
         </div>
+        <div class="hint">
+          Height of the trigger zone (% of player area).
+        </div>
+
         <div class="field">
           <div class="label">Trigger zone horizontal offset:</div>
           <div class="input range-input">
@@ -116,10 +118,11 @@
               @change="(event) => updateSettings(true)"
             >
           </div>
-          <div class="hint">
-            By default, trigger zone is centered around the button. This option moves trigger zone left and right.
-          </div>
         </div>
+        <div class="hint">
+          By default, trigger zone is centered around the button. This option moves trigger zone left and right.
+        </div>
+
         <div class="field">
           <div class="label">Trigger zone vertical offset:</div>
           <div class="input range-input">
@@ -137,9 +140,9 @@
               @change="(event) => updateSettings(true)"
             >
           </div>
-          <div class="hint">
-            By default, trigger zone is centered around the button. This option moves trigger zone up and down.
-          </div>
+        </div>
+        <div class="hint">
+          By default, trigger zone is centered around the button. This option moves trigger zone up and down.
         </div>
 
         <div class="action-row">
