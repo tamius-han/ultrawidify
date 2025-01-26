@@ -334,6 +334,10 @@ export default {
     },
     getRandomColor() {
       return `rgb(${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)})`;
+    },
+    updateConfig() {
+      this.settings.init();
+      this.$nextTick( () => this.$forceUpdate());
     }
   }
 }

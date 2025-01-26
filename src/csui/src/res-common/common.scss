@@ -4,6 +4,12 @@ div, p, span {
   font-size: 16px;
 }
 
+.disabled {
+  pointer-events: none;
+  /* color: #666; */
+  filter: contrast(50%) brightness(40%) grayscale(100%);
+}
+
 .warning-box {
   display: flex;
   flex-direction: row;

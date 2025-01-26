@@ -585,6 +585,11 @@ export default {
 
     handleBusTunnelIn(payload) {
       this.eventBus.send(payload.action, payload.config, payload.routingData);
+    },
+
+    updateConfig() {
+      this.settings.init();
+      this.$nextTick( () => this.$forceUpdate());
     }
   }
 }

@@ -94,6 +94,10 @@ export default {
   components: {
   },
   methods: {
+    updateConfig() {
+      this.settings.init();
+      this.$nextTick( () => this.$forceUpdate());
+    }
   }
 }
 </script>
