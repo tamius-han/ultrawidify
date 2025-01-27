@@ -127,7 +127,7 @@
     </div>
   </div>
 
-  <div v-if="siteSettings" class="edit-action-area">
+  <div v-if="siteSettings && allowSettingSiteDefault" class="edit-action-area">
     <div class="field">
       <div class="label">Default for this site:</div>
       <div class="select">
@@ -183,7 +183,8 @@ export default {
     'settings',      // required for buttons and actions, which are global
     'siteSettings',
     'eventBus',
-    'isEditing'
+    'isEditing',
+    'allowSettingSiteDefault'
   ],
   components: {
     ShortcutButton,
@@ -244,6 +245,6 @@ export default {
 }
 </script>
 
-<style lang="scss" src="../../../../res/css/flex.scss" scoped></style>
+<style lang="scss" src="@csui/res/css/flex.scss" scoped></style>
 <style lang="scss" src="@csui/src/res-common/panels.scss" scoped></style>
 <style lang="scss" src="@csui/src/res-common/common.scss" scoped></style>
