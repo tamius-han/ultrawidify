@@ -40,8 +40,6 @@ body {
   padding-right: 1em;
 }
 
-
-
 /* overflow stuff */
 .overflow-y-auto {
   overflow: auto;
@@ -51,6 +49,19 @@ body {
 .scrollbar-darker {
   scrollbar-color: rgba($primary-color, 0.5) $background-primary;
 }
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(#fa6, 0.5);
+  border-radius: 20px;
+  border: transparent;
+}
+
 
 
 /* scrollbars for chrome/webkit */
