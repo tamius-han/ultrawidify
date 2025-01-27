@@ -24,7 +24,7 @@
           </template>
           <template v-else>
             <option value="default">
-              Use default ()
+              Use default ({{simpleDefaultSettings.enable}})
             </option>
             <option value="disabled">
               Never
@@ -69,7 +69,7 @@
             </template>
             <template v-else>
               <option value="default">
-                Use default ()
+                Use default ({{simpleDefaultSettings.enableAard}})
               </option>
               <option value="disabled">
                 Never
@@ -112,7 +112,7 @@
             </template>
             <template v-else>
               <option value="default">
-                Use default ()
+                Use default ({{simpleDefaultSettings.enableKeyboard}})
               </option>
               <option value="disabled">
                 Never
@@ -131,7 +131,7 @@
         </div>
       </div>
 
-      <!-- Enable keyboard -->
+      <!-- Enable UI -->
       <div class="field">
         <div class="label">
           Enable <span class="color-emphasis">in-player UI</span>
@@ -149,7 +149,7 @@
             </template>
             <template v-else>
               <option value="default">
-                Use default ()
+                Use default ({{simpleDefaultSettings.enableUI}})
               </option>
               <option value="disabled">
                 Never
@@ -267,9 +267,9 @@
 </template>
 
 <script>
-import ExtensionMode from '../../../../../common/enums/ExtensionMode.enum';
-import VideoAlignmentType from '../../../../../common/enums/VideoAlignmentType.enum';
-import CropModePersistence from './../../../../../common/enums/CropModePersistence.enum';
+import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
+import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
+import CropModePersistence from '@src/common/enums/CropModePersistence.enum';
 
 export default {
   data() {
@@ -305,7 +305,16 @@ export default {
         enable: this.compileSimpleSettings('enable'),
         enableAard: this.compileSimpleSettings('enableAard'),
         enableKeyboard: this.compileSimpleSettings('enableKeyboard'),
+        enableUI: this.compileSimpleSettings('enableUI')
       }
+    },
+    simpleDefaultSettings() {
+      return {
+        enable: this.getDefaultOptionLabel('enable'),
+        enableAard: this.getDefaultOptionLabel('enableAard'),
+        enableKeyboard: this.getDefaultOptionLabel('enableKeyboard'),
+        enableUI: this.getDefaultOptionLabel('enableUI')
+      };
     },
     siteDefaultCrop() {
       return this.siteSettings.raw?.defaults?.crop ? JSON.stringify(this.siteSettings.raw?.defaults?.crop) : JSON.stringify({useDefault: true});
@@ -338,40 +347,41 @@ export default {
     /**
      * Compiles our extension settings into more user-friendly options
      */
-    compileSimpleSettings(component) {
+    compileSimpleSettings(component, getDefaults) {
+      const settingsData = getDefaults ? this.settings.active.sites['@global'] : this.siteSettings?.raw;
       try {
         if (
-          this.siteSettings?.data?.[component]?.normal        === ExtensionMode.Disabled
-          && this.siteSettings?.data?.[component]?.theater    === ExtensionMode.Disabled
-          && this.siteSettings?.data?.[component]?.fullscreen === ExtensionMode.Disabled
+          (  settingsData?.[component]?.normal     === ExtensionMode.Disabled || component === 'enableUI')
+          && settingsData?.[component]?.theater    === ExtensionMode.Disabled
+          && settingsData?.[component]?.fullscreen === ExtensionMode.Disabled
         ) {
           return 'disabled';
         }
         if (
-          this.siteSettings?.data?.[component]?.normal        === ExtensionMode.Default
-          && this.siteSettings?.data?.[component]?.theater    === ExtensionMode.Default
-          && this.siteSettings?.data?.[component]?.fullscreen === ExtensionMode.Default
+          (  settingsData?.[component]?.normal     === ExtensionMode.Default || component === 'enableUI')
+          && settingsData?.[component]?.theater    === ExtensionMode.Default
+          && settingsData?.[component]?.fullscreen === ExtensionMode.Default
         ) {
           return 'default';
         }
         if (
-          this.siteSettings?.data?.[component]?.normal        === ExtensionMode.Disabled
-          && this.siteSettings?.data?.[component]?.theater    === ExtensionMode.Disabled
-          && this.siteSettings?.data?.[component]?.fullscreen === ExtensionMode.Enabled
+          (  settingsData?.[component]?.normal     === ExtensionMode.Disabled || component === 'enableUI')
+          && settingsData?.[component]?.theater    === ExtensionMode.Disabled
+          && settingsData?.[component]?.fullscreen === ExtensionMode.Enabled
         ) {
           return 'fs';
         }
         if (
-          this.siteSettings?.data?.[component]?.normal        === ExtensionMode.Disabled
-          && this.siteSettings?.data?.[component]?.theater    === ExtensionMode.Enabled
-          && this.siteSettings?.data?.[component]?.fullscreen === ExtensionMode.Enabled
+          (  settingsData?.[component]?.normal     === ExtensionMode.Disabled  || component === 'enableUI')
+          && settingsData?.[component]?.theater    === ExtensionMode.Enabled
+          && settingsData?.[component]?.fullscreen === ExtensionMode.Enabled
         ) {
           return 'theater';
         }
         if (
-          this.siteSettings?.data?.[component]?.normal        === ExtensionMode.Enabled
-          && this.siteSettings?.data?.[component]?.theater    === ExtensionMode.Enabled
-          && this.siteSettings?.data?.[component]?.fullscreen === ExtensionMode.Enabled
+          (  settingsData?.[component]?.normal     === ExtensionMode.Enabled || component === 'enableUI')
+          && settingsData?.[component]?.theater    === ExtensionMode.Enabled
+          && settingsData?.[component]?.fullscreen === ExtensionMode.Enabled
         ) {
           return 'enabled';
         }
@@ -379,6 +389,36 @@ export default {
         return 'complex';
       } catch (e) {
         return 'loading';
+      }
+    },
+
+    getDefaultOptionLabel(component) {
+      const componentValue = this.compileSimpleSettings(component, true);
+
+      if (componentValue === 'loading') {
+        return componentValue;
+      }
+      if (component === 'enableUI') {
+        switch (componentValue) {
+          case 'fs':
+            return 'fullscreen only';
+          case 'theater':
+            return 'where possible';
+          case 'disabled':
+            return 'disabled';
+        }
+      }
+      switch (componentValue) {
+        case 'fs':
+          return 'Fullscreen only';
+        case 'theater':
+          return 'theater & FS';
+        case 'enabled':
+          return 'always';
+        case 'disabled':
+          return 'disabled';
+        case 'default':
+          return 'complex'
       }
     },
 
@@ -441,20 +481,17 @@ export default {
         commandArguments = undefined;
       }
 
-      console.log('saving settings ...');
       await this.siteSettings.set(option, commandArguments, {reload: false});
-      console.log('settings saved.');
 
       // we also need to force re-compute all watchers, otherwise UI will lag behind
       // actual state of settings until reload
       this._computedWatchers?.simpleExtensionSettings?.run();
+      this._computedWatchers?.simpleDefaultSettings?.run();
       this._computedWatchers?.siteDefaultCrop?.run();
       this._computedWatchers?.siteDefaultStretch?.run();
       this._computedWatchers?.siteDefaultAlignment?.run();
       this._computedWatchers?.siteDefaultCropPersistence?.run();
       this._computedWatchers?.defaultPersistanceLabel?.run();
-
-      console.log('watchers recomputed');
 
       this.$nextTick( () => this.$forceUpdate());
     },

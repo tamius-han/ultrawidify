@@ -248,14 +248,15 @@ class PlayerData {
   //#endregion
 
   deferredUiInitialization(playerDimensions) {
-    if (this.ui || ! this.videoData.settings.active.ui?.inPlayer?.enabled) {
+    if (this.ui || this.siteSettings.data.enableUI.fullscreen === ExtensionMode.Disabled) {
       return;
     }
 
     if (
       this.isFullscreen
       || (
-        playerDimensions.width > 1208
+        this.siteSettings.data.enableUI.theater !== ExtensionMode.Disabled
+        && playerDimensions.width > 1208
         && playerDimensions.height > 720
       )
     ) {

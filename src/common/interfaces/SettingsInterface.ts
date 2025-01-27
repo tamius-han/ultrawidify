@@ -312,6 +312,7 @@ export interface SiteSettingsInterface {
   enable: ExtensionEnvironmentSettingsInterface;
   enableAard: ExtensionEnvironmentSettingsInterface;
   enableKeyboard: ExtensionEnvironmentSettingsInterface;
+  enableUI: ExtensionEnvironmentSettingsInterface;  // Lies! enableUI doesn't use 'theater' property (but uses the other two)
 
   type?: 'official' | 'community' | 'user-defined' | 'testing' | 'officially-disabled' | 'unknown' | 'modified';
   defaultType: 'official' | 'community' | 'user-defined' | 'testing' | 'officially-disabled' | 'unknown' | 'modified';

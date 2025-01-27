@@ -28,7 +28,7 @@ export class SiteSettings {
   //#region lifecycle
   constructor(settings: Settings, site: string) {
     this.settings = settings;
-    this.data = settings.active.sites[site];
+    this.raw = settings.active.sites[site];
     this.site = site;
     this.defaultSettings = settings.default.sites['@global'];
 
@@ -52,7 +52,7 @@ export class SiteSettings {
    * Alan pls ensure default settings object follows the correct structure
    */
   private compileSettingsObject() {
-    this.raw = _cp(this.settings.active.sites[this.site] ?? {})
+    this.data = _cp(this.settings.active.sites[this.site] ?? {})
 
     if (!this.data) {
       this.data = _cp(this.defaultSettings);
@@ -81,7 +81,7 @@ export class SiteSettings {
       }
     }
 
-    for (const enableSegment of ['enable', 'enableAard', 'enableKeyboard']) {
+    for (const enableSegment of ['enable', 'enableAard', 'enableKeyboard', 'enableUI']) {
       if (!this.data[enableSegment]) {
         this.data[enableSegment] = {};
       }

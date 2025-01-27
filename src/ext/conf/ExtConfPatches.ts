@@ -202,6 +202,28 @@ const ExtensionConfPatch = [
         }
       }
     }
+  }, {
+    forVersion: '6.2.4',
+    updateFn: (userOptions: SettingsInterface, defaultOptions) => {
+      for (const site in userOptions.sites) {
+        userOptions.sites[site].enableUI = {
+          fullscreen: ExtensionMode.Default,
+          theater: ExtensionMode.Default,
+          normal: ExtensionMode.Default,
+        }
+      }
+      const uiEnabled =
+      userOptions.sites['@global'].enableUI = {
+        fullscreen:  userOptions.ui.inPlayer.enabled ? ExtensionMode.Enabled : ExtensionMode.Disabled,
+        theater: ExtensionMode.Enabled,
+        normal: (userOptions.ui.inPlayer.enabled && !userOptions.ui.inPlayer.enabledFullscreenOnly) ? ExtensionMode.Enabled : ExtensionMode.Disabled
+      }
+      userOptions.sites['@empty'].enableUI = {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default,
+      }
+    }
   }
 ];
 

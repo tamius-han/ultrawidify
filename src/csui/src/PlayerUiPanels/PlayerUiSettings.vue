@@ -5,23 +5,14 @@
       <h2>Player UI options</h2>
 
       <div class="flex flex-col compact-form">
-        <div class="field">
-          <div class="label">Enable in-player UI</div>
-          <input
-            type="checkbox"
-            v-model="settings.active.ui.inPlayer.enabled"
-            @change="saveSettings()"
-          />
+        <div v-if="!siteSettings.data.enableUI.fullscreen">
+          UI is disabled for this site.
         </div>
+
         <div
           class="flex flex-col field-group compact-form"
-          :class="{disabled: !settings.active.ui.inPlayer.enabled}"
+          :class="{disabled: !siteSettings.data.enableUI.fullscreen}"
         >
-          <div class="field">
-            <div class="label">Enable only in full screen</div>
-            <input type="checkbox" v-model="settings.active.ui.inPlayer.enabledFullscreenOnly" />
-          </div>
-
           <div class="field disabled">
             <div class="label">
               Popup activator position:
@@ -171,6 +162,7 @@ export default {
   ],
   props: [
     'settings',      // required for buttons and actions, which are global
+    'siteSettings',
     'eventBus',
   ],
   mounted() {

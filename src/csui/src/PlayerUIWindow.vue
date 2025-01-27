@@ -86,6 +86,7 @@
           <PlayerUiSettings
             v-if="selectedTab === 'playerUiSettings'"
             :settings="settings"
+            :siteSettings="siteSettings"
             :eventBus="eventBus"
           >
           </PlayerUiSettings>

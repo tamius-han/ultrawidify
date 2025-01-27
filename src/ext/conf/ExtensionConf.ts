@@ -1433,6 +1433,12 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Enabled,
         normal: ExtensionMode.Disabled
       },
+      enableUI: {
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,     // Lies! means 'theater-ish'
+        normal: ExtensionMode.Enabled       // Not actually used.
+      },
+
       defaultType: 'unknown',
       persistCSA: CropModePersistence.Disabled,
 
@@ -1458,6 +1464,12 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Default,
         normal: ExtensionMode.Default
       },
+      enableUI: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Disabled
+      },
+
       type: 'user-defined',
       defaultType: 'user-defined',
       persistCSA: CropModePersistence.Default,
@@ -1483,6 +1495,12 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Default,
         normal: ExtensionMode.Default
       },
+      enableUI: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
+      },
+
       override: false,                  // ignore value localStorage in favour of this
       type: 'official',                 // is officially supported? (Alternatives are 'community' and 'user-defined')
       defaultType: 'official',          // if user mucks around with settings, type changes to 'user-defined'.
@@ -1517,6 +1535,12 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Default,
         normal: ExtensionMode.Disabled
       },
+      enableUI: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
+      },
+
       override: false,
       type: 'community',
       defaultType: 'community',
@@ -1533,6 +1557,11 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Default,
       },
       enableKeyboard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
+      },
+      enableUI: {
         fullscreen: ExtensionMode.Default,
         theater: ExtensionMode.Default,
         normal: ExtensionMode.Default
@@ -1559,9 +1588,9 @@ const ExtensionConf: SettingsInterface = {
     },
     "www.twitch.tv": {
       enable: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default,
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Enabled,
       },
       enableAard: {
         fullscreen: ExtensionMode.Default,
@@ -1569,6 +1598,11 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Default,
       },
       enableKeyboard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
+      },
+      enableUI: {
         fullscreen: ExtensionMode.Default,
         theater: ExtensionMode.Default,
         normal: ExtensionMode.Default
@@ -1588,6 +1622,11 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Default,
       },
       enableKeyboard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
+      },
+      enableUI: {
         fullscreen: ExtensionMode.Default,
         theater: ExtensionMode.Default,
         normal: ExtensionMode.Default
@@ -1624,6 +1663,11 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Disabled,
         normal: ExtensionMode.Disabled,
       },
+      enableUI: {
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,
+        normal: ExtensionMode.Disabled
+      },
       type: 'officially-disabled',
       defaultType: 'officially-disabled',
       activeDOMConfig: 'official',
@@ -1655,6 +1699,11 @@ const ExtensionConf: SettingsInterface = {
         fullscreen: ExtensionMode.Disabled,
         theater: ExtensionMode.Disabled,
         normal: ExtensionMode.Disabled,
+      },
+      enableUI: {
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,
+        normal: ExtensionMode.Disabled
       },
       type: 'officially-disabled',
       defaultType: 'officially-disabled',
@@ -1688,6 +1737,11 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Disabled,
         normal: ExtensionMode.Disabled,
       },
+      enableUI: {
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,
+        normal: ExtensionMode.Disabled
+      },
       type: 'officially-disabled',
       defaultType: 'officially-disabled',
     },
@@ -1706,6 +1760,11 @@ const ExtensionConf: SettingsInterface = {
         fullscreen: ExtensionMode.Disabled,
         theater: ExtensionMode.Disabled,
         normal: ExtensionMode.Disabled,
+      },
+      enableUI: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
       },
       type: 'officially-disabled',
       defaultType: 'officially-disabled',
@@ -1726,6 +1785,11 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Disabled,
         normal: ExtensionMode.Disabled,
       },
+      enableUI: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
+      },
       type: 'officially-disabled',
       defaultType: 'officially-disabled',
     },
@@ -1741,6 +1805,11 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Default,
       },
       enableKeyboard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
+      },
+      enableUI: {
         fullscreen: ExtensionMode.Default,
         theater: ExtensionMode.Default,
         normal: ExtensionMode.Default
@@ -1776,6 +1845,11 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Default,
         normal: ExtensionMode.Default
       },
+      enableUI: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
+      },
       type: 'community',
       defaultType: 'community',
       activeDOMConfig: 'community',
@@ -1798,6 +1872,11 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Default,
       },
       enableKeyboard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
+      },
+      enableUI: {
         fullscreen: ExtensionMode.Default,
         theater: ExtensionMode.Default,
         normal: ExtensionMode.Default
@@ -1828,6 +1907,11 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Default,
       },
       enableKeyboard: {
+        fullscreen: ExtensionMode.Default,
+        theater: ExtensionMode.Default,
+        normal: ExtensionMode.Default
+      },
+      enableUI: {
         fullscreen: ExtensionMode.Default,
         theater: ExtensionMode.Default,
         normal: ExtensionMode.Default
