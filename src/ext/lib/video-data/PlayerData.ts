@@ -718,7 +718,7 @@ class PlayerData {
     } else {
       bestCandidate.heuristics['autoMatch'] = true;
       if (this.siteSettings.data.playerAutoConfig?.initialIndex !== bestCandidate.index) {
-        this.siteSettings.set('playerAutoConfig.initialIndex', bestCandidate.index, {reload: false});
+        this.siteSettings.set('playerAutoConfig.initialIndex', bestCandidate.index, {reload: false, scripted: true});
       }
     }
 

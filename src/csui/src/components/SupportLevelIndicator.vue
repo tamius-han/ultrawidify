@@ -17,7 +17,7 @@
       is geoblocked.
     </div>
   </div>
-  <div v-if="siteSupportLevel === 'no-support'" class="site-support no-support">
+  <div v-if="siteSupportLevel === 'no-support' || siteSupportLevel === 'unknown'" class="site-support no-support">
     <mdicon name="help-circle-outline" />
     <div v-if="!small">Unknown</div>
     <div class="tooltip">

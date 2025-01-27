@@ -307,10 +307,18 @@ export class SiteSettings {
    * @param optionValue new value of option
    * @param reload whether we should trigger a reload in components that require it
    */
-  async set(optionPath: string, optionValue: any, options: {reload?: boolean, noSave?: boolean} = {reload: false}) {
-    // if no settings exist for this site, create an empty object
-    if (!this.settings.active.sites[this.site]) {
-      this.settings.active.sites[this.site] = _cp(this.settings.active.sites['@empty']);
+  async set(optionPath: string, optionValue: any, options: {reload?: boolean, noSave?: boolean, scripted?: boolean} = {reload: false}) {
+    // if no settings exist for this site, create an empty object.
+    // If this function is not being called in response to user actin,
+    // create fake settings object.
+    if (options.scripted && !this.settings.active.sites[this.site]) {
+      this.settings.active.sites[this.site] = _cp(this.settings.active.sites['@global']);
+      this.settings.active.sites[this.site].autocreated = true;
+      this.settings.active.sites[this.site].type = 'unknown';
+    } else {
+      if (!this.settings.active.sites[this.site] || this.settings.active.sites[this.site].autocreated) {
+        this.settings.active.sites[this.site] = _cp(this.settings.active.sites['@empty']);
+      }
     }
 
     const pathParts = optionPath.split('.');
