@@ -177,6 +177,9 @@ class Settings {
   }
   private applySettingsPatches(oldVersion, patches) {
     let index = this.findFirstNecessaryPatch(oldVersion, patches);
+
+    console.log('ExtConfPatches — last unapplied patch is', index, patches[index]. patches);
+
     if (index === -1) {
       this.logger?.log('info','settings','[Settings::applySettingsPatches] There are no pending conf patches.');
       return;

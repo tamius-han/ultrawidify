@@ -1,7 +1,10 @@
 import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
+import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
+import { ExtensionEnvironment } from '../../../common/interfaces/SettingsInterface';
 import EventBus from '../EventBus';
 import Logger from '../Logger';
 import Settings from '../Settings';
+import { SiteSettings } from '../settings/SiteSettings';
 import VideoData from '../video-data/VideoData';
 import { Corner } from './enums/corner.enum';
 import { VideoPlaybackState } from './enums/video-playback-state.enum';
@@ -218,10 +221,17 @@ export class Aard {
   private logger: Logger;
   private videoData: VideoData;
   private settings: Settings;
+  private siteSettings: SiteSettings;
   private eventBus: EventBus;
   private arid: string;
 
   private eventBusCommands = {
+    'uw-environment-change': {
+      function: (newEnvironment: ExtensionEnvironment) => {
+        console.log('received extension environment:', newEnvironment, 'player env:', this.videoData?.player?.environment);
+        this.startCheck();
+      }
+    }
     //   'get-aard-timing': {
     //     function: () => this.handlePerformanceDataRequest()
       // }
@@ -267,6 +277,7 @@ export class Aard {
     this.videoData = videoData;
     this.video = videoData.video;
     this.settings = videoData.settings;
+    this.siteSettings = videoData.siteSettings;
     this.eventBus = videoData.eventBus;
 
     this.eventBus.subscribeMulti(this.eventBusCommands, this);
@@ -284,7 +295,6 @@ export class Aard {
    * This method should only ever be called from constructor.
    */
   private init() {
-
     this.canvasStore = {
       main: this.createCanvas('main-gl')
     };
@@ -301,7 +311,7 @@ export class Aard {
       ),
     };
 
-    this.start();
+    this.startCheck();
   }
 
   private createCanvas(canvasId: string, canvasType?: 'webgl' | 'fallback') {
@@ -340,6 +350,20 @@ export class Aard {
     }
   }
   //#endregion
+
+  /**
+   * Checks whether autodetection can run
+   */
+  startCheck() {
+    if (!this.videoData.player) {
+      console.warn('Player not detected!')
+    }
+    if (this.siteSettings.data.enableAard[this.videoData.player.environment] === ExtensionMode.Enabled) {
+      this.start();
+    } else {
+      this.stop();
+    }
+  }
 
   /**
    * Starts autodetection loop.

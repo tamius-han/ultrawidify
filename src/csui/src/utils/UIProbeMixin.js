@@ -36,7 +36,7 @@ export default {
   },
   methods: {
     playerDimensionsUpdate(dimensions) {
-      if (!dimensions.width || !dimensions.height) {
+      if (!dimensions?.width || !dimensions?.height) {
         this.playerDimensions = undefined;
       }
       if (dimensions?.width !== this.playerDimensions?.width || dimensions?.height !== this.playerDimensions?.height) {

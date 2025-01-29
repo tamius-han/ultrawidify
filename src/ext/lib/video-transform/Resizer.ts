@@ -295,7 +295,7 @@ class Resizer {
 
     // handle autodetection stuff
     if (ar.type === AspectRatioType.Automatic) {
-      this.videoData.aard?.start();
+      this.videoData.aard?.startCheck();
       return;
     } else if (ar.type !== AspectRatioType.AutomaticUpdate) {
       this.videoData.aard?.stop();
@@ -429,7 +429,7 @@ class Resizer {
   }
 
   applyScaling(stretchFactors: VideoDimensions, options?: {noAnnounce?: boolean, ar?: Ar}) {
-    this.stretcher.chromeBugMitigation(stretchFactors);
+    // this.stretcher.chromeBugMitigation(stretchFactors);
 
     // let the UI know
     if(!options?.noAnnounce) {
@@ -533,6 +533,10 @@ class Resizer {
     this.restore();
   }
 
+  /**
+   * Restores aspect ratio to last known aspect ratio
+   * @returns
+   */
   restore() {
     if (!this.manualZoom) {
       this.logger.log('info', 'debug', "[Resizer::restore] <rid:"+this.resizerId+"> attempting to restore aspect ratio", {'lastAr': this.lastAr} );

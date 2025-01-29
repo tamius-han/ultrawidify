@@ -17,6 +17,8 @@ import { ExtensionStatus } from './ExtensionStatus';
 import { RunLevel } from '../../enum/run-level.enum';
 import { Aard } from '../aard/Aard';
 import { Stretch } from '../../../common/interfaces/StretchInterface';
+import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
+import { ExtensionEnvironment } from '../../../common/interfaces/SettingsInterface';
 
 /**
  * VideoData — handles CSS for the video element.
@@ -76,6 +78,8 @@ class VideoData {
 
   eventBus: EventBus;
   extensionStatus: ExtensionStatus;
+
+  private currentEnvironment: ExtensionEnvironment;
   //#endregion
 
 
@@ -97,6 +101,11 @@ class VideoData {
     },
     'set-run-level': {
       function: (runLevel: RunLevel) => this.setRunLevel(runLevel)
+    },
+    'uw-environment-change': {
+      function: () => {
+        this.onEnvironmentChanged();
+      }
     }
   }
 
@@ -191,7 +200,7 @@ class VideoData {
       if (!this.mutationObserver) {
         this.setupMutationObserver();
       }
-      this.eventBus.send('inject-css', this.baseVideoCss);
+      // this.eventBus.send('inject-css', this.baseVideoCss);
     } catch (e) {
       console.error('Failed to inject base css!', e);
     }
@@ -389,8 +398,26 @@ class VideoData {
   }
   //#endregion
 
+  onEnvironmentChanged() {
+    if (!this.player) {
+      return;
+    }
+    if (this.currentEnvironment !== this.player.environment) {
+      console.warn('environment changed to:', this.player.environment);
+      this.currentEnvironment = this.player.environment;
+      if (this.siteSettings.data.enable[this.player.environment] === ExtensionMode.Disabled) {
+        this.setRunLevel(RunLevel.Off);
+      } else {
+        this.restoreAr();
+      }
+    }
+  }
 
   setRunLevel(runLevel: RunLevel, options?: {fromPlayer?: boolean}) {
+    if (this.player && this.siteSettings.data.enable[this.player.environment] !== ExtensionMode.Enabled) {
+      runLevel = RunLevel.Off;
+    }
+
     if (this.runLevel === runLevel) {
       return; // also no need to propagate to the player
     }
@@ -553,6 +580,8 @@ class VideoData {
     // the 'style' attributes don't necessarily trigger. This means we also need to trigger
     // restoreAr here, in case video size was changed this way
     this.player.forceRefreshPlayerElement();
+    this.eventBus.send('uw-environment-change', {newEnvironment: this.player.environment});
+
     this.restoreAr();
 
     // sometimes something fucky wucky happens and mutations aren't detected correctly, so we
@@ -571,7 +600,7 @@ class VideoData {
       this._processDimensionsChanged,
       250,
       {
-        leading: true,
+        // leading: true,
         trailing: true
       }
     );
@@ -694,7 +723,7 @@ class VideoData {
       if (!this.aard) {
         this.initArDetection();
       }
-      this.aard.start();
+      this.aard.startCheck();
     } catch (e) {
       this.logger.log('warn', 'debug', '[VideoData::startArDetection()] Could not start aard for some reason. Was the function was called too early?', e);
     }

@@ -13,6 +13,7 @@ import UI from '../uwui/UI';
 import { SiteSettings } from '../settings/SiteSettings';
 import PageInfo from './PageInfo';
 import { RunLevel } from '../../enum/run-level.enum';
+import { ExtensionEnvironment } from '../../../common/interfaces/SettingsInterface';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: PlayerData.js");
@@ -138,6 +139,7 @@ class PlayerData {
   private dimensionChangeListener = {
     that: this,
     handleEvent: function(event: Event) {
+      this.that.trackEnvironmentChanges(event);
       this.that.trackDimensionChanges()
     }
   }
@@ -152,6 +154,7 @@ class PlayerData {
       }
       if (!this.dimensions) {
         this.trackDimensionChanges();
+        this.trackEnvironmentChanges();
       }
 
       return this.dimensions.width / this.dimensions.height;
@@ -159,6 +162,21 @@ class PlayerData {
       console.error('cannot determine aspect ratio!', e);
       return 1;
     }
+  }
+
+  /**
+   * Gets current environment (needed when determining whether extension runs in fulls screen, theater, or normal)
+   */
+  private lastEnvironment: ExtensionEnvironment;
+
+  get environment(): ExtensionEnvironment {
+    if (this.isFullscreen) {
+      return ExtensionEnvironment.Fullscreen;
+    }
+    if (this.isTheaterMode) {
+      return ExtensionEnvironment.Theater;
+    }
+    return ExtensionEnvironment.Normal;
   }
 
   //#region lifecycle
@@ -198,6 +216,7 @@ class PlayerData {
       }
 
       this.trackDimensionChanges();
+      this.trackEnvironmentChanges();
       this.startChangeDetection();
 
       document.addEventListener('fullscreenchange', this.dimensionChangeListener);
@@ -337,6 +356,13 @@ class PlayerData {
     return newTheaterMode;
   }
 
+  trackEnvironmentChanges() {
+    if (this.environment !== this.lastEnvironment) {
+      this.lastEnvironment = this.environment;
+      this.eventBus.send('uw-environment-change', {newEnvironment: this.environment});
+    }
+  }
+
   /**
    *
    */
@@ -439,6 +465,7 @@ class PlayerData {
 
   onPlayerDimensionsChanged(mutationList?, observer?) {
     this.trackDimensionChanges();
+    this.trackEnvironmentChanges();
   }
 
 
@@ -630,6 +657,7 @@ class PlayerData {
 
       this.element = elementStack[nextIndex].element;
       this.trackDimensionChanges();
+      this.trackEnvironmentChanges();
     }
   }
 
@@ -834,7 +862,9 @@ class PlayerData {
     this.ui = undefined;
     this.element = this.getPlayer();
     // this.notificationService?.replace(this.element);
+
     this.trackDimensionChanges();
+    this.trackEnvironmentChanges();
   }
 }
 

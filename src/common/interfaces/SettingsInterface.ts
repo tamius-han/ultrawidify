@@ -6,6 +6,12 @@ import ExtensionMode from '../enums/ExtensionMode.enum'
 import StretchType from '../enums/StretchType.enum'
 import VideoAlignmentType from '../enums/VideoAlignmentType.enum'
 
+export enum ExtensionEnvironment {
+  Normal = 'normal',
+  Theater = 'theater',
+  Fullscreen = 'fullscreen',
+}
+
 export interface KeyboardShortcutInterface {
   key?: string,
   code?: string,
