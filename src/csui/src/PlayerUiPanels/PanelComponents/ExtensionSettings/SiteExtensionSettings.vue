@@ -44,7 +44,7 @@
     </div>
 
     <!-- The rest of the menu is disabled when extension is disabled -->
-    <div :class="{disabled: simpleExtensionSettings.enable === 'disabled' }">
+    <div :class="{disabled: simpleEffectiveSettings.enable === 'disabled'}">
       <!-- Enable AARD -->
       <div class="field">
         <div class="label">
@@ -275,6 +275,7 @@ export default {
   data() {
     return {
       CropModePersistence: CropModePersistence,
+      ExtensionMode,
       alignmentOptions: [
         {label: 'Top left', arguments: {x: VideoAlignmentType.Left, y: VideoAlignmentType.Top}},
         {label: 'Top center', arguments: {x: VideoAlignmentType.Center, y: VideoAlignmentType.Top}},
@@ -306,6 +307,14 @@ export default {
         enableAard: this.compileSimpleSettings('enableAard'),
         enableKeyboard: this.compileSimpleSettings('enableKeyboard'),
         enableUI: this.compileSimpleSettings('enableUI')
+      }
+    },
+    simpleEffectiveSettings() {
+      return {
+        enable: this.compileSimpleSettings('enable', 'site-effective'),
+        enableAard: this.compileSimpleSettings('enableAard', 'site-effective'),
+        enableKeyboard: this.compileSimpleSettings('enableKeyboard', 'site-effective'),
+        enableUI: this.compileSimpleSettings('enableUI', 'site-effective')
       }
     },
     simpleDefaultSettings() {
@@ -347,8 +356,20 @@ export default {
     /**
      * Compiles our extension settings into more user-friendly options
      */
-    compileSimpleSettings(component, getDefaults) {
-      const settingsData = getDefaults ? this.settings.active.sites['@global'] : this.siteSettings?.raw;
+    compileSimpleSettings(component, getFor = 'site') {
+      let settingsData;
+      switch (getFor) {
+        case 'site':
+          settingsData = this.siteSettings?.raw;
+          break;
+        case 'site-effective':
+          settingsData = this.siteSettings?.data;
+          break;
+        case 'default':
+          settingsData = this.settings.active.sites['@global'];
+          break;
+      }
+
       try {
         if (
           (  settingsData?.[component]?.normal     === ExtensionMode.Disabled || component === 'enableUI')
@@ -393,7 +414,7 @@ export default {
     },
 
     getDefaultOptionLabel(component) {
-      const componentValue = this.compileSimpleSettings(component, true);
+      const componentValue = this.compileSimpleSettings(component, 'default');
 
       if (componentValue === 'loading') {
         return componentValue;
@@ -500,6 +521,18 @@ export default {
 
       if (option === 'complex') {
         return;
+      }
+
+      if (component === 'enable') {
+        this.setExtensionMode('enableAard', event);
+        this.setExtensionMode('enableKeyboard', event);
+
+        // in enableUI, 'enabled' is unused and 'theater' uses its place
+        if (option === 'enabled') {
+          this.setExtensionMode('enableUI', {target: {value: 'theater'}});
+        } else {
+          this.setExtensionMode('enableUI', event);
+        }
       }
 
       if (option === 'default') {
