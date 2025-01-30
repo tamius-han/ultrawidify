@@ -76,6 +76,7 @@ export default {
   left: 100%;
 }
 </style>
+
 <style lang="scss">
 .activator {
   position: relative;
@@ -83,12 +84,12 @@ export default {
 
   font-size: .95rem;
   padding: 1rem 1.6rem;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(16px) saturate(120%);
 
   white-space: nowrap;
   &:hover {
-    background-color: rgba(255, 128, 64, 0.5);
+    background-color: rgba(255, 128, 64, 0.95);
   }
 
   &.expand-left {

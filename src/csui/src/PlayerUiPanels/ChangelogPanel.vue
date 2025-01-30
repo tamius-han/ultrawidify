@@ -3,94 +3,27 @@
     <div class="flex flex-row gap-2 bg-black">
       <div class="w-[1/2]" style="width: 50%">
         <h1>What's new</h1>
-        <p>Full changelog for older versions <a href="https://github.com/tamius-han/ultrawidify/blob/master/CHANGELOG.md" target="_blank">is available here</a>.</p>
+        <!-- <p>Full changelog for older versions <a href="https://github.com/tamius-han/ultrawidify/blob/master/CHANGELOG.md" target="_blank">is available here</a>.</p> -->
 
-        <h2>6.2.0</h2>
+        <h2>6.2.4</h2>
+        <ul>
+          <li>[<a href="https://github.com/tamius-han/ultrawidify/issues/264" target="_blank">#264</a>] Fixed issue with white screen that affected <i>some</i> youtube users.<br/><br/>Special thanks to <a href="https://github.com/SnowyOwlNugget">SnowyOwlNugget</a>, who instead of whining provided the necessary information.</li>
+          <li>Minor updates to the settings</li>
+          <li>Switching between full screen, theater, and normal player now correctly enables and disables the extension according to the settings.</li>
+          <li>Does anyone even read these?</li>
+          <li>By default, extension is now only enabled for sites with 'official' and 'community' support for new installs. Extension will need to be manually enabled for other sites.</li>
+          <li>Gussief1, you owe me 5 bucks. Time to put your money where your mouth is. Paypal is <a class="donate" href="https://www.paypal.com/paypalme/tamius" target="_blank">here.</a></li>
+          <li>Added background to in-player UI due to chrome bug affecting <code>backdrop-filter</code> inside transparent iframes.</li>
+        </ul>
+
         <p>
-          There's been another major change that skips a version.
+          Planned future updates <i>before</i> Tam vanishes due to convention season obligations:
         </p>
         <ul>
-          <li>Parts of automatic aspect ratio detection use WebGL now. This should result in improved performance. Slightly underwhelming blog post about this issue can be found <a href="https://stuff.tamius.net/sacred-texts/2024/10/02/hot-dang-i-shouldnt-have-given-on-webgl/" target="_blank">here</a>.</li>
-          <li>In-player UI now indicates whether a site is having a problem with automatic aspect ratio detection.</li>
-          <li>UI improvements</li>
-        </ul>
-        <p>
-          Since automatic aspect ratio detection had to be rewritten completely and since the new version needs to be out 5 days ago, there are some regressions in the automatic aspect ratio detection.
-        </p>
-
-        Minor revisions:
-
-        <h3>6.2.1</h3>
-        <ul>
-          <li>Fixed offset issue on Netflix</li>
-          <li>Fixed issue with overlay iframe not being transparent on twitter</li>
+          <li>Re-implement manual zoom</li>
+          <li>It appears that ExtConfPatch for version 6.0.0 keeps getting re-applied due to a bug, but my RAID ran out for this release.</li>
         </ul>
 
-        <h3>6.2.2</h3>
-        <ul>
-          <li>Fixed the issue where stretching was not applied if no cropping was used</li>
-          <li>Half-fixed in-player UI on sites where player is not detected correctly</li>
-        </ul>
-
-        <h3>6.2.3</h3>
-        <ul>
-          <li>Fixed default persistent mode</li>
-        </ul>
-
-        <hr/>
-
-        <h2>6.0.0</h2>
-        <p>
-          I don't think I need to write a changelog for this one. I've also been working on this, on and (mostly) off, for ... a long time, so I might have "kinda forgot" some minor things.
-        </p>
-        <ul>
-          <li><b>Manifest v3</b>. Bit late, but still.</li>
-          <li>
-            <b>In-player UI.</b><br/>
-            This one took major effort to pull off. Required some changes under the hood, required me to de-spaghettify some code. The UI will only show
-            if the video takes up sufficient amount of space (currently determined as 960 pixels wide).
-          </li>
-          <li>
-            <b>New alignment options.</b> Video can be aligned vertically as well as horizontally.
-          </li>
-          <!-- <li>
-            By default, Ultrawidify will not kick in on "small videos". You have to be either in full screen or theater mode. Ultrawidify assumes that any
-            video that takes up more than 85% of the window width is being viewed in theater mode. This value may be tweaked later on. This feature can be
-            configured (or turned off entirely) via 'Advanced options' menu on the in-player UI.
-          </li> -->
-          <li>
-            The in-player extension UI will do a better job differentiating between the various level of support: "official" for the sites that Tam can check
-            on his own, "fingers crossed" for sites that Tam can't check because my load-bearing credit card can't support the weight of a dozen subscription
-            services, and "community support" for sites that enjoy support through the helping hand of people willing to help.
-          </li>
-          <li>
-            The in-player UI should now display a warning whenever Ultrawidify detects automatic aspect ratio detection isn't happening because the site uses DRM.
-          </li>
-          <!-- <li>
-            Better zooming. The slider is back, baby.
-          </li> -->
-          <!-- <li>
-            Panning option that's a bit more intuitive.
-          </li> -->
-        </ul>
-        <h3>Regressions</h3>
-        <ul>
-          <li>
-            Due to major changes under the hood, custom settings from older versions were NOT been migrated (probably).
-          </li>
-          <li>
-            It is unclear how extension acts on sites with more than one video.
-          </li>
-          <li>
-            Extension lost the ability to discriminate between iframes. Actions taken through the popup will be affect <b>all</b> iframes.
-          </li>
-          <li>
-            Hope the UI is worth the regressions, because getting UI to work has been a MAJOR pain in the ass.
-          </li>
-        </ul>
-        <p>Minor revisions:</p>
-        <h2>6.0.1</h2>
-        <p>Fixed external links.</p>
       </div>
       <div class="w-[1/2]" style="width: 50%; padding-left: 1rem; padding-top: 5rem;">
         <h2>Thank you monies</h2>
@@ -100,7 +33,6 @@
         <p class="text-center">
           <a class="donate" href="https://www.paypal.com/paypalme/tamius" target="_blank">Donate on Paypal</a>
         </p>
-
       </div>
     </div>
   </div>

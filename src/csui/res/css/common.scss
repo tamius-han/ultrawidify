@@ -18,6 +18,19 @@ body {
   padding: 0px;
 }
 
+.main-window::before {
+  content: ' backdrop-filter machine broke :(     googlo pls fix';
+  color: #000;
+  position: absolute;
+  left: -0.5rem;
+  top: -0.5rem;
+  z-index: -1;
+  width: calc(100% + 1rem);
+  height: calc(100% + 1rem);
+  background-image: url('/csui/res/img/uw-window-bg-texture-3.webp');
+  opacity: 0.75;
+}
+
 /* STANDARD WIDTHS AND HEIGHTS */
 .w100 {
   width: 100%;

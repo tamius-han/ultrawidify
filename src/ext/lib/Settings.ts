@@ -178,26 +178,24 @@ class Settings {
   private applySettingsPatches(oldVersion, patches) {
     let index = this.findFirstNecessaryPatch(oldVersion, patches);
 
-    console.log('ExtConfPatches — last unapplied patch is', index, patches[index]. patches);
-
     if (index === -1) {
       this.logger?.log('info','settings','[Settings::applySettingsPatches] There are no pending conf patches.');
       return;
     }
 
     // apply all remaining patches
-      this.logger?.log('info', 'settings', `[Settings::applySettingsPatches] There are ${patches.length - index} settings patches to apply`);
-      while (index < patches.length) {
-        const updateFn = patches[index].updateFn;
-        delete patches[index].forVersion;
-        delete patches[index].updateFn;
+    this.logger?.log('info', 'settings', `[Settings::applySettingsPatches] There are ${patches.length - index} settings patches to apply`);
+    while (index < patches.length) {
+      const updateFn = patches[index].updateFn;
+      delete patches[index].forVersion;
+      delete patches[index].updateFn;
 
-        if (Object.keys(patches[index]).length > 0) {
-          ObjectCopy.overwrite(this.active, patches[index]);
-        }
-        if (updateFn) {
+      if (Object.keys(patches[index]).length > 0) {
+        ObjectCopy.overwrite(this.active, patches[index]);
+      }
+      if (updateFn) {
 
-          try {
+        try {
           updateFn(this.active, this.getDefaultSettings());
         } catch (e) {
           this.logger?.log('error', 'settings', '[Settings::applySettingsPatches] Failed to execute update function. Keeping settings object as-is. Error:', e);

@@ -24,16 +24,17 @@ export default {
 
 <style lang="scss" scoped>
 .item {
+  position: relative;
   font-size: .95rem;
   font-family: 'Overpass';
   padding: 1rem 1.6rem;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(16px) saturate(120%);
 
   white-space: nowrap;
 
   &.can-hover:hover {
-    background-color: rgba(0,0,0,0.8);
+    background-color: rgba(0,0,0,0.98);
     border-bottom: 1px solid #fa6;
   }
 

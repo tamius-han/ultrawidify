@@ -1,6 +1,6 @@
 <template>
   <div
-    class="popup-panel flex flex-col uw-clickable h-full"
+    class="popup-panel flex flex-col uw-clickable h-full main-window relative"
   >
     <div class="popup-window-header">
       <div class="header-title">
@@ -247,6 +247,8 @@ export default {
 //   width: 100%;
 //   height: 100%;
 // }
+
+
 
 .tab-row {
   width: 22rem;
