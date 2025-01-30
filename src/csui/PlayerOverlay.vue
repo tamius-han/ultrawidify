@@ -24,20 +24,7 @@
       @mouseleave="allowContextMenuHide()"
     >
       <template v-slot:activator>
-        <div class="context-item uw-clickable uw-menu-trigger relative">
-          <div v-if="hoverStats.isOverTriggerMenu && !hoverStats.hasMouse" class="absolute ui-warning">
-            <b>Video player is not being detected correctly</b><br/>
-            <p>
-              That's why this menu doesn't work correctly.
-            </p>
-            <p>
-              It may start working if you move your mouse over the button a few times. If it doesn't, open the UI from the extension popup.
-            </p>
-          </div>
-
           Ultrawidify
-        </div>
-
       </template>
       <slot>
         <!--
@@ -716,8 +703,10 @@ export default {
   flex-direction: column;
   text-align: center;
 
-  width: 112.25%;
-  transform: translate(-12.5%, 12.5%) scale(0.75);
+  font-size: 0.9rem;
+
+  // width: 112.25%;
+  // transform: translate(-12.5%, 12.5%) scale(0.75);
 
   > * {
     margin-top: 0.5rem;
