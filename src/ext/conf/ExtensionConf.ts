@@ -1419,24 +1419,24 @@ const ExtensionConf: SettingsInterface = {
                                             //      #g — only available in @global
                                             //      #s   — only available for specific site
       enable: {                             //  How should extension work:
-        fullscreen: ExtensionMode.Disabled,  //       'enabled'   - work everywhere except blacklist
-        theater: ExtensionMode.Disabled,     //       'whitelist' - only work on whitelisted sites (#g)
+        fullscreen: ExtensionMode.Disabled, //       'enabled'   - work everywhere except blacklist
+        theater: ExtensionMode.Disabled,    //
         normal: ExtensionMode.Disabled,     //       'disabled'  - work nowhere
       },                                    //       'default'   - follow global rules (#s)
       enableAard: {                         //  Should we try to automatically detect aspect ratio?
-        fullscreen: ExtensionMode.Enabled,  //  Options: 'enabled', 'whitelist' (#g), 'default' (#s), 'disabled'
-        theater: ExtensionMode.Enabled,
+        fullscreen: ExtensionMode.Disabled, //  Options: 'enabled', 'default' (#s), 'disabled'
+        theater: ExtensionMode.Disabled,
         normal: ExtensionMode.Disabled,
       },
       enableKeyboard: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,
         normal: ExtensionMode.Disabled
       },
       enableUI: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,     // Lies! means 'theater-ish'
-        normal: ExtensionMode.Enabled       // Not actually used.
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,     // Lies! means 'theater-ish'
+        normal: ExtensionMode.Disabled       // Not actually used.
       },
 
       defaultType: 'unknown',
@@ -1481,24 +1481,24 @@ const ExtensionConf: SettingsInterface = {
     },
     "www.youtube.com" : {
       enable: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default,
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Enabled,
       },
       enableAard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default,
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Enabled,
       },
       enableKeyboard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Enabled
       },
       enableUI: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Disabled
       },
 
       override: false,                  // ignore value localStorage in favour of this
@@ -1521,24 +1521,24 @@ const ExtensionConf: SettingsInterface = {
     },
     "www.netflix.com" : {
       enable: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
         normal: ExtensionMode.Default,
       },
       enableAard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default,
+        fullscreen: ExtensionMode.Disabled,
+        theater: ExtensionMode.Disabled,
+        normal: ExtensionMode.Disabled,
       },
       enableKeyboard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Disabled
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Enabled
       },
       enableUI: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Disabled
       },
 
       override: false,
@@ -1547,23 +1547,23 @@ const ExtensionConf: SettingsInterface = {
     },
     "www.disneyplus.com" : {
       enable: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
         normal: ExtensionMode.Default,
       },
       enableAard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
         normal: ExtensionMode.Default,
       },
       enableKeyboard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
         normal: ExtensionMode.Default
       },
       enableUI: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
         normal: ExtensionMode.Default
       },
       type: 'community',
@@ -1593,59 +1593,22 @@ const ExtensionConf: SettingsInterface = {
         normal: ExtensionMode.Enabled,
       },
       enableAard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default,
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Enabled,
       },
       enableKeyboard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Enabled
       },
       enableUI: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Enabled
       },
       type: 'official',
       defaultType: 'official',
-    },
-    "vimeo.com": {
-      enable: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default,
-      },
-      enableAard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default,
-      },
-      enableKeyboard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default
-      },
-      enableUI: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default
-      },
-      type: 'official',
-      defaultType: 'official',
-      activeDOMConfig: 'official',
-      DOMConfig: {
-        'official': {
-          type: 'official',
-          // customCss: ".player_outro_area {\n  width: 100% !important;\n  display: flex !important;\n  justify-content: center !important;\n}\n\n.player_container, .player {\n  width: 100% !important; \n}",
-          elements: {
-            player: {
-              manual: true,
-              querySelectors: ".player_outro_area",
-            }
-          }
-        }
-      },
     },
     "old.reddit.com" : {
       enable: {
@@ -1795,24 +1758,24 @@ const ExtensionConf: SettingsInterface = {
     },
     "www.wakanim.tv": {
       enable: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default,
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Enabled,
       },
       enableAard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default,
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Enabled,
       },
       enableKeyboard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Enabled
       },
       enableUI: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Enabled
       },
       type: 'community',
       defaultType: 'community',
@@ -1831,24 +1794,24 @@ const ExtensionConf: SettingsInterface = {
     },
     "app.plex.tv": {
       enable: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default,
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Disabled,
       },
       enableAard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default,
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Disabled,
       },
       enableKeyboard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Disabled
       },
       enableUI: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Disabled
       },
       type: 'community',
       defaultType: 'community',
@@ -1862,24 +1825,24 @@ const ExtensionConf: SettingsInterface = {
     },
     "metaivi.com": {
       enable: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default,
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Disabled,
       },
       enableAard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default,
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Disabled,
       },
       enableKeyboard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Disabled
       },
       enableUI: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Disabled
       },
       type: "community",
       defaultType: "community",
@@ -1897,24 +1860,24 @@ const ExtensionConf: SettingsInterface = {
     },
     "piped.kavin.rocks": {
       enable: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default,
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Disabled,
       },
       enableAard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default,
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Disabled,
       },
       enableKeyboard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Disabled
       },
       enableUI: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Disabled
       },
       type: "community",
       defaultType: "community",
