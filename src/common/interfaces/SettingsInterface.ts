@@ -171,8 +171,8 @@ interface SettingsInterface {
 
   ui: {
     inPlayer: {
-      enabled: boolean,
-      enabledFullscreenOnly: boolean,
+      enabled: boolean,                        // Deprecated — moved to site settings
+      enabledFullscreenOnly: boolean,          // Deprecated — moved to site settings
       popupAlignment: 'left' | 'right',
       minEnabledWidth: number,                 // don't show UI if player is narrower than % of screen width
       minEnabledHeight: number,                // don't show UI if player is narrower than % of screen height

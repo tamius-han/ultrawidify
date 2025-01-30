@@ -48,7 +48,10 @@
             v-for="tab of tabs"
             :key="tab.id"
             class="tab flex flex-row"
-            :class="{'active': tab.id === selectedTab}"
+            :class="{
+              'active': tab.id === selectedTab,
+              'highlight-tab': tab.highlight,
+            }"
             @click="selectTab(tab.id)"
           >
             <div class="icon-container">
@@ -92,7 +95,10 @@
               :site="site.host"
             >
             </BaseExtensionSettings>
-
+            <ChangelogPanel
+              v-if="selectedTab === 'changelog'"
+              :settings="settings"
+            ></ChangelogPanel>
             <AboutPanel
               v-if="selectedTab === 'about'"
             >
@@ -109,6 +115,7 @@
 <script>
 import BaseExtensionSettings from './src/PlayerUiPanels/BaseExtensionSettings.vue'
 import PlayerDetectionPanel from './src/PlayerUiPanels/PlayerDetectionPanel.vue'
+import ChangelogPanel from './src/PlayerUiPanels/ChangelogPanel.vue'
 import PopupVideoSettings from './src/popup/panels/PopupVideoSettings.vue'
 import InPlayerUIAdvertisement from './src/PlayerUiPanels/InPlayerUiAdvertisement.vue';
 import AboutPanel from '@csui/src/popup/panels/AboutPanel.vue'
@@ -131,6 +138,7 @@ export default {
     BaseExtensionSettings,
     InPlayerUIAdvertisement,
     SupportLevelIndicator,
+    ChangelogPanel,
     AboutPanel
   },
   data () {
@@ -151,6 +159,7 @@ export default {
         {id: 'videoSettings', label: 'Video settings', icon: 'crop'},
         // {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
         {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
+        {id: 'changelog', label: 'What\'s new', icon: 'alert-decagram' },
         {id: 'about', label: 'About', icon: 'information-outline'},
       ],
     }
@@ -159,6 +168,9 @@ export default {
     siteSupportLevel() {
       return (this.site && this.siteSettings) ? this.siteSettings.data.type || 'no-support' : 'waiting';
     }
+  },
+  mounted() {
+    this.tabs.find(x => x.id === 'changelog').highlight = !this.settings.active.whatsNewChecked;
   },
   async created() {
     this.logger = new Logger();
@@ -543,6 +555,15 @@ export default {
         flex-grow: 1;
         flex-shrink: 1;
         padding: 0 !important;
+      }
+
+      &.highlight-tab {
+        opacity: 0.9;
+        color: #eee;
+
+        // .label {
+        //   color: rgb(239, 192, 152);
+        // }
       }
     }
   }
