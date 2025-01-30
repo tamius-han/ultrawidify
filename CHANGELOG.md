@@ -1,17 +1,37 @@
 # Changelog
 
-
-
-### Plans for the future
-
-* Native builds for Chromium Edge
-* Settings page looks ugly af right now. Maybe fix it some time later
-* other bug fixes
-
-## v7.0 (planned major)
- * WebGL autodetection
-
 ## v6.0 (current major)
+
+### v6.2.4
+* [#264](https://github.com/tamius-han/ultrawidify/issues/264) — fixed issue with white screen that affected some youtube users. Special thanks to [SnowyOwlNugget](https://github.com/SnowyOwlNugget">SnowyOwlNugget), who instead of whining provided the necessary information.
+* Minor updates to the settings
+* Switching between full screen, theater, and normal player now correctly enables and disables the extension according to the settings.
+* Don't reset settings if updating conf patches fails.
+* Darken in-player UI backgrounds until Chrome fixes its backdrop-filter bug
+
+### v6.2.3
+* Fixed default persistent mode
+
+### v6.2.2
+* Fixed the issue where stretching was not applied if no cropping was used
+* Added way to manually enable or disable color scheme detection, as a compromise between #259 and #264
+
+### v6.2.1
+
+* Fixed offset issue on Netflix
+* Fixed issue with overlay iframe not being transparent on twitter
+
+### v6.2.0
+
+* Parts of automatic aspect ratio detection use WebGL now. This should result in improved performance. 
+* In-player UI now indicates whether a site is having a problem with automatic aspect ratio detection.
+* UI improvements
+
+Since automatic aspect ratio detection had to be rewritten completely and since the new version needs to be out 5 days ago, there are some regressions in the automatic aspect ratio detection.
+
+### v6.1.0
+
+Was skipped due to how major the changes were.
 
 ### v6.0.1
 
