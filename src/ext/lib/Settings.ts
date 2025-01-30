@@ -186,7 +186,6 @@ class Settings {
     }
 
     // apply all remaining patches
-    try {
       this.logger?.log('info', 'settings', `[Settings::applySettingsPatches] There are ${patches.length - index} settings patches to apply`);
       while (index < patches.length) {
         const updateFn = patches[index].updateFn;
@@ -199,19 +198,13 @@ class Settings {
         if (updateFn) {
 
           try {
-            updateFn(this.active, this.getDefaultSettings());
-          } catch (e) {
-            this.logger?.log('error', 'settings', '[Settings::applySettingsPatches] Failed to execute update function. Keeping settings object as-is. Error:', e);
-
-          }
+          updateFn(this.active, this.getDefaultSettings());
+        } catch (e) {
+          this.logger?.log('error', 'settings', '[Settings::applySettingsPatches] Failed to execute update function. Keeping settings object as-is. Error:', e);
         }
-
-        index++;
       }
-    } catch (e) {
-      console.error('Failed to upgrade settings.', e);
-      this.setActive(this.getDefaultSettings());
-      this.save();
+
+      index++;
     }
   }
 
