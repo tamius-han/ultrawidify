@@ -13,28 +13,39 @@
         class="popup flex flex-col no-overflow"
         :class="{'popup-chrome': ! BrowserDetect?.firefox}"
     >
-      <div class="flex-row flex-nogrow flex-noshrink relative header"
+      <div class="flex flex-col w-full relative header"
       >
-        <div class="grow shrink">
-          <h1>
+        <div class="flex flex-row w-full" style="height: 42px">
+          <h1 class="flex-grow">
             <span class="smallcaps">Ultrawidify</span>: <small>Quick settings</small>
           </h1>
-          <div v-if="site && siteSettings" style="transform: scale(0.75) translateX(-12.5%); margin-bottom: -0.5rem; align-content: center" class="flex flex-row">
+          <button
+            class="settings-header-button"
+            style="align-self: stretch"
+            @click="showInPlayerUi()"
+          >
+            Show settings window
+          </button>
+        </div>
+
+        <div class="flex flex-row w-full">
+          <div v-if="site && siteSettings" style="transform: scale(0.75) translateX(-12.5%); margin-bottom: -0.5rem; align-content: center" class="flex flex-row flex-grow items-center">
             <div>site: {{site.host}}</div>
             <SupportLevelIndicator
               :siteSupportLevel="siteSupportLevel"
             >
             </SupportLevelIndicator>
           </div>
-        </div>
-        <div v-if="BrowserDetect?.processEnvChannel !== 'stable'" class="absolute channel-info version-info">
-          Build channel: {{BrowserDetect?.processEnvChannel}} <br/>
-          <label>Version:</label> <br/>
-          {{ settings.getExtensionVersion() }}
-        </div>
-        <div v-else class="version-info">
-          <label>Version:</label> <br/>
-          {{ settings.getExtensionVersion() }}
+
+          <!-- Version info -->
+          <div v-if="BrowserDetect?.processEnvChannel !== 'stable'" class="absolute channel-info version-info">
+            <label>Version:</label> <br/>
+            {{ settings.getExtensionVersion() }} (non-stable)
+          </div>
+          <div v-else class="version-info">
+            <label>Version:</label> <br/>
+            {{ settings.getExtensionVersion() }}
+          </div>
         </div>
       </div>
 
@@ -152,10 +163,10 @@ export default {
       logger: undefined,
       site: undefined,
       siteSettings: undefined,
-      selectedTab: 'playerUiCtl',
+      selectedTab: 'videoSettings',
       tabs: [
         // see this for icons: https://pictogrammers.com/library/mdi/
-        {id: 'playerUiCtl', label: 'In-player UI', icon: 'artboard'},
+        // {id: 'playerUiCtl', label: 'In-player UI', icon: 'artboard'},
         {id: 'videoSettings', label: 'Video settings', icon: 'crop'},
         // {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
         {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
@@ -259,6 +270,9 @@ export default {
   },
 
   methods: {
+    showInPlayerUi() {
+      this.eventBus.send('uw-set-ui-state', {globalUiVisible: true}, {comms: {forwardTo: 'active'}});
+    },
     async sleep(t) {
       return new Promise( (resolve,reject) => {
         setTimeout(() => resolve(), t);
@@ -365,12 +379,15 @@ export default {
 
 .header {
   background-color: rgb(90, 28, 13);
+  background-color: rgb(0,0,0);
   color: #fff;
   padding: 8px;
 
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  // display: flex;
+  // flex-direction: row;
+  // justify-content: space-between;
+
+  border-bottom: 1px dotted #fa6;
 
 
   h1 {
@@ -386,6 +403,21 @@ export default {
     }
   }
 
+}
+
+.settings-header-button {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  padding: 0.5rem 2rem;
+  text-transform: lowercase;
+  font-variant: small-caps;
+
+  background-color: #000;
+  border: 1px solid #fa68;
+
+  color: #eee;
 }
 
 .site-support-info {
