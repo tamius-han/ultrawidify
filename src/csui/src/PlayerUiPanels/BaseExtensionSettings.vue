@@ -64,12 +64,12 @@
       <p>
         Pressing the button will reset settings to default without asking.
       </p>
-      <button
+      <ConfirmButton
         class="danger"
-        @click="resetSettings"
+        @onConfirmed="resetSettings"
       >
         Reset settings
-      </button>
+      </ConfirmButton>
     </div>
   </div>
 </template>
@@ -77,6 +77,7 @@
 <script>
 import SiteExtensionSettings from './PanelComponents/ExtensionSettings/SiteExtensionSettings.vue';
 import OtherSiteSettings from './PanelComponents/ExtensionSettings/OtherSiteSettings.vue';
+import ConfirmButton from '@csui/src/components/ConfirmButton';
 
 export default {
   data() {
@@ -93,8 +94,9 @@ export default {
   ],
   components: {
     SiteExtensionSettings,
-    OtherSiteSettings
-},
+    OtherSiteSettings,
+    ConfirmButton
+  },
   computed: {
     globalSettings() {
       return this.settings?.getSiteSettings('@global') ?? null;

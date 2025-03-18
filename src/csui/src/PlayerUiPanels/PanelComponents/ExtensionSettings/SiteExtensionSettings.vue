@@ -357,6 +357,7 @@ export default {
      * Compiles our extension settings into more user-friendly options
      */
     compileSimpleSettings(component, getFor = 'site') {
+      console.log('compiling simple settings!', component, getFor);
       let settingsData;
       switch (getFor) {
         case 'site':
@@ -369,6 +370,8 @@ export default {
           settingsData = this.settings.active.sites['@global'];
           break;
       }
+
+      console.log('getting data from:', settingsData);
 
       try {
         if (
@@ -383,6 +386,14 @@ export default {
           && settingsData?.[component]?.theater    === ExtensionMode.Default
           && settingsData?.[component]?.fullscreen === ExtensionMode.Default
         ) {
+          console.log(
+            component, 'is set to default because:\n'
+            `\nsettingsData[${component}].normal: ${settingsData?.[component]?.normal} || component is enableUI?`, component,
+            `\nsettingsData[${component}].theater: ${settingsData?.[component]?.normal}`,
+            `\nsettingsData[${component}].fullscreen: ${settingsData?.[component]?.normal}`,
+
+            `\n\n(expected values:`, ExtensionMode.Default
+          )
           return 'default';
         }
         if (
