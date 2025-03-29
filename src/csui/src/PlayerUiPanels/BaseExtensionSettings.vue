@@ -206,7 +206,6 @@ export default {
     },
 
     handleImportedSettings(newSettings) {
-      console.log('new settings received:', newSettings)
       this.importSettingDialogConfig = {
         visible: true,
         confirm: () => {
@@ -235,14 +234,12 @@ export default {
     },
 
     saveSettingsChanges() {
-      console.log(' saving settings changes ...', this.allowSettingsEditing)
-
       if (this.allowSettingsEditing) {
         this.settings.active = this.settingsJson;
         this.settings.saveWithoutReload();
         this.resetSettingsEditor();
         this.editorSaveFinished = true;
-        console.log('save finished ...')
+
         setTimeout(() => {
           this.editorSaveFinished = false;
         }, 3000);
