@@ -169,10 +169,9 @@ export default {
         {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
         {id: 'autodetectionSettings', label: 'Autodetection options', icon: 'auto-fix'},
         // {id: 'advancedOptions', label: 'Advanced options', icon: 'cogs' },
-        // {id: 'debugging', label: 'Debugging', icon: 'bug-outline' }
         {id: 'changelog', label: 'What\'s new', icon: 'alert-decagram' },
         {id: 'about', label: 'About', icon: 'information-outline'},
-        // {id: 'resetBackup', label: 'Reset and backup', icon: 'file-restore-outline'},
+        {id: 'debugging', label: 'Debugging', icon: 'bug-outline' },
       ],
       selectedTab: 'extensionSettings',
       BrowserDetect: BrowserDetect,

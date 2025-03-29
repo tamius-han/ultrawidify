@@ -6,20 +6,12 @@
 
       <div>Logger configuration:</div>
 
-      <template v-if="loggerPanel.pasteConfMode">
-
-      </template>
-      <template v-else>
-        <JsonObject
-          label="logger-settings"
-          :value="currentSettings"
-          :ignoreKeys="{'allowLogging': false}"
-          @change="updateSettingsUi"
-        ></JsonObject>
-      </template>
+      <JsonEditor
+        v-model="lastSettings"
+      ></JsonEditor>
 
       <div class="flex flex-row flex-end">
-        <div class="button" @click="restoreLoggerSettings()">
+        <div class="button" @click="getLoggerSettings()">
           Revert
         </div>
         <div class="button button-primary" @click="saveLoggerSettings()">
@@ -35,12 +27,12 @@
 </template>
 
 <script>
-import JsonObject from '../components/JsonEditor/JsonObject.vue'
 import Logger, { baseLoggingOptions } from '../../../ext/lib/Logger';
+import JsonEditor from '@csui/src/components/JsonEditor';
 
 export default {
   components: {
-    JsonObject
+    JsonEditor
   },
   data() {
     return {
@@ -92,29 +84,12 @@ export default {
   methods: {
     loadDefaultConfig() {
       this.lastSettings = baseLoggingOptions;
-      this.parsedSettings = JSON.stringify(this.lastSettings, null, 2) || '';
-      this.currentSettings = JSON.parse(JSON.stringify(this.lastSettings));
     },
     async getLoggerSettings() {
       this.lastSettings = await Logger.getConfig() || baseLoggingOptions;
-      this.parsedSettings = JSON.stringify(this.lastSettings, null, 2) || '';
-      this.currentSettings = JSON.parse(JSON.stringify(this.lastSettings));
-    },
-    updateSettingsUi(val) {
-      try {
-        this.parsedSettings = JSON.stringify(val, null, 2);
-        this.lastSettings = val;
-        this.currentSettings = JSON.parse(JSON.stringify(this.lastSettings));
-      } catch (e) {
-
-      }
     },
     saveLoggerSettings() {
       Logger.saveConfig({...this.lastSettings});
-    },
-    restoreLoggerSettings() {
-      this.getLoggerSettings();
-      this.confHasError = false;
     },
     async startLogging(){
       this.logStringified = undefined;

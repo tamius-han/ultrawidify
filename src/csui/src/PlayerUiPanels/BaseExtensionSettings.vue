@@ -120,10 +120,10 @@
 
       </div>
       <div>
-        <JsonVanillaEditor
+        <JsonEditor
           v-model="settingsJson"
         >
-        </JsonVanillaEditor>
+        </JsonEditor>
       </div>
     </div>
   </div>
@@ -135,7 +135,7 @@ import OtherSiteSettings from './PanelComponents/ExtensionSettings/OtherSiteSett
 import Popup from '@csui/src/components/Popup';
 import ConfirmButton from '@csui/src/components/ConfirmButton';
 import UploadJsonFileButton from '@csui/src/components/UploadJsonFileButton';
-import JsonVanillaEditor from '@csui/src/components/JsonVanillaEditor';
+import JsonEditor from '@csui/src/components/JsonEditor';
 
 
 
@@ -164,7 +164,7 @@ export default {
     Popup,
     ConfirmButton,
     UploadJsonFileButton,
-    JsonVanillaEditor
+    JsonEditor
   },
   computed: {
     globalSettings() {
