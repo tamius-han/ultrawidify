@@ -90,11 +90,15 @@
 
         <div v-if="enableSettingsEditor" class="field">
           <div class="label">Show developer options</div>
-          <input v-model="showSettingsEditor" type="checkbox">
+          <input
+            type="checkbox"
+            v-model="settings.active.ui.devMode"
+            @change="settings.saveWithoutReload"
+          >
         </div>
       </div>
     </div>
-    <div v-if="enableSettingsEditor && showSettingsEditor" class="h-full grow">
+    <div v-if="enableSettingsEditor && settings.active.ui.devMode" class="h-full grow">
       <h2>Settings editor</h2>
       <div class="flex flex-row w-full">
         <div class="flex flex-row">
@@ -144,7 +148,6 @@ export default {
     return {
       tab: 'siteSettings',
       importSettingDialogConfig: {visible: false},
-      showSettingsEditor: false,
       allowSettingsEditing: false,
       editorSaveFinished: false,
       settingsJson: {},

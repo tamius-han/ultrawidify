@@ -30,22 +30,26 @@
         <div
           v-for="tab of tabs"
           :key="tab.id"
-          class="tab"
-          :class="{
-            'active': tab.id === selectedTab,
-            'highlight-tab': tab.highlight,
-          }"
-          @click="selectTab(tab.id)"
         >
-          <div class="icon-container">
-            <mdicon
-              v-if="tab.icon"
-              :name="tab.icon"
-              :size="32"
-            />
-          </div>
-          <div class="label">
-            {{tab.label}}
+          <div
+            v-if="!tab.hidden"
+            class="tab"
+            :class="{
+              'active': tab.id === selectedTab,
+              'highlight-tab': tab.highlight,
+            }"
+            @click="selectTab(tab.id)"
+          >
+            <div class="icon-container">
+              <mdicon
+                v-if="tab.icon"
+                :name="tab.icon"
+                :size="32"
+              />
+            </div>
+            <div class="label">
+              {{tab.label}}
+            </div>
           </div>
         </div>
       </div>
@@ -171,7 +175,7 @@ export default {
         // {id: 'advancedOptions', label: 'Advanced options', icon: 'cogs' },
         {id: 'changelog', label: 'What\'s new', icon: 'alert-decagram' },
         {id: 'about', label: 'About', icon: 'information-outline'},
-        {id: 'debugging', label: 'Debugging', icon: 'bug-outline' },
+        {id: 'debugging', label: 'Debugging', icon: 'bug-outline', hidden: true},
       ],
       selectedTab: 'extensionSettings',
       BrowserDetect: BrowserDetect,
@@ -196,6 +200,8 @@ export default {
     }
   },
   created() {
+    this.settings.listenAfterChange(this.setDebugTabVisibility);
+
     if (this.defaultTab) {
       this.selectedTab = this.defaultTab;
     }
@@ -213,8 +219,10 @@ export default {
         },
       }
     )
+    this.setDebugTabVisibility();
   },
   destroyed() {
+    this.settings.removeListenerAfterChange(this.setDebugTabVisibility);
     this.eventBus.unsubscribeAll(this);
   },
   methods: {
@@ -230,6 +238,12 @@ export default {
     setPreventClose(bool) {
       this.preventClose = bool;
       this.$emit('preventClose', bool);
+    },
+    setDebugTabVisibility() {
+      const debugTab = this.tabs.find( x => x.id === 'debugging');
+      if (debugTab) {
+        debugTab.hidden = !this.settings.active.ui.devMode;
+      }
     }
   }
 }

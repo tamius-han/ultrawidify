@@ -183,7 +183,8 @@ interface SettingsInterface {
         offsetX: number,                       // fed to translateX(offsetX + '%'). Valid range [-100,   0]
         offsetY: number                        // fed to translateY(offsetY + '%'). Valid range [-100, 100]
       },
-    }
+    },
+    devMode?: boolean,
   }
 
   restrictions?: RestrictionsSettings;

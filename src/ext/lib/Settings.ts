@@ -37,8 +37,8 @@ class Settings {
   onSettingsChanged: any;
   afterSettingsSaved: any;
 
-  onChangedCallbacks: any[] = [];
-  afterSettingsChangedCallbacks: any[] = [];
+  onChangedCallbacks: (() => void)[] = [];
+  afterSettingsChangedCallbacks: (() => void)[] = [];
   //#endregion
 
   constructor(options) {
@@ -398,8 +398,14 @@ class Settings {
   listenOnChange(fn: () => void): void {
     this.onChangedCallbacks.push(fn);
   }
+  removeOnChangeListener(fn: () => void): void {
+    this.onChangedCallbacks = this.afterSettingsChangedCallbacks.filter(x => x !== fn);
+  }
   listenAfterChange(fn: () => void): void {
     this.afterSettingsChangedCallbacks.push(fn);
+  }
+  removeAfterChangeListener(fn: () => void): void {
+    this.afterSettingsChangedCallbacks = this.afterSettingsChangedCallbacks.filter(x => x !== fn);
   }
 }
 
