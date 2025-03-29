@@ -213,6 +213,7 @@ export default {
           this.settings.active = newSettings;
           this.settings.saveWithoutReload();
           this.importSettingDialogConfig = {visible: false};
+          this.resetSettingsEditor();
         },
         reject: () => {
           this.importSettingDialogConfig = {visible: false};
@@ -230,6 +231,7 @@ export default {
     resetSettings() {
       this.settings.active = JSON.parse(JSON.stringify(this.settings.default));
       this.settings.saveWithoutReload();
+      this.resetSettingsEditor();
     },
 
     saveSettingsChanges() {
