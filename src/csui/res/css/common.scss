@@ -32,7 +32,7 @@ body {
 }
 
 /* STANDARD WIDTHS AND HEIGHTS */
-.w100 {
+.w100, .w-full {
   width: 100%;
 }
 
@@ -248,6 +248,7 @@ small {
   background-color: #410 !important;
 }
 
+button,
 .button {
   /*display: inline-block;*/
   // padding-top: 8px;
@@ -261,6 +262,27 @@ small {
   text-align: center;
   cursor: pointer;
   user-select: none;;
+
+  background-color: rgba(11,11,11,0.75);
+
+
+  padding: 0.5rem 2rem;
+  background-color: rgba(11, 11, 11, 0.5);
+  border: 1px solid transparent;
+  user-select: none !important;
+
+  &.primary {
+    background-color: #fa6;
+    color: #000;
+  }
+  &.danger {
+    background-color: #ff2211 !important;
+    color:#000;
+  }
+  &.disabled {
+    filter: saturate(0%);
+    pointer-events: none;
+  }
 }
 
 

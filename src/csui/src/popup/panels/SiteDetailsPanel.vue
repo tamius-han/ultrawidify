@@ -117,9 +117,9 @@
     </div>
     <div class="flex flex-col">
         <textarea
-               v-model="playerCss"
-               @change="updatePlayerCss"
-               @blur="updatePlayerCss"
+          v-model="playerCss"
+          @change="updatePlayerCss"
+          @blur="updatePlayerCss"
         >
         </textarea>
     </div>

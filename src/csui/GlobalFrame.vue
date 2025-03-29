@@ -1,5 +1,5 @@
 <template>
-  <div class="uw-clickthrough relative w-100 h-100">
+  <div class="uw-clickthrough relative w-full h-full">
     <template v-for="rectangle of drawnRectangles" :key="rectangle.id ?? rectangle">
 
       <!-- Player element overlays -->

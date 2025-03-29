@@ -28,11 +28,20 @@
         >
           {{ confirmText || 'Confirm' }}
         </button>
-        <button @click="popupVisible = false">{{ cancelText  || 'Cancel' }}</button>
+        <button class="button" @click="popupVisible = false">{{ cancelText  || 'Cancel' }}</button>
       </div>
     </div>
   </div>
-  <button @click="popupVisible = true">
+  <button
+    :class="[
+      {
+        'danger': dialogType === 'danger',
+        'warning': dialogType === 'warning',
+      },
+      btnClass
+    ]"
+    @click="popupVisible = true"
+  >
     <slot></slot>
   </button>
 </template>
@@ -46,6 +55,7 @@ export default {
     }
   },
   props: [
+    'btnClass',
     'dialogTitle',
     'dialogText',
     'confirmText',
@@ -54,6 +64,7 @@ export default {
   ],
   methods: {
     confirmAction() {
+      this.popupVisible = false;
       this.$emit('onConfirmed');
     }
   }
@@ -67,14 +78,28 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: saturate(50%) backdrop-blur(1rem);
+
+  width: 100%;
+  height: 100%;
+
+  // background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: saturate(50%) brightness(50%) blur(1rem);
   z-index: 99999;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 
   .header {
     font-size: 1.33rem;
+
     color: #fff;
-    background-color: #000;
+
+    &.danger {
+      color: rgb(251, 107, 63);
+      font-weight: bold;
+    }
   }
   .body {
     min-height: 5rem;

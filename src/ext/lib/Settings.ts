@@ -356,12 +356,14 @@ class Settings {
       console.log("[Settings::save] Saving active settings:", this.active);
     }
     this.active.preventReload = undefined;
+    this.active.lastModified = new Date();
     await this.set(this.active, options);
   }
 
 
   async saveWithoutReload() {
     this.active.preventReload = true;
+    this.active.lastModified = new Date();
     await this.set(this.active);
   }
 

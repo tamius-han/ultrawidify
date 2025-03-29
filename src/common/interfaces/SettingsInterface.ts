@@ -231,6 +231,7 @@ interface SettingsInterface {
   pan?: any,
   version?: string,
   preventReload?: boolean,
+  lastModified?: Date,
 
   // -----------------------------------------
   //           ::: MITIGATIONS :::

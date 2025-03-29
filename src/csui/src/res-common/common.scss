@@ -58,9 +58,18 @@ button, .button {
     border-color: rgba($primary, .5);
   }
 
+
+  &.primary {
+    background-color: #fa6;
+    color: #000;
+  }
+
   &.danger {
     background-color: #ff2211 !important;
     color:#000;
+  }
+  &.disabled {
+    filter: saturate(0%);
   }
 }
 .b3 {

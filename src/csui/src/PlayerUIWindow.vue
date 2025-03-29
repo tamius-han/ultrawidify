@@ -95,6 +95,7 @@
             :settings="settings"
             :siteSettings="siteSettings"
             :site="site"
+            :enableSettingsEditor="true"
           ></BaseExtensionSettings>
           <AutodetectionSettingsPanel
             v-if="selectedTab === 'autodetectionSettings'"
