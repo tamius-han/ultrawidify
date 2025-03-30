@@ -8,7 +8,7 @@
       </div>
       <div class="select">
         <select
-          v-model="simpleExtensionSettings.enable"
+          :value="simpleExtensionSettings.enable"
           @click="setExtensionMode('enable', $event)"
         >
           <option
@@ -53,7 +53,7 @@
         </div>
         <div class="select">
           <select
-            v-model="simpleExtensionSettings.enableAard"
+            :value="simpleExtensionSettings.enableAard"
             @click="setExtensionMode('enableAard', $event)"
           >
             <option
@@ -96,7 +96,7 @@
         </div>
         <div class="select">
           <select
-            v-model="simpleExtensionSettings.enableKeyboard"
+            :value="simpleExtensionSettings.enableKeyboard"
             @click="setExtensionMode('enableKeyboard', $event)"
           >
             <option
@@ -139,7 +139,7 @@
         </div>
         <div class="select">
           <select
-            v-model="simpleExtensionSettings.enableUI"
+            :value="simpleExtensionSettings.enableUI"
             @click="setExtensionMode('enableUI', $event)"
           >
             <template v-if="isDefaultConfiguration">
@@ -170,7 +170,7 @@
         <div class="label">Default crop:</div>
         <div class="select">
           <select
-            v-model="siteDefaultCrop"
+            :value="siteDefaultCrop"
             @change="setOption('defaults.crop', $event)"
           >
             <option
@@ -357,7 +357,7 @@ export default {
      * Compiles our extension settings into more user-friendly options
      */
     compileSimpleSettings(component, getFor = 'site') {
-      console.log('compiling simple settings!', component, getFor);
+      // console.log('compiling simple settings!', component, getFor, 'site settings?', this.siteSettings);
       let settingsData;
       switch (getFor) {
         case 'site':
@@ -371,7 +371,7 @@ export default {
           break;
       }
 
-      console.log('getting data from:', settingsData);
+      // console.log('getting data from:', settingsData);
 
       try {
         if (
@@ -386,14 +386,14 @@ export default {
           && settingsData?.[component]?.theater    === ExtensionMode.Default
           && settingsData?.[component]?.fullscreen === ExtensionMode.Default
         ) {
-          console.log(
-            component, 'is set to default because:\n'
-            `\nsettingsData[${component}].normal: ${settingsData?.[component]?.normal} || component is enableUI?`, component,
-            `\nsettingsData[${component}].theater: ${settingsData?.[component]?.normal}`,
-            `\nsettingsData[${component}].fullscreen: ${settingsData?.[component]?.normal}`,
+          // console.log(
+          //   component, 'is set to default because:\n',
+          //   `\nsettingsData[${component}].normal: ${settingsData?.[component]?.normal} || component is enableUI?`, component,
+          //   `\nsettingsData[${component}].theater: ${settingsData?.[component]?.normal}`,
+          //   `\nsettingsData[${component}].fullscreen: ${settingsData?.[component]?.normal}`,
 
-            `\n\n(expected values:`, ExtensionMode.Default
-          )
+          //   `\n\n(expected values:`, ExtensionMode.Default
+          // )
           return 'default';
         }
         if (
