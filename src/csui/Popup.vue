@@ -80,10 +80,6 @@
         <!-- CONTENT -->
         <div class="scrollable" style="flex: 7 7; padding: 1rem;">
           <template v-if="settings && siteSettings">
-            <InPlayerUIAdvertisement
-              v-if="selectedTab === 'playerUiCtl'"
-              :eventBus="eventBus"
-            />
             <PopupVideoSettings
               v-if="selectedTab === 'videoSettings'"
               :settings="settings"
@@ -128,7 +124,6 @@ import BaseExtensionSettings from './src/PlayerUiPanels/BaseExtensionSettings.vu
 import PlayerDetectionPanel from './src/PlayerUiPanels/PlayerDetectionPanel.vue'
 import ChangelogPanel from './src/PlayerUiPanels/ChangelogPanel.vue'
 import PopupVideoSettings from './src/popup/panels/PopupVideoSettings.vue'
-import InPlayerUIAdvertisement from './src/PlayerUiPanels/InPlayerUiAdvertisement.vue';
 import AboutPanel from '@csui/src/popup/panels/AboutPanel.vue'
 import Debug from '../ext/conf/Debug';
 import BrowserDetect from '../ext/conf/BrowserDetect';
@@ -147,7 +142,6 @@ export default {
     PopupVideoSettings,
     PlayerDetectionPanel,
     BaseExtensionSettings,
-    InPlayerUIAdvertisement,
     SupportLevelIndicator,
     ChangelogPanel,
     AboutPanel
