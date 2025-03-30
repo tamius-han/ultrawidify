@@ -2,6 +2,14 @@
 
 ## v6.0 (current major)
 
+### v6.2.5
+
+* Popup appearance changed — UI advertisement panel was moved to the popup header
+* Fixed the bug where popup wouldn't be showing the correct settings
+* Fixed the bug where site settings would default to 'disabled', even if Extension default setting was not disabled.
+* Added ability to export and import settings from file (ft. developer mode editor)
+
+
 ### v6.2.4
 * [#264](https://github.com/tamius-han/ultrawidify/issues/264) — fixed issue with white screen that affected some youtube users. Special thanks to [SnowyOwlNugget](https://github.com/SnowyOwlNugget">SnowyOwlNugget), who instead of whining provided the necessary information.
 * Minor updates to the settings
