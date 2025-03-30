@@ -352,12 +352,15 @@ export default {
       return '??';
     }
   },
+  mounted() {
+    this.forceRefreshPage();
+  },
   methods: {
     /**
      * Compiles our extension settings into more user-friendly options
      */
     compileSimpleSettings(component, getFor = 'site') {
-      // console.log('compiling simple settings!', component, getFor, 'site settings?', this.siteSettings);
+
       let settingsData;
       switch (getFor) {
         case 'site':
@@ -517,6 +520,9 @@ export default {
 
       // we also need to force re-compute all watchers, otherwise UI will lag behind
       // actual state of settings until reload
+      this.forceRefreshPage();
+    },
+    forceRefreshPage() {
       this._computedWatchers?.simpleExtensionSettings?.run();
       this._computedWatchers?.simpleDefaultSettings?.run();
       this._computedWatchers?.siteDefaultCrop?.run();
@@ -527,6 +533,7 @@ export default {
 
       this.$nextTick( () => this.$forceUpdate());
     },
+
     setExtensionMode(component, event) {
       const option = event.target.value;
 

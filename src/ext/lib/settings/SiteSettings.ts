@@ -30,7 +30,7 @@ export class SiteSettings {
     this.settings = settings;
     this.raw = settings.active.sites[site];
     this.site = site;
-    this.defaultSettings = settings.default.sites['@global'];
+    this.defaultSettings = settings.active.sites['@global'];
 
     this.compileSettingsObject();
 

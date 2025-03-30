@@ -175,7 +175,7 @@ export default {
     }
   },
   mounted() {
-    this.tabs.find(x => x.id === 'changelog').highlight = !this.settings.active.whatsNewChecked;
+    this.tabs.find(x => x.id === 'changelog').highlight = !this.settings.active?.whatsNewChecked;
   },
   async created() {
     this.logger = new Logger();

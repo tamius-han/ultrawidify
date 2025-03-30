@@ -206,7 +206,7 @@ export default {
       this.selectedTab = this.defaultTab;
     }
     this.siteSettings = this.settings.getSiteSettings(this.site);
-    this.tabs.find(x => x.id === 'changelog').highlight = !this.settings.active.whatsNewChecked;
+    this.tabs.find(x => x.id === 'changelog').highlight = !this.settings.active?.whatsNewChecked;
 
     this.eventBus.subscribe(
       'uw-show-ui',
