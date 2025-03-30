@@ -92,10 +92,10 @@ class PlayerData {
   isTheaterMode: boolean = false;  // note: fullscreen mode will count as theaterMode if player was in theater mode before fs switch. This is desired, so far.
   isTooSmall: boolean = true;
 
+  //#endregion
   //#region misc stuff
   extensionMode: any;
   dimensions: PlayerDimensions;
-  private playerIdElement: any;
   private observer: ResizeObserver;
 
   private trackChangesTimeout: any;
@@ -123,7 +123,7 @@ class PlayerData {
       function: (data) => this.markElement(data)
     }],
     'update-player': [{
-      function: () => this.getPlayer()
+      function: () => this.updatePlayer()
     }],
     'set-run-level': [{
       function: (runLevel) => this.setRunLevel(runLevel)
@@ -179,6 +179,14 @@ class PlayerData {
     return ExtensionEnvironment.Normal;
   }
 
+  /**
+   *    ————————————————————————————————————————————————————————————————————————
+   *         END OF PROPERTIES
+   *    ————————————————————————————————————————————————————————————————————————
+   *
+   */
+
+
   //#region lifecycle
   constructor(videoData) {
     try {
@@ -192,14 +200,10 @@ class PlayerData {
 
       // do the rest
       this.invalid = false;
-      this.element = this.getPlayer();
+      this.updatePlayer();
       this.isTooSmall = (this.element.clientWidth < 1208 || this.element.clientHeight < 720);
 
       this.initEventBus();
-
-      // we defer UI creation until player element is big enough
-      // this happens in trackDimensionChanges!
-
       this.dimensions = undefined;
 
       this.periodicallyRefreshPlayerElement = false;
@@ -215,8 +219,6 @@ class PlayerData {
         return;
       }
 
-      this.trackDimensionChanges();
-      this.trackEnvironmentChanges();
       this.startChangeDetection();
 
       document.addEventListener('fullscreenchange', this.dimensionChangeListener);
@@ -231,7 +233,7 @@ class PlayerData {
 
   private reloadPlayerDataConfig(siteConfUpdate) {
     // this.siteSettings = siteConfUpdate;
-    this.element = this.getPlayer();
+    this.updatePlayer();
 
     this.periodicallyRefreshPlayerElement = false;
     try {
@@ -271,6 +273,7 @@ class PlayerData {
       return;
     }
 
+
     if (
       this.isFullscreen
       || (
@@ -279,6 +282,7 @@ class PlayerData {
         && playerDimensions.height > 720
       )
     ) {
+
       this.ui = new UI(
         'ultrawidifyUi',
         {
@@ -574,10 +578,38 @@ class PlayerData {
     return this.elementStack;
   }
 
+
+  updatePlayer(options?: {verbose?: boolean, newElement?: HTMLElement}) {
+    const newPlayer = options?.newElement ?? this.getPlayer(options);
+
+    if (newPlayer === this.element) {
+      return;
+    }
+
+    // clean up and re-initialize UI
+    this.ui?.destroy();
+    delete this.ui;
+
+    this.element = newPlayer;
+
+    this.ui = new UI(
+      'ultrawidifyUi',
+      {
+        parentElement: this.element,
+        eventBus: this.eventBus,
+        playerData: this,
+        uiSettings: this.videoData.settings.active.ui
+      }
+    );
+
+    this.trackDimensionChanges();
+    this.trackEnvironmentChanges();
+  }
+
   /**
    * Finds and returns HTML element of the player
    */
-  getPlayer(options?: {verbose?: boolean}): HTMLElement {
+  private getPlayer(options?: {verbose?: boolean}): HTMLElement {
     const host = window.location.hostname;
     let element = this.videoElement.parentNode;
     const videoWidth = this.videoElement.offsetWidth;
@@ -652,12 +684,7 @@ class PlayerData {
       console.log('updated site settings:', this.siteSettings.data.playerAutoConfig);
       this.videoData.settings.saveWithoutReload();
 
-      this.ui?.destroy();
-      this.ui = undefined;
-
-      this.element = elementStack[nextIndex].element;
-      this.trackDimensionChanges();
-      this.trackEnvironmentChanges();
+      this.updatePlayer({newElement: elementStack[nextIndex].element});
     }
   }
 
@@ -817,7 +844,7 @@ class PlayerData {
    */
   private handlePlayerTreeRequest() {
     // this populates this.elementStack fully
-    this.getPlayer({verbose: true});
+    this.updatePlayer({verbose: true});
     console.log('tree:', JSON.parse(JSON.stringify(this.elementStack)));
     console.log('————————————————————— handling player tree request!')
     this.eventBus.send('uw-config-broadcast', {type: 'player-tree', config: JSON.parse(JSON.stringify(this.elementStack))});
@@ -858,13 +885,7 @@ class PlayerData {
   }
 
   forceRefreshPlayerElement() {
-    this.ui?.destroy();
-    this.ui = undefined;
-    this.element = this.getPlayer();
-    // this.notificationService?.replace(this.element);
-
-    this.trackDimensionChanges();
-    this.trackEnvironmentChanges();
+    this.updatePlayer();
   }
 }
 
