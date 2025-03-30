@@ -34,18 +34,23 @@ class UI {
     this.iframeConfirmed = false;
     this.iframeRejected = false;
 
+    this.delayedDestroyTimer = null;
+
     // TODO: at some point, UI should be different for global popup and in-player UI
     this.csuiScheme = this.getCsuiScheme();
     const csuiVersion = this.getCsuiVersion(this.csuiScheme.contentScheme);
     this.uiURI = chrome.runtime.getURL(`/csui/${csuiVersion}.html`);
     this.extensionBase = chrome.runtime.getURL('').replace(/\/$/, "");
+
+    // UI will be initialized when setUiVisibility is called
+    this.init();
   }
 
   async init() {
-    this.initIframes();
+    this.initUIContainer();
+    this.loadIframe();
     this.initMessaging();
   }
-
 
   /**
    * Returns color scheme we need to use.
@@ -70,7 +75,7 @@ class UI {
     return csuiVersions[preferredScheme] ?? csuiVersions.normal;
   }
 
-  initIframes() {
+  initUIContainer() {
     const random = Math.round(Math.random() * 69420);
     const uwid = `uw-ultrawidify-${this.interfaceId}-root-${random}`
 
@@ -81,8 +86,8 @@ class UI {
     }
     rootDiv.setAttribute('id', uwid);
     rootDiv.classList.add('uw-ultrawidify-container-root');
-    // rootDiv.style.width = "100%";
-    // rootDiv.style.height = "100%";
+    rootDiv.style.width = "100%";
+    rootDiv.style.height = "100%";
     rootDiv.style.position = this.isGlobal ? "fixed" : "absolute";
     rootDiv.style.zIndex = this.isGlobal ? '90009' : '90000';
     rootDiv.style.border = 0;
@@ -95,8 +100,10 @@ class UI {
       document.body.appendChild(rootDiv);
     }
 
-    this.element = rootDiv;
+    this.rootDiv = rootDiv;
+  }
 
+  loadIframe() {
     // in onMouseMove, we currently can't access this because we didn't
     // do things the most properly
     const uiURI = this.uiURI;
@@ -132,7 +139,7 @@ class UI {
     this.uiIframe = iframe;
 
     // set not visible by default
-    this.setUiVisibility(false);
+    // this.setUiVisibility(false);
 
     const fn = (event) => {
       // remove self on fucky wuckies
@@ -178,13 +185,19 @@ class UI {
       document.addEventListener('mousemove', fn, true);
     }
 
-    rootDiv.appendChild(iframe);
+    this.rootDiv.appendChild(iframe);
   }
+
+  unloadIframe() {
+    window.removeEventListener('message', this.messageHandlerFn);
+    this.uiIframe?.remove();
+    delete this.uiIframe;
+  }
+
 
   initMessaging() {
     // subscribe to events coming back to us. Unsubscribe if iframe vanishes.
     window.addEventListener('message', this.messageHandlerFn);
-
 
     /* set up event bus tunnel from content script to UI — necessary if we want to receive
      * like current zoom levels & current aspect ratio & stuff. Some of these things are
@@ -250,28 +263,40 @@ class UI {
   }
 
   setUiVisibility(visible) {
+    // console.log('uwui - setting ui visibility!', visible, this.isGlobal ? 'global' : 'page', this.uiIframe, this.rootDiv);
+    // if (!this.uiIframe || !this.rootDiv) {
+    //   this.init();
+    // }
+
     if (visible) {
-      this.element.style.width = '100%';
-      this.element.style.height = '100%';
+      this.rootDiv.style.width = '100%';
+      this.rootDiv.style.height = '100%';
       this.uiIframe.style.width = '100%';
       this.uiIframe.style.height = '100%';
+
+      // if (this.delayedDestroyTimer) {
+      //   clearTimeout(this.delayedDestroyTimer);
+      // }
     } else {
-      this.element.style.width = '0px';
-      this.element.style.height = '0px';
+      this.rootDiv.style.width = '0px';
+      this.rootDiv.style.height = '0px';
       this.uiIframe.style.width = '0px';
       this.uiIframe.style.height = '0px';
+
+      // destroy after 30 seconds of UI being hidden
+      // this.delayedDestroyTimer = setTimeout( () => this.unloadIframe(), 30000);
     }
   }
 
   async enable() {
     // if root element is not present, we need to init the UI.
-    if (!this.element) {
+    if (!this.rootDiv) {
       await this.init();
     }
     // otherwise, we don't have to do anything
   }
   disable() {
-    if (this.element) {
+    if (this.rootDiv) {
       this.destroy();
     }
   }
@@ -306,6 +331,7 @@ class UI {
     }
 
     result.canShowUI = true;
+
     return result;
   }
 
@@ -398,7 +424,7 @@ class UI {
     // because existence of UI is not guaranteed — UI is not shown when extension is inactive.
     // If extension is inactive due to "player element isn't big enough to justify it", however,
     // we can still receive eventBus messages.
-    if (this.element && this.uiIframe) {
+    if (this.rootDiv && this.uiIframe) {
       this.uiIframe.contentWindow?.postMessage(
         {
           action,
@@ -445,21 +471,21 @@ class UI {
   replace(newUiConfig) {
     this.uiConfig = newUiConfig;
 
-    if (this.element) {
-      this.element?.remove();
+    if (this.rootDiv) {
+      this.destroy();
       this.init();
     }
   }
 
   destroy() {
-    window.removeEventListener('message', this.messageHandlerFn);
+    this.unloadIframe();
+
     this.eventBus.unsubscribeAll(this);
     // this.comms?.destroy();
-    this.uiIframe?.remove();
-    this.element?.remove();
+    this.rootDiv?.remove();
 
-    this.uiIframe = undefined;
-    this.element = undefined;
+    delete this.uiIframe;
+    delete this.rootDiv;
   }
 }
 
