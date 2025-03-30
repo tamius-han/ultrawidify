@@ -5,6 +5,10 @@
 
 // @import "form.scss";
 
+* {
+  box-sizing: border-box;
+}
+
 body {
   background-color: $background-primary;
   color: $text-normal;
@@ -19,7 +23,7 @@ body {
 }
 
 .main-window::before {
-  content: ' backdrop-filter machine broke :(     googlo pls fix';
+  content: ' ';
   color: #000;
   position: absolute;
   left: -0.5rem;
