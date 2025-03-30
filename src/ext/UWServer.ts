@@ -276,11 +276,20 @@ export default class UWServer {
   }
 
   async getCurrentSite() {
+    const site = await this.getVideoTab();
+
+    // Don't propagate 'INVALID SITE' to the popup.
+    if (site.host === 'INVALID SITE') {
+      return;
+    }
+
+    const tabHostname = await this.getCurrentTabHostname();
+
     this.eventBus.send(
       'set-current-site',
       {
-        site: await this.getVideoTab(),
-        tabHostname: await this.getCurrentTabHostname(),
+        site,
+        tabHostname,
       },
       {
         comms: {
