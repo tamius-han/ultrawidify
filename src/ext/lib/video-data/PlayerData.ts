@@ -699,6 +699,7 @@ class PlayerData {
     let penaltyMultiplier = 1;
     const sizePenaltyMultiplier = 0.1;
     const perLevelScorePenalty = 10;
+    let sameSizeBonus = 0;
 
     for (const [index, element] of elementStack.entries()) {
       element.index = index;
@@ -747,7 +748,13 @@ class PlayerData {
 
         // we prefer elements closer to the video, so the score of each potential
         // candidate gets dinked a bit
-        score -= perLevelScorePenalty * penaltyMultiplier;
+        // score -= perLevelScorePenalty * penaltyMultiplier;
+
+        if (element.width === elementStack[index - 1].width && element.height === elementStack[index - 1].height) {
+          score += ++sameSizeBonus;
+        } else {
+          sameSizeBonus = 0;
+        }
 
         element.autoScore = score;
         element.heuristics['autoScoreDetails'] = {
@@ -762,12 +769,14 @@ class PlayerData {
       }
     }
 
+
     let bestCandidate: any = {autoScore: -99999999, initialValue: true};
     for (const element of elementStack) {
       if (element.autoScore > bestCandidate.autoScore) {
         bestCandidate = element;
       }
     }
+
     if (bestCandidate.initialValue) {
       bestCandidate = null;
     } else {
@@ -775,6 +784,22 @@ class PlayerData {
       if (this.siteSettings.data.playerAutoConfig?.initialIndex !== bestCandidate.index) {
         this.siteSettings.set('playerAutoConfig.initialIndex', bestCandidate.index, {reload: false, scripted: true});
       }
+    }
+
+    // BUT WAIT! THERE'S MORE
+    // Some sites (youtube) can re-parent elements, causing current player element to vanish from DOM
+    if (bestCandidate) {
+      const observer = new MutationObserver( (mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.removedNodes.forEach((node) => {
+            if (node === bestCandidate.element) {
+              observer.disconnect();
+              this.updatePlayer();
+            }
+          })
+        });
+      });
+      observer.observe(bestCandidate.element.parentNode, {childList: true});
     }
 
     return bestCandidate;
