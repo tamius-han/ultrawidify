@@ -65,7 +65,7 @@ export class GlCanvas {
   private set gl(x: WebGLRenderingContext) {
     this._context = x;
   };
-  private get gl(): WebGLRenderingContext {
+  protected get gl(): WebGLRenderingContext {
     return this._context;
   }
 
@@ -80,7 +80,7 @@ export class GlCanvas {
 
   private buffers: GlCanvasBuffers;
   private texture: WebGLTexture;
-  private programInfo: GlCanvasProgramInfo;
+  protected programInfo: GlCanvasProgramInfo;
   private projectionMatrix: mat4;
 
   get width() {
@@ -103,7 +103,7 @@ export class GlCanvas {
    * Draws video frame to the GL canvas
    * @param video video to extract a frame from
    */
-  drawVideoFrame(video: HTMLVideoElement): void {
+  drawVideoFrame(video: HTMLVideoElement | HTMLCanvasElement): void {
     this.updateTexture(video);
     this.drawScene();
   }
@@ -156,7 +156,16 @@ export class GlCanvas {
     );
 
     if (!this.gl) {
-      throw new Error('WebGL not supported');
+      try {
+        this.gl = this.canvas.getContext(
+          "webgl",
+          {
+            preserveDrawingBuffer: true
+          }
+        );
+      } catch (e) {
+        throw new Error('WebGL not supported');
+      }
     }
     if(options.id) {
       this.canvas.setAttribute('id', options.id);
@@ -212,23 +221,29 @@ export class GlCanvas {
     this.frameBuffer = new Uint8Array(this.frameBufferSize);
   }
 
-  private loadShader(type, source) {
+  protected loadShader(type, source) {
     const shader = this.gl.createShader(type);
     this.gl.shaderSource(shader, source);
     this.gl.compileShader(shader);
 
     // TODO: warn if shader failed to compile
     if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-      this.gl.deleteShader(shader);
+      console.warn('DEBUG: Shader Compilation Error: ', type, this.gl.getShaderInfoLog(shader), '(cheat sheet: vertex shaders:', this.gl.VERTEX_SHADER, ')');
       return null;
     }
 
     return shader;
   }
 
-  private initShaderProgram() {
+  protected loadShaders() {
     const vertexShader = this.loadShader(this.gl.VERTEX_SHADER, vsSource);
     const fragmentShader = this.loadShader(this.gl.FRAGMENT_SHADER, fsSource);
+
+    return {vertexShader, fragmentShader};
+  }
+
+  private initShaderProgram() {
+    const {vertexShader, fragmentShader} = this.loadShaders();
 
     // Create the shader program
     const shaderProgram = this.gl.createProgram();
@@ -238,6 +253,7 @@ export class GlCanvas {
 
     // TODO: maybe give a warning if program failed to initialize
     if (!this.gl.getProgramParameter(shaderProgram, this.gl.LINK_STATUS)) {
+      console.warn('DEBUG — FAILED TO LINK SHADER PROGRAM', this.gl.getProgramInfoLog(shaderProgram))
       return null;
     }
 
@@ -279,7 +295,7 @@ export class GlCanvas {
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
   }
 
-  private updateTexture(video: HTMLVideoElement) {
+  protected updateTexture(video: HTMLVideoElement | HTMLCanvasElement | null) {
     const level = 0;
     const internalFormat = this.gl.RGBA;
     const srcFormat = this.gl.RGBA;
@@ -333,7 +349,7 @@ export class GlCanvas {
     this.gl.enableVertexAttribArray(this.programInfo.attribLocations.vertexPosition);
   }
 
-  private drawScene(): void {
+  protected drawScene(): void {
     /**
      * Since we are drawing our frames in a way such that the entire canvas is
      * always covered by rendered video, and given our video is the only object

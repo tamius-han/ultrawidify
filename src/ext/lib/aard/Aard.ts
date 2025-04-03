@@ -10,6 +10,7 @@ import { Corner } from './enums/corner.enum';
 import { VideoPlaybackState } from './enums/video-playback-state.enum';
 import { FallbackCanvas } from './gl/FallbackCanvas';
 import { GlCanvas } from './gl/GlCanvas';
+import { GlDebugCanvas, GlDebugType } from './gl/GlDebugCanvas';
 import { AardCanvasStore } from './interfaces/aard-canvas-store.interface';
 import { AardDetectionSample, generateSampleArray, resetSamples } from './interfaces/aard-detection-sample.interface';
 import { AardStatus, initAardStatus } from './interfaces/aard-status.interface';
@@ -251,6 +252,7 @@ export class Aard {
   private testResults: AardTestResults;
   private canvasSamples: AardDetectionSample;
 
+
   private forceFullRecheck: boolean = true;
   //#endregion
 
@@ -311,6 +313,14 @@ export class Aard {
       ),
     };
 
+
+    try {
+      this.showDebugCanvas();
+      this.canvasStore.main.showCanvas();
+    } catch (e) {
+      console.error('FALIED TO CREATE DEBUGG CANVAS', e);
+    }
+
     this.startCheck();
   }
 
@@ -348,6 +358,19 @@ export class Aard {
       this.eventBus.send('uw-config-broadcast', {type: 'aard-error', aardErrors: {invalidSettings: true}});
       throw 'AARD_INVALID_SETTINGS';
     }
+  }
+
+  /**
+   * Creates and shows debug canvas
+   * @param canvasId
+   */
+  private showDebugCanvas() {
+    console.log('SHOWING DEBUG CANVAS!')
+    if (!this.canvasStore.debug) {
+      this.canvasStore.debug = new GlDebugCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'uw-debug-gl'});
+    }
+    this.canvasStore.debug.show();
+    this.canvasStore.debug.drawVideoFrame(this.canvasStore.main.canvas);
   }
   //#endregion
 
@@ -453,11 +476,13 @@ export class Aard {
    */
   private async main() {
     try {
+      let imageData: Uint8Array;
+
       // We abuse a do-while loop to eat our cake (get early returns)
       // and have it, too (if we return early, we still execute code
       // at the end of this function)
       do {
-        const imageData = await new Promise<Uint8Array>(
+        imageData = await new Promise<Uint8Array>(
           resolve => {
             try {
               this.canvasStore.main.drawVideoFrame(this.video);
@@ -571,7 +596,9 @@ export class Aard {
       // (as aspect ratio may have been set manually while autodetection was off)
       if (this.testResults.notLetterbox) {
         // console.log('————not letterbox')
+        console.warn('DETECTED NOT LETTERBOX! (resetting)')
         this.updateAspectRatio(this.defaultAr);
+        return;
       }
 
       // if detection is uncertain, we don't do anything at all (unless if guardline was broken, in which case we reset)
@@ -579,9 +606,8 @@ export class Aard {
         // console.info('aspect ratio not certain:', this.testResults.aspectRatioUncertainReason);
         // console.warn('check finished:', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
 
-        if (this.testResults.guardLine.invalidated) {
-          this.updateAspectRatio(this.defaultAr);
-        }
+        console.warn('ASPECT RATIO UNCERTAIN, GUARD LINE INVALIDATED (resetting)')
+        this.updateAspectRatio(this.defaultAr);
 
         return;
       }
@@ -589,11 +615,11 @@ export class Aard {
       // TODO: emit debug values if debugging is enabled
       this.testResults.isFinished = true;
 
-      // console.warn(
-      //   `[${(+new Date() % 10000) / 100} | ${this.arid}]`,'check finished — aspect ratio updated:', this.testResults.aspectRatioUpdated,
-      //   '\ndetected ar:', this.testResults.activeAspectRatio, '->', this.getAr(),
-      //   '\nis video playing?', this.getVideoPlaybackState() === VideoPlaybackState.Playing,
-      //    '\n\n', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
+      console.warn(
+        `[${(+new Date() % 10000) / 100} | ${this.arid}]`,'check finished — aspect ratio updated:', this.testResults.aspectRatioUpdated,
+        '\ndetected ar:', this.testResults.activeAspectRatio, '->', this.getAr(),
+        '\nis video playing?', this.getVideoPlaybackState() === VideoPlaybackState.Playing,
+         '\n\n', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
 
       // if edge width changed, emit update event.
       // except aspectRatioUpdated doesn't get set reliably, so we just call update every time, and update
@@ -603,6 +629,10 @@ export class Aard {
       // }
 
       // if we got "no letterbox" OR aspectRatioUpdated
+
+      if (this.canvasStore.debug) {
+        this.canvasStore.debug.drawBuffer(imageData);
+      }
     } catch (e) {
       console.warn('[Ultrawidify] Aspect ratio autodetection crashed for some reason.\n\nsome reason:', e);
       this.videoData.resizer.setAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
@@ -682,11 +712,13 @@ export class Aard {
       pixelValues[pvi++] = imageData[px_r];
       pixelValues[pvi++] = imageData[px_r + 1];
       pixelValues[pvi++] = imageData[px_r + 2];
+      imageData[px_r + 3] = GlDebugType.BlackLevelSample;
 
       const endpx_r = px_r + (width * 4) - (i * 8) - 4;  // -4 because 4 bytes per pixel, and - twice the offset to mirror the diagonal
       pixelValues[pvi++] = imageData[endpx_r];
       pixelValues[pvi++] = imageData[endpx_r + 1];
       pixelValues[pvi++] = imageData[endpx_r + 2];
+      imageData[endpx_r + 3] = GlDebugType.BlackLevelSample;
     }
 
     // now let's populate the bottom two corners
@@ -697,11 +729,13 @@ export class Aard {
       pixelValues[pvi++] = imageData[px_r];
       pixelValues[pvi++] = imageData[px_r + 1];
       pixelValues[pvi++] = imageData[px_r + 2];
+      imageData[px_r + 3] = GlDebugType.BlackLevelSample;
 
       const endpx_r = px_r + (width * 4) - (i * 8) - 4;  // -4 because 4 bytes per pixel, and - twice the offset to mirror the diagonal
       pixelValues[pvi++] = imageData[endpx_r];
       pixelValues[pvi++] = imageData[endpx_r + 1];
       pixelValues[pvi++] = imageData[endpx_r + 2];
+      imageData[endpx_r + 3] = GlDebugType.BlackLevelSample;
     }
 
     let min = 255;
@@ -796,7 +830,10 @@ export class Aard {
           || imageData[i + 1] > this.testResults.blackThreshold
           || imageData[i + 2] > this.testResults.blackThreshold
         ) {
+          imageData[i + 3] = GlDebugType.GuardLineCornerViolation;
           this.testResults.guardLine.cornerPixelsViolated[Corner.TopLeft]++;
+        } else {
+          imageData[i + 3] = GlDebugType.GuardLineCornerOk;
         }
         i += 4;
       }
@@ -806,12 +843,15 @@ export class Aard {
           || imageData[i + 1] > this.testResults.blackThreshold
           || imageData[i + 2] > this.testResults.blackThreshold
         ) {
+          imageData[i + 3] = GlDebugType.GuardLineViolation;
           // DONT FORGET TO INVALIDATE GUARDL LINE
           this.testResults.guardLine.top = -1;
           this.testResults.guardLine.bottom = -1;
           this.testResults.guardLine.invalidated = true;
           return;
-        };
+        } else {
+          imageData[i + 3] = GlDebugType.GuardLineOk;
+        }
         i += 4;
       }
       while (i < rowEnd) {
@@ -820,7 +860,10 @@ export class Aard {
           || imageData[i + 1] > this.testResults.blackThreshold
           || imageData[i + 2] > this.testResults.blackThreshold
         ) {
+          imageData[i + 3] = GlDebugType.GuardLineCornerViolation;
           this.testResults.guardLine.cornerPixelsViolated[Corner.TopRight]++;
+        } else {
+          imageData[i + 3] = GlDebugType.GuardLineCornerOk;
         }
         i += 4; // skip over alpha channel
       }
@@ -842,7 +885,10 @@ export class Aard {
           || imageData[i + 1] > this.testResults.blackThreshold
           || imageData[i + 2] > this.testResults.blackThreshold
         ) {
+          imageData[i + 3] = GlDebugType.GuardLineCornerViolation;
           this.testResults.guardLine.cornerPixelsViolated[Corner.BottomLeft]++;
+        } else {
+          imageData[i + 3] = GlDebugType.GuardLineCornerOk;
         }
         i += 4; // skip over alpha channel
       }
@@ -855,12 +901,15 @@ export class Aard {
           || imageData[i + 1] > this.testResults.blackThreshold
           || imageData[i + 2] > this.testResults.blackThreshold
         ) {
+          imageData[i + 3] = GlDebugType.GuardLineViolation;
           // DONT FORGET TO INVALIDATE GUARDL LINE
           this.testResults.guardLine.top = -1;
           this.testResults.guardLine.bottom = -1;
           this.testResults.guardLine.invalidated = true;
           return;
-        };
+        } else {
+          imageData[i + 3] = GlDebugType.GuardLineOk;
+        }
         i += 4;
       }
       if (i % 4) {
@@ -872,7 +921,10 @@ export class Aard {
           || imageData[i + 1] > this.testResults.blackThreshold
           || imageData[i + 2] > this.testResults.blackThreshold
         ) {
+          imageData[i + 3] = GlDebugType.GuardLineCornerViolation;
           this.testResults.guardLine.cornerPixelsViolated[Corner.BottomRight]++;
+        } else {
+          imageData[i + 3] = GlDebugType.GuardLineCornerOk;
         }
         i += 4; // skip over alpha channel
       }
@@ -953,8 +1005,11 @@ export class Aard {
           imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
 
           if (imagePixel && ++pixelCount > detectionThreshold) {
+            imageData[i] = GlDebugType.ImageLineThresholdReached;
             return;
-          };
+          } else {
+            imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
+          }
           i++; // skip over alpha channel
         }
       }
@@ -965,8 +1020,11 @@ export class Aard {
         imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
 
         if (imagePixel && ++pixelCount > detectionThreshold) {
+          imageData[i] = GlDebugType.ImageLineThresholdReached;
           return;
-        };
+        } else {
+          imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
+        }
         i++; // skip over alpha channel
       }
       if (! this.testResults.guardLine.cornerViolated[Corner.TopRight]) {
@@ -977,8 +1035,11 @@ export class Aard {
           imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
 
           if (imagePixel && ++pixelCount > detectionThreshold) {
+            imageData[i] = GlDebugType.ImageLineThresholdReached;
             return;
-          };
+          } else {
+            imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
+          }
           i++; // skip over alpha channel
         }
       }
@@ -993,8 +1054,11 @@ export class Aard {
           imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
 
           if (imagePixel && ++pixelCount > detectionThreshold) {
+            imageData[i] = GlDebugType.ImageLineThresholdReached;
             return;
-          };
+          } else {
+            imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
+          }
           i++; // skip over alpha channel
         }
       }
@@ -1017,8 +1081,11 @@ export class Aard {
           imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
 
           if (imagePixel && ++pixelCount > detectionThreshold) {
+            imageData[i] = GlDebugType.ImageLineThresholdReached;
             return;
-          };
+          } else {
+            imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
+          }
           i++; // skip over alpha channel
         }
       }
@@ -1043,8 +1110,11 @@ export class Aard {
           imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
 
           if (imagePixel && ++pixelCount > detectionThreshold) {
+            imageData[i] = GlDebugType.ImageLineThresholdReached;
             return;
-          };
+          } else {
+            imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
+          }
           i++; // skip over alpha channel
         }
       }
@@ -1055,8 +1125,11 @@ export class Aard {
         imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
 
         if (imagePixel && ++pixelCount > detectionThreshold) {
+          imageData[i] = GlDebugType.ImageLineThresholdReached;
           return;
-        };
+        } else {
+          imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
+        }
         i++; // skip over alpha channel
       }
       if (! this.testResults.guardLine.cornerViolated[Corner.TopRight]) {
@@ -1067,8 +1140,11 @@ export class Aard {
           imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
 
           if (imagePixel && ++pixelCount > detectionThreshold) {
+            imageData[i] = GlDebugType.ImageLineThresholdReached;
             return;
-          };
+          } else {
+            imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
+          }
           i++; // skip over alpha channel
         }
       }
@@ -1083,8 +1159,11 @@ export class Aard {
           imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
 
           if (imagePixel && ++pixelCount > detectionThreshold) {
+            imageData[i] = GlDebugType.ImageLineThresholdReached;
             return;
-          };
+          } else {
+            imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
+          }
           i++; // skip over alpha channel
         }
       }
@@ -1095,8 +1174,11 @@ export class Aard {
         imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
 
         if (imagePixel && ++pixelCount > detectionThreshold) {
+          imageData[i] = GlDebugType.ImageLineThresholdReached;
           return;
-        };
+        } else {
+          imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
+        }
         i++; // skip over alpha channel
       }
       if (! this.testResults.guardLine.cornerViolated[Corner.TopRight]) {
@@ -1107,8 +1189,11 @@ export class Aard {
           imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
 
           if (imagePixel && ++pixelCount > detectionThreshold) {
+            imageData[i] = GlDebugType.ImageLineThresholdReached;
             return;
-          };
+          } else {
+            imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
+          }
           i++; // skip over alpha channel
         }
       }
@@ -1222,11 +1307,13 @@ export class Aard {
             || imageData[rowOffset + x + 2] > this.testResults.blackLevel;
 
           if (!isImage) {
+            imageData[rowOffset + x + 3] = GlDebugType.EdgeScanProbe;
             // TODO: maybe some day mark this pixel as checked by writing to alpha channel
             i++;
             continue;
           }
           if (this.canvasSamples.top[i] === -1) {
+            imageData[rowOffset + x + 3] = GlDebugType.EdgeScanHit;
             this.canvasSamples.top[i] = row;
             finishedRows++;
           }
@@ -1270,12 +1357,14 @@ export class Aard {
             || imageData[rowOffset + x + 2] > this.testResults.blackLevel;
 
           if (!isImage) {
+            imageData[rowOffset + x + 3] = GlDebugType.EdgeScanProbe;
             // console.log('(row:', row, ')', 'val:', imageData[rowOffset + x], 'col', x >> 2, x, 'pxoffset:', rowOffset + x, 'len:', imageData.length)
             // TODO: maybe some day mark this pixel as checked by writing to alpha channel
             i++;
             continue;
           }
           if (this.canvasSamples.bottom[i] === -1) {
+            imageData[rowOffset + x + 3] = GlDebugType.EdgeScanHit;
             this.canvasSamples.bottom[i] = row;
             finishedRows++;
           }
@@ -1326,8 +1415,11 @@ export class Aard {
           || imageData[xs + 1] > this.testResults.blackThreshold
           || imageData[xs + 2] > this.testResults.blackThreshold
         ) {
+          imageData[xs + 3] = GlDebugType.SlopeTestDarkViolation;
           this.canvasSamples.top[i + 1] = -1;
           break;
+        } else {
+          imageData[xs + 3] = GlDebugType.SlopeTestDarkOk;
         }
         xs += 4;
       }
@@ -1339,7 +1431,7 @@ export class Aard {
     while (i < this.canvasSamples.bottom.length) {
       // calculate row offset:
       i1 = i + 1;
-      row = (this.canvasSamples.bottom[i1] - 1) * width * 4;
+      row = (this.canvasSamples.bottom[i1] + 1) * width * 4;
       xs = row + this.canvasSamples.bottom[i] - slopeTestSample;
       xe = row + this.canvasSamples.bottom[i] + slopeTestSample;
 
@@ -1349,15 +1441,17 @@ export class Aard {
           || imageData[xs + 1] > this.testResults.blackThreshold
           || imageData[xs + 2] > this.testResults.blackThreshold
         ) {
+          imageData[xs + 3] = GlDebugType.SlopeTestDarkViolation;
           this.canvasSamples.bottom[i1] = -1;
           i += 2;
           break;
         }
+        imageData[xs + 3] = GlDebugType.SlopeTestDarkOk;
         xs += 4;
       }
 
       if (this.canvasSamples.bottom[i1]) {
-        this.canvasSamples.bottom[i1] = height - this.canvasSamples.bottom[i1];
+        this.canvasSamples.bottom[i1] = this.canvasSamples.bottom[i1];
       }
 
       i += 2;
