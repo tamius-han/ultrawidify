@@ -83,14 +83,14 @@ export enum GlDebugType {
 export class GlDebugCanvas extends GlCanvas {
 
   private debugColors = [
-    0.1, 0.1, 0.25,    // 0 - black level sample
+    0.1, 0.1, 0.35,    // 0 - black level sample
     0.3, 1.0, 0.6,     // 1 - guard line ok
     1.0, 0.1, 0.1,     // 2 - guard line violation
-    0.2, 0.6, 0.4,     // 3 - guard line corner ok
+    0.1, 0.5, 0.3,     // 3 - guard line corner ok
     0.5, 0.0, 0.0,     // 4 - guard line corner violation
     1.0, 1.0, 1.0,     // 5 - image line threshold reached (stop checking)
     0.7, 0.7, 0.7,     // 6 - image line ok
-    0.9, 0.6, 0.6,     // 7 - image line fail
+    0.2, 0.2, 0.6,     // 7 - image line fail
     0.1, 0.1, 0.4,     // 8 - edge scan probe
     0.4, 0.4, 1.0,     // 9 - edge scan hit
     0.2, 0.4, 0.6,     // 10 - slope test ok
@@ -114,20 +114,24 @@ export class GlDebugCanvas extends GlCanvas {
   }
 
   show() {
+    this.enableFx();
+
+    // this.canvas.style.position = 'fixed';
+    // this.canvas.style.top = '0';
+    // this.canvas.style.right = '0';
+    // this.canvas.style.zIndex = '99999999';
+    // this.canvas.style.transform = 'scale(3)';
+    // this.canvas.style.transformOrigin = 'top right';
+    // this.canvas.style.imageRendering = 'pixelated';
+
+    // document.body.appendChild(
+    //   this.canvas
+    // );
+  }
+
+  enableFx() {
     this.gl.useProgram(this.programInfo.program)
     this.gl.uniform3fv((this.programInfo.uniformLocations as any).debugColors, this.debugColors);
-
-    this.canvas.style.position = 'fixed';
-    this.canvas.style.top = '0';
-    this.canvas.style.right = '0';
-    this.canvas.style.zIndex = '99999999';
-    this.canvas.style.transform = 'scale(3)';
-    this.canvas.style.transformOrigin = 'top right';
-    this.canvas.style.imageRendering = 'pixelated';
-
-    document.body.appendChild(
-      this.canvas
-    );
   }
 
   drawBuffer(buffer: Uint8Array) {

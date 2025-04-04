@@ -6,6 +6,7 @@ import Logger from '../Logger';
 import Settings from '../Settings';
 import { SiteSettings } from '../settings/SiteSettings';
 import VideoData from '../video-data/VideoData';
+import { AardDebugUi } from './AardDebugUi';
 import { Corner } from './enums/corner.enum';
 import { VideoPlaybackState } from './enums/video-playback-state.enum';
 import { FallbackCanvas } from './gl/FallbackCanvas';
@@ -254,6 +255,8 @@ export class Aard {
 
 
   private forceFullRecheck: boolean = true;
+
+  private debugConfig: any = {};
   //#endregion
 
   //#region getters
@@ -316,7 +319,6 @@ export class Aard {
 
     try {
       this.showDebugCanvas();
-      this.canvasStore.main.showCanvas();
     } catch (e) {
       console.error('FALIED TO CREATE DEBUGG CANVAS', e);
     }
@@ -369,8 +371,15 @@ export class Aard {
     if (!this.canvasStore.debug) {
       this.canvasStore.debug = new GlDebugCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'uw-debug-gl'});
     }
-    this.canvasStore.debug.show();
-    this.canvasStore.debug.drawVideoFrame(this.canvasStore.main.canvas);
+    this.canvasStore.debug.enableFx();
+    if (!this.debugConfig.debugUi) {
+      this.debugConfig.debugUi = new AardDebugUi(this);
+      this.debugConfig.debugUi.initContainer();
+      this.debugConfig.debugUi.attachCanvases(this.canvasStore.main.canvas, this.canvasStore.debug.canvas);
+
+      // if we don't draw a dummy frame from _real_ sources, we can't update buffer later
+      this.canvasStore.debug.drawVideoFrame(this.canvasStore.main.canvas);
+    }
   }
   //#endregion
 
@@ -594,44 +603,51 @@ export class Aard {
 
       // If forceFullRecheck is set, then 'not letterbox' should always force-reset the aspect ratio
       // (as aspect ratio may have been set manually while autodetection was off)
-      if (this.testResults.notLetterbox) {
-        // console.log('————not letterbox')
-        console.warn('DETECTED NOT LETTERBOX! (resetting)')
-        this.updateAspectRatio(this.defaultAr);
-        return;
-      }
 
-      // if detection is uncertain, we don't do anything at all (unless if guardline was broken, in which case we reset)
-      if (this.testResults.aspectRatioUncertain && this.testResults.guardLine.invalidated) {
-        // console.info('aspect ratio not certain:', this.testResults.aspectRatioUncertainReason);
-        // console.warn('check finished:', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
+      // If debugging is enable,
+      this.canvasStore.debug?.drawBuffer(imageData);
 
-        console.warn('ASPECT RATIO UNCERTAIN, GUARD LINE INVALIDATED (resetting)')
-        this.updateAspectRatio(this.defaultAr);
+      do {
+        if (this.testResults.notLetterbox) {
+          // console.log('————not letterbox')
+          console.warn('DETECTED NOT LETTERBOX! (resetting)')
+          this.updateAspectRatio(this.defaultAr);
+          break;
+        }
 
-        return;
-      }
+        // if detection is uncertain, we don't do anything at all (unless if guardline was broken, in which case we reset)
+        if (this.testResults.aspectRatioUncertain && this.testResults.guardLine.invalidated) {
+          // console.info('aspect ratio not certain:', this.testResults.aspectRatioUncertainReason);
+          // console.warn('check finished:', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
 
-      // TODO: emit debug values if debugging is enabled
-      this.testResults.isFinished = true;
+          console.warn('ASPECT RATIO UNCERTAIN, GUARD LINE INVALIDATED (resetting)')
+          this.updateAspectRatio(this.defaultAr);
 
-      console.warn(
-        `[${(+new Date() % 10000) / 100} | ${this.arid}]`,'check finished — aspect ratio updated:', this.testResults.aspectRatioUpdated,
-        '\ndetected ar:', this.testResults.activeAspectRatio, '->', this.getAr(),
-        '\nis video playing?', this.getVideoPlaybackState() === VideoPlaybackState.Playing,
-         '\n\n', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
+          break;
+        }
 
-      // if edge width changed, emit update event.
-      // except aspectRatioUpdated doesn't get set reliably, so we just call update every time, and update
-      // if detected aspect ratio is different from the current aspect ratio
-      // if (this.testResults.aspectRatioUpdated) {
-        this.updateAspectRatio();
-      // }
+        // TODO: emit debug values if debugging is enabled
+        this.testResults.isFinished = true;
 
-      // if we got "no letterbox" OR aspectRatioUpdated
+        console.warn(
+          `[${(+new Date() % 10000) / 100} | ${this.arid}]`,'check finished — aspect ratio updated:', this.testResults.aspectRatioUpdated,
+          '\ndetected ar:', this.testResults.activeAspectRatio, '->', this.getAr(),
+          '\nis video playing?', this.getVideoPlaybackState() === VideoPlaybackState.Playing,
+          '\n\n', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
+
+        // if edge width changed, emit update event.
+        // except aspectRatioUpdated doesn't get set reliably, so we just call update every time, and update
+        // if detected aspect ratio is different from the current aspect ratio
+        // if (this.testResults.aspectRatioUpdated) {
+          this.updateAspectRatio();
+        // }
+
+        // if we got "no letterbox" OR aspectRatioUpdated
+      } while (false)
 
       if (this.canvasStore.debug) {
-        this.canvasStore.debug.drawBuffer(imageData);
+        // this.canvasStore.debug.drawBuffer(imageData);
+        this.debugConfig?.debugUi?.updateTestResults(this.testResults);
       }
     } catch (e) {
       console.warn('[Ultrawidify] Aspect ratio autodetection crashed for some reason.\n\nsome reason:', e);
