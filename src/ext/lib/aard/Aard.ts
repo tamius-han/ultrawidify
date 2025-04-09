@@ -233,6 +233,15 @@ export class Aard {
         console.log('received extension environment:', newEnvironment, 'player env:', this.videoData?.player?.environment);
         this.startCheck();
       }
+    },
+    'aard-enable-debug': {
+      function: (enabled: boolean) => {
+        if (enabled) {
+          this.showDebugCanvas();
+        } else {
+          this.hideDebugCanvas();
+        }
+      }
     }
     //   'get-aard-timing': {
     //     function: () => this.handlePerformanceDataRequest()
@@ -317,11 +326,11 @@ export class Aard {
     };
 
 
-    try {
-      this.showDebugCanvas();
-    } catch (e) {
-      console.error('FALIED TO CREATE DEBUGG CANVAS', e);
-    }
+    // try {
+    //   this.showDebugCanvas();
+    // } catch (e) {
+    //   console.error('FALIED TO CREATE DEBUGG CANVAS', e);
+    // }
 
     this.startCheck();
   }
@@ -367,7 +376,6 @@ export class Aard {
    * @param canvasId
    */
   private showDebugCanvas() {
-    console.log('SHOWING DEBUG CANVAS!')
     if (!this.canvasStore.debug) {
       this.canvasStore.debug = new GlDebugCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'uw-debug-gl'});
     }
@@ -379,6 +387,13 @@ export class Aard {
 
       // if we don't draw a dummy frame from _real_ sources, we can't update buffer later
       this.canvasStore.debug.drawVideoFrame(this.canvasStore.main.canvas);
+    }
+  }
+
+  private hideDebugCanvas() {
+    if (this.debugConfig.debugUi) {
+      this.debugConfig?.debugUi.destroyContainer();
+      this.debugConfig.debugUi = undefined;
     }
   }
   //#endregion

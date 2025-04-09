@@ -264,6 +264,15 @@
               </div>
             </div>
           </div>
+
+          <div v-if="settings.active.ui.devMode" class="settings-segment">
+            <p>
+              <b>Debug options</b>
+            </p>
+            <div>
+              <button @click="eventBus.sendToTunnel('aard-enable-debug', true)">Show debug overlay</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
