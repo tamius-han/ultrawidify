@@ -1984,7 +1984,7 @@ export class Aard {
     const fileAr = this.video.videoWidth / this.video.videoHeight;
     const canvasAr = this.canvasStore.main.width / this.canvasStore.main.height;
 
-    const compensatedWidth = fileAr === canvasAr ? this.canvasStore.main.width : this.canvasStore.main.width * fileAr;
+    const compensatedWidth = fileAr === canvasAr ? this.canvasStore.main.width : this.video.videoWidth * this.canvasStore.main.height / (this.video.videoHeight);
 
     // console.log(`
     //   ———— ASPECT RATIO CALCULATION: —————
