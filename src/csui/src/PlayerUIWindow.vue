@@ -385,7 +385,7 @@ export default {
 
       padding: 2rem;
       font-size: 1.5rem;
-      height: 4rem;
+      height: 6rem;
 
       border-bottom: 1px solid rgba(128, 128, 128, 0.5);
       border-top: 1px solid rgba(128, 128, 128, 0.5);

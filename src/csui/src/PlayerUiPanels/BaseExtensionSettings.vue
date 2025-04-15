@@ -101,7 +101,7 @@
     <div v-if="enableSettingsEditor && settings.active.ui.devMode" class="h-full grow">
       <h2>Settings editor</h2>
       <div class="flex flex-row w-full">
-        <div class="flex flex-row">
+        <div class="flex flex-row items-center">
           <div>Enable save button:</div>
           <input v-model="allowSettingsEditing" type="checkbox">
         </div>

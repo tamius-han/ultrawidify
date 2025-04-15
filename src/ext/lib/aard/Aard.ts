@@ -7,6 +7,7 @@ import Settings from '../Settings';
 import { SiteSettings } from '../settings/SiteSettings';
 import VideoData from '../video-data/VideoData';
 import { AardDebugUi } from './AardDebugUi';
+import { AardTimer } from './AardTimers';
 import { Corner } from './enums/corner.enum';
 import { VideoPlaybackState } from './enums/video-playback-state.enum';
 import { FallbackCanvas } from './gl/FallbackCanvas';
@@ -260,12 +261,14 @@ export class Aard {
   private fallbackReason: any;
   private canvasStore: AardCanvasStore;
   private testResults: AardTestResults;
+  private verticalTestResults: AardTestResults;
   private canvasSamples: AardDetectionSample;
 
 
   private forceFullRecheck: boolean = true;
 
   private debugConfig: any = {};
+  private timer: AardTimer;
   //#endregion
 
   //#region getters
@@ -300,6 +303,8 @@ export class Aard {
 
     // we can tick manually, for debugging
     this.logger.log('info', 'init', `[ArDetector::ctor] creating new ArDetector. arid: ${this.arid}`);
+
+    this.timer = new AardTimer()
 
     this.init();
   }
@@ -403,7 +408,9 @@ export class Aard {
    */
   startCheck() {
     if (!this.videoData.player) {
-      console.warn('Player not detected!')
+      console.warn('Player not detected!');
+      console.log('--- video data: ---\n', this.videoData);
+      return;
     }
     if (this.siteSettings.data.enableAard[this.videoData.player.environment] === ExtensionMode.Enabled) {
       this.start();
@@ -424,6 +431,7 @@ export class Aard {
 
     // do full reset of test samples
     this.testResults = initAardTestResults(this.settings.active.arDetect);
+    this.verticalTestResults = initAardTestResults(this.settings.active.arDetect);
 
     if (this.animationFrame) {
       window.cancelAnimationFrame(this.animationFrame);
@@ -437,8 +445,15 @@ export class Aard {
    * Runs autodetection ONCE.
    * If autodetection loop is running, this will also stop autodetection loop.
    */
-  step() {
+  step(options?: {noCache?: boolean}) {
     this.stop();
+
+    if (options?.noCache) {
+      this.testResults = initAardTestResults(this.settings.active.arDetect);
+      this.verticalTestResults = initAardTestResults(this.settings.active.arDetect);
+    }
+
+
     this.main();
   }
 
@@ -500,7 +515,10 @@ export class Aard {
    */
   private async main() {
     try {
+      this.timer.next();
+
       let imageData: Uint8Array;
+      this.timer.current.start = performance.now();
 
       // We abuse a do-while loop to eat our cake (get early returns)
       // and have it, too (if we return early, we still execute code
@@ -510,6 +528,7 @@ export class Aard {
           resolve => {
             try {
               this.canvasStore.main.drawVideoFrame(this.video);
+              this.timer.current.draw = performance.now() - this.timer.current.start;
               resolve(this.canvasStore.main.getImageData());
             } catch (e) {
               if (e.name === 'SecurityError') {
@@ -539,6 +558,7 @@ export class Aard {
             }
           }
         );
+        this.timer.current.getImage = performance.now() - this.timer.current.start;
 
         // STEP 1:
         // Test if corners are black. If they're not, we can immediately quit the loop.
@@ -547,6 +567,8 @@ export class Aard {
           this.settings.active.arDetect.canvasDimensions.sampleCanvas.width,
           this.settings.active.arDetect.canvasDimensions.sampleCanvas.height
         );
+        this.timer.current.fastBlackLevel = performance.now() - this.timer.current.start;
+
         if (this.testResults.notLetterbox) {
           // TODO: reset aspect ratio to "AR not applied"
           this.testResults.lastStage = 1;
@@ -592,6 +614,7 @@ export class Aard {
             );
           }
         }
+        this.timer.current.guardLine = performance.now() - this.timer.current.start;  // guardLine is for both guardLine and imageLine checks
 
         // Both need to be checked
         if (! (this.testResults.imageLine.invalidated || this.testResults.guardLine.invalidated)) {
@@ -626,6 +649,7 @@ export class Aard {
         if (this.testResults.notLetterbox) {
           // console.log('————not letterbox')
           console.warn('DETECTED NOT LETTERBOX! (resetting)')
+          this.timer.arChanged();
           this.updateAspectRatio(this.defaultAr);
           break;
         }
@@ -636,6 +660,7 @@ export class Aard {
           // console.warn('check finished:', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
 
           console.warn('ASPECT RATIO UNCERTAIN, GUARD LINE INVALIDATED (resetting)')
+          this.timer.arChanged();
           this.updateAspectRatio(this.defaultAr);
 
           break;
@@ -654,6 +679,7 @@ export class Aard {
         // except aspectRatioUpdated doesn't get set reliably, so we just call update every time, and update
         // if detected aspect ratio is different from the current aspect ratio
         // if (this.testResults.aspectRatioUpdated) {
+        //   this.timer.arChanged();
           this.updateAspectRatio();
         // }
 
@@ -662,6 +688,7 @@ export class Aard {
 
       if (this.canvasStore.debug) {
         // this.canvasStore.debug.drawBuffer(imageData);
+        this.timer.getAverage();
         this.debugConfig?.debugUi?.updateTestResults(this.testResults);
       }
     } catch (e) {
@@ -669,7 +696,6 @@ export class Aard {
       this.videoData.resizer.setAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
     }
   }
-
 
   private getVideoPlaybackState(): VideoPlaybackState {
     try {
@@ -1266,12 +1292,14 @@ export class Aard {
     // bit more nicely visible (instead of hidden among spagheti)
     this.edgeScan(imageData, width, height);
     this.validateEdgeScan(imageData, width, height);
+    this.timer.current.edgeScan = performance.now() - this.timer.current.start;
 
     // TODO: _if gradient detection is enabled, then:
     this.sampleForGradient(imageData, width, height);
+    this.timer.current.gradient = performance.now() - this.timer.current.start;
 
     this.processScanResults(imageData, width, height);
-
+    this.timer.current.scanResults = performance.now() - this.timer.current.start;
   }
 
   /**
@@ -1435,6 +1463,9 @@ export class Aard {
     const slopeTestSample = this.settings.active.arDetect.edgeDetection.slopeTestWidth * 4;
 
     while (i < this.canvasSamples.top.length) {
+      // if (this.canvasSamples.top[i] < 0) {
+      //   continue;
+      // }
       // calculate row offset:
       row = (this.canvasSamples.top[i + 1] - 1) * width * 4;
       xs = row + this.canvasSamples.top[i] - slopeTestSample;
@@ -1460,6 +1491,10 @@ export class Aard {
     i = 0;
     let i1 = 0;
     while (i < this.canvasSamples.bottom.length) {
+      // if (this.canvasSamples.bottom[i] < 0) {
+      //   continue;
+      // }
+
       // calculate row offset:
       i1 = i + 1;
       row = (this.canvasSamples.bottom[i1] + 1) * width * 4;
@@ -1506,6 +1541,10 @@ export class Aard {
 
     upperEdgeCheck:
     for (let i = 1; i < this.canvasSamples.top.length; i += 2) {
+      if (this.canvasSamples.top[i] < 0) {
+        continue;
+      }
+
       pixelOffset = this.canvasSamples.top[i] * realWidth + this.canvasSamples.top[i - 1] * 4;
 
       lastSubpixel = imageData[pixelOffset] > imageData[pixelOffset + 1] ? imageData[pixelOffset] : imageData[pixelOffset + 1];
@@ -1548,6 +1587,9 @@ export class Aard {
 
     lowerEdgeCheck:
     for (let i = 1; i < this.canvasSamples.bottom.length; i += 2) {
+      if (this.canvasSamples.bottom[i] < 0) {
+        continue;
+      }
       pixelOffset = (height - this.canvasSamples.bottom[i]) * realWidth + this.canvasSamples.bottom[i - 1] * 4;
 
       lastSubpixel = imageData[pixelOffset] > imageData[pixelOffset + 1] ? imageData[pixelOffset] : imageData[pixelOffset + 1];
@@ -1586,7 +1628,6 @@ export class Aard {
       if (lastSubpixel - firstSubpixel > this.settings.active.arDetect.edgeDetection.gradientTestMinDelta) {
         this.canvasSamples.bottom[i] = -1;
       }
-
     }
   }
 
@@ -1943,10 +1984,21 @@ export class Aard {
       return;
     }
     if (maxOffset > 2) {
-      this.testResults.imageLine.top = this.testResults.aspectRatioCheck.topCandidate === Infinity ? -1 : this.testResults.aspectRatioCheck.topCandidate;
-      this.testResults.imageLine.bottom = this.testResults.aspectRatioCheck.bottomCandidate === Infinity ? -1 : this.testResults.aspectRatioCheck.bottomCandidate;
-      this.testResults.guardLine.top = Math.max(this.testResults.imageLine.top - 2, 0);
-      this.testResults.guardLine.bottom = Math.min(this.testResults.imageLine.bottom + 2, this.canvasStore.main.height - 1);
+      if (this.testResults.aspectRatioCheck.topCandidate === Infinity) {
+        this.testResults.imageLine.top = -1;
+        this.testResults.guardLine.top = -1;
+      } else {
+        this.testResults.imageLine.top = this.testResults.aspectRatioCheck.topCandidate = this.testResults.aspectRatioCheck.topCandidate;
+        this.testResults.guardLine.top = Math.max(this.testResults.imageLine.top - 2, 0);
+      }
+
+      if (this.testResults.aspectRatioCheck.bottomCandidate === Infinity) {
+        this.testResults.imageLine.bottom = -1;
+        this.testResults.guardLine.bottom = -1;
+      } else {
+        this.testResults.imageLine.bottom = this.testResults.aspectRatioCheck.bottomCandidate;
+        this.testResults.guardLine.bottom = Math.min(this.testResults.imageLine.bottom + 2, this.canvasStore.main.height - 1);
+      }
     }
 
     this.testResults.aspectRatioUncertain = false;
