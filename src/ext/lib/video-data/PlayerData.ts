@@ -103,6 +103,8 @@ class PlayerData {
 
   private ui: UI;
 
+  private _isTrackDimensionChangesActive: boolean = false;
+
   elementStack: ElementStack = [] as ElementStack;
   //#endregion
 
@@ -371,49 +373,64 @@ class PlayerData {
    *
    */
   trackDimensionChanges() {
-    // get player dimensions _once_
-    let currentPlayerDimensions;
-    this.isFullscreen = !!document.fullscreenElement;
-
-    if (this.isFullscreen) {
-      currentPlayerDimensions = {
-        width: window.innerWidth,
-        height: window.innerHeight,
-      };
-    } else {
-      currentPlayerDimensions = {
-        width: this.element.offsetWidth,
-        height: this.element.offsetHeight
-      };
-
-      this.detectTheaterMode();
-    }
-
-    // defer creating UI
-    this.deferredUiInitialization(currentPlayerDimensions);
-
-    // if dimensions of the player box are the same as the last known
-    // dimensions, we don't have to do anything ... in theory. In practice,
-    // sometimes restore-ar doesn't appear to register the first time, and
-    // this function doesn't really run often enough to warrant finding a
-    // real, optimized fix.
-    if (
-      this.dimensions?.width == currentPlayerDimensions.width
-      && this.dimensions?.height == currentPlayerDimensions.height
-    ) {
-      this.eventBus.send('restore-ar', null);
-      this.eventBus.send('delayed-restore-ar', {delay: 500});
-      this.dimensions = currentPlayerDimensions;
+    if (this._isTrackDimensionChangesActive) {
+      // this shouldn't really get called, _ever_ ... but sometimes it happens
+      console.warn('[PlayerData::trackDimensionChanges] trackDimensionChanges is already active!');
       return;
     }
 
-    // in every other case, we need to check if the player is still
-    // big enough to warrant our extension running.
-    this.handleSizeConstraints(currentPlayerDimensions);
-    // this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
+    this._isTrackDimensionChangesActive = true;
 
-    // Save current dimensions to avoid triggering this function pointlessly
-    this.dimensions = currentPlayerDimensions;
+    try {
+      // get player dimensions _once_
+      let currentPlayerDimensions;
+      this.isFullscreen = !!document.fullscreenElement;
+
+      if (this.isFullscreen) {
+        currentPlayerDimensions = {
+          width: window.innerWidth,
+          height: window.innerHeight,
+        };
+      } else {
+        currentPlayerDimensions = {
+          width: this.element.offsetWidth,
+          height: this.element.offsetHeight
+        };
+
+        this.detectTheaterMode();
+      }
+
+      // defer creating UI
+      this.deferredUiInitialization(currentPlayerDimensions);
+
+      // if dimensions of the player box are the same as the last known
+      // dimensions, we don't have to do anything ... in theory. In practice,
+      // sometimes restore-ar doesn't appear to register the first time, and
+      // this function doesn't really run often enough to warrant finding a
+      // real, optimized fix.
+      if (
+        this.dimensions?.width == currentPlayerDimensions.width
+        && this.dimensions?.height == currentPlayerDimensions.height
+      ) {
+        this.eventBus.send('restore-ar', null);
+        this.eventBus.send('delayed-restore-ar', {delay: 500});
+        this.dimensions = currentPlayerDimensions;
+        this._isTrackDimensionChangesActive = false;
+        return;
+      }
+
+      // in every other case, we need to check if the player is still
+      // big enough to warrant our extension running.
+      this.handleSizeConstraints(currentPlayerDimensions);
+      // this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
+
+      // Save current dimensions to avoid triggering this function pointlessly
+      this.dimensions = currentPlayerDimensions;
+    } catch (e) {
+
+    }
+
+    this._isTrackDimensionChangesActive = false;
   }
 
 
