@@ -8,7 +8,10 @@
 * Fixed the bug where popup wouldn't be showing the correct settings
 * Fixed the bug where site settings would default to 'disabled', even if Extension default setting was not disabled.
 * Added ability to export and import settings from file (ft. developer mode editor)
-
+* [dev goodies] Added debug overlay for aard
+* Fixed an issue where aspect ratio wouldn't get calculated correctly on youtube videos with native aspect ratios other than 16:9
+* Fixed an issue that would crash the extension if video element didn't have a player element associated with it
+* Fixed an issue where extension sometimes wouldn't work if video element was grafted/re-parented to a different element
 
 ### v6.2.4
 * [#264](https://github.com/tamius-han/ultrawidify/issues/264) — fixed issue with white screen that affected some youtube users. Special thanks to [SnowyOwlNugget](https://github.com/SnowyOwlNugget">SnowyOwlNugget), who instead of whining provided the necessary information.

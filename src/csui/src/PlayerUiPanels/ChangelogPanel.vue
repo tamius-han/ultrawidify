@@ -11,16 +11,11 @@
           <li>Fixed the bug where current extension settings wouldn't be displayed correctly in the popup</li>
           <li>Fixed the issue where extension options using the "Extension default" mode would always be disabled</li>
           <li>Added the ability to import and export settings (ft. developer mode editor)</li>
+          <li>Added some toys not intended for general audience (Aard now has debug tools).</li>
+          <li>Fixed an issue where aspect ratio wouldn't get calculated correctly on youtube videos with native aspect ratios other than 16:9</li>
+          <li>Fixed an issue that would crash the extension if video element didn't have a player element associated with it</li>
+          <li>Fixed an issue where extension sometimes wouldn't work if video element was grafted/re-parented to a different element</li>
         </ul>
-
-        <p>
-          Planned future updates <i>before</i> Tam vanishes due to convention season obligations:
-        </p>
-        <ul>
-          <li>Re-implement manual zoom</li>
-          <li>It appears that ExtConfPatch for version 6.0.0 keeps getting re-applied due to a bug, but my RAID ran out for this release.</li>
-        </ul>
-
       </div>
       <div class="min-w-[400px] max-w-[520px] grow-1 shrink-1">
         <h2>Thank you monies</h2>
