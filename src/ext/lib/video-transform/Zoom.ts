@@ -40,28 +40,29 @@ class Zoom {
    * Increases zoom by a given amount. Does not allow per-axis zoom.
    * Will set zoom level to x axis (+ given amount) if x and y zooms differ.
    * @param amount
+   * @param axis — leave undefined to apply zoom to both axes
    */
-  zoomStep(amount){
-    this.logScale += amount;
+  zoomStep(amount: number, axis?: 'x' | 'y') {
+    let newLog = axis === 'y' ? this.logScaleY : this.logScale;
+    newLog += amount;
+    newLog = Math.min(Math.max(newLog, this.minScale), this.maxScale);
 
-    if (this.logScale <= this.minScale) {
-      this.logScale = this.minScale;
+    // if axis is undefined, both of this statements should trigger)
+    if (axis !== 'y') {
+      this.logScale = newLog;
     }
-    if (this.logScale >= this.maxScale) {
-      this.logScale = this.maxScale;
+    if (axis !== 'x') {
+      this.logScaleY = newLog;
     }
-
-    this.logScaleY = this.logScale;
 
     this.scale = Math.pow(2, this.logScale);
+    this.scaleY = Math.pow(2, this.logScaleY);
 
     this.logger.log('info', 'debug', "[Zoom::zoomStep] changing zoom by", amount, ". New zoom level:", this.scale);
     this.processZoom();
   }
 
   setZoom(scale: number, axis?: 'x' |'y', noAnnounce?){
-    this.logger.log('info', 'debug', "[Zoom::setZoom] Setting zoom to", scale, "!");
-
     // NOTE: SCALE IS NOT LOGARITHMIC
     if(scale < Math.pow(2, this.minScale)) {
       scale = this.minScale;
@@ -85,8 +86,7 @@ class Zoom {
   }
 
   processZoom() {
-    // this.conf.resizer.toFixedAr();
-
+    this.conf.resizer.toFixedAr();
     this.conf.resizer.applyScaling({xFactor: this.scale, yFactor: this.scaleY}, {noAnnounce: true});
   }
 

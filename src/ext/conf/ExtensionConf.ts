@@ -354,9 +354,9 @@ const ExtensionConf: SettingsInterface = {
     }],
     zoom: [{
       action: 'change-zoom',
-      label: 'Zoom +10%',
+      label: 'Zoom +5%',
       arguments: {
-        zoom: 0.1
+        zoom: 0.05
       },
       shortcut: {
         key: 'z',
@@ -372,9 +372,9 @@ const ExtensionConf: SettingsInterface = {
       actionId: 'change-zoom-10in'
     }, {
       action: 'change-zoom',
-      label: 'Zoom -10%',
+      label: 'Zoom -5%',
       arguments: {
-        zoom: -0.1
+        zoom: -0.05
       },
       shortcut: {
         key: 'u',

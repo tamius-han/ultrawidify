@@ -54,6 +54,10 @@ export class KeyboardHandler extends KbmBase {
   init() {
     this.logger.log('info', 'debug', "[KeyboardHandler::init] starting init");
 
+    // reset keypressActions when re-initializing, otherwise keypressActions will
+    // multiply in an unwanted way
+    this.keypressActions = [];
+
     // build the action list — but only from actions that have shortcuts assigned
     for (const key in this.settings.active.commands) {
       for (const command of this.settings.active.commands[key]) {
@@ -224,7 +228,6 @@ export class KeyboardHandler extends KbmBase {
       this.logger.log('info', 'keyboard', "%c[KeyboardHandler::handleKeyup] Trying to find and execute action for event. Actions/event: ", "color: #ff0", this.keypressActions, event);
 
       const isLatin = this.isLatin(event.key);
-
       for (const command of this.keypressActions) {
         if (this.isActionMatch(command.shortcut, event, isLatin)) {
           this.eventBus.send(command.action, command.arguments);

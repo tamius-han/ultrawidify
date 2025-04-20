@@ -121,7 +121,7 @@ class Resizer {
       function: (config: any) => this.setZoom(config.zoom, config.axis, config.noAnnounce)
     }],
     'change-zoom': [{
-      function: (config: any) => this.zoomStep(config.step)
+      function: (config: any) => this.zoomStep(config.zoom)
     }],
     'get-ar': [{
       function: () => this.eventBus.send('uw-config-broadcast', {type: 'ar', config: this.lastAr})
@@ -697,7 +697,7 @@ class Resizer {
 
   private _computeOffsetsRecursionGuard: boolean = false;
   computeOffsets(stretchFactors: VideoDimensions, ar?: Ar){
-    this.logger.log('info', 'debug', "[Resizer::computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.videoAlignment);
+    this.logger.log('info', 'debug', "[Resizer::computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.videoAlignment, '— stretch factors before processing:', stretchFactors);
 
     const {realVideoWidth, realVideoHeight, marginX, marginY} = this.computeVideoDisplayedDimensions();
 

@@ -39,6 +39,8 @@ class Settings {
 
   onChangedCallbacks: (() => void)[] = [];
   afterSettingsChangedCallbacks: (() => void)[] = [];
+
+  private sortedPatches: any[];
   //#endregion
 
   constructor(options) {
@@ -51,6 +53,8 @@ class Settings {
     this.default['version'] = this.getExtensionVersion();
 
     chrome.storage.onChanged.addListener((changes, area) => {this.storageChangeListener(changes, area)});
+
+    this.sortedPatches = this.sortConfPatches(ExtensionConfPatch);
   }
 
   private storageChangeListener(changes, area) {
@@ -171,12 +175,11 @@ class Settings {
     return patchesIn.sort( (a, b) => this.compareExtensionVersions(a.forVersion, b.forVersion));
   }
 
-  private findFirstNecessaryPatch(version, extconfPatches) {
-    const sorted = this.sortConfPatches(extconfPatches);
-    return sorted.findIndex(x => this.compareExtensionVersions(x.forVersion, version) > 0);
+  private findFirstNecessaryPatch(version) {
+    return this.sortedPatches.findIndex(x => this.compareExtensionVersions(x.forVersion, version) > 0);
   }
-  private applySettingsPatches(oldVersion, patches) {
-    let index = this.findFirstNecessaryPatch(oldVersion, patches);
+  private applySettingsPatches(oldVersion) {
+    let index = this.findFirstNecessaryPatch(oldVersion);
 
     if (index === -1) {
       this.logger?.log('info','settings','[Settings::applySettingsPatches] There are no pending conf patches.');
@@ -184,17 +187,16 @@ class Settings {
     }
 
     // apply all remaining patches
-    this.logger?.log('info', 'settings', `[Settings::applySettingsPatches] There are ${patches.length - index} settings patches to apply`);
-    while (index < patches.length) {
-      const updateFn = patches[index].updateFn;
-      delete patches[index].forVersion;
-      delete patches[index].updateFn;
+    this.logger?.log('info', 'settings', `[Settings::applySettingsPatches] There are ${this.sortedPatches.length - index} settings patches to apply`);
+    while (index < this.sortedPatches.length) {
+      const updateFn =  this.sortedPatches[index].updateFn;
+      delete  this.sortedPatches[index].forVersion;
+      delete  this.sortedPatches[index].updateFn;
 
-      if (Object.keys(patches[index]).length > 0) {
-        ObjectCopy.overwrite(this.active, patches[index]);
+      if (Object.keys( this.sortedPatches[index]).length > 0) {
+        ObjectCopy.overwrite(this.active, this.sortedPatches[index]);
       }
       if (updateFn) {
-
         try {
           updateFn(this.active, this.getDefaultSettings());
         } catch (e) {
@@ -221,15 +223,6 @@ class Settings {
                                           "\ncurrent version:", this.version
       );
     }
-
-    // if (Debug.flushStoredSettings) {
-    //   this.logger?.log('info', 'settings', "%c[Settings::init] Debug.flushStoredSettings is true. Using default settings", "background: #d00; color: #ffd");
-    //   Debug.flushStoredSettings = false; // don't do it again this session
-    //   this.active = this.getDefaultSettings();
-    //   this.active.version = this.version;
-    //   this.set(this.active);
-    //   return this.active;
-    // }
 
     // if there's no settings saved, return default settings.
     if(! settings || (Object.keys(settings).length === 0 && settings.constructor === Object)) {
@@ -278,7 +271,7 @@ class Settings {
     }
 
     // in case settings in previous version contained a fucky wucky, we overwrite existing settings with a patch
-    this.applySettingsPatches(oldVersion, ExtensionConfPatch);
+    this.applySettingsPatches(oldVersion);
 
     // set 'whatsNewChecked' flag to false when updating, always
     this.active.whatsNewChecked = false;
