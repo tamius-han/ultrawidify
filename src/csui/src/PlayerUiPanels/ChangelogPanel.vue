@@ -18,6 +18,19 @@
         </ul>
       </div>
       <div class="min-w-[400px] max-w-[520px] grow-1 shrink-1">
+        <h2>Report a problem</h2>
+        <p>
+          Please report <strike>undocumented features</strike> bugs using one of the following options (in order of preference):
+        </p>
+        <ul>
+          <li> <a target="_blank" href="https://github.com/tamius-han/ultrawidify/issues"><b>Github (preferred)</b></a><br/></li>
+          <li>Email: <a target="_blank" :href="mailtoLink">tamius.han@gmail.com</a></li>
+        </ul>
+        <p>
+          When reporting bugs, please include extension version, whether you installed the extension from, and description of your problem.
+        </p>
+        <p>&nbsp;</p>
+        <p>&nbsp;</p>
         <h2>Thank you monies</h2>
         <p>
           If you think I deserve money for the work I did up to this point, you can bankroll my caffeine addiction.
@@ -35,6 +48,16 @@ export default({
   props: [
     'settings'
   ],
+  data() {
+    return {
+      // reminder — webextension-polyfill doesn't seem to work in vue!
+      addonVersion: BrowserDetect.firefox ? chrome.runtime.getManifest().version : chrome.runtime.getManifest().version,
+      addonSource: BrowserDetect.processEnvVersion,
+      mailtoLink: '',
+      redditLink: '',
+      showEasterEgg: false,
+    }
+  },
   mounted() {
     this.settings.active.whatsNewChecked = true;
     this.settings.saveWithoutReload();

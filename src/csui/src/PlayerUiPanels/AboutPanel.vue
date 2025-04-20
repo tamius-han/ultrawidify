@@ -10,7 +10,7 @@
       <div class="w-[1/2]" style="width: 50%">
         <h2>Report a problem</h2>
         <p>
-          You may report <strike>undocumented features</strike> bugs using one of the following options (in order of preference):
+          Please report <strike>undocumented features</strike> bugs using one of the following options (in order of preference):
         </p>
         <ul>
           <li> <a target="_blank" href="https://github.com/tamius-han/ultrawidify/issues"><b>Github (preferred)</b></a><br/></li>
