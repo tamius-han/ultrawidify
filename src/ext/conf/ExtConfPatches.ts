@@ -83,6 +83,13 @@ const ExtensionConfPatch = [
       }];
 
       delete (userOptions as any).actions;
+
+      userOptions.ui.dev = {
+        aardDebugOverlay: {
+          showOnStartup: false,
+          showDetectionDetails: true
+        }
+      }
     }
   }
 ];

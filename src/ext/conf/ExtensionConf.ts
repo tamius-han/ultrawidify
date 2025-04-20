@@ -127,6 +127,12 @@ const ExtensionConf: SettingsInterface = {
         offsetX: -50,
         offsetY: 0
       }
+    },
+    dev: {
+      aardDebugOverlay: {
+        showOnStartup: false,
+        showDetectionDetails: true
+      }
     }
   },
 

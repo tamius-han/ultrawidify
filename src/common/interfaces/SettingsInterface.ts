@@ -12,6 +12,13 @@ export enum ExtensionEnvironment {
   Fullscreen = 'fullscreen',
 }
 
+export interface DevUiConfig {
+  aardDebugOverlay: {
+    showOnStartup: boolean,
+    showDetectionDetails: boolean,
+  }
+}
+
 export interface KeyboardShortcutInterface {
   key?: string,
   code?: string,
@@ -185,6 +192,7 @@ interface SettingsInterface {
       },
     },
     devMode?: boolean,
+    dev: DevUiConfig,
   }
 
   restrictions?: RestrictionsSettings;
