@@ -245,33 +245,6 @@ interface SettingsInterface {
       limit?: number,
     }
   }
-  // -----------------------------------------
-  //             ::: ACTIONS :::
-  // -----------------------------------------
-  // Nastavitve za ukaze. Zamenja stare nastavitve za bližnične tipke.
-  //
-  // Polje 'shortcut' je tabela, če se slučajno lotimo kdaj delati choordov.
-  actions: {
-    name?: string,    // name displayed in settings
-    label?: string,                     // name displayed in ui (can be overridden in scope/playerUi)
-    cmd?: {
-      action: string,
-      arg: any,
-      customArg?: any,
-      persistent?: boolean, // optional, false by default. If true, change doesn't take effect immediately.
-                         // Instead, this action saves stuff to settings
-    }[],
-    scopes?: {
-      global?: ActionScopeInterface,
-      site?: ActionScopeInterface,
-      page?: ActionScopeInterface
-    },
-    playerUi?: {
-      show: boolean,
-      path?: string,
-    },
-    userAdded?: boolean,
-  }[],
   // This object fulfills the same purpose as 'actions', but is written in less retarded and overly
   // complicated way. Hopefully it'll be easier to maintain it that way.
   commands?: {
