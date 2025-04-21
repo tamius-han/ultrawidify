@@ -7,8 +7,14 @@ export class AardDebugUi {
   uiAnchorElement: HTMLDivElement;
   pauseOnArCheck: boolean = false;
 
+  uiVisibility: any = {};
+
   constructor(aard: any) {
     this.aard = aard;
+
+    this.uiVisibility = {
+      detectionDetails: aard.settings.active.ui.dev.aardDebugOverlay.showDetectionDetails
+    };
 
     (window as any).ultrawidify_uw_aard_debug_tools = {
       enableStopOnChange: () => this.changePauseOnCheck(true),
@@ -26,7 +32,13 @@ export class AardDebugUi {
         position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; display: flex; flex-direction: column; pointer-events: none; z-index: 9999; font-size: 16px; font-family: 'Overpass Mono', monospace;
       ">
         <div style="width: 100%; display: flex; flex-direction: row; justify-content: space-between; backdrop-filter: blur(0.5rem) brightness(0.5);">
-          <div style="padding: 1rem; color: #fff"><h1>Aard debug overlay</h1></div>
+          <div style="padding: 1rem; color: #fff">
+            <h1>Aard debug overlay</h1>
+          </div>
+          <div style="pointer-events: all; display: flex; flex-direction: column; margin-right: 1rem;">
+            <button id="uw-aard-debug_show-detection-details">Show det. details</button>
+            <button id="uw-aard-debug_hide-detection-details">Hide det. details</button>
+          </div>
 
           <style>
             #uw-aard-debug_performance-container #uw-aard-debug_performance-popup {
@@ -62,7 +74,9 @@ export class AardDebugUi {
             <button id="uw-aard-debug-ui_close-overlay">Close overlay</button>
           </div>
         </div>
-        <div style="display: flex; flex-direction: row; width: 100%">
+
+
+        <div id="uw-aard-debug-ui_body" style="display: flex; flex-direction: row; width: 100%">
           <div style="">
             <div id="uw-aard-debug_aard-sample-canvas" style="min-width: 640px"></div>
             <div style="background: black; color: #fff"; font-size: 24px;">AARD IN</div>
@@ -129,6 +143,10 @@ export class AardDebugUi {
     document.getElementById('uw-aard-debug-ui_enable-step').onclick = () => this.aard.step();
     document.getElementById('uw-aard-debug-ui_enable-step-nocache').onclick = () => this.aard.step({noCache: true});
     document.getElementById('uw-aard-debug-ui_close-overlay').onclick = () => (this.aard as any).hideDebugCanvas();
+    document.getElementById('uw-aard-debug_show-detection-details').onclick = () => {this.uiVisibility.detectionDetails = true; this.setOverlayVisibility();};
+    document.getElementById('uw-aard-debug_hide-detection-details').onclick = () => {this.uiVisibility.detectionDetails = false; this.setOverlayVisibility();};
+
+    this.setOverlayVisibility();
   }
 
   changePauseOnCheck(pauseOnChange: boolean) {
@@ -388,5 +406,10 @@ export class AardDebugUi {
     resultsDiv.textContent = out;
   }
 
+  private setOverlayVisibility() {
+    document.getElementById('uw-aard-debug-ui_body').style.display = this.uiVisibility.detectionDetails ? 'flex' : 'none';
+    document.getElementById('uw-aard-debug_hide-detection-details').style.display = this.uiVisibility.detectionDetails ? '' : 'none';
+    document.getElementById('uw-aard-debug_show-detection-details').style.display = this.uiVisibility.detectionDetails ? 'none' : '';
+  }
 }
 

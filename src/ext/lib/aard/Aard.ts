@@ -219,7 +219,6 @@ import { AardTimers, initAardTimers } from './interfaces/aard-timers.interface';
  *
  */
 export class Aard {
-
   //#region configuration parameters
   private logger: Logger;
   private videoData: VideoData;
@@ -269,6 +268,7 @@ export class Aard {
 
   private debugConfig: any = {};
   private timer: AardTimer;
+  private lastAnimationFrameTime: number = Infinity;
   //#endregion
 
   //#region getters
@@ -304,8 +304,7 @@ export class Aard {
     // we can tick manually, for debugging
     this.logger.log('info', 'init', `[ArDetector::ctor] creating new ArDetector. arid: ${this.arid}`);
 
-    this.timer = new AardTimer()
-
+    this.timer = new AardTimer();
     this.init();
   }
 
@@ -336,6 +335,14 @@ export class Aard {
     // } catch (e) {
     //   console.error('FALIED TO CREATE DEBUGG CANVAS', e);
     // }
+
+    try {
+      if (this.settings.active.ui.dev?.aardDebugOverlay?.showOnStartup) {
+        this.showDebugCanvas();
+      }
+    } catch (e) {
+      console.error(`[uw::aard] failed to create debug UI:`, e);
+    }
 
     this.startCheck();
   }
@@ -407,6 +414,7 @@ export class Aard {
    * Checks whether autodetection can run
    */
   startCheck() {
+    console.log('aard - starting checks')
     if (!this.videoData.player) {
       console.warn('Player not detected!');
       console.log('--- video data: ---\n', this.videoData);
@@ -452,7 +460,6 @@ export class Aard {
       this.testResults = initAardTestResults(this.settings.active.arDetect);
       this.verticalTestResults = initAardTestResults(this.settings.active.arDetect);
     }
-
 
     this.main();
   }
@@ -648,7 +655,7 @@ export class Aard {
       do {
         if (this.testResults.notLetterbox) {
           // console.log('————not letterbox')
-          console.warn('DETECTED NOT LETTERBOX! (resetting)')
+          // console.warn('DETECTED NOT LETTERBOX! (resetting)')
           this.timer.arChanged();
           this.updateAspectRatio(this.defaultAr);
           break;
@@ -659,7 +666,7 @@ export class Aard {
           // console.info('aspect ratio not certain:', this.testResults.aspectRatioUncertainReason);
           // console.warn('check finished:', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
 
-          console.warn('ASPECT RATIO UNCERTAIN, GUARD LINE INVALIDATED (resetting)')
+          // console.warn('ASPECT RATIO UNCERTAIN, GUARD LINE INVALIDATED (resetting)')
           this.timer.arChanged();
           this.updateAspectRatio(this.defaultAr);
 
@@ -669,11 +676,11 @@ export class Aard {
         // TODO: emit debug values if debugging is enabled
         this.testResults.isFinished = true;
 
-        console.warn(
-          `[${(+new Date() % 10000) / 100} | ${this.arid}]`,'check finished — aspect ratio updated:', this.testResults.aspectRatioUpdated,
-          '\ndetected ar:', this.testResults.activeAspectRatio, '->', this.getAr(),
-          '\nis video playing?', this.getVideoPlaybackState() === VideoPlaybackState.Playing,
-          '\n\n', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
+        // console.warn(
+        //   `[${(+new Date() % 10000) / 100} | ${this.arid}]`,'check finished — aspect ratio updated:', this.testResults.aspectRatioUpdated,
+        //   '\ndetected ar:', this.testResults.activeAspectRatio, '->', this.getAr(),
+        //   '\nis video playing?', this.getVideoPlaybackState() === VideoPlaybackState.Playing,
+        //   '\n\n', JSON.parse(JSON.stringify(this.testResults)), JSON.parse(JSON.stringify(this.canvasSamples)), '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n');
 
         // if edge width changed, emit update event.
         // except aspectRatioUpdated doesn't get set reliably, so we just call update every time, and update

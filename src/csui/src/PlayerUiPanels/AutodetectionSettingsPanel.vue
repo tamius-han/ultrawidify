@@ -269,8 +269,27 @@
             <p>
               <b>Debug options</b>
             </p>
-            <div>
-              <button @click="eventBus.sendToTunnel('aard-enable-debug', true)">Show debug overlay</button>
+            <div class="flex flex-row">
+              <div>
+                <div>
+                  <button @click="eventBus.sendToTunnel('aard-enable-debug', true)">Show debug overlay</button>
+                </div>
+                <div>
+                  <div class="label">Show debug overlay on startup</div>
+                  <input
+                    type="checkbox"
+                    v-model="settings.active.ui.dev.aardDebugOverlay.showOnStartup"
+                    @change="settings.saveWithoutReload"
+                  >
+                </div>
+              </div>
+              <div>
+                <JsonEditor
+                  v-model="settingsJson"
+                >
+                </JsonEditor>
+                <button @click="saveDebugUiSettings">Save debug UI settings</button>
+              </div>
             </div>
           </div>
         </div>
@@ -289,14 +308,15 @@ import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
 import StretchType from '../../../common/enums/StretchType.enum';
 import CropModePersistence from '../../../common/enums/CropModePersistence.enum';
 import AlignmentOptionsControlComponent from './AlignmentOptionsControlComponent.vue';
+import JsonEditor from '@csui/src/components/JsonEditor';
 
 export default {
-  data() {
-    return {
-      exec: null,
-      performanceData: {},
-      graphRefreshInterval: undefined,
-    }
+  components: {
+    ShortcutButton,
+    EditShortcutButton,
+    Button,
+    AlignmentOptionsControlComponent,
+    JsonEditor
   },
   mixins: [
   ],
@@ -306,6 +326,16 @@ export default {
     'eventBus',
     'site'
   ],
+  data() {
+    return {
+      exec: null,
+      performanceData: {},
+      graphRefreshInterval: undefined,
+      settingsJson: {},
+    }
+  },
+  computed: {
+  },
   created() {
     this.eventBus.subscribe(
       'uw-config-broadcast',
@@ -315,23 +345,14 @@ export default {
       }
     );
   },
-  destroyed() {
-    this.eventBus.unsubscribeAll(this);
-  },
   mounted() {
     this.eventBus.sendToTunnel('get-aard-timing');
     this.graphRefreshInterval = setInterval(() => this.eventBus.sendToTunnel('get-aard-timing'), 500);
+    this.resetSettingsEditor();
   },
   destroyed() {
+    this.eventBus.unsubscribeAll(this);
     clearInterval(this.graphRefreshInterval);
-  },
-  components: {
-    ShortcutButton,
-    EditShortcutButton,
-    Button,
-    AlignmentOptionsControlComponent
-  },
-  computed: {
   },
   methods: {
     async openOptionsPage() {
@@ -349,7 +370,15 @@ export default {
         this.$nextTick( () => this.$forceUpdate() );
       }
     },
-  }
+    resetSettingsEditor() {
+      this.settingsJson = JSON.parse(JSON.stringify(this.settings?.active.ui.dev.aardDebugOverlay ?? {}));
+    },
+    saveDebugUiSettings() {
+      this.settings.active.ui.dev.aardDebugOverlay = JSON.parse(JSON.stringify(this.settingsJson));
+      this.settings.saveWithoutReload();
+    }
+  },
+
 }
 </script>
 
