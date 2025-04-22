@@ -21,7 +21,6 @@ const ExtensionConfPatch = [
           normal: ExtensionMode.Default,
         }
       }
-      const uiEnabled =
       userOptions.sites['@global'].enableUI = {
         fullscreen:  userOptions.ui.inPlayer.enabled ? ExtensionMode.Enabled : ExtensionMode.Disabled,
         theater: ExtensionMode.Enabled,
@@ -84,6 +83,9 @@ const ExtensionConfPatch = [
 
       delete (userOptions as any).actions;
 
+      userOptions.dev = {
+        loadFromSnapshot: false
+      };
       userOptions.ui.dev = {
         aardDebugOverlay: {
           showOnStartup: false,

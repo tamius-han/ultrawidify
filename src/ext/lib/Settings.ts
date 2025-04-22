@@ -12,11 +12,15 @@ import Logger from './Logger';
 import SettingsInterface from '../../common/interfaces/SettingsInterface';
 import AspectRatioType from '../../common/enums/AspectRatioType.enum';
 import { SiteSettings } from './settings/SiteSettings';
+import { SettingsSnapshotManager } from './settings/SettingsSnapshotManager';
 
 if(process.env.CHANNEL !== 'stable'){
   console.info("Loading Settings");
 }
 
+interface SetSettingsOptions {
+  forcePreserveVersion?: boolean,
+}
 
 class Settings {
   //#region flags
@@ -41,6 +45,17 @@ class Settings {
   afterSettingsChangedCallbacks: (() => void)[] = [];
 
   private sortedPatches: any[];
+
+
+  public snapshotManager: SettingsSnapshotManager;
+
+  private _migrationReport: string = '';
+  private set migrationReport(report: string) {
+    this._migrationReport = report;
+  }
+  public get migrationReport(): string {
+    return this._migrationReport;
+  }
   //#endregion
 
   constructor(options) {
@@ -50,11 +65,14 @@ class Settings {
     this.afterSettingsSaved = options?.afterSettingsSaved;
     this.active = options?.activeSettings ?? undefined;
     this.default = ExtensionConf;
+    this.snapshotManager = new SettingsSnapshotManager();
+
     this.default['version'] = this.getExtensionVersion();
 
     chrome.storage.onChanged.addListener((changes, area) => {this.storageChangeListener(changes, area)});
 
     this.sortedPatches = this.sortConfPatches(ExtensionConfPatch);
+
   }
 
   private storageChangeListener(changes, area) {
@@ -186,6 +204,18 @@ class Settings {
       return;
     }
 
+    // save current settings object
+    const currentSettings = this.active;
+
+    this.snapshotManager.createSnapshot(
+      JSON.parse(JSON.stringify(currentSettings)),
+      {
+        label: 'Pre-migration snapshot',
+        isAutomatic: true
+      }
+    );
+
+
     // apply all remaining patches
     this.logger?.log('info', 'settings', `[Settings::applySettingsPatches] There are ${this.sortedPatches.length - index} settings patches to apply`);
     while (index < this.sortedPatches.length) {
@@ -209,7 +239,16 @@ class Settings {
   }
 
   async init() {
-    const settings = await this.get();
+    let settings = await this.get();
+
+    if (settings?.dev?.loadFromSnapshot) {
+      this.logger?.log('info', 'settings', '[Settings::init] Dev mode is enabled, Loading settings from snapshot:', settings.dev.loadFromSnapshot);
+      const snapshot = await this.snapshotManager.getSnapshot();
+      if (snapshot) {
+        settings = snapshot.settings;
+      }
+    }
+
     this.version = this.getExtensionVersion();
 
     //                 |—> on first setup, settings is undefined & settings.version is haram
@@ -282,7 +321,7 @@ class Settings {
     return this.active;
   }
 
-  async get() {
+  async get(): Promise<SettingsInterface | undefined> {
     let ret;
 
     ret = await chrome.storage.local.get('uwSettings');
@@ -290,13 +329,13 @@ class Settings {
     this.logger?.log('info', 'settings', 'Got settings:', ret && ret.uwSettings && JSON.parse(ret.uwSettings));
 
     try {
-      return JSON.parse(ret.uwSettings);
+      return JSON.parse(ret.uwSettings) as SettingsInterface;
     } catch(e) {
       return undefined;
     }
   }
 
-  async set(extensionConf, options?) {
+  async set(extensionConf, options?: SetSettingsOptions) {
     if (!options || !options.forcePreserveVersion) {
       extensionConf.version = this.version;
     }
@@ -344,7 +383,7 @@ class Settings {
     }
   }
 
-  async save(options?) {
+  async save(options?: SetSettingsOptions) {
     if (Debug.debug && Debug.storage) {
       console.log("[Settings::save] Saving active settings:", this.active);
     }
@@ -354,10 +393,10 @@ class Settings {
   }
 
 
-  async saveWithoutReload() {
+  async saveWithoutReload(options?: SetSettingsOptions) {
     this.active.preventReload = true;
     this.active.lastModified = new Date();
-    await this.set(this.active);
+    await this.set(this.active, options);
   }
 
   async rollback() {

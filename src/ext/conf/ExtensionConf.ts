@@ -14,6 +14,10 @@ if(Debug.debug)
   console.log("Loading: ExtensionConf.js");
 
 const ExtensionConf: SettingsInterface = {
+  dev: {
+    loadFromSnapshot: false,
+  },
+
   arDetect: {
     aardType: 'auto',
 
@@ -689,6 +693,46 @@ const ExtensionConf: SettingsInterface = {
       }
     },
     "www.youtube.com" : {
+      enable: {
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Enabled,
+      },
+      enableAard: {
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Enabled,
+      },
+      enableKeyboard: {
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Enabled
+      },
+      enableUI: {
+        fullscreen: ExtensionMode.Enabled,
+        theater: ExtensionMode.Enabled,
+        normal: ExtensionMode.Disabled
+      },
+
+      override: false,                  // ignore value localStorage in favour of this
+      type: 'official',                 // is officially supported? (Alternatives are 'community' and 'user-defined')
+      defaultType: 'official',          // if user mucks around with settings, type changes to 'user-defined'.
+                                        // We still want to know what the original type was, hence defaultType
+
+      activeDOMConfig: 'official',
+      DOMConfig: {
+        'official': {
+          type: 'official',
+          elements: {
+            player: {
+              manual: true,
+              querySelectors: "#movie_player, #player, #c4-player",
+            }
+          }
+        }
+      }
+    },
+    "www.youtube-nocookie.com": {
       enable: {
         fullscreen: ExtensionMode.Enabled,
         theater: ExtensionMode.Enabled,
