@@ -291,7 +291,8 @@ class PlayerData {
           parentElement: this.element,
           eventBus: this.eventBus,
           playerData: this,
-          uiSettings: this.videoData.settings.active.ui
+          uiSettings: this.videoData.settings.active.ui,
+          siteSettings: this.siteSettings,
         }
       );
 
@@ -615,7 +616,8 @@ class PlayerData {
         parentElement: this.element,
         eventBus: this.eventBus,
         playerData: this,
-        uiSettings: this.videoData.settings.active.ui
+        uiSettings: this.videoData.settings.active.ui,
+        siteSettings: this.siteSettings,
       }
     );
 
@@ -627,8 +629,6 @@ class PlayerData {
    * Finds and returns HTML element of the player
    */
   private getPlayer(options?: {verbose?: boolean}): HTMLElement {
-    const host = window.location.hostname;
-    let element = this.videoElement.parentNode;
     const videoWidth = this.videoElement.offsetWidth;
     const videoHeight = this.videoElement.offsetHeight;
     let playerCandidate;
@@ -649,7 +649,6 @@ class PlayerData {
     }
 
     // if mode is given, we follow the preference
-
     if (this.siteSettings.data.currentDOMConfig?.elements?.player?.manual && this.siteSettings.data.currentDOMConfig?.elements?.player?.mode) {
       if (this.siteSettings.data.currentDOMConfig?.elements?.player?.mode === 'qs') {
         playerCandidate = this.getPlayerQs(playerQs, elementStack, videoWidth, videoHeight);

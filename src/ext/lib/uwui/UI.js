@@ -1,3 +1,4 @@
+import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
 import { EventBusConnector } from '../EventBus';
 
 if (process.env.CHANNEL !== 'stable'){
@@ -29,6 +30,7 @@ class UI {
     this.saveState = undefined;
     this.playerData = uiConfig.playerData;
     this.uiSettings = uiConfig.uiSettings;
+    this.siteSettings = uiConfig.siteSettings;
 
     this.iframeErrorCount = 0;
     this.iframeConfirmed = false;
@@ -43,10 +45,28 @@ class UI {
     this.extensionBase = chrome.runtime.getURL('').replace(/\/$/, "");
 
     // UI will be initialized when setUiVisibility is called
+    console.log('ui config:', uiConfig);
     this.init();
   }
 
+  canRun() {
+    if (this.isGlobal) {
+      return true;
+    }
+
+    return this.siteSettings?.data.enableUI.fullscreen === ExtensionMode.Enabled
+      || this.siteSettings?.data.enableUI.theater === ExtensionMode.Enabled
+      || this.siteSettings?.data.enableUI.normal === ExtensionMode.Enabled;
+  }
+
   async init() {
+    if (!this.canRun()) {
+      console.log('ui config: canRun returned false', this.siteSettings?.data.enableUI.fullscreen === ExtensionMode.Enabled, this.siteSettings?.data.enableUI.theater === ExtensionMode.Enabled, this.siteSettings?.data.enableUI.normal === ExtensionMode.Enabled)
+      return;
+    }
+    console.log('ui config: canRun returned truie', this.siteSettings?.data.enableUI.fullscreen === ExtensionMode.Enabled, this.siteSettings?.data.enableUI.theater === ExtensionMode.Enabled, this.siteSettings?.data.enableUI.normal === ExtensionMode.Enabled)
+
+
     this.initUIContainer();
     this.loadIframe();
     this.initMessaging();
@@ -313,6 +333,10 @@ class UI {
     const result = {
       playerDimensions: undefined,
       canShowUI: false,
+    }
+
+    if (this.playerData?.environment && this.siteSettings.data.enableUI[this.playerData?.environment] !== ExtensionMode.Enabled) {
+      return result;
     }
 
     if (this.playerData?.dimensions) {
