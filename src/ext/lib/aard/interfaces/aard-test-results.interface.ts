@@ -39,7 +39,9 @@ export interface AardTestResults {
   letterboxWidth: number,
   letterboxOffset: number,
   logoDetected: [boolean, boolean, boolean, boolean]
+  aspectRatioInvalid: boolean
   aspectRatioUncertainReason?: string
+  aspectRatioInvalidReason?: string
 }
 
 export function initAardTestResults(settings: AardSettings): AardTestResults {
@@ -81,7 +83,8 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
     activeAspectRatio: 0,
     letterboxWidth: 0,
     letterboxOffset: 0,
-    logoDetected: [false, false, false, false]
+    logoDetected: [false, false, false, false],
+    aspectRatioInvalid: false,
   }
 }
 
@@ -120,4 +123,5 @@ export function resetAardTestResults(results: AardTestResults): void {
   results.aspectRatioUncertainReason = null;
   results.topRowUncertain = false;
   results.bottomRowUncertain = false;
+  results.aspectRatioInvalid = false;
 }

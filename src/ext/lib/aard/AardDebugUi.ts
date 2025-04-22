@@ -370,7 +370,8 @@ export class AardDebugUi {
     out = `${out}
 
       -- UNCERTAIN FLAGS
-      AR: ${testResults.aspectRatioUncertain} (reason: ${testResults.aspectRatioUncertainReason ?? 'n/a'}); top row: ${testResults.topRowUncertain}; bottom row: ${testResults.bottomRowUncertain}
+      AR: ${testResults.aspectRatioUncertain} (reason: ${testResults.aspectRatioUncertainReason ?? 'n/a'}); top row: ${testResults.topRowUncertain}; bottom row: ${testResults.bottomRowUncertain}${
+        testResults.aspectRatioInvalid ? `\nINVALID_AR (reason: ${testResults.aspectRatioInvalidReason ?? 'n/a'})` : ''}
 
       -- GUARD & IMAGE LINE
       bottom guard: ${testResults.guardLine.bottom}       image: ${testResults.guardLine.invalidated ? 'n/a' : testResults.imageLine.bottom}

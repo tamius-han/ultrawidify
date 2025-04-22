@@ -687,7 +687,13 @@ export class Aard {
         // if detected aspect ratio is different from the current aspect ratio
         // if (this.testResults.aspectRatioUpdated) {
         //   this.timer.arChanged();
-          this.updateAspectRatio();
+        const finalAr = this.getAr();
+        if (finalAr > 0) {
+          this.updateAspectRatio(finalAr);
+        } else {
+          this.testResults.aspectRatioInvalid = true;
+          this.testResults.aspectRatioInvalidReason = finalAr.toFixed(3);
+        }
         // }
 
         // if we got "no letterbox" OR aspectRatioUpdated
