@@ -1,44 +1,44 @@
 <template>
-  <div v-if="siteSupportLevel === 'official'" class="site-support official">
+  <div v-if="siteSupportLevel === 'official'" class="site-support official" :style="supportLevelStyle">
     <mdicon name="check-decagram" />
     <div v-if="!small">Verified</div>
-    <div class="tooltip">
+    <div class="tooltip" :style="tooltipStyle">
       <template v-if="small">Verified&nbsp;—&nbsp;</template>
       The extension is being tested and should work on this site.
     </div>
   </div>
-  <div v-if="siteSupportLevel === 'community'" class="site-support community">
+  <div v-if="siteSupportLevel === 'community'" class="site-support community" :style="supportLevelStyle">
     <mdicon name="account-group" />
     <div v-if="!small">Community</div>
-    <div class="tooltip">
+    <div class="tooltip" :style="tooltipStyle">
       <template v-if="small">Community&nbsp;—&nbsp;</template>
       People say extension works on this site (or have provided help getting the extension to work if it didn't).<br/><br/>
       Tamius (the dev) does not test the extension on this site, probably because it requires a subscription or
       is geoblocked.
     </div>
   </div>
-  <div v-if="siteSupportLevel === 'no-support' || siteSupportLevel === 'unknown'" class="site-support no-support">
+  <div v-if="siteSupportLevel === 'no-support' || siteSupportLevel === 'unknown'" class="site-support no-support" :style="supportLevelStyle">
     <mdicon name="help-circle-outline" />
     <div v-if="!small">Unknown</div>
-    <div class="tooltip">
+    <div class="tooltip" :style="tooltipStyle">
       <template v-if="small">Unknown&nbsp;—&nbsp;</template>
       Not officially supported. Extension will try to fix things, but no promises.<br/><br/>
       Tamius (the dev) does not test the extension on this site for various reasons
       (unaware, not using the site, language barrier, geoblocking, paid services Tam doesn't use).
     </div>
   </div>
-  <div v-if="siteSupportLevel === 'user-added' || siteSupportLevel === 'user-defined'" class="site-support user-added">
+  <div v-if="siteSupportLevel === 'user-added' || siteSupportLevel === 'user-defined'" class="site-support user-added" :style="supportLevelStyle">
     <mdicon name="account" />
     <div v-if="!small">Modified by you</div>
-    <div class="tooltip">
+    <div class="tooltip" :style="tooltipStyle">
       <template v-if="small">Modified by you&nbsp;—&nbsp;</template>
       You have manually changed settings for this site. The extension is doing what you told it to do.
     </div>
   </div>
-  <div v-if="siteSupportLevel === 'officially-disabled'" class="site-support officially-disabled">
+  <div v-if="siteSupportLevel === 'officially-disabled'" class="site-support officially-disabled" :style="supportLevelStyle">
     <mdicon  class="site-support no-support" name="checkbox-marked-circle" />
     <div v-if="!small">Not supported</div>
-    <div class="tooltip">
+    <div class="tooltip" :style="tooltipStyle">
       <template v-if="small">Not supported&nbsp;—&nbsp;</template>
       Extension is known to not work with this site.
     </div>
@@ -50,6 +50,8 @@ export default {
   props: {
     siteSupportLevel: String,
     small: Boolean,
+    supportLevelStyle: String,
+    tooltipStyle: String,
   }
 }
 </script>

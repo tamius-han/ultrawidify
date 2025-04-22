@@ -168,11 +168,16 @@ export interface AardSettings {
   }
 }
 
+interface DevSettings {
+  loadFromSnapshot: boolean,
+}
+
 interface SettingsInterface {
   _updateFlags?: {
     requireReload?: SettingsReloadFlags,
     forSite?: string
   }
+  dev: DevSettings,
 
   arDetect: AardSettings,
 

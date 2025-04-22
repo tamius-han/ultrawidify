@@ -144,11 +144,13 @@
               Site compatibility:
               <SupportLevelIndicator
                 :siteSupportLevel="siteSupportLevel"
+                supportLevelStyle="font-size: 0.69rem !important;"
+                tooltipStyle="font-size: 0.8rem;"
               >
               </SupportLevelIndicator>
               <div v-if="statusFlags.hasDrm" class="aard-blocked">
-                Autodetection potentially<br/>
-                unavailable due to <a style="color: #fff" href="https://en.wikipedia.org/wiki/Digital_rights_management" target="_blank">DRM</a>.
+                Autodetection blocked<br/>
+                by <a style="color: #fff" href="https://en.wikipedia.org/wiki/Digital_rights_management" target="_blank">DRM</a>.
               </div>
               <div v-else-if="statusFlags.aardErrors?.cors" class="aard-blocked">
                 Autodetection blocked<br/>
@@ -156,7 +158,7 @@
               </div>
               <div v-else-if="statusFlags.aardErrors?.webglError" class="aard-blocked">
                 Autodetection unavailable<br/>
-                due to webgl error.
+                (webgl error)
               </div>
             </GhettoContextMenuItem>
           </div>
@@ -483,7 +485,8 @@ export default {
     },
 
     acknowledgeNewFeature(featureKey) {
-      delete this.settings.active.newFeatureTracker[featureKey];
+      this.settings.active.newFeatureTracker[featureKey].show = 0;
+      this.settings.active.newFeatureTracker[featureKey].acknowledged = true;
       this.settings.saveWithoutReload();
     },
     newFeatureViewUpdate(featureKey) {
@@ -721,6 +724,7 @@ export default {
 }
 
 .aard-blocked {
+  font-size: 0.8rem;
   color: #fa6;
 }
 
