@@ -113,7 +113,7 @@
             class="danger"
             :class="{'disabled': !allowSettingsEditing}"
             :disabled="!allowSettingsEditing"
-            @click="saveSettingsChanges"
+            @click="() => saveSettingsChanges()"
           >
             Save
           </button>
@@ -128,6 +128,31 @@
           v-model="settingsJson"
         >
         </JsonEditor>
+      </div>
+
+      <h2>Settings migration report</h2>
+      <pre>
+        {{settings.migrationReport}}
+      </pre>
+
+      <h2>Settings snapshots</h2>
+      <div class="flex flex-col">
+        <div v-for="(snapshot, index) of settingsSnapshots" :key="snapshot.createdAt">
+          <small>{{snapshot.createdAt.toISOString()}}</small>
+          <div class="flex flex-row">
+            <div class="grow">
+              {{snapshot.name}}
+            </div>
+            <div v-if="settings.isAutomatic">(auto)</div>
+            <div v-if="settings.isAutomatic && settings.isProtected">(protected)</div>
+            <div v-if="settings.default">(default)</div>
+          </div>
+          <div>
+            <button @click="() => markDefaultSnapshot(index)"><template v-if="settings.isDefault">Revoke default</template><template v-else>Make default</template></button>
+            <button v-if="settings.isAutomatic" @click="() => toggleSnapshotProtection(index)">Toggle protection</button>
+            <button @click="() => deleteSnapshot(index)">Delete snapshot</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -151,6 +176,7 @@ export default {
       allowSettingsEditing: false,
       editorSaveFinished: false,
       settingsJson: {},
+      settingsSnapshots: []
     }
   },
   mixins: [
@@ -236,10 +262,18 @@ export default {
       this.resetSettingsEditor();
     },
 
-    saveSettingsChanges() {
+    async saveSettingsChanges() {
       if (this.allowSettingsEditing) {
+        const currentVersion = this.settings.active?.version;
         this.settings.active = this.settingsJson;
-        this.settings.saveWithoutReload();
+
+        if (currentVersion !== this.settingsJson.version) {
+          await this.settings.save({forcePreserveVersion: true});
+          return;
+        } else {
+          await this.settings.saveWithoutReload();
+        }
+
         this.resetSettingsEditor();
         this.editorSaveFinished = true;
 
@@ -251,10 +285,32 @@ export default {
 
     resetSettingsEditor() {
       this.settingsJson = JSON.parse(JSON.stringify(this.settings?.active ?? {}));
-    }
+    },
     //#endregion
-  }
 
+    //#region settings snapshot management
+    async loadSettingsSnapshots() {
+      this.settingsSnapshots = await this.settings.snapshotManager.listSnapshots();
+    },
+
+    async markDefaultSnapshot(index) {
+      await this.settings.snapshotManager.setDefaultSnapshot(index, !this.settingsSnapshots[index].isDefault);
+      await this.loadSettingsSnapshots();
+      this.settings.active.dev.loadFromSnapshot = this.settingsSnapshots[index].isDefault;
+      this.saveSettingsChanges();
+    },
+
+    async toggleSnapshotProtection(index) {
+      await this.settings.snapshotManager.setSnapshotAsProtected(index, !this.settingsSnapshots[index].isProtected);
+      await this.loadSettingsSnapshots();
+    },
+
+    async deleteSnapshot(index) {
+      await this.settings.snapshotManager.deleteSnapshot(index);
+      await this.loadSettingsSnapshots();
+    },
+  }
+  //#endregion
 }
 </script>
 
