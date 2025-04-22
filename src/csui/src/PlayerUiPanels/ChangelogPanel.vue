@@ -1,23 +1,20 @@
 <template>
   <div class="flex flex-col w-full h-full gap-2">
-    <div class="flex flex-row gap-8 bg-black flex-wrap">
-      <div class="min-w-[400px] max-w-[520px] grow-1 shrink-1">
+    <div class="flex flex-row gap-8 bg-black flex-wrap w-full">
+      <div class="min-w-[400px] max-w-[520px] grow shrink">
         <h1>What's new</h1>
         <!-- <p>Full changelog for older versions <a href="https://github.com/tamius-han/ultrawidify/blob/master/CHANGELOG.md" target="_blank">is available here</a>.</p> -->
 
-        <h2>6.2.5</h2>
+        <h2>6.2.6</h2>
         <ul>
-          <li>'Show UI' button was moved to popup header. Extension popup now defaults to 'crop options' tab</li>
-          <li>Fixed the bug where current extension settings wouldn't be displayed correctly in the popup</li>
-          <li>Fixed the issue where extension options using the "Extension default" mode would always be disabled</li>
-          <li>Added the ability to import and export settings (ft. developer mode editor)</li>
-          <li>Added some toys not intended for general audience (Aard now has debug tools).</li>
-          <li>Fixed an issue where aspect ratio wouldn't get calculated correctly on youtube videos with native aspect ratios other than 16:9</li>
-          <li>Fixed an issue that would crash the extension if video element didn't have a player element associated with it</li>
-          <li>Fixed an issue where extension sometimes wouldn't work if video element was grafted/re-parented to a different element</li>
+          <li>Automatic aspect ratio detection: do not apply negative aspect ratios</li>
+          <li>Keyboard zoom now works</li>
+          <li><code>www.youtube-nocookie.com</code> has been added to the "officially supported" list</li>
+          <li>Fixed the bug where UI would sometimes refuse to stay hidden</li>
         </ul>
       </div>
-      <div class="min-w-[400px] max-w-[520px] grow-1 shrink-1">
+      <div style="width: 1rem; height: 0px;"></div>
+      <div class="min-w-[400px] max-w-[520px] grow shrink">
         <h2>Report a problem</h2>
         <p>
           Please report <strike>undocumented features</strike> bugs using one of the following options (in order of preference):
@@ -43,6 +40,7 @@
   </div>
 </template>
 <script>
+import BrowserDetect from '@src/ext/conf/BrowserDetect';
 
 export default({
   props: [
@@ -50,6 +48,7 @@ export default({
   ],
   data() {
     return {
+      BrowserDetect: BrowserDetect,
       // reminder — webextension-polyfill doesn't seem to work in vue!
       addonVersion: BrowserDetect.firefox ? chrome.runtime.getManifest().version : chrome.runtime.getManifest().version,
       addonSource: BrowserDetect.processEnvVersion,
@@ -70,6 +69,10 @@ export default({
 }
 .flex-row {
   flex-direction: row;
+}
+
+.grow {
+  flex-grow: 1;
 }
 
 p, li {
