@@ -130,15 +130,10 @@
         </JsonEditor>
       </div>
 
-      <h2>Settings migration report</h2>
-      <pre>
-        {{settings.migrationReport}}
-      </pre>
-
       <h2>Settings snapshots</h2>
       <div class="flex flex-col">
         <div v-for="(snapshot, index) of settingsSnapshots" :key="snapshot.createdAt">
-          <small>{{snapshot.createdAt.toISOString()}}</small>
+          <small>{{new Date(snapshot.createdAt).toISOString()}}</small>
           <div class="flex flex-row">
             <div class="grow">
               {{snapshot.name}}
@@ -208,6 +203,7 @@ export default {
   },
   mounted() {
     this.resetSettingsEditor();
+    this.loadSettingsSnapshots();
   },
   methods: {
     setTab(tab) {
