@@ -44,18 +44,9 @@ class Settings {
   onChangedCallbacks: (() => void)[] = [];
   afterSettingsChangedCallbacks: (() => void)[] = [];
 
-  private sortedPatches: any[];
-
 
   public snapshotManager: SettingsSnapshotManager;
 
-  private _migrationReport: string = '';
-  private set migrationReport(report: string) {
-    this._migrationReport = report;
-  }
-  public get migrationReport(): string {
-    return this._migrationReport;
-  }
   //#endregion
 
   constructor(options) {
@@ -70,9 +61,6 @@ class Settings {
     this.default['version'] = this.getExtensionVersion();
 
     chrome.storage.onChanged.addListener((changes, area) => {this.storageChangeListener(changes, area)});
-
-    this.sortedPatches = this.sortConfPatches(ExtensionConfPatch);
-
   }
 
   private storageChangeListener(changes, area) {
@@ -194,7 +182,7 @@ class Settings {
   }
 
   private findFirstNecessaryPatch(version) {
-    return this.sortedPatches.findIndex(x => this.compareExtensionVersions(x.forVersion, version) > 0);
+    return ExtensionConfPatch.findIndex(x => this.compareExtensionVersions(x.forVersion, version) > 0);
   }
   private applySettingsPatches(oldVersion) {
     let index = this.findFirstNecessaryPatch(oldVersion);
@@ -217,20 +205,20 @@ class Settings {
 
 
     // apply all remaining patches
-    this.logger?.log('info', 'settings', `[Settings::applySettingsPatches] There are ${this.sortedPatches.length - index} settings patches to apply`);
-    while (index < this.sortedPatches.length) {
-      const updateFn =  this.sortedPatches[index].updateFn;
-      delete  this.sortedPatches[index].forVersion;
-      delete  this.sortedPatches[index].updateFn;
-
-      if (Object.keys( this.sortedPatches[index]).length > 0) {
-        ObjectCopy.overwrite(this.active, this.sortedPatches[index]);
-      }
+    this.logger?.log('info', 'settings', `[Settings::applySettingsPatches] There are ${ExtensionConfPatch.length - index} settings patches to apply`);
+    while (index < ExtensionConfPatch.length) {
+      const updateFn =  ExtensionConfPatch[index].updateFn;
       if (updateFn) {
         try {
           updateFn(this.active, this.getDefaultSettings());
         } catch (e) {
           this.logger?.log('error', 'settings', '[Settings::applySettingsPatches] Failed to execute update function. Keeping settings object as-is. Error:', e);
+          console.warn(
+            '————————————————————————————————————\n',
+            'Applying patch', index, ' failed :', '\n',
+            e, '\n',
+            '————————————————————————————————————\n',
+          );
         }
       }
 
@@ -254,7 +242,7 @@ class Settings {
     //                 |—> on first setup, settings is undefined & settings.version is haram
     //                 |   since new installs ship with updates by default, no patching is
     //                 |   needed. In this case, we assume we're on the current version
-    const oldVersion = (settings && settings.version) || this.version;
+    const oldVersion = settings?.version ?? this.version;
 
     if (settings) {
       this.logger?.log('info', 'settings', "[Settings::init] Configuration fetched from storage:", settings,
@@ -276,6 +264,7 @@ class Settings {
       this.active = this.getDefaultSettings();
       this.active.version = this.version;
       await this.save();
+
       return this.active;
     }
 
@@ -339,7 +328,6 @@ class Settings {
     if (!options || !options.forcePreserveVersion) {
       extensionConf.version = this.version;
     }
-
     this.logger?.log('info', 'settings', "[Settings::set] setting new settings:", extensionConf)
 
     return chrome.storage.local.set( {'uwSettings': JSON.stringify(extensionConf)});
@@ -385,7 +373,7 @@ class Settings {
 
   async save(options?: SetSettingsOptions) {
     if (Debug.debug && Debug.storage) {
-      console.log("[Settings::save] Saving active settings:", this.active);
+      console.log("[Settings::save] Saving active settings — save options", options, "; settings:", this.active);
     }
     this.active.preventReload = undefined;
     this.active.lastModified = new Date();
