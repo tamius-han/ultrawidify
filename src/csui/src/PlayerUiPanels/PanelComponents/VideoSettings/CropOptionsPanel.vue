@@ -134,16 +134,25 @@
 </template>
 
 <script>
-import ShortcutButton from '../../../components/ShortcutButton.vue';
-import EditShortcutButton from '../../../components/EditShortcutButton';
-import EditModeMixin from '../../../utils/EditModeMixin';
-import KeyboardShortcutParserMixin from '../../../utils/KeyboardShortcutParserMixin';
-import CommsMixin from '../../../utils/CommsMixin';
-import AspectRatioType from '../../../../../common/enums/AspectRatioType.enum';
+import ShortcutButton from '@csui/src/components/ShortcutButton.vue';
+import EditShortcutButton from '@csui/src/components/EditShortcutButton';
+import EditModeMixin from '@csui/src/utils/EditModeMixin';
+import KeyboardShortcutParserMixin from '@csui/src/utils/KeyboardShortcutParserMixin';
+import CommsMixin from '@csui/src/utils/CommsMixin';
+import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
 
 export default {
+  components: {
+    ShortcutButton,
+    EditShortcutButton,
+  },
+  mixins: [
+    // ComputeActionsMixin,
+    EditModeMixin,
+    KeyboardShortcutParserMixin,
+    CommsMixin
+  ],
   data() {
-
     return {
       AspectRatioType: AspectRatioType,
 
@@ -156,12 +165,6 @@ export default {
       }
     }
   },
-  mixins: [
-    // ComputeActionsMixin,
-    EditModeMixin,
-    KeyboardShortcutParserMixin,
-    CommsMixin
-  ],
   props: [
     'settings',      // required for buttons and actions, which are global
     'siteSettings',
@@ -169,10 +172,6 @@ export default {
     'isEditing',
     'allowSettingSiteDefault'
   ],
-  components: {
-    ShortcutButton,
-    EditShortcutButton,
-  },
   computed: {
     siteDefaultCrop()  {
       if (!this.siteSettings) {

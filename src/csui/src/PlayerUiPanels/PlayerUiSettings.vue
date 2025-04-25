@@ -135,6 +135,19 @@
             :isEditing="true"
           ></StretchOptionsPanel>
         </div>
+
+        <!-- ZOOM OPTIONS -->
+        <div>
+          <div class="flex flex-row">
+            <h3 class="mth3">ZOOM OPTIONS</h3>
+          </div>
+
+          <ZoomOptionsPanel
+            :settings="settings"
+            :eventBus="eventBus"
+            :isEditing="true"
+          ></ZoomOptionsPanel>
+        </div>
       </div>
 
     </div>
@@ -142,16 +155,18 @@
 </template>
 
 <script>
-import Button from '../components/Button.vue'
-import BrowserDetect from '../../../ext/conf/BrowserDetect';
-import CropOptionsPanel from './PanelComponents/VideoSettings/CropOptionsPanel.vue'
-import StretchOptionsPanel from './PanelComponents/VideoSettings/StretchOptionsPanel.vue'
+import Button from '@csui/src/components/Button.vue'
+import BrowserDetect from '@src/ext/conf/BrowserDetect';
+import CropOptionsPanel from '@csui/src/PlayerUiPanels/PanelComponents/VideoSettings/CropOptionsPanel.vue'
+import StretchOptionsPanel from '@csui/src/PlayerUiPanels/PanelComponents/VideoSettings/StretchOptionsPanel.vue'
+import ZoomOptionsPanel from '@csui/src/PlayerUiPanels/PanelComponents/VideoSettings/ZoomOptionsPanel.vue'
 
 export default {
   components: {
     Button,
     CropOptionsPanel,
-    StretchOptionsPanel
+    StretchOptionsPanel,
+    ZoomOptionsPanel,
   },
   data() {
     return {
@@ -267,7 +282,7 @@ export default {
   gap: 1rem;
 
   > * {
-    width: calc(50% - 0.5rem);
+    width: calc(33% - 0.5rem);
   }
 }
 

@@ -78,9 +78,7 @@
           </Popup>
           <button class="flex-grow" @click="exportSettings()">Export settings</button>
         </div>
-        <div>
-
-        </div>
+        <div></div>
         <ConfirmButton
           dialogType="danger"
           @onConfirmed="resetSettings"

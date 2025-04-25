@@ -10,7 +10,7 @@ import CropModePersistence from '../../common/enums/CropModePersistence.enum';
 import AspectRatioType from '../../common/enums/AspectRatioType.enum';
 import { update } from 'lodash';
 
-const ExtensionConfPatch = [
+const ExtensionConfPatch = Object.freeze([
   {
     forVersion: '6.2.4',
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
@@ -35,6 +35,19 @@ const ExtensionConfPatch = [
   }, {
     forVersion: '6.2.6',
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
+
+      console.warn('[ultrawidify] STARTING SETTINGS MIGRATION TO 6.2.6');
+
+      if (!userOptions.commands) {
+        userOptions.commands = {
+          zoom: [],
+          crop: [],
+          stretch: [],
+          pan: [],
+          internal: []
+        };
+      }
+
       userOptions.commands.zoom = [{
         action: 'change-zoom',
         label: 'Zoom +5%',
@@ -92,9 +105,139 @@ const ExtensionConfPatch = [
           showDetectionDetails: true
         }
       }
+
+      const newZoomActions = [{
+        action: 'set-zoom',
+        label: 'Reset zoom',
+        shortcut: {
+          key: 'r',
+          code: 'KeyR',
+          ctrlKey: false,
+          metaKey: false,
+          altKey: false,
+          shiftKey: true,
+          onKeyUp: true,
+          onKeyDown: false,
+        },
+        internalOnly: true,
+        actionId: 'set-zoom-reset'
+      }, {
+        action: 'set-ar-zoom',
+        label: 'Automatic',
+        comment: 'Automatically detect aspect ratio and zoom accordingly',
+        arguments: {
+          type: AspectRatioType.Automatic
+        },
+        shortcut: {
+          key: 'a',
+          code: 'KeyA',
+          ctrlKey: false,
+          metaKey: false,
+          altKey: false,
+          shiftKey: true,
+          onKeyUp: true,
+          onKeyDown: false,
+        }
+      }, {
+        action: 'set-ar-zoom',
+        label: 'Cycle',
+        comment: 'Cycle through zoom options',
+        arguments: {
+          type: AspectRatioType.Cycle
+        },
+        shortcut: {
+          key: 'c',
+          code: 'KeyC',
+          ctrlKey: false,
+          metaKey: false,
+          altKey: false,
+          shiftKey: true,
+          onKeyUp: true,
+          onKeyDown: false,
+        }
+      }, {
+        action: 'set-ar-zoom',
+        label: '21:9',
+        comment: 'Zoom for 21:9 aspect ratio (1:2.39)',
+        arguments: {
+          type: AspectRatioType.Fixed,
+          ratio: 2.39
+        },
+        shortcut: {
+          key: 'd',
+          code: 'KeyD',
+          ctrlKey: false,
+          metaKey: false,
+          altKey: false,
+          shiftKey: true,
+          onKeyUp: false,
+          onKeyDown: true,
+        }
+      }, {
+        action: 'set-ar-zoom',
+        label: '18:9',
+        comment: 'Zoom for 18:9 aspect ratio (1:2)',
+        arguments: {
+          type: AspectRatioType.Fixed,
+          ratio: 1.78
+        },
+        shortcut: {
+          key: 's',
+          code: 'KeyS',
+          ctrlKey: false,
+          metaKey: false,
+          altKey: false,
+          shiftKey: true,
+          onKeyUp: false,
+          onKeyDown: true,
+        }
+      }, {
+        action: 'set-ar-zoom',
+        label: '32:9',
+        comment: 'Zoom for 32:9 aspect ratio',
+        arguments: {
+          type: AspectRatioType.Fixed,
+          ratio: 3.56
+        },
+      }];
+
+      const compareShortcuts = (a: any, b: any) => {
+        if (!a || !b) {
+          return false;
+        }
+
+        return a.key === b.key && b.code === b.code && a.ctrlKey == b.ctrlKey && a.shiftKey == b.shiftKey && a.metaKey == a.metaKey && a.altKey == b.altKey;
+      }
+
+      const hasConflict = (shortcut: any) => {
+        for (const ct in userOptions.commands) {
+          for (const command of userOptions.commands[ct]) {
+            if (compareShortcuts(shortcut, command.shortcut)) {
+              return true;
+            }
+          }
+        }
+
+        return false;
+      }
+
+      for (const zoomAction of newZoomActions) {
+        if (
+          !userOptions.commands.zoom.find(
+            x => x.action === zoomAction.action
+              && x.arguments?.type === zoomAction.arguments?.type
+              && x.arguments?.ratio === zoomAction.arguments?.ratio
+          )
+        ) {
+          userOptions.commands.zoom.push({
+            ...zoomAction,
+            shortcut: hasConflict(zoomAction.shortcut) ? undefined : zoomAction.shortcut
+          });
+        }
+      }
     }
   }
-];
+]);
 
 
 export default ExtensionConfPatch;

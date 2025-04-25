@@ -401,11 +401,96 @@ const ExtensionConf: SettingsInterface = {
     }, {
       action: 'set-zoom',
       label: 'Reset zoom',
-      arguments: {
-        zoom: 1,
+      shortcut: {
+        key: 'r',
+        code: 'KeyR',
+        ctrlKey: false,
+        metaKey: false,
+        altKey: false,
+        shiftKey: true,
+        onKeyUp: true,
+        onKeyDown: false,
       },
       internalOnly: true,
       actionId: 'set-zoom-reset'
+    }, {
+      action: 'set-ar-zoom',
+      label: 'Automatic',
+      comment: 'Automatically detect aspect ratio',
+      arguments: {
+        type: AspectRatioType.Automatic
+      },
+      shortcut: {
+        key: 'a',
+        code: 'KeyA',
+        ctrlKey: false,
+        metaKey: false,
+        altKey: false,
+        shiftKey: true,
+        onKeyUp: true,
+        onKeyDown: false,
+      }
+    }, {
+      action: 'set-ar-zoom',
+      label: 'Cycle',
+      comment: 'Cycle through crop options',
+      arguments: {
+        type: AspectRatioType.Cycle
+      },
+      shortcut: {
+        key: 'c',
+        code: 'KeyC',
+        ctrlKey: false,
+        metaKey: false,
+        altKey: false,
+        shiftKey: true,
+        onKeyUp: true,
+        onKeyDown: false,
+      }
+    }, {
+      action: 'set-ar-zoom',
+      label: '21:9',
+      comment: 'Crop for 21:9 aspect ratio (1:2.39)',
+      arguments: {
+        type: AspectRatioType.Fixed,
+        ratio: 2.39
+      },
+      shortcut: {
+        key: 'd',
+        code: 'KeyD',
+        ctrlKey: false,
+        metaKey: false,
+        altKey: false,
+        shiftKey: true,
+        onKeyUp: false,
+        onKeyDown: true,
+      }
+    }, {
+      action: 'set-ar-zoom',
+      label: '18:9',
+      comment: 'Crop for 18:9 aspect ratio (1:2)',
+      arguments: {
+        type: AspectRatioType.Fixed,
+        ratio: 1.78
+      },
+      shortcut: {
+        key: 's',
+        code: 'KeyS',
+        ctrlKey: false,
+        metaKey: false,
+        altKey: false,
+        shiftKey: true,
+        onKeyUp: false,
+        onKeyDown: true,
+      }
+    }, {
+      action: 'set-ar-zoom',
+      label: '32:9',
+      comment: 'Crop for 32:9 aspect ratio',
+      arguments: {
+        type: AspectRatioType.Fixed,
+        ratio: 3.56
+      },
     }],
     pan: [{
       action: 'set-alignment',
