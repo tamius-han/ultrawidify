@@ -92,13 +92,14 @@ export class SettingsSnapshotManager {
   async listSnapshots(): Promise<SettingsSnapshot[]> {
     const ret = await chrome.storage.local.get('uwSettings-snapshots');
     try {
-      JSON.parse(ret['uwSettings-snapshots']) as SettingsSnapshot[];
+      const json = JSON.parse(ret['uwSettings-snapshots']) as SettingsSnapshot[];
+      return json;
     } catch (e) {
       return [] as SettingsSnapshot[];
     }
   }
 
-  private async set(snapshots: SettingsSnapshot[]) {
+  private async set(snapshots: SettingsSnapshot[] = []) {
     await chrome.storage.local.set({
       'uwSettings-snapshots': JSON.stringify(snapshots),
     });
