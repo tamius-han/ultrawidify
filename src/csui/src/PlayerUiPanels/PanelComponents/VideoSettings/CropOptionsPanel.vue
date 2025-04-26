@@ -3,8 +3,12 @@
 
     <ShortcutButton
       v-for="(command, index) of settings?.active.commands.crop"
-      class="flex b3 button"
-      :class="{active: editMode ? index === editModeOptions?.crop?.selectedIndex : isActiveCrop(command)}"
+      class="flex button"
+      :class="{
+        active: editMode ? index === editModeOptions?.crop?.selectedIndex : isActiveCrop(command),
+        'b3-compact': compact,
+        b3: !compact
+      }"
       :key="index"
       :label="command.label"
       :shortcut="getKeyboardShortcutLabel(command)"
@@ -170,7 +174,8 @@ export default {
     'siteSettings',
     'eventBus',
     'isEditing',
-    'allowSettingSiteDefault'
+    'allowSettingSiteDefault',
+    'compact',
   ],
   computed: {
     siteDefaultCrop()  {

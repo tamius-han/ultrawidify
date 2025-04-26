@@ -11,6 +11,7 @@
           <li>Keyboard zoom now works</li>
           <li><code>www.youtube-nocookie.com</code> has been added to the "officially supported" list</li>
           <li>Fixed the bug where UI would sometimes refuse to stay hidden</li>
+          <li>New experimental zoom options</li>
         </ul>
       </div>
       <div style="width: 1rem; height: 0px;"></div>

@@ -5,8 +5,11 @@
 
       <ShortcutButton
         v-for="(command, index) of settings?.active.commands.zoom"
-        class="flex b3 button"
-        :class="{active: editMode ? index === editModeOptions?.zoom?.selectedIndex : isActiveZoom(command)}"
+        class="flex button"
+        :class="{active: editMode ? index === editModeOptions?.zoom?.selectedIndex : isActiveZoom(command),
+          'b3-compact': compact,
+          b3: !compact
+        }"
         :key="index"
         :label="command.label"
         :shortcut="getKeyboardShortcutLabel(command)"
@@ -131,80 +134,81 @@
         min, max and value need to be implemented in js as this slider
         should use logarithmic scale
       -->
-      <div class="flex flex-row flex-end">
-        <Button
-          v-if="zoomAspectRatioLocked"
-          label="Unlock aspect ratio"
-          icon="lock-open"
-          :fixedWidth="true"
-          @click="toggleZoomAr()"
-        >
-        </Button>
-        <Button
-          v-else
-          label="Lock aspect ratio"
-          icon="lock"
-          :fixedWidth="true"
-          @click="toggleZoomAr()"
-        >
-        </Button>
+      <div class="flex flex-row w-full" style="margin-top: 0.66rem">
+        <div style="position:relative;" class="grow">
+          <template v-if="zoomAspectRatioLocked">
+            <div class="slider-label">
+              Zoom: {{getZoomForDisplay('x')}}
+            </div>
+            <input id="_input_zoom_slider"
+                    class="input-slider"
+                    type="range"
+                    step="any"
+                    min="-1"
+                    max="3"
+                    :value="zoom.x"
+                    @input="changeZoom($event.target.value)"
+                    />
+          </template>
+          <template v-else>
+            <div class="slider-label">Horizontal zoom: {{getZoomForDisplay('x')}}</div>
+            <input id="_input_zoom_slider"
+                    class="input-slider"
+                    type="range"
+                    step="any"
+                    min="-1"
+                    max="4"
+                    :value="zoom.x"
+                    @input="changeZoom($event.target.value, 'x')"
+            />
+
+            <div class="slider-label">Vertical zoom: {{getZoomForDisplay('y')}}</div>
+            <input id="_input_zoom_slider_2"
+                    class="input-slider"
+                    type="range"
+                    step="any"
+                    min="-1"
+                    max="3"
+                    :value="zoom.y"
+                    @input="changeZoom($event.target.value, 'y')"
+            />
+          </template>
+        </div>
+
+        <div class="flex flex-row items-center justify-center" style="padding-left: 1rem">
+          <Button
+            v-if="zoomAspectRatioLocked"
+            icon="lock"
+            :iconSize="16"
+            :fixedWidth="true"
+            :noPad="true"
+            @click="toggleZoomAr()"
+          >
+          </Button>
+          <Button
+            v-else
+            icon="lock-open-variant"
+            :iconSize="16"
+            :fixedWidth="true"
+            :noPad="true"
+            @click="toggleZoomAr()"
+          >
+          </Button>
+          <Button
+            icon="restore"
+            :iconSize="16"
+            :noPad="true"
+            @click="resetZoom()"
+          ></Button>
+        </div>
       </div>
-      <template v-if="zoomAspectRatioLocked">
-        <input id="_input_zoom_slider"
-                class="input-slider"
-                type="range"
-                step="any"
-                min="-1"
-                max="3"
-                :value="zoom.x"
-                @input="changeZoom($event.target.value)"
-                />
-        <div style="overflow: auto" class="flex flex-row">
-          <div class="flex flex-grow medium-small x-pad-1em">
-            Zoom: {{getZoomForDisplay('x')}}
-          </div>
-          <div class="flex flex-nogrow flex-noshrink medium-small">
-            <a class="_zoom_reset x-pad-1em" @click="resetZoom()">reset</a>
-          </div>
-        </div>
-      </template>
-      <template v-else>
-        <div>Horizontal zoom</div>
-        <input id="_input_zoom_slider"
-                class="input-slider"
-                type="range"
-                step="any"
-                min="-1"
-                max="4"
-                :value="zoom.x"
-                @input="changeZoom($event.target.value, 'x')"
-        />
 
-        <div>Vertical zoom</div>
-        <input id="_input_zoom_slider"
-                class="input-slider"
-                type="range"
-                step="any"
-                min="-1"
-                max="3"
-                :value="zoom.y"
-                @input="changeZoom($event.target.value, 'y')"
-        />
-
-        <div style="overflow: auto" class="flex flex-row">
-          <div class="flex flex-grow medium-small x-pad-1em">
-            Zoom: {{getZoomForDisplay('x')}} x {{getZoomForDisplay('y')}}
-          </div>
-          <div class="flex flex-nogrow flex-noshrink medium-small">
-            <a class="_zoom_reset x-pad-1em" @click="resetZoom()">reset</a>
-          </div>
-        </div>
-      </template>
     </template>
   </div>
 </template>
 
 <script>
+import Button from '@csui/src/components/Button.vue';
 import ShortcutButton from '@csui/src/components/ShortcutButton.vue';
 import EditShortcutButton from '@csui/src/components/EditShortcutButton';
 import EditModeMixin from '@csui/src/utils/EditModeMixin';
@@ -214,6 +218,7 @@ import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
 
 export default {
   components: {
+    Button,
     ShortcutButton,
     EditShortcutButton,
   },
@@ -246,7 +251,8 @@ export default {
     'settings',      // required for buttons and actions, which are global
     'siteSettings',
     'eventBus',
-    'isEditing'
+    'isEditing',
+    'compact',
   ],
   created() {
     if (this.isEditing) {
@@ -282,8 +288,7 @@ export default {
       // this.eventBus.send('set-zoom', {zoom: 1, axis: 'y'});
       // this.eventBus.send('set-zoom', {zoom: 1, axis: 'x'});
 
-      this.eventBus?.sendToTunnel('set-zoom', {zoom: 1, axis: 'y'});
-      this.eventBus?.sendToTunnel('set-zoom', {zoom: 1, axis: 'x'});
+      this.eventBus?.sendToTunnel('set-zoom', {zoom: 1});
     },
     changeZoom(newZoom, axis) {
       // we store zoom logarithmically on this compnent
@@ -297,10 +302,9 @@ export default {
       newZoom = Math.pow(2, newZoom);
 
       if (this.zoomAspectRatioLocked) {
-        this.eventBus?.sendToTunnel('set-zoom', {zoom: newZoom, axis: 'y'});
-        this.eventBus?.sendToTunnel('set-zoom', {zoom: newZoom, axis: 'x'});
+        this.eventBus?.sendToTunnel('set-zoom', {zoom: newZoom});
       } else {
-        this.eventBus?.sendToTunnel('set-zoom', {zoom: newZoom, axis: axis ?? 'x'});
+        this.eventBus?.sendToTunnel('set-zoom', {zoom: {[axis ?? 'x']: newZoom}});
       }
     },
     isActiveZoom(command) {
@@ -314,3 +318,17 @@ export default {
 <style lang="scss" src="../../../../res/css/flex.scss" scoped></style>
 <style lang="scss" src="@csui/src/res-common/panels.scss" scoped></style>
 <style lang="scss" src="@csui/src/res-common/common.scss" scoped></style>
+<style lang="scss" scoped>
+.input-slider {
+  width: 100%;
+  box-sizing:border-box;
+  margin-right: 1rem;
+  margin-left: 0rem;
+}
+.slider-label {
+  margin-bottom: -0.5rem;
+  color: #aaa;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+</style>

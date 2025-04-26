@@ -12,61 +12,86 @@
     </template>
 
     <div class="flex flex-row">
-      <mdicon name="crop" :size="24" />&nbsp;&nbsp;
-      <h1>Crop video:</h1>
+      <mdicon name="crop" :size="16" />&nbsp;&nbsp;
+      <span>CROP</span>
     </div>
-
-    <CropOptionsPanel
-      style="margin-top: -2rem"
-      :settings="settings"
-      :eventBus="eventBus"
-      :siteSettings="siteSettings"
-      :isEditing="false"
+    <div
+      style="margin-top: -0.69rem; margin-bottom: 0.88rem;"
     >
-    </CropOptionsPanel>
+      <CropOptionsPanel
+        :settings="settings"
+        :eventBus="eventBus"
+        :siteSettings="siteSettings"
+        :isEditing="false"
+        :compact="true"
+      >
+      </CropOptionsPanel>
+    </div>
 
     <div class="flex flex-row">
-      <mdicon name="crop" :size="24" />&nbsp;&nbsp;
-      <h1>Stretch video:</h1>
+      <mdicon name="crop" :size="16" />&nbsp;&nbsp;
+      <span>STRETCH</span>
     </div>
-
-    <StretchOptionsPanel
-      style="margin-top: -2rem"
-      :settings="settings"
-      :eventBus="eventBus"
-      :siteSettings="siteSettings"
-      :isEditing="false"
-    ></StretchOptionsPanel>
+    <div
+      style="margin-top: -0.69rem; margin-bottom: 0.88rem;"
+    >
+      <StretchOptionsPanel
+        :settings="settings"
+        :eventBus="eventBus"
+        :siteSettings="siteSettings"
+        :isEditing="false"
+        :compact="true"
+      ></StretchOptionsPanel>
+    </div>
 
     <div class="flex flex-row">
-      <mdicon name="crop" :size="24" />&nbsp;&nbsp;
-      <h1>Zoom:</h1>
+      <mdicon name="crop" :size="16" />&nbsp;&nbsp;
+      <span>ZOOM</span>
+    </div>
+    <div
+      style="margin-top: -0.69rem; margin-bottom: 0.88rem;"
+    >
+      <ZoomOptionsPanel
+        :settings="settings"
+        :eventBus="eventBus"
+        :siteSettings="siteSettings"
+        :isEditing="false"
+        :compact="true"
+      >
+      </ZoomOptionsPanel>
     </div>
 
-    <ZoomOptionsPanel
-      :settings="settings"
-      :eventBus="eventBus"
-      :siteSettings="siteSettings"
-      :isEditing="false"
+    <div class="flex flex-row">
+      <mdicon name="crop" :size="16" />&nbsp;&nbsp;
+      <span>ALIGN</span>
+    </div>
+    <div
+      style="margin-bottom: 0.88rem;"
     >
-    </ZoomOptionsPanel>
+      <AlignmentOptionsControlComponent
+        :eventBus="eventBus"
+        :large="true"
+      > </AlignmentOptionsControlComponent>
+    </div>
+
 
   </div>
 
 </template>
 
 <script>
-import CropOptionsPanel from '../../PlayerUiPanels/PanelComponents/VideoSettings/CropOptionsPanel';
-import StretchOptionsPanel from '../../PlayerUiPanels/PanelComponents/VideoSettings/StretchOptionsPanel.vue';
-import ZoomOptionsPanel from '../../PlayerUiPanels/PanelComponents/VideoSettings/ZoomOptionsPanel.vue';
+import CropOptionsPanel from '@csui/src/PlayerUiPanels/PanelComponents/VideoSettings/CropOptionsPanel';
+import StretchOptionsPanel from '@csui/src/PlayerUiPanels/PanelComponents/VideoSettings/StretchOptionsPanel.vue';
+import ZoomOptionsPanel from '@csui/src/PlayerUiPanels/PanelComponents/VideoSettings/ZoomOptionsPanel.vue';
 import ExtensionMode from '@src/common/enums/ExtensionMode.enum.ts';
+import AlignmentOptionsControlComponent from '@csui/src/PlayerUiPanels/AlignmentOptionsControlComponent.vue';
 
 export default {
-  data() {
-    return {
-      exec: null,
-      ExtensionMode: ExtensionMode,
-    };
+  components: {
+    CropOptionsPanel,
+    StretchOptionsPanel,
+    ZoomOptionsPanel,
+    AlignmentOptionsControlComponent
   },
   mixins: [
 
@@ -76,8 +101,11 @@ export default {
     'siteSettings',
     'eventBus',
   ],
-  components: {
-    CropOptionsPanel, StretchOptionsPanel, ZoomOptionsPanel
+  data() {
+    return {
+      exec: null,
+      ExtensionMode: ExtensionMode,
+    };
   },
   created() {
     this.eventBus.subscribe(

@@ -3,7 +3,10 @@
     <ShortcutButton
       v-for="(command, index) of settings?.active.commands.stretch"
       class="b3 button"
-      :class="{active: editMode ? index === editModeOptions?.stretch?.selectedIndex : isActiveStretch(command)}"
+      :class="{active: editMode ? index === editModeOptions?.stretch?.selectedIndex : isActiveStretch(command),
+        'b3-compact': compact,
+        b3: !compact
+      }"
       :key="index"
       :label="command.label"
       :shortcut="getKeyboardShortcutLabel(command)"
@@ -184,7 +187,8 @@ export default {
     'siteSettings',
     'eventBus',
     'isEditing',
-    'allowSettingSiteDefault'
+    'allowSettingSiteDefault',
+    'compact',
   ],
   components: {
     ShortcutButton,

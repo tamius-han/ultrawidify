@@ -1,5 +1,5 @@
 <template>
-  <div class="popup-panel">
+  <div class="popup-panel" style="height: 100vh">
     <!--
       NOTE — the code that makes ultrawidify popup work in firefox regardless of whether the
       extension is being displayed in a normal or a small/overflow popup breaks the popup
@@ -10,6 +10,7 @@
       further than that.
     -->
     <div v-if="settingsInitialized"
+        style="height: 100vh"
         class="popup flex flex-col no-overflow"
         :class="{'popup-chrome': ! BrowserDetect?.firefox}"
     >
@@ -78,7 +79,7 @@
         </div>
 
         <!-- CONTENT -->
-        <div class="scrollable" style="flex: 7 7; padding: 1rem;">
+        <div class="scrollable window-content" style="flex: 7 7; padding: 1rem;">
           <template v-if="settings && siteSettings">
             <PopupVideoSettings
               v-if="selectedTab === 'videoSettings'"
@@ -86,14 +87,6 @@
               :eventBus="eventBus"
               :siteSettings="siteSettings"
             ></PopupVideoSettings>
-            <!-- <PlayerDetectionPanel
-              v-if="selectedTab === 'playerDetection'"
-              :settings="settings"
-              :eventBus="eventBus"
-              :siteSettings="siteSettings"
-              :site="site.host"
-            >
-            </PlayerDetectionPanel> -->
             <BaseExtensionSettings
               v-if="selectedTab === 'extensionSettings'"
               :settings="settings"
@@ -609,5 +602,11 @@ pre {
 
 h1 {
   margin: 0; padding: 0; font-weight: 400; font-size:24px;
+}
+
+.window-content {
+  height: 100%;
+  width: 100%;
+  overflow: auto;
 }
 </style>

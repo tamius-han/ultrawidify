@@ -1,7 +1,11 @@
 <template>
   <div class="button center-text"
-       :class="{'setting-selected': selected }"
+       :class="{
+          'setting-selected': selected,
+          'no-pad': noPad,
+        }"
   >
+    <mdicon v-if="icon" :name="icon" :size="iconSize ?? 24"></mdicon>
     <div class="label">
       {{label}}
     </div>
@@ -15,6 +19,8 @@ export default {
     selected: Boolean,
     label: String,
     icon: String,
+    iconSize: Number,
+    noPad: Boolean
   }
 }
 </script>
@@ -39,5 +45,8 @@ export default {
     flex-shrink: 1;
   }
 
+}
+.no-pad {
+  padding: 0.5rem 1rem !important;
 }
 </style>

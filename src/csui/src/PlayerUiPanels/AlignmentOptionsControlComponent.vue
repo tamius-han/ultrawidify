@@ -1,5 +1,5 @@
 <template>
-  <div class="alignment-box">
+  <div class="alignment-box" :class="{large: large}">
     <div
       class="col top left"
       @click="align(VideoAlignment.Left, VideoAlignment.Top)"
@@ -60,10 +60,10 @@
 <script>
 import VideoAlignmentType from '../../../common/enums/VideoAlignmentType.enum';
 
-
 export default {
   props: [
-    'eventBus'
+    'eventBus',
+    'large',
   ],
   data() {
     return {
@@ -89,6 +89,14 @@ export default {
   grid-template-columns: repeat(3, 1fr);
   gap: 0.5rem;
 
+  &.large {
+    max-width: 15rem;
+
+    .col {
+      width: 4rem;
+      height: 4rem;
+    }
+  }
 
   .col {
     display: flex;

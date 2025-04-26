@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-row w-full h-full">
-    <div class="flex flex-col">
+    <div class="flex flex-col w-full">
 
       <!-- TAB ROW -->
       <div class="flex flex-row">

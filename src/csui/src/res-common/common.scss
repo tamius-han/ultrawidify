@@ -163,6 +163,7 @@ button, .button {
     flex-grow: 1;
     flex-shrink: 1;
     max-width: 24rem;
+    min-width: 16rem;
   }
 
   .has-hint {
@@ -174,8 +175,15 @@ button, .button {
     flex-grow: 1;
     flex-shrink: 1;
 
+    min-width: 12px;
+    max-width: 24rem;
+
     select {
       background: rgba($blackBg, $hoverTransparentOpacity);
+
+      min-width: 12px;
+      max-width: 100%;
+
       color: #fff;
       // border: 0px solid transparent;
       border: 1px solid rgba(255, 171, 102, 0.42);
@@ -217,9 +225,15 @@ button, .button {
   padding-left: 0.33rem;
   padding-right: 0.33rem;
 }
-.input-slider {
-  width: 480px;
+.b3-compact {
+  width: 7rem;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
 }
+
+// .input-slider {
+//   width: 480px;
+// }
 .warning-lite {
   padding-right: 16px;
   padding-bottom: 16px;

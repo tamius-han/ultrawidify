@@ -38,7 +38,7 @@
         <!-- CROP OPTIONS -->
         <div v-if="settings" class="sub-panel">
           <div class="flex flex-row">
-            <mdicon name="crop" :size="32" />
+            <mdicon name="crop" :size="16" />
             <h1>Crop video:</h1>
           </div>
 
