@@ -8,5 +8,6 @@ export enum ArVariant {
 export interface Ar {
   type: AspectRatioType,
   ratio?: number,
-  variant?: ArVariant
+  variant?: ArVariant,
+  offset?: number,
 }

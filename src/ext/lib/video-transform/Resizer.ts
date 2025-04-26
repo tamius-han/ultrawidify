@@ -141,7 +141,7 @@ class Resizer {
       }
     }],
     'set-zoom': [{
-      function: (config: any) => this.setZoom(config.zoom, config.axis, config.noAnnounce)
+      function: (config: any) => this.setZoom(config.zoom)
     }],
     'change-zoom': [{
       function: (config: any) => this.zoomStep(config.zoom)
@@ -285,7 +285,7 @@ class Resizer {
     return ar;
   }
 
-  updateAr(ar) {
+  updateAr(ar: Ar) {
     if (!ar) {
       return;
     }
@@ -602,9 +602,36 @@ class Resizer {
     }
   }
 
-  setZoom(zoomLevel: number, axis?: 'x' | 'y', noAnnounce?) {
+  private _setZoomTimeout;
+  private _latestSetZoomArgs: any | undefined;
+  private _SET_ZOOM_RATE_LIMIT_MS = 50;
+  /**
+   * Sets zoom level. This function is rate limited, because slider may spam the fuck out of this function call
+   * @param zoomLevel
+   * @param axis
+   * @param noAnnounce
+   * @returns
+   */
+  setZoom(zoomLevel: number | {x: number, y: number}, noAnnounce?) {
+    if (this._setZoomTimeout) {
+      this._latestSetZoomArgs = {zoomLevel, noAnnounce};
+      return;
+    }
     this.manualZoom = true;
-    this.zoom.setZoom(zoomLevel, axis, noAnnounce);
+    this.zoom.setZoom(zoomLevel);
+
+    this._setZoomTimeout = setTimeout(
+      () => {
+        clearTimeout(this._setZoomTimeout);
+        this._setZoomTimeout = undefined;
+
+        if (this._latestSetZoomArgs) {
+          this.setZoom(this._latestSetZoomArgs.zoomLevel);
+        }
+        this._latestSetZoomArgs = undefined;
+      },
+      this._SET_ZOOM_RATE_LIMIT_MS
+    );
   }
 
   zoomStep(step){

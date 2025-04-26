@@ -227,6 +227,7 @@ export class Aard {
   private siteSettings: SiteSettings;
   private eventBus: EventBus;
   private arid: string;
+  private arVariant: ArVariant;
 
   private eventBusCommands = {
     'uw-environment-change': {
@@ -415,10 +416,11 @@ export class Aard {
    * Checks whether autodetection can run
    */
   startCheck(arVariant?: ArVariant) {
-    console.log('aard - starting checks')
+    this.arVariant = arVariant;
+
     if (!this.videoData.player) {
-      console.warn('Player not detected!');
-      console.log('--- video data: ---\n', this.videoData);
+      // console.warn('Player not detected!');
+      // console.log('--- video data: ---\n', this.videoData);
       return;
     }
     if (this.siteSettings.data.enableAard[this.videoData.player.environment] === ExtensionMode.Enabled) {
@@ -707,7 +709,7 @@ export class Aard {
       }
     } catch (e) {
       console.warn('[Ultrawidify] Aspect ratio autodetection crashed for some reason.\n\nsome reason:', e);
-      this.videoData.resizer.setAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr});
+      this.videoData.resizer.setAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr, variant: this.arVariant});
     }
   }
 
@@ -2036,7 +2038,8 @@ export class Aard {
       this.videoData.resizer.updateAr({
         type: AspectRatioType.AutomaticUpdate,
         ratio: this.getAr(),
-        offset: this.testResults.letterboxOffset
+        offset: this.testResults.letterboxOffset,
+        variant: this.arVariant
       });
       this.testResults.activeAspectRatio = ar;
     }

@@ -2,8 +2,13 @@ import Debug from '../../conf/Debug';
 import Logger from '../Logger';
 import VideoData from '../video-data/VideoData';
 
-// računa približevanje ter računa/popravlja odmike videa
 // calculates zooming and video offsets/panning
+
+const MIN_SCALE = 0.5;
+const MAX_SCALE = 8;
+const LOG_MAX_SCALE = Math.log2(MAX_SCALE);
+const LOG_MIN_SCALE = Math.log2(MIN_SCALE);
+
 
 class Zoom {
   //#region flags
@@ -21,8 +26,10 @@ class Zoom {
   logScale: number = 0;
   logScaleY: number = 0;
   scaleStep: number = 0.1;
-  minScale: number = -1;    // 50% (log2(0.5) = -1)
-  maxScale: number = 3;     // 800% (log2(8) = 3)
+  logMinScale: number = -1;    // 50% (log2(0.5) = -1)
+  logMaxScale: number = 3;     // 800% (log2(8) = 3)
+  minScale = 0.5;
+  maxScale = 8;
   //#endregion
 
 
@@ -33,7 +40,9 @@ class Zoom {
 
   reset(){
     this.scale = 1;
+    this.scaleY = 1;
     this.logScale = 0;
+    this.logScaleY = 0;
   }
 
   /**
@@ -45,7 +54,7 @@ class Zoom {
   zoomStep(amount: number, axis?: 'x' | 'y') {
     let newLog = axis === 'y' ? this.logScaleY : this.logScale;
     newLog += amount;
-    newLog = Math.min(Math.max(newLog, this.minScale), this.maxScale);
+    newLog = Math.min(Math.max(newLog, LOG_MIN_SCALE), LOG_MAX_SCALE);
 
     // if axis is undefined, both of this statements should trigger)
     if (axis !== 'y') {
@@ -62,25 +71,23 @@ class Zoom {
     this.processZoom();
   }
 
-  setZoom(scale: number, axis?: 'x' |'y', noAnnounce?){
+  /**
+   * Sets zoom to specific value
+   * @param scale
+   */
+  setZoom(scale: number | {x: number, y: number}){
     // NOTE: SCALE IS NOT LOGARITHMIC
-    if(scale < Math.pow(2, this.minScale)) {
-      scale = this.minScale;
-    } else if (scale > Math.pow(2, this.maxScale)) {
-      scale = this.maxScale;
-    }
+    const scaleIn = (typeof scale === 'number') ?
+      {
+        x: scale,
+        y: scale
+      } : {
+        x: scale.x ?? this.scale,
+        y: scale.y ?? this.scaleY
+      };
 
-    switch (axis) {
-      case 'x':
-        this.scale = scale;
-        break;
-      case 'y':
-        this.scaleY = scale;
-        break;
-      default:
-        this.scale = scale;
-        this.scaleY = scale;
-    }
+    this.scale  = Math.min(Math.max(scaleIn.x, MIN_SCALE), MAX_SCALE);
+    this.scaleY = Math.min(Math.max(scaleIn.y, MIN_SCALE), MAX_SCALE);
 
     this.processZoom();
   }
