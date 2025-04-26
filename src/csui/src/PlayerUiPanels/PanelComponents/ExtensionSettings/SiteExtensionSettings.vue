@@ -44,7 +44,7 @@
     </div>
 
     <!-- The rest of the menu is disabled when extension is disabled -->
-    <div :class="{disabled: simpleEffectiveSettings.enable === 'disabled'}">
+    <div :class="{disabled: simpleEffectiveSettings.enable === 'disabled' && !isDefaultConfiguration}">
       <!-- Enable AARD -->
       <div class="field">
         <div class="label">
@@ -537,11 +537,13 @@ export default {
     setExtensionMode(component, event) {
       const option = event.target.value;
 
+      console.log('SET EXTENSION MODE — OPTIONS:', option);
+
       if (option === 'complex') {
         return;
       }
 
-      if (component === 'enable') {
+      if (component === 'enable' && !this.isDefaultConfiguration) {
         this.setExtensionMode('enableAard', event);
         this.setExtensionMode('enableKeyboard', event);
 

@@ -9,22 +9,22 @@
           :class="{'active': tab === 'siteSettings'}"
           @click="setTab('siteSettings')"
         >
-          Settings for current site<br/>
+          Current site<br/>
           <small>{{ site }}</small>
         </div>
         <div
           class="tab"
-          :class="{'active': tab === 'extensionSettings'}"
-          @click="setTab(tab = 'extensionSettings')"
+          :class="{'active': tab === 'embeddedSites'}"
+          @click="setTab(tab = 'embeddedSites')"
         >
-          Default settings for extension
+          Embedded content
         </div>
         <div
           class="tab"
           :class="{'active': tab === 'otherSites'}"
           @click="setTab(tab = 'otherSites')"
         >
-          Settings for other sites
+          Defaults & other sites
         </div>
       </div>
 

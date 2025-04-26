@@ -3,7 +3,6 @@ import Logger from '../Logger';
 import VideoData from '../video-data/VideoData';
 
 // calculates zooming and video offsets/panning
-
 const MIN_SCALE = 0.5;
 const MAX_SCALE = 8;
 const LOG_MAX_SCALE = Math.log2(MAX_SCALE);

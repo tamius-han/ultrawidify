@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col" style="padding-bottom: 20px">
+  <div class="flex flex-col relative h-full" style="padding-bottom: 20px">
 
     <!--
       Extension is disabled for a given site when it's disabled in full screen, since
