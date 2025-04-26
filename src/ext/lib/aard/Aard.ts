@@ -1,6 +1,7 @@
-import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
-import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
-import { ExtensionEnvironment } from '../../../common/interfaces/SettingsInterface';
+import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
+import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
+import { ArVariant } from '@src/common/interfaces/ArInterface';
+import { ExtensionEnvironment } from '@src/common/interfaces/SettingsInterface';
 import EventBus from '../EventBus';
 import Logger from '../Logger';
 import Settings from '../Settings';
@@ -413,7 +414,7 @@ export class Aard {
   /**
    * Checks whether autodetection can run
    */
-  startCheck() {
+  startCheck(arVariant?: ArVariant) {
     console.log('aard - starting checks')
     if (!this.videoData.player) {
       console.warn('Player not detected!');

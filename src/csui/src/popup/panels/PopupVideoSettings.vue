@@ -43,6 +43,14 @@
       <h1>Zoom:</h1>
     </div>
 
+    <ZoomOptionsPanel
+      :settings="settings"
+      :eventBus="eventBus"
+      :siteSettings="siteSettings"
+      :isEditing="false"
+    >
+    </ZoomOptionsPanel>
+
   </div>
 
 </template>

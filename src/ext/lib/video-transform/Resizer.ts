@@ -16,7 +16,7 @@ import VideoData from '../video-data/VideoData';
 import EventBus from '../EventBus';
 import { _cp } from '../../../common/js/utils';
 import Settings from '../Settings';
-import { Ar } from '../../../common/interfaces/ArInterface';
+import { Ar, ArVariant } from '../../../common/interfaces/ArInterface';
 import { RunLevel } from '../../enum/run-level.enum';
 import * as _ from 'lodash';
 import getElementStyles from '../../util/getElementStyles';
@@ -25,6 +25,11 @@ import { Stretch } from '../../../common/interfaces/StretchInterface';
 if(Debug.debug) {
   console.log("Loading: Resizer.js");
 }
+
+enum ResizerMode {
+  Crop = 1,
+  Zoom = 2
+};
 
 /**
  * Resizer is the top class and is responsible for figuring out which component needs to crop, which
@@ -83,8 +88,8 @@ class Resizer {
   //#endregion
 
   cycleableAspectRatios: Ar[];
+  cycleableZoomAspectRatios: Ar[];
   nextCycleOptionIndex = 0;
-
 
   //#region event bus configuration
   private eventBusCommands = {
@@ -93,7 +98,7 @@ class Resizer {
         this.manualZoom = false; // this only gets called from UI or keyboard shortcuts, making this action safe.
 
         if (config.type !== AspectRatioType.Cycle) {
-          this.setAr(config);
+          this.setAr({...config, variant: ArVariant.Crop});
         } else {
           // if we manually switched to a different aspect ratio, cycle from that ratio forward
           const lastArIndex = this.cycleableAspectRatios.findIndex(x => x.type === this.lastAr.type && x.ratio === this.lastAr.ratio);
@@ -101,8 +106,26 @@ class Resizer {
             this.nextCycleOptionIndex = (lastArIndex + 1) % this.cycleableAspectRatios.length;
           }
 
-          this.setAr(this.cycleableAspectRatios[this.nextCycleOptionIndex]);
+          this.setAr({...this.cycleableAspectRatios[this.nextCycleOptionIndex], variant: ArVariant.Crop});
           this.nextCycleOptionIndex = (this.nextCycleOptionIndex + 1) % this.cycleableAspectRatios.length;
+        }
+      }
+    }],
+    'set-ar-zoom': [{
+      function: (config: any) => {
+        this.manualZoom = false; // this only gets called from UI or keyboard shortcuts, making this action safe.
+
+        if (config.type !== AspectRatioType.Cycle) {
+          this.setAr({...config, variant: ArVariant.Zoom});
+        } else {
+          // if we manually switched to a different aspect ratio, cycle from that ratio forward
+          const lastArIndex = this.cycleableZoomAspectRatios.findIndex(x => x.type === this.lastAr.type && x.ratio === this.lastAr.ratio);
+          if (lastArIndex !== -1) {
+            this.nextCycleOptionIndex = (lastArIndex + 1) % this.cycleableZoomAspectRatios.length;
+          }
+
+          this.setAr({...this.cycleableZoomAspectRatios[this.nextCycleOptionIndex], variant: ArVariant.Zoom});
+          this.nextCycleOptionIndex = (this.nextCycleOptionIndex + 1) % this.cycleableZoomAspectRatios.length;
         }
       }
     }],
@@ -186,6 +209,11 @@ class Resizer {
     this.cycleableAspectRatios =
       (this.settings?.active?.commands?.crop ?? [])
         .filter(x => [AspectRatioType.FitHeight, AspectRatioType.FitWidth, AspectRatioType.Fixed, AspectRatioType.Reset].includes(x?.arguments?.type))
+        .map(x => x.arguments) as Ar[];
+
+    this.cycleableZoomAspectRatios =
+      (this.settings?.active?.commands?.zoom ?? [])
+        .filter(x => x.action === 'set-ar-zoom' && x.arguments?.type !== AspectRatioType.Cycle)
         .map(x => x.arguments) as Ar[];
 
     this.nextCycleOptionIndex = 0;
@@ -276,8 +304,27 @@ class Resizer {
     }
   }
 
+  /**
+   * Starts and stops Aard as necessary. Returns 'true' if we can
+   * stop setting aspect ratio early.
+   * @param ar
+   * @param resizerMode
+   * @returns
+   */
+  private handleAard(ar: Ar): boolean {
+    if (ar.type === AspectRatioType.Automatic) {
+      this.videoData.aard?.startCheck(ar.variant);
+      return true;
+    } else if (ar.type !== AspectRatioType.AutomaticUpdate) {
+      this.videoData.aard?.stop();
+    } else if (this.stretcher.stretch.type === StretchType.Basic) {
+      this.videoData?.aard?.stop();
+    }
+
+  }
+
   async setAr(ar: Ar, lastAr?: Ar) {
-    if (this.destroyed) {
+    if (this.destroyed || ar == null) {
       return;
     }
 
@@ -294,11 +341,8 @@ class Resizer {
     }
 
     // handle autodetection stuff
-    if (ar.type === AspectRatioType.Automatic) {
-      this.videoData.aard?.startCheck();
+    if (this.handleAard(ar)) {
       return;
-    } else if (ar.type !== AspectRatioType.AutomaticUpdate) {
-      this.videoData.aard?.stop();
     }
 
     if (ar.type !== AspectRatioType.AutomaticUpdate) {
@@ -312,10 +356,6 @@ class Resizer {
 
     this.logger.log('info', 'debug', '%c[Resizer::setAr] <rid:'+this.resizerId+'> trying to set ar. New ar:', 'background-color: #4c3a2f, color: #ffa349', ar);
 
-    if (ar == null) {
-      return;
-    }
-
     let stretchFactors: VideoDimensions | any;
 
     // reset zoom, but only on aspect ratio switch. We also know that aspect ratio gets converted to
@@ -324,6 +364,7 @@ class Resizer {
       (ar.type !== AspectRatioType.Fixed && ar.type !== AspectRatioType.Manual) // anything not these two _always_ changes AR
       || ar.type !== this.lastAr.type                                   // this also means aspect ratio has changed
       || ar.ratio !== this.lastAr.ratio                                 // this also means aspect ratio has changed
+      || ar.variant !== this.lastAr.variant
     ) {
       this.zoom.reset();
       this.resetPan();
@@ -360,26 +401,11 @@ class Resizer {
       this.videoData.destroy();
     }
 
-    // pause AR on:
-    // * ar.type NOT automatic
-    // * ar.type is auto, but stretch is set to basic basic stretch
-    //
-    // unpause when using other modes
-    if ((ar.type !== AspectRatioType.Automatic && ar.type !== AspectRatioType.AutomaticUpdate) || this.stretcher.stretch.type === StretchType.Basic) {
-      this.videoData?.aard?.stop();
-    } else {
-      if (ar.type !== AspectRatioType.AutomaticUpdate) {
-        if (this.lastAr.type === AspectRatioType.Automatic || this.lastAr.type === AspectRatioType.AutomaticUpdate) {
-          this.videoData?.aard?.stop();
-        }
-      }
-    }
-
     // do stretch thingy
     if ([StretchType.NoStretch, StretchType.Conditional, StretchType.FixedSource].includes(this.stretcher.stretch.type)) {
       stretchFactors = this.scaler.calculateCrop(ar);
 
-      if(! stretchFactors || stretchFactors.error){
+      if (!stretchFactors || stretchFactors.error){
         this.logger.log('error', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> failed to set AR due to problem with calculating crop. Error:`, stretchFactors?.error);
         if (stretchFactors?.error === 'no_video'){
           this.videoData.destroy();
@@ -406,12 +432,11 @@ class Resizer {
                         this.stretcher.stretch.type === StretchType.Conditional ? 'crop with conditional StretchType.' : 'crop with fixed stretch',
                       'Stretch factors are:', stretchFactors
       );
-
     } else if (this.stretcher.stretch.type === StretchType.Hybrid) {
       stretchFactors = this.stretcher.calculateStretch(ar.ratio);
       this.logger.log('info', 'debug', '[Resizer::setAr] Processed stretch factors for hybrid stretch/crop. Stretch factors are:', stretchFactors);
     } else if (this.stretcher.stretch.type === StretchType.Fixed) {
-      stretchFactors = this.stretcher.calculateStretchFixed(ar.ratio)
+      stretchFactors = this.stretcher.calculateStretchFixed(ar.ratio);
     } else if (this.stretcher.stretch.type === StretchType.Basic) {
       stretchFactors = this.stretcher.calculateBasicStretch();
       this.logger.log('info', 'debug', '[Resizer::setAr] Processed stretch factors for basic StretchType. Stretch factors are:', stretchFactors);
@@ -794,8 +819,10 @@ class Resizer {
     // conditions are true at the same time, we need to go 'chiny reckon' and recheck our player
     // element. Chances are our video is not getting aligned correctly
     if (
-      (this.videoData.video.offsetWidth > this.videoData.player.dimensions.width && this.videoData.video.offsetHeight > this.videoData.player.dimensions.height) ||
-      (this.videoData.video.offsetWidth < this.videoData.player.dimensions.width && this.videoData.video.offsetHeight < this.videoData.player.dimensions.height)
+      (
+        (this.videoData.video.offsetWidth > this.videoData.player.dimensions.width && this.videoData.video.offsetHeight > this.videoData.player.dimensions.height) ||
+        (this.videoData.video.offsetWidth < this.videoData.player.dimensions.width && this.videoData.video.offsetHeight < this.videoData.player.dimensions.height)
+      ) && ar?.variant !== ArVariant.Zoom
     ) {
       this.logger.log('warn', ['debugger', 'resizer'], `[Resizer::_res_computeOffsets] <rid:${this.resizerId}> We are getting some incredibly funny results here.\n\n`,
         `Video seems to be both wider and taller (or shorter and narrower) than player element at the same time. This is super duper not supposed to happen.\n\n`,

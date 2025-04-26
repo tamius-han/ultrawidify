@@ -3,6 +3,7 @@ import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
 import BrowserDetect from '../../conf/BrowserDetect';
 import VideoData from '../video-data/VideoData';
 import Logger from '../Logger';
+import { Ar, ArVariant } from '../../../common/interfaces/ArInterface';
 
 
 export enum CropStrategy {
@@ -100,7 +101,7 @@ class Scaler {
     return null;
   }
 
-  calculateCrop(ar: {type: AspectRatioType, ratio?: number}): VideoDimensions | {error: string, [x: string]: any} {
+  calculateCrop(ar: Ar): VideoDimensions | {error: string, [x: string]: any} {
     /**
      * STEP 1: NORMALIZE ASPECT RATIO
      *
@@ -170,9 +171,15 @@ class Scaler {
 
     this.logger.log('info', 'scaler', "[Scaler::calculateCrop] trying to set ar. args are: ar->",ar.ratio,"; this.conf.player.dimensions->",this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
 
+    // If we encounter invalid players, we try to update its dimensions
+    // ONCE before throwing an error
     if( (! this.conf.player.dimensions) || this.conf.player.dimensions.width === 0 || this.conf.player.dimensions.height === 0 ){
       this.logger.log('error', 'scaler', "[Scaler::calculateCrop] ERROR — no (or invalid) this.conf.player.dimensions:",this.conf.player.dimensions);
-      return {error: "this.conf.player.dimensions_error"};
+      this.conf.player.updatePlayer();
+
+      if( (! this.conf.player.dimensions) || this.conf.player.dimensions.width === 0 || this.conf.player.dimensions.height === 0 ){
+        return {error: "this.conf.player.dimensions_error"};
+      }
     }
 
     // we can finally start computing required video dimensions now:
@@ -184,7 +191,7 @@ class Scaler {
     }
 
 
-    this.logger.log('info', 'scaler', "[Scaler::calculateCrop] ar is " ,ar.ratio, ", file ar is", streamAr, ", this.conf.player.dimensions are ", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
+    this.logger.log('info', 'scaler', "[Scaler::calculateCrop] ar is " ,ar.ratio, ", file ar is", streamAr, ",ar variant", ar.variant ,"\nthis.conf.player.dimensions are ", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions, this.conf.player.element);
 
     const videoDimensions: VideoDimensions = {
       xFactor: 1,
@@ -199,7 +206,7 @@ class Scaler {
       }
     }
 
-    this.calculateCropCore(videoDimensions, ar.ratio, streamAr, playerAr)
+    this.calculateCropCore(videoDimensions, ar.ratio, streamAr, playerAr, ar.variant)
 
     return videoDimensions;
   }
@@ -212,7 +219,11 @@ class Scaler {
    * @param {*} streamAr
    * @param {*} playerAr
    */
-  calculateCropCore(videoDimensions: VideoDimensions, ar: number, streamAr: number, playerAr: number) {
+  calculateCropCore(videoDimensions: VideoDimensions, ar: number, streamAr: number, playerAr: number, variant?: ArVariant) {
+    if (variant === ArVariant.Zoom) {
+      playerAr = ar;
+    }
+
     if (streamAr < playerAr) {
       if (streamAr < ar){
         // in this situation we have to crop letterbox on top/bottom of the player
@@ -254,8 +265,8 @@ class Scaler {
     const letterboxRatio = (1 - (playerAr / ar));
 
     videoDimensions.relativeCropLimits = {
-      top:  ar > streamAr ? ( ar > playerAr ? (letterboxRatio * -0.5) : 0) : 0,
-      left: ar < streamAr ? ( ar < playerAr ? (-0.5 / letterboxRatio) : 0) : 0,
+      top:  ar > streamAr ? ( ar >= playerAr ? (letterboxRatio * -0.5) : 0) : 0,
+      left: ar < streamAr ? ( ar <= playerAr ? (-0.5 / letterboxRatio) : 0) : 0,
     }
     videoDimensions.preventAlignment = {
       x: ar > playerAr, // video is wider than player, so it's full width already
