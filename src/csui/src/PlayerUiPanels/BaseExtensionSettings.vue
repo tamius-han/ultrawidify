@@ -13,6 +13,7 @@
           <small>{{ site }}</small>
         </div>
         <div
+          v-if="frames"
           class="tab"
           :class="{'active': tab === 'embeddedSites'}"
           @click="setTab(tab = 'embeddedSites')"
@@ -37,13 +38,12 @@
         ></SiteExtensionSettings>
       </template>
 
-      <template v-if="tab === 'extensionSettings' && globalSettings">
-        <SiteExtensionSettings
+      <template v-if="frames && tab === 'embeddedSites' && globalSettings">
+        <FrameSiteSettings
           v-if="settings"
+          :frames="frames"
           :settings="settings"
-          :siteSettings="globalSettings"
-          :isDefaultConfiguration="true"
-        ></SiteExtensionSettings>
+        ></FrameSiteSettings>
       </template>
 
       <template v-if="tab === 'otherSites'">
@@ -153,6 +153,7 @@
 
 <script>
 import SiteExtensionSettings from './PanelComponents/ExtensionSettings/SiteExtensionSettings.vue';
+import FrameSiteSettings from './PanelComponents/ExtensionSettings/FrameSiteSettings.vue';
 import OtherSiteSettings from './PanelComponents/ExtensionSettings/OtherSiteSettings.vue';
 import Popup from '@csui/src/components/Popup';
 import ConfirmButton from '@csui/src/components/ConfirmButton';
@@ -162,6 +163,23 @@ import JsonEditor from '@csui/src/components/JsonEditor';
 
 
 export default {
+
+  components: {
+    SiteExtensionSettings,
+    OtherSiteSettings,
+    Popup,
+    ConfirmButton,
+    UploadJsonFileButton,
+    JsonEditor,
+    FrameSiteSettings,
+  },
+  mixins: [],
+  props: [
+    'settings',
+    'site',
+    'enableSettingsEditor',
+    'frames',
+  ],
   data() {
     return {
       tab: 'siteSettings',
@@ -171,22 +189,6 @@ export default {
       settingsJson: {},
       settingsSnapshots: []
     }
-  },
-  mixins: [
-
-  ],
-  props: [
-    'settings',
-    'site',
-    'enableSettingsEditor'
-  ],
-  components: {
-    SiteExtensionSettings,
-    OtherSiteSettings,
-    Popup,
-    ConfirmButton,
-    UploadJsonFileButton,
-    JsonEditor
   },
   computed: {
     globalSettings() {

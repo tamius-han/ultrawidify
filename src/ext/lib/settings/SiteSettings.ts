@@ -15,10 +15,17 @@ import VideoAlignmentType from '../../../common/enums/VideoAlignmentType.enum';
  */
 export class SiteSettings {
   private settings: Settings;
-  private site: string;
+  private _site: string;
+  private set site(x: string) {
+    this._site = x;
+  }
+  public get site() {
+    return this._site;
+  }
 
   raw: SiteSettingsInterface;       // actual settings
   data: SiteSettingsInterface;      // effective settings
+  usesSettingsFor: string | undefined;
   temporaryData: SiteSettingsInterface;
   sessionData: SiteSettingsInterface;
   readonly defaultSettings: SiteSettingsInterface;
@@ -48,11 +55,55 @@ export class SiteSettings {
   }
 
   /**
+   * Tries to match websites, even if we're on a different subdomain.
+   * @returns
+   */
+  private getSettingsForSite() {
+    if (this.settings.active.sites[this.site]) {
+      return {
+        siteSettings: this.settings.active.sites[this.site],
+        usesSettingsFor: undefined
+      };
+    }
+
+    const urlSegments = this.site.split('.').reverse();
+
+    siteLoop:
+    for (const cs in this.settings.active.sites) {
+      const configUrlSegments = cs.split('.').reverse();
+
+      // Match site with wildcard site definitions
+      // Also, if definition starts with 'www', match also other subdomains — e.g. if we have a configuration for
+      // `www.example.com`, this will also match `example.com`, `subdomain.example.com`, `nested.subdomain.example.com` ...
+      if (configUrlSegments[configUrlSegments.length - 1] === '*' || (configUrlSegments[configUrlSegments.length - 1] === 'www')) {
+
+        console.log('ss: comparing', configUrlSegments, urlSegments);
+        for (let i = 0; i < configUrlSegments.length - 1 && i < urlSegments.length; i++) {
+          if (configUrlSegments[i] !== urlSegments[i]) {
+            continue siteLoop;
+          }
+        }
+        return {
+          siteSettings: this.settings.active.sites[cs],
+          usesSettingsFor: cs
+        }
+      }
+    }
+
+    return {
+      siteSettings: this.settings.active.sites['@global'],
+      usesSettingsFor: '@global'
+    };
+  }
+
+  /**
    * Merges defaultSettings into site settings where appropriate.
    * Alan pls ensure default settings object follows the correct structure
    */
   private compileSettingsObject() {
-    this.data = _cp(this.settings.active.sites[this.site] ?? {})
+    const {siteSettings, usesSettingsFor} = this.getSettingsForSite();
+    this.data = _cp(siteSettings);
+    this.usesSettingsFor = usesSettingsFor;
 
     if (!this.data) {
       this.data = _cp(this.defaultSettings);
@@ -150,8 +201,8 @@ export class SiteSettings {
 
       // we aren't stepping on any other toes by doing this, since everyone
       // gets the first change
-      this.settings.active._updateFlags = undefined;
-      this.settings.saveWithoutReload();
+      // this.settings.active._updateFlags = undefined;
+      // this.settings.saveWithoutReload();
     }
   }
 

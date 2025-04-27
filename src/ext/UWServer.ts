@@ -163,7 +163,6 @@ export default class UWServer {
       this.logger.log('error','debug', '[UwServer::injectCss] Error while removing css:', {error: e, css, sender});
     }
   }
-
   async replaceCss(oldCss, newCss, sender) {
     if (oldCss !== newCss) {
       this.removeCss(oldCss, sender);
@@ -215,7 +214,9 @@ export default class UWServer {
       'siteSettings': undefined,
       'videoSettings': undefined,
     }
+
     //TODO: change extension icon based on whether there's any videos on current page
+
   }
 
   registerVideo(sender) {
@@ -276,14 +277,19 @@ export default class UWServer {
   }
 
   async getCurrentSite() {
+    this.logger.log('info', 'comms', '%c[UWServer::getCurrentSite] received get-current-site ...', 'background-color: #243; color: #4a8');
+
     const site = await this.getVideoTab();
 
     // Don't propagate 'INVALID SITE' to the popup.
     if (site.host === 'INVALID SITE') {
+      this.logger.log('info', 'comms', '%c[UWServer::getCurrentSite] Host is not valid — no info for current tab.', 'background-color: #243; color: #4a8');
       return;
     }
 
     const tabHostname = await this.getCurrentTabHostname();
+    this.logger.log('info', 'comms', '%c[UWServer::getCurrentSite] Returning data:', 'background-color: #243; color: #4a8', {site, tabHostname});
+
 
     this.eventBus.send(
       'set-current-site',
@@ -356,11 +362,14 @@ export default class UWServer {
     const activeTab = await this.activeTab;
 
     if (!activeTab || activeTab.length < 1) {
-      this.logger.log('warn', 'comms', 'There is no active tab for some reason. activeTab:', activeTab);
       return null;
     }
 
     const url = activeTab[0].url;
+
+    if (!url) {
+      console.log('no URL for active tab:', activeTab[0].url);
+    }
 
     var hostname;
 

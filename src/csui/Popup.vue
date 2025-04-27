@@ -93,6 +93,7 @@
               :eventBus="eventBus"
               :siteSettings="siteSettings"
               :site="site.host"
+              :frames="activeFrames"
             >
             </BaseExtensionSettings>
             <ChangelogPanel
@@ -307,6 +308,7 @@ export default {
             label: this.site.frames[frame].host,
             host: this.site.frames[frame].host,
             ...this.site.frames[frame],
+            ...this.settings.active.sites[this.site.frames[frame].host]
           })
         };
       }

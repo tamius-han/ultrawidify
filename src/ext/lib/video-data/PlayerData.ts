@@ -695,10 +695,10 @@ class PlayerData {
       this.equalish(elementStack[currentIndex].element.offsetWidth, elementStack[nextIndex].element.offsetWidth, 2)
       && this.equalish(elementStack[currentIndex].element.offsetHeight, elementStack[nextIndex].element.offsetHeight, 2)
     ) {
-      this.siteSettings.set('playerAutoConfig.initialIndex', this.siteSettings.data.playerAutoConfig.initialIndex + 1, {noSave: true});
-      this.siteSettings.set('playerAutoConfig.modified', true);
-      console.log('updated site settings:', this.siteSettings.data.playerAutoConfig);
-      this.videoData.settings.saveWithoutReload();
+      // this.siteSettings.set('playerAutoConfig.initialIndex', this.siteSettings.data.playerAutoConfig.initialIndex + 1, {noSave: true});
+      // this.siteSettings.set('playerAutoConfig.modified', true);
+      // console.log('updated site settings:', this.siteSettings.data.playerAutoConfig);
+      // this.videoData.settings.saveWithoutReload();
 
       this.updatePlayer({newElement: elementStack[nextIndex].element});
     }
@@ -797,9 +797,9 @@ class PlayerData {
       bestCandidate = null;
     } else {
       bestCandidate.heuristics['autoMatch'] = true;
-      if (this.siteSettings.data.playerAutoConfig?.initialIndex !== bestCandidate.index) {
-        this.siteSettings.set('playerAutoConfig.initialIndex', bestCandidate.index, {reload: false, scripted: true});
-      }
+      // if (this.siteSettings.data.playerAutoConfig?.initialIndex !== bestCandidate.index) {
+        // this.siteSettings.set('playerAutoConfig.initialIndex', bestCandidate.index, {reload: false, scripted: true});
+      // }
     }
 
     // BUT WAIT! THERE'S MORE
