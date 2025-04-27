@@ -368,7 +368,8 @@ export class SiteSettings {
       this.settings.active.sites[this.site].type = 'unknown';
     } else {
       if (!this.settings.active.sites[this.site] || this.settings.active.sites[this.site].autocreated) {
-        this.settings.active.sites[this.site] = _cp(this.settings.active.sites['@empty']);
+        this.settings.active.sites[this.site] = _cp(this.data);
+        this.settings.active.sites[this.site].type = 'user-defined';
       }
     }
 

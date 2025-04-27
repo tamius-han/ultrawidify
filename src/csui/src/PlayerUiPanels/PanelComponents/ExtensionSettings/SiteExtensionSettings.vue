@@ -437,6 +437,7 @@ export default {
         switch (componentValue) {
           case 'fs':
             return 'fullscreen only';
+          case 'enabled':
           case 'theater':
             return 'where possible';
           case 'disabled':
