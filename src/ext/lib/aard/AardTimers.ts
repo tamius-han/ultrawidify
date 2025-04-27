@@ -23,7 +23,9 @@ export class AardTimer {
 
 
   constructor() {
-    this.aardPerformanceDataBuffer = new Array<AardPerformanceData>(16).fill(this.getEmptyMeasurement());
+    // we need to deep clone, otherwise all buffer objects will point to the same object
+    // (this makes calculating averages impossible)
+    this.aardPerformanceDataBuffer = JSON.parse(JSON.stringify(new Array<AardPerformanceData>(64).fill(this.getEmptyMeasurement())));
     this.current = this.aardPerformanceDataBuffer[0];
     this.previous = undefined;
     this.lastChange = this.getEmptyMeasurement();

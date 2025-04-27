@@ -349,13 +349,13 @@ export class Aard {
     this.startCheck();
   }
 
-  private createCanvas(canvasId: string, canvasType?: 'webgl' | 'fallback') {
+  private createCanvas(canvasId: string, canvasType?: 'webgl' | 'legacy') {
     if (canvasType) {
       if (canvasType === this.settings.active.arDetect.aardType || this.settings.active.arDetect.aardType === 'auto') {
         if (canvasType === 'webgl') {
           return new GlCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-gl'});
-        } else if (canvasType === 'fallback') {
-          return new FallbackCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-fallback'});
+        } else if (canvasType === 'legacy') {
+          return new FallbackCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-legacy'});
         } else {
           // TODO: throw error
         }
@@ -556,7 +556,7 @@ export class Aard {
               } else {
                 if (this.settings.active.arDetect.aardType === 'auto') {
                   this.canvasStore.main.destroy();
-                  this.canvasStore.main = this.createCanvas('main-gl', 'fallback');
+                  this.canvasStore.main = this.createCanvas('main-gl', 'legacy');
                 }
                 this.inFallback = true;
                 this.fallbackReason = {cors: true};
