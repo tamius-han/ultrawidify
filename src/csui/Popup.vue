@@ -171,74 +171,76 @@ export default {
     this.tabs.find(x => x.id === 'changelog').highlight = !this.settings.active?.whatsNewChecked;
   },
   async created() {
-    this.logger = new Logger();
-    await this.logger.init({
-        allowLogging: true,
-    });
-
-    this.settings = new Settings({afterSettingsSaved: () => this.updateConfig(), logger: this.logger});
-    await this.settings.init();
-    this.settingsInitialized = true;
-
-    // const port = chrome.runtime.connect({name: 'popup-port'});
-    // port.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
-    // CSM.setProperty('port', port);
-
-    this.eventBus = new EventBus();
-    this.eventBus.subscribe(
-      'set-current-site',
-      {
-        source: this,
-        function: (config, context) => {
-          if (this.site) {
-            if (!this.site.host) {
-              // dunno why this fix is needed, but sometimes it is
-              this.site.host = config.site.host;
-            }
-          }
-          this.site = config.site;
-          // this.selectedSite = this.selectedSite || config.site.host;
-          this.siteSettings = this.settings.getSiteSettings(this.site.host);
-
-          this.eventBus.setupPopupTunnelWorkaround({
-            origin: CommsOrigin.Popup,
-            comms: {
-              forwardTo: 'active'
-            }
-          });
-
-          this.loadFrames(this.site);
-
-        }
-      },
-    );
-
-    this.comms = new CommsClient('popup-port', this.logger, this.eventBus);
-    this.eventBus.setComms(this.comms);
-    this.eventBus.setupPopupTunnelWorkaround({
-      origin: CommsOrigin.Popup,
-      comms: {forwardTo: 'active'}
-    });
-
-
-    // ensure we'll clean player markings on popup close
-    window.addEventListener("unload", () => {
-      CSM.port.postMessage({
-        cmd: 'unmark-player',
-        forwardToAll: true,
+    try {
+      this.logger = new Logger();
+      await this.logger.init({
+          allowLogging: true,
       });
-      // if (BrowserDetect.anyChromium) {
-      //   chrome.extension.getBackgroundPage().sendUnmarkPlayer({
-      //     cmd: 'unmark-player',
-      //     forwardToAll: true,
-      //   });
-      // }
-    });
 
-    // get info about current site from background script
-    while (true) {
-      this.requestSite();
-      await this.sleep(5000);
+      this.settings = new Settings({afterSettingsSaved: () => this.updateConfig(), logger: this.logger});
+      await this.settings.init();
+      this.settingsInitialized = true;
+
+      // const port = chrome.runtime.connect({name: 'popup-port'});
+      // port.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
+      // CSM.setProperty('port', port);
+
+      this.eventBus = new EventBus();
+      this.eventBus.subscribe(
+        'set-current-site',
+        {
+          source: this,
+          function: (config, context) => {
+            if (this.site) {
+              if (!this.site.host) {
+                // dunno why this fix is needed, but sometimes it is
+                this.site.host = config.site.host;
+              }
+            }
+            this.site = config.site;
+            // this.selectedSite = this.selectedSite || config.site.host;
+            this.siteSettings = this.settings.getSiteSettings(this.site.host);
+            this.eventBus.setupPopupTunnelWorkaround({
+              origin: CommsOrigin.Popup,
+              comms: {
+                forwardTo: 'active'
+              }
+            });
+
+            this.loadFrames(this.site);
+          }
+        },
+      );
+
+      this.comms = new CommsClient('popup-port', this.logger, this.eventBus);
+      this.eventBus.setComms(this.comms);
+      this.eventBus.setupPopupTunnelWorkaround({
+        origin: CommsOrigin.Popup,
+        comms: {forwardTo: 'active'}
+      });
+
+
+      // ensure we'll clean player markings on popup close
+      window.addEventListener("unload", () => {
+        CSM.port.postMessage({
+          cmd: 'unmark-player',
+          forwardToAll: true,
+        });
+        // if (BrowserDetect.anyChromium) {
+        //   chrome.extension.getBackgroundPage().sendUnmarkPlayer({
+        //     cmd: 'unmark-player',
+        //     forwardToAll: true,
+        //   });
+        // }
+      });
+
+      // get info about current site from background script
+      while (true) {
+        this.requestSite();
+        await this.sleep(5000);
+      }
+    } catch (e) {
+      console.error('[Popup.vue::created()] An error happened:', e)
     }
   },
   async updated() {
@@ -288,62 +290,26 @@ export default {
     selectTab(tab) {
       this.selectedTab = tab;
     },
-    processReceivedMessage(message, port) {
-      this.logger.log('info', 'popup', '[popup::processReceivedMessage] received message:', message)
-
-      if (message.command === 'set-current-site'){
-        if (this.site) {
-          if (!this.site.host) {
-            // dunno why this fix is needed, but sometimes it is
-            this.site.host = site.tabHostname;
-          }
-        }
-        this.site = message.site;
-
-        // update activeSites
-        // this.activeSites = this.activeSites.filter(x => x.host !== message.site);
-
-        // add current site
-        // this.activeSites = unshift({
-        //   host: message.site.host,
-        //   isIFrame: false,  // currently unused
-        // });
-        this.selectedSite = this.selectedSite || message.site.host;
-
-        this.loadFrames(this.site);
-      }
-
-      return true;
-    },
-
     isDefaultFrame(frameId) {
       return frameId === '__playing' || frameId === '__all';
     },
     loadFrames() {
-      this.activeSites = [{
+      this.activeFrames = [{
         host: this.site.host,
         isIFrame: false,  // not used tho. Maybe one day
       }];
-      this.selectedSite = this.selectedSite || this.site.host;
 
-      // for (const frame in videoTab.frames) {
-      //   this.activeFrames.push({
-      //     id: `${this.site.id}-${frame}`,
-      //     label: videoTab.frames[frame].host,
-      //     ...this.frameStore[frame],
-      //   })
 
-      //   // only add each host once at most
-      //   if (!this.activeSites.find(x => x.host === videoTab.frames[frame].host)) {
-      //     this.activeSites.push({
-      //       host: videoTab.frames[frame].host,
-      //       isIFrame: undefined // maybe one day
-      //     });
-      //   }
-      // }
-
-      // update whether video tab can be shown
-      // this.updateCanShowVideoTab();
+      for (const frame in this.site.frames) {
+        if (!this.activeFrames.find(x => x.host === this.site.frames[frame].host)) {
+          this.activeFrames.push({
+            id: `${this.site.id}-${frame}`,
+            label: this.site.frames[frame].host,
+            host: this.site.frames[frame].host,
+            ...this.site.frames[frame],
+          })
+        };
+      }
     },
     getRandomColor() {
       return `rgb(${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)})`;
