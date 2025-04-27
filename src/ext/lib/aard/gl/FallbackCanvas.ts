@@ -2,7 +2,9 @@ import { GlCanvas, GlCanvasOptions } from './GlCanvas';
 
 
 export class FallbackCanvas extends GlCanvas {
-
+  get type() {
+    return 'legacy';
+  }
   context: CanvasRenderingContext2D;
 
   constructor(options: GlCanvasOptions) {
@@ -24,7 +26,7 @@ export class FallbackCanvas extends GlCanvas {
   protected initWebgl() { }
 
   drawVideoFrame(video: HTMLVideoElement) {
-    this.context.drawImage(video, this.context.canvas.width, this.context.canvas.height);
+    this.context.drawImage(video, 0, 0, this.context.canvas.width, this.context.canvas.height);
   }
 
   getImageData() {

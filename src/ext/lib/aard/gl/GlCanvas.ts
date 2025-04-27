@@ -52,6 +52,9 @@ interface GlCanvasProgramInfo {
 }
 
 export class GlCanvas {
+  get type() {
+    return 'webgl';
+  }
 
   private _canvas: HTMLCanvasElement;
   private set canvas(x: HTMLCanvasElement) {

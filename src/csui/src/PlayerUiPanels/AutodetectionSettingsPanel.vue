@@ -234,6 +234,7 @@
                 />
                 <input
                   v-model="settings.active.arDetect.timers.playing"
+                  @change="setArCheckFrequency($event.target.value)"
                   class="input"
                   type="text"
                 >
@@ -244,10 +245,10 @@
             <div class="field">
               <div class="label">Frame extraction canvas type:</div>
               <div class="select">
-                <select v-model="settings.active.arDetect.aardType">
+                <select v-model="settings.active.arDetect.aardType" @change="settings.saveWithoutReload">
                   <option value="auto">Automatic</option>
                   <option value="webgl">WebGL only</option>
-                  <option value="fallback">Legacy / fallback</option>
+                  <option value="legacy">Legacy / fallback</option>
                 </select>
               </div>
             </div>

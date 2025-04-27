@@ -370,14 +370,14 @@ export class Aard {
         return new GlCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-gl'});
       } catch (e) {
         if (this.settings.active.arDetect.aardType !== 'webgl') {
-          return new FallbackCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-fallback'});
+          return new FallbackCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-legacy'});
         }
         console.error('[ultrawidify|Aard::createCanvas] could not create webgl canvas:', e);
         this.eventBus.send('uw-config-broadcast', {type: 'aard-error', aardErrors: {webglError: true}});
         throw e;
       }
     } else if (this.settings.active.arDetect.aardType === 'legacy') {
-      return new FallbackCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-fallback'});
+      return new FallbackCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-legacy'});
     } else {
       console.error('[ultrawidify|Aard::createCanvas] invalid value in settings.arDetect.aardType:', this.settings.active.arDetect.aardType);
       this.eventBus.send('uw-config-broadcast', {type: 'aard-error', aardErrors: {invalidSettings: true}});

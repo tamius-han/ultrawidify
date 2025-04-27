@@ -574,7 +574,7 @@
     <div class="flex flex-row button-box sticky-bottom">
       <Button label="Cancel"
               @click.native="cancel()"
-      > 
+      >
       </Button>
       <Button label="Save settings"
               @click.native="saveManual()"
@@ -601,17 +601,6 @@ export default {
   },
   created() {
     this.sensitivity = this.getSensitivity();
-
-    const canvas = document.createElement('canvas');
-    canvas.width = 10;
-    canvas.height = 10;
-    const ctx = canvas.getContext('2d');
-    try {
-      ctx.drawWindow(window,0, 0, 10, 10, "rgba(0,0,0,0)");
-      this.fallbackModeAvailable = true;
-    } catch (e) {
-      this.fallbackModeAvailable = false;
-    }
   },
   methods: {
     setArCheckFrequency(event) {
