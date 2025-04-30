@@ -3,6 +3,8 @@ import BrowserDetect from '../../conf/BrowserDetect';
 import Logger from '../Logger';
 import Settings from '../Settings';
 import EventBus, { EventBusContext } from '../EventBus';
+import { ComponentLogger } from '../logging/ComponentLogger';
+import { LogAggregator } from '../logging/LogAggregator';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading CommsClient");
@@ -73,7 +75,7 @@ class CommsClient {
   name: string;
   origin: CommsOrigin;
 
-  logger: Logger;
+  logger: ComponentLogger;
   settings: any;   // sus?
 
   eventBus: EventBus;
@@ -82,10 +84,10 @@ class CommsClient {
   port: chrome.runtime.Port;
 
   //#region lifecycle
-  constructor(name: string, logger: Logger, eventBus: EventBus) {
+  constructor(name: string, logAggregator: LogAggregator, eventBus: EventBus) {
     this.name = name;
     try {
-      this.logger = logger;
+      this.logger = new ComponentLogger(logAggregator, 'CommsClient', {});
       this.eventBus = eventBus;
 
       if (name === 'popup-port') {
@@ -101,16 +103,16 @@ class CommsClient {
       this.port = chrome.runtime.connect(null, {name: name});
       // }
 
-      this.logger.onLogEnd(
-        (history) => {
-          this.logger.log('info', 'comms', 'Sending logging-stop-and-save to background script ...');
-          try {
-            this.port.postMessage({cmd: 'logging-stop-and-save', host: window.location.hostname, history})
-          } catch (e) {
-            this.logger.log('error', 'comms', 'Failed to send message to background script. Error:', e);
-          }
-        }
-      );
+      // this.logger.onLogEnd(
+      //   (history) => {
+      //     this.logger.log('info', 'comms', 'Sending logging-stop-and-save to background script ...');
+      //     try {
+      //       this.port.postMessage({cmd: 'logging-stop-and-save', host: window.location.hostname, history})
+      //     } catch (e) {
+      //       this.logger.log('error', 'comms', 'Failed to send message to background script. Error:', e);
+      //     }
+      //   }
+      // );
 
       this._listener = m => this.processReceivedMessage(m);
       this.port.onMessage.addListener(this._listener);
@@ -118,7 +120,7 @@ class CommsClient {
       this.commsId = (Math.random() * 20).toFixed(0);
 
     } catch (e) {
-      console.error("CONSTRUCOTR FAILED:", e)
+      console.error("CONSTRUCTOR FAILED:", e)
     }
   }
 
@@ -130,6 +132,8 @@ class CommsClient {
   //#endregion
 
   async sendMessage(message, context?: EventBusContext){
+    this.logger.info('sendMessage', '         <<< Sending message to background script:', message);
+
     message = JSON.parse(JSON.stringify(message)); // vue quirk. We should really use vue store instead
 
     // content script client and popup client differ in this one thing

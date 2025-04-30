@@ -13,13 +13,26 @@ import SettingsInterface from '../../common/interfaces/SettingsInterface';
 import AspectRatioType from '../../common/enums/AspectRatioType.enum';
 import { SiteSettings } from './settings/SiteSettings';
 import { SettingsSnapshotManager } from './settings/SettingsSnapshotManager';
+import { ComponentLogger } from './logging/ComponentLogger';
+import { LogAggregator } from './logging/LogAggregator';
 
 if(process.env.CHANNEL !== 'stable'){
   console.info("Loading Settings");
 }
 
+interface SettingsOptions {
+  logAggregator: LogAggregator,
+  onSettingsChanged?: () => void,
+  afterSettingsSaved?: () => void,
+  activeSettings?: SettingsInterface,
+}
+
 interface SetSettingsOptions {
   forcePreserveVersion?: boolean,
+}
+
+const SETTINGS_LOGGER_STYLES = {
+  log: 'color: #81d288',
 }
 
 class Settings {
@@ -29,7 +42,9 @@ class Settings {
   //#endregion
 
   //#region helper classes
-  logger: Logger;
+
+  logAggregator: LogAggregator;
+  logger: ComponentLogger;
   //#endregion
 
   //#region data
@@ -49,12 +64,12 @@ class Settings {
 
   //#endregion
 
-  constructor(options) {
+  constructor(options: SettingsOptions) {
     // Options: activeSettings, updateCallback, logger
-    this.logger = options?.logger;
-    this.onSettingsChanged = options?.onSettingsChanged;
-    this.afterSettingsSaved = options?.afterSettingsSaved;
-    this.active = options?.activeSettings ?? undefined;
+    this.logger = options.logAggregator && new ComponentLogger(options.logAggregator, 'Settings', {styles: SETTINGS_LOGGER_STYLES}) || undefined;;
+    this.onSettingsChanged = options.onSettingsChanged;
+    this.afterSettingsSaved = options.afterSettingsSaved;
+    this.active = options.activeSettings ?? undefined;
     this.default = ExtensionConf;
     this.snapshotManager = new SettingsSnapshotManager();
 
@@ -67,14 +82,14 @@ class Settings {
     if (!changes.uwSettings) {
       return;
     }
-    this.logger?.log('info', 'settings', "[Settings::<storage/on change>] Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
+    this.logger?.info('storageOnChange', "Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
     // if (changes['uwSettings'] && changes['uwSettings'].newValue) {
     //   this.logger?.log('info', 'settings',"[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));
     // }
     const parsedSettings = JSON.parse(changes.uwSettings.newValue);
     this.setActive(parsedSettings);
 
-    this.logger?.log('info', 'debug', 'Does parsedSettings.preventReload exist?', parsedSettings.preventReload, "Does callback exist?", !!this.onSettingsChanged);
+    this.logger?.info('storageOnChange', 'Does parsedSettings.preventReload exist?', parsedSettings.preventReload, "Does callback exist?", !!this.onSettingsChanged);
 
     if (!parsedSettings.preventReload) {
       try {
@@ -82,23 +97,23 @@ class Settings {
           try {
             fn();
           } catch (e) {
-            this.logger?.log('warn', 'settings', "[Settings] afterSettingsChanged fallback failed. It's possible that a vue component got destroyed, and this function is nothing more than vestigal remains. It would be nice if we implemented something that allows us to remove callback functions from array, and remove vue callbacks from the callback array when their respective UI component gets destroyed. Or this could be an error with the function itself. IDK, here's the error.", e)
+            this.logger?.warn('storageOnChange',  "afterSettingsChanged fallback failed. It's possible that a vue component got destroyed, and this function is nothing more than vestigal remains. It would be nice if we implemented something that allows us to remove callback functions from array, and remove vue callbacks from the callback array when their respective UI component gets destroyed. Or this could be an error with the function itself. IDK, here's the error.", e)
           }
         }
         if (this.onSettingsChanged) {
           this.onSettingsChanged();
         }
 
-        this.logger?.log('info', 'settings', '[Settings] Update callback finished.')
+        this.logger?.info('storageOnChange', 'Update callback finished.')
       } catch (e) {
-        this.logger?.log('error', 'settings', "[Settings] CALLING UPDATE CALLBACK FAILED. Reason:", e)
+        this.logger?.error('storageOnChange', "CALLING UPDATE CALLBACK FAILED. Reason:", e)
       }
     }
     for (const fn of this.afterSettingsChangedCallbacks) {
       try {
         fn();
       } catch (e) {
-        this.logger?.log('warn', 'settings', "[Settings] afterSettingsChanged fallback failed. It's possible that a vue component got destroyed, and this function is nothing more than vestigal remains. It would be nice if we implemented something that allows us to remove callback functions from array, and remove vue callbacks from the callback array when their respective UI component gets destroyed. Or this could be an error with the function itself. IDK, here's the error.", e)
+        this.logger?.warn('storageOnChange',  "afterSettingsChanged fallback failed. It's possible that a vue component got destroyed, and this function is nothing more than vestigal remains. It would be nice if we implemented something that allows us to remove callback functions from array, and remove vue callbacks from the callback array when their respective UI component gets destroyed. Or this could be an error with the function itself. IDK, here's the error.", e)
       }
     }
     if (this.afterSettingsSaved) {
@@ -188,7 +203,7 @@ class Settings {
     let index = this.findFirstNecessaryPatch(oldVersion);
 
     if (index === -1) {
-      this.logger?.log('info','settings','[Settings::applySettingsPatches] There are no pending conf patches.');
+      this.logger?.info('applySettingsPatches','There are no pending conf patches.');
       return;
     }
 
@@ -205,20 +220,14 @@ class Settings {
 
 
     // apply all remaining patches
-    this.logger?.log('info', 'settings', `[Settings::applySettingsPatches] There are ${ExtensionConfPatch.length - index} settings patches to apply`);
+    this.logger?.info('applySettingsPatches', `There are ${ExtensionConfPatch.length - index} settings patches to apply`);
     while (index < ExtensionConfPatch.length) {
       const updateFn =  ExtensionConfPatch[index].updateFn;
       if (updateFn) {
         try {
           updateFn(this.active, this.getDefaultSettings());
         } catch (e) {
-          this.logger?.log('error', 'settings', '[Settings::applySettingsPatches] Failed to execute update function. Keeping settings object as-is. Error:', e);
-          console.warn(
-            '————————————————————————————————————\n',
-            'Applying patch', index, ' failed :', '\n',
-            e, '\n',
-            '————————————————————————————————————\n',
-          );
+          this.logger?.error('applySettingsPatches', 'Failed to execute update function. Keeping settings object as-is. Error:', e);
         }
       }
 
@@ -230,7 +239,7 @@ class Settings {
     let settings = await this.get();
 
     if (settings?.dev?.loadFromSnapshot) {
-      this.logger?.log('info', 'settings', '[Settings::init] Dev mode is enabled, Loading settings from snapshot:', settings.dev.loadFromSnapshot);
+      this.logger?.info('init', 'Dev mode is enabled, Loading settings from snapshot:', settings.dev.loadFromSnapshot);
       const snapshot = await this.snapshotManager.getSnapshot();
       if (snapshot) {
         settings = snapshot.settings;
@@ -245,7 +254,7 @@ class Settings {
     const oldVersion = settings?.version ?? this.version;
 
     if (settings) {
-      this.logger?.log('info', 'settings', "[Settings::init] Configuration fetched from storage:", settings,
+      this.logger?.info('init', "Configuration fetched from storage:", settings,
                                           "\nlast saved with:", settings.version,
                                           "\ncurrent version:", this.version
       );
@@ -253,10 +262,9 @@ class Settings {
 
     // if there's no settings saved, return default settings.
     if(! settings || (Object.keys(settings).length === 0 && settings.constructor === Object)) {
-      this.logger?.log(
-        'info',
-        'settings',
-        '[Settings::init] settings don\'t exist. Using defaults.\n#keys:',
+      this.logger?.info(
+        'init',
+        'settings don\'t exist. Using defaults.\n#keys:',
         settings ? Object.keys(settings).length : 0,
         '\nsettings:',
         settings
@@ -281,7 +289,7 @@ class Settings {
 
     // check if extension has been updated. If not, return settings as they were retrieved
     if (this.active.version === this.version) {
-      this.logger?.log('info', 'settings', "[Settings::init] extension was saved with current version of ultrawidify. Returning object as-is.");
+      this.logger?.info('init', "extension was saved with current version of ultrawidify. Returning object as-is.");
       return this.active;
     }
 
@@ -292,7 +300,7 @@ class Settings {
     // if extension has been updated, update existing settings with any options added in the
     // new version. In addition to that, we remove old keys that are no longer used.
     const patched = ObjectCopy.addNew(settings, this.default);
-    this.logger?.log('info', 'settings',"[Settings.init] Results from ObjectCopy.addNew()?", patched, "\n\nSettings from storage", settings, "\ndefault?", this.default);
+    this.logger?.info('init',"Results from ObjectCopy.addNew()?", patched, "\n\nSettings from storage", settings, "\ndefault?", this.default);
 
     if (patched) {
       this.active = patched;
@@ -315,7 +323,7 @@ class Settings {
 
     ret = await chrome.storage.local.get('uwSettings');
 
-    this.logger?.log('info', 'settings', 'Got settings:', ret && ret.uwSettings && JSON.parse(ret.uwSettings));
+    this.logger?.info('get', 'Got settings:', ret && ret.uwSettings && JSON.parse(ret.uwSettings));
 
     try {
       return JSON.parse(ret.uwSettings) as SettingsInterface;
@@ -328,7 +336,7 @@ class Settings {
     if (!options || !options.forcePreserveVersion) {
       extensionConf.version = this.version;
     }
-    this.logger?.log('info', 'settings', "[Settings::set] setting new settings:", extensionConf)
+    this.logger?.info('set', "setting new settings:", extensionConf)
 
     return chrome.storage.local.set( {'uwSettings': JSON.stringify(extensionConf)});
   }

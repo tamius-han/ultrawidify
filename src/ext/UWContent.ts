@@ -1,3 +1,4 @@
+import { BLANK_LOGGER_CONFIG, LogAggregator } from './lib/logging/LogAggregator';
 import Debug from './conf/Debug';
 import ExtensionMode from '../common/enums/ExtensionMode.enum';
 import Settings from './lib/Settings';
@@ -10,6 +11,7 @@ import EventBus from './lib/EventBus';
 import KeyboardHandler from './lib/kbm/KeyboardHandler';
 import { SiteSettings } from './lib/settings/SiteSettings';
 import UI from './lib/uwui/UI';
+import { ComponentLogger } from './lib/logging/ComponentLogger';
 
 export default class UWContent {
   pageInfo: PageInfo;
@@ -17,7 +19,8 @@ export default class UWContent {
   settings: Settings;
   siteSettings: SiteSettings;
   keyboardHandler: KeyboardHandler;
-  logger: Logger;
+  logAggregator: LogAggregator;
+  logger: ComponentLogger;
   eventBus: EventBus;
   isIframe: boolean = false;
 
@@ -34,7 +37,7 @@ export default class UWContent {
 
   reloadSettings() {
     try {
-      this.logger.log('info', 'debug', 'Things happened in the popup. Will reload extension settings.');
+      this.logger.debug('reloadSettings', 'Things happened in the popup. Will reload extension settings.');
       this.init();
     } catch (e) {
       console.warn('Ultrawidify: settings reload failed. This probably shouldn\'t outright kill the extension, but page reload is recommended.');
@@ -50,8 +53,9 @@ export default class UWContent {
       // logger init is the first thing that needs to run
       try {
         if (!this.logger) {
-          this.logger = new Logger();
-          await this.logger.init(baseLoggingOptions);
+          this.logAggregator = new LogAggregator('◈');
+          this.logger = new ComponentLogger(this.logAggregator, 'UWContent');
+          await this.logAggregator.init(BLANK_LOGGER_CONFIG);
         }
       } catch (e) {
         console.error("logger init failed!", e)
@@ -67,7 +71,7 @@ export default class UWContent {
       if (!this.settings) {
         this.settings = new Settings({
           onSettingsChanged: () => this.reloadSettings(),
-          logger: this.logger
+          logAggregator: this.logAggregator
         });
         await this.settings.init();
         this.siteSettings = this.settings.getSiteSettings();
@@ -81,13 +85,13 @@ export default class UWContent {
           function: () => this.initPhase2()
         }
       );
-      this.comms = new CommsClient('content-main-port', this.logger, this.eventBus);
+      this.comms = new CommsClient('content-main-port', this.logAggregator, this.eventBus);
       this.eventBus.setComms(this.comms);
 
 
       this.initPhase2();
     } catch (e) {
-      console.error('Ultrawidify initalization failed for some reason:', e);
+      console.error('Ultrawidify initialization failed for some reason:', e);
     }
   }
 
@@ -95,21 +99,21 @@ export default class UWContent {
   initPhase2() {
     try {
       if (this.pageInfo) {
-        this.logger.log('info', 'debug', '[uw.js::setup] An instance of pageInfo already exists and will be destroyed.');
+        this.logger.info('setup', 'An instance of pageInfo already exists and will be destroyed.');
         this.pageInfo.destroy();
       }
-      this.pageInfo = new PageInfo(this.eventBus, this.siteSettings, this.settings, this.logger);
-      this.logger.log('info', 'debug', "[uw.js::setup] pageInfo initialized.");
+      this.pageInfo = new PageInfo(this.eventBus, this.siteSettings, this.settings, this.logAggregator);
+      this.logger.debug('setup', "pageInfo initialized.");
 
-      this.logger.log('info', 'debug', "[uw.js::setup] will try to initate KeyboardHandler.");
+      this.logger.debug('setup', "will try to initate KeyboardHandler.");
 
       if (this.keyboardHandler) {
         this.keyboardHandler.destroy();
       }
-      this.keyboardHandler = new KeyboardHandler(this.eventBus, this.siteSettings, this.settings, this.logger);
+      this.keyboardHandler = new KeyboardHandler(this.eventBus, this.siteSettings, this.settings, this.logAggregator);
       this.keyboardHandler.init();
 
-      this.logger.log('info', 'debug', "[uw.js::setup] KeyboardHandler initiated.");
+      this.logger.debug('setup', "KeyboardHandler initiated.");
 
       this.globalUi = new UI('ultrawidify-global-ui', {eventBus: this.eventBus, isGlobal: true});
       this.globalUi.enable();
@@ -117,7 +121,7 @@ export default class UWContent {
 
     } catch (e) {
       console.error('Ultrawidify: failed to start extension. Error:', e)
-      this.logger.log('error', 'debug', "[uw::init] FAILED TO START EXTENSION. Error:", e);
+      this.logger.error('setup', "FAILED TO START EXTENSION. Error:", e);
     }
   }
 

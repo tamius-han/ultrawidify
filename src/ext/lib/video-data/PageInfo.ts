@@ -10,6 +10,8 @@ import CommsClient from '../comms/CommsClient';
 import EventBus from '../EventBus';
 import { SiteSettings } from '../settings/SiteSettings';
 import IframeManager from './IframeManager';
+import { LogAggregator } from '../logging/LogAggregator';
+import { ComponentLogger } from '../logging/ComponentLogger';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading PageInfo");
@@ -52,7 +54,8 @@ class PageInfo {
   //#endregion
 
   //#region helper objects
-  logger: Logger;
+  logAggregator: LogAggregator;
+  logger: ComponentLogger;
   settings: Settings;
   siteSettings: SiteSettings;
   comms: CommsClient;
@@ -80,8 +83,9 @@ class PageInfo {
     }
   };
 
-  constructor(eventBus: EventBus, siteSettings: SiteSettings, settings: Settings, logger: Logger, readOnly = false){
-    this.logger = logger;
+  constructor(eventBus: EventBus, siteSettings: SiteSettings, settings: Settings, logAggregator: LogAggregator, readOnly = false){
+    this.logAggregator = logAggregator;
+    this.logger = new ComponentLogger(logAggregator, 'PageInfo', {});
     this.settings = settings;
     this.siteSettings = siteSettings;
 
@@ -109,10 +113,18 @@ class PageInfo {
     this.scheduleUrlCheck();
 
     document.addEventListener('fullscreenchange', this.fsEventListener);
+
+    this.eventBus.subscribeMulti({
+      'probe-video': {
+        function: () => {
+          console.warn('[uw] probe-video event received..');
+        }
+      }
+    })
   }
 
   destroy() {
-    // this.logger.log('info', ['debug', 'init'], "[PageInfo::destroy] destroying all videos!")
+    // this.logger.debug('destroy', 'destroying all videos!")
     if(this.rescanTimer){
       clearTimeout(this.rescanTimer);
     }
@@ -121,7 +133,7 @@ class PageInfo {
         this.eventBus.send('noVideo', undefined);
         video.videoData.destroy();
       } catch (e) {
-        this.logger.log('error', ['debug', 'init'], '[PageInfo::destroy] unable to destroy video! Error:', e);
+        this.logger.error('destroy', 'unable to destroy video! Error:', e);
       }
     }
 
@@ -228,7 +240,7 @@ class PageInfo {
         this.hasVideos = false;
 
         if(rescanReason == RescanReason.PERIODIC){
-          this.logger.log('info', 'videoRescan', "[PageInfo::rescan] Scheduling normal rescan.")
+          this.logger.info({src: 'rescan', origin: 'videoRescan'}, "Scheduling normal rescan.")
           this.scheduleRescan(RescanReason.PERIODIC);
         }
         return;
@@ -265,16 +277,16 @@ class PageInfo {
           return;
         }
 
-        this.logger.log('info', 'videoRescan', "[PageInfo::rescan] found new video candidate:", videoElement, "NOTE:: Video initialization starts here:\n--------------------------------\n")
+        this.logger.info({src: 'rescan', origin: 'videoRescan'}, "found new video candidate:", videoElement, "NOTE:: Video initialization starts here:\n--------------------------------\n")
 
         try {
           const newVideo = new VideoData(videoElement, this.settings, this.siteSettings, this);
           this.videos.push({videoData: newVideo, element: videoElement});
         } catch (e) {
-          this.logger.log('error', 'debug', "rescan error: failed to initialize videoData. Skipping this video.",e);
+          this.logger.error('rescan', "rescan error: failed to initialize videoData. Skipping this video.",e);
         }
 
-        this.logger.log('info', 'videoRescan', "END VIDEO INITIALIZATION\n\n\n-------------------------------------\nvideos[] is now this:", this.videos,"\n\n\n\n\n\n\n\n")
+        this.logger.info({src: 'rescan', origin: 'videoRescan'}, "END VIDEO INITIALIZATION\n\n\n-------------------------------------\nvideos[] is now this:", this.videos,"\n\n\n\n\n\n\n\n")
       }
 
       this.removeDestroyed();
@@ -313,7 +325,7 @@ class PageInfo {
       // if we encounter a fuckup, we can assume that no videos were found on the page. We destroy all videoData
       // objects to prevent multiple initialization (which happened, but I don't know why). No biggie if we destroyed
       // videoData objects in error — they'll be back in the next rescan
-      this.logger.log('error', 'debug', "rescan error: — destroying all videoData objects",e);
+      this.logger.error('rescan', "rescan error: — destroying all videoData objects",e);
       for (const v of this.videos) {
         v.videoData.destroy();
       }
@@ -348,7 +360,7 @@ class PageInfo {
         ths = null;
       }, this.settings.active.pageInfo.timeouts.rescan, RescanReason.PERIODIC)
     } catch(e) {
-      this.logger.log('error', 'debug', "[PageInfo::scheduleRescan] scheduling rescan failed. Here's why:",e)
+      this.logger.error('scheduleRescan', "scheduling rescan failed. Here's why:",e)
     }
   }
 
@@ -366,13 +378,13 @@ class PageInfo {
       ths = null;
     }, this.settings.active.pageInfo.timeouts.urlCheck)
     } catch(e){
-      this.logger.log('error', 'debug', "[PageInfo::scheduleUrlCheck] scheduling URL check failed. Here's why:",e)
+      this.logger.log('scheduleUrlCheck', "scheduling URL check failed. Here's why:",e)
     }
   }
 
   ghettoUrlCheck() {
     if (this.lastUrl != window.location.href){
-      this.logger.log('error', 'videoRescan', "[PageInfo::ghettoUrlCheck] URL has changed. Triggering a rescan!");
+      this.logger.warn('ghettoUrlCheck', "URL has changed. Triggering a rescan!");
 
       this.rescan(RescanReason.URL_CHANGE);
       this.lastUrl = window.location.href;

@@ -1,3 +1,4 @@
+import { BLANK_LOGGER_CONFIG, LogAggregator } from './lib/logging/LogAggregator';
 import Debug from './conf/Debug.js';
 import BrowserDetect from './conf/BrowserDetect';
 import CommsServer from './lib/comms/CommsServer';
@@ -5,10 +6,17 @@ import Settings from './lib/Settings';
 import Logger, { baseLoggingOptions } from './lib/Logger';
 import { sleep } from '../common/js/utils';
 import EventBus, { EventBusCommand } from './lib/EventBus';
+import { ComponentLogger } from './lib/logging/ComponentLogger.js';
+
+
+const BASE_LOGGING_STYLES = {
+  'log': 'background-color: #243; color: #4a8',
+}
 
 export default class UWServer {
   settings: Settings;
-  logger: Logger;
+  logger: ComponentLogger;
+  logAggregator: LogAggregator;
   comms: CommsServer;
   eventBus: EventBus;
 
@@ -64,22 +72,13 @@ export default class UWServer {
   async setup() {
     try {
       // logger is the first thing that goes up
-      const loggingOptions = {
-        isBackgroundScript: true,
-        allowLogging: false,
-        useConfFromStorage: true,
-        logAll: true,
-        fileOptions: {
-          enabled: false,
-        },
-        consoleOptions: {
-          enabled: false
-        }
-      };
-      this.logger = new Logger();
-      await this.logger.init(loggingOptions);
+      const loggingOptions = BLANK_LOGGER_CONFIG;
 
-      this.settings = new Settings({logger: this.logger});
+      this.logAggregator = new LogAggregator('🔶bg-script🔶');
+      this.logger = new ComponentLogger(this.logAggregator, 'UwServer', {styles: BASE_LOGGING_STYLES});
+      await this.logAggregator.init(loggingOptions);
+
+      this.settings = new Settings({logAggregator: this.logAggregator});
       await this.settings.init();
 
       this.eventBus = new EventBus({isUWServer: true});
@@ -130,7 +129,7 @@ export default class UWServer {
         });
       }
     } catch (e) {
-      this.logger.log('error','debug', '[UwServer::injectCss] Error while injecting css:', {error: e, css, sender});
+      this.logger.error('injectCss', 'Error while injecting css:', {error: e, css, sender});
     }
   }
   async removeCss(css, sender) {
@@ -160,7 +159,7 @@ export default class UWServer {
         });
       }
     } catch (e) {
-      this.logger.log('error','debug', '[UwServer::injectCss] Error while removing css:', {error: e, css, sender});
+      this.logger.error('injectCss', 'Error while removing css:', {error: e, css, sender});
     }
   }
   async replaceCss(oldCss, newCss, sender) {
@@ -205,9 +204,9 @@ export default class UWServer {
       }
 
       this.currentSite = this.extractHostname(tab.url);
-      this.logger.log('info', 'debug', '[UwServer::onTabSwitched] user switched tab. New site:', this.currentSite);
+      this.logger.info('onTabSwitched', 'user switched tab. New site:', this.currentSite);
     } catch(e) {
-      this.logger.log('error', 'debug', '[UwServer::onTabSwitched] there was a problem getting currnet site:', e)
+      this.logger.info('onTabSwitched', 'there was a problem getting current site:', e)
     }
 
     this.selectedSubitem = {
@@ -220,7 +219,7 @@ export default class UWServer {
   }
 
   registerVideo(sender) {
-    this.logger.log('info', 'comms', '[UWServer::registerVideo] Registering video.\nsender:', sender);
+    this.logger.info('registerVideo', 'Registering video.\nsender:', sender);
 
     const tabHostname = this.extractHostname(sender.tab.url);
     const frameHostname = this.extractHostname(sender.url);
@@ -254,11 +253,11 @@ export default class UWServer {
       }
     }
 
-    this.logger.log('info', 'comms', '[UWServer::registerVideo] Video registered. current videoTabs:', this.videoTabs);
+    this.logger.info('registerVideo', 'Video registered. current videoTabs:', this.videoTabs);
   }
 
   unregisterVideo(sender) {
-    this.logger.log('info', 'comms', '[UwServer::unregisterVideo] Unregistering video.\nsender:', sender);
+    this.logger.info('unregisterVideo', 'Unregistering video.\nsender:', sender);
     if (this.videoTabs[sender.tab.id]) {
       if ( Object.keys(this.videoTabs[sender.tab.id].frames).length <= 1) {
         delete this.videoTabs[sender.tab.id]
@@ -268,27 +267,27 @@ export default class UWServer {
         }
       }
     }
-    this.logger.log('info', 'comms', '[UwServer::unregisterVideo] Video has been unregistered. Current videoTabs:', this.videoTabs);
+    this.logger.info('unregisterVideo', 'Video has been unregistered. Current videoTabs:', this.videoTabs);
   }
 
   setSelectedTab(menu, subitem) {
-    this.logger.log('info', 'comms', '[UwServer::setSelectedTab] saving selected tab for', menu, ':', subitem);
+    this.logger.info('setSelectedTab', 'saving selected tab for', menu, ':', subitem);
     this.selectedSubitem[menu] = subitem;
   }
 
   async getCurrentSite() {
-    this.logger.log('info', 'comms', '%c[UWServer::getCurrentSite] received get-current-site ...', 'background-color: #243; color: #4a8');
+    this.logger.info('getCurrentSite', 'received get-current-site ...');
 
     const site = await this.getVideoTab();
 
     // Don't propagate 'INVALID SITE' to the popup.
     if (site.host === 'INVALID SITE') {
-      this.logger.log('info', 'comms', '%c[UWServer::getCurrentSite] Host is not valid — no info for current tab.', 'background-color: #243; color: #4a8');
+      this.logger.info('getCurrentSite', 'Host is not valid — no info for current tab.');
       return;
     }
 
     const tabHostname = await this.getCurrentTabHostname();
-    this.logger.log('info', 'comms', '%c[UWServer::getCurrentSite] Returning data:', 'background-color: #243; color: #4a8', {site, tabHostname});
+    this.logger.info('getCurrentSite', 'Returning data:', {site, tabHostname});
 
 
     this.eventBus.send(
