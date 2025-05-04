@@ -4,6 +4,7 @@ import BrowserDetect from '../../conf/BrowserDetect';
 import VideoData from '../video-data/VideoData';
 import Logger from '../Logger';
 import { Ar, ArVariant } from '../../../common/interfaces/ArInterface';
+import { ComponentLogger } from '../logging/ComponentLogger';
 
 
 export enum CropStrategy {
@@ -46,13 +47,13 @@ export type VideoDimensions = {
 class Scaler {
   //#region helper objects
   conf: VideoData;
-  logger: Logger;
+  logger: ComponentLogger;
   //#endregion
 
   // functions
   constructor(videoData) {
     this.conf = videoData;
-    this.logger = videoData.logger;
+    this.logger = new ComponentLogger(videoData.logAggregator, 'Scaler', {});
   }
 
 
@@ -65,7 +66,7 @@ class Scaler {
     let ratioOut;
 
     if (!this.conf.video) {
-      this.logger.log('error', 'debug', "[Scaler.js::modeToAr] No video??",this.conf.video, "killing videoData");
+      this.logger.error('modeToAr', "No video??",this.conf.video, "killing videoData");
       this.conf.destroy();
       return null;
     }
@@ -93,7 +94,7 @@ class Scaler {
       return ratioOut;
     }
     else if (ar.type === AspectRatioType.Reset) {
-      this.logger.log('info', 'debug', "[Scaler.js::modeToAr] Using original aspect ratio -", fileAr)
+      this.logger.info('modeToAr', "Using original aspect ratio -", fileAr)
       ar.ar = fileAr;
       return fileAr;
     }
@@ -137,7 +138,7 @@ class Scaler {
     }
 
     if(!this.conf.video){
-      this.logger.log('info', 'debug', "[Scaler::calculateCrop] ERROR — no video detected. Conf:", this.conf, "video:", this.conf.video, "video dimensions:", this.conf.video && this.conf.video.videoWidth, '×', this.conf.video && this.conf.video.videoHeight);
+      this.logger.info('calculateCrop', "ERROR — no video detected. Conf:", this.conf, "video:", this.conf.video, "video dimensions:", this.conf.video && this.conf.video.videoWidth, '×', this.conf.video && this.conf.video.videoHeight);
 
       this.conf.destroy();
       return {error: "no_video"};
@@ -145,7 +146,7 @@ class Scaler {
     if (this.conf.video.videoWidth == 0 || this.conf.video.videoHeight == 0) {
       // that's illegal, but not illegal enough to just blast our shit to high hell
       // mr officer will let you go with a warning this time around
-      this.logger.log('error', 'debug', "[Scaler::calculateCrop] Video has illegal dimensions. Video dimensions:", this.conf.video && this.conf.video.videoWidth, '×', this.conf.video && this.conf.video.videoHeight);
+      this.logger.error('calculateCrop', "Video has illegal dimensions. Video dimensions:", this.conf.video && this.conf.video.videoWidth, '×', this.conf.video && this.conf.video.videoHeight);
 
       return {error: "illegal_video_dimensions"};
     }
@@ -165,16 +166,16 @@ class Scaler {
 
     // handle fuckie-wuckies
     if (!ar.ratio){
-      this.logger.log('error', 'scaler', "[Scaler::calculateCrop] no ar?", ar.ratio, " -- we were given this mode:", ar);
+      this.logger.error('calculateCrop', "no ar?", ar.ratio, " -- we were given this mode:", ar);
       return {error: "no_ar", ratio: ar.ratio};
     }
 
-    this.logger.log('info', 'scaler', "[Scaler::calculateCrop] trying to set ar. args are: ar->",ar.ratio,"; this.conf.player.dimensions->",this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
+    this.logger.info('calculateCrop', "trying to set ar. args are: ar->",ar.ratio,"; this.conf.player.dimensions->",this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions);
 
     // If we encounter invalid players, we try to update its dimensions
     // ONCE before throwing an error
     if( (! this.conf.player.dimensions) || this.conf.player.dimensions.width === 0 || this.conf.player.dimensions.height === 0 ){
-      this.logger.log('error', 'scaler', "[Scaler::calculateCrop] ERROR — no (or invalid) this.conf.player.dimensions:",this.conf.player.dimensions);
+      this.logger.error('calculateCrop', "ERROR — no (or invalid) this.conf.player.dimensions:",this.conf.player.dimensions);
       this.conf.player.updatePlayer();
 
       if( (! this.conf.player.dimensions) || this.conf.player.dimensions.width === 0 || this.conf.player.dimensions.height === 0 ){
@@ -191,7 +192,7 @@ class Scaler {
     }
 
 
-    this.logger.log('info', 'scaler', "[Scaler::calculateCrop] ar is " ,ar.ratio, ", file ar is", streamAr, ",ar variant", ar.variant ,"\nthis.conf.player.dimensions are ", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions, this.conf.player.element);
+    this.logger.info('calculateCrop', "ar is " ,ar.ratio, ", file ar is", streamAr, ",ar variant", ar.variant ,"\nthis.conf.player.dimensions are ", this.conf.player.dimensions.width, "×", this.conf.player.dimensions.height, "| obj:", this.conf.player.dimensions, this.conf.player.element);
 
     const videoDimensions: VideoDimensions = {
       xFactor: 1,

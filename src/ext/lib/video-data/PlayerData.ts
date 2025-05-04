@@ -14,6 +14,7 @@ import { SiteSettings } from '../settings/SiteSettings';
 import PageInfo from './PageInfo';
 import { RunLevel } from '../../enum/run-level.enum';
 import { ExtensionEnvironment } from '../../../common/interfaces/SettingsInterface';
+import { ComponentLogger } from '../logging/ComponentLogger';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: PlayerData.js");
@@ -69,7 +70,7 @@ class PlayerData {
   private playerCssClass = 'uw-ultrawidify-player-css';
 
   //#region helper objects
-  logger: Logger;
+  logger: ComponentLogger;
   videoData: VideoData;
   pageInfo: PageInfo;
   siteSettings: SiteSettings;
@@ -193,7 +194,7 @@ class PlayerData {
   constructor(videoData) {
     try {
       // set all our helper objects
-      this.logger = videoData.logger;
+      this.logger = new ComponentLogger(videoData.logAggregator, 'PlayerData', {styles: Debug.getLoggingStyles()});
       this.videoData = videoData;
       this.videoElement = videoData.video;
       this.pageInfo = videoData.pageInfo;
@@ -457,13 +458,13 @@ class PlayerData {
 
   private handleDimensionChanges(newDimensions: PlayerDimensions, oldDimensions: PlayerDimensions) {
     if (this.runLevel === RunLevel.Off ) {
-      this.logger.log('info', 'debug', "[PlayerDetect] player size changed, but PlayerDetect is in disabled state. The player element is probably too small.");
+      this.logger.info('handleDimensionChanges', "player size changed, but PlayerDetect is in disabled state. The player element is probably too small.");
       return;
     }
 
     // this 'if' is just here for debugging — real code starts later. It's safe to collapse and
     // ignore the contents of this if (unless we need to change how logging works)
-    this.logger.log('info', 'debug', "[PlayerDetect] player size potentially changed.\n\nold dimensions:", oldDimensions, '\nnew dimensions:', newDimensions);
+    this.logger.info('handleDimensionChanges', "player size potentially changed.\n\nold dimensions:", oldDimensions, '\nnew dimensions:', newDimensions);
 
     // if size doesn't match, trigger onPlayerDimensionChange
     if (

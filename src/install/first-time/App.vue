@@ -53,9 +53,9 @@
 </template>
 
 <script>
-import Debug from '../../ext/conf/Debug';
 import BrowserDetect from '../../ext/conf/BrowserDetect';
-import Logger from '../../ext/lib/Logger';
+import { LogAggregator } from '@src/ext/lib/logging/LogAggregator';
+import { ComponentLogger } from '@src/ext/lib/logging/ComponentLogger';
 
 export default {
   data () {
@@ -75,6 +75,7 @@ export default {
       settings: {},
       settingsInitialized: false,
       logger: {},
+      logAggregator: {},
       siteTabDisabled: false,
       videoTabDisabled: false,
       canShowVideoTab: {canShow: true, warning: true},
@@ -82,7 +83,8 @@ export default {
     }
   },
   async created() {
-    this.logger = new Logger();
+    this.logAggregator = new LogAggregator('');
+    this.logger = new ComponentLogger(this.logAggregator, 'App.vue');
     await this.logger.init({
         allowLogging: true,
     });

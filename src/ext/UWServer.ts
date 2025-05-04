@@ -6,7 +6,7 @@ import Settings from './lib/Settings';
 import Logger, { baseLoggingOptions } from './lib/Logger';
 import { sleep } from '../common/js/utils';
 import EventBus, { EventBusCommand } from './lib/EventBus';
-import { ComponentLogger } from './lib/logging/ComponentLogger.js';
+import { ComponentLogger } from './lib/logging/ComponentLogger';
 
 
 const BASE_LOGGING_STYLES = {

@@ -8,10 +8,16 @@ import VideoData from '../video-data/VideoData';
 import EventBus, { EventBusCommand } from '../EventBus';
 import KbmBase from './KbmBase';
 import { SiteSettings } from '../settings/SiteSettings';
+import { LogAggregator } from '../logging/LogAggregator';
+import { ComponentLogger } from '../logging/ComponentLogger';
 
 if(process.env.CHANNEL !== 'stable'){
   console.info("Loading KeyboardHandler");
 }
+
+const BASE_LOGGING_STYLES = {
+  log: "color: #ff0"
+};
 
 /**
  * Handles keypresses and mouse movement.
@@ -23,7 +29,6 @@ if(process.env.CHANNEL !== 'stable'){
  */
 export class KeyboardHandler extends KbmBase {
   listenFor: string[] = ['keyup'];
-  logger: Logger;
   settings: Settings;
   siteSettings: SiteSettings;
   eventBus: EventBus;
@@ -45,14 +50,14 @@ export class KeyboardHandler extends KbmBase {
   }
 
   //#region lifecycle
-  constructor(eventBus: EventBus, siteSettings: SiteSettings, settings: Settings, logger: Logger) {
-    super(eventBus, siteSettings, settings, logger);
-
+  constructor(eventBus: EventBus, siteSettings: SiteSettings, settings: Settings, logAggregator: LogAggregator) {
+    const tmpLogger = new ComponentLogger(logAggregator, 'KeyboardHandler', {styles: BASE_LOGGING_STYLES});
+    super(eventBus, siteSettings, settings, tmpLogger);
     this.init();
   }
 
   init() {
-    this.logger.log('info', 'debug', "[KeyboardHandler::init] starting init");
+    this.logger.debug("init", "starting init");
 
     // reset keypressActions when re-initializing, otherwise keypressActions will
     // multiply in an unwanted way
@@ -119,28 +124,28 @@ export class KeyboardHandler extends KbmBase {
   preventAction(event) {
     var activeElement = document.activeElement;
 
-    if (this.logger.canLog('keyboard')) {
-      this.logger.pause(); // temp disable to avoid recursing;
-      const preventAction = this.preventAction(event);
-      this.logger.resume(); // undisable
+    // if (this.logger.canLog('keyboard')) {
+    //   this.logger.pause(); // temp disable to avoid recursing;
+    //   const preventAction = this.preventAction(event);
+    //   this.logger.resume(); // undisable
 
-      this.logger.log('info', 'keyboard', "[KeyboardHandler::preventAction] Testing whether we're in a textbox or something. Detailed rundown of conditions:\n" +
-      "\nis tag one of defined inputs? (yes->prevent):", this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1,
-      "\nis role = textbox? (yes -> prevent):", activeElement.getAttribute("role") === "textbox",
-      "\nis type === 'text'? (yes -> prevent):", activeElement.getAttribute("type") === "text",
-      "\nevent.target.isContentEditable? (yes -> prevent):", event.target.isContentEditable,
-      "\nis keyboard local disabled? (yes -> prevent):", this.keyboardLocalDisabled,
-      // "\nis keyboard enabled in settings? (no -> prevent)", this.settings.keyboardShortcutsEnabled(window.location.hostname),
-      "\nwill the action be prevented? (yes -> prevent)", preventAction,
-      "\n-----------------{ extra debug info }-------------------",
-      "\ntag name? (lowercase):", activeElement.tagName, activeElement.tagName.toLocaleLowerCase(),
-      "\nrole:", activeElement.getAttribute('role'),
-      "\ntype:", activeElement.getAttribute('type'),
-      "\ninsta-fail inputs:", this.inputs,
-      "\nevent:", event,
-      "\nevent.target:", event.target
-      );
-    }
+    //   this.logger.log('info', 'keyboard', "[KeyboardHandler::preventAction] Testing whether we're in a textbox or something. Detailed rundown of conditions:\n" +
+    //   "\nis tag one of defined inputs? (yes->prevent):", this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1,
+    //   "\nis role = textbox? (yes -> prevent):", activeElement.getAttribute("role") === "textbox",
+    //   "\nis type === 'text'? (yes -> prevent):", activeElement.getAttribute("type") === "text",
+    //   "\nevent.target.isContentEditable? (yes -> prevent):", event.target.isContentEditable,
+    //   "\nis keyboard local disabled? (yes -> prevent):", this.keyboardLocalDisabled,
+    //   // "\nis keyboard enabled in settings? (no -> prevent)", this.settings.keyboardShortcutsEnabled(window.location.hostname),
+    //   "\nwill the action be prevented? (yes -> prevent)", preventAction,
+    //   "\n-----------------{ extra debug info }-------------------",
+    //   "\ntag name? (lowercase):", activeElement.tagName, activeElement.tagName.toLocaleLowerCase(),
+    //   "\nrole:", activeElement.getAttribute('role'),
+    //   "\ntype:", activeElement.getAttribute('type'),
+    //   "\ninsta-fail inputs:", this.inputs,
+    //   "\nevent:", event,
+    //   "\nevent.target:", event.target
+    //   );
+    // }
 
     if (this.keyboardLocalDisabled) {
       return true;
@@ -213,19 +218,15 @@ export class KeyboardHandler extends KbmBase {
 
 
   handleKeyup(event) {
-    // if (!this.keyboardEnabled) {
-    //   this.logger.log('info', 'keyboard', "%c[KeyboardHandler::handleKeyup] kbmHandler.keyboardEnabled is set to false. Doing nothing.");
-    //   return;
-    // }
-    this.logger.log('info', 'keyboard', "%c[KeyboardHandler::handleKeyup] we pressed a key: ", "color: #ff0", event.key , " | keyup: ", event.keyup, "event:", event);
+    this.logger.info('handleKeyup', "we pressed a key: ", event.key , " | keyup: ", event.keyup, "event:", event);
 
     try {
       if (this.preventAction(event)) {
-        this.logger.log('info', 'keyboard', "[KeyboardHandler::handleKeyup] we are in a text box or something. Doing nothing.");
+        this.logger.info('handleKeyup', "we are in a text box or something. Doing nothing.");
         return;
       }
 
-      this.logger.log('info', 'keyboard', "%c[KeyboardHandler::handleKeyup] Trying to find and execute action for event. Actions/event: ", "color: #ff0", this.keypressActions, event);
+      this.logger.info('handleKeyup', "Trying to find and execute action for event. Actions/event:", this.keypressActions, event);
 
       const isLatin = this.isLatin(event.key);
       for (const command of this.keypressActions) {
@@ -234,7 +235,7 @@ export class KeyboardHandler extends KbmBase {
         }
       }
     } catch (e) {
-      this.logger.log('info', 'debug', '[KeyboardHandler::handleKeyup] Failed to handle keyup!', e);
+      this.logger.debug('handleKeyup', 'Failed to handle keyup!', e);
     }
   }
 

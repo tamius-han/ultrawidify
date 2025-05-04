@@ -21,6 +21,7 @@ import { RunLevel } from '../../enum/run-level.enum';
 import * as _ from 'lodash';
 import getElementStyles from '../../util/getElementStyles';
 import { Stretch } from '../../../common/interfaces/StretchInterface';
+import { ComponentLogger } from '../logging/ComponentLogger';
 
 if(Debug.debug) {
   console.log("Loading: Resizer.js");
@@ -46,7 +47,7 @@ class Resizer {
   //#endregion
 
   //#region helper objects
-  logger: Logger;
+  logger: ComponentLogger;
   settings: Settings;
   siteSettings: SiteSettings;
   scaler: Scaler;
@@ -180,7 +181,7 @@ class Resizer {
   constructor(videoData) {
     this.resizerId = (Math.random()*100).toFixed(0);
     this.videoData = videoData;
-    this.logger = videoData.logger;
+    this.logger = new ComponentLogger(videoData.logAggregator, 'Resizer');
     this.video = videoData.video;
     this.settings = videoData.settings;
     this.siteSettings = videoData.siteSettings;
@@ -234,7 +235,7 @@ class Resizer {
   }
 
   destroy(){
-    this.logger.log('info', ['debug', 'init'], `[Resizer::destroy] <rid:${this.resizerId}> received destroy command.`);
+    this.logger.info('destroy', `<rid:${this.resizerId}> received destroy command.`);
     this.destroyed = true;
   }
 
@@ -251,7 +252,7 @@ class Resizer {
     let ratioOut;
 
     if (!this.videoData.video) {
-      this.logger.log('info', 'debug', "[Scaler.js::modeToAr] No video??",this.videoData.video, "killing videoData");
+      this.logger.info('calculateRatioForLegacyOptions', "No video??", this.videoData.video, "— killing videoData");
       this.videoData.destroy();
       return null;
     }
@@ -260,7 +261,7 @@ class Resizer {
     if (! this.videoData.player.dimensions) {
       ratioOut = screen.width / screen.height;
     } else {
-      this.logger.log('info', 'debug', `[Resizer::calculateRatioForLegacyOptions] <rid:${this.resizerId}> Player dimensions:`, this.videoData.player.dimensions.width ,'x', this.videoData.player.dimensions.height,'aspect ratio:', this.videoData.player.dimensions.width / this.videoData.player.dimensions.height)
+      this.logger.info('calculateRatioForLegacyOptions', `<rid:${this.resizerId}> Player dimensions:`, this.videoData.player.dimensions.width ,'x', this.videoData.player.dimensions.height,'aspect ratio:', this.videoData.player.dimensions.width / this.videoData.player.dimensions.height)
       ratioOut = this.videoData.player.dimensions.width / this.videoData.player.dimensions.height;
     }
 
@@ -276,7 +277,7 @@ class Resizer {
       ar.ratio = ratioOut < fileAr ? ratioOut : fileAr;
     }
     else if(ar.type === AspectRatioType.Reset){
-      this.logger.log('info', 'debug', "[Scaler.js::modeToAr] Using original aspect ratio -", fileAr);
+      this.logger.info('modeToAr', "Using original aspect ratio -", fileAr);
       ar.ratio = fileAr;
     } else {
       return null;
@@ -350,11 +351,11 @@ class Resizer {
     }
 
     if (!this.video.videoWidth || !this.video.videoHeight) {
-      this.logger.log('warning', 'debug', '[Resizer::setAr] <rid:'+this.resizerId+'> Video has no width or no height. This is not allowed. Aspect ratio will not be set, and videoData will be uninitialized.');
+      this.logger.warn('setAr', `<rid:${this.resizerId}> Video has no width or no height. This is not allowed. Aspect ratio will not be set, and videoData will be uninitialized.`);
       this.videoData.videoUnloaded();
     }
 
-    this.logger.log('info', 'debug', '%c[Resizer::setAr] <rid:'+this.resizerId+'> trying to set ar. New ar:', 'background-color: #4c3a2f, color: #ffa349', ar);
+    this.logger.info('setAr', `<rid:${this.resizerId}> trying to set ar. New ar:`, ar);
 
     let stretchFactors: VideoDimensions | any;
 
@@ -391,7 +392,7 @@ class Resizer {
       // I'm not sure whether they do. Check that.
       ar = this.calculateRatioForLegacyOptions(ar);
       if (! ar) {
-        this.logger.log('info', 'resizer', `[Resizer::setAr] <${this.resizerId}> Something wrong with ar or the player. Doing nothing.`);
+        this.logger.info('setAr', `<rid:${this.resizerId}> Something wrong with ar or the player. Doing nothing.`);
         return;
       }
       this.lastAr = {type: ar.type, ratio: ar.ratio};
@@ -406,7 +407,7 @@ class Resizer {
       stretchFactors = this.scaler.calculateCrop(ar);
 
       if (!stretchFactors || stretchFactors.error){
-        this.logger.log('error', 'debug', `[Resizer::setAr] <rid:${this.resizerId}> failed to set AR due to problem with calculating crop. Error:`, stretchFactors?.error);
+        this.logger.error('setAr', ` <rid:${this.resizerId}> failed to set AR due to problem with calculating crop. Error:`, stretchFactors?.error);
         if (stretchFactors?.error === 'no_video'){
           this.videoData.destroy();
           return;
@@ -427,24 +428,24 @@ class Resizer {
       } else if (this.stretcher.stretch.type === StretchType.FixedSource) {
         this.stretcher.applyStretchFixedSource(stretchFactors);
       }
-      this.logger.log('info', 'debug', "[Resizer::setAr] Processed stretch factors for ",
+      this.logger.info('setAr', "Processed stretch factors for ",
                       this.stretcher.stretch.type === StretchType.NoStretch ? 'stretch-free crop.' :
                         this.stretcher.stretch.type === StretchType.Conditional ? 'crop with conditional StretchType.' : 'crop with fixed stretch',
                       'Stretch factors are:', stretchFactors
       );
     } else if (this.stretcher.stretch.type === StretchType.Hybrid) {
       stretchFactors = this.stretcher.calculateStretch(ar.ratio);
-      this.logger.log('info', 'debug', '[Resizer::setAr] Processed stretch factors for hybrid stretch/crop. Stretch factors are:', stretchFactors);
+      this.logger.info('setAr', 'Processed stretch factors for hybrid stretch/crop. Stretch factors are:', stretchFactors);
     } else if (this.stretcher.stretch.type === StretchType.Fixed) {
       stretchFactors = this.stretcher.calculateStretchFixed(ar.ratio);
     } else if (this.stretcher.stretch.type === StretchType.Basic) {
       stretchFactors = this.stretcher.calculateBasicStretch();
-      this.logger.log('info', 'debug', '[Resizer::setAr] Processed stretch factors for basic StretchType. Stretch factors are:', stretchFactors);
+      this.logger.log('setAr', 'Processed stretch factors for basic StretchType. Stretch factors are:', stretchFactors);
     } else {
       stretchFactors = this.scaler.calculateCrop(ar);
-      this.logger.log(
-        'error', 'debug',
-        '[Resizer::setAr] Okay wtf happened? If you see this, something has gone wrong. Pretending stretchMode is set tu NoStretch. Stretch factors are:', stretchFactors,
+      this.logger.error(
+        'setAr',
+        'Okay wtf happened? If you see this, something has gone wrong. Pretending stretchMode is set tu NoStretch. Stretch factors are:', stretchFactors,
         "\n------[ i n f o   d u m p ]------\nstretcher:", this.stretcher,
         '\nargs: ar (corrected for legacy):', ar, 'last ar (optional argument):', lastAr
       );
@@ -501,7 +502,7 @@ class Resizer {
       const relativeX = (event.pageX - player.offsetLeft) / player.offsetWidth;
       const relativeY = (event.pageY - player.offsetTop) / player.offsetHeight;
 
-      this.logger.log('info', 'mousemove', "[Resizer::panHandler] mousemove.pageX, pageY:", event.pageX, event.pageY, "\nrelativeX/Y:", relativeX, relativeY)
+      this.logger.info({src: 'panHandler', origin: 'mousemove'}, "mousemove.pageX, pageY:", event.pageX, event.pageY, "\nrelativeX/Y:", relativeX, relativeY);
 
       this.setPan(relativeX, relativeY);
     }
@@ -564,7 +565,7 @@ class Resizer {
    */
   restore() {
     if (!this.manualZoom) {
-      this.logger.log('info', 'debug', "[Resizer::restore] <rid:"+this.resizerId+"> attempting to restore aspect ratio", {'lastAr': this.lastAr} );
+      this.logger.info('restore', `<rid:${this.resizerId}> attempting to restore aspect ratio`, {'lastAr': this.lastAr} );
 
       // this is true until we verify that css has actually been applied
       if(this.lastAr.type === AspectRatioType.Initial){
@@ -749,7 +750,7 @@ class Resizer {
 
   private _computeOffsetsRecursionGuard: boolean = false;
   computeOffsets(stretchFactors: VideoDimensions, ar?: Ar){
-    this.logger.log('info', 'debug', "[Resizer::computeOffsets] <rid:"+this.resizerId+"> video will be aligned to ", this.videoAlignment, '— stretch factors before processing:', stretchFactors);
+    this.logger.info('computeOffsets', `<rid:${this.resizerId}> video will be aligned to `, this.videoAlignment, '— stretch factors before processing:', stretchFactors);
 
     const {realVideoWidth, realVideoHeight, marginX, marginY} = this.computeVideoDisplayedDimensions();
 
@@ -817,8 +818,9 @@ class Resizer {
       }
     }
 
-    this.logger.log(
-      'info', ['debug', 'resizer'], "[Resizer::_res_computeOffsets] <rid:"+this.resizerId+"> calculated offsets:",
+    this.logger.info(
+      'computeOffsets',
+      `<rid:${this.resizerId}> calculated offsets:`,
       '\n\n---- elements ----',
       '\nplayer element:       ', this.videoData.player.element,
       '\nvideo element:        ', this.videoData.video,
@@ -851,10 +853,10 @@ class Resizer {
         (this.videoData.video.offsetWidth < this.videoData.player.dimensions.width && this.videoData.video.offsetHeight < this.videoData.player.dimensions.height)
       ) && ar?.variant !== ArVariant.Zoom
     ) {
-      this.logger.log('warn', ['debugger', 'resizer'], `[Resizer::_res_computeOffsets] <rid:${this.resizerId}> We are getting some incredibly funny results here.\n\n`,
+      this.logger.warn('computeOffsets', `<rid:${this.resizerId}> We are getting some incredibly funny results here.\n\n`,
         `Video seems to be both wider and taller (or shorter and narrower) than player element at the same time. This is super duper not supposed to happen.\n\n`,
         `Player element needs to be checked.`
-      )
+      );
 
       // sometimes this appears to randomly recurse.
       // There seems to be no way to reproduce it.
@@ -928,13 +930,13 @@ class Resizer {
     // apply extra CSS here. In case of duplicated properties, extraCss overrides
     // default styleString
     if (! this.video) {
-      this.logger.log('warn', 'debug', "[Resizer::applyCss] <rid:"+this.resizerId+"> Video went missing, doing nothing.");
+      this.logger.warn('applyCss', `<rid:${this.resizerId}> Video went missing, doing nothing.`);
 
       this.videoData.destroy();
       return;
     }
 
-    this.logger.log('info', ['debug', 'resizer'], "[Resizer::applyCss] <rid:"+this.resizerId+"> will apply css.", {stretchFactors, translate});
+    this.logger.info('applyCss', `<rid:${this.resizerId}> will apply css.`, {stretchFactors, translate});
 
     // save stuff for quick tests (before we turn numbers into css values):
     this.currentVideoSettings = {
@@ -969,18 +971,18 @@ class Resizer {
 
     // inject new CSS or replace existing one
     if (!this.userCss) {
-      this.logger.log('info', ['debug', 'resizer'], "[Resizer::setStyleString] <rid:"+this.resizerId+"> Setting new css: ", newCssString);
+      this.logger.debug('setStyleString', `<rid:${this.resizerId}> Setting new css: `, newCssString);
 
       this.eventBus.send('inject-css', {cssString: newCssString});
       this.userCss = newCssString;
     } else if (newCssString !== this.userCss) {
-      this.logger.log('info', ['debug', 'resizer'], "[Resizer::setStyleString] <rid:"+this.resizerId+"> Replacing css.\nOld string:", this.userCss, "\nNew string:", newCssString);
+      this.logger.debug('setStyleString', `<rid:${this.resizerId}}> Replacing css.\nOld string:`, this.userCss, "\nNew string:", newCssString)
       // we only replace css if it
       this.eventBus.send('replace-css', {oldCssString: this.userCss, newCssString});
 
       this.userCss = newCssString;
     } else {
-      this.logger.log('info', ['debug', 'resizer'], "[Resizer::setStyleString] <rid:"+this.resizerId+"> Existing css is still valid, doing nothing.");
+      this.logger.debug('setStyleString', `<rid:${this.resizerId}> Existing css is still valid, doing nothing.`);
     }
   }
 

@@ -19,6 +19,8 @@ import { Aard } from '../aard/Aard';
 import { Stretch } from '../../../common/interfaces/StretchInterface';
 import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
 import { ExtensionEnvironment } from '../../../common/interfaces/SettingsInterface';
+import { LogAggregator } from '../logging/LogAggregator';
+import { ComponentLogger } from '../logging/ComponentLogger';
 
 /**
  * VideoData — handles CSS for the video element.
@@ -67,7 +69,8 @@ class VideoData {
   //#endregion
 
   //#region helper objects
-  logger: Logger;
+  logger: ComponentLogger;
+  logAggregator: LogAggregator
   settings: Settings; // AARD needs it
   siteSettings: SiteSettings;
   pageInfo: PageInfo;
@@ -117,7 +120,9 @@ class VideoData {
    * @param pageInfo
    */
   constructor(video, settings: Settings, siteSettings: SiteSettings, pageInfo: PageInfo){
-    this.logger = pageInfo.logger;
+    this.logAggregator = pageInfo.logAggregator;
+    this.logger = new ComponentLogger(this.logAggregator, 'VideoData', {});
+
     this.arSetupComplete = false;
     this.video = video;
     this.destroyed = false;
@@ -167,7 +172,7 @@ class VideoData {
       if (!this.video?.videoWidth || !this.video?.videoHeight || this.video.readyState < 2) {
         return; // onVideoLoaded is a lie in this case
       }
-      this.logger.log('info', 'init', '%c[VideoData::onVideoLoaded] ——————————— Initiating phase two of videoData setup ———————————', 'color: #0f9');
+      this.logger.info('onVideoLoaded', '%c ——————————— Initiating phase two of videoData setup ———————————', 'color: #0f9');
 
       this.hasDrm = hasDrm(this.video);
       this.eventBus.send(
@@ -179,12 +184,12 @@ class VideoData {
       this.videoDimensionsLoaded = true;
       try {
         await this.setupStageTwo();
-        this.logger.log('info', 'init', '%c[VideoData::onVideoLoaded] ——————————— videoData setup stage two complete ———————————', 'color: #0f9');
+        this.logger.info('onVideoLoaded', '%c——————————— videoData setup stage two complete ———————————', 'color: #0f9');
       } catch (e) {
-        this.logger.log('error', 'init', '%c[VideoData::onVideoLoaded] ——————————— Setup stage two failed. ———————————\n', 'color: #f00', e);
+        this.logger.error('onVideoLoaded', '%c ——————————— Setup stage two failed. ———————————\n', 'color: #f00', e);
       }
     } else if (!this.videoDimensionsLoaded) {
-      this.logger.log('info', 'debug', "%c[VideoData::restoreCrop] Recovering from illegal video dimensions. Resetting aspect ratio.", "background: #afd, color: #132");
+      this.logger.debug('onVideoLoaded', "%cRecovering from illegal video dimensions. Resetting aspect ratio.", "background: #afd, color: #132");
 
       this.restoreCrop();
       this.videoDimensionsLoaded = true;
@@ -213,11 +218,11 @@ class VideoData {
 
   //#region <video> event handlers
   onLoadedData() {
-    this.logger.log('info', 'init', '[VideoData::ctor->video.onloadeddata] Video fired event "loaded data!"');
+    this.logger.info('onLoadedData', 'Video fired event "loaded data!"');
     this.onVideoLoaded();
   }
   onLoadedMetadata() {
-    this.logger.log('info', 'init', '[VideoData::ctor->video.onloadedmetadata] Video fired event "loaded metadata!"');
+    this.logger.log('onLoadedData', 'Video fired event "loaded metadata!"');
     this.onVideoLoaded();
   }
   onTimeUpdate() {
@@ -231,7 +236,7 @@ class VideoData {
    * Sets up event listeners for this video
    */
   async setupEventListeners() {
-    this.logger.log('info', 'init', '%c[VideoData::setupEventListeners] ——————————— Starting event listener setup! ———————————', 'color: #0f9');
+    this.logger.info('setupEventListeners', '%c——————————— Starting event listener setup! ———————————', 'color: #0f9');
 
     // this is in case extension loads before the video
     this.video.addEventListener('loadeddata', this.onLoadedData.bind(this));
@@ -240,7 +245,7 @@ class VideoData {
     // this one is in case extension loads after the video is loaded
     this.video.addEventListener('timeupdate', this.onTimeUpdate.bind(this));
 
-    this.logger.log('info', 'init', '%c[VideoData::setupEventListeners] ——————————— Event listeners setup complete! ———————————', 'color: #0f9');
+    this.logger.info('setupEventListeners', '%c——————————— Event listeners setup complete! ———————————', 'color: #0f9');
   }
 
   /**
@@ -264,7 +269,7 @@ class VideoData {
     }
 
 
-    this.logger.log('info', ['debug', 'init'], '[VideoData::ctor] Created videoData with vdid', this.vdid);
+    this.logger.info('setupStageTwo', 'Created videoData with vdid', this.vdid);
 
 
     // Everything is set up at this point. However, we are still purely "read-only" at this point. Player CSS should not be changed until
@@ -363,7 +368,7 @@ class VideoData {
    * cleans up handlers and stuff when the show is over
    */
   destroy() {
-    this.logger.log('info', ['debug', 'init'], `[VideoData::destroy] <vdid:${this.vdid}> received destroy command`);
+    this.logger.info('destroy', `<vdid:${this.vdid}> received destroy command`);
 
     if (this.video) {
       this.video.classList.remove(this.userCssClassName);
@@ -403,7 +408,8 @@ class VideoData {
       return;
     }
     if (this.currentEnvironment !== this.player.environment) {
-      console.warn('environment changed to:', this.player.environment);
+      this.logger.warn('onEnvironmentChanged', 'environment changed from:', this.currentEnvironment, 'to:', this.player.environment);
+
       this.currentEnvironment = this.player.environment;
       if (this.siteSettings.data.enable[this.player.environment] === ExtensionMode.Disabled) {
         this.setRunLevel(RunLevel.Off);
@@ -473,10 +479,10 @@ class VideoData {
 
   restoreCrop() {
     if (!this.resizer) {
-      this.logger.log('warn', 'debug', '[VideoData::restoreCrop] Resizer has not been initialized yet. Crop will not be restored.');
+      this.logger.warn('restoreCrop', 'Resizer has not been initialized yet. Crop will not be restored.');
       return;
     }
-    this.logger.log('info', 'debug', '[VideoData::restoreCrop] Attempting to reset aspect ratio.')
+    this.logger.info('restoreCrop', 'Attempting to reset aspect ratio.');
     // if we have default crop set for this page, apply this.
     // otherwise, reset crop
 
@@ -489,7 +495,7 @@ class VideoData {
         this.stopArDetection();
         this.startArDetection();
       } catch (e) {
-        this.logger.log('warn', 'debug', '[VideoData::restoreCrop] Autodetection not resumed. Reason:', e);
+        this.logger.warn('restoreCrop', 'Autodetection not resumed. Reason:', e);
       }
     }
   }
@@ -516,13 +522,13 @@ class VideoData {
     let confirmAspectRatioRestore = false;
 
     if (!this.video) {
-      this.logger.log('error', 'debug', '[VideoData::onVideoMutation] mutation was triggered, but video element is missing. Something is fishy. Terminating this uw instance.');
+      this.logger.error('onVideoMutation', 'mutation was triggered, but video element is missing. Something is fishy. Terminating this uw instance.');
       this.destroy();
       return;
     }
 
     if (!this.enabled) {
-      this.logger.log('info', 'info', '[VideoData::onVideoMutation] mutation was triggered, but the extension is disabled. Is the player window too small?');
+      this.logger.info('onVideoMutation', 'mutation was triggered, but the extension is disabled. Is the player window too small?');
       return;
     }
 
@@ -552,8 +558,8 @@ class VideoData {
   onVideoDimensionsChanged(mutationList, observer) {
     if (!mutationList || this.video === undefined) {  // something's wrong
       if (observer && this.video) {
-        this.logger.log(
-          'warn', 'debug',
+        this.logger.warn(
+          'onVideoDimensionChanged',
           'onVideoDimensionChanged encountered a weird state. video and observer exist, but mutationlist does not.\n\nmutationList:', mutationList,
           '\nobserver:', observer,
           '\nvideo:', this.video,
@@ -573,7 +579,7 @@ class VideoData {
    */
   private _processDimensionsChanged() {
     if (!this.player) {
-      this.logger.log('warn', 'debug', `[VideoData::_processDimensionsChanged] Player is not defined. This is super haram.`, this.player);
+      this.logger.warn('_processDimensionsChanged', `Player is not defined. This is super haram.`, this.player);
       return;
     }
     // adding player observer taught us that if element size gets triggered by a class, then
@@ -706,7 +712,7 @@ class VideoData {
 
 
   startArDetection() {
-    this.logger.log('info', 'debug', "[VideoData::startArDetection] starting AR detection")
+    this.logger.info('startArDetection', 'starting AR detection');
     if(this.destroyed || this.invalid) {
       // throw {error: 'VIDEO_DATA_DESTROYED', data: {videoData: this}};
       return;
@@ -725,7 +731,7 @@ class VideoData {
       }
       this.aard.startCheck();
     } catch (e) {
-      this.logger.log('warn', 'debug', '[VideoData::startArDetection()] Could not start aard for some reason. Was the function was called too early?', e);
+      this.logger.warn('startArDetection', 'Could not start aard for some reason. Was the function was called too early?', e);
     }
   }
 
@@ -754,17 +760,16 @@ class VideoData {
   checkVideoSizeChange(){
     const videoWidth = this.video.offsetWidth;
     const videoHeight = this.video.offsetHeight;
-    // this 'if' is just here for debugging — real code starts later. It's safe to collapse and
-    // ignore the contents of this if (unless we need to change how logging works)
-    if (this.logger.canLog('debug')){
+
+    {
       if(! this.video) {
-        this.logger.log('info', 'videoDetect', "[VideoDetect] player element isn't defined");
+        this.logger.warn('checkVideoSizeChange', "player element isn't defined");
       }
       if ( this.video &&
-           ( this.dimensions?.width != videoWidth ||
-             this.dimensions?.height != videoHeight )
+            ( this.dimensions?.width != videoWidth ||
+              this.dimensions?.height != videoHeight )
       ) {
-        this.logger.log('info', 'debug', "[VideoDetect] player size changed. reason: dimension change. Old dimensions?", this.dimensions.width, this.dimensions.height, "new dimensions:", this.video.offsetWidth, this.video.offsetHeight);
+        this.logger.debug('checkVideoSizeChange', "player size changed. reason: dimension change. Old dimensions?", this.dimensions.width, this.dimensions.height, "new dimensions:", this.video.offsetWidth, this.video.offsetHeight);
       }
     }
 

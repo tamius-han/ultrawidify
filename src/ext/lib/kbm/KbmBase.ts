@@ -1,11 +1,12 @@
 import EventBus, { EventBusCommand } from '../EventBus';
 import Logger from '../Logger';
+import { ComponentLogger } from '../logging/ComponentLogger';
 import Settings from '../Settings';
 import { SiteSettings } from '../settings/SiteSettings';
 
 export class KbmBase {
   listenFor: string[] = [];
-  logger: Logger;
+  logger: ComponentLogger;
   settings: Settings;
   siteSettings: SiteSettings;
   eventBus: EventBus;
@@ -28,7 +29,7 @@ export class KbmBase {
     },
   }
 
-  constructor(eventBus: EventBus, siteSettings: SiteSettings, settings: Settings, logger: Logger) {
+  constructor(eventBus: EventBus, siteSettings: SiteSettings, settings: Settings, logger: ComponentLogger) {
     this.logger = logger;
     this.settings = settings;
     this.eventBus = eventBus;

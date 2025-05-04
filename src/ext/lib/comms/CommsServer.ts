@@ -1,3 +1,4 @@
+import { ComponentLogger } from './../logging/ComponentLogger';
 import { EventBusContext } from './../EventBus';
 import Debug from '../../conf/Debug';
 import BrowserDetect from '../../conf/BrowserDetect';
@@ -8,9 +9,13 @@ import EventBus from '../EventBus';
 import { CommsOrigin } from './CommsClient';
 
 
+const BASE_LOGGING_STYLES = {
+  log: "background-color: #11D; color: #aad",
+};
+
 class CommsServer {
   server: any;
-  logger: Logger;
+  logger: ComponentLogger;
   settings: Settings;
   eventBus: EventBus;
 
@@ -61,7 +66,7 @@ class CommsServer {
   //#region lifecycle
   constructor(server) {
     this.server = server;
-    this.logger = server.logger;
+    this.logger = new ComponentLogger(server.logAggregator, 'CommsServer', {styles: BASE_LOGGING_STYLES});
     this.settings = server.settings;
     this.eventBus = server.eventBus;
 
@@ -106,6 +111,7 @@ class CommsServer {
   //#endregion
 
   sendMessage(message, context?) {
+    this.logger.debug('sendMessage', `preparing to send message ${message.command ?? ''} ...`, {message, context});
     // stop messages from returning where they came from, and prevent
     // cross-pollination between content scripts running in different
     // tabs.
@@ -129,10 +135,15 @@ class CommsServer {
 
     // okay I lied! Messages originating from content script can be forwarded to
     // content scripts running in _other_ frames of the tab
+    let forwarded = false;
     if (context?.origin === CommsOrigin.ContentScript) {
       if (context?.comms.forwardTo === 'all-frames') {
+        forwarded = true;
         this.sendToOtherFrames(message, context);
       }
+    }
+    if (!forwarded) {
+      this.logger.warn('sendMessage', `message ${message.command ?? ''} was not forwarded to any destination!`,  {message, context});
     }
   }
 
@@ -148,10 +159,13 @@ class CommsServer {
    * Does NOT send a message to popup.
    **/
   private sendToAll(message){
+    this.logger.info('sendToAll', "sending message to all content scripts", message);
+
     for(const tid in this.ports){
       const tab = this.ports[tid];
       for(const frame in tab){
         for (const port in tab[frame]) {
+          this.logger.info('sendToAll', `      <——— attempting to send message ${message.command ?? ''} to tab ${tab}, frame ${frame}, port ${port}`, message);
           tab[frame][port].postMessage(message);
         }
       }
@@ -168,9 +182,11 @@ class CommsServer {
   private async sendToFrameContentScripts(message, tab, frame, port?) {
     if (port !== undefined) {
       this.ports[tab][frame][port].postMessage(message);
+      this.logger.info('sendToOtherFrames', `      <——— attempting to send message ${message.command ?? ''} to tab ${tab}, frame ${frame}, port ${port}`, message);
       return;
     }
     for (const framePort in this.ports[tab][frame]) {
+      this.logger.info('sendToOtherFrames', `      <——— attempting to send message ${message.command ?? ''} to tab ${tab}, frame ${frame}`, message);
       this.ports[tab][frame][framePort].postMessage(JSON.parse(JSON.stringify(message)));
     }
   }
@@ -198,7 +214,7 @@ class CommsServer {
   }
 
   private async sendToFrame(message, tab, frame, port?) {
-    this.logger.log('info', 'comms', `%c[CommsServer::sendToFrame] attempting to send message to tab ${tab}, frame ${frame}`, "background: #dda; color: #11D", message);
+    this.logger.info('sendToFrame', `      <——— attempting to send message ${message.command ?? ''} to tab ${tab}, frame ${frame}`, message);
 
     if (isNaN(tab)) {
       if (frame === '__playing') {
@@ -212,33 +228,32 @@ class CommsServer {
       [tab, frame] = frame.split('-');
     }
 
-    this.logger.log('info', 'comms', `%c[CommsServer::sendToFrame] attempting to send message to tab ${tab}, frame ${frame}`, "background: #dda; color: #11D", message);
+    this.logger.info('sendToFrame', `      <——— attempting to send message ${message.command ?? ''} to tab ${tab}, frame ${frame}`, message);
 
     try {
 
       this.sendToFrameContentScripts(message, tab, frame, port);
     } catch (e) {
-      this.logger.log('error', 'comms', `%c[CommsServer::sendToFrame] Sending message failed. Reason:`, "background: #dda; color: #11D", e);
+      this.logger.error('sendToFrame', ` Sending message failed. Reason:`, e);
     }
   }
 
   private async sendToActive(message) {
-    this.logger.log('info', 'comms', "%c[CommsServer::sendToActive] trying to send a message to active tab. Message:", "background: #dda; color: #11D", message);
+    this.logger.info('sendToActive', `      <——— trying to send a message ${message.command ?? ''} to active tab. Message:`, message);
 
     const tabs = await this.activeTab;
 
-    this.logger.log('info', 'comms', "[CommsServer::_sendToActive] currently active tab(s)?", tabs);
-    for (const frame in this.ports[tabs[0].id]) {
-      this.logger.log('info', 'comms', "key?", frame, this.ports[tabs[0].id]);
-    }
+    this.logger.info('sendToActive', "currently active tab(s)?", tabs);
 
     for (const frame in this.ports[tabs[0].id]) {
+      this.logger.info('sendToActive', "sending message to frame:", frame, this.ports[tabs[0].id][frame], '; message:', message);
       this.sendToFrameContentScripts(message, tabs[0].id, frame);
     }
   }
 
 
   private async processReceivedMessage(message, port, sender?: {frameId: string, tabId: string}){
+    this.logger.info('processMessage', `                   ==> Received message ${message.command ?? ''} from content script or port`, "background-color: #11D; color: #aad", message, port, sender);
     // this triggers events
     this.eventBus.send(
       message.command,
@@ -259,7 +274,7 @@ class CommsServer {
   }
 
   private processReceivedMessage_nonpersistent(message, sender){
-    this.logger.log('info', 'comms', "%c[CommsServer.js::processMessage_nonpersistent] Received message from background script!", "background-color: #11D; color: #aad", message, sender);
+    this.logger.info('processMessage_nonpersistent', `                   ==> Received message from background script!`, "background-color: #11D; color: #aad", message, sender);
 
     this.eventBus.send(
       message.command,

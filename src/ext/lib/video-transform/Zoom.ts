@@ -1,5 +1,4 @@
-import Debug from '../../conf/Debug';
-import Logger from '../Logger';
+import { ComponentLogger } from '../logging/ComponentLogger';
 import VideoData from '../video-data/VideoData';
 
 // calculates zooming and video offsets/panning
@@ -16,7 +15,7 @@ class Zoom {
 
   //#region helper objects
   conf: VideoData;
-  logger: Logger;
+  logger: ComponentLogger;
   //#endregion
 
   //#region misc data
@@ -34,7 +33,7 @@ class Zoom {
 
   constructor(videoData) {
     this.conf = videoData;
-    this.logger = videoData.logger;
+    this.logger = new ComponentLogger(videoData.logAggregator, 'Zoom', {});
   }
 
   reset(){
@@ -66,7 +65,7 @@ class Zoom {
     this.scale = Math.pow(2, this.logScale);
     this.scaleY = Math.pow(2, this.logScaleY);
 
-    this.logger.log('info', 'debug', "[Zoom::zoomStep] changing zoom by", amount, ". New zoom level:", this.scale);
+    this.logger.info('zoomStep', "changing zoom by", amount, ". New zoom level:", this.scale);
     this.processZoom();
   }
 
@@ -100,12 +99,12 @@ class Zoom {
     if (!stretchFactors) {
       return;
     }
-    this.logger.log('info', 'debug', "[Zoom::setZoom] Applying zoom. Stretch factors pre:", stretchFactors, " —> scale:", this.scale);
+    this.logger.info('setZoom', "Applying zoom. Stretch factors pre:", stretchFactors, " —> scale:", this.scale);
 
     stretchFactors.xFactor *= this.scale;
     stretchFactors.yFactor *= this.scale;
 
-    this.logger.log('info', 'debug', "[Zoom::setZoom] Applying zoom. Stretch factors post:", stretchFactors);
+    this.logger.info('setZoom', "Applying zoom. Stretch factors post:", stretchFactors);
   }
 }
 

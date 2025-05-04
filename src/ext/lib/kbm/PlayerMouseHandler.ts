@@ -1,5 +1,7 @@
+import { LogAggregator } from './../logging/LogAggregator';
 import EventBus, { EventBusCommand } from '../EventBus';
 import Logger from '../Logger';
+import { ComponentLogger } from '../logging/ComponentLogger';
 import Settings from '../Settings';
 import { SiteSettings } from '../settings/SiteSettings';
 import KbmBase from './KbmBase';
@@ -8,6 +10,10 @@ if(process.env.CHANNEL !== 'stable'){
   console.info("Loading PlayerMouseHandler");
 }
 
+
+const BASE_LOGGING_STYLES = {
+  log: "color: #ff0"
+};
 
 /**
  * Handles keypress
@@ -36,21 +42,21 @@ export class MouseHandler extends KbmBase {
   }
 
   //#region lifecycle
-  constructor(playerElement: HTMLElement, eventBus: EventBus, siteSettings: SiteSettings, settings: Settings, logger: Logger) {
-    super(eventBus, siteSettings, settings, logger);
+  constructor(playerElement: HTMLElement, eventBus: EventBus, siteSettings: SiteSettings, settings: Settings, logAggregator: LogAggregator) {
+    const tmpLogger = new ComponentLogger(logAggregator, 'MouseHandler', {styles: BASE_LOGGING_STYLES});
 
-    this.logger = logger;
+    super(eventBus, siteSettings, settings, tmpLogger);
+
     this.settings = settings;
     this.siteSettings = siteSettings;
     this.eventBus = eventBus;
     this.playerElement = playerElement;
 
     this.init();
-
   }
 
   init() {
-    this.logger.log('info', 'debug', '[MouseHandler::init] starting init');
+    // this.logger.debug('init', 'starting init');
   }
 
   load() {

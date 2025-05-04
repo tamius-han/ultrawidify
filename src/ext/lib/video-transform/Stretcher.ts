@@ -6,6 +6,7 @@ import VideoData from '../video-data/VideoData';
 import Logger from '../Logger';
 import Settings from '../Settings';
 import { Stretch } from '../../../common/interfaces/StretchInterface';
+import { ComponentLogger } from '../logging/ComponentLogger';
 
 // računa vrednosti za transform-scale (x, y)
 // transform: scale(x,y) se uporablja za raztegovanje videa, ne pa za približevanje
@@ -19,7 +20,7 @@ class Stretcher {
 
   //#region helper objects
   conf: VideoData;
-  logger: Logger;
+  logger: ComponentLogger;
   settings: Settings;
   siteSettings: SiteSettings;
   //#endregion
@@ -29,7 +30,7 @@ class Stretcher {
   // functions
   constructor(videoData) {
     this.conf = videoData;
-    this.logger = videoData.logger;
+    this.logger = new ComponentLogger(videoData.logAggregator, 'Stretcher', {});;
     this.siteSettings = videoData.siteSettings;
     this.settings = videoData.settings;
 
@@ -111,7 +112,7 @@ class Stretcher {
     //     * we squeeze X axis, if target AR is narrower than player size
     //     * we squeeze Y axis, if target AR is wider than the player size
 
-    this.logger.log('info', 'stretcher', `[Stretcher::applyStretchFixedSource] here's what we got:
+    this.logger.info('applyStretchFixedSource', `here's what we got:
 postCropStretchFactors: x=${postCropStretchFactors.xFactor} y=${postCropStretchFactors.yFactor}
 fixedStretchRatio:      ${this.stretch.ratio}
 videoAr:                ${streamAr}
@@ -120,7 +121,7 @@ squeezeFactor:          ${squeezeFactor}`, '\nvideo', this.conf.video);
 
     postCropStretchFactors.xFactor *= squeezeFactor;
 
-    this.logger.log('info', 'stretcher', `[Stretcher::applyStretchFixedSource] here's what we'll apply:\npostCropStretchFactors: x=${postCropStretchFactors.x} y=${postCropStretchFactors.y}`);
+    this.logger.info('applyStretchFixedSource', `here's what we'll apply:\npostCropStretchFactors: x=${postCropStretchFactors.x} y=${postCropStretchFactors.y}`);
 
     return postCropStretchFactors;
   }

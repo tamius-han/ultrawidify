@@ -19,6 +19,7 @@ import { AardDetectionSample, generateSampleArray, resetSamples } from './interf
 import { AardStatus, initAardStatus } from './interfaces/aard-status.interface';
 import { AardTestResults, initAardTestResults, resetAardTestResults, resetGuardLine } from './interfaces/aard-test-results.interface';
 import { AardTimers, initAardTimers } from './interfaces/aard-timers.interface';
+import { ComponentLogger } from '../logging/ComponentLogger';
 
 
 /**
@@ -221,7 +222,7 @@ import { AardTimers, initAardTimers } from './interfaces/aard-timers.interface';
  */
 export class Aard {
   //#region configuration parameters
-  private logger: Logger;
+  private logger: ComponentLogger;
   private videoData: VideoData;
   private settings: Settings;
   private siteSettings: SiteSettings;
@@ -292,7 +293,7 @@ export class Aard {
 
   //#region lifecycle
   constructor(videoData: VideoData){
-    this.logger = videoData.logger;
+    this.logger = new ComponentLogger(videoData.logAggregator, 'Aard', {});
     this.videoData = videoData;
     this.video = videoData.video;
     this.settings = videoData.settings;
@@ -304,7 +305,7 @@ export class Aard {
     this.arid = (Math.random()*100).toFixed();
 
     // we can tick manually, for debugging
-    this.logger.log('info', 'init', `[ArDetector::ctor] creating new ArDetector. arid: ${this.arid}`);
+    this.logger.log('ctor', `creating new ArDetector. arid: ${this.arid}`);
 
     this.timer = new AardTimer();
     this.init();
@@ -372,14 +373,14 @@ export class Aard {
         if (this.settings.active.arDetect.aardType !== 'webgl') {
           return new FallbackCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-legacy'});
         }
-        console.error('[ultrawidify|Aard::createCanvas] could not create webgl canvas:', e);
+        this.logger.error('createCanvas', 'could not create webgl canvas:', e);
         this.eventBus.send('uw-config-broadcast', {type: 'aard-error', aardErrors: {webglError: true}});
         throw e;
       }
     } else if (this.settings.active.arDetect.aardType === 'legacy') {
       return new FallbackCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-legacy'});
     } else {
-      console.error('[ultrawidify|Aard::createCanvas] invalid value in settings.arDetect.aardType:', this.settings.active.arDetect.aardType);
+      this.logger.error('createCanvas', 'invalid value in settings.arDetect.aardType:', this.settings.active.arDetect.aardType);
       this.eventBus.send('uw-config-broadcast', {type: 'aard-error', aardErrors: {invalidSettings: true}});
       throw 'AARD_INVALID_SETTINGS';
     }
@@ -725,7 +726,7 @@ export class Aard {
         return VideoPlaybackState.Playing;
       }
     } catch (e) {
-      this.logger.log('warn', 'debug', `[ArDetect::getVideoPlaybackState]  There was an error while determining video playback state.`, e);
+      this.logger.warn('getVideoPlaybackState]', `There was an error while determining video playback state.`, e);
       return VideoPlaybackState.Error;
     }
   }

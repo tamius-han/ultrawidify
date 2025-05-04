@@ -123,7 +123,8 @@ import ConfirmPopup from './common/ConfirmationPopup';
 import About from './about'
 import AutodetectionSettings  from './AutodetectionSettings';
 // import SuperAdvancedSettings from './'
-import Logger from '../ext/lib/Logger';
+import { LogAggregator } from '@src/ext/lib/logging/LogAggregator';
+import { ComponentLogger } from '@src/ext/lib/logging/ComponentLogger';
 
 export default {
   name: "Ultrawidify",
@@ -132,6 +133,7 @@ export default {
       selectedTab: "general",
       selectedTabTitle: "General settings",
       settings: {},
+      logAggregator: {},
       logger: {},
       settingsInitialized: false,
       editActionPopupVisible: false,
@@ -145,7 +147,8 @@ export default {
     }
   },
   async created () {
-    this.logger = new Logger();
+    this.logAggregator = new LogAggregator('');
+    this.logger = new ComponentLogger(this.logAggregator, 'App.vue');
     await this.logger.init({
         allowLogging: true,
     });
