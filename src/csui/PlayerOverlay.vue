@@ -205,7 +205,6 @@ import GhettoContextMenuItem from '@csui/src/components/GhettoContextMenuItem.vu
 import GhettoContextMenuOption from '@csui/src/components/GhettoContextMenuOption.vue';
 import AlignmentOptionsControlComponent from '@csui/src/PlayerUiPanels/AlignmentOptionsControlComponent.vue';
 import BrowserDetect from '@src/ext/conf/BrowserDetect';
-import Logger from '@src/ext/lib/Logger';
 import Settings from '@src/ext/lib/Settings';
 import EventBus from '@src/ext/lib/EventBus';
 import UIProbeMixin from '@csui/src/utils/UIProbeMixin';
@@ -255,6 +254,7 @@ export default {
       BrowserDetect: BrowserDetect,
       settingsInitialized: false,
       eventBus: new EventBus(),
+      logAggregator: null,
       logger: null,
 
       // NOTE: chromium doesn't allow us to access window.parent.location
@@ -326,7 +326,8 @@ export default {
     }
   },
   async created() {
-    this.logger = new Logger();
+    this.logAggregator = new LogAggregator('player-overlay');
+    this.logger = new ComponentLogger(this.logAggregator, 'PlayerOverlay.vue');
 
     // this prolly needs to be taken out
     await this.logger.init({
