@@ -1,16 +1,12 @@
-import { BLANK_LOGGER_CONFIG, LogAggregator } from './lib/logging/LogAggregator';
 import Debug from './conf/Debug';
-import ExtensionMode from '../common/enums/ExtensionMode.enum';
 import Settings from './lib/Settings';
-import Comms from './lib/comms/Comms';
 import CommsClient from './lib/comms/CommsClient';
 import PageInfo from './lib/video-data/PageInfo';
-import Logger, { baseLoggingOptions } from './lib/Logger';
-import UWGlobals from './lib/UWGlobals';
 import EventBus from './lib/EventBus';
 import KeyboardHandler from './lib/kbm/KeyboardHandler';
 import { SiteSettings } from './lib/settings/SiteSettings';
 import UI from './lib/uwui/UI';
+import { BLANK_LOGGER_CONFIG, LogAggregator } from './lib/logging/LogAggregator';
 import { ComponentLogger } from './lib/logging/ComponentLogger';
 
 export default class UWContent {

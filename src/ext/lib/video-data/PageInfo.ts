@@ -1,11 +1,6 @@
-import Debug from '../../conf/Debug';
 import VideoData from './VideoData';
 import RescanReason from './enums/RescanReason.enum';
-import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
-import CropModePersistence from '../../../common/enums/CropModePersistence.enum';
-import Logger from '../Logger';
 import Settings from '../Settings';
-import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
 import CommsClient from '../comms/CommsClient';
 import EventBus from '../EventBus';
 import { SiteSettings } from '../settings/SiteSettings';

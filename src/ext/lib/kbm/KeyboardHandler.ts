@@ -1,10 +1,5 @@
-import Debug from '../../conf/Debug';
-import PlayerData from '../video-data/PlayerData';
 import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
-import Logger from '../Logger';
-import PageInfo from '../video-data/PageInfo';
 import Settings from '../Settings';
-import VideoData from '../video-data/VideoData';
 import EventBus, { EventBusCommand } from '../EventBus';
 import KbmBase from './KbmBase';
 import { SiteSettings } from '../settings/SiteSettings';

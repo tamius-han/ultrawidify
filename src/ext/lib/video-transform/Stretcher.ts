@@ -1,9 +1,6 @@
 import { SiteSettings } from './../settings/SiteSettings';
-import StretchType from '../../../common/enums/StretchType.enum';
 import BrowserDetect from '../../conf/BrowserDetect';
-import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
 import VideoData from '../video-data/VideoData';
-import Logger from '../Logger';
 import Settings from '../Settings';
 import { Stretch } from '../../../common/interfaces/StretchInterface';
 import { ComponentLogger } from '../logging/ComponentLogger';

@@ -1,8 +1,5 @@
-import Debug from '../../conf/Debug';
 import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
-import BrowserDetect from '../../conf/BrowserDetect';
 import VideoData from '../video-data/VideoData';
-import Logger from '../Logger';
 import { Ar, ArVariant } from '../../../common/interfaces/ArInterface';
 import { ComponentLogger } from '../logging/ComponentLogger';
 

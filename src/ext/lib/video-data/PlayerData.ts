@@ -1,13 +1,9 @@
 import Debug from '../../conf/Debug';
 import ExtensionMode from '../../../common/enums/ExtensionMode.enum'
-import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
 import PlayerNotificationUi from '../uwui/PlayerNotificationUI';
-import BrowserDetect from '../../conf/BrowserDetect';
 import * as _ from 'lodash';
 import { sleep } from '../../../common/js/utils';
 import VideoData from './VideoData';
-import Settings from '../Settings';
-import Logger from '../Logger';
 import EventBus from '../EventBus';
 import UI from '../uwui/UI';
 import { SiteSettings } from '../settings/SiteSettings';

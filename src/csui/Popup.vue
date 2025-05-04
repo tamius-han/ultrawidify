@@ -121,13 +121,13 @@ import PopupVideoSettings from './src/popup/panels/PopupVideoSettings.vue'
 import AboutPanel from '@csui/src/popup/panels/AboutPanel.vue'
 import Debug from '../ext/conf/Debug';
 import BrowserDetect from '../ext/conf/BrowserDetect';
-import Comms from '../ext/lib/comms/Comms';
 import CommsClient, {CommsOrigin} from '../ext/lib/comms/CommsClient';
 import Settings from '../ext/lib/Settings';
-import Logger from '../ext/lib/Logger';
 import EventBus from '../ext/lib/EventBus';
 import {ChromeShittinessMitigations as CSM} from '../common/js/ChromeShittinessMitigations';
 import SupportLevelIndicator from '@csui/src/components/SupportLevelIndicator.vue'
+import { LogAggregator } from '@src/ext/lib/logging/LogAggregator';
+import { ComponentLogger } from '@src/ext/lib/logging/ComponentLogger';
 
 export default {
   components: {
@@ -148,6 +148,7 @@ export default {
       settingsInitialized: false,
       narrowPopup: null,
       sideMenuVisible: null,
+      logAggregator: undefined,
       logger: undefined,
       site: undefined,
       siteSettings: undefined,
@@ -173,7 +174,8 @@ export default {
   },
   async created() {
     try {
-      this.logger = new Logger();
+      this.logAggregator = new LogAggregator('🔵ext-popup🔵');
+      this.logger = new ComponentLogger(this.logAggregator, 'Popup');
       await this.logger.init({
           allowLogging: true,
       });

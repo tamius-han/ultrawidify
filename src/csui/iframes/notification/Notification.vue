@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import Logger from '../../../ext/lib/Logger';
+
 
 export default {
   components: {

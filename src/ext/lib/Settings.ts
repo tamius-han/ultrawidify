@@ -1,14 +1,8 @@
 import Debug from '../conf/Debug';
-import currentBrowser from '../conf/BrowserDetect';
 import ExtensionConf from '../conf/ExtensionConf';
-import ExtensionMode from '../../common/enums/ExtensionMode.enum';
 import ObjectCopy from './ObjectCopy';
 import StretchType from '../../common/enums/StretchType.enum';
-import VideoAlignmentType from '../../common/enums/VideoAlignmentType.enum';
 import ExtensionConfPatch from '../conf/ExtConfPatches';
-import CropModePersistence from '../../common/enums/CropModePersistence.enum';
-import BrowserDetect from '../conf/BrowserDetect';
-import Logger from './Logger';
 import SettingsInterface from '../../common/interfaces/SettingsInterface';
 import AspectRatioType from '../../common/enums/AspectRatioType.enum';
 import { SiteSettings } from './settings/SiteSettings';

@@ -1,10 +1,5 @@
 import { ComponentLogger } from './../logging/ComponentLogger';
-import { EventBusContext } from './../EventBus';
-import Debug from '../../conf/Debug';
-import BrowserDetect from '../../conf/BrowserDetect';
-import Logger from '../Logger';
 import Settings from '../Settings';
-import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
 import EventBus from '../EventBus';
 import { CommsOrigin } from './CommsClient';
 

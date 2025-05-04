@@ -1,11 +1,7 @@
-import Debug from '../../conf/Debug';
 import PlayerData from './PlayerData';
 import Resizer from '../video-transform/Resizer';
-import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
-import CropModePersistence from '../../../common/enums/CropModePersistence.enum';
 import * as _ from 'lodash';
 import BrowserDetect from '../../conf/BrowserDetect';
-import Logger from '../Logger';
 import Settings from '../Settings';
 import PageInfo from './PageInfo';
 import { sleep } from '../../../common/js/utils';

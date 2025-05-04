@@ -1,7 +1,4 @@
-import Debug from '../../conf/Debug';
 import BrowserDetect from '../../conf/BrowserDetect';
-import Logger from '../Logger';
-import Settings from '../Settings';
 import EventBus, { EventBusContext } from '../EventBus';
 import { ComponentLogger } from '../logging/ComponentLogger';
 import { LogAggregator } from '../logging/LogAggregator';

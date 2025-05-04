@@ -1,5 +1,4 @@
 import EventBus, { EventBusCommand } from '../EventBus';
-import Logger from '../Logger';
 import { ComponentLogger } from '../logging/ComponentLogger';
 import Settings from '../Settings';
 import { SiteSettings } from '../settings/SiteSettings';

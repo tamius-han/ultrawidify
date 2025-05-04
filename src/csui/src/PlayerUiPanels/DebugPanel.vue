@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import Logger, { baseLoggingOptions } from '../../../ext/lib/Logger';
+import { LogAggregator } from '@src/ext/lib/logging/LogAggregator';
 import JsonEditor from '@csui/src/components/JsonEditor';
 
 export default {
@@ -86,14 +86,14 @@ export default {
       this.lastSettings = baseLoggingOptions;
     },
     async getLoggerSettings() {
-      this.lastSettings = await Logger.getConfig() || baseLoggingOptions;
+      this.lastSettings = await LogAggregator.getConfig() || baseLoggingOptions;
     },
     saveLoggerSettings() {
-      Logger.saveConfig({...this.lastSettings});
+      LogAggregator.saveConfig({...this.lastSettings});
     },
     async startLogging(){
       this.logStringified = undefined;
-      await Logger.saveConfig({...this.lastSettings, allowLogging: true});
+      await LogAggregator.saveConfig({...this.lastSettings, allowLogging: true});
       window.location.reload();
     },
   }

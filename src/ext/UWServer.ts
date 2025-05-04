@@ -1,12 +1,11 @@
-import { BLANK_LOGGER_CONFIG, LogAggregator } from './lib/logging/LogAggregator';
 import Debug from './conf/Debug.js';
 import BrowserDetect from './conf/BrowserDetect';
 import CommsServer from './lib/comms/CommsServer';
 import Settings from './lib/Settings';
-import Logger, { baseLoggingOptions } from './lib/Logger';
 import { sleep } from '../common/js/utils';
 import EventBus, { EventBusCommand } from './lib/EventBus';
 import { ComponentLogger } from './lib/logging/ComponentLogger';
+import { BLANK_LOGGER_CONFIG, LogAggregator } from './lib/logging/LogAggregator';
 
 
 const BASE_LOGGING_STYLES = {
