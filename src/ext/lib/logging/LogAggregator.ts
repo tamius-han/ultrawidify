@@ -4,11 +4,6 @@ export const BLANK_LOGGER_CONFIG: LogConfig = {
   logToConsole: false,
   logToFile: false,
   component: {
-    aard: { enabled: false },
-    resizer: { enabled: false },
-    comms: { enabled: false },
-    settings: { enabled: false },
-    eventBus: { enabled: false },
   },
   origins: {
     videoRescan: { disabled: true},
@@ -36,6 +31,7 @@ export interface LogConfig {
   }
 }
 
+const STORAGE_LOG_SETTINGS_KEY = 'uw-log-config';
 
 export class LogAggregator {
   private segment: string;
@@ -46,29 +42,34 @@ export class LogAggregator {
   history: any[];
 
   static async getConfig() {
-    let ret = await chrome.storage.local.get('uw-log-config');
+    let ret = await chrome.storage.local.get(STORAGE_LOG_SETTINGS_KEY);
 
     if (process.env.CHANNEL === 'dev') {
       try {
-        console.info("[Logger::getSaved] Got settings:", JSON.parse(ret.uwLogger));
+        console.info("[LogAggregator::getSaved] Got settings:", JSON.parse(ret[STORAGE_LOG_SETTINGS_KEY]));
       } catch (e) {
-        console.info("[Logger::getSaved] No settings.")
+        console.info("[LogAggregator::getSaved] No settings.", ret)
       }
     }
 
     try {
-      return JSON.parse(ret['uw-log-config']);
+      return JSON.parse(ret[STORAGE_LOG_SETTINGS_KEY]);
     } catch (e) {
       return JSON.parse(JSON.stringify(BLANK_LOGGER_CONFIG));
     }
   }
 
-  static saveConfig(conf: LogConfig) {
-    if (process.env.CHANNEL === 'dev') {
-      console.info('Saving logger conf:', conf)
-    }
+  static async saveConfig(conf: LogConfig) {
+    try {
+      const confCp = JSON.parse(JSON.stringify(conf));
+      if (process.env.CHANNEL === 'dev') {
+        console.info('Saving logger conf:', confCp)
+      }
 
-    chrome.storage.local.set( {'uw-log-config': JSON.stringify(conf)});
+      await chrome.storage.local.set({[STORAGE_LOG_SETTINGS_KEY]: JSON.stringify(confCp)} );
+    } catch (e) {
+      console.warn('[LogAggregator::saveConfig] Error while trying to save logger config:', e);
+    }
   }
 
   static syncConfig(callback: (x) => void) {
@@ -89,26 +90,35 @@ export class LogAggregator {
     chrome.storage.onChanged.addListener((changes, area) => {
       this.storageChangeListener(changes, area)
     });
+
+    this.init();
   }
 
   private canLog(component: string, sourceOptions?: LogSourceOptions): boolean {
+    // component is not in config, so we add a blank entry
+    if (this.config && !this.config.component[component]) {
+      this.config.component[component] = {enabled: false};
+      LogAggregator.saveConfig(this.config);
+      return false;
+    }
     if (this.config?.component?.[component]?.enabled) {
       if (sourceOptions?.origin && this.config?.origins?.[sourceOptions.origin]?.disabled) {
         return false;
       }
       return true;
     }
+
     return false;
   }
 
   private storageChangeListener(changes, area) {
-    if (!changes.uwLogger) {
-      console.info('We dont have any logging settings, not processing frther');
+    if (!changes[STORAGE_LOG_SETTINGS_KEY]) {
+      console.info('We dont have any logging settings, not processing frther', changes);
       return;
     }
 
     try {
-      this.config = JSON.parse(changes['uw-log-config'].newValue);
+      this.config = JSON.parse(changes[STORAGE_LOG_SETTINGS_KEY].newValue);
     } catch (e) {
       console.warn('[uwLogger] Error while trying to parse new conf for logger:', e, '\nWe received the following changes:', changes, 'for area:', area);
     }
@@ -188,7 +198,11 @@ export class LogAggregator {
 
   }
 
-  async init(config: LogConfig) {
+  async init(config?: LogConfig) {
+    if (!config) {
+      config = await LogAggregator.getConfig();
+    }
+
     this.config = config;
     this.startTime = performance.now();
 
@@ -211,7 +225,7 @@ export class LogAggregator {
 
     }
 
-    if (this.config.logToConsole) {
+    if (this.config.logToConsole){
       console[logLevel](`[${this.segment}]>>${message}`, ...data, {stack: this.parseStack()});
     }
   }

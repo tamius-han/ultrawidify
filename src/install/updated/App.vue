@@ -87,11 +87,7 @@ export default {
     this.logAggregator = new LogAggregator('');
     this.logger = new ComponentLogger(this.logAggregator, 'App.vue');
 
-    await this.logger.init({
-        allowLogging: true,
-    });
-
-    this.settings = new Settings({updateCallback: () => this.updateConfig(), logger: this.logger});
+    this.settings = new Settings({updateCallback: () => this.updateConfig(), logAggregator: this.logAggregator});
     await this.settings.init();
     this.settingsInitialized = true;
   },

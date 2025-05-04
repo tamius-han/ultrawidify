@@ -213,6 +213,8 @@ import CommsMixin from '@csui/src/utils/CommsMixin';
 import SupportLevelIndicator from '@csui/src/components/SupportLevelIndicator.vue';
 import TriggerZoneEditor from '@csui/src/components/TriggerZoneEditor.vue';
 import ZoomControl from '@csui/src/popup/player-menu/ZoomControl.vue';
+import { LogAggregator } from '@src/ext/lib/logging/LogAggregator';
+import { ComponentLogger } from '@src/ext/lib/logging/ComponentLogger';
 
 export default {
   components: {
@@ -328,11 +330,6 @@ export default {
   async created() {
     this.logAggregator = new LogAggregator('player-overlay');
     this.logger = new ComponentLogger(this.logAggregator, 'PlayerOverlay.vue');
-
-    // this prolly needs to be taken out
-    await this.logger.init({
-        allowLogging: true,
-    });
 
     this.settings = new Settings({afterSettingsSaved: this.updateConfig, logger: this.logger});
     this.settings.listenAfterChange(() => this.updateTriggerZones());

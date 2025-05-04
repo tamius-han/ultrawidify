@@ -44,13 +44,6 @@ export default {
   },
 
   async created() {
-    this.logger = new Logger();
-
-    // this prolly needs to be taken out
-    await this.logger.init({
-      allowLogging: true,
-    });
-
     /**
      * Setup the "companion" onMouseMove handler to the one in the content script.
      * We can handle events with the same function we use to handle events from

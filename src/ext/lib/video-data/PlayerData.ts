@@ -190,7 +190,7 @@ class PlayerData {
   constructor(videoData) {
     try {
       // set all our helper objects
-      this.logger = new ComponentLogger(videoData.logAggregator, 'PlayerData', {styles: Debug.getLoggingStyles()});
+      this.logger = new ComponentLogger(videoData.logAggregator, 'PlayerData', {styles: {}});
       this.videoData = videoData;
       this.videoElement = videoData.video;
       this.pageInfo = videoData.pageInfo;

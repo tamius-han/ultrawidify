@@ -27,7 +27,7 @@ export class ComponentLogger {
   private handleLog(logLevel: LogLevel, sourceFunction: string | LogSourceOptions, ...message: any) {
     let functionSource = typeof sourceFunction === 'string' ? sourceFunction : sourceFunction?.src;
 
-    let consoleMessageString = `[${this.component}${functionSource ? `::${functionSource}` : ''}] `;
+    let consoleMessageString = `[${this.component}${functionSource ? `::${functionSource}` : ''}]`;
     const consoleMessageData = []
 
     for (const m of message) {
@@ -35,10 +35,13 @@ export class ComponentLogger {
         consoleMessageString = `${consoleMessageString} ${m}`;
       } else if (typeof m === 'number') {
         consoleMessageString = `${consoleMessageString} %f`;
-      } else if (m instanceof HTMLElement) {
+        consoleMessageData.unshift(m);
+      } else if (typeof HTMLElement !== 'undefined' && m instanceof HTMLElement) { // HTMLElement does not exist in background script, but this class may
         consoleMessageString = `${consoleMessageString} %o`;
+        consoleMessageData.unshift(m);
       } else {
         consoleMessageString = `${consoleMessageString} %O`;
+        consoleMessageData.unshift(m);
       }
     }
 

@@ -176,11 +176,8 @@ export default {
     try {
       this.logAggregator = new LogAggregator('🔵ext-popup🔵');
       this.logger = new ComponentLogger(this.logAggregator, 'Popup');
-      await this.logger.init({
-          allowLogging: true,
-      });
 
-      this.settings = new Settings({afterSettingsSaved: () => this.updateConfig(), logger: this.logger});
+      this.settings = new Settings({afterSettingsSaved: () => this.updateConfig(), logAggregator: this.logAggregator});
       await this.settings.init();
       this.settingsInitialized = true;
 

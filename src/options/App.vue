@@ -111,10 +111,6 @@
 <script>
 import Donate from '../common/misc/Donate.vue';
 import SuperAdvancedSettings from './SuperAdvancedSettings.vue';
-import Debug from '../ext/conf/Debug';
-import BrowserDetect from '../ext/conf/BrowserDetect';
-import ExtensionConf from '../ext/conf/ExtensionConf';
-import ObjectCopy from '../ext/lib/ObjectCopy';
 import Settings from '../ext/lib/Settings';
 import GeneralSettings from './GeneralSettings';
 import ControlsSettings from './controls-settings/ControlsSettings';
@@ -122,7 +118,6 @@ import AddEditActionPopup from './controls-settings/AddEditActionPopup';
 import ConfirmPopup from './common/ConfirmationPopup';
 import About from './about'
 import AutodetectionSettings  from './AutodetectionSettings';
-// import SuperAdvancedSettings from './'
 import { LogAggregator } from '@src/ext/lib/logging/LogAggregator';
 import { ComponentLogger } from '@src/ext/lib/logging/ComponentLogger';
 
@@ -149,11 +144,8 @@ export default {
   async created () {
     this.logAggregator = new LogAggregator('');
     this.logger = new ComponentLogger(this.logAggregator, 'App.vue');
-    await this.logger.init({
-        allowLogging: true,
-    });
 
-    this.settings = new Settings({updateCallback: this.updateSettings, logger: this.logger});
+    this.settings = new Settings({updateCallback: this.updateSettings, logAggregator: this.logAggregator});
     await this.settings.init();
 
     this.settingsInitialized = true;
