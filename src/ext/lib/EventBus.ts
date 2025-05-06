@@ -94,7 +94,9 @@ export default class EventBus {
 
     // preventing messages from flowing back to their original senders is
     // CommsServer's job. EventBus does not have enough data for this decision.
-    if (this.comms) {
+    // We do, however, have enough data to prevent backflow of messages that
+    // crossed CommsServer once already.
+    if (this.comms && context?.origin !== CommsOrigin.Server) {
       this.comms.sendMessage({command, config: commandData, context}, context);
     }
 
