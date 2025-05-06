@@ -22,6 +22,7 @@ export class ComponentLogger {
   constructor(logAggregator: LogAggregator, component: string, componentOptions?: ComponentLoggerOptions) {
     this.logAggregator = logAggregator;
     this.component = component;
+    this.componentOptions = componentOptions;
   }
 
   private handleLog(logLevel: LogLevel, sourceFunction: string | LogSourceOptions, ...message: any) {
