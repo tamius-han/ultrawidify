@@ -52,9 +52,26 @@ class CommsServer {
   } = {};
   popupPort: any;
 
+  private _lastActiveTab: chrome.tabs.Tab | undefined;
   //#region getters
-  get activeTab() {
-    return chrome.tabs.query({currentWindow: true, active: true});
+  get activeTab(): Promise<chrome.tabs.Tab | undefined> {
+    return new Promise((resolve, reject) => {
+      chrome.tabs
+        .query({currentWindow: true, active: true})
+        .then((tabs) => {
+          if (tabs.length === 0) {
+            this.logger.warn('<getter-activeTab>', 'no active tab found, returning last valid active tab instead ...', this._lastActiveTab);
+            resolve(this._lastActiveTab);
+          } else {
+            this.logger.log('<getter-activeTab>', 'getting active tab', tabs[0]);
+            this._lastActiveTab = tabs[0];
+            resolve(tabs[0]);
+          }
+        })
+        .catch((err) => {
+          this.logger.error('<getter-activeTab>', 'error while getting active tab — returned last valid active tab instead ...', err, this._lastActiveTab);
+        });
+    });
   }
   //#endregion
 
@@ -110,6 +127,10 @@ class CommsServer {
     // stop messages from returning where they came from, and prevent
     // cross-pollination between content scripts running in different
     // tabs.
+    if (!context) {
+      this.logger.debug('sendMessage', 'context was not passed in as parameter - does message have context?', message.context);
+      context = message.context;
+    }
 
     if (context?.origin !== CommsOrigin.ContentScript) {
       if (context?.comms.forwardTo === 'all') {
@@ -236,13 +257,13 @@ class CommsServer {
   private async sendToActive(message) {
     this.logger.info('sendToActive', `      <——— trying to send a message ${message.command ?? ''} to active tab. Message:`, message);
 
-    const tabs = await this.activeTab;
+    const tab = await this.activeTab;
 
-    this.logger.info('sendToActive', "currently active tab(s)?", tabs);
+    this.logger.info('sendToActive', "currently active tab?", tab);
 
-    for (const frame in this.ports[tabs[0].id]) {
-      this.logger.info('sendToActive', "sending message to frame:", frame, this.ports[tabs[0].id][frame], '; message:', message);
-      this.sendToFrameContentScripts(message, tabs[0].id, frame);
+    for (const frame in this.ports[tab.id]) {
+      this.logger.info('sendToActive', "sending message to frame:", frame, this.ports[tab.id][frame], '; message:', message);
+      this.sendToFrameContentScripts(message, tab.id, frame);
     }
   }
 
@@ -269,7 +290,7 @@ class CommsServer {
   }
 
   private processReceivedMessage_nonpersistent(message, sender){
-    this.logger.info('processMessage_nonpersistent', `                   ==> Received message from background script!`, "background-color: #11D; color: #aad", message, sender);
+    this.logger.info('processMessage_nonpersistent', `                   ==> Received message from background script!`, message, sender);
 
     this.eventBus.send(
       message.command,
