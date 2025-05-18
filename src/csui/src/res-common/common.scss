@@ -89,6 +89,12 @@ button, .button {
     border-bottom: 1px solid rgba($primary, 0.5);
   }
 
+  &.no-bg {
+    background-color: transparent;
+    border-color: transparent;
+  }
+
+
   input {
     width: 100%;
     outline: none;

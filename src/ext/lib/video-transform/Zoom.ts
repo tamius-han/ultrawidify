@@ -30,6 +30,7 @@ class Zoom {
   maxScale = 8;
   //#endregion
 
+  effectiveZoom: {x: number, y: number}; // we're setting this in Resizer based on Resizer data!
 
   constructor(videoData) {
     this.conf = videoData;
@@ -50,7 +51,12 @@ class Zoom {
    * @param axis — leave undefined to apply zoom to both axes
    */
   zoomStep(amount: number, axis?: 'x' | 'y') {
-    let newLog = axis === 'y' ? this.logScaleY : this.logScale;
+    const effectiveLog = {
+      x: Math.log2(this.effectiveZoom.x),
+      y: Math.log2(this.effectiveZoom.y)
+    };
+
+    let newLog = axis === 'y' ? effectiveLog.y : effectiveLog.x;
     newLog += amount;
     newLog = Math.min(Math.max(newLog, LOG_MIN_SCALE), LOG_MAX_SCALE);
 
@@ -65,7 +71,6 @@ class Zoom {
     this.scale = Math.pow(2, this.logScale);
     this.scaleY = Math.pow(2, this.logScaleY);
 
-    this.logger.info('zoomStep', "changing zoom by", amount, ". New zoom level:", this.scale);
     this.processZoom();
   }
 
@@ -93,18 +98,6 @@ class Zoom {
   processZoom() {
     this.conf.resizer.toFixedAr();
     this.conf.resizer.applyScaling({xFactor: this.scale, yFactor: this.scaleY}, {noAnnounce: true});
-  }
-
-  applyZoom(stretchFactors){
-    if (!stretchFactors) {
-      return;
-    }
-    this.logger.info('setZoom', "Applying zoom. Stretch factors pre:", stretchFactors, " —> scale:", this.scale);
-
-    stretchFactors.xFactor *= this.scale;
-    stretchFactors.yFactor *= this.scale;
-
-    this.logger.info('setZoom', "Applying zoom. Stretch factors post:", stretchFactors);
   }
 }
 

@@ -1,42 +1,109 @@
 <template>
-  <div>
-    Custom zoom
+  <div class="flex flex-row" style="width: 250px;">
+    <div class="flex-grow">
+      Custom zoom
+    </div>
+    <div class="flex flex-row">
+      <Button
+        v-if="zoomAspectRatioLocked"
+        icon="lock"
+        :iconSize="16"
+        :fixedWidth="true"
+        :noPad="true"
+        @click="toggleZoomAr()"
+      >
+      </Button>
+      <Button
+        v-else
+        icon="lock-open-variant"
+        :iconSize="16"
+        :fixedWidth="true"
+        :noPad="true"
+        @click="toggleZoomAr()"
+      >
+      </Button>
+      <Button
+        icon="restore"
+        :iconSize="16"
+        :noPad="true"
+        @click="resetZoom()"
+      ></Button>
+    </div>
   </div>
 
-  <div class="top-label">Zoom:</div>
-  <div class="input range-input">
-    <input
-      type="range"
-      class="slider"
-      min="0"
-      max="3"
-      step="0.01"
-    />
-    <input
-    />
-  </div>
-
-  <template v-if="true">
-    <div class="top-label">Vertical zoom:</div>
-    <div class="input range-input">
+  <template v-if="zoomAspectRatioLocked">
+    <div class="input range-input no-bg">
       <input
         type="range"
         class="slider"
-        min="0"
+        min="-1"
         max="3"
         step="0.01"
+        :value="zoom.x"
+        @input="changeZoom($event.target.value)"
       />
       <input
+        class="disabled"
+        style="width: 2rem;"
+        :value="getZoomForDisplay('x')"
+      />
+    </div>
+
+  </template>
+  <template v-else>
+    <div class="top-label">Horizontal zoom:</div>
+    <div class="input range-input no-bg">
+      <input
+        type="range"
+        class="slider"
+        min="-1"
+        max="3"
+        step="0.01"
+        :value="zoom.x"
+        @input="changeZoom($event.target.value, 'x')"
+      />
+      <input
+        class="disabled"
+        style="width: 2rem;"
+        :value="getZoomForDisplay('x')"
+      />
+    </div>
+    <div class="top-label">Vertical zoom:</div>
+    <div class="input range-input no-bg">
+      <input
+        type="range"
+        class="slider"
+        min="-1"
+        max="3"
+        step="0.01"
+        :value="zoom.y"
+        @input="changeZoom($event.target.value, 'y')"
+      />
+      <input
+        class="disabled"
+        style="width: 2rem;"
+        :value="getZoomForDisplay('y')"
       />
     </div>
   </template>
-
-  <div><input type="checkbox"/> Control vertical and horizontal zoom independently.</div>
 </template>
 
 <script>
+import Button from '@csui/src/components/Button.vue';
+import * as _ from 'lodash';
 
 export default {
+  components: {
+    Button,
+
+  },
+  mixins: [
+
+  ],
+  props: [
+    'settings',      // required for buttons and actions, which are global
+    'eventBus'
+  ],
   data() {
     return {
       zoomAspectRatioLocked: true,
@@ -51,17 +118,42 @@ export default {
         stretch: null,
         zoom: null,
         pan: null
-      }
+      },
+      pollingInterval: undefined,
+      debouncedGetEffectiveZoom: undefined,
     }
   },
-  mixins: [
-
-  ],
-  props: [
-    'settings',      // required for buttons and actions, which are global
-    'eventBus'
-  ],
+  created() {
+    this.eventBus?.subscribeMulti(
+      {
+        'announce-zoom': {
+          function: (data) => {
+            this.zoom = {
+              x: Math.log2(data.x),
+              y: Math.log2(data.y)
+            };
+          }
+        }
+      },
+      this
+    );
+    this.debouncedGetEffectiveZoom = _.debounce(
+      () => {
+        this.getEffectiveZoom();
+      },
+      250
+    ),
+    this.getEffectiveZoom();
+    this.pollingInterval = setInterval(this.debouncedGetEffectiveZoom, 2000);
+  },
+  destroyed() {
+    this.eventBus.unsubscribe(this);
+    clearInterval(this.pollingInterval);
+  },
   methods: {
+    getEffectiveZoom() {
+      this.eventBus?.sendToTunnel('get-effective-zoom', {});
+    },
     getZoomForDisplay(axis) {
       // zoom is internally handled logarithmically, because we want to have x0.5, x1, x2, x4 ... magnifications
       // spaced out at regular intervals. When displaying, we need to convert that to non-logarithmic values.
@@ -81,25 +173,36 @@ export default {
       // this.eventBus.send('set-zoom', {zoom: 1, axis: 'y'});
       // this.eventBus.send('set-zoom', {zoom: 1, axis: 'x'});
 
-      this.eventBus?.sendToTunnel('set-zoom', {zoom: 1, axis: 'y'});
-      this.eventBus?.sendToTunnel('set-zoom', {zoom: 1, axis: 'x'});
+      this.eventBus?.sendToTunnel('set-zoom', {zoom: 1});
     },
-    changeZoom(newZoom, axis) {
-      // we store zoom logarithmically on this compnent
-      if (!axis) {
-        this.zoom.x = newZoom;
+    changeZoom(newZoom, axis, isLinear) {
+      if (isNaN(+newZoom)) {
+        return;
+      }
+
+      let logZoom, linZoom;
+      if (isLinear) {
+        newZoom /= 100;
+        logZoom = Math.log2(newZoom);
+        linZoom = newZoom;
       } else {
-        this.zoom[axis] = newZoom;
+        logZoom = newZoom;
+        linZoom = Math.pow(2, newZoom);
+      }
+
+      // we store zoom logarithmically on this component
+      if (!axis) {
+        this.zoom.x = logZoom;
+      } else {
+        this.zoom[axis] = logZoom;
       }
 
       // we do not use logarithmic zoom elsewhere, therefore we need to convert
-      newZoom = Math.pow(2, newZoom);
 
       if (this.zoomAspectRatioLocked) {
-        this.eventBus?.sendToTunnel('set-zoom', {zoom: newZoom, axis: 'y'});
-        this.eventBus?.sendToTunnel('set-zoom', {zoom: newZoom, axis: 'x'});
+        this.eventBus?.sendToTunnel('set-zoom', {zoom: linZoom});
       } else {
-        this.eventBus?.sendToTunnel('set-zoom', {zoom: newZoom, axis: axis ?? 'x'});
+        this.eventBus?.sendToTunnel('set-zoom', {zoom: {[axis ?? 'x']: linZoom}});
       }
     },
   }

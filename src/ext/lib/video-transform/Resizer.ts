@@ -63,6 +63,8 @@ class Resizer {
   currentCssValidFor: any;
   currentVideoSettings: any;
 
+  private effectiveZoom: {x: number, y: number} = {x: 1, y: 1};
+
   _lastAr: Ar = {type: AspectRatioType.Initial};
   set lastAr(x: Ar) {
     // emit updates for UI when setting lastAr, but only if AR really changed
@@ -88,6 +90,11 @@ class Resizer {
 
   //#region event bus configuration
   private eventBusCommands = {
+    'get-effective-zoom': [{
+      function: () => {
+        this.eventBus.send('announce-zoom', this.manualZoom ? {x: this.zoom.scale, y: this.zoom.scaleY} : this.zoom.effectiveZoom);
+      }
+    }],
     'set-ar': [{
       function: (config: any) => {
         this.manualZoom = false; // this only gets called from UI or keyboard shortcuts, making this action safe.
@@ -136,7 +143,9 @@ class Resizer {
       }
     }],
     'set-zoom': [{
-      function: (config: any) => this.setZoom(config.zoom)
+      function: (config: any) => {
+        this.setZoom(config?.zoom ?? {zoom: 1});
+      }
     }],
     'change-zoom': [{
       function: (config: any) => this.zoomStep(config.zoom)
@@ -449,12 +458,12 @@ class Resizer {
   }
 
   applyScaling(stretchFactors: VideoDimensions, options?: {noAnnounce?: boolean, ar?: Ar}) {
-    // this.stretcher.chromeBugMitigation(stretchFactors);
+    this.zoom.effectiveZoom = {x: stretchFactors.xFactor, y: stretchFactors.yFactor};
 
-    // let the UI know
-    if(!options?.noAnnounce) {
-      this.videoData.eventBus.send('announce-zoom', {x: stretchFactors.xFactor, y: stretchFactors.yFactor});
-    }
+    // announcing zoom somehow keeps incorrectly resetting zoom sliders in UI — UI is now polling for effective zoom while visible
+    // if(!options?.noAnnounce) {
+    //   this.videoData.eventBus.send('announce-zoom', this.manualZoom ? {x: this.zoom.scale, y: this.zoom.scaleY} : this.zoom.effectiveZoom);
+    // }
 
     let translate = this.computeOffsets(stretchFactors, options?.ar);
     this.applyCss(stretchFactors, translate);

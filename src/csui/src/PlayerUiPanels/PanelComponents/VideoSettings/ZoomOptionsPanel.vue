@@ -108,26 +108,6 @@
 
         </div>
       </div>
-
-      <!-- <div v-if="siteSettings && allowSettingSiteDefault" class="edit-action-area">
-        <div class="field">
-          <div class="label">Default for this site</div>
-          <div class="select">
-            <select
-              :value="siteDefaultZoom"
-              @change="setDefaultZoom($event, 'site')"
-            >
-              <option
-                v-for="(command, index) of settings?.active.commands.zoom"
-                :key="index"
-                :value="JSON.stringify(command.arguments)"
-              >
-                {{command.label}}
-              </option>
-            </select>
-          </div>
-        </div>
-      </div> -->
     </template>
     <template v-else>
       <!--
@@ -228,6 +208,13 @@ export default {
     KeyboardShortcutParserMixin,
     CommsMixin
   ],
+  props: [
+    'settings',      // required for buttons and actions, which are global
+    'siteSettings',
+    'eventBus',
+    'isEditing',
+    'compact',
+  ],
   data() {
     return {
       AspectRatioType,
@@ -247,13 +234,6 @@ export default {
       }
     }
   },
-  props: [
-    'settings',      // required for buttons and actions, which are global
-    'siteSettings',
-    'eventBus',
-    'isEditing',
-    'compact',
-  ],
   created() {
     if (this.isEditing) {
       this.enableEditMode();
@@ -272,7 +252,6 @@ export default {
     getZoomForDisplay(axis) {
       // zoom is internally handled logarithmically, because we want to have x0.5, x1, x2, x4 ... magnifications
       // spaced out at regular intervals. When displaying, we need to convert that to non-logarithmic values.
-
       return `${(Math.pow(2, this.zoom[axis]) * 100).toFixed()}%`
     },
     toggleZoomAr() {
