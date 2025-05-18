@@ -119,6 +119,9 @@ const ExtensionConfPatch = Object.freeze([
           onKeyUp: true,
           onKeyDown: false,
         },
+        arguments: {
+          zoom: 1
+        },
         internalOnly: true,
         actionId: 'set-zoom-reset'
       }, {
