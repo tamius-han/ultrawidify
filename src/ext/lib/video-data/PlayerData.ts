@@ -482,10 +482,17 @@ class PlayerData {
     }
   }
 
-  onPlayerDimensionsChanged(mutationList?, observer?) {
-    this.trackDimensionChanges();
-    this.trackEnvironmentChanges();
-  }
+  onPlayerDimensionsChanged: ResizeObserverCallback = _.debounce(
+      (mutationList?, observer?) => {
+      this.trackDimensionChanges();
+      this.trackEnvironmentChanges();
+    },
+    250,                // do it once per this many ms
+    {
+      leading: true,    // do it when we call this fallback first
+      trailing: true    // do it after the timeout if we call this callback few more times
+    }
+  );
 
 
   //#region player element change detection
@@ -499,29 +506,19 @@ class PlayerData {
     }
 
     try {
-      this.observer = new ResizeObserver(
-        _.debounce(           // don't do this too much:
-          (m,o) => {
-            this.onPlayerDimensionsChanged(m,o)
-          },
-          250,                // do it once per this many ms
-          {
-            leading: true,    // do it when we call this fallback first
-            trailing: true    // do it after the timeout if we call this callback few more times
-          }
-        )
-      );
+      if (this.observer) {
+        this.observer.disconnect();
+      }
 
-      const observerConf = {
-        attributes: true,
-        // attributeFilter: ['style', 'class'],
-        attributeOldValue: true,
-      };
+      this.observer = new ResizeObserver(
+        this.onPlayerDimensionsChanged
+      );
 
       this.observer.observe(this.element);
     } catch (e) {
-      console.error("failed to set observer",e )
+      console.error("failed to set observer",e );
     }
+
     // legacy mode still exists, but acts as a fallback for observers and is triggered less
     // frequently in order to avoid too many pointless checks
     this.legacyChangeDetection();
