@@ -128,7 +128,7 @@ class CommsClient {
   }
   //#endregion
 
-  async sendMessage(message, context?: EventBusContext){
+  async sendMessage(message, context?: EventBusContext, borderCrossings?){
     this.logger.info('sendMessage', '         <<< Sending message to background script:', message);
 
     message = JSON.parse(JSON.stringify(message)); // vue quirk. We should really use vue store instead
@@ -144,8 +144,11 @@ class CommsClient {
         return port.postMessage(message);
       }
     }
+
     // send to server
-    return chrome.runtime.sendMessage(null, message, null);
+    if (!context?.borderCrossings.commsServer) {
+      return chrome.runtime.sendMessage(null, message, null);
+    }
   }
 
   /**
@@ -170,7 +173,10 @@ class CommsClient {
       message.config,
       {
         comms,
-        origin: CommsOrigin.Server
+        origin: CommsOrigin.Server,
+        borderCrossings: {
+          commsServer: true
+        }
       }
     );
   }

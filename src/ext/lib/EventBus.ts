@@ -19,6 +19,10 @@ export interface EventBusContext {
     frame?: any,
     sourceFrame?: IframeData
     forwardTo?: 'all' | 'active' | 'contentScript' | 'server' | 'sameOrigin' | 'popup' | 'all-frames',
+  };
+  borderCrossings?: {
+    commsServer?: boolean,
+    iframe?: boolean,
   }
 }
 
@@ -29,6 +33,9 @@ export default class EventBus {
 
   private disableTunnel: boolean = false;
   private popupContext: any = {};
+
+  private iframeForwardingList: {iframe: any, fn: (action, payload, context?) => void}[] = [];
+
   // private uiUri = window.location.href;
 
   constructor(options?: {isUWServer?: boolean}) {
@@ -83,6 +90,18 @@ export default class EventBus {
     }
   }
 
+  forwardToIframe(iframe: any, fn: (action: string, payload: any, context?: EventBusContext) => void) {
+    this.cancelIframeForwarding(iframe);
+    this.iframeForwardingList.push({iframe, fn});
+  }
+
+  cancelIframeForwarding(iframe: any) {
+    const existingForwarding = this.iframeForwardingList.findIndex((x: any) => x.iframe === iframe);
+    if (existingForwarding !== -1) {
+      this.iframeForwardingList.splice(existingForwarding, 1);
+    }
+  }
+
   send(command: string, commandData: any, context?: EventBusContext) {
     // execute commands we have subscriptions for
 
@@ -96,8 +115,25 @@ export default class EventBus {
     // CommsServer's job. EventBus does not have enough data for this decision.
     // We do, however, have enough data to prevent backflow of messages that
     // crossed CommsServer once already.
-    if (this.comms && context?.origin !== CommsOrigin.Server) {
+    if (this.comms && context?.origin !== CommsOrigin.Server && !context?.borderCrossings?.commsServer) {
       this.comms.sendMessage({command, config: commandData, context}, context);
+    };
+
+    // call forwarding functions if they exist
+    if (!context?.borderCrossings?.iframe) {
+      for (const forwarding of this.iframeForwardingList) {
+        forwarding.fn(
+          command,
+          commandData,
+          {
+            ...context,
+            borderCrossings: {
+              ...context?.borderCrossings,
+              iframe: true
+            }
+          }
+        );
+      }
     }
 
     if (context?.stopPropagation) {

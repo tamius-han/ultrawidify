@@ -572,7 +572,17 @@ export default {
     },
 
     handleBusTunnelIn(payload) {
-      this.eventBus.send(payload.action, payload.config, payload.routingData);
+      this.eventBus.send(
+        payload.action,
+        payload.config,
+        {
+          ...payload.context,
+          borderCrossings: {
+            ...payload.context?.borderCrossings,
+            iframe: true
+          }
+        }
+      );
     },
 
     updateConfig() {

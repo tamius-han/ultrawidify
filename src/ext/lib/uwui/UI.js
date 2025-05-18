@@ -205,10 +205,18 @@ class UI {
       document.addEventListener('mousemove', fn, true);
     }
 
+    this.eventBus.forwardToIframe(
+        this.uiIframe,
+        (action, payload) => {
+          this.sendToIframe(action, payload, {})
+        }
+      );
+
     this.rootDiv.appendChild(iframe);
   }
 
   unloadIframe() {
+    this.eventBus.cancelIframeForwarding(this.uiIframe);
     window.removeEventListener('message', this.messageHandlerFn);
     this.uiIframe?.remove();
     delete this.uiIframe;
@@ -416,7 +424,17 @@ class UI {
           break;
         case 'uw-bus-tunnel':
           const busCommand = event.data.payload;
-          this.eventBus.send(busCommand.action, busCommand.config, busCommand.routingData);
+          this.eventBus.send(
+            busCommand.action,
+            busCommand.config,
+            {
+              ...busCommand?.context,
+              borderCrossings: {
+                ...busCommand?.context?.borderCrossings,
+                iframe: true,
+              }
+            }
+          );
           break;
         case 'uwui-get-role':
           this.sendToIframeLowLevel('uwui-set-role', {role: this.isGlobal ? 'global' : 'player'});
