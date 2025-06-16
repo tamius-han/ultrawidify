@@ -275,7 +275,13 @@ export default {
         this.logger.log('info','popup', '[popup::getSite] Requesting current site ...')
         // CSM.port.postMessage({command: 'get-current-site'});
         this.eventBus.send(
+          'probe-video',
+          {},
+          { comms: {forwardTo: 'active'} }
+        );
+        this.eventBus.send(
           'get-current-site',
+          {},
           {
             comms: {forwardTo: 'active'}
           }

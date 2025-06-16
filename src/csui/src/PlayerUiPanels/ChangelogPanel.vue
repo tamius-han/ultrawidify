@@ -5,13 +5,15 @@
         <h1>What's new</h1>
         <!-- <p>Full changelog for older versions <a href="https://github.com/tamius-han/ultrawidify/blob/master/CHANGELOG.md" target="_blank">is available here</a>.</p> -->
 
-        <h2>6.2.6</h2>
+        <h2>6.3.0</h2>
         <ul>
           <li>Automatic aspect ratio detection: do not apply negative aspect ratios</li>
           <li>Keyboard zoom now works</li>
           <li><code>www.youtube-nocookie.com</code> has been added to the "officially supported" list</li>
           <li>Fixed the bug where UI would sometimes refuse to stay hidden</li>
           <li>New experimental zoom options</li>
+          <li>Subdomains now inherit same settings as their parent domain by default</li>
+          <li>Extension attempts to detect embedded content.</li>
         </ul>
       </div>
       <div style="width: 1rem; height: 0px;"></div>

@@ -186,7 +186,9 @@ export class AardDebugUi {
         <div style="flex-grow: 1">${this.generateMiniGraphBar(this.aard.timer.average)}</div>
       </div>
       <div style="display: flex; flex-direction: row">
-        <div style="width: 120px">Last chg.:</div><div style="flex-grow: 1">${this.generateMiniGraphBar(this.aard.timer.lastChange)}</div>
+        <div style="width: 120px">Last chg.:</div>
+        <div></div>
+        <div style="flex-grow: 1">${this.generateMiniGraphBar(this.aard.timer.lastChange)}</div>
       </div>
     `;
 

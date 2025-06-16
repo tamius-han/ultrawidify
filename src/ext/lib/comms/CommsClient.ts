@@ -146,7 +146,7 @@ class CommsClient {
     }
 
     // send to server
-    if (!context?.borderCrossings.commsServer) {
+    if (!context?.borderCrossings?.commsServer) {
       return chrome.runtime.sendMessage(null, message, null);
     }
   }
