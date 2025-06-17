@@ -5,7 +5,7 @@
       Extension is disabled for a given site when it's disabled in full screen, since
       current settings do not allow the extension to only be disabled while in full screen
      -->
-    <template v-if="siteSettings.isEnabledForEnvironment(false, true) === ExtensionMode.Disabled">
+    <template v-if="siteSettings.isEnabledForEnvironment(false, true) === ExtensionMode.Disabled && !enabledFrames?.length">
       <div class="h-full flex flex-col items-center justify-center">
         <div class="info">
           Extension is not enabled for this site.
@@ -16,6 +16,17 @@
       </div>
     </template>
     <template v-else>
+      <div
+        v-if="siteSettings.isEnabledForEnvironment(false, true) === ExtensionMode.Disabled"
+        class="warning-compact"
+      >
+        <b>Extension is disabled for this site.</b><br />
+        <small>Controls will only work on content embedded from the following sites:</small><br/>
+        <div class="w-full flex flex-row justify-center">
+          <span v-for="frameSite of enabledFrames" :key="frameSite.host" class="website-name">{{frameSite.host}}</span>
+        </div>
+      </div>
+
       <div class="flex flex-row">
         <mdicon name="crop" :size="16" />&nbsp;&nbsp;
         <span>CROP</span>
@@ -90,6 +101,7 @@ import StretchOptionsPanel from '@csui/src/PlayerUiPanels/PanelComponents/VideoS
 import ZoomOptionsPanel from '@csui/src/PlayerUiPanels/PanelComponents/VideoSettings/ZoomOptionsPanel.vue';
 import ExtensionMode from '@src/common/enums/ExtensionMode.enum.ts';
 import AlignmentOptionsControlComponent from '@csui/src/PlayerUiPanels/AlignmentOptionsControlComponent.vue';
+import { SiteSettings } from '../../../../ext/lib/settings/SiteSettings';
 
 export default {
   components: {
@@ -102,15 +114,23 @@ export default {
 
   ],
   props: [
+    'site',
     'settings',
     'siteSettings',
     'eventBus',
+    'frames'
   ],
   data() {
     return {
       exec: null,
       ExtensionMode: ExtensionMode,
+      enabledFrames: [],
     };
+  },
+  watch: {
+    frames(val) {
+      this.filterActiveSites(val);
+    }
   },
   created() {
     this.eventBus.subscribe(
@@ -128,8 +148,34 @@ export default {
     this.eventBus.unsubscribeAll(this);
   },
   methods: {
+    filterActiveSites(val) {
+      this.enabledFrames = [];
 
+      for (const site of val) {
+        const siteSettings = new SiteSettings(this.settings, site.host);
+
+        if (siteSettings.isEnabledForEnvironment(false, true) === ExtensionMode.Enabled) {
+          this.enabledFrames.push(site);
+        }
+      }
+    }
   }
 }
 </script>
+<style lang="scss" scoped>
+.warning-compact {
+  background-color: #d6ba4a;
+  color: #000;
+  padding: 0.5rem 1rem;
+  margin-top: -0.5rem;
+  margin-bottom: 0.5rem;
 
+  .website-name {
+    font-size: 0.85rem;
+
+    &:not(:last-of-type)::after {
+      content: ','
+    }
+  }
+}
+</style>

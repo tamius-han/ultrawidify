@@ -69,6 +69,7 @@ class PageInfo {
   keyboardHandler: any;
 
   fsStatus = {fullscreen: true};  // fsStatus needs to be passed to VideoData, so fullScreen property is shared between videoData instances
+  isIframe: boolean = false;
   //#endregion
 
   fsEventListener = {
@@ -78,7 +79,9 @@ class PageInfo {
     }
   };
 
-  constructor(eventBus: EventBus, siteSettings: SiteSettings, settings: Settings, logAggregator: LogAggregator, readOnly = false){
+  constructor(eventBus: EventBus, siteSettings: SiteSettings, settings: Settings, logAggregator: LogAggregator, readOnly = false) {
+    this.isIframe = window.self !== window.top;
+
     this.logAggregator = logAggregator;
     this.logger = new ComponentLogger(logAggregator, 'PageInfo', {});
     this.settings = settings;
@@ -112,10 +115,11 @@ class PageInfo {
     this.eventBus.subscribeMulti({
       'probe-video': {
         function: () => {
-          console.warn('[uw] probe-video event received..');
+          console.log(`[${window.location}] probe-video received.`)
+          this.rescan();
         }
       }
-    })
+    });
   }
 
   destroy() {
@@ -186,26 +190,85 @@ class PageInfo {
     }
   }
 
-  getVideos(): HTMLVideoElement[] {
+  /**
+   * Returns all videos on the page.
+   *
+   * If minSize is provided, it only returns <video> elements that are
+   * equal or bigger than desired size:
+   *
+   *   * sm:  320 x 180
+   *   * md:  720 x 400
+   *   * lg: 1280 x 720
+   *
+   * If minSize is omitted, it returns all <video> elements.
+   * @param minSize
+   * @returns
+   */
+  getAllVideos(minSize?: 'sm' | 'md' | 'lg') {
     const videoQs = this.siteSettings.getCustomDOMQuerySelector('video');
     let videos: HTMLVideoElement[] = [];
 
     if (videoQs){
       videos = Array.from(document.querySelectorAll(videoQs) as NodeListOf<HTMLVideoElement> ?? []);
-    } else{
+    } else {
       videos = Array.from(document.getElementsByTagName('video') ?? []);
     }
 
-    // filter out videos that aren't big enough
-    videos = videos.filter(
-      (v: HTMLVideoElement) => v.clientHeight > 720 && v.clientWidth > 1208
-    );
+    if (!minSize) {
+      return videos;
+    }
 
-    return videos;
+    return this.filterVideos(videos, minSize);
+  }
+
+  filterVideos(videos: HTMLVideoElement[], minSize:  'sm' | 'md' | 'lg') {
+    // minimums are determined by vibes and shit.
+    // 'sm' is based on "slightly smaller than embeds on old.reddit"
+    const minX = { sm: 320, md: 720, lg: 1280 };
+    const minY = { sm: 180, md: 400, lg:  720 };
+
+    // filter out videos that aren't big enough
+    return videos.filter(
+      (v: HTMLVideoElement) => v.clientHeight >= minY[minSize] && v.clientWidth >= minX[minSize]
+    );
+  }
+
+  /**
+   * Gets videos on the page that are big enough for extension to trigger
+   * @returns
+   */
+  getVideos(): HTMLVideoElement[] {
+    return this.getAllVideos('lg');
   }
 
   hasVideo() {
     return this.readOnly ? this.hasVideos : this.videos.length;
+  }
+
+  private emitVideoStatus(videosDetected?: boolean) {
+    // if we're left without videos on the current page, we unregister the page.
+    // if we have videos, we call register.
+    if (this.eventBus) {
+      // We used to send "register video" requests only on the first load, or if the number of
+      // videos on the page has changed. However, since Chrome Web Store started to require every
+      // extension requiring "broad permissions" to undergo manual review
+      // ... and since Chrome Web Store is known for taking their sweet ass time reviewing extensions,
+      // with review times north of an entire fucking month
+      // ... and since the legacy way of checking whether our frames-with-videos cache in background
+      // script contains any frames that no longer exist required us to use webNavigation.getFrame()/
+      // webNavigation.getAllFrames(), which requires a permission that triggers a review.
+      //
+      // While the extension uses some other permissions that trigger manual review, it's said that
+      // less is better / has a positive effect on your manual review times ... So I guess we'll do
+      // things in the less-than-optimal. more-than-retarded way.
+      //
+      // no but honestly fuck Chrome.
+      if (videosDetected || this.hasVideo()) {
+        this.eventBus.send('has-video', null);
+      } else {
+        this.eventBus.send('noVideo', null);
+      }
+    }
   }
 
   /**
@@ -216,6 +279,8 @@ class PageInfo {
    * @returns
    */
   rescan(rescanReason?: RescanReason){
+    let videosDetected = false;
+
     // is there any video data objects that had their HTML elements removed but not yet
     // destroyed? We clean that up here.
     const orphans = this.videos.filter(x => !document.body.contains(x.element));
@@ -227,9 +292,18 @@ class PageInfo {
     // remove all destroyed videos.
     this.videos = this.videos.filter(x => !x.videoData.destroyed);
 
+
     // add new videos
-    try{
-      let vids = this.getVideos();
+    try {
+      // in iframes, emit registerIframe even if video is smaller than required
+      let vids = this.getAllVideos('sm');
+
+      if (this.isIframe && this.eventBus) {
+        videosDetected ||= vids?.length > 0;
+      };
+
+      // for normal operations, use standard size limits
+      vids = this.filterVideos(vids, 'lg');
 
       if(!vids || vids.length == 0){
         this.hasVideos = false;
@@ -238,13 +312,13 @@ class PageInfo {
           this.logger.info({src: 'rescan', origin: 'videoRescan'}, "Scheduling normal rescan.")
           this.scheduleRescan(RescanReason.PERIODIC);
         }
+
+        this.emitVideoStatus(videosDetected);
         return;
       }
 
       // add new videos
       this.hasVideos = false;
-      let videoExists = false;
-
       for (const videoElement of vids) {
         // do not re-add videos that we already track:
         if (this.videos.find(x => x.element.isEqualNode(videoElement))) {
@@ -259,6 +333,7 @@ class PageInfo {
 
         // at this point, we're certain that we found new videos. Let's update some properties:
         this.hasVideos = true;
+        videosDetected ||= true;
 
         // if PageInfo is marked as "readOnly", we actually aren't adding any videos to anything because
         // that's super haram. We're only interested in whether
@@ -269,6 +344,7 @@ class PageInfo {
           if(rescanReason == RescanReason.PERIODIC){
             this.scheduleRescan(RescanReason.PERIODIC);
           }
+          this.emitVideoStatus(videosDetected);
           return;
         }
 
@@ -285,37 +361,7 @@ class PageInfo {
       }
 
       this.removeDestroyed();
-
-      // if we're left without videos on the current page, we unregister the page.
-      // if we have videos, we call register.
-      if (this.eventBus) {
-        // We used to send "register video" requests only on the first load, or if the number of
-        // videos on the page has changed. However, since Chrome Web Store started to require every
-        // extension requiring "broad permissions" to undergo manual review
-        // ... and since Chrome Web Store is known for taking their sweet ass time reviewing extensions,
-        // with review times north of an entire fucking month
-        // ... and since the legacy way of checking whether our frames-with-videos cache in background
-        // script contains any frames that no longer exist required us to use webNavigation.getFrame()/
-        // webNavigation.getAllFrames(), which requires a permission that triggers a review.
-        //
-        // While the extension uses some other permissions that trigger manual review, it's said that
-        // less is better / has a positive effect on your manual review times ... So I guess we'll do
-        // things in the less-than-optimal. more-than-retarded way.
-        //
-        // no but honestly fuck Chrome.
-
-        // if (this.videos.length != oldVideoCount) {
-        // }
-
-        if (this.videos.length > 0) {
-          // this.comms.registerVideo({host: window.location.hostname, location: window.location});
-          this.eventBus.send('has-video', null);
-        } else {
-          // this.comms.unregisterVideo({host: window.location.hostname, location: window.location});
-          this.eventBus.send('noVideo', null);
-        }
-      }
-
+      this.emitVideoStatus(videosDetected);
     } catch(e) {
       // if we encounter a fuckup, we can assume that no videos were found on the page. We destroy all videoData
       // objects to prevent multiple initialization (which happened, but I don't know why). No biggie if we destroyed

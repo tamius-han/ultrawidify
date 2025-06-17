@@ -18,7 +18,7 @@
           :class="{'active': tab === 'embeddedSites'}"
           @click="setTab(tab = 'embeddedSites')"
         >
-          Embedded content
+          Embedded content ({{frames?.length}} {{frames?.length === 1 ? 'site' : 'sites'}})
         </div>
         <div
           class="tab"

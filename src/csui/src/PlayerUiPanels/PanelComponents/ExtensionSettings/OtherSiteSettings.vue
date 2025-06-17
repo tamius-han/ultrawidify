@@ -27,7 +27,9 @@
           <b>NOTE:</b> Sites not on this list use default extension settings.
         </div>
       </div>
-      <b>Other sites:</b>
+      <div class="w-full text-center" style="margin-bottom: -1.25rem">
+        <b>Other sites</b>
+      </div>
       <div style="margin: 1rem 0rem" class="w-full">
         <div class="flex flex-row items-baseline">
           <div style="margin-right: 1rem">Search for site:</div>

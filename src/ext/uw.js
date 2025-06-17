@@ -5,17 +5,18 @@
 import UWContent from './UWContent';
 
 if(process.env.CHANNEL !== 'stable'){
-  console.warn("\n\n\n\n\n\n           ———    Sᴛλʀᴛɪɴɢ  Uʟᴛʀᴀᴡɪᴅɪꜰʏ    ———\n               <<   ʟᴏᴀᴅɪɴɢ ᴍᴀɪɴ ꜰɪʟᴇ   >>\n\n\n\n");
+
+  let isIframe;
   try {
-    if(window.self !== window.top){
-      console.info("%cWe aren't in an iframe.", "color: #afc, background: #174");
-    }
-    else{
-      console.info("%cWe are in an iframe!", "color: #fea, background: #d31", window.self, window.top);
-    }
+    isIframe = window.self !== window.top;
   } catch (e) {
-    console.info("%cWe are in an iframe!", "color: #fea, background: #d31");
+    isIframe = true;
   }
+
+  console.warn(
+    "\n\n\n\n\n\n           ———    Sᴛλʀᴛɪɴɢ  Uʟᴛʀᴀᴡɪᴅɪꜰʏ    ———\n               <<   ʟᴏᴀᴅɪɴɢ ᴍᴀɪɴ ꜰɪʟᴇ   >>\n\n\n\n",
+    "\n  - are we in iframe?", isIframe
+  );
 }
 
 const main = new UWContent();

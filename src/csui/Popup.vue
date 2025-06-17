@@ -86,6 +86,7 @@
               :settings="settings"
               :eventBus="eventBus"
               :siteSettings="siteSettings"
+              :frames="activeFrames"
             ></PopupVideoSettings>
             <BaseExtensionSettings
               v-if="selectedTab === 'extensionSettings'"
@@ -171,6 +172,7 @@ export default {
   },
   mounted() {
     this.tabs.find(x => x.id === 'changelog').highlight = !this.settings.active?.whatsNewChecked;
+    this.requestSite();
   },
   async created() {
     try {
