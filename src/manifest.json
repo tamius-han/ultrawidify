@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Ultrawidify",
+  "name": "Ultrawidify - testing",
   "description": "Removes black bars on ultrawide videos and offers advanced options to fix aspect ratio.",
-  "version": "6.2.6",
+  "version": "25.06.1",
   "icons": {
     "32":"res/icons/uw-32.png",
     "64":"res/icons/uw-64.png"
