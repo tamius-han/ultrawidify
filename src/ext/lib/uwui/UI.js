@@ -23,6 +23,7 @@ class UI {
     this.lastProbeResponseTs = null;
 
     this.isGlobal = uiConfig.isGlobal ?? false;
+    this.isIframe = window.self !== window.top;
 
     this.eventBus = uiConfig.eventBus;
     this.disablePointerEvents = false;
@@ -241,7 +242,7 @@ class UI {
         },
         'uw-set-ui-state': {
           function: (config, routingData)  => {
-            if (config.globalUiVisible !== undefined) {
+            if (config.globalUiVisible !== undefined && !this.isIframe) {
               if (this.isGlobal) {
                 this.setUiVisibility(config.globalUiVisible);
               } else {

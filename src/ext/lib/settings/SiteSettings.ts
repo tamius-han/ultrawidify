@@ -59,6 +59,13 @@ export class SiteSettings {
    * @returns
    */
   private getSettingsForSite() {
+    if (!this.site) {
+      return {
+        siteSettings: this.settings.active.sites['@global'],
+        usesSettingsFor: '@global'
+      };
+    }
+
     if (this.settings.active.sites[this.site]) {
       return {
         siteSettings: this.settings.active.sites[this.site],
