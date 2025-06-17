@@ -93,11 +93,15 @@ export default class UWServer {
     }
   }
 
+
+
   async _promisifyTabsGet(browserObj, tabId){
     return new Promise( (resolve, reject) => {
       browserObj.tabs.get(tabId, (tab) => resolve(tab));
     });
   }
+
+  //#region CSS managemeent
 
   async injectCss(css, sender) {
     if (!css) {
@@ -167,6 +171,7 @@ export default class UWServer {
       this.injectCss(newCss, sender);
     }
   }
+  //#endregion
 
   extractHostname(url){
     var hostname;
@@ -214,7 +219,6 @@ export default class UWServer {
     }
 
     //TODO: change extension icon based on whether there's any videos on current page
-
   }
 
   registerVideo(sender) {
@@ -288,7 +292,6 @@ export default class UWServer {
     const tabHostname = await this.getCurrentTabHostname();
     this.logger.info('getCurrentSite', 'Returning data:', {site, tabHostname});
 
-
     this.eventBus.send(
       'set-current-site',
       {
@@ -318,8 +321,11 @@ export default class UWServer {
       return {
         host: 'INVALID SITE',
         frames: [],
+        hostnames: [],
       }
     }
+
+    const hostnames = await this.comms.listUniqueFrameHosts();
 
     if (this.videoTabs[ctab.id]) {
       // if video is older than PageInfo's video rescan period (+ 4000ms of grace),
@@ -343,6 +349,7 @@ export default class UWServer {
       return {
         ...this.videoTabs[ctab.id],
         host: this.extractHostname(ctab.url),
+        hostnames,
         selected: this.selectedSubitem
       };
     }
@@ -352,7 +359,8 @@ export default class UWServer {
     return {
       host: this.extractHostname(ctab.url),
       frames: [],
-      selected: this.selectedSubitem
+      hostnames,
+      selected: this.selectedSubitem,
     }
   }
 

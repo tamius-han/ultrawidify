@@ -1,11 +1,10 @@
 <template>
   <div class="flex flex-col relative h-full" style="padding-bottom: 20px">
-
     <!--
       Extension is disabled for a given site when it's disabled in full screen, since
       current settings do not allow the extension to only be disabled while in full screen
      -->
-    <template v-if="siteSettings.isEnabledForEnvironment(false, true) === ExtensionMode.Disabled && !enabledFrames?.length">
+    <template v-if="siteSettings.isEnabledForEnvironment(false, true) === ExtensionMode.Disabled && !enabledHosts?.length">
       <div class="h-full flex flex-col items-center justify-center">
         <div class="info">
           Extension is not enabled for this site.
@@ -23,7 +22,7 @@
         <b>Extension is disabled for this site.</b><br />
         <small>Controls will only work on content embedded from the following sites:</small><br/>
         <div class="w-full flex flex-row justify-center">
-          <span v-for="frameSite of enabledFrames" :key="frameSite.host" class="website-name">{{frameSite.host}}</span>
+          <span v-for="frameSite of enabledHosts" :key="frameSite.host" class="website-name">{{frameSite.host}}</span>
         </div>
       </div>
 
@@ -118,17 +117,17 @@ export default {
     'settings',
     'siteSettings',
     'eventBus',
-    'frames'
+    'hosts'
   ],
   data() {
     return {
       exec: null,
       ExtensionMode: ExtensionMode,
-      enabledFrames: [],
+      enabledHosts: [],
     };
   },
   watch: {
-    frames(val) {
+    hosts(val) {
       this.filterActiveSites(val);
     }
   },
@@ -140,6 +139,7 @@ export default {
         function: (config) => this.handleConfigBroadcast(config)
       }
     );
+    this.filterActiveSites(this.hosts);
   },
   mounted() {
     this.eventBus.sendToTunnel('get-ar');
@@ -149,13 +149,13 @@ export default {
   },
   methods: {
     filterActiveSites(val) {
-      this.enabledFrames = [];
+      this.enabledHosts = [];
 
-      for (const site of val) {
-        const siteSettings = new SiteSettings(this.settings, site.host);
+      for (const host of val) {
+        const siteSettings = new SiteSettings(this.settings, host);
 
         if (siteSettings.isEnabledForEnvironment(false, true) === ExtensionMode.Enabled) {
-          this.enabledFrames.push(site);
+          this.enabledHosts.push(host);
         }
       }
     }

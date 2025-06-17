@@ -2,9 +2,9 @@
   <div>
     <div class="flex flex-row">
       <div class="flex-grow pointer">
-        <b>{{ frame.host ?? frame.key }}</b>
-        <span :style="getSiteTypeColor(frame.type)">
-          (config: {{frame.type ?? 'unknown'}})
+        <b>{{ host }}</b>
+        <span :style="getSiteTypeColor(siteSettings?.data?.type)">
+          (config: {{siteSettings?.data?.type ?? 'unknown'}})
         </span>
       </div>
       <div>Edit</div>
@@ -15,10 +15,10 @@
     </div>
     <div class="flex flex-row">
       <small>
-        Enabled: <span :style="getSiteEnabledColor(frame.host, 'enable')"><small>{{ getSiteEnabledModes(frame.host, 'enable') }}</small></span>;&nbsp;
-        Aard <span :style="getSiteEnabledColor(frame.host, 'enableAard')"><small>{{ getSiteEnabledModes(frame.host, 'enableAard') }}</small></span>;&nbsp;
-        kbd: <span :style="getSiteEnabledColor(frame.host, 'enableKeyboard')"><small>{{ getSiteEnabledModes(frame.host, 'enableKeyboard') }}</small></span>
-        UI: <span :style="getSiteEnabledColor(frame.host, 'enableUI')"><small>{{ getSiteEnabledModes(frame.host, 'enableUI') }}</small></span>
+        Enabled: <span :style="getSiteEnabledColor(host, 'enable')"><small>{{ getSiteEnabledModes(host, 'enable') }}</small></span>;&nbsp;
+        Aard <span :style="getSiteEnabledColor(host, 'enableAard')"><small>{{ getSiteEnabledModes(host, 'enableAard') }}</small></span>;&nbsp;
+        kbd: <span :style="getSiteEnabledColor(host, 'enableKeyboard')"><small>{{ getSiteEnabledModes(host, 'enableKeyboard') }}</small></span>
+        UI: <span :style="getSiteEnabledColor(host, 'enableUI')"><small>{{ getSiteEnabledModes(host, 'enableUI') }}</small></span>
       </small>
     </div>
   </div>
@@ -29,15 +29,16 @@ import ExtensionMode from '../../../../../common/enums/ExtensionMode.enum';
 export default {
   data() {
     return {
-      siteSettings: undefined
+      siteSettings: undefined,
+      supportType: undefined
     }
   },
   props: [
     'settings',
-    'frame',
+    'host',
   ],
   created() {
-    this.siteSettings = this.settings.getSiteSettings(this.frame.host ?? this.frame.key);
+    this.siteSettings = this.settings.getSiteSettings(this.host);
   },
   methods: {
     getSiteTypeColor(siteType) {

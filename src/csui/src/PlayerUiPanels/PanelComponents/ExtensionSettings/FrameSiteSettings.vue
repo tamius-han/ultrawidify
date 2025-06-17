@@ -9,9 +9,9 @@
           </div>
         </div>
       </div>
-      <div v-for="frame of frames" :key="frame.host" @click="selectedSite = frame.host" class="flex flex-col container pointer hoverable" style="margin-top: 4px; padding: 0.5rem 1rem;">
+      <div v-for="host of hosts" :key="host" @click="selectedSite = host" class="flex flex-col container pointer hoverable" style="margin-top: 4px; padding: 0.5rem 1rem;">
         <SiteListItem
-          :frame="frame"
+          :host="host"
           :settings="settings"
         ></SiteListItem>
       </div>
@@ -48,7 +48,7 @@ export default {
   },
   props: [
     'settings',
-    'frames',
+    'hosts',
   ],
   data() {
     return {

@@ -13,12 +13,12 @@
           <small>{{ site }}</small>
         </div>
         <div
-          v-if="frames"
+          v-if="hosts"
           class="tab"
           :class="{'active': tab === 'embeddedSites'}"
           @click="setTab(tab = 'embeddedSites')"
         >
-          Embedded content ({{frames?.length}} {{frames?.length === 1 ? 'site' : 'sites'}})
+          Embedded content ({{hosts?.length}} {{hosts?.length === 1 ? 'site' : 'sites'}})
         </div>
         <div
           class="tab"
@@ -38,10 +38,10 @@
         ></SiteExtensionSettings>
       </template>
 
-      <template v-if="frames && tab === 'embeddedSites' && globalSettings">
+      <template v-if="hosts && tab === 'embeddedSites' && globalSettings">
         <FrameSiteSettings
           v-if="settings"
-          :frames="frames"
+          :hosts="hosts"
           :settings="settings"
         ></FrameSiteSettings>
       </template>
@@ -178,7 +178,7 @@ export default {
     'settings',
     'site',
     'enableSettingsEditor',
-    'frames',
+    'hosts',
   ],
   data() {
     return {

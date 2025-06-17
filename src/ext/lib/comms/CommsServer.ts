@@ -122,6 +122,36 @@ class CommsServer {
 
   //#endregion
 
+  /**
+   * Lists all unique hosts that are present in all the frames of a given tab.
+   * This includes both hostname of the tab, as well as of all iframes embedded in it.
+   * @returns
+   */
+  async listUniqueFrameHosts() {
+    const aTab = await this.activeTab;
+
+    const tabPort = this.ports[aTab.id];
+    const hosts = [];
+
+    for (const frame in tabPort) {
+      for (const portName in tabPort[frame]) {
+        const port = tabPort[frame][portName];
+
+        const host =  port.sender.origin.split('://')[1];
+
+        // if host is invalid or already exists in our list, skip adding it
+        if (!host || hosts.includes(host)) {
+          continue;
+        }
+
+        hosts.push(host);
+      }
+    }
+
+    console.log('uniq hosts:', hosts)
+    return hosts;
+  }
+
   sendMessage(message, context?) {
     this.logger.debug('sendMessage', `preparing to send message ${message.command ?? ''} ...`, {message, context});
     // stop messages from returning where they came from, and prevent

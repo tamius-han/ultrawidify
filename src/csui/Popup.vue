@@ -86,7 +86,7 @@
               :settings="settings"
               :eventBus="eventBus"
               :siteSettings="siteSettings"
-              :frames="activeFrames"
+              :hosts="activeHosts"
             ></PopupVideoSettings>
             <BaseExtensionSettings
               v-if="selectedTab === 'extensionSettings'"
@@ -94,7 +94,7 @@
               :eventBus="eventBus"
               :siteSettings="siteSettings"
               :site="site.host"
-              :frames="activeFrames"
+              :hosts="activeHosts"
             >
             </BaseExtensionSettings>
             <ChangelogPanel
@@ -193,6 +193,8 @@ export default {
         {
           source: this,
           function: (config, context) => {
+            console.log('set-current-site | this.site:', this.site, 'config.site:', config.site);
+
             if (this.site) {
               if (!this.site.host) {
                 // dunno why this fix is needed, but sometimes it is
@@ -209,7 +211,8 @@ export default {
               }
             });
 
-            this.loadFrames(this.site);
+            this.loadHostnames();
+            this.loadFrames();
           }
         },
       );
@@ -277,11 +280,6 @@ export default {
         this.logger.log('info','popup', '[popup::getSite] Requesting current site ...')
         // CSM.port.postMessage({command: 'get-current-site'});
         this.eventBus.send(
-          'probe-video',
-          {},
-          { comms: {forwardTo: 'active'} }
-        );
-        this.eventBus.send(
           'get-current-site',
           {},
           {
@@ -301,12 +299,14 @@ export default {
     isDefaultFrame(frameId) {
       return frameId === '__playing' || frameId === '__all';
     },
+    loadHostnames() {
+      this.activeHosts = this.site.hostnames;
+    },
     loadFrames() {
       this.activeFrames = [{
         host: this.site.host,
         isIFrame: false,  // not used tho. Maybe one day
       }];
-
 
       for (const frame in this.site.frames) {
         if (!this.activeFrames.find(x => x.host === this.site.frames[frame].host)) {
