@@ -367,6 +367,10 @@ button,
   padding-right: 10px;
 }
 
+.info-button {
+  color: $info-color;
+  border: 1px solid $info-color;
+}
 .info {
   color: $info-color;
   padding-left: 35px;

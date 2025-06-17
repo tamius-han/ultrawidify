@@ -5,13 +5,23 @@
       current settings do not allow the extension to only be disabled while in full screen
      -->
     <template v-if="siteSettings.isEnabledForEnvironment(false, true) === ExtensionMode.Disabled && !enabledHosts?.length">
-      <div class="h-full flex flex-col items-center justify-center">
+      <div class="h-full flex flex-col items-center justify-center" style="margin-top: 8rem">
         <div class="info">
           Extension is not enabled for this site.
         </div>
         <div>
           Please enable extension for this site.
         </div>
+        <div>
+          <button
+            class="flex flex-row items-center"
+            style="background-color: transparent; padding: 0.25rem 0.5rem; margin-top: 1rem;"
+            @click="openSettings()"
+          >
+            Open settings <mdicon style="margin-left: 0.5rem;" name="open-in-new" size="16"></mdicon>
+          </button>
+        </div>
+
       </div>
     </template>
     <template v-else>
@@ -19,10 +29,23 @@
         v-if="siteSettings.isEnabledForEnvironment(false, true) === ExtensionMode.Disabled"
         class="warning-compact"
       >
-        <b>Extension is disabled for this site.</b><br />
+        <div class="w-full flex flex-row">
+          <div class="grow">
+            <b>Extension is disabled for this site.</b>
+          </div>
+          <div>
+            <button
+              class="flex flex-row items-center"
+              style="border: 1px solid black; background-color: transparent; color: black; padding: 0.25rem 0.5rem; margin-top: -0.25rem; margin-right: -0.5rem;"
+              @click="openSettings()"
+            >
+              Open settings <mdicon style="margin-left: 0.5rem;" name="open-in-new" size="16"></mdicon>
+            </button>
+          </div>
+        </div>
         <small>Controls will only work on content embedded from the following sites:</small><br/>
         <div class="w-full flex flex-row justify-center">
-          <span v-for="frameSite of enabledHosts" :key="frameSite.host" class="website-name">{{frameSite.host}}</span>
+          <span v-for="host of enabledHosts" :key="host" class="website-name">{{host}}</span>
         </div>
       </div>
 
@@ -158,6 +181,9 @@ export default {
           this.enabledHosts.push(host);
         }
       }
+    },
+    openSettings() {
+      this.eventBus.send('open-popup-settings', {tab: 'extensionSettings'})
     }
   }
 }

@@ -216,6 +216,15 @@ export default {
           }
         },
       );
+      this.eventBus.subscribe(
+        'open-popup-settings',
+        {
+          source: this,
+          function: (config) => {
+            this.selectTab(config.tab)
+          }
+        }
+      )
 
       this.comms = new CommsClient('popup-port', this.logger, this.eventBus);
       this.eventBus.setComms(this.comms);
