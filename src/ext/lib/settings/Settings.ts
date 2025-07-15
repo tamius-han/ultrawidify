@@ -1,14 +1,14 @@
-import Debug from '../conf/Debug';
-import ExtensionConf from '../conf/ExtensionConf';
-import ObjectCopy from './ObjectCopy';
-import StretchType from '../../common/enums/StretchType.enum';
-import ExtensionConfPatch from '../conf/ExtConfPatches';
-import SettingsInterface from '../../common/interfaces/SettingsInterface';
-import AspectRatioType from '../../common/enums/AspectRatioType.enum';
-import { SiteSettings } from './settings/SiteSettings';
-import { SettingsSnapshotManager } from './settings/SettingsSnapshotManager';
-import { ComponentLogger } from './logging/ComponentLogger';
-import { LogAggregator } from './logging/LogAggregator';
+import Debug from '../../conf/Debug';
+import ExtensionConf from '../../conf/ExtensionConf';
+import ObjectCopy from '../ObjectCopy';
+import StretchType from '../../../common/enums/StretchType.enum';
+import ExtensionConfPatch from '../../conf/ExtConfPatches';
+import SettingsInterface from '../../../common/interfaces/SettingsInterface';
+import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
+import { GetSiteSettingsOptions, SiteSettings } from './SiteSettings';
+import { SettingsSnapshotManager } from './SettingsSnapshotManager';
+import { ComponentLogger } from '../logging/ComponentLogger';
+import { LogAggregator } from '../logging/LogAggregator';
 
 if(process.env.CHANNEL !== 'stable'){
   console.info("Loading Settings");
@@ -24,6 +24,7 @@ interface SettingsOptions {
 interface SetSettingsOptions {
   forcePreserveVersion?: boolean,
 }
+
 
 const SETTINGS_LOGGER_STYLES = {
   log: 'color: #81d288',
@@ -413,8 +414,8 @@ class Settings {
     }
   }
 
-  getSiteSettings(site: string = window.location.hostname): SiteSettings {
-    return new SiteSettings(this, site);
+  getSiteSettings(options: GetSiteSettingsOptions = {site: window.location.hostname}): SiteSettings {
+    return new SiteSettings(this, options);
   }
 
   listenOnChange(fn: () => void): void {

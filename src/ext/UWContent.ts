@@ -8,6 +8,7 @@ import { SiteSettings } from './lib/settings/SiteSettings';
 import UI from './lib/uwui/UI';
 import { BLANK_LOGGER_CONFIG, LogAggregator } from './lib/logging/LogAggregator';
 import { ComponentLogger } from './lib/logging/ComponentLogger';
+import { getIframeParentHost, setupHostnameReporting } from './util/getHost';
 
 export default class UWContent {
   pageInfo: PageInfo;
@@ -19,6 +20,7 @@ export default class UWContent {
   logger: ComponentLogger;
   eventBus: EventBus;
   isIframe: boolean = false;
+  parentHostname: string;
 
   globalUi: any;
 
@@ -28,7 +30,8 @@ export default class UWContent {
   }
 
   constructor(){
-    this.isIframe = window.self !== window.top
+    setupHostnameReporting();
+    this.isIframe = window.self !== window.top;
   }
 
   reloadSettings() {
@@ -41,6 +44,11 @@ export default class UWContent {
   }
 
   async init(){
+    if (this.isIframe) {
+      this.parentHostname = await getIframeParentHost();
+      console.warn('[uw-content] got iframe parent:', this.parentHostname);
+    }
+
     try {
       if (Debug.debug) {
         console.log("[uw::main] loading configuration ...");
@@ -57,6 +65,7 @@ export default class UWContent {
         console.error("logger init failed!", e)
       }
 
+
       // init() is re-run any time settings change
       if (this.comms) {
         this.comms.destroy();
@@ -70,7 +79,7 @@ export default class UWContent {
           logAggregator: this.logAggregator
         });
         await this.settings.init();
-        this.siteSettings = this.settings.getSiteSettings();
+        this.siteSettings = this.settings.getSiteSettings({site: window.location.hostname, isIframe: this.isIframe, parentHostname: this.parentHostname});
       }
 
       this.eventBus = new EventBus();

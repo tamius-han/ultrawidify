@@ -308,6 +308,9 @@ export interface SiteSettingsInterface {
   enableKeyboard: ExtensionEnvironmentSettingsInterface;
   enableUI: ExtensionEnvironmentSettingsInterface;  // Lies! enableUI doesn't use 'theater' property (but uses the other two)
 
+  applyToEmbeddedContent?: boolean; // presumed to be 'true' if not defined
+
+
   autocreated?: boolean;
   type?: 'official' | 'community' | 'user-defined' | 'testing' | 'officially-disabled' | 'unknown' | 'modified';
   defaultType: 'official' | 'community' | 'user-defined' | 'testing' | 'officially-disabled' | 'unknown' | 'modified';

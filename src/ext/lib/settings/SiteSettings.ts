@@ -6,6 +6,13 @@ import Settings from './Settings';
 import StretchType from '../../../common/enums/StretchType.enum';
 import VideoAlignmentType from '../../../common/enums/VideoAlignmentType.enum';
 
+
+export interface GetSiteSettingsOptions {
+  site: string,
+  isIframe?: boolean,
+  parentHostname?: string,
+}
+
 /**
  * Contains settings that are currently in effect for a given site. If a certain option
  * doesn't have a value — or if it has 'default' option, SiteSettings.data will contain
@@ -22,6 +29,7 @@ export class SiteSettings {
   public get site() {
     return this._site;
   }
+  private options: GetSiteSettingsOptions;
 
   raw: SiteSettingsInterface;       // actual settings
   data: SiteSettingsInterface;      // effective settings
@@ -33,10 +41,12 @@ export class SiteSettings {
   storageChangeSubscriptions: {[x: string]: ((newSiteConf, changes, area) => void)[]} = {};
 
   //#region lifecycle
-  constructor(settings: Settings, site: string) {
+  constructor(settings: Settings, options: GetSiteSettingsOptions) {
+    this.options = options;
+    this.site = options.site;
+
     this.settings = settings;
-    this.raw = settings.active.sites[site];
-    this.site = site;
+    this.raw = settings.active.sites[this.site];
     this.defaultSettings = settings.active.sites['@global'];
 
     this.compileSettingsObject();
@@ -56,19 +66,53 @@ export class SiteSettings {
 
   /**
    * Tries to match websites, even if we're on a different subdomain.
+   *
+   * Priority chain:
+   *
+   *  START HERE
+   *     |
+   *  [ exact hostname match ]
+   *     |             |
+   *     no           yes ————————> return settings for hostname
+   *     V
+   *  | matches hostname on  |
+   *  | different subdomain? |
+   *     |             |
+   *     no           yes ————————> return settings for matching subdomain
+   *     V
+   *   [ are we inside of an iframe? ]
+   *     |                  |
+   *     no                yes
+   *     V                  V
+   *  return default     |  exact parent   |
+   *    settings         | hostname match? |
+   *     A                  |           |
+   *     |                 no          yes ————> [ applyToEmbeddedContent set? ]
+   *     |                  V                           |               |
+   *     |        | parent matches hostname |           no             yes
+   *     |        | on different subdomain? |           V               V
+   *     |            |                 |          use default    use parent settings
+   *     +———<——————— no               yes
+   *     |                              |
+   *     +———<—— no ——[ applyToEmbeddedContent set? ]
+   *                                    |
+   *                                   yes
+   *                                    V
+   *    use settings for matching subdomain of parent
+   *
    * @returns
    */
-  private getSettingsForSite() {
-    if (!this.site) {
+  private getSettingsForSite(options: GetSiteSettingsOptions) {
+    if (!options.site) {
       return {
         siteSettings: this.settings.active.sites['@global'],
         usesSettingsFor: '@global'
       };
     }
 
-    if (this.settings.active.sites[this.site]) {
+    if (this.settings.active.sites[options.site]) {
       return {
-        siteSettings: this.settings.active.sites[this.site],
+        siteSettings: this.settings.active.sites[options.site],
         usesSettingsFor: undefined
       };
     }
@@ -97,6 +141,14 @@ export class SiteSettings {
       }
     }
 
+    // If we're inside of an iframe, let's see whether we can use parent settings
+    if (options.isIframe) {
+      const potentialSettings = this.getSettingsForSite({site: options.parentHostname});
+      if (potentialSettings.siteSettings.applyToEmbeddedContent !== false) {
+        return potentialSettings;
+      }
+    }
+
     return {
       siteSettings: this.settings.active.sites['@global'],
       usesSettingsFor: '@global'
@@ -108,7 +160,7 @@ export class SiteSettings {
    * Alan pls ensure default settings object follows the correct structure
    */
   private compileSettingsObject() {
-    const {siteSettings, usesSettingsFor} = this.getSettingsForSite();
+    const {siteSettings, usesSettingsFor} = this.getSettingsForSite(this.options);
     this.data = _cp(siteSettings);
     this.usesSettingsFor = usesSettingsFor;
 
