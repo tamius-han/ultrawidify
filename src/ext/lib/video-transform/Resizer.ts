@@ -233,7 +233,7 @@ class Resizer {
   }
 
 
-  prepareCss(css) {
+  prepareCss(css: string): string {
     return `.${this.userCssClassName} {${css}}`;
   }
 
@@ -242,11 +242,11 @@ class Resizer {
     this.destroyed = true;
   }
 
-  getFileAr() {
+  getFileAr(): number {
     return this.videoData.video.videoWidth / this.videoData.video.videoHeight;
   }
 
-  calculateRatioForLegacyOptions(ar){
+  calculateRatioForLegacyOptions(ar: Ar): Ar | null {
     // also present as modeToAr in Scaler.js
     if (ar.type !== AspectRatioType.FitWidth && ar.type !== AspectRatioType.FitHeight && ar.ratio) {
       return ar;
@@ -358,7 +358,7 @@ class Resizer {
       this.videoData.videoUnloaded();
     }
 
-    this.logger.info('setAr', `<rid:${this.resizerId}> trying to set ar. New ar:`, ar);
+    this.logger.info('setAr', `<rid:${this.resizerId}> trying to set ar. New ar:`, ar, 'last ar override was', lastAr ? '' : 'NOT', 'provided:', lastAr);
 
     let stretchFactors: VideoDimensions | any;
 
