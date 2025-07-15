@@ -33,7 +33,7 @@
 
 <script>
 import BrowserDetect from '../ext/conf/BrowserDetect';
-import Settings from '../ext/lib/Settings';
+import Settings from '../ext/lib/settings/Settings';
 
 export default {
   data() {

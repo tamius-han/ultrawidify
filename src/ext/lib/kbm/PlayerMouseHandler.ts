@@ -1,7 +1,7 @@
 import { LogAggregator } from './../logging/LogAggregator';
 import EventBus, { EventBusCommand } from '../EventBus';
 import { ComponentLogger } from '../logging/ComponentLogger';
-import Settings from '../Settings';
+import Settings from '../settings/Settings';
 import { SiteSettings } from '../settings/SiteSettings';
 import KbmBase from './KbmBase';
 

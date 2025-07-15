@@ -1,6 +1,6 @@
 import EventBus, { EventBusCommand } from '../EventBus';
 import { ComponentLogger } from '../logging/ComponentLogger';
-import Settings from '../Settings';
+import Settings from '../settings/Settings';
 import { SiteSettings } from '../settings/SiteSettings';
 
 export class KbmBase {

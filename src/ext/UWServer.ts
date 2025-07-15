@@ -1,7 +1,7 @@
 import Debug from './conf/Debug.js';
 import BrowserDetect from './conf/BrowserDetect';
 import CommsServer from './lib/comms/CommsServer';
-import Settings from './lib/Settings';
+import Settings from './lib/settings/Settings';
 import { sleep } from '../common/js/utils';
 import EventBus, { EventBusCommand } from './lib/EventBus';
 import { ComponentLogger } from './lib/logging/ComponentLogger';

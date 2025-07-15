@@ -46,7 +46,6 @@ class UI {
     this.extensionBase = chrome.runtime.getURL('').replace(/\/$/, "");
 
     // UI will be initialized when setUiVisibility is called
-    console.log('ui config:', uiConfig);
     this.init();
   }
 

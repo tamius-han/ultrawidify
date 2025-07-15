@@ -1,5 +1,5 @@
 import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
-import Settings from '../Settings';
+import Settings from '../settings/Settings';
 import EventBus, { EventBusCommand } from '../EventBus';
 import KbmBase from './KbmBase';
 import { SiteSettings } from '../settings/SiteSettings';

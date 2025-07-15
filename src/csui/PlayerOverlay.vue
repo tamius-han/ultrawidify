@@ -205,7 +205,7 @@ import GhettoContextMenuItem from '@csui/src/components/GhettoContextMenuItem.vu
 import GhettoContextMenuOption from '@csui/src/components/GhettoContextMenuOption.vue';
 import AlignmentOptionsControlComponent from '@csui/src/PlayerUiPanels/AlignmentOptionsControlComponent.vue';
 import BrowserDetect from '@src/ext/conf/BrowserDetect';
-import Settings from '@src/ext/lib/Settings';
+import Settings from '@src/ext/lib/settings/Settings';
 import EventBus from '@src/ext/lib/EventBus';
 import UIProbeMixin from '@csui/src/utils/UIProbeMixin';
 import KeyboardShortcutParserMixin from '@csui/src/utils/KeyboardShortcutParserMixin';

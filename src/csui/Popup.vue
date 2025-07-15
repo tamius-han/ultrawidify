@@ -123,7 +123,7 @@ import AboutPanel from '@csui/src/popup/panels/AboutPanel.vue'
 import Debug from '../ext/conf/Debug';
 import BrowserDetect from '../ext/conf/BrowserDetect';
 import CommsClient, {CommsOrigin} from '../ext/lib/comms/CommsClient';
-import Settings from '../ext/lib/Settings';
+import Settings from '../ext/lib/settings/Settings';
 import EventBus from '../ext/lib/EventBus';
 import {ChromeShittinessMitigations as CSM} from '../common/js/ChromeShittinessMitigations';
 import SupportLevelIndicator from '@csui/src/components/SupportLevelIndicator.vue'
@@ -193,8 +193,6 @@ export default {
         {
           source: this,
           function: (config, context) => {
-            console.log('set-current-site | this.site:', this.site, 'config.site:', config.site);
-
             if (this.site) {
               if (!this.site.host) {
                 // dunno why this fix is needed, but sometimes it is

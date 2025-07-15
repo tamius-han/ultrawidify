@@ -2,7 +2,7 @@ import PlayerData from './PlayerData';
 import Resizer from '../video-transform/Resizer';
 import * as _ from 'lodash';
 import BrowserDetect from '../../conf/BrowserDetect';
-import Settings from '../Settings';
+import Settings from '../settings/Settings';
 import PageInfo from './PageInfo';
 import { sleep } from '../../../common/js/utils';
 import { hasDrm } from '../ar-detect/DrmDetecor';

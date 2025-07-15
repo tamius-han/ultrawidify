@@ -1,6 +1,6 @@
 import VideoData from './VideoData';
 import RescanReason from './enums/RescanReason.enum';
-import Settings from '../Settings';
+import Settings from '../settings/Settings';
 import CommsClient from '../comms/CommsClient';
 import EventBus from '../EventBus';
 import { SiteSettings } from '../settings/SiteSettings';

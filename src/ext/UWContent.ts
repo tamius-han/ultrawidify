@@ -1,5 +1,5 @@
 import Debug from './conf/Debug';
-import Settings from './lib/Settings';
+import Settings from './lib/settings/Settings';
 import CommsClient from './lib/comms/CommsClient';
 import PageInfo from './lib/video-data/PageInfo';
 import EventBus from './lib/EventBus';

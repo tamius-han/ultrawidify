@@ -3,7 +3,7 @@ import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
 import { ArVariant } from '@src/common/interfaces/ArInterface';
 import { ExtensionEnvironment } from '@src/common/interfaces/SettingsInterface';
 import EventBus from '../EventBus';
-import Settings from '../Settings';
+import Settings from '../settings/Settings';
 import { SiteSettings } from '../settings/SiteSettings';
 import VideoData from '../video-data/VideoData';
 import { AardDebugUi } from './AardDebugUi';

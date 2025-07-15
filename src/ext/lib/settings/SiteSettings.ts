@@ -2,7 +2,7 @@ import CropModePersistence from '../../../common/enums/CropModePersistence.enum'
 import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
 import { SettingsReloadComponent, SettingsReloadFlags, SiteSettingsInterface } from '../../../common/interfaces/SettingsInterface';
 import { _cp } from '../../../common/js/utils';
-import Settings from '../Settings';
+import Settings from './Settings';
 import StretchType from '../../../common/enums/StretchType.enum';
 import VideoAlignmentType from '../../../common/enums/VideoAlignmentType.enum';
 

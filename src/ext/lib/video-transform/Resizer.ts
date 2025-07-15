@@ -9,7 +9,7 @@ import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
 import VideoData from '../video-data/VideoData';
 import EventBus from '../EventBus';
 import { _cp } from '../../../common/js/utils';
-import Settings from '../Settings';
+import Settings from '../settings/Settings';
 import { Ar, ArVariant } from '../../../common/interfaces/ArInterface';
 import { RunLevel } from '../../enum/run-level.enum';
 import * as _ from 'lodash';

@@ -111,7 +111,7 @@
 <script>
 import Donate from '../common/misc/Donate.vue';
 import SuperAdvancedSettings from './SuperAdvancedSettings.vue';
-import Settings from '../ext/lib/Settings';
+import Settings from '../ext/lib/settings/Settings';
 import GeneralSettings from './GeneralSettings';
 import ControlsSettings from './controls-settings/ControlsSettings';
 import AddEditActionPopup from './controls-settings/AddEditActionPopup';

@@ -1,5 +1,5 @@
 import { ComponentLogger } from './../logging/ComponentLogger';
-import Settings from '../Settings';
+import Settings from '../settings/Settings';
 import EventBus from '../EventBus';
 import { CommsOrigin } from './CommsClient';
 
@@ -148,7 +148,6 @@ class CommsServer {
       }
     }
 
-    console.log('uniq hosts:', hosts)
     return hosts;
   }
 

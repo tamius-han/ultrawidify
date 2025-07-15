@@ -1,7 +1,7 @@
 import { SiteSettings } from './../settings/SiteSettings';
 import BrowserDetect from '../../conf/BrowserDetect';
 import VideoData from '../video-data/VideoData';
-import Settings from '../Settings';
+import Settings from '../settings/Settings';
 import { Stretch } from '../../../common/interfaces/StretchInterface';
 import { ComponentLogger } from '../logging/ComponentLogger';
 
