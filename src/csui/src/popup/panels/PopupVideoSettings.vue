@@ -175,7 +175,7 @@ export default {
       this.enabledHosts = [];
 
       for (const host of val) {
-        const siteSettings = new SiteSettings(this.settings, host);
+        const siteSettings = new SiteSettings(this.settings, {site: host});
 
         if (siteSettings.isEnabledForEnvironment(false, true) === ExtensionMode.Enabled) {
           this.enabledHosts.push(host);

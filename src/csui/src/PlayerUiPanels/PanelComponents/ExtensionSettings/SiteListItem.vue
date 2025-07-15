@@ -11,7 +11,7 @@
     </div>
     <div v-if="this.siteSettings?.usesSettingsFor">
       <div v-if="this.siteSettings.usesSettingsFor === '@global'">Uses default settings</div>
-      <div v-else>Uses settings for: {{this.siteSettings.usesSettingsFor}}</div>
+      <div v-else>Uses settings for: <span class="info-color">{{this.siteSettings.usesSettingsFor}}</span></div>
     </div>
     <div class="flex flex-row">
       <small>
@@ -35,10 +35,11 @@ export default {
   },
   props: [
     'settings',
+    'parentHost',
     'host',
   ],
   created() {
-    this.siteSettings = this.settings.getSiteSettings(this.host);
+    this.siteSettings = this.settings.getSiteSettings({site: this.host, isIframe: this.parentHost && this.host !== this.parentHost, parentHostname: this.parentHost});
   },
   methods: {
     getSiteTypeColor(siteType) {

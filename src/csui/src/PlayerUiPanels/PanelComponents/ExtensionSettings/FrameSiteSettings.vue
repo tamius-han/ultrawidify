@@ -11,6 +11,7 @@
       </div>
       <div v-for="host of hosts" :key="host" @click="selectedSite = host" class="flex flex-col container pointer hoverable" style="margin-top: 4px; padding: 0.5rem 1rem;">
         <SiteListItem
+          :parentHost="parentHost"
           :host="host"
           :settings="settings"
         ></SiteListItem>
@@ -48,6 +49,7 @@ export default {
   },
   props: [
     'settings',
+    'parentHost',
     'hosts',
   ],
   data() {
@@ -81,7 +83,7 @@ export default {
       }
     },
     selectedSiteSettings() {
-      return this.settings?.getSiteSettings(this.selectedSite) ?? null;
+      return this.settings?.getSiteSettings({site: this.selectedSite}) ?? null;
     }
   },
   methods: {

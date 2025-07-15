@@ -201,7 +201,7 @@ export default {
             }
             this.site = config.site;
             // this.selectedSite = this.selectedSite || config.site.host;
-            this.siteSettings = this.settings.getSiteSettings(this.site.host);
+            this.siteSettings = this.settings.getSiteSettings({site: this.site.host});
             this.eventBus.setupPopupTunnelWorkaround({
               origin: CommsOrigin.Popup,
               comms: {

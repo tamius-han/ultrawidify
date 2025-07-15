@@ -376,6 +376,9 @@ button,
   padding-left: 35px;
   float: right;
 }
+.info-color {
+  color: $info-color;
+}
 
 .info::before {
   content: "ⓘ";

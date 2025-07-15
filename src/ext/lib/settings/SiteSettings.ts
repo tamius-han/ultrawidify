@@ -128,7 +128,6 @@ export class SiteSettings {
       // `www.example.com`, this will also match `example.com`, `subdomain.example.com`, `nested.subdomain.example.com` ...
       if (configUrlSegments[configUrlSegments.length - 1] === '*' || (configUrlSegments[configUrlSegments.length - 1] === 'www')) {
 
-        console.log('ss: comparing', configUrlSegments, urlSegments);
         for (let i = 0; i < configUrlSegments.length - 1 && i < urlSegments.length; i++) {
           if (configUrlSegments[i] !== urlSegments[i]) {
             continue siteLoop;
@@ -144,7 +143,11 @@ export class SiteSettings {
     // If we're inside of an iframe, let's see whether we can use parent settings
     if (options.isIframe) {
       const potentialSettings = this.getSettingsForSite({site: options.parentHostname});
+
       if (potentialSettings.siteSettings.applyToEmbeddedContent !== false) {
+        if (!potentialSettings.usesSettingsFor) {
+          potentialSettings.usesSettingsFor = options.parentHostname;
+        }
         return potentialSettings;
       }
     }

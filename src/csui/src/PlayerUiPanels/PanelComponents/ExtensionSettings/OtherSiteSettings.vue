@@ -121,7 +121,7 @@ export default {
       }
     },
     selectedSiteSettings() {
-      return this.settings?.getSiteSettings(this.selectedSite) ?? null;
+      return this.settings?.getSiteSettings({site: this.selectedSite}) ?? null;
     }
   },
   methods: {
@@ -140,13 +140,13 @@ export default {
       return status === 'disabled' ? 'color: #f00' : 'color: #1f8';
     },
     getSiteEnabledModes(site, component) {
-      if (this.settings?.getSiteSettings(site).data[component]?.normal === ExtensionMode.Enabled) {
+      if (this.settings?.getSiteSettings({site: site}).data[component]?.normal === ExtensionMode.Enabled) {
         return 'always';
       }
-      if (this.settings?.getSiteSettings(site).data[component]?.theater === ExtensionMode.Enabled) {
+      if (this.settings?.getSiteSettings({site: site}).data[component]?.theater === ExtensionMode.Enabled) {
         return 'T + FS';
       }
-      if (this.settings?.getSiteSettings(site).data[component]?.fullscreen === ExtensionMode.Enabled) {
+      if (this.settings?.getSiteSettings({site: site}).data[component]?.fullscreen === ExtensionMode.Enabled) {
         return 'fullscreen';
       }
       return 'disabled';

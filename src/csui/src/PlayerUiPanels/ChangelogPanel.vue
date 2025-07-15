@@ -15,6 +15,7 @@
           <li>Subdomains now inherit same settings as their parent domain by default</li>
           <li>Extension attempts to detect embedded content.</li>
         </ul>
+
       </div>
       <div style="width: 1rem; height: 0px;"></div>
       <div class="min-w-[400px] max-w-[520px] grow shrink">

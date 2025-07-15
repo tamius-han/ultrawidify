@@ -41,6 +41,7 @@
       <template v-if="hosts && tab === 'embeddedSites' && globalSettings">
         <FrameSiteSettings
           v-if="settings"
+          :parentHost="site"
           :hosts="hosts"
           :settings="settings"
         ></FrameSiteSettings>
@@ -196,7 +197,7 @@ export default {
     },
     siteSettings() {
       if (this.site) {
-        return  this.settings?.getSiteSettings(this.site) ?? null;
+        return  this.settings?.getSiteSettings({site: this.site}) ?? null;
       }
       return null;
     },

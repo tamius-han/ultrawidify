@@ -205,7 +205,7 @@ export default {
     if (this.defaultTab) {
       this.selectedTab = this.defaultTab;
     }
-    this.siteSettings = this.settings.getSiteSettings(this.site);
+    this.siteSettings = this.settings.getSiteSettings({site: this.site});
     this.tabs.find(x => x.id === 'changelog').highlight = !this.settings.active?.whatsNewChecked;
 
     this.eventBus.subscribe(

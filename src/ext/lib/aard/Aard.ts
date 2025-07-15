@@ -2049,7 +2049,7 @@ export class Aard {
    * Calculates video's current aspect ratio based on data in testResults.
    * @returns
    */
-  private getAr() {
+  private getAr(): number {
     const fileAr = this.video.videoWidth / this.video.videoHeight;
     const canvasAr = this.canvasStore.main.width / this.canvasStore.main.height;
 
