@@ -1,439 +1,300 @@
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col w-full">
     <div class="flex flex-row">
       <h1>Video player options</h1>
     </div>
-    <div class="flex flex-row">
-      <div style="width: 48%">
-        NEW PLAYER SELECTOR
-        <div class="sub-panel-content">
-          <p>
-            You're probably on this page because Ultrawidify doesn't crop the player correctly.
-          </p>
-          <p>
-            If you hover over the boxes below, the corresponding element will be highlighted with golden outline. Player should be the first element that covers the video player on the page.
-          </p>
-          <p>
-            You need to reload the page for changes to take effect.
-          </p>
+    <div class="w-full">
+      <div v-if="tutorialVisible" class="w-full">
+        <button
+          class="info-button"
+          @click="tutorialVisible = false"
+        >
+          <mdicon name="arrow-left"></mdicon>
+          Back
+        </button>
 
-          <!-- <p>
-            <a @click="showAdvancedOptions = !showAdvancedOptions">
-              <template v-if="showAdvancedOptions">Hide advanced options</template>
-              <template v-else>Show advanced options</template>
-            </a>
-          </p> -->
+        <div v-if="tutorialStep == 0" class="flex flex-col w-full justify-center items-center tutorial-step">
+          <h3>1. Start hovering over elements on this list</h3>
+          <div class="flex flex-row w-full flex-wrap tutorial-list">
+            <div class="card">
+              <div class="card-text">
+                <p>This list contains all the elements on the webpage that could be a video player.</p>
+                <p>Icons to the left of the list indicate which element is currently selected as the player element, which element the extension thinks to be the player element, and which element should be the player according to manual settings.</p>
+              </div>
+              <img src="/res/img/player-select-demo/uw_player___element-list-1.webp" />
+            </div>
+            <div class="card">
+              <div class="card-text">
+                <p>Move your mouse over the first element on the list, but do not click it.</p>
+                <p>Hovering over elements on the list will highlight parts of the page.</p>
+              </div>
+              <img src="/res/img/player-select-demo/uw_player___element-list-hover.webp" />
+            </div>
+          </div>
+          <button @click="tutorialStep = 1">Next</button>
+        </div>
 
-          <div v-if="showAdvancedOptions" style="display: flex; flex-direction: row">
-            <div style="display: flex; flex-direction: column">
-              <div>
-                <input :checked="playerManualQs"
-                        @change="togglePlayerManualQs"
-                        type="checkbox"
-                />
-                <div>
-                  Use <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors" target="_blank">CSS selector</a> for player<br/>
-                  <small>If defining multiple selectors, separate them with commas.</small>
+        <div v-if="tutorialStep == 1" class="flex flex-col w-full justify-center items-center tutorial-step">
+          <h3>2. Observe highlight</h3>
+
+          <div class="flex flex-row w-full flex-wrap tutorial-list">
+            <div class="card">
+              <div class="card-text">
+                <p>Hovering over the elements will highlight part of the page. Highlighted area should cover the player area.</p>
+                <p>If the highlighted area covers the player, click the item on the list to select it and reload the page.</p>
+                <p>If more than one element covers the player area, select the first (topmost) one on the list.</p>
+              </div>
+              <img src="/res/img/player-select-demo/uw_player_select___just-right.webp" />
+
+              <div class="icon correct">
+                <mdicon name="check-circle" size="96"></mdicon>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-text">
+                <p>If highlight covers more than just the player area, that usually means the correct element is further down the list.</p>
+                <p>Move the mouse cursor down the list of elements, until you encounter the first element that covers the player area.</p>
+              </div>
+              <img src="/res/img/player-select-demo/uw_player_select___too_much.webp" />
+              <div class="icon wrong">
+                <mdicon name="close-circle" size="96"></mdicon>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-text">
+                <p>If highlight doesn't cover the whole player area, that usually means the correct element is further down the list.</p>
+                <p>Move your cursor up the list of elements, until you encounter something that highlights the entire player area.</p>
+                <p>If more than one element covers the player area, select the first (topmost) one on the list.</p>
+              </div>
+              <img src="/res/img/player-select-demo/uw_player_select___too_little.webp" />
+              <div class="icon wrong">
+                <mdicon name="close-circle" size="96"></mdicon>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <button @click="tutorialStep = 0">Previous</button>
+            <button @click="tutorialVisible = false">Done</button>
+          </div>
+        </div>
+
+      </div>
+      <div v-else class="w-full">
+        <button
+          class="info-button"
+          @click="showTutorial()"
+        >
+          <mdicon name="help"></mdicon>
+          How do I use this?
+        </button>
+        <div class="w-full flex flex-row" style="margin-top: 1rem;">
+
+          <!-- PLAYER ELEMENT SELECTOR FOR DUMMIES -->
+          <div style="width: 48%">
+            <div class="sub-panel-content">
+              <h2>Simple player selector</h2>
+
+
+              <div v-if="showAdvancedOptions" style="display: flex; flex-direction: row">
+                <div style="display: flex; flex-direction: column">
+                  <div>
+                    <input :checked="playerManualQs"
+                            @change="togglePlayerManualQs"
+                            type="checkbox"
+                    />
+                    <div>
+                      Use <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors" target="_blank">CSS selector</a> for player<br/>
+                      <small>If defining multiple selectors, separate them with commas.</small>
+                    </div>
+                  </div>
+                  <div>Selector</div>
+                  <input type="text"
+                    v-model="playerQs"
+                    @change="updatePlayerQuerySelector"
+                    @blur="updatePlayerQuerySelector"
+                    :disabled="playerByNodeIndex || !playerManualQs"
+                  />
+                </div>
+                <div style="display: flex; flex-direction: column">
+                  <b>Custom CSS for site</b>
+                  <textarea></textarea>
                 </div>
               </div>
-              <div>Selector</div>
-              <input type="text"
-                v-model="playerQs"
-                @change="updatePlayerQuerySelector"
-                @blur="updatePlayerQuerySelector"
-                :disabled="playerByNodeIndex || !playerManualQs"
-              />
-            </div>
-            <div style="display: flex; flex-direction: column">
-              <b>Custom CSS for site</b>
-              <textarea></textarea>
-            </div>
-          </div>
 
-          <div style="display: flex; flex-direction: row;">
-            <div class="element-tree">
-              <table>
-                <thead>
-                  <tr>
-                    <th>
-                      <div class="status-relative">
-                        Status <mdicon name="help-circle" @click="showLegend = !showLegend" />
+              <div style="display: flex; flex-direction: row;">
+                <div class="element-tree">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>
+                          <div class="status-relative">
+                            Status <mdicon name="help-circle" @click="showLegend = !showLegend" />
 
-                        <div v-if="showLegend" class="element-symbol-legend">
-                          <b>Symbols:</b><br />
-                          <mdicon name="alert-remove" class="invalid" /> Element of invalid dimensions<br />
-                          <mdicon name="refresh-auto" class="auto-match" /> Ultrawidify's player detection thinks this should be the player<br />
-                          <mdicon name="bookmark" class="parent-offset-match" /> Site settings say this should be the player (based on counting parents)<br />
-                          <mdicon name="crosshairs" class="qs-match" /> Site settings say this should be the player (based on query selectors)<br />
-                          <mdicon name="check-circle" class="activePlayer" /> Element that is actually the player
-                        </div>
-                      </div>
-                    </th>
-                    <th>Element</th>
-                    <!-- <th>Actions</th> -->
-                    <!-- <th>Quick fixes</th> -->
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    v-for="(element, index) of elementStack"
-                    :key="index"
-                    class="element-row"
-                  >
-                    <td>
-                      <div class="status">
-                        <div
-                          v-if="element.heuristics?.invalidSize"
-                          class="invalid"
-                        >
-                          <mdicon name="alert-remove" />
-                        </div>
-                        <div
-                          v-if="element.heuristics?.autoMatch"
-                          class="auto-match"
-                        >
-                          <mdicon name="refresh-auto" />
-                        </div>
-                        <div
-                          v-if="element.heuristics?.qsMatch"
-                          class="qs-match"
-                        >
-                          <mdicon name="crosshairs" />
-                        </div>
-                        <div
-                          v-if="element.heuristics?.manualElementByParentIndex"
-                          class="parent-offset-match"
-                        >
-                          <mdicon name="bookmark" />
-                        </div>
-                        <div
-                          v-if="element.heuristics?.activePlayer"
-                          class="activePlayer"
-                        >
-                          <mdicon name="check-circle" />
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div
-                        class="element-data"
-
-                        @mouseover="markElement(index, true)"
-                        @mouseleave="markElement(index, false)"
-
-                        @click="setPlayer(index)"
-                      >
-                        <div class="tag">
-                          <b>{{element.tagName}}</b> <i class="id">{{element.id ? `#`:''}}{{element.id}}</i>  @ <span class="dimensions">{{element.width}}</span>x<span class="dimensions">{{element.height}}</span>
-
-                        </div>
-                        <div v-if="element.classList" class="class-list">
-                          <div v-for="cls of element.classList" :key="cls">
-                            {{cls}}
+                            <div v-if="showLegend" class="element-symbol-legend">
+                              <b>Symbols:</b><br />
+                              <mdicon name="alert-remove" class="invalid" /> Element of invalid dimensions<br />
+                              <mdicon name="refresh-auto" class="auto-match" /> Ultrawidify's player detection thinks this should be the player<br />
+                              <mdicon name="bookmark" class="parent-offset-match" /> Site settings say this should be the player (based on counting parents)<br />
+                              <mdicon name="crosshairs" class="qs-match" /> Site settings say this should be the player (based on query selectors)<br />
+                              <mdicon name="check-circle" class="activePlayer" /> Element that is actually the player
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div class="flex flex-row">
-                        <!-- <div @click="designatePlayer(index)">Set as player {{ index }}</div> -->
-                      </div>
-                    </td>
-                    <!-- <td>
-                      <div
-                        class="css-fixes"
+                        </th>
+                        <th>Element</th>
+                        <!-- <th>Actions</th> -->
+                        <!-- <th>Quick fixes</th> -->
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        v-for="(element, index) of elementStack"
+                        :key="index"
+                        class="element-row"
                       >
-                        <div style="width: 100%"><b>Quick fixes:</b></div>
-                        <div
-                          class="css-line"
-                          :class="{'active': cssStack[index]?.includes('width: 100%;')}"
-                          @click="toggleCssForElement(index, 'width: 100%;')"
-                        >
-                          Width: 100%
-                        </div>
-                        <div
-                          class="css-line"
-                          :class="{'active': cssStack[index]?.includes('height: 100%;')}"
-                          @click="toggleCssForElement(index, 'height: 100%;')"
-                        >
-                          Height: 100%
-                        </div>
-                        <div
-                          class="css-line"
-                          :class="{'active': cssStack[index]?.includes('display: flex;')}"
-                          @click="toggleCssForElement(index, 'display: flex;')"
-                        >
-                          Display: flex
-                        </div>
-                        <div class="css-line">
-                          Flex direction:
-                          <span
-                            class="css-line-suboption"
-                            :class="{'active': cssStack[index]?.includes('flex-direction: row;')}"
-                            @click="toggleCssForElement(index, 'flex-direction', 'row')"
-                          >
-                            row
-                          </span> |
-                          <span
-                            class="css-line-suboption"
-                            :class="{'active': cssStack[index]?.includes('flex-direction: column;')}"
-                            @click="toggleCssForElement(index, 'flex-direction', 'column')"
-                          >
-                            column
-                          </span>
-                        </div>
-                        <div class="css-line">
-                          Justify content:
-                          <span
-                            class="css-line-suboption"
-                            :class="{'active': cssStack[index]?.includes('justify-content: start;')}"
-                            @click="toggleCssForElement(index, 'justify-content', 'start')"
-                          >
-                            start
-                          </span> |
-                          <span
-                            class="css-line-suboption"
-                            :class="{'active': cssStack[index]?.includes('justify-content: center;')}"
-                            @click="toggleCssForElement(index, 'justify-content', 'center')"
-                          >
-                            center
-                          </span> |
-                          <span
-                            class="css-line-suboption"
-                            :class="{'active': cssStack[index]?.includes('justify-content: end;')}"
-                            @click="toggleCssForElement(index, 'justify-content', 'end')"
-                          >
-                            end
-                          </span>
-                        </div>
-                        <div class="css-line">
-                          Align items:
-                          <span
-                            class="css-line-suboption"
-                            :class="{'active': cssStack[index]?.includes('align-items: start;')}"
-                            @click="toggleCssForElement(index, 'align-items', 'start')"
-                          >
-                            start
-                          </span> |
-                          <span
-                            class="css-line-suboption"
-                            :class="{'active': cssStack[index]?.includes('align-items: center;')}"
-                            @click="toggleCssForElement(index, 'align-items', 'center')"
-                          >
-                            center
-                          </span> |
-                          <span
-                            class="css-line-suboption"
-                            :class="{'active': cssStack[index]?.includes('align-items: end;')}"
-                            @click="toggleCssForElement(index, 'align-items', 'end')"
-                          >
-                            end
-                          </span>
-                        </div>
+                        <td>
+                          <div class="status">
+                            <div
+                              v-if="element.heuristics?.invalidSize"
+                              class="invalid"
+                            >
+                              <mdicon name="alert-remove" />
+                            </div>
+                            <div
+                              v-if="element.heuristics?.autoMatch"
+                              class="auto-match"
+                            >
+                              <mdicon name="refresh-auto" />
+                            </div>
+                            <div
+                              v-if="element.heuristics?.qsMatch"
+                              class="qs-match"
+                            >
+                              <mdicon name="crosshairs" />
+                            </div>
+                            <div
+                              v-if="element.heuristics?.manualElementByParentIndex"
+                              class="parent-offset-match"
+                            >
+                              <mdicon name="bookmark" />
+                            </div>
+                            <div
+                              v-if="element.heuristics?.activePlayer"
+                              class="activePlayer"
+                            >
+                              <mdicon name="check-circle" />
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div
+                            class="element-data"
 
-                        <div class="css-line">
-                          Justify self:
-                          <span
-                            class="css-line-suboption"
-                            :class="{'active': cssStack[index]?.includes('justify-self: start;')}"
-                            @click="toggleCssForElement(index, 'justify-self', 'start')"
+                            @mouseover="markElement(elementStack.length - index - 1, true)"
+                            @mouseleave="markElement(elementStack.length - index - 1, false)"
+
+                            @click="setPlayer(elementStack.length - index - 1)"
                           >
-                            start
-                          </span> |
-                          <span
-                            class="css-line-suboption"
-                            :class="{'active': cssStack[index]?.includes('justify-self: center;')}"
-                            @click="toggleCssForElement(index, 'justify-self', 'center')"
-                          >
-                            center
-                          </span> |
-                          <span
-                            class="css-line-suboption"
-                            :class="{'active': cssStack[index]?.includes('justify-self: end;')}"
-                            @click="toggleCssForElement(index, 'justify-self', 'end')"
-                          >
-                            end
-                          </span>
-                        </div>
-                        <div class="css-line">
-                          Align self:
-                          <span
-                            class="css-line-suboption"
-                            :class="{'active': cssStack[index]?.includes('align-self: start;')}"
-                            @click="toggleCssForElement(index, 'align-self', 'start')"
-                          >
-                            start
-                          </span> |
-                          <span
-                            class="css-line-suboption"
-                            :class="{'active': cssStack[index]?.includes('align-self: center;')}"
-                            @click="toggleCssForElement(index, 'align-self', 'center')"
-                          >
-                            center
-                          </span> |
-                          <span
-                            class="css-line-suboption"
-                            :class="{'active': cssStack[index]?.includes('align-self: end;')}"
-                            @click="toggleCssForElement(index, 'align-self', 'end')"
-                          >
-                            end
-                          </span>
-                        </div>
-                        <div class="css-line">
-                          Text-align:
-                          <span
-                            class="css-line-suboption"
-                            :class="{'active': cssStack[index]?.includes('text-align: left;')}"
-                            @click="toggleCssForElement(index, 'text-align', 'left')"
-                          >
-                            left
-                          </span> |
-                          <span
-                            class="css-line-suboption"
-                            :class="{'active': cssStack[index]?.includes('text-align: center;')}"
-                            @click="toggleCssForElement(index, 'text-align', 'center')"
-                          >
-                            center
-                          </span> |
-                          <span
-                            class="css-line-suboption"
-                            :class="{'active': cssStack[index]?.find(x => x.includes('text-align: right'))}"
-                            @click="toggleCssForElement(index, 'text-align', 'right')"
-                          >
-                            right
-                          </span>
-                        </div>
-                        <div class="css-line">
-                          Position:
-                          <span
-                            class="css-line-suboption"
-                            :class="{'active': cssStack[index]?.includes('position: relative;')}"
-                            @click="toggleCssForElement(index, 'position', 'relative')"
-                          >
-                            relative
-                          </span> |
-                          <span
-                            class="css-line-suboption"
-                            :class="{'active': cssStack[index]?.includes('position: absolute;')}"
-                            @click="toggleCssForElement(index, 'position', 'absolute')"
-                          >
-                            absolute
-                          </span>
-                        </div>
-                      </div>
-                    </td> -->
-                  </tr>
-                </tbody>
-              </table>
-              <div class="element-config">
+                            <div class="tag">
+                              <b>{{element.tagName}}</b> <i class="id">{{element.id ? `#`:''}}{{element.id}}</i>  @ <span class="dimensions">{{element.width}}</span>x<span class="dimensions">{{element.height}}</span>
+
+                            </div>
+                            <div v-if="element.classList" class="class-list">
+                              <div v-for="cls of element.classList" :key="cls">
+                                {{cls}}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div class="flex flex-row">
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="element-config">
+                  </div>
+                </div>
+
+                <!-- <div class="css-preview">
+                  {{cssStack}}
+                </div> -->
               </div>
             </div>
+          </div>
 
-            <!-- <div class="css-preview">
-              {{cssStack}}
-            </div> -->
-          </div>
-        </div>
-      </div>
-      <div style="width: 48%">
-        <div>EXAMPLE <small style="opacity: 0.5"><br/>ps: i know this ui is shit, no need to tell me</small></div>
-        <div class="demo-images">
-          <div class="fig1">
-            <img src="/res/img/player-select-demo/uw_player_select___too_little.webp" />
-            <div>If you see this when hovering over the element, you need to select further down the list.</div>
-          </div>
-          <div class="fig2">
-            <div>
-              <p>
-                If you see this when hovering over the element, you're hovering over the correct element.
-              </p>
-              <p>
-                In case there's more than one element that covers the entire player and nothing more, select the option that's closest to the top of the list, otherwise in-player UI could break.
-              </p>
-              <p>
-                If in-player UI breaks, you can make the settings window appear from the extension popup.
-              </p>
+          <!-- ADVANCED OPTIONS -->
+          <div style="width: 48%" v-if="false">
+            <h2>Advanced options</h2>
+
+            <pre>{{siteSettings.raw}}</pre>
+
+            <div class="">
+              <h3>Player element</h3>
+              <div class="field">
+                <div class="label">Manually specify player</div>
+                <input type="checkbox" />
               </div>
-            <img src="/res/img/player-select-demo/uw_player_select___just-right.webp" />
-          </div>
-          <div class="fig1">
-            <img src="/res/img/player-select-demo/uw_player_select___too_much.webp" />
-            <div>If you see this when hovering over the element, you need to select an element closer to the top of the list.</div>
+              <div class="field">
+                <div class="label">Select player by/as:</div>
+                <div class="select">
+                  <select>
+                    <option>n-th parent of video</option>
+                    <option>Query selectors</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field">
+                <div class="label">Player is n-th parent of video</div>
+                <div class="range-input">
+                  <input type="range" min="0" max="100" />
+                  <input />
+                </div>
+              </div>
+              <div class="field">
+                <div class="label">Query selector for player element</div>
+                <div class="input">
+                  <input />
+                </div>
+              </div>
+              <div class="field">
+                <div class="label">In full screen, calculate crop based on monitor resolution</div>
+                <input type="checkbox" />
+              </div>
+
+              <h3>Video element</h3>
+              <div class="field">
+                <div class="label">Select video element automatically</div>
+                <input type="checkbox">
+              </div>
+              <div class="field">
+                <div class="label">Query selectors</div>
+                <div class="input">
+                  <input>
+                </div>
+              </div>
+              <div class="field">
+                <div class="label">Additional styles for video element</div>
+                <div class="input">
+                  <textarea></textarea>
+                </div>
+              </div>
+
+              <h3>Additional css for this page</h3>
+              <div class="field">
+                <div class="label">Additional CSS for this page</div>
+                <textarea></textarea>
+              </div>
+
+            </div>
           </div>
         </div>
       </div>
-      <div style="width: 48%" v-if="false">
-        <h2>Legacy advanced settings</h2>
-
-        <div class="">
-          <h3>Player element</h3>
-          <div class="field">
-            <div class="label">Manually specify player</div>
-            <input type="checkbox" />
-          </div>
-          <div class="field">
-            <div class="label">Select player by/as:</div>
-            <div class="select">
-              <select>
-                <option>n-th parent of video</option>
-                <option>Query selectors</option>
-              </select>
-            </div>
-          </div>
-          <div class="field">
-            <div class="label">Player is n-th parent of video</div>
-            <div class="range-input">
-              <input type="range" min="0" max="100" />
-              <input />
-            </div>
-          </div>
-          <div class="field">
-            <div class="label">Query selector for player element</div>
-            <div class="input">
-              <input />
-            </div>
-          </div>
-          <div class="field">
-            <div class="label">In full screen, calculate crop based on monitor resolution</div>
-            <input type="checkbox" />
-          </div>
-
-          <h3>Video element</h3>
-          <div class="field">
-            <div class="label">Select video element automatically</div>
-            <input type="checkbox">
-          </div>
-          <div class="field">
-            <div class="label">Query selectors</div>
-            <div class="input">
-              <input>
-            </div>
-          </div>
-          <div class="field">
-            <div class="label">Additional styles for video element</div>
-            <div class="input">
-              <textarea></textarea>
-            </div>
-          </div>
-
-          <h3>Additional css for this page</h3>
-          <div class="field">
-            <div class="label">Additional CSS for this page</div>
-            <textarea></textarea>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- <div class="sub-panel-content">
-        <h2>Advanced settings</h2>
-      </div> -->
     </div>
   </div>
 </template>
 <script>
-
-
 export default({
   components: {
 
@@ -444,7 +305,11 @@ export default({
       cssStack: [],
       showLegend: false,
       showAdvancedOptions: false,
+      tutorialVisible: false,
+      tutorialStep: 0
     };
+  },
+  computed: {
   },
   mixins: [],
   props: [
@@ -471,6 +336,10 @@ export default({
   },
   computed: {},
   methods: {
+    showTutorial() {
+      this.tutorialVisible = true;
+      this.tutorialStep = 0;
+    },
     getPlayerTree() {
       if (this.isPopup) {
         this.eventBus.send('get-player-tree');
@@ -480,7 +349,7 @@ export default({
     },
     handleElementStack(configBroadcast) {
       if (configBroadcast.type === 'player-tree') {
-        this.elementStack = configBroadcast.config;
+        this.elementStack = configBroadcast.config.reverse();
         this.$nextTick( () => this.$forceUpdate() );
       }
     },
@@ -553,8 +422,93 @@ export default({
 <style lang="scss" src="@csui/src/res-common/panels.scss" scoped module></style>
 <style lang="scss" src="@csui/src/res-common/common.scss" scoped module></style>
 <style lang="scss" scoped>
+@import "@csui/res/css/colors.scss";
+
 p {
   font-size: 1rem;
+}
+
+.info-button {
+  color: $info-color;
+  border: 1px solid $info-color;
+  padding: 0.5rem 2rem;
+
+  &:hover {
+    background-color: rgba($info-color, 0.25);
+    color: #eee;
+    border: 1px solid $info-color !important;
+  }
+}
+
+.tutorial-step {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+
+  h3 {
+    color: #fa6;
+    text-transform: uppercase;
+    font-weight: bold !important;
+  }
+
+  .tutorial-list {
+    margin-top: 1rem;
+    margin-bottom: 3rem;
+
+    .card {
+      position: relative;
+
+      margin: 0.5rem;
+      padding: 1rem;
+
+      max-width: 32rem;
+
+      border: 1px solid #333;
+      border-radius: 0.5rem;
+      background-color: #121110dd;
+
+      display: flex;
+      flex-direction: column;
+
+      .card-text {
+        color: #aaa;
+        flex-grow: 1;
+      }
+
+      img {
+        width: 100%;
+      }
+
+      .icon {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        padding: 0rem;
+        transform: translate(-50%, 50%);
+
+        background-color: #000;
+        border-radius: 50%;
+
+        &.wrong {
+          color: #dc3c14;
+        }
+        &.correct {
+          color: rgb(102, 241, 218);
+        }
+      }
+    }
+  }
+
+  button {
+    color: #000 !important;
+    background-color: #fa6 !important;
+    border-radius: 0.5rem !important;
+
+    &:hover {
+      border: 1px solid #fa6 !important;
+      color: #fff !important;
+      background-color: transparent !important;
+    }
+  }
 }
 
 .element-tree {
