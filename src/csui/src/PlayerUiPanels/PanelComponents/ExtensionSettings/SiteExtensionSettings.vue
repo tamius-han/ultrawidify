@@ -165,6 +165,26 @@
         </div>
       </div>
 
+       <div class="field">
+        <div class="label">
+          Use these settings for <span class="color-emphasis">embedded content</span>?
+          <!-- <span class="sub-label"><br/>under the following conditions:</span> -->
+        </div>
+        <div class="select">
+          <select
+            :value="siteDefaultForEmbedded"
+            @click="setSiteOption('applyToEmbeddedContent', $event)"
+          >
+            <option :value="true">
+              Unless overridden
+            </option>
+            <option :value="false">
+              Never
+            </option>
+          </select>
+        </div>
+      </div>
+
       <!-- Default crop -->
       <div class="field">
         <div class="label">Default crop:</div>
@@ -324,6 +344,9 @@ export default {
         enableKeyboard: this.getDefaultOptionLabel('enableKeyboard'),
         enableUI: this.getDefaultOptionLabel('enableUI')
       };
+    },
+    siteDefaultForEmbedded() {
+      return this.siteSettings.raw?.applyToEmbeddedContent ?? true;
     },
     siteDefaultCrop() {
       return this.siteSettings.raw?.defaults?.crop ? JSON.stringify(this.siteSettings.raw?.defaults?.crop) : JSON.stringify({useDefault: true});
