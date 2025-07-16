@@ -24,10 +24,16 @@ interface PlayerDimensions {
 
 interface ElementData {
   element: HTMLElement,
-  type: string,
+  type: string,  // kinda forgot what this is being used for
   tagName?: string,
   classList?: any,
   id?: string
+
+  width?: number;
+  height?: number;
+  heuristics?: any;
+  index?: number,
+  autoScore?: number;
 }
 
 type ElementStack = ElementData[];
@@ -272,7 +278,6 @@ class PlayerData {
       return;
     }
 
-
     if (
       this.isFullscreen
       || (
@@ -382,6 +387,8 @@ class PlayerData {
     try {
       // get player dimensions _once_
       let currentPlayerDimensions;
+      let fsChanged = this.isFullscreen !== !!document.fullscreenElement;
+
       this.isFullscreen = !!document.fullscreenElement;
 
       if (this.isFullscreen) {
@@ -424,6 +431,10 @@ class PlayerData {
 
       // Save current dimensions to avoid triggering this function pointlessly
       this.dimensions = currentPlayerDimensions;
+
+      if (fsChanged) {
+        this.updatePlayer();
+      }
     } catch (e) {
 
     }
@@ -562,19 +573,21 @@ class PlayerData {
   //#endregion
 
   private getElementStack(): ElementStack {
-    const elementStack: any[] = [{
+    const elementStack: ElementStack = [{
       element: this.videoElement,
       type: 'video',
       tagName: 'video',
       classList: this.videoElement.classList,
       id: this.videoElement.id,
     }];
+
     let element = this.videoElement.parentNode as HTMLElement;
 
     // first pass to generate the element stack and translate it into array
     while (element) {
       elementStack.push({
         element,
+        type: '',
         tagName: element.tagName,
         classList: element.classList,
         id: element.id,
@@ -705,19 +718,29 @@ class PlayerData {
    * @param videoHeight
    * @returns
    */
-  private getPlayerAuto(elementStack: any[], videoWidth, videoHeight) {
-    let penaltyMultiplier = 1;
+  private getPlayerAuto(elementStack: ElementStack, videoWidth, videoHeight) {
+    let penaltyMultiplier = 2;
     const sizePenaltyMultiplier = 0.1;
     const perLevelScorePenalty = 10;
     let sameSizeBonus = 0;
 
-    for (const [index, element] of elementStack.entries()) {
-      element.index = index;
+    const fullscreenElement = document.fullscreenElement;
+
+    for (const [index, elementData] of elementStack.entries()) {
+      elementData.index = index;
 
       // ignore weird elements, those would break our stuff
-      if (element.width == 0 || element.height == 0) {
-        element.heuristics['invalidSize'] = true;
+      if (elementData.width == 0 || elementData.height == 0) {
+        elementData.heuristics['invalidSize'] = true;
         continue;
+      }
+
+      if (elementData.element === fullscreenElement) {
+        // reset penalty multiplier if current element is full screen element
+        // penaltyMultiplier here must be smaller than initial penalty multiplier,
+        // so that playerElement is not above fullscreenElement. Player element must
+        // be a descendant of fullscreenElement for the UI to show up
+        penaltyMultiplier = 1;
       }
 
       // element is player, if at least one of the sides is as long as the video
@@ -728,8 +751,8 @@ class PlayerData {
       // Don't bother thinking about this too much, as any "thinking" was quickly
       // corrected by bugs caused by various edge cases.
       if (
-        this.equalish(element.height, videoHeight, 5)
-        || this.equalish(element.width, videoWidth, 5)
+        this.equalish(elementData.height, videoHeight, 5)
+        || this.equalish(elementData.width, videoWidth, 5)
       ) {
         let score = 1000;
 
@@ -740,8 +763,8 @@ class PlayerData {
         // Our ideal player will be as close to the video element, and it will als
         // be as close to the size of the video.
 
-        const diffX = (element.width - videoWidth);
-        const diffY = (element.height - videoHeight);
+        const diffX = (elementData.width - videoWidth);
+        const diffY = (elementData.height - videoHeight);
 
         // we have a minimal amount of grace before we start dinking scores for
         // mismatched dimensions. The size of the dimension mismatch dink is
@@ -760,14 +783,14 @@ class PlayerData {
         // candidate gets dinked a bit
         // score -= perLevelScorePenalty * penaltyMultiplier;
 
-        if (element.width === elementStack[index - 1].width && element.height === elementStack[index - 1].height) {
+        if (elementData.width === elementStack[index - 1].width && elementData.height === elementStack[index - 1].height) {
           score += ++sameSizeBonus;
         } else {
           sameSizeBonus = 0;
         }
 
-        element.autoScore = score;
-        element.heuristics['autoScoreDetails'] = {
+        elementData.autoScore = score;
+        elementData.heuristics['autoScoreDetails'] = {
           playerSizePenalty,
           diffX,
           diffY,
