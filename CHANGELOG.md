@@ -2,12 +2,16 @@
 
 ## v6.0 (current major)
 
+### v3.4.0
+* In-player UI now appears in full-screen even for websites that use top layer
+* Embedded sites now inherit settings of the parent frame
+
 ### v6.3.0
 * Added zoom segment to in-player UI and popup. 
 * Fixed keyboard zoom
 * Added additional zoom options. If you wonder how zoom options differ from crop, mess around and find out.
 * Subdomains now inherit same settings as their parent domain by default
-* Extension detects embedded content (but not always)
+* Extension popup detects embedded content
 * Added `www.youtube-nocookie.com` to "officially supported" list
 
 ### v6.2.5
