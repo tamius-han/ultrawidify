@@ -4,7 +4,8 @@
 
 ### v3.4.0
 * In-player UI now appears in full-screen even for websites that use top layer
-* Embedded sites now inherit settings of the parent frame
+* Embedded sites now inherit settings of the parent frame by default
+* Added validation to custom aspect ratio entry menu. Corrected parsing of aspect ratios given in the X:Y format, even though aspect ratios should be ideally given as a single number.
 
 ### v6.3.0
 * Added zoom segment to in-player UI and popup. 

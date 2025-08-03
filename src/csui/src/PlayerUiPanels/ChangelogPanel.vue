@@ -9,6 +9,7 @@
         <ul>
           <li>In-player UI can now appear in full-screen for websites that put players into top layer</li>
           <li>Embedded sites now inherit settings of the parent frame</li>
+          <li>Added validation to custom aspect ratio entry menu. Corrected parsing of aspect ratios given in the X:Y format, even though aspect ratios should be ideally given as a single number.</li>
         </ul>
 
       </div>
