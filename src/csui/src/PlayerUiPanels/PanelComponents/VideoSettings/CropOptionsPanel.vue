@@ -55,9 +55,12 @@
             <!-- We do an ugly in order to avoid spamming functions down at the bottom -->
             <input
               v-model="editModeOptions.crop.selected.arguments.ratio"
-              @blur="editModeOptions.crop.selected.label === 'New aspect ratio' ? editModeOptions.crop.selected.label = editModeOptions.crop.selected.arguments.ratio : null"
+              @blur="updateLabel('crop')"
             >
           </div>
+        </div>
+        <div v-if="editModeOptions.crop?.error" class="hint error">
+          {{editModeOptions.crop.error}}
         </div>
         <div class="hint">
           You can enter a ratio in width:height format (e.g. "21:9" or "1:2.39"), or just the factor

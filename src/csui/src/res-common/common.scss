@@ -210,6 +210,10 @@ button, .button {
   margin-left: 5rem;
   // width: 100%;
   box-sizing:border-box;
+
+  &.error {
+    color: #f41;
+  }
 }
 
 .options-bar {

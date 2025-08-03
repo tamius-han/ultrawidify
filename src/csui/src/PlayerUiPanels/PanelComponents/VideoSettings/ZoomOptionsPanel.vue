@@ -48,15 +48,19 @@
                 <!-- We do an ugly in order to avoid spamming functions down at the bottom -->
                 <input
                   v-model="editModeOptions.zoom.selected.arguments.ratio"
-                  @blur="editModeOptions.zoom.selected.label === 'New aspect ratio' ? editModeOptions.zoom.selected.label = editModeOptions.zoom.selected.arguments.ratio : null"
+                  @blur="updateLabel('zoom')"
                 >
               </div>
+            </div>
+            <div v-if="editModeOptions.zoom?.error" class="hint error">
+              {{editModeOptions.zoom.error}}
             </div>
             <div class="hint">
               You can enter a ratio in width:height format (e.g. "21:9" or "1:2.39"), or just the factor
               (in this case, "1:2.39" would become "2.39" and "21:9" would become "2.33"). You should enter
               your numbers without quote marks. Number will be converted to factor form on save.
             </div>
+
 
             <div class="field">
               <div class="label">

@@ -70,9 +70,12 @@
             <!-- We do an ugly in order to avoid spamming functions down at the bottom -->
             <input
               v-model="editModeOptions.stretch.selected.arguments.ratio"
-              @blur="editModeOptions.stretch.selected.label === 'Stretch to ...' ? editModeOptions.stretch.selected.label = `Stretch to ${editModeOptions.stretch.selected.arguments.ratio}` : null"
+              @blur="updateLabel('stretch')"
             >
           </div>
+        </div>
+        <div v-if="editModeOptions.stretch?.error" class="hint error">
+          {{editModeOptions.stretch.error}}
         </div>
         <div class="hint">
             You can enter a ratio in width:height format (e.g. "21:9" or "1:2.39"), or just the factor
