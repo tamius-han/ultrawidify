@@ -5,6 +5,7 @@ import { _cp } from '../../../common/js/utils';
 import Settings from './Settings';
 import StretchType from '../../../common/enums/StretchType.enum';
 import VideoAlignmentType from '../../../common/enums/VideoAlignmentType.enum';
+import EmbeddedContentSettingsOverridePolicy from '../../../common/enums/EmbeddedContentSettingsOverridePolicy.enum';
 
 
 export interface GetSiteSettingsOptions {
@@ -79,30 +80,36 @@ export class SiteSettings {
    *  | different subdomain? |
    *     |             |
    *     no           yes ————————> return settings for matching subdomain
+   *     |
    *     V
-   *   [ are we inside of an iframe? ]
-   *     |                  |
-   *     no                yes
-   *     V                  V
-   *  return default     |  exact parent   |
-   *    settings         | hostname match? |
-   *     A                  |           |
-   *     |                 no          yes ————> [ applyToEmbeddedContent set? ]
-   *     |                  V                           |               |
-   *     |        | parent matches hostname |           no             yes
-   *     |        | on different subdomain? |           V               V
-   *     |            |                 |          use default    use parent settings
-   *     +———<——————— no               yes
-   *     |                              |
-   *     +———<—— no ——[ applyToEmbeddedContent set? ]
-   *                                    |
-   *                                   yes
-   *                                    V
-   *    use settings for matching subdomain of parent
+   *   return default settings
+   *
+   *
+   *   Inside iframes, we also get priorities. We fetch settings for both iframe and the parent page.
+   *
+   *   START HERE
+   *     |
+   *   | are there settings for |    +——> |   does iframe host have   |
+   *   |      iframe host?      |    |    | overrideWhenEmbedded set? |
+   *     |                   |       |        |                    |
+   *     no                 yes —————+       no                   yes —-> return iframe settings
+   *     V                                    V
+   *   | does parent host have  |          | does parent use settings for @global ? |
+   *   | applyToEmbeddedContent |             |                    |
+   *   |      set to Never?     |             no                  yes ——> return iframe settings
+   *     |                  |                 V
+   *     no                 no             | what's applyToEmbeddedContent |
+   *     |                  |              |     set to on parent host?    |
+   *     V                  V                 |             |          |
+   *  return parent    return default       Always    UseAsDefault   Never
+   *    settings          settings            |             |          |
+   *                                          V             V          V
+   *                                    return parent       return iframe
+   *                                      settings            settings
    *
    * @returns
    */
-  private getSettingsForSite(options: GetSiteSettingsOptions) {
+  private getSettingsForSite(options: GetSiteSettingsOptions): {siteSettings: SiteSettingsInterface, usesSettingsFor: string | undefined} {
     if (!options.site) {
       return {
         siteSettings: this.settings.active.sites['@global'],
@@ -110,52 +117,60 @@ export class SiteSettings {
       };
     }
 
-    if (this.settings.active.sites[options.site]) {
-      return {
-        siteSettings: this.settings.active.sites[options.site],
-        usesSettingsFor: undefined
-      };
-    }
-
-    const urlSegments = this.site.split('.').reverse();
-
-    siteLoop:
-    for (const cs in this.settings.active.sites) {
-      const configUrlSegments = cs.split('.').reverse();
-
-      // Match site with wildcard site definitions
-      // Also, if definition starts with 'www', match also other subdomains — e.g. if we have a configuration for
-      // `www.example.com`, this will also match `example.com`, `subdomain.example.com`, `nested.subdomain.example.com` ...
-      if (configUrlSegments[configUrlSegments.length - 1] === '*' || (configUrlSegments[configUrlSegments.length - 1] === 'www')) {
-
-        for (let i = 0; i < configUrlSegments.length - 1 && i < urlSegments.length; i++) {
-          if (configUrlSegments[i] !== urlSegments[i]) {
-            continue siteLoop;
-          }
-        }
-        return {
-          siteSettings: this.settings.active.sites[cs],
-          usesSettingsFor: cs
-        }
-      }
-    }
-
-    // If we're inside of an iframe, let's see whether we can use parent settings
-    if (options.isIframe) {
-      const potentialSettings = this.getSettingsForSite({site: options.parentHostname});
-
-      if (potentialSettings.siteSettings.applyToEmbeddedContent !== false) {
-        if (!potentialSettings.usesSettingsFor) {
-          potentialSettings.usesSettingsFor = options.parentHostname;
-        }
-        return potentialSettings;
-      }
-    }
-
-    return {
+    const defaultSettings = {
       siteSettings: this.settings.active.sites['@global'],
       usesSettingsFor: '@global'
     };
+    let siteSettings: {siteSettings: SiteSettingsInterface, usesSettingsFor: string | undefined};
+
+    if (this.settings.active.sites[options.site]) {
+      siteSettings = {
+        siteSettings: this.settings.active.sites[options.site],
+        usesSettingsFor: undefined
+      };
+    } else {
+      const urlSegments = this.site.split('.').reverse();
+
+      siteLoop:
+      for (const cs in this.settings.active.sites) {
+        const configUrlSegments = cs.split('.').reverse();
+
+        // Match site with wildcard site definitions
+        // Also, if definition starts with 'www', match also other subdomains — e.g. if we have a configuration for
+        // `www.example.com`, this will also match `example.com`, `subdomain.example.com`, `nested.subdomain.example.com` ...
+        if (configUrlSegments[configUrlSegments.length - 1] === '*' || (configUrlSegments[configUrlSegments.length - 1] === 'www')) {
+
+          for (let i = 0; i < configUrlSegments.length - 1 && i < urlSegments.length; i++) {
+            if (configUrlSegments[i] !== urlSegments[i]) {
+              continue siteLoop;
+            }
+          }
+          siteSettings = {
+            siteSettings: this.settings.active.sites[cs],
+            usesSettingsFor: cs
+          }
+        }
+      }
+    }
+
+    if (!options.isIframe) {
+      return siteSettings ?? defaultSettings;
+    } else {
+      const parentSettings = this.getSettingsForSite({site: options.parentHostname});
+
+      if (siteSettings) {
+        return (
+          siteSettings.siteSettings.overrideWhenEmbedded || parentSettings.usesSettingsFor === '@global' || (
+            parentSettings.siteSettings.applyToEmbeddedContent && parentSettings.siteSettings.applyToEmbeddedContent !== EmbeddedContentSettingsOverridePolicy.Always
+          )
+        ) ? siteSettings : parentSettings;
+      } else {
+        if (parentSettings.usesSettingsFor !== '@global' && parentSettings.siteSettings.applyToEmbeddedContent === EmbeddedContentSettingsOverridePolicy.Never) {
+          return defaultSettings;
+        }
+        return parentSettings;
+      }
+    }
   }
 
   /**
@@ -415,32 +430,48 @@ export class SiteSettings {
 
   //#region set shit
   /**
+   * Returns target site for settings application
+   */
+  private getTargetSite() {
+    if (!this.usesSettingsFor || this.usesSettingsFor === '@global') {
+      return this.site;
+    }
+    if (this.settings.active.sites[this.usesSettingsFor].applyToEmbeddedContent === EmbeddedContentSettingsOverridePolicy.Always) {
+      return this.usesSettingsFor;
+    }
+    return this.site;
+  }
+0
+  /**
    * Sets option value.
    * @param optionPath path to value in object notation (dot separated)
    * @param optionValue new value of option
    * @param reload whether we should trigger a reload in components that require it
    */
   async set(optionPath: string, optionValue: any, options: {reload?: boolean, noSave?: boolean, scripted?: boolean} = {reload: false}) {
+    // const targetSite = this.getTargetSite();
+    const targetSite = this.site;
+
     // if no settings exist for this site, create an empty object.
     // If this function is not being called in response to user actin,
     // create fake settings object.
-    if (options.scripted && !this.settings.active.sites[this.site]) {
-      this.settings.active.sites[this.site] = _cp(this.settings.active.sites['@global']);
-      this.settings.active.sites[this.site].autocreated = true;
-      this.settings.active.sites[this.site].type = 'unknown';
+    if (options.scripted && !this.settings.active.sites[targetSite]) {
+      this.settings.active.sites[targetSite] = _cp(this.settings.active.sites['@global']);
+      this.settings.active.sites[targetSite].autocreated = true;
+      this.settings.active.sites[targetSite].type = 'unknown';
     } else {
-      if (!this.settings.active.sites[this.site] || this.settings.active.sites[this.site].autocreated) {
-        this.settings.active.sites[this.site] = _cp(this.data);
-        this.settings.active.sites[this.site].type = 'user-defined';
+      if (!this.settings.active.sites[targetSite] || this.settings.active.sites[targetSite].autocreated) {
+        this.settings.active.sites[targetSite] = _cp(this.data);
+        this.settings.active.sites[targetSite].type = 'user-defined';
       }
     }
 
     const pathParts = optionPath.split('.');
 
     if (pathParts.length === 1) {
-      this.settings.active.sites[this.site][optionPath] = optionValue;
+      this.settings.active.sites[targetSite][optionPath] = optionValue;
     } else {
-      let iterator = this.settings.active.sites[this.site];
+      let iterator = this.settings.active.sites[targetSite];
       let i;
       let iterated = '';
 
@@ -473,7 +504,6 @@ export class SiteSettings {
       forSite: this.site
     };
   }
-
 
   /**
    * Sets temporary option value (for Persistence.UntilReload)

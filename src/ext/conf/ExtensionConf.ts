@@ -9,6 +9,7 @@ import CropModePersistence from '../../common/enums/CropModePersistence.enum';
 import SettingsInterface from '../../common/interfaces/SettingsInterface';
 import BrowserDetect from './BrowserDetect';
 import { Extension } from 'typescript';
+import EmbeddedContentSettingsOverridePolicy from '../../common/enums/EmbeddedContentSettingsOverridePolicy.enum';
 
 if(Debug.debug)
   console.log("Loading: ExtensionConf.js");
@@ -739,6 +740,7 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Disabled,     // Lies! means 'theater-ish'
         normal: ExtensionMode.Disabled       // Not actually used.
       },
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
 
       defaultType: 'unknown',
       persistCSA: CropModePersistence.Disabled,
@@ -770,6 +772,7 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Default,
         normal: ExtensionMode.Disabled
       },
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
 
       type: 'user-defined',
       defaultType: 'user-defined',
@@ -801,7 +804,8 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Enabled,
         normal: ExtensionMode.Disabled
       },
-
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
+      overrideWhenEmbedded: true,
       override: false,                  // ignore value localStorage in favour of this
       type: 'official',                 // is officially supported? (Alternatives are 'community' and 'user-defined')
       defaultType: 'official',          // if user mucks around with settings, type changes to 'user-defined'.
@@ -841,6 +845,8 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Enabled,
         normal: ExtensionMode.Disabled
       },
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
+      overrideWhenEmbedded: true,
 
       override: false,                  // ignore value localStorage in favour of this
       type: 'official',                 // is officially supported? (Alternatives are 'community' and 'user-defined')
@@ -881,7 +887,7 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Enabled,
         normal: ExtensionMode.Disabled
       },
-
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
       override: false,
       type: 'community',
       defaultType: 'community',
@@ -907,6 +913,7 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Enabled,
         normal: ExtensionMode.Default
       },
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
       type: 'community',
       defaultType: 'community',
       activeDOMConfig: 'community-mstefan99',
@@ -948,6 +955,7 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Enabled,
         normal: ExtensionMode.Enabled
       },
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
       type: 'official',
       defaultType: 'official',
     },
@@ -972,6 +980,7 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Disabled,
         normal: ExtensionMode.Disabled
       },
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Never,
       type: 'officially-disabled',
       defaultType: 'officially-disabled',
       activeDOMConfig: 'official',
@@ -1009,6 +1018,7 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Disabled,
         normal: ExtensionMode.Disabled
       },
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Never,
       type: 'officially-disabled',
       defaultType: 'officially-disabled',
       activeDOMConfig: 'official',
@@ -1046,54 +1056,7 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Disabled,
         normal: ExtensionMode.Disabled
       },
-      type: 'officially-disabled',
-      defaultType: 'officially-disabled',
-    },
-    "gfycat.com": {
-      enable: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableAard: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableKeyboard: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableUI: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default
-      },
-      type: 'officially-disabled',
-      defaultType: 'officially-disabled',
-    },
-    "giant.gfycat.com": {
-      enable: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableAard: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableKeyboard: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableUI: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default
-      },
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Never,
       type: 'officially-disabled',
       defaultType: 'officially-disabled',
     },
@@ -1118,6 +1081,7 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Enabled,
         normal: ExtensionMode.Enabled
       },
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
       type: 'community',
       defaultType: 'community',
       activeDOMConfig: 'community',
@@ -1154,6 +1118,7 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Enabled,
         normal: ExtensionMode.Disabled
       },
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
       type: 'community',
       defaultType: 'community',
       activeDOMConfig: 'community',
@@ -1185,6 +1150,7 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Enabled,
         normal: ExtensionMode.Disabled
       },
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
       type: "community",
       defaultType: "community",
       activeDOMConfig: 'community',
@@ -1220,6 +1186,7 @@ const ExtensionConf: SettingsInterface = {
         theater: ExtensionMode.Enabled,
         normal: ExtensionMode.Disabled
       },
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
       type: "community",
       defaultType: "community",
       activeDOMConfig: 'community',

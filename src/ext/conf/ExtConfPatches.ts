@@ -9,6 +9,7 @@ import { _cp } from '../../common/js/utils';
 import CropModePersistence from '../../common/enums/CropModePersistence.enum';
 import AspectRatioType from '../../common/enums/AspectRatioType.enum';
 import { update } from 'lodash';
+import EmbeddedContentSettingsOverridePolicy from '../../common/enums/EmbeddedContentSettingsOverridePolicy.enum';
 
 const ExtensionConfPatch = Object.freeze([
   {
@@ -35,8 +36,7 @@ const ExtensionConfPatch = Object.freeze([
   }, {
     forVersion: '6.2.6',
     updateFn: (userOptions: SettingsInterface, defaultOptions) => {
-
-      console.warn('[ultrawidify] STARTING SETTINGS MIGRATION TO 6.2.6');
+      console.log('[ultrawidify] Migrating settings — applying patches for version 6.2.6');
 
       if (!userOptions.commands) {
         userOptions.commands = {
@@ -236,6 +236,18 @@ const ExtensionConfPatch = Object.freeze([
             ...zoomAction,
             shortcut: hasConflict(zoomAction.shortcut) ? undefined : zoomAction.shortcut
           });
+        }
+      }
+    }
+  }, {
+    forVersion: '6.3.92',
+    updateFn: (userOptions: SettingsInterface) => {
+      // applyToEmbeddedContent is now an enum, and also no longer optional
+      for (const site in userOptions.sites) {
+        if (userOptions.sites[site].applyToEmbeddedContent === undefined) {
+          userOptions.sites[site].applyToEmbeddedContent = EmbeddedContentSettingsOverridePolicy.Always;
+        } else {
+          userOptions.sites[site].applyToEmbeddedContent = userOptions.sites[site].applyToEmbeddedContent ? EmbeddedContentSettingsOverridePolicy.Always : EmbeddedContentSettingsOverridePolicy.Never;
         }
       }
     }

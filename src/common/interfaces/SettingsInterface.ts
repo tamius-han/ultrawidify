@@ -2,6 +2,7 @@ import { Action } from '../../../node_modules/vuex/types/index'
 import AntiGradientMode from '../enums/AntiGradientMode.enum'
 import AspectRatioType from '../enums/AspectRatioType.enum'
 import CropModePersistence from '../enums/CropModePersistence.enum'
+import EmbeddedContentSettingsOverridePolicy from '../enums/EmbeddedContentSettingsOverridePolicy.enum'
 import ExtensionMode from '../enums/ExtensionMode.enum'
 import StretchType from '../enums/StretchType.enum'
 import VideoAlignmentType from '../enums/VideoAlignmentType.enum'
@@ -308,7 +309,8 @@ export interface SiteSettingsInterface {
   enableKeyboard: ExtensionEnvironmentSettingsInterface;
   enableUI: ExtensionEnvironmentSettingsInterface;  // Lies! enableUI doesn't use 'theater' property (but uses the other two)
 
-  applyToEmbeddedContent?: boolean; // presumed to be 'true' if not defined
+  applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy; // presumed to be 'Always' if not defined
+  overrideWhenEmbedded?: boolean;
 
 
   autocreated?: boolean;

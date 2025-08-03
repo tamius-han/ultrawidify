@@ -165,7 +165,7 @@
         </div>
       </div>
 
-       <div class="field">
+      <div class="field">
         <div class="label">
           Use these settings for <span class="color-emphasis">embedded content</span>?
           <!-- <span class="sub-label"><br/>under the following conditions:</span> -->
@@ -175,11 +175,34 @@
             :value="siteDefaultForEmbedded"
             @click="setSiteOption('applyToEmbeddedContent', $event)"
           >
+            <option :value="EmbeddedContentSettingsOverridePolicy.Always">
+              Always(-ish)
+            </option>
+            <option :value="EmbeddedContentSettingsOverridePolicy.UseAsDefault">
+              Use as default
+            </option>
+            <option :value="EmbeddedContentSettingsOverridePolicy.Never">
+              Never
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="label">
+          Force these settings <span class="color-emphasis">when embedded</span>?
+          <!-- <span class="sub-label"><br/>under the following conditions:</span> -->
+        </div>
+        <div class="select">
+          <select
+            :value="siteDefaultOverrideEmbedded"
+            @click="setSiteOption('overrideWhenEmbedded', $event)"
+          >
             <option :value="true">
-              Unless overridden
+              Yes
             </option>
             <option :value="false">
-              Never
+              No
             </option>
           </select>
         </div>
@@ -290,12 +313,14 @@
 import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
 import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
 import CropModePersistence from '@src/common/enums/CropModePersistence.enum';
+import EmbeddedContentSettingsOverridePolicy from '@src/common/enums/EmbeddedContentSettingsOverridePolicy.enum';
 
 export default {
   data() {
     return {
       CropModePersistence: CropModePersistence,
       ExtensionMode,
+      EmbeddedContentSettingsOverridePolicy,
       alignmentOptions: [
         {label: 'Top left', arguments: {x: VideoAlignmentType.Left, y: VideoAlignmentType.Top}},
         {label: 'Top center', arguments: {x: VideoAlignmentType.Center, y: VideoAlignmentType.Top}},
@@ -346,7 +371,10 @@ export default {
       };
     },
     siteDefaultForEmbedded() {
-      return this.siteSettings.raw?.applyToEmbeddedContent ?? true;
+      return this.siteSettings.raw?.applyToEmbeddedContent;
+    },
+    siteDefaultOverrideEmbedded() {
+      return this.siteSettings.raw?.overrideWhenEmbedded ?? false;
     },
     siteDefaultCrop() {
       return this.siteSettings.raw?.defaults?.crop ? JSON.stringify(this.siteSettings.raw?.defaults?.crop) : JSON.stringify({useDefault: true});
@@ -556,6 +584,11 @@ export default {
       this._computedWatchers?.defaultPersistanceLabel?.run();
 
       this.$nextTick( () => this.$forceUpdate());
+    },
+
+    setSiteOption(optionPath, event) {
+      const value = event.target.value;
+      this.siteSettings.set(optionPath, value);
     },
 
     setExtensionMode(component, event) {
