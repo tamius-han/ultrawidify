@@ -5,10 +5,26 @@
 # any other way probably isn't going to work.
 
 # pre-build steps:
+
+echo "—————————————————————————————————————————————————————";
+echo "      BUILDING ALL ULTRAWIDIFY VERSIONS";
+echo "—————————————————————————————————————————————————————";
+
 mkdir -p ./build/old
 npm run pre-build
+
+echo "::"
+echo "::"
+echo "::"
+echo ":: Pre-build complete. Moving old builds from dist-zip ..."
+
 rm ./dist-zip/uw-amo-source.zip
 mv -f ./dist-zip/*.zip ./build/old
+
+echo "::"
+echo "::"
+echo "::"
+echo ":: dist-zip is clean. Starting builds ..."
 
 # lets force raise ram limit, but the improper way
 # export NODE_OPTIONS=--max_old_space_size=4096
