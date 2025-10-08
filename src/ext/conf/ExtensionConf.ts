@@ -10,6 +10,7 @@ import SettingsInterface from '../../common/interfaces/SettingsInterface';
 import BrowserDetect from './BrowserDetect';
 import { Extension } from 'typescript';
 import EmbeddedContentSettingsOverridePolicy from '../../common/enums/EmbeddedContentSettingsOverridePolicy.enum';
+import { AardPollingOptions } from '../lib/aard/enums/aard-polling-options.enum';
 
 if(Debug.debug)
   console.log("Loading: ExtensionConf.js");
@@ -21,6 +22,16 @@ const ExtensionConf: SettingsInterface = {
 
   arDetect: {
     aardType: 'auto',
+
+    polling: {
+      runInBackgroundTabs: AardPollingOptions.Reduced,
+      runOnSmallVideos: AardPollingOptions.Reduced
+    },
+
+    subtitles: {
+      resetIfDetected: true,
+      resumeAfter: 5000,
+    },
 
     earlyStopOptions: {
       stopAfterFirstDetection: false,
@@ -41,12 +52,10 @@ const ExtensionConf: SettingsInterface = {
       tickrate: 10,          // 1 tick every this many milliseconds
     },
     autoDisable: {            // settings for automatically disabling the extension
-      maxExecutionTime: 6000, // if execution time of main autodetect loop exceeds this many milliseconds,
-                              // we disable it.
-      consecutiveTimeoutCount: 5,  // we only do it if it happens this many consecutive times
-
-      // FOR FUTURE USE
-      consecutiveArResets: 5       // if aspect ratio reverts immediately after AR change is applied, we disable everything
+      onFirstChange: false,       // disable once we have a stable aspect ratio
+      ifNotChanged: false,        // disable if Ar hasn't changed for this long
+      ifNotChangedTimeout: 20000, // if user enables ifNotChangedTimeout, we default to 20s
+      ifSubtitles: false,         // disable if subtitles are detected
     },
     canvasDimensions: {
       blackframeCanvas: {   // smaller than sample canvas, blackframe canvas is used to recon for black frames

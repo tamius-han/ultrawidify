@@ -251,7 +251,16 @@ const ExtensionConfPatch = Object.freeze([
         }
       }
     }
+  },
+  {
+    forVersion: '6.3.93',
+    updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface) => {
+      userOptions.arDetect.polling = defaultOptions.arDetect.polling;
+      userOptions.arDetect.subtitles = defaultOptions.arDetect.subtitles;
+      userOptions.arDetect.autoDisable = defaultOptions.arDetect.autoDisable;
+    }
   }
+
 ]);
 
 

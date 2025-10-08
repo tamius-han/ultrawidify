@@ -463,7 +463,7 @@ export default {
           if (!this.site) {
             this.origin = event.origin;
             this.site = event.origin.split('//')[1];
-            this.siteSettings = this.settings.getSiteSettings({site: this.site});
+            this.siteSettings = this.settings.getSiteSettings({site: this.site, isIframe: event.data.isIframe});
           }
           return this.handleProbe(event.data, event.origin); // handleProbe is defined in UIProbeMixin
         case 'uw-bus-tunnel':

@@ -111,15 +111,6 @@ class PageInfo {
     this.scheduleUrlCheck();
 
     document.addEventListener('fullscreenchange', this.fsEventListener);
-
-    this.eventBus.subscribeMulti({
-      'probe-video': {
-        function: () => {
-          console.log(`[${window.location}] probe-video received.`)
-          this.rescan();
-        }
-      }
-    });
   }
 
   destroy() {
@@ -407,17 +398,20 @@ class PageInfo {
 
   scheduleUrlCheck() {
     try{
-    if(this.urlCheckTimer){
-      clearTimeout(this.urlCheckTimer);
-    }
+      if(this.urlCheckTimer){
+        clearTimeout(this.urlCheckTimer);
+      }
 
-    let ths = this;
+      let ths = this;
 
-    this.urlCheckTimer = setTimeout(function(){
-      ths.urlCheckTimer = null;
-      ths.ghettoUrlCheck();
-      ths = null;
-    }, this.settings.active.pageInfo.timeouts.urlCheck)
+      this.urlCheckTimer = setTimeout(
+        function(){
+          ths.urlCheckTimer = null;
+          ths.ghettoUrlCheck();
+          ths = null;
+        },
+        this.settings.active.pageInfo.timeouts.urlCheck
+      );
     } catch(e){
       this.logger.log('scheduleUrlCheck', "scheduling URL check failed. Here's why:",e)
     }
@@ -428,6 +422,7 @@ class PageInfo {
       this.logger.warn('ghettoUrlCheck', "URL has changed. Triggering a rescan!");
 
       this.rescan(RescanReason.URL_CHANGE);
+      this.eventBus.send("url-changed", {newUrl: window.location.href});
       this.lastUrl = window.location.href;
     }
 

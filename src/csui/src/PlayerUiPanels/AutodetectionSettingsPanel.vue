@@ -9,217 +9,7 @@
         </div>
         <div class="aard-settings-group">
 
-          <!-- the last time i tried to comment out this block, it didn't work properly — v-if="false" it is -->
-          <div v-if="false">
-            <p>
-              <b>Autodetection performance</b>
-            </p>
-            <p>
-              Automatic aspect ratio detection is a resource-hungry feature.
-              This page allows you to trade autodetection accuracy and/or frequency for
-              better performance.
-            </p>
-            <p>
-              Note that some browsers <a href="https://developer.mozilla.org/en-US/docs/Web/API/Performance/now" target="_blank">limit the accuracy of time measurements</a>, though once the bars go past the blue line those limitations are largely inconsequential.
-            </p>
-            <div class="performance-graph-container">
-              <div class="performance-graph">
-                <div class="time-budget hz144"></div>
-                <div class="time-budget hz120"></div>
-                <div class="time-budget hz60"></div>
-                <div class="time-budget hz30"></div>
-                <div class="time-budget hz24"></div>
-                <div class="time-budget rest"></div>
-
-                <div class="bar-container">
-                  <div class="average-case">
-                    <div class="stats">
-                      <b>Average: </b>
-                      <span class="draw">draw (main) {{(performanceData?.imageDraw?.averageTime ?? 0).toFixed(1)}} ms</span> |
-                      <span class="draw-blackframe">blackframe {{(performanceData?.blackFrame?.averageTime ?? 0).toFixed(1)}} ms</span> |
-                      <span class="processing">
-                        processing {{
-                          Math.max(
-                            (performanceData?.total?.averageTime ?? 0)
-                              - (performanceData?.imageDraw?.averageTime ?? 0)
-                              - (performanceData?.blackFrame?.averageTime ?? 0),
-                            0
-                          ).toFixed(1)
-                        }} ms
-                      </span>
-                    </div>
-                    <div class="bar">
-                      <div
-                        class="draw"
-                        :style="{'width': (performanceData?.imageDraw?.averageTime ?? 0) + '%'}"
-                      >
-                      </div>
-                      <div
-                        class="draw-blackframe"
-                        :style="{'width': (performanceData?.blackFrame?.averageTime ?? 0) + '%'}"
-                      >
-                      </div>
-                      <div
-                        class="processing"
-                        :style="{
-                          'width': Math.max(
-                            (performanceData?.total?.averageTime ?? 0)
-                              - (performanceData?.imageDraw?.averageTime ?? 0)
-                              - (performanceData?.blackFrame?.averageTime ?? 0),
-                            0
-                          ) + '%'
-                        }"
-                      >
-                      </div>
-                    </div>
-                  </div>
-                  <div class="worst-case">
-                    <div class="stats">
-                      <b>Worst: </b>
-                      <span class="draw">draw (main) {{(performanceData?.imageDraw?.worstTime ?? 0).toFixed(1)}} ms</span> |
-                      <span class="draw-blackframe">blackframe {{(performanceData?.blackFrame?.worstTime ?? 0).toFixed(1)}} ms</span> |
-                      <span class="processing">
-                        processing {{
-                          Math.max(
-                            (performanceData?.total?.worstTime ?? 0)
-                              - (performanceData?.imageDraw?.worstTime ?? 0)
-                              - (performanceData?.blackFrame?.worstTime ?? 0),
-                            0
-                          ).toFixed(1)
-                        }} ms
-                      </span>
-                    </div>
-                    <div class="bar">
-                      <div
-                        class="draw"
-                        :style="{'width': (performanceData?.imageDraw?.worstTime ?? 0) + '%'}"
-                      >
-                      </div>
-                      <div
-                        class="draw-blackframe"
-                        :style="{'width': (performanceData?.blackFrame?.worstTime ?? 0) + '%'}"
-                      >
-                      </div>
-                      <div
-                        class="processing"
-                        :style="{
-                          'width': Math.max(
-                            (performanceData?.total?.worstTime ?? 0)
-                              - (performanceData?.imageDraw?.worstTime ?? 0)
-                              - (performanceData?.blackFrame?.worstTime ?? 0),
-                            0
-                          ) + '%'
-                        }"
-                      >
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="average-case">
-                    <div class="stats">
-                      <b>AR change (average): </b>
-                      <span class="draw">draw (main) {{(performanceData?.imageDraw?.averageTime ?? 0).toFixed(1)}} ms</span> |
-                      <span class="draw-blackframe">blackframe {{(performanceData?.blackFrame?.averageTime ?? 0).toFixed(1)}} ms</span> |
-                      <span class="processing">processing {{
-                        (
-                          (performanceData?.fastLetterbox?.averageTime ?? 0)
-                          + (performanceData?.edgeDetect?.averageTime ?? 0)
-                        ).toFixed(1)
-                        }} ms</span>
-                    </div>
-                    <div class="bar">
-                      <div
-                        class="draw"
-                        :style="{'width': (performanceData?.imageDraw?.averageTime ?? 0) + '%'}"
-                      >
-                      </div>
-                      <div
-                        class="draw-blackframe"
-                        :style="{'width': (performanceData?.blackFrame?.averageTime ?? 0) + '%'}"
-                      >
-                      </div>
-                      <div
-                        class="processing"
-                        :style="{
-                          'width': (
-                            (performanceData?.fastLetterbox?.averageTime ?? 0)
-                            + (performanceData?.edgeDetect?.averageTime ?? 0)
-                          ) + '%'
-                        }"
-                      >
-                      </div>
-                    </div>
-                  </div>
-                  <div class="worst-case">
-                    <div class="stats">
-                      <b>AR change (worst): </b>
-                      <span class="draw">draw (main) {{(performanceData?.imageDraw?.worstTime ?? 0).toFixed(1)}} ms</span> |
-                      <span class="draw-blackframe">blackframe {{(performanceData?.blackFrame?.worstTime ?? 0).toFixed(1)}} ms</span> |
-                      <span class="processing">processing {{
-                        (
-                          (performanceData?.fastLetterbox?.worstTime ?? 0)
-                          + (performanceData?.edgeDetect?.worstTime ?? 0)
-                        ).toFixed(1)
-                        }} ms</span>
-                    </div>
-                    <div class="bar">
-                      <div
-                        class="draw"
-                        :style="{'width': (performanceData?.imageDraw?.worstTime ?? 0) + '%'}"
-                      >
-                      </div>
-                      <div
-                        class="draw-blackframe"
-                        :style="{'width': (performanceData?.blackFrame?.worstTime ?? 0) + '%'}"
-                      >
-                      </div>
-                      <div
-                        class="processing"
-                        :style="{
-                          'width': (
-                            (performanceData?.fastLetterbox?.worstTime ?? 0)
-                            + (performanceData?.edgeDetect?.worstTime ?? 0)
-                          ) + '%'
-                        }"
-                      >
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-          </div>
-
-
           <div class="settings-segment">
-            <!-- <h2>Basic settings</h2> -->
-
-            <!-- <div class="field">
-              <div class="label">
-                Stop autodetection after first detection:
-              </div>
-              <div class="">
-                <input type="checkbox" v-model="settings.active.arDetect.earlyStopOptions.stopAfterFirstDetection" />
-              </div>
-            </div>
-            <div class="field">
-              <div class="label">
-                Stop detection after a period of time:
-              </div>
-              <div class="">
-                <input type="checkbox" v-model="settings.active.arDetect.earlyStopOptions.stopAfterTimeout" />
-              </div>
-            </div>
-            <div class="field">
-              <div class="label">
-                Stop detection after:
-              </div>
-              <div class="input">
-                <input type="input" v-model="settings.active.arDetect.earlyStopOptions.stopTimeout" />
-                <div class="unit">seconds</div>
-              </div>
-            </div> -->
 
             <div class="field">
               <div class="label">Autodetection frequency (time between samples)</div>
@@ -243,7 +33,97 @@
             </div>
 
             <div class="field">
-              <div class="label">Frame extraction canvas type:</div>
+              <div class="label">Reduced autodetection frequency</div>
+              <div class="range-input">
+                <input
+                  type="range"
+                  :value="Math.log(settings.active.arDetect.timers.playingReduced)"
+                  @change="setArCheckFrequency($event.target.value, 'playingReduced')"
+                  min="2.3"
+                  max="9.3"
+                  step="0.01"
+                />
+                <input
+                  v-model="settings.active.arDetect.timers.playingReduced"
+                  @change="setArCheckFrequency($event.target.value, 'playingReduced')"
+                  class="input"
+                  type="text"
+                >
+                <div class="unit">ms</div>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="label">Poll for aspect ratio changes in background tabs:</div>
+              <div class="select">
+                <select v-model="settings.active.arDetect.polling.runInBackgroundTabs" @change="settings.saveWithoutReload">
+                  <option :value="AardPollingOptions.No">Never</option>
+                  <option :value="AardPollingOptions.Reduced">Use reduced polling rate</option>
+                  <option :value="AardPollingOptions.Full">Use normal polling rate</option>
+                </select>
+              </div>
+            </div>
+            <div v-if="settings.active.arDetect.polling.runInBackgroundTabs === AardPollingOptions.Full" class="hint warn">
+              Using normal polling rate in background tabs is NOT recommended.
+            </div>
+
+            <div class="field">
+              <div class="label">Poll for aspect ratio changes in small players:</div>
+              <div class="select">
+                <select v-model="settings.active.arDetect.polling.runOnSmallVideos" @change="settings.saveWithoutReload">
+                  <option :value="AardPollingOptions.No">Never</option>
+                  <option :value="AardPollingOptions.Reduced">Use reduced polling rate</option>
+                  <option :value="AardPollingOptions.Full">Use normal polling rate</option>
+                </select>
+              </div>
+            </div>
+            <div v-if="settings.active.arDetect.polling.runOnSmallVideos === AardPollingOptions.Full" class="hint warn">
+              Using normal polling rate on small videos is NOT recommended.
+            </div>
+
+            <div class="field">
+              <div class="label">Stop autodetection after first detection:</div>
+              <div class="select">
+                <select v-model="settings.active.arDetect.autoDisable.onFirstChange" @change="settings.saveWithoutReload">
+                  <option :value="true">Yes</option>
+                  <option :value="false">No</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field" :class="{disabled: settings.active.arDetect.autoDisable.onFirstChange}">
+              <div class="label">Stop autodetection if aspect ratio doesn't change for some time:</div>
+              <div class="select">
+                <select v-model="settings.active.arDetect.autoDisable.ifNotChanged" @change="settings.saveWithoutReload">
+                  <option :value="true">Yes</option>
+                  <option :value="false">No</option>
+                </select>
+              </div>
+            </div>
+
+            <div v-if="settings.active.arDetect.autoDisable.ifNotChanged" class="field">
+              <div class="label">Stop autodetection if aspect ratio doesn't change for:</div>
+              <div class="range-input">
+                <input
+                  type="range"
+                  :value="Math.log(settings.active.arDetect.autoDisable.ifNotChangedTimeout / 10)"
+                  @change="setAutoDisableTimeout($event.target.value, 10)"
+                  min="2.3"
+                  max="9.3"
+                  step="0.01"
+                />
+                <input
+                  :value="settings.active.arDetect.autoDisable.ifNotChangedTimeout / 1000"
+                  @change="setAutoDisableTimeout($event.target.value, 1000)"
+                  class="input"
+                  type="text"
+                >
+                <div class="unit">s</div>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="label">Autodetection canvas type:</div>
               <div class="select">
                 <select v-model="settings.active.arDetect.aardType" @change="settings.saveWithoutReload">
                   <option value="auto">Automatic</option>
@@ -258,11 +138,11 @@
               <div class="input">
                 <input v-model="settings.active.arDetect.allowedMisaligned" />
               </div>
-              <div class="hint">
-                Ultrawidify detects letterbox only if video is vertically centered. Some people are bad at vertically
-                centering the content, though. This is how off-center the video can be before autodetection will
-                refuse to crop it (% of total height).
-              </div>
+            </div>
+            <div class="hint">
+              Ultrawidify detects letterbox only if video is vertically centered. Some people are bad at vertically
+              centering the content, though. This is how off-center the video can be before autodetection will
+              refuse to crop it (% of total height).
             </div>
           </div>
 
@@ -310,6 +190,7 @@ import StretchType from '../../../common/enums/StretchType.enum';
 import CropModePersistence from '../../../common/enums/CropModePersistence.enum';
 import AlignmentOptionsControlComponent from './AlignmentOptionsControlComponent.vue';
 import JsonEditor from '@csui/src/components/JsonEditor';
+import {AardPollingOptions} from '@src/ext/lib/aard/enums/aard-polling-options.enum';
 
 export default {
   components: {
@@ -333,6 +214,9 @@ export default {
       performanceData: {},
       graphRefreshInterval: undefined,
       settingsJson: {},
+
+      // enums n stuff
+      AardPollingOptions,
     }
   },
   computed: {
@@ -348,7 +232,7 @@ export default {
   },
   mounted() {
     this.eventBus.sendToTunnel('get-aard-timing');
-    this.graphRefreshInterval = setInterval(() => this.eventBus.sendToTunnel('get-aard-timing'), 500);
+    // this.graphRefreshInterval = setInterval(() => this.eventBus.sendToTunnel('get-aard-timing'), 500);
     this.resetSettingsEditor();
   },
   destroyed() {
@@ -359,8 +243,13 @@ export default {
     async openOptionsPage() {
       BrowserDetect.runtime.openOptionsPage();
     },
-    setArCheckFrequency(event) {
-      this.settings.active.arDetect.timers.playing = Math.floor(Math.pow(Math.E, event));
+    setArCheckFrequency(event, timer) {
+      this.settings.active.arDetect.timers[timer ?? 'playing'] = Math.floor(Math.pow(Math.E, event));
+      this.settings.saveWithoutReload();
+    },
+    setAutoDisableTimeout(event, multiplier) {
+      this.settings.active.arDetect.autoDisable.ifNotChangedTimeout = Math.floor(Math.pow(Math.E, event)) * multiplier;
+      this.settings.saveWithoutReload();
     },
     refreshGraph() {
        this.eventBus.sendToTunnel('get-aard-timing');

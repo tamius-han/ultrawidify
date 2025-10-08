@@ -1,4 +1,5 @@
 import { Action } from '../../../node_modules/vuex/types/index'
+import { AardPollingOptions } from '../../ext/lib/aard/enums/aard-polling-options.enum'
 import AntiGradientMode from '../enums/AntiGradientMode.enum'
 import AspectRatioType from '../enums/AspectRatioType.enum'
 import CropModePersistence from '../enums/CropModePersistence.enum'
@@ -74,6 +75,10 @@ export interface AardSettings {
     stopTimeout: number;
   },
 
+  polling: {
+    runInBackgroundTabs: AardPollingOptions;
+    runOnSmallVideos: AardPollingOptions;
+  }
 
   disabledReason: string,     // if automatic aspect ratio has been disabled, show reason
   allowedMisaligned: number,  // top and bottom letterbox thickness can differ by this much.
@@ -87,13 +92,17 @@ export interface AardSettings {
     minimumTimeout: number,
     tickrate: number,          // 1 tick every this many milliseconds
   },
-  autoDisable: {            // settings for automatically disabling the extension
-    maxExecutionTime: number, // if execution time of main autodetect loop exceeds this many milliseconds,
-                            // we disable it.
-    consecutiveTimeoutCount: number,  // we only do it if it happens this many consecutive times
 
-    // FOR FUTURE USE
-    consecutiveArResets: number       // if aspect ratio reverts immediately after AR change is applied, we disable everything
+  subtitles: {
+    resetIfDetected?: boolean,  // reset if subtitles are detected
+    resumeAfter?: number,       // resume after X ms of no subtitles
+  },
+
+  autoDisable: {            // settings for automatically disabling the extension
+    onFirstChange: boolean,
+    ifNotChanged: boolean,
+    ifNotChangedTimeout: number,
+    ifSubtitles: boolean;
   },
   canvasDimensions: {
     blackframeCanvas: {   // smaller than sample canvas, blackframe canvas is used to recon for black frames

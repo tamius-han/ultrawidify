@@ -9,17 +9,20 @@
         <div class="info">
           Extension is not enabled for this site.
         </div>
-        <div>
-          Please enable extension for this site.
+        <div class="text-center">
+          <p>Please enable extension for this site.</p>
         </div>
         <div>
           <button
             class="flex flex-row items-center"
-            style="background-color: transparent; padding: 0.25rem 0.5rem; margin-top: 1rem;"
+            style="background-color: transparent; padding: 0.5rem 1rem; margin-top: 1rem; border: 1px solid #fa68;"
             @click="openSettings()"
           >
             Open settings <mdicon style="margin-left: 0.5rem;" name="open-in-new" size="16"></mdicon>
           </button>
+        </div>
+        <div class="text-center">
+          <p><small>Extension may work on content embedded from other sites.</small></p>
         </div>
 
       </div>

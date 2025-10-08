@@ -5,7 +5,7 @@ export interface AardStatus {
   aardReducedPolling: boolean,
   checkInProgress: boolean,
   lastVideoStatus: VideoPlaybackState,
-
+  autoDisabled: boolean,
 }
 
 export function initAardStatus(): AardStatus {
@@ -14,5 +14,6 @@ export function initAardStatus(): AardStatus {
     aardReducedPolling: true,
     checkInProgress: false,
     lastVideoStatus: VideoPlaybackState.NotInitialized,
+    autoDisabled: false,
   }
 }

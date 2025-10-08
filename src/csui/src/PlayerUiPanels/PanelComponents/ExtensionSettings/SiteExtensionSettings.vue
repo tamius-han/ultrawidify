@@ -425,7 +425,6 @@ export default {
           break;
       }
 
-      // console.log('getting data from:', settingsData);
 
       try {
         if (
@@ -593,8 +592,6 @@ export default {
 
     setExtensionMode(component, event) {
       const option = event.target.value;
-
-      console.log('SET EXTENSION MODE — OPTIONS:', option);
 
       if (option === 'complex') {
         return;

@@ -19,6 +19,7 @@ import { AardStatus, initAardStatus } from './interfaces/aard-status.interface';
 import { AardTestResults, initAardTestResults, resetAardTestResults, resetGuardLine } from './interfaces/aard-test-results.interface';
 import { AardTimers, initAardTimers } from './interfaces/aard-timers.interface';
 import { ComponentLogger } from '../logging/ComponentLogger';
+import { AardPollingOptions } from './enums/aard-polling-options.enum';
 
 
 /**
@@ -232,7 +233,7 @@ export class Aard {
   private eventBusCommands = {
     'uw-environment-change': {
       function: (newEnvironment: ExtensionEnvironment) => {
-        console.log('received extension environment:', newEnvironment, 'player env:', this.videoData?.player?.environment);
+        // console.log('received extension environment:', newEnvironment, 'player env:', this.videoData?.player?.environment);
         this.startCheck();
       }
     },
@@ -243,6 +244,11 @@ export class Aard {
         } else {
           this.hideDebugCanvas();
         }
+      }
+    },
+    'url-changed': {
+      function: () => {
+        this.clearAutoDisabled();
       }
     }
     //   'get-aard-timing': {
@@ -431,9 +437,18 @@ export class Aard {
   }
 
   /**
+   * Clears autoDisable flag
+   */
+  clearAutoDisabled() {
+    this.status.autoDisabled = false;
+    this.timers.autoDisableAt = undefined;
+  }
+
+  /**
    * Starts autodetection loop.
    */
   start() {
+    this.clearAutoDisabled();
     this.forceFullRecheck = true;
     if (this.videoData.resizer.lastAr.type === AspectRatioType.AutomaticUpdate) {
       // ensure first autodetection will run in any case
@@ -450,6 +465,11 @@ export class Aard {
 
     this.status.aardActive = true;
     this.animationFrame = window.requestAnimationFrame( (ts: DOMHighResTimeStamp) => this.onAnimationFrame(ts));
+
+    // set auto-disable timer if detection timeout is set
+    if (this.settings.active.arDetect.autoDisable.ifNotChanged) {
+      this.timers.autoDisableAt = Date.now() + this.settings.active.arDetect.autoDisable.ifNotChangedTimeout;
+    }
   }
 
   /**
@@ -482,24 +502,42 @@ export class Aard {
    * @returns
    */
   private canTriggerFrameCheck() {
-    // if (this._paused || this._halted || this._exited) {
-    //   return false;
-    // }
+
+    // console.log('ard check status:', this.status);
 
     // if video was paused & we know that we already checked that frame,
     // we will not check it again.
     const videoState = this.getVideoPlaybackState();
+    const polling = this.settings.active.arDetect.polling;
+    const now = Date.now();
 
     if (videoState !== VideoPlaybackState.Playing) {
       if (this.status.lastVideoStatus === videoState) {
         return false;
       }
     }
+    if (this.status.autoDisabled) {
+      return false;
+    }
+    if (this.timers.autoDisableAt < now) {
+      this.status.autoDisabled = true;
+      return false;
+    }
     this.status.lastVideoStatus = videoState;
 
-    const now = Date.now();
+    const tabVisible = document.visibilityState === 'visible';
+    if (!tabVisible && polling.runInBackgroundTabs === AardPollingOptions.No) {
+      return false;
+    }
+    if (this.videoData.player.isTooSmall && polling.runOnSmallVideos === AardPollingOptions.No) {
+      return false;
+    }
 
-    if (now < (this.videoData.player.isTooSmall ? this.timers.reducedPollingNextCheckTime : this.timers.nextFrameCheckTime)) {
+    const isActive = (tabVisible || polling.runInBackgroundTabs !== AardPollingOptions.Reduced)
+       && (!this.videoData.player.isTooSmall || polling.runOnSmallVideos !== AardPollingOptions.Reduced);
+    const nextCheck = isActive ? this.timers.nextFrameCheckTime : this.timers.reducedPollingNextCheckTime;
+
+    if (now < nextCheck) {
       return false;
     }
 
@@ -508,6 +546,12 @@ export class Aard {
     return true;
   }
 
+  /**
+   * Bootstraps the main loop.
+   *
+   * Honestly this doesn't need description, but I want to put some green
+   * between two adjacent functions.
+   */
   private onAnimationFrame(ts: DOMHighResTimeStamp) {
     if (this.canTriggerFrameCheck()) {
       resetAardTestResults(this.testResults);
@@ -671,7 +715,7 @@ export class Aard {
 
           // console.warn('ASPECT RATIO UNCERTAIN, GUARD LINE INVALIDATED (resetting)')
           this.timer.arChanged();
-          this.updateAspectRatio(this.defaultAr);
+          this.updateAspectRatio(this.defaultAr, {uncertainDetection: true});
 
           break;
         }
@@ -2027,14 +2071,12 @@ export class Aard {
   /**
    * Updates aspect ratio if new aspect ratio is different enough from the old one
    */
-  private updateAspectRatio(overrideAr?: number) {
-    const ar = overrideAr ?? this.getAr();
-
+  private updateAspectRatio(ar: number, options?: {uncertainDetection?: boolean}) {
     // Calculate difference between two ratios
     const maxRatio = Math.max(ar, this.testResults.activeAspectRatio);
     const diff = Math.abs(ar - this.testResults.activeAspectRatio);
 
-    if (overrideAr || (diff / maxRatio) > this.settings.active.arDetect.allowedArVariance) {
+    if ((diff / maxRatio) > this.settings.active.arDetect.allowedArVariance) {
       this.videoData.resizer.updateAr({
         type: AspectRatioType.AutomaticUpdate,
         ratio: this.getAr(),
@@ -2042,6 +2084,16 @@ export class Aard {
         variant: this.arVariant
       });
       this.testResults.activeAspectRatio = ar;
+
+      if (!options?.uncertainDetection) {
+        if (this.settings.active.arDetect.autoDisable.onFirstChange) {
+          this.status.autoDisabled = true;
+        }
+        if (this.settings.active.arDetect.autoDisable.ifNotChanged) {
+          this.timers.autoDisableAt = Date.now() + this.settings.active.arDetect.autoDisable.ifNotChangedTimeout;
+        }
+      }
+
     }
   }
 
