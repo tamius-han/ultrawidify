@@ -206,7 +206,7 @@ class PlayerData {
       // do the rest
       this.invalid = false;
       this.updatePlayer();
-      this.isTooSmall = (this.element.clientWidth < 1208 || this.element.clientHeight < 720);
+      this.isTooSmall = this.checkIfTooSmall();;
 
       this.initEventBus();
       this.dimensions = undefined;
@@ -233,6 +233,20 @@ class PlayerData {
     } catch (e) {
       console.error('[Ultrawidify::PlayerData::ctor] There was an error setting up player data. You should be never seeing this message. Error:', e);
       this.invalid = true;
+    }
+  }
+
+  /**
+   * Checks if player dimensions are too small for autodetection to run.
+   * Full screen is never too small, even if it's
+   * @param playerDimensions
+   * @returns
+   */
+  private checkIfTooSmall(playerDimensions?: PlayerDimensions) {
+    if (playerDimensions) {
+      return !playerDimensions.fullscreen && (playerDimensions.width < 1208 || playerDimensions.height < 720);
+    } else {
+      return !document.fullscreenElement && (this.element.clientWidth < 1208 || this.element.clientHeight < 720);
     }
   }
 
@@ -489,7 +503,7 @@ class PlayerData {
       });
 
 
-      this.isTooSmall = !newDimensions.fullscreen && (newDimensions.width < 1208 || newDimensions.height < 720);
+      this.isTooSmall = this.checkIfTooSmall(newDimensions);
     }
   }
 
