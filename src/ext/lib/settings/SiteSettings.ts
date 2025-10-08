@@ -110,6 +110,9 @@ export class SiteSettings {
    * @returns
    */
   private getSettingsForSite(options: GetSiteSettingsOptions): {siteSettings: SiteSettingsInterface, usesSettingsFor: string | undefined} {
+
+    // console.warn('getSettingsForSite: getting settings for site', options.site, ' — full options:', options);
+
     if (!options.site) {
       return {
         siteSettings: this.settings.active.sites['@global'],
@@ -441,7 +444,7 @@ export class SiteSettings {
     }
     return this.site;
   }
-0
+
   /**
    * Sets option value.
    * @param optionPath path to value in object notation (dot separated)

@@ -61,10 +61,10 @@ class UI {
 
   async init() {
     if (!this.canRun()) {
-      console.log('ui config: canRun returned false', this.siteSettings?.data.enableUI.fullscreen === ExtensionMode.Enabled, this.siteSettings?.data.enableUI.theater === ExtensionMode.Enabled, this.siteSettings?.data.enableUI.normal === ExtensionMode.Enabled)
+      // console.log('ui config: canRun returned false', this.siteSettings?.data.enableUI.fullscreen === ExtensionMode.Enabled, this.siteSettings?.data.enableUI.theater === ExtensionMode.Enabled, this.siteSettings?.data.enableUI.normal === ExtensionMode.Enabled)
       return;
     }
-    console.log('ui config: canRun returned truie', this.siteSettings?.data.enableUI.fullscreen === ExtensionMode.Enabled, this.siteSettings?.data.enableUI.theater === ExtensionMode.Enabled, this.siteSettings?.data.enableUI.normal === ExtensionMode.Enabled)
+    // console.log('ui config: canRun returned truie', this.siteSettings?.data.enableUI.fullscreen === ExtensionMode.Enabled, this.siteSettings?.data.enableUI.theater === ExtensionMode.Enabled, this.siteSettings?.data.enableUI.normal === ExtensionMode.Enabled)
 
 
     this.initUIContainer();
@@ -190,6 +190,7 @@ class UI {
           coords,
           playerDimensions: playerData.playerDimensions,
           canShowUI: playerData.canShowUI,
+          isIframe: this.isIframe,
           ts: +new Date()   // this should be accurate enough for our purposes,
         },
         uiURI
@@ -253,7 +254,6 @@ class UI {
         },
         'uw-get-page-stats': {
           function: (config, routingData) => {
-            console.log('got get page stats!');
             this.eventBus.send(
               'uw-page-stats',
               {

@@ -115,8 +115,19 @@ export default class EventBus {
     // CommsServer's job. EventBus does not have enough data for this decision.
     // We do, however, have enough data to prevent backflow of messages that
     // crossed CommsServer once already.
-    if (this.comms && context?.origin !== CommsOrigin.Server && !context?.borderCrossings?.commsServer) {
-      this.comms.sendMessage({command, config: commandData, context}, context);
+    if (
+      this.comms
+      && context?.origin !== CommsOrigin.Server
+      && !context?.borderCrossings?.commsServer
+    ) {
+      try {
+        this.comms.sendMessage({command, config: commandData, context}, context);
+      } catch (e) {
+        if (command !== 'reload-required') {
+          // We shouldn't let reload-required command to trigger new reload-required commands.
+          this.send('reload-required', {});
+        }
+      }
     };
 
     // call forwarding functions if they exist
@@ -161,7 +172,13 @@ export default class EventBus {
       // also need to set up a detour because the tunnel is closed
       // in the popup
       if (this.comms) {
-        this.comms.sendMessage({command, config, context: this.popupContext}, this.popupContext);
+        try {
+          this.comms.sendMessage({command, config, context: this.popupContext}, this.popupContext);
+        } catch (e) {
+          if (command !== 'reload-required') {
+            this.send('reload-required', {});
+          }
+        }
       }
     }
   }
