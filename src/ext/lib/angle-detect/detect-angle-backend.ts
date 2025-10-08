@@ -93,38 +93,46 @@ function detectBackend(str) {
  * @returns
  */
 function detectANGLEBackend(): AngleVersion {
-  const canvas = document.createElement("canvas");
-  const gl = canvas.getContext("webgl2") ||
-    canvas.getContext("webgl") ||
-    canvas.getContext("experimental-webgl");
+  try {
+    const canvas = document.createElement("canvas");
+    const gl = canvas.getContext("webgl2") ||
+      canvas.getContext("webgl") ||
+      canvas.getContext("experimental-webgl");
 
-  const ext = (gl as any).getExtension("WEBGL_debug_shaders");
-
-  if (!ext) {
-    return AngleVersion.NotAvailable;
-  }
-
-  const isWebGL1 = gl instanceof WebGLRenderingContext;
-  const shader = (gl as any).createShader((gl as any).VERTEX_SHADER);
-
-  (gl as any).shaderSource(
-    shader,
-    `#version ${isWebGL1 ? "100" : "300 es"}
-    void main() {
-      gl_Position = vec4(__VERSION__, 1.0, 1.0, 1.0);
+    if (!gl) {
+      return AngleVersion.NotAvailable;
     }
-  `
-  );
 
-  (gl as any).compileShader(shader);
+    const ext = (gl as any).getExtension("WEBGL_debug_shaders");
 
-  if (!(gl as any).getShaderParameter(shader, (gl as any).COMPILE_STATUS)) {
-    console.error("invalid shader", (gl as any).getShaderInfoLog(shader));
+    if (!ext) {
+      return AngleVersion.NotAvailable;
+    }
+
+    const isWebGL1 = gl instanceof WebGLRenderingContext;
+    const shader = (gl as any).createShader((gl as any).VERTEX_SHADER);
+
+    (gl as any).shaderSource(
+      shader,
+      `#version ${isWebGL1 ? "100" : "300 es"}
+      void main() {
+        gl_Position = vec4(__VERSION__, 1.0, 1.0, 1.0);
+      }
+    `
+    );
+
+    (gl as any).compileShader(shader);
+
+    if (!(gl as any).getShaderParameter(shader, (gl as any).COMPILE_STATUS)) {
+      console.error("invalid shader", (gl as any).getShaderInfoLog(shader));
+      return AngleVersion.NotAvailable;
+    }
+
+    const source = ext.getTranslatedShaderSource(shader);
+
+    return detectBackend(source);
+  } catch (e) {
     return AngleVersion.NotAvailable;
   }
-
-  const source = ext.getTranslatedShaderSource(shader);
-
-  return detectBackend(source);
 }
 
