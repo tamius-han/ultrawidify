@@ -196,14 +196,7 @@ export class AardDebugUi {
       <h2 style="color: #fa6; margin-bottom: 1rem">Detailed performance analysis:</h2>
       <div style="width: 100%; display: flex; flex-direction: column">
         <div style="margin-bottom: 1rem;">
-          <span style="color: #fff">Raw times (cumulative; -1 = test was skipped):</span><br/>
-          draw        <span style="color: #fa6; margin-right: 0.5rem;">${this.aard.timer.current.draw.toFixed(2)}ms</span>
-          get data    <span style="color: #fa6; margin-right: 0.5rem;">${this.aard.timer.current.getImage.toFixed(2)}ms</span>
-          black lv.   <span style="color: #fa6; margin-right: 0.5rem;">${this.aard.timer.current.fastBlackLevel.toFixed(2)}ms</span>
-          guard/image <span style="color: #fa6; margin-right: 0.5rem;">${this.aard.timer.current.guardLine.toFixed(3)}ms</span>
-          edge        <span style="color: #fa6; margin-right: 0.5rem;">${this.aard.timer.current.edgeScan.toFixed(2)}ms</span>
-          gradient    <span style="color: #fa6; margin-right: 0.5rem;">${this.aard.timer.current.gradient.toFixed(3)}ms</span>
-          post        <span style="color: #fa6; margin-right: 0.5rem;">${this.aard.timer.current.scanResults.toFixed(2)}ms</span>
+          ${this.generateRawTimes(this.aard.timer.average)}
         </div>
         <div style="color: #fff">Stage times (not cumulative):</div>
         <div style="display: flex; flex-direction: row; width: 100%; height: 150px">
@@ -212,14 +205,7 @@ export class AardDebugUi {
         </div>
 
         <div style="margin-bottom: 1rem;">
-          <span style="color: #fff">Raw times (cumulative; -1 = test was skipped):</span><br/>
-          draw        <span style="color: #fa6; margin-right: 0.5rem;">${this.aard.timer.average.draw.toFixed(2)}ms</span>
-          get data    <span style="color: #fa6; margin-right: 0.5rem;">${this.aard.timer.average.getImage.toFixed(2)}ms</span>
-          black lv.   <span style="color: #fa6; margin-right: 0.5rem;">${this.aard.timer.average.fastBlackLevel.toFixed(2)}ms</span>
-          guard/image <span style="color: #fa6; margin-right: 0.5rem;">${this.aard.timer.average.guardLine.toFixed(3)}ms</span>
-          edge        <span style="color: #fa6; margin-right: 0.5rem;">${this.aard.timer.average.edgeScan.toFixed(2)}ms</span>
-          gradient    <span style="color: #fa6; margin-right: 0.5rem;">${this.aard.timer.average.gradient.toFixed(3)}ms</span>
-          post        <span style="color: #fa6; margin-right: 0.5rem;">${this.aard.timer.average.scanResults.toFixed(2)}ms</span>
+          ${this.generateRawTimes(this.aard.timer.average)}
         </div>
         <div style="color: #fff">Stage times (not cumulative):</div>
         <div style="display: flex; flex-direction: row; width: 100%; height: 150px">
@@ -227,6 +213,9 @@ export class AardDebugUi {
           <div style="flex-grow: 1;">${this.generateMiniGraphBar(this.aard.timer.average, true)}</div>
         </div>
 
+        <div style="margin-bottom: 1rem;">
+          ${this.generateRawTimes(this.aard.timer.average)}
+        </div>
         <div style="display: flex; flex-direction: row; width: 100%; height: 150px">
           <div style="width: 160px; text-align: right; padding-right: 4px;">Last change:</div>
           <div style="flex-grow: 1;">${this.generateMiniGraphBar(this.aard.timer.lastChange, true)}</div>
@@ -274,6 +263,20 @@ export class AardDebugUi {
     `;
   }
 
+  private generateRawTimes(timer) {
+    return `
+      <span style="color: #fff">Raw times (cumulative; -1 = test was skipped):</span><br/>
+      draw        <span style="color: #fa6; margin-right: 0.5rem;">${timer.draw.toFixed(2)}ms</span>
+      get data    <span style="color: #fa6; margin-right: 0.5rem;">${timer.getImage.toFixed(2)}ms</span>
+      black lv.   <span style="color: #fa6; margin-right: 0.5rem;">${timer.fastBlackLevel.toFixed(2)}ms</span>
+      guard/image <span style="color: #fa6; margin-right: 0.5rem;">${timer.guardLine.toFixed(3)}ms</span>
+      edge        <span style="color: #fa6; margin-right: 0.5rem;">${timer.edgeScan.toFixed(2)}ms</span>
+      gradient    <span style="color: #fa6; margin-right: 0.5rem;">${timer.gradient.toFixed(3)}ms</span>
+      post        <span style="color: #fa6; margin-right: 0.5rem;">${timer.scanResults.toFixed(2)}ms</span>
+      subtitle    <span style="color: #fa6; margin-right: 0.5rem;">${timer.subtitleScan.toFixed(2)}ms</span>
+    `;
+  }
+
   private generateMiniGraphBar(perf: AardPerformanceData, detailed: boolean = false) {
     if (!perf) {
       return `
@@ -310,8 +313,12 @@ export class AardDebugUi {
     const scanResults = Math.max(perf.scanResults - total, 0);
     total += scanResults;
 
+    const subtitleScanStart = scanResultsStart + scanResults;
+    const subtitleScan  = Math.max(perf.scanResults - total, 0);
+    total += subtitleScan;
+
     return `
-      <div style="width: 100%; position: relative; text-align: right;">
+      <div style="width: calc(100% - 2rem); position: relative; text-align: right;">
         ${detailed ? '' : `${total.toFixed()} ms`}
         <div style="position: absolute; top: 0; left: 0; width: ${total}%; background: #fff; height: 2px;"></div>
         ${detailed ? `<div style="position: absolute; top: 0; left: ${total}%; height: 100px; width: 1px; border-left: 1px dotted rgba(255,255,255,0.5)"></div> ` : ''}
@@ -339,6 +346,11 @@ export class AardDebugUi {
 
         ${this.getBarLabel(0, scanResults + scanResultsStart, 88, `total: ${total.toFixed(2)} ms`, detailed, 'color: #fff;')}
 
+        <div style="position: absolute; top: ${detailed ? '74px' : '2px'}; left: ${subtitleScanStart}%; min-width: 1px; width: ${subtitleScan}%; background: rgba(234, 204, 84, 1); height: 12px;"></div>
+        ${this.getBarLabel(scanResults, scanResultsStart, 74, `scan results processing: ${subtitleScan.toFixed(2)} ms`, detailed)}
+
+        ${this.getBarLabel(0, scanResults + scanResultsStart, 88, `total: ${total.toFixed(2)} ms`, detailed, 'color: #fff;')}
+
         <!-- 60/30 fps markers -->
         <div style="position: absolute; top: ${detailed ? '-12px' : '0'}; left: 16.666%; width: 1px; border-left: 1px dashed #4f9; height: ${detailed ? '112px' : '12px'}; padding-left: 2px; background-color: rgba(0,0,0,0.5); z-index: ${detailed ? '5' : '2'}000;">60fps</div>
         <div style="position: absolute; top: ${detailed ? '-12px' : '0'}; left: 33.333%; width: 1px; border-left: 1px dashed #ff0; height: ${detailed ? '112px' : '12px'}; padding-left: 2px; background-color: #000; z-index: ${detailed ? '5' : '2'}000;">30fps</div>
@@ -346,6 +358,7 @@ export class AardDebugUi {
     `;
   }
 
+  _lastAr: undefined;
   updateTestResults(testResults) {
     this.updatePerformanceResults();
 
@@ -356,17 +369,22 @@ export class AardDebugUi {
 
     const resultsDiv = document.getElementById('uw-aard-results');
 
+    const ar = testResults.activeAspectRatio.toFixed(3);
+
     let out = `
       LAST STAGE: ${testResults.lastStage}         | black level: ${testResults.blackLevel}, threshold: ${testResults.blackThreshold}
 
       -- ASPECT RATIO
-      Active: ${testResults.activeAspectRatio.toFixed(3)}, changed since last check? ${testResults.aspectRatioUpdated}               letterbox width: ${testResults.letterboxWidth} offset ${testResults.letterboxOffset}
+      Active: ${ar}, changed since last check? ${testResults.aspectRatioUpdated}               letterbox width: ${testResults.letterboxWidth} offset ${testResults.letterboxOffset}<br/>
+      <sup>(last: ${this._lastAr})</sup>
+
 
       image in black level probe (aka "not letterbox"): ${testResults.notLetterbox}
-
     `;
+    this._lastAr = ar;
+
     if (testResults.notLetterbox) {
-      resultsDiv.textContent = out;
+      resultsDiv.innerHTML = out;
       return;
     }
     out = `${out}
@@ -406,7 +424,7 @@ export class AardDebugUi {
       `}
     `;
 
-    resultsDiv.textContent = out;
+    resultsDiv.innerHTML = out;
   }
 
   private setOverlayVisibility() {

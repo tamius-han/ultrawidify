@@ -1,9 +1,22 @@
 import { AardSettings } from '../../../../common/interfaces/SettingsInterface'
+import { AardUncertainReason } from '../enums/aard-letterbox-uncertain-reason.enum'
+import { LetterboxOrientation } from '../enums/letterbox-orientation.enum'
+
+export interface AardTestResult_SubtitleRegion {
+  firstBlank: number,
+  lastBlank: number,
+  firstSubtitle: number,
+  lastSubtitle: number,
+  firstImage: number,
+  lastImage: number
+}
 
 export interface AardTestResults {
   isFinished: boolean,
   lastStage: number,
-  notLetterbox: boolean,
+  letterboxOrientation: LetterboxOrientation,
+  lastValidLetterboxOrientation: LetterboxOrientation,
+  subtitleDetected: boolean,
   blackLevel: number,       // is cumulative
   blackThreshold: number,   // is cumulative
   guardLine: {
@@ -36,19 +49,30 @@ export interface AardTestResults {
   bottomRowUncertain: boolean,
   aspectRatioUpdated: boolean,
   activeAspectRatio: number,  // is cumulative
-  letterboxWidth: number,
+  letterboxSize: number,
   letterboxOffset: number,
   logoDetected: [boolean, boolean, boolean, boolean]
-  aspectRatioInvalid: boolean
-  aspectRatioUncertainReason?: string
-  aspectRatioInvalidReason?: string
+  aspectRatioInvalid: boolean,
+  subtitleScan: {
+    top: number,
+    bottom: number,
+
+    regions: {
+      top: AardTestResult_SubtitleRegion,
+      bottom: AardTestResult_SubtitleRegion
+    }
+  },
+  aspectRatioUncertainReason?: AardUncertainReason,
+  aspectRatioUncertainEdges: number,
+  aspectRatioInvalidReason?: string,
 }
 
 export function initAardTestResults(settings: AardSettings): AardTestResults {
   return {
     isFinished: true,
     lastStage: 0,
-    notLetterbox: false,
+    letterboxOrientation: LetterboxOrientation.NotKnown,
+    lastValidLetterboxOrientation: LetterboxOrientation.NotKnown,
     blackLevel: settings.blackLevels.defaultBlack,
     blackThreshold: 16,
     guardLine: {
@@ -77,11 +101,36 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
       bottomRowsDifferenceMatrix: [0, 0, 0],
     },
     aspectRatioUncertain: false,
+    aspectRatioUncertainEdges: 0,
     topRowUncertain: false,
     bottomRowUncertain: false,
+    subtitleDetected: false,
+    subtitleScan: {
+      top: -1,
+      bottom: -1,
+
+      regions: {
+        top: {
+          firstBlank: -1,
+          lastBlank: -1,
+          firstSubtitle: -1,
+          lastSubtitle: -1,
+          firstImage: -1,
+          lastImage: -1
+        },
+        bottom: {
+          firstBlank: -1,
+          lastBlank: -1,
+          firstSubtitle: -1,
+          lastSubtitle: -1,
+          firstImage: -1,
+          lastImage: -1
+        }
+      }
+    },
     aspectRatioUpdated: false,
     activeAspectRatio: 0,
-    letterboxWidth: 0,
+    letterboxSize: 0,
     letterboxOffset: 0,
     logoDetected: [false, false, false, false],
     aspectRatioInvalid: false,
@@ -106,7 +155,6 @@ export function resetGuardLine(results: AardTestResults) {
 export function resetAardTestResults(results: AardTestResults): void {
   results.isFinished = false;
   results.lastStage = 0;
-  results.notLetterbox = false;
   results.imageLine.invalidated = false;
   results.guardLine.invalidated = false;
   results.guardLine.cornerViolated[0] = false;
@@ -124,4 +172,25 @@ export function resetAardTestResults(results: AardTestResults): void {
   results.topRowUncertain = false;
   results.bottomRowUncertain = false;
   results.aspectRatioInvalid = false;
+  results.letterboxOrientation = LetterboxOrientation.NotKnown;
 }
+
+export function resetSubtitleScanResults(results: AardTestResults): void {
+  results.subtitleScan.top = -1;
+  results.subtitleScan.bottom = -1;
+
+  results.subtitleScan.regions.top.firstBlank = -1;
+  results.subtitleScan.regions.top.lastBlank = -1;
+  results.subtitleScan.regions.top.firstSubtitle = -1;
+  results.subtitleScan.regions.top.lastSubtitle = -1;
+  results.subtitleScan.regions.top.firstImage = -1;
+  results.subtitleScan.regions.top.lastImage = -1;
+
+  results.subtitleScan.regions.bottom.firstBlank = -1;
+  results.subtitleScan.regions.bottom.lastBlank = -1;
+  results.subtitleScan.regions.bottom.firstSubtitle = -1;
+  results.subtitleScan.regions.bottom.lastSubtitle = -1;
+  results.subtitleScan.regions.bottom.firstImage = -1;
+  results.subtitleScan.regions.bottom.lastImage = -1;
+}
+

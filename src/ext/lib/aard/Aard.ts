@@ -16,10 +16,14 @@ import { GlDebugCanvas, GlDebugType } from './gl/GlDebugCanvas';
 import { AardCanvasStore } from './interfaces/aard-canvas-store.interface';
 import { AardDetectionSample, generateSampleArray, resetSamples } from './interfaces/aard-detection-sample.interface';
 import { AardStatus, initAardStatus } from './interfaces/aard-status.interface';
-import { AardTestResults, initAardTestResults, resetAardTestResults, resetGuardLine } from './interfaces/aard-test-results.interface';
+import { AardTestResult_SubtitleRegion, AardTestResults, initAardTestResults, resetAardTestResults, resetGuardLine, resetSubtitleScanResults } from './interfaces/aard-test-results.interface';
 import { AardTimers, initAardTimers } from './interfaces/aard-timers.interface';
 import { ComponentLogger } from '../logging/ComponentLogger';
 import { AardPollingOptions } from './enums/aard-polling-options.enum';
+import { AardSubtitleCropMode } from './enums/aard-subtitle-crop-mode.enum';
+import { LetterboxOrientation } from './enums/letterbox-orientation.enum';
+import { Edge } from './enums/edge.enum';
+import { AardUncertainReason } from './enums/aard-letterbox-uncertain-reason.enum';
 
 
 /**
@@ -220,6 +224,11 @@ import { AardPollingOptions } from './enums/aard-polling-options.enum';
  *  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
  *
  */
+
+const PIXEL_SIZE = 4;
+const PIXEL_SIZE_FRACTION = 0.25;
+let ROW_SIZE = -1;
+
 export class Aard {
   //#region configuration parameters
   private logger: ComponentLogger;
@@ -335,6 +344,14 @@ export class Aard {
         this.settings.active.arDetect.sampling.staticCols,
         this.settings.active.arDetect.canvasDimensions.sampleCanvas.width
       ),
+      left: generateSampleArray(
+        this.settings.active.arDetect.sampling.staticCols,
+        this.settings.active.arDetect.canvasDimensions.sampleCanvas.height
+      ),
+      right: generateSampleArray(
+        this.settings.active.arDetect.sampling.staticCols,
+        this.settings.active.arDetect.canvasDimensions.sampleCanvas.height
+      )
     };
 
 
@@ -356,6 +373,8 @@ export class Aard {
   }
 
   private createCanvas(canvasId: string, canvasType?: 'webgl' | 'legacy') {
+    ROW_SIZE = this.settings.active.arDetect.canvasDimensions.sampleCanvas.width * PIXEL_SIZE;
+
     if (canvasType) {
       if (canvasType === this.settings.active.arDetect.aardType || this.settings.active.arDetect.aardType === 'auto') {
         if (canvasType === 'webgl') {
@@ -556,6 +575,7 @@ export class Aard {
     if (this.canTriggerFrameCheck()) {
       resetAardTestResults(this.testResults);
       resetSamples(this.canvasSamples);
+      resetSubtitleScanResults(this.testResults);
       this.main();
       this.forceFullRecheck = false;
     } else {
@@ -568,6 +588,8 @@ export class Aard {
    * Main loop for scanning aspect ratio changes
    */
   private async main() {
+    const arConf =  this.settings.active.arDetect;
+
     try {
       this.timer.next();
 
@@ -577,7 +599,8 @@ export class Aard {
       // We abuse a do-while loop to eat our cake (get early returns)
       // and have it, too (if we return early, we still execute code
       // at the end of this function)
-      do {
+      scanFrame:
+      {
         imageData = await new Promise<Uint8Array>(
           resolve => {
             try {
@@ -598,14 +621,14 @@ export class Aard {
                   this.stop();
                 }
               } else {
-                if (this.settings.active.arDetect.aardType === 'auto') {
+                if (arConf.aardType === 'auto') {
                   this.canvasStore.main.destroy();
                   this.canvasStore.main = this.createCanvas('main-gl', 'legacy');
                 }
                 this.inFallback = true;
                 this.fallbackReason = {cors: true};
 
-                if (this.settings.active.arDetect.aardType !== 'auto') {
+                if (arConf.aardType !== 'auto') {
                   this.stop();
                 }
               }
@@ -616,24 +639,57 @@ export class Aard {
 
         // STEP 1:
         // Test if corners are black. If they're not, we can immediately quit the loop.
-        this.getBlackLevelFast(
-          imageData, 3, 1,
-          this.settings.active.arDetect.canvasDimensions.sampleCanvas.width,
-          this.settings.active.arDetect.canvasDimensions.sampleCanvas.height
-        );
+        // For performances of measurements, checking orientation of letterbox is part of fastBlackLevel
+        const lastValidLetterboxOrientation = this.testResults.lastValidLetterboxOrientation;
+
+        orientationCheck:
+        {
+          this.getBlackLevelFast(
+            imageData, 3, 1,
+            arConf.canvasDimensions.sampleCanvas.width,
+            arConf.canvasDimensions.sampleCanvas.height
+          );
+
+          if (this.testResults.letterboxOrientation === LetterboxOrientation.NotLetterbox) {
+            break orientationCheck;
+          }
+
+          try {
+          this.letterboxOrientationScan(
+            imageData,
+            arConf.canvasDimensions.sampleCanvas.width,
+            arConf.canvasDimensions.sampleCanvas.height
+          );
+          } catch (e) {
+            console.warn('problems:', e);
+          }
+        }
+
         this.timer.current.fastBlackLevel = performance.now() - this.timer.current.start;
 
-        if (this.testResults.notLetterbox) {
+        // if we detect no letterbox, we don't test anything — instead, we immediately reset
+        if (this.testResults.letterboxOrientation === LetterboxOrientation.NotLetterbox) {
           // TODO: reset aspect ratio to "AR not applied"
           this.testResults.lastStage = 1;
-
-          // we have a few things to do
-          // console.log('NOT LETTERBOX - resetting letterbox data')
-          this.testResults.letterboxWidth = 0;
+          this.testResults.letterboxSize = 0;
           this.testResults.letterboxOffset = 0;
           resetGuardLine(this.testResults);
-          break;
+
+          break scanFrame;
         }
+
+        // If we detect both letterbox and pillarbox, we keep things as they are but avoid scanning further
+        if (this.testResults.letterboxOrientation === LetterboxOrientation.Both) {
+          this.testResults.lastStage = 1;
+
+          break scanFrame;
+        }
+
+        // If lastValidLetterboxOrientation changed, we reset guard line (& gang), but continue processing
+        if (lastValidLetterboxOrientation !== this.testResults.lastValidLetterboxOrientation) {
+          this.forceFullRecheck = true;
+        }
+
 
         // STEP 2:
         // Check if previously detected aspect ratio is still gucci. If it is, then
@@ -649,32 +705,46 @@ export class Aard {
         } else {
           this.checkLetterboxShrink(
             imageData,
-            this.settings.active.arDetect.canvasDimensions.sampleCanvas.width,
-            this.settings.active.arDetect.canvasDimensions.sampleCanvas.height
+            arConf.canvasDimensions.sampleCanvas.width,
+            arConf.canvasDimensions.sampleCanvas.height
           );
 
           // If guardline was invalidated, letterbox width and offset are unreliable.
           // If guardLine is fine but imageLine is invalidated, we still keep last letterbox settings
           if (this.testResults.guardLine.invalidated) {
-          // console.log('GUARD LINE INVALIDATED - resetting letterbox data')
-
-            this.testResults.letterboxWidth = 0;
+            this.testResults.letterboxSize = 0;
             this.testResults.letterboxOffset = 0;
           } else {
             this.checkLetterboxGrow(
               imageData,
-              this.settings.active.arDetect.canvasDimensions.sampleCanvas.width,
-              this.settings.active.arDetect.canvasDimensions.sampleCanvas.height
+              arConf.canvasDimensions.sampleCanvas.width,
+              arConf.canvasDimensions.sampleCanvas.height
             );
           }
         }
         this.timer.current.guardLine = performance.now() - this.timer.current.start;  // guardLine is for both guardLine and imageLine checks
 
         // Both need to be checked
-        if (! (this.testResults.imageLine.invalidated || this.testResults.guardLine.invalidated)) {
-          // TODO: ensure no aspect ratio changes happen
-          this.testResults.lastStage = 2;
-          break;
+        if (!this.testResults.imageLine.invalidated && !this.testResults.guardLine.invalidated) {
+          // check for subtitles here
+          if (this.testResults.letterboxOrientation === LetterboxOrientation.Letterbox) {
+            this.subtitleScan(
+              imageData,
+              arConf.canvasDimensions.sampleCanvas.width,
+            arConf.canvasDimensions.sampleCanvas.height,
+            false
+          );
+
+          if (this.testResults.subtitleDetected && arConf.subtitles.subtitleCropMode === AardSubtitleCropMode.DisableScan) {
+            // todo: reset
+          } else {
+              this.testResults.lastStage = 2;
+              break scanFrame;
+            }
+          } else {
+            this.testResults.lastStage = 2;
+            break scanFrame;
+          }
         }
 
         // STEP 3:
@@ -682,13 +752,22 @@ export class Aard {
         // After aspectRatioCheck is finished, we know how wide the letterbox is.
         this.aspectRatioCheck(
           imageData,
-          this.settings.active.arDetect.canvasDimensions.sampleCanvas.width,
-          this.settings.active.arDetect.canvasDimensions.sampleCanvas.height
+          arConf.canvasDimensions.sampleCanvas.width,
+          arConf.canvasDimensions.sampleCanvas.height
         );
 
-      } while (false);
+        // We only do subtitle check when orientation is letterbox
+        if (this.testResults.letterboxOrientation === LetterboxOrientation.Letterbox) {
+          this.subtitleScan(
+            imageData,
+            arConf.canvasDimensions.sampleCanvas.width,
+            arConf.canvasDimensions.sampleCanvas.height,
+            false,
+          );
+        }
 
-      // TODO: subtitle check goes here.
+      }
+
       // Note that subtitle check should reset aspect ratio outright, regardless of what other tests revealed.
       // Also note that subtitle check should run on newest aspect ratio data, rather than lag one frame behind
       // But implementation details are something for future Tam to figure out
@@ -699,13 +778,26 @@ export class Aard {
       // If debugging is enable,
       this.canvasStore.debug?.drawBuffer(imageData);
 
-      do {
-        if (this.testResults.notLetterbox) {
-          // console.log('————not letterbox')
+      processUpdate:
+      {
+        if (this.testResults.letterboxOrientation === LetterboxOrientation.NotLetterbox) {
           // console.warn('DETECTED NOT LETTERBOX! (resetting)')
           this.timer.arChanged();
-          this.updateAspectRatio(this.defaultAr);
-          break;
+          this.updateAspectRatio(this.defaultAr, {forceReset: true});
+          break processUpdate;
+        }
+
+        if (this.testResults.subtitleDetected) {
+          if (arConf.subtitles.subtitleCropMode === AardSubtitleCropMode.ResetAR) {
+            this.updateAspectRatio(this.defaultAr, {forceReset: true});
+            this.timers.pauseUntil = Date.now() + arConf.subtitles.resumeAfter;
+
+          } else if (arConf.subtitles.subtitleCropMode === AardSubtitleCropMode.ResetAndDisable) {
+            this.updateAspectRatio(this.defaultAr, {forceReset: true});
+            this.status.autoDisabled = true;
+          }
+
+          break processUpdate;
         }
 
         // if detection is uncertain, we don't do anything at all (unless if guardline was broken, in which case we reset)
@@ -715,9 +807,9 @@ export class Aard {
 
           // console.warn('ASPECT RATIO UNCERTAIN, GUARD LINE INVALIDATED (resetting)')
           this.timer.arChanged();
-          this.updateAspectRatio(this.defaultAr, {uncertainDetection: true});
+          this.updateAspectRatio(this.defaultAr, {uncertainDetection: true, forceReset: true});
 
-          break;
+          break processUpdate;
         }
 
         // TODO: emit debug values if debugging is enabled
@@ -744,7 +836,7 @@ export class Aard {
         // }
 
         // if we got "no letterbox" OR aspectRatioUpdated
-      } while (false)
+      }
 
       if (this.canvasStore.debug) {
         // this.canvasStore.debug.drawBuffer(imageData);
@@ -825,13 +917,13 @@ export class Aard {
      */
     const end = offset + samples;
     for (let i = offset; i < end; i++) {
-      const px_r = (i * width * 4) + (i * 4);    // red component starts here
+      const px_r = (i * ROW_SIZE) + (i * PIXEL_SIZE);    // red component starts here
       pixelValues[pvi++] = imageData[px_r];
       pixelValues[pvi++] = imageData[px_r + 1];
       pixelValues[pvi++] = imageData[px_r + 2];
       imageData[px_r + 3] = GlDebugType.BlackLevelSample;
 
-      const endpx_r = px_r + (width * 4) - (i * 8) - 4;  // -4 because 4 bytes per pixel, and - twice the offset to mirror the diagonal
+      const endpx_r = px_r + ROW_SIZE - (i * PIXEL_SIZE * 2) - PIXEL_SIZE;  // - twice the offset to mirror the diagonal
       pixelValues[pvi++] = imageData[endpx_r];
       pixelValues[pvi++] = imageData[endpx_r + 1];
       pixelValues[pvi++] = imageData[endpx_r + 2];
@@ -842,13 +934,13 @@ export class Aard {
     for (let i = end; i --> offset;) {
       const row = height - i - 1;  // since first row is 0, last row is height - 1
 
-      const px_r = (row * width * 4) + (i * 4);
+      const px_r = (row * ROW_SIZE) + (i * PIXEL_SIZE);
       pixelValues[pvi++] = imageData[px_r];
       pixelValues[pvi++] = imageData[px_r + 1];
       pixelValues[pvi++] = imageData[px_r + 2];
       imageData[px_r + 3] = GlDebugType.BlackLevelSample;
 
-      const endpx_r = px_r + (width * 4) - (i * 8) - 4;  // -4 because 4 bytes per pixel, and - twice the offset to mirror the diagonal
+      const endpx_r = px_r + (ROW_SIZE) - (i * PIXEL_SIZE * 2) - PIXEL_SIZE;  // - twice the offset to mirror the diagonal
       pixelValues[pvi++] = imageData[endpx_r];
       pixelValues[pvi++] = imageData[endpx_r + 1];
       pixelValues[pvi++] = imageData[endpx_r + 2];
@@ -878,23 +970,125 @@ export class Aard {
       }
     }
 
-    // Avg only contains highest subpixel,
-    // but there's 4 subpixels per sample.
-    avg = avg / (samples * 4);
+    // While there's 4 bytes / 3 values per pixel, a
+    // avg only contains highest subpixel ... so we really
+    // only take one sample per pixel instead of 3/4
+    avg = avg / samples;
 
-    // TODO: unhardcode these values
-    this.testResults.notLetterbox = avg > (this.testResults.blackLevel);
+    if (avg > this.testResults.blackThreshold) {
+      this.testResults.letterboxOrientation = LetterboxOrientation.NotLetterbox;
+    }
 
     // only update black level if not letterbox.
     // NOTE: but maybe we could, if blackLevel can only get lower than
     // the default value.
-    if (this.testResults.notLetterbox) {
+    if (this.testResults.letterboxOrientation === LetterboxOrientation.NotLetterbox) {
       this.testResults.aspectRatioUncertain = false;
+    }
 
-      if (min < this.testResults.blackLevel) {
-        this.testResults.blackLevel = min;
-        this.testResults.blackThreshold = min + 16;
+    if (min < this.testResults.blackLevel) {
+      this.testResults.blackLevel = min;
+      this.testResults.blackThreshold = min + 16;
+    }
+  }
+
+  /**
+   * Checks orientation of black bars.
+   * @param imageData
+   * @param width
+   * @param height
+   */
+  private letterboxOrientationScan(imageData: Uint8Array, width: number, height: number) {
+    const lastPixelOffset = ROW_SIZE - PIXEL_SIZE;
+    const imageSize = ROW_SIZE * height;
+
+    const xLimit = this.settings.active.arDetect.letterboxOrientationScan.letterboxLimit;
+    const yLimit = this.settings.active.arDetect.letterboxOrientationScan.pillarboxLimit;
+
+    let letterbox = true, pillarbox = true;
+    let xCount = 0, yCount = 0;
+
+    // scan top row
+    for (let i = 0; i < ROW_SIZE; i += PIXEL_SIZE) {
+      if (
+           imageData[i  ] > this.testResults.blackThreshold
+        || imageData[i+1] > this.testResults.blackThreshold
+        || imageData[i+2] > this.testResults.blackThreshold
+      ) {
+        imageData[i + 3] = GlDebugType.LetterboxOrientationScanImageDetection
+        if (++xCount > xLimit) {
+          letterbox = false;
+          break;
+        }
+      } else {
+        imageData[i+3] = GlDebugType.LetterboxOrientationScanTrace
       }
+    }
+
+    // scan sides
+    for (let i = 0; i < imageSize; i += ROW_SIZE) {
+      const lastPx = i + lastPixelOffset;
+
+      // left side
+      if (
+           imageData[i  ] > this.testResults.blackThreshold
+        || imageData[i+1] > this.testResults.blackThreshold
+        || imageData[i+2] > this.testResults.blackThreshold
+      ) {
+        imageData[i+3] = GlDebugType.LetterboxOrientationScanImageDetection;
+        if (++yCount > yLimit) {
+          pillarbox = false;
+          break;
+        }
+      } else {
+        imageData[i+3] = GlDebugType.LetterboxOrientationScanTrace;
+      }
+
+      // right side
+      if (
+           imageData[lastPx  ] > this.testResults.blackThreshold
+        || imageData[lastPx+1] > this.testResults.blackThreshold
+        || imageData[lastPx+2] > this.testResults.blackThreshold
+      ) {
+        imageData[lastPx+3] = GlDebugType.LetterboxOrientationScanImageDetection;
+        if (++yCount > yLimit) {
+          pillarbox = false;
+          break;
+        }
+      } else {
+        imageData[lastPx+3] = GlDebugType.LetterboxOrientationScanTrace;
+      }
+    }
+
+    // scan bottom row
+    if (letterbox) {
+      for (let i = ROW_SIZE * (height - 1); i < imageSize; i += PIXEL_SIZE) {
+        if ( imageData[i  ] > this.testResults.blackThreshold
+          || imageData[i+1] > this.testResults.blackThreshold
+          || imageData[i+2] > this.testResults.blackThreshold
+        ) {
+          imageData[i + 3] = GlDebugType.LetterboxOrientationScanImageDetection
+          if (++xCount > xLimit) {
+            letterbox = false;
+            break;
+          }
+        } else {
+          imageData[i+3] = GlDebugType.LetterboxOrientationScanTrace
+        }
+      }
+    }
+
+    // determine result
+    if (letterbox && pillarbox) {
+      this.testResults.letterboxOrientation = LetterboxOrientation.Both;
+    } else if (letterbox) {
+      this.testResults.letterboxOrientation = LetterboxOrientation.Letterbox;
+      this.testResults.lastValidLetterboxOrientation = LetterboxOrientation.Letterbox;
+    } else if (pillarbox) {
+      this.testResults.letterboxOrientation = LetterboxOrientation.Pillarbox;
+      this.testResults.lastValidLetterboxOrientation = LetterboxOrientation.Pillarbox;
+    } else {
+      this.testResults.letterboxOrientation = LetterboxOrientation.NotLetterbox;
     }
   }
 
@@ -927,125 +1121,40 @@ export class Aard {
 
     let edgePosition = this.settings.active.arDetect.sampling.edgePosition;
     const segmentPixels = width * edgePosition;
-    const edgeSegmentSize = segmentPixels * 4;
+    const edgeSegmentSize = segmentPixels * PIXEL_SIZE;
 
 
     // check the top
     {
       // no use in doing guardline tests if guardline hasn't been measured yet, or if
       // guardline is not defined.
-      const rowStart = this.testResults.guardLine.top * width * 4;
+      const rowStart = this.testResults.guardLine.top * ROW_SIZE;
       const firstSegment = rowStart + edgeSegmentSize;
-      const rowEnd = rowStart + (width * 4) - 4;
+      const rowEnd = rowStart + ROW_SIZE - PIXEL_SIZE;
       const secondSegment = rowEnd - edgeSegmentSize;
 
       let i = rowStart;
 
-      while (i < firstSegment) {
-        if (
-          imageData[i] > this.testResults.blackThreshold
-          || imageData[i + 1] > this.testResults.blackThreshold
-          || imageData[i + 2] > this.testResults.blackThreshold
-        ) {
-          imageData[i + 3] = GlDebugType.GuardLineCornerViolation;
-          this.testResults.guardLine.cornerPixelsViolated[Corner.TopLeft]++;
-        } else {
-          imageData[i + 3] = GlDebugType.GuardLineCornerOk;
-        }
-        i += 4;
+      this.checkLetterboxShrinkCornerSegment(imageData, rowStart, firstSegment, Corner.TopLeft);
+      if (this.checkLetterboxShrinkCenterSegment(imageData, firstSegment, secondSegment)) {
+        return;  // guard line violation in center segment is insta-fail
       }
-      while (i < secondSegment) {
-        if (
-          imageData[i] > this.testResults.blackThreshold
-          || imageData[i + 1] > this.testResults.blackThreshold
-          || imageData[i + 2] > this.testResults.blackThreshold
-        ) {
-          imageData[i + 3] = GlDebugType.GuardLineViolation;
-          // DONT FORGET TO INVALIDATE GUARDL LINE
-          this.testResults.guardLine.top = -1;
-          this.testResults.guardLine.bottom = -1;
-          this.testResults.guardLine.invalidated = true;
-          return;
-        } else {
-          imageData[i + 3] = GlDebugType.GuardLineOk;
-        }
-        i += 4;
-      }
-      while (i < rowEnd) {
-        if (
-          imageData[i] > this.testResults.blackThreshold
-          || imageData[i + 1] > this.testResults.blackThreshold
-          || imageData[i + 2] > this.testResults.blackThreshold
-        ) {
-          imageData[i + 3] = GlDebugType.GuardLineCornerViolation;
-          this.testResults.guardLine.cornerPixelsViolated[Corner.TopRight]++;
-        } else {
-          imageData[i + 3] = GlDebugType.GuardLineCornerOk;
-        }
-        i += 4; // skip over alpha channel
-      }
+      this.checkLetterboxShrinkCornerSegment(imageData, secondSegment, rowEnd, Corner.TopRight);
     }
     // check bottom
     {
-      const rowStart = this.testResults.guardLine.bottom * width * 4;
+      const rowStart = this.testResults.guardLine.bottom * ROW_SIZE;
       const firstSegment = rowStart + edgeSegmentSize;
-      const rowEnd = rowStart + (width * 4) - 4;
+      const rowEnd = rowStart + ROW_SIZE - PIXEL_SIZE;
       const secondSegment = rowEnd - edgeSegmentSize;
 
-      let i = rowStart;
-      if (i % 4) {
-        i += 4 - (i % 4);
+      this.checkLetterboxShrinkCornerSegment(imageData, rowStart, firstSegment, Corner.BottomLeft);
+      if (this.checkLetterboxShrinkCenterSegment(imageData, firstSegment, secondSegment)) {
+        return;  // guard line violation in center segment is insta-fail
       }
-      while (i < firstSegment) {
-        if (
-          imageData[i] > this.testResults.blackThreshold
-          || imageData[i + 1] > this.testResults.blackThreshold
-          || imageData[i + 2] > this.testResults.blackThreshold
-        ) {
-          imageData[i + 3] = GlDebugType.GuardLineCornerViolation;
-          this.testResults.guardLine.cornerPixelsViolated[Corner.BottomLeft]++;
-        } else {
-          imageData[i + 3] = GlDebugType.GuardLineCornerOk;
-        }
-        i += 4; // skip over alpha channel
-      }
-      if (i % 4) {
-        i += 4 - (i % 4);
-      }
-      while (i < secondSegment) {
-        if (
-          imageData[i] > this.testResults.blackThreshold
-          || imageData[i + 1] > this.testResults.blackThreshold
-          || imageData[i + 2] > this.testResults.blackThreshold
-        ) {
-          imageData[i + 3] = GlDebugType.GuardLineViolation;
-          // DONT FORGET TO INVALIDATE GUARDL LINE
-          this.testResults.guardLine.top = -1;
-          this.testResults.guardLine.bottom = -1;
-          this.testResults.guardLine.invalidated = true;
-          return;
-        } else {
-          imageData[i + 3] = GlDebugType.GuardLineOk;
-        }
-        i += 4;
-      }
-      if (i % 4) {
-        i += 4 - (i % 4);
-      }
-      while (i < rowEnd) {
-        if (
-          imageData[i] > this.testResults.blackThreshold
-          || imageData[i + 1] > this.testResults.blackThreshold
-          || imageData[i + 2] > this.testResults.blackThreshold
-        ) {
-          imageData[i + 3] = GlDebugType.GuardLineCornerViolation;
-          this.testResults.guardLine.cornerPixelsViolated[Corner.BottomRight]++;
-        } else {
-          imageData[i + 3] = GlDebugType.GuardLineCornerOk;
-        }
-        i += 4; // skip over alpha channel
-      }
+      this.checkLetterboxShrinkCornerSegment(imageData, secondSegment, rowEnd, Corner.BottomRight);
     }
+    // Check whether violations in corners are within limits
 
     const maxViolations = segmentPixels * 0.20; // TODO: move the 0.2 threshold into settings
 
@@ -1074,6 +1183,46 @@ export class Aard {
     }
   }
 
+  private checkLetterboxShrinkCornerSegment(imageData: Uint8Array, start: number, end: number, corner: Corner) {
+    let i = start;
+    while (i < end) {
+      if (
+        imageData[i] > this.testResults.blackThreshold
+        || imageData[i + 1] > this.testResults.blackThreshold
+        || imageData[i + 2] > this.testResults.blackThreshold
+      ) {
+        imageData[i + 3] = GlDebugType.GuardLineCornerViolation;
+        this.testResults.guardLine.cornerPixelsViolated[corner]++;
+      } else {
+        imageData[i + 3] = GlDebugType.GuardLineCornerOk;
+      }
+      i += PIXEL_SIZE;
+    }
+  }
+
+  private checkLetterboxShrinkCenterSegment(imageData: Uint8Array, start: number, end: number): boolean {
+    let i = start;
+    while (i < end) {
+      if (
+        imageData[i] > this.testResults.blackThreshold
+        || imageData[i + 1] > this.testResults.blackThreshold
+        || imageData[i + 2] > this.testResults.blackThreshold
+      ) {
+        imageData[i + 3] = GlDebugType.GuardLineViolation;
+        // DONT FORGET TO INVALIDATE GUARDL LINE
+        this.testResults.guardLine.top = -1;
+        this.testResults.guardLine.bottom = -1;
+        this.testResults.guardLine.invalidated = true;
+        return true;
+      } else {
+        imageData[i + 3] = GlDebugType.GuardLineOk;
+      }
+      i += PIXEL_SIZE;
+    }
+
+    return false;
+  }
+
   /**
    * Checks if letterbox has grown. This test is super-efficient on frames that aren't dark,
    * but is also rather inefficient if the frame is overly dark. Note that this function merely
@@ -1095,230 +1244,115 @@ export class Aard {
       return;
     }
 
+    const IMAGE_CONFIRMED = -1;
+
     let edgePosition = this.settings.active.arDetect.sampling.edgePosition;
     const segmentPixels = width * edgePosition;
-    const edgeSegmentSize = segmentPixels * 4;
+    const edgeSegmentSize = segmentPixels * PIXEL_SIZE;
 
     const detectionThreshold = width * 0.1; // TODO: unhardcoide and put into settings. Is % of total width.
-    let imagePixel = false;
-    let pixelCount = 0;
+
+    let topInvalidated = false, bottomInvalidated = false;
 
     // check the top
+    topCheck:
     {
-      const rowStart = this.testResults.imageLine.top * width * 4;
+      const rowStart = this.testResults.imageLine.top * ROW_SIZE;
       const firstSegment = rowStart + edgeSegmentSize;
-      const rowEnd = rowStart + (width * 4) - 4;
+      const rowEnd = rowStart + ROW_SIZE - PIXEL_SIZE;
       const secondSegment = rowEnd - edgeSegmentSize;
 
-      let i = rowStart;
+      let pixelCount = 0;
 
       // we don't run image detection in corners that may contain logos, as such corners
       // may not be representative
       if (! this.testResults.guardLine.cornerViolated[Corner.TopLeft]) {
-        while (i < firstSegment) {
-          imagePixel = false;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-
-          if (imagePixel && ++pixelCount > detectionThreshold) {
-            imageData[i] = GlDebugType.ImageLineThresholdReached;
-            return;
-          } else {
-            imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
-          }
-          i++; // skip over alpha channel
+        pixelCount = this.checkLetterboxGrowSegment(imageData, rowStart, firstSegment, pixelCount, detectionThreshold);
+        if (pixelCount === IMAGE_CONFIRMED) {
+          break topCheck;
         }
       }
-      while (i < secondSegment) {
-        imagePixel = false;
-        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-
-        if (imagePixel && ++pixelCount > detectionThreshold) {
-          imageData[i] = GlDebugType.ImageLineThresholdReached;
-          return;
-        } else {
-          imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
-        }
-        i++; // skip over alpha channel
+      pixelCount = this.checkLetterboxGrowSegment(imageData, firstSegment, secondSegment, pixelCount, detectionThreshold);
+      if (pixelCount === IMAGE_CONFIRMED) {
+        break topCheck;
       }
       if (! this.testResults.guardLine.cornerViolated[Corner.TopRight]) {
-        while (i < rowEnd) {
-          imagePixel = false;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-
-          if (imagePixel && ++pixelCount > detectionThreshold) {
-            imageData[i] = GlDebugType.ImageLineThresholdReached;
-            return;
-          } else {
-            imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
-          }
-          i++; // skip over alpha channel
+        pixelCount = this.checkLetterboxGrowSegment(imageData, secondSegment, rowEnd, pixelCount, detectionThreshold);
+        if (pixelCount === IMAGE_CONFIRMED) {
+          break topCheck;
         }
       }
 
-      // we don't run image detection in corners that may contain logos, as such corners
-      // may not be representative
-      if (! this.testResults.guardLine.cornerViolated[Corner.TopLeft]) {
-        while (i < firstSegment) {
-          imagePixel = false;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-
-          if (imagePixel && ++pixelCount > detectionThreshold) {
-            imageData[i] = GlDebugType.ImageLineThresholdReached;
-            return;
-          } else {
-            imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
-          }
-          i++; // skip over alpha channel
-        }
-      }
-      while (i < secondSegment) {
-        imagePixel = false;
-        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-
-        if (imagePixel && ++pixelCount > detectionThreshold) {
-          return;
-        };
-        i++; // skip over alpha channel
-      }
-      if (! this.testResults.guardLine.cornerViolated[Corner.TopRight]) {
-        while (i < rowEnd) {
-          imagePixel = false;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-
-          if (imagePixel && ++pixelCount > detectionThreshold) {
-            imageData[i] = GlDebugType.ImageLineThresholdReached;
-            return;
-          } else {
-            imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
-          }
-          i++; // skip over alpha channel
-        }
-      }
+      topInvalidated = true;
     }
 
     // check the bottom
+    bottomCheck:
     {
-      const rowStart = this.testResults.imageLine.bottom * width * 4;
+      const rowStart = this.testResults.imageLine.bottom * ROW_SIZE;
       const firstSegment = rowStart + edgeSegmentSize;
-      const rowEnd = rowStart + (width * 4) - 4;
+      const rowEnd = rowStart + ROW_SIZE - PIXEL_SIZE;
       const secondSegment = rowEnd - edgeSegmentSize;
 
-      let i = rowStart;
+      let pixelCount = 0;
 
       // we don't run image detection in corners that may contain logos, as such corners
       // may not be representative
-      if (! this.testResults.guardLine.cornerViolated[Corner.TopLeft]) {
-        while (i < firstSegment) {
-          imagePixel = false;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-
-          if (imagePixel && ++pixelCount > detectionThreshold) {
-            imageData[i] = GlDebugType.ImageLineThresholdReached;
-            return;
-          } else {
-            imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
-          }
-          i++; // skip over alpha channel
+      if (! this.testResults.guardLine.cornerViolated[Corner.BottomLeft]) {
+        pixelCount = this.checkLetterboxGrowSegment(imageData, rowStart, firstSegment, pixelCount, detectionThreshold);
+        if (pixelCount === IMAGE_CONFIRMED) {
+          break bottomCheck;
         }
       }
-      while (i < secondSegment) {
-        imagePixel = false;
-        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-
-        if (imagePixel && ++pixelCount > detectionThreshold) {
-          imageData[i] = GlDebugType.ImageLineThresholdReached;
-          return;
-        } else {
-          imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
-        }
-        i++; // skip over alpha channel
+      pixelCount = this.checkLetterboxGrowSegment(imageData, firstSegment, secondSegment, pixelCount, detectionThreshold);
+      if (pixelCount === IMAGE_CONFIRMED) {
+        break bottomCheck;
       }
-      if (! this.testResults.guardLine.cornerViolated[Corner.TopRight]) {
-        while (i < rowEnd) {
-          imagePixel = false;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-
-          if (imagePixel && ++pixelCount > detectionThreshold) {
-            imageData[i] = GlDebugType.ImageLineThresholdReached;
-            return;
-          } else {
-            imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
-          }
-          i++; // skip over alpha channel
+      if (! this.testResults.guardLine.cornerViolated[Corner.BottomRight]) {
+        pixelCount = this.checkLetterboxGrowSegment(imageData, secondSegment, rowEnd, pixelCount, detectionThreshold);
+        if (pixelCount === IMAGE_CONFIRMED) {
+          break bottomCheck;
         }
       }
 
-      // we don't run image detection in corners that may contain logos, as such corners
-      // may not be representative
-      if (! this.testResults.guardLine.cornerViolated[Corner.TopLeft]) {
-        while (i < firstSegment) {
-          imagePixel = false;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-
-          if (imagePixel && ++pixelCount > detectionThreshold) {
-            imageData[i] = GlDebugType.ImageLineThresholdReached;
-            return;
-          } else {
-            imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
-          }
-          i++; // skip over alpha channel
-        }
-      }
-      while (i < secondSegment) {
-        imagePixel = false;
-        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-        imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-
-        if (imagePixel && ++pixelCount > detectionThreshold) {
-          imageData[i] = GlDebugType.ImageLineThresholdReached;
-          return;
-        } else {
-          imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
-        }
-        i++; // skip over alpha channel
-      }
-      if (! this.testResults.guardLine.cornerViolated[Corner.TopRight]) {
-        while (i < rowEnd) {
-          imagePixel = false;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-          imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
-
-          if (imagePixel && ++pixelCount > detectionThreshold) {
-            imageData[i] = GlDebugType.ImageLineThresholdReached;
-            return;
-          } else {
-            imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
-          }
-          i++; // skip over alpha channel
-        }
-      }
+      bottomInvalidated = true;
     }
 
-    // if we came this far, we didn't get enough non-black pixels in order
-    // to detect image. imageLine needs to be invalidated.
-    this.testResults.imageLine.invalidated = true;
+    // We invalidate imageLine if any of the two fails to validate
+    if (bottomInvalidated || topInvalidated) {
+      this.testResults.imageLine.invalidated = true;
+    }
+  }
+
+  /**
+   * Checks row for presence of image. If image is detected, returns -1. Otherwise, returns the amount
+   * of non-black pixels.
+   * @param imageData
+   * @param start
+   * @param end
+   * @param pixelCount
+   * @param imageDetectionThreshold
+   * @returns
+   */
+  private checkLetterboxGrowSegment(imageData: Uint8Array, start: number, end: number, pixelCount: number, imageDetectionThreshold: number) {
+    let i = start, imagePixel;
+
+    while (i < end) {
+      imagePixel = false;
+      imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+      imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+      imagePixel ||= imageData[i++] > this.testResults.blackThreshold;
+
+      if (imagePixel && ++pixelCount > imageDetectionThreshold) {
+        imageData[i] = GlDebugType.ImageLineThresholdReached;
+        return -1;
+      } else {
+        imageData[i] = imagePixel ?  GlDebugType.ImageLineOk : GlDebugType.ImageLineFail;
+      }
+      i++; // skip over alpha channel
+    }
+
+    return pixelCount;
   }
 
   /**
@@ -1354,12 +1388,32 @@ export class Aard {
     this.validateEdgeScan(imageData, width, height);
     this.timer.current.edgeScan = performance.now() - this.timer.current.start;
 
-    // TODO: _if gradient detection is enabled, then:
+    // We only do gradient detection on letterbox checks for now
     this.sampleForGradient(imageData, width, height);
     this.timer.current.gradient = performance.now() - this.timer.current.start;
 
+    // processScanResults does not care about axis
+    if (this.testResults.letterboxOrientation === LetterboxOrientation.Pillarbox) {
+      this.canvasSamples.start = this.canvasSamples.left;
+      this.canvasSamples.end = this.canvasSamples.right;
+    } else {
+      this.canvasSamples.start = this.canvasSamples.top;
+      this.canvasSamples.end = this.canvasSamples.bottom;
+    }
+
     this.processScanResults(imageData, width, height);
     this.timer.current.scanResults = performance.now() - this.timer.current.start;
+  }
+
+
+
+  edgeScan(imageData: Uint8Array, width: number, height: number) {
+    if (this.testResults.lastValidLetterboxOrientation === LetterboxOrientation.Letterbox) {
+      this.scanLetterboxEdge(imageData, width, height);
+    } else {
+      this.scanPillarboxEdge(imageData, width, height);
+    }
+
   }
 
   /**
@@ -1368,7 +1422,7 @@ export class Aard {
    * @param width
    * @param height
    */
-  private edgeScan(imageData: Uint8Array, width: number, height: number) {
+  private scanLetterboxEdge(imageData: Uint8Array, width: number, height: number) {
     const detectionLimit = this.settings.active.arDetect.edgeDetection.thresholds.edgeDetectionLimit;
 
     let mid = ~~(height / 2);
@@ -1411,7 +1465,7 @@ export class Aard {
 
       while (row < topEnd) {
         i = 0;
-        rowOffset = row * 4 * width;
+        rowOffset = row * ROW_SIZE;
 
         // test the entire row
         while (i < this.canvasSamples.top.length) {
@@ -1421,9 +1475,9 @@ export class Aard {
 
           // check for image, after we're done `x` points to alpha channel
           isImage =
-            imageData[rowOffset + x] > this.testResults.blackLevel
-            || imageData[rowOffset + x + 1] > this.testResults.blackLevel
-            || imageData[rowOffset + x + 2] > this.testResults.blackLevel;
+            imageData[rowOffset + x] > this.testResults.blackThreshold
+            || imageData[rowOffset + x + 1] > this.testResults.blackThreshold
+            || imageData[rowOffset + x + 2] > this.testResults.blackThreshold;
 
           if (!isImage) {
             imageData[rowOffset + x + 3] = GlDebugType.EdgeScanProbe;
@@ -1432,6 +1486,7 @@ export class Aard {
             continue;
           }
           if (this.canvasSamples.top[i] === -1) {
+            // console.log('is image:', imageData[rowOffset + x], imageData[rowOffset + x + 1], imageData[rowOffset + x + 2], x);
             imageData[rowOffset + x + 3] = GlDebugType.EdgeScanHit;
             this.canvasSamples.top[i] = row;
             finishedRows++;
@@ -1461,7 +1516,7 @@ export class Aard {
 
       while (row --> bottomEnd) {
         i = 0;
-        rowOffset = row * 4 * width;
+        rowOffset = row * ROW_SIZE;
 
         // test the entire row
         while (i < this.canvasSamples.bottom.length) {
@@ -1471,9 +1526,9 @@ export class Aard {
 
           // check for image, after we're done `x` points to alpha channel
           isImage =
-            imageData[rowOffset + x] > this.testResults.blackLevel
-            || imageData[rowOffset + x + 1] > this.testResults.blackLevel
-            || imageData[rowOffset + x + 2] > this.testResults.blackLevel;
+            imageData[rowOffset + x] > this.testResults.blackThreshold
+            || imageData[rowOffset + x + 1] > this.testResults.blackThreshold
+            || imageData[rowOffset + x + 2] > this.testResults.blackThreshold;
 
           if (!isImage) {
             imageData[rowOffset + x + 3] = GlDebugType.EdgeScanProbe;
@@ -1499,6 +1554,82 @@ export class Aard {
   }
 
   /**
+   * Detects positions where frame stops being black and begins to contain image, but for pillarbox.
+   * When it comes to pillarbox scan, detections don't happen naturally in order from "closest to the edge"
+   * to "furthest from the edge", which means pillarbox edge scan can't exit early like letterbox edge scan.
+   * @param imageData
+   * @param width
+   * @param height
+   */
+  private scanPillarboxEdge(imageData: Uint8Array, width: number, height: number) {
+    let mid = ROW_SIZE * 0.5;
+
+    let row, start, end, i, isImage;
+
+    // Detect left edge
+    leftEdge:
+    {
+      i = 0;
+      while (i < this.canvasSamples.left.length) {
+        row = this.canvasSamples.left[i++];
+
+        start = row * ROW_SIZE;
+        end = start + mid;
+
+        rowScan:
+        while (start < end) {
+          isImage = imageData[start  ] > this.testResults.blackThreshold
+                 || imageData[start+1] > this.testResults.blackThreshold
+                 || imageData[start+2] > this.testResults.blackThreshold;
+
+          if (isImage) {
+            imageData[start+3] = GlDebugType.EdgeScanHit;
+            this.canvasSamples.left[i] = (start % ROW_SIZE) * PIXEL_SIZE_FRACTION;
+            break rowScan;
+          } else {
+            imageData[start+3] = GlDebugType.EdgeScanProbe;
+          }
+
+          start += PIXEL_SIZE;
+        }
+
+        i++;
+      }
+    }
+
+    // Detect right edge
+    rightEdge:
+    {
+      i = 0;
+      while (i < this.canvasSamples.right.length) {
+        row = this.canvasSamples.right[i++];
+
+        end = row * ROW_SIZE + mid;
+        start = end + mid - PIXEL_SIZE;
+
+        rowScan:
+        while (start > end) {
+          isImage = imageData[start  ] > this.testResults.blackThreshold
+                 || imageData[start+1] > this.testResults.blackThreshold
+                 || imageData[start+2] > this.testResults.blackThreshold;
+
+          if (isImage) {
+            imageData[start+3] = GlDebugType.EdgeScanHit;
+            this.canvasSamples.right[i] = (start % ROW_SIZE) * PIXEL_SIZE_FRACTION;
+            break rowScan;
+          } else {
+            imageData[start+3] = GlDebugType.EdgeScanProbe;
+          }
+
+          start -= PIXEL_SIZE;
+        }
+
+        i++;
+      }
+    }
+  }
+
+  /**
    * Validates edge scan results.
    *
    * We check _n_ pixels to the left and to the right of detection, one row above
@@ -1518,16 +1649,24 @@ export class Aard {
    * @param height
    */
   private validateEdgeScan(imageData: Uint8Array, width: number, height: number) {
+    if (this.testResults.lastValidLetterboxOrientation === LetterboxOrientation.Letterbox) {
+      this.validateLetterboxEdgeScan(imageData, width, height);
+    } else {
+      this.validatePillarboxEdgeScan(imageData, width, height);
+    }
+  }
+
+  private validateLetterboxEdgeScan(imageData: Uint8Array, width: number, height: number) {
     let i = 0;
     let xs: number, xe: number, row: number;
-    const slopeTestSample = this.settings.active.arDetect.edgeDetection.slopeTestWidth * 4;
+    const slopeTestSample = this.settings.active.arDetect.edgeDetection.slopeTestWidth * PIXEL_SIZE;
 
     while (i < this.canvasSamples.top.length) {
       // if (this.canvasSamples.top[i] < 0) {
       //   continue;
       // }
       // calculate row offset:
-      row = (this.canvasSamples.top[i + 1] - 1) * width * 4;
+      row = (this.canvasSamples.top[i + 1] - 1) * ROW_SIZE;
       xs = row + this.canvasSamples.top[i] - slopeTestSample;
       xe = row + this.canvasSamples.top[i] + slopeTestSample;
 
@@ -1543,7 +1682,7 @@ export class Aard {
         } else {
           imageData[xs + 3] = GlDebugType.SlopeTestDarkOk;
         }
-        xs += 4;
+        xs += PIXEL_SIZE;
       }
       i += 2;
     }
@@ -1557,7 +1696,7 @@ export class Aard {
 
       // calculate row offset:
       i1 = i + 1;
-      row = (this.canvasSamples.bottom[i1] + 1) * width * 4;
+      row = (this.canvasSamples.bottom[i1] + 1) * ROW_SIZE;
       xs = row + this.canvasSamples.bottom[i] - slopeTestSample;
       xe = row + this.canvasSamples.bottom[i] + slopeTestSample;
 
@@ -1573,13 +1712,70 @@ export class Aard {
           break;
         }
         imageData[xs + 3] = GlDebugType.SlopeTestDarkOk;
-        xs += 4;
+        xs += PIXEL_SIZE;
       }
 
       if (this.canvasSamples.bottom[i1]) {
         this.canvasSamples.bottom[i1] = this.canvasSamples.bottom[i1];
       }
 
+      i += 2;
+    }
+  }
+
+  private validatePillarboxEdgeScan(imageData: Uint8Array, width: number, height: number) {
+    let i, ci;
+    let xs: number, xe: number, row: number;
+    const slopeTestSample = this.settings.active.arDetect.edgeDetection.slopeTestWidth * ROW_SIZE;
+    const lastRowStart = ROW_SIZE * (height - 1);
+
+    i = 0;
+    while (i < this.canvasSamples.top.length) {
+      ci = i + 1;
+
+      row = this.canvasSamples.left[i] * ROW_SIZE;
+      xs = Math.max(row + this.canvasSamples.left[ci] -1 - slopeTestSample, this.canvasSamples.left[ci] - 1);
+      xe = Math.min(row + this.canvasSamples.left[ci] -1 + slopeTestSample, lastRowStart + this.canvasSamples.left[ci] - 1);
+
+      while (xs < xe) {
+        if (
+          imageData[xs] > this.testResults.blackThreshold
+          || imageData[xs + 1] > this.testResults.blackThreshold
+          || imageData[xs + 2] > this.testResults.blackThreshold
+        ) {
+          imageData[xs + 3] = GlDebugType.SlopeTestDarkViolation;
+          this.canvasSamples.left[ci] = -1;
+          break;
+        } else {
+          imageData[xs + 3] = GlDebugType.SlopeTestDarkOk;
+        }
+        xs += ROW_SIZE;
+      }
+      i += 2;
+    }
+
+    i = 0;
+    while (i < this.canvasSamples.bottom.length) {
+      ci = i + 1;
+
+      row = this.canvasSamples.left[i] * ROW_SIZE;
+      xs = Math.max(row + this.canvasSamples.right[ci] + 1 - slopeTestSample, this.canvasSamples.right[ci] + 1);
+      xe = Math.min(row + this.canvasSamples.right[ci] + 1 + slopeTestSample, lastRowStart + this.canvasSamples.right[ci] + 1);
+
+      while (xs < xe) {
+        if (
+          imageData[xs] > this.testResults.blackThreshold
+          || imageData[xs + 1] > this.testResults.blackThreshold
+          || imageData[xs + 2] > this.testResults.blackThreshold
+        ) {
+          imageData[xs + 3] = GlDebugType.SlopeTestDarkViolation;
+          this.canvasSamples.right[ci] = -1;
+          break;
+        } else {
+          imageData[xs + 3] = GlDebugType.SlopeTestDarkOk;
+        }
+        xs += ROW_SIZE;
+      }
       i += 2;
     }
   }
@@ -1592,12 +1788,9 @@ export class Aard {
    * @param height
    */
   private sampleForGradient(imageData: Uint8Array, width: number, height: number) {
-
     let j = 0, maxSubpixel = 0, lastSubpixel = 0, firstSubpixel = 0, pixelOffset = 0;
     const sampleLimit = this.settings.active.arDetect.edgeDetection.gradientTestSamples;
     const blackThreshold = this.testResults.blackLevel + this.settings.active.arDetect.edgeDetection.gradientTestBlackThreshold;
-
-    const realWidth = width * 4;
 
     upperEdgeCheck:
     for (let i = 1; i < this.canvasSamples.top.length; i += 2) {
@@ -1605,7 +1798,7 @@ export class Aard {
         continue;
       }
 
-      pixelOffset = this.canvasSamples.top[i] * realWidth + this.canvasSamples.top[i - 1] * 4;
+      pixelOffset = this.canvasSamples.top[i] * PIXEL_SIZE + this.canvasSamples.top[i - 1] * PIXEL_SIZE;
 
       lastSubpixel = imageData[pixelOffset] > imageData[pixelOffset + 1] ? imageData[pixelOffset] : imageData[pixelOffset + 1];
       lastSubpixel = lastSubpixel > imageData[pixelOffset + 1] ? lastSubpixel : imageData[pixelOffset];
@@ -1634,7 +1827,7 @@ export class Aard {
         }
 
         lastSubpixel = maxSubpixel;
-        pixelOffset -= realWidth;
+        pixelOffset -= ROW_SIZE;
         j++;
       }
       // if we came this far, we're probably looking at a gradient — unless the last pixel of our sample
@@ -1650,7 +1843,7 @@ export class Aard {
       if (this.canvasSamples.bottom[i] < 0) {
         continue;
       }
-      pixelOffset = (height - this.canvasSamples.bottom[i]) * realWidth + this.canvasSamples.bottom[i - 1] * 4;
+      pixelOffset = (height - this.canvasSamples.bottom[i]) * ROW_SIZE + this.canvasSamples.bottom[i - 1] * PIXEL_SIZE;
 
       lastSubpixel = imageData[pixelOffset] > imageData[pixelOffset + 1] ? imageData[pixelOffset] : imageData[pixelOffset + 1];
       lastSubpixel = lastSubpixel > imageData[pixelOffset + 1] ? lastSubpixel : imageData[pixelOffset];
@@ -1679,7 +1872,7 @@ export class Aard {
         }
 
         lastSubpixel = maxSubpixel;
-        pixelOffset -= realWidth;
+        pixelOffset -= ROW_SIZE;
         j++;
       }
       // if we came this far, we're probably looking at a gradient — unless the last pixel of our sample
@@ -1744,11 +1937,11 @@ export class Aard {
       this.testResults.aspectRatioCheck.topQuality[2] = 0;
 
       while (i < leftEdgeBoundary) {
-        if (this.canvasSamples.top[i] > -1) {
-          if (this.canvasSamples.top[i] < this.testResults.aspectRatioCheck.topRows[0]) {
-            this.testResults.aspectRatioCheck.topRows[0] = this.canvasSamples.top[i];
+        if (this.canvasSamples.start[i] > -1) {
+          if (this.canvasSamples.start[i] < this.testResults.aspectRatioCheck.topRows[0]) {
+            this.testResults.aspectRatioCheck.topRows[0] = this.canvasSamples.start[i];
             this.testResults.aspectRatioCheck.topQuality[0] = 0;
-          } else if (this.canvasSamples.top[i] === this.testResults.aspectRatioCheck.topRows[0]) {
+          } else if (this.canvasSamples.start[i] === this.testResults.aspectRatioCheck.topRows[0]) {
             this.testResults.aspectRatioCheck.topQuality[0]++;
           }
         }
@@ -1756,23 +1949,23 @@ export class Aard {
       }
 
       while (i < rightEdgeBoundary) {
-        if (this.canvasSamples.top[i] > -1) {
-          if (this.canvasSamples.top[i] < this.testResults.aspectRatioCheck.topRows[1]) {
-            this.testResults.aspectRatioCheck.topRows[1] = this.canvasSamples.top[i];
+        if (this.canvasSamples.start[i] > -1) {
+          if (this.canvasSamples.start[i] < this.testResults.aspectRatioCheck.topRows[1]) {
+            this.testResults.aspectRatioCheck.topRows[1] = this.canvasSamples.start[i];
             this.testResults.aspectRatioCheck.topQuality[1] = 0;
-          } else if (this.canvasSamples.top[i] === this.testResults.aspectRatioCheck.topRows[1]) {
+          } else if (this.canvasSamples.start[i] === this.testResults.aspectRatioCheck.topRows[1]) {
             this.testResults.aspectRatioCheck.topQuality[1]++;
           }
         }
         i += 2;
       }
 
-      while (i < this.canvasSamples.top.length) {
-        if (this.canvasSamples.top[i] > -1) {
-          if (this.canvasSamples.top[i] < this.testResults.aspectRatioCheck.topRows[2]) {
-            this.testResults.aspectRatioCheck.topRows[2] = this.canvasSamples.top[i];
+      while (i < this.canvasSamples.start.length) {
+        if (this.canvasSamples.start[i] > -1) {
+          if (this.canvasSamples.start[i] < this.testResults.aspectRatioCheck.topRows[2]) {
+            this.testResults.aspectRatioCheck.topRows[2] = this.canvasSamples.start[i];
             this.testResults.aspectRatioCheck.topQuality[2] = 0;
-          } else if (this.canvasSamples.top[i] === this.testResults.aspectRatioCheck.topRows[2]) {
+          } else if (this.canvasSamples.start[i] === this.testResults.aspectRatioCheck.topRows[2]) {
             this.testResults.aspectRatioCheck.topQuality[2]++;
           }
         }
@@ -1803,11 +1996,11 @@ export class Aard {
       this.testResults.aspectRatioCheck.bottomQuality[2] = 0;
 
       while (i < leftEdgeBoundary) {
-        if (this.canvasSamples.bottom[i] > -1) {
-          if (this.canvasSamples.bottom[i] < this.testResults.aspectRatioCheck.bottomRows[0]) {
-            this.testResults.aspectRatioCheck.bottomRows[0] = this.canvasSamples.bottom[i];
+        if (this.canvasSamples.end[i] > -1) {
+          if (this.canvasSamples.end[i] < this.testResults.aspectRatioCheck.bottomRows[0]) {
+            this.testResults.aspectRatioCheck.bottomRows[0] = this.canvasSamples.end[i];
             this.testResults.aspectRatioCheck.bottomQuality[0] = 0;
-          } else if (this.canvasSamples.bottom[i] === this.testResults.aspectRatioCheck.bottomRows[0]) {
+          } else if (this.canvasSamples.end[i] === this.testResults.aspectRatioCheck.bottomRows[0]) {
             this.testResults.aspectRatioCheck.bottomQuality[0]++;
           }
         }
@@ -1815,23 +2008,23 @@ export class Aard {
       }
 
       while (i < rightEdgeBoundary) {
-        if (this.canvasSamples.bottom[i] > -1) {
-          if (this.canvasSamples.bottom[i] < this.testResults.aspectRatioCheck.bottomRows[1]) {
-            this.testResults.aspectRatioCheck.bottomRows[1] = this.canvasSamples.bottom[i];
+        if (this.canvasSamples.end[i] > -1) {
+          if (this.canvasSamples.end[i] < this.testResults.aspectRatioCheck.bottomRows[1]) {
+            this.testResults.aspectRatioCheck.bottomRows[1] = this.canvasSamples.end[i];
             this.testResults.aspectRatioCheck.bottomQuality[1] = 0;
-          } else if (this.canvasSamples.bottom[i] === this.testResults.aspectRatioCheck.bottomRows[1]) {
+          } else if (this.canvasSamples.end[i] === this.testResults.aspectRatioCheck.bottomRows[1]) {
             this.testResults.aspectRatioCheck.bottomQuality[1]++;
           }
         }
         i += 2;
       }
 
-      while (i < this.canvasSamples.bottom.length) {
-        if (this.canvasSamples.bottom[i] > -1) {
-          if (this.canvasSamples.bottom[i] < this.testResults.aspectRatioCheck.bottomRows[2]) {
-            this.testResults.aspectRatioCheck.bottomRows[2] = this.canvasSamples.bottom[i];
+      while (i < this.canvasSamples.end.length) {
+        if (this.canvasSamples.end[i] > -1) {
+          if (this.canvasSamples.end[i] < this.testResults.aspectRatioCheck.bottomRows[2]) {
+            this.testResults.aspectRatioCheck.bottomRows[2] = this.canvasSamples.end[i];
             this.testResults.aspectRatioCheck.bottomQuality[2] = 0;
-          } else if (this.canvasSamples.bottom[i] === this.testResults.aspectRatioCheck.bottomRows[2]) {
+          } else if (this.canvasSamples.end[i] === this.testResults.aspectRatioCheck.bottomRows[2]) {
             this.testResults.aspectRatioCheck.bottomQuality[2]++;
           }
         }
@@ -1975,13 +2168,13 @@ export class Aard {
 
     if (this.testResults.topRowUncertain && this.testResults.bottomRowUncertain) {
       this.testResults.aspectRatioUncertain = true;
-      this.testResults.aspectRatioUncertainReason = 'TOP_AND_BOTTOM_ROW_MISMATCH';
+      this.testResults.aspectRatioUncertainReason = AardUncertainReason.TopAndBottomRowMismatch;
     }
 
     // Convert bottom candidate to letterbox width
     this.testResults.aspectRatioCheck.bottomCandidateDistance = this.testResults.aspectRatioCheck.bottomCandidate === Infinity ? -1 : height - this.testResults.aspectRatioCheck.bottomCandidate;
 
-    const maxOffset = ~~(height * this.settings.active.arDetect.edgeDetection.maxLetterboxOffset)
+    const maxOffset = ~~(height * this.settings.active.arDetect.edgeDetection.maxLetterboxOffset);
 
     // attempt second-wind:
     // if any of the top candidates matches the best bottom candidate sufficiently,
@@ -2017,31 +2210,89 @@ export class Aard {
      * Let candidateA hold better-quality candidate, and let the candidateB hold the lower-quality candidate.
      * candidateA must match or exceed minQualitySingleEdge and candidateB must match or exceed minQualitySecondEdge.
      */
-    let candidateA, candidateB;
+    let candidateAQuality, candidateBQuality;
+    let edgeA, edgeB;
     if (this.testResults.aspectRatioCheck.bottomCandidateQuality > this.testResults.aspectRatioCheck.topCandidateQuality) {
-      candidateA = this.testResults.aspectRatioCheck.bottomCandidate;
-      candidateB = this.testResults.aspectRatioCheck.topCandidate;
+      candidateAQuality = this.testResults.aspectRatioCheck.bottomCandidateQuality;
+      candidateBQuality = this.testResults.aspectRatioCheck.topCandidateQuality;
+
+      if (this.testResults.letterboxOrientation === LetterboxOrientation.Pillarbox) {
+        edgeA = Edge.Right;
+        edgeB = Edge.Left;
+      } else {
+        edgeA = Edge.Bottom;
+        edgeB = Edge.Top;
+      }
     } else {
-      candidateA = this.testResults.aspectRatioCheck.topCandidate;
-      candidateB = this.testResults.aspectRatioCheck.bottomCandidate;
+      candidateAQuality = this.testResults.aspectRatioCheck.topCandidateQuality;
+      candidateBQuality = this.testResults.aspectRatioCheck.bottomCandidateQuality;
+
+      if (this.testResults.letterboxOrientation === LetterboxOrientation.Pillarbox) {
+        edgeA = Edge.Left;
+        edgeB = Edge.Right;
+      } else {
+        edgeA = Edge.Top;
+        edgeB = Edge.Bottom;
+      }
     }
 
-    if (
-      candidateA < this.settings.active.arDetect.edgeDetection.thresholds.minQualitySingleEdge
-      || candidateB < this.settings.active.arDetect.edgeDetection.thresholds.minQualitySecondEdge
-    ) {
+    if (candidateAQuality < this.settings.active.arDetect.edgeDetection.thresholds.minQualitySingleEdge) {
+      this.testResults.aspectRatioUncertainEdges |= edgeA;
+    }
+    if (candidateBQuality < this.settings.active.arDetect.edgeDetection.thresholds.minQualitySecondEdge) {
+      this.testResults.aspectRatioUncertainEdges |= edgeB;
+    }
+
+    if (this.testResults.aspectRatioUncertainEdges) {
       this.testResults.aspectRatioUncertain = true;
-      this.testResults.aspectRatioUncertainReason = 'INSUFFICIENT_EDGE_DETECTION_QUALITY';
-      return;
+      this.testResults.aspectRatioUncertainReason = AardUncertainReason.InsufficientEdgeDetectionQuality;
+
+      // note that if we are cropping subtitles, insufficient edge detection isn't a deal breaker
+      // It's completely possible that subtitle scan fixes this issue.
+      // If subtitle detection is enabled, we run it in any case, because we still need to know if we
+      // need to disable autodetection
+      if (
+        this.settings.active.arDetect.subtitles.subtitleCropMode === AardSubtitleCropMode.DisableScan
+        || this.testResults.letterboxOrientation === LetterboxOrientation.Pillarbox // no subtitle scan in pillarbox
+      ) {
+        return;
+      }
     }
 
-    const diff = this.testResults.aspectRatioCheck.topCandidate - this.testResults.aspectRatioCheck.bottomCandidateDistance;
-    const candidateAvg = ~~((this.testResults.aspectRatioCheck.topCandidate + this.testResults.aspectRatioCheck.bottomCandidateDistance) / 2);
+    const crossDimension = this.testResults.letterboxOrientation === LetterboxOrientation.Pillarbox ? width : height;
+    this.updateLetterboxEdgeCandidates(
+      crossDimension,
+      this.testResults.aspectRatioCheck.topCandidate,
+      this.testResults.aspectRatioCheck.bottomCandidate
+    );
+  }
+
+  /**
+   * Updates letterbox edge (updates imageLine and guardLine)
+   * @param crossDimension height of the sample frame (or width, if pillarbox)
+   * @param topCandidate First line of image data on the top of  the frame
+   * @param bottomCandidate First line with image data on the bottom of the frame
+   * @returns
+   */
+  private updateLetterboxEdgeCandidates(crossDimension: number, topCandidate: number, bottomCandidate: number) {
+    const bottomDistance = (crossDimension - bottomCandidate);
+    const maxOffset = ~~(crossDimension * this.settings.active.arDetect.edgeDetection.maxLetterboxOffset);
+    const diff = Math.abs(topCandidate - bottomDistance);
+    const candidateAvg = ~~((topCandidate + bottomDistance) * 0.5);
+
 
     if (diff > maxOffset) {
-      this.testResults.aspectRatioUncertain = true;
-      this.testResults.aspectRatioUncertainReason = 'LETTERBOX_NOT_CENTERED_ENOUGH';
-      return;
+      if (!this.testResults.aspectRatioUncertain) {
+        this.testResults.aspectRatioUncertain = true;
+        this.testResults.aspectRatioUncertainReason = AardUncertainReason.LetterboxNotCenteredEnough;
+
+        if (
+          this.settings.active.arDetect.subtitles.subtitleCropMode !== AardSubtitleCropMode.DisableScan
+          || this.testResults.letterboxOrientation === LetterboxOrientation.Pillarbox // no subtitle scan in pillarbox
+        ) {
+          return;
+        }
+      }
     }
     if (maxOffset > 2) {
       if (this.testResults.aspectRatioCheck.topCandidate === Infinity) {
@@ -2061,25 +2312,401 @@ export class Aard {
       }
     }
 
-    this.testResults.aspectRatioUncertain = false;
+    if (this.testResults.aspectRatioUncertainReason !== AardUncertainReason.InsufficientEdgeDetectionQuality) {
+      this.testResults.aspectRatioUncertain = false;
+    }
 
-    this.testResults.letterboxWidth = candidateAvg;
+    this.testResults.letterboxSize = candidateAvg;
     this.testResults.letterboxOffset = diff;
-    this.testResults.aspectRatioUpdated = true;
   }
+
+
+  /**
+   * Scans for subtitles
+   * @param imageData
+   * @param width
+   * @param height
+   * @returns
+   */
+  private subtitleScan(imageData: Uint8Array, width: number, height: number, skipAdvancedScan: boolean) {
+    const scanConf = this.settings.active.arDetect.subtitles;
+    const shortScan = skipAdvancedScan || scanConf.subtitleCropMode !== AardSubtitleCropMode.CropSubtitles;
+
+    this.testResults.subtitleDetected = false;
+
+    // quit early when letterbox does not exist or is thin
+    if (
+      this.testResults.letterboxOrientation === LetterboxOrientation.NotLetterbox
+      || scanConf.subtitleCropMode === AardSubtitleCropMode.DisableScan
+      || this.testResults.guardLine.top < scanConf.scanSpacing
+      || (height - this.testResults.guardLine.bottom) < scanConf.scanSpacing
+    ) {
+      this.testResults.subtitleDetected = false;
+      this.timer.current.subtitleScan = 0;
+      return;
+    }
+
+    const rowSize = width * 4;
+
+    // SubtitleScanResult Regions
+    const ssrRegions = this.testResults.subtitleScan.regions;
+
+    shortScan:
+    {
+      this.subtitleScanRegionLinear(
+        imageData,
+        scanConf.scanSpacing, this.testResults.guardLine.top,
+        scanConf.scanSpacing, scanConf.minDetections,
+        ssrRegions.top
+      );
+      if (ssrRegions.top.firstSubtitle !== -1) {
+        this.testResults.subtitleDetected = true;
+        if (shortScan) {
+          break shortScan;
+        }
+      }
+
+      // scan one extra line
+      this.subtitleScanRegionLinear(
+        imageData,
+        this.testResults.imageLine.top + 1, this.testResults.imageLine.top + 2,
+        scanConf.scanSpacing, scanConf.minImageLineDetections,
+        ssrRegions.top
+      );
+      if (ssrRegions.top.firstSubtitle !== -1) {
+        this.testResults.subtitleDetected = true;
+        if (shortScan) {
+          break shortScan;
+        }
+      }
+
+      this.subtitleScanRegionLinear(
+        imageData,
+        height - scanConf.scanSpacing, this.testResults.guardLine.bottom,
+        -scanConf.scanSpacing, scanConf.minDetections,
+        ssrRegions.bottom
+      );
+      if (ssrRegions.bottom.firstSubtitle !== -1) {
+        this.testResults.subtitleDetected = true;
+        if (shortScan) {
+          break shortScan;
+        }
+      }
+
+      // scan one extra line. Direction doesn't matter this time around
+      this.subtitleScanRegionLinear(
+        imageData,
+        this.testResults.imageLine.bottom - 2, this.testResults.imageLine.bottom - 1,
+        scanConf.scanSpacing, scanConf.minImageLineDetections,
+        ssrRegions.bottom
+      );
+      if (ssrRegions.bottom.firstSubtitle !== -1) {
+        this.testResults.subtitleDetected = true;
+        if (shortScan) {
+          break shortScan;
+        }
+      }
+    }
+
+
+    // the real fun begins when we want to explicitly crop subtitles.
+    // we quit early if no subtitles were detected
+    if (
+      shortScan || (ssrRegions.top.firstSubtitle === -1 && ssrRegions.bottom.firstSubtitle === -1)
+    ) {
+      this.timer.current.subtitleScan = performance.now() - this.timer.current.start;
+      return;
+    }
+
+    refinement:
+    {
+      let refinedTop = false, refinedBottom = false;
+      const halfHeight = Math.floor(height / 2);
+
+      // we can refine results if firstSubtitle exists
+      if (ssrRegions.top.firstSubtitle !== -1) {
+        if (ssrRegions.top.lastSubtitle < ssrRegions.top.firstImage) {
+          this.subtitleScanRegionLinear(
+            imageData,
+            ssrRegions.top.lastSubtitle + 1, ssrRegions.top.firstImage - 1,
+            1, scanConf.minImageLineDetections,
+            ssrRegions.top
+          )
+          refinedTop = true;
+        } else if (ssrRegions.top.firstImage === -1) {
+          if (
+            this.subtitleScanRegionIterative(
+              imageData,
+              ssrRegions.top.lastSubtitle,
+              Math.min(
+                ssrRegions.top.lastSubtitle + (scanConf.refiningScanSpacing * scanConf.refiningScanInitialIterations),
+                halfHeight
+              ),
+              scanConf.refiningScanSpacing, scanConf.minImageLineDetections,
+              ssrRegions.top,
+            )
+          ) {
+            refinedBottom = true;
+          }
+        }
+      }
+
+      if (ssrRegions.bottom.firstSubtitle !== -1) {
+        if (ssrRegions.bottom.firstImage >= 0 && ssrRegions.bottom.firstImage < ssrRegions.bottom.lastSubtitle) {
+          this.subtitleScanRegionLinear(
+            imageData,
+            ssrRegions.bottom.lastSubtitle - 1, ssrRegions.bottom.firstImage + 1,
+            rowSize, -1, scanConf.minImageLineDetections,
+            ssrRegions.bottom
+          );
+          refinedBottom = true;
+        } else if (ssrRegions.bottom.firstImage === -1) {
+          if (
+            this.subtitleScanRegionIterative(
+              imageData,
+              ssrRegions.bottom.lastSubtitle,
+              Math.max(
+                ssrRegions.bottom.lastSubtitle - (scanConf.refiningScanSpacing * scanConf.refiningScanInitialIterations),
+                halfHeight
+              ),
+              rowSize, -scanConf.refiningScanSpacing, scanConf.minImageLineDetections,
+              ssrRegions.bottom,
+            )
+          ) {
+            refinedBottom = true;
+          }
+        }
+      }
+
+      if (!refinedTop && !refinedBottom) {
+        break refinement;
+      }
+
+      this.updateLetterboxEdgeCandidates(
+        height,
+        refinedTop ? ssrRegions.top.firstImage : this.testResults.imageLine.top,
+        refinedBottom ? ssrRegions.bottom.firstImage : this.testResults.imageLine.bottom,
+      );
+    }
+
+    this.timer.current.subtitleScan = performance.now() - this.timer.current.start;
+  }
+
+  /**
+   * Scans region of video frame for presence of subtitles
+   * @param imageData
+   * @param startRow
+   * @param endRow
+   * @param minDetections
+   * @param results
+   */
+  private subtitleScanRegionLinear(
+    imageData: Uint8Array,
+    startRow: number,
+    endRow: number,
+    scanSpacing: number,
+    minDetections: number,
+    results: AardTestResult_SubtitleRegion,
+  ) {
+    const scanConf = this.settings.active.arDetect.subtitles;
+
+    let valueCount, isOnLetter, isOffLetter, letterSize, imageCount, isBlank;
+    let rowStart, rowEnd;
+    let imageConfirmPass = false;
+
+    const rowMargin = Math.floor(scanConf.scanMargin * ROW_SIZE);
+    const imageThreshold = Math.floor((ROW_SIZE - (rowMargin * 2)) * PIXEL_SIZE_FRACTION * scanConf.maxValidImage);
+
+    // search in top letterbox
+    outerLoop:
+    for (
+      let searchRow = startRow;
+      (scanSpacing > 0 && searchRow < endRow) || (scanSpacing < 0 && searchRow > endRow);
+      searchRow += scanSpacing
+    ) {
+      valueCount = 0;
+      imageCount = 0;
+      letterSize = 0;
+      isOnLetter = false;
+      isOffLetter = false;
+      isBlank = true;
+
+      // 4 values per pixel. Scan region is centered,
+      rowStart = (searchRow * rowSize) + rowMargin;
+
+      // exact row doesn't matter ... unless scanMargin is 0
+      rowEnd = ((searchRow + 1) * rowSize) - rowMargin;
+
+      while (rowStart < rowEnd) {
+        const r = imageData[rowStart], g = imageData[rowStart + 1], b = imageData[rowStart + 2];
+
+        const on = r > scanConf.subtitleSubpixelThresholdOn
+                    || g > scanConf.subtitleSubpixelThresholdOn
+                    || b > scanConf.subtitleSubpixelThresholdOn;
+        const off = r < scanConf.subtitleSubpixelThresholdOff
+                    && g < scanConf.subtitleSubpixelThresholdOff
+                    && b < scanConf.subtitleSubpixelThresholdOff;
+
+        if (on) {
+          imageData[rowStart + 3] = GlDebugType.SubtitleThresholdOn;
+          isOnLetter = true;
+          letterSize++;
+
+          // bail on invalid letter sizes — this means we're seeing image.
+          // in this case, we do not need image confirmation step
+          if (letterSize > scanConf.maxValidLetter) {
+            if (results.firstImage === -1) {
+              results.firstImage = searchRow;
+            }
+            results.lastImage = searchRow;
+            isBlank = false;
+
+            // We can stop here in CropSubtitles mode as well!
+            return;
+          }
+        }
+        if (off) {
+          imageData[rowStart + 3] = GlDebugType.SubtitleThresholdOff;
+          isOffLetter = true;
+          letterSize = 0;
+        }
+
+        if (!on && !off) {
+          imageData[rowStart + 3] = GlDebugType.SubtitleThresholdNone;
+          if (++imageCount > imageThreshold) {
+            // If we're here, we could be detecting legitimate image, or
+            // we could also be detecting text anti-aliasing and/or
+            // blur artifacts from image downscaling.
+            // Difference between AA/scaling blur is that these two features
+            // generally shouldn't appear in two consecutive lines
+            if (!imageConfirmPass) {
+              imageConfirmPass = true;
+
+              if (scanSpacing > 1) {
+                searchRow -= (scanSpacing - 1);
+              } else if (scanSpacing < -1) {
+                searchRow -= (scanSpacing + 1);
+              }
+
+              continue outerLoop;
+            } else {
+              imageConfirmPass = false;
+              const correctedRow = searchRow + (scanSpacing < 0 ? 1 : -1);
+              if (results.firstImage === -1) {
+                results.firstImage = correctedRow;
+              }
+              results.lastImage = correctedRow;
+            }
+
+            // we don't need condition — if we detect image, that means
+            // subtitles and blanks can no longer be detected
+            return;
+          }
+        }
+
+        if (isOnLetter && isOffLetter) {
+          valueCount++;
+
+          if (valueCount > minDetections) {
+            if (results.firstSubtitle === -1) {
+              results.firstSubtitle = searchRow;
+
+              // if detecting subtitles only resets AR, we can return immediately
+              if (scanConf.subtitleCropMode !== AardSubtitleCropMode.CropSubtitles) {
+                return;
+              }
+            }
+            results.lastSubtitle = searchRow;
+            isBlank = false;
+
+            continue outerLoop;
+          }
+
+          isOnLetter = false;
+          isOffLetter = false;
+        }
+        rowStart += 4;
+      }
+
+      // if we came this far, then the row might be blank
+      if (isBlank) {
+        if (results.firstBlank === -1) {
+          results.firstBlank = searchRow;
+        }
+        results.lastBlank = searchRow;
+      }
+    }
+  }
+
+  /**
+   * Tries to determine letterbox through subtitles
+   * @param imageData
+   * @param startRow
+   * @param endRow
+   * @param rowSize
+   * @param scanSpacing
+   * @param minDetections
+   * @param results
+   * @param ssrRegionName
+   * @returns
+   */
+  private subtitleScanRegionIterative(
+    imageData: Uint8Array,
+    startRow: number,
+    endRow: number,
+    scanSpacing: number,
+    minDetections: number,
+    results: AardTestResult_SubtitleRegion,
+  ): boolean {
+    while (true) {
+      if (scanSpacing > -1 && scanSpacing < 1) {
+        break;
+      }
+
+      this.subtitleScanRegionLinear(
+        imageData, height,
+        startRow, endRow,
+        scanSpacing, minDetections, results
+      );
+
+      if (results.firstImage === -1) {
+        return false;
+      }
+      if (scanSpacing > 0) {
+        startRow = results.firstImage - scanSpacing;
+        endRow = results.firstImage;
+      } else {
+        startRow = results.lastImage;
+        endRow = results.lastImage + scanSpacing;
+      }
+
+      scanSpacing = scanSpacing / 2;
+    }
+
+    return true;
+  }
+
+
 
   /**
    * Updates aspect ratio if new aspect ratio is different enough from the old one
    */
-  private updateAspectRatio(ar: number, options?: {uncertainDetection?: boolean}) {
+  private updateAspectRatio(ar: number, options?: {uncertainDetection?: boolean, forceReset?: boolean}) {
     // Calculate difference between two ratios
+
+    // We need to detect updates even if subtitles are detected — we just don't trigger
+    // the actual aspect ratio change if everything is paused.
+    if (this.timers.pauseUntil > Date.now() && !options?.forceReset) {
+      return false;
+    }
+
     const maxRatio = Math.max(ar, this.testResults.activeAspectRatio);
     const diff = Math.abs(ar - this.testResults.activeAspectRatio);
 
-    if ((diff / maxRatio) > this.settings.active.arDetect.allowedArVariance) {
+    if ((diff / maxRatio) > this.settings.active.arDetect.allowedArVariance || options?.forceReset) {
       this.videoData.resizer.updateAr({
         type: AspectRatioType.AutomaticUpdate,
-        ratio: this.getAr(),
+        ratio: ar,
         offset: this.testResults.letterboxOffset,
         variant: this.arVariant
       });
@@ -2094,6 +2721,7 @@ export class Aard {
         }
       }
 
+      this.testResults.aspectRatioUpdated = true;
     }
   }
 
@@ -2125,8 +2753,14 @@ export class Aard {
     //      ${this.canvasStore.main.height} - 2 x ${this.testResults.letterboxWidth}       ${this.canvasStore.main.height} - ${2 * this.testResults.letterboxWidth}       ${this.canvasStore.main.height - (this.testResults.letterboxWidth * 2)}
     // `);
 
-
-    return compensatedWidth / (this.canvasStore.main.height - (this.testResults.letterboxWidth * 2));
+    if (this.testResults.letterboxOrientation === LetterboxOrientation.Pillarbox) {
+      const compensationFactor = compensatedWidth / this.canvasStore.main.width;
+      const pillarboxCompensated = (this.testResults.letterboxSize * 2 * compensationFactor);
+      return (compensatedWidth - pillarboxCompensated) / this.canvasStore.main.height;
+    } else {
+      const heightWithoutLetterbox = this.canvasStore.main.height - (this.testResults.letterboxSize * 2);
+      return compensatedWidth / heightWithoutLetterbox;
+    }
   }
 
   //#endregion

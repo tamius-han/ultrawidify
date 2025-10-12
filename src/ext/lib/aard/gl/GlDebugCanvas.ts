@@ -25,6 +25,7 @@ precision mediump float;
 uniform sampler2D u_texture;
 // uniform sampler1D u_colorTexture; // Array of replacement colors
 uniform vec3 u_colors[16];
+uniform vec3 u_colors2[16];
 varying vec2 vTextureCoord;
 
 void main() {
@@ -58,6 +59,26 @@ void main() {
     else selectedColor = u_colors[15];
 
     gl_FragColor = vec4(selectedColor, 1.0);
+  } else if (alphaIndex < 32) {
+    vec3 selectedColor;
+    if (alphaIndex == 0) selectedColor = u_colors[0];
+    else if (alphaIndex == 1)  selectedColor = u_colors2[1];
+    else if (alphaIndex == 2)  selectedColor = u_colors2[2];
+    else if (alphaIndex == 3)  selectedColor = u_colors2[3];
+    else if (alphaIndex == 4)  selectedColor = u_colors2[4];
+    else if (alphaIndex == 5)  selectedColor = u_colors2[5];
+    else if (alphaIndex == 6)  selectedColor = u_colors2[6];
+    else if (alphaIndex == 7)  selectedColor = u_colors2[7];
+    else if (alphaIndex == 8)  selectedColor = u_colors2[8];
+    else if (alphaIndex == 9)  selectedColor = u_colors2[9];
+    else if (alphaIndex == 10) selectedColor = u_colors2[10];
+    else if (alphaIndex == 11) selectedColor = u_colors2[11];
+    else if (alphaIndex == 12) selectedColor = u_colors2[12];
+    else if (alphaIndex == 13) selectedColor = u_colors2[13];
+    else if (alphaIndex == 14) selectedColor = u_colors2[14];
+    else selectedColor = u_colors2[15];
+
+    gl_FragColor = vec4(selectedColor, 1.0);
   } else {                                                         // red channel only as fallback
     gl_FragColor = vec4(color.r, 0.0, 0.0, 1.0);
   }
@@ -77,7 +98,11 @@ export enum GlDebugType {
   EdgeScanHit = 9,
   SlopeTestDarkOk = 10,
   SlopeTestDarkViolation = 11,
-
+  SubtitleThresholdOff = 12,
+  SubtitleThresholdOn = 13,
+  SubtitleThresholdNone = 14,
+  LetterboxOrientationScanImageDetection = 15,
+  LetterboxOrientationScanTrace = 16,
 }
 
 export class GlDebugCanvas extends GlCanvas {
@@ -95,11 +120,29 @@ export class GlDebugCanvas extends GlCanvas {
     0.4, 0.4, 1.0,     // 9 - edge scan hit
     0.2, 0.4, 0.6,     // 10 - slope test ok
     1.0, 0.0, 0.0,     // 11 - slope test fail
-    0.0, 0.0, 0.0,   // 12
-    0.0, 0.0, 0.0,
-    0.0, 0.0, 0.0,
-    0.0, 0.0, 0.0,
+    0.3, 0.3, 0.1,     // 12 - first subtitle off pixel
+    1.0, 0.5, 0.0,     // 13 - first subtitle on pixel
+    1.0, 1.0, 0.0,     // 14 - pixel subtitle — no threshold
+    1.0, 0.0, 0.0,     // 15 - letterbox scan image detection
   ];
+  private debugColors2 = [
+    0.4, 0.3, 0.2,      // 16 - letterbox scan image trace
+    0.0, 0.0, 0.0,      // 17
+    0.0, 0.0, 0.0,      // 18
+    0.0, 0.0, 0.0,      // 19
+    0.0, 0.0, 0.0,      // 20
+    0.0, 0.0, 0.0,      // 21
+    0.0, 0.0, 0.0,      // 22
+    0.0, 0.0, 0.0,      // 23
+    0.0, 0.0, 0.0,      // 24
+    0.0, 0.0, 0.0,      // 25
+    0.0, 0.0, 0.0,      // 26
+    0.0, 0.0, 0.0,      // 27
+    0.0, 0.0, 0.0,      // 28
+    0.0, 0.0, 0.0,      // 29
+    0.0, 0.0, 0.0,      // 30
+    0.0, 0.0, 0.0,      // 31
+  ]
 
   constructor (options: GlCanvasOptions) {
     super(options);
@@ -132,6 +175,7 @@ export class GlDebugCanvas extends GlCanvas {
   enableFx() {
     this.gl.useProgram(this.programInfo.program)
     this.gl.uniform3fv((this.programInfo.uniformLocations as any).debugColors, this.debugColors);
+    this.gl.uniform3fv((this.programInfo.uniformLocations as any).debugColors2, this.debugColors2);
   }
 
   drawBuffer(buffer: Uint8Array) {
@@ -142,6 +186,7 @@ export class GlDebugCanvas extends GlCanvas {
     super.initWebgl();
 
     (this.programInfo.uniformLocations as any).debugColors = this.gl.getUniformLocation(this.programInfo.program, 'u_colors');
+    (this.programInfo.uniformLocations as any).debugColors2 = this.gl.getUniformLocation(this.programInfo.program, 'u_colors2');
   }
 
   protected updateTextureBuffer(buffer: Uint8Array) {

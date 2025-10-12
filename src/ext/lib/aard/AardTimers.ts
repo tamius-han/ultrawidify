@@ -7,6 +7,7 @@ export interface AardPerformanceData {
   guardLine: number; // actually times both guard line and image line checks
   edgeScan: number; // includes validation step
   gradient: number;
+  subtitleScan: number;
   scanResults: number;
 }
 
@@ -41,7 +42,8 @@ export class AardTimer {
       guardLine: -1,
       edgeScan: -1,
       gradient: -1,
-      scanResults: -1
+      scanResults: -1,
+      subtitleScan: -1,
     }
   };
 
@@ -53,6 +55,7 @@ export class AardTimer {
     this.aardPerformanceDataBuffer[index].edgeScan = -1;
     this.aardPerformanceDataBuffer[index].gradient = -1;
     this.aardPerformanceDataBuffer[index].scanResults = -1;
+    this.aardPerformanceDataBuffer[index].subtitleScan = -1;
   }
 
   next() {
@@ -73,6 +76,7 @@ export class AardTimer {
     this.lastChange.edgeScan = this.current.edgeScan;
     this.lastChange.gradient = this.current.gradient;
     this.lastChange.scanResults = this.current.scanResults;
+    this.lastChange.subtitleScan = this.current.scanResults;
   }
 
   getAverage() {
@@ -108,5 +112,6 @@ export class AardTimer {
     this.average.edgeScan /= this.aardPerformanceDataBuffer.length;
     this.average.gradient /= this.aardPerformanceDataBuffer.length;
     this.average.scanResults /= this.aardPerformanceDataBuffer.length;
+    this.average.subtitleScan /= this.aardPerformanceDataBuffer.length;
   }
 }

@@ -146,6 +146,45 @@
             </div>
           </div>
 
+          <div class="settings-segment">
+            <div class="warning-area">
+              Subtitle detection is experimental to high heaven.
+            </div>
+
+            <div class="field">
+              <div class="label">Subtitle detection:</div>
+              <div class="select">
+                <select v-model="settings.active.arDetect.subtitles.subtitleCropMode" @change="settings.saveWithoutReload">
+                  <option :value="AardSubtitleCropMode.DisableScan">Do not detect subtitles</option>
+                  <option :value="AardSubtitleCropMode.ResetAR">Do not crop while subtitles are on screen</option>
+                  <option :value="AardSubtitleCropMode.ResetAndDisable">Stop autodetection if subtitles are detected</option>
+                  <option :value="AardSubtitleCropMode.CropSubtitles">Always crop subtitles</option>
+                </select>
+              </div>
+            </div>
+
+            <div v-if="settings.active.arDetect.subtitles.subtitleCropMode === AardSubtitleCropMode.ResetAR" class="field">
+              <div class="label">Wait before resuming detection:</div>
+              <div class="range-input">
+                <input
+                  type="range"
+                  :value="Math.log(settings.active.arDetect.subtitles.resumeAfter / 10)"
+                  @change="setSubtitleTimeout($event.target.value, 10)"
+                  min="2.3"
+                  max="9.3"
+                  step="0.01"
+                />
+                <input
+                  :value="settings.active.arDetect.subtitles.resumeAfter / 1000"
+                  @change="setSubtitleTimeout($event.target.value, 1000)"
+                  class="input"
+                  type="text"
+                >
+                <div class="unit">s</div>
+              </div>
+            </div>
+          </div>
+
           <div v-if="settings.active.ui.devMode" class="settings-segment">
             <p>
               <b>Debug options</b>
@@ -191,6 +230,7 @@ import CropModePersistence from '../../../common/enums/CropModePersistence.enum'
 import AlignmentOptionsControlComponent from './AlignmentOptionsControlComponent.vue';
 import JsonEditor from '@csui/src/components/JsonEditor';
 import {AardPollingOptions} from '@src/ext/lib/aard/enums/aard-polling-options.enum';
+import {AardSubtitleCropMode} from '@src/ext/lib/aard/enums/aard-subtitle-crop-mode.enum';
 
 export default {
   components: {
@@ -217,6 +257,7 @@ export default {
 
       // enums n stuff
       AardPollingOptions,
+      AardSubtitleCropMode
     }
   },
   computed: {
@@ -249,6 +290,10 @@ export default {
     },
     setAutoDisableTimeout(event, multiplier) {
       this.settings.active.arDetect.autoDisable.ifNotChangedTimeout = Math.floor(Math.pow(Math.E, event)) * multiplier;
+      this.settings.saveWithoutReload();
+    },
+    setSubtitleTimeout(event, multiplier) {
+      this.settings.active.arDetect.subtitles.resumeAfter = Math.floor(Math.pow(Math.E, event)) * multiplier;
       this.settings.saveWithoutReload();
     },
     refreshGraph() {

@@ -2,10 +2,12 @@
 
 ## v6.0 (current major)
 
-### v3.4.0
+### v6.4.0
 * In-player UI now appears in full-screen even for websites that use top layer
 * Embedded sites now inherit settings of the parent frame by default
+  * Setting inheritance/overriding is not thoroughly tested and may be full of edge cases.
 * Added validation to custom aspect ratio entry menu. Corrected parsing of aspect ratios given in the X:Y format, even though aspect ratios should be ideally given as a single number.
+* Autodetection can now scan for subtitles.
 
 ### v6.3.0
 * Added zoom segment to in-player UI and popup. 

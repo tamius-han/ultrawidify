@@ -1,5 +1,6 @@
 import { Action } from '../../../node_modules/vuex/types/index'
 import { AardPollingOptions } from '../../ext/lib/aard/enums/aard-polling-options.enum'
+import { AardSubtitleCropMode } from '../../ext/lib/aard/enums/aard-subtitle-crop-mode.enum'
 import AntiGradientMode from '../enums/AntiGradientMode.enum'
 import AspectRatioType from '../enums/AspectRatioType.enum'
 import CropModePersistence from '../enums/CropModePersistence.enum'
@@ -66,6 +67,28 @@ export interface CommandInterface {
 export type SettingsReloadComponent = 'PlayerData' | 'VideoData';
 export type SettingsReloadFlags = true | SettingsReloadComponent;
 
+export interface AardSubtitleScanOptions {
+    subtitleCropMode: AardSubtitleCropMode,
+    resumeAfter: number,        // resume after X ms of no subtitle
+    scanSpacing: number,        // repeat subtitle scan every _n_ lines
+    scanMargin: number,         // % of pixels (from edge to start area) that we skip while scanning.
+                                // While technically anything between 0 and 0.5 is valid, the value
+                                // should be somewhere between 0.1-0.3 in order for subtitle scan to
+                                // work properly.
+    maxValidLetter: number,     // if letter is longer than this, something's off.
+    maxValidImage: number,
+    subtitleSubpixelThresholdOn: number,
+    subtitleSubpixelThresholdOff: number,
+    minImageSegment
+
+    minDetections: number,
+    minImageLineDetections: number,
+
+
+    refiningScanSpacing: number,  // must be base-2
+    refiningScanInitialIterations: number,
+}
+
 export interface AardSettings {
   aardType: 'webgl' | 'legacy' | 'auto';
 
@@ -93,10 +116,7 @@ export interface AardSettings {
     tickrate: number,          // 1 tick every this many milliseconds
   },
 
-  subtitles: {
-    resetIfDetected?: boolean,  // reset if subtitles are detected
-    resumeAfter?: number,       // resume after X ms of no subtitles
-  },
+  subtitles: AardSubtitleScanOptions,
 
   autoDisable: {            // settings for automatically disabling the extension
     onFirstChange: boolean,
@@ -164,6 +184,12 @@ export interface AardSettings {
                                     // are now. (NOTE: keep this less than 1 in case we implement logo detection)
     edgeMismatchTolerancePx: number,// corners and center are considered equal if they differ by at most this many px
   },
+
+  letterboxOrientationScan: {
+    letterboxLimit: number,  // how many non-black pixels we can detect before ruling out letterbox
+    pillarboxLimit: number,  // how many non-black pixels we can detect before ruling out pillarbox
+  }
+
   pillarTest: {
     ignoreThinPillarsPx: number, // ignore pillars that are less than this many pixels thick.
     allowMisaligned: number   // left and right edge can vary this much (%)

@@ -19,6 +19,9 @@ export interface AardDetectionSample {
   bottom?: Int16Array;
   left?: Int16Array;
   right?: Int16Array;
+
+  start?: Int16Array;
+  end?: Int16Array;
 }
 
 export function generateSampleArray(samples: number, width: number, topBottom: boolean = true) {

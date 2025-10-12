@@ -2,6 +2,7 @@ export interface AardTimers {
   autoDisableAt: number | undefined;
   nextFrameCheckTime: number;
   reducedPollingNextCheckTime: number;
+  pauseUntil: number;
 }
 
 export function initAardTimers(): AardTimers {
@@ -9,5 +10,6 @@ export function initAardTimers(): AardTimers {
     nextFrameCheckTime: 0,
     reducedPollingNextCheckTime: 0,
     autoDisableAt: undefined,
+    pauseUntil: 0,
   };
 }

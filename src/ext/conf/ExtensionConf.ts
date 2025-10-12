@@ -11,6 +11,7 @@ import BrowserDetect from './BrowserDetect';
 import { Extension } from 'typescript';
 import EmbeddedContentSettingsOverridePolicy from '../../common/enums/EmbeddedContentSettingsOverridePolicy.enum';
 import { AardPollingOptions } from '../lib/aard/enums/aard-polling-options.enum';
+import { AardSubtitleCropMode } from '../lib/aard/enums/aard-subtitle-crop-mode.enum';
 
 if(Debug.debug)
   console.log("Loading: ExtensionConf.js");
@@ -28,9 +29,25 @@ const ExtensionConf: SettingsInterface = {
       runOnSmallVideos: AardPollingOptions.Reduced
     },
 
+    letterboxOrientationScan: {
+      letterboxLimit: 8,
+      pillarboxLimit: 8
+    },
+
     subtitles: {
-      resetIfDetected: true,
+      subtitleCropMode: AardSubtitleCropMode.DisableScan,
       resumeAfter: 5000,
+      scanSpacing: 5,
+      scanMargin: 0.25,
+      maxValidLetter: 24,
+      maxValidImage: 0.33,
+      subtitleSubpixelThresholdOff: 8,
+      subtitleSubpixelThresholdOn: 192,
+      minDetections: 8,
+      minImageLineDetections: 16,
+
+      refiningScanSpacing: 8,
+      refiningScanInitialIterations: 12,
     },
 
     earlyStopOptions: {

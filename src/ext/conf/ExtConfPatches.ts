@@ -259,6 +259,12 @@ const ExtensionConfPatch = Object.freeze([
       userOptions.arDetect.subtitles = defaultOptions.arDetect.subtitles;
       userOptions.arDetect.autoDisable = defaultOptions.arDetect.autoDisable;
     }
+  },
+  {
+    forVersion: '6.3.94',
+    updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface) => {
+      userOptions.arDetect.letterboxOrientationScan = defaultOptions.arDetect.letterboxOrientationScan;
+    }
   }
 
 ]);
