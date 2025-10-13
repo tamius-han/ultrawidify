@@ -35,19 +35,20 @@ const ExtensionConf: SettingsInterface = {
     },
 
     subtitles: {
-      subtitleCropMode: AardSubtitleCropMode.DisableScan,
+      subtitleCropMode: AardSubtitleCropMode.ResetAR,
       resumeAfter: 5000,
       scanSpacing: 5,
       scanMargin: 0.25,
       maxValidLetter: 24,
-      maxValidImage: 0.33,
       subtitleSubpixelThresholdOff: 8,
       subtitleSubpixelThresholdOn: 192,
       minDetections: 8,
-      minImageLineDetections: 16,
+      minImageLineDetections: 8,
 
       refiningScanSpacing: 8,
       refiningScanInitialIterations: 12,
+
+      maxPotentialSubtitleMisalignment: 32,
     },
 
     earlyStopOptions: {
@@ -99,36 +100,17 @@ const ExtensionConf: SettingsInterface = {
       staticRows: 9,      // forms grid with staticSampleCols. Determined in the same way. For black frame checks
     },
     edgeDetection: {
-      slopeTestWidth: 8,
-      gradientTestSamples: 8,
-      gradientTestBlackThreshold: 16,
-      gradientTestDeltaThreshold: 32,
-      gradientTestMinDelta: 8,
+      maxLetterboxOffset: 0.05,
 
-      thresholds: {
-        edgeDetectionLimit: 12,
-        minQualitySingleEdge: 6,
-        minQualitySecondEdge: 3,
-      },
+      gradientThreshold: 0.5,           // if more than this percentage (0-1) is detected as gradient, we mark edge as gradient
+      gradientTestMinDelta: 8,        // if difference between test row and before row is MORE than this -> not gradient
+      gradientTestMinDeltaAfter: 2,   // if difference between test row and after row is LESS than this -> not gradient
+      gradientTestMaxDeltaAfter: 12,   // if difference between test row and after row is MORE than this -> not gradient
 
-      maxLetterboxOffset: 0.1,
-
-      sampleWidth: 8,        // we take a sample this wide for edge detection
-      detectionThreshold: 4,  // sample needs to have this many non-black pixels to be a valid edge
-      confirmationThreshold: 1,  //
-      singleSideConfirmationThreshold: 3,    // we need this much edges (out of all samples, not just edges) in order
-                                             // to confirm an edge in case there's no edges on top or bottom (other
-                                            // than logo, of course)
-      logoThreshold: 0.15,     // if edge candidate sits with count greater than this*all_samples, it can't be logo
-                              // or watermark.
-      edgeTolerancePx: 1,          // we check for black edge violation this far from detection point
-      edgeTolerancePercent: null,  // we check for black edge detection this % of height from detection point. unused
-      middleIgnoredArea: 0.2,      // we ignore this % of canvas height towards edges while detecting aspect ratios
-      minColsForSearch: 0.5,       // if we hit the edge of blackbars for all but this many columns (%-wise), we don't
-                                   // continue with search. It's pointless, because black edge is higher/lower than we
-                                   // are now. (NOTE: keep this less than 1 in case we implement logo detection)
-
-      edgeMismatchTolerancePx: 3,  // corners and center are considered equal if they differ by at most this many px
+      minValidImage: 0.7,                 // if more than this % (0-1) of row is image, we confirm image regardless of other criteria except gradient
+      maxEdgeSegments: 8,                // if edge has more than this many segments, we consider it unreliable
+      minEdgeSegmentSize: 2,
+      averageEdgeThreshold: 16,           // average(ish) edge must be this many px
     },
     pillarTest: {
       ignoreThinPillarsPx: 5, // ignore pillars that are less than this many pixels thick.

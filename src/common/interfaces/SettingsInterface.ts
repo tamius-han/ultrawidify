@@ -76,14 +76,13 @@ export interface AardSubtitleScanOptions {
                                 // should be somewhere between 0.1-0.3 in order for subtitle scan to
                                 // work properly.
     maxValidLetter: number,     // if letter is longer than this, something's off.
-    maxValidImage: number,
     subtitleSubpixelThresholdOn: number,
     subtitleSubpixelThresholdOff: number,
-    minImageSegment
 
     minDetections: number,
     minImageLineDetections: number,
 
+    maxPotentialSubtitleMisalignment: number,   // how many pixels off-center can "potential subtitle" be
 
     refiningScanSpacing: number,  // must be base-2
     refiningScanInitialIterations: number,
@@ -153,36 +152,16 @@ export interface AardSettings {
 
   // pls deprecate and move things used
   edgeDetection: {
-    slopeTestWidth: number,
-    gradientTestSamples: number,         // we check this many pixels below (or above) the suspected edge to check for gradient
-    gradientTestBlackThreshold: number,  // if pixel in test sample is brighter than that, we aren't looking at gradient
-    gradientTestDeltaThreshold: number,  // if delta between two adjacent pixels in gradient test exceeds this, it's not gradient
-    gradientTestMinDelta: number,        // if last pixels of the test sample is less than this brighter than the first -> not gradient
+    gradientThreshold: number,           // if more than this percentage (0-1) is detected as gradient, we mark edge as gradient
+    gradientTestMinDelta: number,        // if difference between test row and before row is MORE than this -> not gradient
+    gradientTestMinDeltaAfter: number,   // if difference between test row and after row is LESS than this -> not gradient
+    gradientTestMaxDeltaAfter: number,   // if difference between test row and after row is MORE than this -> not gradient
+    maxLetterboxOffset: number,          // Upper and lower letterbox can be different by this many (% of height)
 
-    thresholds: {
-      edgeDetectionLimit: number,             // during scanning of the edge, quit after edge gets detected at this many points
-      minQualitySingleEdge: number,           // At least one of the detected must reach this quality
-      minQualitySecondEdge: number,           // The other edge must reach this quality (must be smaller or equal to single edge quality)
-    }
-
-    maxLetterboxOffset: number,             // Upper and lower letterbox can be different by this many (% of height)
-
-    // Previous iteration variables VVVV
-    sampleWidth: number,        // we take a sample this wide for edge detection
-    detectionThreshold: number,  // sample needs to have this many non-black pixels to be a valid edge
-    confirmationThreshold: number,  //
-    singleSideConfirmationThreshold: number,    // we need this much edges (out of all samples, not just edges) in order
-                                           // to confirm an edge in case there's no edges on top or bottom (other
-                                          // than logo, of course)
-    logoThreshold: number,     // if edge candidate sits with count greater than this*all_samples, it can't be logo
-                               // or watermark.
-    edgeTolerancePx?: number,          // we check for black edge violation this far from detection point
-    edgeTolerancePercent?: number,  // we check for black edge detection this % of height from detection point. unused
-    middleIgnoredArea: number,      // we ignore this % of canvas height towards edges while detecting aspect ratios
-    minColsForSearch: number,       // if we hit the edge of blackbars for all but this many columns (%-wise), we don't
-                                    // continue with search. It's pointless, because black edge is higher/lower than we
-                                    // are now. (NOTE: keep this less than 1 in case we implement logo detection)
-    edgeMismatchTolerancePx: number,// corners and center are considered equal if they differ by at most this many px
+    minValidImage: number,               // if more than this % (0-1) of row is image, we confirm image regardless of other criteria except gradient
+    maxEdgeSegments: number,             // if edge has more than this many segments, we consider it unreliable
+    minEdgeSegmentSize: number,
+    averageEdgeThreshold: number,        // average edge must be this many px
   },
 
   letterboxOrientationScan: {

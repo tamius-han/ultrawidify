@@ -261,9 +261,11 @@ const ExtensionConfPatch = Object.freeze([
     }
   },
   {
-    forVersion: '6.3.94',
+    forVersion: '6.3.97',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface) => {
       userOptions.arDetect.letterboxOrientationScan = defaultOptions.arDetect.letterboxOrientationScan;
+      userOptions.arDetect.edgeDetection = defaultOptions.arDetect.edgeDetection;
+      userOptions.arDetect.subtitles = defaultOptions.arDetect.subtitles;
     }
   }
 

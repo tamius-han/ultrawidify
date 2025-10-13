@@ -120,9 +120,9 @@ export class GlDebugCanvas extends GlCanvas {
     0.4, 0.4, 1.0,     // 9 - edge scan hit
     0.2, 0.4, 0.6,     // 10 - slope test ok
     1.0, 0.0, 0.0,     // 11 - slope test fail
-    0.3, 0.3, 0.1,     // 12 - first subtitle off pixel
-    1.0, 0.5, 0.0,     // 13 - first subtitle on pixel
-    1.0, 1.0, 0.0,     // 14 - pixel subtitle — no threshold
+    0.1, 0.1, 0.3,     // 12 - first subtitle off pixel
+    1.0, 1.6, 0.0,     // 13 - first subtitle on pixel
+    7.0, 0.2, 0.0,     // 14 - pixel subtitle — no threshold
     1.0, 0.0, 0.0,     // 15 - letterbox scan image detection
   ];
   private debugColors2 = [
