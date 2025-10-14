@@ -12,3 +12,12 @@ var BgVars = {
 }
 
 const server = new UWServer();
+
+// add update listener
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === "update") {
+    chrome.tabs.create({
+      url: chrome.runtime.getURL("install/updated/updated.html")
+    });
+  }
+});

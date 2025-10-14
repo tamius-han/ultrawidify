@@ -20,6 +20,7 @@ const config = {
     'csui/csui-popup': './csui/csui-popup.js',
     'csui/csui': './csui/csui.js',
     // 'install/first-time/first-time':'./install/first-time/first-time.js',
+    'install/updated/updated': './install/updated/updated.js',
   },
   output: {
     path: __dirname + `/dist-${process.env.BROWSER == 'firefox' ? 'ff' : process.env.BROWSER}`,
@@ -125,6 +126,7 @@ const config = {
       { from: 'res', to: 'res', ignore: ['css', 'css/**']},
       { from: 'ext', to: 'ext', ignore: ['conf/*', 'lib/**']},
       { from: 'csui', to: 'csui', ignore: ['src']},
+      { from: 'install', to: 'install' },
 
       // we need to get webextension-polyfill and put it in common/lib
       { from: '../node_modules/webextension-polyfill/dist/browser-polyfill.js', to: 'common/lib/browser-polyfill.js'},
@@ -138,6 +140,7 @@ const config = {
       { from: 'csui/csui-overlay-dark.html', to: 'csui/csui-dark.html', transform: transformHtml },
       { from: 'csui/csui-overlay-light.html', to: 'csui/csui-light.html', transform: transformHtml },
       // { from: 'install/first-time/first-time.html', to: 'install/first-time/first-time.html', transform: transformHtml},
+      { from: 'install/updated/updated.html', to: 'install/updated/updated.html', transform: transformHtml },
       {
         from: 'manifest.json',
         to: 'manifest.json',

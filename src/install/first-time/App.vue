@@ -4,20 +4,28 @@
       Ultrawidify has been updated.
     </div>
     <div class="body flex-grow">
-      <h1>Where do you want to use Ultrawidify?</h1>
+      <h1>Where should Ultrawidify run by default</h1>
       <div class="flex flex-row">
         <div class=""
-             @click="() => {}"
+          @click="() => {}"
         >
-          All sites<br/>
-          <small>(Some sites are disabled by default. Requires access to all sites)</small>
+          All websites<br/>
+          <small>(Some sites are disabled by default.)</small>
         </div>
         <div>
-          Default sites and sites I explicitly allow
+          On sites that people say are working<br/>
+          <small>(And the sites I explicitly allow)</small>
+        </div>
+        <div>
+          Officially supported sites*<br/>
+          <small>(And the sites I explicitly allow)</small>
         </div>
         <div>
           Only the sites I explicitly allow
         </div>
+      </div>
+      <div>
+        *Ultrawidify still needs access to all websites for technical and historical technical reasons.
       </div>
 
       <h1>Try to automatically detect aspect ratio?</h1>
