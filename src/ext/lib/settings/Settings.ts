@@ -213,6 +213,8 @@ class Settings {
       }
     );
 
+    // this.active.newFeatureTracker = {};
+
 
     // apply all remaining patches
     this.logger?.info('applySettingsPatches', `There are ${ExtensionConfPatch.length - index} settings patches to apply`);
@@ -286,19 +288,6 @@ class Settings {
     if (this.active.version === this.version) {
       this.logger?.info('init', "extension was saved with current version of ultrawidify. Returning object as-is.");
       return this.active;
-    }
-
-    // This means extension update happened.
-    // btw fun fact — we can do version rollbacks, which might come in handy while testing
-    this.active.version = this.version;
-
-    // if extension has been updated, update existing settings with any options added in the
-    // new version. In addition to that, we remove old keys that are no longer used.
-    const patched = ObjectCopy.addNew(settings, this.default);
-    this.logger?.info('init',"Results from ObjectCopy.addNew()?", patched, "\n\nSettings from storage", settings, "\ndefault?", this.default);
-
-    if (patched) {
-      this.active = patched;
     }
 
     // in case settings in previous version contained a fucky wucky, we overwrite existing settings with a patch

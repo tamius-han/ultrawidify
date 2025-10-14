@@ -11,6 +11,7 @@ import PageInfo from './PageInfo';
 import { RunLevel } from '../../enum/run-level.enum';
 import { ExtensionEnvironment } from '../../../common/interfaces/SettingsInterface';
 import { ComponentLogger } from '../logging/ComponentLogger';
+import { collectionHas, equalish } from '../../util/comparators';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: PlayerData.js");
@@ -96,6 +97,7 @@ class PlayerData {
   isTooSmall: boolean = true;
 
   //#endregion
+
   //#region misc stuff
   extensionMode: any;
   dimensions: PlayerDimensions;
@@ -144,10 +146,11 @@ class PlayerData {
   private dimensionChangeListener = {
     that: this,
     handleEvent: function(event: Event) {
-      this.that.trackEnvironmentChanges(event);
-      this.that.trackDimensionChanges()
+      this.that.requestTick();
     }
   }
+
+  private fallbackDimensionChangeInterval: any;
 
   /**
    * Gets player aspect ratio. If in full screen, it returns screen aspect ratio unless settings say otherwise.
@@ -158,8 +161,7 @@ class PlayerData {
         return window.innerWidth / window.innerHeight;
       }
       if (!this.dimensions) {
-        this.trackDimensionChanges();
-        this.trackEnvironmentChanges();
+        return (this.element?.scrollWidth ?? this.videoElement.videoWidth) / (this.element?.scrollHeight ?? this.videoElement.videoHeight);
       }
 
       return this.dimensions.width / this.dimensions.height;
@@ -225,7 +227,6 @@ class PlayerData {
       }
 
       this.startChangeDetection();
-
       document.addEventListener('fullscreenchange', this.dimensionChangeListener);
 
       // we want to reload on storage changes
@@ -234,35 +235,6 @@ class PlayerData {
       console.error('[Ultrawidify::PlayerData::ctor] There was an error setting up player data. You should be never seeing this message. Error:', e);
       this.invalid = true;
     }
-  }
-
-  /**
-   * Checks if player dimensions are too small for autodetection to run.
-   * Full screen is never too small, even if it's
-   * @param playerDimensions
-   * @returns
-   */
-  private checkIfTooSmall(playerDimensions?: PlayerDimensions) {
-    if (playerDimensions) {
-      return !playerDimensions.fullscreen && (playerDimensions.width < 1208 || playerDimensions.height < 720);
-    } else {
-      return !document.fullscreenElement && (this.element.clientWidth < 1208 || this.element.clientHeight < 720);
-    }
-  }
-
-  private reloadPlayerDataConfig(siteConfUpdate) {
-    // this.siteSettings = siteConfUpdate;
-    this.updatePlayer();
-
-    this.periodicallyRefreshPlayerElement = false;
-    try {
-      this.periodicallyRefreshPlayerElement = this.siteSettings.data.currentDOMConfig.periodicallyRefreshPlayerElement;
-    } catch (e) {
-      // no biggie — that means we don't have any special settings for this site.
-    }
-
-    // because this is often caused by the UI
-    this.handlePlayerTreeRequest();
   }
 
   /**
@@ -276,18 +248,27 @@ class PlayerData {
     }
   }
 
-  /**
-   * Completely stops everything the extension is doing
-   */
-  destroy() {
-    document.removeEventListener('fullscreenchange', this.dimensionChangeListener);
-    this.stopChangeDetection();
-    this.ui?.destroy();
-    this.notificationService?.destroy();
+  private initFallbackDimensionMonitor() {
+    this.stopFallbackDimensionMonitor();
+    this.fallbackDimensionChangeInterval = setInterval( () => {
+      this.processTick();
+    }, 2000);
   }
-  //#endregion
 
-  deferredUiInitialization(playerDimensions) {
+  /**
+   * Stops manually scanning for dimension changes
+   */
+  stopFallbackDimensionMonitor() {
+    clearImmediate(this.fallbackDimensionChangeInterval);
+    this.fallbackDimensionChangeInterval = undefined;
+  }
+
+  /**
+   * Initialized player UI at a later time.
+   * @param playerDimensions
+   * @returns
+   */
+  deferredUiInitialization(playerDimensions = this.dimensions) {
     if (this.ui || this.siteSettings.data.enableUI.fullscreen === ExtensionMode.Disabled) {
       return;
     }
@@ -326,6 +307,44 @@ class PlayerData {
   }
 
   /**
+   * Completely stops everything the extension is doing
+   */
+  destroy() {
+    document.removeEventListener('fullscreenchange', this.dimensionChangeListener);
+    this.stopChangeDetection();
+    this.ui?.destroy();
+    this.notificationService?.destroy();
+  }
+
+  //#endregion
+
+  //#region utils
+  /**
+   * Checks if player dimensions are too small for autodetection to run.
+   * Full screen is never too small, even if it's
+   * @param playerDimensions
+   * @returns
+   */
+  private checkIfTooSmall() {
+    return !document.fullscreenElement && (this.element.clientWidth < 1208 || this.element.clientHeight < 720);
+  }
+
+  private reloadPlayerDataConfig(siteConfUpdate) {
+    // this.siteSettings = siteConfUpdate;
+    this.updatePlayer();
+
+    this.periodicallyRefreshPlayerElement = false;
+    try {
+      this.periodicallyRefreshPlayerElement = this.siteSettings.data.currentDOMConfig.periodicallyRefreshPlayerElement;
+    } catch (e) {
+      // no biggie — that means we don't have any special settings for this site.
+    }
+
+    // because this is often caused by the UI
+    this.handlePlayerTreeRequest();
+  }
+
+  /**
    * Sets extension runLevel and sets or unsets appropriate css classes as necessary
    * @param runLevel
    * @returns
@@ -356,161 +375,12 @@ class PlayerData {
     this.runLevel = runLevel;
   }
 
-  /**
-   * Detects whether player element is in theater mode or not.
-   * If theater mode changed, emits event.
-   * @returns whether player is in theater mode
-   */
-  private detectTheaterMode() {
-    const oldTheaterMode = this.isTheaterMode;
-    const newTheaterMode = this.equalish(window.innerWidth, this.element.offsetWidth, 32);
+  //#endregion
 
-    this.isTheaterMode = newTheaterMode;
-
-    // theater mode changed
-    if (oldTheaterMode !== newTheaterMode) {
-      if (newTheaterMode) {
-        this.eventBus.send('player-theater-enter', {});
-      } else {
-        this.eventBus.send('player-theater-exit', {});
-      }
-    }
-
-    return newTheaterMode;
-  }
-
-  trackEnvironmentChanges() {
-    if (this.environment !== this.lastEnvironment) {
-      this.lastEnvironment = this.environment;
-      this.eventBus.send('uw-environment-change', {newEnvironment: this.environment});
-    }
-  }
-
-  /**
-   *
-   */
-  trackDimensionChanges() {
-    if (this._isTrackDimensionChangesActive) {
-      // this shouldn't really get called, _ever_ ... but sometimes it happens
-      console.warn('[PlayerData::trackDimensionChanges] trackDimensionChanges is already active!');
-      return;
-    }
-
-    this._isTrackDimensionChangesActive = true;
-
-    try {
-      // get player dimensions _once_
-      let currentPlayerDimensions;
-      let fsChanged = this.isFullscreen !== !!document.fullscreenElement;
-
-      this.isFullscreen = !!document.fullscreenElement;
-
-      if (this.isFullscreen) {
-        currentPlayerDimensions = {
-          width: window.innerWidth,
-          height: window.innerHeight,
-        };
-      } else {
-        currentPlayerDimensions = {
-          width: this.element.offsetWidth,
-          height: this.element.offsetHeight
-        };
-
-        this.detectTheaterMode();
-      }
-
-      // defer creating UI
-      this.deferredUiInitialization(currentPlayerDimensions);
-
-      // if dimensions of the player box are the same as the last known
-      // dimensions, we don't have to do anything ... in theory. In practice,
-      // sometimes restore-ar doesn't appear to register the first time, and
-      // this function doesn't really run often enough to warrant finding a
-      // real, optimized fix.
-      if (
-        this.dimensions?.width == currentPlayerDimensions.width
-        && this.dimensions?.height == currentPlayerDimensions.height
-      ) {
-        this.eventBus.send('restore-ar', null);
-        this.eventBus.send('delayed-restore-ar', {delay: 500});
-        this.dimensions = currentPlayerDimensions;
-        this._isTrackDimensionChangesActive = false;
-        return;
-      }
-
-      // in every other case, we need to check if the player is still
-      // big enough to warrant our extension running.
-      this.handleSizeConstraints(currentPlayerDimensions);
-      // this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
-
-      // Save current dimensions to avoid triggering this function pointlessly
-      this.dimensions = currentPlayerDimensions;
-
-      if (fsChanged) {
-        this.updatePlayer();
-      }
-    } catch (e) {
-
-    }
-
-    this._isTrackDimensionChangesActive = false;
-  }
-
-
-  /**
-   * Checks if extension is allowed to run in current environment.
-   * @param currentPlayerDimensions
-   */
-  private handleSizeConstraints(currentPlayerDimensions: PlayerDimensions) {
-    // Check if extension is allowed to run in current combination of theater + full screen
-    const canEnable = this.siteSettings.isEnabledForEnvironment(this.isFullscreen, this.isTheaterMode) === ExtensionMode.Enabled;
-
-    if (this.runLevel === RunLevel.Off && canEnable) {
-      this.eventBus.send('restore-ar', null);
-      // must be called after
-      this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
-    } else if (!canEnable && this.runLevel !== RunLevel.Off) {
-      // must be called before
-      this.handleDimensionChanges(currentPlayerDimensions, this.dimensions);
-      this.setRunLevel(RunLevel.Off);
-    }
-  }
-
-
-  private handleDimensionChanges(newDimensions: PlayerDimensions, oldDimensions: PlayerDimensions) {
-    if (this.runLevel === RunLevel.Off ) {
-      this.logger.info('handleDimensionChanges', "player size changed, but PlayerDetect is in disabled state. The player element is probably too small.");
-      return;
-    }
-
-    // this 'if' is just here for debugging — real code starts later. It's safe to collapse and
-    // ignore the contents of this if (unless we need to change how logging works)
-    this.logger.info('handleDimensionChanges', "player size potentially changed.\n\nold dimensions:", oldDimensions, '\nnew dimensions:', newDimensions);
-
-    // if size doesn't match, trigger onPlayerDimensionChange
-    if (
-      newDimensions?.width != oldDimensions?.width
-      || newDimensions?.height != oldDimensions?.height
-      || newDimensions?.fullscreen != oldDimensions?.fullscreen
-    ){
-      // If player size changes, we restore aspect ratio
-      this.eventBus.send('restore-ar', null);
-      this.eventBus.send('delayed-restore-ar', {delay: 500});
-      // this.videoData.resizer?.restore();
-      this.eventBus.send('uw-config-broadcast', {
-        type: 'player-dimensions',
-        data: newDimensions
-      });
-
-
-      this.isTooSmall = this.checkIfTooSmall(newDimensions);
-    }
-  }
 
   onPlayerDimensionsChanged: ResizeObserverCallback = _.debounce(
       (mutationList?, observer?) => {
-      this.trackDimensionChanges();
-      this.trackEnvironmentChanges();
+      this._requestTick(true);
     },
     250,                // do it once per this many ms
     {
@@ -518,6 +388,112 @@ class PlayerData {
       trailing: true    // do it after the timeout if we call this callback few more times
     }
   );
+
+  private _requestTick(immediately?: boolean) {
+    if (immediately) {
+      this.processTick();
+    }
+  }
+
+  // Currently just a dummy, but at some point we could try to avoid running
+  // processTick on every tick — instead, running it only when needed.
+  // But today is not that day.
+  requestTick() {
+    this._requestTick();
+  }
+
+  /**
+   * Checks if anything changed
+   * @returns
+   */
+  private processTick() {
+    let changeDetected = false;
+    let changes = {
+      player: false,
+      fullScreen: false,
+      theater: false,
+      dimensions: false,
+    }
+    let fs, newPlayerCandidate, isTheaterMode, currentDimensions;
+
+    fullScreenCheck:
+    {
+      fs = !!document.fullscreenElement;
+      if (fs !== this.isFullscreen) {
+        changes.fullScreen = true;
+        changeDetected = true;
+      }
+    }
+
+    playerCheck:
+    {
+      newPlayerCandidate = this.getPlayer();
+      if (!newPlayerCandidate) {
+        console.warn('[uw->PlayerData::processTick()] — player not detected — dimensions will not be checked')
+        return;
+      }
+      if (newPlayerCandidate !== this.element) {
+        changes.player = true;
+        changeDetected = true;
+      }
+    }
+
+    theaterModeCheck:
+    {
+      isTheaterMode = equalish(window.innerWidth, this.element.offsetWidth, 32);
+      if (isTheaterMode !== this.isTheaterMode) {
+        changes.theater = true;
+        changeDetected = true;
+      }
+    }
+
+    dimensionCheck:
+    {
+      if (this.isFullscreen) {
+        currentDimensions = {
+          width: window.innerWidth,
+          height: window.innerHeight,
+        };
+      } else {
+        currentDimensions = {
+          width: this.element.offsetWidth,
+          height: this.element.offsetHeight
+        };
+      }
+
+      if (currentDimensions.width !== this.dimensions?.width || currentDimensions.height !== this.dimensions?.height) {
+        changes.dimensions = true;
+        changeDetected = true;
+      }
+    }
+
+    // we only commit changes if no errors were encountered
+    commitChanges:
+    {
+      if (changes.fullScreen)   this.isFullscreen = fs;
+      if (changes.player)       this.element = newPlayerCandidate;
+      if (changes.theater)      this.isTheaterMode = isTheaterMode;
+      if (changes.dimensions)   this.dimensions = currentDimensions;
+
+      this.isTooSmall = this.checkIfTooSmall();
+    }
+
+    const canEnable = this.siteSettings.isEnabledForEnvironment(this.isFullscreen, this.isTheaterMode) === ExtensionMode.Enabled;
+
+    if (this.runLevel === RunLevel.Off && canEnable) {
+      this.eventBus.send('restore-ar', null);
+    } else if (!canEnable && this.runLevel !== RunLevel.Off) {
+      // must be called before
+      this.eventBus.send('restore-ar', null);
+      this.setRunLevel(RunLevel.Off);
+    }
+
+    if (changeDetected) {
+      this.deferredUiInitialization();
+      this.eventBus.send('restore-ar', null);
+      this.eventBus.send('delayed-restore-ar', {delay: 500});
+    }
+  }
 
 
   //#region player element change detection
@@ -546,45 +522,12 @@ class PlayerData {
 
     // legacy mode still exists, but acts as a fallback for observers and is triggered less
     // frequently in order to avoid too many pointless checks
-    this.legacyChangeDetection();
-  }
-
-  async legacyChangeDetection() {
-    while (!this.halted) {
-      await sleep(1000);
-      try {
-        this.forceRefreshPlayerElement();
-      } catch (e) {
-        console.error('[PlayerData::legacycd] this message is pretty high on the list of messages you shouldn\'t see', e);
-      }
-    }
-  }
-
-  doPeriodicPlayerElementChangeCheck() {
-    if (this.periodicallyRefreshPlayerElement) {
-      this.forceRefreshPlayerElement();
-    }
+    this.initFallbackDimensionMonitor();
   }
 
   stopChangeDetection(){
     this.observer.disconnect();
   }
-
-
-  //#region helper functions
-  collectionHas(collection, element) {
-    for (let i = 0, len = collection.length; i < len; i++) {
-      if (collection[i] == element) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  equalish(a,b, tolerance) {
-    return a > b - tolerance && a < b + tolerance;
-  }
-  //#endregion
 
   private getElementStack(): ElementStack {
     const elementStack: ElementStack = [{
@@ -617,19 +560,22 @@ class PlayerData {
     return this.elementStack;
   }
 
-
   updatePlayer(options?: {verbose?: boolean, newElement?: HTMLElement}) {
     const newPlayer = options?.newElement ?? this.getPlayer(options);
 
-    if (newPlayer === this.element) {
+    if (newPlayer === this.element || !newPlayer) {
       return;
     }
+    this.observer?.unobserve(this.element);
 
     // clean up and re-initialize UI
     this.ui?.destroy();
     delete this.ui;
 
+    // Don't forget to also move observer to the new player
+    // (if observer exists)
     this.element = newPlayer;
+    this.observer?.observe(this.element);
 
     this.ui = new UI(
       'ultrawidifyUi',
@@ -642,8 +588,7 @@ class PlayerData {
       }
     );
 
-    this.trackDimensionChanges();
-    this.trackEnvironmentChanges();
+    this.requestTick();
   }
 
   /**
@@ -695,8 +640,12 @@ class PlayerData {
       return playerCandidate.element;
     } else {
       const playerCandidate = this.getPlayerAuto(elementStack, videoWidth, videoHeight);
-      playerCandidate.heuristics['activePlayer'] = true;
-      return playerCandidate.element;
+      if (playerCandidate === null) {
+        console.warn('[uw::getPlayer] getPlayerAuto returned null — no player detected?');
+      } else {
+        playerCandidate.heuristics['activePlayer'] = true;
+        return playerCandidate.element;
+      }
     }
   }
 
@@ -713,8 +662,8 @@ class PlayerData {
     const elementStack = this.getElementStack();
 
     if (
-      this.equalish(elementStack[currentIndex].element.offsetWidth, elementStack[nextIndex].element.offsetWidth, 2)
-      && this.equalish(elementStack[currentIndex].element.offsetHeight, elementStack[nextIndex].element.offsetHeight, 2)
+      equalish(elementStack[currentIndex].element.offsetWidth, elementStack[nextIndex].element.offsetWidth, 2)
+      && equalish(elementStack[currentIndex].element.offsetHeight, elementStack[nextIndex].element.offsetHeight, 2)
     ) {
       // this.siteSettings.set('playerAutoConfig.initialIndex', this.siteSettings.data.playerAutoConfig.initialIndex + 1, {noSave: true});
       // this.siteSettings.set('playerAutoConfig.modified', true);
@@ -765,8 +714,9 @@ class PlayerData {
       // Don't bother thinking about this too much, as any "thinking" was quickly
       // corrected by bugs caused by various edge cases.
       if (
-        this.equalish(elementData.height, videoHeight, 5)
-        || this.equalish(elementData.width, videoWidth, 5)
+
+        equalish(elementData.height, videoHeight, 5)
+        || equalish(elementData.width, videoWidth, 5)
       ) {
         let score = 1000;
 
@@ -877,14 +827,14 @@ class PlayerData {
     const allSelectors = document.querySelectorAll(queryString);
 
     for (const element of elementStack) {
-      if (this.collectionHas(allSelectors, element.element)) {
+      if (collectionHas(allSelectors, element.element)) {
         let score = 100;
 
         // we award points to elements which match video size in one
         // dimension and exceed it in the other
         if (
-          (element.width >= videoWidth && this.equalish(element.height, videoHeight, 2))
-          || (element.height >= videoHeight && this.equalish(element.width, videoWidth, 2))
+          (element.width >= videoWidth && equalish(element.height, videoHeight, 2))
+          || (element.height >= videoHeight && equalish(element.width, videoWidth, 2))
         ) {
           score += 75;
         }
@@ -917,8 +867,6 @@ class PlayerData {
   private handlePlayerTreeRequest() {
     // this populates this.elementStack fully
     this.updatePlayer({verbose: true});
-    console.log('tree:', JSON.parse(JSON.stringify(this.elementStack)));
-    console.log('————————————————————— handling player tree request!')
     this.eventBus.send('uw-config-broadcast', {type: 'player-tree', config: JSON.parse(JSON.stringify(this.elementStack))});
   }
 
@@ -933,7 +881,7 @@ class PlayerData {
       this.markedElement.remove();
     }
 
-    const elementBB = this.elementStack[data.parentIndex].element.getBoundingClientRect();
+    const elementBB = this.elementStack[data.parentIndex].element.getBoundingClientRect();;
 
     // console.log('element bounding box:', elementBB);
 

@@ -113,7 +113,7 @@ export class LogAggregator {
 
   private storageChangeListener(changes, area) {
     if (!changes[STORAGE_LOG_SETTINGS_KEY]) {
-      console.info('We dont have any logging settings, not processing frther', changes);
+      // console.info('We dont have any logging settings, not processing frther', changes);
       return;
     }
 

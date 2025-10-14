@@ -954,7 +954,7 @@ export class Aard {
       searchRow += scanSpacing
     ) {
       if (++outerIteration > height) {
-        console.warn('[ultrawidify|aard::subtitleScanRegionLinear] — scan got stuck in an infinite loop. This shouldn\'t happen.');
+        // console.warn('[ultrawidify|aard::subtitleScanRegionLinear] — scan got stuck in an infinite loop. This shouldn\'t happen.');
         results.uncertain;
         break outerLoop;
       }

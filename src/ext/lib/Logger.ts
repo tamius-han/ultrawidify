@@ -97,6 +97,8 @@ class Logger {
   }
 
   static saveConfig(conf: LoggerConfig) {
+    console.warn('LEGACY LOGGER IS STILL BEING CALLED FROM SOMEWHERE!', new Error().stack);
+
     if (process.env.CHANNEL === 'dev') {
       console.info('Saving logger conf:', conf)
     }

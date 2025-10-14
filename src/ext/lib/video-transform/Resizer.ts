@@ -65,6 +65,8 @@ class Resizer {
 
   private effectiveZoom: {x: number, y: number} = {x: 1, y: 1};
 
+  private pendingAr?: {ar: Ar, lastAr?: Ar};
+
   _lastAr: Ar = {type: AspectRatioType.Initial};
   set lastAr(x: Ar) {
     // emit updates for UI when setting lastAr, but only if AR really changed
@@ -332,6 +334,19 @@ class Resizer {
       return;
     }
 
+    // If we are missing some data that's necessary for crop calculations,
+    // set pendingAr and quit
+    if (!this.videoData.player.dimensions?.width || !this.videoData.player.dimensions?.height) {
+      this.pendingAr = {ar, lastAr};
+      this.videoData.player.requestTick();
+      return;
+    }
+    this.pendingAr = null;
+
+    if (! this.videoData.player.dimensions) {
+      this.videoData.player.updatePlayer();
+    }
+
     // If no aspect ratio is applied AND if no stretch mode is active,
     // we disable our CSS in order to prevent breaking websites by default,
     // without any human interaction
@@ -465,8 +480,12 @@ class Resizer {
     //   this.videoData.eventBus.send('announce-zoom', this.manualZoom ? {x: this.zoom.scale, y: this.zoom.scaleY} : this.zoom.effectiveZoom);
     // }
 
-    let translate = this.computeOffsets(stretchFactors, options?.ar);
-    this.applyCss(stretchFactors, translate);
+    try {
+      const translate = this.computeOffsets(stretchFactors, options?.ar);
+      this.applyCss(stretchFactors, translate);
+    } catch (e) {
+      // don't apply CSS if there's an error
+    }
   }
 
   toFixedAr() {
@@ -567,6 +586,10 @@ class Resizer {
    * @returns
    */
   restore() {
+    if (this.pendingAr) {
+      this.setAr(this.pendingAr.ar, this.pendingAr.lastAr);
+      return;
+    }
     if (!this.manualZoom) {
       this.logger.info('restore', `<rid:${this.resizerId}> attempting to restore aspect ratio`, {'lastAr': this.lastAr} );
 
@@ -858,16 +881,15 @@ class Resizer {
     ) {
       this.logger.warn('computeOffsets', `<rid:${this.resizerId}> We are getting some incredibly funny results here.\n\n`,
         `Video seems to be both wider and taller (or shorter and narrower) than player element at the same time. This is super duper not supposed to happen.\n\n`,
+        `Something is probably undefined:\n`,
+        `\n   videoData.video             offset w x h:`, this.videoData.video.offsetWidth, 'x', this.videoData.video.offsetHeight,
+        `\n   videoData.player.dimensions        w x h:`, this.videoData.player.dimensions.width, 'x', this.videoData.player.dimensions.height,
         `Player element needs to be checked.`
       );
-
-      // sometimes this appears to randomly recurse.
-      // There seems to be no way to reproduce it.
-      if (! this._computeOffsetsRecursionGuard) {
-        this._computeOffsetsRecursionGuard = true;
-        this.videoData.player.trackDimensionChanges();
-        this._computeOffsetsRecursionGuard = false;
-      }
+      // request dimension change tick.
+      // this will cause
+      this.videoData.player.requestTick();
+      throw 'DIMENSIONS_ERROR';
     }
 
     return translate;
