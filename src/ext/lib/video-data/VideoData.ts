@@ -17,6 +17,7 @@ import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
 import { ExtensionEnvironment } from '../../../common/interfaces/SettingsInterface';
 import { LogAggregator } from '../logging/LogAggregator';
 import { ComponentLogger } from '../logging/ComponentLogger';
+import { AardLegacy } from '../aard/AardLegacy';
 
 /**
  * VideoData — handles CSS for the video element.
@@ -73,7 +74,7 @@ class VideoData {
   player: PlayerData;
   resizer: Resizer;
 
-  aard: Aard;
+  aard: Aard | AardLegacy;
 
   eventBus: EventBus;
   extensionStatus: ExtensionStatus;
@@ -259,7 +260,7 @@ class VideoData {
     this.resizer = new Resizer(this);
 
     try {
-      this.aard = new Aard(this);  // this starts Ar detection. needs optional parameter that prevents ArDetector from starting
+      this.aard = this.settings.active.aard.useLegacy ? new AardLegacy(this) : new Aard(this);  // this starts Ar detection. needs optional parameter that prevents ArDetector from starting
     } catch (e) {
       console.error('Failed to start Aard!', e);
     }
@@ -702,7 +703,7 @@ class VideoData {
       return;
     }
     if (! this.aard){
-      this.aard = new Aard(this);
+      this.aard = this.settings.active.aard.useLegacy ? new AardLegacy(this): new Aard(this);
     }
   }
 
