@@ -1,4 +1,7 @@
+import { Aard } from './Aard';
+import { AardLegacy } from './AardLegacy';
 import { AardPerformanceData } from './AardTimers';
+import { FallbackCanvas } from './gl/FallbackCanvas';
 
 export class AardDebugUi {
 
@@ -76,36 +79,10 @@ export class AardDebugUi {
         </div>
 
 
-        <div id="uw-aard-debug-ui_body" style="display: flex; flex-direction: row; width: 100%">
+        <div id="uw-aard-debug-ui_body" style="display: flex; flex-direction: row; width: 100%; margin-top: 8rem;">
           <div style="">
             <div id="uw-aard-debug_aard-sample-canvas" style="min-width: 640px"></div>
             <div style="background: black; color: #fff"; font-size: 24px;">AARD IN</div>
-
-            <div style="background: black; color: #ccc; padding: 1rem">
-              <div>
-                <span style="color: rgb(0.1, 0.1, 0.35)">■</span>
-                Black level sample
-              </div>
-              <div>
-                <span style="color: rgb(0.3, 1.0, 0.6)">■</span>
-                <span style="color: rgb(0.1, 0.5, 0.3)">■</span>
-                Guard line (middle/corner) OK
-              </div>
-              <div>
-                <span style="color: rgb(1.0, 0.1, 0.1)">■</span>
-                <span style="color: rgb(0.5, 0.0, 0.0)">■</span>
-                Guard line (middle/corner) violation
-              </div>
-              <div>
-                Image line — <span style="color: rgb(0.7, 0.7, 0.7)">■</span> image, <span style="color: rgb(0.2, 0.2, 0.6)">■</span> no image
-              </div>
-              <div>
-                Edge scan — <span style="color: rgb(0.1, 0.1, 0.4)">■</span> probe, <span style="color: rgb(0.4, 0.4, 1.0)">■</span> hit
-              </div>
-              <div>
-                Slope test — <span style="color: rgb(0.4, 0.4, 1.0)">■</span> ok, <span style="color: rgb(1.0, 0.0, 0.0)">■</span> fail
-              </div>
-            </div>
 
             <div style="pointer-events: all">
               <button id="uw-aard-debug-ui_enable-stop-on-change"  style="">Pause video on aspect ratio change</button>
@@ -125,10 +102,9 @@ export class AardDebugUi {
               <pre id="uw-aard-results"></pre>
             </div>
           </div>
-          <div style="width: 1920px">
+          <div style="width: 1920px; border: 2px dotted #142; margin-right:2rem;">
             <div id="uw-aard-debug_aard-output" style="zoom: 3; image-rendering: pixelated;"></div>
             <div style="background: black; color: #fff; font-size: 24px;">AARD RESULT</div>
-
           </div>
         </div>
       </div>
@@ -194,9 +170,19 @@ export class AardDebugUi {
 
     const popupContent = `
       <h2 style="color: #fa6; margin-bottom: 1rem">Detailed performance analysis:</h2>
+      <div>
+       <span style="color: #fff">About:</span><br/>
+        Aard version: <span style="color: #fa6">${this.aard instanceof AardLegacy ? 'legacy' : this.aard instanceof Aard ? 'experimental' : 'unknown'}</span> <small>(instanceof AardLegacy? ${this.aard instanceof AardLegacy}, Aard? ${this.aard instanceof Aard})</small><br/>
+        canvas type: <span style="color: #fa6">${!this.aard.canvasStore.main ? '<canvas not initialized>' : this.aard.canvasStore.main instanceof FallbackCanvas ? '2dCanvas' : 'webgl'}</span> |
+        legacy default: <span style="color: #fa6">${this.aard.settings.active.aardLegacy.aardType}</span>,
+        experimental default: <span style="color: #fa6">${this.aard.settings.active.aard.aardType}</span>
+      </div>
+
+      <br/>
+
       <div style="width: 100%; display: flex; flex-direction: column">
         <div style="margin-bottom: 1rem;">
-          ${this.generateRawTimes(this.aard.timer.average)}
+          ${this.generateRawTimes(this.aard.timer.current)}
         </div>
         <div style="color: #fff">Stage times (not cumulative):</div>
         <div style="display: flex; flex-direction: row; width: 100%; height: 150px">
@@ -214,12 +200,14 @@ export class AardDebugUi {
         </div>
 
         <div style="margin-bottom: 1rem;">
-          ${this.generateRawTimes(this.aard.timer.average)}
+          ${this.generateRawTimes(this.aard.timer.lastChange)}
         </div>
         <div style="display: flex; flex-direction: row; width: 100%; height: 150px">
           <div style="width: 160px; text-align: right; padding-right: 4px;">Last change:</div>
           <div style="flex-grow: 1;">${this.generateMiniGraphBar(this.aard.timer.lastChange, true)}</div>
         </div>
+
+        <!-- <pre>${JSON.stringify({current: this.aard.timer.current, average: this.aard.timer.average, lastChange: this.aard.timer.lastChange}, null, 2)}</pre> -->
       </div>
     `
 
@@ -298,23 +286,23 @@ export class AardDebugUi {
     total += fastBlackLevel;
 
     const guardLineStart = fastBlackLevelStart + fastBlackLevel;
-    const guardLine = Math.max(perf.guardLine - total, 0);
+    const guardLine = (perf.guardLine !== undefined && perf.guardLine !== -1) ? Math.max(perf.guardLine - total, 0) : 0;
     total += guardLine;
 
     const edgeScanStart = guardLineStart + guardLine;
-    const edgeScan = Math.max(perf.edgeScan - total, 0);
+    const edgeScan = (perf.edgeScan !== undefined && perf.edgeScan !== -1) ? Math.max(perf.edgeScan - total, 0) : 0;
     total += edgeScan;
 
     const gradientStart = edgeScanStart + edgeScan;
-    const gradient = Math.max(perf.gradient - total, 0);
+    const gradient = (perf.gradient !== undefined && perf.gradient !== -1) ? Math.max(perf.gradient - total, 0) : 0;
     total += gradient;
 
     const scanResultsStart = gradientStart + gradient;
-    const scanResults = Math.max(perf.scanResults - total, 0);
+    const scanResults = (perf.scanResults !== undefined && perf.scanResults !== -1) ? Math.max(perf.scanResults - total, 0) : 0;
     total += scanResults;
 
     const subtitleScanStart = scanResultsStart + scanResults;
-    const subtitleScan  = Math.max(perf.scanResults - total, 0);
+    const subtitleScan  = Math.max(perf.subtitleScan - total, 0);
     total += subtitleScan;
 
     return `
@@ -344,12 +332,10 @@ export class AardDebugUi {
         <div style="position: absolute; top: ${detailed ? '74px' : '2px'}; left: ${scanResultsStart}%; min-width: 1px; width: ${scanResults}%; background: #80f; height: 12px;"></div>
         ${this.getBarLabel(scanResults, scanResultsStart, 74, `scan results processing: ${scanResults.toFixed(2)} ms`, detailed)}
 
-        ${this.getBarLabel(0, scanResults + scanResultsStart, 88, `total: ${total.toFixed(2)} ms`, detailed, 'color: #fff;')}
+        <div style="position: absolute; top: ${detailed ? '86px' : '2px'}; left: ${subtitleScanStart}%; min-width: 1px; width: ${subtitleScan}%; background: rgba(234, 204, 84, 1); height: 12px;"></div>
+        ${this.getBarLabel(subtitleScan, subtitleScanStart, 86, `subtitle scan: ${subtitleScan.toFixed(2)} ms`, detailed)}
 
-        <div style="position: absolute; top: ${detailed ? '74px' : '2px'}; left: ${subtitleScanStart}%; min-width: 1px; width: ${subtitleScan}%; background: rgba(234, 204, 84, 1); height: 12px;"></div>
-        ${this.getBarLabel(scanResults, scanResultsStart, 74, `scan results processing: ${subtitleScan.toFixed(2)} ms`, detailed)}
-
-        ${this.getBarLabel(0, scanResults + scanResultsStart, 88, `total: ${total.toFixed(2)} ms`, detailed, 'color: #fff;')}
+        ${this.getBarLabel(0, subtitleScan + subtitleScanStart, 98, `total: ${total.toFixed(2)} ms`, detailed, 'color: #fff;')}
 
         <!-- 60/30 fps markers -->
         <div style="position: absolute; top: ${detailed ? '-12px' : '0'}; left: 16.666%; width: 1px; border-left: 1px dashed #4f9; height: ${detailed ? '112px' : '12px'}; padding-left: 2px; background-color: rgba(0,0,0,0.5); z-index: ${detailed ? '5' : '2'}000;">60fps</div>
@@ -359,7 +345,7 @@ export class AardDebugUi {
   }
 
   _lastAr: undefined;
-  updateTestResults(testResults) {
+  updateTestResults(testResults, timers) {
     this.updatePerformanceResults();
 
     if (testResults.aspectRatioUpdated && this.pauseOnArCheck) {
@@ -378,51 +364,12 @@ export class AardDebugUi {
       Active: ${ar}, changed since last check? ${testResults.aspectRatioUpdated}               letterbox width: ${testResults.letterboxWidth} offset ${testResults.letterboxOffset}<br/>
       <sup>(last: ${this._lastAr})</sup>
 
+      Paused until? ${Date.now() < timers.pauseUntil ? ((timers.pauseUntil - Date.now()) / 1000) + 's' : 'not paused'};
+      <sup>now: ${Date.now()}ms; until:${timers.pauseUntil}ms; diff: ${(+timers.pauseUntil - Date.now())} </sup>
 
       image in black level probe (aka "not letterbox"): ${testResults.notLetterbox}
     `;
     this._lastAr = ar;
-
-    if (testResults.notLetterbox) {
-      resultsDiv.innerHTML = out;
-      return;
-    }
-    out = `${out}
-
-      -- UNCERTAIN FLAGS
-      AR: ${testResults.aspectRatioUncertain} (reason: ${testResults.aspectRatioUncertainReason ?? 'n/a'}); top row: ${testResults.topRowUncertain}; bottom row: ${testResults.bottomRowUncertain}${
-        testResults.aspectRatioInvalid ? `\nINVALID_AR (reason: ${testResults.aspectRatioInvalidReason ?? 'n/a'})` : ''}
-
-      -- GUARD & IMAGE LINE
-      bottom guard: ${testResults.guardLine.bottom}       image: ${testResults.guardLine.invalidated ? 'n/a' : testResults.imageLine.bottom}
-      top    guard: ${testResults.guardLine.top}      image: ${testResults.guardLine.invalidated ? 'n/a' : testResults.imageLine.top}
-
-      guard line ${testResults.guardLine.invalidated ? 'INVALIDATED' : 'valid'}       image line ${testResults.guardLine.invalidated ? '<skipped test>' : testResults.imageLine.invalidated ? 'INVALIDATED' : 'valid'}
-
-      corner invalidations (invalid pixels -> verdict)
-
-                    LEFT         CENTER         RIGHT
-      bottom:       ${testResults.guardLine.cornerPixelsViolated[0]} → ${testResults.guardLine.cornerViolated[0] ? '❌' : '◽'}                       ${testResults.guardLine.cornerPixelsViolated[1]} → ${testResults.guardLine.cornerViolated[1] ? '❌' : '◽'}
-         top:       ${testResults.guardLine.cornerPixelsViolated[2]} → ${testResults.guardLine.cornerViolated[2] ? '❌' : '◽'}                       ${testResults.guardLine.cornerPixelsViolated[3]} → ${testResults.guardLine.cornerViolated[3] ? '❌' : '◽'}
-
-      -- AR SCAN ${testResults.lastStage < 1 ? `
-      DID NOT RUN THIS FRAME` : `
-
-                     LEFT         CENTER         RIGHT        CANDIDATE
-      BOTTOM
-      distance:       ${testResults.aspectRatioCheck.bottomRows[0]}             ${testResults.aspectRatioCheck.bottomRows[1]}             ${testResults.aspectRatioCheck.bottomRows[2]}             ${testResults.aspectRatioCheck.bottomCandidate}
-       quality:       ${testResults.aspectRatioCheck.bottomQuality[0]}              ${testResults.aspectRatioCheck.bottomQuality[1]}              ${testResults.aspectRatioCheck.bottomQuality[2]}              ${testResults.aspectRatioCheck.bottomCandidateQuality}
-
-      TOP
-      distance:       ${testResults.aspectRatioCheck.topRows[0]}             ${testResults.aspectRatioCheck.topRows[1]}             ${testResults.aspectRatioCheck.topRows[2]}             ${testResults.aspectRatioCheck.topCandidate}
-       quality:       ${testResults.aspectRatioCheck.topQuality[0]}              ${testResults.aspectRatioCheck.topQuality[1]}              ${testResults.aspectRatioCheck.topQuality[2]}              ${testResults.aspectRatioCheck.topCandidateQuality}
-
-      Diff matrix:
-                  R-L      C-R      C-L
-        bottom:    ${testResults.aspectRatioCheck.bottomRowsDifferenceMatrix[0]}       ${testResults.aspectRatioCheck.bottomRowsDifferenceMatrix[1]}       ${testResults.aspectRatioCheck.bottomRowsDifferenceMatrix[2]}
-           top:    ${testResults.aspectRatioCheck.topRowsDifferenceMatrix[0]}       ${testResults.aspectRatioCheck.topRowsDifferenceMatrix[1]}       ${testResults.aspectRatioCheck.topRowsDifferenceMatrix[2]}
-      `}
-    `;
 
     resultsDiv.innerHTML = out;
   }

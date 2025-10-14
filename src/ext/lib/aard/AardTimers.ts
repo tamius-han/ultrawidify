@@ -4,11 +4,13 @@ export interface AardPerformanceData {
   getImage: number;
 
   fastBlackLevel: number;
-  guardLine: number; // actually times both guard line and image line checks
-  edgeScan: number; // includes validation step
-  gradient: number;
+
+  // optional ones are only available in legacy aard
+  guardLine?: number; // actually times both guard line and image line checks
+  edgeScan?: number; // includes validation step
+  gradient?: number;
+  scanResults?: number;
   subtitleScan: number;
-  scanResults: number;
 }
 
 
@@ -82,36 +84,52 @@ export class AardTimer {
   getAverage() {
     for (let i = 0; i < this.aardPerformanceDataBuffer.length; i++) {
       const sample = this.aardPerformanceDataBuffer[i];
+
       if (sample.draw !== -1) {
         this.average.draw += sample.draw;
       }
       if (sample.getImage !== -1) {
         this.average.getImage += sample.getImage;
       }
-      if (sample.fastBlackLevel !== -1) {
+      if (sample.fastBlackLevel !== -1 && this.average.fastBlackLevel !== null) {
         this.average.fastBlackLevel += sample.fastBlackLevel;
+      } else {
+        this.average.fastBlackLevel = null;
       }
-      if (sample.guardLine !== -1) {
+      if (sample.guardLine !== -1 && this.average.guardLine !== null) {
         this.average.guardLine += sample.guardLine;
+      } else {
+        this.average.guardLine = null;
       }
-      if (sample.edgeScan !== -1) {
+      if (sample.edgeScan !== -1 && this.average.edgeScan !== null) {
         this.average.edgeScan += sample.edgeScan;
+      } else {
+        this.average.edgeScan = null;
       }
-      if (sample.gradient !== -1) {
+      if (sample.gradient !== -1 && this.average.gradient !== null) {
         this.average.gradient += sample.gradient;
+      } else {
+        this.average.edgeScan = null;
       }
-      if (sample.scanResults !== -1) {
+      if (sample.scanResults !== -1 && this.average.scanResults !== null) {
         this.average.scanResults += sample.scanResults;
+      } else {
+        this.average.scanResults = null;
+      }
+      if (sample.subtitleScan !== -1 && this.average.subtitleScan !== null) {
+        this.average.subtitleScan += sample.subtitleScan;
+      } else {
+        this.average.subtitleScan = null;
       }
     }
 
     this.average.draw /= this.aardPerformanceDataBuffer.length;
     this.average.getImage /= this.aardPerformanceDataBuffer.length;
     this.average.fastBlackLevel /= this.aardPerformanceDataBuffer.length;
-    this.average.guardLine /= this.aardPerformanceDataBuffer.length;
-    this.average.edgeScan /= this.aardPerformanceDataBuffer.length;
-    this.average.gradient /= this.aardPerformanceDataBuffer.length;
-    this.average.scanResults /= this.aardPerformanceDataBuffer.length;
-    this.average.subtitleScan /= this.aardPerformanceDataBuffer.length;
+    this.average.guardLine = this.average.guardLine === null ? -1 : (this.average.guardLine / this.aardPerformanceDataBuffer.length);
+    this.average.edgeScan = this.average.edgeScan === null ? -1 : (this.average.guardLine / this.aardPerformanceDataBuffer.length);
+    this.average.gradient = this.average.gradient === null ? -1 : (this.average.guardLine / this.aardPerformanceDataBuffer.length);
+    this.average.scanResults = this.average.scanResults === null ? -1 : (this.average.guardLine / this.aardPerformanceDataBuffer.length);
+    this.average.subtitleScan = this.average.subtitleScan === null ? -1 : (this.average.subtitleScan /this.aardPerformanceDataBuffer.length);
   }
 }

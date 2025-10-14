@@ -11,6 +11,10 @@
           <li>Embedded sites now inherit settings of the parent frame. <small>However, this hasn't been tested for all edge cases and may contain bugs.</small></li>
           <li>Added validation to custom aspect ratio entry menu. Corrected parsing of aspect ratios given in the X:Y format, even though aspect ratios should be ideally given as a single number.</li>
           <li>Autodetection can be set to stop after first aspect ratio detection, or after a period of no changes.</li>
+          <li>
+            There is a new, experiental mode for autodetection. At this point, it can be manually enabled in the autodetection settings. It will become the default option in 2026.<br/>
+            If you enable experimental mode, please consider reporting problems <a href="https://github.com/tamius-han/ultrawidify/issues/291" target="_blank">in this thread</a> on Github.
+          </li>
         </ul>
 
       </div>

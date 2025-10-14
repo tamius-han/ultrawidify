@@ -21,8 +21,142 @@ const ExtensionConf: SettingsInterface = {
     loadFromSnapshot: false,
   },
 
-  arDetect: {
+  aardLegacy: {
     aardType: 'auto',
+
+    polling: {
+      runInBackgroundTabs: AardPollingOptions.Reduced,
+      runOnSmallVideos: AardPollingOptions.Reduced
+    },
+
+    letterboxOrientationScan: {
+      letterboxLimit: 8,
+      pillarboxLimit: 8
+    },
+
+    subtitles: {
+      subtitleCropMode: AardSubtitleCropMode.ResetAR,
+      resumeAfter: 5000,
+      scanSpacing: 5,
+      scanMargin: 0.25,
+      maxValidLetter: 24,
+      subtitleSubpixelThresholdOff: 8,
+      subtitleSubpixelThresholdOn: 192,
+      minDetections: 8,
+      minImageLineDetections: 8,
+
+      refiningScanSpacing: 8,
+      refiningScanInitialIterations: 12,
+
+      maxPotentialSubtitleMisalignment: 32,
+    },
+
+    earlyStopOptions: {
+      stopAfterFirstDetection: false,
+      stopAfterTimeout: false,
+      stopTimeout: 30,
+    },
+
+    disabledReason: "",       // if automatic aspect ratio has been disabled, show reason
+    allowedMisaligned: 0.05,  // top and bottom letterbox thickness can differ by this much.
+                              // Any more and we don't adjust ar.
+    allowedArVariance: 0.0125,// amount by which old ar can differ from the new (1 = 100%)
+    timers: {                 // autodetection frequency
+      playing: 333,           // while playing
+      playingReduced: 5000,   // while playing at small sizes
+      paused: 3000,           // while paused
+      error: 3000,            // after error
+      minimumTimeout: 5,
+      tickrate: 10,          // 1 tick every this many milliseconds
+    },
+    autoDisable: {            // settings for automatically disabling the extension
+      onFirstChange: false,       // disable once we have a stable aspect ratio
+      ifNotChanged: false,        // disable if Ar hasn't changed for this long
+      ifNotChangedTimeout: 20000, // if user enables ifNotChangedTimeout, we default to 20s
+      ifSubtitles: false,         // disable if subtitles are detected
+    },
+    canvasDimensions: {
+      blackframeCanvas: {   // smaller than sample canvas, blackframe canvas is used to recon for black frames
+                            // it's not used to detect aspect ratio by itself, so it can be tiny af
+        width: 16,
+        height: 9,
+      },
+      sampleCanvas: {   // size of image sample for detecting aspect ratio. Bigger size means more accurate results,
+                            // at the expense of performance
+        width: 640,
+        height: 360,
+      },
+    },
+
+    blackLevels: {
+      defaultBlack: 16,
+      blackTolerance: 4,
+      imageDelta: 16,
+    },
+    sampling: {
+      edgePosition: 0.25,
+      staticCols: 16,      // we take a column at [0-n]/n-th parts along the width and sample it
+      randomCols: 0,      // we add this many randomly selected columns to the static columns
+      staticRows: 9,      // forms grid with staticSampleCols. Determined in the same way. For black frame checks
+    },
+    edgeDetection: {
+      slopeTestWidth: 8,
+      gradientTestSamples: 8,
+      gradientTestBlackThreshold: 16,
+      gradientTestDeltaThreshold: 32,
+      gradientTestMinDelta: 8,
+
+      thresholds: {
+        edgeDetectionLimit: 12,
+        minQualitySingleEdge: 6,
+        minQualitySecondEdge: 3,
+      },
+
+      maxLetterboxOffset: 0.1,
+
+      sampleWidth: 8,        // we take a sample this wide for edge detection
+      detectionThreshold: 4,  // sample needs to have this many non-black pixels to be a valid edge
+      confirmationThreshold: 1,  //
+      singleSideConfirmationThreshold: 3,    // we need this much edges (out of all samples, not just edges) in order
+                                             // to confirm an edge in case there's no edges on top or bottom (other
+                                            // than logo, of course)
+      logoThreshold: 0.15,     // if edge candidate sits with count greater than this*all_samples, it can't be logo
+                              // or watermark.
+      edgeTolerancePx: 1,          // we check for black edge violation this far from detection point
+      edgeTolerancePercent: null,  // we check for black edge detection this % of height from detection point. unused
+      middleIgnoredArea: 0.2,      // we ignore this % of canvas height towards edges while detecting aspect ratios
+      minColsForSearch: 0.5,       // if we hit the edge of blackbars for all but this many columns (%-wise), we don't
+                                   // continue with search. It's pointless, because black edge is higher/lower than we
+                                   // are now. (NOTE: keep this less than 1 in case we implement logo detection)
+
+      edgeMismatchTolerancePx: 3,  // corners and center are considered equal if they differ by at most this many px
+
+      gradientThreshold: 0.5,           // if more than this percentage (0-1) is detected as gradient, we mark edge as gradient
+      gradientTestMinDeltaAfter: 2,   // if difference between test row and after row is LESS than this -> not gradient
+      gradientTestMaxDeltaAfter: 12,   // if difference between test row and after row is MORE than this -> not gradient
+
+      minValidImage: 0.7,                 // if more than this % (0-1) of row is image, we confirm image regardless of other criteria except gradient
+      maxEdgeSegments: 8,                // if edge has more than this many segments, we consider it unreliable
+      minEdgeSegmentSize: 2,
+      averageEdgeThreshold: 16,           // average(ish) edge must be this many px
+    },
+    pillarTest: {
+      ignoreThinPillarsPx: 5, // ignore pillars that are less than this many pixels thick.
+      allowMisaligned: 0.05   // left and right edge can vary this much (%)
+    },
+    textLineTest: {
+      nonTextPulse: 0.10,     // if a single continuous pulse has this many non-black pixels, we aren't dealing
+                              // with text. This value is relative to canvas width (%)
+      pulsesToConfirm: 10,    // this is a threshold to confirm we're seeing text.
+      pulsesToConfirmIfHalfBlack: 5, // this is the threshold to confirm we're seeing text if longest black pulse
+                                     // is over 50% of the canvas width
+      testRowOffset: 0.02     // we test this % of height from detected edge
+    }
+  },
+
+  aard: {
+    aardType: 'auto',
+    useLegacy: true,
 
     polling: {
       runInBackgroundTabs: AardPollingOptions.Reduced,

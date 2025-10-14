@@ -8,6 +8,7 @@
   * Setting inheritance/overriding is not thoroughly tested and may be full of edge cases.
 * Added validation to custom aspect ratio entry menu. Corrected parsing of aspect ratios given in the X:Y format, even though aspect ratios should be ideally given as a single number.
 * Autodetection can now scan for subtitles.
+* New experimental autodetection (which is secretly just slightly modified subtitle check)
 
 ### v6.3.0
 * Added zoom segment to in-player UI and popup. 

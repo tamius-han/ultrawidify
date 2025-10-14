@@ -152,20 +152,20 @@ export class Aard {
 
     this.canvasSamples = {
       top: generateSampleArray(
-        this.settings.active.arDetect.sampling.staticCols,
-        this.settings.active.arDetect.canvasDimensions.sampleCanvas.width
+        this.settings.active.aard.sampling.staticCols,
+        this.settings.active.aard.canvasDimensions.sampleCanvas.width
       ),
       bottom: generateSampleArray(
-        this.settings.active.arDetect.sampling.staticCols,
-        this.settings.active.arDetect.canvasDimensions.sampleCanvas.width
+        this.settings.active.aard.sampling.staticCols,
+        this.settings.active.aard.canvasDimensions.sampleCanvas.width
       ),
       left: generateSampleArray(
-        this.settings.active.arDetect.sampling.staticCols,
-        this.settings.active.arDetect.canvasDimensions.sampleCanvas.height
+        this.settings.active.aard.sampling.staticCols,
+        this.settings.active.aard.canvasDimensions.sampleCanvas.height
       ),
       right: generateSampleArray(
-        this.settings.active.arDetect.sampling.staticCols,
-        this.settings.active.arDetect.canvasDimensions.sampleCanvas.height
+        this.settings.active.aard.sampling.staticCols,
+        this.settings.active.aard.canvasDimensions.sampleCanvas.height
       )
     };
 
@@ -188,14 +188,14 @@ export class Aard {
   }
 
   private createCanvas(canvasId: string, canvasType?: 'webgl' | 'legacy') {
-    ROW_SIZE = this.settings.active.arDetect.canvasDimensions.sampleCanvas.width * PIXEL_SIZE;
+    ROW_SIZE = this.settings.active.aard.canvasDimensions.sampleCanvas.width * PIXEL_SIZE;
 
     if (canvasType) {
-      if (canvasType === this.settings.active.arDetect.aardType || this.settings.active.arDetect.aardType === 'auto') {
+      if (canvasType === this.settings.active.aard.aardType || this.settings.active.aard.aardType === 'auto') {
         if (canvasType === 'webgl') {
-          return new GlCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-gl'});
+          return new GlCanvas({...this.settings.active.aard.canvasDimensions.sampleCanvas, id: 'main-gl'});
         } else if (canvasType === 'legacy') {
-          return new FallbackCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-legacy'});
+          return new FallbackCanvas({...this.settings.active.aard.canvasDimensions.sampleCanvas, id: 'main-legacy'});
         } else {
           // TODO: throw error
         }
@@ -205,21 +205,21 @@ export class Aard {
 
     }
 
-    if (['auto', 'webgl'].includes(this.settings.active.arDetect.aardType)) {
+    if (['auto', 'webgl'].includes(this.settings.active.aard.aardType)) {
       try {
-        return new GlCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-gl'});
+        return new GlCanvas({...this.settings.active.aard.canvasDimensions.sampleCanvas, id: 'main-gl'});
       } catch (e) {
-        if (this.settings.active.arDetect.aardType !== 'webgl') {
-          return new FallbackCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-legacy'});
+        if (this.settings.active.aard.aardType !== 'webgl') {
+          return new FallbackCanvas({...this.settings.active.aard.canvasDimensions.sampleCanvas, id: 'main-legacy'});
         }
         this.logger.error('createCanvas', 'could not create webgl canvas:', e);
         this.eventBus.send('uw-config-broadcast', {type: 'aard-error', aardErrors: {webglError: true}});
         throw e;
       }
-    } else if (this.settings.active.arDetect.aardType === 'legacy') {
-      return new FallbackCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'main-legacy'});
+    } else if (this.settings.active.aard.aardType === 'legacy') {
+      return new FallbackCanvas({...this.settings.active.aard.canvasDimensions.sampleCanvas, id: 'main-legacy'});
     } else {
-      this.logger.error('createCanvas', 'invalid value in settings.arDetect.aardType:', this.settings.active.arDetect.aardType);
+      this.logger.error('createCanvas', 'invalid value in settings.arDetect.aardType:', this.settings.active.aard.aardType);
       this.eventBus.send('uw-config-broadcast', {type: 'aard-error', aardErrors: {invalidSettings: true}});
       throw 'AARD_INVALID_SETTINGS';
     }
@@ -231,7 +231,7 @@ export class Aard {
    */
   private showDebugCanvas() {
     if (!this.canvasStore.debug) {
-      this.canvasStore.debug = new GlDebugCanvas({...this.settings.active.arDetect.canvasDimensions.sampleCanvas, id: 'uw-debug-gl'});
+      this.canvasStore.debug = new GlDebugCanvas({...this.settings.active.aard.canvasDimensions.sampleCanvas, id: 'uw-debug-gl'});
     }
     this.canvasStore.debug.enableFx();
     if (!this.debugConfig.debugUi) {
@@ -290,8 +290,8 @@ export class Aard {
     }
 
     // do full reset of test samples
-    this.testResults = initAardTestResults(this.settings.active.arDetect);
-    this.verticalTestResults = initAardTestResults(this.settings.active.arDetect);
+    this.testResults = initAardTestResults(this.settings.active.aard);
+    this.verticalTestResults = initAardTestResults(this.settings.active.aard);
 
     if (this.animationFrame) {
       window.cancelAnimationFrame(this.animationFrame);
@@ -301,8 +301,8 @@ export class Aard {
     this.animationFrame = window.requestAnimationFrame( (ts: DOMHighResTimeStamp) => this.onAnimationFrame(ts));
 
     // set auto-disable timer if detection timeout is set
-    if (this.settings.active.arDetect.autoDisable.ifNotChanged) {
-      this.timers.autoDisableAt = Date.now() + this.settings.active.arDetect.autoDisable.ifNotChangedTimeout;
+    if (this.settings.active.aard.autoDisable.ifNotChanged) {
+      this.timers.autoDisableAt = Date.now() + this.settings.active.aard.autoDisable.ifNotChangedTimeout;
     }
   }
 
@@ -314,8 +314,8 @@ export class Aard {
     this.stop();
 
     if (options?.noCache) {
-      this.testResults = initAardTestResults(this.settings.active.arDetect);
-      this.verticalTestResults = initAardTestResults(this.settings.active.arDetect);
+      this.testResults = initAardTestResults(this.settings.active.aard);
+      this.verticalTestResults = initAardTestResults(this.settings.active.aard);
     }
 
     this.main();
@@ -342,7 +342,7 @@ export class Aard {
     // if video was paused & we know that we already checked that frame,
     // we will not check it again.
     const videoState = this.getVideoPlaybackState();
-    const polling = this.settings.active.arDetect.polling;
+    const polling = this.settings.active.aard.polling;
     const now = Date.now();
 
     if (videoState !== VideoPlaybackState.Playing) {
@@ -375,8 +375,8 @@ export class Aard {
       return false;
     }
 
-    this.timers.nextFrameCheckTime = now + this.settings.active.arDetect.timers.playing;
-    this.timers.reducedPollingNextCheckTime = now + this.settings.active.arDetect.timers.playingReduced;
+    this.timers.nextFrameCheckTime = now + this.settings.active.aard.timers.playing;
+    this.timers.reducedPollingNextCheckTime = now + this.settings.active.aard.timers.playingReduced;
     return true;
   }
 
@@ -403,7 +403,7 @@ export class Aard {
    * Main loop for scanning aspect ratio changes
    */
   private async main() {
-    const arConf =  this.settings.active.arDetect;
+    const arConf =  this.settings.active.aard;
 
     try {
       this.timer.next();
@@ -745,8 +745,8 @@ export class Aard {
     const lastPixelOffset = ROW_SIZE - PIXEL_SIZE;
     const imageSize = ROW_SIZE * height;
 
-    const xLimit = this.settings.active.arDetect.letterboxOrientationScan.letterboxLimit;
-    const yLimit = this.settings.active.arDetect.letterboxOrientationScan.pillarboxLimit;
+    const xLimit = this.settings.active.aard.letterboxOrientationScan.letterboxLimit;
+    const yLimit = this.settings.active.aard.letterboxOrientationScan.pillarboxLimit;
 
     let letterbox = true, pillarbox = true;
     let xCount = 0, yCount = 0;
@@ -844,7 +844,7 @@ export class Aard {
    */
   private updateLetterboxEdgeCandidates(crossDimension: number, topCandidate: number, bottomCandidate: number) {
     const bottomDistance = (crossDimension - bottomCandidate);
-    const maxOffset = ~~(crossDimension * this.settings.active.arDetect.edgeDetection.maxLetterboxOffset);
+    const maxOffset = ~~(crossDimension * this.settings.active.aard.edgeDetection.maxLetterboxOffset);
     const diff = Math.abs(topCandidate - bottomDistance);
     const candidateAvg = ~~((topCandidate + bottomDistance) * 0.5);
 
@@ -869,7 +869,7 @@ export class Aard {
    * @returns
    */
    private subtitleScan(imageData: Uint8Array, width: number, height: number, skipAdvancedScan: boolean) {
-    const scanConf = this.settings.active.arDetect.subtitles;
+    const scanConf = this.settings.active.aard.subtitles;
 
     this.testResults.subtitleDetected = false;
 
@@ -931,8 +931,8 @@ export class Aard {
   ) {
     results.uncertain = false;
 
-    const scanConf = this.settings.active.arDetect.subtitles;
-    const arConf = this.settings.active.arDetect;
+    const scanConf = this.settings.active.aard.subtitles;
+    const arConf = this.settings.active.aard;
 
     let letterCount, imageSegmentCount, potentialFadedLetterCount, potentialFadedLetterCountInvalidated, nonGradientPixelCount, letterSize, imageSize, imageSegmentSize, imageWeightedSize, segmentWeights, imageSegmentAlignment, imageSegmentAlignmentSamples,
       isOnLetter, isOnImage, isBlank,
@@ -940,7 +940,7 @@ export class Aard {
     let rowStart, rowEnd, rowMid, rowGTA, rowGTB; // GT = gradient test
     let imageConfirmPass = false, subtitleConfirmPass = false;
 
-    let innerIteration, outerIteration = 0;
+    let outerIteration = 0;
 
     const rowMargin = Math.floor(scanConf.scanMargin * ROW_SIZE);
     const imageThreshold = Math.floor((ROW_SIZE - (rowMargin * 2)) * arConf.edgeDetection.minValidImage * PIXEL_SIZE_FRACTION);
@@ -953,8 +953,11 @@ export class Aard {
       (scanSpacing > 0 && searchRow < endRow) || (scanSpacing < 0 && searchRow > endRow);
       searchRow += scanSpacing
     ) {
-      innerIteration = 0;
-      outerIteration++;
+      if (++outerIteration > height) {
+        console.warn('[ultrawidify|aard::subtitleScanRegionLinear] — scan got stuck in an infinite loop. This shouldn\'t happen.');
+        results.uncertain;
+        break outerLoop;
+      }
 
       letterCount = 0;
       potentialFadedLetterCount = 0;
@@ -1019,8 +1022,6 @@ export class Aard {
        */
 
       while (rowStart < rowEnd) {
-        innerIteration++;
-
         const r = imageData[rowStart], g = imageData[rowStart + 1], b = imageData[rowStart + 2];
 
         const on = r > scanConf.subtitleSubpixelThresholdOn
@@ -1316,7 +1317,7 @@ export class Aard {
     const maxRatio = Math.max(ar, this.testResults.activeAspectRatio);
     const diff = Math.abs(ar - this.testResults.activeAspectRatio);
 
-    if ((diff / maxRatio) > this.settings.active.arDetect.allowedArVariance || options?.forceReset) {
+    if ((diff / maxRatio) > this.settings.active.aard.allowedArVariance || options?.forceReset) {
       this.videoData.resizer.updateAr({
         type: AspectRatioType.AutomaticUpdate,
         ratio: ar,
@@ -1326,11 +1327,11 @@ export class Aard {
       this.testResults.activeAspectRatio = ar;
 
       if (!options?.uncertainDetection) {
-        if (this.settings.active.arDetect.autoDisable.onFirstChange) {
+        if (this.settings.active.aard.autoDisable.onFirstChange) {
           this.status.autoDisabled = true;
         }
-        if (this.settings.active.arDetect.autoDisable.ifNotChanged) {
-          this.timers.autoDisableAt = Date.now() + this.settings.active.arDetect.autoDisable.ifNotChangedTimeout;
+        if (this.settings.active.aard.autoDisable.ifNotChanged) {
+          this.timers.autoDisableAt = Date.now() + this.settings.active.aard.autoDisable.ifNotChangedTimeout;
         }
       }
 

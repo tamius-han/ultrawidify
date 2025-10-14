@@ -90,6 +90,7 @@ export interface AardSubtitleScanOptions {
 
 export interface AardSettings {
   aardType: 'webgl' | 'legacy' | 'auto';
+  useLegacy: boolean,
 
   earlyStopOptions: {
     stopAfterFirstDetection: boolean;
@@ -183,6 +184,131 @@ export interface AardSettings {
   }
 }
 
+export interface AardLegacySettings {
+  aardType: 'webgl' | 'legacy' | 'auto';
+
+  earlyStopOptions: {
+    stopAfterFirstDetection: boolean;
+    stopAfterTimeout: boolean;
+    stopTimeout: number;
+  },
+
+  polling: {
+    runInBackgroundTabs: AardPollingOptions;
+    runOnSmallVideos: AardPollingOptions;
+  }
+
+  disabledReason: string,     // if automatic aspect ratio has been disabled, show reason
+  allowedMisaligned: number,  // top and bottom letterbox thickness can differ by this much.
+                              // Any more and we don't adjust ar.
+  allowedArVariance: number,  // amount by which old ar can differ from the new (1 = 100%)
+  timers: {                   // autodetection frequency
+    playing: number,            // while playing
+    playingReduced: number,     // while video/player element has insufficient size
+    paused: number,             // while paused
+    error: number,              // after error
+    minimumTimeout: number,
+    tickrate: number,          // 1 tick every this many milliseconds
+  },
+
+  subtitles: AardSubtitleScanOptions,
+
+  autoDisable: {            // settings for automatically disabling the extension
+    onFirstChange: boolean,
+    ifNotChanged: boolean,
+    ifNotChangedTimeout: number,
+    ifSubtitles: boolean;
+  },
+  canvasDimensions: {
+    blackframeCanvas: {   // smaller than sample canvas, blackframe canvas is used to recon for black frames
+                          // it's not used to detect aspect ratio by itself, so it can be tiny af
+      width: number,
+      height: number,
+    },
+    sampleCanvas: {   // size of image sample for detecting aspect ratio. Bigger size means more accurate results,
+                          // at the expense of performance
+      width: number,
+      height: number,
+    },
+  },
+
+  blackLevels: {
+    defaultBlack: number,    // By default, pixels darker than this are considered black.
+                             // (If detection algorithm detects darker blacks, black is considered darkest detected pixel)
+    blackTolerance: number,  // If pixel is more than this much brighter than blackLevel, it's considered not black
+                             // It is not considered a valid image detection if gradient detection is enabled
+    imageDelta: number,      // When gradient detection is enabled, pixels this much brighter than black skip gradient detection
+  }
+  sampling: {
+    edgePosition: number;    // % of width (max 0.33). Pixels up to this far away from either edge may contain logo.
+    staticCols: number,      // we take a column at [0-n]/n-th parts along the width and sample it
+    randomCols: number,      // we add this many randomly selected columns to the static columns
+    staticRows: number,      // forms grid with staticSampleCols. Determined in the same way. For black frame checks,
+  },
+
+  // pls deprecate and move things used
+  edgeDetection: {
+    slopeTestWidth: number,
+    gradientTestSamples: number,         // we check this many pixels below (or above) the suspected edge to check for gradient
+    gradientTestBlackThreshold: number,  // if pixel in test sample is brighter than that, we aren't looking at gradient
+    gradientTestDeltaThreshold: number,  // if delta between two adjacent pixels in gradient test exceeds this, it's not gradient
+
+    thresholds: {
+      edgeDetectionLimit: number,             // during scanning of the edge, quit after edge gets detected at this many points
+      minQualitySingleEdge: number,           // At least one of the detected must reach this quality
+      minQualitySecondEdge: number,           // The other edge must reach this quality (must be smaller or equal to single edge quality)
+    }
+
+    gradientThreshold: number,           // if more than this percentage (0-1) is detected as gradient, we mark edge as gradient
+    gradientTestMinDelta: number,        // if difference between test row and before row is MORE than this -> not gradient
+    gradientTestMinDeltaAfter: number,   // if difference between test row and after row is LESS than this -> not gradient
+    gradientTestMaxDeltaAfter: number,   // if difference between test row and after row is MORE than this -> not gradient
+    maxLetterboxOffset: number,          // Upper and lower letterbox can be different by this many (% of height)
+
+    // Previous iteration variables VVVV
+    sampleWidth: number,        // we take a sample this wide for edge detection
+    detectionThreshold: number,  // sample needs to have this many non-black pixels to be a valid edge
+    confirmationThreshold: number,  //
+    singleSideConfirmationThreshold: number,    // we need this much edges (out of all samples, not just edges) in order
+                                           // to confirm an edge in case there's no edges on top or bottom (other
+                                          // than logo, of course)
+    logoThreshold: number,     // if edge candidate sits with count greater than this*all_samples, it can't be logo
+                               // or watermark.
+    edgeTolerancePx?: number,          // we check for black edge violation this far from detection point
+    edgeTolerancePercent?: number,  // we check for black edge detection this % of height from detection point. unused
+    middleIgnoredArea: number,      // we ignore this % of canvas height towards edges while detecting aspect ratios
+    minColsForSearch: number,       // if we hit the edge of blackbars for all but this many columns (%-wise), we don't
+                                    // continue with search. It's pointless, because black edge is higher/lower than we
+                                    // are now. (NOTE: keep this less than 1 in case we implement logo detection)
+    edgeMismatchTolerancePx: number,// corners and center are considered equal if they differ by at most this many px
+
+
+    minValidImage: number,               // if more than this % (0-1) of row is image, we confirm image regardless of other criteria except gradient
+    maxEdgeSegments: number,             // if edge has more than this many segments, we consider it unreliable
+    minEdgeSegmentSize: number,
+    averageEdgeThreshold: number,        // average edge must be this many px
+  },
+
+  letterboxOrientationScan: {
+    letterboxLimit: number,  // how many non-black pixels we can detect before ruling out letterbox
+    pillarboxLimit: number,  // how many non-black pixels we can detect before ruling out pillarbox
+  }
+
+  pillarTest: {
+    ignoreThinPillarsPx: number, // ignore pillars that are less than this many pixels thick.
+    allowMisaligned: number   // left and right edge can vary this much (%)
+  },
+  textLineTest: {
+    nonTextPulse: number,     // if a single continuous pulse has this many non-black pixels, we aren't dealing
+                            // with text. This value is relative to canvas width (%)
+    pulsesToConfirm: number,    // this is a threshold to confirm we're seeing text.
+    pulsesToConfirmIfHalfBlack: number, // this is the threshold to confirm we're seeing text if longest black pulse
+                                   // is over 50% of the canvas width
+    testRowOffset: number     // we test this % of height from detected edge
+  }
+}
+
+
 interface DevSettings {
   loadFromSnapshot: boolean,
 }
@@ -194,7 +320,8 @@ interface SettingsInterface {
   }
   dev: DevSettings,
 
-  arDetect: AardSettings,
+  aardLegacy: AardLegacySettings,
+  aard: AardSettings,
 
   ui: {
     inPlayer: {

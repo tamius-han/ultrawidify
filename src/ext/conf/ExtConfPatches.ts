@@ -255,17 +255,25 @@ const ExtensionConfPatch = Object.freeze([
   {
     forVersion: '6.3.93',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface) => {
-      userOptions.arDetect.polling = defaultOptions.arDetect.polling;
-      userOptions.arDetect.subtitles = defaultOptions.arDetect.subtitles;
-      userOptions.arDetect.autoDisable = defaultOptions.arDetect.autoDisable;
+      (userOptions as any).arDetect.polling = defaultOptions.aard.polling;
+      (userOptions as any).arDetect.subtitles = defaultOptions.aard.subtitles;
+      (userOptions as any).arDetect.autoDisable = defaultOptions.aard.autoDisable;
     }
   },
   {
-    forVersion: '6.3.97',
+    forVersion: '6.3.98',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface) => {
-      userOptions.arDetect.letterboxOrientationScan = defaultOptions.arDetect.letterboxOrientationScan;
-      userOptions.arDetect.edgeDetection = defaultOptions.arDetect.edgeDetection;
-      userOptions.arDetect.subtitles = defaultOptions.arDetect.subtitles;
+      (userOptions as any).arDetect.letterboxOrientationScan = defaultOptions.aard.letterboxOrientationScan;
+      (userOptions as any).arDetect.edgeDetection = defaultOptions.aard.edgeDetection;
+      (userOptions as any).arDetect.subtitles = defaultOptions.aard.subtitles;
+    }
+  },
+  {
+    forVersion: '6.3.98',
+    upgradeFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface) => {
+      userOptions.aard = defaultOptions.aard;
+      userOptions.aardLegacy = defaultOptions.aardLegacy;
+      delete (userOptions as any).arDetect;
     }
   }
 

@@ -12,18 +12,28 @@
           <div class="settings-segment">
 
             <div class="field">
+              <div class="label">Autodetection mode (requires page reload)</div>
+              <div class="select">
+                <select v-model="settings.active.aard.useLegacy" @change="aardLegacyModeChanged">
+                  <option :value="true">Legacy</option>
+                  <option :value="false">Experimental</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
               <div class="label">Autodetection frequency (time between samples)</div>
               <div class="range-input">
                 <input
                   type="range"
-                  :value="Math.log(settings.active.arDetect.timers.playing)"
+                  :value="Math.log(aardSettings.timers.playing)"
                   @change="setArCheckFrequency($event.target.value)"
                   min="2.3"
                   max="9.3"
                   step="0.01"
                 />
                 <input
-                  v-model="settings.active.arDetect.timers.playing"
+                  v-model="aardSettings.timers.playing"
                   @change="setArCheckFrequency($event.target.value)"
                   class="input"
                   type="text"
@@ -37,14 +47,14 @@
               <div class="range-input">
                 <input
                   type="range"
-                  :value="Math.log(settings.active.arDetect.timers.playingReduced)"
+                  :value="Math.log(aardSettings.timers.playingReduced)"
                   @change="setArCheckFrequency($event.target.value, 'playingReduced')"
                   min="2.3"
                   max="9.3"
                   step="0.01"
                 />
                 <input
-                  v-model="settings.active.arDetect.timers.playingReduced"
+                  v-model="aardSettings.timers.playingReduced"
                   @change="setArCheckFrequency($event.target.value, 'playingReduced')"
                   class="input"
                   type="text"
@@ -56,64 +66,64 @@
             <div class="field">
               <div class="label">Poll for aspect ratio changes in background tabs:</div>
               <div class="select">
-                <select v-model="settings.active.arDetect.polling.runInBackgroundTabs" @change="settings.saveWithoutReload">
+                <select v-model="aardSettings.polling.runInBackgroundTabs" @change="settings.saveWithoutReload">
                   <option :value="AardPollingOptions.No">Never</option>
                   <option :value="AardPollingOptions.Reduced">Use reduced polling rate</option>
                   <option :value="AardPollingOptions.Full">Use normal polling rate</option>
                 </select>
               </div>
             </div>
-            <div v-if="settings.active.arDetect.polling.runInBackgroundTabs === AardPollingOptions.Full" class="hint warn">
+            <div v-if="aardSettings.polling.runInBackgroundTabs === AardPollingOptions.Full" class="hint warn">
               Using normal polling rate in background tabs is NOT recommended.
             </div>
 
             <div class="field">
               <div class="label">Poll for aspect ratio changes in small players:</div>
               <div class="select">
-                <select v-model="settings.active.arDetect.polling.runOnSmallVideos" @change="settings.saveWithoutReload">
+                <select v-model="aardSettings.polling.runOnSmallVideos" @change="settings.saveWithoutReload">
                   <option :value="AardPollingOptions.No">Never</option>
                   <option :value="AardPollingOptions.Reduced">Use reduced polling rate</option>
                   <option :value="AardPollingOptions.Full">Use normal polling rate</option>
                 </select>
               </div>
             </div>
-            <div v-if="settings.active.arDetect.polling.runOnSmallVideos === AardPollingOptions.Full" class="hint warn">
+            <div v-if="aardSettings.polling.runOnSmallVideos === AardPollingOptions.Full" class="hint warn">
               Using normal polling rate on small videos is NOT recommended.
             </div>
 
             <div class="field">
               <div class="label">Stop autodetection after first detection:</div>
               <div class="select">
-                <select v-model="settings.active.arDetect.autoDisable.onFirstChange" @change="settings.saveWithoutReload">
+                <select v-model="aardSettings.autoDisable.onFirstChange" @change="settings.saveWithoutReload">
                   <option :value="true">Yes</option>
                   <option :value="false">No</option>
                 </select>
               </div>
             </div>
 
-            <div class="field" :class="{disabled: settings.active.arDetect.autoDisable.onFirstChange}">
+            <div class="field" :class="{disabled: aardSettings.autoDisable.onFirstChange}">
               <div class="label">Stop autodetection if aspect ratio doesn't change for some time:</div>
               <div class="select">
-                <select v-model="settings.active.arDetect.autoDisable.ifNotChanged" @change="settings.saveWithoutReload">
+                <select v-model="aardSettings.autoDisable.ifNotChanged" @change="settings.saveWithoutReload">
                   <option :value="true">Yes</option>
                   <option :value="false">No</option>
                 </select>
               </div>
             </div>
 
-            <div v-if="settings.active.arDetect.autoDisable.ifNotChanged" class="field">
+            <div v-if="aardSettings.autoDisable.ifNotChanged" class="field">
               <div class="label">Stop autodetection if aspect ratio doesn't change for:</div>
               <div class="range-input">
                 <input
                   type="range"
-                  :value="Math.log(settings.active.arDetect.autoDisable.ifNotChangedTimeout / 10)"
+                  :value="Math.log(aardSettings.autoDisable.ifNotChangedTimeout / 10)"
                   @change="setAutoDisableTimeout($event.target.value, 10)"
                   min="2.3"
                   max="9.3"
                   step="0.01"
                 />
                 <input
-                  :value="settings.active.arDetect.autoDisable.ifNotChangedTimeout / 1000"
+                  :value="aardSettings.autoDisable.ifNotChangedTimeout / 1000"
                   @change="setAutoDisableTimeout($event.target.value, 1000)"
                   class="input"
                   type="text"
@@ -125,7 +135,7 @@
             <div class="field">
               <div class="label">Autodetection canvas type:</div>
               <div class="select">
-                <select v-model="settings.active.arDetect.aardType" @change="settings.saveWithoutReload">
+                <select v-model="aardSettings.aardType" @change="settings.saveWithoutReload">
                   <option value="auto">Automatic</option>
                   <option value="webgl">WebGL only</option>
                   <option value="legacy">Legacy / fallback</option>
@@ -136,7 +146,7 @@
             <div class="field">
               <div class="label">Maximum allowed vertical video misalignment:</div>
               <div class="input">
-                <input v-model="settings.active.arDetect.allowedMisaligned" />
+                <input v-model="aardSettings.allowedMisaligned" />
               </div>
             </div>
             <div class="hint">
@@ -154,7 +164,7 @@
             <div class="field">
               <div class="label">Subtitle detection:</div>
               <div class="select">
-                <select v-model="settings.active.arDetect.subtitles.subtitleCropMode" @change="settings.saveWithoutReload">
+                <select v-model="aardSettings.subtitles.subtitleCropMode" @change="settings.saveWithoutReload">
                   <option :value="AardSubtitleCropMode.DisableScan">Do not detect subtitles</option>
                   <option :value="AardSubtitleCropMode.ResetAR">Do not crop while subtitles are on screen</option>
                   <option :value="AardSubtitleCropMode.ResetAndDisable">Stop autodetection if subtitles are detected</option>
@@ -163,19 +173,19 @@
               </div>
             </div>
 
-            <div v-if="settings.active.arDetect.subtitles.subtitleCropMode === AardSubtitleCropMode.ResetAR" class="field">
+            <div v-if="aardSettings.subtitles.subtitleCropMode === AardSubtitleCropMode.ResetAR" class="field">
               <div class="label">Wait before resuming detection:</div>
               <div class="range-input">
                 <input
                   type="range"
-                  :value="Math.log(settings.active.arDetect.subtitles.resumeAfter / 10)"
+                  :value="Math.log(aardSettings.subtitles.resumeAfter / 10)"
                   @change="setSubtitleTimeout($event.target.value, 10)"
                   min="2.3"
                   max="9.3"
                   step="0.01"
                 />
                 <input
-                  :value="settings.active.arDetect.subtitles.resumeAfter / 1000"
+                  :value="aardSettings.subtitles.resumeAfter / 1000"
                   @change="setSubtitleTimeout($event.target.value, 1000)"
                   class="input"
                   type="text"
@@ -261,6 +271,9 @@ export default {
     }
   },
   computed: {
+    aardSettings() {
+      return this.settings.active.aard.useLegacy ? this.settings.active.aardLegacy : this.settings.active.aard;
+    }
   },
   created() {
     this.eventBus.subscribe(
@@ -285,15 +298,15 @@ export default {
       BrowserDetect.runtime.openOptionsPage();
     },
     setArCheckFrequency(event, timer) {
-      this.settings.active.arDetect.timers[timer ?? 'playing'] = Math.floor(Math.pow(Math.E, event));
+      this.aardSettings.timers[timer ?? 'playing'] = Math.floor(Math.pow(Math.E, event));
       this.settings.saveWithoutReload();
     },
     setAutoDisableTimeout(event, multiplier) {
-      this.settings.active.arDetect.autoDisable.ifNotChangedTimeout = Math.floor(Math.pow(Math.E, event)) * multiplier;
+      this.aardSettings.autoDisable.ifNotChangedTimeout = Math.floor(Math.pow(Math.E, event)) * multiplier;
       this.settings.saveWithoutReload();
     },
     setSubtitleTimeout(event, multiplier) {
-      this.settings.active.arDetect.subtitles.resumeAfter = Math.floor(Math.pow(Math.E, event)) * multiplier;
+      this.aardSettings.subtitles.resumeAfter = Math.floor(Math.pow(Math.E, event)) * multiplier;
       this.settings.saveWithoutReload();
     },
     refreshGraph() {
@@ -311,6 +324,9 @@ export default {
     saveDebugUiSettings() {
       this.settings.active.ui.dev.aardDebugOverlay = JSON.parse(JSON.stringify(this.settingsJson));
       this.settings.saveWithoutReload();
+    },
+    aardLegacyModeChanged() {
+      this.settings.save();
     }
   },
 
