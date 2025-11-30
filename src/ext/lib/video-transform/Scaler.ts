@@ -173,7 +173,7 @@ class Scaler {
     // ONCE before throwing an error
     if( (! this.conf.player.dimensions) || this.conf.player.dimensions.width === 0 || this.conf.player.dimensions.height === 0 ){
       this.logger.error('calculateCrop', "ERROR — no (or invalid) this.conf.player.dimensions:",this.conf.player.dimensions);
-      this.conf.player.updatePlayer();
+      (this.conf.player as any)._requestTick(true);
 
       if( (! this.conf.player.dimensions) || this.conf.player.dimensions.width === 0 || this.conf.player.dimensions.height === 0 ){
         return {error: "this.conf.player.dimensions_error"};

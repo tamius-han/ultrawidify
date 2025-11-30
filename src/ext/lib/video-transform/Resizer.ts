@@ -343,10 +343,6 @@ class Resizer {
     }
     this.pendingAr = null;
 
-    if (! this.videoData.player.dimensions) {
-      this.videoData.player.updatePlayer();
-    }
-
     // If no aspect ratio is applied AND if no stretch mode is active,
     // we disable our CSS in order to prevent breaking websites by default,
     // without any human interaction

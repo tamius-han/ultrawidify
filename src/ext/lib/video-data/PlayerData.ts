@@ -130,7 +130,7 @@ class PlayerData {
       function: (data) => this.markElement(data)
     }],
     'update-player': [{
-      function: () => this.updatePlayer()
+      function: () => this._requestTick(true)
     }],
     'set-run-level': [{
       function: (runLevel) => this.setRunLevel(runLevel)
@@ -207,7 +207,7 @@ class PlayerData {
 
       // do the rest
       this.invalid = false;
-      this.updatePlayer();
+      this.updatePlayer(this.getPlayer());
       this.isTooSmall = this.checkIfTooSmall();;
 
       this.initEventBus();
@@ -331,7 +331,7 @@ class PlayerData {
 
   private reloadPlayerDataConfig(siteConfUpdate) {
     // this.siteSettings = siteConfUpdate;
-    this.updatePlayer();
+    // this.updatePlayer();
 
     this.periodicallyRefreshPlayerElement = false;
     try {
@@ -471,7 +471,7 @@ class PlayerData {
     commitChanges:
     {
       if (changes.fullScreen)   this.isFullscreen = fs;
-      if (changes.player)       this.element = newPlayerCandidate;
+      if (changes.player)       this.updatePlayer(newPlayerCandidate);
       if (changes.theater)      this.isTheaterMode = isTheaterMode;
       if (changes.dimensions)   this.dimensions = currentDimensions;
 
@@ -560,13 +560,18 @@ class PlayerData {
     return this.elementStack;
   }
 
-  updatePlayer(options?: {verbose?: boolean, newElement?: HTMLElement}) {
-    const newPlayer = options?.newElement ?? this.getPlayer(options);
-
+  /**
+   * Updates current player element
+   * @param options
+   * @returns
+   */
+  updatePlayer(newPlayer: HTMLElement, options?: {verbose?: boolean}) {
     if (newPlayer === this.element || !newPlayer) {
       return;
     }
-    this.observer?.unobserve(this.element);
+    if (this.element) {
+      this.observer?.unobserve(this.element);
+    }
 
     // clean up and re-initialize UI
     this.ui?.destroy();
@@ -587,8 +592,6 @@ class PlayerData {
         siteSettings: this.siteSettings,
       }
     );
-
-    this.requestTick();
   }
 
   /**
@@ -670,7 +673,7 @@ class PlayerData {
       // console.log('updated site settings:', this.siteSettings.data.playerAutoConfig);
       // this.videoData.settings.saveWithoutReload();
 
-      this.updatePlayer({newElement: elementStack[nextIndex].element});
+      this.updatePlayer(elementStack[nextIndex].element);
     }
   }
 
@@ -714,7 +717,6 @@ class PlayerData {
       // Don't bother thinking about this too much, as any "thinking" was quickly
       // corrected by bugs caused by various edge cases.
       if (
-
         equalish(elementData.height, videoHeight, 5)
         || equalish(elementData.width, videoWidth, 5)
       ) {
@@ -785,17 +787,23 @@ class PlayerData {
 
     // BUT WAIT! THERE'S MORE
     // Some sites (youtube) can re-parent elements, causing current player element to vanish from DOM
+    // Which means we need to set up an observer that will re-acquire the player when that happens.
+    // TODO: Ideally, observer should request a tick
     if (bestCandidate) {
-      const observer = new MutationObserver( (mutations) => {
-        mutations.forEach((mutation) => {
-          mutation.removedNodes.forEach((node) => {
-            if (node === bestCandidate.element) {
-              observer.disconnect();
-              this.updatePlayer();
-            }
-          })
-        });
-      });
+      const observer = new MutationObserver(
+        (mutations) => {
+          mutations.forEach((mutation) => {
+            mutation.removedNodes.forEach((node) => {
+              if (node === bestCandidate.element) {
+                observer.disconnect();
+                this.updatePlayer(
+                  this.getPlayer()
+                );
+              }
+            })
+          });
+        }
+      );
       observer.observe(bestCandidate.element.parentNode, {childList: true});
     }
 
@@ -866,7 +874,7 @@ class PlayerData {
    */
   private handlePlayerTreeRequest() {
     // this populates this.elementStack fully
-    this.updatePlayer({verbose: true});
+    // this.updatePlayer({verbose: true});
     this.eventBus.send('uw-config-broadcast', {type: 'player-tree', config: JSON.parse(JSON.stringify(this.elementStack))});
   }
 
@@ -905,7 +913,8 @@ class PlayerData {
   }
 
   forceRefreshPlayerElement() {
-    this.updatePlayer();
+    // this.updatePlayer();
+    this._requestTick(true);
   }
 }
 
