@@ -417,13 +417,7 @@ export default({
   }
 })
 </script>
-
-<style lang="scss" src="../../res/css/flex.scss" scoped module></style>
-<style lang="scss" src="@csui/src/res-common/panels.scss" scoped module></style>
-<style lang="scss" src="@csui/src/res-common/common.scss" scoped module></style>
 <style lang="scss" scoped>
-@import "@csui/res/css/colors.scss";
-
 p {
   font-size: 1rem;
 }
@@ -513,8 +507,6 @@ p {
 
 .element-tree {
   .element-row {
-    // display: flex;
-    // flex-direction: row;
     margin: 0.5rem;
 
     .status {
@@ -569,13 +561,6 @@ p {
   }
 }
 
-// .css-fixes {
-//   // display: flex;
-//   // flex-direction: row;
-//   // flex-wrap: wrap;
-//   // align-items: flex-start;
-//   // justify-content:flex-start;
-// }
 .css-line {
   display: inline-block;
   flex-grow: 0;

@@ -339,22 +339,19 @@ export default {
 </script>
 
 <style lang="scss">
-// @import 'res/css/uwui-base.scss';
+/*
 @import 'res/css/colors.scss';
 @import 'res/css/font/overpass.css';
 @import 'res/css/font/overpass-mono.css';
 @import 'res/css/common.scss';
 @import './src/res-common/_variables';
+*/
 
 .header {
   background-color: rgb(90, 28, 13);
   background-color: rgb(0,0,0);
   color: #fff;
   padding: 8px;
-
-  // display: flex;
-  // flex-direction: row;
-  // justify-content: space-between;
 
   border-bottom: 1px dotted #fa6;
 
@@ -529,7 +526,6 @@ export default {
 
       padding: 1rem;
       font-size: 1.25rem;
-      // height: rem;
       min-height: 3rem;
 
       border-bottom: 1px solid rgba(128, 128, 128, 0.5);
@@ -562,9 +558,6 @@ export default {
         opacity: 0.9;
         color: #eee;
 
-        // .label {
-        //   color: rgb(239, 192, 152);
-        // }
       }
     }
   }

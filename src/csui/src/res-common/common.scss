@@ -191,7 +191,6 @@ button, .button {
       max-width: 100%;
 
       color: #fff;
-      // border: 0px solid transparent;
       border: 1px solid rgba(255, 171, 102, 0.42);
 
       padding: 0.5rem 1rem 0.25rem;
@@ -208,7 +207,6 @@ button, .button {
   margin-top: 0.25rem;
   margin-bottom: 0.75rem;
   margin-left: 5rem;
-  // width: 100%;
   box-sizing:border-box;
 
   &.error {
@@ -241,9 +239,6 @@ button, .button {
   padding-right: 0.25rem;
 }
 
-// .input-slider {
-//   width: 480px;
-// }
 .warning-lite {
   padding-right: 16px;
   padding-bottom: 16px;

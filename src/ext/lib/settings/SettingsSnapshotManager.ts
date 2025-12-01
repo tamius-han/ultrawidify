@@ -1,6 +1,4 @@
-import { settings } from 'cluster'
 import SettingsInterface from '@src/common/interfaces/SettingsInterface';
-
 
 export interface SettingsSnapshot {
   isAutomatic?: boolean;
@@ -92,7 +90,7 @@ export class SettingsSnapshotManager {
   async listSnapshots(): Promise<SettingsSnapshot[]> {
     const ret = await chrome.storage.local.get('uwSettings-snapshots');
     try {
-      const json = JSON.parse(ret['uwSettings-snapshots']) as SettingsSnapshot[];
+      const json = JSON.parse(ret['uwSettings-snapshots'] as string) as SettingsSnapshot[];
       return json;
     } catch (e) {
       return [] as SettingsSnapshot[];

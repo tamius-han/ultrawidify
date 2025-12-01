@@ -42,7 +42,7 @@ export class LogAggregator {
   history: any[];
 
   static async getConfig() {
-    let ret = await chrome.storage.local.get(STORAGE_LOG_SETTINGS_KEY);
+    let ret: any = await chrome.storage.local.get(STORAGE_LOG_SETTINGS_KEY);
 
     if (process.env.CHANNEL === 'dev') {
       try {
@@ -73,7 +73,7 @@ export class LogAggregator {
   }
 
   static syncConfig(callback: (x) => void) {
-    chrome.storage.onChanged.addListener( (changes, area) => {
+    chrome.storage.onChanged.addListener( (changes: any, area) => {
       if (changes.uwLogger) {
         const newLoggerConf = JSON.parse(changes.uwLogger.newValue)
         if (process.env.CHANNEL === 'dev') {

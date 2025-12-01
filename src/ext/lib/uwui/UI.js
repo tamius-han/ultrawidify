@@ -1,5 +1,4 @@
-import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
-import { EventBusConnector } from '../EventBus';
+import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: UI");

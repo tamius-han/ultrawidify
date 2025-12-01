@@ -107,9 +107,9 @@ class Logger {
   }
 
   static syncConfig(callback: (x) => void) {
-    chrome.storage.onChanged.addListener( (changes, area) => {
+    chrome.storage.onChanged.addListener( (changes: any, area: string) => {
       if (changes.uwLogger) {
-        const newLoggerConf = JSON.parse(changes.uwLogger.newValue)
+        const newLoggerConf = JSON.parse(changes.uwLogger.newValue as any)
         if (process.env.CHANNEL === 'dev') {
           console.info('Logger settings reloaded. New conf:', newLoggerConf);
         }
@@ -172,7 +172,7 @@ class Logger {
     this.temp_disable = false;
     this.stopTime = this.conf.timeout ? performance.now() + (this.conf.timeout * 1000) : undefined;
 
-    chrome.storage.onChanged.addListener( (changes, area) => {
+    chrome.storage.onChanged.addListener( (changes: any, area: any) => {
       if (process.env.CHANNEL === 'dev') {
         if (!changes.uwLogger) {
           // console.info('[Logger::<storage/on change> No new logger settings!');
@@ -195,7 +195,7 @@ class Logger {
     });
   }
 
-  storageChangeListener(changes, area) {
+  storageChangeListener(changes: any, area: any) {
     if (!changes.uwLogger) {
       console.info('We dont have any logging settings, not processing frther');
       return;

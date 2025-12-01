@@ -81,9 +81,6 @@ export default {
 <style lang="scss" scoped module>
 .alignment-box {
   aspect-ratio: 1;
-  // width: 100%;
-  // min-width: 40px;
-  // max-width: 80px;
 
   display: grid;
   grid-template-columns: repeat(3, 1fr);

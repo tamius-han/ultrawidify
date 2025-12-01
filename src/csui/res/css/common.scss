@@ -1,9 +1,8 @@
-@import "colors.scss";
+/* @import "colors.scss"; */
+/*
 @import "fonts.scss";
 @import "flex.scss";
-// @import "~/@mdi/font/css/materialdesignicons.css";
-
-// @import "form.scss";
+*/
 
 * {
   box-sizing: border-box;
@@ -255,10 +254,6 @@ small {
 button,
 .button {
   /*display: inline-block;*/
-  // padding-top: 8px;
-  // padding-bottom: 3px;
-  //padding-left: 5px;
-  //padding-right: 5px;
   border: 1px solid rgb(39, 39, 39);
   margin-top: 3px;
   margin-bottom: 3px;
@@ -402,10 +397,8 @@ button,
 }
 
 .experimental::after {
-  // content: "Experimental";
   content: "Ⓔ";
   color: #ffde12;
-  // background-color: #1f1f1f;
   display: inline-block;
   font-size: .75em;
   font-variant: small-caps;
@@ -416,9 +409,7 @@ button,
 }
 .experimental:hover::after {
   content: "Ⓔ Experimental";
-  //  content: "";
   color: #ffde12;
-  //  background-color: #1f1f1f;
   display: inline-block;
   font-size: .75em;
   font-variant: small-caps;
@@ -431,7 +422,6 @@ button,
 .sticky-bottom {
   width: 100%;
   position: sticky;
-  // position: fixed;
   bottom: 0px;
   background-color: rgba($background-primary, 0.7);
 }

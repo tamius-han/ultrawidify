@@ -17,7 +17,7 @@ const server = new UWServer();
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === "update") {
     chrome.tabs.create({
-      url: chrome.runtime.getURL("install/updated/updated.html")
+      url: chrome.runtime.getURL("ui/pages/updated/index.html")
     });
   }
 });

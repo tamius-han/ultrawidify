@@ -61,7 +61,7 @@
 </template>
 
 <script>
-import BrowserDetect from '../../ext/conf/BrowserDetect';
+import BrowserDetect from '../../../ext/conf/BrowserDetect';
 import { LogAggregator } from '@src/ext/lib/logging/LogAggregator';
 import { ComponentLogger } from '@src/ext/lib/logging/ComponentLogger';
 
@@ -187,8 +187,6 @@ html, body {
 
 .tabitem {
   font-variant: normal;
-  // font-size: 0.69em;
-  // margin-left: 16px;
   border-left: transparent 3px solid;
   padding-left: 12px;
   margin-left: -10px;
@@ -217,8 +215,6 @@ html, body {
 }
 
 .popup {
-  // max-width: 780px;
-  // width: 800px;
   height: 600px;
 }
 </style>

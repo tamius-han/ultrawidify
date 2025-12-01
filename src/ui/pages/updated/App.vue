@@ -180,8 +180,6 @@ body {
 
 .tabitem {
   font-variant: normal;
-  // font-size: 0.69em;
-  // margin-left: 16px;
   border-left: transparent 3px solid;
   padding-left: 12px;
   margin-left: -10px;
@@ -210,8 +208,6 @@ body {
 }
 
 .popup {
-  // max-width: 780px;
-  // width: 800px;
   height: 600px;
 }
 </style>

@@ -31,6 +31,11 @@
     ]
   },
 
+  "options_ui": {
+    "page": "ui/pages/settings/index.html",
+    "open_in_tab": true
+  },
+
   "web_accessible_resources": [
     {
       "resources": [
@@ -42,7 +47,7 @@
         "res/icons/*",
         "res/img/*",
         "csui/*",
-        "install/*"
+        "ui/*"
       ],
       "matches": [
         "*://*/*"
