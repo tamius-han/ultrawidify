@@ -1,117 +1,40 @@
 @import "tailwindcss";
+@import "tailwindcss/utilities";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@font-face {
-  font-family: 'Overpass';
-  src: url('/ui/res/fonts/overpass-webfont/overpass-thin.woff2') format('woff2'); /* Super Modern Browsers */
-       font-weight: 200;
-       font-style: normal;
+@theme {
+  --color-primary: #ff872c;
+  --color-primary-50:  #ffddbe;
+  --color-primary-100: #ffcda0;
+  --color-primary-200: #ffbd83;
+  --color-primary-300: #ffac66;
+  --color-primary-400: #ff9a4a;
+  --color-primary-500: #ff872c;
+  --color-primary-600: #de7622;
+  --color-primary-700: #be6518;
+  --color-primary-800: #9f540e;
+  --color-primary-900: #824406;
+  --color-primary-950: #663400;
 }
 
-@font-face {
-  font-family: 'Overpass';
-  src: url('/ui/res/fonts/overpass-webfont/overpass-thin-italic.woff2') format('woff2');
-       font-weight: 200;
-       font-style: italic;
+@import './ui/res/styles/forms.css';
+@import './ui/res/styles/fonts.css';
+@import './ui/res/styles/buttons.css';
+
+html, body {
+  font-size: 16px;
+}
+@media (max-width: 999px) {
+  html, body {
+    font-size: 12px;
+  }
 }
 
-@font-face {
-  font-family: 'Overpass';
-  src: url('/ui/res/fonts/overpass-webfont/overpass-extralight.woff2') format('woff2');
-       font-weight: 300;
-       font-style: normal;
-}
+@layer base {
+  body {
+    @apply font-sans text-stone-300;
+  }
 
-@font-face {
-  font-family: 'Overpass';
-  src: url('/ui/res/fonts/overpass-webfont/overpass-extralight-italic.woff2') format('woff2');
-       font-weight: 300;
-       font-style: italic;
-}
-
-@font-face {
-  font-family: 'Overpass';
-  src: url('/ui/res/fonts/overpass-webfont/overpass-light.woff2') format('woff2');
-       font-weight: 400;
-       font-style: normal;
-}
-
-@font-face {
-  font-family: 'Overpass';
-  src: url('/ui/res/fonts/overpass-webfont/overpass-light-italic.woff2') format('woff2');
-       font-weight: 400;
-       font-style: italic;
-}
-
-@font-face {
-  font-family: 'Overpass';
-  src: url('/ui/res/fonts/overpass-webfont/overpass-regular.woff2') format('woff2');
-       font-weight: 500;
-       font-style: normal;
-}
-
-@font-face {
-  font-family: 'Overpass';
-  src: url('/ui/res/fonts/overpass-webfont/overpass-italic.woff2') format('woff2');
-       font-weight: 500;
-       font-style: italic;
-}
-
-@font-face {
-  font-family: 'Overpass';
-  src: url('/ui/res/fonts/overpass-webfont/overpass-semibold.woff2') format('woff2');
-       font-weight: 600;
-       font-style: normal;
-}
-
-@font-face {
-  font-family: 'Overpass';
-  src: url('/ui/res/fonts/overpass-webfont/overpass-semibold-italic.woff2') format('woff2');
-       font-weight: 600;
-       font-style: italic;
-}
-
-@font-face {
-  font-family: 'Overpass';
-  src: url('/ui/res/fonts/overpass-webfont/overpass-bold.woff2') format('woff2');
-       font-weight: 700;
-       font-style: normal;
-}
-
-@font-face {
-  font-family: 'Overpass';
-  src: url('/ui/res/fonts/overpass-webfont/overpass-bold-italic.woff2') format('woff2');
-       font-weight: 700;
-       font-style: italic;
-}
-
-@font-face {
-  font-family: 'Overpass mono';
-  src: url('/ui/res/fonts/overpass-mono-webfont/overpass-mono-light.woff2') format('woff2');
-       font-weight: 300;
-       font-style: normal;
-}
-
-@font-face {
-  font-family: 'Overpass mono';
-  src: url('/ui/res/fonts/overpass-mono-webfont/overpass-mono-regular.woff2') format('woff2');
-       font-weight: 400;
-       font-style: normal;
-}
-
-@font-face {
-  font-family: 'Overpass mono';
-  src: url('/ui/res/fonts/overpass-mono-webfont/overpass-mono-semibold.woff2') format('woff2');
-       font-weight: 500;
-       font-style: normal;
-}
-
-@font-face {
-  font-family: 'Overpass mono';
-  src: url('/ui/res/fonts/overpass-mono-webfont/overpass-mono-bold.woff2') format('woff2');
-       font-weight: 600;
-       font-style: normal;
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-mono;
+  }
 }

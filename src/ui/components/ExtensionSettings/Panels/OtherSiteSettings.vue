@@ -1,14 +1,15 @@
 <template>
-  <div class="">
-    <template v-if="!selectedSite">
+  <div class="flex flex-row gap-8">
+    <div v-if="!selectedSite || !isCompact">
 
-      <div class="flex flex-col container pointer hoverable" style="margin-top: 1rem; padding: 0.5rem 1rem;" @click="selectedSite = '@global'" >
+      <div
+        class="flex flex-col cursor-pointer mt-1 px-4 py-2 bg-black border-1 border-stone-500"
+        :class="{'opacity-50 hover:opacity-100': selectedSite && selectedSite !== '@global' }"
+        @click="selectedSite = '@global'"
+      >
         <div class="flex flex-row">
           <div class="flex-grow pointer">
             <b style="color: #fa6">Default settings</b>
-            <!-- <span :style="getSiteTypeColor('@global')"> -->
-              <!-- (config: {{site.type ?? 'unknown'}}) -->
-            <!-- </span> -->
           </div>
           <div>Edit</div>
         </div>
@@ -16,10 +17,8 @@
           <small>
             <span style="text-transform: uppercase; font-size: 0.9rem">
               Enable extension: <span style="font-size: 0.9rem;" :style="getSiteEnabledColor('@global', 'enable')">{{ getSiteEnabledModes('@global', 'enable') }}</span>
-              {{getSiteEnabledModes('@global', 'enable') === 'disabled'}}
-              <span v-if="getSiteEnabledModes('@global', 'enable') === 'disabled'" class="text-[0.9em]">&nbsp;(except on whitelisted sites)</span>"
-            </span>&nbsp;
-            <br/>
+              <span v-if="getSiteEnabledModes('@global', 'enable') === 'disabled'" class="text-[0.75em] lowercase text-stone-400">&nbsp;(except on whitelisted sites)</span>
+            </span>&nbsp;<br/>
             Autodetection: <span :style="getSiteEnabledColor('@global', 'enableAard')"><small>{{ getSiteEnabledModes('@global', 'enableAard') }}</small></span>;&nbsp;
             Keyboard shortcuts: <span :style="getSiteEnabledColor('@global', 'enableKeyboard')"><small>{{ getSiteEnabledModes('@global', 'enableKeyboard') }}</small></span>;
             In-player UI: <span :style="getSiteEnabledColor('@global', 'enableUI')"><small>{{ getSiteEnabledModes('@global', 'enableUI') }}</small></span>;
@@ -28,7 +27,7 @@
       </div>
 
       <div style="margin-top: 1rem; margin-bottom: 1rem;">
-        <div  class="info" style="float: none">
+        <div  class="border border-blue-500 text-blue-500 bg-slate-950 px-4 py-2" style="float: none">
           <b>NOTE:</b> Sites not on this list use default extension settings.
         </div>
       </div>
@@ -43,36 +42,27 @@
           </div>
         </div>
       </div>
-      <div v-for="site of sites" :key="site.key" @click="selectedSite = site.key" class="flex flex-col container pointer hoverable" style="margin-top: 4px; padding: 0.5rem 1rem;">
-        <div class="flex flex-row">
-          <div class="flex-grow pointer">
-            <b>{{ site.key }}</b>
-            <span :style="getSiteTypeColor(site.type)">
-              (config: {{site.type ?? 'unknown'}})
-            </span>
-          </div>
-          <div>Edit</div>
-        </div>
-        <div class="flex flex-row">
-          <small>
-            Enabled: <span :style="getSiteEnabledColor(site.key, 'enable')"><small>{{ getSiteEnabledModes(site.key, 'enable') }}</small></span>;&nbsp;
-            Aard <span :style="getSiteEnabledColor(site.key, 'enableAard')"><small>{{ getSiteEnabledModes(site.key, 'enableAard') }}</small></span>;&nbsp;
-            kbd: <span :style="getSiteEnabledColor(site.key, 'enableKeyboard')"><small>{{ getSiteEnabledModes(site.key, 'enableKeyboard') }}</small></span>
-            UI: <span :style="getSiteEnabledColor(site.key, 'enableUI')"><small>{{ getSiteEnabledModes(site.key, 'enableUI') }}</small></span>
-          </small>
+      <div  class="flex flex-col gap-2">
+        <div v-for="site of sites" :key="site.key" :class="{'opacity-50 hover:opacity-100': selectedSite && selectedSite !== site.key }">
+          <SiteListItem
+            :host="site.key"
+            :settings="settings"
+            :isActive="selectedSite === site.key"
+            @edit="selectedSite = site.key"
+          ></SiteListItem>
         </div>
       </div>
-    </template>
-    <template v-if="selectedSite">
-      <div class="flex flex-row container" style="align-items: center; color: #dedede; margin-top: 1rem;">
-        <div @click="selectedSite = null" class="pointer button-hover" style=" font-size: 2em; padding: 0.5rem; margin-right: 1em;">
+    </div>
+    <div v-if="selectedSite">
+      <div class="flex flex-row text-[1.5em] items-center gap-2">
+        <div @click="selectedSite = null" class="cursor-pointer bg-black rounded-full px-2">
           ←
         </div>
         <div>
           Editing {{ selectedSite === '@global' ? 'default settings' : selectedSite }}
         </div>
       </div>
-      <div>
+      <div class="border-t-1 border-t-stone-800 mt-4 pt-2">
         <SiteExtensionSettings
           v-if="selectedSiteSettings"
           :settings="settings"
@@ -80,13 +70,14 @@
           :isDefaultConfiguration="selectedSite === '@global'"
         ></SiteExtensionSettings>
       </div>
-    </template>
+    </div>
   </div>
 </template>
 
 <script>
-import ExtensionMode from '../../../../../common/enums/ExtensionMode.enum';
+import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
 import SiteExtensionSettings from './SiteExtensionSettings.vue';
+import SiteListItem from './SiteListItem.vue';
 
 export default {
   data() {
@@ -98,9 +89,11 @@ export default {
   },
   props: [
     'settings',
+    'isCompact',
   ],
   components: {
     SiteExtensionSettings,
+    SiteListItem,
   },
   computed: {
     sites() {
@@ -160,18 +153,8 @@ export default {
 }
 </script>
 
-<style lang="scss" src="../../../../res/css/flex.scss" scoped></style>
-<style lang="scss" src="@csui/src/res-common/panels.scss" scoped></style>
-<style lang="scss" src="@csui/src/res-common/common.scss" scoped></style>
-<style lang="scss" scoped>
-.hoverable {
-  border: 1px solid #333;
-
-  &:hover {
-    border: 1px solid #fa6;
-    color: rgb(255, 231, 212);
-    background-color: rgba(#fa6, 0.125);
-  }
+<style lang="postcss" scoped>
+.container {
+  @apply: bg-[#000] px-4 py-2 border border-primary-500;
 }
-
 </style>

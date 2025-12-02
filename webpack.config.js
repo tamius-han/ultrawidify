@@ -78,7 +78,7 @@ const config = {
         ]
       },
       {
-        test: /\.(sc|c)ss$/,
+        test: /\.(sc|c|postc)ss$/,
         use: [
           'vue-style-loader',
           {
@@ -90,19 +90,7 @@ const config = {
               // }
             }
           },
-          {
-            loader: 'postcss-loader',
-            options: {
-              postcssOptions: {
-                plugins: [
-                  require('postcss-strip-inline-comments')(),
-                  require('postcss-preset-env') ({
-                    stage: 1,
-                  })
-                ]
-              }
-            }
-          }
+          'postcss-loader',
         ]
       },
       {
