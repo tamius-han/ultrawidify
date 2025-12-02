@@ -1,0 +1,30 @@
+@import '../../../../main.css'; /** postcss processor doesn't support aliases */
+
+.keyboard-shortcut-row {
+  @apply py-2 px-4
+    even:bg-black/25
+    flex flex-row items-center gap-4
+    border-y-1 border-y-transparent hover:border-y-stone-700 hover:bg-stone-900;
+
+   &:hover {
+    .hover-hide {
+      @apply hidden;
+    }
+   }
+   &:not(:hover) {
+    .hover-show {
+      @apply hidden;
+    }
+  }
+}
+
+.keyboard-shortcut-row, .hover-shortcut {
+  .shortcut-button {
+    @apply px-4 text-[0.9em] border-1 border-transparent
+      cursor-pointer select-none;
+
+    &:hover {
+      @apply bg-black border-1 border-stone-500 rounded-sm
+    }
+  }
+}

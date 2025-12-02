@@ -14,7 +14,12 @@
         </div>
         <div class="flex flex-row">
           <small>
-            <span style="text-transform: uppercase; font-size: 0.9rem">Enable extension: <span style="font-size: 0.9rem;" :style="getSiteEnabledColor('@global', 'enable')">{{ getSiteEnabledModes('@global', 'enable') }}</span></span>&nbsp;<br/>
+            <span style="text-transform: uppercase; font-size: 0.9rem">
+              Enable extension: <span style="font-size: 0.9rem;" :style="getSiteEnabledColor('@global', 'enable')">{{ getSiteEnabledModes('@global', 'enable') }}</span>
+              {{getSiteEnabledModes('@global', 'enable') === 'disabled'}}
+              <span v-if="getSiteEnabledModes('@global', 'enable') === 'disabled'" class="text-[0.9em]">&nbsp;(except on whitelisted sites)</span>"
+            </span>&nbsp;
+            <br/>
             Autodetection: <span :style="getSiteEnabledColor('@global', 'enableAard')"><small>{{ getSiteEnabledModes('@global', 'enableAard') }}</small></span>;&nbsp;
             Keyboard shortcuts: <span :style="getSiteEnabledColor('@global', 'enableKeyboard')"><small>{{ getSiteEnabledModes('@global', 'enableKeyboard') }}</small></span>;
             In-player UI: <span :style="getSiteEnabledColor('@global', 'enableUI')"><small>{{ getSiteEnabledModes('@global', 'enableUI') }}</small></span>;

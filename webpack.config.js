@@ -1,9 +1,8 @@
 const webpack = require('webpack');
 const ejs = require('ejs');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const WebpackShellPlugin = require('webpack-shell-plugin');
+const WebpackShellPluginNext = require('webpack-shell-plugin-next');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const ChromeExtensionReloader = require('webpack-chrome-extension-reloader');
 const { VueLoaderPlugin } = require('vue-loader');
 const path = require('path');
 
@@ -18,9 +17,12 @@ const config = {
     'ext/uw': './ext/uw.js',
     'uw-bg': './uw-bg.js',
     'csui/csui-popup': './csui/csui-popup.js',
-    'csui/csui': './csui/csui.js',
-    // 'install/first-time/first-time':'./install/first-time/first-time.js',
-    'install/updated/updated': './install/updated/updated.js',
+    // 'csui/settings': './csui/settings.js',
+    // 'csui/csui': './csui/csui.js',
+
+    // 'ui/pages/updated/updated': './ui/pages/updated/updated.js',
+    'ui/pages/updated/updated': './ui/pages/updated/updated.js',
+    'ui/pages/settings/settings': './ui/pages/settings/settings.js',
   },
   output: {
     path: __dirname + `/dist-${process.env.BROWSER == 'firefox' ? 'ff' : process.env.BROWSER}`,
@@ -33,6 +35,9 @@ const config = {
     alias: {
       '@src': path.resolve(__dirname, 'src'),
       '@csui': path.resolve(__dirname, 'src/csui'),
+      '@ui': path.resolve(__dirname, 'src/ui'),
+      '@components': path.resolve(__dirname, 'src/ui/components'),
+      '@': path.resolve(__dirname, 'src'),
     },
     // maybe we'll move vue stuff to TS some day, but today is not the day
     extensions: [
@@ -44,166 +49,161 @@ const config = {
     rules: [
       {
         test: /\.ts$/,
-        loader: 'ts-loader',
-        exclude: /node_modules/
-      },
-      {
-        test: /\.vue$/,
-        loaders: 'vue-loader',
-      },
-      {
-        test: /\.js$/,
-        loader: 'babel-loader',
         exclude: /node_modules/,
-      },
-      {
-        test: /\.(sc|c)ss$/,
         use: [
-          // MiniCssExtractPlugin.loader,
-          'vue-style-loader',
           {
-            loader: 'css-loader',
-            // modules: {
-            //   localIdentName: "[name]-[hash]"
-            // }
-            // options: {
-            //   modules: true,
-            //   // localIdentName: "🔶uw_[local]"
-            //   localIdentName: "[name]-[hash]"
-            //   // localIdentName: "uw_[local]"
-            // }
-          },
-          {
-            loader: 'sass-loader',
+            loader: 'ts-loader',
             options: {
-              sourceMap: true
+              appendTsSuffixTo: [/\.vue$/],
+              transpileOnly: true,
             }
           }
         ],
       },
-      // {
-      //   test: /\.scss$/,
-      //   use: [
-      //     // MiniCssExtractPlugin.loader,
-      //     'css-loader',
-      //   //  {
-      //   //     loader: 'css-loader',
-      //   //     // options: {
-      //   //     //   modules: true,
-      //   //     //   localIdentName: "🔶uw_[local]"
-      //   //     // }
-      //   //   },
-      //     'sass-loader'
-      //   ],
-      // },
       {
-        test: /\.(png|jpg|gif|svg|ico)$/,
-        loader: 'file-loader',
-        options: {
-          name: '[path][name].[ext]',
-        },
-      },
-      {
-        test: /\.(woff(2)?)$/,
-        loader: 'file-loader',
-        options: {
-          name: '[path][name].[ext]',
-        },
+        test: /\.vue$/,
+        use: [
+          {
+            loader: 'vue-loader'
+          }
+        ]
       },
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        loader: "babel-loader"
+        use: [
+          {
+            loader: 'babel-loader'
+          }
+        ]
       },
-    ],
+      {
+        test: /\.(sc|c|postc)ss$/,
+        use: [
+          'vue-style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              // Uncomment if you want CSS modules
+              // modules: {
+              //   localIdentName: "[name]-[hash]"
+              // }
+            }
+          },
+          'postcss-loader',
+        ]
+      },
+      {
+        test: /\.(png|jpg|webp|gif|svg|ico)$/,
+        type: 'asset/resource',
+        generator: {
+          filename: '[path][name][ext]' // Webpack 5 uses generator.filename
+        }
+      },
+      {
+        test: /\.(woff(2)?)$/,
+        type: 'asset/resource',
+        generator: {
+          filename: '[path][name][ext]'
+        }
+      }
+    ]
   },
   plugins: [
     new VueLoaderPlugin(),
     new MiniCssExtractPlugin({
       filename: '[name].css',
     }),
-    new CopyWebpackPlugin([
-      { from: 'res', to: 'res', ignore: ['css', 'css/**']},
-      { from: 'ext', to: 'ext', ignore: ['conf/*', 'lib/**']},
-      { from: 'csui', to: 'csui', ignore: ['src']},
-      { from: 'install', to: 'install' },
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'res', to: 'res', globOptions: { ignore: ['css', 'css/**'] } },
+        { from: 'ext', to: 'ext', globOptions: { ignore: ['conf/*', 'lib/**'] } },
+        { from: 'csui', to: 'csui', globOptions: { ignore: ['src'] }},
+        { from: 'ui/res', to: 'ui/res' },
 
-      // we need to get webextension-polyfill and put it in common/lib
-      { from: '../node_modules/webextension-polyfill/dist/browser-polyfill.js', to: 'common/lib/browser-polyfill.js'},
+        // we need to get webextension-polyfill and put it in common/lib
+        { from: '../node_modules/webextension-polyfill/dist/browser-polyfill.js', to: 'common/lib/browser-polyfill.js'},
 
-      // This is extension icon, as used on extension lists and/or extension's action button
-      // This folder does not contain any GUI icons — these are in /res/icons.
-      // (TODO: check if this copy is even necessary — /icons has same content as /res/icons)
-      { from: 'icons', to: 'icons', ignore: ['icon.xcf'] },
-      { from: 'csui/csui-popup.html', to: 'csui/csui-popup.html', transform: transformHtml },
-      { from: 'csui/csui-overlay-normal.html', to: 'csui/csui.html', transform: transformHtml },
-      { from: 'csui/csui-overlay-dark.html', to: 'csui/csui-dark.html', transform: transformHtml },
-      { from: 'csui/csui-overlay-light.html', to: 'csui/csui-light.html', transform: transformHtml },
-      // { from: 'install/first-time/first-time.html', to: 'install/first-time/first-time.html', transform: transformHtml},
-      { from: 'install/updated/updated.html', to: 'install/updated/updated.html', transform: transformHtml },
-      {
-        from: 'manifest.json',
-        to: 'manifest.json',
-        transform: (content) => {
-          const jsonContent = JSON.parse(content);
-          // jsonContent.version = version;
+        // This is extension icon, as used on extension lists and/or extension's action button
+        // This folder does not contain any GUI icons — these are in /res/icons.
+        // (TODO: check if this copy is even necessary — /icons has same content as /res/icons)
+        { from: 'icons', to: 'icons', globOptions: { ignore: ['icon.xcf'] } },
+        { from: 'csui/csui-popup.html', to: 'csui/csui-popup.html', transform: transformHtml },
+        { from: 'csui/csui-overlay-normal.html', to: 'csui/csui.html', transform: transformHtml },
+        { from: 'csui/csui-overlay-dark.html', to: 'csui/csui-dark.html', transform: transformHtml },
+        { from: 'csui/csui-overlay-light.html', to: 'csui/csui-light.html', transform: transformHtml },
+        { from: 'ui/pages/settings/index.html', to: 'ui/pages/settings/index.html', transform: transformHtml },
+        // { from: 'ui/pages/installed/index.html', to: 'ui/pages/installed/index.html', transform: transformHtml },
+        { from: 'ui/pages/updated/index.html',  to: 'ui/pages/updated/index.html', transform: transformHtml },
+        { from: 'ui/pages/settings/index.html', to: 'ui/pages/settings/index.html', transform: transformHtml },
+        {
+          from: 'manifest.json',
+          to: 'manifest.json',
+          transform: (content) => {
+            const jsonContent = JSON.parse(content);
+            // jsonContent.version = version;
 
-          // if (config.mode === 'development') {
-          //   jsonContent['content_security_policy'] = "script-src 'self' 'unsafe-eval'; object-src 'self'";
-          // }
+            // if (config.mode === 'development') {
+            //   jsonContent['content_security_policy'] = "script-src 'self' 'unsafe-eval'; object-src 'self'";
+            // }
 
-          if (process.env.CHANNEL === 'nightly') {
-            jsonContent.name = "Ultrawidify - nightly";
-            jsonContent.description = "FOR TESTING ONLY -- THIS BUILD USES ONLY THE FRESHEST COMMITS FROM GITHUB AND MAY THEREFORE BE COMPLETELY BROKEN";
+            if (process.env.CHANNEL === 'nightly') {
+              jsonContent.name = "Ultrawidify - nightly";
+              jsonContent.description = "FOR TESTING ONLY -- THIS BUILD USES ONLY THE FRESHEST COMMITS FROM GITHUB AND MAY THEREFORE BE COMPLETELY BROKEN";
 
-            // version numbers for nightly builds: YYMM.DD.BUILD_NUMBER
-            jsonContent.version = `${new Date()
-                                            .toISOString()     // YYYY-MM-DDTHH:MM:SS...
-                                            .split('T')[0]     // gives YYYY-MM-DD
-                                            .substr(2)         // YYYY -> YY
-                                            .replace('-', '')  // YY-MM-DD -> YYMM-DD
-                                            .replace('-', '.') // YYMM-DD -> YYMM.DD
-                                    }.${process.env.BUILD_NUMBER === undefined ? 0 : process.env.BUILD_NUMBER}`;
-            jsonContent.browser_action.default_title = "Ultrawidify Nightly";
+              // version numbers for nightly builds: YYMM.DD.BUILD_NUMBER
+              jsonContent.version = `${new Date()
+                                              .toISOString()     // YYYY-MM-DDTHH:MM:SS...
+                                              .split('T')[0]     // gives YYYY-MM-DD
+                                              .substr(2)         // YYYY -> YY
+                                              .replace('-', '')  // YY-MM-DD -> YYMM-DD
+                                              .replace('-', '.') // YYMM-DD -> YYMM.DD
+                                      }.${process.env.BUILD_NUMBER === undefined ? 0 : process.env.BUILD_NUMBER}`;
+              jsonContent.browser_action.default_title = "Ultrawidify Nightly";
 
-            // because we don't want web-ext to submit this as proper release
-            delete jsonContent.applications;
-          } else if (process.env.CHANNEL === 'testing') {
-            jsonContent.name = "Ultrawidify - testing";
-            jsonContent.description = "FOR TESTING ONLY -- this build is intended for testing a fix of certain bugs. It's not fit for normal use.";
+              // because we don't want web-ext to submit this as proper release
+              delete jsonContent.applications;
+            } else if (process.env.CHANNEL === 'testing') {
+              jsonContent.name = "Ultrawidify - testing";
+              jsonContent.description = "FOR TESTING ONLY -- this build is intended for testing a fix of certain bugs. It's not fit for normal use.";
 
-            // version numbers for nightly builds: YYMM.DD.BUILD_NUMBER
-            jsonContent.version = `${new Date()
-                                            .toISOString()     // YYYY-MM-DDTHH:MM:SS...
-                                            .split('T')[0]     // gives YYYY-MM-DD
-                                            .substr(2)         // YYYY -> YY
-                                            .replace('-', '')  // YY-MM-DD -> YYMM-DD
-                                            .replace('-', '.') // YYMM-DD -> YYMM.DD
-                                    }.${process.env.BUILD_NUMBER === undefined ? 0 : process.env.BUILD_NUMBER}`;
-            jsonContent.browser_action.default_title = "Ultrawidify Testing";
+              // version numbers for nightly builds: YYMM.DD.BUILD_NUMBER
+              jsonContent.version = `${new Date()
+                                              .toISOString()     // YYYY-MM-DDTHH:MM:SS...
+                                              .split('T')[0]     // gives YYYY-MM-DD
+                                              .substr(2)         // YYYY -> YY
+                                              .replace('-', '')  // YY-MM-DD -> YYMM-DD
+                                              .replace('-', '.') // YYMM-DD -> YYMM.DD
+                                      }.${process.env.BUILD_NUMBER === undefined ? 0 : process.env.BUILD_NUMBER}`;
+              jsonContent.browser_action.default_title = "Ultrawidify Testing";
 
-            // because we don't want web-ext to submit this as proper release
-            delete jsonContent.applications;
-          }
+              // because we don't want web-ext to submit this as proper release
+              delete jsonContent.applications;
+            }
 
-          if (process.env.BROWSER !== 'firefox') {
-            jsonContent.version = jsonContent.version.replace(/[a-zA-Z-]/g, '');
-            try {
-              delete jsonContent.options_ui.browser_style;
-            } catch (e) { }
-            try {
-              delete jsonContent.background.scripts;
-            } catch (e) {}
-          } else {
-            delete jsonContent.background.service_worker;
-          }
+            if (process.env.BROWSER !== 'firefox') {
+              jsonContent.version = jsonContent.version.replace(/[a-zA-Z-]/g, '');
+              try {
+                delete jsonContent.options_ui.browser_style;
+              } catch (e) { }
+              try {
+                delete jsonContent.background.scripts;
+              } catch (e) {}
+            } else {
+              delete jsonContent.background.service_worker;
+            }
 
-          return JSON.stringify(jsonContent, null, 2);
+            return JSON.stringify(jsonContent, null, 2);
+          },
         },
+      ]
+  }),
+    new WebpackShellPluginNext({
+      onBuildEnd: {
+        scripts: ['node scripts/remove-evals.js'],
+        blocking: true,
+        parallel: false,
       },
-    ]),
-    new WebpackShellPlugin({
-      onBuildEnd: ['node scripts/remove-evals.js'],
     }),
     new webpack.DefinePlugin({
       'process.env.BROWSER': JSON.stringify(process.env.BROWSER),
@@ -239,7 +239,7 @@ if (config.mode === 'production') {
 
 if (process.env.HMR === 'true') {
   config.plugins = (config.plugins || []).concat([
-    new ChromeExtensionReloader(),
+    // new ChromeExtensionReloader(), // no longer a thing for webpack 5
   ]);
 }
 

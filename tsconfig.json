@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
+    "module": "esnext",
     "moduleResolution": "node",
     "outDir": "./ts-out",
     "allowJs": true,
-    "target": "es2018",
+    "target": "esnext",
     "types": [
       "chrome",
       "node"
@@ -12,6 +13,15 @@
       "node_modules/@types",
       "node_modules/web-ext-types"
     ],
+    "baseUrl": "./src",
+    "allowSyntheticDefaultImports": true,
+    "skipDefaultLibCheck": true,
+    "esModuleInterop": true,
+    "paths": {
+      "@src/*": [ "*" ],
+      "@csui/*": [ "csui/*" ],
+      "@/*": [ "*" ]
+    }
   },
   "include": [ "./src/**/*" ],
 }

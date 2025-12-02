@@ -82,7 +82,6 @@ export default {
   width: 100%;
   height: 100%;
 
-  // background-color: rgba(0, 0, 0, 0.5);
   backdrop-filter: saturate(50%) brightness(50%) blur(1rem);
   z-index: 99999;
 

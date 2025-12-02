@@ -688,23 +688,9 @@ export default {
   flex-direction: row;
   align-content: center;
   align-items: center;
-  // width: 100%;
-  // height: 100%;
 
   color: #fff;
 
-  // .context-item {
-  //   font-size: .95rem;
-  //   padding: 1rem 1.6rem;
-  //   background-color: rgba(0, 0, 0, 0.5);
-  //   backdrop-filter: blur(16px) saturate(120%);
-
-  //   white-space: nowrap;
-  // }
-
-  // .spawn-container {
-    // border: 1px solid white;
-  // }
 }
 
 .extension-status-messages {
@@ -715,9 +701,6 @@ export default {
   text-align: center;
 
   font-size: 0.9rem;
-
-  // width: 112.25%;
-  // transform: translate(-12.5%, 12.5%) scale(0.75);
 
   > * {
     margin-top: 0.5rem;

@@ -25,112 +25,17 @@
       </div>
     </div>
 
-    <div class="tab-main flex flex-row">
-      <div class="tab-row flex flex-col grow-0 shrink-0">
-        <div
-          v-for="tab of tabs"
-          :key="tab.id"
-        >
-          <div
-            v-if="!tab.hidden"
-            class="tab"
-            :class="{
-              'active': tab.id === selectedTab,
-              'highlight-tab': tab.highlight,
-            }"
-            @click="selectTab(tab.id)"
-          >
-            <div class="icon-container">
-              <mdicon
-                v-if="tab.icon"
-                :name="tab.icon"
-                :size="32"
-              />
-            </div>
-            <div class="label">
-              {{tab.label}}
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="content flex flex-col">
-        <!-- autodetection warning -->
-
-        <div class="warning-area">
-          <div
-            v-if="statusFlags.hasDrm"
-            class="warning-box"
-          >
-            <div class="icon-container">
-              <mdicon name="alert" :size="32" />
-            </div>
-            <div>
-              This site is blocking automatic aspect ratio detection. You will have to adjust aspect ratio manually.<br/>
-              <a>Learn more ...</a>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex flex-row panel-content">
-          <!-- Panel section -->
-          <!-- <VideoSettings
-            v-if="selectedTab === 'videoSettings'"
-            :settings="settings"
-            :siteSettings="siteSettings"
-            :eventBus="eventBus"
-            :site="site"
-          ></VideoSettings> -->
-          <PlayerDetectionPanel
-            v-if="selectedTab === 'playerDetection'"
-            :siteSettings="siteSettings"
-            :eventBus="eventBus"
-            :site="site"
-          >
-          </PlayerDetectionPanel>
-          <PlayerUiSettings
-            v-if="selectedTab === 'playerUiSettings'"
-            :settings="settings"
-            :siteSettings="siteSettings"
-            :eventBus="eventBus"
-          >
-          </PlayerUiSettings>
-          <BaseExtensionSettings
-            v-if="selectedTab === 'extensionSettings'"
-            :settings="settings"
-            :siteSettings="siteSettings"
-            :site="site"
-            :enableSettingsEditor="true"
-          ></BaseExtensionSettings>
-          <AutodetectionSettingsPanel
-            v-if="selectedTab === 'autodetectionSettings'"
-            :settings="settings"
-            :siteSettings="siteSettings"
-            :eventBus="eventBus"
-            :site="site"
-          >
-          </AutodetectionSettingsPanel>
-          <DebugPanel
-            v-if="selectedTab === 'debugging'"
-            :settings="settings"
-            :eventBus="eventBus"
-            :site="site"
-          ></DebugPanel>
-          <ChangelogPanel
-            v-if="selectedTab === 'changelog'"
-            :settings="settings"
-          ></ChangelogPanel>
-          <AboutPanel
-            v-if="selectedTab === 'about'"
-          >
-          </AboutPanel>
-          <!-- <ResetBackupPanel
-            v-if="selectedTab === 'resetBackup'"
-            :settings="settings"
-          >
-          </ResetBackupPanel> -->
-        </div>
-      </div>
-    </div>
+    <SettingsWindowContent
+      :tabs="tabs"
+      :selectedTab="selectedTab"
+      :settings="settings"
+      :eventBus="eventBus"
+      :logger="logger"
+      :in-player="inPlayer"
+      :site="site"
+      @selectTab="selectTab"
+      @preventClose="setPreventClose"
+    ></SettingsWindowContent>
   </div>
 </template>
 <script>
@@ -165,19 +70,6 @@ export default {
       statusFlags: {
         hasDrm: undefined,
       },
-
-      tabs: [
-        // {id: 'videoSettings', label: 'Video settings', icon: 'crop'},
-        {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
-        {id: 'playerUiSettings', label: 'UI and keyboard', icon: 'movie-cog-outline' },
-        {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
-        {id: 'autodetectionSettings', label: 'Autodetection options', icon: 'auto-fix'},
-        // {id: 'advancedOptions', label: 'Advanced options', icon: 'cogs' },
-        {id: 'changelog', label: 'What\'s new', icon: 'alert-decagram' },
-        {id: 'about', label: 'About', icon: 'information-outline'},
-        {id: 'debugging', label: 'Debugging', icon: 'bug-outline', hidden: true},
-      ],
-      selectedTab: 'extensionSettings',
       BrowserDetect: BrowserDetect,
       preventClose: false,
       siteSettings: null,
@@ -249,19 +141,12 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-@import '../res/css/uwui-base.scss';
+/*@import '../res/css/uwui-base.scss';
 @import '../res/css/colors.scss';
 @import '../res/css/font/overpass.css';
 @import '../res/css/font/overpass-mono.css';
 @import '../res/css/common.scss';
-@import '../src/res-common/_variables';
-
-// .relative-wrapper {
-//   position: relative;
-//   width: 100%;
-//   height: 100%;
-// }
-
+@import '../src/res-common/_variables';*/
 
 
 .tab-row {
@@ -416,10 +301,6 @@ export default {
       &.highlight-tab {
         opacity: 0.9;
         color: #eee;
-
-        // .label {
-        //   color: rgb(239, 192, 152);
-        // }
       }
     }
   }

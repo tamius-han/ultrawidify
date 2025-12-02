@@ -156,7 +156,7 @@ const ExtensionConf: SettingsInterface = {
 
   aard: {
     aardType: 'auto',
-    useLegacy: true,
+    useLegacy: false,
 
     polling: {
       runInBackgroundTabs: AardPollingOptions.Reduced,

@@ -338,11 +338,6 @@ export default {
 <style lang="scss" src="@csui/src/res-common/common.scss" scoped module></style>
 
 <style lang="scss" scoped module>
-@import '../res-common/variables';
-
-// .aard-settings-group {
-//   max-width: 69rem;
-// }
 
 .performance-graph-container {
   position: relative;
@@ -361,7 +356,7 @@ export default {
     width: 100%;
     height: 100%;
 
-    // graph is 100 ms wide
+    /* graph is 100 ms wide */
     .time-budget {
       height: 100%;
       display: inline-block;
@@ -373,15 +368,12 @@ export default {
 
       &.hz144 {
         width: 6.9%;
-        // background-color: rgba(143, 143, 235, 0.47);
       }
       &.hz120 {
         width: 1.39%;
-        // background-color: rgba(108, 108, 211, 0.441);
       }
       &.hz60 {
         width: 8.33%;
-        // background-color: rgba(78, 78, 182, 0.327);
         border-right: 2px solid rgb(96, 96, 227);
         &::after {
           content: '60fps';
@@ -400,7 +392,6 @@ export default {
       }
       &.hz30 {
         width: 16.67%;
-        // background-color: rgba(56, 56, 151, 0.308);
         border-right: 2px solid #fb772a;
 
         &::after {
@@ -420,7 +411,6 @@ export default {
       }
       &.hz24 {
         width: 8.33%;
-        // background-color: rgba(37, 37, 118, 0.269);
       }
     }
 
