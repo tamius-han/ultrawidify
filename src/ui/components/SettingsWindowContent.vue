@@ -68,6 +68,15 @@
             :eventBus="eventBus"
           ></KeyboardShortcutSettings>
 
+          <AutodetectionSettings
+            v-if="selectedTab === 'autodetectionSettings'"
+            :settings="settings"
+            :siteSettings="siteSettings"
+            :eventBus="eventBus"
+            :site="site"
+          >
+          </AutodetectionSettings>
+
 
           <PlayerDetectionPanel
             v-if="selectedTab === 'playerDetection'"
@@ -83,14 +92,7 @@
             :eventBus="eventBus"
           >
           </PlayerUiSettings>
-          <AutodetectionSettingsPanel
-            v-if="selectedTab === 'autodetectionSettings'"
-            :settings="settings"
-            :siteSettings="siteSettings"
-            :eventBus="eventBus"
-            :site="site"
-          >
-          </AutodetectionSettingsPanel>
+
           <DebugPanel
             v-if="selectedTab === 'debugging'"
             :settings="settings"
@@ -119,9 +121,9 @@
 import { defineComponent } from 'vue';
 import OtherSiteSettings from '@components/ExtensionSettings/Panels/OtherSiteSettings.vue';
 import KeyboardShortcutSettings from '@components/KeyboardShortcuts/KeyboardShortcutSettings.vue';
+import AutodetectionSettings from '@components/AutodetectionSettings/AutodetectionSettings.vue';
 
 import DebugPanel from '../../csui/src/PlayerUiPanels/DebugPanel.vue'
-import AutodetectionSettingsPanel from '../../csui/src/PlayerUiPanels/AutodetectionSettingsPanel.vue'
 import PlayerDetectionPanel from '../../csui/src/PlayerUiPanels/PlayerDetectionPanel.vue'
 import VideoSettings from '../../csui/src/PlayerUiPanels/VideoSettings.vue'
 import BrowserDetect from '../../ext/conf/BrowserDetect'
@@ -135,10 +137,10 @@ export default defineComponent({
   components: {
     OtherSiteSettings,
     KeyboardShortcutSettings,
+    AutodetectionSettings,
 
     VideoSettings,
     PlayerDetectionPanel,
-    AutodetectionSettingsPanel,
     DebugPanel,
     PlayerUiSettings,
     ChangelogPanel,

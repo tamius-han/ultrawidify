@@ -21,6 +21,7 @@
 @import './ui/res/styles/buttons.css';
 
 html, body {
+  @apply bg-stone-950 text-stone-300;
   font-size: 16px;
 }
 @media (max-width: 999px) {

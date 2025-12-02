@@ -71,7 +71,7 @@
     }
   }
 
-  .input, .range-input {
+  .input, .range-input, .checkbox {
     flex-grow: 1;
     flex-shrink: 1;
     max-width: 24rem;
