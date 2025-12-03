@@ -61,7 +61,7 @@ class Settings {
 
   constructor(options: SettingsOptions) {
     // Options: activeSettings, updateCallback, logger
-    this.logger = options.logAggregator && new ComponentLogger(options.logAggregator, 'Settings', {styles: SETTINGS_LOGGER_STYLES}) || undefined;;
+    this.logger = options.logAggregator && new ComponentLogger(options.logAggregator, 'Settings', {styles: SETTINGS_LOGGER_STYLES}) || undefined;
     this.onSettingsChanged = options.onSettingsChanged;
     this.afterSettingsSaved = options.afterSettingsSaved;
     this.active = options.activeSettings ?? undefined;
@@ -71,6 +71,24 @@ class Settings {
     this.default['version'] = this.getExtensionVersion();
 
     chrome.storage.onChanged.addListener((changes, area) => {this.storageChangeListener(changes, area)});
+  }
+
+  updateOptions(options: SettingsOptions) {
+    if (options.logAggregator) {
+      this.logger = options.logAggregator && new ComponentLogger(options.logAggregator, 'Settings', {styles: SETTINGS_LOGGER_STYLES})
+    }
+
+    if (options.onSettingsChanged) {
+      this.onSettingsChanged = options.onSettingsChanged;
+    }
+
+    if (options.afterSettingsSaved) {
+      this.afterSettingsSaved = options.afterSettingsSaved;
+    }
+
+    if (options.activeSettings) {
+      this.active = options.activeSettings;
+    }
   }
 
   private storageChangeListener(changes, area) {

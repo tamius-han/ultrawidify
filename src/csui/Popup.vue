@@ -125,7 +125,6 @@ import BrowserDetect from '../ext/conf/BrowserDetect';
 import CommsClient, {CommsOrigin} from '../ext/lib/comms/CommsClient';
 import Settings from '../ext/lib/settings/Settings';
 import EventBus from '../ext/lib/EventBus';
-import {ChromeShittinessMitigations as CSM} from '../common/js/ChromeShittinessMitigations';
 import SupportLevelIndicator from '@csui/src/components/SupportLevelIndicator.vue'
 import { LogAggregator } from '@src/ext/lib/logging/LogAggregator';
 import { ComponentLogger } from '@src/ext/lib/logging/ComponentLogger';

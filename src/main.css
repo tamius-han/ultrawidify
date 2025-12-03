@@ -38,4 +38,40 @@ html, body {
   h1, h2, h3, h4, h5, h6 {
     @apply font-mono;
   }
+
+  h2 {
+    @apply text-[1.75em];
+  }
+
+  h3 {
+    @apply text-primary-300 text-[1.25em] mt-4 border-b-1 border-b-stone-700;
+  }
+
+  a {
+    @apply text-primary-400;
+
+    &:hover {
+      @apply text-primary-300;
+    }
+  }
+
+  p {
+    @apply mt-1 mb-2;
+  }
+
+  p, li {
+    @apply leading-tight;
+  }
+
+  ul {
+    @apply bg-stone-900/50 px-4 py-2 mt-1 mb-2;
+
+    li {
+      @apply ml-4 list-disc marker:text-primary-400 mt-1 mb-2;
+    }
+  }
+
+  small, strike {
+    @apply opacity-50;
+  }
 }

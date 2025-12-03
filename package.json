@@ -70,6 +70,7 @@
     "postcss-nested": "^7.0.2",
     "postcss-preset-env": "^10.4.0",
     "postcss-strip-inline-comments": "^0.1.5",
+    "raw-loader": "^4.0.2",
     "resolve-url-loader": "^5.0.0",
     "tailwindcss": "^4.1.17",
     "ts-loader": "^9.5.4",

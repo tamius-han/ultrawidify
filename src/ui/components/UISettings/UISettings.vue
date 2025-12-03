@@ -1,8 +1,10 @@
 <template>
-  <div class="flex flex-col" style="position: relative; width: 100%;">
+  <div class="flex flex-col relative w-full">
+
+    <h2 class="text-[1.75em]">Player UI options</h2>
+
     <!-- The rest of the tab is under 'edit ratios and shortcuts' row -->
     <div class="flex flex-col" style="width: 100%">
-      <h2>Player UI options</h2>
 
       <div class="flex flex-col compact-form">
         <div v-if="!siteSettings.data.enableUI.fullscreen">
@@ -104,66 +106,19 @@
         </div>
       </div>
 
-      <h2 class="mt2r">Menu options and keyboard shortcuts</h2>
-      <div>
-        Click 'add new' to add a new option. Click a button to edit or remove the keyboard shortcut.
-      </div>
-      <div class="keyboard-settings">
-        <!-- CROP OPTIONS -->
-        <div>
-          <div class="flex flex-row">
-            <h3 class="mth3">CROP OPTIONS</h3>
-          </div>
-
-          <CropOptionsPanel
-            :settings="settings"
-            :eventBus="eventBus"
-            :isEditing="true"
-          >
-          </CropOptionsPanel>
-        </div>
-
-        <!-- STRETCH OPTIONS -->
-        <div>
-          <div class="flex flex-row">
-            <h3 class="mth3">STRETCH OPTIONS</h3>
-          </div>
-
-          <StretchOptionsPanel
-            :settings="settings"
-            :eventBus="eventBus"
-            :isEditing="true"
-          ></StretchOptionsPanel>
-        </div>
-
-        <!-- ZOOM OPTIONS -->
-        <div>
-          <div class="flex flex-row">
-            <h3 class="mth3">ZOOM OPTIONS</h3>
-          </div>
-
-          <ZoomOptionsPanel
-            :settings="settings"
-            :eventBus="eventBus"
-            :isEditing="true"
-          ></ZoomOptionsPanel>
-        </div>
-      </div>
-
     </div>
   </div>
 </template>
 
-<script>
-import Button from '@csui/src/components/Button.vue'
+<script lang="ts">
 import BrowserDetect from '@src/ext/conf/BrowserDetect';
 import CropOptionsPanel from '@csui/src/PlayerUiPanels/PanelComponents/VideoSettings/CropOptionsPanel.vue'
 import StretchOptionsPanel from '@csui/src/PlayerUiPanels/PanelComponents/VideoSettings/StretchOptionsPanel.vue'
 import ZoomOptionsPanel from '@csui/src/PlayerUiPanels/PanelComponents/VideoSettings/ZoomOptionsPanel.vue'
+import { defineComponent } from 'vue';
 
-export default {
+export default defineComponent({
   components: {
-    Button,
     CropOptionsPanel,
     StretchOptionsPanel,
     ZoomOptionsPanel,
@@ -231,27 +186,9 @@ export default {
     },
 
   }
-}
+});
 </script>
-
-<style lang="scss" src="../../res/css/flex.scss" scoped module></style>
-<style lang="scss" src="@csui/src/res-common/panels.scss" scoped module></style>
-<style lang="scss" src="@csui/src/res-common/common.scss" scoped module></style>
-
-<style lang="scss" scoped>
-.justify-center {
-  justify-content: center;
-}
-.items-center {
-  align-items: center;
-}
-.mt-4{
-  margin-top: 1rem;
-}
-
-.input {
-  max-width: 24rem;
-}
+<style lang="postcss" scoped>
 
 .trigger-zone-editor {
   background-color: rgba(0,0,0,0.25);

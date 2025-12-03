@@ -5,7 +5,7 @@
 
     <div class="flex flex-row gap-2 w-full justify-end mt-4">
       <button @click="clearShortcuts()"><mdicon name="close" :size="16"></mdicon>Clear all shortcuts</button>
-      <button @click="resetToDefault()"><mdicon name="reload" :size="16"></mdicon>Reset to default</button>
+      <button @click="resetToDefault()"><mdicon name="restore" :size="16"></mdicon>Reset to default</button>
     </div>
 
     <div class="flex flex-col w-full">

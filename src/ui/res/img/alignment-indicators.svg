@@ -1,0 +1,81 @@
+<svg width="90" height="90" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Glow filter for selected symbol -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#ffac66"/>
+    </filter>
+  </defs>
+
+  <style>
+    path {
+      /*fill: oklch(86.9% 0.005 56.366)*/;
+      fill: oklch(55.3% 0.013 58.071);
+      transition: fill 0.2s, filter 0.2s;
+    }
+
+    rect.indicator-bg {
+      fill: transparent;
+      transition: fill 0.2s;
+    }
+
+    /* Hover */
+    g:hover path {
+      fill: #fff;
+    }
+    g:hover rect.indicator-bg {
+      fill: oklch(37.4% 0.01 67.558);
+    }
+
+    g:hover {
+      cursor: pointer;
+    }
+
+    /* Selected state: white + glow */
+    g.selected path {
+      fill: #fff;
+      filter: url(#glow);
+    }
+  </style>
+
+  <!-- === Top Row === -->
+  <g id="top-left">
+    <rect class="indicator-bg" x="0" y="0" width="30" height="30"/>
+    <path d="M7.5 7.5h15v3h-15z M7.5 7.5h3v15h-3z"/>
+  </g>
+  <g id="top-center">
+    <rect class="indicator-bg" x="30" y="0" width="30" height="30"/>
+    <path d="M37.5 7.5h15v3h-15z"/>
+  </g>
+  <g id="top-right">
+    <rect class="indicator-bg" x="60" y="0" width="30" height="30"/>
+    <path d="M67.5 7.5h15v3h-15z M79.5 7.5h3v15h-3z"/>
+  </g>
+
+  <!-- === Middle Row === -->
+  <g id="center-left">
+    <rect class="indicator-bg" x="0" y="30" width="30" height="30"/>
+    <path d="M7.5 37.5h3v15h-3z"/>
+  </g>
+  <g id="center-center">
+    <rect class="indicator-bg" x="30" y="30" width="30" height="30"/>
+    <path d="M41 41h8v8h-8z"/>
+  </g>
+  <g id="center-right">
+    <rect class="indicator-bg" x="60" y="30" width="30" height="30"/>
+    <path d="M79.5 37.5h3v15h-3z"/>
+  </g>
+
+  <!-- === Bottom Row === -->
+  <g id="bottom-left">
+    <rect class="indicator-bg" x="0" y="60" width="30" height="30"/>
+    <path d="M7.5 79.5h15v3h-15z M7.5 67.5h3v15h-3z"/>
+  </g>
+  <g id="bottom-center">
+    <rect class="indicator-bg" x="30" y="60" width="30" height="30"/>
+    <path d="M37.5 79.5h15v3h-15z"/>
+  </g>
+  <g id="bottom-right">
+    <rect class="indicator-bg" x="60" y="60" width="30" height="30"/>
+    <path d="M67.5 79.5h15v3h-15z M79.5 67.5h3v15h-3z"/>
+  </g>
+</svg>

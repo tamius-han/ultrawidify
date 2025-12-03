@@ -1,8 +1,8 @@
 <template>
   <div
-    class="flex flex-col uw-clickable w-full h-full main-window relative"
+    class="grow shrink w-full h-full flex flex-col uw-clickable main-window relative overflow-hidden"
   >
-    <div class="flex flex-row">
+    <div class="flex flex-row w-full h-full overflow-hidden">
       <div class="settings-categories">
         <div
           v-for="tab of tabs"
@@ -30,7 +30,7 @@
           </div>
         </div>
       </div>
-      <div class="content flex flex-col">
+      <div class="grow content flex flex-col overflow-auto pr-4 pb-12">
         <!-- autodetection warning -->
 
         <div class="warning-area">
@@ -50,24 +50,18 @@
 
         <div class="flex flex-row panel-content">
           <!-- Panel section -->
-          <!-- <VideoSettings
-            v-if="selectedTab === 'videoSettings'"
+          <VideoSettings
+            v-if="selectedTab === 'video-settings'"
             :settings="settings"
             :siteSettings="siteSettings"
             :eventBus="eventBus"
             :site="site"
-          ></VideoSettings> -->
+          ></VideoSettings>
           <OtherSiteSettings
             v-if="selectedTab === 'extensionSettings'"
             :settings="settings"
             :enableSettingsEditor="true"
           ></OtherSiteSettings>
-          <KeyboardShortcutSettings
-            v-if="selectedTab === 'keyboardShortcuts'"
-            :settings="settings"
-            :eventBus="eventBus"
-          ></KeyboardShortcutSettings>
-
           <AutodetectionSettings
             v-if="selectedTab === 'autodetectionSettings'"
             :settings="settings"
@@ -76,6 +70,31 @@
             :site="site"
           >
           </AutodetectionSettings>
+          <UISettings
+            v-if="selectedTab === 'uiSettings'"
+            :settings="settings"
+            :siteSettings="siteSettings"
+            :eventBus="eventBus"
+          >
+          </UISettings>
+
+          <KeyboardShortcutSettings
+            v-if="selectedTab === 'keyboardShortcuts'"
+            :settings="settings"
+            :eventBus="eventBus"
+          ></KeyboardShortcutSettings>
+
+
+          <WhatsNew
+            v-if="selectedTab === 'changelog'"
+            :settings="settings"
+          ></WhatsNew>
+          <About
+            v-if="selectedTab === 'about'"
+            :settings="settings"
+          >
+          </About>
+
 
 
           <PlayerDetectionPanel
@@ -85,13 +104,6 @@
             :site="site"
           >
           </PlayerDetectionPanel>
-          <PlayerUiSettings
-            v-if="selectedTab === 'playerUiSettings'"
-            :settings="settings"
-            :siteSettings="siteSettings"
-            :eventBus="eventBus"
-          >
-          </PlayerUiSettings>
 
           <DebugPanel
             v-if="selectedTab === 'debugging'"
@@ -99,14 +111,7 @@
             :eventBus="eventBus"
             :site="site"
           ></DebugPanel>
-          <ChangelogPanel
-            v-if="selectedTab === 'changelog'"
-            :settings="settings"
-          ></ChangelogPanel>
-          <AboutPanel
-            v-if="selectedTab === 'about'"
-          >
-          </AboutPanel>
+
           <!-- <ResetBackupPanel
             v-if="selectedTab === 'resetBackup'"
             :settings="settings"
@@ -119,30 +124,69 @@
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue';
+import VideoSettings from '@components/VideoSettings/VideoSettings.vue';
 import OtherSiteSettings from '@components/ExtensionSettings/Panels/OtherSiteSettings.vue';
-import KeyboardShortcutSettings from '@components/KeyboardShortcuts/KeyboardShortcutSettings.vue';
 import AutodetectionSettings from '@components/AutodetectionSettings/AutodetectionSettings.vue';
+import UISettings from '@components/UISettings/UISettings.vue';
+import KeyboardShortcutSettings from '@components/KeyboardShortcuts/KeyboardShortcutSettings.vue';
+
+import WhatsNew from '@components/ExtensionInfo/WhatsNew.vue';
+import About from '@components/ExtensionInfo/About.vue';
 
 import DebugPanel from '../../csui/src/PlayerUiPanels/DebugPanel.vue'
 import PlayerDetectionPanel from '../../csui/src/PlayerUiPanels/PlayerDetectionPanel.vue'
-import VideoSettings from '../../csui/src/PlayerUiPanels/VideoSettings.vue'
 import BrowserDetect from '../../ext/conf/BrowserDetect'
 import ChangelogPanel from '../../csui/src/PlayerUiPanels/ChangelogPanel.vue'
 import AboutPanel from '@csui/src/PlayerUiPanels/AboutPanel.vue'
-import PlayerUiSettings from '../../csui/src/PlayerUiPanels/PlayerUiSettings.vue'
 import ResetBackupPanel from '../../csui/src/PlayerUiPanels/ResetBackupPanel.vue'
 import SupportLevelIndicator from '@csui/src/components/SupportLevelIndicator.vue'
 
+
+const AVAILABLE_TABS = {
+  'video-settings': {id: 'video-settings', label: 'Video settings', icon: 'crop'},
+  'site-extension-settings': {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
+  'extensionSettings': {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
+  'siteSettings': {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
+  'autodetectionSettings': {id: 'autodetectionSettings', label: 'Autodetection options', icon: 'auto-fix'},
+  'uiSettings': {id: 'uiSettings', label: 'UI settings', icon: 'movie-cog-outline' },
+  'keyboardShortcuts': {id: 'keyboardShortcuts', label: 'Keyboard shortcuts', icon: 'keyboard-outline' },
+  'playerDetection': {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
+  'changelog': {id: 'changelog', label: 'What\'s new', icon: 'alert-decagram' },
+  'about': {id: 'about', label: 'About', icon: 'information-outline'},
+  'debugging': {id: 'debugging', label: 'Debugging', icon: 'bug-outline', hidden: true}
+};
+
+const TAB_LOADOUT = {
+  'settings': [
+    'extensionSettings',
+    'autodetectionSettings',
+    'uiSettings',
+    'keyboardShortcuts',
+    'changelog',
+    'about',
+    'debugging',
+  ],
+  'popup': [
+    'video-settings',
+    'site-extension-settings',
+    'changelog',
+    'about'
+  ],
+}
+
 export default defineComponent({
   components: {
-    OtherSiteSettings,
-    KeyboardShortcutSettings,
-    AutodetectionSettings,
-
     VideoSettings,
+    OtherSiteSettings,
+    AutodetectionSettings,
+    KeyboardShortcutSettings,
+    UISettings,
+
+    WhatsNew,
+    About,
+
     PlayerDetectionPanel,
     DebugPanel,
-    PlayerUiSettings,
     ChangelogPanel,
     AboutPanel,
     SupportLevelIndicator,
@@ -156,16 +200,16 @@ export default defineComponent({
       },
 
       tabs: [
-        // {id: 'videoSettings', label: 'Video settings', icon: 'crop'},
-        {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
-        {id: 'autodetectionSettings', label: 'Autodetection options', icon: 'auto-fix'},
-        {id: 'playerUiSettings', label: 'UI settings', icon: 'movie-cog-outline' },
-        {id: 'keyboardShortcuts', label: 'Keyboard shortcuts', icon: 'keyboard-outline' },
-        {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
-        // {id: 'advancedOptions', label: 'Advanced options', icon: 'cogs' },
-        {id: 'changelog', label: 'What\'s new', icon: 'alert-decagram' },
-        {id: 'about', label: 'About', icon: 'information-outline'},
-        {id: 'debugging', label: 'Debugging', icon: 'bug-outline', hidden: true},
+        // // {id: 'videoSettings', label: 'Video settings', icon: 'crop'},
+        // {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
+        // {id: 'autodetectionSettings', label: 'Autodetection options', icon: 'auto-fix'},
+        // {id: 'uiSettings', label: 'UI settings', icon: 'movie-cog-outline' },
+        // {id: 'keyboardShortcuts', label: 'Keyboard shortcuts', icon: 'keyboard-outline' },
+        // {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
+        // // {id: 'advancedOptions', label: 'Advanced options', icon: 'cogs' },
+        // {id: 'changelog', label: 'What\'s new', icon: 'alert-decagram' },
+        // {id: 'about', label: 'About', icon: 'information-outline'},
+        // {id: 'debugging', label: 'Debugging', icon: 'bug-outline', hidden: true},
       ],
       selectedTab: 'extensionSettings',
       BrowserDetect: BrowserDetect,
@@ -174,12 +218,13 @@ export default defineComponent({
     }
   },
   props: [
+    'role',
+    'initialPath',
     'settings',
     'eventBus',
     'logger',
     'inPlayer',
     'site',
-    'defaultTab'
   ],
   computed: {
     // LPT: NO ARROW FUNCTIONS IN COMPUTED,
@@ -190,14 +235,18 @@ export default defineComponent({
     }
   },
   created() {
+    this.generateTabs();
     this.settings.listenAfterChange(this.setDebugTabVisibility);
 
-    if (this.defaultTab) {
-      this.selectedTab = this.defaultTab;
+    if (this.initialPath && this.initialPath.length) {
+      this.selectedTab = this.initialPath[0];
     }
-    this.siteSettings = this.settings.getSiteSettings({site: this.site});
-    this.tabs.find(x => x.id === 'changelog').highlight = !this.settings.active?.whatsNewChecked;
+    const changelogTab  = this.tabs.find(x => x.id === 'changelog');
+    if (changelogTab) {
+      changelogTab.highlight = !this.settings.active?.whatsNewChecked;
+    }
 
+    this.siteSettings = this.settings.getSiteSettings({site: this.site});
     this.eventBus?.subscribe(
       'uw-show-ui',
       {
@@ -222,9 +271,22 @@ export default defineComponent({
     getUrl(url) {
       return BrowserDetect.getURL(url);
     },
+    generateTabs() {
+      const tabs = [];
+      for (const tab of TAB_LOADOUT[this.role]) {
+        if (!AVAILABLE_TABS[tab]) {
+          console.warn('[uw:SettingsWindowContent] tab', tab, 'is not present in available tabs:', AVAILABLE_TABS, '— tabs for role', this.role, TAB_LOADOUT[this.role]);
+          continue;
+        } else {
+          tabs.push(AVAILABLE_TABS[tab]);
+        }
+      }
+      this.tabs = tabs;
+    },
     selectTab(tab) {
       console.log("Selecting tab", tab);
       this.selectedTab = tab;
+      window.location.hash = `#${this.role}/${this.selectedTab}`;
     },
     setPreventClose(bool) {
       this.preventClose = bool;
@@ -235,7 +297,9 @@ export default defineComponent({
       if (debugTab) {
         debugTab.hidden = !this.settings.active.ui.devMode;
       }
-    }
+    },
+
+
   }
 });
 </script>
@@ -249,15 +313,17 @@ export default defineComponent({
     @apply flex flex-row gap-4 px-4 py-2 justify-end items-center
       text-[1.125em] text-stone-300 text-right font-mono
       cursor-pointer
+      border-r-2 border-r-transparent
       hover:bg-stone-800
-      hover:text-primary-200;
+      hover:text-primary-200
+      hover:border-r-stone-600;
 
       .label {
         @apply grow-0;
       }
 
     &.active {
-      @apply !bg-transparent !text-primary-300 bg-gradient-to-r from-transparent to-black border-none hover:!text-primary-200;
+      @apply !bg-transparent !text-primary-300 bg-gradient-to-r from-transparent to-black hover:!text-primary-200 border-r-primary-400;
     }
   }
 }

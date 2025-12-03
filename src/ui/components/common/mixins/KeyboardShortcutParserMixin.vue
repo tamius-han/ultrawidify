@@ -1,3 +1,4 @@
+<script lang="ts">
 import KeyboardShortcutParser from '@src/common/js/KeyboardShortcutParser';
 
 export default {
@@ -12,4 +13,5 @@ export default {
       return KeyboardShortcutParser.parseShortcut(command.shortcut);
     },
   }
-}
+};
+</script>
