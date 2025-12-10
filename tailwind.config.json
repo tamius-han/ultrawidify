@@ -4,6 +4,11 @@
   ],
   "theme": {
     "extend": {
+      "screens": {
+        "popup-sm": {"max": "639px"},
+        "popup-lg": {"min": "640px", "max": "899px"},
+        "window": {"min": "900px"}
+      },
       "colors": {
         "primary": {
           "50": "#ffddbe",

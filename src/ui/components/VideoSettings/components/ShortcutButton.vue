@@ -1,5 +1,5 @@
 <template>
-  <button class="flex flex-col justify-center items-center" :class="classList">
+  <button class="flex flex-col min-h-[3rem] justify-center items-center" :class="classList">
     <div class="flex justify-self-center">
       {{label}}
     </div>

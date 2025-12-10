@@ -1,23 +1,26 @@
 <template>
-  <div class="flex flex-col" style="position: relative; width: 100%;">
+  <div class="flex flex-col w-full h-full">
+
     <!-- 'Change UI' options is a tiny bit in upper right corner. -->
     <h3>Crop</h3>
-    <div class="w-full grid grid-cols-4 gap-2 pt-2">
+    <div class="button-container">
       <ShortcutButton
         v-for="(command, index) of settings?.active.commands.crop"
         :key="index"
         :label="command.label"
         :shortcut="getKeyboardShortcutLabel(command)"
+        @click="execAction(command)"
       ></ShortcutButton>
     </div>
 
     <h3>Zoom</h3>
-    <div class="w-full grid grid-cols-4 gap-2 pt-2">
+    <div class="button-container">
       <ShortcutButton
         v-for="(command, index) of settings?.active.commands.zoom"
         :key="index"
         :label="command.label"
         :shortcut="getKeyboardShortcutLabel(command)"
+        @click="execAction(command)"
       ></ShortcutButton>
     </div>
     <div class="text-white font-mono text-semibold mt-4 mb-1">Free-form zoom</div>
@@ -87,12 +90,13 @@
     </div>
 
     <h3>Stretch</h3>
-    <div class="w-full grid grid-cols-4 gap-2 pt-2">
+    <div class="button-container">
       <ShortcutButton
         v-for="(command, index) of settings?.active.commands.stretch"
         :key="index"
         :label="command.label"
         :shortcut="getKeyboardShortcutLabel(command)"
+        @click="execAction(command)"
       ></ShortcutButton>
     </div>
 
@@ -224,6 +228,12 @@ export default defineComponent({
 </script>
 <style lang="postcss" scoped>
 @import '../../../main.css';
+
+.button-container {
+  @apply w-full pt-2
+    grid grid-cols-[repeat(auto-fill,minmax(9em,1fr))]
+    gap-[0.5em];
+}
 
 .xy-lock-bar-break {
   @apply relative;

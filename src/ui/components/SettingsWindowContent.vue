@@ -4,28 +4,54 @@
   >
     <div class="flex flex-row w-full h-full overflow-hidden">
       <div class="settings-categories">
-        <div
-          v-for="tab of tabs"
-          :key="tab.id"
-        >
+        <div class="tab-column">
           <div
-            v-if="!tab.hidden"
-            class="tab"
-            :class="{
-              'active': tab.id === selectedTab,
-              'highlight-tab': tab.highlight,
-            }"
-            @click="selectTab(tab.id)"
+            v-for="tab of tabs"
+            :key="tab.id"
           >
-            <div class="label">
-              {{tab.label}}
-            </div>
-            <div class="icon-container">
-              <mdicon
-                v-if="tab.icon"
-                :name="tab.icon"
-                :size="32"
-              />
+            <div
+              v-if="!tab.hidden"
+              class="tab"
+              :class="{
+                'active': tab.id === selectedTab || tab.children?.find(x => x.id === selectedTab),
+                'highlight-tab': tab.highlight,
+              }"
+            >
+              <div
+                class="main-tab"
+                @click="selectTab(tab.id)"
+              >
+                <div class="label">
+                  {{tab.label}}
+                </div>
+                <div class="icon-container">
+                  <mdicon
+                    v-if="tab.icon"
+                    :name="tab.icon"
+                    :size="32"
+                  />
+                </div>
+              </div>
+              <div v-if="tab.children && (tab.id === selectedTab ||  tab.children?.find(x => x.id === selectedTab))" class="suboptions flex flex-col">
+                <div
+                  v-for="suboption of tab.children"
+                  :key="suboption.id"
+                  class="suboption"
+                  :class="{'active': suboption.id === selectedTab}"
+                  @click="selectTab(suboption.id)"
+                >
+                  <div class="label">
+                    {{suboption.label}}
+                  </div>
+                  <div class="icon-container">
+                    <mdicon
+                      v-if="suboption.icon"
+                      :name="suboption.icon"
+                      :size="32"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -48,7 +74,7 @@
           </div>
         </div>
 
-        <div class="flex flex-row panel-content">
+        <div class="flex flex-col panel-content">
           <!-- Panel section -->
           <VideoSettings
             v-if="selectedTab === 'video-settings'"
@@ -57,6 +83,43 @@
             :eventBus="eventBus"
             :site="site"
           ></VideoSettings>
+
+          <template
+            v-if="settings && selectedTab === 'site-extension-settings'"
+          >
+            <h3>Settings for {{site?.host}}</h3>
+            <SiteExtensionSettings
+              :settings="settings"
+              :siteSettings="siteSettings"
+              :isDefaultConfiguration="false"
+            ></SiteExtensionSettings>
+
+            <pre>{{JSON.stringify(siteSettings.data, null, 2)}}</pre>
+          </template>
+
+          <template
+            v-if="settings && selectedTab === 'embedded-extension-settings'"
+          >
+            <h3>Settings for embedded sites</h3>
+            <FrameSiteSettings
+              :parentHost="site?.host"
+              :hosts="site?.hostnames"
+              :settings="settings"
+            ></FrameSiteSettings>
+          </template>
+
+
+          <template
+            v-if="settings && selectedTab === 'default-extension-settings'"
+          >
+            <h3>Default settings</h3>
+            <SiteExtensionSettings
+              :settings="settings"
+              :siteSettings="siteSettings"
+              :isDefaultConfiguration="false"
+            ></SiteExtensionSettings>
+          </template>
+
           <OtherSiteSettings
             v-if="selectedTab === 'extensionSettings'"
             :settings="settings"
@@ -129,6 +192,8 @@ import OtherSiteSettings from '@components/ExtensionSettings/Panels/OtherSiteSet
 import AutodetectionSettings from '@components/AutodetectionSettings/AutodetectionSettings.vue';
 import UISettings from '@components/UISettings/UISettings.vue';
 import KeyboardShortcutSettings from '@components/KeyboardShortcuts/KeyboardShortcutSettings.vue';
+import SiteExtensionSettings from '@components/ExtensionSettings/Panels/SiteExtensionSettings.vue';
+import FrameSiteSettings from '@components/ExtensionSettings/Panels/FrameSiteSettings.vue';
 
 import WhatsNew from '@components/ExtensionInfo/WhatsNew.vue';
 import About from '@components/ExtensionInfo/About.vue';
@@ -143,8 +208,17 @@ import SupportLevelIndicator from '@csui/src/components/SupportLevelIndicator.vu
 
 
 const AVAILABLE_TABS = {
-  'video-settings': {id: 'video-settings', label: 'Video settings', icon: 'crop'},
-  'site-extension-settings': {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
+  'video-settings': {
+    id: 'video-settings', label: 'Video settings', icon: 'crop',
+  },
+  'site-extension-settings': {
+    id: 'site-extension-settings', label: 'Site and Extension options', icon: 'cogs',
+    children: [
+      { id: 'site-extension-settings', label: 'For this site', },
+      { id: 'embedded-extension-settings', label: 'For embedded sites' },
+      { id: 'default-extension-settings', label: 'Default settings' }
+    ]
+  },
   'extensionSettings': {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
   'siteSettings': {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
   'autodetectionSettings': {id: 'autodetectionSettings', label: 'Autodetection options', icon: 'auto-fix'},
@@ -181,6 +255,8 @@ export default defineComponent({
     AutodetectionSettings,
     KeyboardShortcutSettings,
     UISettings,
+    SiteExtensionSettings,
+    FrameSiteSettings,
 
     WhatsNew,
     About,
@@ -226,6 +302,11 @@ export default defineComponent({
     'inPlayer',
     'site',
   ],
+  watch: {
+    'initialPath': function (newVal) {
+      this.setInitialPath(newVal);
+    }
+  },
   computed: {
     // LPT: NO ARROW FUNCTIONS IN COMPUTED,
     // IS SUPER HARAM
@@ -238,9 +319,7 @@ export default defineComponent({
     this.generateTabs();
     this.settings.listenAfterChange(this.setDebugTabVisibility);
 
-    if (this.initialPath && this.initialPath.length) {
-      this.selectedTab = this.initialPath[0];
-    }
+    this.setInitialPath();
     const changelogTab  = this.tabs.find(x => x.id === 'changelog');
     if (changelogTab) {
       changelogTab.highlight = !this.settings.active?.whatsNewChecked;
@@ -283,6 +362,12 @@ export default defineComponent({
       }
       this.tabs = tabs;
     },
+    setInitialPath(path: string[] = this.initialPath) {
+      console.log('setting initial path:', this.initialPath)
+      if (path && path.length) {
+        this.selectedTab = path[0];
+      }
+    },
     selectTab(tab) {
       console.log("Selecting tab", tab);
       this.selectedTab = tab;
@@ -307,23 +392,62 @@ export default defineComponent({
 @import '../../main.css'; /** postcss processor doesn't support aliases */
 
 .settings-categories {
-  @apply w-[20em] max-w-[20em] flex flex-col grow-0 shrink-0 mr-4 border-r border-r-stone-800 text-right;
+  @apply
+    relative
+    w-[4.5em] popup:w-[18em] window:w-[24em]
+    mr-[1em]
+    grow-0 shrink-0 flex flex-col
 
-  .tab {
-    @apply flex flex-row gap-4 px-4 py-2 justify-end items-center
-      text-[1.125em] text-stone-300 text-right font-mono
-      cursor-pointer
-      border-r-2 border-r-transparent
-      hover:bg-stone-800
-      hover:text-primary-200
-      hover:border-r-stone-600;
+    text-right;
 
-      .label {
-        @apply grow-0;
+  .tab-column {
+    @apply absolute popup:relative top-0 right-0
+      w-[18em] window:w-full h-full z-[1000]
+      hover:bg-stone-950 popup:hover:bg-transparent
+      border-r border-r-stone-800
+      hover:translate-x-[calc(100%-4.5em)] popup:hover:translate-x-0
+      transition-transform duration-200;
+
+    .tab {
+      @apply
+        flex flex-col
+        cursor-pointer
+        border-r-2 border-r-transparent
+        border-r-primary-400;
+
+      &.active {
+        .main-tab {
+          @apply !bg-transparent !text-primary-300 bg-gradient-to-r from-transparent to-black hover:!text-primary-200 ;
+        }
       }
+    }
 
-    &.active {
-      @apply !bg-transparent !text-primary-300 bg-gradient-to-r from-transparent to-black hover:!text-primary-200 border-r-primary-400;
+    .main-tab {
+      @apply
+        px-[1em] py-[0.5em]
+        flex flex-row gap-4 justify-end items-center
+        text-[1.125em] text-stone-300 text-right font-mono
+        cursor-pointer
+        hover:bg-stone-800
+        hover:text-primary-200
+        hover:border-r-stone-600;
+
+        .label {
+          @apply grow-0;
+        }
+    }
+
+    .suboption {
+      @apply
+        px-6 py-2
+        text-[1.125rem] text-stone-500 font-mono
+        hover:bg-stone-800
+        hover:text-primary-200
+        hover:border-r-stone-600;
+
+      &.active {
+        @apply !bg-transparent !text-primary-300 bg-gradient-to-r from-transparent to-black hover:!text-primary-200;
+      }
     }
   }
 }

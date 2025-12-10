@@ -259,7 +259,7 @@ class PlayerData {
    * Stops manually scanning for dimension changes
    */
   stopFallbackDimensionMonitor() {
-    clearImmediate(this.fallbackDimensionChangeInterval);
+    clearInterval(this.fallbackDimensionChangeInterval);
     this.fallbackDimensionChangeInterval = undefined;
   }
 

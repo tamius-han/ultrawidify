@@ -1,9 +1,23 @@
 <template>
-  <div class="w-full h-[100dvh] overflow-hidden flex flex-row justify-center items-center py-4 px-16">
+  <div class="
+    w-full h-[100dvh] overflow-hidden
+    p-1 popup-lg:py-2 popup-lg:px-2 window:py-4 window:px-8
+    flex flex-row justify-center items-center
+  ">
 
     <!-- page content -->
     <div class="w-full max-w-[1920px] h-[100dvh] overflow-hidden flex flex-col">
-      <h1 class="text-[3em] grow-0 shrink-0">Ultrawidify settings</h1>
+      <PopupHead
+        v-if="role === 'popup' && settings && siteSettings && eventBus"
+        :settings="settings"
+        :siteSettings="siteSettings"
+        :site="site"
+        :eventBus="eventBus"
+      >
+      </PopupHead>
+      <div v-else>
+        <h1 class="text-[3em] grow-0 shrink-0">Ultrawidify settings</h1>
+      </div>
 
       <div v-if="!settingsInitialized" class="flex flex-row w-full justify-center items-center">
         Loading settings...
@@ -17,7 +31,7 @@
         :eventBus="eventBus"
         :logger="logger"
         :inPlayer="false"
-        :site="null"
+        :site="site"
       >
       </SettingsWindowContent>
     </div>
@@ -26,23 +40,31 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import BrowserDetect from '../../../ext/conf/BrowserDetect';
+import BrowserDetect from '@src/ext/conf/BrowserDetect';
 import { LogAggregator } from '@src/ext/lib/logging/LogAggregator';
 import { ComponentLogger } from '@src/ext/lib/logging/ComponentLogger';
 import Settings from '@src/ext/lib/settings/Settings';
+import { SiteSettings } from '@src/ext/lib/settings/SiteSettings';
 import SettingsWindowContent from '@components/SettingsWindowContent.vue';
 
 import EventBus from '@src/ext/lib/EventBus';
 import CommsClient, { CommsOrigin } from '@src/ext/lib/comms/CommsClient';
 import {ChromeShittinessMitigations as CSM} from '@src/common/js/ChromeShittinessMitigations';
 
+import PopupHead from '@components/PopupHead/PopupHead.vue';
+
 export default defineComponent({
   components: {
-    SettingsWindowContent
+    SettingsWindowContent,
+    PopupHead,
   },
   data () {
     return {
+      BrowserDetect,
+      site: undefined,
       settings: undefined as Settings | undefined,
+      siteSettings: undefined as SiteSettings | undefined,
+      eventBus: undefined as EventBus | undefined,
       logger: undefined as ComponentLogger | undefined,
       logAggregator: undefined as LogAggregator | undefined,
       settingsInitialized: false,
@@ -121,6 +143,18 @@ export default defineComponent({
               this.site = config.site;
               // this.selectedSite = this.selectedSite || config.site.host;
               this.siteSettings = this.settings.getSiteSettings({site: this.site.host});
+
+              console.log('set-site received:', this.site, this.siteSettings, 'current path:', this.initialPath);
+              if (!this.initialPath || this.initialPath.length < 1) {
+                if (this.siteSettings.data.enable) {
+                  this.initialPath = ['video-settings'];
+                } else {
+                  this.initialPath = ['site-extension-settings'];
+                }
+              }
+              console.log('New path:', this.initialPath);
+
+
               this.eventBus.setupPopupTunnelWorkaround({
                 origin: CommsOrigin.Popup,
                 comms: {
@@ -206,7 +240,67 @@ export default defineComponent({
           },
         }
       )
-    }
+    },
+
+    //#region EXTENSION POPUP
+
+    showInPlayerUi() {
+      this.eventBus.send('uw-set-ui-state', {globalUiVisible: true}, {comms: {forwardTo: 'active'}});
+    },
+    async sleep(t) {
+      return new Promise<void>( (resolve,reject) => {
+        setTimeout(() => resolve(), t);
+      });
+    },
+    toObject(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    },
+    requestSite() {
+      try {
+        this.logger.log('info','popup', '[popup::getSite] Requesting current site ...')
+        // CSM.port.postMessage({command: 'get-current-site'});
+        this.eventBus.send(
+          'get-current-site',
+          {},
+          {
+            comms: {forwardTo: 'active'}
+          }
+        );
+      } catch (e) {
+        this.logger.log('error','popup','[popup::getSite] sending get-current-site failed for some reason. Reason:', e);
+      }
+    },
+    getRandomColor() {
+      return `rgb(${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)})`;
+    },
+    selectTab(tab) {
+      this.selectedTab = tab;
+    },
+    isDefaultFrame(frameId) {
+      return frameId === '__playing' || frameId === '__all';
+    },
+    loadHostnames() {
+      this.activeHosts = this.site.hostnames;
+    },
+    loadFrames() {
+      this.activeFrames = [{
+        host: this.site.host,
+        isIFrame: false,  // not used tho. Maybe one day
+      }];
+
+      for (const frame in this.site.frames) {
+        if (!this.activeFrames.find(x => x.host === this.site.frames[frame].host)) {
+          this.activeFrames.push({
+            id: `${this.site.id}-${frame}`,
+            label: this.site.frames[frame].host,
+            host: this.site.frames[frame].host,
+            ...this.site.frames[frame],
+            ...this.settings.active.sites[this.site.frames[frame].host]
+          })
+        };
+      }
+    },
+    //#endregion
   }
 });
 </script>

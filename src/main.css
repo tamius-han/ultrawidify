@@ -2,6 +2,9 @@
 @import "tailwindcss/utilities";
 
 @theme {
+  --breakpoint-popup: 640px;
+  --breakpoint-window: 960px;
+
   --color-primary: #ff872c;
   --color-primary-50:  #ffddbe;
   --color-primary-100: #ffcda0;
@@ -27,6 +30,9 @@ html, body {
 @media (max-width: 999px) {
   html, body {
     font-size: 12px;
+  }
+  .mdi svg {
+    transform: scale(0.75)
   }
 }
 
@@ -74,4 +80,26 @@ html, body {
   small, strike {
     @apply opacity-50;
   }
+
+
+  /* Site support levels */
+  .site-support-level {
+    &.official {
+      @apply text-primary-400;
+    }
+    &.community {
+      @apply text-indigo-600;
+    }
+    &.officially-disabled {
+      @apply text-red-600;
+    }
+    &.no-support {
+      @apply text-slate-600;
+    }
+    &.user-added {
+      @apply text-cyan-700;
+    }
+  }
+  /* END site support levels */
+
 }
