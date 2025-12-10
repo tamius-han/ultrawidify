@@ -107,8 +107,8 @@ export class KeyboardHandler extends KbmBase {
     }
   }
 
-  setKeyboardLocal(state) {
-    if (state === ExtensionMode.Enabled) {
+  setKeyboardLocal(state: ExtensionMode) {
+    if (state === ExtensionMode.All) {
       this.keyboardLocalDisabled = false;
     } else if (state === ExtensionMode.Disabled) {
       this.keyboardLocalDisabled = true;

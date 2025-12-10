@@ -757,65 +757,6 @@ const ExtensionConf: SettingsInterface = {
       arguments: {
         arPersistence: CropModePersistence.Default
       }
-    }, {
-      action: 'set-extension-enabled',
-      label: 'Enable extension',
-      arguments: {
-        mode: ExtensionMode.Enabled,
-      },
-      internalOnly: true,
-    }, {
-      action: 'set-extension-enabled',
-      label: 'Whitelist',
-      arguments: {
-        mode: ExtensionMode.Whitelist,
-      },
-      internalOnly: true,
-    }, {
-      action: 'set-extension-enabled',
-      label: 'Disable',
-      arguments: {
-        mode: ExtensionMode.Disabled
-      },
-      internalOnly: true,
-    }, {
-      action: 'set-extension-enabled',
-      label: 'Use default option',
-      arguments: {
-        mode: ExtensionMode.Default
-      },
-      internalOnly: true
-    }, {
-      action: 'set-autoar-enabled',
-      label: 'Enabled',
-      comment: 'Enable automatic aspect ratio detection if possible',
-      arguments: {
-        mode: ExtensionMode.Enabled
-      },
-      internalOnly: true
-    }, {
-      action: 'set-autoar-enabled',
-      label: 'Whitelist',
-      comment: 'Enable automatic aspect ratio detection if possible, but only on whitelisted sites',
-      arguments: {
-        mode: ExtensionMode.Whitelist,
-      },
-      internalOnly: true,
-    }, {
-      action: 'set-autoar-enabled',
-      label: 'Disable',
-      comment: 'Disable aspect ratio detection',
-      arguments: {
-        mode: ExtensionMode.Disabled
-      },
-      internalOnly: true,
-    }, {
-      action: 'set-autoar-enabled',
-      label: 'Use default option',
-      arguments: {
-        mode: ExtensionMode.Default
-      },
-      internalOnly: true
     }]
   },
   mitigations: {
@@ -862,26 +803,11 @@ const ExtensionConf: SettingsInterface = {
                                             // to avoid writing this multiple times. Tags:
                                             //      #g — only available in @global
                                             //      #s   — only available for specific site
-      enable: {                             //  How should extension work:
-        fullscreen: ExtensionMode.Disabled, //       'enabled'   - work everywhere except blacklist
-        theater: ExtensionMode.Disabled,    //
-        normal: ExtensionMode.Disabled,     //       'disabled'  - work nowhere
-      },                                    //       'default'   - follow global rules (#s)
-      enableAard: {                         //  Should we try to automatically detect aspect ratio?
-        fullscreen: ExtensionMode.Disabled, //  Options: 'enabled', 'default' (#s), 'disabled'
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableKeyboard: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled
-      },
-      enableUI: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,     // Lies! means 'theater-ish'
-        normal: ExtensionMode.Disabled       // Not actually used.
-      },
+      enable: ExtensionMode.Disabled,
+      enableAard: ExtensionMode.Disabled,
+      enableKeyboard: ExtensionMode.Disabled,
+      enableUI: ExtensionMode.FullScreen,
+
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
 
       defaultType: 'unknown',
@@ -894,26 +820,11 @@ const ExtensionConf: SettingsInterface = {
       }
     },
     "@empty": {                             // placeholder settings object with fallbacks to @global
-      enable: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default,
-      },
-      enableAard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default,
-      },
-      enableKeyboard: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default
-      },
-      enableUI: {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Disabled
-      },
+      enable: ExtensionMode.Default,
+      enableAard: ExtensionMode.Default,
+      enableKeyboard: ExtensionMode.Default,
+      enableUI: ExtensionMode.Default,
+
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
 
       type: 'user-defined',
@@ -926,26 +837,11 @@ const ExtensionConf: SettingsInterface = {
       }
     },
     "www.youtube.com" : {
-      enable: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Enabled,
-      },
-      enableAard: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Enabled,
-      },
-      enableKeyboard: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Enabled
-      },
-      enableUI: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Disabled
-      },
+      enable: ExtensionMode.All,
+      enableAard: ExtensionMode.All,
+      enableKeyboard: ExtensionMode.All,
+      enableUI:  ExtensionMode.All,
+
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
       overrideWhenEmbedded: true,
       override: false,                  // ignore value localStorage in favour of this
@@ -967,26 +863,11 @@ const ExtensionConf: SettingsInterface = {
       }
     },
     "www.youtube-nocookie.com": {
-      enable: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Enabled,
-      },
-      enableAard: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Enabled,
-      },
-      enableKeyboard: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Enabled
-      },
-      enableUI: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Disabled
-      },
+      enable: ExtensionMode.All,
+      enableAard: ExtensionMode.All,
+      enableKeyboard: ExtensionMode.All,
+      enableUI: ExtensionMode.FullScreen,
+
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
       overrideWhenEmbedded: true,
 
@@ -1009,52 +890,21 @@ const ExtensionConf: SettingsInterface = {
       }
     },
     "www.netflix.com" : {
-      enable: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Default,
-      },
-      enableAard: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableKeyboard: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Enabled
-      },
-      enableUI: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Disabled
-      },
+      enable: ExtensionMode.Theater,
+      enableAard: ExtensionMode.Disabled,
+      enableKeyboard: ExtensionMode.All,
+      enableUI:  ExtensionMode.All,
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
       override: false,
       type: 'community',
       defaultType: 'community',
     },
     "www.disneyplus.com" : {
-      enable: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Default,
-      },
-      enableAard: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Default,
-      },
-      enableKeyboard: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Default
-      },
-      enableUI: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Default
-      },
+      enable: ExtensionMode.Theater,
+      enableAard: ExtensionMode.Theater,
+      enableKeyboard: ExtensionMode.All,
+      enableUI: ExtensionMode.FullScreen,
+
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
       type: 'community',
       defaultType: 'community',
@@ -1077,51 +927,21 @@ const ExtensionConf: SettingsInterface = {
       }
     },
     "www.twitch.tv": {
-      enable: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Enabled,
-      },
-      enableAard: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Enabled,
-      },
-      enableKeyboard: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Enabled
-      },
-      enableUI: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Enabled
-      },
+      enable: ExtensionMode.All,
+      enableAard: ExtensionMode.All,
+      enableKeyboard: ExtensionMode.All,
+      enableUI: ExtensionMode.FullScreen,
+
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
       type: 'official',
       defaultType: 'official',
     },
     "old.reddit.com" : {
-      enable: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableAard: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableKeyboard: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableUI: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled
-      },
+      enable: ExtensionMode.Disabled,
+      enableAard: ExtensionMode.Disabled,
+      enableKeyboard: ExtensionMode.Disabled,
+      enableUI: ExtensionMode.Disabled,
+
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Never,
       type: 'officially-disabled',
       defaultType: 'officially-disabled',
@@ -1140,26 +960,11 @@ const ExtensionConf: SettingsInterface = {
       },
     },
     "www.reddit.com" : {
-      enable: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableAard: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableKeyboard: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableUI: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled
-      },
+      enable: ExtensionMode.Disabled,
+      enableAard: ExtensionMode.Disabled,
+      enableKeyboard: ExtensionMode.Disabled,
+      enableUI: ExtensionMode.Disabled,
+
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Never,
       type: 'officially-disabled',
       defaultType: 'officially-disabled',
@@ -1178,51 +983,21 @@ const ExtensionConf: SettingsInterface = {
       },
     },
     "imgur.com": {
-      enable: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableAard: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableKeyboard: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableUI: {
-        fullscreen: ExtensionMode.Disabled,
-        theater: ExtensionMode.Disabled,
-        normal: ExtensionMode.Disabled
-      },
+      enable: ExtensionMode.Disabled,
+      enableAard: ExtensionMode.Disabled,
+      enableKeyboard: ExtensionMode.Disabled,
+      enableUI: ExtensionMode.Disabled,
+
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Never,
       type: 'officially-disabled',
       defaultType: 'officially-disabled',
     },
     "www.wakanim.tv": {
-      enable: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Enabled,
-      },
-      enableAard: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Enabled,
-      },
-      enableKeyboard: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Enabled
-      },
-      enableUI: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Enabled
-      },
+      enable: ExtensionMode.All,
+      enableAard: ExtensionMode.All,
+      enableKeyboard: ExtensionMode.All,
+      enableUI: ExtensionMode.FullScreen,
+
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
       type: 'community',
       defaultType: 'community',
@@ -1240,26 +1015,11 @@ const ExtensionConf: SettingsInterface = {
       },
     },
     "app.plex.tv": {
-      enable: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableAard: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableKeyboard: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Disabled
-      },
-      enableUI: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Disabled
-      },
+      enable: ExtensionMode.Theater,
+      enableAard: ExtensionMode.Theater,
+      enableKeyboard: ExtensionMode.Theater,
+      enableUI: ExtensionMode.FullScreen,
+
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
       type: 'community',
       defaultType: 'community',
@@ -1272,26 +1032,10 @@ const ExtensionConf: SettingsInterface = {
       }
     },
     "metaivi.com": {
-      enable: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableAard: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableKeyboard: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Disabled
-      },
-      enableUI: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Disabled
-      },
+      enable: ExtensionMode.Theater,
+      enableAard: ExtensionMode.Theater,
+      enableKeyboard: ExtensionMode.Theater,
+      enableUI: ExtensionMode.FullScreen,
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
       type: "community",
       defaultType: "community",
@@ -1308,26 +1052,11 @@ const ExtensionConf: SettingsInterface = {
       },
     },
     "piped.kavin.rocks": {
-      enable: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableAard: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Disabled,
-      },
-      enableKeyboard: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Disabled
-      },
-      enableUI: {
-        fullscreen: ExtensionMode.Enabled,
-        theater: ExtensionMode.Enabled,
-        normal: ExtensionMode.Disabled
-      },
+      enable: ExtensionMode.Theater,
+      enableAard: ExtensionMode.Theater,
+      enableKeyboard: ExtensionMode.Theater,
+      enableUI: ExtensionMode.FullScreen,
+
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
       type: "community",
       defaultType: "community",

@@ -10,9 +10,9 @@ import StretchType from '../enums/StretchType.enum'
 import VideoAlignmentType from '../enums/VideoAlignmentType.enum'
 
 export enum ExtensionEnvironment {
-  Normal = 'normal',
-  Theater = 'theater',
-  Fullscreen = 'fullscreen',
+  Normal = ExtensionMode.All,
+  Theater = ExtensionMode.Theater,
+  Fullscreen = ExtensionMode.FullScreen,
 }
 
 export interface DevUiConfig {
@@ -46,12 +46,6 @@ interface RestrictionsSettings {
   minAllowedHeight?: number;          // if player is less than this many px tall, ultrawidify will disable itself
   onlyAllowInFullscreen?: boolean;    // if enabled, ultrawidify will be disabled when not in full screen regardless of what previous two options say
   onlyAllowAutodetectionInFullScreen?: boolean;  // if enabled, autodetection will only start once in full screen
-}
-
-interface ExtensionEnvironmentSettingsInterface {
-  normal: ExtensionMode,
-  theater: ExtensionMode,
-  fullscreen: ExtensionMode,
 }
 
 export interface CommandInterface {
@@ -445,10 +439,10 @@ interface SettingsInterface {
 }
 
 export interface SiteSettingsInterface {
-  enable: ExtensionEnvironmentSettingsInterface;
-  enableAard: ExtensionEnvironmentSettingsInterface;
-  enableKeyboard: ExtensionEnvironmentSettingsInterface;
-  enableUI: ExtensionEnvironmentSettingsInterface;  // Lies! enableUI doesn't use 'theater' property (but uses the other two)
+  enable: ExtensionMode;
+  enableAard: ExtensionMode;
+  enableKeyboard: ExtensionMode;
+  enableUI: ExtensionMode;
 
   applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy; // presumed to be 'Always' if not defined
   overrideWhenEmbedded?: boolean;

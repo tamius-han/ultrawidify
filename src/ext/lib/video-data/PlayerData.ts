@@ -478,7 +478,7 @@ class PlayerData {
       this.isTooSmall = this.checkIfTooSmall();
     }
 
-    const canEnable = this.siteSettings.isEnabledForEnvironment(this.isFullscreen, this.isTheaterMode) === ExtensionMode.Enabled;
+    const canEnable = this.siteSettings.isEnabledForEnvironment(this.isFullscreen, this.isTheaterMode);
 
     if (this.runLevel === RunLevel.Off && canEnable) {
       this.eventBus.send('restore-ar', null);

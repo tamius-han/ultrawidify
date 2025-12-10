@@ -408,7 +408,7 @@ class VideoData {
       this.logger.warn('onEnvironmentChanged', 'environment changed from:', this.currentEnvironment, 'to:', this.player.environment);
 
       this.currentEnvironment = this.player.environment;
-      if (this.siteSettings.data.enable[this.player.environment] === ExtensionMode.Disabled) {
+      if (this.player.environment <= this.siteSettings.data.enable) {
         this.setRunLevel(RunLevel.Off);
       } else {
         this.restoreAr();
@@ -417,7 +417,7 @@ class VideoData {
   }
 
   setRunLevel(runLevel: RunLevel, options?: {fromPlayer?: boolean}) {
-    if (this.player && this.siteSettings.data.enable[this.player.environment] !== ExtensionMode.Enabled) {
+    if (this.player && this.siteSettings.data.enable >= this.player.environment) {
       runLevel = RunLevel.Off;
     }
 

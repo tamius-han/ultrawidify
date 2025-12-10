@@ -1,6 +1,6 @@
 import CropModePersistence from '../../../common/enums/CropModePersistence.enum';
 import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
-import { SettingsReloadComponent, SettingsReloadFlags, SiteSettingsInterface } from '../../../common/interfaces/SettingsInterface';
+import { ExtensionEnvironment, SettingsReloadComponent, SettingsReloadFlags, SiteSettingsInterface } from '../../../common/interfaces/SettingsInterface';
 import { _cp } from '../../../common/js/utils';
 import Settings from './Settings';
 import StretchType from '../../../common/enums/StretchType.enum';
@@ -216,10 +216,8 @@ export class SiteSettings {
       if (!this.data[enableSegment]) {
         this.data[enableSegment] = {};
       }
-      for (const environment of ['normal', 'theater', 'fullscreen']) {
-        if (!this.data[enableSegment][environment] || this.data[enableSegment][environment] === ExtensionMode.Default) {
-          this.data[enableSegment][environment] = _cp(this.defaultSettings[enableSegment][environment]);
-        }
+      if (!this.data[enableSegment] || this.data[enableSegment] === ExtensionMode.Default) {
+        this.data[enableSegment] = _cp(this.defaultSettings[enableSegment]);
       }
     }
 
@@ -339,14 +337,14 @@ export class SiteSettings {
     }
   }
 
-  private _getEnvironment(isTheater: boolean, isFullscreen: boolean): 'fullscreen' | 'theater' | 'normal' {
+  private _getEnvironment(isTheater: boolean, isFullscreen: boolean): ExtensionEnvironment {
     if (isFullscreen) {
-      return 'fullscreen';
+      return ExtensionEnvironment.Fullscreen;
     }
     if (isTheater) {
-      return 'theater';
+      return ExtensionEnvironment.Theater;
     }
-    return 'normal';
+    return ExtensionEnvironment.Normal;
   }
 
   /**
@@ -355,9 +353,9 @@ export class SiteSettings {
    * @param isFullscreen
    * @returns ExtensionMode
    */
-  isEnabledForEnvironment(isTheater: boolean, isFullscreen: boolean): ExtensionMode {
+  isEnabledForEnvironment(isTheater: boolean, isFullscreen: boolean): boolean {
     const env = this._getEnvironment(isTheater, isFullscreen);
-    return this.data.enable[env];
+    return env <= this.data.enable;
   }
 
   /**
@@ -366,9 +364,9 @@ export class SiteSettings {
    * @param isFullscreen
    * @returns
    */
-  isAardEnabledForEnvironment(isTheater: boolean, isFullscreen: boolean): ExtensionMode {
+  isAardEnabledForEnvironment(isTheater: boolean, isFullscreen: boolean): boolean {
     const env = this._getEnvironment(isTheater, isFullscreen);
-    return this.data.enableAard[env];
+    return env <= this.data.enableAard;
   }
 
   /**
@@ -377,9 +375,9 @@ export class SiteSettings {
    * @param isFullscreen
    * @returns
    */
-  isKeyboardEnabledForEnvironment(isTheater: boolean, isFullscreen: boolean): ExtensionMode {
+  isKeyboardEnabledForEnvironment(isTheater: boolean, isFullscreen: boolean): boolean {
     const env = this._getEnvironment(isTheater, isFullscreen);
-    return this.data.enableKeyboard[env];
+    return env <= this.data.enableKeyboard;
   }
 
   //#endregion

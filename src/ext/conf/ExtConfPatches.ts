@@ -1,41 +1,44 @@
 // How to use:
 // version: {ExtensionConf object, but only properties that get overwritten}
 import StretchType from '../../common/enums/StretchType.enum';
-import ExtensionMode from '../../common/enums/ExtensionMode.enum';
+// import ExtensionMode from '../../common/enums/ExtensionMode.enum';
 import VideoAlignmentType from '../../common/enums/VideoAlignmentType.enum';
 import BrowserDetect from './BrowserDetect';
-import SettingsInterface from '../../common/interfaces/SettingsInterface';
+import SettingsInterface, { SiteSettingsInterface } from '../../common/interfaces/SettingsInterface';
 import { _cp } from '../../common/js/utils';
 import CropModePersistence from '../../common/enums/CropModePersistence.enum';
 import AspectRatioType from '../../common/enums/AspectRatioType.enum';
 import { update } from 'lodash';
 import EmbeddedContentSettingsOverridePolicy from '../../common/enums/EmbeddedContentSettingsOverridePolicy.enum';
+import LegacyExtensionMode from '../../common/enums/LegacyExtensionMode.enum';
+import ExtensionMode from '../../common/enums/ExtensionMode.enum';
+
 
 const ExtensionConfPatch = Object.freeze([
   {
     forVersion: '6.2.4',
-    updateFn: (userOptions: SettingsInterface, defaultOptions) => {
+    updateFn: (userOptions: any, defaultOptions) => {
       for (const site in userOptions.sites) {
-        userOptions.sites[site].enableUI = {
-          fullscreen: ExtensionMode.Default,
-          theater: ExtensionMode.Default,
-          normal: ExtensionMode.Default,
+        (userOptions as any).sites[site].enableUI = {
+          fullscreen: LegacyExtensionMode.Default,
+          theater: LegacyExtensionMode.Default,
+          normal: LegacyExtensionMode.Default,
         }
       }
       userOptions.sites['@global'].enableUI = {
-        fullscreen:  userOptions.ui.inPlayer.enabled ? ExtensionMode.Enabled : ExtensionMode.Disabled,
-        theater: ExtensionMode.Enabled,
-        normal: (userOptions.ui.inPlayer.enabled && !userOptions.ui.inPlayer.enabledFullscreenOnly) ? ExtensionMode.Enabled : ExtensionMode.Disabled
+        fullscreen:  userOptions.ui.inPlayer.enabled ? LegacyExtensionMode.Enabled : LegacyExtensionMode.Disabled,
+        theater: LegacyExtensionMode.Enabled,
+        normal: (userOptions.ui.inPlayer.enabled && !userOptions.ui.inPlayer.enabledFullscreenOnly) ? LegacyExtensionMode.Enabled : LegacyExtensionMode.Disabled
       }
       userOptions.sites['@empty'].enableUI = {
-        fullscreen: ExtensionMode.Default,
-        theater: ExtensionMode.Default,
-        normal: ExtensionMode.Default,
+        fullscreen: LegacyExtensionMode.Default,
+        theater: LegacyExtensionMode.Default,
+        normal: LegacyExtensionMode.Default,
       }
     }
   }, {
     forVersion: '6.2.6',
-    updateFn: (userOptions: SettingsInterface, defaultOptions) => {
+    updateFn: (userOptions: any, defaultOptions) => {
       console.log('[ultrawidify] Migrating settings — applying patches for version 6.2.6');
 
       if (!userOptions.commands) {
@@ -241,7 +244,7 @@ const ExtensionConfPatch = Object.freeze([
     }
   }, {
     forVersion: '6.3.92',
-    updateFn: (userOptions: SettingsInterface) => {
+    updateFn: (userOptions: any) => {
       // applyToEmbeddedContent is now an enum, and also no longer optional
       for (const site in userOptions.sites) {
         if (userOptions.sites[site].applyToEmbeddedContent === undefined) {
@@ -274,6 +277,33 @@ const ExtensionConfPatch = Object.freeze([
       userOptions.aard = defaultOptions.aard;
       userOptions.aardLegacy = defaultOptions.aardLegacy;
       delete (userOptions as any).arDetect;
+    }
+  },
+  {
+    forVersion: '6.3.994',
+    upgradeFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface) => {
+      const convertLegacyExtensionMode = (option: {normal: LegacyExtensionMode, theater: LegacyExtensionMode, fullscreen: LegacyExtensionMode}) => {
+        if (option.normal === LegacyExtensionMode.Enabled) {
+          return ExtensionMode.All;
+        }
+        if (option.theater === LegacyExtensionMode.Enabled) {
+          return ExtensionMode.Theater;
+        }
+        if (option.fullscreen === LegacyExtensionMode.Enabled) {
+          return ExtensionMode.FullScreen;
+        }
+        if (option.fullscreen === LegacyExtensionMode.Disabled) {
+          return ExtensionMode.Disabled;
+        }
+        return ExtensionMode.Default;
+      }
+
+      for (const key in userOptions.sites) {
+        userOptions.sites[key].enable = convertLegacyExtensionMode(userOptions.sites[key].enable as any);
+        userOptions.sites[key].enableAard = convertLegacyExtensionMode(userOptions.sites[key].enable as any);
+        userOptions.sites[key].enableKeyboard = convertLegacyExtensionMode(userOptions.sites[key].enable as any);
+        userOptions.sites[key].enableUI = convertLegacyExtensionMode(userOptions.sites[key].enable as any);
+      }
     }
   }
 

@@ -1,5 +1,4 @@
 import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
-import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
 import { ArVariant } from '@src/common/interfaces/ArInterface';
 import { ExtensionEnvironment } from '@src/common/interfaces/SettingsInterface';
 import EventBus from '../EventBus';
@@ -16,15 +15,10 @@ import { GlDebugCanvas, GlDebugType } from './gl/GlDebugCanvas';
 import { AardCanvasStore } from './interfaces/aard-canvas-store.interface';
 import { AardDetectionSample, generateSampleArray, resetSamples } from './interfaces/aard-detection-sample.interface';
 import { AardStatus, initAardStatus } from './interfaces/aard-status.interface';
-import { AardTestResult_SubtitleRegion, AardTestResults,  resetSubtitleScanResults } from './interfaces/aard-test-results.interface';
 import { AardTimers, initAardTimers } from './interfaces/aard-timers.interface';
 import { ComponentLogger } from '../logging/ComponentLogger';
 import { AardPollingOptions } from './enums/aard-polling-options.enum';
-import { AardSubtitleCropMode } from './enums/aard-subtitle-crop-mode.enum';
-import { LetterboxOrientation } from './enums/letterbox-orientation.enum';
-import { Edge } from './enums/edge.enum';
 import { AardUncertainReason } from './enums/aard-letterbox-uncertain-reason.enum';
-import { result } from 'lodash';
 import { AardLegacyTestResults, initAardTestResults, resetAardTestResults, resetGuardLine } from './interfaces/aard-legacy-test-results.interface';
 
 
@@ -439,7 +433,7 @@ export class AardLegacy {
       // console.log('--- video data: ---\n', this.videoData);
       return;
     }
-    if (this.siteSettings.data.enableAard[this.videoData.player.environment] === ExtensionMode.Enabled) {
+    if (this.videoData.player.environment <= this.siteSettings.data.enableAard) {
       this.start();
     } else {
       this.stop();

@@ -53,9 +53,7 @@ class UI {
       return true;
     }
 
-    return this.siteSettings?.data.enableUI.fullscreen === ExtensionMode.Enabled
-      || this.siteSettings?.data.enableUI.theater === ExtensionMode.Enabled
-      || this.siteSettings?.data.enableUI.normal === ExtensionMode.Enabled;
+    return this.siteSettings?.data.enableUI !== ExtensionMode.Disabled;
   }
 
   async init() {
@@ -342,7 +340,7 @@ class UI {
       canShowUI: false,
     }
 
-    if (this.playerData?.environment && this.siteSettings.data.enableUI[this.playerData?.environment] !== ExtensionMode.Enabled) {
+    if (this.playerData?.environment && this.playerData?.environment <= this.siteSettings.data.enableUI) {
       return result;
     }
 

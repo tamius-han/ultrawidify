@@ -1,4 +1,3 @@
-import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
 import EventBus from '../EventBus';
 import { SiteSettings } from '../settings/SiteSettings';
 
@@ -19,9 +18,9 @@ export class ExtensionStatus {
     return this.fsStatus.fullscreen;
   }
 
-  private enabled: ExtensionMode;
-  private aardEnabled: ExtensionMode;
-  private kbdEnabled: ExtensionMode;
+  private enabled: boolean;
+  private aardEnabled: boolean;
+  private kbdEnabled: boolean;
 
   constructor(siteSettings: SiteSettings, eventBus: EventBus, fsStatus: {fullscreen: boolean}){
     this.siteSettings = siteSettings;
@@ -33,26 +32,20 @@ export class ExtensionStatus {
     const canAard = this.siteSettings.isAardEnabledForEnvironment(this.isTheaterMode, this.isFullScreen);
     const canKbd = this.siteSettings.isKeyboardEnabledForEnvironment(this.isTheaterMode, this.isFullScreen);
 
-    if (canRun !== this.enabled) {
-      if (canRun === ExtensionMode.Enabled) {
-        this.eventBus.send('set-extension-active', {});
-      } else {
-        this.eventBus.send('set-extension-inactive', {});
-      }
+    if (canRun) {
+      this.eventBus.send('set-extension-active', {});
+    } else {
+      this.eventBus.send('set-extension-inactive', {});
     }
-    if (canAard !== this.aardEnabled) {
-      if (canAard === ExtensionMode.Enabled) {
-        this.eventBus.send('set-aard-active', {});
-      } else {
-        this.eventBus.send('set-aard-inactive', {});
-      }
+    if (canAard) {
+      this.eventBus.send('set-aard-active', {});
+    } else {
+      this.eventBus.send('set-aard-inactive', {});
     }
-    if (canKbd !== this.kbdEnabled) {
-      if (canKbd === ExtensionMode.Enabled) {
-        this.eventBus.send('set-kbd-active', {});
-      } else {
-        this.eventBus.send('set-kbd-inactive', {});
-      }
+    if (canKbd) {
+      this.eventBus.send('set-kbd-active', {});
+    } else {
+      this.eventBus.send('set-kbd-inactive', {});
     }
 
     this.enabled = canRun;

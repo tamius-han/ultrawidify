@@ -1,4 +1,4 @@
-enum ExtensionMode {
+enum LegacyExtensionMode {
   AutoDisabled = -2,
   Disabled = -1,
   Default = 0,
@@ -7,4 +7,4 @@ enum ExtensionMode {
   Enabled = 3,
 };
 
-export default ExtensionMode;
+export default LegacyExtensionMode;
