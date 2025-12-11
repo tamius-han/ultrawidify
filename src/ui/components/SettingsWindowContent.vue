@@ -168,12 +168,12 @@
           >
           </PlayerDetectionPanel>
 
-          <DebugPanel
+          <Debugging
             v-if="selectedTab === 'debugging'"
             :settings="settings"
             :eventBus="eventBus"
             :site="site"
-          ></DebugPanel>
+          ></Debugging>
 
           <!-- <ResetBackupPanel
             v-if="selectedTab === 'resetBackup'"
@@ -194,11 +194,11 @@ import UISettings from '@components/UISettings/UISettings.vue';
 import KeyboardShortcutSettings from '@components/KeyboardShortcuts/KeyboardShortcutSettings.vue';
 import SiteExtensionSettings from '@components/ExtensionSettings/Panels/SiteExtensionSettings.vue';
 import FrameSiteSettings from '@components/ExtensionSettings/Panels/FrameSiteSettings.vue';
+import Debugging from '@components/Debugging/Debugging.vue';
 
 import WhatsNew from '@components/ExtensionInfo/WhatsNew.vue';
 import About from '@components/ExtensionInfo/About.vue';
 
-import DebugPanel from '../../csui/src/PlayerUiPanels/DebugPanel.vue'
 import PlayerDetectionPanel from '../../csui/src/PlayerUiPanels/PlayerDetectionPanel.vue'
 import BrowserDetect from '../../ext/conf/BrowserDetect'
 import ChangelogPanel from '../../csui/src/PlayerUiPanels/ChangelogPanel.vue'
@@ -257,12 +257,12 @@ export default defineComponent({
     UISettings,
     SiteExtensionSettings,
     FrameSiteSettings,
+    Debugging,
 
     WhatsNew,
     About,
 
     PlayerDetectionPanel,
-    DebugPanel,
     ChangelogPanel,
     AboutPanel,
     SupportLevelIndicator,
@@ -366,11 +366,13 @@ export default defineComponent({
       console.log('setting initial path:', this.initialPath)
       if (path && path.length) {
         this.selectedTab = path[0];
+        this.$emit('debugStatusChanged', this.selectedTab === 'debugging');
       }
     },
     selectTab(tab) {
       console.log("Selecting tab", tab);
       this.selectedTab = tab;
+      this.$emit('debugStatusChanged', tab === 'debugging');
       window.location.hash = `#${this.role}/${this.selectedTab}`;
     },
     setPreventClose(bool) {

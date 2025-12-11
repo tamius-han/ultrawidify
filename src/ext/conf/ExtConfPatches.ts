@@ -17,7 +17,7 @@ import ExtensionMode from '../../common/enums/ExtensionMode.enum';
 const ExtensionConfPatch = Object.freeze([
   {
     forVersion: '6.2.4',
-    updateFn: (userOptions: any, defaultOptions) => {
+    updateFn: (userOptions: any, defaultOptions, logger?) => {
       for (const site in userOptions.sites) {
         (userOptions as any).sites[site].enableUI = {
           fullscreen: LegacyExtensionMode.Default,
@@ -38,7 +38,7 @@ const ExtensionConfPatch = Object.freeze([
     }
   }, {
     forVersion: '6.2.6',
-    updateFn: (userOptions: any, defaultOptions) => {
+    updateFn: (userOptions: any, defaultOptions, logger?) => {
       console.log('[ultrawidify] Migrating settings — applying patches for version 6.2.6');
 
       if (!userOptions.commands) {
@@ -273,7 +273,7 @@ const ExtensionConfPatch = Object.freeze([
   },
   {
     forVersion: '6.3.98',
-    upgradeFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface) => {
+    updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface) => {
       userOptions.aard = defaultOptions.aard;
       userOptions.aardLegacy = defaultOptions.aardLegacy;
       delete (userOptions as any).arDetect;
@@ -281,8 +281,9 @@ const ExtensionConfPatch = Object.freeze([
   },
   {
     forVersion: '6.3.994',
-    upgradeFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface) => {
+    updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
       const convertLegacyExtensionMode = (option: {normal: LegacyExtensionMode, theater: LegacyExtensionMode, fullscreen: LegacyExtensionMode}) => {
+        logger.log('updateFn', 'converting option', option);
         if (option.normal === LegacyExtensionMode.Enabled) {
           return ExtensionMode.All;
         }

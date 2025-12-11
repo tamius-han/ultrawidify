@@ -12,8 +12,8 @@
           @click="setExtensionMode('enable', $event)"
         >
           <option
-            v-if="simpleExtensionSettings.enable === 'complex'"
-            value="complex"
+            v-if="simpleExtensionSettings.enable === 'invalid'"
+            :value="undefined"
           >
             (Site uses advanced settings)
           </option>
@@ -412,7 +412,7 @@ export default defineComponent({
     /**
      * Compiles our extension settings into more user-friendly options
      */
-    compileSimpleSettings(component, getFor = 'site') {
+    compileSimpleSettings(component, getFor = 'site'): ExtensionMode {
 
       let settingsData;
       switch (getFor) {
@@ -427,86 +427,25 @@ export default defineComponent({
           break;
       }
 
-
-      try {
-        if (
-          (  settingsData?.[component]?.normal     === ExtensionMode.Disabled || component === 'enableUI')
-          && settingsData?.[component]?.theater    === ExtensionMode.Disabled
-          && settingsData?.[component]?.fullscreen === ExtensionMode.Disabled
-        ) {
-          return 'disabled';
-        }
-        if (
-          (  settingsData?.[component]?.normal     === ExtensionMode.Default || component === 'enableUI')
-          && settingsData?.[component]?.theater    === ExtensionMode.Default
-          && settingsData?.[component]?.fullscreen === ExtensionMode.Default
-        ) {
-          // console.log(
-          //   component, 'is set to default because:\n',
-          //   `\nsettingsData[${component}].normal: ${settingsData?.[component]?.normal} || component is enableUI?`, component,
-          //   `\nsettingsData[${component}].theater: ${settingsData?.[component]?.normal}`,
-          //   `\nsettingsData[${component}].fullscreen: ${settingsData?.[component]?.normal}`,
-
-          //   `\n\n(expected values:`, ExtensionMode.Default
-          // )
-          return 'default';
-        }
-        if (
-          (  settingsData?.[component]?.normal     === ExtensionMode.Disabled || component === 'enableUI')
-          && settingsData?.[component]?.theater    === ExtensionMode.Disabled
-          && settingsData?.[component]?.fullscreen === ExtensionMode.Enabled
-        ) {
-          return 'fs';
-        }
-        if (
-          (  settingsData?.[component]?.normal     === ExtensionMode.Disabled  || component === 'enableUI')
-          && settingsData?.[component]?.theater    === ExtensionMode.Enabled
-          && settingsData?.[component]?.fullscreen === ExtensionMode.Enabled
-        ) {
-          return 'theater';
-        }
-        if (
-          (  settingsData?.[component]?.normal     === ExtensionMode.Enabled || component === 'enableUI')
-          && settingsData?.[component]?.theater    === ExtensionMode.Enabled
-          && settingsData?.[component]?.fullscreen === ExtensionMode.Enabled
-        ) {
-          return 'enabled';
-        }
-
-        return 'complex';
-      } catch (e) {
-        return 'loading';
-      }
+      return settingsData?.[component];
     },
 
     getDefaultOptionLabel(component) {
-      const componentValue = this.compileSimpleSettings(component, 'default');
+      const componentValue: ExtensionMode = this.compileSimpleSettings(component, 'default');
 
-      if (componentValue === 'loading') {
-        return componentValue;
-      }
-      if (component === 'enableUI') {
-        switch (componentValue) {
-          case 'fs':
-            return 'fullscreen only';
-          case 'enabled':
-          case 'theater':
-            return 'where possible';
-          case 'disabled':
-            return 'disabled';
-        }
-      }
       switch (componentValue) {
-        case 'fs':
-          return 'Fullscreen only';
-        case 'theater':
-          return 'theater & FS';
-        case 'enabled':
-          return 'always';
-        case 'disabled':
+        case ExtensionMode.Disabled:
           return 'disabled';
-        case 'default':
-          return 'complex'
+        case ExtensionMode.Default:
+          return 'default';
+        case ExtensionMode.FullScreen:
+          return 'fullscreen only';
+        case ExtensionMode.Theater:
+          return 'fullscreen & theater';
+        case ExtensionMode.All:
+          return 'always';
+        default:
+          return '<Invalid value>';
       }
     },
 

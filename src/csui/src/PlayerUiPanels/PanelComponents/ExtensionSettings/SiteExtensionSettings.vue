@@ -11,32 +11,26 @@
           :value="simpleExtensionSettings.enable"
           @click="setExtensionMode('enable', $event)"
         >
-          <option
-            v-if="simpleExtensionSettings.enable === 'complex'"
-            value="complex"
-          >
-            (Site uses advanced settings)
-          </option>
           <template v-if="isDefaultConfiguration">
-            <option value="disabled">
+            <option :value="ExtensionMode.Disabled">
               Disabled by default
             </option>
           </template>
           <template v-else>
-            <option value="default">
-              Use default ({{simpleDefaultSettings.enable}})
+            <option :value="ExtensionMode.Default">
+              Use default ({{simpleDefaultSettings.enableAard}})
             </option>
-            <option value="disabled">
+            <option :value="ExtensionMode.Disabled">
               Never
             </option>
           </template>
-          <option value="fs">
+          <option :value="ExtensionMode.FullScreen">
             Fullscreen only
           </option>
-          <option value="theater">
+          <option :value="ExtensionMode.Theater">
             Fullscreen and theater mode
           </option>
-          <option value="enabled">
+          <option :value="ExtensionMode.All">
             Always
           </option>
         </select>
@@ -56,32 +50,26 @@
             :value="simpleExtensionSettings.enableAard"
             @click="setExtensionMode('enableAard', $event)"
           >
-            <option
-              v-if="simpleExtensionSettings.enable === 'complex'"
-              value="complex"
-            >
-              (Site uses advanced settings)
-            </option>
             <template v-if="isDefaultConfiguration">
-              <option value="disabled">
+              <option :value="ExtensionMode.Disabled">
                 Disabled by default
               </option>
             </template>
             <template v-else>
-              <option value="default">
+              <option :value="ExtensionMode.Default">
                 Use default ({{simpleDefaultSettings.enableAard}})
               </option>
-              <option value="disabled">
+              <option :value="ExtensionMode.Disabled">
                 Never
               </option>
             </template>
-            <option value="fs">
+            <option :value="ExtensionMode.FullScreen">
               Fullscreen only
             </option>
-            <option value="theater">
+            <option :value="ExtensionMode.Theater">
               Fullscreen and theater mode
             </option>
-            <option value="enabled">
+            <option :value="ExtensionMode.All">
               Always
             </option>
           </select>
@@ -99,32 +87,26 @@
             :value="simpleExtensionSettings.enableKeyboard"
             @click="setExtensionMode('enableKeyboard', $event)"
           >
-            <option
-              v-if="simpleExtensionSettings.enable === 'complex'"
-              value="complex"
-            >
-              (Site uses advanced settings)
-            </option>
             <template v-if="isDefaultConfiguration">
-              <option value="disabled">
+              <option :value="ExtensionMode.Disabled">
                 Disabled by default
               </option>
             </template>
             <template v-else>
-              <option value="default">
-                Use default ({{simpleDefaultSettings.enableKeyboard}})
+              <option :value="ExtensionMode.Default">
+                Use default ({{simpleDefaultSettings.enableAard}})
               </option>
-              <option value="disabled">
+              <option :value="ExtensionMode.Disabled">
                 Never
               </option>
             </template>
-            <option value="fs">
+            <option :value="ExtensionMode.FullScreen">
               Fullscreen only
             </option>
-            <option value="theater">
+            <option :value="ExtensionMode.Theater">
               Fullscreen and theater mode
             </option>
-            <option value="enabled">
+            <option :value="ExtensionMode.All">
               Always
             </option>
           </select>
@@ -143,23 +125,26 @@
             @click="setExtensionMode('enableUI', $event)"
           >
             <template v-if="isDefaultConfiguration">
-              <option value="disabled">
+              <option :value="ExtensionMode.Disabled">
                 Disabled by default
               </option>
             </template>
             <template v-else>
-              <option value="default">
-                Use default ({{simpleDefaultSettings.enableUI}})
+              <option :value="ExtensionMode.Default">
+                Use default ({{simpleDefaultSettings.enableAard}})
               </option>
-              <option value="disabled">
+              <option :value="ExtensionMode.Disabled">
                 Never
               </option>
             </template>
-            <option value="fs">
+            <option :value="ExtensionMode.FullScreen">
               Fullscreen only
             </option>
-            <option value="theater">
-              Always where possible
+            <option :value="ExtensionMode.Theater">
+              Fullscreen and theater mode
+            </option>
+            <option :value="ExtensionMode.All">
+              Always
             </option>
           </select>
         </div>
@@ -425,64 +410,12 @@ export default {
           break;
       }
 
-
-      try {
-        if (
-          (  settingsData?.[component]?.normal     === ExtensionMode.Disabled || component === 'enableUI')
-          && settingsData?.[component]?.theater    === ExtensionMode.Disabled
-          && settingsData?.[component]?.fullscreen === ExtensionMode.Disabled
-        ) {
-          return 'disabled';
-        }
-        if (
-          (  settingsData?.[component]?.normal     === ExtensionMode.Default || component === 'enableUI')
-          && settingsData?.[component]?.theater    === ExtensionMode.Default
-          && settingsData?.[component]?.fullscreen === ExtensionMode.Default
-        ) {
-          // console.log(
-          //   component, 'is set to default because:\n',
-          //   `\nsettingsData[${component}].normal: ${settingsData?.[component]?.normal} || component is enableUI?`, component,
-          //   `\nsettingsData[${component}].theater: ${settingsData?.[component]?.normal}`,
-          //   `\nsettingsData[${component}].fullscreen: ${settingsData?.[component]?.normal}`,
-
-          //   `\n\n(expected values:`, ExtensionMode.Default
-          // )
-          return 'default';
-        }
-        if (
-          (  settingsData?.[component]?.normal     === ExtensionMode.Disabled || component === 'enableUI')
-          && settingsData?.[component]?.theater    === ExtensionMode.Disabled
-          && settingsData?.[component]?.fullscreen === ExtensionMode.Enabled
-        ) {
-          return 'fs';
-        }
-        if (
-          (  settingsData?.[component]?.normal     === ExtensionMode.Disabled  || component === 'enableUI')
-          && settingsData?.[component]?.theater    === ExtensionMode.Enabled
-          && settingsData?.[component]?.fullscreen === ExtensionMode.Enabled
-        ) {
-          return 'theater';
-        }
-        if (
-          (  settingsData?.[component]?.normal     === ExtensionMode.Enabled || component === 'enableUI')
-          && settingsData?.[component]?.theater    === ExtensionMode.Enabled
-          && settingsData?.[component]?.fullscreen === ExtensionMode.Enabled
-        ) {
-          return 'enabled';
-        }
-
-        return 'complex';
-      } catch (e) {
-        return 'loading';
-      }
+      return settingsData[component];
     },
 
     getDefaultOptionLabel(component) {
       const componentValue = this.compileSimpleSettings(component, 'default');
 
-      if (componentValue === 'loading') {
-        return componentValue;
-      }
       if (component === 'enableUI') {
         switch (componentValue) {
           case 'fs':

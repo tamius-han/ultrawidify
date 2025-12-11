@@ -6,9 +6,10 @@ import ExtensionConfPatch from '../../conf/ExtConfPatches';
 import SettingsInterface from '../../../common/interfaces/SettingsInterface';
 import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
 import { GetSiteSettingsOptions, SiteSettings } from './SiteSettings';
-import { SettingsSnapshotManager } from './SettingsSnapshotManager';
+import { SettingsSnapshot, SettingsSnapshotManager } from './SettingsSnapshotManager';
 import { ComponentLogger } from '../logging/ComponentLogger';
 import { LogAggregator } from '../logging/LogAggregator';
+import { getDiff } from 'json-difference'
 
 if(process.env.CHANNEL !== 'stable'){
   console.info("Loading Settings");
@@ -100,11 +101,32 @@ class Settings {
     //   this.logger?.log('info', 'settings',"[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));
     // }
     const parsedSettings = JSON.parse(changes.uwSettings.newValue);
-    this.setActive(parsedSettings);
 
+    const diff = getDiff(this.active, parsedSettings, {isLodashLike: true});
+
+    const validChangeFn = (x: any) =>
+      x[0] !== 'lastModified';
+
+    const validAdditions = diff.added.filter(validChangeFn);
+    const validEdits = diff.edited.filter(validChangeFn);
+    const validRemovals = diff.removed.filter(validChangeFn).filter(x => x[0] !== 'version');
+
+    this.logger?.info('storageOnChange', "Diff between current and changed settings:", diff, 'valid changes:', {validAdditions, validEdits, validRemovals});
+
+    if (
+      validAdditions.length === 0
+      && validRemovals.length === 0
+      && validEdits.length === 0
+    ) {
+      this.logger?.warn('storageOnChange', "storageChangeListener fired, but no changes were detected. Sus.\nchanges:", changes, "storage area:", area, 'current:', this.active, 'diff:', diff);
+      return;
+    }
+
+    this.setActive(parsedSettings);
     this.logger?.info('storageOnChange', 'Does parsedSettings.preventReload exist?', parsedSettings.preventReload, "Does callback exist?", !!this.onSettingsChanged);
 
     if (!parsedSettings.preventReload) {
+      this.active.preventReload = true;
       try {
         for (const fn of this.onChangedCallbacks) {
           try {
@@ -116,7 +138,6 @@ class Settings {
         if (this.onSettingsChanged) {
           this.onSettingsChanged();
         }
-
         this.logger?.info('storageOnChange', 'Update callback finished.')
       } catch (e) {
         this.logger?.error('storageOnChange', "CALLING UPDATE CALLBACK FAILED. Reason:", e)
@@ -212,7 +233,7 @@ class Settings {
   private findFirstNecessaryPatch(version) {
     return ExtensionConfPatch.findIndex(x => this.compareExtensionVersions(x.forVersion, version) > 0);
   }
-  private applySettingsPatches(oldVersion) {
+  private applySettingsPatches(currentSettings, oldVersion, options?: {skipSnapshot?: boolean}) {
     let index = this.findFirstNecessaryPatch(oldVersion);
 
     if (index === -1) {
@@ -221,26 +242,30 @@ class Settings {
     }
 
     // save current settings object
-    const currentSettings = this.active;
-
-    this.snapshotManager.createSnapshot(
-      JSON.parse(JSON.stringify(currentSettings)),
-      {
-        label: 'Pre-migration snapshot',
-        isAutomatic: true
-      }
-    );
-
-    // this.active.newFeatureTracker = {};
-
+    if (!options?.skipSnapshot) {
+      this.snapshotManager.createSnapshot(
+        JSON.parse(JSON.stringify(currentSettings)),
+        {
+          label: 'Pre-migration snapshot',
+          isAutomatic: true
+        }
+      );
+    }
 
     // apply all remaining patches
-    this.logger?.info('applySettingsPatches', `There are ${ExtensionConfPatch.length - index} settings patches to apply`);
+    const pendingPatchesCount = ExtensionConfPatch.length - index;
+    this.logger?.info('applySettingsPatches', `There are ${pendingPatchesCount} settings patches to apply`);
+    const defaultSettings = this.getDefaultSettings();
     while (index < ExtensionConfPatch.length) {
       const updateFn =  ExtensionConfPatch[index].updateFn;
+
+      this.logger.info('applySettingsPatches', `Processing patch ${index} / ${ExtensionConfPatch.length}. Patch ${!!updateFn ? 'has' : 'does NOT have'} an update function.`);
+
       if (updateFn) {
         try {
-          updateFn(this.active, this.getDefaultSettings());
+          this.logger.log('applySettingsPatches', `Starting to update patch for version ${ExtensionConfPatch[index].forVersion} (${pendingPatchesCount - (ExtensionConfPatch.length - index)} / ${pendingPatchesCount}) | index: ${index}, patches length: ${ExtensionConfPatch.length}`);
+          updateFn(currentSettings, defaultSettings, this.logger);
+          this.logger.log('applySettingsPatches', `Patch for version ${ExtensionConfPatch[index].forVersion} applied. (${pendingPatchesCount - (ExtensionConfPatch.length - index)} / ${pendingPatchesCount})`);
         } catch (e) {
           this.logger?.error('applySettingsPatches', 'Failed to execute update function. Keeping settings object as-is. Error:', e);
         }
@@ -248,30 +273,37 @@ class Settings {
 
       index++;
     }
+
+    return currentSettings;
   }
 
-  async init() {
-    let settings = await this.get();
+  async init(options?: {dryRun?: boolean, snapshot?: SettingsSnapshot, skipSnapshot?: boolean}) {
+    let settings;
 
-    if (settings?.dev?.loadFromSnapshot) {
+    if (options?.snapshot) {
+      this.logger?.info('init', 'Snapshot was provided — will load settings from snapshot.', options.snapshot);
+      settings = options.snapshot.settings;
+    } else if (settings?.dev?.loadFromSnapshot) {
       this.logger?.info('init', 'Dev mode is enabled, Loading settings from snapshot:', settings.dev.loadFromSnapshot);
       const snapshot = await this.snapshotManager.getSnapshot();
       if (snapshot) {
         settings = snapshot.settings;
       }
+    } else {
+       settings = await this.get();
     }
 
-    this.version = this.getExtensionVersion();
+    const currentVersion = this.getExtensionVersion();
 
     //                 |—> on first setup, settings is undefined & settings.version is haram
     //                 |   since new installs ship with updates by default, no patching is
     //                 |   needed. In this case, we assume we're on the current version
-    const oldVersion = settings?.version ?? this.version;
+    const oldVersion = settings?.version ?? currentVersion;
 
     if (settings) {
       this.logger?.info('init', "Configuration fetched from storage:", settings,
                                           "\nlast saved with:", settings.version,
-                                          "\ncurrent version:", this.version
+                                          "\ncurrent version:", currentVersion
       );
     }
 
@@ -284,40 +316,57 @@ class Settings {
         '\nsettings:',
         settings
       );
-      this.active = this.getDefaultSettings();
-      this.active.version = this.version;
-      await this.save();
 
-      return this.active;
+      settings = this.getDefaultSettings();
+      settings.version = currentVersion;
+
+      if (!options?.dryRun) {
+        this.active = settings;
+        this.version = currentVersion;
+        await this.save();
+      }
+
+      return settings;
     }
 
     // if there's settings, set saved object as active settings
-    this.active = settings;
 
     // if version number is undefined, we make it defined
     // this should only happen on first extension initialization
-    if (!this.active.version) {
-      this.active.version = this.version;
-      await this.save();
-      return this.active;
+    if (!settings.version) {
+      settings.version = currentVersion;
+
+      if (!options?.dryRun) {
+        this.active = settings;
+        this.version = currentVersion;
+        await this.save();
+      }
+      return settings;
     }
 
     // check if extension has been updated. If not, return settings as they were retrieved
-    if (this.active.version === this.version) {
+    if (settings.version === currentVersion) {
       this.logger?.info('init', "extension was saved with current version of ultrawidify. Returning object as-is.");
-      return this.active;
+      if (!options?.dryRun) {
+        this.active = settings;
+      }
+      return settings;
     }
 
     // in case settings in previous version contained a fucky wucky, we overwrite existing settings with a patch
-    this.applySettingsPatches(oldVersion);
+    settings = this.applySettingsPatches(settings, oldVersion, {skipSnapshot: options?.dryRun || options?.skipSnapshot});
 
     // set 'whatsNewChecked' flag to false when updating, always
-    this.active.whatsNewChecked = false;
+    settings.whatsNewChecked = false;
     // update settings version to current
-    this.active.version = this.version;
+    settings.version = currentVersion;
 
-    await this.save();
-    return this.active;
+    if (!options?.dryRun) {
+      this.active = settings;
+      this.version = currentVersion;
+      await this.save();
+    }
+    return settings;
   }
 
   async get(): Promise<SettingsInterface | undefined> {
@@ -436,6 +485,11 @@ class Settings {
   }
   removeAfterChangeListener(fn: () => void): void {
     this.afterSettingsChangedCallbacks = this.afterSettingsChangedCallbacks.filter(x => x !== fn);
+  }
+
+  async testMigration(snapshot: SettingsSnapshot) {
+    const afterMigrationSettings = await this.init({dryRun: true, snapshot});
+    this.logger.log('testMigration', 'Settings migrated. Settings model after initialization:', afterMigrationSettings);
   }
 }
 

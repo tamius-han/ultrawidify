@@ -6,7 +6,10 @@
   ">
 
     <!-- page content -->
-    <div class="w-full max-w-[1920px] h-[100dvh] overflow-hidden flex flex-col">
+    <div
+      class="w-full  h-[100dvh] overflow-hidden flex flex-col"
+      :class="{'max-w-[1920px]': !isDebugging}"
+    >
       <PopupHead
         v-if="role === 'popup' && settings && siteSettings && eventBus"
         :settings="settings"
@@ -32,6 +35,7 @@
         :logger="logger"
         :inPlayer="false"
         :site="site"
+        @debugStatusChanged="setDebugStatus"
       >
       </SettingsWindowContent>
     </div>
@@ -70,6 +74,7 @@ export default defineComponent({
       settingsInitialized: false,
       role: 'settings',
       initialPath: undefined as string[] | undefined,
+      isDebugging: false,
     }
   },
   async created() {
@@ -87,10 +92,18 @@ export default defineComponent({
         await this.setupSettingsPage();
     }
 
+    if (segment !== '#popup') {
+      // undo that workaround that makes popup work correctly if we aren't in a popup
+      document.getElementsByTagName('html')[0].setAttribute('style', '');
+    }
+
     await this.settings.init();
     this.settingsInitialized = true;
   },
   methods: {
+    setDebugStatus(isDebugging: boolean) {
+      this.isDebugging = isDebugging;
+    },
     updateConfig() {
       this.settings.init();
       this.$nextTick( () => this.$forceUpdate());
