@@ -61,7 +61,7 @@
 </template>
 
 <script>
-import BrowserDetect from '../../../ext/conf/BrowserDetect';
+import BrowserDetect from '@src/ext/conf/BrowserDetect';
 import { LogAggregator } from '@src/ext/lib/logging/LogAggregator';
 import { ComponentLogger } from '@src/ext/lib/logging/ComponentLogger';
 

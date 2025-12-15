@@ -1,4 +1,4 @@
-@import '../../../../main.css'; /** postcss processor doesn't support aliases */
+@import '@src/main.css'; /** postcss processor doesn't support aliases */
 
 .keyboard-shortcut-row {
   @apply py-2 px-4

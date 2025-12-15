@@ -5,6 +5,7 @@ const WebpackShellPluginNext = require('webpack-shell-plugin-next');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const { VueLoaderPlugin } = require('vue-loader');
 const path = require('path');
+const aliases = require('./paths.config');
 
 const config = {
   watchOptions: {
@@ -32,13 +33,7 @@ const config = {
   devtool: "source-map",
 
   resolve: {
-    alias: {
-      '@src': path.resolve(__dirname, 'src'),
-      '@csui': path.resolve(__dirname, 'src/csui'),
-      '@ui': path.resolve(__dirname, 'src/ui'),
-      '@components': path.resolve(__dirname, 'src/ui/components'),
-      '@': path.resolve(__dirname, 'src'),
-    },
+    alias: aliases, // SEE: paths.conf.js
     // maybe we'll move vue stuff to TS some day, but today is not the day
     extensions: [
       '.ts', '.tsx',

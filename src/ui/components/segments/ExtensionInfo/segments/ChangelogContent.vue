@@ -12,7 +12,7 @@
   <ul>
     <li>Autodetection can be set to stop after first aspect ratio detection, or after a period of no changes.</li>
     <li>
-      There is a new, experiental mode for autodetection. At this point, it can be manually enabled in the autodetection settings. It will become the default option in 2026.<br/>
+      There is a new, experimental mode for autodetection. At this point, it can be manually enabled in the autodetection settings. It will become the default option in 2026.<br/>
       If you enable experimental mode, please consider reporting problems <a href="https://github.com/tamius-han/ultrawidify/issues/291" target="_blank">in this thread</a> on Github.
     </li>
     <li>

@@ -30,7 +30,7 @@
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue';
-import KeyboardShortcutParserMixin from '../../../../csui/src/utils/KeyboardShortcutParserMixin';
+import KeyboardShortcutParserMixin from '@ui/utils/mixins/KeyboardShortcutParserMixin.vue';
 import EditShortcutButton from './EditShortcutButton.vue';
 
 export default defineComponent({

@@ -65,7 +65,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import BrowserDetect from '@src/ext/conf/BrowserDetect';
-import SupportLevelIndicator from '@components/common/components/SupportLevelIndicator.vue';
+import SupportLevelIndicator from '@components/common/SupportLevelIndicator.vue';
 
 
 export default defineComponent({
@@ -95,7 +95,7 @@ export default defineComponent({
 })
 </script>
 <style lang="postcss" scoped>
-@import '../../../main.css'; /** postcss processor doesn't support aliases */
+@import '@src/main.css'; /** postcss processor doesn't support aliases */
 
 .open-settings-popup {
   width: 16rem;

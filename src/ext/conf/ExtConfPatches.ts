@@ -304,6 +304,8 @@ const ExtensionConfPatch = Object.freeze([
         userOptions.sites[key].enableAard = convertLegacyExtensionMode(userOptions.sites[key].enable as any);
         userOptions.sites[key].enableKeyboard = convertLegacyExtensionMode(userOptions.sites[key].enable as any);
         userOptions.sites[key].enableUI = convertLegacyExtensionMode(userOptions.sites[key].enable as any);
+
+        logger.log('migrated site', key, userOptions.sites[key]);
       }
     }
   }

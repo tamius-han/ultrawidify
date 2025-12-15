@@ -92,7 +92,7 @@
 
 <script lang="ts">
 import { LogAggregator, BLANK_LOGGER_CONFIG } from '@src/ext/lib/logging/LogAggregator';
-import JsonEditor from '@csui/src/components/JsonEditor';
+import JsonEditor from '@components/common/JsonEditor.vue';
 import { defineComponent } from 'vue';
 
 export default defineComponent({

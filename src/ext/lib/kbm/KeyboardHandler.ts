@@ -24,10 +24,6 @@ const BASE_LOGGING_STYLES = {
  */
 export class KeyboardHandler extends KbmBase {
   listenFor: string[] = ['keyup'];
-  settings: Settings;
-  siteSettings: SiteSettings;
-  eventBus: EventBus;
-
   playerElements: HTMLElement[] = [];
 
 

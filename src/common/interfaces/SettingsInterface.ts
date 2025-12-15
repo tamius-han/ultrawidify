@@ -6,6 +6,7 @@ import AspectRatioType from '../enums/AspectRatioType.enum'
 import CropModePersistence from '../enums/CropModePersistence.enum'
 import EmbeddedContentSettingsOverridePolicy from '../enums/EmbeddedContentSettingsOverridePolicy.enum'
 import ExtensionMode from '../enums/ExtensionMode.enum'
+import { SiteSupportLevel } from '../enums/SiteSupportLevel.enum'
 import StretchType from '../enums/StretchType.enum'
 import VideoAlignmentType from '../enums/VideoAlignmentType.enum'
 
@@ -319,8 +320,6 @@ interface SettingsInterface {
 
   ui: {
     inPlayer: {
-      enabled: boolean,                        // Deprecated — moved to site settings
-      enabledFullscreenOnly: boolean,          // Deprecated — moved to site settings
       popupAlignment: 'left' | 'right',
       minEnabledWidth: number,                 // don't show UI if player is narrower than % of screen width
       minEnabledHeight: number,                // don't show UI if player is narrower than % of screen height
@@ -449,8 +448,8 @@ export interface SiteSettingsInterface {
 
 
   autocreated?: boolean;
-  type?: 'official' | 'community' | 'user-defined' | 'testing' | 'officially-disabled' | 'unknown' | 'modified';
-  defaultType: 'official' | 'community' | 'user-defined' | 'testing' | 'officially-disabled' | 'unknown' | 'modified';
+  type?: SiteSupportLevel;
+  defaultType: SiteSupportLevel;
 
   // must be defined in @global and @empty
   persistCSA?: CropModePersistence,  // CSA - crop, stretch, alignment

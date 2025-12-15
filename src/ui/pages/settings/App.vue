@@ -55,7 +55,7 @@ import EventBus from '@src/ext/lib/EventBus';
 import CommsClient, { CommsOrigin } from '@src/ext/lib/comms/CommsClient';
 import {ChromeShittinessMitigations as CSM} from '@src/common/js/ChromeShittinessMitigations';
 
-import PopupHead from '@components/PopupHead/PopupHead.vue';
+import PopupHead from '@components/PopupHead.vue';
 
 export default defineComponent({
   components: {

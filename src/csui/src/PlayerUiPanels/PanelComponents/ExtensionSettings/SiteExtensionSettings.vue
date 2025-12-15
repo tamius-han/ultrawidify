@@ -1,11 +1,15 @@
 <template>
   <div>
     <!-- Enable extension -->
+
+    <pre>{{simpleExtensionSettings}}</pre>
+
     <div class="field">
       <div class="label">
         Enable <span class="color-emphasis">extension</span>
         <span class="sub-label"><br/>under the following conditions:</span>
       </div>
+      <pre>{{simpleExtensionSettings}}</pre>
       <div class="select">
         <select
           :value="simpleExtensionSettings.enable"
@@ -281,7 +285,7 @@
               v-if="!isDefaultConfiguration"
               :value="CropModePersistence.Default"
             >
-              Use default ({{defaultPersistanceLabel}})
+              Use default ({{defaultPersistenceLabel}})
             </option>
             <option :value="CropModePersistence.Disabled">Disabled</option>
             <option :value="CropModePersistence.UntilPageReload">Until page reload</option>
@@ -373,7 +377,7 @@ export default {
     siteDefaultCropPersistence() {
       return this.siteSettings.raw?.persistCSA ?? undefined;
     },
-    defaultPersistanceLabel() {
+    defaultPersistenceLabel() {
       switch (this.siteSettings.defaultSettings.persistCSA) {
         case CropModePersistence.CurrentSession:
           return 'current session';
@@ -513,7 +517,7 @@ export default {
       this._computedWatchers?.siteDefaultStretch?.run();
       this._computedWatchers?.siteDefaultAlignment?.run();
       this._computedWatchers?.siteDefaultCropPersistence?.run();
-      this._computedWatchers?.defaultPersistanceLabel?.run();
+      this._computedWatchers?.defaultPersistenceLabel?.run();
 
       this.$nextTick( () => this.$forceUpdate());
     },

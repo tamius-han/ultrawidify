@@ -19,7 +19,8 @@
       "common/lib/browser-polyfill.js",
       "ext/uw.js"
     ],
-    "all_frames": true
+    "all_frames": true,
+    "type": "module"
   }],
 
   "minimum_chrome_version": "93",

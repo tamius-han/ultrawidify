@@ -110,7 +110,7 @@ export default class UWContent {
       this.pageInfo = new PageInfo(this.eventBus, this.siteSettings, this.settings, this.logAggregator);
       this.logger.debug('setup', "pageInfo initialized.");
 
-      this.logger.debug('setup', "will try to initate KeyboardHandler.");
+      this.logger.debug('setup', "will try to initiate KeyboardHandler.");
 
       if (this.keyboardHandler) {
         this.keyboardHandler.destroy();

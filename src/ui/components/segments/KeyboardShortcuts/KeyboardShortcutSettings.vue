@@ -155,7 +155,6 @@ import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
 import StretchType from '@src/common/enums/StretchType.enum';
 import NewAspectRatioForm from './Components/NewAspectRatioForm.vue';
 
-import BrowserDetect from '@src/ext/conf/BrowserDetect';
 import CropOptionsPanel from '@csui/src/PlayerUiPanels/PanelComponents/VideoSettings/CropOptionsPanel.vue'
 import StretchOptionsPanel from '@csui/src/PlayerUiPanels/PanelComponents/VideoSettings/StretchOptionsPanel.vue'
 import ZoomOptionsPanel from '@csui/src/PlayerUiPanels/PanelComponents/VideoSettings/ZoomOptionsPanel.vue'

@@ -1,0 +1,20 @@
+@import "tailwindcss";
+@import "tailwindcss/utilities";
+
+@theme {
+  --breakpoint-popup: 640px;
+  --breakpoint-window: 960px;
+
+  --color-primary: #ff872c;
+  --color-primary-50:  #ffddbe;
+  --color-primary-100: #ffcda0;
+  --color-primary-200: #ffbd83;
+  --color-primary-300: #ffac66;
+  --color-primary-400: #ff9a4a;
+  --color-primary-500: #ff872c;
+  --color-primary-600: #de7622;
+  --color-primary-700: #be6518;
+  --color-primary-800: #9f540e;
+  --color-primary-900: #824406;
+  --color-primary-950: #663400;
+}

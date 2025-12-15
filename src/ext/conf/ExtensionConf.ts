@@ -12,6 +12,7 @@ import { Extension } from 'typescript';
 import EmbeddedContentSettingsOverridePolicy from '../../common/enums/EmbeddedContentSettingsOverridePolicy.enum';
 import { AardPollingOptions } from '../lib/aard/enums/aard-polling-options.enum';
 import { AardSubtitleCropMode } from '../lib/aard/enums/aard-subtitle-crop-mode.enum';
+import { SiteSupportLevel } from '../../common/enums/SiteSupportLevel.enum';
 
 if(Debug.debug)
   console.log("Loading: ExtensionConf.js");
@@ -262,8 +263,6 @@ const ExtensionConf: SettingsInterface = {
 
   ui: {
     inPlayer: {
-      enabled: true, // enable by default on new installs
-      enabledFullscreenOnly: false,
       minEnabledWidth: 0.75,
       minEnabledHeight: 0.75,
       activation: 'player',
@@ -810,7 +809,7 @@ const ExtensionConf: SettingsInterface = {
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
 
-      defaultType: 'unknown',
+      defaultType: SiteSupportLevel.Unknown,
       persistCSA: CropModePersistence.Disabled,
 
       defaults: {
@@ -827,8 +826,8 @@ const ExtensionConf: SettingsInterface = {
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
 
-      type: 'user-defined',
-      defaultType: 'user-defined',
+      type: SiteSupportLevel.UserDefined,
+      defaultType: SiteSupportLevel.UserDefined,
       persistCSA: CropModePersistence.Default,
       defaults: {
         crop: null,
@@ -845,14 +844,14 @@ const ExtensionConf: SettingsInterface = {
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
       overrideWhenEmbedded: true,
       override: false,                  // ignore value localStorage in favour of this
-      type: 'official',                 // is officially supported? (Alternatives are 'community' and 'user-defined')
-      defaultType: 'official',          // if user mucks around with settings, type changes to 'user-defined'.
+      type: SiteSupportLevel.OfficialSupport,                 // is officially supported? (Alternatives are 'community' and 'user-defined')
+      defaultType: SiteSupportLevel.OfficialSupport,          // if user mucks around with settings, type changes to 'user-defined'.
                                         // We still want to know what the original type was, hence defaultType
 
       activeDOMConfig: 'official',
       DOMConfig: {
         'official': {
-          type: 'official',
+          type: SiteSupportLevel.OfficialSupport,
           elements: {
             player: {
               manual: true,
@@ -872,14 +871,14 @@ const ExtensionConf: SettingsInterface = {
       overrideWhenEmbedded: true,
 
       override: false,                  // ignore value localStorage in favour of this
-      type: 'official',                 // is officially supported? (Alternatives are 'community' and 'user-defined')
-      defaultType: 'official',          // if user mucks around with settings, type changes to 'user-defined'.
+      type: SiteSupportLevel.OfficialSupport,                 // is officially supported? (Alternatives are 'community' and 'user-defined')
+      defaultType: SiteSupportLevel.OfficialSupport,          // if user mucks around with settings, type changes to 'user-defined'.
                                         // We still want to know what the original type was, hence defaultType
 
       activeDOMConfig: 'official',
       DOMConfig: {
         'official': {
-          type: 'official',
+          type: SiteSupportLevel.OfficialSupport,
           elements: {
             player: {
               manual: true,
@@ -896,8 +895,8 @@ const ExtensionConf: SettingsInterface = {
       enableUI:  ExtensionMode.All,
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
       override: false,
-      type: 'community',
-      defaultType: 'community',
+      type: SiteSupportLevel.CommunitySupport,
+      defaultType: SiteSupportLevel.CommunitySupport,
     },
     "www.disneyplus.com" : {
       enable: ExtensionMode.Theater,
@@ -906,12 +905,12 @@ const ExtensionConf: SettingsInterface = {
       enableUI: ExtensionMode.FullScreen,
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
-      type: 'community',
-      defaultType: 'community',
+      type: SiteSupportLevel.CommunitySupport,
+      defaultType: SiteSupportLevel.CommunitySupport,
       activeDOMConfig: 'community-mstefan99',
       DOMConfig: {
         'community-mstefan99': {
-          type: 'official',
+          type: SiteSupportLevel.OfficialSupport,
           elements: {
             player: {
               manual: true,
@@ -933,8 +932,8 @@ const ExtensionConf: SettingsInterface = {
       enableUI: ExtensionMode.FullScreen,
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
-      type: 'official',
-      defaultType: 'official',
+      type: SiteSupportLevel.OfficialSupport,
+      defaultType: SiteSupportLevel.OfficialSupport,
     },
     "old.reddit.com" : {
       enable: ExtensionMode.Disabled,
@@ -943,12 +942,12 @@ const ExtensionConf: SettingsInterface = {
       enableUI: ExtensionMode.Disabled,
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Never,
-      type: 'officially-disabled',
-      defaultType: 'officially-disabled',
+      type: SiteSupportLevel.OfficialBlacklist,
+      defaultType: SiteSupportLevel.OfficialBlacklist,
       activeDOMConfig: 'official',
       DOMConfig: {
         'official': {
-          type: 'official',
+          type: SiteSupportLevel.OfficialSupport,
           // customCss:  'video {\n  width: 100% !important;\n  height: 100% !important;\n}',
           elements: {
             player: {
@@ -966,12 +965,12 @@ const ExtensionConf: SettingsInterface = {
       enableUI: ExtensionMode.Disabled,
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Never,
-      type: 'officially-disabled',
-      defaultType: 'officially-disabled',
+      type: SiteSupportLevel.OfficialBlacklist,
+      defaultType: SiteSupportLevel.OfficialBlacklist,
       activeDOMConfig: 'official',
       DOMConfig: {
         'official': {
-          type: 'official',
+          type: SiteSupportLevel.OfficialSupport,
           // customCss:  'video {\n  width: 100% !important;\n  height: 100% !important;\n}',
           elements: {
             player: {
@@ -989,8 +988,8 @@ const ExtensionConf: SettingsInterface = {
       enableUI: ExtensionMode.Disabled,
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Never,
-      type: 'officially-disabled',
-      defaultType: 'officially-disabled',
+      type: SiteSupportLevel.OfficialBlacklist,
+      defaultType: SiteSupportLevel.OfficialBlacklist,
     },
     "www.wakanim.tv": {
       enable: ExtensionMode.All,
@@ -999,12 +998,12 @@ const ExtensionConf: SettingsInterface = {
       enableUI: ExtensionMode.FullScreen,
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
-      type: 'community',
-      defaultType: 'community',
+      type: SiteSupportLevel.CommunitySupport,
+      defaultType: SiteSupportLevel.CommunitySupport,
       activeDOMConfig: 'community',
       DOMConfig: {
         'community': {
-          type: 'community',
+          type: SiteSupportLevel.CommunitySupport,
           elements: {
             player: {
               manual: true,
@@ -1021,12 +1020,12 @@ const ExtensionConf: SettingsInterface = {
       enableUI: ExtensionMode.FullScreen,
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
-      type: 'community',
-      defaultType: 'community',
+      type: SiteSupportLevel.CommunitySupport,
+      defaultType: SiteSupportLevel.CommunitySupport,
       activeDOMConfig: 'community',
       DOMConfig: {
         'community': {
-          type: 'community',
+          type: SiteSupportLevel.CommunitySupport,
           // customCss: "body {\n  background-color: #000;\n}\n\n.application {\n  background-color: #000;\n}"
         }
       }
@@ -1037,12 +1036,12 @@ const ExtensionConf: SettingsInterface = {
       enableKeyboard: ExtensionMode.Theater,
       enableUI: ExtensionMode.FullScreen,
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
-      type: "community",
-      defaultType: "community",
+      type: SiteSupportLevel.CommunitySupport,
+      defaultType: SiteSupportLevel.CommunitySupport,
       activeDOMConfig: 'community',
       DOMConfig: {
         'community': {
-          type: 'community',
+          type: SiteSupportLevel.CommunitySupport,
           elements: {
             video: {
               nodeCss: {'position': 'absolute !important'}
@@ -1058,12 +1057,12 @@ const ExtensionConf: SettingsInterface = {
       enableUI: ExtensionMode.FullScreen,
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
-      type: "community",
-      defaultType: "community",
+      type: SiteSupportLevel.CommunitySupport,
+      defaultType: SiteSupportLevel.CommunitySupport,
       activeDOMConfig: 'community',
       DOMConfig: {
         'community': {
-          type: 'community',
+          type: SiteSupportLevel.CommunitySupport,
           // customCss: ".shaka-video-container {\n  flex-direction: column !important;\n}"
         }
       }

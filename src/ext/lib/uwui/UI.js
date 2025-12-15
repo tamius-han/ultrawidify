@@ -41,7 +41,7 @@ class UI {
     // TODO: at some point, UI should be different for global popup and in-player UI
     this.csuiScheme = this.getCsuiScheme();
     const csuiVersion = this.getCsuiVersion(this.csuiScheme.contentScheme);
-    this.uiURI = chrome.runtime.getURL(`/csui/${csuiVersion}.html`);
+    // this.uiURI = chrome.runtime.getURL(`/csui/${csuiVersion}.html`);
     this.extensionBase = chrome.runtime.getURL('').replace(/\/$/, "");
 
     // UI will be initialized when setUiVisibility is called
@@ -58,10 +58,8 @@ class UI {
 
   async init() {
     if (!this.canRun()) {
-      // console.log('ui config: canRun returned false', this.siteSettings?.data.enableUI.fullscreen === ExtensionMode.Enabled, this.siteSettings?.data.enableUI.theater === ExtensionMode.Enabled, this.siteSettings?.data.enableUI.normal === ExtensionMode.Enabled)
       return;
     }
-    // console.log('ui config: canRun returned truie', this.siteSettings?.data.enableUI.fullscreen === ExtensionMode.Enabled, this.siteSettings?.data.enableUI.theater === ExtensionMode.Enabled, this.siteSettings?.data.enableUI.normal === ExtensionMode.Enabled)
 
 
     this.initUIContainer();
@@ -121,6 +119,7 @@ class UI {
   }
 
   loadIframe() {
+    return;
     // in onMouseMove, we currently can't access this because we didn't
     // do things the most properly
     const uiURI = this.uiURI;
@@ -475,7 +474,7 @@ class UI {
   }
 
   /**
-   * Sends message to iframe. Messages sent with this function will be routed to eventbus.
+   * Sends message to iframe. Messages sent with this function will be routed to eventBus.
    */
   sendToIframe(action, actionConfig, routingData, uiURI = this.uiURI) {
     // if (routingData) {

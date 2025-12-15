@@ -76,30 +76,23 @@
 
         <div class="flex flex-col panel-content">
           <!-- Panel section -->
-          <VideoSettings
-            v-if="selectedTab === 'video-settings'"
+          <VideoSettings v-if="selectedTab === 'video-settings'"
             :settings="settings"
             :siteSettings="siteSettings"
             :eventBus="eventBus"
             :site="site"
           ></VideoSettings>
 
-          <template
-            v-if="settings && selectedTab === 'site-extension-settings'"
-          >
+          <template v-if="settings && selectedTab === 'site-extension-settings'" >
             <h3>Settings for {{site?.host}}</h3>
             <SiteExtensionSettings
               :settings="settings"
               :siteSettings="siteSettings"
               :isDefaultConfiguration="false"
             ></SiteExtensionSettings>
-
-            <pre>{{JSON.stringify(siteSettings.data, null, 2)}}</pre>
           </template>
 
-          <template
-            v-if="settings && selectedTab === 'embedded-extension-settings'"
-          >
+          <template v-if="settings && selectedTab === 'embedded-extension-settings'" >
             <h3>Settings for embedded sites</h3>
             <FrameSiteSettings
               :parentHost="site?.host"
@@ -109,9 +102,7 @@
           </template>
 
 
-          <template
-            v-if="settings && selectedTab === 'default-extension-settings'"
-          >
+          <template v-if="settings && selectedTab === 'default-extension-settings'" >
             <h3>Default settings</h3>
             <SiteExtensionSettings
               :settings="settings"
@@ -125,6 +116,7 @@
             :settings="settings"
             :enableSettingsEditor="true"
           ></OtherSiteSettings>
+
           <AutodetectionSettings
             v-if="selectedTab === 'autodetectionSettings'"
             :settings="settings"
@@ -168,6 +160,11 @@
           >
           </PlayerDetectionPanel>
 
+          <ImportExportSettings v-if="selectedTab === 'import-export-settings'"
+            :settings="settings"
+          >
+          </ImportExportSettings>
+
           <Debugging
             v-if="selectedTab === 'debugging'"
             :settings="settings"
@@ -187,24 +184,24 @@
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue';
-import VideoSettings from '@components/VideoSettings/VideoSettings.vue';
-import OtherSiteSettings from '@components/ExtensionSettings/Panels/OtherSiteSettings.vue';
-import AutodetectionSettings from '@components/AutodetectionSettings/AutodetectionSettings.vue';
-import UISettings from '@components/UISettings/UISettings.vue';
-import KeyboardShortcutSettings from '@components/KeyboardShortcuts/KeyboardShortcutSettings.vue';
-import SiteExtensionSettings from '@components/ExtensionSettings/Panels/SiteExtensionSettings.vue';
-import FrameSiteSettings from '@components/ExtensionSettings/Panels/FrameSiteSettings.vue';
-import Debugging from '@components/Debugging/Debugging.vue';
+import VideoSettings from '@components/segments/VideoSettings/VideoSettings.vue';
+import OtherSiteSettings from '@components/segments/ExtensionSettings/Panels/OtherSiteSettings.vue';
+import AutodetectionSettings from '@components/segments/AutodetectionSettings/AutodetectionSettings.vue';
+import UISettings from '@components/segments/UISettings/UISettings.vue';
+import KeyboardShortcutSettings from '@components/segments/KeyboardShortcuts/KeyboardShortcutSettings.vue';
+import SiteExtensionSettings from '@components/segments/ExtensionSettings/Panels/SiteExtensionSettings.vue';
+import FrameSiteSettings from '@components/segments/ExtensionSettings/Panels/FrameSiteSettings.vue';
+import Debugging from '@components/segments/Debugging/Debugging.vue';
+import ImportExportSettings from '@components/segments/ImportExportSettings/ImportExportSettings.vue';
 
-import WhatsNew from '@components/ExtensionInfo/WhatsNew.vue';
-import About from '@components/ExtensionInfo/About.vue';
+import WhatsNew from '@components/segments/ExtensionInfo/WhatsNew.vue';
+import About from '@components/segments/ExtensionInfo/About.vue';
 
+// to replace:
 import PlayerDetectionPanel from '../../csui/src/PlayerUiPanels/PlayerDetectionPanel.vue'
-import BrowserDetect from '../../ext/conf/BrowserDetect'
-import ChangelogPanel from '../../csui/src/PlayerUiPanels/ChangelogPanel.vue'
-import AboutPanel from '@csui/src/PlayerUiPanels/AboutPanel.vue'
-import ResetBackupPanel from '../../csui/src/PlayerUiPanels/ResetBackupPanel.vue'
-import SupportLevelIndicator from '@csui/src/components/SupportLevelIndicator.vue'
+
+// not component:
+import BrowserDetect from '@src/ext/conf/BrowserDetect'
 
 
 const AVAILABLE_TABS = {
@@ -227,6 +224,7 @@ const AVAILABLE_TABS = {
   'playerDetection': {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
   'changelog': {id: 'changelog', label: 'What\'s new', icon: 'alert-decagram' },
   'about': {id: 'about', label: 'About', icon: 'information-outline'},
+  'import-export-settings': { id: 'import-export-settings', label: 'Import & export settings', icon: 'file-export-outline'},
   'debugging': {id: 'debugging', label: 'Debugging', icon: 'bug-outline', hidden: true}
 };
 
@@ -238,6 +236,7 @@ const TAB_LOADOUT = {
     'keyboardShortcuts',
     'changelog',
     'about',
+    'import-export-settings',
     'debugging',
   ],
   'popup': [
@@ -257,16 +256,13 @@ export default defineComponent({
     UISettings,
     SiteExtensionSettings,
     FrameSiteSettings,
+    ImportExportSettings,
     Debugging,
 
     WhatsNew,
     About,
 
     PlayerDetectionPanel,
-    ChangelogPanel,
-    AboutPanel,
-    SupportLevelIndicator,
-    ResetBackupPanel,
   },
   mixins: [],
   data() {
@@ -305,6 +301,9 @@ export default defineComponent({
   watch: {
     'initialPath': function (newVal) {
       this.setInitialPath(newVal);
+    },
+    'site': function (newVal) {
+      this.updateSite(newVal);
     }
   },
   computed: {
@@ -325,7 +324,9 @@ export default defineComponent({
       changelogTab.highlight = !this.settings.active?.whatsNewChecked;
     }
 
-    this.siteSettings = this.settings.getSiteSettings({site: this.site});
+    if (this.site) {
+      this.siteSettings = this.settings.getSiteSettings({site: this.site});
+    }
     this.eventBus?.subscribe(
       'uw-show-ui',
       {
@@ -344,6 +345,13 @@ export default defineComponent({
     this.eventBus?.unsubscribeAll(this);
   },
   methods: {
+    /**
+     * Regenerates this.siteSettings
+     */
+    updateSite(newSite: {host: string, hostnames: string[],}) {
+      this.siteSettings = this.settings.getSiteSettings({site: newSite.host});
+      this.$nextTick( () => this.$forceUpdate());
+    },
     /**
      * Gets URL of the browser settings page (i think?)
      */
@@ -391,7 +399,7 @@ export default defineComponent({
 });
 </script>
 <style lang="postcss" scoped>
-@import '../../main.css'; /** postcss processor doesn't support aliases */
+@import '@src/main.css'; /** postcss processor doesn't support aliases */
 
 .settings-categories {
   @apply

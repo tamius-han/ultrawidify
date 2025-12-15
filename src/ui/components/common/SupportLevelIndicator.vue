@@ -62,7 +62,7 @@ export default defineComponent({
   },
   computed: {
     computedSiteSupportLevel() {
-      return this.siteSupportLevel ?? this.siteSettings ? this.siteSettings.data.type || 'no-support' : 'waiting';
+      return this.siteSupportLevel ?? (this.siteSettings ? this.siteSettings.data.type ?? 'no-support' : 'waiting');
     }
   }
 
@@ -70,7 +70,7 @@ export default defineComponent({
 </script>
 
 <style lang="postcss" scoped>
-@import '../../../../main.css'; /** postcss processor doesn't support aliases */
+@import '@src/main.css'; /** postcss processor doesn't support aliases */
 
 .site-support {
   @apply inline-flex flex-row items-center gap-1 rounded-[0.5rem] relative;

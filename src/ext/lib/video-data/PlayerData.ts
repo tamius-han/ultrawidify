@@ -269,14 +269,14 @@ class PlayerData {
    * @returns
    */
   deferredUiInitialization(playerDimensions = this.dimensions) {
-    if (this.ui || this.siteSettings.data.enableUI.fullscreen === ExtensionMode.Disabled) {
+    if (this.ui || this.siteSettings.data.enableUI === ExtensionMode.Disabled) {
       return;
     }
 
     if (
       this.isFullscreen
       || (
-        this.siteSettings.data.enableUI.theater !== ExtensionMode.Disabled
+        this.siteSettings.data.enableUI >= ExtensionMode.FullScreen
         && playerDimensions.width > 1208
         && playerDimensions.height > 720
       )

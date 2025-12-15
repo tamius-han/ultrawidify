@@ -113,12 +113,12 @@ import { defineComponent } from 'vue';
 import BrowserDetect from '@src/ext/conf/BrowserDetect';
 
 import ShortcutButton from './components/ShortcutButton.vue';
-import CommsMixin from '@components/common/mixins/CommsMixin.vue';
-import KeyboardShortcutParserMixin from '@components/common/mixins/KeyboardShortcutParserMixin.vue';
+import CommsMixin from '@ui/utils/mixins/CommsMixin.vue';
+import KeyboardShortcutParserMixin from '@ui/utils/mixins/KeyboardShortcutParserMixin.vue';
 
 import alignmentIndicatorSvg from '!!raw-loader!@ui/res/img/alignment-indicators.svg?raw';
-import {setupVideoAlignmentIndicatorInteraction, setVideoAlignmentIndicatorState} from '@ui/utils/video-alignment-indicator-handling.ts';
-import VideoAlignmentType from '../../../common/enums/VideoAlignmentType.enum';
+import {setupVideoAlignmentIndicatorInteraction, setVideoAlignmentIndicatorState} from '@ui/utils/video-alignment-indicator-handling';
+import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
 
 export default defineComponent({
   components: {
@@ -227,7 +227,7 @@ export default defineComponent({
 });
 </script>
 <style lang="postcss" scoped>
-@import '../../../main.css';
+@import '@src/main.css';
 
 .button-container {
   @apply w-full pt-2

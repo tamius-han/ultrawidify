@@ -6,6 +6,7 @@ import Settings from './Settings';
 import StretchType from '../../../common/enums/StretchType.enum';
 import VideoAlignmentType from '../../../common/enums/VideoAlignmentType.enum';
 import EmbeddedContentSettingsOverridePolicy from '../../../common/enums/EmbeddedContentSettingsOverridePolicy.enum';
+import { SiteSupportLevel } from '../../../common/enums/SiteSupportLevel.enum';
 
 
 export interface GetSiteSettingsOptions {
@@ -182,6 +183,8 @@ export class SiteSettings {
    */
   private compileSettingsObject() {
     const {siteSettings, usesSettingsFor} = this.getSettingsForSite(this.options);
+    console.log('got settings for site:', siteSettings, usesSettingsFor)
+
     this.data = _cp(siteSettings);
     this.usesSettingsFor = usesSettingsFor;
 
@@ -213,11 +216,10 @@ export class SiteSettings {
     }
 
     for (const enableSegment of ['enable', 'enableAard', 'enableKeyboard', 'enableUI']) {
-      if (!this.data[enableSegment]) {
+      if (this.data[enableSegment] === undefined) {
         this.data[enableSegment] = {};
-      }
-      if (!this.data[enableSegment] || this.data[enableSegment] === ExtensionMode.Default) {
-        this.data[enableSegment] = _cp(this.defaultSettings[enableSegment]);
+      } else if (this.data[enableSegment] === ExtensionMode.Default) {
+        this.data[enableSegment] = this.defaultSettings[enableSegment];
       }
     }
 
@@ -459,11 +461,11 @@ export class SiteSettings {
     if (options.scripted && !this.settings.active.sites[targetSite]) {
       this.settings.active.sites[targetSite] = _cp(this.settings.active.sites['@global']);
       this.settings.active.sites[targetSite].autocreated = true;
-      this.settings.active.sites[targetSite].type = 'unknown';
+      this.settings.active.sites[targetSite].type = SiteSupportLevel.Unknown;
     } else {
       if (!this.settings.active.sites[targetSite] || this.settings.active.sites[targetSite].autocreated) {
         this.settings.active.sites[targetSite] = _cp(this.data);
-        this.settings.active.sites[targetSite].type = 'user-defined';
+        this.settings.active.sites[targetSite].type = SiteSupportLevel.UserDefined;
       }
     }
 

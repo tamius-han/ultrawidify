@@ -153,9 +153,9 @@
 </template>
 
 <script>
-import SiteExtensionSettings from '@components/ExtensionSettings/Panels/SiteExtensionSettings.vue';
-import FrameSiteSettings from '@components/ExtensionSettings/Panels/FrameSiteSettings.vue';
-import OtherSiteSettings from '@components/ExtensionSettings/Panels/OtherSiteSettings.vue';
+import SiteExtensionSettings from '@components/segments/ExtensionSettings/Panels/SiteExtensionSettings.vue';
+import FrameSiteSettings from '@components/segments/ExtensionSettings/Panels/FrameSiteSettings.vue';
+import OtherSiteSettings from '@components/segments/ExtensionSettings/Panels/OtherSiteSettings.vue';
 import Popup from '@csui/src/components/Popup';
 import ConfirmButton from '@csui/src/components/ConfirmButton';
 import UploadJsonFileButton from '@csui/src/components/UploadJsonFileButton';

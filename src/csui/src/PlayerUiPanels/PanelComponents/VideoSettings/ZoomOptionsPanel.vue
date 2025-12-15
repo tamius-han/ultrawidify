@@ -274,7 +274,7 @@ export default {
       this.eventBus?.sendToTunnel('set-zoom', {zoom: 1});
     },
     changeZoom(newZoom, axis) {
-      // we store zoom logarithmically on this compnent
+      // we store zoom logarithmically on this component
       if (!axis) {
         this.zoom.x = newZoom;
       } else {

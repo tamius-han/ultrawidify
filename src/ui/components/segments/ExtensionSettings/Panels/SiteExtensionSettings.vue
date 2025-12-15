@@ -18,25 +18,25 @@
             (Site uses advanced settings)
           </option>
           <template v-if="isDefaultConfiguration">
-            <option value="disabled">
+            <option :value="ExtensionMode.Disabled">
               Disabled by default
             </option>
           </template>
           <template v-else>
-            <option value="default">
+            <option :value="ExtensionMode.Default">
               Use default ({{simpleDefaultSettings.enable}})
             </option>
-            <option value="disabled">
+            <option :value="ExtensionMode.Disabled">
               Never
             </option>
           </template>
-          <option value="fs">
+          <option :value="ExtensionMode.FullScreen">
             Fullscreen only
           </option>
-          <option value="theater">
+          <option :value="ExtensionMode.Theater">
             Fullscreen and theater mode
           </option>
-          <option value="enabled">
+          <option :value="ExtensionMode.All">
             Always
           </option>
         </select>
@@ -63,25 +63,25 @@
               (Site uses advanced settings)
             </option>
             <template v-if="isDefaultConfiguration">
-              <option value="disabled">
+              <option :value="ExtensionMode.Disabled">
                 Disabled by default
               </option>
             </template>
             <template v-else>
-              <option value="default">
+              <option :value="ExtensionMode.Default">
                 Use default ({{simpleDefaultSettings.enableAard}})
               </option>
-              <option value="disabled">
+              <option :value="ExtensionMode.Disabled">
                 Never
               </option>
             </template>
-            <option value="fs">
+            <option :value="ExtensionMode.FullScreen">
               Fullscreen only
             </option>
-            <option value="theater">
+            <option :value="ExtensionMode.Theater">
               Fullscreen and theater mode
             </option>
-            <option value="enabled">
+            <option :value="ExtensionMode.All">
               Always
             </option>
           </select>
@@ -106,25 +106,25 @@
               (Site uses advanced settings)
             </option>
             <template v-if="isDefaultConfiguration">
-              <option value="disabled">
+              <option :value="ExtensionMode.Disabled">
                 Disabled by default
               </option>
             </template>
             <template v-else>
-              <option value="default">
+              <option :value="ExtensionMode.Default">
                 Use default ({{simpleDefaultSettings.enableKeyboard}})
               </option>
-              <option value="disabled">
+              <option :value="ExtensionMode.Disabled">
                 Never
               </option>
             </template>
-            <option value="fs">
+            <option :value="ExtensionMode.FullScreen">
               Fullscreen only
             </option>
-            <option value="theater">
+            <option :value="ExtensionMode.Theater">
               Fullscreen and theater mode
             </option>
-            <option value="enabled">
+            <option :value="ExtensionMode.All">
               Always
             </option>
           </select>
@@ -143,23 +143,26 @@
             @click="setExtensionMode('enableUI', $event)"
           >
             <template v-if="isDefaultConfiguration">
-              <option value="disabled">
+              <option :value="ExtensionMode.Disabled">
                 Disabled by default
               </option>
             </template>
             <template v-else>
-              <option value="default">
+              <option :value="ExtensionMode.Default">
                 Use default ({{simpleDefaultSettings.enableUI}})
               </option>
-              <option value="disabled">
+              <option :value="ExtensionMode.Disabled">
                 Never
               </option>
             </template>
-            <option value="fs">
+            <option :value="ExtensionMode.FullScreen">
               Fullscreen only
             </option>
-            <option value="theater">
-              Always where possible
+            <option :value="ExtensionMode.Theater">
+              Fullscreen and theater
+            </option>
+            <option :value="ExtensionMode.Theater">
+              Where possible
             </option>
           </select>
         </div>
@@ -296,7 +299,7 @@
               v-if="!isDefaultConfiguration"
               :value="CropModePersistence.Default"
             >
-              Use default ({{defaultPersistanceLabel}})
+              Use default ({{defaultPersistenceLabel}})
             </option>
             <option :value="CropModePersistence.Disabled">Disabled</option>
             <option :value="CropModePersistence.UntilPageReload">Until page reload</option>
@@ -306,6 +309,14 @@
         </div>
       </div>
     </div>
+
+    <pre>
+      SITE SETTINGS: raw
+      {{JSON.stringify(siteSettings.raw)}}
+
+      SITE SETTINGS: data
+      {{JSON.stringify(siteSettings.data)}}
+    </pre>
   </div>
 </template>
 
@@ -390,7 +401,7 @@ export default defineComponent({
     siteDefaultCropPersistence() {
       return this.siteSettings.raw?.persistCSA ?? undefined;
     },
-    defaultPersistanceLabel() {
+    defaultPersistenceLabel() {
       switch (this.siteSettings.defaultSettings.persistCSA) {
         case CropModePersistence.CurrentSession:
           return 'current session';
@@ -426,6 +437,8 @@ export default defineComponent({
           settingsData = this.settings.active.sites['@global'];
           break;
       }
+
+      console.log('compiling simple settings;', settingsData, 'original settings:', this.siteSettings)
 
       return settingsData?.[component];
     },
@@ -521,7 +534,7 @@ export default defineComponent({
       this._computedWatchers?.siteDefaultStretch?.run();
       this._computedWatchers?.siteDefaultAlignment?.run();
       this._computedWatchers?.siteDefaultCropPersistence?.run();
-      this._computedWatchers?.defaultPersistanceLabel?.run();
+      this._computedWatchers?.defaultPersistenceLabel?.run();
 
       this.$nextTick( () => this.$forceUpdate());
     },
@@ -534,9 +547,14 @@ export default defineComponent({
     setExtensionMode(component, event) {
       const option = event.target.value;
 
+      console.log('set extension mode - we received option', option, 'for component', component);
+
+      return;
       if (option === 'complex') {
         return;
       }
+
+
 
       if (component === 'enable' && !this.isDefaultConfiguration) {
         this.setExtensionMode('enableAard', event);
@@ -550,41 +568,6 @@ export default defineComponent({
         }
       }
 
-      if (option === 'default') {
-        return this.siteSettings.set(component, {
-          normal: ExtensionMode.Default,
-          theater: ExtensionMode.Default,
-          fullscreen: ExtensionMode.Default
-        });
-      }
-      if (option === 'disabled') {
-        return this.siteSettings.set(component, {
-          normal: ExtensionMode.Disabled,
-          theater: ExtensionMode.Disabled,
-          fullscreen: ExtensionMode.Disabled
-        });
-      }
-      if (option === 'enabled') {
-        return this.siteSettings.set(component, {
-          normal: ExtensionMode.Enabled,
-          theater: ExtensionMode.Enabled,
-          fullscreen: ExtensionMode.Enabled
-        });
-      }
-      if (option === 'theater') {
-        return this.siteSettings.set(component, {
-          normal: ExtensionMode.Disabled,
-          theater: ExtensionMode.Enabled,
-          fullscreen: ExtensionMode.Enabled
-        });
-      }
-      if (option === 'fs') {
-        return this.siteSettings.set(component, {
-          normal: ExtensionMode.Disabled,
-          theater: ExtensionMode.Disabled,
-          fullscreen: ExtensionMode.Enabled
-        });
-      }
     }
   }
 

@@ -96,6 +96,7 @@ class Settings {
     if (!changes.uwSettings) {
       return;
     }
+    console.log('new settings change.')
     this.logger?.info('storageOnChange', "Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
     // if (changes['uwSettings'] && changes['uwSettings'].newValue) {
     //   this.logger?.log('info', 'settings',"[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));
@@ -132,7 +133,7 @@ class Settings {
           try {
             fn();
           } catch (e) {
-            this.logger?.warn('storageOnChange',  "afterSettingsChanged fallback failed. It's possible that a vue component got destroyed, and this function is nothing more than vestigal remains. It would be nice if we implemented something that allows us to remove callback functions from array, and remove vue callbacks from the callback array when their respective UI component gets destroyed. Or this could be an error with the function itself. IDK, here's the error.", e)
+            this.logger?.warn('storageOnChange',  "afterSettingsChanged fallback failed. It's possible that a vue component got destroyed, and this function is nothing more than vestigial remains. It would be nice if we implemented something that allows us to remove callback functions from array, and remove vue callbacks from the callback array when their respective UI component gets destroyed. Or this could be an error with the function itself. IDK, here's the error.", e)
           }
         }
         if (this.onSettingsChanged) {
@@ -147,7 +148,7 @@ class Settings {
       try {
         fn();
       } catch (e) {
-        this.logger?.warn('storageOnChange',  "afterSettingsChanged fallback failed. It's possible that a vue component got destroyed, and this function is nothing more than vestigal remains. It would be nice if we implemented something that allows us to remove callback functions from array, and remove vue callbacks from the callback array when their respective UI component gets destroyed. Or this could be an error with the function itself. IDK, here's the error.", e)
+        this.logger?.warn('storageOnChange',  "afterSettingsChanged fallback failed. It's possible that a vue component got destroyed, and this function is nothing more than vestigial remains. It would be nice if we implemented something that allows us to remove callback functions from array, and remove vue callbacks from the callback array when their respective UI component gets destroyed. Or this could be an error with the function itself. IDK, here's the error.", e)
       }
     }
     if (this.afterSettingsSaved) {
