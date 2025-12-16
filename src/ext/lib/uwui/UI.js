@@ -287,6 +287,7 @@ class UI {
   }
 
   setUiVisibility(visible) {
+    return;
     // console.log('uwui - setting ui visibility!', visible, this.isGlobal ? 'global' : 'page', this.uiIframe, this.rootDiv);
     // if (!this.uiIframe || !this.rootDiv) {
     //   this.init();

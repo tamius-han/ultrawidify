@@ -5,14 +5,14 @@
     :class="{'dim': dimOverlay}"
   >
     <div class="popup-content p-4 border border-stone-700 max-h-[90dvh] max-w-[90dvw]" >
-      <div class="h-full flex flex-col">
+      <div class="h-full flex flex-col w-full">
         <div v-if="title" class="header grow-0 shrink-0" :class="type">
           <h3 class="mb-4 mt-0">{{title}}</h3>
         </div>
         <p v-if="message">
           {{ message }}
         </p>
-        <div v-else class="grow shrink overflow-auto">
+        <div v-else class="h-full w-full -mr-4 pr-4 grow shrink overflow-y-auto overflow-x-hidden">
           <slot></slot>
         </div>
         <div class="grow-0 shrink-0 flex row gap-2 justify-end w-full">

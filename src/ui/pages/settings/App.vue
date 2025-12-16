@@ -88,8 +88,11 @@ export default defineComponent({
       case '#iframe':
         await this.setupIframe();
         break;
+      case '#settings':
+      case '#updated':
+      case '#installed':
       default:
-        await this.setupSettingsPage();
+        await this.setupSettingsPage(segment);
     }
 
     if (segment !== '#popup') {
@@ -112,8 +115,12 @@ export default defineComponent({
     /**
      * Initializes page when it's being loaded from the settings
      */
-    async setupSettingsPage() {
-      this.role = 'settings';
+    async setupSettingsPage(segment) {
+      if (!segment) {
+        this.role = 'settings';
+      } else {
+        this.role = segment.replace('#', '');
+      }
 
       this.logAggregator = new LogAggregator('');
       this.logger = new ComponentLogger(this.logAggregator, 'App.vue');

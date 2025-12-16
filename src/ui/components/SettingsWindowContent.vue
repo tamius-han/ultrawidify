@@ -139,6 +139,11 @@
             :eventBus="eventBus"
           ></KeyboardShortcutSettings>
 
+          <AfterUpdate
+            v-if="selectedTab === 'updated'"
+            :settings="settings"
+          >
+          </AfterUpdate>
 
           <WhatsNew
             v-if="selectedTab === 'changelog'"
@@ -194,6 +199,8 @@ import FrameSiteSettings from '@components/segments/ExtensionSettings/Panels/Fra
 import Debugging from '@components/segments/Debugging/Debugging.vue';
 import ImportExportSettings from '@components/segments/ImportExportSettings/ImportExportSettings.vue';
 
+import AfterUpdate from '@components/segments/AfterUpdate/AfterUpdate.vue';
+
 import WhatsNew from '@components/segments/ExtensionInfo/WhatsNew.vue';
 import About from '@components/segments/ExtensionInfo/About.vue';
 
@@ -222,10 +229,14 @@ const AVAILABLE_TABS = {
   'uiSettings': {id: 'uiSettings', label: 'UI settings', icon: 'movie-cog-outline' },
   'keyboardShortcuts': {id: 'keyboardShortcuts', label: 'Keyboard shortcuts', icon: 'keyboard-outline' },
   'playerDetection': {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
+
+  'installed': { id: 'updated', label: 'Update completed', icon: 'monitor-arrow-down-variant'},
+  'updated': { id: 'updated', label: 'Update completed', icon: 'update'},
+
   'changelog': {id: 'changelog', label: 'What\'s new', icon: 'alert-decagram' },
   'about': {id: 'about', label: 'About', icon: 'information-outline'},
   'import-export-settings': { id: 'import-export-settings', label: 'Import & export settings', icon: 'file-export-outline'},
-  'debugging': {id: 'debugging', label: 'Debugging', icon: 'bug-outline', hidden: true}
+  'debugging': {id: 'debugging', label: 'Debugging', icon: 'bug-outline'}
 };
 
 const TAB_LOADOUT = {
@@ -238,6 +249,11 @@ const TAB_LOADOUT = {
     'about',
     'import-export-settings',
     'debugging',
+  ],
+  'updated': [
+    'updated',
+    'changelog',
+    'about',
   ],
   'popup': [
     'video-settings',
@@ -258,6 +274,8 @@ export default defineComponent({
     FrameSiteSettings,
     ImportExportSettings,
     Debugging,
+
+    AfterUpdate,
 
     WhatsNew,
     About,
@@ -390,7 +408,7 @@ export default defineComponent({
     setDebugTabVisibility() {
       const debugTab = this.tabs.find( x => x.id === 'debugging');
       if (debugTab) {
-        debugTab.hidden = !this.settings.active.ui.devMode;
+        // debugTab.hidden = !this.settings.active.ui.devMode;
       }
     },
 

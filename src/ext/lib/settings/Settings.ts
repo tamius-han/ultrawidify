@@ -245,8 +245,8 @@ class Settings {
     // save current settings object
     if (!options?.skipSnapshot) {
       this.snapshotManager.createSnapshot(
-        JSON.parse(JSON.stringify(currentSettings)),
         {
+          settings: JSON.parse(JSON.stringify(currentSettings)),
           label: 'Pre-migration snapshot',
           isAutomatic: true
         }
@@ -279,6 +279,8 @@ class Settings {
   }
 
   async init(options?: {dryRun?: boolean, snapshot?: SettingsSnapshot, skipSnapshot?: boolean}) {
+    await this.snapshotManager.init();
+
     let settings;
 
     if (options?.snapshot) {

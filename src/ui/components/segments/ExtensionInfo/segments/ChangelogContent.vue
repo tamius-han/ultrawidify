@@ -29,6 +29,9 @@
     <li>
       Re-design of settings page.
     </li>
+    <li>
+      Settings, popup and in-page UI have been combined into a single HTML file in order to cut down on the file size.
+    </li>
   </ul>
 
   <b class="text-white">Other updates and fixes:</b>

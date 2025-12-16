@@ -10,16 +10,37 @@ export interface SettingsSnapshot {
   createdAt: Date;
 }
 
-export interface SettingsSnapshotOptions {
-  isAutomatic?: boolean,
-  isProtected?: boolean,
-  isDefault?: boolean,
-  label?: string,
-  forVersion?: string
+export interface SnapshotManagerSettings {
+  maxAutomaticSnapshots: number,
+  minVersions: number,
 }
 
+
+const SNAPSHOT_MANAGER_CONF = 'uwSettings-snapshot-manager-conf';
+
 export class SettingsSnapshotManager {
-  private MAX_AUTOMATIC_SNAPSHOTS = 5;
+
+  config: SnapshotManagerSettings;
+
+  async init() {
+    const ret = await chrome.storage.local.get(SNAPSHOT_MANAGER_CONF) as string;
+    try {
+      this.config = JSON.parse(ret[SNAPSHOT_MANAGER_CONF]);
+    } catch (e) {
+      this.config = {
+        maxAutomaticSnapshots: 10,
+        minVersions: 5
+      };
+    }
+  }
+
+  async saveConf() {
+    await chrome.storage.local.set({
+      [SNAPSHOT_MANAGER_CONF]: JSON.stringify(this.config)
+    });
+  }
+
+
 
   async getSnapshot(index?: number) {
     const snapshots = await this.listSnapshots();
@@ -34,25 +55,51 @@ export class SettingsSnapshotManager {
     }
   }
 
-  async createSnapshot(settings: SettingsInterface, options?: SettingsSnapshotOptions) {
-    const snapshot = {
-      ...options,
-      label: options.label ?? 'Automatic snapshot',
-      forVersion: options.forVersion || settings.version,
-      settings: JSON.parse(JSON.stringify(settings)),
-      createdAt: new Date(),
-    };
+  async createSnapshot(snapshot: Partial<SettingsSnapshot> & {settings: SettingsInterface}) {
+    if (!snapshot.createdAt) {
+      snapshot.createdAt = new Date()
+    }
+    if (!snapshot.forVersion) {
+      snapshot.forVersion = snapshot.settings.version;
+    }
+    if (!snapshot.label) {
+      snapshot.label = "Unknown snapshot"
+    }
+
 
     const snapshots = await this.listSnapshots();
-    const automaticSnapshots = snapshots.filter((s) => s.isAutomatic && !s.isProtected);
+    const automaticSnapshots = snapshots
+      .filter((s) => s.isAutomatic && !s.isProtected)
+      .sort((a: SettingsSnapshot, b: SettingsSnapshot) => a.settings.version === b.settings.version ? 0 : a.settings.version < b.settings.version ? -1 : 1);
 
-    if (options.isAutomatic && automaticSnapshots.length >= this.MAX_AUTOMATIC_SNAPSHOTS) {
+    let minVersionCount = 0;
+    let lastVersion;
+    for (const snap of automaticSnapshots) {
+      if (lastVersion !== snap.settings.version) {
+        minVersionCount++;
+        lastVersion = snap.settings.version;
+      }
+    }
+
+    if (snapshot.isAutomatic && automaticSnapshots.length >= this.config.maxAutomaticSnapshots && minVersionCount > this.config.minVersions) {
       const firstAutomaticIndex = snapshots.findIndex((s) => s.isAutomatic && !s.isProtected);
       snapshots.splice(firstAutomaticIndex, 1);
     }
 
-    snapshots.push(snapshot);
+    snapshots.push(snapshot as SettingsSnapshot);
     this.set(snapshots);
+  }
+
+  async updateSnapshot(snapshot: SettingsSnapshot) {
+    const snapshots = await this.listSnapshots();
+    const i = snapshots.findIndex((x: SettingsSnapshot) => x.createdAt === snapshot.createdAt);
+
+    try {
+      snapshots[i] = snapshot;
+      this.set(snapshots);
+    } catch (e) {
+      console.error('uw::SettingsSnapshotManager::updateSnapshot — failed to update snapshot.', {e, i, snapshot, snapshots});
+    }
   }
 
   async setDefaultSnapshot(index: number, isDefault: boolean) {

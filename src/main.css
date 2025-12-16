@@ -38,7 +38,7 @@ html, body {
   }
 
   a {
-    @apply text-primary-400;
+    @apply text-primary-400 cursor-pointer;
 
     &:hover {
       @apply text-primary-300;

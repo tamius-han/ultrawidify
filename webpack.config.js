@@ -128,9 +128,6 @@ const config = {
         { from: 'csui/csui-overlay-dark.html', to: 'csui/csui-dark.html', transform: transformHtml },
         { from: 'csui/csui-overlay-light.html', to: 'csui/csui-light.html', transform: transformHtml },
         { from: 'ui/pages/settings/index.html', to: 'ui/pages/settings/index.html', transform: transformHtml },
-        // { from: 'ui/pages/installed/index.html', to: 'ui/pages/installed/index.html', transform: transformHtml },
-        { from: 'ui/pages/updated/index.html',  to: 'ui/pages/updated/index.html', transform: transformHtml },
-        { from: 'ui/pages/settings/index.html', to: 'ui/pages/settings/index.html', transform: transformHtml },
         {
           from: 'manifest.json',
           to: 'manifest.json',

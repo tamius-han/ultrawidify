@@ -308,6 +308,14 @@ const ExtensionConfPatch = Object.freeze([
         logger.log('migrated site', key, userOptions.sites[key]);
       }
     }
+  },
+  {
+    forVersion: '6.3.995',
+    updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
+      if (!userOptions.ui) {
+        userOptions.ui = defaultOptions.ui
+      };
+    }
   }
 
 ]);
