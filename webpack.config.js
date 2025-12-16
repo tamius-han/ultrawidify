@@ -18,11 +18,7 @@ const config = {
     'ext/uw': './ext/uw.js',
     'uw-bg': './uw-bg.js',
     'csui/csui-popup': './csui/csui-popup.js',
-    // 'csui/settings': './csui/settings.js',
-    // 'csui/csui': './csui/csui.js',
 
-    // 'ui/pages/updated/updated': './ui/pages/updated/updated.js',
-    'ui/pages/updated/updated': './ui/pages/updated/updated.js',
     'ui/pages/settings/settings': './ui/pages/settings/settings.js',
   },
   output: {
