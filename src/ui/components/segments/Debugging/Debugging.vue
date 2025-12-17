@@ -87,7 +87,7 @@
             >
               Import settings as snapshot
             </UploadJsonFileButton>
-          <button>Create snapshot</button>
+          <button @click="createSnapshot">Create snapshot</button>
         </div>
 
         <div class="flex flex-col gap-2">
@@ -358,6 +358,27 @@ export default defineComponent({
       this.settings.testMigration(this.settingsSnapshots[snapshotIndex]);
     },
 
+    /**
+     * Creates snapshot from currently active settings.
+     */
+    createSnapshot() {
+      const snapshot = {
+        settings: JSON.parse(JSON.stringify(this.settings.active)),
+        label: 'New snapshot',
+        forVersion: this.settings.active.version,
+        createdAt: new Date()
+      };
+      this.editSnapshot(snapshot);
+    },
+
+    /**
+     * Opens a snapshot and allows it to be edited.
+     * This function prepares the snapshot edit dialog and sets up function that will save the snapshot
+     * when 'save' button is pressed.
+     * @param snapshotOrIndex: snapshot to be edited.
+     *              - if number: we will be editing an existing snapshot
+     *              - if SettingsSnapshot object: editing a new snapshot, which will be added to snapshot list
+     */
     editSnapshot(snapshotOrIndex: SettingsSnapshot | number) {
       console.log('editing snapshot', snapshotOrIndex)
       let snapshot: SettingsSnapshot;
@@ -379,7 +400,7 @@ export default defineComponent({
         confirm: () => {
           console.log('confirmed snapshot. Data:', this.editSnapshotPopup.data);
           if (this.editSnapshotPopup.index) {
-            // this.settings.snapshotManager.
+            this.settings.snapshotManager[index] = this.settings.snapshotManager.data.snapshot;
           } else {
             this.settings.snapshotManager.createSnapshot(snapshot);
           }
@@ -392,9 +413,10 @@ export default defineComponent({
       };
     },
 
+    /**
+     * Takes settings snapshot, loads it into edit snapshot dialog, and shows the dialog.
+     */
     handleImportedSnapshot(settings: SettingsInterface) {
-      console.log('loaded data:', settings);
-
       const snapshot: SettingsSnapshot = {
         settings,
         label: 'Imported settings',
