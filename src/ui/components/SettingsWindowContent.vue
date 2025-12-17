@@ -156,15 +156,6 @@
           </About>
 
 
-
-          <PlayerDetectionPanel
-            v-if="selectedTab === 'playerDetection'"
-            :siteSettings="siteSettings"
-            :eventBus="eventBus"
-            :site="site"
-          >
-          </PlayerDetectionPanel>
-
           <ImportExportSettings v-if="selectedTab === 'import-export-settings'"
             :settings="settings"
           >
@@ -203,9 +194,6 @@ import AfterUpdate from '@components/segments/AfterUpdate/AfterUpdate.vue';
 
 import WhatsNew from '@components/segments/ExtensionInfo/WhatsNew.vue';
 import About from '@components/segments/ExtensionInfo/About.vue';
-
-// to replace:
-import PlayerDetectionPanel from '../../csui/src/PlayerUiPanels/PlayerDetectionPanel.vue'
 
 // not component:
 import BrowserDetect from '@src/ext/conf/BrowserDetect'
@@ -279,8 +267,6 @@ export default defineComponent({
 
     WhatsNew,
     About,
-
-    PlayerDetectionPanel,
   },
   mixins: [],
   data() {

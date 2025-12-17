@@ -17,8 +17,6 @@ const config = {
   entry: {
     'ext/uw': './ext/uw.js',
     'uw-bg': './uw-bg.js',
-    'csui/csui-popup': './csui/csui-popup.js',
-
     'ui/pages/settings/settings': './ui/pages/settings/settings.js',
   },
   output: {
@@ -119,10 +117,6 @@ const config = {
         // This folder does not contain any GUI icons — these are in /res/icons.
         // (TODO: check if this copy is even necessary — /icons has same content as /res/icons)
         { from: 'icons', to: 'icons', globOptions: { ignore: ['icon.xcf'] } },
-        { from: 'csui/csui-popup.html', to: 'csui/csui-popup.html', transform: transformHtml },
-        { from: 'csui/csui-overlay-normal.html', to: 'csui/csui.html', transform: transformHtml },
-        { from: 'csui/csui-overlay-dark.html', to: 'csui/csui-dark.html', transform: transformHtml },
-        { from: 'csui/csui-overlay-light.html', to: 'csui/csui-light.html', transform: transformHtml },
         { from: 'ui/pages/settings/index.html', to: 'ui/pages/settings/index.html', transform: transformHtml },
         {
           from: 'manifest.json',

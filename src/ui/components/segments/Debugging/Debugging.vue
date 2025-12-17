@@ -188,13 +188,15 @@
 </template>
 
 <script lang="ts">
+import { defineComponent } from 'vue';
+
 import Popup from '@components/common/Popup.vue';
 import JsonEditor from '@components/common/JsonEditor.vue';
 import UploadJsonFileButton from '@components/common/UploadJsonFileButton.vue';
+
 import { LogAggregator, BLANK_LOGGER_CONFIG } from '@src/ext/lib/logging/LogAggregator';
-import { defineComponent } from 'vue';
 import { SettingsSnapshot } from '@src/ext/lib/settings/SettingsSnapshotManager';
-import SettingsInterface from '../../../../common/interfaces/SettingsInterface';
+import SettingsInterface from '@src/common/interfaces/SettingsInterface';
 
 export default defineComponent({
   components: {

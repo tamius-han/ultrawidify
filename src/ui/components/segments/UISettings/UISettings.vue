@@ -112,16 +112,10 @@
 
 <script lang="ts">
 import BrowserDetect from '@src/ext/conf/BrowserDetect';
-import CropOptionsPanel from '@csui/src/PlayerUiPanels/PanelComponents/VideoSettings/CropOptionsPanel.vue'
-import StretchOptionsPanel from '@csui/src/PlayerUiPanels/PanelComponents/VideoSettings/StretchOptionsPanel.vue'
-import ZoomOptionsPanel from '@csui/src/PlayerUiPanels/PanelComponents/VideoSettings/ZoomOptionsPanel.vue'
 import { defineComponent } from 'vue';
 
 export default defineComponent({
   components: {
-    CropOptionsPanel,
-    StretchOptionsPanel,
-    ZoomOptionsPanel,
   },
   data() {
     return {
