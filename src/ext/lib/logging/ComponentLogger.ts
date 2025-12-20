@@ -36,13 +36,13 @@ export class ComponentLogger {
         consoleMessageString = `${consoleMessageString} ${m}`;
       } else if (typeof m === 'number') {
         consoleMessageString = `${consoleMessageString} %f`;
-        consoleMessageData.unshift(m);
+        consoleMessageData.push(m);
       } else if (typeof HTMLElement !== 'undefined' && m instanceof HTMLElement) { // HTMLElement does not exist in background script, but this class may
         consoleMessageString = `${consoleMessageString} %o`;
-        consoleMessageData.unshift(m);
+        consoleMessageData.push(m);
       } else {
         consoleMessageString = `${consoleMessageString} %O`;
-        consoleMessageData.unshift(m);
+        consoleMessageData.push(m);
       }
     }
 
