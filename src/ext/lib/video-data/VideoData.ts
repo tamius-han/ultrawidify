@@ -128,7 +128,7 @@ class VideoData {
     this.pageInfo = pageInfo;
     this.videoStatusOk = false;
 
-    this.vdid = `${ (Math.random() * 421) % 420}`;
+    this.vdid = `${ (Math.random() * 421).toFixed(0) }`;
 
     this.userCssClassName = `uw-fuck-you-and-do-what-i-tell-you_${this.vdid}`;
 
