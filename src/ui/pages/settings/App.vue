@@ -123,7 +123,7 @@ export default defineComponent({
         this.role = segment.replace('#', '');
       }
 
-      this.logAggregator = new LogAggregator('');
+      this.logAggregator = new LogAggregator('App.vue');
       this.logger = new ComponentLogger(this.logAggregator, 'App.vue');
 
       this.settings = new Settings({
@@ -198,7 +198,7 @@ export default defineComponent({
           }
         )
 
-        this.comms = new CommsClient('popup-port', this.logger, this.eventBus);
+        this.comms = new CommsClient('popup-port', this.logAggregator, this.eventBus);
         this.eventBus.setComms(this.comms);
         this.eventBus.setupPopupTunnelWorkaround({
           origin: CommsOrigin.Popup,
