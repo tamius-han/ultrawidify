@@ -310,13 +310,6 @@
       </div>
     </div>
 
-    <pre>
-      SITE SETTINGS: raw
-      {{JSON.stringify(siteSettings.raw)}}
-
-      SITE SETTINGS: data
-      {{JSON.stringify(siteSettings.data)}}
-    </pre>
   </div>
 </template>
 
@@ -546,28 +539,7 @@ export default defineComponent({
 
     setExtensionMode(component, event) {
       const option = event.target.value;
-
-      console.log('set extension mode - we received option', option, 'for component', component);
-
-      return;
-      if (option === 'complex') {
-        return;
-      }
-
-
-
-      if (component === 'enable' && !this.isDefaultConfiguration) {
-        this.setExtensionMode('enableAard', event);
-        this.setExtensionMode('enableKeyboard', event);
-
-        // in enableUI, 'enabled' is unused and 'theater' uses its place
-        if (option === 'enabled') {
-          this.setExtensionMode('enableUI', {target: {value: 'theater'}});
-        } else {
-          this.setExtensionMode('enableUI', event);
-        }
-      }
-
+      this.siteSettings.set(component, option);
     }
   }
 

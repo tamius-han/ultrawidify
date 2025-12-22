@@ -96,7 +96,6 @@ class Settings {
     if (!changes.uwSettings) {
       return;
     }
-    console.log('new settings change.')
     this.logger?.info('storageOnChange', "Settings have been changed outside of here. Updating active settings. Changes:", changes, "storage area:", area);
     // if (changes['uwSettings'] && changes['uwSettings'].newValue) {
     //   this.logger?.log('info', 'settings',"[Settings::<storage/on change>] new settings object:", JSON.parse(changes.uwSettings.newValue));

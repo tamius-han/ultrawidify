@@ -532,7 +532,11 @@ class VideoData {
     let confirmAspectRatioRestore = false;
 
     if (!this.video) {
-      this.logger.error('onVideoMutation', 'mutation was triggered, but video element is missing. Something is fishy. Terminating this uw instance.');
+      if (this.logger) {
+        this.logger.error('onVideoMutation', 'mutation was triggered, but video element is missing. Something is fishy. Terminating this uw instance.');
+      } else {
+        console.error('uw::onVideoMutation', 'mutation was triggered, but neither video nor logger exist. Something is ultra-fishy. UW instance will be terminated. This:', this);
+      }
       this.destroy();
       return;
     }

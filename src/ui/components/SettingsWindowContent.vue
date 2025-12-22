@@ -105,8 +105,8 @@
             <h3>Default settings</h3>
             <SiteExtensionSettings
               :settings="settings"
-              :siteSettings="siteSettings"
-              :isDefaultConfiguration="false"
+              :siteSettings="globalSettings"
+              :isDefaultConfiguration="true"
             ></SiteExtensionSettings>
           </template>
 
@@ -220,7 +220,13 @@ const AVAILABLE_TABS = {
       { id: 'default-extension-settings', label: 'Default settings' }
     ]
   },
-  'extensionSettings': {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
+  'extension-settings': {
+      id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs',
+      children: [
+        { id: 'default-extension-settings', label: 'Default settings' },
+        { id: 'website-extension-list', label: 'Website settings', },
+      ]
+   },
   'siteSettings': {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
   'settings.player-element-settings': { id: 'settings.player-element-settings', label: 'Advanced video player options', icon: 'play-box-edit-outline' },
   'window.player-element-settings': { id: 'window.player-element-settings', label: 'Advanced video player options', icon: 'play-box-edit-outline' },
@@ -229,7 +235,7 @@ const AVAILABLE_TABS = {
   'keyboardShortcuts': {id: 'keyboardShortcuts', label: 'Keyboard shortcuts', icon: 'keyboard-outline' },
   'playerDetection': {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
 
-  'installed': { id: 'updated', label: 'Update completed', icon: 'monitor-arrow-down-variant'},
+  'installed': { id: 'installed', label: 'Update completed', icon: 'monitor-arrow-down-variant'},
   'updated': { id: 'updated', label: 'Update completed', icon: 'update'},
 
   'changelog': {id: 'changelog', label: 'What\'s new', icon: 'alert-decagram' },
@@ -240,7 +246,7 @@ const AVAILABLE_TABS = {
 
 const TAB_LOADOUT = {
   'settings': [
-    'extensionSettings',
+    'extension-settings',
     'settings.player-element-settings',
     'autodetectionSettings',
     'ui-settings',
@@ -299,6 +305,7 @@ export default defineComponent({
       BrowserDetect: BrowserDetect,
       preventClose: false,
       siteSettings: null,
+      globalSettings: null,
     }
   },
   props: [
@@ -336,6 +343,7 @@ export default defineComponent({
       changelogTab.highlight = !this.settings.active?.whatsNewChecked;
     }
 
+    this.globalSettings = this.settings.getSiteSettings({site: '@global'});
     if (this.site) {
       this.siteSettings = this.settings.getSiteSettings({site: this.site});
     }
@@ -377,6 +385,7 @@ export default defineComponent({
           console.warn('[uw:SettingsWindowContent] tab', tab, 'is not present in available tabs:', AVAILABLE_TABS, '— tabs for role', this.role, TAB_LOADOUT[this.role]);
           continue;
         } else {
+          console.log('pushing tab:', tab, AVAILABLE_TABS[tab])
           tabs.push(AVAILABLE_TABS[tab]);
         }
       }

@@ -183,7 +183,6 @@ export class SiteSettings {
    */
   private compileSettingsObject() {
     const {siteSettings, usesSettingsFor} = this.getSettingsForSite(this.options);
-    console.log('got settings for site:', siteSettings, usesSettingsFor)
 
     this.data = _cp(siteSettings);
     this.usesSettingsFor = usesSettingsFor;
