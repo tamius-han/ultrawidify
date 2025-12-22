@@ -433,7 +433,7 @@ export class AardLegacy {
       // console.log('--- video data: ---\n', this.videoData);
       return;
     }
-    if (this.videoData.player.environment <= this.siteSettings.data.enableAard) {
+    if (this.siteSettings.canRunAard(this.videoData.player.environment)) {
       this.start();
     } else {
       this.stop();

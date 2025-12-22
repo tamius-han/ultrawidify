@@ -32,6 +32,9 @@
         ></JsonEditor>
 
         <div class="flex flex-row justify-end mt-4 w-full">
+          <button class="bg-black button" @click="resetLoggerSettings()">
+            Load default
+          </button>
           <button class="bg-black button" @click="getLoggerSettings()">
             Revert
           </button>
@@ -280,6 +283,10 @@ export default defineComponent({
      */
     loadDefaultConfig() {
       this.lastSettings = JSON.parse(JSON.stringify(BLANK_LOGGER_CONFIG));
+    },
+    async resetLoggerSettings() {
+      await LogAggregator.resetConfig();
+      await this.getLoggerSettings();
     },
     async getLoggerSettings() {
       this.lastSettings = await LogAggregator.getConfig() || BLANK_LOGGER_CONFIG;

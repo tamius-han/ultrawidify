@@ -101,7 +101,6 @@
             ></FrameSiteSettings>
           </template>
 
-
           <template v-if="settings && selectedTab === 'default-extension-settings'" >
             <h3>Default settings</h3>
             <SiteExtensionSettings
@@ -117,6 +116,14 @@
             :enableSettingsEditor="true"
           ></OtherSiteSettings>
 
+          <PlayerElementSettings
+            v-if="selectedTab === 'settings.player-element-settings'"
+            :settings="settings"
+            :eventBus="eventBus"
+          >
+
+          </PlayerElementSettings>
+
           <AutodetectionSettings
             v-if="selectedTab === 'autodetectionSettings'"
             :settings="settings"
@@ -126,7 +133,7 @@
           >
           </AutodetectionSettings>
           <UISettings
-            v-if="selectedTab === 'uiSettings'"
+            v-if="selectedTab === 'ui-settings'"
             :settings="settings"
             :siteSettings="siteSettings"
             :eventBus="eventBus"
@@ -182,6 +189,8 @@
 import { defineComponent } from 'vue';
 import VideoSettings from '@components/segments/VideoSettings/VideoSettings.vue';
 import OtherSiteSettings from '@components/segments/ExtensionSettings/Panels/OtherSiteSettings.vue';
+import PlayerElementSettings from '@components/segments/PlayerElementSelection/PlayerElementSettings.vue';
+import PlayerElementWindow from '@components/segments/PlayerElementSelection/PlayerElementWindow.vue';
 import AutodetectionSettings from '@components/segments/AutodetectionSettings/AutodetectionSettings.vue';
 import UISettings from '@components/segments/UISettings/UISettings.vue';
 import KeyboardShortcutSettings from '@components/segments/KeyboardShortcuts/KeyboardShortcutSettings.vue';
@@ -213,8 +222,10 @@ const AVAILABLE_TABS = {
   },
   'extensionSettings': {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
   'siteSettings': {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
+  'settings.player-element-settings': { id: 'settings.player-element-settings', label: 'Advanced video player options', icon: 'play-box-edit-outline' },
+  'window.player-element-settings': { id: 'window.player-element-settings', label: 'Advanced video player options', icon: 'play-box-edit-outline' },
   'autodetectionSettings': {id: 'autodetectionSettings', label: 'Autodetection options', icon: 'auto-fix'},
-  'uiSettings': {id: 'uiSettings', label: 'UI settings', icon: 'movie-cog-outline' },
+  'ui-settings': {id: 'ui-settings', label: 'UI settings', icon: 'movie-cog-outline' },
   'keyboardShortcuts': {id: 'keyboardShortcuts', label: 'Keyboard shortcuts', icon: 'keyboard-outline' },
   'playerDetection': {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
 
@@ -230,13 +241,17 @@ const AVAILABLE_TABS = {
 const TAB_LOADOUT = {
   'settings': [
     'extensionSettings',
+    'settings.player-element-settings',
     'autodetectionSettings',
-    'uiSettings',
+    'ui-settings',
     'keyboardShortcuts',
     'changelog',
     'about',
     'import-export-settings',
     'debugging',
+  ],
+  'ui': [
+    'window.player-element-settings'
   ],
   'updated': [
     'updated',
@@ -255,6 +270,8 @@ export default defineComponent({
   components: {
     VideoSettings,
     OtherSiteSettings,
+    PlayerElementSettings,
+    PlayerElementWindow,
     AutodetectionSettings,
     KeyboardShortcutSettings,
     UISettings,
@@ -276,16 +293,7 @@ export default defineComponent({
       },
 
       tabs: [
-        // // {id: 'videoSettings', label: 'Video settings', icon: 'crop'},
-        // {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
-        // {id: 'autodetectionSettings', label: 'Autodetection options', icon: 'auto-fix'},
-        // {id: 'uiSettings', label: 'UI settings', icon: 'movie-cog-outline' },
-        // {id: 'keyboardShortcuts', label: 'Keyboard shortcuts', icon: 'keyboard-outline' },
-        // {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
-        // // {id: 'advancedOptions', label: 'Advanced options', icon: 'cogs' },
-        // {id: 'changelog', label: 'What\'s new', icon: 'alert-decagram' },
-        // {id: 'about', label: 'About', icon: 'information-outline'},
-        // {id: 'debugging', label: 'Debugging', icon: 'bug-outline', hidden: true},
+
       ],
       selectedTab: 'extensionSettings',
       BrowserDetect: BrowserDetect,

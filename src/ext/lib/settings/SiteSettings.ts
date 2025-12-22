@@ -299,6 +299,20 @@ export class SiteSettings {
   }
   //#endregion
 
+  canRunExtension(environment: ExtensionEnvironment) {
+    return environment <= this.data.enable;
+  }
+  canRunAard(environment: ExtensionEnvironment) {
+    return environment <= this.data.enableAard;
+  }
+  canRunUI(environment: ExtensionEnvironment) {
+    return environment <= this.data.enableUI;
+  }
+  canRunKeyboard(environment: ExtensionEnvironment) {
+    return environment <= this.data.enableKeyboard;
+  }
+
+
   //#region get shit
   /**
    * Gets custom query selector for player or video, if configuration for it exists, is manually defined, and has querySelectors property.

@@ -263,7 +263,7 @@ export class Aard {
       // console.log('--- video data: ---\n', this.videoData);
       return;
     }
-    if (this.siteSettings.data.enableAard <= this.videoData.player.environment) {
+    if (this.siteSettings.canRunAard(this.videoData.player.environment)) {
       this.start();
     } else {
       this.stop();

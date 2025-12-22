@@ -104,63 +104,37 @@ export default class UWServer {
   //#region CSS managemeent
 
   async injectCss(css, sender) {
+    this.logger.info('injectCss', 'Trying to inject CSS into tab', sender.tab.id, ', frameId:', sender.frameId, 'css:\n', css)
     if (!css) {
       return;
     }
     try {
-      if (BrowserDetect.firefox) {
-        chrome.scripting.insertCSS({
-          target: {
-            tabId: sender.tab.id,
-            frameIds: [
-              sender.frameId
-            ]
-          },
-          css,
-          origin: "USER"
-        });
-      } else {
-        await chrome.scripting.insertCSS({
-          target: {
-            tabId: sender.tab.id,
-            frameIds: [
-              sender.frameId
-            ]
-          },
-          css,
-          origin: "USER"
-        });
-      }
+      await chrome.scripting.insertCSS({
+        target: {
+          tabId: sender.tab.id,
+          frameIds: [
+            sender.frameId
+          ]
+        },
+        css,
+        origin: "USER"
+      });
     } catch (e) {
       this.logger.error('injectCss', 'Error while injecting css:', {error: e, css, sender});
     }
   }
   async removeCss(css, sender) {
     try {
-      if (BrowserDetect.firefox) {
-        chrome.scripting.removeCSS({
-          target: {
-            tabId: sender.tab.id,
-            frameIds: [
-              sender.frameId
-            ]
-          },
-          css,
-          origin: "USER"
-        });
-      } else {
-
-        await chrome.scripting.removeCSS({
-          target: {
-            tabId: sender.tab.id,
-            frameIds: [
-              sender.frameId
-            ]
-          },
-          css,
-          origin: "USER"
-        });
-      }
+      await chrome.scripting.removeCSS({
+        target: {
+          tabId: sender.tab.id,
+          frameIds: [
+            sender.frameId
+          ]
+        },
+        css,
+        origin: "USER"
+      });
     } catch (e) {
       this.logger.error('injectCss', 'Error while removing css:', {error: e, css, sender});
     }

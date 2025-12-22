@@ -128,6 +128,8 @@ class VideoData {
     this.pageInfo = pageInfo;
     this.videoStatusOk = false;
 
+    this.vdid = `${ (Math.random() * 421) % 420}`;
+
     this.userCssClassName = `uw-fuck-you-and-do-what-i-tell-you_${this.vdid}`;
 
     this.videoLoaded = false;
@@ -227,7 +229,6 @@ class VideoData {
   }
   //#endregion
 
-
   //#region lifecycle-ish
   /**
    * Sets up event listeners for this video
@@ -276,8 +277,8 @@ class VideoData {
     const defaultCrop = this.siteSettings.getDefaultOption('crop') as Ar;
     const defaultStretch = this.siteSettings.getDefaultOption('stretch') as Stretch;
 
-    this.resizer.setAr(defaultCrop);
     this.resizer.setStretchMode(defaultStretch);
+    this.resizer.setAr(defaultCrop);
   }
 
   /**
@@ -408,7 +409,7 @@ class VideoData {
       this.logger.warn('onEnvironmentChanged', 'environment changed from:', this.currentEnvironment, 'to:', this.player.environment);
 
       this.currentEnvironment = this.player.environment;
-      if (this.player.environment <= this.siteSettings.data.enable) {
+      if (this.siteSettings.canRunExtension(this.player.environment)) {
         this.setRunLevel(RunLevel.Off);
       } else {
         this.restoreAr();
@@ -417,23 +418,35 @@ class VideoData {
   }
 
   setRunLevel(runLevel: RunLevel, options?: {fromPlayer?: boolean}) {
-    if (this.player && this.siteSettings.data.enable >= this.player.environment) {
+    this.logger.log('setRunLevel', '%cRUN LEVEL%c', 'background-color: #fff; color: #000;', '');
+
+    if (this.player && !this.siteSettings.canRunExtension(this.player.environment)) {
+      this.logger.log('setRunLevel', '%cExtension is not enabled for this environment.', 'color: #d00', {enable: this.siteSettings.data.enable, playerEnv: this.player.environment});
       runLevel = RunLevel.Off;
     }
 
     if (this.runLevel === runLevel) {
+      this.logger.log('setRunLevel', '%crun level did not change — doing nothing.', 'color: #999');
       return; // also no need to propagate to the player
     }
 
     // Run level decreases towards 'off'
     if (this.runLevel > runLevel) {
       if (runLevel < RunLevel.CustomCSSActive) {
+        this.logger.log(
+          `setRunLevel`,
+          '%cEXTENSION CANNOT RUN IN CURRENT CONDITION — REMOVING CSS CLASSES FROM VIDEO!', 'color: #ffa, background-color: #d00',
+          `%c  run level: ${runLevel}`, ''
+        );
+
         this.video.classList.remove(this.baseCssName);
         this.video.classList.remove(this.userCssClassName);
         this.enabled = false;
       }
     } else { // Run level increases towards 'everything runs'*
       if (runLevel >= RunLevel.CustomCSSActive) {
+        this.logger.log(`setRunLevel`, '%cAdding CSS classes to the video due to change in run level.', 'color: #77d5c1ff');
+
         this.video.classList.add(this.baseCssName);
         this.video.classList.add(this.userCssClassName);
 

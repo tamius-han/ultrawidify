@@ -497,9 +497,11 @@ class Resizer {
   }
 
 
-  setStretchMode(stretch: {type: StretchType, ratio?: number}) {
+  setStretchMode(stretch: {type: StretchType, ratio?: number}, options?: {skipRestore?: boolean}) {
     this.stretcher.setStretchMode(stretch);
-    this.restore();
+    if (!options?.skipRestore) {
+      this.restore();
+    }
   }
 
   panHandler(event, forcePan) {
@@ -940,7 +942,7 @@ class Resizer {
 
     for(let i in styleArray) {
       if(styleArray[i]) {
-        styleString += styleArray[i] + " !important; ";
+        styleString += styleArray[i];
       }
     }
 

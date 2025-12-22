@@ -340,7 +340,7 @@ class UI {
       canShowUI: false,
     }
 
-    if (this.playerData?.environment && this.playerData?.environment <= this.siteSettings.data.enableUI) {
+    if (this.playerData?.environment && this.siteSettings.canRunUI(this.playerData?.environment)) {
       return result;
     }
 

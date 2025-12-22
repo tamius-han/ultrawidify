@@ -56,6 +56,7 @@ import CommsClient, { CommsOrigin } from '@src/ext/lib/comms/CommsClient';
 import {ChromeShittinessMitigations as CSM} from '@src/common/js/ChromeShittinessMitigations';
 
 import PopupHead from '@components/PopupHead.vue';
+import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
 
 export default defineComponent({
   components: {
