@@ -4,6 +4,29 @@ export const BLANK_LOGGER_CONFIG: LogConfig = {
   logToConsole: false,
   logToFile: false,
   component: {
+    'PageInfo': {enabled: false},
+    'PlayerData': {enabled: false},
+    'VideoData': {enabled: false},
+
+    'Resizer': {enabled: false},
+    'Scaler': {enabled: false},
+    'Stretcher': {enabled: false},
+    'Zoom': {enabled: false},
+
+    'Aard': {enabled: false},
+    'KeyboardHandler': {enabled: false},
+    'MouseHandler': {enabled: false},
+
+    'Settings': {enabled: false},
+
+    'UWContent': {enabled: false},
+    'UWServer': {enabled: false},
+    'CommsServer': {enabled: false},
+    'CommsClient': {enabled: false},
+
+    'App.vue': {enabled: false},
+    'Popup': {enabled: false},
+    'SettingsPage': {enabled: false},
   },
   origins: {
     videoRescan: { disabled: true},
@@ -40,6 +63,10 @@ export class LogAggregator {
   private startTime: number;
 
   history: any[];
+
+  static async resetConfig() {
+    await this.saveConfig(BLANK_LOGGER_CONFIG);
+  }
 
   static async getConfig() {
     let ret: any = await chrome.storage.local.get(STORAGE_LOG_SETTINGS_KEY);
@@ -94,7 +121,7 @@ export class LogAggregator {
     this.init();
   }
 
-  private canLog(component: string, sourceOptions?: LogSourceOptions): boolean {
+  canLog(component: string, sourceOptions?: LogSourceOptions): boolean {
     // component is not in config, so we add a blank entry
     if (this.config && !this.config.component[component]) {
       this.config.component[component] = {enabled: false};
@@ -215,13 +242,17 @@ export class LogAggregator {
     }
   }
 
-  log(component: string, logLevel: string, sourceOptions: LogSourceOptions, message: string, ...data: any[]) {
-    if (! this.canLog(component, sourceOptions)) {
-      return;
-    }
-
+  /**
+   * Logs message to console.
+   * This function does NOT check before logging, as canLog check should now be performed
+   * BEFORE ComponentLogger starts processing log calls.
+   * @param logLevel
+   * @param message
+   * @param data
+   */
+  log(logLevel: string, message: string, ...data: any[]) {
     if (this.config.logToFile) {
-
+      console.warn('log to file not implemented!')
     }
 
     if (this.config.logToConsole){
