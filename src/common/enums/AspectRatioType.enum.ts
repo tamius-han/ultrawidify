@@ -1,4 +1,5 @@
 enum AspectRatioType {
+  Default = -3,        // inherit from global settings
   Cycle = -2,
   Initial = -1,        // page default
   Reset = 0,           // reset to initial

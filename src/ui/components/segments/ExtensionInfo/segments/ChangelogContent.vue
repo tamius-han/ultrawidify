@@ -5,7 +5,11 @@
 
   <b class="text-white">Potentially breaking:</b>
   <ul>
-    <li>De-spaghettified the part of the settings that controls whether extension runs on a given site or not.</li>
+    <li>
+      De-spaghettified the part of the settings that controls whether extension runs on a given site or not.<br/>
+      <small>NOTE — "Don't fix what ain't broken" only applies when the thing that keeps it working is NOT merely
+      a few patches of questionably applied silvertape.</small>
+    </li>
   </ul>
 
   <b class="text-white">Autodetection:</b>

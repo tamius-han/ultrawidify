@@ -168,6 +168,7 @@
         </div>
       </div>
 
+      <!-- Use for embedded content -->
       <div class="field">
         <div class="label">
           Use these settings for <span class="color-emphasis">embedded content</span>?
@@ -175,14 +176,17 @@
         </div>
         <div class="select">
           <select
-            :value="siteDefaultForEmbedded"
+            :value="simpleExtensionSettings.applyToEmbeddedContent"
             @click="setSiteOption('applyToEmbeddedContent', $event)"
           >
+            <option :value="EmbeddedContentSettingsOverridePolicy.Default">
+              Use default ({{simpleDefaultSettings.applyToEmbeddedContent}})
+            </option>
             <option :value="EmbeddedContentSettingsOverridePolicy.Always">
               Always(-ish)
             </option>
             <option :value="EmbeddedContentSettingsOverridePolicy.UseAsDefault">
-              Use as default
+              When no settings exist for embedded content
             </option>
             <option :value="EmbeddedContentSettingsOverridePolicy.Never">
               Never
@@ -198,13 +202,16 @@
         </div>
         <div class="select">
           <select
-            :value="siteDefaultOverrideEmbedded"
+            :value="simpleExtensionSettings.overrideWhenEmbedded"
             @click="setSiteOption('overrideWhenEmbedded', $event)"
           >
-            <option :value="true">
+            <option :value="EmbeddedContentSettingsOverridePolicy.Default">
+              Use default ({{simpleDefaultSettings.overrideWhenEmbedded}})
+            </option>
+            <option :value="EmbeddedContentSettingsOverridePolicy.Always">
               Yes
             </option>
-            <option :value="false">
+            <option :value="EmbeddedContentSettingsOverridePolicy.Never">
               No
             </option>
           </select>
@@ -310,11 +317,32 @@
       </div>
     </div>
 
+    <div class="mt-4">
+      <h4 class="mt-4 text-primary-400 text-[1.125em] font-bold mb-2">Other options</h4>
+      <button @click="playerDetectionOptionsDialog.visible = true">Advanced video player options</button>
+      <p>{{playerDetectionOptionsDialog.visible}}</p>
+    </div>
   </div>
+
+
+  <Popup
+    v-if="playerDetectionOptionsDialog.visible"
+    title="Player detection options"
+    confirmButtonText="Save"
+    cancelButtonText="Cancel"
+  >
+    <PlayerSelectorAdvancedForm
+      :settings="settings"
+      :siteSettings="siteSettings"
+    ></PlayerSelectorAdvancedForm>
+  </Popup>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+
+import Popup from '@components/common/Popup.vue';
+import PlayerSelectorAdvancedForm from '@components/segments/PlayerElementSelection/Panels/PlayerSelectorAdvancedForm.vue';
 
 import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
 import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
@@ -322,6 +350,17 @@ import CropModePersistence from '@src/common/enums/CropModePersistence.enum';
 import EmbeddedContentSettingsOverridePolicy from '@src/common/enums/EmbeddedContentSettingsOverridePolicy.enum';
 
 export default defineComponent({
+
+  components: {
+    Popup,
+    PlayerSelectorAdvancedForm,
+  },
+  props: [
+    'settings',
+    'siteSettings',
+    'isDefaultConfiguration',
+    'showPlayerSettings',
+  ],
   data() {
     return {
       CropModePersistence: CropModePersistence,
@@ -337,50 +376,24 @@ export default defineComponent({
         {label: 'Bottom left', arguments: {x: VideoAlignmentType.Left, y: VideoAlignmentType.Bottom}},
         {label: 'Bottom center', arguments: {x: VideoAlignmentType.Center, y: VideoAlignmentType.Bottom}},
         {label: 'Bottom right', arguments: {x: VideoAlignmentType.Right, y: VideoAlignmentType.Bottom}}
-      ]
+      ],
+      playerDetectionOptionsDialog: {
+        visible: false,
+      }
     }
   },
   mixins: [
 
   ],
-  props: [
-    'settings',
-    'siteSettings',
-    'isDefaultConfiguration'
-  ],
-  components: {
-
-  },
   computed: {
     simpleExtensionSettings() {
-      return {
-        enable: this.compileSimpleSettings('enable'),
-        enableAard: this.compileSimpleSettings('enableAard'),
-        enableKeyboard: this.compileSimpleSettings('enableKeyboard'),
-        enableUI: this.compileSimpleSettings('enableUI')
-      }
+      return this.computeSiteSettingsObject('site');
     },
     simpleEffectiveSettings() {
-      return {
-        enable: this.compileSimpleSettings('enable', 'site-effective'),
-        enableAard: this.compileSimpleSettings('enableAard', 'site-effective'),
-        enableKeyboard: this.compileSimpleSettings('enableKeyboard', 'site-effective'),
-        enableUI: this.compileSimpleSettings('enableUI', 'site-effective')
-      }
+      return this.computeSiteSettingsObject('site-effective');
     },
     simpleDefaultSettings() {
-      return {
-        enable: this.getDefaultOptionLabel('enable'),
-        enableAard: this.getDefaultOptionLabel('enableAard'),
-        enableKeyboard: this.getDefaultOptionLabel('enableKeyboard'),
-        enableUI: this.getDefaultOptionLabel('enableUI')
-      };
-    },
-    siteDefaultForEmbedded() {
-      return this.siteSettings.raw?.applyToEmbeddedContent;
-    },
-    siteDefaultOverrideEmbedded() {
-      return this.siteSettings.raw?.overrideWhenEmbedded ?? false;
+      return this.computeDefaultOptionLabels();
     },
     siteDefaultCrop() {
       return this.siteSettings.raw?.defaults?.crop ? JSON.stringify(this.siteSettings.raw?.defaults?.crop) : JSON.stringify({useDefault: true});
@@ -413,11 +426,25 @@ export default defineComponent({
     this.forceRefreshPage();
   },
   methods: {
+    computeSiteSettingsObject(getFor = 'site') {
+      const out = {};
+      for (const key in this.settings.default.sites['@global']) {
+        out[key] = this.compileSimpleSettings(key, getFor);
+      }
+      return out;
+    },
+    computeDefaultOptionLabels() {
+      const out = {};
+      for (const key in this.settings.default.sites['@global']) {
+        out[key] = this.getDefaultOptionLabel(key);
+      }
+      return out;
+    },
+
     /**
      * Compiles our extension settings into more user-friendly options
      */
     compileSimpleSettings(component, getFor = 'site'): ExtensionMode {
-
       let settingsData;
       switch (getFor) {
         case 'site':
@@ -431,15 +458,44 @@ export default defineComponent({
           break;
       }
 
-      console.log('compiling simple settings;', settingsData, 'original settings:', this.siteSettings)
-
-      return settingsData?.[component];
+      return settingsData?.[component] ?? ExtensionMode.Default;
     },
 
+    /**
+     * Gets option labels for default values of each option
+     */
     getDefaultOptionLabel(component) {
-      const componentValue: ExtensionMode = this.compileSimpleSettings(component, 'default');
+      const componentValue: ExtensionMode | EmbeddedContentSettingsOverridePolicy = this.compileSimpleSettings(component, 'default');
 
-      switch (componentValue) {
+      if (component === 'overrideWhenEmbedded') {
+        switch (componentValue) {
+          case EmbeddedContentSettingsOverridePolicy.Default:
+            return 'default';
+          case EmbeddedContentSettingsOverridePolicy.Always:
+            return 'yes';
+          case EmbeddedContentSettingsOverridePolicy.Never:
+            return 'no';
+          default:
+            return '<invalid value>';
+        }
+      }
+
+      if (component === 'applyToEmbeddedContent') {
+        switch (componentValue as EmbeddedContentSettingsOverridePolicy) {
+          case EmbeddedContentSettingsOverridePolicy.Always:
+            return 'always(-ish)';
+          case EmbeddedContentSettingsOverridePolicy.UseAsDefault:
+            return 'when no settings exist for embedded content';
+          case EmbeddedContentSettingsOverridePolicy.Never:
+            return 'never';
+          case EmbeddedContentSettingsOverridePolicy.Default:
+            return 'default';
+          default:
+            return '<invalid value>';
+        }
+      }
+
+      switch (componentValue as ExtensionMode) {
         case ExtensionMode.Disabled:
           return 'disabled';
         case ExtensionMode.Default:
@@ -540,7 +596,13 @@ export default defineComponent({
     setExtensionMode(component, event) {
       const option = event.target.value;
       this.siteSettings.set(component, option);
-    }
+    },
+
+    //#region ADVANCED VIDEO PLAYER SETTINGS
+    /**
+     *
+     */
+    //#endregion
   }
 
 });

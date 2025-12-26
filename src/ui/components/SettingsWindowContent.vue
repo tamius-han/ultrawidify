@@ -37,7 +37,7 @@
                   v-for="suboption of tab.children"
                   :key="suboption.id"
                   class="suboption"
-                  :class="{'active': suboption.id === selectedTab}"
+                  :class="{'active': suboption.id === selectedTab, 'disabled': suboption.disabled }"
                   @click="selectTab(suboption.id)"
                 >
                   <div class="label">
@@ -49,6 +49,9 @@
                       :name="suboption.icon"
                       :size="32"
                     />
+                  </div>
+                  <div v-if="suboption.badgeCount" class="badge">
+                    {{suboption.badgeCount >= 10 ? '...' : suboption.badgeCount}}
                   </div>
                 </div>
               </div>
@@ -111,7 +114,7 @@
           </template>
 
           <OtherSiteSettings
-            v-if="selectedTab === 'extensionSettings'"
+            v-if="selectedTab === 'website-extension-settings'"
             :settings="settings"
             :enableSettingsEditor="true"
           ></OtherSiteSettings>
@@ -216,15 +219,15 @@ const AVAILABLE_TABS = {
     id: 'site-extension-settings', label: 'Site and Extension options', icon: 'cogs',
     children: [
       { id: 'site-extension-settings', label: 'For this site', },
-      { id: 'embedded-extension-settings', label: 'For embedded sites' },
+      { id: 'embedded-extension-settings', label: 'For embedded sites', disabled: true, badgeCount: 0, },
       { id: 'default-extension-settings', label: 'Default settings' }
     ]
   },
-  'extension-settings': {
-      id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs',
+  'default-extension-settings': {
+      id: 'default-extension-settings', label: 'Site and Extension options', icon: 'cogs',
       children: [
         { id: 'default-extension-settings', label: 'Default settings' },
-        { id: 'website-extension-list', label: 'Website settings', },
+        { id: 'website-extension-settings', label: 'Website exceptions', },
       ]
    },
   'siteSettings': {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
@@ -246,7 +249,7 @@ const AVAILABLE_TABS = {
 
 const TAB_LOADOUT = {
   'settings': [
-    'extension-settings',
+    'default-extension-settings',
     'settings.player-element-settings',
     'autodetectionSettings',
     'ui-settings',
@@ -331,7 +334,7 @@ export default defineComponent({
     // THINGS WILL NOT WORK IF YOU USE ARROWS
     siteSupportLevel() {
       return (this.site && this.siteSettings) ? this.siteSettings.data.type || 'no-support' : 'waiting';
-    }
+    },
   },
   created() {
     this.generateTabs();
@@ -370,6 +373,9 @@ export default defineComponent({
      */
     updateSite(newSite: {host: string, hostnames: string[],}) {
       this.siteSettings = this.settings.getSiteSettings({site: newSite.host});
+
+      this.generateTabs(newSite);
+
       this.$nextTick( () => this.$forceUpdate());
     },
     /**
@@ -378,14 +384,26 @@ export default defineComponent({
     getUrl(url) {
       return BrowserDetect.getURL(url);
     },
-    generateTabs() {
+    generateTabs(site = this.site) {
       const tabs = [];
       for (const tab of TAB_LOADOUT[this.role]) {
         if (!AVAILABLE_TABS[tab]) {
           console.warn('[uw:SettingsWindowContent] tab', tab, 'is not present in available tabs:', AVAILABLE_TABS, '— tabs for role', this.role, TAB_LOADOUT[this.role]);
           continue;
         } else {
-          console.log('pushing tab:', tab, AVAILABLE_TABS[tab])
+          if (tab === 'site-extension-settings') {
+            const frames = AVAILABLE_TABS[tab].children?.find(x => x.id === 'embedded-extension-settings');
+            if (frames) {
+              let frameCount = site?.hostnames?.length;
+
+              if (site?.hostnames?.includes(site.host)) {
+                frameCount--;
+              }
+
+              frames.badgeCount = frameCount;
+              frames.disabled = !frameCount;
+            }
+          }
           tabs.push(AVAILABLE_TABS[tab]);
         }
       }
@@ -451,6 +469,9 @@ export default defineComponent({
           @apply !bg-transparent !text-primary-300 bg-gradient-to-r from-transparent to-black hover:!text-primary-200 ;
         }
       }
+      &.disabled {
+        @apply pointer-events-none;
+      }
     }
 
     .main-tab {
@@ -471,13 +492,25 @@ export default defineComponent({
     .suboption {
       @apply
         px-6 py-2
-        text-[1.125rem] text-stone-500 font-mono
+        uppercase text-stone-400/75 font-mono
+        relative
         hover:bg-stone-800
         hover:text-primary-200
         hover:border-r-stone-600;
 
       &.active {
         @apply !bg-transparent !text-primary-300 bg-gradient-to-r from-transparent to-black hover:!text-primary-200;
+      }
+      &.disabled {
+        @apply pointer-events-none text-stone-600/75;
+      }
+      .badge {
+        @apply absolute right-[0.25rem] bottom-0 w-4 h-4 text-stone-950 bg-primary-300 rounded flex justify-center items-center font-bold text-[0.8rem];
+      }
+
+      &:last-child {
+        @apply
+         mb-2;
       }
     }
   }

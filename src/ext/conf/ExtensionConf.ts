@@ -803,11 +803,15 @@ const ExtensionConf: SettingsInterface = {
                                             //      #g — only available in @global
                                             //      #s   — only available for specific site
       enable: ExtensionMode.Disabled,
-      enableAard: ExtensionMode.Disabled,
-      enableKeyboard: ExtensionMode.Disabled,
+      enableAard: ExtensionMode.Theater,
+      enableKeyboard: ExtensionMode.All,
       enableUI: ExtensionMode.FullScreen,
 
-      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
+      overrideWhenEmbedded: EmbeddedContentSettingsOverridePolicy.Never,          // Usually, less-than-legitimate websites embed content from different domains.
+                                                                                  // Setting this to 'always' would ensure embedded content always uses extension's
+                                                                                  // default settings. It is presumed most people are too dumb to visit "for embedded sizes"
+                                                                                  // part of the popup, and those who aren't will prolly find that annoying.
 
       defaultType: SiteSupportLevel.Unknown,
       persistCSA: CropModePersistence.Disabled,
@@ -839,10 +843,10 @@ const ExtensionConf: SettingsInterface = {
       enable: ExtensionMode.All,
       enableAard: ExtensionMode.All,
       enableKeyboard: ExtensionMode.All,
-      enableUI:  ExtensionMode.All,
+      enableUI:  ExtensionMode.Default,
 
-      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
-      overrideWhenEmbedded: true,
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
+      overrideWhenEmbedded: EmbeddedContentSettingsOverridePolicy.Always,
       override: false,                  // ignore value localStorage in favour of this
       type: SiteSupportLevel.OfficialSupport,                 // is officially supported? (Alternatives are 'community' and 'user-defined')
       defaultType: SiteSupportLevel.OfficialSupport,          // if user mucks around with settings, type changes to 'user-defined'.
@@ -867,8 +871,8 @@ const ExtensionConf: SettingsInterface = {
       enableKeyboard: ExtensionMode.All,
       enableUI: ExtensionMode.FullScreen,
 
-      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
-      overrideWhenEmbedded: true,
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
+      overrideWhenEmbedded: EmbeddedContentSettingsOverridePolicy.Always,
 
       override: false,                  // ignore value localStorage in favour of this
       type: SiteSupportLevel.OfficialSupport,                 // is officially supported? (Alternatives are 'community' and 'user-defined')
@@ -893,7 +897,7 @@ const ExtensionConf: SettingsInterface = {
       enableAard: ExtensionMode.Disabled,
       enableKeyboard: ExtensionMode.All,
       enableUI:  ExtensionMode.All,
-      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
       override: false,
       type: SiteSupportLevel.CommunitySupport,
       defaultType: SiteSupportLevel.CommunitySupport,
@@ -904,7 +908,7 @@ const ExtensionConf: SettingsInterface = {
       enableKeyboard: ExtensionMode.All,
       enableUI: ExtensionMode.FullScreen,
 
-      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
       type: SiteSupportLevel.CommunitySupport,
       defaultType: SiteSupportLevel.CommunitySupport,
       activeDOMConfig: 'community-mstefan99',
@@ -931,9 +935,23 @@ const ExtensionConf: SettingsInterface = {
       enableKeyboard: ExtensionMode.All,
       enableUI: ExtensionMode.FullScreen,
 
-      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
       type: SiteSupportLevel.OfficialSupport,
       defaultType: SiteSupportLevel.OfficialSupport,
+
+      activeDOMConfig: 'official',
+      DOMConfig: {
+        'official': {
+          type: SiteSupportLevel.OfficialSupport,
+          elements: {
+            player: {
+              playerDetectionMode: PlayerDetectionMode.QuerySelectors,
+              allowAutoFallback: true,
+              querySelectors: "#movie_player, #player, #c4-player",
+            }
+          }
+        }
+      }
     },
     "old.reddit.com" : {
       enable: ExtensionMode.Disabled,
@@ -944,19 +962,6 @@ const ExtensionConf: SettingsInterface = {
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Never,
       type: SiteSupportLevel.OfficialBlacklist,
       defaultType: SiteSupportLevel.OfficialBlacklist,
-      activeDOMConfig: 'official',
-      DOMConfig: {
-        'official': {
-          type: SiteSupportLevel.OfficialSupport,
-          // customCss:  'video {\n  width: 100% !important;\n  height: 100% !important;\n}',
-          elements: {
-            player: {
-              manual: false,
-              querySelectors: '.reddit-video-player-root, .media-preview-content'
-            }
-          }
-        }
-      },
     },
     "www.reddit.com" : {
       enable: ExtensionMode.Disabled,
@@ -997,7 +1002,7 @@ const ExtensionConf: SettingsInterface = {
       enableKeyboard: ExtensionMode.All,
       enableUI: ExtensionMode.FullScreen,
 
-      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
       type: SiteSupportLevel.CommunitySupport,
       defaultType: SiteSupportLevel.CommunitySupport,
       activeDOMConfig: 'community',
@@ -1019,7 +1024,7 @@ const ExtensionConf: SettingsInterface = {
       enableKeyboard: ExtensionMode.Theater,
       enableUI: ExtensionMode.FullScreen,
 
-      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
       type: SiteSupportLevel.CommunitySupport,
       defaultType: SiteSupportLevel.CommunitySupport,
       activeDOMConfig: 'community',
@@ -1035,7 +1040,7 @@ const ExtensionConf: SettingsInterface = {
       enableAard: ExtensionMode.Theater,
       enableKeyboard: ExtensionMode.Theater,
       enableUI: ExtensionMode.FullScreen,
-      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
       type: SiteSupportLevel.CommunitySupport,
       defaultType: SiteSupportLevel.CommunitySupport,
       activeDOMConfig: 'community',
@@ -1056,7 +1061,7 @@ const ExtensionConf: SettingsInterface = {
       enableKeyboard: ExtensionMode.Theater,
       enableUI: ExtensionMode.FullScreen,
 
-      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
       type: SiteSupportLevel.CommunitySupport,
       defaultType: SiteSupportLevel.CommunitySupport,
       activeDOMConfig: 'community',

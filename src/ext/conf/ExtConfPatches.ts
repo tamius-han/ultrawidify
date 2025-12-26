@@ -248,7 +248,7 @@ const ExtensionConfPatch = Object.freeze([
       // applyToEmbeddedContent is now an enum, and also no longer optional
       for (const site in userOptions.sites) {
         if (userOptions.sites[site].applyToEmbeddedContent === undefined) {
-          userOptions.sites[site].applyToEmbeddedContent = EmbeddedContentSettingsOverridePolicy.Always;
+          userOptions.sites[site].applyToEmbeddedContent = EmbeddedContentSettingsOverridePolicy.UseAsDefault;
         } else {
           userOptions.sites[site].applyToEmbeddedContent = userOptions.sites[site].applyToEmbeddedContent ? EmbeddedContentSettingsOverridePolicy.Always : EmbeddedContentSettingsOverridePolicy.Never;
         }

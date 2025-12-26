@@ -9,12 +9,14 @@
           </div>
         </div>
       </div>
-      <div v-for="host of hosts" :key="host" @click="selectedSite = host" class="flex flex-col container pointer hoverable" style="margin-top: 4px; padding: 0.5rem 1rem;">
-        <SiteListItem
-          :parentHost="parentHost"
-          :host="host"
-          :settings="settings"
-        ></SiteListItem>
+      <div v-for="host of hosts" :key="host" @click="selectedSite = host" class="flex flex-col">
+        <template v-if="host !== parentHost">
+          <SiteListItem
+            :parentHost="parentHost"
+            :host="host"
+            :settings="settings"
+          ></SiteListItem>
+        </template>
       </div>
     </template>
     <template v-if="selectedSite">

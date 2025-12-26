@@ -1,31 +1,6 @@
 <template>
   <div class="flex flex-row gap-8">
     <div v-if="!selectedSite || !isCompact">
-
-      <div
-        class="flex flex-col cursor-pointer mt-1 px-4 py-2 bg-black border-1 border-stone-500"
-        :class="{'opacity-50 hover:opacity-100': selectedSite && selectedSite !== '@global' }"
-        @click="selectedSite = '@global'"
-      >
-        <div class="flex flex-row">
-          <div class="flex-grow pointer">
-            <b style="color: #fa6">Default settings</b>
-          </div>
-          <div>Edit</div>
-        </div>
-        <div class="flex flex-row">
-          <small>
-            <span style="text-transform: uppercase; font-size: 0.9rem">
-              Enable extension: <span style="font-size: 0.9rem;" :style="getSiteEnabledColor('@global', 'enable')">{{ getSiteEnabledModes('@global', 'enable') }}</span>
-              <span v-if="getSiteEnabledModes('@global', 'enable') === 'disabled'" class="text-[0.75em] lowercase text-stone-400">&nbsp;(except on whitelisted sites)</span>
-            </span>&nbsp;<br/>
-            Autodetection: <span :style="getSiteEnabledColor('@global', 'enableAard')"><small>{{ getSiteEnabledModes('@global', 'enableAard') }}</small></span>;&nbsp;
-            Keyboard shortcuts: <span :style="getSiteEnabledColor('@global', 'enableKeyboard')"><small>{{ getSiteEnabledModes('@global', 'enableKeyboard') }}</small></span>;
-            In-player UI: <span :style="getSiteEnabledColor('@global', 'enableUI')"><small>{{ getSiteEnabledModes('@global', 'enableUI') }}</small></span>;
-          </small>
-        </div>
-      </div>
-
       <div style="margin-top: 1rem; margin-bottom: 1rem;">
         <div  class="border border-blue-500 text-blue-500 bg-slate-950 px-4 py-2" style="float: none">
           <b>NOTE:</b> Sites not on this list use default extension settings.
