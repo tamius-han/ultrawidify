@@ -823,9 +823,9 @@ const ExtensionConf: SettingsInterface = {
         alignment: {x: VideoAlignmentType.Center, y: VideoAlignmentType.Center},
       },
 
-      activeDOMConfig: 'blank',
+      activeDOMConfig: 'auto',
       DOMConfig: {
-        'blank': {
+        'auto': {
           type: SiteSupportLevel.Unknown,
           elements: {
             player: {
@@ -839,7 +839,7 @@ const ExtensionConf: SettingsInterface = {
         }
       }
     },
-    "@empty": {
+    "@empty": {                                 // New site configs start with this object as template.
       defaultType: SiteSupportLevel.Unknown,
 
       enable: ExtensionMode.Default,

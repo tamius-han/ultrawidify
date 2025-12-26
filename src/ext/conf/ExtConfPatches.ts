@@ -13,6 +13,7 @@ import EmbeddedContentSettingsOverridePolicy from '../../common/enums/EmbeddedCo
 import LegacyExtensionMode from '../../common/enums/LegacyExtensionMode.enum';
 import ExtensionMode from '../../common/enums/ExtensionMode.enum';
 import { PlayerDetectionMode } from '../../common/enums/PlayerDetectionMode.enum';
+import { SiteSupportLevel } from '../../common/enums/SiteSupportLevel.enum';
 
 
 const ExtensionConfPatch = Object.freeze([
@@ -306,7 +307,7 @@ const ExtensionConfPatch = Object.freeze([
         userOptions.sites[key].enableKeyboard = convertLegacyExtensionMode(userOptions.sites[key].enable as any);
         userOptions.sites[key].enableUI = convertLegacyExtensionMode(userOptions.sites[key].enable as any);
 
-        logger.log('migrated site', key, userOptions.sites[key]);
+        logger.log('updateFn', 'migrated site', key, userOptions.sites[key]);
       }
     }
   },
@@ -321,15 +322,26 @@ const ExtensionConfPatch = Object.freeze([
     forVersion: '6.3.996',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
       for (const site in userOptions.sites) {
-        for (const domConf in userOptions.sites.DOMConfig) {
+        const siteData = userOptions.sites[site];
+        logger.log('updateFn', 'migrating settings for', site, '  — persistCSA?', siteData.persistCSA, 'typeof persistCSA?', typeof siteData.persistCSA, 'does domconfig exist?', siteData.DOMConfig);
+
+        if (typeof siteData.persistCSA !== 'number') {
+          userOptions.sites[site].persistCSA = CropModePersistence.Default;
+        } else {
+          userOptions.sites[site].persistCSA = userOptions.sites[site].persistCSA ?? CropModePersistence.Default;
+        }
+
+        for (const domConf in siteData.DOMConfig) {
+          logger.log('updateFn', "Updating domconf", domConf);
           const oldConf = userOptions.sites[site].DOMConfig[domConf] as any;
+          logger.log('updateFn', "——— oldConf:", oldConf);
 
           const newConf: any = {
             type: oldConf.type ?? userOptions.sites[site].type,
             elements: {}
           };
 
-          if (oldConf.elements.player) {
+          if (oldConf.elements?.player) {
             newConf.elements['player'] = {
               playerDetectionMode: oldConf?.elements?.player?.manual ? (
                 oldConf?.elements?.player?.querySelectors.trim() ? PlayerDetectionMode.QuerySelectors : PlayerDetectionMode.AncestorIndex
@@ -346,9 +358,9 @@ const ExtensionConfPatch = Object.freeze([
             }
           }
 
-          if (oldConf.elements.video) {
+          if (oldConf.elements?.video) {
             newConf.elements['video'] = {
-              type: oldConf.type ?? userOptions.sites[site].type,
+              type: oldConf.type ?? siteData.type,
               elements: {
                 video: {
                   playerDetectionMode: oldConf?.elements?.video?.manual ? PlayerDetectionMode.QuerySelectors : PlayerDetectionMode.Auto,
@@ -360,9 +372,49 @@ const ExtensionConfPatch = Object.freeze([
             }
           }
 
+          console.log('new conf:', newConf)
+
           userOptions.sites[site].DOMConfig[domConf] = newConf;
         }
       }
+
+      // set new defaults for global and empty:
+      userOptions.sites['@global'].DOMConfig = {
+        'auto': {
+          type: SiteSupportLevel.Unknown,
+          elements: {
+            player: {
+              playerDetectionMode: PlayerDetectionMode.Auto,
+              allowAutoFallback: true,
+            }
+          }
+        }
+      }
+      userOptions.sites['@global'].activeDOMConfig = 'auto';
+      userOptions.sites['@empty'].DOMConfig = {
+        'empty': {
+          type: SiteSupportLevel.UserDefined,
+          elements: {
+            player: {
+              playerDetectionMode: PlayerDetectionMode.Auto,
+              allowAutoFallback: true,
+              // ancestorIndex: 1,
+              // querySelectors: '',
+              // customCSS: ''
+            },
+            video: {
+              playerDetectionMode: PlayerDetectionMode.Auto,
+              allowAutoFallback: true,
+              // ancestorIndex: 1,
+              // querySelectors: '',
+              // customCSS: ''
+            }
+          },
+        }
+      };
+      userOptions.sites['@empty'].activeDOMConfig = 'empty';
+
+      logger.log('updateFn', 'Migration complete. New site settings:', userOptions.sites);
     }
   }
 

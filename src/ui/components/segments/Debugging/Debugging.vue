@@ -200,6 +200,7 @@ import UploadJsonFileButton from '@components/common/UploadJsonFileButton.vue';
 import { LogAggregator, BLANK_LOGGER_CONFIG } from '@src/ext/lib/logging/LogAggregator';
 import { SettingsSnapshot } from '@src/ext/lib/settings/SettingsSnapshotManager';
 import SettingsInterface from '@src/common/interfaces/SettingsInterface';
+import { _cp } from '@src/common/js/utils';
 
 export default defineComponent({
   components: {
@@ -360,7 +361,7 @@ export default defineComponent({
     },
 
     async loadFromSnapshot(snapshotIndex, skipSnapshot?: boolean) {
-      this.settings.init({snapshot: this.settingsSnapshots[snapshotIndex], skipSnapshot});
+      this.settings.init({snapshot: _cp(this.settingsSnapshots[snapshotIndex]), skipSnapshot});
     },
 
     async testMigration(snapshotIndex) {
