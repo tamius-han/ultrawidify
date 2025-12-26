@@ -285,7 +285,14 @@ const ExtensionConfPatch = Object.freeze([
     forVersion: '6.3.994',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
       const convertLegacyExtensionMode = (option: {normal: LegacyExtensionMode, theater: LegacyExtensionMode, fullscreen: LegacyExtensionMode}) => {
-        logger.log('updateFn', 'converting option', option);
+        if (typeof option === 'number') {
+          logger.warn('updateFn', 'This option is not an object, which suggests it has already been converted. Skipping conversion. Raw value of option:', option);
+          return option;
+        }
+        logger.log(
+          'updateFn',
+          `\nconverting option  ———  normal: ${LegacyExtensionMode[option.normal]}    theater: ${LegacyExtensionMode[option.normal]}    fs: ${LegacyExtensionMode[option.fullscreen]}`, '\nraw obj:', option
+        );
         if (option.normal === LegacyExtensionMode.Enabled) {
           return ExtensionMode.All;
         }
@@ -302,10 +309,13 @@ const ExtensionConfPatch = Object.freeze([
       }
 
       for (const key in userOptions.sites) {
+        logger.log('updateFn', '\n\n     ... migrating default enable-state for site', key);
         userOptions.sites[key].enable = convertLegacyExtensionMode(userOptions.sites[key].enable as any);
-        userOptions.sites[key].enableAard = convertLegacyExtensionMode(userOptions.sites[key].enable as any);
-        userOptions.sites[key].enableKeyboard = convertLegacyExtensionMode(userOptions.sites[key].enable as any);
-        userOptions.sites[key].enableUI = convertLegacyExtensionMode(userOptions.sites[key].enable as any);
+        userOptions.sites[key].enableAard = convertLegacyExtensionMode(userOptions.sites[key].enableAard as any);
+        userOptions.sites[key].enableKeyboard = convertLegacyExtensionMode(userOptions.sites[key].enableKeyboard as any);
+        userOptions.sites[key].enableUI = convertLegacyExtensionMode(
+          userOptions.sites[key].enableUI ?? (key === '@global' ? ExtensionMode.FullScreen : ExtensionMode.Default) as any
+        );
 
         logger.log('updateFn', 'migrated site', key, userOptions.sites[key]);
       }
