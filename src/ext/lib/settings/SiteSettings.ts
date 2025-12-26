@@ -39,6 +39,7 @@ export class SiteSettings {
   temporaryData: SiteSettingsInterface;
   sessionData: SiteSettingsInterface;
   readonly defaultSettings: SiteSettingsInterface;
+  readonly blankSettings: SiteSettingsInterface;
 
   storageChangeSubscriptions: {[x: string]: ((newSiteConf, changes, area) => void)[]} = {};
 
@@ -50,6 +51,7 @@ export class SiteSettings {
     this.settings = settings;
     this.raw = settings.active.sites[this.site];
     this.defaultSettings = settings.active.sites['@global'];
+    this.blankSettings = settings.active.sites['@empty'];
 
     this.compileSettingsObject();
 
@@ -472,7 +474,7 @@ export class SiteSettings {
     // If this function is not being called in response to user actin,
     // create fake settings object.
     if (options.scripted && !this.settings.active.sites[targetSite]) {
-      this.settings.active.sites[targetSite] = _cp(this.settings.active.sites['@global']);
+      this.settings.active.sites[targetSite] = _cp(this.blankSettings);
       this.settings.active.sites[targetSite].autocreated = true;
       this.settings.active.sites[targetSite].type = SiteSupportLevel.Unknown;
     } else {

@@ -13,6 +13,7 @@ import EmbeddedContentSettingsOverridePolicy from '../../common/enums/EmbeddedCo
 import { AardPollingOptions } from '../lib/aard/enums/aard-polling-options.enum';
 import { AardSubtitleCropMode } from '../lib/aard/enums/aard-subtitle-crop-mode.enum';
 import { SiteSupportLevel } from '../../common/enums/SiteSupportLevel.enum';
+import { PlayerDetectionMode } from '../../common/enums/PlayerDetectionMode.enum';
 
 if(Debug.debug)
   console.log("Loading: ExtensionConf.js");
@@ -820,26 +821,66 @@ const ExtensionConf: SettingsInterface = {
         crop: {type: AspectRatioType.Automatic},
         stretch: {type: StretchType.NoStretch},
         alignment: {x: VideoAlignmentType.Center, y: VideoAlignmentType.Center},
+      },
+
+      activeDOMConfig: 'blank',
+      DOMConfig: {
+        'blank': {
+          type: SiteSupportLevel.Unknown,
+          elements: {
+            player: {
+              playerDetectionMode: PlayerDetectionMode.Auto,
+              allowAutoFallback: true,
+              // ancestorIndex: 1,      // we leave those on undefined,
+              // querySelectors: '',
+              // customCSS: ''
+            }
+          }
+        }
       }
     },
-    "@empty": {                             // placeholder settings object with fallbacks to @global
+    "@empty": {
+      defaultType: SiteSupportLevel.Unknown,
+
       enable: ExtensionMode.Default,
       enableAard: ExtensionMode.Default,
       enableKeyboard: ExtensionMode.Default,
       enableUI: ExtensionMode.Default,
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Default,
+      overrideWhenEmbedded: EmbeddedContentSettingsOverridePolicy.Default,
 
-      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Always,
-
-      type: SiteSupportLevel.UserDefined,
-      defaultType: SiteSupportLevel.UserDefined,
-      persistCSA: CropModePersistence.Default,
       defaults: {
-        crop: null,
+        crop: {type: AspectRatioType.Default},
         stretch: {type: StretchType.Default},
-        alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default},
+        alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default}
+      },
+
+      persistCSA: CropModePersistence.Default,
+
+      activeDOMConfig: 'empty',
+      DOMConfig: {
+        'empty': {
+          type: SiteSupportLevel.UserDefined,
+          elements: {
+            player: {
+              playerDetectionMode: PlayerDetectionMode.Auto,
+              allowAutoFallback: true,
+              // ancestorIndex: 1,
+              // querySelectors: '',
+              // customCSS: ''
+            },
+            video: {
+              playerDetectionMode: PlayerDetectionMode.Auto,
+              allowAutoFallback: true,
+              // ancestorIndex: 1,
+              // querySelectors: '',
+              // customCSS: ''
+            }
+          },
+        }
       }
     },
-    "www.youtube.com" : {
+    "www.youtube.com": {
       enable: ExtensionMode.All,
       enableAard: ExtensionMode.All,
       enableKeyboard: ExtensionMode.All,
@@ -858,7 +899,8 @@ const ExtensionConf: SettingsInterface = {
           type: SiteSupportLevel.OfficialSupport,
           elements: {
             player: {
-              manual: true,
+              playerDetectionMode: PlayerDetectionMode.QuerySelectors,
+              allowAutoFallback: true,
               querySelectors: "#movie_player, #player, #c4-player",
             }
           }
@@ -885,7 +927,8 @@ const ExtensionConf: SettingsInterface = {
           type: SiteSupportLevel.OfficialSupport,
           elements: {
             player: {
-              manual: true,
+              playerDetectionMode: PlayerDetectionMode.QuerySelectors,
+              allowAutoFallback: true,
               querySelectors: "#movie_player, #player, #c4-player",
             }
           }
@@ -901,6 +944,21 @@ const ExtensionConf: SettingsInterface = {
       override: false,
       type: SiteSupportLevel.CommunitySupport,
       defaultType: SiteSupportLevel.CommunitySupport,
+
+      DOMConfig: {
+        'community': {
+          type: SiteSupportLevel.CommunitySupport,
+          elements: {
+            player: {
+              playerDetectionMode: PlayerDetectionMode.Auto,
+              allowAutoFallback: true,
+              // ancestorIndex: 1,
+              // querySelectors: '',
+              // customCSS: ''
+            }
+          }
+        }
+      }
     },
     "www.disneyplus.com" : {
       enable: ExtensionMode.Theater,
@@ -917,11 +975,13 @@ const ExtensionConf: SettingsInterface = {
           type: SiteSupportLevel.OfficialSupport,
           elements: {
             player: {
-              manual: true,
+              playerDetectionMode: PlayerDetectionMode.QuerySelectors,
+              allowAutoFallback: true,
               querySelectors: ".btm-media-player",
             },
             video: {
-              manual: true,
+              playerDetectionMode: PlayerDetectionMode.QuerySelectors,
+              allowAutoFallback: true,
               querySelectors: ".btm-media-client-element"
             }
           },
@@ -972,19 +1032,6 @@ const ExtensionConf: SettingsInterface = {
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Never,
       type: SiteSupportLevel.OfficialBlacklist,
       defaultType: SiteSupportLevel.OfficialBlacklist,
-      activeDOMConfig: 'official',
-      DOMConfig: {
-        'official': {
-          type: SiteSupportLevel.OfficialSupport,
-          // customCss:  'video {\n  width: 100% !important;\n  height: 100% !important;\n}',
-          elements: {
-            player: {
-              manual: false,
-              querySelectors: '.reddit-video-player-root, .media-preview-content'
-            }
-          }
-        }
-      },
     },
     "imgur.com": {
       enable: ExtensionMode.Disabled,
@@ -1011,7 +1058,8 @@ const ExtensionConf: SettingsInterface = {
           type: SiteSupportLevel.CommunitySupport,
           elements: {
             player: {
-              manual: true,
+              playerDetectionMode: PlayerDetectionMode.QuerySelectors,
+              allowAutoFallback: true,
               querySelectors: "#jwplayer-container"
             }
           }
@@ -1027,13 +1075,6 @@ const ExtensionConf: SettingsInterface = {
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
       type: SiteSupportLevel.CommunitySupport,
       defaultType: SiteSupportLevel.CommunitySupport,
-      activeDOMConfig: 'community',
-      DOMConfig: {
-        'community': {
-          type: SiteSupportLevel.CommunitySupport,
-          // customCss: "body {\n  background-color: #000;\n}\n\n.application {\n  background-color: #000;\n}"
-        }
-      }
     },
     "metaivi.com": {
       enable: ExtensionMode.Theater,
@@ -1043,17 +1084,6 @@ const ExtensionConf: SettingsInterface = {
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
       type: SiteSupportLevel.CommunitySupport,
       defaultType: SiteSupportLevel.CommunitySupport,
-      activeDOMConfig: 'community',
-      DOMConfig: {
-        'community': {
-          type: SiteSupportLevel.CommunitySupport,
-          elements: {
-            video: {
-              nodeCss: {'position': 'absolute !important'}
-            }
-          }
-        }
-      },
     },
     "piped.kavin.rocks": {
       enable: ExtensionMode.Theater,
@@ -1064,13 +1094,6 @@ const ExtensionConf: SettingsInterface = {
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
       type: SiteSupportLevel.CommunitySupport,
       defaultType: SiteSupportLevel.CommunitySupport,
-      activeDOMConfig: 'community',
-      DOMConfig: {
-        'community': {
-          type: SiteSupportLevel.CommunitySupport,
-          // customCss: ".shaka-video-container {\n  flex-direction: column !important;\n}"
-        }
-      }
     },
   }
 }

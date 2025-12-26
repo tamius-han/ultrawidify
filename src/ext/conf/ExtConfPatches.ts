@@ -12,6 +12,7 @@ import { update } from 'lodash';
 import EmbeddedContentSettingsOverridePolicy from '../../common/enums/EmbeddedContentSettingsOverridePolicy.enum';
 import LegacyExtensionMode from '../../common/enums/LegacyExtensionMode.enum';
 import ExtensionMode from '../../common/enums/ExtensionMode.enum';
+import { PlayerDetectionMode } from '../../common/enums/PlayerDetectionMode.enum';
 
 
 const ExtensionConfPatch = Object.freeze([
@@ -315,6 +316,53 @@ const ExtensionConfPatch = Object.freeze([
       if (!userOptions.ui) {
         userOptions.ui = defaultOptions.ui
       };
+    }
+  }, {
+    forVersion: '6.3.996',
+    updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
+      for (const site in userOptions.sites) {
+        for (const domConf in userOptions.sites.DOMConfig) {
+          const oldConf = userOptions.sites[site].DOMConfig[domConf] as any;
+
+          const newConf: any = {
+            type: oldConf.type ?? userOptions.sites[site].type,
+            elements: {}
+          };
+
+          if (oldConf.elements.player) {
+            newConf.elements['player'] = {
+              playerDetectionMode: oldConf?.elements?.player?.manual ? (
+                oldConf?.elements?.player?.querySelectors.trim() ? PlayerDetectionMode.QuerySelectors : PlayerDetectionMode.AncestorIndex
+              ) : PlayerDetectionMode.Auto,
+              allowAutoFallback: true,
+              ancestorIndex: oldConf?.elements?.player?.parentIndex,
+              querySelectors: oldConf?.elements?.player?.querySelectors,
+              customCSS: oldConf?.elements?.player?.customCss,
+            }
+          } else {
+            newConf.elements['player'] = {
+              playerDetectionMode: PlayerDetectionMode.Auto,
+              allowAutoFallback: true,
+            }
+          }
+
+          if (oldConf.elements.video) {
+            newConf.elements['video'] = {
+              type: oldConf.type ?? userOptions.sites[site].type,
+              elements: {
+                video: {
+                  playerDetectionMode: oldConf?.elements?.video?.manual ? PlayerDetectionMode.QuerySelectors : PlayerDetectionMode.Auto,
+                  allowAutoFallback: true,
+                  querySelectors: oldConf?.elements?.video?.querySelectors,
+                  customCSS: oldConf?.elements?.video?.customCss,
+                }
+              }
+            }
+          }
+
+          userOptions.sites[site].DOMConfig[domConf] = newConf;
+        }
+      }
     }
   }
 

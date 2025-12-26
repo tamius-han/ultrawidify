@@ -1,3 +1,4 @@
+import { SiteSupportLevel } from './../enums/SiteSupportLevel.enum';
 import { Action } from '../../../node_modules/vuex/types/index'
 import { AardPollingOptions } from '../../ext/lib/aard/enums/aard-polling-options.enum'
 import { AardSubtitleCropMode } from '../../ext/lib/aard/enums/aard-subtitle-crop-mode.enum'
@@ -9,6 +10,7 @@ import ExtensionMode from '../enums/ExtensionMode.enum'
 import { SiteSupportLevel } from '../enums/SiteSupportLevel.enum'
 import StretchType from '../enums/StretchType.enum'
 import VideoAlignmentType from '../enums/VideoAlignmentType.enum'
+import { PlayerDetectionMode } from '../enums/PlayerDetectionMode.enum';
 
 export enum ExtensionEnvironment {
   Normal = ExtensionMode.All,
@@ -443,8 +445,8 @@ export interface SiteSettingsInterface {
   enableKeyboard: ExtensionMode;
   enableUI: ExtensionMode;
 
-  applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy; // presumed to be 'Always' if not defined
-  overrideWhenEmbedded?: boolean;
+  applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy; // presumed to be 'Use as default' if not defined
+  overrideWhenEmbedded?: EmbeddedContentSettingsOverridePolicy;
 
 
   autocreated?: boolean;
@@ -484,11 +486,10 @@ export interface PlayerAutoConfigInterface {
 }
 
 export interface SiteDOMSettingsInterface {
-  type: 'official' | 'community' | 'user-defined' | 'modified' | undefined;
+  type: SiteSupportLevel; // 'official' | 'community' | 'user-defined' | 'modified' | undefined;
   elements?: {
-    player?: SiteDOMElementSettingsInterface,
-    video?: SiteDOMElementSettingsInterface,
-    other?: { [x: number]: SiteDOMElementSettingsInterface }
+    player?: PlayerDOMSettingsInterface,
+    video?: PlayerDOMSettingsInterface,
   };
   customCss?: string;
   periodicallyRefreshPlayerElement?: boolean;
@@ -499,12 +500,19 @@ export interface SiteDOMSettingsInterface {
   anchorElement?: HTMLElement;
 }
 
+export interface PlayerDOMSettingsInterface {
+  playerDetectionMode: PlayerDetectionMode,
+  allowAutoFallback: boolean,
+  ancestorIndex?: number,
+  querySelectors?: string,
+  customCSS?: string,
+}
+
 export interface SiteDOMElementSettingsInterface {
   manual?: boolean;
   querySelectors?: string;
   index?: number; // previously: useRelativeAncestor + videoAncestor
   mode?: 'index' | 'qs';
-  nodeCss?: {[x: string]: string};
 }
 
 export default SettingsInterface;

@@ -56,23 +56,23 @@ export default({
     },
     async setPlayer(index) {
       // yup.
-      this.siteSettings.getDOMConfig('modified', 'original');
-      await this.siteSettings.setUpdateFlags(['PlayerData']);
-      await this.siteSettings.set('DOMConfig.modified.type', 'modified', {noSave: true});
-      await this.siteSettings.set('activeDOMConfig', 'modified', {noSave: true});
+      // this.siteSettings.getDOMConfig('modified', 'original');
+      // await this.siteSettings.setUpdateFlags(['PlayerData']);
+      // await this.siteSettings.set('DOMConfig.modified.type', 'modified', {noSave: true});
+      // await this.siteSettings.set('activeDOMConfig', 'modified', {noSave: true});
 
-      // if user agrees with ultrawidify on what element player should be,
-      // we just unset our settings for this site
-      if (this.elementStack[index].heuristics?.autoMatch) {
-        await this.siteSettings.set('DOMConfig.modified.elements.player.manual', false);
-        this.getPlayerTree();
-      } else {
-        // ensure settings exist:
-        await this.siteSettings.set('DOMConfig.modified.elements.player.manual', true, {noSave: true});
-        await this.siteSettings.set('DOMConfig.modified.elements.player.mode', 'index', {noSave: true});
-        await this.siteSettings.set('DOMConfig.modified.elements.player.index', index, true);
-        this.getPlayerTree();
-      }
+      // // if user agrees with ultrawidify on what element player should be,
+      // // we just unset our settings for this site
+      // if (this.elementStack[index].heuristics?.autoMatch) {
+      //   await this.siteSettings.set('DOMConfig.modified.elements.player.manual', false);
+      //   this.getPlayerTree();
+      // } else {
+      //   // ensure settings exist:
+      //   await this.siteSettings.set('DOMConfig.modified.elements.player.manual', true, {noSave: true});
+      //   await this.siteSettings.set('DOMConfig.modified.elements.player.mode', 'index', {noSave: true});
+      //   await this.siteSettings.set('DOMConfig.modified.elements.player.index', index, true);
+      //   this.getPlayerTree();
+      // }
     },
     edit() {
 
