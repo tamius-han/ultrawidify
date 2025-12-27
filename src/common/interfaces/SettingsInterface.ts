@@ -501,11 +501,10 @@ export interface SiteDOMSettingsInterface {
 }
 
 export interface PlayerDOMSettingsInterface {
-  playerDetectionMode: PlayerDetectionMode,
+  detectionMode: PlayerDetectionMode,
   allowAutoFallback: boolean,
   ancestorIndex?: number,
   querySelectors?: string,
-  customCSS?: string,
 }
 
 export interface SiteDOMElementSettingsInterface {

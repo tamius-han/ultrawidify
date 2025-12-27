@@ -330,6 +330,7 @@
     title="Player detection options"
     confirmButtonText="Save"
     cancelButtonText="Cancel"
+    @onCancel="playerDetectionOptionsDialog.visible = false"
   >
     <PlayerSelectorAdvancedForm
       :settings="settings"

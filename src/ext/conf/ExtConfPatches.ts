@@ -341,6 +341,20 @@ const ExtensionConfPatch = Object.freeze([
           userOptions.sites[site].persistCSA = userOptions.sites[site].persistCSA ?? CropModePersistence.Default;
         }
 
+        if (userOptions.sites[site].type as any === 'user-added' || userOptions.sites[site].type === 'user-defined') {
+          userOptions.sites[site].type = SiteSupportLevel.UserDefined;
+        }
+        if (userOptions.sites[site].type as any === 'no-support') {
+          userOptions.sites[site].type = SiteSupportLevel.Unknown;
+        }
+        if (userOptions.sites[site].defaultType as any === 'user-added' || userOptions.sites[site].defaultType === 'user-defined') {
+          userOptions.sites[site].type = SiteSupportLevel.UserDefined;
+        }
+        if (userOptions.sites[site].defaultType as any === 'no-support') {
+          userOptions.sites[site].defaultType = SiteSupportLevel.Unknown;
+        }
+
+
         for (const domConf in siteData.DOMConfig) {
           logger.log('updateFn', "Updating domconf", domConf);
           const oldConf = userOptions.sites[site].DOMConfig[domConf] as any;
@@ -351,21 +365,30 @@ const ExtensionConfPatch = Object.freeze([
             elements: {}
           };
 
+          if (newConf.type === 'user-added' || newConf.type === 'user-defined') {
+            newConf.type = SiteSupportLevel.UserDefined;
+          }
+          if (newConf.type === 'no-support') {
+            newConf.type = SiteSupportLevel.Unknown;
+          }
+
           if (oldConf.elements?.player) {
             newConf.elements['player'] = {
-              playerDetectionMode: oldConf?.elements?.player?.manual ? (
+              detectionMode: oldConf?.elements?.player?.manual ? (
                 oldConf?.elements?.player?.querySelectors.trim() ? PlayerDetectionMode.QuerySelectors : PlayerDetectionMode.AncestorIndex
               ) : PlayerDetectionMode.Auto,
               allowAutoFallback: true,
               ancestorIndex: oldConf?.elements?.player?.parentIndex,
               querySelectors: oldConf?.elements?.player?.querySelectors,
-              customCSS: oldConf?.elements?.player?.customCss,
             }
           } else {
             newConf.elements['player'] = {
-              playerDetectionMode: PlayerDetectionMode.Auto,
+              detectionMode: PlayerDetectionMode.Auto,
               allowAutoFallback: true,
             }
+          }
+          if (oldConf.customCss) {
+            newConf.customCss = oldConf.customCss;
           }
 
           if (oldConf.elements?.video) {
@@ -394,7 +417,7 @@ const ExtensionConfPatch = Object.freeze([
           type: SiteSupportLevel.Unknown,
           elements: {
             player: {
-              playerDetectionMode: PlayerDetectionMode.Auto,
+              detectionMode: PlayerDetectionMode.Auto,
               allowAutoFallback: true,
             }
           }
@@ -406,18 +429,12 @@ const ExtensionConfPatch = Object.freeze([
           type: SiteSupportLevel.UserDefined,
           elements: {
             player: {
-              playerDetectionMode: PlayerDetectionMode.Auto,
+              detectionMode: PlayerDetectionMode.Auto,
               allowAutoFallback: true,
-              // ancestorIndex: 1,
-              // querySelectors: '',
-              // customCSS: ''
             },
             video: {
-              playerDetectionMode: PlayerDetectionMode.Auto,
+              detectionMode: PlayerDetectionMode.Auto,
               allowAutoFallback: true,
-              // ancestorIndex: 1,
-              // querySelectors: '',
-              // customCSS: ''
             }
           },
         }

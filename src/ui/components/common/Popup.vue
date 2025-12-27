@@ -4,7 +4,7 @@
     class="popup-overlay"
     :class="{'dim': dimOverlay}"
   >
-    <div class="popup-content p-4 border border-stone-700 max-h-[90dvh] max-w-[90dvw]" >
+    <div class="popup-content p-4 border border-stone-700 bg-stone-950 max-h-[90dvh] max-w-[90dvw]" >
       <div class="h-full flex flex-col w-full">
         <div v-if="title" class="header grow-0 shrink-0" :class="type">
           <h3 class="mb-4 mt-0">{{title}}</h3>
@@ -15,7 +15,7 @@
         <div v-else class="h-full w-full -mr-4 pr-4 grow shrink overflow-y-auto overflow-x-hidden">
           <slot></slot>
         </div>
-        <div class="grow-0 shrink-0 flex row gap-2 justify-end w-full">
+        <div v-if="!clientSideButtons" class="grow-0 shrink-0 flex row gap-2 justify-end w-full">
           <button
             class="primary"
             v-if="confirmButtonText"
@@ -63,6 +63,10 @@ export default {
       type: String,
       default: 'info'
     },
+    clientSideButtons: {
+      type: Boolean,
+      default: false,
+    },
     confirmButtonText: {
       type: String,
       required: false,
@@ -93,6 +97,7 @@ export default {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+
 
   .header {
     font-size: 1.33rem;

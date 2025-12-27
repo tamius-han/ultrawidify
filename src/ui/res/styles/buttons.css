@@ -14,5 +14,9 @@
     &:hover {
       @apply border-primary-500 text-primary-300;
     }
+
+    &:disabled {
+      @apply pointer-events-none text-stone-500 border-stone-700;
+    }
   }
 }

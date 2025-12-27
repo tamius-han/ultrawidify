@@ -829,11 +829,10 @@ const ExtensionConf: SettingsInterface = {
           type: SiteSupportLevel.Unknown,
           elements: {
             player: {
-              playerDetectionMode: PlayerDetectionMode.Auto,
+              detectionMode: PlayerDetectionMode.Auto,
               allowAutoFallback: true,
               // ancestorIndex: 1,      // we leave those on undefined,
               // querySelectors: '',
-              // customCSS: ''
             }
           }
         }
@@ -863,18 +862,16 @@ const ExtensionConf: SettingsInterface = {
           type: SiteSupportLevel.UserDefined,
           elements: {
             player: {
-              playerDetectionMode: PlayerDetectionMode.Auto,
+              detectionMode: PlayerDetectionMode.Auto,
               allowAutoFallback: true,
               // ancestorIndex: 1,
               // querySelectors: '',
-              // customCSS: ''
             },
             video: {
-              playerDetectionMode: PlayerDetectionMode.Auto,
+              detectionMode: PlayerDetectionMode.Auto,
               allowAutoFallback: true,
               // ancestorIndex: 1,
               // querySelectors: '',
-              // customCSS: ''
             }
           },
         }
@@ -899,7 +896,7 @@ const ExtensionConf: SettingsInterface = {
           type: SiteSupportLevel.OfficialSupport,
           elements: {
             player: {
-              playerDetectionMode: PlayerDetectionMode.QuerySelectors,
+              detectionMode: PlayerDetectionMode.QuerySelectors,
               allowAutoFallback: true,
               querySelectors: "#movie_player, #player, #c4-player",
             }
@@ -927,7 +924,7 @@ const ExtensionConf: SettingsInterface = {
           type: SiteSupportLevel.OfficialSupport,
           elements: {
             player: {
-              playerDetectionMode: PlayerDetectionMode.QuerySelectors,
+              detectionMode: PlayerDetectionMode.QuerySelectors,
               allowAutoFallback: true,
               querySelectors: "#movie_player, #player, #c4-player",
             }
@@ -950,7 +947,7 @@ const ExtensionConf: SettingsInterface = {
           type: SiteSupportLevel.CommunitySupport,
           elements: {
             player: {
-              playerDetectionMode: PlayerDetectionMode.Auto,
+              detectionMode: PlayerDetectionMode.Auto,
               allowAutoFallback: true,
               // ancestorIndex: 1,
               // querySelectors: '',
@@ -975,12 +972,12 @@ const ExtensionConf: SettingsInterface = {
           type: SiteSupportLevel.OfficialSupport,
           elements: {
             player: {
-              playerDetectionMode: PlayerDetectionMode.QuerySelectors,
+              detectionMode: PlayerDetectionMode.QuerySelectors,
               allowAutoFallback: true,
               querySelectors: ".btm-media-player",
             },
             video: {
-              playerDetectionMode: PlayerDetectionMode.QuerySelectors,
+              detectionMode: PlayerDetectionMode.QuerySelectors,
               allowAutoFallback: true,
               querySelectors: ".btm-media-client-element"
             }
@@ -1005,7 +1002,7 @@ const ExtensionConf: SettingsInterface = {
           type: SiteSupportLevel.OfficialSupport,
           elements: {
             player: {
-              playerDetectionMode: PlayerDetectionMode.QuerySelectors,
+              detectionMode: PlayerDetectionMode.QuerySelectors,
               allowAutoFallback: true,
               querySelectors: "#movie_player, #player, #c4-player",
             }
@@ -1058,7 +1055,7 @@ const ExtensionConf: SettingsInterface = {
           type: SiteSupportLevel.CommunitySupport,
           elements: {
             player: {
-              playerDetectionMode: PlayerDetectionMode.QuerySelectors,
+              detectionMode: PlayerDetectionMode.QuerySelectors,
               allowAutoFallback: true,
               querySelectors: "#jwplayer-container"
             }

@@ -437,7 +437,7 @@ export default defineComponent({
       this.editSnapshot(snapshot);
     },
     handleImportedSnapshotError(error: any) {
-      console.error(`[ultrawidify] Failed to upload snapshot. Error:`, e);
+      console.error(`[ultrawidify] Failed to upload snapshot. Error:`, error);
     }
   }
   //#endregion
