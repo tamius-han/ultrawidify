@@ -132,6 +132,10 @@
       }
     }
   }
+
+  &.radio {
+    @apply flex flex-row gap-4 items-center;
+  }
 }
 .hint {
   @apply text-primary-200/70;

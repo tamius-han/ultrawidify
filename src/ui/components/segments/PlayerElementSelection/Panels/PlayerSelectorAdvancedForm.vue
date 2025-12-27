@@ -2,14 +2,15 @@
   <!-- ADVANCED OPTIONS -->
   <div class="flex flex-col gap-2">
     <div class="flex flex-row gap-2 justify-end">
-      <button @click="openSelectSnapshotDialog()">Load existing config</button>
-      <UploadJsonFileButton
+      <button @click="openSelectSnapshotDialog()">Switch preset</button>
+      <!-- <UploadJsonFileButton
         @importedJson="handleImportedSettings"
         @error="handleSettingsImportError"
       >
         Import settings
       </UploadJsonFileButton>
-      <button>Export config</button>
+      <button @click="exportDialog.visible = true">Export config</button> -->
+      <button class="flex flex-rows items-center" @click="openCopyPasteDialog()"><mdicon class="font-normal mr-2" name="content-copy" :size="16" /> Copy/paste config</button>
     </div>
 
     <div v-if="loaded" class="w-[690px] max-w-full">
@@ -145,16 +146,16 @@
   </div>
 
   <div class="w-full flex flex-row gap-2 justify-end">
-    <button>Save as</button>
-    <button :disabled="DOMConfigName?.startsWith('@')">Save</button>
-    <button>Close</button>
+    <button @click="openSaveAsDialog()">Save as</button>
+    <button :disabled="!siteSettings.raw.DOMConfig?.[DOMConfigName] || DOMConfigName?.startsWith('@')">Save</button>
+    <button @click="closeForm()">Close</button>
   </div>
 
   <!-- PRESET SELECT DIALOG -->
   <Popup
     v-if="selectSnapshotDialog.visible"
     title="Select configuration"
-    @onClose="selectSnapshotDialog.visible = false"
+    @onCancel="selectSnapshotDialog.visible = false"
   >
     <div>Select configuration:</div>
     <div class="flex flex-col gap-2 py-4">
@@ -177,7 +178,39 @@
     </div>
   </Popup>
 
-  <!-- FINISH IMPORT DIALOG -->
+  <!-- COPY/PASTE CONFIG DIALOG -->
+  <Popup
+    v-if="copyPasteDialog.visible"
+    confirmButtonText="Apply"
+    cancelButtonText="Cancel"
+    title="Copy or paste configuration"
+    @onCancel="copyPasteDialog.onClose()"
+    @onConfirm="copyPasteDialog.onSave()"
+  >
+    <div class="field">
+      <div class="label !min-w-16">Raw config:</div>
+      <div class="input !w-[560px] min-h-[320px]">
+        <textarea class="h-[320px] w-full resize-none" v-model="copyPasteDialog.data.jsonTxt"></textarea>
+      </div>
+    </div>
+     <div v-if="settings.active.ui.devMode" class="field">
+        <div class="label">Change support level:</div>
+        <div class="select">
+          <select @change="_cpDialog_setSupportLevel">
+            <option :value="undefined">(select option to override)</option>
+            <option :value="SiteSupportLevel.OfficialSupport">Official support</option>
+            <option :value="SiteSupportLevel.CommunitySupport">Community-supported</option>
+            <option :value="SiteSupportLevel.BetaSupport">Texsting/experimental</option>
+            <option :value="SiteSupportLevel.UserDefined">User-defined</option>
+            <option :value="SiteSupportLevel.UserModified">User-modified</option>
+            <option :value="SiteSupportLevel.OfficialBlacklist">Officially blacklisted</option>
+            <option :value="SiteSupportLevel.Unknown">Unknown</option>
+          </select>
+        </div>
+      </div>
+  </Popup>
+
+  <!-- FINISH IMPORT DIALOG (half-finished, currently unused)-->
   <Popup
     v-if="finishImportDialog.visible"
     :title="finishImportDialog.data.invalidJson ? 'Import failed' : 'Select configuration'"
@@ -210,9 +243,58 @@
     </template>
   </Popup>
 
-  <!-- EXPORT CONFIG DIALOG -->
+  <!-- EXPORT CONFIG DIALOG (half finished, currently unused) -->
+  <Popup
+    v-if="exportDialog.visible"
+    title="Export configuration"
+    :clientSideButtons="true"
+  >
+    <div class="w-[24rem] max-w-full">
+      <div class="field radio">
+        <input type="radio"  v-model="exportDialog.data.exportType" value="current">
+        <div class="label-r">Export current configuration</div>
+      </div>
+      <div>
+
+      </div>
+
+      <div class="field radio ">
+        <input type="radio"  v-model="exportDialog.data.exportType" value="multiple">
+        <div class="label-r">Export the following configurations</div>
+      </div>
+    </div>
+  </Popup>
 
   <!-- SAVE AS DIALOG -->
+  <Popup
+    v-if="saveAsDialog.visible"
+    title="Save preset as ..."
+    :clientSideButtons="true"
+  >
+    <div class="field">
+      <div class="label">Configuration name</div>
+      <div class="input">
+        <input v-model="saveAsDialog.data.name" />
+      </div>
+    </div>
+    <div class="hint">
+      Configuration name may include letters, numbers, underscores (_) and dashes (-).
+    </div>
+    <div class="flex flex-row justify-end gap-2">
+        <ConfirmButton v-if="siteSettings.raw.DOMConfig?.[saveAsDialog.data.name]"
+          :disabled="!/^[a-zA-Z0-9-_]*$/.test(saveAsDialog.data.name)"
+          dialogType="danger"
+          dialogTitle="Settings preset exists"
+          dialogText="Settings preset with this name already exists. Do you want to overwrite it?"
+          confirmText="Overwrite"
+          @onConfirmed="finishSaveAs"
+        >
+          Save
+        </ConfirmButton>
+      <button v-else @click="finishSaveAs" :disabled="!/^[a-zA-Z0-9-_]*$/.test(saveAsDialog.data.name)">Save</button>
+      <button @click="saveAsDialog.visible = false">Cancel</button>
+    </div>
+  </Popup>
 </template>
 
 <script lang="ts">
@@ -220,18 +302,19 @@ import { SiteSettings } from '@src/ext/lib/settings/SiteSettings';
 import { PlayerDetectionMode } from '@src/common/enums/PlayerDetectionMode.enum';
 import UploadJsonFileButton from '@components/common/UploadJsonFileButton.vue';
 import SupportLevelIndicator from '@components/common/SupportLevelIndicator.vue';
+import ConfirmButton from '@components/common/ConfirmButton.vue';
 
 import Popup from '@components/common/Popup.vue';
 import { _cp } from '@src/common/js/utils';
 import { SiteDOMSettingsInterface } from '@src/common/interfaces/SettingsInterface';
-
+import { SiteSupportLevel } from '../../../../../common/enums/SiteSupportLevel.enum';
 
 export default({
   components: {
-    PlayerDetectionMode,
     UploadJsonFileButton,
     SupportLevelIndicator,
     Popup,
+    ConfirmButton,
   },
   props: [
     'settings',
@@ -240,11 +323,15 @@ export default({
   data() {
     return {
       PlayerDetectionMode,
+      SiteSupportLevel,
       loaded: false,
       DOMConfigData: undefined as any,
       DOMConfigName: undefined as any,
       selectSnapshotDialog: {visible: false},
-      finishImportDialog: {visible: false}
+      copyPasteDialog: {visible: false},
+      finishImportDialog: {visible: false},
+      exportDialog: {visible: false, data: {exportType: 'current'}},
+      saveAsDialog: {visible: false}
     }
   },
   watch: {
@@ -281,6 +368,8 @@ export default({
       this.loaded = true;
     },
 
+
+
     openSelectSnapshotDialog() {
       this.selectSnapshotDialog = {
         visible: true
@@ -293,13 +382,66 @@ export default({
       this.selectSnapshotDialog = false;
     },
 
+    openCopyPasteDialog() {
+      this.copyPasteDialog = {
+        visible: true,
+        data: {
+          jsonTxt: JSON.stringify(this.DOMConfigData, null, 2)
+        },
+        onClose: () => {
+          this.copyPasteDialog = {visible: false};
+        },
+        onSave: () => {
+          if (JSON.stringify(JSON.parse(this.copyPasteDialog.data.jsonTxt)) !== JSON.stringify(this.DOMConfigData) ) {
+            this.DOMConfigData = JSON.parse(this.copyPasteDialog.data.jsonTxt);
+            if (!this.DOMConfigData.type) {
+              this.DOMConfigData.type = SiteSupportLevel.UserDefined;
+            }
+
+            let pastedCount = 0;
+            for (const key in this.siteSettings.data.DOMConfig) {
+              if (key.startsWith('pasted-settings')) {
+                pastedCount++;
+              }
+            }
+
+            if (!this.DOMConfigName || this.DOMConfigName.startsWith('@')) {
+              this.DOMConfigName = `pasted-settings${pastedCount ? `-${pastedCount}` : ''}`;
+            }
+
+            this.copyPasteDialog = {visible: false}
+          }
+        }
+      }
+    },
+
+    /** Used when dev mode settings are visible in order to easily override config type */
+    _cpDialog_setSupportLevel(event) {
+      const value = event.target.value;
+
+      const obj = JSON.parse(this.copyPasteDialog.data.jsonTxt);
+      delete obj.type;
+
+      this.copyPasteDialog.data.jsonTxt = JSON.stringify({
+        type: value,
+        ...obj,
+      }, null, 2);
+    },
+
     handleImportedSettings(json: {activeDOMConfig?: string, DOMConfig: { [x: string]: SiteDOMSettingsInterface & {overwrite?: boolean}}} | SiteDOMSettingsInterface) {
       let afterImportDialogData;
 
       if ((json as any).DOMConfig) {
         afterImportDialogData = json;
       } else if ((json as SiteDOMSettingsInterface).type) {
-        const key = `imported-${new Date().toISOString()}`;
+        let importedCount = 0;
+        for (const key in this.siteSettings.data.DOMConfig) {
+          if (key.startsWith('imported-settings')) {
+            importedCount++;
+          }
+        }
+
+        const key = `imported-settings${importedCount ? `-${importedCount}` : ''}`;
         afterImportDialogData = {
           activeDOMConfig: key,
           DOMConfig: {
@@ -321,6 +463,22 @@ export default({
     handleSettingsImportError(error) {
       console.error(`[ultrawidify] Failed to upload snapshot. Error:`, error);
     },
+
+    openSaveAsDialog() {
+      this.saveAsDialog = {
+        visible: true,
+        data: {
+          name: this.DOMConfigName.replaceAll('@', '').trim(),
+        }
+      }
+    },
+    async finishSaveAs() {
+      this.DOMConfigName = this.saveAsDialog.data.name;
+      this.siteSettings.raw.DOMConfig[this.DOMConfigName] = this.DOMConfigData;
+      this.siteSettings.raw.activeDOMConfig = this.DOMConfigName;
+      this.saveAsDialog = {visible: false};
+      await this.settings.save();
+    }
   }
 });
 </script>

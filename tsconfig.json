@@ -5,6 +5,7 @@
     "outDir": "./ts-out",
     "allowJs": true,
     "target": "esnext",
+    "lib": ["esnext", "DOM"],
     "types": [
       "chrome",
       "node"

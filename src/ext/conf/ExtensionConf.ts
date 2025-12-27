@@ -823,9 +823,9 @@ const ExtensionConf: SettingsInterface = {
         alignment: {x: VideoAlignmentType.Center, y: VideoAlignmentType.Center},
       },
 
-      activeDOMConfig: 'auto',
+      activeDOMConfig: '@auto',
       DOMConfig: {
-        'auto': {
+        '@auto': {
           type: SiteSupportLevel.Unknown,
           elements: {
             player: {
@@ -856,9 +856,9 @@ const ExtensionConf: SettingsInterface = {
 
       persistCSA: CropModePersistence.Default,
 
-      activeDOMConfig: 'empty',
+      activeDOMConfig: '@empty',
       DOMConfig: {
-        'empty': {
+        '@empty': {
           type: SiteSupportLevel.UserDefined,
           elements: {
             player: {
@@ -890,9 +890,9 @@ const ExtensionConf: SettingsInterface = {
       defaultType: SiteSupportLevel.OfficialSupport,          // if user mucks around with settings, type changes to 'user-defined'.
                                         // We still want to know what the original type was, hence defaultType
 
-      activeDOMConfig: 'official',
+      activeDOMConfig: '@official',
       DOMConfig: {
-        'official': {
+        '@official': {
           type: SiteSupportLevel.OfficialSupport,
           elements: {
             player: {
@@ -918,9 +918,9 @@ const ExtensionConf: SettingsInterface = {
       defaultType: SiteSupportLevel.OfficialSupport,          // if user mucks around with settings, type changes to 'user-defined'.
                                         // We still want to know what the original type was, hence defaultType
 
-      activeDOMConfig: 'official',
+      activeDOMConfig: '@official',
       DOMConfig: {
-        'official': {
+        '@official': {
           type: SiteSupportLevel.OfficialSupport,
           elements: {
             player: {
@@ -943,7 +943,7 @@ const ExtensionConf: SettingsInterface = {
       defaultType: SiteSupportLevel.CommunitySupport,
 
       DOMConfig: {
-        'community': {
+        '@community': {
           type: SiteSupportLevel.CommunitySupport,
           elements: {
             player: {
@@ -966,9 +966,9 @@ const ExtensionConf: SettingsInterface = {
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
       type: SiteSupportLevel.CommunitySupport,
       defaultType: SiteSupportLevel.CommunitySupport,
-      activeDOMConfig: 'community-mstefan99',
+      activeDOMConfig: '@community-mstefan99',
       DOMConfig: {
-        'community-mstefan99': {
+        '@community-mstefan99': {
           type: SiteSupportLevel.OfficialSupport,
           elements: {
             player: {
@@ -996,9 +996,9 @@ const ExtensionConf: SettingsInterface = {
       type: SiteSupportLevel.OfficialSupport,
       defaultType: SiteSupportLevel.OfficialSupport,
 
-      activeDOMConfig: 'official',
+      activeDOMConfig: '@official',
       DOMConfig: {
-        'official': {
+        '@official': {
           type: SiteSupportLevel.OfficialSupport,
           elements: {
             player: {
@@ -1049,9 +1049,9 @@ const ExtensionConf: SettingsInterface = {
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
       type: SiteSupportLevel.CommunitySupport,
       defaultType: SiteSupportLevel.CommunitySupport,
-      activeDOMConfig: 'community',
+      activeDOMConfig: '@community',
       DOMConfig: {
-        'community': {
+        '@community': {
           type: SiteSupportLevel.CommunitySupport,
           elements: {
             player: {

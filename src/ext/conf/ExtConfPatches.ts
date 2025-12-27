@@ -354,6 +354,9 @@ const ExtensionConfPatch = Object.freeze([
           userOptions.sites[site].defaultType = SiteSupportLevel.Unknown;
         }
 
+        if (siteData.activeDOMConfig?.startsWith('community') || siteData.activeDOMConfig === 'official' || siteData.activeDOMConfig === 'empty' || siteData.activeDOMConfig === 'auto') {
+          siteData.activeDOMConfig = `@${siteData.activeDOMConfig}`;
+        }
 
         for (const domConf in siteData.DOMConfig) {
           logger.log('updateFn', "Updating domconf", domConf);
@@ -405,27 +408,41 @@ const ExtensionConfPatch = Object.freeze([
             }
           }
 
-          console.log('new conf:', newConf)
 
-          userOptions.sites[site].DOMConfig[domConf] = newConf;
+          // migrate names — official and community options get @ at the start
+          let domConfName = domConf;
+          if (domConfName.startsWith('community') || domConfName === 'official' || domConfName === 'empty' || domConfName === 'auto') {
+            domConfName = `@${domConfName}`;
+          }
+
+          if (domConfName !== domConf) {
+            logger.warn(`updateFn`, '\n\nnaming for default domConf has changed. Old:', domConf, 'new:', domConfName);
+            delete userOptions.sites[site].DOMConfig[domConf];
+          }
+
+          userOptions.sites[site].DOMConfig[domConfName] = newConf;
         }
       }
 
       // set new defaults for global and empty:
       userOptions.sites['@global'].DOMConfig = {
-        'auto': {
+        '@auto': {
           type: SiteSupportLevel.Unknown,
           elements: {
             player: {
+              detectionMode: PlayerDetectionMode.Auto,
+              allowAutoFallback: true,
+            },
+            video: {
               detectionMode: PlayerDetectionMode.Auto,
               allowAutoFallback: true,
             }
           }
         }
       }
-      userOptions.sites['@global'].activeDOMConfig = 'auto';
+      userOptions.sites['@global'].activeDOMConfig = '@auto';
       userOptions.sites['@empty'].DOMConfig = {
-        'empty': {
+        '@empty': {
           type: SiteSupportLevel.UserDefined,
           elements: {
             player: {
@@ -439,7 +456,7 @@ const ExtensionConfPatch = Object.freeze([
           },
         }
       };
-      userOptions.sites['@empty'].activeDOMConfig = 'empty';
+      userOptions.sites['@empty'].activeDOMConfig = '@empty';
 
       logger.log('updateFn', 'Migration complete. New site settings:', userOptions.sites);
     }

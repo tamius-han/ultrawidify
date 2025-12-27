@@ -11,7 +11,7 @@
           'normal': dialogType === 'normal'
         }"
       >
-        {{ dialogText || 'Confirm action' }}
+        {{ dialogTitle || 'Confirm action' }}
       </div>
       <div class="body">
         {{ dialogText || 'Are you sure you want to do that?' }}
@@ -41,6 +41,7 @@
       },
       btnClass
     ]"
+    :disabled="disabled"
     @click="popupVisible = true"
   >
     <slot></slot>
@@ -62,7 +63,8 @@ export default defineComponent({
     'dialogText',
     'confirmText',
     'cancelText',
-    'dialogType'
+    'dialogType',
+    'disabled',
   ],
   methods: {
     confirmAction() {
