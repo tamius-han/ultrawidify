@@ -317,10 +317,9 @@
       </div>
     </div>
 
-    <div class="mt-4">
+    <div v-if="visibleSegments?.advancedPlayerSettings" class="mt-4">
       <h4 class="mt-4 text-primary-400 text-[1.125em] font-bold mb-2">Other options</h4>
       <button @click="playerDetectionOptionsDialog.visible = true">Advanced video player options</button>
-      <p>{{playerDetectionOptionsDialog.visible}}</p>
     </div>
   </div>
 
@@ -328,13 +327,13 @@
   <Popup
     v-if="playerDetectionOptionsDialog.visible"
     title="Player detection options"
-    confirmButtonText="Save"
-    cancelButtonText="Cancel"
-    @onCancel="playerDetectionOptionsDialog.visible = false"
+    :clientSideButtons="true"
   >
     <PlayerSelectorAdvancedForm
+      role="popup"
       :settings="settings"
       :siteSettings="siteSettings"
+      @close="playerDetectionOptionsDialog.visible = false"
     ></PlayerSelectorAdvancedForm>
   </Popup>
 </template>
@@ -361,6 +360,7 @@ export default defineComponent({
     'siteSettings',
     'isDefaultConfiguration',
     'showPlayerSettings',
+    'visibleSegments', // object of {[segment: string]: true}
   ],
   data() {
     return {

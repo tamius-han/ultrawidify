@@ -148,7 +148,7 @@
   <div class="w-full flex flex-row gap-2 justify-end">
     <button @click="openSaveAsDialog()">Save as</button>
     <button :disabled="!siteSettings.raw.DOMConfig?.[DOMConfigName] || DOMConfigName?.startsWith('@')">Save</button>
-    <button @click="closeForm()">Close</button>
+    <button v-if="role === 'popup'" @click="closeForm()">Close</button>
   </div>
 
   <!-- PRESET SELECT DIALOG -->
@@ -317,6 +317,7 @@ export default({
     ConfirmButton,
   },
   props: [
+    'role',
     'settings',
     'siteSettings'
   ],
@@ -352,22 +353,21 @@ export default({
         this.DOMConfigName = configKey;
 
         if (!DOMConfigData.elements) {
-          DOMConfigData.elements =  _cp(siteSettings.blankSettings.DOMConfig.empty);
+          DOMConfigData.elements =  _cp(siteSettings.blankSettings.DOMConfig['@empty']);
         }
         if (!DOMConfigData.elements.player) {
-          DOMConfigData.elements.player = _cp(siteSettings.blankSettings.DOMConfig.empty.elements.player);
+          DOMConfigData.elements.player = _cp(siteSettings.blankSettings.DOMConfig['@empty'].elements.player);
         }
         if (!DOMConfigData.elements.video) {
-          DOMConfigData.elements.video = _cp(siteSettings.blankSettings.DOMConfig.empty.elements.video);
+          DOMConfigData.elements.video = _cp(siteSettings.blankSettings.DOMConfig['@empty'].elements.video);
         }
       } else {
-        DOMConfigData = _cp(siteSettings.blankSettings.DOMConfig.empty)
+        DOMConfigData = _cp(siteSettings.blankSettings.DOMConfig['@empty'])
       }
       this.DOMConfigData = DOMConfigData;
 
       this.loaded = true;
     },
-
 
 
     openSelectSnapshotDialog() {
@@ -478,6 +478,10 @@ export default({
       this.siteSettings.raw.activeDOMConfig = this.DOMConfigName;
       this.saveAsDialog = {visible: false};
       await this.settings.save();
+    },
+
+    closeForm() {
+      this.$emit('close');
     }
   }
 });

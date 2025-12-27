@@ -115,8 +115,8 @@
 
           <OtherSiteSettings
             v-if="selectedTab === 'website-extension-settings'"
+            :role="role"
             :settings="settings"
-            :enableSettingsEditor="true"
           ></OtherSiteSettings>
 
           <PlayerElementSettings
@@ -230,8 +230,6 @@ const AVAILABLE_TABS = {
         { id: 'website-extension-settings', label: 'Website exceptions', },
       ]
    },
-  'siteSettings': {id: 'extensionSettings', label: 'Site and Extension options', icon: 'cogs' },
-  'settings.player-element-settings': { id: 'settings.player-element-settings', label: 'Advanced video player options', icon: 'play-box-edit-outline' },
   'window.player-element-settings': { id: 'window.player-element-settings', label: 'Advanced video player options', icon: 'play-box-edit-outline' },
   'autodetectionSettings': {id: 'autodetectionSettings', label: 'Autodetection options', icon: 'auto-fix'},
   'ui-settings': {id: 'ui-settings', label: 'UI settings', icon: 'movie-cog-outline' },
@@ -275,6 +273,12 @@ const TAB_LOADOUT = {
   ],
 }
 
+const DEFAULT_TABS = {
+  settings: 'default-extension-settings',
+  updated: 'updated',
+  popup: 'video-settings',
+}
+
 export default defineComponent({
   components: {
     VideoSettings,
@@ -304,7 +308,7 @@ export default defineComponent({
       tabs: [
 
       ],
-      selectedTab: 'extensionSettings',
+      selectedTab: undefined,
       BrowserDetect: BrowserDetect,
       preventClose: false,
       siteSettings: null,
@@ -408,6 +412,7 @@ export default defineComponent({
         }
       }
       this.tabs = tabs;
+      this.selectedTab = this.selectedTab ?? DEFAULT_TABS[this.role];
     },
     setInitialPath(path: string[] = this.initialPath) {
       console.log('setting initial path:', this.initialPath)

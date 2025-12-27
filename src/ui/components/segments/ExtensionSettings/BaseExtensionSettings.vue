@@ -50,6 +50,7 @@
       <template v-if="tab === 'otherSites'">
         <OtherSiteSettings
           v-if="settings"
+          :role="role"
           :settings="settings"
         >
         </OtherSiteSettings>
@@ -174,6 +175,7 @@ export default {
   },
   mixins: [],
   props: [
+    'role',
     'settings',
     'site',
     'enableSettingsEditor',

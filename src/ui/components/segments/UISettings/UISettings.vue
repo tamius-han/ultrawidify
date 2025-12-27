@@ -1,19 +1,13 @@
 <template>
   <div class="flex flex-col relative w-full">
-
     <h2 class="text-[1.75em]">Player UI options</h2>
 
     <!-- The rest of the tab is under 'edit ratios and shortcuts' row -->
-    <div class="flex flex-col" style="width: 100%">
+    <div v-if="settings" class="flex flex-col" style="width: 100%">
 
       <div class="flex flex-col compact-form">
-        <div v-if="!siteSettings.data.enableUI.fullscreen">
-          UI is disabled for this site.
-        </div>
-
         <div
           class="flex flex-col field-group compact-form"
-          :class="{disabled: !siteSettings.data.enableUI.fullscreen}"
         >
           <div class="field disabled">
             <div class="label">
@@ -106,6 +100,9 @@
         </div>
       </div>
 
+    </div>
+    <div v-else>
+      Loading settings ...
     </div>
   </div>
 </template>

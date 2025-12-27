@@ -78,6 +78,7 @@
           :settings="settings"
           :siteSettings="selectedSiteSettings"
           :isDefaultConfiguration="selectedSite === '@global'"
+          :visibleSegments="{advancedPlayerSettings: role === 'settings'}"
         ></SiteExtensionSettings>
       </div>
     </template>
@@ -98,6 +99,7 @@ export default {
   },
   props: [
     'settings',
+    'role',
   ],
   components: {
     SiteExtensionSettings,
