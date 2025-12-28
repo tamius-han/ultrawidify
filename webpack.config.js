@@ -37,6 +37,20 @@ const config = {
   module: {
     rules: [
       {
+        test: /\.(png|jpg|webp|gif|svg|ico)$/,
+        type: 'asset/resource',
+        generator: {
+          filename: '[path][name][ext]' // Webpack 5 uses generator.filename
+        }
+      },
+      {
+        test: /\.(woff(2)?)$/,
+        type: 'asset/resource',
+        generator: {
+          filename: '[path][name][ext]'
+        }
+      },
+      {
         test: /\.ts$/,
         exclude: /node_modules/,
         use: [
@@ -68,34 +82,45 @@ const config = {
       },
       {
         test: /\.(sc|c|postc)ss$/,
-        use: [
-          'vue-style-loader',
+        oneOf: [
+          // Content script exports
           {
-            loader: 'css-loader',
-            options: {
-              // Uncomment if you want CSS modules
-              // modules: {
-              //   localIdentName: "[name]-[hash]"
-              // }
-            }
+            resourceQuery: query => query && query.includes('inline'),
+            use: [
+              {
+                loader: 'css-loader',
+                options: {
+                  exportType: "string"
+                }
+              },
+              {
+                loader: 'postcss-loader',
+                options: {
+                  postcssOptions: {
+                    config: path.resolve(__dirname, 'postcss.config.js'),
+                  }
+                }
+              }
+            ],
           },
-          'postcss-loader',
+          // For proper pages
+          {
+            use: [
+              'vue-style-loader',
+              {
+                loader: 'css-loader',
+                options: {
+                  // Uncomment if you want CSS modules
+                  // modules: {
+                  //   localIdentName: "[name]-[hash]"
+                  // }
+                }
+              },
+              'postcss-loader',
+            ]
+          }
         ]
       },
-      {
-        test: /\.(png|jpg|webp|gif|svg|ico)$/,
-        type: 'asset/resource',
-        generator: {
-          filename: '[path][name][ext]' // Webpack 5 uses generator.filename
-        }
-      },
-      {
-        test: /\.(woff(2)?)$/,
-        type: 'asset/resource',
-        generator: {
-          filename: '[path][name][ext]'
-        }
-      }
     ]
   },
   plugins: [

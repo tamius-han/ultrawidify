@@ -1,0 +1,14 @@
+@import "tailwindcss";
+@import "tailwindcss/utilities";
+
+@layer base {
+  .menu-root {
+    @apply font-mono;
+    font-size: 5rem;
+    color: #fa6;
+
+    * {
+      @apply font-mono;
+    }
+  }
+}

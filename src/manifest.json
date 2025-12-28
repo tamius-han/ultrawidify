@@ -48,7 +48,8 @@
         "res/icons/*",
         "res/img/*",
         "csui/*",
-        "ui/*"
+        "ui/*",
+        "main.css"
       ],
       "matches": [
         "*://*/*"

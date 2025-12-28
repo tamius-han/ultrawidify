@@ -1,6 +1,7 @@
 import { CommandInterface } from '@src/common/interfaces/SettingsInterface';
 import Settings from '@src/ext/lib/settings/Settings';
 
+
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 
@@ -79,9 +80,6 @@ class MenuItem {
     }
   }
 }
-
-
-
 
 function buildMenu(settings: Settings, executor: (command: string, args?: any) => void) {
   const menu = new MenuItem(

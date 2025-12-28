@@ -6,6 +6,9 @@
 @import '@ui/res/styles/fonts.css';
 @import '@ui/res/styles/buttons.css';
 
+@import '@ui/res/styles/player-menu.css';
+
+
 
 html, body {
   @apply bg-stone-950 text-stone-300;

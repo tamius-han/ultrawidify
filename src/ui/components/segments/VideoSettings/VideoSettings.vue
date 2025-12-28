@@ -116,7 +116,7 @@ import ShortcutButton from './components/ShortcutButton.vue';
 import CommsMixin from '@ui/utils/mixins/CommsMixin.vue';
 import KeyboardShortcutParserMixin from '@ui/utils/mixins/KeyboardShortcutParserMixin.vue';
 
-import alignmentIndicatorSvg from '!!raw-loader!@ui/res/img/alignment-indicators.svg?raw';
+import alignmentIndicatorSvg from '!!raw-loader!@ui/res/img/alignment-indicators.svg';
 import {setupVideoAlignmentIndicatorInteraction, setVideoAlignmentIndicatorState} from '@ui/utils/video-alignment-indicator-handling';
 import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
 

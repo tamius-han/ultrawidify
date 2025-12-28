@@ -2,6 +2,11 @@
   "content": [
     "./src/**/*.{vue,js,ts,jsx,tsx}"
   ],
+  "safelist": [
+    {
+      "pattern": "/^(bg|text|hover:bg|rounded|p|px|py)-/"
+    }
+  ],
   "theme": {
     "extend": {
       "screens": {

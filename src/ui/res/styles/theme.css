@@ -5,6 +5,9 @@
   --breakpoint-popup: 640px;
   --breakpoint-window: 960px;
 
+  --font-sans: "Heebo", ui-sans-serif, system-ui;
+  --font-mono: "Source Code Pro", ui-monospace, monospace;
+
   --color-primary: #ff872c;
   --color-primary-50:  #ffddbe;
   --color-primary-100: #ffcda0;
