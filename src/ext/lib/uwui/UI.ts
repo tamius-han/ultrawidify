@@ -1,4 +1,8 @@
 import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
+import { ClientMenu } from './ClientMenu';
+import EventBus from '../EventBus';
+import PlayerData from '../video-data/PlayerData';
+import { SiteSettings } from '../settings/SiteSettings';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: UI");
@@ -13,21 +17,38 @@ const csuiVersions = {
 const MAX_IFRAME_ERROR_COUNT = 5;
 
 class UI {
+
+
+  isGlobal: boolean;
+  isIframe: boolean;
+  private eventBus: EventBus;
+  private playerData: PlayerData;
+  private uiSettings: any;
+  private siteSettings: SiteSettings;
+  private disablePointerEvents: boolean = false;
+
+  private iframeErrorCount: number = 0;
+  private iframeConfirmed: boolean = false;
+  private iframeRejected: boolean = false;
+  private delayedDestroyTimer: any = undefined;
+
+  private csuiScheme;
+  private extensionBase: string;
+
+  // These can prolly be removed:
+  lastProbeResponseTs: number
+
   constructor(
-    interfaceId,
-    uiConfig, // {parentElement?, eventBus?, isGlobal?, playerData}
+    public interfaceId,
+    public uiConfig, // {parentElement?, eventBus?, isGlobal?, playerData}
   ) {
-    this.interfaceId = interfaceId;
-    this.uiConfig = uiConfig;
     this.lastProbeResponseTs = null;
 
     this.isGlobal = uiConfig.isGlobal ?? false;
     this.isIframe = window.self !== window.top;
 
     this.eventBus = uiConfig.eventBus;
-    this.disablePointerEvents = false;
 
-    this.saveState = undefined;
     this.playerData = uiConfig.playerData;
     this.uiSettings = uiConfig.uiSettings;
     this.siteSettings = uiConfig.siteSettings;
@@ -45,7 +66,9 @@ class UI {
     this.extensionBase = chrome.runtime.getURL('').replace(/\/$/, "");
 
     // UI will be initialized when setUiVisibility is called
-    this.init();
+    if (!this.isGlobal) {
+      this.init();
+    }
   }
 
   canRun() {
@@ -93,6 +116,12 @@ class UI {
   initUIContainer() {
     const random = Math.round(Math.random() * 69420);
     const uwid = `uw-ultrawidify-${this.interfaceId}-root-${random}`
+
+    if (this.uiConfig.parentElement) {
+      const uwMenu = new ClientMenu({isGlobal: this.isGlobal, anchor: "LeftCenter", items: [{label: 'test'}]});
+      uwMenu.mount(this.uiConfig.parentElement);
+    }
+    return;
 
     const rootDiv = document.createElement('div');
 

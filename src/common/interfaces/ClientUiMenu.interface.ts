@@ -16,6 +16,7 @@ export type MenuAnchor =
   | "BottomRight";
 
 export interface MenuConfig {
+  isGlobal?: boolean;
   anchor: MenuAnchor;
   activationRadius: number;
   items: MenuItemConfig[];

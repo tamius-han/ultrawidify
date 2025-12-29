@@ -2,6 +2,7 @@ import { MenuConfig, MenuItemConfig } from '@src/common/interfaces/ClientUiMenu.
 import extensionCss from '@src/main.css?inline';
 
 export class ClientMenu {
+
   private host!: HTMLDivElement;
   private shadow!: ShadowRoot;
   private root!: HTMLDivElement;
@@ -16,74 +17,10 @@ export class ClientMenu {
     this.position(anchorElement);
     this.bindGlobalMouse(anchorElement);
 
-    document.documentElement.appendChild(this.host);
+    // document.documentElement.appendChild(this.host);
+    anchorElement.appendChild(this.host);
   }
 
-  private createHost() {
-    this.host = document.createElement("div");
-    Object.assign(this.host.style, {
-      position: "fixed",
-      inset: "0",
-      zIndex: "2147483647",
-      // pointerEvents: "none",
-      backgroundColor: "#00000099",
-    });
-    this.host.textContent="SAMPLE TEXT SAMPLE TEXT SAMPLE TEXT"
-  }
-
-  private createShadow() {
-    this.shadow = this.host.attachShadow({ mode: "open" });
-    this.injectStyles();
-  }
-
-  private createMenu() {
-    this.root = document.createElement("div");
-    this.root.className = "menu-root font-mono";
-
-    const trigger = document.createElement("div");
-    trigger.className = "menu-trigger";
-    trigger.textContent = "☰";
-
-    const submenu = this.buildSubmenu(this.config.items);
-
-    trigger.addEventListener("mouseenter", () => this.show());
-    this.root.addEventListener("mouseleave", () => this.hide());
-
-    this.root.append(trigger, submenu);
-    this.shadow.appendChild(this.root);
-  }
-
-  private buildSubmenu(items: MenuItemConfig[]): HTMLDivElement {
-    const menu = document.createElement("div");
-    menu.className = "submenu";
-
-    for (const item of items) {
-      const el = document.createElement("div");
-      el.className = "menu-item";
-
-      if (item.customHTML) {
-        el.appendChild(item.customHTML);
-      } else {
-        el.textContent = item.label;
-      }
-
-      if (item.action) {
-        el.addEventListener("click", e => {
-          e.stopPropagation();
-          item.action?.();
-          this.hide();
-        });
-      }
-
-      if (item.subitems) {
-        el.appendChild(this.buildSubmenu(item.subitems));
-      }
-
-      menu.appendChild(el);
-    }
-
-    return menu;
-  }
   private injectStyles() {
     const style = document.createElement("style");
     console.warn('imported styles: imported CSS (raw):', typeof extensionCss, extensionCss);
@@ -95,6 +32,7 @@ export class ClientMenu {
 
     // this is bad but I can't be bothered to do it the proper way
     const cssArr: string[] = css.split('@font-face');
+    const cssRemainder = cssArr[cssArr.length - 1].split('}').slice(1).join('}');
 
     css = `
       ${cssArr[0]}
@@ -122,15 +60,10 @@ export class ClientMenu {
         font-style: italic;
         font-display: swap;
       }
-      ${cssArr[cssArr.length - 1].split('}', 2)[1]};
+      ${cssRemainder};
     `;
 
-    // function scopeCss(css: string) {
-      // return css.replace(
-      //   /(^|})\s*([^{@}][^{]*){/g,
-      //   (_, sep, selector) => `${sep} :host ${selector} {`
-      // );
-    // }
+    console.log('+————————————————————————————————————', cssRemainder)
 
     css = css
       .replace('__FONT_HEEBO__', chrome.runtime.getURL('/ui/res/fonts/Heebo.ttf'))
@@ -139,30 +72,102 @@ export class ClientMenu {
       .replaceAll('html,', '')
     ;
 
-    // console.warn('CSS TO APPEND', css);
     style.textContent = css;
     this.shadow.appendChild(style);
+  }
 
+
+  private createHost() {
+    this.host = document.createElement("div");
+    this.host.classList.add('uw-ultrawidify-container-root');
+
+    Object.assign(this.host.style, {
+      position: this.config.isGlobal ? "fixed" : "absolute",
+      left: 0,
+      top: 0,
+      border: 0,
+      width: "100%",
+      height: "100%",
+      zIndex: this.config.isGlobal ? "2147483647" : "2147483640",
+      // pointerEvents: "none",
+      backgroundColor: "#00000099",
+    });
+
+    console.log('UI host created:', this.host);
+  }
+
+  private createShadow() {
+    this.shadow = this.host.attachShadow({ mode: "open" });
+    this.injectStyles();
+  }
+
+  private createMenu() {
+    this.root = document.createElement("div");
+    this.root.className = "uw-menu-root font-mono";
+
+    const trigger = document.createElement("div");
+    trigger.className = "uw-menu-trigger";
+    trigger.textContent = "☰";
+
+    const submenu = this.buildSubmenu(this.config.items);
+
+    trigger.addEventListener("mouseenter", () => this.show());
+    this.root.addEventListener("mouseleave", () => this.hide());
+
+    this.root.append(trigger, submenu);
+    this.shadow.appendChild(this.root);
+  }
+
+  private buildSubmenu(items: MenuItemConfig[]): HTMLDivElement {
+    const menu = document.createElement("div");
+    menu.className = "uw-submenu";
+
+    for (const item of items) {
+      const el = document.createElement("div");
+      el.className = "uw-menu-item";
+
+      if (item.customHTML) {
+        el.appendChild(item.customHTML);
+      } else {
+        el.textContent = item.label;
+      }
+
+      if (item.action) {
+        el.addEventListener("click", e => {
+          e.stopPropagation();
+          item.action?.();
+          this.hide();
+        });
+      }
+
+      if (item.subitems) {
+        el.appendChild(this.buildSubmenu(item.subitems));
+      }
+
+      menu.appendChild(el);
+    }
+
+    return menu;
   }
 
   private position(anchorEl: HTMLElement) {
     const rect = anchorEl.getBoundingClientRect();
     const r = this.root.style;
 
-    switch (this.config.anchor) {
-      case "LeftCenter":
-        r.left = "0";
-        r.top = "50%";
-        r.transform = "translateY(-50%)";
-        break;
+    // switch (this.config.anchor) {
+    //   case "LeftCenter":
+    //     r.left = "0";
+    //     r.top = "50%";
+    //     r.transform = "translateY(-50%)";
+    //     break;
 
-      case "TopLeft":
-        r.left = "0";
-        r.top = "0";
-        break;
+    //   case "TopLeft":
+    //     r.left = "0";
+    //     r.top = "0";
+    //     break;
 
-      // others are trivial extensions
-    }
+    //   // others are trivial extensions
+    // }
   }
 
   private bindGlobalMouse(anchorEl: HTMLElement) {

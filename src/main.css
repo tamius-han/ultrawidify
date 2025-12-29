@@ -9,12 +9,19 @@
 @import '@ui/res/styles/player-menu.css';
 
 
-
+:host {
+  @apply bg-stone-950 text-stone-300;
+  font-size: 16px;
+}
 html, body {
   @apply bg-stone-950 text-stone-300;
   font-size: 16px;
 }
+
 @media (max-width: 999px) {
+  :host {
+    font-size: 12px;
+  }
   html, body {
     font-size: 12px;
   }
