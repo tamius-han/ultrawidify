@@ -3,6 +3,7 @@ import { ClientMenu } from './ClientMenu';
 import EventBus from '../EventBus';
 import PlayerData from '../video-data/PlayerData';
 import { SiteSettings } from '../settings/SiteSettings';
+import { MenuPosition as MenuPosition } from '../../../common/interfaces/ClientUiMenu.interface';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: UI");
@@ -118,7 +119,14 @@ class UI {
     const uwid = `uw-ultrawidify-${this.interfaceId}-root-${random}`
 
     if (this.uiConfig.parentElement) {
-      const uwMenu = new ClientMenu({isGlobal: this.isGlobal, anchor: "LeftCenter", items: [{label: 'test'}]});
+      const uwMenu = new ClientMenu({
+        isGlobal: this.isGlobal,
+        menuPosition: MenuPosition.Left,
+        items: [
+          {label: 'test'},
+          {label: 'test nested', subitems: [{label: 'sub test'}, {label: 'sub test 2'}]}
+        ]
+      });
       uwMenu.mount(this.uiConfig.parentElement);
     }
     return;

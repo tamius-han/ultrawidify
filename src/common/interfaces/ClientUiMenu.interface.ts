@@ -5,19 +5,20 @@ export interface MenuItemConfig {
   customHTML?: HTMLElement;
 }
 
-export type MenuAnchor =
-  | "LeftCenter"
-  | "RightCenter"
-  | "TopCenter"
-  | "BottomCenter"
-  | "TopLeft"
-  | "TopRight"
-  | "BottomLeft"
-  | "BottomRight";
+export enum MenuPosition {
+  TopLeft = 'top-left',
+  Left = 'left',
+  BottomLeft = 'bottom-left',
+  Top = 'top',
+  Bottom = 'bottom',
+  TopRight = 'top-right',
+  Right = 'right',
+  BottomRight = 'bottom-right',
+}
 
 export interface MenuConfig {
   isGlobal?: boolean;
-  anchor: MenuAnchor;
-  activationRadius: number;
+  menuPosition: MenuPosition;
+  activationRadius?: number;
   items: MenuItemConfig[];
 }

@@ -2,9 +2,92 @@
 @import "tailwindcss/utilities";
 
 .uw-menu-root {
-  @apply h-full w-full font-mono text-stone-200 text-[16px];
+  @apply h-full w-full font-mono text-stone-200 text-[16px] flex flex-row;
+
+  &.uw-menu-left {
+    @apply justify-start;
+  }
+  &.uw-menu-right {
+    @apply justify-end;
+  }
+
+  &.uw-menu-left, &.uw-menu-right {
+    &.uw-menu-top {
+      @apply items-start;
+    }
+    &.uw-menu-ycenter {
+      @apply items-center;
+    }
+    &.uw-menu-bottom {
+      @apply items-end;
+    }
+  }
+
+  &.uw-menu-center {
+    @apply flex-col items-center;
+
+    &.uw-menu-top {
+      @apply justify-start;
+    }
+    &.uw-menu-bottom {
+      @apply justify-end;
+    }
+  }
 
   * {
     @apply font-mono text-stone-200 text-[1em];
+  }
+}
+
+.uw-menu-trigger {
+
+}
+
+.uw-submenu {
+  @apply absolute flex flex-col gap-0;
+
+   &.uw-menu-left {
+    @apply left-full;
+  }
+  &.uw-menu-right {
+    @apply right-full;
+  }
+
+  &.uw-menu-left, &.uw-menu-right {
+    &.uw-menu-top {
+      @apply top-1/2 -translate-y-1/2;
+    }
+    &.uw-menu-ycenter {
+      @apply top-0;
+    }
+    &.uw-menu-bottom {
+      @apply bottom-0;
+    }
+  }
+
+  &.uw-menu-center {
+    @apply left-1/2 -translate-x-1/2 flex-row;
+
+    &.uw-menu-top {
+      @apply bottom-0;
+    }
+    &.uw-menu-bottom {
+      @apply top-0;
+    }
+  }
+
+  * {
+    @apply font-mono text-stone-200 text-[1em];
+  }
+}
+
+.uw-trigger {
+  @apply p-4 relative block
+    bg-stone-950/75 backdrop-blur-[1em] backdrop-brightness-75 backdrop-saturate-50
+    text-nowrap
+  ;
+
+  &:hover {
+    @apply text-primary-200 bg-stone-800/75;
   }
 }
