@@ -4,6 +4,22 @@
 .uw-menu-root {
   @apply h-full w-full font-mono text-stone-200 text-[16px] flex flex-row;
 
+  pointer-events: auto;
+  transition: opacity 120ms ease;
+
+  &:not(.uw-visible) {
+    pointer-events: none;
+    opacity: 0;
+  }
+  &.uw-hidden {
+    pointer-events: none;
+    opacity: 0;
+  }
+  &.uw-visible {
+    pointer-events: auto;
+    opacity: 1;
+  }
+
   &.uw-menu-left {
     @apply justify-start;
   }
@@ -39,14 +55,17 @@
   }
 }
 
-.uw-menu-trigger {
-
-}
-
 .uw-submenu {
   @apply absolute flex flex-col gap-0;
 
-   &.uw-menu-left {
+  opacity: 0;
+  pointer-events: none;
+
+  /* we'll also animate a bit */
+  transform: translateX(-4px);
+  transition: opacity 120ms ease, transform 120ms ease;
+
+  &.uw-menu-left {
     @apply left-full;
   }
   &.uw-menu-right {
@@ -80,6 +99,17 @@
     @apply font-mono text-stone-200 text-[1em];
   }
 }
+
+.uw-menu-item, .uw-menu-trigger {
+  &:hover > .uw-submenu,
+  &:focus-within > .uw-submenu {
+    opacity: 1 !important;
+    pointer-events: auto;
+
+    transform: translateX(0);
+  }
+}
+
 
 .uw-trigger {
   @apply p-4 relative block

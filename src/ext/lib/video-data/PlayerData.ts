@@ -290,6 +290,7 @@ class PlayerData {
           playerData: this,
           uiSettings: this.videoData.settings.active.ui,
           siteSettings: this.siteSettings,
+          settings: this.videoData.settings,
         }
       );
 
@@ -590,6 +591,7 @@ class PlayerData {
         playerData: this,
         uiSettings: this.videoData.settings.active.ui,
         siteSettings: this.siteSettings,
+        settings: this.videoData.settings,
       }
     );
   }
