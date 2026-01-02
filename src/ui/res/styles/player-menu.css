@@ -4,7 +4,7 @@
 .uw-menu-root {
   @apply h-full w-full font-mono text-stone-200 text-[16px] flex flex-row;
 
-  pointer-events: auto;
+  pointer-events: none;
   transition: opacity 120ms ease;
 
   &:not(.uw-visible) {
@@ -16,7 +16,7 @@
     opacity: 0;
   }
   &.uw-visible {
-    pointer-events: auto;
+    /* pointer-events: auto; */
     opacity: 1;
   }
 
@@ -55,15 +55,20 @@
   }
 }
 
+.uw-trigger, .uw-menu-item, .uw-menu-trigger {
+  pointer-events: auto;
+}
+
 .uw-submenu {
-  @apply absolute flex flex-col gap-0;
+  @apply absolute flex-col gap-0;
 
   opacity: 0;
+  display: none;
   pointer-events: none;
 
   /* we'll also animate a bit */
   transform: translateX(-4px);
-  transition: opacity 120ms ease, transform 120ms ease;
+  transition: opacity 120ms ease, transform 120ms ease, width 120ms ease;
 
   &.uw-menu-left {
     @apply left-full;
@@ -101,8 +106,12 @@
 }
 
 .uw-menu-item, .uw-menu-trigger {
+
   &:hover > .uw-submenu,
   &:focus-within > .uw-submenu {
+    display: flex;
+    z-index: 200;
+
     opacity: 1 !important;
     pointer-events: auto;
 
