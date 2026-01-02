@@ -2,7 +2,7 @@
 @import "tailwindcss/utilities";
 
 .uw-menu-root {
-  @apply h-full w-full font-mono text-stone-200 text-[16px] flex flex-row;
+  @apply h-full w-full font-mono text-stone-200 text-[16px] flex flex-row bg-transparent;
 
   pointer-events: none;
   transition: opacity 120ms ease;
@@ -67,8 +67,7 @@
   pointer-events: none;
 
   /* we'll also animate a bit */
-  transform: translateX(-4px);
-  transition: opacity 120ms ease, transform 120ms ease, width 120ms ease;
+  transition: opacity 120ms ease, width 120ms ease;
 
   &.uw-menu-left {
     @apply left-full;
@@ -79,10 +78,11 @@
 
   &.uw-menu-left, &.uw-menu-right {
     &.uw-menu-top {
-      @apply top-1/2 -translate-y-1/2;
+      @apply top-0;
     }
     &.uw-menu-ycenter {
-      @apply top-0;
+      top: 50%;
+      transform: translateY(-50%);
     }
     &.uw-menu-bottom {
       @apply bottom-0;
@@ -114,8 +114,6 @@
 
     opacity: 1 !important;
     pointer-events: auto;
-
-    transform: translateX(0);
   }
 }
 

@@ -146,6 +146,7 @@ export class ClientMenu {
       height: '100%',
       zIndex: this.config.isGlobal ? '2147483647' : '2147483640',
       pointerEvents: 'none',
+      background: 'transparent',
     });
 
     console.log('UI host created:', this.host);
@@ -238,7 +239,11 @@ export class ClientMenu {
       el.className = `uw-menu-item uw-trigger`;
 
       if (item.customHTML) {
-        el.appendChild(item.customHTML);
+        if (item.customHTML instanceof HTMLElement) {
+          el.appendChild(item.customHTML);
+        } else {
+          el.innerHTML = item.customHTML;
+        }
       } else {
         el.textContent = item.label;
       }
