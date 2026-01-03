@@ -5,7 +5,13 @@ export class ClientMenu {
 
   private host!: HTMLDivElement;
   private shadow!: ShadowRoot;
-  private root!: HTMLDivElement;
+  private _root!: HTMLDivElement;
+  private set root(value: HTMLDivElement) {
+    this._root = value;
+  }
+  public get root(): HTMLDivElement {
+    return this._root;
+  }
   private visible = false;
 
   private menuPositionClasses: string[] = [];
@@ -236,7 +242,10 @@ export class ClientMenu {
 
     for (const item of items) {
       const el = document.createElement('div');
-      el.className = `uw-menu-item uw-trigger`;
+      if (item.customId) {
+        el.id = item.customId;
+      }
+      el.className = `uw-menu-item uw-trigger ${item.customClassList ?? ''}`;
 
       if (item.customHTML) {
         if (item.customHTML instanceof HTMLElement) {

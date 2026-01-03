@@ -157,10 +157,10 @@
 import SiteExtensionSettings from '@components/segments/ExtensionSettings/Panels/SiteExtensionSettings.vue';
 import FrameSiteSettings from '@components/segments/ExtensionSettings/Panels/FrameSiteSettings.vue';
 import OtherSiteSettings from '@components/segments/ExtensionSettings/Panels/OtherSiteSettings.vue';
-import Popup from '@csui/src/components/Popup';
-import ConfirmButton from '@csui/src/components/ConfirmButton';
-import UploadJsonFileButton from '@csui/src/components/UploadJsonFileButton';
-import JsonEditor from '@csui/src/components/JsonEditor';
+import Popup from '@components/common/Popup';
+import ConfirmButton from '@components/common/ConfirmButton';
+import UploadJsonFileButton from '@components/common/UploadJsonFileButton';
+import JsonEditor from '@components/common/JsonEditor';
 
 export default {
 

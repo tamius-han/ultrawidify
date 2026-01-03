@@ -132,7 +132,6 @@ const config = {
       patterns: [
         { from: 'res', to: 'res', globOptions: { ignore: ['css', 'css/**'] } },
         { from: 'ext', to: 'ext', globOptions: { ignore: ['conf/*', 'lib/**'] } },
-        { from: 'csui', to: 'csui', globOptions: { ignore: ['src'] }},
         { from: 'ui/res', to: 'ui/res' },
 
         // we need to get webextension-polyfill and put it in common/lib

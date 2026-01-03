@@ -7,22 +7,18 @@ import Settings from '../settings/Settings';
 
 import { MenuPosition as MenuPosition } from '@src/common/interfaces/ClientUiMenu.interface';
 import { CommandInterface } from '@src/common/interfaces/SettingsInterface';
+import { SiteSupportLevel } from '@src/common/enums/SiteSupportLevel.enum';
+import { ComponentLogger } from '../logging/ComponentLogger';
+
+import alignmentIndicatorSvg from '!!raw-loader!@ui/res/img/alignment-indicators.svg';
+import lockBarIndicatorSvg from  '!!raw-loader!@ui/res/img/lock-bar-indicators.svg';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: UI");
 }
 
-const csuiVersions = {
-  'normal': 'csui',         // csui-overlay-normal.html, maps to csui.html
-  'light': 'csui-light',    // csui-overlay-light.html,  maps to csui-light.html
-  'dark': 'csui-dark'       // csui-overlay-dark.html,   maps to csui-dark.html
-};
-
-const MAX_IFRAME_ERROR_COUNT = 5;
 
 class UI {
-
-
   isGlobal: boolean;
   isIframe: boolean;
 
@@ -32,19 +28,13 @@ class UI {
   private settings: Settings;
   private siteSettings: SiteSettings;
 
-  private csuiScheme;
-
-  // These can prolly be removed:
-  lastProbeResponseTs: number;
-
   private extensionMenu: ClientMenu;
+  private logger: ComponentLogger;
 
   constructor(
     public interfaceId,
     public uiConfig, // {parentElement?, eventBus?, isGlobal?, playerData}
   ) {
-    this.lastProbeResponseTs = null;
-
     this.isGlobal = uiConfig.isGlobal ?? false;
     this.isIframe = window.self !== window.top;
 
@@ -55,12 +45,6 @@ class UI {
     this.siteSettings = uiConfig.siteSettings;
     this.settings = uiConfig.settings;
 
-    // TODO: at some point, UI should be different for global popup and in-player UI
-    this.csuiScheme = this.getCsuiScheme();
-    const csuiVersion = this.getCsuiVersion(this.csuiScheme.contentScheme);
-    // this.uiURI = chrome.runtime.getURL(`/csui/${csuiVersion}.html`);
-    // this.extensionBase = chrome.runtime.getURL('').replace(/\/$/, "");
-
     // UI will be initialized when setUiVisibility is called
     if (!this.isGlobal) {
       this.init();
@@ -68,37 +52,138 @@ class UI {
   }
 
   async init() {
-    this.destroy()
+    this.destroy();
+    if (!this.logger) {
+      this.logger = new ComponentLogger(this.settings.logAggregator, 'UI');
+    }
     this.createExtensionMenu();
-
-    // this.initUIContainer();
-    // this.initMessaging();
+    this.eventBus.subscribeMulti({
+      'uw-config-broadcast': {
+        function: (message) => {
+          console.log('UI.ts: received uw-config-broadcast', message);
+          if (message.type === 'aard-error') {
+            console.log('received: warning element:', this.extensionMenu.root.querySelector('#uw-cors-warning'));
+            this.updateMenuWarnings(message);
+          } else if (message.type === 'drm-status') {
+            this.updateMenuWarnings(message);
+          }
+        }
+      }
+    });
   }
 
   executeCommand(x: CommandInterface) {
     this.eventBus.send(x.action, x.arguments);
   }
 
+  updateMenuWarnings(errors: {aardErrors?: any, hasDrm?: boolean}) {
+    try {
+      if (errors.aardErrors) {
+        if (errors.aardErrors.cors) {
+          this.extensionMenu.root.querySelector('#uw-cors-warning').classList.remove('uw-hidden');
+        }
+        if (errors.aardErrors.drm) {
+          this.extensionMenu.root.querySelector('#uw-drm-warning').classList.remove('uw-hidden');
+        }
+        if (errors.aardErrors.webglError) {
+          this.extensionMenu.root.querySelector('#uw-webgl-warning').classList.remove('uw-hidden');
+        }
+      }
+      if (errors.hasDrm) {
+        this.extensionMenu.root.querySelector('#uw-drm-warning').classList.remove('uw-hidden');
+      }
+    } catch (e) {
+      this.logger.error("UI.ts: failed to update menu warnings:", e);
+    }
+  }
+
+  private getSiteSupportLevelForDisplay() {
+    const siteSupportLevel = (this.siteSettings ? this.siteSettings.data.type ?? SiteSupportLevel.Unknown : 'waiting')
+    switch (siteSupportLevel) {
+      case SiteSupportLevel.OfficialSupport:
+        return {cssClass: 'uw-official', text: 'Verified', svg: 'check-decagram'};
+      case SiteSupportLevel.CommunitySupport:
+        return {cssClass: 'uw-community', text: 'Community', svg: 'account-group'};
+      case SiteSupportLevel.Unknown:
+        return {cssClass: 'uw-no-support', text: 'Untested', svg: 'help-circle-outline'};
+      case SiteSupportLevel.UserDefined:
+        return {cssClass: 'uw-user-added', text: 'Modified by you', svg: 'account'};
+      case SiteSupportLevel.UserModified:
+        return {cssClass: 'uw-user-added', text: 'Modified by you', svg: 'account'};
+      default:
+        return {cssClass: 'uw-unknown', text: 'Unknown', svg: 'help-circle-outline'};
+    }
+  }
+
   createExtensionMenu() {
-    console.log('—>—— creating ext menu:. is enabled?', this.siteSettings?.data.enableUI, ExtensionMode[this.siteSettings?.data.enableUI], this.siteSettings?.data.enableUI === ExtensionMode.Disabled, 'global?', this.isGlobal)
     if (+this.siteSettings?.data.enableUI === ExtensionMode.Disabled || this.isGlobal) {
-      console.log('we said no to UI')
       return; // don't
     }
     if (this.extensionMenu) {
       this.extensionMenu.destroy();
     }
+
+    const svgMap = {
+      'check-decagram': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>check-decagram</title><path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z" /></svg>',
+      'account-group': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>account-group</title><path d="M12,5.5A3.5,3.5 0 0,1 15.5,9A3.5,3.5 0 0,1 12,12.5A3.5,3.5 0 0,1 8.5,9A3.5,3.5 0 0,1 12,5.5M5,8C5.56,8 6.08,8.15 6.53,8.42C6.38,9.85 6.8,11.27 7.66,12.38C7.16,13.34 6.16,14 5,14A3,3 0 0,1 2,11A3,3 0 0,1 5,8M19,8A3,3 0 0,1 22,11A3,3 0 0,1 19,14C17.84,14 16.84,13.34 16.34,12.38C17.2,11.27 17.62,9.85 17.47,8.42C17.92,8.15 18.44,8 19,8M5.5,18.25C5.5,16.18 8.41,14.5 12,14.5C15.59,14.5 18.5,16.18 18.5,18.25V20H5.5V18.25M0,20V18.5C0,17.11 1.89,15.94 4.45,15.6C3.86,16.28 3.5,17.22 3.5,18.25V20H0M24,20H20.5V18.25C20.5,17.22 20.14,16.28 19.55,15.6C22.11,15.94 24,17.11 24,18.5V20Z" /></svg>',
+      'help-circle-outline': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>help-circle-outline</title><path d="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z" /></svg>',
+      'account': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>account</title><path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" /></svg>'
+    };
+
+    const supportLevelInfo = this.getSiteSupportLevelForDisplay();
+
     if (this.uiConfig.parentElement) {
       const menuConfig = {
         isGlobal: this.isGlobal,
         menuPosition: MenuPosition.Left,
         items: [
           {
-            label: "todo: site + site compatibility info"
+            customClassList: 'uw-site-info',
+            customHTML: `
+              <div class="uw-menu-site">${this.siteSettings?.site ?? '<unknown site>'}</div>
+              <div class="uw-site-support uw-site-support-level ${supportLevelInfo.cssClass} uw-menu-support-level">
+                ${svgMap[supportLevelInfo.svg]}
+                <span>${supportLevelInfo.text}</span>
+              </div>
+            `
+          },
+          {
+            customId: 'uw-drm-warning',
+            customClassList: `uw-menu-warning ${this.playerData?.videoData.hasDrm ? '' : 'uw-hidden'}`,
+            customHTML: `
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>alert</title><path d="M13 14H11V9H13M13 18H11V16H13M1 21H23L12 2L1 21Z" /></svg>
+              <div>Autodetection not available<br/> due to DRM</div>
+            `
+          },
+          {
+            customId: 'uw-cors-warning',
+            customClassList: 'uw-menu-warning uw-hidden',
+            customHTML: `
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>alert</title><path d="M13 14H11V9H13M13 18H11V16H13M1 21H23L12 2L1 21Z" /></svg>
+              <div>Autodetection not available<br/> due to CORS error</div>
+            `
+          },
+          {
+            customId: 'uw-webgl-warning',
+            customClassList: 'uw-menu-warning uw-hidden',
+            customHTML: `
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>alert</title><path d="M13 14H11V9H13M13 18H11V16H13M1 21H23L12 2L1 21Z" /></svg>
+              <div>Autodetection not available<br/> due to WEBGL error<br/>
+              <small>Check if hardware acceleration is<br/>enabled and working.</small></div>
+            `
           },
           {
             label: 'Crop',
             subitems: this.settings.active.commands.crop.map((x: CommandInterface) => {
+              return {
+                label: x.label,
+                action: () => this.executeCommand(x)
+              }
+            })
+          },
+          {
+            label: 'Stretch',
+            subitems: this.settings.active.commands.stretch.map((x: CommandInterface) => {
               return {
                 label: x.label,
                 action: () => this.executeCommand(x)
@@ -117,18 +202,69 @@ class UI {
             ]
           },
           {
-            label: 'Stretch',
-            subitems: this.settings.active.commands.stretch.map((x: CommandInterface) => {
-              return {
-                label: x.label,
-                action: () => this.executeCommand(x)
-              }
-            })
-          },
-          {
             label: 'Zoom (free-form)',
             subitems: [
-              {label: 'todo sliders'}
+              {
+                customHTML: `
+                  <div class="uw-freeform-zoom-container">
+
+                    <!-- SLIDERS BEFORE X/Y LOCK -->
+                    <div class="uw-freeform-zoom-sliders">
+                      <div class="uw-slider">
+                        <div class="uw-slider-label">Width:</div>
+                        <div id="zoomWidth" class="uw-slider-zoom">100%</div>
+                        <div class="grow leading-none pt-[0.25em]">
+                          <input id="_input_zoom_slider"
+                              class="w-full"
+                              type="range"
+                              step="any"
+                              min="-1"
+                              max="4"
+                          />
+                        </div>
+                      </div>
+                      <div class="uw-slider">
+                        <div class="uw-slider-label">Height:</div>
+                        <div id="zoomHeight" class="uw-slider-zoom">100%</div>
+                        <div class="uw-slider-input">
+                          <input id="_input_zoom_slider_2"
+                              class="w-full"
+                              type="range"
+                              step="any"
+                              min="-1"
+                              max="4"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- X/Y LOCK, LINK BAR EDITION -->
+                    <div class="uw-slider-lock-bar-container uw-linked">
+                      ${lockBarIndicatorSvg}
+                    </div>
+
+                    <div class="uw-freeform-zoom-button-container">
+                      <div
+                        id="_button_toggle_aspect_lock"
+                        class="uw-freeform-zoom-button uw-link-button uw-linked"
+                      >
+                        <svg id="_button_toggle_aspect_lock_locked"   class="uw-linked"   xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>link-variant</title><path d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z" /></svg>
+                        <svg id="_button_toggle_aspect_lock_unlocked" class="uw-unlinked" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>link-variant-off</title><path d="M2,5.27L3.28,4L20,20.72L18.73,22L13.9,17.17L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L12.5,15.76L10.88,14.15C10.87,14.39 10.77,14.64 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C8.12,13.77 7.63,12.37 7.72,11L2,5.27M12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.79,8.97L9.38,7.55L12.71,4.22M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.2,10.54 16.61,12.5 16.06,14.23L14.28,12.46C14.23,11.78 13.94,11.11 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z" /></svg>
+                      </div>
+                    </div>
+
+                    <div class="uw-freeform-zoom-button-container">
+                      <div
+                        id="_button_reset_zoom"
+                        class="uw-freeform-zoom-button"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>restore</title><path d="M13,3A9,9 0 0,0 4,12H1L4.89,15.89L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3Z" /></svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                `,
+              }
             ]
           },
           {
@@ -148,103 +284,6 @@ class UI {
     }
   }
 
-  /**
-   * Returns color scheme we need to use.
-   *
-   * contentScheme is used to select the correct HTML template.
-   * iframeScheme gets applied to the iframe as style
-   * @returns {contentScheme: string, iframeScheme: string}
-   */
-  getCsuiScheme() {
-    return {
-      contentScheme: window.getComputedStyle( document.body ,null).getPropertyValue('color-scheme'),
-      iframeScheme: document.documentElement.style.colorScheme || document.body.style.colorScheme || undefined
-    };
-  }
-
-  /**
-   * Returns correct template for given preferredScheme parameter
-   * @param {*} preferredScheme
-   * @returns
-   */
-  getCsuiVersion(preferredScheme) {
-    return csuiVersions[preferredScheme] ?? csuiVersions.normal;
-  }
-
-  initUIContainer() {
-    const random = Math.round(Math.random() * 69420);
-    const uwid = `uw-ultrawidify-${this.interfaceId}-root-${random}`
-
-
-    return;
-  }
-
-  // initMessaging() {
-  //   // subscribe to events coming back to us. Unsubscribe if iframe vanishes.
-  //   window.addEventListener('message', this.messageHandlerFn);
-
-  //   /* set up event bus tunnel from content script to UI — necessary if we want to receive
-  //    * like current zoom levels & current aspect ratio & stuff. Some of these things are
-  //    * necessary for UI display in the popup.
-  //    */
-
-  //   this.eventBus.subscribeMulti(
-  //     {
-  //       'uw-config-broadcast': {
-  //         function: (config, routingData) => {
-  //           this.sendToIframe('uw-config-broadcast', config, routingData);
-  //         }
-  //       },
-  //       'uw-set-ui-state': {
-  //         function: (config, routingData)  => {
-  //           if (config.globalUiVisible !== undefined && !this.isIframe) {
-  //             if (this.isGlobal) {
-  //               this.setUiVisibility(config.globalUiVisible);
-  //             } else {
-  //               this.setUiVisibility(!config.globalUiVisible);
-  //             }
-  //           }
-  //           this.sendToIframe('uw-set-ui-state', {...config, isGlobal: this.isGlobal}, routingData);
-  //         }
-  //       },
-  //       'uw-get-page-stats': {
-  //         function: (config, routingData) => {
-  //           this.eventBus.send(
-  //             'uw-page-stats',
-  //             {
-  //               pcsDark: window.matchMedia('(prefers-color-scheme: dark)').matches,
-  //               pcsLight: window.matchMedia('(prefers-color-scheme: light)').matches,
-  //               colorScheme: window.getComputedStyle( document.body ,null).getPropertyValue('color-scheme')
-  //             },
-  //             {
-  //               comms: {
-  //                 forwardTo: 'popup'
-  //               }
-  //             }
-  //           );
-  //         }
-  //       },
-  //       'uw-restore-ui-state': {
-  //         function: (config, routingData) => {
-  //           if (!this.isGlobal) {
-  //             this.setUiVisibility(true);
-  //             this.sendToIframe('uw-restore-ui-state', config, routingData);
-  //           }
-  //         }
-  //       }
-  //     },
-  //     this
-  //   );
-  // }
-
-  // messageHandlerFn = (message) => {
-  //   if (!this.uiIframe?.contentWindow) {
-  //     window.removeEventListener('message', this.messageHandlerFn);
-  //     return;
-  //   }
-  //   this.handleMessage(message);
-  // }
-
   setUiVisibility(visible) {
     return;
   }
@@ -263,207 +302,18 @@ class UI {
   }
 
   /**
-   * Checks whether mouse is moving over either:
-   *   * <video> element
-   *   * player element ()
-   *   * uwui-clickable element
-   */
-  canShowUI() {
-    const playerCssClass = 'uw-ultrawidify-player-css';
-
-    const result = {
-      playerDimensions: undefined,
-      canShowUI: false,
-    }
-
-    if (this.playerData?.environment && this.siteSettings.canRunUI(this.playerData?.environment)) {
-      return result;
-    }
-
-    if (this.playerData?.dimensions) {
-      result.playerDimensions = this.playerData.dimensions;
-    }
-
-    // if player is not wide enough, we do nothing
-    if (
-      !this.isGlobal &&                 // this.isGlobal is basically 'yes, do as I say'
-      !document.fullscreenElement &&    // if we are in full screen, we allow it in every case as player detection is not 100% reliable,
-      result.playerDimensions?.width && // which makes playerDimensions.width unreliable as well (we assume nobody uses browser in
-                                        // fullscreen mode unless watching videos)
-      result.playerDimensions.width < window.screen.width * (this.uiSettings.inPlayer.minEnabledWidth ?? 0)
-    ) {
-      return result;
-    }
-
-    result.canShowUI = true;
-
-    return result;
-  }
-
-  // /**
-  //  * Handles events received from the iframe.
-  //  * @param {*} event
-  //  */
-  // handleMessage(event) {
-  //   if (event.origin === this.extensionBase) {
-  //     switch(event.data.action) {
-  //       case 'uwui-clickable':
-  //         if (event.data.ts < this.lastProbeResponseTs) {
-  //           return;
-  //         }
-  //         if (this.disablePointerEvents) {
-  //           return;
-  //         }
-  //         this.lastProbeResponseTs = event.data.ts;
-
-  //         // If iframe returns 'yes, we are clickable' and iframe is currently set to pointerEvents=auto,
-  //         // but hasMouse is false, then UI is attached to the wrong element. This probably means our
-  //         // detected player element is wrong. We need to perform this check if we aren't in global UI
-  //         /**
-  //          * action: 'uwui-clickable',
-  //          * clickable: isClickable,
-  //          * hoverStats: {
-  //          *   isOverTriggerZone,
-  //          *   isOverMenuTrigger,
-  //          *   isOverUIArea,
-  //          *   hasMouse: !!document.querySelector(':hover'),
-  //          * },
-  //          * ts: +new Date()
-  //          */
-
-  //         if (!this.global) {
-  //           if (
-  //             this.uiIframe.style.pointerEvents === 'auto'
-  //           ) {
-  //             if (
-  //               event.data.hoverStats.isOverMenuTrigger
-  //               && !event.data.hoverStats.hasMouse
-  //             ) {
-  //               if (!this.iframeConfirmed) {
-  //                 if (this.iframeErrorCount++ > MAX_IFRAME_ERROR_COUNT && !this.iframeRejected) {
-  //                   this.iframeRejected = true;
-  //                   this.eventBus.send('change-player-element');
-  //                   return;
-  //                 }
-  //               }
-  //             } else if (event.data.hoverStats.isOverMenuTrigger && event.data.hoverStats.hasMouse) {
-  //               this.iframeConfirmed = true;
-  //             }
-  //           }
-  //         }
-
-  //         this.uiIframe.style.pointerEvents = event.data.clickable ? 'auto' : 'none';
-  //         this.uiIframe.style.opacity = event.data.opacity || this.isGlobal ? '100' : '0';
-  //         break;
-  //       case 'uw-bus-tunnel':
-  //         const busCommand = event.data.payload;
-  //         this.eventBus.send(
-  //           busCommand.action,
-  //           busCommand.config,
-  //           {
-  //             ...busCommand?.context,
-  //             borderCrossings: {
-  //               ...busCommand?.context?.borderCrossings,
-  //               iframe: true,
-  //             }
-  //           }
-  //         );
-  //         break;
-  //       case 'uwui-get-role':
-  //         this.sendToIframeLowLevel('uwui-set-role', {role: this.isGlobal ? 'global' : 'player'});
-  //         break;
-  //       case 'uwui-interface-ready':
-  //         this.setUiVisibility(!this.isGlobal);
-  //         break;
-  //       case 'uwui-hidden':
-  //         this.uiIframe.style.opacity = event.data.opacity || this.isGlobal ? '100' : '0';
-  //         break;
-  //       case 'uwui-global-window-hidden':
-  //         if (!this.isGlobal) {
-  //           return; // This shouldn't even happen in non-global windows
-  //         }
-  //         this.setUiVisibility(false);
-  //         this.eventBus.send('uw-restore-ui-state', {});
-  //     }
-  //   }
-  // }
-
-  // /**
-  //  * Sends messages to iframe. Messages sent with this function _generally_
-  //  * bypass eventBus on the receiving end.
-  //  * @param {*} action
-  //  * @param {*} payload
-  //  * @param {*} uiURI
-  //  */
-  // sendToIframeLowLevel(action, payload, uiURI = this.uiURI) {
-  //   // because existence of UI is not guaranteed — UI is not shown when extension is inactive.
-  //   // If extension is inactive due to "player element isn't big enough to justify it", however,
-  //   // we can still receive eventBus messages.
-  //   if (this.rootDiv && this.uiIframe) {
-  //     this.uiIframe.contentWindow?.postMessage(
-  //       {
-  //         action,
-  //         payload
-  //       },
-  //       uiURI
-  //     )
-  //   };
-  // }
-
-  // /**
-  //  * Sends message to iframe. Messages sent with this function will be routed to eventBus.
-  //  */
-  // sendToIframe(action, actionConfig, routingData, uiURI = this.uiURI) {
-  //   // if (routingData) {
-  //   //   if (routingData.crossedConnections?.includes(EventBusConnector.IframeBoundaryIn)) {
-  //   //     console.warn('Denied message propagation. It has already crossed INTO an iframe once.');
-  //   //     return;
-  //   //   }
-  //   // }
-  //   // if (!routingData) {
-  //   //   routingData = { };
-  //   // }
-  //   // if (!routingData.crossedConnections) {
-  //   //   routingData.crossedConnections = [];
-  //   // }
-  //   // routingData.crossedConnections.push(EventBusConnector.IframeBoundaryIn);
-
-  //   this.sendToIframeLowLevel(
-  //     'uw-bus-tunnel',
-  //     {
-  //       action,
-  //       config: actionConfig,
-  //       routingData
-  //     },
-  //     uiURI
-  //   );
-  // }
-
-  /**
    * Replaces ui config and re-inits the UI
    * @param {*} newUiConfig
    */
   replace(newUiConfig) {
     this.uiConfig = newUiConfig;
-
-    if (this.rootDiv) {
-      this.destroy();
-      this.init();
-    }
+    this.init();
   }
 
   destroy() {
     if (this.extensionMenu) {
       this.extensionMenu.destroy();
     }
-    // this.unloadIframe();
-
-    // this.eventBus.unsubscribeAll(this);
-    // // this.comms?.destroy();
-    // this.rootDiv?.remove();
-
-    // delete this.uiIframe;
-    // delete this.rootDiv;
   }
 }
 

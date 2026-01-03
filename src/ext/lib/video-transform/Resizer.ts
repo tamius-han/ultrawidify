@@ -334,6 +334,8 @@ class Resizer {
       return;
     }
 
+    this.logger.info('setAr', '%cCalling setAr with arguments:', 'color: #fa6;', {...ar, type: AspectRatioType[ar.type] }, 'last ar:', lastAr);
+
     // If we are missing some data that's necessary for crop calculations,
     // set pendingAr and quit
     if (!this.videoData.player.dimensions?.width || !this.videoData.player.dimensions?.height) {
@@ -465,6 +467,7 @@ class Resizer {
       );
     }
 
+    this.logger.info('setAr', 'Stretch factors are calculated:', stretchFactors);
     this.applyScaling(stretchFactors as VideoDimensions);
   }
 

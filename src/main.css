@@ -75,25 +75,59 @@ html, body {
     @apply opacity-50;
   }
 
+}
 
-  /* Site support levels */
-  .site-support-level {
-    &.official {
-      @apply text-primary-400;
+/* Site support levels */
+.uw-site-support {
+  @apply inline-flex flex-row items-center gap-1 rounded-[0.5rem] relative;
+
+
+  .tooltip {
+    padding: 1rem;
+    display: none;
+    position: absolute;
+    bottom: 0;
+    transform: translateY(110%);
+    width: 42em;
+
+    background-color: rgba(0,0,0,0.90);
+    color: #ccc;
+    z-index: 99999 !important;
+
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+  }
+  &:hover {
+
+    &.no-tooltip {
+      .tooltip {
+        display: none !important;
+      }
     }
-    &.community {
-      @apply text-indigo-600;
-    }
-    &.officially-disabled {
-      @apply text-red-600;
-    }
-    &.no-support {
-      @apply text-slate-600;
-    }
-    &.user-added {
-      @apply text-cyan-700;
+
+    .tooltip {
+      display: block;
     }
   }
-  /* END site support levels */
-
 }
+
+.uw-site-support-level {
+  &.uw-official {
+    @apply text-primary-400;
+  }
+  &.uw-community {
+    @apply text-indigo-600;
+  }
+  &.uw-officially-disabled {
+    @apply text-red-600;
+  }
+  &.no-support {
+    @apply text-slate-600;
+  }
+  &.uw-user-added {
+    @apply text-cyan-700;
+  }
+}
+/* END site support levels */

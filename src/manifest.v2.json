@@ -47,7 +47,6 @@
     "res/img/settings/about-bg.png",
     "res/icons/*",
     "res/img/*",
-    "csui/*"
   ],
   "permissions": [
     "storage",

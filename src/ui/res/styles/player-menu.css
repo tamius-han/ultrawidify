@@ -1,6 +1,14 @@
 @import "tailwindcss";
 @import "tailwindcss/utilities";
 
+svg {
+  @apply text-inherit fill-current stroke-current;
+
+  * {
+    @apply text-inherit;
+  }
+}
+
 .uw-menu-root {
   @apply h-full w-full font-mono text-stone-200 text-[16px] flex flex-row bg-transparent;
 
@@ -50,9 +58,13 @@
     }
   }
 
-  * {
+  /* * {
     @apply font-mono text-stone-200 text-[1em];
-  }
+  } */
+}
+
+.uw-hidden {
+  display: none !important;
 }
 
 .uw-trigger, .uw-menu-item, .uw-menu-trigger {
@@ -101,14 +113,13 @@
   }
 
   * {
-    @apply font-mono text-stone-200 text-[1em];
+    @apply text-stone-200;
   }
 }
 
 .uw-menu-item, .uw-menu-trigger {
 
-  &:hover > .uw-submenu,
-  &:focus-within > .uw-submenu {
+  &:hover > .uw-submenu {
     display: flex;
     z-index: 200;
 
@@ -127,4 +138,121 @@
   &:hover {
     @apply text-primary-200 bg-stone-800/75;
   }
+
+  &:hover > * {
+    color: inherit;
+  }
+}
+
+.uw-site-info {
+  @apply text-[12px] py-3;
+
+}
+
+
+.uw-menu-support-level {
+  @apply inline-flex flex-row items-center !gap-4 rounded-[0.5rem] relative;
+
+  svg {
+    @apply fill-current stroke-current;
+    height: 1em;
+  }
+
+  * {
+    @apply text-inherit;
+  }
+}
+
+.uw-menu-warning {
+  @apply flex flex-row gap-4 items-center
+    bg-amber-950 text-amber-300
+    border border-amber-300;
+
+  border: 1px solid;
+
+  svg {
+    @apply fill-current stroke-current;
+    height: 1.5em;
+  }
+
+  * {
+    @apply text-primary-500;
+  }
+}
+
+.uw-freeform-zoom-container {
+  border-style: solid !important;
+  * {
+    border-style: solid !important;
+  }
+
+  @apply flex flex-row items-center justify-center w-[420px];
+
+  svg {
+    @apply fill-current stroke-current text-inherit;
+    height: 1.5em;
+  }
+
+  .uw-freeform-zoom-sliders {
+    @apply grow flex flex-col gap-[0.125em];
+
+    .uw-slider {
+      @apply flex flex-row w-full items-center;
+
+      .uw-slider-label {
+        @apply w-[4em] opacity-75 text-right leading-none
+      }
+      .uw-slider-zoom {
+        @apply w-[4.5em] pr-4 text-right leading-none;
+      }
+      .uw-slider-input {
+        @apply grow leading-none pt-[0.25em];
+      }
+
+    }
+  }
+
+  .uw-slider-lock-bar-container {
+    @apply h-full flex flex-col justify-center ml-2 text-stone-500;
+
+    svg {
+      @apply h-[36px] w-[14px];
+    }
+
+    &.uw-linked {
+      svg {
+        .uw-linked {
+          opacity: 1;
+        }
+        .uw-unlinked {
+          opacity: 0;
+        }
+      }
+    }
+    &.uw-unlinked {
+      svg {
+        .uw-linked {
+          opacity: 0;
+        }
+        .uw-unlinked {
+          opacity: 1;
+        }
+      }
+    }
+  }
+
+  .uw-freeform-zoom-button-container {
+    @apply h-full flex flex-col justify-center p-2;
+
+    .uw-freeform-zoom-button {
+      @apply cursor-pointer border border-1 border-stone-800 p-2 hover:bg-stone-700 hover:text-white;
+    }
+  }
+}
+
+.uw-link-button.uw-linked .uw-unlinked {
+  display: none;
+}
+.uw-link-button.uw-unlinked .uw-linked {
+  display: none;
 }

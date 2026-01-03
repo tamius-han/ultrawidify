@@ -1,0 +1,158 @@
+<svg
+  id="_button_toggle_aspect_lock_locked"
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 16 42"
+>
+  <title>slider-lock</title>
+
+  <!-- NOTE: bigger Y - more down -->
+
+  <!--
+    SYMBOL FOR X/Y LINKED
+    (derived from same code as symbol for unlink x/y)
+   -->
+  <path class="uw-linked" d="
+    M0 0
+    L8 0
+    L8 12
+    L8 28
+    L8 42
+    L0 42
+    L0 40
+    L6 40
+    L6 2
+    L0 2
+    L0 0
+  " />
+
+  <!--
+    SYMBOL FOR UNLINK X/Y
+
+    We're drawing this shape for the link bar (and its mirror form)
+
+        start
+        :
+        O → → → 1
+        ↑       ↑    * NOT DRAWN TO SCALE
+        5 ← ← 4 ↓
+              ↑ ↓    * notice that this shape lacks the break bar
+              ↑ ↓      chamfer. The chamfer is added when mirroring
+              ↑ ↓      by offsetting both points by half of the
+              ↑ ↓      line width.
+              3←2
+
+    Here's js function code to generate the path
+    (copy into browser console and correct variables as needed)
+  ———————————————————————————————————————————————————————————————————————————————————————————
+
+    (() => {
+      const width = 8;          // symbol width
+      const height = 42;        // symbol height
+
+      const lineWidth = 2;      // width of the link bar
+      const halfCut = 8;        // half of the width of the break bar gap
+
+      let halfHeight = height/2;
+
+      const points = [
+        [0,                 0],                    // 0
+        [width,             0],                    // 1
+        [width,             halfHeight - halfCut ],// 2
+        [width - lineWidth, halfHeight - halfCut ],// 3
+        [width - lineWidth, lineWidth],            // 4
+        [0,                 lineWidth],            // 5
+        [0,                 0]                     // 6/0
+      ];
+
+      const flippedPoints = points.map(p => ([p[0], height - p[1]]));
+      const halfOffset = lineWidth/2;
+
+      // chamfer the bracket:
+      points[2][1] -= halfOffset;
+      points[3][1] += halfOffset;
+      flippedPoints[2][1] -= halfOffset;
+      flippedPoints[3][1] += halfOffset;
+
+      const out = `M${
+          points
+            .map(x => `${x[0]} ${x[1]}`)
+            .join(' L')
+        } M${
+          flippedPoints
+            .map(x => `${x[0]} ${x[1]}`)
+            .join(' L')
+        }`;
+
+      console.log('—————— link bar path: ', out);
+      return out;
+     })()
+
+  ———————————————————————————————————————————————————————————————————————————————————————————
+  -->
+  <path class="uw-unlinked" d="M0 0 L8 0 L8 12 L6 14 L6 2 L0 2 L0 0 M0 42 L8 42 L8 28 L6 30 L6 40 L0 40 L0 42" />
+
+
+  <!--
+    SYMBOL FOR UNLINK X/Y (but it's the break bar)
+
+    We're drawing this shape for the break bar
+
+        symbol origin   O
+               :      ↗   ↘             ↗ X: +   Y: -
+                \   ↗      O            ↘ X: +   Y: +
+                  O      ↙              ↙ X: -   Y: +
+                ↗      ↙                ↖ X: -   Y: -
+              ↗      ↙
+            O      ↙
+          /   ↖  ↙
+          :    O
+          :
+       Code starts drawing symbol here
+
+    Here's js function code to generate the path
+    (copy into browser console and correct variables as needed)
+  ———————————————————————————————————————————————————————————————————————————————————————————
+   (() => {
+      let x = 8, y = 31;
+      let halfLength = 5;
+      let width = 1.5;
+
+      x -= halfLength;
+      y -= halfLength;
+
+      let coords = [
+        `M${x} ${y}`
+      ];
+
+      let dx = 1;
+      let dy = -1;
+
+      for (let i = 0; i < 4; i++) {
+        if (i % 2) {
+          x = x + (width * dx);
+          y = y + (width * dy);
+
+          // flip the dy, so y moves in the opposite direction until reaching the end
+          dy = -dy;
+        } else {
+          x = x + (halfLength * 2 * dx);
+          y = y + (halfLength * 2 * dy);
+
+          // flip the dx, so x moves in the opposite direction until reaching the end
+          dx = -dx;
+        }
+
+        coords.push(`${x} ${y}`);
+      }
+
+      const out = coords.join(' L');
+
+      console.log('——————————— drawing strike line:', out);
+
+      return out;
+    })()
+  ———————————————————————————————————————————————————————————————————————————————————————————
+  -->
+
+  <path class="uw-unlinked" d="M3 26 L13 16 L11.5 14.5 L1.5 24.5 L3 26" />
+</svg>

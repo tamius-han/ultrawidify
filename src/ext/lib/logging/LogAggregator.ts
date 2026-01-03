@@ -26,6 +26,7 @@ export const BLANK_LOGGER_CONFIG: LogConfig = {
 
     'App.vue': {enabled: false},
     'Popup': {enabled: false},
+    'UI': {enabled: false},
     'SettingsPage': {enabled: false},
   },
   origins: {

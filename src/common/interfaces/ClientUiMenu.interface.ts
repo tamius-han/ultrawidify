@@ -2,7 +2,9 @@ export interface MenuItemConfig {
   label: string;
   subitems?: MenuItemConfig[];
   action?: () => void;
-  customHTML?: HTMLElement;
+  customHTML?: HTMLElement | string;
+  customId?: string;
+  customClassList?: string;
 }
 
 export enum MenuPosition {
