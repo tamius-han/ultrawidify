@@ -73,7 +73,11 @@ class Resizer {
     if (this._lastAr?.type !== x.type || this._lastAr?.ratio !== x.ratio) {
       this.eventBus.send('uw-config-broadcast', {type: 'ar', config: x});
     }
-    this._lastAr = x;
+    if (x) {
+      this._lastAr = x;
+    } else {
+      this._lastAr = {type: AspectRatioType.Initial};
+    }
   }
   get lastAr() {
     return this._lastAr;
@@ -489,8 +493,9 @@ class Resizer {
 
   toFixedAr() {
     // converting to fixed AR means we also turn off autoAR
+
     this.setAr({
-      ratio: this.lastAr.ratio,
+      ratio: this.lastAr.ratio ?? this.getFileAr(),
       type: AspectRatioType.Fixed
     });
   }
