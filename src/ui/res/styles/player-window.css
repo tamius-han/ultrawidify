@@ -1,0 +1,169 @@
+@import "tailwindcss";
+@import "tailwindcss/utilities";
+
+:host {
+  all: initial;
+  color-scheme: dark light;
+
+  @apply font-mono text-stone-300;
+}
+
+.uw-window {
+  @apply fixed flex flex-col pointer-events-auto border-stone-500;
+
+  .uw-content {
+    @apply p-4 flex grow-1 font-sans overflow-hidden;
+  }
+
+  &.uw-window-bg-transparent {
+
+  }
+
+  &.uw-window-bg-blurred {
+    @apply bg-stone-950/75;
+    backdrop-filter: brightness(50%) saturate(50%) blur(16px);
+  }
+
+  &.uw-window-bg-solid {
+    @apply bg-stone-950;
+  }
+}
+
+.uw-resize-handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  background:
+    linear-gradient(135deg, transparent 50%, #666 50%);
+}
+
+.uw-titlebar {
+  @apply flex flex-row gap-4 items-center cursor-move select-none justify-between
+    bg-stone-950/80 border-b border-b-stone-700;
+
+  .uw-title {
+    @apply px-4 py-2;
+  }
+
+  .uw-actions {
+    @apply flex flex-row;
+
+    button {
+      @apply h-[32px] w-[28px] relative p-0 m-0
+        text-stone-300 hover:text-primary-200 bg-transparent border-none border-transparent px-2;
+
+      svg {
+        @apply h-[24px] w-[24px] fill-current;
+      }
+
+      &.uw-close {
+        @apply w-[40px] px-[8px];
+
+        &:hover {
+          @apply bg-red-600 text-[#fff];
+        }
+      }
+    }
+
+    .uw-bg-toggle {
+      @apply relative;
+
+      .uw-bg-menu {
+        @apply absolute top-[100%] right-0 bg-stone-950/75;
+
+        display: none;
+        z-index: 1;
+
+        button {
+          @apply w-full text-left px-4 py-2 hover:bg-stone-800;
+        }
+      }
+
+
+      &:hover .uw-bg-menu {
+        @apply flex flex-col gap-2
+          min-w-[220px]
+          text-stone-300 hover:text-primary-200
+      }
+    }
+  }
+}
+
+.settings-categories {
+  @apply
+    relative
+    w-[4.5em] popup:w-[18em] window:w-[24em]
+    mr-[1em]
+    grow-0 shrink-0 flex flex-col
+
+    text-right;
+
+  .tab-column {
+    @apply absolute popup:relative top-0 right-0
+      w-[18em] window:w-full h-full z-[1000]
+      hover:bg-stone-950 popup:hover:bg-transparent
+      border-r border-r-stone-800
+      hover:translate-x-[calc(100%-4.5em)] popup:hover:translate-x-0
+      transition-transform duration-200;
+
+    .tab {
+      @apply
+        flex flex-col
+        cursor-pointer
+        border-r-2 border-r-transparent
+        border-r-primary-400;
+
+      &.active {
+        .main-tab {
+          @apply !bg-transparent !text-primary-300 bg-gradient-to-r from-transparent to-black hover:!text-primary-200 ;
+        }
+      }
+      &.disabled {
+        @apply pointer-events-none;
+      }
+    }
+
+    .main-tab {
+      @apply
+        px-[1em] py-[0.5em]
+        flex flex-row gap-4 justify-end items-center
+        text-[1.125em] text-stone-300 text-right font-mono
+        cursor-pointer
+        hover:bg-stone-800
+        hover:text-primary-200
+        hover:border-r-stone-600;
+
+        .label {
+          @apply grow-0;
+        }
+    }
+
+    .suboption {
+      @apply
+        px-6 py-2
+        uppercase text-stone-400/75 font-mono
+        relative
+        hover:bg-stone-800
+        hover:text-primary-200
+        hover:border-r-stone-600;
+
+      &.active {
+        @apply !bg-transparent !text-primary-300 bg-gradient-to-r from-transparent to-black hover:!text-primary-200;
+      }
+      &.disabled {
+        @apply pointer-events-none text-stone-600/75;
+      }
+      .badge {
+        @apply absolute right-[0.25rem] bottom-0 w-4 h-4 text-stone-950 bg-primary-300 rounded flex justify-center items-center font-bold text-[0.8rem];
+      }
+
+      &:last-child {
+        @apply
+         mb-2;
+      }
+    }
+  }
+}

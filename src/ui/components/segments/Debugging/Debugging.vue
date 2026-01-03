@@ -23,6 +23,7 @@
         @change="settings.saveWithoutReload"
       >
     </div>
+
     <div class="w-full grid grid-cols-1 min-[1200px]:grid-cols-2 min-[1920px]:grid-cols-3 max-w-[2300px] gap-8">
       <div class="grow shrink">
         <h3 class="mb-4">Logger configuration</h3>

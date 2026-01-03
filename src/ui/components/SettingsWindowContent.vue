@@ -95,6 +95,15 @@
             ></SiteExtensionSettings>
           </template>
 
+          <template v-if="settings && selectedTab === 'window.site-extension-settings'" >
+            <h3>Settings for {{site?.host}}</h3>
+            <SiteExtensionSettings
+              :settings="settings"
+              :siteSettings="siteSettings"
+              :isDefaultConfiguration="false"
+            ></SiteExtensionSettings>
+          </template>
+
           <template v-if="settings && selectedTab === 'embedded-extension-settings'" >
             <h3>Settings for embedded sites</h3>
             <FrameSiteSettings
@@ -223,6 +232,15 @@ const AVAILABLE_TABS = {
       { id: 'default-extension-settings', label: 'Default settings' }
     ]
   },
+  'window.site-extension-settings': {
+    id: 'window.site-extension-settings', label: 'Site and Extension options', icon: 'cogs',
+    children: [
+      { id: 'window.site-extension-settings', label: 'For this site', },
+      { id: 'embedded-extension-settings', label: 'For embedded sites', disabled: true, badgeCount: 0, },
+      { id: 'default-extension-settings', label: 'Default settings' },
+      { id: 'website-extension-settings', label: 'Website exceptions' },
+    ]
+  },
   'default-extension-settings': {
       id: 'default-extension-settings', label: 'Site and Extension options', icon: 'cogs',
       children: [
@@ -258,7 +276,15 @@ const TAB_LOADOUT = {
     'debugging',
   ],
   'ui': [
-    'window.player-element-settings'
+    'window.site-extension-settings',
+    'window.player-element-settings',
+    'autodetectionSettings',
+    'ui-settings',
+    'keyboardShortcuts',
+    'changelog',
+    'about',
+    'import-export-settings',
+    'debugging',
   ],
   'updated': [
     'updated',

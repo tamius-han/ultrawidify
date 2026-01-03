@@ -1,14 +1,18 @@
 <template>
-  <div class="
-    w-full h-[100dvh] overflow-hidden
-    p-1 popup-lg:py-2 popup-lg:px-2 window:py-4 window:px-8
-    flex flex-row justify-center items-center
-  ">
+  <div
+    class="
+      w-full h-[100dvh] overflow-hidden
+      flex flex-row justify-center items-center
+    "
+    :class="{
+      'p-1 popup-lg:py-2 popup-lg:px-2 window:py-4 window:px-8 bg-stone-950': role !== 'ui'
+    }"
+  >
 
     <!-- page content -->
     <div
-      class="w-full  h-[100dvh] overflow-hidden flex flex-col"
-      :class="{'max-w-[1920px]': !isDebugging}"
+      class="w-full h-[100dvh] overflow-hidden flex flex-col"
+      :class="{'max-w-[1920px]': !isDebugging && role !== 'ui'}"
     >
       <PopupHead
         v-if="role === 'popup' && settings && siteSettings && eventBus"
@@ -18,6 +22,9 @@
         :eventBus="eventBus"
       >
       </PopupHead>
+      <div v-else-if="role === 'ui'" class="flex flex-row font-mono text-[0.8rem] text-stone-500 border-stone-500">
+        url: {{getUrl}}
+      </div>
       <div v-else>
         <h1 class="text-[3em] grow-0 shrink-0">Ultrawidify settings</h1>
       </div>
@@ -76,6 +83,11 @@ export default defineComponent({
       role: 'settings',
       initialPath: undefined as string[] | undefined,
       isDebugging: false,
+    }
+  },
+  computed: {
+    getUrl() {
+      return window.location.href;
     }
   },
   async created() {

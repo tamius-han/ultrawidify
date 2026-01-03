@@ -15,6 +15,11 @@ import alignmentIndicatorSvg from '!!raw-loader!@ui/res/img/alignment-indicators
 import lockBarIndicatorSvg from  '!!raw-loader!@ui/res/img/lock-bar-indicators.svg';
 import VideoAlignmentType from '../../../common/enums/VideoAlignmentType.enum';
 import { setVideoAlignmentIndicatorState } from '../../../ui/utils/video-alignment-indicator-handling';
+import { UwuiWindow } from './UwuiWindow';
+
+import { createApp } from 'vue';
+import SettingsWindowContent from '@components/SettingsWindowContent.vue';
+// import jsonEditorCSS from 'vanilla-jsoneditor/themes/jse-theme-dark.css?inline'
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: UI");
@@ -293,10 +298,16 @@ class UI {
             }]
           },
           {
-            label: 'todo: open settings'
+            label: 'Extension settings',
+            action: () => this.createSettingsWindow(),
           },
           {
-            label: 'todo: first-time "customize/hide menu" option'
+            label: 'Cropping issues?',
+            action: () => this.createSettingsWindow('ui-settings'),
+          },
+          {
+            label: 'Report a problem',
+            action: () => this.createSettingsWindow('about'),
           }
         ]
       }
@@ -391,6 +402,28 @@ class UI {
 
 
     }
+  }
+
+  createSettingsWindow(path?: string) {
+    const iframe = document.createElement('iframe');
+
+    iframe.src = chrome.runtime.getURL(`ui/pages/settings/index.html#ui${path ? `/${path}` : ''}`);
+    iframe.setAttribute('allowtransparency', 'true');
+    Object.assign(iframe.style, {
+      width: '100%',
+      height: '100%',
+      border: 'none',
+      background: 'transparent',   // important
+    });
+
+    new UwuiWindow({
+      title: 'Ultrawidify settings (iframe)',
+      width: 1200,
+      height: 800,
+      x: 0,
+      y: 0,
+      content: iframe,
+    });
   }
 
   setUiVisibility(visible) {
