@@ -1,14 +1,6 @@
 @import "tailwindcss";
 @import "tailwindcss/utilities";
 
-svg {
-  @apply text-inherit fill-current stroke-current;
-
-  * {
-    @apply text-inherit;
-  }
-}
-
 .uw-menu-root {
   @apply h-full w-full font-mono text-stone-200 text-[16px] flex flex-row bg-transparent;
 
@@ -61,6 +53,18 @@ svg {
   /* * {
     @apply font-mono text-stone-200 text-[1em];
   } */
+
+  svg {
+    @apply text-inherit fill-current stroke-transparent;
+
+    * {
+      @apply text-inherit;
+    }
+  }
+
+  .svg-icon {
+    @apply fill-stone-300 stroke-transparent border-transparent;
+  }
 }
 
 .uw-hidden {
@@ -154,7 +158,6 @@ svg {
   @apply inline-flex flex-row items-center !gap-4 rounded-[0.5rem] relative;
 
   svg {
-    @apply fill-current stroke-current;
     height: 1em;
   }
 
@@ -171,7 +174,6 @@ svg {
   border: 1px solid;
 
   svg {
-    @apply fill-current stroke-current;
     height: 1.5em;
   }
 
@@ -189,7 +191,6 @@ svg {
   @apply flex flex-row items-center justify-center w-[420px];
 
   svg {
-    @apply fill-current stroke-current text-inherit;
     height: 1.5em;
   }
 
@@ -246,6 +247,26 @@ svg {
 
     .uw-freeform-zoom-button {
       @apply cursor-pointer border border-1 border-stone-800 p-2 hover:bg-stone-700 hover:text-white;
+    }
+  }
+}
+
+#videoAlignmentController {
+  @apply text-stone-400;
+
+  svg {
+    @apply border-transparent fill-stone-300 stroke-transparent;
+
+    * {
+      @apply border-transparent text-inherit;
+    }
+
+    rect {
+      stroke: transparent;
+    }
+
+    .selected {
+      @apply fill-primary-400 stroke-primary-400;
     }
   }
 }

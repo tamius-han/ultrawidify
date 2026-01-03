@@ -9,9 +9,12 @@ import { MenuPosition as MenuPosition } from '@src/common/interfaces/ClientUiMen
 import { CommandInterface } from '@src/common/interfaces/SettingsInterface';
 import { SiteSupportLevel } from '@src/common/enums/SiteSupportLevel.enum';
 import { ComponentLogger } from '../logging/ComponentLogger';
+import { setupVideoAlignmentIndicatorInteraction } from '@ui/utils/video-alignment-indicator-handling';
 
 import alignmentIndicatorSvg from '!!raw-loader!@ui/res/img/alignment-indicators.svg';
 import lockBarIndicatorSvg from  '!!raw-loader!@ui/res/img/lock-bar-indicators.svg';
+import VideoAlignmentType from '../../../common/enums/VideoAlignmentType.enum';
+import { setVideoAlignmentIndicatorState } from '../../../ui/utils/video-alignment-indicator-handling';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: UI");
@@ -30,6 +33,18 @@ class UI {
 
   private extensionMenu: ClientMenu;
   private logger: ComponentLogger;
+
+  private uiState = {
+    lockXY: true,
+    zoom: {     // log2 scale — 100% is 0
+      x: 0,
+      y: 0,
+    },
+    videoAlignment: {
+      x: VideoAlignmentType.Default,
+      y: VideoAlignmentType.Default
+    }
+  }
 
   constructor(
     public interfaceId,
@@ -239,7 +254,7 @@ class UI {
                     </div>
 
                     <!-- X/Y LOCK, LINK BAR EDITION -->
-                    <div class="uw-slider-lock-bar-container uw-linked">
+                    <div id="slider-lock" class="uw-slider-lock-bar-container uw-linked">
                       ${lockBarIndicatorSvg}
                     </div>
 
@@ -248,8 +263,8 @@ class UI {
                         id="_button_toggle_aspect_lock"
                         class="uw-freeform-zoom-button uw-link-button uw-linked"
                       >
-                        <svg id="_button_toggle_aspect_lock_locked"   class="uw-linked"   xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>link-variant</title><path d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z" /></svg>
-                        <svg id="_button_toggle_aspect_lock_unlocked" class="uw-unlinked" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>link-variant-off</title><path d="M2,5.27L3.28,4L20,20.72L18.73,22L13.9,17.17L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L12.5,15.76L10.88,14.15C10.87,14.39 10.77,14.64 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C8.12,13.77 7.63,12.37 7.72,11L2,5.27M12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.79,8.97L9.38,7.55L12.71,4.22M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.2,10.54 16.61,12.5 16.06,14.23L14.28,12.46C14.23,11.78 13.94,11.11 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z" /></svg>
+                        <svg id="_button_toggle_aspect_lock_locked"   class="svg-icon uw-linked"   xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>link-variant</title><path d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z" /></svg>
+                        <svg id="_button_toggle_aspect_lock_unlocked" class="svg-icon uw-unlinked" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>link-variant-off</title><path d="M2,5.27L3.28,4L20,20.72L18.73,22L13.9,17.17L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L12.5,15.76L10.88,14.15C10.87,14.39 10.77,14.64 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C8.12,13.77 7.63,12.37 7.72,11L2,5.27M12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.79,8.97L9.38,7.55L12.71,4.22M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.2,10.54 16.61,12.5 16.06,14.23L14.28,12.46C14.23,11.78 13.94,11.11 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z" /></svg>
                       </div>
                     </div>
 
@@ -258,7 +273,7 @@ class UI {
                         id="_button_reset_zoom"
                         class="uw-freeform-zoom-button"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>restore</title><path d="M13,3A9,9 0 0,0 4,12H1L4.89,15.89L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3Z" /></svg>
+                        <svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>restore</title><path d="M13,3A9,9 0 0,0 4,12H1L4.89,15.89L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3Z" /></svg>
                       </div>
                     </div>
                   </div>
@@ -268,8 +283,14 @@ class UI {
             ]
           },
           {
-            label: 'Align',
-            subitems: [{label: 'todo pls'}]
+            label: 'Align video to ...',
+            subitems: [{
+              customId: 'videoAlignmentController',
+              customClassList: '',
+              customHTML: `<div class="svg-icon">
+                ${alignmentIndicatorSvg}
+              </div>`,
+            }]
           },
           {
             label: 'todo: open settings'
@@ -281,6 +302,94 @@ class UI {
       }
       this.extensionMenu = new ClientMenu(menuConfig);
       this.extensionMenu.mount(this.uiConfig.parentElement);
+
+      /**
+       *  SETUP MENU INTERACTIONS
+       * ———————————————————————————————————
+       * Interactions are needed for the following things:
+       *     0. [ ]  both sliders. Needs to read the state of the sliders and update the labels
+       *     1. [ ]  lock X/Y button — needs to update icon state of the button and the linked bar
+       *     2. [ ]  reset button — just needs to reset, no icon changes necessary
+       *     3. [X]  alignment indicator — also needs to update indicator state
+       */
+      const menuElement = this.extensionMenu.root;
+
+      // 0. SLIDERS —————————————————————————————————————————————————————————————————————————————
+      const zoomWidthSlider: HTMLInputElement = menuElement.querySelector('#_input_zoom_slider');
+      const zoomHeightSlider: HTMLInputElement = menuElement.querySelector('#_input_zoom_slider_2');
+      const zoomWidthLabel: HTMLDivElement = menuElement.querySelector('#zoomWidth');
+      const zoomHeightLabel: HTMLDivElement = menuElement.querySelector('#zoomHeight');
+
+      const updateZoomDisplayValues = () => {
+        zoomWidthLabel.textContent = `${Math.round((Math.exp(this.uiState.zoom.x) * 100))}%`;
+        zoomHeightLabel.textContent = `${Math.round((Math.exp(this.uiState.zoom.y) * 100))}%`;
+        zoomWidthSlider.value = this.uiState.zoom.x.toString();
+        zoomHeightSlider.value = this.uiState.zoom.y.toString();
+      }
+
+      const updateZoom = (event: InputEvent, axis: 'x' | 'y') => {
+        const parsedValue = parseFloat((event.currentTarget as HTMLInputElement).value);
+
+        if (this.uiState.lockXY) {
+          this.uiState.zoom = {x: parsedValue, y: parsedValue};
+        } else {
+          this.uiState.zoom[axis] = parsedValue;
+        }
+
+        updateZoomDisplayValues();
+
+        this.eventBus?.send('set-zoom', {
+          zoom: {
+            x: Math.pow(2, this.uiState.zoom.x),
+            y: Math.pow(2, this.uiState.zoom.y)
+          }
+        });
+      }
+
+      zoomWidthSlider.addEventListener('input', (event: InputEvent) => updateZoom(event, 'x'));
+      zoomHeightSlider.addEventListener('input', (event: InputEvent) => updateZoom(event, 'y'));
+
+      // 1. LOCK X/Y ————————————————————————————————————————————————————————————————————————————
+      const lockXYButton = menuElement.querySelector('#_button_toggle_aspect_lock');
+      const sliderLockBar = menuElement.querySelector('#slider-lock');
+      lockXYButton.addEventListener('click', () => {
+        this.uiState.lockXY = !this.uiState.lockXY;
+
+        if (this.uiState.lockXY) {
+          lockXYButton.classList.add('uw-linked');
+          lockXYButton.classList.remove('uw-unlinked');
+          sliderLockBar.classList.add('uw-linked');
+          sliderLockBar.classList.remove('uw-unlinked');
+        } else {
+          lockXYButton.classList.add('uw-unlinked');
+          lockXYButton.classList.remove('uw-linked');
+          sliderLockBar.classList.add('uw-unlinked');
+          sliderLockBar.classList.remove('uw-linked');
+        }
+      });
+
+      // 2. ZOOM RESET BUTTON ———————————————————————————————————————————————————————————————————
+      const zoomResetButton = menuElement.querySelector('#_button_reset_zoom');
+      zoomResetButton.addEventListener('click', () => {
+        this.eventBus?.send('set-zoom', { zoom: {x: 1, y: 1} });
+        this.uiState.zoom = {x: 0, y: 0};
+        updateZoomDisplayValues();
+      });
+
+      // 3. VIDEO ALIGNMENT INDICATOR ———————————————————————————————————————————————————————————
+      const videoAlignmentIndicatorElement: SVGSVGElement = menuElement.querySelector('#_uw_ui_alignment_indicator');
+      setupVideoAlignmentIndicatorInteraction(
+        videoAlignmentIndicatorElement,
+        (x: VideoAlignmentType, y: VideoAlignmentType) => {
+          setVideoAlignmentIndicatorState(videoAlignmentIndicatorElement, x, y);
+          if (this.eventBus) {
+            this.eventBus?.send('set-alignment', {x,y});
+            this.uiState.videoAlignment = {x,y};
+          }
+        }
+      );
+
+
     }
   }
 
