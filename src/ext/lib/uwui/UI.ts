@@ -90,6 +90,32 @@ class UI {
         }
       }
     });
+    this.initMessaging();
+  }
+
+  private initMessaging() {
+    window.addEventListener('message', (event: MessageEvent) => {
+      const data = event.data;
+
+      if (data?.action !== 'uw-bus-tunnel') return;
+
+      const command = data.payload.command;
+      const config = data.payload.config;
+
+      // Forward to all iframes except the source
+      (UwuiWindow as any).instances?.forEach(win => {
+        const iframe = win.content as HTMLIFrameElement;
+        if (iframe && event.source !== iframe.contentWindow) {
+          iframe.contentWindow?.postMessage(
+            {
+              action: 'uw-bus-tunnel',
+              payload: { command, config }
+            },
+            '*'
+          );
+        }
+      });
+    });
   }
 
   executeCommand(x: CommandInterface) {
@@ -423,6 +449,16 @@ class UI {
       x: 0,
       y: 0,
       content: iframe,
+      onClose: () => {
+        this.eventBus.cancelIframeForwarding(iframe)
+      }
+    });
+
+    this.eventBus.forwardToIframe(iframe, (cmd, payload, context) => {
+      iframe.contentWindow?.postMessage(
+        { action: 'uw-bus-tunnel', payload: { command: cmd, config: payload } },
+        '*'
+      );
     });
   }
 
@@ -443,6 +479,8 @@ class UI {
     // }
   }
 
+
+
   /**
    * Replaces ui config and re-inits the UI
    * @param {*} newUiConfig
@@ -457,6 +495,8 @@ class UI {
       this.extensionMenu.destroy();
     }
   }
+
+
 }
 
 if (process.env.CHANNEL !== 'stable'){

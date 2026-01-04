@@ -262,17 +262,52 @@ export default defineComponent({
       this.siteSettings = this.settings.getSiteSettings({site: this.site});
       this.tabs.find(x => x.id === 'changelog').highlight = !this.settings.active?.whatsNewChecked;
 
-      this.eventBus?.subscribe(
-        'uw-show-ui',
-        {
-          source: this,
-          function: () => {
-            if (this.inPlayer) {
-              return; // show-ui is only intended for global overlay
-            }
+      if (!this.eventBus) {
+        this.eventBus = new EventBus();
+      }
+
+      /**
+       * SETUP CROSS-FRAME COMMUNICATION
+       *
+       * 1. We need to allow eventBus to send messages to the parent page
+       * 2. We need to plug messages we receive from parent page into the event bus
+       */
+      this.eventBus.sendToTunnel = (command: string, config: any) => {
+        window.parent.postMessage(
+          {
+            action: 'uw-bus-tunnel',
+            payload: { command, config }
           },
+          '*'
+        );
+      };
+
+      window.addEventListener('message', (event: MessageEvent) => {
+        const data = event.data;
+        if (data?.action === 'uw-bus-tunnel') {
+          // prevent double-crossing by marking borderCrossings
+          this.eventBus.send(data.payload.command, data.payload.config, {
+            borderCrossings: { iframe: true }
+          });
         }
-      )
+      });
+
+      /**
+       * Subscribe to event bus commands.
+       * Note that showing and hiding of the settings window is no longer handled by iframe
+       * Instead, uw-show-ui should be handled by the content-script.
+       */
+      // this.eventBus.subscribe(
+      //   'uw-show-ui',
+      //   {
+      //     source: this,
+      //     function: () => {
+      //       if (this.inPlayer) {
+      //         return; // show-ui is only intended for global overlay
+      //       }
+      //     },
+      //   }
+      // )
     },
 
     //#region EXTENSION POPUP
