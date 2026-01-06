@@ -595,7 +595,10 @@ export default defineComponent({
 
     setExtensionMode(component, event) {
       const option = event.target.value;
-      this.siteSettings.set(component, option);
+
+      // event.target.value is always string (experimentally proven fact),
+      // but all dropdown are either non-numeric strings or numbers
+      this.siteSettings.set(component, isNaN(+option) ? option : +option);
     },
 
     //#region ADVANCED VIDEO PLAYER SETTINGS

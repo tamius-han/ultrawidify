@@ -97,6 +97,9 @@ export class KeyboardHandler extends KbmBase {
    * @param event
    */
   handleEvent(event) {
+    if (this.siteSettings?.data.enableKeyboard === InputHandlingMode.Disabled) {
+      return;
+    }
     if (this.preventAction(event)) {
       this.logger.info('handleKeyup', "we are in a text box or something. Doing nothing.");
       return;
