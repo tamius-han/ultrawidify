@@ -1,3 +1,4 @@
+import { InputHandlingMode } from '../../../common/enums/InputHandlingMode.enum';
 import EventBus from '../EventBus';
 import { SiteSettings } from '../settings/SiteSettings';
 
@@ -30,7 +31,8 @@ export class ExtensionStatus {
   refreshExtensionStatus() {
     const canRun = this.siteSettings.isEnabledForEnvironment(this.isTheaterMode, this.isFullScreen);
     const canAard = this.siteSettings.isAardEnabledForEnvironment(this.isTheaterMode, this.isFullScreen);
-    const canKbd = this.siteSettings.isKeyboardEnabledForEnvironment(this.isTheaterMode, this.isFullScreen);
+
+    const canKbd = this.siteSettings.data.enableKeyboard > InputHandlingMode.Disabled;
 
     if (canRun) {
       this.eventBus.send('set-extension-active', {});

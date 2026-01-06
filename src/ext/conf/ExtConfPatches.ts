@@ -14,6 +14,7 @@ import LegacyExtensionMode from '../../common/enums/LegacyExtensionMode.enum';
 import ExtensionMode from '../../common/enums/ExtensionMode.enum';
 import { PlayerDetectionMode } from '../../common/enums/PlayerDetectionMode.enum';
 import { SiteSupportLevel } from '../../common/enums/SiteSupportLevel.enum';
+import { InputHandlingMode } from '../../common/enums/InputHandlingMode.enum';
 
 
 const ExtensionConfPatch = Object.freeze([
@@ -312,7 +313,13 @@ const ExtensionConfPatch = Object.freeze([
         logger.log('updateFn', '\n\n     ... migrating default enable-state for site', key);
         userOptions.sites[key].enable = convertLegacyExtensionMode(userOptions.sites[key].enable as any);
         userOptions.sites[key].enableAard = convertLegacyExtensionMode(userOptions.sites[key].enableAard as any);
-        userOptions.sites[key].enableKeyboard = convertLegacyExtensionMode(userOptions.sites[key].enableKeyboard as any);
+
+        if (key === '@global') {
+          userOptions.sites['@global'].enableKeyboard = userOptions.kbm.enabled && userOptions.kbm.keyboardEnabled ? InputHandlingMode.Enabled : InputHandlingMode.Disabled;
+        } else {
+          userOptions.sites[key].enableKeyboard = InputHandlingMode.Default;
+        }
+
         userOptions.sites[key].enableUI = convertLegacyExtensionMode(
           userOptions.sites[key].enableUI ?? (key === '@global' ? ExtensionMode.FullScreen : ExtensionMode.Default) as any
         );
@@ -459,6 +466,22 @@ const ExtensionConfPatch = Object.freeze([
       userOptions.sites['@empty'].activeDOMConfig = '@empty';
 
       logger.log('updateFn', 'Migration complete. New site settings:', userOptions.sites);
+    }
+  }, {
+    forVersion: '6.3.997',
+    updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
+
+      // default zoom key combinations that involved the 'shift' key should have
+      // shortcut.key in uppercase, but they didn't.
+      for (const command of userOptions.commands?.zoom) {
+        if (command.shortcut) {
+          if (command.shortcut.shiftKey) {
+            if (command.shortcut.key.toUpperCase() === command.shortcut.code.charAt(3)) {
+              command.shortcut.key = command.shortcut.key.toUpperCase();
+            }
+          }
+        }
+      }
     }
   }
 

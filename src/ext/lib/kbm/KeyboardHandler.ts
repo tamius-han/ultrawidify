@@ -5,6 +5,7 @@ import KbmBase from './KbmBase';
 import { SiteSettings } from '../settings/SiteSettings';
 import { LogAggregator } from '../logging/LogAggregator';
 import { ComponentLogger } from '../logging/ComponentLogger';
+import { InputHandlingMode } from '../../../common/enums/InputHandlingMode.enum';
 
 if(process.env.CHANNEL !== 'stable'){
   console.info("Loading KeyboardHandler");
@@ -96,11 +97,27 @@ export class KeyboardHandler extends KbmBase {
    * @param event
    */
   handleEvent(event) {
-    switch(event.type) {
-      case 'keyup':
-        this.handleKeyup(event);
-        break;
+    if (this.preventAction(event)) {
+      this.logger.info('handleKeyup', "we are in a text box or something. Doing nothing.");
+      return;
     }
+
+    const command = this.hasAction(event);
+
+    if (!command) {
+      return;
+    }
+
+    if (event.type === 'keyup') {
+      this.eventBus.send(command.action, command.arguments);
+    }
+
+    // Doesn't appear to achieve anything on youtube
+    // if (this.siteSettings.data.enableKeyboard === InputHandlingMode.Force) {
+    //   event.preventDefault();
+    //   event.stopPropagation();
+    //   event.stopImmediatePropagation();
+    // }
   }
 
   setKeyboardLocal(state: ExtensionMode) {
@@ -115,35 +132,9 @@ export class KeyboardHandler extends KbmBase {
   preventAction(event) {
     var activeElement = document.activeElement;
 
-    // if (this.logger.canLog('keyboard')) {
-    //   this.logger.pause(); // temp disable to avoid recursing;
-    //   const preventAction = this.preventAction(event);
-    //   this.logger.resume(); // undisable
-
-    //   this.logger.log('info', 'keyboard', "[KeyboardHandler::preventAction] Testing whether we're in a textbox or something. Detailed rundown of conditions:\n" +
-    //   "\nis tag one of defined inputs? (yes->prevent):", this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1,
-    //   "\nis role = textbox? (yes -> prevent):", activeElement.getAttribute("role") === "textbox",
-    //   "\nis type === 'text'? (yes -> prevent):", activeElement.getAttribute("type") === "text",
-    //   "\nevent.target.isContentEditable? (yes -> prevent):", event.target.isContentEditable,
-    //   "\nis keyboard local disabled? (yes -> prevent):", this.keyboardLocalDisabled,
-    //   // "\nis keyboard enabled in settings? (no -> prevent)", this.settings.keyboardShortcutsEnabled(window.location.hostname),
-    //   "\nwill the action be prevented? (yes -> prevent)", preventAction,
-    //   "\n-----------------{ extra debug info }-------------------",
-    //   "\ntag name? (lowercase):", activeElement.tagName, activeElement.tagName.toLocaleLowerCase(),
-    //   "\nrole:", activeElement.getAttribute('role'),
-    //   "\ntype:", activeElement.getAttribute('type'),
-    //   "\ninsta-fail inputs:", this.inputs,
-    //   "\nevent:", event,
-    //   "\nevent.target:", event.target
-    //   );
-    // }
-
     if (this.keyboardLocalDisabled) {
       return true;
     }
-    // if (!this.settings.keyboardShortcutsEnabled(window.location.hostname)) {
-    //   return true;
-    // }
     if (this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1) {
       return true;
     }
@@ -208,28 +199,31 @@ export class KeyboardHandler extends KbmBase {
   }
 
 
-  handleKeyup(event) {
-    this.logger.info('handleKeyup', "we pressed a key: ", event.key , " | keyup: ", event.keyup, "event:", event);
+  private _actionCache: any = {};
+  hasAction(event) {
+    const actionHash = `${event.code}-${event.ctrlKey ? 1 : 0}${event.shiftKey ? 1 : 0}${event.altKey ? 1 : 0}${event.metaKey ? 1 : 0}${event.key}`;
 
-    try {
-      if (this.preventAction(event)) {
-        this.logger.info('handleKeyup', "we are in a text box or something. Doing nothing.");
-        return;
-      }
-
-      this.logger.info('handleKeyup', "Trying to find and execute action for event. Actions/event:", this.keypressActions, event);
-
-      const isLatin = this.isLatin(event.key);
-      for (const command of this.keypressActions) {
-        if (this.isActionMatch(command.shortcut, event, isLatin)) {
-          this.eventBus.send(command.action, command.arguments);
-        }
-      }
-    } catch (e) {
-      this.logger.debug('handleKeyup', 'Failed to handle keyup!', e);
+    if (this._actionCache[actionHash] !== undefined) {
+      return this._actionCache[actionHash];
     }
+
+    const isLatin = this.isLatin(event.key.toLowerCase());
+
+    for (const command of this.keypressActions) {
+      if (this.isActionMatch(command.shortcut, event, isLatin)) {
+        this._actionCache[actionHash] = command;
+        return command;
+      }
+    }
+
+    this._actionCache[actionHash] = false;
+    return false;
   }
 
+  load() {
+    this._actionCache = {};
+    super.load();
+  }
 }
 
 if(process.env.CHANNEL !== 'stable'){

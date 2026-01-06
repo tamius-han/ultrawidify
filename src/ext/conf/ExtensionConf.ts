@@ -14,6 +14,7 @@ import { AardPollingOptions } from '../lib/aard/enums/aard-polling-options.enum'
 import { AardSubtitleCropMode } from '../lib/aard/enums/aard-subtitle-crop-mode.enum';
 import { SiteSupportLevel } from '../../common/enums/SiteSupportLevel.enum';
 import { PlayerDetectionMode } from '../../common/enums/PlayerDetectionMode.enum';
+import { InputHandlingMode } from '../../common/enums/InputHandlingMode.enum';
 
 if(Debug.debug)
   console.log("Loading: ExtensionConf.js");
@@ -805,7 +806,7 @@ const ExtensionConf: SettingsInterface = {
                                             //      #s   — only available for specific site
       enable: ExtensionMode.Disabled,
       enableAard: ExtensionMode.Theater,
-      enableKeyboard: ExtensionMode.All,
+      enableKeyboard: InputHandlingMode.Enabled,
       enableUI: ExtensionMode.FullScreen,
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
@@ -843,7 +844,7 @@ const ExtensionConf: SettingsInterface = {
 
       enable: ExtensionMode.Default,
       enableAard: ExtensionMode.Default,
-      enableKeyboard: ExtensionMode.Default,
+      enableKeyboard: InputHandlingMode.Enabled,
       enableUI: ExtensionMode.Default,
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Default,
       overrideWhenEmbedded: EmbeddedContentSettingsOverridePolicy.Default,
@@ -880,7 +881,7 @@ const ExtensionConf: SettingsInterface = {
     "www.youtube.com": {
       enable: ExtensionMode.All,
       enableAard: ExtensionMode.All,
-      enableKeyboard: ExtensionMode.All,
+      enableKeyboard: InputHandlingMode.Default,
       enableUI:  ExtensionMode.Default,
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
@@ -907,7 +908,7 @@ const ExtensionConf: SettingsInterface = {
     "www.youtube-nocookie.com": {
       enable: ExtensionMode.All,
       enableAard: ExtensionMode.All,
-      enableKeyboard: ExtensionMode.All,
+      enableKeyboard: InputHandlingMode.Default,
       enableUI: ExtensionMode.FullScreen,
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
@@ -935,7 +936,7 @@ const ExtensionConf: SettingsInterface = {
     "www.netflix.com" : {
       enable: ExtensionMode.Theater,
       enableAard: ExtensionMode.Disabled,
-      enableKeyboard: ExtensionMode.All,
+      enableKeyboard: InputHandlingMode.Default,
       enableUI:  ExtensionMode.All,
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
       override: false,
@@ -960,7 +961,7 @@ const ExtensionConf: SettingsInterface = {
     "www.disneyplus.com" : {
       enable: ExtensionMode.Theater,
       enableAard: ExtensionMode.Theater,
-      enableKeyboard: ExtensionMode.All,
+      enableKeyboard: InputHandlingMode.Default,
       enableUI: ExtensionMode.FullScreen,
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
@@ -989,7 +990,7 @@ const ExtensionConf: SettingsInterface = {
     "www.twitch.tv": {
       enable: ExtensionMode.All,
       enableAard: ExtensionMode.All,
-      enableKeyboard: ExtensionMode.All,
+      enableKeyboard: InputHandlingMode.Default,
       enableUI: ExtensionMode.FullScreen,
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
@@ -1013,7 +1014,7 @@ const ExtensionConf: SettingsInterface = {
     "old.reddit.com" : {
       enable: ExtensionMode.Disabled,
       enableAard: ExtensionMode.Disabled,
-      enableKeyboard: ExtensionMode.Disabled,
+      enableKeyboard: InputHandlingMode.Disabled,
       enableUI: ExtensionMode.Disabled,
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Never,
@@ -1023,7 +1024,7 @@ const ExtensionConf: SettingsInterface = {
     "www.reddit.com" : {
       enable: ExtensionMode.Disabled,
       enableAard: ExtensionMode.Disabled,
-      enableKeyboard: ExtensionMode.Disabled,
+      enableKeyboard: InputHandlingMode.Disabled,
       enableUI: ExtensionMode.Disabled,
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Never,
@@ -1033,7 +1034,7 @@ const ExtensionConf: SettingsInterface = {
     "imgur.com": {
       enable: ExtensionMode.Disabled,
       enableAard: ExtensionMode.Disabled,
-      enableKeyboard: ExtensionMode.Disabled,
+      enableKeyboard: InputHandlingMode.Disabled,
       enableUI: ExtensionMode.Disabled,
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Never,
@@ -1043,7 +1044,7 @@ const ExtensionConf: SettingsInterface = {
     "www.wakanim.tv": {
       enable: ExtensionMode.All,
       enableAard: ExtensionMode.All,
-      enableKeyboard: ExtensionMode.All,
+      enableKeyboard: InputHandlingMode.Default,
       enableUI: ExtensionMode.FullScreen,
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
@@ -1066,7 +1067,7 @@ const ExtensionConf: SettingsInterface = {
     "app.plex.tv": {
       enable: ExtensionMode.Theater,
       enableAard: ExtensionMode.Theater,
-      enableKeyboard: ExtensionMode.Theater,
+      enableKeyboard: InputHandlingMode.Default,
       enableUI: ExtensionMode.FullScreen,
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
@@ -1076,7 +1077,7 @@ const ExtensionConf: SettingsInterface = {
     "metaivi.com": {
       enable: ExtensionMode.Theater,
       enableAard: ExtensionMode.Theater,
-      enableKeyboard: ExtensionMode.Theater,
+      enableKeyboard: InputHandlingMode.Default,
       enableUI: ExtensionMode.FullScreen,
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
       type: SiteSupportLevel.CommunitySupport,
@@ -1085,7 +1086,7 @@ const ExtensionConf: SettingsInterface = {
     "piped.kavin.rocks": {
       enable: ExtensionMode.Theater,
       enableAard: ExtensionMode.Theater,
-      enableKeyboard: ExtensionMode.Theater,
+      enableKeyboard: InputHandlingMode.Default,
       enableUI: ExtensionMode.FullScreen,
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,

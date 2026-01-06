@@ -8,6 +8,7 @@ import ExtensionMode from '@src/common/enums/ExtensionMode.enum'
 import StretchType from '@src/common/enums/StretchType.enum'
 import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum'
 import { PlayerDetectionMode } from '@src/common/enums/PlayerDetectionMode.enum';
+import { InputHandlingMode } from '@src/common/enums/InputHandlingMode.enum';
 
 export enum ExtensionEnvironment {
   Normal = ExtensionMode.All,
@@ -344,7 +345,7 @@ interface SettingsInterface {
     conditionalDifferencePercent: number  // black bars less than this wide will trigger stretch
                                         // if mode is set to '1'. 1.0=100%
   },
-  kbm: {
+  kbm: {      // TODO: we dont use this anymore
     enabled: boolean,          // if keyboard/mouse handler service will run
     keyboardEnabled: boolean,  // if keyboard shortcuts are processed
     mouseEnabled: boolean,     // if mouse movement is processed
@@ -439,7 +440,7 @@ interface SettingsInterface {
 export interface SiteSettingsInterface {
   enable: ExtensionMode;
   enableAard: ExtensionMode;
-  enableKeyboard: ExtensionMode;
+  enableKeyboard: InputHandlingMode;
   enableUI: ExtensionMode;
 
   applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy; // presumed to be 'Use as default' if not defined

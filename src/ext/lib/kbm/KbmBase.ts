@@ -1,3 +1,4 @@
+import { InputHandlingMode } from '@src/common/enums/InputHandlingMode.enum';
 import EventBus, { EventBusCommand } from '../EventBus';
 import { ComponentLogger } from '../logging/ComponentLogger';
 import Settings from '../settings/Settings';
@@ -30,6 +31,7 @@ export class KbmBase {
 
   constructor(eventBus: EventBus, siteSettings: SiteSettings, settings: Settings, logger: ComponentLogger) {
     this.logger = logger;
+    this.siteSettings = siteSettings;
     this.settings = settings;
     this.eventBus = eventBus;
   }
@@ -78,10 +80,17 @@ export class KbmBase {
     // way, otherwise we can't remove event listener
     // https://stackoverflow.com/a/19507086
 
+    const enableInput = this.siteSettings.data.enableKeyboard;
+
+    if (enableInput === InputHandlingMode.Disabled) {
+      return;
+    }
+
     for (const ev of this.listenFor) {
-      if (ev.startsWith('key') ? this.settings.active.kbm.keyboardEnabled : this.settings.active.kbm.mouseEnabled) {
-        document.addEventListener(ev, this);
-      }
+      document.addEventListener(
+        ev,
+        this
+      );
     }
   }
 
@@ -96,6 +105,10 @@ export class KbmBase {
     //   return;
     // }
     // todo: detect if this is enabled or not
+    if (!this.siteSettings) {
+      console.warn('Site settings are undefined!');
+      return;
+    }
     this.addListener();
   }
 

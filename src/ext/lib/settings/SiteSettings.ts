@@ -309,6 +309,7 @@ export class SiteSettings {
   canRunUI(environment: ExtensionEnvironment) {
     return environment <= this.data.enableUI;
   }
+
   canRunKeyboard(environment: ExtensionEnvironment) {
     return environment <= this.data.enableKeyboard;
   }
@@ -385,18 +386,6 @@ export class SiteSettings {
     const env = this._getEnvironment(isTheater, isFullscreen);
     return env <= this.data.enableAard;
   }
-
-  /**
-   * Returns whether keyboard interactions are enabled in current environment
-   * @param isTheater
-   * @param isFullscreen
-   * @returns
-   */
-  isKeyboardEnabledForEnvironment(isTheater: boolean, isFullscreen: boolean): boolean {
-    const env = this._getEnvironment(isTheater, isFullscreen);
-    return env <= this.data.enableKeyboard;
-  }
-
   //#endregion
 
   //#region get

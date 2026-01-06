@@ -99,33 +99,21 @@
             :value="simpleExtensionSettings.enableKeyboard"
             @click="setExtensionMode('enableKeyboard', $event)"
           >
-            <option
-              v-if="simpleExtensionSettings.enable === 'complex'"
-              value="complex"
-            >
-              (Site uses advanced settings)
-            </option>
             <template v-if="isDefaultConfiguration">
-              <option :value="ExtensionMode.Disabled">
+              <option :value="InputHandlingMode.Disabled">
                 Disabled by default
               </option>
             </template>
             <template v-else>
-              <option :value="ExtensionMode.Default">
+              <option :value="InputHandlingMode.Default">
                 Use default ({{simpleDefaultSettings.enableKeyboard}})
               </option>
-              <option :value="ExtensionMode.Disabled">
-                Never
+              <option :value="InputHandlingMode.Disabled">
+                Disable keyboard shortcut
               </option>
             </template>
-            <option :value="ExtensionMode.FullScreen">
-              Fullscreen only
-            </option>
-            <option :value="ExtensionMode.Theater">
-              Fullscreen and theater mode
-            </option>
-            <option :value="ExtensionMode.All">
-              Always
+            <option :value="InputHandlingMode.Enabled">
+              Enable keyboard shortcuts
             </option>
           </select>
         </div>
@@ -348,6 +336,7 @@ import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
 import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
 import CropModePersistence from '@src/common/enums/CropModePersistence.enum';
 import EmbeddedContentSettingsOverridePolicy from '@src/common/enums/EmbeddedContentSettingsOverridePolicy.enum';
+import { InputHandlingMode } from '@src/common/enums/InputHandlingMode.enum';
 
 export default defineComponent({
 
@@ -367,6 +356,7 @@ export default defineComponent({
       CropModePersistence: CropModePersistence,
       ExtensionMode,
       EmbeddedContentSettingsOverridePolicy,
+      InputHandlingMode,
       alignmentOptions: [
         {label: 'Top left', arguments: {x: VideoAlignmentType.Left, y: VideoAlignmentType.Top}},
         {label: 'Top center', arguments: {x: VideoAlignmentType.Center, y: VideoAlignmentType.Top}},
@@ -466,7 +456,7 @@ export default defineComponent({
      * Gets option labels for default values of each option
      */
     getDefaultOptionLabel(component) {
-      const componentValue: ExtensionMode | EmbeddedContentSettingsOverridePolicy = this.compileSimpleSettings(component, 'default');
+      const componentValue: ExtensionMode | InputHandlingMode | EmbeddedContentSettingsOverridePolicy = this.compileSimpleSettings(component, 'default');
 
       if (component === 'overrideWhenEmbedded') {
         switch (componentValue) {
@@ -493,6 +483,15 @@ export default defineComponent({
             return 'default';
           default:
             return '<invalid value>';
+        }
+      }
+
+      if (component === 'enableKeyboard') {
+        switch (componentValue as InputHandlingMode) {
+          case InputHandlingMode.Disabled:
+            return 'disabled';
+          case InputHandlingMode.Enabled:
+            return 'enabled';
         }
       }
 
