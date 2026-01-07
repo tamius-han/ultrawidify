@@ -1,7 +1,8 @@
-import BrowserDetect from '../../conf/BrowserDetect';
-import EventBus, { EventBusContext } from '../EventBus';
+import { EventBusContext } from '@/common/interfaces/EventBusMessage.interface';
+import EventBus from '../EventBus';
 import { ComponentLogger } from '../logging/ComponentLogger';
 import { LogAggregator } from '../logging/LogAggregator';
+import BrowserDetect from '@/ext/conf/BrowserDetect';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading CommsClient");

@@ -111,15 +111,15 @@
 <script>
 import Donate from '../common/misc/Donate.vue';
 import SuperAdvancedSettings from './SuperAdvancedSettings.vue';
-import Settings from '../ext/lib/settings/Settings';
+import Settings from '../ext/module/settings/Settings';
 import GeneralSettings from './GeneralSettings';
 import ControlsSettings from './controls-settings/ControlsSettings';
 import AddEditActionPopup from './controls-settings/AddEditActionPopup';
 import ConfirmPopup from './common/ConfirmationPopup';
 import About from './about'
 import AutodetectionSettings  from './AutodetectionSettings';
-import { LogAggregator } from '@src/ext/lib/logging/LogAggregator';
-import { ComponentLogger } from '@src/ext/lib/logging/ComponentLogger';
+import { LogAggregator } from '@src/ext/module/logging/LogAggregator';
+import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
 
 export default {
   name: "Ultrawidify",

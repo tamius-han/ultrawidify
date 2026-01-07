@@ -1,4 +1,4 @@
-import { SiteSettings } from './../settings/SiteSettings';
+import { SiteSettings } from '../settings/SiteSettings';
 import Debug from '../../conf/Debug';
 import Scaler, { CropStrategy, VideoDimensions } from './Scaler';
 import Stretcher from './Stretcher';

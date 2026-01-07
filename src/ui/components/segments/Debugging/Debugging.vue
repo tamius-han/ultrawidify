@@ -198,8 +198,8 @@ import Popup from '@components/common/Popup.vue';
 import JsonEditor from '@components/common/JsonEditor.vue';
 import UploadJsonFileButton from '@components/common/UploadJsonFileButton.vue';
 
-import { LogAggregator, BLANK_LOGGER_CONFIG } from '@src/ext/lib/logging/LogAggregator';
-import { SettingsSnapshot } from '@src/ext/lib/settings/SettingsSnapshotManager';
+import { LogAggregator, BLANK_LOGGER_CONFIG } from '@src/ext/module/logging/LogAggregator';
+import { SettingsSnapshot } from '@src/ext/module/settings/SettingsSnapshotManager';
 import SettingsInterface from '@src/common/interfaces/SettingsInterface';
 import { _cp } from '@src/common/js/utils';
 

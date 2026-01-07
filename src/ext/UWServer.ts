@@ -1,11 +1,12 @@
 import Debug from './conf/Debug.js';
 import BrowserDetect from './conf/BrowserDetect';
-import CommsServer from './lib/comms/CommsServer';
-import Settings from './lib/settings/Settings';
+import CommsServer from './module/comms/CommsServer.js';
+import Settings from './module/settings/Settings.js';
 import { sleep } from '../common/js/utils';
-import EventBus, { EventBusCommand } from './lib/EventBus';
-import { ComponentLogger } from './lib/logging/ComponentLogger';
-import { BLANK_LOGGER_CONFIG, LogAggregator } from './lib/logging/LogAggregator';
+import { ComponentLogger } from './module/logging/ComponentLogger.js';
+import { BLANK_LOGGER_CONFIG, LogAggregator } from './module/logging/LogAggregator.js';
+import { Runtime } from 'chrome';
+import EventBus from '@src/ext/module/EventBus.js';
 
 
 const BASE_LOGGING_STYLES = {
@@ -50,7 +51,7 @@ export default class UWServer {
       function: (message, context) => this.replaceCss(message.oldCssString, message.newCssString, context.comms.sender)
     },
     'get-current-site': {
-      function: (message, context) => this.getCurrentSite()
+      function: (message, context) => this.getCurrentSite(context.comms.sender)
     }
   };
 
@@ -101,7 +102,7 @@ export default class UWServer {
     });
   }
 
-  //#region CSS managemeent
+  //#region CSS management
 
   async injectCss(css, sender) {
     this.logger.info('injectCss', 'Trying to inject CSS into tab', sender.tab.id, ', frameId:', sender.frameId, 'css:\n', css)
@@ -201,7 +202,7 @@ export default class UWServer {
     const tabHostname = this.extractHostname(sender.tab.url);
     const frameHostname = this.extractHostname(sender.url);
 
-    // check for orphaned/outdated values and remove them if neccessary
+    // check for orphaned/outdated values and remove them if necessary
     if (this.videoTabs[sender.tab.id]?.host != tabHostname) {
       delete this.videoTabs[sender.tab.id]
     } else if(this.videoTabs[sender.tab.id]?.frames[sender.frameId]?.host != frameHostname) {
@@ -252,7 +253,7 @@ export default class UWServer {
     this.selectedSubitem[menu] = subitem;
   }
 
-  async getCurrentSite() {
+  async getCurrentSite(sender: Runtime.MessageSender) {
     this.logger.info('getCurrentSite', 'received get-current-site ...');
 
     const site = await this.getVideoTab();

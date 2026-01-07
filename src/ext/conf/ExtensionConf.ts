@@ -10,8 +10,8 @@ import SettingsInterface from '../../common/interfaces/SettingsInterface';
 import BrowserDetect from './BrowserDetect';
 import { Extension } from 'typescript';
 import EmbeddedContentSettingsOverridePolicy from '../../common/enums/EmbeddedContentSettingsOverridePolicy.enum';
-import { AardPollingOptions } from '../lib/aard/enums/aard-polling-options.enum';
-import { AardSubtitleCropMode } from '../lib/aard/enums/aard-subtitle-crop-mode.enum';
+import { AardPollingOptions } from '../module/aard/enums/aard-polling-options.enum';
+import { AardSubtitleCropMode } from '../module/aard/enums/aard-subtitle-crop-mode.enum';
 import { SiteSupportLevel } from '../../common/enums/SiteSupportLevel.enum';
 import { PlayerDetectionMode } from '../../common/enums/PlayerDetectionMode.enum';
 import { InputHandlingMode } from '../../common/enums/InputHandlingMode.enum';
@@ -293,11 +293,6 @@ const ExtensionConf: SettingsInterface = {
     minLogZoom: -1,
     maxLogZoom: 3,
     announceDebounce: 200     // we wait this long before announcing new zoom
-  },
-  kbm: {
-    enabled: true,
-    keyboardEnabled: true,
-    mouseEnabled: true
   },
   miscSettings: {
     mousePan: {

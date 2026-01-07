@@ -1,5 +1,5 @@
-import { AardPollingOptions } from '@src/ext/lib/aard/enums/aard-polling-options.enum'
-import { AardSubtitleCropMode } from '@src/ext/lib/aard/enums/aard-subtitle-crop-mode.enum'
+import { AardPollingOptions } from '@src/ext/module/aard/enums/aard-polling-options.enum'
+import { AardSubtitleCropMode } from '@src/ext/module/aard/enums/aard-subtitle-crop-mode.enum'
 import { SiteSupportLevel } from '@src/common/enums/SiteSupportLevel.enum';
 import AspectRatioType from '@src/common/enums/AspectRatioType.enum'
 import CropModePersistence from '@src/common/enums/CropModePersistence.enum'

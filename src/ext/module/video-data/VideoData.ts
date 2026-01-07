@@ -5,7 +5,6 @@ import BrowserDetect from '../../conf/BrowserDetect';
 import Settings from '../settings/Settings';
 import PageInfo from './PageInfo';
 import { sleep } from '../../../common/js/utils';
-import { hasDrm } from '../ar-detect/DrmDetecor';
 import EventBus from '../EventBus';
 import { SiteSettings } from '../settings/SiteSettings';
 import { Ar } from '../../../common/interfaces/ArInterface';
@@ -18,6 +17,7 @@ import { ExtensionEnvironment } from '../../../common/interfaces/SettingsInterfa
 import { LogAggregator } from '../logging/LogAggregator';
 import { ComponentLogger } from '../logging/ComponentLogger';
 import { AardLegacy } from '../aard/AardLegacy';
+import { hasDrm } from '@src/ext/module/ar-detect/DrmDetector';
 
 /**
  * VideoData — handles CSS for the video element.
@@ -143,7 +143,7 @@ class VideoData {
     };
 
     if (!pageInfo.eventBus) {
-      this.eventBus = new EventBus();
+      this.eventBus = new EventBus({name: 'video-data'});
     } else {
       this.eventBus = pageInfo.eventBus;
     }

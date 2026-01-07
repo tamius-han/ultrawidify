@@ -1,6 +1,7 @@
 {
   "cSpell.words": [
     "aard",
+    "allowtransparency",
     "ardetector",
     "autodetect",
     "autodetection",
@@ -8,6 +9,7 @@
     "blackbar",
     "blackbars",
     "blackframe",
+    "bruteforce",
     "canvas",
     "clickthrough",
     "cmpa",
@@ -15,6 +17,7 @@
     "com",
     "comms",
     "csui",
+    "ctab",
     "cycleable",
     "decycle",
     "dinked",
@@ -90,7 +93,8 @@
     "wuckies",
     "wucky",
     "ycenter",
-    "youtube"
+    "youtube",
+    "YYMM"
   ],
   "cSpell.ignoreWords": [
     "abcdefghijklmnopqrstuvwxyz",

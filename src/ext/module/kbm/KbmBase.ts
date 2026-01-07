@@ -1,8 +1,9 @@
+import EventBus from '@/ext/module/EventBus';
+import { ComponentLogger } from '@/ext/module/logging/ComponentLogger';
+import Settings from '@/ext/module/settings/Settings';
+import { SiteSettings } from '@/ext/module/settings/SiteSettings';
 import { InputHandlingMode } from '@src/common/enums/InputHandlingMode.enum';
-import EventBus, { EventBusCommand } from '../EventBus';
-import { ComponentLogger } from '../logging/ComponentLogger';
-import Settings from '../settings/Settings';
-import { SiteSettings } from '../settings/SiteSettings';
+import { EventBusCommand } from '@src/common/interfaces/EventBusMessage.interface';
 
 export class KbmBase {
   listenFor: string[] = [];
@@ -79,6 +80,10 @@ export class KbmBase {
     // events should be handled in handleEvent function. We need to do things this
     // way, otherwise we can't remove event listener
     // https://stackoverflow.com/a/19507086
+
+    if (!this.siteSettings) {
+
+    }
 
     const enableInput = this.siteSettings.data.enableKeyboard;
 

@@ -1,11 +1,12 @@
-import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
-import Settings from '../settings/Settings';
-import EventBus, { EventBusCommand } from '../EventBus';
-import KbmBase from './KbmBase';
-import { SiteSettings } from '../settings/SiteSettings';
-import { LogAggregator } from '../logging/LogAggregator';
-import { ComponentLogger } from '../logging/ComponentLogger';
-import { InputHandlingMode } from '../../../common/enums/InputHandlingMode.enum';
+import { KbmBase } from '@/ext/module/kbm/KbmBase';
+import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
+import { InputHandlingMode } from '@src/common/enums/InputHandlingMode.enum';
+import { EventBusCommand } from '@src/common/interfaces/EventBusMessage.interface';
+import EventBus from '@src/ext/module/EventBus';
+import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
+import { LogAggregator } from '@src/ext/module/logging/LogAggregator';
+import Settings from '@src/ext/module/settings/Settings';
+import { SiteSettings } from '@src/ext/module/settings/SiteSettings';
 
 if(process.env.CHANNEL !== 'stable'){
   console.info("Loading KeyboardHandler");
@@ -172,7 +173,6 @@ export class KeyboardHandler extends KbmBase {
 
     return event;
   }
-
 
   isLatin(key) {
     return 'abcdefghijklmnopqrstuvwxyz1234567890'.indexOf(key.toLocaleLowerCase()) !== -1;

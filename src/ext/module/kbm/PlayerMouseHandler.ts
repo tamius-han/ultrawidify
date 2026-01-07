@@ -1,4 +1,4 @@
-import { LogAggregator } from './../logging/LogAggregator';
+import { LogAggregator } from '../logging/LogAggregator';
 import EventBus, { EventBusCommand } from '../EventBus';
 import { ComponentLogger } from '../logging/ComponentLogger';
 import Settings from '../settings/Settings';

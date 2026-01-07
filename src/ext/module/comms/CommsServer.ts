@@ -1,15 +1,15 @@
-import { ComponentLogger } from './../logging/ComponentLogger';
-import Settings from '../settings/Settings';
-import EventBus from '../EventBus';
+import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
+import Settings from '@src/ext/module/settings/Settings';
+import EventBus from '@src/ext/module/EventBus';
 import { CommsOrigin } from './CommsClient';
-
+import UWServer from '@src/ext/UWServer';
 
 const BASE_LOGGING_STYLES = {
   log: "background-color: #11D; color: #aad",
 };
 
 class CommsServer {
-  server: any;
+  server: UWServer;
   logger: ComponentLogger;
   settings: Settings;
   eventBus: EventBus;
@@ -76,17 +76,17 @@ class CommsServer {
   //#endregion
 
   //#region lifecycle
-  constructor(server) {
+  constructor(server: UWServer) {
     this.server = server;
     this.logger = new ComponentLogger(server.logAggregator, 'CommsServer', {styles: BASE_LOGGING_STYLES});
     this.settings = server.settings;
     this.eventBus = server.eventBus;
 
     chrome.runtime.onConnect.addListener(p => this.onConnect(p));
-    chrome.runtime.onMessage.addListener((m, sender) => this.processReceivedMessage_nonpersistent(m, sender));
+    chrome.runtime.onMessage.addListener((m, sender: chrome.runtime.MessageSender) => this.processReceivedMessage_nonpersistent(m, sender));
   }
 
-  private onConnect(port){
+  private onConnect(port: chrome.runtime.Port){
     // special case
     if (port.name === 'popup-port') {
       this.popupPort = port;
@@ -297,7 +297,11 @@ class CommsServer {
   }
 
 
-  private async processReceivedMessage(message, port, sender?: {frameId: string, tabId: string}){
+  private async processReceivedMessage(
+    message: any,
+    port: chrome.runtime.Port,
+    sender?: chrome.runtime.MessageSender
+  ){
     this.logger.info('processMessage', `                   ==> Received message ${message.command ?? ''} from content script or port`, "background-color: #11D; color: #aad", message, port, sender);
     // this triggers events
     this.eventBus.send(
@@ -318,7 +322,10 @@ class CommsServer {
     );
   }
 
-  private processReceivedMessage_nonpersistent(message, sender){
+  private processReceivedMessage_nonpersistent(
+    message,
+    sender: chrome.runtime.MessageSender
+  ){
     this.logger.info('processMessage_nonpersistent', `                   ==> Received message from background script!`, message, sender);
 
     this.eventBus.send(

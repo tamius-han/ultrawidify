@@ -75,10 +75,10 @@
 
 <script lang="ts">
 import BrowserDetect from '@src/ext/conf/BrowserDetect';
-import { LogAggregator } from '@src/ext/lib/logging/LogAggregator';
-import { ComponentLogger } from '@src/ext/lib/logging/ComponentLogger';
-import Settings from '@src/ext/lib/settings/Settings';
-import { AardSubtitleCropMode } from '@src/ext/lib/aard/enums/aard-subtitle-crop-mode.enum';
+import { LogAggregator } from '@src/ext/module/logging/LogAggregator';
+import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
+import Settings from '@src/ext/module/settings/Settings';
+import { AardSubtitleCropMode } from '@src/ext/module/aard/enums/aard-subtitle-crop-mode.enum';
 
 export default {
   props: [

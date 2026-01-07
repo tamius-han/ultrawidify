@@ -298,7 +298,7 @@
 </template>
 
 <script lang="ts">
-import { SiteSettings } from '@src/ext/lib/settings/SiteSettings';
+import { SiteSettings } from '@src/ext/module/settings/SiteSettings';
 import { PlayerDetectionMode } from '@src/common/enums/PlayerDetectionMode.enum';
 import UploadJsonFileButton from '@components/common/UploadJsonFileButton.vue';
 import SupportLevelIndicator from '@components/common/SupportLevelIndicator.vue';

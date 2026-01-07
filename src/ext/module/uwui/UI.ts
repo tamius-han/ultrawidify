@@ -443,7 +443,7 @@ class UI {
     });
 
     new UwuiWindow({
-      title: 'Ultrawidify settings (iframe)',
+      title: `Ultrawidify settings (${window.location.host})`,
       width: 1200,
       height: 800,
       x: 0,

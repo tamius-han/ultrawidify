@@ -5,7 +5,7 @@
       flex flex-row justify-center items-center
     "
     :class="{
-      'p-1 popup-lg:py-2 popup-lg:px-2 window:py-4 window:px-8 bg-stone-950': role !== 'ui'
+      'p-1 popup-lg:py-2 popup-lg:px-2 window:py-4 window:px-8 bg-stone-950': role !== 'ui-window'
     }"
   >
 
@@ -38,6 +38,7 @@
         :role="role"
         :initialPath="initialPath"
         :settings="settings"
+        :siteSettings="siteSettings"
         :eventBus="eventBus"
         :logger="logger"
         :inPlayer="false"
@@ -52,24 +53,28 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import BrowserDetect from '@src/ext/conf/BrowserDetect';
-import { LogAggregator } from '@src/ext/lib/logging/LogAggregator';
-import { ComponentLogger } from '@src/ext/lib/logging/ComponentLogger';
-import Settings from '@src/ext/lib/settings/Settings';
-import { SiteSettings } from '@src/ext/lib/settings/SiteSettings';
+import { LogAggregator } from '@src/ext/module/logging/LogAggregator';
+import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
+import Settings from '@src/ext/module/settings/Settings';
+import { SiteSettings } from '@src/ext/module/settings/SiteSettings';
 import SettingsWindowContent from '@components/SettingsWindowContent.vue';
 
-import EventBus from '@src/ext/lib/EventBus';
-import CommsClient, { CommsOrigin } from '@src/ext/lib/comms/CommsClient';
+import EventBus from '@src/ext/module/EventBus';
+import CommsClient, { CommsOrigin } from '@src/ext/module/comms/CommsClient';
 import {ChromeShittinessMitigations as CSM} from '@src/common/js/ChromeShittinessMitigations';
 
 import PopupHead from '@components/PopupHead.vue';
 import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
+import WarningsMixin from '../../utils/mixins/WarningsMixin.vue';
 
 export default defineComponent({
   components: {
     SettingsWindowContent,
     PopupHead,
   },
+  mixins: [
+    WarningsMixin
+  ],
   data () {
     return {
       BrowserDetect,
@@ -91,30 +96,34 @@ export default defineComponent({
     }
   },
   async created() {
-    const [segment, ...path] = window.location.hash.split('/');
-    this.initialPath = path;
+    try {
+      const [segment, ...path] = window.location.hash.split('/');
+      this.initialPath = path;
 
-    switch (segment) {
-      case '#popup':
-        await this.setupPopup();
-        break;
-      case '#iframe':
-        await this.setupIframe();
-        break;
-      case '#settings':
-      case '#updated':
-      case '#installed':
-      default:
-        await this.setupSettingsPage(segment);
+      switch (segment) {
+        case '#popup':
+          await this.setupPopup();
+          break;
+        case '#ui':
+          await this.setupIframe();
+          break;
+        case '#settings':
+        case '#updated':
+        case '#installed':
+        default:
+          await this.setupSettingsPage(segment);
+      }
+
+      if (segment !== '#popup') {
+        // undo that workaround that makes popup work correctly if we aren't in a popup
+        document.getElementsByTagName('html')[0].setAttribute('style', '');
+      }
+
+      await this.settings.init();
+      this.settingsInitialized = true;
+    } catch (e) {
+      console.error(`ultrawidify::failed to create vue app:`, e);
     }
-
-    if (segment !== '#popup') {
-      // undo that workaround that makes popup work correctly if we aren't in a popup
-      document.getElementsByTagName('html')[0].setAttribute('style', '');
-    }
-
-    await this.settings.init();
-    this.settingsInitialized = true;
   },
   methods: {
     setDebugStatus(isDebugging: boolean) {
@@ -157,11 +166,7 @@ export default defineComponent({
         await this.settings.init();
         this.settingsInitialized = true;
 
-        // const port = chrome.runtime.connect({name: 'popup-port'});
-        // port.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
-        // CSM.setProperty('port', port);
-
-        this.eventBus = new EventBus();
+        this.eventBus = new EventBus({name: 'popup'});
         this.eventBus.subscribe(
           'set-current-site',
           {
@@ -233,10 +238,7 @@ export default defineComponent({
         });
 
         // get info about current site from background script
-        while (true) {
-          this.requestSite();
-          await this.sleep(5000);
-        }
+        this.startSitePolling();
       } catch (e) {
         console.error('[Popup.vue::created()] An error happened:', e)
       }
@@ -246,68 +248,119 @@ export default defineComponent({
      * Initializes page when it's being loaded as in-page settings window
      */
     async setupIframe() {
-      this.role='ui-window';
+      try {
+        this.role='ui-window';
 
-      this.logAggregator = new LogAggregator('settings-page');
-      this.logger = new ComponentLogger(this.logAggregator, 'SettingsPage');
+        this.logAggregator = new LogAggregator('settings-page');
+        this.logger = new ComponentLogger(this.logAggregator, 'SettingsPage');
 
-      this.settings = new Settings({
-        logAggregator: this.logAggregator,
-        onSettingsChanged: () => this.updateConfig()
-      });
+        this.settings = new Settings({
+          logAggregator: this.logAggregator,
+          onSettingsChanged: () => this.updateConfig()
+        });
 
-      if (this.defaultTab) {
-        this.selectedTab = this.defaultTab;
-      }
-      this.siteSettings = this.settings.getSiteSettings({site: this.site});
-      this.tabs.find(x => x.id === 'changelog').highlight = !this.settings.active?.whatsNewChecked;
-
-      if (!this.eventBus) {
-        this.eventBus = new EventBus();
-      }
-
-      /**
-       * SETUP CROSS-FRAME COMMUNICATION
-       *
-       * 1. We need to allow eventBus to send messages to the parent page
-       * 2. We need to plug messages we receive from parent page into the event bus
-       */
-      this.eventBus.sendToTunnel = (command: string, config: any) => {
-        window.parent.postMessage(
-          {
-            action: 'uw-bus-tunnel',
-            payload: { command, config }
-          },
-          '*'
-        );
-      };
-
-      window.addEventListener('message', (event: MessageEvent) => {
-        const data = event.data;
-        if (data?.action === 'uw-bus-tunnel') {
-          // prevent double-crossing by marking borderCrossings
-          this.eventBus.send(data.payload.command, data.payload.config, {
-            borderCrossings: { iframe: true }
-          });
+        if (this.defaultTab) {
+          this.selectedTab = this.defaultTab;
         }
-      });
 
-      /**
-       * Subscribe to event bus commands.
-       * Note that showing and hiding of the settings window is no longer handled by iframe
-       * Instead, uw-show-ui should be handled by the content-script.
-       */
-      // this.eventBus.subscribe(
-      //   'uw-show-ui',
-      //   {
-      //     source: this,
-      //     function: () => {
-      //       if (this.inPlayer) {
-      //         return; // show-ui is only intended for global overlay
-      //       }
-      //     },
-      //   }
-      // )
+        if (!this.eventBus) {
+          this.eventBus = new EventBus({name: 'ui-window'});
+        }
+
+        /**
+         * SETUP CROSS-FRAME COMMUNICATION
+         *
+         * 1. We need to allow eventBus to send messages to the parent page
+         * 2. We need to plug messages we receive from parent page into the event bus
+         */
+        this.eventBus.sendToTunnel = (command: string, config: any) => {
+          window.parent.postMessage(
+            {
+              action: 'uw-bus-tunnel',
+              payload: { command, config }
+            },
+            '*'
+          );
+        };
+
+        window.addEventListener('message', (event: MessageEvent) => {
+          const data = event.data;
+          if (data?.action === 'uw-bus-tunnel') {
+            // prevent double-crossing by marking borderCrossings
+            this.eventBus.send(data.payload.command, data.payload.config, {
+              borderCrossings: { iframe: true }
+            });
+          }
+        });
+
+        /**
+         * Subscribe to event bus commands.
+         * Note that showing and hiding of the settings window is no longer handled by iframe
+         * Instead, uw-show-ui should be handled by the content-script.
+         */
+        this.eventBus.subscribeMulti({
+          'set-current-site': {
+            source: this,
+            function: (config, context) => {
+              console.warn('———————————————— received setCurrentSite!', config, context);
+
+              if (this.site) {
+                if (!this.site.host) {
+                  // dunno why this fix is needed, but sometimes it is
+                  this.site.host = config.site.host;
+                }
+              }
+              this.site = config.site;
+
+              this.siteSettings = this.settings.getSiteSettings({site: this.site.host});
+
+              console.log('set-site received:', this.site, this.siteSettings, 'current path:', this.initialPath);
+              if (!this.initialPath || this.initialPath.length < 1) {
+                if (this.siteSettings.data.enable) {
+                  this.initialPath = ['video-settings'];
+                } else {
+                  this.initialPath = ['site-extension-settings'];
+                }
+              }
+              console.log('New path:', this.initialPath);
+
+
+              // this.eventBus.setupPopupTunnelWorkaround({
+              //   origin: CommsOrigin.Popup,
+              //   comms: {
+              //     forwardTo: 'active'
+              //   }
+              // });
+
+              this.loadHostnames();
+              this.loadFrames();
+            }
+          },
+        });
+
+        this.startSitePolling();
+        // this.eventBus.subscribe(
+        //   'uw-show-ui',
+        //   {
+        //     source: this,
+        //     function: () => {
+        //       if (this.inPlayer) {
+        //         return; // show-ui is only intended for global overlay
+        //       }
+        //     },
+        //   }
+        // )
+      } catch (e) {
+        console.error('Failed to initialize vue:', e);
+      }
+    },
+
+    async startSitePolling() {
+      while (true) {
+        console.log('requesting site')
+        this.requestSite();
+        await this.sleep(5000);
+      }
     },
 
     //#region EXTENSION POPUP
@@ -326,8 +379,16 @@ export default defineComponent({
     requestSite() {
       try {
         this.logger.log('info','popup', '[popup::getSite] Requesting current site ...')
+        console.info('sending get-current-site to eventBus')
         // CSM.port.postMessage({command: 'get-current-site'});
         this.eventBus.send(
+          'get-current-site',
+          {},
+          {
+            comms: {forwardTo: 'active'}
+          }
+        );
+        this.eventBus.sendToTunnel(
           'get-current-site',
           {},
           {
@@ -337,9 +398,6 @@ export default defineComponent({
       } catch (e) {
         this.logger.log('error','popup','[popup::getSite] sending get-current-site failed for some reason. Reason:', e);
       }
-    },
-    getRandomColor() {
-      return `rgb(${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)}, ${Math.floor(Math.random() * 128)})`;
     },
     selectTab(tab) {
       this.selectedTab = tab;

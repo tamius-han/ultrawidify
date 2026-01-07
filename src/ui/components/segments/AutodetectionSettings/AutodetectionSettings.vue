@@ -234,8 +234,8 @@
 <script lang="ts">
 import BrowserDetect from '@src/ext/conf/BrowserDetect';
 import JsonEditor from '@components/common/JsonEditor.vue';
-import {AardPollingOptions} from '@src/ext/lib/aard/enums/aard-polling-options.enum';
-import {AardSubtitleCropMode} from '@src/ext/lib/aard/enums/aard-subtitle-crop-mode.enum';
+import {AardPollingOptions} from '@src/ext/module/aard/enums/aard-polling-options.enum';
+import {AardSubtitleCropMode} from '@src/ext/module/aard/enums/aard-subtitle-crop-mode.enum';
 import { defineComponent } from 'vue';
 
 export default defineComponent({

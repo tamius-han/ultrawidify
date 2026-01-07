@@ -413,7 +413,6 @@ export class SiteSettings {
           elements: {
             player: undefined,
             video: undefined,
-            other: undefined,
           },
         },
         'modified': {
@@ -421,7 +420,6 @@ export class SiteSettings {
           elements: {
             player: undefined,
             video: undefined,
-            other: undefined,
           },
         },
       };

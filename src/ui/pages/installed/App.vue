@@ -62,8 +62,8 @@
 
 <script>
 import BrowserDetect from '@src/ext/conf/BrowserDetect';
-import { LogAggregator } from '@src/ext/lib/logging/LogAggregator';
-import { ComponentLogger } from '@src/ext/lib/logging/ComponentLogger';
+import { LogAggregator } from '@src/ext/module/logging/LogAggregator';
+import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
 
 export default {
   data () {

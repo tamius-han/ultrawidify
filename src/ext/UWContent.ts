@@ -1,13 +1,13 @@
 import Debug from './conf/Debug';
-import Settings from './lib/settings/Settings';
-import CommsClient from './lib/comms/CommsClient';
-import PageInfo from './lib/video-data/PageInfo';
-import EventBus from './lib/EventBus';
-import KeyboardHandler from './lib/kbm/KeyboardHandler';
-import { SiteSettings } from './lib/settings/SiteSettings';
-import UI from './lib/uwui/UI';
-import { BLANK_LOGGER_CONFIG, LogAggregator } from './lib/logging/LogAggregator';
-import { ComponentLogger } from './lib/logging/ComponentLogger';
+import Settings from './module/settings/Settings';
+import CommsClient from './module/comms/CommsClient';
+import PageInfo from './module/video-data/PageInfo';
+import EventBus from './module/EventBus';
+import KeyboardHandler from './module/kbm/KeyboardHandler';
+import { SiteSettings } from './module/settings/SiteSettings';
+import UI from './module/uwui/UI';
+import { BLANK_LOGGER_CONFIG, LogAggregator } from './module/logging/LogAggregator';
+import { ComponentLogger } from './module/logging/ComponentLogger';
 import { getIframeParentHost, setupHostnameReporting } from './util/getHost';
 
 export default class UWContent {
@@ -82,7 +82,7 @@ export default class UWContent {
         this.siteSettings = this.settings.getSiteSettings({site: window.location.hostname, isIframe: this.isIframe, parentHostname: this.parentHostname});
       }
 
-      this.eventBus = new EventBus();
+      this.eventBus = new EventBus({name: 'content-script'});
       this.eventBus.subscribe(
         'uw-restart',
         {

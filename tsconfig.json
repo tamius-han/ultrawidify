@@ -20,6 +20,9 @@
     "esModuleInterop": true,
     "paths": {
       "@src/*": [ "*" ],
+      "@ui/*": [ "ui/*" ],
+      "@components/*": ["ui/components/*"],
+      "@res/*": ["ui/res"],
       "@/*": [ "*" ]
     }
   },
