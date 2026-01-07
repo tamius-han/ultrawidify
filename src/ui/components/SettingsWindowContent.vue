@@ -275,7 +275,7 @@ const TAB_LOADOUT = {
     'import-export-settings',
     'debugging',
   ],
-  'ui': [
+  'ui-window': [
     'window.site-extension-settings',
     'window.player-element-settings',
     'autodetectionSettings',
@@ -337,7 +337,6 @@ export default defineComponent({
       selectedTab: undefined,
       BrowserDetect: BrowserDetect,
       preventClose: false,
-      siteSettings: null,
       globalSettings: null,
     }
   },
@@ -345,6 +344,7 @@ export default defineComponent({
     'role',
     'initialPath',
     'settings',
+    'siteSettings',
     'eventBus',
     'logger',
     'inPlayer',
@@ -367,31 +367,22 @@ export default defineComponent({
     },
   },
   created() {
-    this.generateTabs();
-    this.settings.listenAfterChange(this.setDebugTabVisibility);
+    try {
+      this.generateTabs();
+      this.settings.listenAfterChange(this.setDebugTabVisibility);
 
-    this.setInitialPath();
-    const changelogTab  = this.tabs.find(x => x.id === 'changelog');
-    if (changelogTab) {
-      changelogTab.highlight = !this.settings.active?.whatsNewChecked;
-    }
-
-    this.globalSettings = this.settings.getSiteSettings({site: '@global'});
-    if (this.site) {
-      this.siteSettings = this.settings.getSiteSettings({site: this.site});
-    }
-    this.eventBus?.subscribe(
-      'uw-show-ui',
-      {
-        source: this,
-        function: () => {
-          if (this.inPlayer) {
-            return; // show-ui is only intended for global overlay
-          }
-        },
+      this.setInitialPath();
+      const changelogTab  = this.tabs.find(x => x.id === 'changelog');
+      if (changelogTab) {
+        changelogTab.highlight = !this.settings.active?.whatsNewChecked;
       }
-    )
-    this.setDebugTabVisibility();
+
+      this.globalSettings = this.settings.getSiteSettings({site: '@global'});
+      this.setDebugTabVisibility();
+    } catch (e) {
+      console.error(`[ultrawidify|SettingsWindowContent.vue] created() crashed. Error:`, e);
+    }
+
   },
   destroyed() {
     this.settings.removeListenerAfterChange(this.setDebugTabVisibility);
@@ -399,11 +390,9 @@ export default defineComponent({
   },
   methods: {
     /**
-     * Regenerates this.siteSettings
+     * Regenerates relevant tabs
      */
     updateSite(newSite: {host: string, hostnames: string[],}) {
-      this.siteSettings = this.settings.getSiteSettings({site: newSite.host});
-
       this.generateTabs(newSite);
 
       this.$nextTick( () => this.$forceUpdate());

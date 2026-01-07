@@ -3,7 +3,7 @@
  * extension to work unless I kept this part of extension out of the ts file.
  */
 
-import UWServer from './ext/UWServer';
+import UWServer from '@src/ext/UWServer';
 
 var BgVars = {
   arIsActive: true,

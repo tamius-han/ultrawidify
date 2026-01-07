@@ -1,20 +1,16 @@
-import Debug from './Debug';
-import currentBrowser from './BrowserDetect';
-import VideoAlignmentType from '../../common/enums/VideoAlignmentType.enum';
-import StretchType from '../../common/enums/StretchType.enum';
-import ExtensionMode from '../../common/enums/ExtensionMode.enum';
-import AntiGradientMode from '../../common/enums/AntiGradientMode.enum';
-import AspectRatioType from '../../common/enums/AspectRatioType.enum';
-import CropModePersistence from '../../common/enums/CropModePersistence.enum';
-import SettingsInterface from '../../common/interfaces/SettingsInterface';
-import BrowserDetect from './BrowserDetect';
-import { Extension } from 'typescript';
-import EmbeddedContentSettingsOverridePolicy from '../../common/enums/EmbeddedContentSettingsOverridePolicy.enum';
-import { AardPollingOptions } from '../module/aard/enums/aard-polling-options.enum';
-import { AardSubtitleCropMode } from '../module/aard/enums/aard-subtitle-crop-mode.enum';
-import { SiteSupportLevel } from '../../common/enums/SiteSupportLevel.enum';
-import { PlayerDetectionMode } from '../../common/enums/PlayerDetectionMode.enum';
-import { InputHandlingMode } from '../../common/enums/InputHandlingMode.enum';
+import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
+import CropModePersistence from '@src/common/enums/CropModePersistence.enum';
+import EmbeddedContentSettingsOverridePolicy from '@src/common/enums/EmbeddedContentSettingsOverridePolicy.enum';
+import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
+import { InputHandlingMode } from '@src/common/enums/InputHandlingMode.enum';
+import { PlayerDetectionMode } from '@src/common/enums/PlayerDetectionMode.enum';
+import { SiteSupportLevel } from '@src/common/enums/SiteSupportLevel.enum';
+import StretchType from '@src/common/enums/StretchType.enum';
+import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
+import SettingsInterface from '@src/common/interfaces/SettingsInterface';
+import Debug from '@src/ext/conf/Debug';
+import { AardPollingOptions } from '@src/ext/module/aard/enums/aard-polling-options.enum';
+import { AardSubtitleCropMode } from '@src/ext/module/aard/enums/aard-subtitle-crop-mode.enum';
 
 if(Debug.debug)
   console.log("Loading: ExtensionConf.js");

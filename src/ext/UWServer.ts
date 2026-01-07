@@ -1,12 +1,9 @@
-import Debug from './conf/Debug.js';
-import BrowserDetect from './conf/BrowserDetect';
-import CommsServer from './module/comms/CommsServer.js';
-import Settings from './module/settings/Settings.js';
-import { sleep } from '../common/js/utils';
-import { ComponentLogger } from './module/logging/ComponentLogger.js';
-import { BLANK_LOGGER_CONFIG, LogAggregator } from './module/logging/LogAggregator.js';
 import { Runtime } from 'chrome';
-import EventBus from '@src/ext/module/EventBus.js';
+import EventBus from '@src/ext/module/EventBus';
+import Settings from '@src/ext/module/settings/Settings';
+import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
+import { BLANK_LOGGER_CONFIG, LogAggregator } from '@src/ext/module/logging/LogAggregator';
+import CommsServer from '@src/ext/module/comms/CommsServer';
 
 
 const BASE_LOGGING_STYLES = {

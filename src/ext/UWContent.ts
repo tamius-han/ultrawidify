@@ -1,14 +1,14 @@
-import Debug from './conf/Debug';
-import Settings from './module/settings/Settings';
-import CommsClient from './module/comms/CommsClient';
-import PageInfo from './module/video-data/PageInfo';
-import EventBus from './module/EventBus';
-import KeyboardHandler from './module/kbm/KeyboardHandler';
-import { SiteSettings } from './module/settings/SiteSettings';
-import UI from './module/uwui/UI';
-import { BLANK_LOGGER_CONFIG, LogAggregator } from './module/logging/LogAggregator';
-import { ComponentLogger } from './module/logging/ComponentLogger';
-import { getIframeParentHost, setupHostnameReporting } from './util/getHost';
+import Debug from '@src/ext/conf/Debug';
+import CommsClient from '@src/ext/module/comms/CommsClient';
+import EventBus from '@src/ext/module/EventBus';
+import KeyboardHandler from '@src/ext/module/kbm/KeyboardHandler';
+import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
+import { BLANK_LOGGER_CONFIG, LogAggregator } from '@src/ext/module/logging/LogAggregator';
+import Settings from '@src/ext/module/settings/Settings';
+import { SiteSettings } from '@src/ext/module/settings/SiteSettings';
+import UI from '@src/ext/module/uwui/UI';
+import PageInfo from '@src/ext/module/video-data/PageInfo';
+import { getIframeParentHost, setupHostnameReporting } from '@src/ext/util/getHost';
 
 export default class UWContent {
   pageInfo: PageInfo;

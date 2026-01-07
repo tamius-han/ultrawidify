@@ -1,20 +1,15 @@
 // How to use:
 // version: {ExtensionConf object, but only properties that get overwritten}
-import StretchType from '../../common/enums/StretchType.enum';
-// import ExtensionMode from '../../common/enums/ExtensionMode.enum';
-import VideoAlignmentType from '../../common/enums/VideoAlignmentType.enum';
-import BrowserDetect from './BrowserDetect';
-import SettingsInterface, { SiteSettingsInterface } from '../../common/interfaces/SettingsInterface';
-import { _cp } from '../../common/js/utils';
-import CropModePersistence from '../../common/enums/CropModePersistence.enum';
-import AspectRatioType from '../../common/enums/AspectRatioType.enum';
+import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
+import CropModePersistence from '@src/common/enums/CropModePersistence.enum';
+import EmbeddedContentSettingsOverridePolicy from '@src/common/enums/EmbeddedContentSettingsOverridePolicy.enum';
+import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
+import { InputHandlingMode } from '@src/common/enums/InputHandlingMode.enum';
+import LegacyExtensionMode from '@src/common/enums/LegacyExtensionMode.enum';
+import { PlayerDetectionMode } from '@src/common/enums/PlayerDetectionMode.enum';
+import { SiteSupportLevel } from '@src/common/enums/SiteSupportLevel.enum';
+import SettingsInterface from '@src/common/interfaces/SettingsInterface';
 import { update } from 'lodash';
-import EmbeddedContentSettingsOverridePolicy from '../../common/enums/EmbeddedContentSettingsOverridePolicy.enum';
-import LegacyExtensionMode from '../../common/enums/LegacyExtensionMode.enum';
-import ExtensionMode from '../../common/enums/ExtensionMode.enum';
-import { PlayerDetectionMode } from '../../common/enums/PlayerDetectionMode.enum';
-import { SiteSupportLevel } from '../../common/enums/SiteSupportLevel.enum';
-import { InputHandlingMode } from '../../common/enums/InputHandlingMode.enum';
 
 
 const ExtensionConfPatch = Object.freeze([

@@ -388,13 +388,6 @@ export default defineComponent({
             comms: {forwardTo: 'active'}
           }
         );
-        this.eventBus.sendToTunnel(
-          'get-current-site',
-          {},
-          {
-            comms: {forwardTo: 'active'}
-          }
-        );
       } catch (e) {
         this.logger.log('error','popup','[popup::getSite] sending get-current-site failed for some reason. Reason:', e);
       }
