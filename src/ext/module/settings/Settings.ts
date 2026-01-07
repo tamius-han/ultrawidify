@@ -1,14 +1,13 @@
-import Debug from '../../conf/Debug';
-import ExtensionConf from '../../conf/ExtensionConf';
-import ObjectCopy from '../ObjectCopy';
-import StretchType from '../../../common/enums/StretchType.enum';
-import ExtensionConfPatch from '../../conf/ExtConfPatches';
-import SettingsInterface from '../../../common/interfaces/SettingsInterface';
-import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
-import { GetSiteSettingsOptions, SiteSettings } from './SiteSettings';
-import { SettingsSnapshot, SettingsSnapshotManager } from './SettingsSnapshotManager';
-import { ComponentLogger } from '../logging/ComponentLogger';
-import { LogAggregator } from '../logging/LogAggregator';
+import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
+import StretchType from '@src/common/enums/StretchType.enum';
+import SettingsInterface from '@src/common/interfaces/SettingsInterface';
+import Debug from '@src/ext/conf/Debug';
+import ExtensionConfPatch from '@src/ext/conf/ExtConfPatches';
+import ExtensionConf from '@src/ext/conf/ExtensionConf';
+import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
+import { LogAggregator } from '@src/ext/module/logging/LogAggregator';
+import { SettingsSnapshot, SettingsSnapshotManager } from '@src/ext/module/settings/SettingsSnapshotManager';
+import { GetSiteSettingsOptions, SiteSettings } from '@src/ext/module/settings/SiteSettings';
 import { getDiff } from 'json-difference'
 
 if(process.env.CHANNEL !== 'stable'){

@@ -1,17 +1,14 @@
-import Debug from '../../conf/Debug';
-import ExtensionMode from '../../../common/enums/ExtensionMode.enum'
-import PlayerNotificationUi from '../uwui/PlayerNotificationUI';
+import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
+import { ExtensionEnvironment } from '@src/common/interfaces/SettingsInterface';
+import { collectionHas, equalish } from '@src/common/utils/comparators';
+import { RunLevel } from '@src/ext/enum/run-level.enum';
+import EventBus from '@src/ext/module/EventBus';
+import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
+import { SiteSettings } from '@src/ext/module/settings/SiteSettings';
+import UI from '@src/ext/module/uwui/UI';
+import PageInfo from '@src/ext/module/video-data/PageInfo';
+import VideoData from '@src/ext/module/video-data/VideoData';
 import * as _ from 'lodash';
-import { sleep } from '../../../common/js/utils';
-import VideoData from './VideoData';
-import EventBus from '../EventBus';
-import UI from '../uwui/UI';
-import { SiteSettings } from '../settings/SiteSettings';
-import PageInfo from './PageInfo';
-import { RunLevel } from '../../enum/run-level.enum';
-import { ExtensionEnvironment } from '../../../common/interfaces/SettingsInterface';
-import { ComponentLogger } from '../logging/ComponentLogger';
-import { collectionHas, equalish } from '../../util/comparators';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading: PlayerData.js");
@@ -77,7 +74,7 @@ class PlayerData {
   videoData: VideoData;
   pageInfo: PageInfo;
   siteSettings: SiteSettings;
-  notificationService: PlayerNotificationUi;
+  notificationService: any; // TODO: implement this
   eventBus: EventBus;
   //#endregion
 

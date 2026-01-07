@@ -1,21 +1,20 @@
-import { SiteSettings } from '../settings/SiteSettings';
-import Debug from '../../conf/Debug';
-import Scaler, { CropStrategy, VideoDimensions } from './Scaler';
-import Stretcher from './Stretcher';
-import Zoom from './Zoom';
-import StretchType from '../../../common/enums/StretchType.enum';
-import VideoAlignmentType from '../../../common/enums/VideoAlignmentType.enum';
-import AspectRatioType from '../../../common/enums/AspectRatioType.enum';
-import VideoData from '../video-data/VideoData';
-import EventBus from '../EventBus';
-import { _cp } from '../../../common/js/utils';
-import Settings from '../settings/Settings';
-import { Ar, ArVariant } from '../../../common/interfaces/ArInterface';
-import { RunLevel } from '../../enum/run-level.enum';
+import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
+import StretchType from '@src/common/enums/StretchType.enum';
+import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
+import { Ar, ArVariant } from '@src/common/interfaces/ArInterface';
+import { Stretch } from '@src/common/interfaces/StretchInterface';
+import getElementStyles from '@src/common/utils/getElementStyles';
+import Debug from '@src/ext/conf/Debug';
+import { RunLevel } from '@src/ext/enum/run-level.enum';
+import EventBus from '@src/ext/module/EventBus';
+import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
+import Settings from '@src/ext/module/settings/Settings';
+import { SiteSettings } from '@src/ext/module/settings/SiteSettings';
+import VideoData from '@src/ext/module/video-data/VideoData';
+import Scaler, { VideoDimensions } from '@src/ext/module/video-transform/Scaler';
+import Stretcher from '@src/ext/module/video-transform/Stretcher';
+import Zoom from '@src/ext/module/video-transform/Zoom';
 import * as _ from 'lodash';
-import getElementStyles from '../../util/getElementStyles';
-import { Stretch } from '../../../common/interfaces/StretchInterface';
-import { ComponentLogger } from '../logging/ComponentLogger';
 
 if(Debug.debug) {
   console.log("Loading: Resizer.js");

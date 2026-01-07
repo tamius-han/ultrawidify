@@ -1,8 +1,8 @@
-import Debug from '../conf/Debug';
+import Debug from '../../ext/conf/Debug';
 
 class ObjectCopy {
   static addNew(current, newValues){
-    
+
     // clone target
     let out = JSON.parse(JSON.stringify(newValues));
 
@@ -20,7 +20,7 @@ class ObjectCopy {
 
         // Types and constructors of objects must match. If they don't, we always use the new value.
         if(typeof out[k] === typeof current[k] && out[k].constructor === current[k].constructor) {
-          
+
           // objects are special, we need to check them recursively.
           if(out[k] && typeof out[k] === 'object' && out[k].constructor === Object ) {
             if(Debug.debug && Debug.settings) {
@@ -29,7 +29,7 @@ class ObjectCopy {
 
             out[k] = this.addNew(current[k], out[k]);
           } else {
-            out[k] = current[k];       
+            out[k] = current[k];
           }
         }
       }
@@ -52,7 +52,7 @@ class ObjectCopy {
       if (current[k] !== undefined) {
         // Types and constructors of objects must match. If they don't, we always use the new value.
         if (typeof newValues[k] === typeof current[k] && newValues[k].constructor === current[k].constructor) {
-          
+
           // objects are special, we need to check them recursively.
           if(current[k] && typeof current[k] === 'object' && current[k].constructor === Object ) {
             if(Debug.debug && Debug.settings) {
@@ -61,7 +61,7 @@ class ObjectCopy {
 
             current[k] = this.overwrite(current[k], newValues[k]);
           } else {
-            current[k] = newValues[k];       
+            current[k] = newValues[k];
           }
         } else {
           current[k] = newValues[k];

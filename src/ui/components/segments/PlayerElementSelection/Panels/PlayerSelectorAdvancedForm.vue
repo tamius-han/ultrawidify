@@ -305,7 +305,7 @@ import SupportLevelIndicator from '@components/common/SupportLevelIndicator.vue'
 import ConfirmButton from '@components/common/ConfirmButton.vue';
 
 import Popup from '@components/common/Popup.vue';
-import { _cp } from '@src/common/js/utils';
+import { _cp } from '@src/common/utils/_cp';
 import { SiteDOMSettingsInterface } from '@src/common/interfaces/SettingsInterface';
 import { SiteSupportLevel } from '../../../../../common/enums/SiteSupportLevel.enum';
 

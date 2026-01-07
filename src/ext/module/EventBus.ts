@@ -1,7 +1,7 @@
-import { IframeData } from './video-data/IframeManager';
-import CommsClient, { CommsOrigin } from './comms/CommsClient';
-import CommsServer from './comms/CommsServer';
 import { EventBusCommand, EventBusContext } from '@src/common/interfaces/EventBusMessage.interface';
+import Comms from '@src/ext/module/comms/Comms';
+import CommsClient, { CommsOrigin } from '@src/ext/module/comms/CommsClient';
+import CommsServer from '@src/ext/module/comms/CommsServer';
 
 
 

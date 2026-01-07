@@ -1,12 +1,12 @@
-import CropModePersistence from '../../../common/enums/CropModePersistence.enum';
-import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
-import { ExtensionEnvironment, SettingsReloadComponent, SettingsReloadFlags, SiteSettingsInterface } from '../../../common/interfaces/SettingsInterface';
-import { _cp } from '../../../common/js/utils';
-import Settings from './Settings';
-import StretchType from '../../../common/enums/StretchType.enum';
-import VideoAlignmentType from '../../../common/enums/VideoAlignmentType.enum';
-import EmbeddedContentSettingsOverridePolicy from '../../../common/enums/EmbeddedContentSettingsOverridePolicy.enum';
-import { SiteSupportLevel } from '../../../common/enums/SiteSupportLevel.enum';
+import CropModePersistence from '@src/common/enums/CropModePersistence.enum';
+import EmbeddedContentSettingsOverridePolicy from '@src/common/enums/EmbeddedContentSettingsOverridePolicy.enum';
+import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
+import { SiteSupportLevel } from '@src/common/enums/SiteSupportLevel.enum';
+import StretchType from '@src/common/enums/StretchType.enum';
+import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
+import { ExtensionEnvironment, SettingsReloadComponent, SettingsReloadFlags, SiteSettingsInterface } from '@src/common/interfaces/SettingsInterface';
+import { _cp } from '@src/common/utils/_cp';
+import Settings from '@src/ext/module/settings/Settings';
 
 
 export interface GetSiteSettingsOptions {

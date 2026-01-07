@@ -201,7 +201,7 @@ import UploadJsonFileButton from '@components/common/UploadJsonFileButton.vue';
 import { LogAggregator, BLANK_LOGGER_CONFIG } from '@src/ext/module/logging/LogAggregator';
 import { SettingsSnapshot } from '@src/ext/module/settings/SettingsSnapshotManager';
 import SettingsInterface from '@src/common/interfaces/SettingsInterface';
-import { _cp } from '@src/common/js/utils';
+import { _cp } from '@src/common/utils/_cp';
 
 export default defineComponent({
   components: {

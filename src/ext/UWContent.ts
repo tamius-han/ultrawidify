@@ -8,7 +8,7 @@ import Settings from '@src/ext/module/settings/Settings';
 import { SiteSettings } from '@src/ext/module/settings/SiteSettings';
 import UI from '@src/ext/module/uwui/UI';
 import PageInfo from '@src/ext/module/video-data/PageInfo';
-import { getIframeParentHost, setupHostnameReporting } from '@src/ext/util/getHost';
+import { getIframeParentHost, setupHostnameReporting } from '@src/common/utils/getHost';
 
 export default class UWContent {
   pageInfo: PageInfo;

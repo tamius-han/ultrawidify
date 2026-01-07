@@ -4,6 +4,7 @@ import Settings from '@src/ext/module/settings/Settings';
 import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
 import { BLANK_LOGGER_CONFIG, LogAggregator } from '@src/ext/module/logging/LogAggregator';
 import CommsServer from '@src/ext/module/comms/CommsServer';
+import BrowserDetect from '@src/ext/conf/BrowserDetect';
 
 
 const BASE_LOGGING_STYLES = {

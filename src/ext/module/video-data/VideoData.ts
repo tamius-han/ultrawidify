@@ -1,23 +1,22 @@
-import PlayerData from './PlayerData';
-import Resizer from '../video-transform/Resizer';
-import * as _ from 'lodash';
-import BrowserDetect from '../../conf/BrowserDetect';
-import Settings from '../settings/Settings';
-import PageInfo from './PageInfo';
-import { sleep } from '../../../common/js/utils';
-import EventBus from '../EventBus';
-import { SiteSettings } from '../settings/SiteSettings';
-import { Ar } from '../../../common/interfaces/ArInterface';
-import { ExtensionStatus } from './ExtensionStatus';
-import { RunLevel } from '../../enum/run-level.enum';
-import { Aard } from '../aard/Aard';
-import { Stretch } from '../../../common/interfaces/StretchInterface';
-import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
-import { ExtensionEnvironment } from '../../../common/interfaces/SettingsInterface';
-import { LogAggregator } from '../logging/LogAggregator';
-import { ComponentLogger } from '../logging/ComponentLogger';
-import { AardLegacy } from '../aard/AardLegacy';
+import { Ar } from '@src/common/interfaces/ArInterface';
+import { ExtensionEnvironment } from '@src/common/interfaces/SettingsInterface';
+import { Stretch } from '@src/common/interfaces/StretchInterface';
+import { sleep } from '@src/common/utils/sleep';
+import BrowserDetect from '@src/ext/conf/BrowserDetect';
+import { RunLevel } from '@src/ext/enum/run-level.enum';
+import { Aard } from '@src/ext/module/aard/Aard';
+import { AardLegacy } from '@src/ext/module/aard/AardLegacy';
 import { hasDrm } from '@src/ext/module/ar-detect/DrmDetector';
+import EventBus from '@src/ext/module/EventBus';
+import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
+import { LogAggregator } from '@src/ext/module/logging/LogAggregator';
+import Settings from '@src/ext/module/settings/Settings';
+import { SiteSettings } from '@src/ext/module/settings/SiteSettings';
+import { ExtensionStatus } from '@src/ext/module/video-data/ExtensionStatus';
+import PageInfo from '@src/ext/module/video-data/PageInfo';
+import PlayerData from '@src/ext/module/video-data/PlayerData';
+import Resizer from '@src/ext/module/video-transform/Resizer';
+import * as _ from 'lodash';
 
 /**
  * VideoData — handles CSS for the video element.
