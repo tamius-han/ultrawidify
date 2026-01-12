@@ -263,35 +263,11 @@ export default defineComponent({
           this.selectedTab = this.defaultTab;
         }
 
+        console.log('does event bus exist yet?', this.eventBus);
         if (!this.eventBus) {
+          // inter-frame communication should be set up by eventBus for free
           this.eventBus = new EventBus({name: 'ui-window'});
         }
-
-        /**
-         * SETUP CROSS-FRAME COMMUNICATION
-         *
-         * 1. We need to allow eventBus to send messages to the parent page
-         * 2. We need to plug messages we receive from parent page into the event bus
-         */
-        this.eventBus.sendToTunnel = (command: string, config: any) => {
-          window.parent.postMessage(
-            {
-              action: 'uw-bus-tunnel',
-              payload: { command, config }
-            },
-            '*'
-          );
-        };
-
-        window.addEventListener('message', (event: MessageEvent) => {
-          const data = event.data;
-          if (data?.action === 'uw-bus-tunnel') {
-            // prevent double-crossing by marking borderCrossings
-            this.eventBus.send(data.payload.command, data.payload.config, {
-              borderCrossings: { iframe: true }
-            });
-          }
-        });
 
         /**
          * Subscribe to event bus commands.
@@ -336,8 +312,34 @@ export default defineComponent({
               this.loadFrames();
             }
           },
+          'has-video': {
+            function: (config, context) => {
+
+              console.log('has video received.', config, context);
+              console.log('———————— building site:', !config.isIFrame, this.site?.host, config.site, this.site?.host !== config.site);
+
+              // update site data.
+              // If we're here, then the settings page is being opened from the in-player popup.
+              // This means that config.isIframe can generally be ignored.
+              // However, we absolutely cannot accept iframes as source for this.site when we
+              // open settings window from the extension popup. This needs to be TODO:
+              if (this.site?.host !== config.site) {
+                this.site = {
+                  host: config.site,
+                  frames: [],
+                  hostnames: [],
+                };
+
+                this.siteSettings = this.settings.getSiteSettings({site: this.site.host});
+                this.loadHostnames();
+                this.loadFrames();
+              }
+
+            }
+          },
         });
 
+        console.log('—————————————————————— polling from iframe window!!!!')
         this.startSitePolling();
         // this.eventBus.subscribe(
         //   'uw-show-ui',

@@ -5,6 +5,8 @@ import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
 import { BLANK_LOGGER_CONFIG, LogAggregator } from '@src/ext/module/logging/LogAggregator';
 import CommsServer from '@src/ext/module/comms/CommsServer';
 import BrowserDetect from '@src/ext/conf/BrowserDetect';
+import { HostInfo } from '@src/common/interfaces/HostData.interface';
+import { ExtensionEnvironment } from '@src/common/interfaces/SettingsInterface';
 
 
 const BASE_LOGGING_STYLES = {
@@ -264,6 +266,7 @@ export default class UWServer {
 
     const tabHostname = await this.getCurrentTabHostname();
     this.logger.info('getCurrentSite', 'Returning data:', {site, tabHostname});
+    console.info('get-current-site : returning data:', {site, tabHostname});
 
     this.eventBus.send(
       'set-current-site',
@@ -284,6 +287,36 @@ export default class UWServer {
   }
 
 
+  private populateFrameVideoStatus(tabId: number, hostnames: string[]) {
+    const out: HostInfo[] = [];
+
+    for (const host of hostnames) {
+      let video = {hasVideo: false, minEnvironment: ExtensionEnvironment.Normal, maxEnvironment: ExtensionEnvironment.Fullscreen};
+
+      for (const frameKey in this.videoTabs[tabId].frames) {
+        const frame = this.videoTabs[tabId].frames[frameKey];
+
+        if (frame.host === host) {
+          video.hasVideo = true;
+          if (frame.environment > video.maxEnvironment) {
+            video.maxEnvironment = frame.environment;
+          }
+          if (frame.environment < video.minEnvironment) {
+            video.minEnvironment = frame.environment;
+          }
+        }
+      }
+
+      out.push({
+        host,
+        ...video,
+      })
+    }
+
+    return out;
+  }
+
+  private _lastVideoTabData: any | undefined;
   async getVideoTab() {
     // friendly reminder: if current tab doesn't have a video,
     // there won't be anything in this.videoTabs[this.currentTabId]
@@ -300,41 +333,52 @@ export default class UWServer {
 
     const hostnames = await this.comms.listUniqueFrameHosts();
 
-    if (this.videoTabs[ctab.id]) {
-      // if video is older than PageInfo's video rescan period (+ 4000ms of grace),
-      // we clean it up from videoTabs[tabId].frames array.
-      const ageLimit = Date.now() - this.settings.active.pageInfo.timeouts.rescan - 4000;
-      try {
-        for (const key in this.videoTabs[ctab.id].frames) {
-          if (this.videoTabs[ctab.id].frames[key].registerTime < ageLimit) {
-            delete this.videoTabs[ctab.id].frames[key];
-          }
-        }
-      } catch (e) {
-        // something went wrong. There's prolly no frames.
-        return {
-          host: this.extractHostname(ctab.url),
-          frames: [],
-          selected: this.selectedSubitem
+    // this probably means we're inside a problematic page
+    if (!this.videoTabs[ctab.id]) {
+      return this._lastVideoTabData ??  {
+        host: 'INVALID SITE',
+        frames: [],
+        hostnames: [],
+      }
+    }
+
+    // if video is older than PageInfo's video rescan period (+ 4000ms of grace),
+    // we clean it up from videoTabs[tabId].frames array.
+    const ageLimit = Date.now() - this.settings.active.pageInfo.timeouts.rescan - 4000;
+    try {
+      for (const key in this.videoTabs[ctab.id].frames) {
+        if (this.videoTabs[ctab.id].frames[key].registerTime < ageLimit) {
+          delete this.videoTabs[ctab.id].frames[key];
         }
       }
-
+    } catch (e) {
+      // something went wrong. There's prolly no frames.
+      // this probably shouldn't ever run.
       return {
-        ...this.videoTabs[ctab.id],
         host: this.extractHostname(ctab.url),
-        hostnames,
+        hostnames: [],
+        frames: [],
         selected: this.selectedSubitem
-      };
+      }
     }
 
-    // return something more or less empty if this tab doesn't have
-    // a video registered for it
-    return {
+    // Ensure hostnames with videos come before hostnames without videos
+    // Also ensure hostnames are sorted alphabetically
+    const populatedHostnames = this.populateFrameVideoStatus(ctab.id, hostnames);
+    populatedHostnames.sort((a: HostInfo, b: HostInfo) => {
+      return a.hasVideo === b.hasVideo
+        ? a.host === b.host ? 0 : a.host < b.host ? -1 : 1
+        : a.hasVideo < b.hasVideo ? 1 : -1;
+    });
+
+    this._lastVideoTabData = {
       host: this.extractHostname(ctab.url),
-      frames: [],
-      hostnames,
-      selected: this.selectedSubitem,
-    }
+      hostnames: populatedHostnames.map(x => x.host), // todo: try eliminating this
+      populatedHostnames: populatedHostnames,
+      selected: this.selectedSubitem
+    };
+
+    return this._lastVideoTabData;
   }
 
   async getCurrentTabHostname() {

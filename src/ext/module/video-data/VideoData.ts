@@ -105,6 +105,11 @@ class VideoData {
       function: () => {
         this.onEnvironmentChanged();
       }
+    },
+    'get-current-site': {
+      function: () => {
+        console.warn('received get current site!');
+      }
     }
   }
 

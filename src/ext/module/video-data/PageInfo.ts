@@ -255,7 +255,13 @@ class PageInfo {
       //
       // no but honestly fuck Chrome.
       if (videosDetected || this.hasVideo()) {
-        this.eventBus.send('has-video', null);
+        this.eventBus.send(
+          'has-video',
+          {
+            site: window.location.host,
+            isIframe: window.self !== window.top,
+          }
+        );
       } else {
         this.eventBus.send('noVideo', null);
       }

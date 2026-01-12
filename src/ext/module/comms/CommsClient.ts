@@ -65,7 +65,8 @@ if (process.env.CHANNEL !== 'stable'){
 export enum CommsOrigin {
   ContentScript = 1,
   Popup = 2,
-  Server = 3
+  Server = 3,
+  Ui = 4,     // in-player UI
 }
 
 class CommsClient {
@@ -148,7 +149,7 @@ class CommsClient {
 
     // send to server
     if (!context?.borderCrossings?.commsServer) {
-      return chrome.runtime.sendMessage(null, message, null);
+      return chrome?.runtime?.sendMessage(null, message, null);
     }
   }
 

@@ -1,34 +1,19 @@
-import { EventBusCommand, EventBusContext } from '@src/common/interfaces/EventBusMessage.interface';
+import { EventBusCommand, EventBusContext, EventBusMessage } from '@src/common/interfaces/EventBusMessage.interface';
+import { IframeTunnelPayload } from '@src/common/interfaces/IframeTunnelPayload.interface';
 import Comms from '@src/ext/module/comms/Comms';
 import CommsClient, { CommsOrigin } from '@src/ext/module/comms/CommsClient';
 import CommsServer from '@src/ext/module/comms/CommsServer';
 
 
-
-// export interface EventBusContext {
-//   stopPropagation?: boolean,
-
-//   // Context stuff added by Comms
-//   origin?: CommsOrigin,
-//   comms?: {
-//     sender?: chrome.runtime.MessageSender,
-//     port?: chrome.runtime.Port,
-//     frame?: any,
-//     sourceFrame?: IframeData
-//     forwardTo?: 'all' | 'active' | 'contentScript' | 'server' | 'sameOrigin' | 'popup' | 'all-frames',
-//   };
-//   borderCrossings?: {
-//     commsServer?: boolean,
-//     iframe?: boolean,
-//   }
-// }
-
 export default class EventBus {
 
   private name: string;
+  private uuid = crypto.randomUUID();
 
   private commands: { [x: string]: EventBusCommand[]} = {};
   private comms?: CommsClient | CommsServer;
+  private commsOrigin: CommsOrigin;
+
 
   private disableTunnel: boolean = false;
   private popupContext: any = {};
@@ -37,11 +22,12 @@ export default class EventBus {
 
   // private uiUri = window.location.href;
 
-  constructor(options?: {isUWServer?: boolean, name?: string}) {
+  constructor(options?: {isUWServer?: boolean, name?: string, commsOrigin?: CommsOrigin}) {
     if (!options?.isUWServer) {
       this.setupIframeTunnelling();
     }
-    this.name = options?.name;
+    this.name = options?.name ?? '(unnamed EventBus)';
+    this.commsOrigin = options?.commsOrigin;
   }
 
   setupPopupTunnelWorkaround(context: EventBusContext): void {
@@ -102,8 +88,7 @@ export default class EventBus {
     }
   }
 
-  send(command: string, commandData: any, context?: EventBusContext) {
-    console.info('sending eventBus command:', this.name, 'command:', {command, commandData, context});
+  send(command: string, commandData: any, context: EventBusContext = {}) {
     // execute commands we have subscriptions for
 
     if (this.commands?.[command]) {
@@ -146,7 +131,9 @@ export default class EventBus {
           }
         );
       }
-      this.sendToTunnel(command, commandData);
+      this.sendToTunnel(command, commandData, context);
+    } else {
+      console.warn('message was already sent to iframe, doing nothing ...')
     }
 
     if (context?.stopPropagation) {
@@ -160,12 +147,14 @@ export default class EventBus {
    * @param command
    * @param config
    */
-  sendToTunnel(command: string, config: any) {
-    if (!this.disableTunnel) {
+  sendToTunnel(command: string, config: any, context: EventBusContext = {}) {
+    context.visitedBusses = [...context.visitedBusses ?? [], this.uuid];
+
+    if (!this.disableTunnel && typeof window !== 'undefined') {
       window.parent.postMessage(
         {
           action: 'uw-bus-tunnel',
-          payload: {action: command, config}
+          payload: {command, config, context} as EventBusMessage
         },
         '*'
       );
@@ -175,10 +164,20 @@ export default class EventBus {
       // in the popup
       if (this.comms) {
         try {
-          this.comms.sendMessage({command, config, context: this.popupContext}, this.popupContext);
+          this.comms.sendMessage(
+            {
+              command,
+              config,
+              context: {
+                ...this.popupContext,
+                ...context
+              }
+            },
+            this.popupContext
+          );
         } catch (e) {
           if (command !== 'reload-required') {
-            this.send('reload-required', {});
+            this.send('reload-required', {}, context);
           }
         }
       }
@@ -188,17 +187,34 @@ export default class EventBus {
   //#region iframe tunnelling
   private setupIframeTunnelling() {
     // forward messages coming from iframe tunnels
-    window.addEventListener('message', this.handleIframeMessage);
+    window.addEventListener('message', this);
   }
   private destroyIframeTunnelling() {
-    window.removeEventListener('message', this.handleIframeMessage);
+    window.removeEventListener('message', this);
   }
-  private handleIframeMessage(event: any) {
+  /**
+   * Handles 'message' events (formerly handleIframeMessage)
+   * @param event
+   * @returns
+   */
+  handleEvent(event: any) {
     if (event.data?.action !== 'uw-bus-tunnel') {
       return;
     }
-    console.info(this.name, 'received message from iframe. command:', event.data.payload);
-    this.send(event.data.payload.command, event.data.payload.config);
+
+    const payload = event.data.payload as EventBusMessage;
+
+    console.info(this.name, 'received message from iframe. command:', payload);
+    if (!payload.context) {
+      console.warn('Received iframe message without context. Doing nothing in order to avoid infinite loop. Event:', event);
+      return;
+    }
+
+    if (payload.context?.visitedBusses?.includes(this.uuid)) {
+      return;
+    }
+
+    this.send(payload.command, payload.config, payload.context);
   }
 
   //#endregion

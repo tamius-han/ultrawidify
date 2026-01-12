@@ -97,10 +97,13 @@ class UI {
     window.addEventListener('message', (event: MessageEvent) => {
       const data = event.data;
 
-      if (data?.action !== 'uw-bus-tunnel') return;
+      if (data?.action !== 'uw-bus-tunnel') {
+        return;
+      }
 
-      const command = data.payload.command;
-      const config = data.payload.config;
+      const payload = data.payload;
+
+      console.log('forwarding from tunnel to event bus. payload', payload);
 
       // Forward to all iframes except the source
       (UwuiWindow as any).instances?.forEach(win => {
@@ -109,7 +112,7 @@ class UI {
           iframe.contentWindow?.postMessage(
             {
               action: 'uw-bus-tunnel',
-              payload: { command, config }
+              payload,
             },
             '*'
           );
@@ -454,9 +457,9 @@ class UI {
       }
     });
 
-    this.eventBus.forwardToIframe(iframe, (cmd, payload, context) => {
+    this.eventBus.forwardToIframe(iframe, (command, config, context) => {
       iframe.contentWindow?.postMessage(
-        { action: 'uw-bus-tunnel', payload: { command: cmd, config: payload } },
+        { action: 'uw-bus-tunnel', payload: { command, config, context } },
         '*'
       );
     });

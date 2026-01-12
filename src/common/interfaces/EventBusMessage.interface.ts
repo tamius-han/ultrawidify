@@ -17,10 +17,13 @@ export interface EventBusContext {
   stopPropagation?: boolean;
 
   origin?: CommsOrigin;
+  frameUrl?: string;
 
   // tab?: number;
   // frame?: number;
   // port?: string;
+
+  visitedBusses?: string[];
 
   comms?: {
     forwardTo?: 'all' | 'active' | 'popup' | 'contentScript' | 'all-frames';

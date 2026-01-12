@@ -1,8 +1,10 @@
+import { ExtensionEnvironment } from './../../../common/interfaces/SettingsInterface';
 import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
 import Settings from '@src/ext/module/settings/Settings';
 import EventBus from '@src/ext/module/EventBus';
 import { CommsOrigin } from './CommsClient';
 import UWServer from '@src/ext/UWServer';
+import { HostInfo } from '@src/common/interfaces/HostData.interface';
 
 const BASE_LOGGING_STYLES = {
   log: "background-color: #11D; color: #aad",
@@ -149,6 +151,15 @@ class CommsServer {
     }
 
     return hosts;
+  }
+
+  async getUniqueFrameHosts() {
+    const aTab = await this.activeTab;
+
+    const tabPort = this.ports[aTab.id];
+    const hosts:  HostInfo[] = [];
+
+
   }
 
   sendMessage(message, context?) {
