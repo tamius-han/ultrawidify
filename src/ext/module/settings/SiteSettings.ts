@@ -1,6 +1,7 @@
 import CropModePersistence from '@src/common/enums/CropModePersistence.enum';
 import EmbeddedContentSettingsOverridePolicy from '@src/common/enums/EmbeddedContentSettingsOverridePolicy.enum';
 import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
+import { PlayerDetectionMode } from '@src/common/enums/PlayerDetectionMode.enum';
 import { SiteSupportLevel } from '@src/common/enums/SiteSupportLevel.enum';
 import StretchType from '@src/common/enums/StretchType.enum';
 import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
@@ -322,7 +323,10 @@ export class SiteSettings {
    * @returns querySelector if possible, undefined otherwise
    */
   getCustomDOMQuerySelector(element: 'video' | 'player'): string | undefined {
-    return this.data.currentDOMConfig?.elements?.[element]?.manual && this.data.currentDOMConfig?.elements?.[element]?.querySelectors || undefined;
+    return (
+      this.data.currentDOMConfig?.elements?.[element]?.detectionMode === PlayerDetectionMode.QuerySelectors
+      && this.data.currentDOMConfig?.elements?.[element]?.querySelectors
+     ) ?? undefined;
   }
 
   /**
@@ -331,8 +335,8 @@ export class SiteSettings {
    * @returns parent element index if possible, undefined otherwise
    */
   getPlayerIndex(): number | undefined {
-    return this.data.currentDOMConfig?.elements?.player?.manual && this.data.currentDOMConfig?.elements?.player?.index
-      || this.data.playerAutoConfig?.modified && this.data.playerAutoConfig?.currentIndex
+    return ( this.data.currentDOMConfig?.elements?.player?.detectionMode === PlayerDetectionMode.AncestorIndex && this.data.currentDOMConfig?.elements?.player?.ancestorIndex )
+      || ( this.data.playerAutoConfig?.modified && this.data.playerAutoConfig?.currentIndex )
       || undefined;
   }
 
