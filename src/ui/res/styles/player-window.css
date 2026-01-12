@@ -167,3 +167,13 @@
     }
   }
 }
+
+.warning-box, .info-box {
+  @apply px-4 py-2 flex flex-row gap-4 border;
+}
+.warning-box {
+  @apply border-amber-500 text-amber-300 bg-amber-950/75;
+}
+.info-box {
+  @apply border-blue-500 text-blue-300 bg-blue-950/75;
+}
