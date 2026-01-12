@@ -50,7 +50,11 @@ export class UwuiWindow {
     this.background = options.background ?? 'blur';
     this.extraStyles = options.extraStyles;
 
-    document.body.appendChild(this.host);
+    if (document.fullscreenElement) {
+      document.fullscreenElement.appendChild(this.host);
+    } else {
+      document.body.appendChild(this.host);
+    }
 
     this.shadow = this.host.attachShadow({ mode: 'closed' });
     this.shadow.innerHTML = this.template(options);

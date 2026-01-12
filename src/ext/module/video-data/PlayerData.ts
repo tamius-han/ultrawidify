@@ -1,4 +1,5 @@
 import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
+import { PlayerDetectionMode } from '@src/common/enums/PlayerDetectionMode.enum';
 import { ExtensionEnvironment } from '@src/common/interfaces/SettingsInterface';
 import { collectionHas, equalish } from '@src/common/utils/comparators';
 import { RunLevel } from '@src/ext/enum/run-level.enum';
@@ -597,6 +598,8 @@ class PlayerData {
    * Finds and returns HTML element of the player
    */
   private getPlayer(options?: {verbose?: boolean}): HTMLElement {
+    const detectionMode = this.siteSettings.data.currentDOMConfig?.elements?.player?.detectionMode;
+
     const videoWidth = this.videoElement.offsetWidth;
     const videoHeight = this.videoElement.offsetHeight;
     let playerCandidate;
@@ -616,31 +619,16 @@ class PlayerData {
       }
     }
 
-    // if mode is given, we follow the preference
-    if (this.siteSettings.data.currentDOMConfig?.elements?.player?.manual && this.siteSettings.data.currentDOMConfig?.elements?.player?.mode) {
-      if (this.siteSettings.data.currentDOMConfig?.elements?.player?.mode === 'qs') {
-        playerCandidate = this.getPlayerQs(playerQs, elementStack, videoWidth, videoHeight);
-      } else {
-        playerCandidate = elementStack[playerIndex];
-        playerCandidate.heuristics['manualElementByParentIndex'] = true;
-      }
-    } else {
-      // try to figure it out based on what we have, with playerQs taking priority
-      if (playerQs) {
-        playerCandidate = this.getPlayerQs(playerQs, elementStack, videoWidth, videoHeight);
-      } else if (playerIndex) { // btw 0 is not a valid index for player
-        playerCandidate = elementStack[playerIndex];
-        playerCandidate.heuristics['manualElementByParentIndex'] = true;
-      }
+    if (detectionMode === PlayerDetectionMode.AncestorIndex) {
+      playerCandidate = elementStack[playerIndex];
+      playerCandidate.heuristics['manualElementByParentIndex'] = true;
+    } else if (detectionMode === PlayerDetectionMode.QuerySelectors) {
+      playerCandidate = this.getPlayerQs(playerQs, elementStack, videoWidth, videoHeight);
     }
 
-    if (playerCandidate) {
-      if (options?.verbose) {
-        this.getPlayerAuto(elementStack, videoWidth, videoHeight);
-        playerCandidate.heuristics['activePlayer'] = true;
-      }
-      return playerCandidate.element;
-    } else {
+    // we fall back to automatic player detection even if detectionMode is
+    // not set to auto.
+    if (detectionMode === PlayerDetectionMode.Auto || !playerCandidate) {
       const playerCandidate = this.getPlayerAuto(elementStack, videoWidth, videoHeight);
       if (playerCandidate === null) {
         console.warn('[uw::getPlayer] getPlayerAuto returned null — no player detected?');
@@ -648,6 +636,12 @@ class PlayerData {
         playerCandidate.heuristics['activePlayer'] = true;
         return playerCandidate.element;
       }
+    } else {
+      if (options?.verbose) {
+        this.getPlayerAuto(elementStack, videoWidth, videoHeight);
+        playerCandidate.heuristics['activePlayer'] = true;
+      }
+      return playerCandidate.element;
     }
   }
 
@@ -698,6 +692,15 @@ class PlayerData {
       if (elementData.width == 0 || elementData.height == 0) {
         elementData.heuristics['invalidSize'] = true;
         continue;
+      }
+
+      // when in full screen, we need to worry about top-layer shenanigans
+      if (!!fullscreenElement) {
+        console.log('we are in full screen — checking for top layer shenanigans. Is this element visible from top layer?', fullscreenElement.contains(elementData.element))
+        if (!fullscreenElement.contains(elementData.element)) {
+          elementData.heuristics['notVisibleInTopLayer'] = true;
+          continue;
+        }
       }
 
       if (elementData.element === fullscreenElement) {
