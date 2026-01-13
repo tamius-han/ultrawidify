@@ -11,7 +11,7 @@ import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
 import Settings from '@src/ext/module/settings/Settings';
 import { SiteSettings } from '@src/ext/module/settings/SiteSettings';
 import VideoData from '@src/ext/module/video-data/VideoData';
-import Scaler, { VideoDimensions } from '@src/ext/module/video-transform/Scaler';
+import Scaler, { CropStrategy, VideoDimensions } from '@src/ext/module/video-transform/Scaler';
 import Stretcher from '@src/ext/module/video-transform/Stretcher';
 import Zoom from '@src/ext/module/video-transform/Zoom';
 import * as _ from 'lodash';
@@ -314,8 +314,9 @@ class Resizer {
   }
 
   /**
-   * Starts and stops Aard as necessary. Returns 'true' if we can
-   * stop setting aspect ratio early.
+   * Starts and stops Aard as necessary.
+   * Returns 'true' if we need to handle aspect ratio change.
+   * Returns 'false' when no changes are necessary.
    * @param ar
    * @param resizerMode
    * @returns
@@ -323,13 +324,14 @@ class Resizer {
   private handleAard(ar: Ar): boolean {
     if (ar.type === AspectRatioType.Automatic) {
       this.videoData.aard?.startCheck(ar.variant);
-      return true;
+      return false;
     } else if (ar.type !== AspectRatioType.AutomaticUpdate) {
       this.videoData.aard?.stop();
     } else if (this.stretcher.stretch.type === StretchType.Basic) {
       this.videoData?.aard?.stop();
     }
 
+    return true;
   }
 
   async setAr(ar: Ar, lastAr?: Ar) {
@@ -355,13 +357,21 @@ class Resizer {
       [AspectRatioType.Reset, AspectRatioType.Initial].includes(ar.type) &&
       [StretchType.NoStretch, StretchType.Default].includes(this.stretcher.stretch.type)
     ) {
-      this.eventBus.send('set-run-level', RunLevel.UIOnly);
+      if (this.videoData.player.runLevel !== RunLevel.UIOnly) {
+        this.eventBus.send('set-run-level', RunLevel.UIOnly);
+      }
     } else {
-      this.eventBus.send('set-run-level', RunLevel.CustomCSSActive);
+      if (this.videoData.player.runLevel !== RunLevel.CustomCSSActive) {
+        this.eventBus.send('set-run-level', RunLevel.CustomCSSActive);
+      }
     }
 
-    // handle autodetection stuff
-    if (this.handleAard(ar)) {
+    // this function checks if we need to handle updates from Aard.
+    // handleAard will handle all Aard-related things we need to keep in mind,
+    // and will return 'true' if we need to continue handling aspect ratio
+    // change that we're currently processing.
+    if (! this.handleAard(ar)) {
+      this.logger.info('setAr', 'handleAard says we can stop processing this setAr command:', ar);
       return;
     }
 
@@ -486,6 +496,7 @@ class Resizer {
       const translate = this.computeOffsets(stretchFactors, options?.ar);
       this.applyCss(stretchFactors, translate);
     } catch (e) {
+      this.logger.warn('setAr', 'error while applying CSS:', e);
       // don't apply CSS if there's an error
     }
   }
