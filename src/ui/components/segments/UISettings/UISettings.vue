@@ -5,17 +5,32 @@
     <!-- The rest of the tab is under 'edit ratios and shortcuts' row -->
     <div v-if="settings" class="flex flex-col" style="width: 100%">
 
-      <div class="flex flex-col compact-form">
+      <div class="flex flex-col gap-2">
         <div
-          class="flex flex-col field-group compact-form"
+          class="flex flex-col field-group compact-form gap-2"
         >
-          <div class="field disabled">
+          <div class="field">
             <div class="label">
               Popup activator position:
             </div>
             <div class="select">
               <select
-                v-model="settings.active.ui.inPlayer.popupAlignment"
+                v-model="settings.active.ui.inPlayer.activatorAlignment"
+                @change="saveSettings()"
+              >
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="label">
+              Popup activator padding:
+            </div>
+            <div class="select">
+              <select
+                v-model="settings.active.ui.inPlayer.activatorAlignment"
                 @change="saveSettings()"
               >
                 <option value="left">Left</option>
@@ -34,11 +49,47 @@
                 @change="saveSettings()"
               >
                 <option value="player">
-                  When mouse hovers over player
+                  When mouse moves over player, always
                 </option>
-                <option value="trigger-zone">
-                  When mouse hovers over trigger zone
+                <option value="player-ctrl">
+                  When mouse moves over player, while holding CTRL key
                 </option>
+                <option value="distance">
+                  When mouse is close to the menu activator
+                </option>
+                <!-- <option value="trigger-zone">
+                  When mouse moves over trigger zone
+                </option> -->
+              </select>
+            </div>
+          </div>
+
+          <div v-show="settings.active.ui.inPlayer.activation === 'distance'" class="field">
+            <div class="label">
+              Show menu when mouse is closer than:
+            </div>
+            <div class="input range-input">
+              <input
+                v-model="settings.active.ui.inPlayer.activationDistance"
+                class="slider"
+                type="range"
+                min="10"
+                max="100"
+                step="1"
+                @change="(event) => saveSettings()"
+              >
+              <input
+                style="margin-right: 0.6rem;"
+                v-model="settings.active.ui.inPlayer.activationDistance"
+                @change="(event) => saveSettings(true)"
+              >
+              <select
+                class="unit-select !min-w-[72px]"
+                v-model="settings.active.ui.inPlayer.activationDistanceUnit"
+                @change="(event) => saveSettings(true)"
+              >
+                <option value="%">%</option>
+                <option value="px">px</option>
               </select>
             </div>
           </div>

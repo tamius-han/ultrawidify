@@ -264,7 +264,11 @@ const ExtensionConf: SettingsInterface = {
       minEnabledWidth: 0.75,
       minEnabledHeight: 0.75,
       activation: 'player',
-      popupAlignment: 'left',
+      activationDistance: 100,
+      activationDistanceUnits: '%',
+      activatorAlignment: 'left',
+      activatorPadding: 10,
+      activatorPaddingUnit: '%',
       triggerZoneDimensions: {
         width: 0.5,
         height: 0.5,

@@ -184,7 +184,7 @@ class UI {
     if (this.uiConfig.parentElement) {
       const menuConfig = {
         isGlobal: this.isGlobal,
-        menuPosition: MenuPosition.Left,
+        ui: this.settings.active.ui.inPlayer,
         items: [
           {
             customClassList: 'uw-site-info',

@@ -1,3 +1,5 @@
+import { InPlayerUIOptions } from '@src/common/interfaces/SettingsInterface';
+
 export interface MenuItemConfig {
   label: string;
   subitems?: MenuItemConfig[];
@@ -20,7 +22,7 @@ export enum MenuPosition {
 
 export interface MenuConfig {
   isGlobal?: boolean;
+  ui: InPlayerUIOptions;
   menuPosition: MenuPosition;
-  activationRadius?: number;
   items: MenuItemConfig[];
 }

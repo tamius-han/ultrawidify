@@ -308,6 +308,23 @@ interface DevSettings {
   loadFromSnapshot: boolean,
 }
 
+export interface InPlayerUIOptions  {
+    activatorAlignment: 'left' | 'right',
+    minEnabledWidth: number,                 // don't show UI if player is narrower than % of screen width
+    minEnabledHeight: number,                // don't show UI if player is narrower than % of screen height
+    activation: 'player' | 'player-ctrl' | 'trigger-zone' | 'distance' | 'none',   // what needs to be hovered in order for UI to be visible
+    activationDistance: number,
+    activationDistanceUnits: '%' | 'px',
+    activatorPadding: 10,
+    activatorPaddingUnit: '%' | 'px',
+    triggerZoneDimensions: {                 // how large the trigger zone is (relative to player size)
+      width: number
+      height: number,
+      offsetX: number,                       // fed to translateX(offsetX + '%'). Valid range [-100,   0]
+      offsetY: number                        // fed to translateY(offsetY + '%'). Valid range [-100, 100]
+    },
+  };
+
 interface SettingsInterface {
   _updateFlags?: {
     requireReload?: SettingsReloadFlags,
@@ -319,18 +336,7 @@ interface SettingsInterface {
   aard: AardSettings,
 
   ui: {
-    inPlayer: {
-      popupAlignment: 'left' | 'right',
-      minEnabledWidth: number,                 // don't show UI if player is narrower than % of screen width
-      minEnabledHeight: number,                // don't show UI if player is narrower than % of screen height
-      activation: 'player' | 'trigger-zone' | 'distance' | 'none',   // what needs to be hovered in order for UI to be visible
-      triggerZoneDimensions: {                 // how large the trigger zone is (relative to player size)
-        width: number
-        height: number,
-        offsetX: number,                       // fed to translateX(offsetX + '%'). Valid range [-100,   0]
-        offsetY: number                        // fed to translateY(offsetY + '%'). Valid range [-100, 100]
-      },
-    },
+    inPlayer: InPlayerUIOptions,
     devMode?: boolean,
     dev: DevUiConfig,
   }

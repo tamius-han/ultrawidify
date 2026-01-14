@@ -12,6 +12,7 @@ export class ClientMenu {
   public get root(): HTMLDivElement {
     return this._root;
   }
+  private trigger: HTMLDivElement;
   private visible = false;
 
   private menuPositionClasses: string[] = [];
@@ -21,6 +22,8 @@ export class ClientMenu {
   private isWithinActivation = false;
   private lastMouseMove = performance.now();
   private idleTimer?: number;
+
+
 
   private onDocumentMouseMove?: (e: MouseEvent) => void;
   private onDocumentMouseLeave?: () => void;
@@ -75,16 +78,19 @@ export class ClientMenu {
   }
 
   private getActivationRadius(anchorEl: HTMLElement): number | null {
-    if (this.config.activationRadius == null) return null;
+    if (this.config.ui.activation !== 'distance') {
+      return undefined;
+    }
 
-    if (typeof this.config.activationRadius === 'number') {
-      return this.config.activationRadius;
+    if (this.config.ui.activationDistanceUnits === 'px') {
+      return +this.config.ui.activationDistance;
     }
 
     // percentage string
     const rect = anchorEl.getBoundingClientRect();
-    const pct = parseFloat(this.config.activationRadius);
-    return Math.max(rect.width, rect.height) * (pct / 100);
+    const percent = +this.config.ui.activationDistance;
+
+    return Math.max(rect.width, rect.height) * (percent / 100);
   }
 
   private injectStyles() {
@@ -154,8 +160,6 @@ export class ClientMenu {
       pointerEvents: 'none',
       background: 'transparent',
     });
-
-    console.log('UI host created:', this.host);
   }
 
   private createShadow() {
@@ -208,7 +212,9 @@ export class ClientMenu {
 
     const trigger = document.createElement('div');
     trigger.classList = 'uw-menu-trigger uw-trigger';
+    trigger.style = `margin: ${this.config.ui.activatorPadding ?? 10} ${this.config.ui.activatorPaddingUnit ?? '%'}`;
     trigger.textContent = 'Ultrawidify';
+    this.trigger = trigger;
 
     const submenu = this.buildSubmenu(this.config.items);
 
@@ -281,24 +287,38 @@ export class ClientMenu {
   }
 
   private bindGlobalMouse(anchorEl: HTMLElement) {
-    const rect = anchorEl.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
+    const playerRect = anchorEl.getBoundingClientRect();
+
+    let menuActivatorRect, cx, cy;
 
     const activationRadius = this.getActivationRadius(anchorEl);
+
+    const recalculateActivator = () => {
+      menuActivatorRect = this.trigger.getBoundingClientRect();
+      cx = menuActivatorRect.left + menuActivatorRect.width / 2;
+      cy = menuActivatorRect.top + menuActivatorRect.height / 2;
+    }
+
+    recalculateActivator();
 
     this.onDocumentMouseMove = (e: MouseEvent) => {
       this.lastMouseMove = performance.now();
 
       if (activationRadius != null) {
+        if (! menuActivatorRect.width) {
+          recalculateActivator();
+        }
+
         const d = Math.hypot(e.clientX - cx, e.clientY - cy);
         this.isWithinActivation = d <= activationRadius;
+
       } else {
         this.isWithinActivation =
-          e.clientX >= rect.left &&
-          e.clientX <= rect.right &&
-          e.clientY >= rect.top &&
-          e.clientY <= rect.bottom;
+          e.clientX >= playerRect.left &&
+          e.clientX <= playerRect.right &&
+          e.clientY >= playerRect.top &&
+          e.clientY <= playerRect.bottom &&
+          (this.config.ui.activation !== 'player-ctrl' || e.ctrlKey);
       }
 
       this.updateVisibility();
@@ -319,7 +339,7 @@ export class ClientMenu {
   private startIdleWatcher() {
     this.idleIntervalId = window.setInterval(() => {
       const idle = performance.now() - this.lastMouseMove > 1000;
-      if (idle) {
+      if (idle && !this.isHovered) {
         this.hide();
       }
     }, 200);
