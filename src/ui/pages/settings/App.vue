@@ -14,6 +14,16 @@
       class="w-full h-[100dvh] overflow-hidden flex flex-col"
       :class="{'max-w-[1920px]': !isDebugging && role !== 'ui'}"
     >
+
+      <div class="flex flex-row font-mono text-[0.8rem] text-stone-500 border-stone-500">
+        <!-- <pre>
+        url: {{getUrl}}
+        ——
+        site: <pre>{{JSON.stringify(site, null, 2)}}</pre>
+        ——
+        </pre> -->
+      </div>
+
       <PopupHead
         v-if="role === 'popup' && settings && siteSettings && eventBus"
         :settings="settings"
@@ -22,9 +32,7 @@
         :eventBus="eventBus"
       >
       </PopupHead>
-      <div v-else-if="role === 'ui'" class="flex flex-row font-mono text-[0.8rem] text-stone-500 border-stone-500">
-        url: {{getUrl}}
-      </div>
+
       <div v-else>
         <h1 class="text-[3em] grow-0 shrink-0">Ultrawidify settings</h1>
       </div>

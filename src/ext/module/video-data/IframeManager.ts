@@ -88,7 +88,8 @@ export default class IframeManager {
    * @param context
    */
   private handleIframeRegister(data, context) {
-    const existingIndex = this.iframeList.findIndex(x => x.frameId === context.comms.sourceFrame.frameId);
+    console.log('handling iframe register:', {data, context});
+    const existingIndex = this.iframeList.findIndex(x => x.frameId && x.frameId === context.comms?.sourceFrame?.frameId);
 
     if (existingIndex !== -1) {
       this.iframeList[existingIndex] = {

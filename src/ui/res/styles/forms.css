@@ -42,6 +42,39 @@
     top: 0;
     transform: translateY(69%);
   }
+
+  .unit-select {
+    @apply bg-stone-950 text-white px-4 py-1 border border-transparent border-l-stone-600 border-dotted;
+
+    flex-grow: 1;
+    flex-shrink: 1;
+
+    min-width: 12px;
+    max-width: 24rem;
+
+    outline: none;
+
+    font: inherit;
+    font-size: inherit;
+
+    option {
+      @apply bg-stone-950 text-white;
+
+      &:checked {
+        @apply text-primary-400;
+      }
+
+      &:before {
+        content: ">";
+        display: none;
+        background-color: #f41 !important;
+        font-size: 5rem;;
+      }
+      &:hover {
+        @apply text-black bg-primary-300;
+      }
+    }
+  }
 }
 
 .range-input {
@@ -94,6 +127,7 @@
     display: flex;
     flex-direction: column;
   }
+
 
   .select {
     flex-grow: 1;

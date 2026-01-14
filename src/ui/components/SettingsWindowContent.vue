@@ -37,7 +37,7 @@
                   v-for="suboption of tab.children"
                   :key="suboption.id"
                   class="suboption"
-                  :class="{'active': suboption.id === selectedTab, 'disabled': suboption.disabled }"
+                  :class="{'active': suboption.id === selectedTab, 'disabled': suboption.disabled, 'hidden': suboption.visible === false }"
                   @click="selectTab(suboption.id)"
                 >
                   <div class="label">
@@ -60,8 +60,8 @@
         </div>
       </div>
       <div class="grow content flex flex-col overflow-auto pr-4 pb-12">
-        <!-- autodetection warning -->
 
+        <!-- autodetection warning -->
         <div class="warning-area">
           <div
             v-if="statusFlags.hasDrm"
@@ -72,7 +72,19 @@
             </div>
             <div>
               This site is blocking automatic aspect ratio detection. You will have to adjust aspect ratio manually.<br/>
-              <a>Learn more ...</a>
+              <!-- <a>Learn more ...</a> -->
+            </div>
+          </div>
+
+          <div
+            v-if="settings.active.preventReload"
+            class="info-box"
+          >
+            <div class="icon-container">
+              <mdicon name="information" :size="24" />
+            </div>
+            <div>
+              Some settings will only reply after page reload.
             </div>
           </div>
         </div>
@@ -86,40 +98,60 @@
             :site="site"
           ></VideoSettings>
 
-          <template v-if="settings && selectedTab === 'site-extension-settings'" >
-            <h3>Settings for {{site?.host}}</h3>
-            <SiteExtensionSettings
-              :settings="settings"
-              :siteSettings="siteSettings"
-              :isDefaultConfiguration="false"
-            ></SiteExtensionSettings>
+          <template v-if="[
+            'site-extension-settings',
+            'window.site-extension-settings',
+            'embedded-extension-settings',
+          ].includes(selectedTab)">
+            <template v-if="!settings || !siteSettings">
+              Loading settings ...
+
+              <pre>         site: {{site}}</pre>
+              <pre>     settings: {{!!settings}}</pre>
+              <pre>site settings: {{!!siteSettings}}</pre>
+            </template>
+            <template v-else>
+              <template v-if="settings && selectedTab === 'site-extension-settings'" >
+                <h3>Settings for {{site?.host}}</h3>
+                <SiteExtensionSettings
+                  :settings="settings"
+                  :siteSettings="siteSettings"
+                  :isDefaultConfiguration="false"
+                ></SiteExtensionSettings>
+              </template>
+
+              <template v-if="settings && selectedTab === 'window.site-extension-settings'" >
+                <h3>Settings for {{site?.host}}</h3>
+                <SiteExtensionSettings
+                  :settings="settings"
+                  :siteSettings="siteSettings"
+                  :isDefaultConfiguration="false"
+                ></SiteExtensionSettings>
+              </template>
+
+              <template v-if="settings && selectedTab === 'embedded-extension-settings'" >
+                <h3>Settings for embedded sites</h3>
+                <FrameSiteSettings
+                  :parentHost="site?.host"
+                  :hosts="site?.hostnames"
+                  :settings="settings"
+                ></FrameSiteSettings>
+              </template>
+            </template>
           </template>
 
-          <template v-if="settings && selectedTab === 'window.site-extension-settings'" >
-            <h3>Settings for {{site?.host}}</h3>
-            <SiteExtensionSettings
-              :settings="settings"
-              :siteSettings="siteSettings"
-              :isDefaultConfiguration="false"
-            ></SiteExtensionSettings>
-          </template>
-
-          <template v-if="settings && selectedTab === 'embedded-extension-settings'" >
-            <h3>Settings for embedded sites</h3>
-            <FrameSiteSettings
-              :parentHost="site?.host"
-              :hosts="site?.hostnames"
-              :settings="settings"
-            ></FrameSiteSettings>
-          </template>
-
-          <template v-if="settings && selectedTab === 'default-extension-settings'" >
-            <h3>Default settings</h3>
-            <SiteExtensionSettings
-              :settings="settings"
-              :siteSettings="globalSettings"
-              :isDefaultConfiguration="true"
-            ></SiteExtensionSettings>
+          <template v-if="selectedTab === 'default-extension-settings'" >
+            <template v-if="!settings">
+              Loading settings ...
+            </template>
+            <template v-else>
+              <h3>Default settings</h3>
+              <SiteExtensionSettings
+                :settings="settings"
+                :siteSettings="globalSettings"
+                :isDefaultConfiguration="true"
+              ></SiteExtensionSettings>
+            </template>
           </template>
 
           <OtherSiteSettings
@@ -236,7 +268,8 @@ const AVAILABLE_TABS = {
     id: 'window.site-extension-settings', label: 'Site and Extension options', icon: 'cogs',
     children: [
       { id: 'window.site-extension-settings', label: 'For this site', },
-      { id: 'embedded-extension-settings', label: 'For embedded sites', disabled: true, badgeCount: 0, },
+      { id: 'window.parent-site-extension-settings', label: 'For parent page', visible: false,},
+      { id: 'embedded-extension-settings', label: 'For embedded sites', disabled: true, visible: true, badgeCount: 0, },
       { id: 'default-extension-settings', label: 'Default settings' },
       { id: 'website-extension-settings', label: 'Website exceptions' },
     ]
@@ -407,7 +440,6 @@ export default defineComponent({
       const tabs = [];
       for (const tab of TAB_LOADOUT[this.role]) {
         if (!AVAILABLE_TABS[tab]) {
-          console.warn('[uw:SettingsWindowContent] tab', tab, 'is not present in available tabs:', AVAILABLE_TABS, '— tabs for role', this.role, TAB_LOADOUT[this.role]);
           continue;
         } else {
           if (tab === 'site-extension-settings') {
