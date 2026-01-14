@@ -89,6 +89,7 @@ export default class EventBus {
   }
 
   send(command: string, commandData: any, context: EventBusContext = {}) {
+    context.visitedBusses = [...context.visitedBusses ?? [], this.uuid];
     // execute commands we have subscriptions for
 
     if (this.commands?.[command]) {
@@ -111,30 +112,26 @@ export default class EventBus {
       } catch (e) {
         if (command !== 'reload-required') {
           // We shouldn't let reload-required command to trigger new reload-required commands.
-          this.send('reload-required', {});
+          this.send('reload-required', {}, {visitedBusses: [this.uuid]});
         }
       }
     };
 
     // call forwarding functions if they exist
-    if (!context?.borderCrossings?.iframe) {
-      for (const forwarding of this.iframeForwardingList) {
-        forwarding.fn(
-          command,
-          commandData,
-          {
-            ...context,
-            borderCrossings: {
-              ...context?.borderCrossings,
-              iframe: true
-            }
+    for (const forwarding of this.iframeForwardingList) {
+      forwarding.fn(
+        command,
+        commandData,
+        {
+          ...context,
+          borderCrossings: {
+            ...context?.borderCrossings,
+            // iframe: true  // we actually no longer check this prop, we should instead rely on visitedBusses
           }
-        );
-      }
-      this.sendToTunnel(command, commandData, context);
-    } else {
-      console.warn('message was already sent to iframe, doing nothing ...')
+        }
+      );
     }
+    this.sendToTunnel(command, commandData, context);
 
     if (context?.stopPropagation) {
       return;
@@ -148,6 +145,10 @@ export default class EventBus {
    * @param config
    */
   sendToTunnel(command: string, config: any, context: EventBusContext = {}) {
+    if (!context.visitedBusses) {
+      console.error('Visited busses is missing from contextn. This is illegal.');
+      return;
+    }
     context.visitedBusses = [...context.visitedBusses ?? [], this.uuid];
 
     if (!this.disableTunnel && typeof window !== 'undefined') {
@@ -205,7 +206,7 @@ export default class EventBus {
     const payload = event.data.payload as EventBusMessage;
 
     console.info(this.name, 'received message from iframe. command:', payload);
-    if (!payload.context) {
+    if (!payload.context?.visitedBusses) {
       console.warn('Received iframe message without context. Doing nothing in order to avoid infinite loop. Event:', event);
       return;
     }
