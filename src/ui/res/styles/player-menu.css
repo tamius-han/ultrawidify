@@ -106,13 +106,28 @@
   }
 
   &.uw-menu-center {
-    @apply left-1/2 -translate-x-1/2 flex-row;
+    @apply flex-row;
+
+    left: 50%;
+    transform: translateX(-50%);
 
     &.uw-menu-top {
-      @apply bottom-0;
+      @apply top-full;
     }
     &.uw-menu-bottom {
-      @apply top-0;
+      @apply bottom-full;
+    }
+
+    .uw-menu-item {
+      @apply px-8 relative;
+
+      &:not(:first-child):after {
+        content: '·';
+        @apply absolute;
+
+        left: -1rem;
+        transform: translateX(50%);
+      }
     }
   }
 

@@ -23,6 +23,6 @@ export enum MenuPosition {
 export interface MenuConfig {
   isGlobal?: boolean;
   ui: InPlayerUIOptions;
-  menuPosition: MenuPosition;
+  options?: {forceShow?: boolean};
   items: MenuItemConfig[];
 }

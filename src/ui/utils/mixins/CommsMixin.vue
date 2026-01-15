@@ -15,7 +15,7 @@ export default {
      */
     execAction(command) {
       const cmd = JSON.parse(JSON.stringify(command));
-      this.eventBus?.sendToTunnel(cmd.action, cmd.arguments);
+      this.eventBus?.send(cmd.action, cmd.arguments);
     },
   }
 }

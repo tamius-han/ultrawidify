@@ -173,7 +173,7 @@ export default defineComponent({
       }
     }
 
-    this.eventBus.sendToTunnel('get-ar');
+    this.eventBus.send('get-ar');
   },
   destroyed() {
     this.eventBus.unsubscribeAll(this);
@@ -201,7 +201,7 @@ export default defineComponent({
       // this.eventBus.send('set-zoom', {zoom: 1, axis: 'y'});
       // this.eventBus.send('set-zoom', {zoom: 1, axis: 'x'});
 
-      this.eventBus?.sendToTunnel('set-zoom', {zoom: 1});
+      this.eventBus?.send('set-zoom', {zoom: 1});
     },
     changeZoom(logZoom: number, axis: 'x' | 'y') {
       // we do not use logarithmic zoom elsewhere, therefore we need to convert
@@ -210,17 +210,17 @@ export default defineComponent({
       if (this.zoomOptions.lockAr) {
         this.zoom.x = logZoom;
         this.zoom.y = logZoom;
-        this.eventBus?.sendToTunnel('set-zoom', {zoom: linearZoom});
+        this.eventBus?.send('set-zoom', {zoom: linearZoom});
       } else {
         this.zoom[axis] = logZoom;
-        this.eventBus?.sendToTunnel('set-zoom', {zoom: {[axis]: linearZoom}});
+        this.eventBus?.send('set-zoom', {zoom: {[axis]: linearZoom}});
       }
     },
     isActiveZoom(command) {
       return false;
     },
     align(alignmentX: VideoAlignmentType, alignmentY: VideoAlignmentType) {
-      this.eventBus?.sendToTunnel('set-alignment', {x: alignmentX, y: alignmentY})
+      this.eventBus?.send('set-alignment', {x: alignmentX, y: alignmentY})
     }
 
   }

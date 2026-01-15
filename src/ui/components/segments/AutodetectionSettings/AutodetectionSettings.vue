@@ -206,7 +206,7 @@
       <div class="flex flex-row w-full gap-2">
         <div class="grow flex flex-col gap-2">
           <div>
-            <button v-if="eventBus" @click="eventBus?.sendToTunnel('aard-enable-debug', true)">Show debug overlay</button>
+            <button v-if="eventBus" @click="eventBus?.send('aard-enable-debug', true)">Show debug overlay</button>
           </div>
           <div class="field">
             <div class="label">Show debug overlay on startup</div>
@@ -277,7 +277,7 @@ export default defineComponent({
     );
   },
   mounted() {
-    this.eventBus?.sendToTunnel('get-aard-timing');
+    this.eventBus?.send('get-aard-timing');
     // this.graphRefreshInterval = setInterval(() => this.eventBus.sendToTunnel('get-aard-timing'), 500);
     this.resetSettingsEditor();
   },
@@ -302,7 +302,7 @@ export default defineComponent({
       this.settings.saveWithoutReload();
     },
     refreshGraph() {
-       this.eventBus.sendToTunnel('get-aard-timing');
+       this.eventBus.send('get-aard-timing');
     },
     handleConfigBroadcast(data) {
       if (data.type === 'aard-performance-data') {

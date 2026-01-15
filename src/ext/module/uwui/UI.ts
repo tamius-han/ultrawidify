@@ -68,6 +68,24 @@ class UI {
     // UI will be initialized when setUiVisibility is called
     if (!this.isGlobal) {
       this.init();
+
+      this.eventBus.subscribeMulti({
+        'reload-menu': {
+          function: () => {
+            this.createExtensionMenu({forceShow: true});
+            this.extensionMenu.show({forceShow: true});
+          }
+        },
+        'force-menu-activator-state': {
+          function: (commandData) => {
+            if (commandData.visibility) {
+              this.extensionMenu.show({forceShow: true});
+            } else {
+              this.extensionMenu.show({forceShow: false});
+            }
+          }
+        }
+      });
     }
   }
 
@@ -164,7 +182,7 @@ class UI {
     }
   }
 
-  createExtensionMenu() {
+  createExtensionMenu(options?: {forceShow?: boolean}) {
     if (+this.siteSettings?.data.enableUI === ExtensionMode.Disabled || this.isGlobal) {
       return; // don't
     }
@@ -185,6 +203,7 @@ class UI {
       const menuConfig = {
         isGlobal: this.isGlobal,
         ui: this.settings.active.ui.inPlayer,
+        options,
         items: [
           {
             customClassList: 'uw-site-info',
@@ -339,7 +358,7 @@ class UI {
             action: () => this.createSettingsWindow('about'),
           }
         ]
-      }
+      };
       this.extensionMenu = new ClientMenu(menuConfig);
       this.extensionMenu.mount(this.uiConfig.parentElement);
 
@@ -347,10 +366,13 @@ class UI {
        *  SETUP MENU INTERACTIONS
        * ———————————————————————————————————
        * Interactions are needed for the following things:
-       *     0. [ ]  both sliders. Needs to read the state of the sliders and update the labels
-       *     1. [ ]  lock X/Y button — needs to update icon state of the button and the linked bar
-       *     2. [ ]  reset button — just needs to reset, no icon changes necessary
+       *     0. [X]  both sliders. Needs to read the state of the sliders and update the labels
+       *     1. [X]  lock X/Y button — needs to update icon state of the button and the linked bar
+       *     2. [X]  reset button — just needs to reset, no icon changes necessary
        *     3. [X]  alignment indicator — also needs to update indicator state
+       *         A
+       *         |
+       *    (yay done!)
        */
       const menuElement = this.extensionMenu.root;
 

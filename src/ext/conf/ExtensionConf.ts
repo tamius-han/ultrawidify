@@ -267,8 +267,8 @@ const ExtensionConf: SettingsInterface = {
       activationDistance: 100,
       activationDistanceUnits: '%',
       activatorAlignment: 'left',
-      activatorPadding: 10,
-      activatorPaddingUnit: '%',
+      activatorPadding: {x: 16, y: 16},
+      activatorPaddingUnit: {x: 'px', y: 'px'},
       triggerZoneDimensions: {
         width: 0.5,
         height: 0.5,

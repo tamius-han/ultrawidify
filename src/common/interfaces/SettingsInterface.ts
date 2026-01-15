@@ -9,6 +9,7 @@ import StretchType from '@src/common/enums/StretchType.enum'
 import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum'
 import { PlayerDetectionMode } from '@src/common/enums/PlayerDetectionMode.enum';
 import { InputHandlingMode } from '@src/common/enums/InputHandlingMode.enum';
+import { MenuPosition } from '@src/common/interfaces/ClientUiMenu.interface';
 
 export enum ExtensionEnvironment {
   Normal = ExtensionMode.All,
@@ -309,14 +310,14 @@ interface DevSettings {
 }
 
 export interface InPlayerUIOptions  {
-    activatorAlignment: 'left' | 'right',
+    activatorAlignment: MenuPosition,
     minEnabledWidth: number,                 // don't show UI if player is narrower than % of screen width
     minEnabledHeight: number,                // don't show UI if player is narrower than % of screen height
     activation: 'player' | 'player-ctrl' | 'trigger-zone' | 'distance' | 'none',   // what needs to be hovered in order for UI to be visible
     activationDistance: number,
     activationDistanceUnits: '%' | 'px',
-    activatorPadding: 10,
-    activatorPaddingUnit: '%' | 'px',
+    activatorPadding: {x: number, y: number}
+    activatorPaddingUnit: {x: '%' | 'px', y: '%' | 'px'},
     triggerZoneDimensions: {                 // how large the trigger zone is (relative to player size)
       width: number
       height: number,

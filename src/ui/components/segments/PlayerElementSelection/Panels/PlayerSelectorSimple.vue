@@ -183,11 +183,7 @@ export default defineComponent({
       this.tutorialStep = 0;
     },
     getPlayerTree() {
-      if (this.isPopup) {
-        this.eventBus.send('get-player-tree');
-      } else {
-        this.eventBus.sendToTunnel('get-player-tree');
-      }
+      this.eventBus.send('get-player-tree');
     },
     handleElementStack(configBroadcast) {
       if (configBroadcast.type === 'player-tree') {
@@ -196,7 +192,7 @@ export default defineComponent({
       }
     },
     markElement(parentIndex, enable) {
-      this.eventBus.sendToTunnel('set-mark-element', {parentIndex, enable});
+      this.eventBus.send('set-mark-element', {parentIndex, enable});
     },
     async setPlayer(index) {
       // yup.

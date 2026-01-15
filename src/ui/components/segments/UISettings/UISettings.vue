@@ -9,35 +9,6 @@
         <div
           class="flex flex-col field-group compact-form gap-2"
         >
-          <div class="field">
-            <div class="label">
-              Popup activator position:
-            </div>
-            <div class="select">
-              <select
-                v-model="settings.active.ui.inPlayer.activatorAlignment"
-                @change="saveSettings()"
-              >
-                <option value="left">Left</option>
-                <option value="right">Right</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="field">
-            <div class="label">
-              Popup activator padding:
-            </div>
-            <div class="select">
-              <select
-                v-model="settings.active.ui.inPlayer.activatorAlignment"
-                @change="saveSettings()"
-              >
-                <option value="left">Left</option>
-                <option value="right">Right</option>
-              </select>
-            </div>
-          </div>
 
           <div class="field">
             <div class="label">
@@ -101,6 +72,92 @@
 
           <div class="field">
             <div class="label">
+              Menu activator position:
+            </div>
+            <div class="select">
+              <select
+                v-model="settings.active.ui.inPlayer.activatorAlignment"
+                @change="saveSettings()"
+              >
+                <optgroup label="Edges">
+                  <option :value="MenuPosition.Left">Left</option>
+                  <option :value="MenuPosition.Right">Right</option>
+                  <option :value="MenuPosition.Top">Top</option>
+                  <option :value="MenuPosition.Bottom">Bottom</option>
+                </optgroup>
+
+                <optgroup label="corners">
+                  <option :value="MenuPosition.TopLeft">Top left</option>
+                  <option :value="MenuPosition.BottomLeft">Bottom left</option>
+                  <option :value="MenuPosition.TopRight">Top right"</option>
+                  <option :value="MenuPosition.BottomRight">Bottom right"</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="label">
+              Menu activator horizontal padding:
+            </div>
+            <div class="input range-input">
+              <input
+                v-model="settings.active.ui.inPlayer.activatorPadding.x"
+                class="slider"
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                @change="(event) => saveSettings()"
+              >
+              <input
+                style="margin-right: 0.6rem;"
+                v-model="settings.active.ui.inPlayer.activatorPadding.x"
+                @change="(event) => saveSettings(true)"
+              >
+              <select
+                class="unit-select !min-w-[72px]"
+                v-model="settings.active.ui.inPlayer.activatorPaddingUnit.x"
+                @change="(event) => saveSettings(true)"
+              >
+                <option value="%">%</option>
+                <option value="px">px</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="label">
+              Menu activator vertical padding:
+            </div>
+            <div class="input range-input">
+              <input
+                v-model="settings.active.ui.inPlayer.activatorPadding.y"
+                class="slider"
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                @change="(event) => saveSettings()"
+              >
+              <input
+                style="margin-right: 0.6rem;"
+                v-model="settings.active.ui.inPlayer.activatorPadding.y"
+                @change="(event) => saveSettings(true)"
+              >
+              <select
+                class="unit-select !min-w-[72px]"
+                v-model="settings.active.ui.inPlayer.activatorPaddingUnit.y"
+                @change="(event) => saveSettings(true)"
+              >
+                <option value="%">%</option>
+                <option value="px">px</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="label">
               Do not show in-player UI when video player is narrower than
             </div>
             <div class="input range-input">
@@ -159,6 +216,7 @@
 </template>
 
 <script lang="ts">
+import { MenuPosition } from '@src/common/interfaces/ClientUiMenu.interface';
 import BrowserDetect from '@src/ext/conf/BrowserDetect';
 import { defineComponent } from 'vue';
 
@@ -167,6 +225,7 @@ export default defineComponent({
   },
   data() {
     return {
+      MenuPosition,
       ghettoComputed: { }
     }
   },
@@ -181,7 +240,12 @@ export default defineComponent({
     this.ghettoComputed = {
       minEnabledWidth: this.optionalToFixed(this.settings.active.ui.inPlayer.minEnabledWidth * 100, 0),
       minEnabledHeight: this.optionalToFixed(this.settings.active.ui.inPlayer.minEnabledHeight * 100, 0),
-    }
+    };
+
+    this.eventBus?.send('force-menu-activator-state', {visibility: true});
+  },
+  unmounted() {
+    this.eventBus?.send('force-menu-activator-state', {visibility: false});
   },
   methods: {
     forcePositiveNumber(value) {
@@ -213,11 +277,13 @@ export default defineComponent({
         this.ghettoComputed[key] = this.optionalToFixed(value * 100, 0);
       }
     },
-    saveSettings(forceRefresh) {
-      this.settings.saveWithoutReload();
+    async saveSettings(forceRefresh) {
+      await this.settings.saveWithoutReload();
+
+      this.eventBus.send('reload-menu');
 
       if (forceRefresh) {
-        this.$nextTick( () => this.$forceRefresh() );
+        this.$nextTick( () => this.$forceUpdate() );
       }
     },
     startTriggerZoneEdit() {

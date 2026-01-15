@@ -19,6 +19,7 @@ export class ClientMenu {
 
 
   private isHovered = false;
+  private forceShow = false;
   private isWithinActivation = false;
   private lastMouseMove = performance.now();
   private idleTimer?: number;
@@ -29,7 +30,11 @@ export class ClientMenu {
   private onDocumentMouseLeave?: () => void;
   private idleIntervalId?: number;
 
-  constructor(private config: MenuConfig) {}
+  constructor(private config: MenuConfig) {
+    if (config.options?.forceShow !== undefined) {
+      this.forceShow = config.options.forceShow;
+    }
+  }
 
   mount(anchorElement: HTMLElement) {
     this.buildMenuPositionClassList();
@@ -173,7 +178,8 @@ export class ClientMenu {
    */
   private buildMenuPositionClassList() {
     let classList;
-    switch (this.config.menuPosition) {
+    console.log('BUILDING MENU POS:', MenuPosition[this.config.ui.activatorAlignment]);
+    switch (this.config.ui.activatorAlignment) {
       case MenuPosition.TopLeft:
         classList = ['uw-menu-left','uw-menu-top'];
         break;
@@ -209,10 +215,14 @@ export class ClientMenu {
   private createMenu() {
     this.root = document.createElement('div');
     this.root.className = 'uw-menu-root uw-hidden';
+    this.root.setAttribute(
+      'style',
+      `padding: ${this.config.ui.activatorPadding.y ?? 16}${this.config.ui.activatorPaddingUnit.y ?? 'px'} ${this.config.ui.activatorPadding.x ?? 16}${this.config.ui.activatorPaddingUnit.x ?? 'px'}`
+    );
+
 
     const trigger = document.createElement('div');
     trigger.classList = 'uw-menu-trigger uw-trigger';
-    trigger.style = `margin: ${this.config.ui.activatorPadding ?? 10} ${this.config.ui.activatorPaddingUnit ?? '%'}`;
     trigger.textContent = 'Ultrawidify';
     this.trigger = trigger;
 
@@ -364,7 +374,7 @@ export class ClientMenu {
     }
   }
 
-  private show() {
+  show(options?: {forceShow?: boolean}) {
     this.lastMouseMove = performance.now();
 
     if (!this.visible) {
@@ -372,10 +382,18 @@ export class ClientMenu {
       this.root.classList.add('uw-visible');
       this.root.classList.remove('uw-hidden');
     }
+
+    if (options?.forceShow !== undefined) {
+      this.forceShow = options.forceShow;
+    }
   }
 
-  private hide() {
-    if (this.visible) {
+  hide(options?: {forceShow?: boolean}) {
+    if (options?.forceShow !== undefined) {
+      this.forceShow = options.forceShow;
+    }
+
+    if (this.visible && !this.forceShow) {
       this.visible = false;
       this.root.classList.remove('uw-visible');
       this.root.classList.add('uw-hidden');
