@@ -34,7 +34,7 @@
     "gl-matrix": "^3.4.4",
     "json-cyclic": "1.0.2",
     "json-difference": "^1.16.1",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "mdi-vue": "^3.0.13",
     "typescript": "^5.9.3",
     "vanilla-jsoneditor": "^3.10.0",
