@@ -1,137 +1,82 @@
 <template>
-  <div class="w-full flex flex-row" style="margin-top: 1rem;">
+  <div class="w-full flex flex-col" style="margin-top: 1rem;">
+    <h2 class="text-[1.75em]">Simple video player picker</h2>
+    <div class="text text-sm text-stone-500">
+      <p>If your video is not aligned correctly, video player was not detected correctly.</p>
+      <p>You need to help by selecting the video player. Hover over boxes below. This will highlight part of the screen.</p>
+      <p>Select the first box that highlights the video player on the page.</p>
+    </div>
 
-    <!-- PLAYER ELEMENT SELECTOR FOR DUMMIES -->
-    <div style="width: 48%">
-      <div class="sub-panel-content">
-
-        <div v-if="showAdvancedOptions" style="display: flex; flex-direction: row">
-          <div style="display: flex; flex-direction: column">
-            <div>
-              <input :checked="playerManualQs"
-                      @change="togglePlayerManualQs"
-                      type="checkbox"
-              />
-              <div>
-                Use <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors" target="_blank">CSS selector</a> for player<br/>
-                <small>If defining multiple selectors, separate them with commas.</small>
-              </div>
-            </div>
-            <div>Selector</div>
-            <input type="text"
-              v-model="playerQs"
-              @change="updatePlayerQuerySelector"
-              @blur="updatePlayerQuerySelector"
-              :disabled="playerByNodeIndex || !playerManualQs"
-            />
-          </div>
-          <div style="display: flex; flex-direction: column">
-            <b>Custom CSS for site</b>
-            <textarea></textarea>
-          </div>
-        </div>
-
-        <div style="display: flex; flex-direction: row;">
-          <div class="element-tree">
-            <table>
-              <thead>
-                <tr>
-                  <th>
-                    <div class="status-relative">
-                      Status <mdicon name="help-circle" @click="showLegend = !showLegend" />
-
-                      <div v-if="showLegend" class="element-symbol-legend">
-                        <b>Symbols:</b><br />
-                        <mdicon name="alert-remove" class="invalid" /> Element of invalid dimensions<br />
-                        <mdicon name="refresh-auto" class="auto-match" /> Ultrawidify's player detection thinks this should be the player<br />
-                        <mdicon name="bookmark" class="parent-offset-match" /> Site settings say this should be the player (based on counting parents)<br />
-                        <mdicon name="crosshairs" class="qs-match" /> Site settings say this should be the player (based on query selectors)<br />
-                        <mdicon name="check-circle" class="activePlayer" /> Element that is actually the player
-                      </div>
-                    </div>
-                  </th>
-                  <th>Element</th>
-                  <!-- <th>Actions</th> -->
-                  <!-- <th>Quick fixes</th> -->
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(element, index) of elementStack"
-                  :key="index"
-                  class="element-row"
-                >
-                  <td>
-                    <div class="status">
-                      <div
-                        v-if="element.heuristics?.invalidSize"
-                        class="invalid"
-                      >
-                        <mdicon name="alert-remove" />
-                      </div>
-                      <div
-                        v-if="element.heuristics?.autoMatch"
-                        class="auto-match"
-                      >
-                        <mdicon name="refresh-auto" />
-                      </div>
-                      <div
-                        v-if="element.heuristics?.qsMatch"
-                        class="qs-match"
-                      >
-                        <mdicon name="crosshairs" />
-                      </div>
-                      <div
-                        v-if="element.heuristics?.manualElementByParentIndex"
-                        class="parent-offset-match"
-                      >
-                        <mdicon name="bookmark" />
-                      </div>
-                      <div
-                        v-if="element.heuristics?.activePlayer"
-                        class="activePlayer"
-                      >
-                        <mdicon name="check-circle" />
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div
-                      class="element-data"
-
-                      @mouseover="markElement(elementStack.length - index - 1, true)"
-                      @mouseleave="markElement(elementStack.length - index - 1, false)"
-
-                      @click="setPlayer(elementStack.length - index - 1)"
-                    >
-                      <div class="tag">
-                        <b>{{element.tagName}}</b> <i class="id">{{element.id ? `#`:''}}{{element.id}}</i>  @ <span class="dimensions">{{element.width}}</span>x<span class="dimensions">{{element.height}}</span>
-
-                      </div>
-                      <div v-if="element.classList" class="class-list">
-                        <div v-for="cls of element.classList" :key="cls">
-                          {{cls}}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="flex flex-row">
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <div class="element-config">
-            </div>
-          </div>
-
-          <!-- <div class="css-preview">
-            {{cssStack}}
-          </div> -->
-        </div>
+    <div class="">
+      <div class="flex flex-row gap-4">
+        <button>How to use</button>
       </div>
     </div>
+
+    <!-- PLAYER ELEMENT SELECTOR FOR DUMMIES -->
+    <div class="flex flex-col-reverse gap-2">
+      <div
+        v-for="(element, index) of elementStack"
+        :key="index"
+        class="py-2 px-4 border border-stone-500 flex flex-col gap-2 text-sm cursor-pointer"
+        :class="{
+          '!border-blue-500': element.heuristics?.autoMatch,
+          '!border-teal-800': element.heuristics?.manualElementByParentIndex,
+          '!border-emerald-500': element.heuristics?.qsMatch,
+          '!border-red-700 bg-red-950/50': element.heuristics?.invalidSize,
+          '!border-primary-300': element.heuristics?.activePlayer,
+          '!pointer-events-none opacity-50': element.tagName == 'video',
+        }"
+
+        @mouseover="markElement(elementStack.length - index - 1, true)"
+        @mouseleave="markElement(elementStack.length - index - 1, false)"
+        @click="setPlayer(elementStack.length - index - 1)"
+      >
+        <div
+          v-if="element.heuristics?.autoMatch"
+          class="text-primary-300 flex flex-row gap-2"
+        >
+          <mdicon name="check-circle" /> This element is currently treated as player element.
+        </div>
+
+        <div>
+          <div class="tag">
+            <b>&lt;{{element.tagName}}&gt;</b> <i class="text-red-800">{{element.id ? `#`:''}}{{element.id}}</i>  @ <span class="text-blue-500">{{element.width}}</span>x<span class="text-blue-500">{{element.height}}</span>
+          </div>
+          <div v-if="element.classList" class="text-nowrap overflow-hidden text-ellipsis text-stone-500/50">
+            <span v-for="cls of element.classList" :key="cls">.{{cls}}&nbsp;</span>
+          </div>
+        </div>
+
+
+        <div
+          v-if="element.heuristics?.qsMatch"
+          class="text-emerald-600 flex flex-row gap-2"
+        >
+          <mdicon name="crosshairs" /> This element matches query string (advanced settings)
+        </div>
+        <div
+          v-if="element.heuristics?.manualElementByParentIndex"
+          class="text-teal-800 flex flex-row gap-2"
+        >
+          <mdicon name="bookmark" /> This element has been manually selected as player element.
+        </div>
+        <div
+          v-if="element.heuristics?.autoMatch"
+          class="text-blue-500 flex flex-row gap-2"
+        >
+          <mdicon name="refresh-auto" /> Automatic detections thinks this is the player.
+        </div>
+        <div
+          v-if="element.heuristics?.invalidSize"
+          class="text-red-700 flex flex-row gap-2"
+        >
+          <mdicon name="alert-remove" /> This element has invalid dimensions
+        </div>
+      </div>
+
+    </div>
+
   </div>
 </template>
 
@@ -156,11 +101,9 @@ export default defineComponent({
   },
   mixins: [],
   props: [
+    'settings', // not used?
     'siteSettings',
-    'frame',
     'eventBus',
-    'site',
-    'isPopup'
   ],
   created() {
     this.eventBus.subscribe(

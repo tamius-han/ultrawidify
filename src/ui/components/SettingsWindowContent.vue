@@ -160,13 +160,40 @@
             :settings="settings"
           ></OtherSiteSettings>
 
+<!--
           <PlayerElementSettings
             v-if="selectedTab === 'settings.player-element-settings'"
             :settings="settings"
             :eventBus="eventBus"
           >
-
           </PlayerElementSettings>
+
+          <PlayerElementWindow
+            v-if="selectedTab === 'window.player-element-settings'"
+            :settings="settings"
+            :eventBus="eventBus"
+          ></PlayerElementWindow> -->
+
+          <template v-if="selectedTab === 'window.player-element-advanced-settings'">
+            <PlayerSelectorAdvancedForm
+              v-if="settings && siteSettings"
+              :settings="settings"
+              :siteSettings="siteSettings"
+            ></PlayerSelectorAdvancedForm>
+            <template v-else>Loading site settings, please wait ...</template>
+          </template>
+
+          <template v-if="selectedTab === 'window.player-element-settings'">
+            <PlayerSelectorSimple
+              v-if="settings && siteSettings"
+              :site="site"
+              :eventBus="eventBus"
+              :settings="settings"
+              :siteSettings="siteSettings"
+            ></PlayerSelectorSimple>
+            <template v-else>Loading site settings, please wait ...</template>
+          </template>
+
 
           <AutodetectionSettings
             v-if="selectedTab === 'autodetectionSettings'"
@@ -242,6 +269,8 @@ import SiteExtensionSettings from '@components/segments/ExtensionSettings/Panels
 import FrameSiteSettings from '@components/segments/ExtensionSettings/Panels/FrameSiteSettings.vue';
 import Debugging from '@components/segments/Debugging/Debugging.vue';
 import ImportExportSettings from '@components/segments/ImportExportSettings/ImportExportSettings.vue';
+import PlayerSelectorAdvancedForm from '@components/segments/PlayerElementSelection/Panels/PlayerSelectorAdvancedForm.vue';
+import PlayerSelectorSimple from '@components/segments/PlayerElementSelection/Panels/PlayerSelectorSimple.vue';
 
 import AfterUpdate from '@components/segments/AfterUpdate/AfterUpdate.vue';
 
@@ -250,6 +279,7 @@ import About from '@components/segments/ExtensionInfo/About.vue';
 
 // not component:
 import BrowserDetect from '@src/ext/conf/BrowserDetect'
+import WarningsMixin from '../utils/mixins/WarningsMixin.vue';
 
 
 const AVAILABLE_TABS = {
@@ -281,11 +311,17 @@ const AVAILABLE_TABS = {
         { id: 'website-extension-settings', label: 'Website exceptions', },
       ]
    },
-  'window.player-element-settings': { id: 'window.player-element-settings', label: 'Advanced video player options', icon: 'play-box-edit-outline' },
+  'window.player-element-settings': {
+    id: 'window.player-element-settings', label: 'Video player options', icon: 'play-box-edit-outline',
+    children: [
+      {id: 'window.player-element-settings', label: 'Video player picker'},
+      {id: 'window.player-element-advanced-settings', label: 'Advanced options'},
+    ],
+  },
   'autodetectionSettings': {id: 'autodetectionSettings', label: 'Autodetection options', icon: 'auto-fix'},
   'ui-settings': {id: 'ui-settings', label: 'UI settings', icon: 'movie-cog-outline' },
   'keyboardShortcuts': {id: 'keyboardShortcuts', label: 'Keyboard shortcuts', icon: 'keyboard-outline' },
-  'playerDetection': {id: 'playerDetection', label: 'Player detection', icon: 'television-play'},
+  'settings.player-element-settings': {id: 'settings.player-element-settings', label: 'Player detection', icon: 'television-play'},
 
   'installed': { id: 'installed', label: 'Update completed', icon: 'monitor-arrow-down-variant'},
   'updated': { id: 'updated', label: 'Update completed', icon: 'update'},
@@ -299,7 +335,7 @@ const AVAILABLE_TABS = {
 const TAB_LOADOUT = {
   'settings': [
     'default-extension-settings',
-    'settings.player-element-settings',
+    // 'settings.player-element-settings',
     'autodetectionSettings',
     'ui-settings',
     'keyboardShortcuts',
@@ -344,6 +380,8 @@ export default defineComponent({
     OtherSiteSettings,
     PlayerElementSettings,
     PlayerElementWindow,
+    PlayerSelectorAdvancedForm,
+    PlayerSelectorSimple,
     AutodetectionSettings,
     KeyboardShortcutSettings,
     UISettings,
@@ -357,7 +395,9 @@ export default defineComponent({
     WhatsNew,
     About,
   },
-  mixins: [],
+  mixins: [
+    WarningsMixin
+  ],
   data() {
     return {
       statusFlags: {
