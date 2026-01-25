@@ -7,11 +7,11 @@
       <p>Select the first box that highlights the video player on the page.</p>
     </div>
 
-    <div class="">
+    <!-- <div class="">
       <div class="flex flex-row gap-4">
         <button>How to use</button>
       </div>
-    </div>
+    </div> -->
 
     <!-- PLAYER ELEMENT SELECTOR FOR DUMMIES -->
     <div class="flex flex-col-reverse gap-2">
@@ -30,7 +30,7 @@
 
         @mouseover="markElement(elementStack.length - index - 1, true)"
         @mouseleave="markElement(elementStack.length - index - 1, false)"
-        @click="setPlayer(elementStack.length - index - 1)"
+        @click="setPlayer(element, elementStack.length - index - 1)"
       >
         <div
           v-if="element.heuristics?.autoMatch"
@@ -81,6 +81,10 @@
 </template>
 
 <script lang="ts">
+import { PlayerDetectionMode } from '@src/common/enums/PlayerDetectionMode.enum';
+import { SiteSupportLevel } from '@src/common/enums/SiteSupportLevel.enum';
+import { SiteDOMSettingsInterface } from '@src/common/interfaces/SettingsInterface';
+import { _cp } from '@src/common/utils/_cp';
 import { defineComponent } from 'vue';
 
 export default defineComponent({
@@ -137,25 +141,35 @@ export default defineComponent({
     markElement(parentIndex, enable) {
       this.eventBus.send('set-mark-element', {parentIndex, enable});
     },
-    async setPlayer(index) {
-      // yup.
-      // this.siteSettings.getDOMConfig('modified', 'original');
-      // await this.siteSettings.setUpdateFlags(['PlayerData']);
-      // await this.siteSettings.set('DOMConfig.modified.type', 'modified', {noSave: true});
-      // await this.siteSettings.set('activeDOMConfig', 'modified', {noSave: true});
+    /**
+     * Designates new element as player element. Currently, we only need
+     * 'index', however at some point we might also set mode according
+     * to element flags.
+     */
+    async setPlayer(element, index) {
+      await this.siteSettings.ensureSettings();
 
-      // // if user agrees with ultrawidify on what element player should be,
-      // // we just unset our settings for this site
-      // if (this.elementStack[index].heuristics?.autoMatch) {
-      //   await this.siteSettings.set('DOMConfig.modified.elements.player.manual', false);
-      //   this.getPlayerTree();
-      // } else {
-      //   // ensure settings exist:
-      //   await this.siteSettings.set('DOMConfig.modified.elements.player.manual', true, {noSave: true});
-      //   await this.siteSettings.set('DOMConfig.modified.elements.player.mode', 'index', {noSave: true});
-      //   await this.siteSettings.set('DOMConfig.modified.elements.player.index', index, true);
-      //   this.getPlayerTree();
-      // }
+      let domConfig: SiteDOMSettingsInterface = this.siteSettings.data.currentDOMConfig;
+      let domConfigName = this.siteSettings.data.activeDOMConfig.startsWith('@') ? 'custom' : this.siteSettings.data.activeDOMConfig;
+
+      switch (domConfig?.type) {
+        case SiteSupportLevel.UserModified:
+        case SiteSupportLevel.UserDefined:
+          break;
+        default:
+          domConfig = _cp(domConfig ?? this.settings.sites['@empty'].DOMConfig['@empty']);
+          domConfig.type = SiteSupportLevel.UserModified;
+          break;
+      }
+
+      domConfig.elements.player.detectionMode = index !== undefined ? PlayerDetectionMode.AncestorIndex : PlayerDetectionMode.Auto;
+      domConfig.elements.player.ancestorIndex = index;
+
+      await this.siteSettings.setUpdateFlags(['PlayerData']);
+      await this.siteSettings.set(`DOMConfig.${domConfigName}`, domConfig, {noSave: true});
+      await this.siteSettings.set('activeDOMConfig', domConfigName);
+
+      this.getPlayerTree();
     },
     /**
      * Toggles active CSS for element of certain parent index.

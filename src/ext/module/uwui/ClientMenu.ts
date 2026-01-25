@@ -321,8 +321,6 @@ export class ClientMenu {
           recalculateActivator();
         }
         const d = Math.hypot(e.clientX - cx, e.clientY - cy);
-
-        console.log('activator radius:', activationRadius, 'mouse distance:', d);
         this.isWithinActivation = d <= activationRadius;
 
       } else {

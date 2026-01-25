@@ -186,7 +186,7 @@ export default defineComponent({
                   this.site.host = config.site.host;
                 }
               }
-              this.site = config.site;
+              this.site = {...config.site, from: 'set-current-site, via setupPopup'};
               // this.selectedSite = this.selectedSite || config.site.host;
               this.siteSettings = this.settings.getSiteSettings({site: this.site.host});
 
@@ -280,7 +280,7 @@ export default defineComponent({
         /**
          * Subscribe to event bus commands.
          * Note that showing and hiding of the settings window is no longer handled by iframe
-         * Instead, uw-show-ui should be handled by the content-script.
+         * Instead, uw-show-settings-window should be handled by the content-script.
          */
         this.eventBus.subscribeMulti({
           'set-current-site': {
@@ -294,8 +294,7 @@ export default defineComponent({
                   this.site.host = config.site.host;
                 }
               }
-              this.site = config.site;
-
+              this.site = {...config.site, from: 'set-current-site, via setup iframe'};
               this.siteSettings = this.settings.getSiteSettings({site: this.site.host});
 
               console.log('set-site received:', this.site, this.siteSettings, 'current path:', this.initialPath);
@@ -336,6 +335,7 @@ export default defineComponent({
                   host: config.site,
                   frames: [],
                   hostnames: [],
+                  from: 'has-video, via setup iframe. Settings: ' + !!this.settings + '; site settings: ' + !!this.settings.getSiteSettings({site: config.site.host}),
                 };
 
                 this.siteSettings = this.settings.getSiteSettings({site: this.site.host});
@@ -350,7 +350,7 @@ export default defineComponent({
         console.log('—————————————————————— polling from iframe window!!!!')
         this.startSitePolling();
         // this.eventBus.subscribe(
-        //   'uw-show-ui',
+        //   'uw-show-settings-window',
         //   {
         //     source: this,
         //     function: () => {
@@ -376,7 +376,7 @@ export default defineComponent({
     //#region EXTENSION POPUP
 
     showInPlayerUi() {
-      this.eventBus.send('uw-set-ui-state', {globalUiVisible: true}, {comms: {forwardTo: 'active'}});
+      this.eventBus.send('uw-show-settings-window', {initialState: undefined, allFrames: true}, {comms: {forwardTo: 'active'}});
     },
     async sleep(t) {
       return new Promise<void>( (resolve,reject) => {

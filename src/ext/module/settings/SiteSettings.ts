@@ -452,6 +452,18 @@ export class SiteSettings {
   }
 
   /**
+   * Ensures current site has its own separate copy of settings.
+   */
+  async ensureSettings()  {
+    if (!this.settings.active.sites[this._site]) {
+      this.settings.active.sites[this._site] = _cp(this.data);
+      this.settings.active.sites[this._site].type = SiteSupportLevel.UserDefined;
+      await this.settings.saveWithoutReload();
+      this.raw = this.settings.active.sites[this._site];
+    }
+  }
+
+  /**
    * Sets option value.
    * @param optionPath path to value in object notation (dot separated)
    * @param optionValue new value of option

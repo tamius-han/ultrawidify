@@ -86,7 +86,7 @@ export default defineComponent({
   },
   methods: {
     showInPlayerUi() {
-      this.eventBus.send('uw-set-ui-state', {globalUiVisible: true}, {comms: {forwardTo: 'active'}});
+      this.eventBus.send('uw-show-settings-window', {initialState: '', allFrames: true}, {comms: {forwardTo: 'active'}});
     },
     openSettingsInTab() {
       chrome.runtime.openOptionsPage();
