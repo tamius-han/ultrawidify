@@ -24,6 +24,7 @@ export interface EventBusContext {
   // port?: string;
 
   visitedBusses?: string[];
+  commandId?: string;
 
   comms?: {
     forwardTo?: 'all' | 'active' | 'popup' | 'contentScript' | 'all-frames';

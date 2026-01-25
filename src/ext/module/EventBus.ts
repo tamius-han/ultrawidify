@@ -14,6 +14,8 @@ export default class EventBus {
   private comms?: CommsClient | CommsServer;
   private commsOrigin: CommsOrigin;
 
+  private lastExecutedCommandIds: string[] = new Array(32);
+  private lastExecutedCommandIndex: number = 0;
 
   private disableTunnel: boolean = false;
   private popupContext: any = {};
@@ -89,19 +91,32 @@ export default class EventBus {
   }
 
   send(command: string, commandData: any, context: EventBusContext = {}) {
+    if (context.visitedBusses?.includes(this.uuid)) {
+      return;
+    }
+    if (context.commandId && this.lastExecutedCommandIds.includes(context.commandId)) {
+      return;
+    }
     context.visitedBusses = [...context.visitedBusses ?? [], this.uuid];
-    // execute commands we have subscriptions for
 
+    // execute commands we have subscriptions for
     if (this.commands?.[command]) {
       for (const eventBusCommand of this.commands[command]) {
         eventBusCommand.function(commandData, context);
       }
+    }
+    if (context.commandId) {
+      const i = this.lastExecutedCommandIndex++ % this.lastExecutedCommandIds.length;
+      this.lastExecutedCommandIds[i] = context.commandId;
     }
 
     // preventing messages from flowing back to their original senders is
     // CommsServer's job. EventBus does not have enough data for this decision.
     // We do, however, have enough data to prevent backflow of messages that
     // crossed CommsServer once already.
+    if (!context.commandId) {
+      context.commandId = crypto.randomUUID();
+    }
     if (
       this.comms
       && context?.origin !== CommsOrigin.Server
@@ -112,7 +127,7 @@ export default class EventBus {
       } catch (e) {
         if (command !== 'reload-required') {
           // We shouldn't let reload-required command to trigger new reload-required commands.
-          this.send('reload-required', {}, {visitedBusses: [this.uuid]});
+          this.send('reload-required', {});
         }
       }
     };
@@ -144,7 +159,7 @@ export default class EventBus {
    * @param command
    * @param config
    */
-  sendToTunnel(command: string, config: any, context: EventBusContext = {}) {
+  private sendToTunnel(command: string, config: any, context: EventBusContext = {}) {
     if (!context.visitedBusses) {
       console.error('Visited busses is missing from contextn. This is illegal.');
       return;
