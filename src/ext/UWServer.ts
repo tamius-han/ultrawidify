@@ -254,8 +254,6 @@ export default class UWServer {
   }
 
   async getCurrentSite(sender: Runtime.MessageSender) {
-    this.logger.info('getCurrentSite', 'received get-current-site ...');
-
     const site = await this.getVideoTab();
 
     // Don't propagate 'INVALID SITE' to the popup.

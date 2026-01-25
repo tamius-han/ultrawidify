@@ -271,7 +271,6 @@ export default defineComponent({
           this.selectedTab = this.defaultTab;
         }
 
-        console.log('does event bus exist yet?', this.eventBus);
         if (!this.eventBus) {
           // inter-frame communication should be set up by eventBus for free
           this.eventBus = new EventBus({name: 'ui-window'});

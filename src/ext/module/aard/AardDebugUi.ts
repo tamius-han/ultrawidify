@@ -364,8 +364,15 @@ export class AardDebugUi {
       Active: ${ar}, changed since last check? ${testResults.aspectRatioUpdated}               letterbox width: ${testResults.letterboxWidth} offset ${testResults.letterboxOffset}<br/>
       <sup>(last: ${this._lastAr})</sup>
 
-      Paused until? ${Date.now() < timers.pauseUntil ? ((timers.pauseUntil - Date.now()) / 1000) + 's' : 'not paused'};
-      <sup>now: ${Date.now()}ms; until:${timers.pauseUntil}ms; diff: ${(+timers.pauseUntil - Date.now())} </sup>
+      ${
+        timers ?
+        `
+          Paused until? ${Date.now() < timers?.pauseUntil ? ((timers?.pauseUntil - Date.now()) / 1000) + 's' : 'not paused'};
+          <sup>now: ${Date.now()}ms; until:${timers?.pauseUntil}ms; diff: ${(+timers?.pauseUntil - Date.now())} </sup>
+        ` :
+        `- timers are missing -`
+      }
+
 
       image in black level probe (aka "not letterbox"): ${testResults.notLetterbox}
     `;

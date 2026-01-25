@@ -299,11 +299,13 @@ export class ClientMenu {
   }
 
   private bindGlobalMouse(anchorEl: HTMLElement) {
+    // const forceRecheckAfter = 5000;
+    // let lastRecalculation = performance.now();
+
     const playerRect = anchorEl.getBoundingClientRect();
 
     let menuActivatorRect, cx, cy;
-
-    const activationRadius = this.getActivationRadius(anchorEl);
+    let activationRadius = this.getActivationRadius(anchorEl);
 
     const recalculateActivator = () => {
       menuActivatorRect = this.trigger.getBoundingClientRect();
@@ -314,22 +316,30 @@ export class ClientMenu {
     recalculateActivator();
 
     this.onDocumentMouseMove = (e: MouseEvent) => {
-      this.lastMouseMove = performance.now();
+      const now = performance.now();
+      this.lastMouseMove = now;
 
-      if (activationRadius) {
-        if (! menuActivatorRect.width) {
-          recalculateActivator();
+      // activateWithCtrl is independent from other options.
+      // Depending on user settings, UI can be triggered even if we aren't holding CTRL
+      if (this.config.ui.activateWithCtrl) {
+        this.isWithinActivation = e.ctrlKey;
+      }
+
+      if (!this.isWithinActivation && this.config.ui.activation !== 'none') {
+        if (activationRadius) {
+          if (! menuActivatorRect.width || !menuActivatorRect.height) {
+            recalculateActivator();
+          }
+          const d = Math.hypot(e.clientX - cx, e.clientY - cy);
+          this.isWithinActivation = d <= activationRadius;
+
+        } else {
+          this.isWithinActivation =
+            e.clientX >= playerRect.left &&
+            e.clientX <= playerRect.right &&
+            e.clientY >= playerRect.top &&
+            e.clientY <= playerRect.bottom;
         }
-        const d = Math.hypot(e.clientX - cx, e.clientY - cy);
-        this.isWithinActivation = d <= activationRadius;
-
-      } else {
-        this.isWithinActivation =
-          e.clientX >= playerRect.left &&
-          e.clientX <= playerRect.right &&
-          e.clientY >= playerRect.top &&
-          e.clientY <= playerRect.bottom &&
-          (this.config.ui.activation !== 'player-ctrl' || e.ctrlKey);
       }
 
       this.updateVisibility();

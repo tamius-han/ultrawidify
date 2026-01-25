@@ -19,19 +19,31 @@
                 v-model="settings.active.ui.inPlayer.activation"
                 @change="saveSettings()"
               >
+                <option value="none">
+                  Never activate UI with mouse movement alone
+                </option>
                 <option value="player">
                   When mouse moves over player, always
                 </option>
-                <option value="player-ctrl">
-                  When mouse moves over player, while holding CTRL key
-                </option>
                 <option value="distance">
-                  When mouse is close to the menu activator
+                  (experimental) When mouse is close to the menu activator
                 </option>
                 <!-- <option value="trigger-zone">
                   When mouse moves over trigger zone
                 </option> -->
               </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="label">
+              <input type="checkbox"
+                v-model="settings.active.ui.inPlayer.activateWithCtrl"
+                @change="saveSettings()"
+              >
+            </div>
+            <div class="text-left">
+              Also show on CTRL + mouse move
             </div>
           </div>
 

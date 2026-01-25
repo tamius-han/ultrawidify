@@ -161,7 +161,8 @@ export default class EventBus {
    */
   private sendToTunnel(command: string, config: any, context: EventBusContext = {}) {
     if (!context.visitedBusses) {
-      console.error('Visited busses is missing from contextn. This is illegal.');
+      // this should never trigger on production version of the extension.
+      console.error('Visited busses is missing from context. This is illegal.');
       return;
     }
     context.visitedBusses = [...context.visitedBusses ?? [], this.uuid];
@@ -220,8 +221,8 @@ export default class EventBus {
 
     const payload = event.data.payload as EventBusMessage;
 
-    console.info(this.name, 'received message from iframe. command:', payload);
     if (!payload.context?.visitedBusses) {
+      // this should never be visible to a real user
       console.warn('Received iframe message without context. Doing nothing in order to avoid infinite loop. Event:', event);
       return;
     }

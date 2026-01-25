@@ -88,7 +88,6 @@ class UI {
 
         'uw-show-settings-window': {
           function: (commandData, context) => {
-            console.warn('received show settings window:', commandData, context, 'is global?', this.isGlobal);
             this.createSettingsWindow(commandData?.initialState);
           }
         }

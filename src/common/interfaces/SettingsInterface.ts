@@ -313,7 +313,8 @@ export interface InPlayerUIOptions  {
     activatorAlignment: MenuPosition,
     minEnabledWidth: number,                 // don't show UI if player is narrower than % of screen width
     minEnabledHeight: number,                // don't show UI if player is narrower than % of screen height
-    activation: 'player' | 'player-ctrl' | 'trigger-zone' | 'distance' | 'none',   // what needs to be hovered in order for UI to be visible
+    activation: 'player' | 'trigger-zone' | 'distance' | 'none',   // what needs to be hovered in order for UI to be visible
+    activateWithCtrl: boolean,
     activationDistance: number,
     activationDistanceUnits: '%' | 'px',
     activatorPadding: {x: number, y: number}

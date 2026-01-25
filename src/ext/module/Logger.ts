@@ -197,7 +197,6 @@ class Logger {
 
   storageChangeListener(changes: any, area: any) {
     if (!changes.uwLogger) {
-      console.info('We dont have any logging settings, not processing frther');
       return;
     }
 
