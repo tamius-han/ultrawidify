@@ -7,6 +7,7 @@ import { PlayerDetectionMode } from '@src/common/enums/PlayerDetectionMode.enum'
 import { SiteSupportLevel } from '@src/common/enums/SiteSupportLevel.enum';
 import StretchType from '@src/common/enums/StretchType.enum';
 import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
+import { MenuPosition } from '@src/common/interfaces/ClientUiMenu.interface';
 import SettingsInterface from '@src/common/interfaces/SettingsInterface';
 import Debug from '@src/ext/conf/Debug';
 import { AardPollingOptions } from '@src/ext/module/aard/enums/aard-polling-options.enum';
@@ -266,7 +267,7 @@ const ExtensionConf: SettingsInterface = {
       activation: 'player',
       activationDistance: 100,
       activationDistanceUnits: '%',
-      activatorAlignment: 'left',
+      activatorAlignment: MenuPosition.Left,
       activatorPadding: {x: 16, y: 16},
       activatorPaddingUnit: {x: 'px', y: 'px'},
       triggerZoneDimensions: {
