@@ -56,7 +56,7 @@
               >
               <select
                 class="unit-select !min-w-[72px]"
-                v-model="settings.active.ui.inPlayer.activationDistanceUnit"
+                v-model="settings.active.ui.inPlayer.activationDistanceUnits"
                 @change="(event) => saveSettings(true)"
               >
                 <option value="%">%</option>

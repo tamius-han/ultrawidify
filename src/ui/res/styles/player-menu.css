@@ -8,12 +8,20 @@
   transition: opacity 120ms ease;
 
   &:not(.uw-visible) {
-    pointer-events: none;
-    opacity: 0;
+    &:not(.uw-force-visible) {
+      pointer-events: none;
+      opacity: 0;
+    }
   }
   &.uw-hidden {
-    pointer-events: none;
-    opacity: 0;
+    &:not(.uw-force-visible) {
+      pointer-events: none;
+      opacity: 0;
+    }
+    &.uw-force-visible {
+      @apply text-blue-500;
+      opacity: 0.5;
+    }
   }
   &.uw-visible {
     /* pointer-events: auto; */
@@ -68,7 +76,10 @@
 }
 
 .uw-hidden {
-  display: none !important;
+  &:not(.uw-force-visible) {
+    display: none !important;
+  }
+
 }
 
 .uw-trigger, .uw-menu-item, .uw-menu-trigger {

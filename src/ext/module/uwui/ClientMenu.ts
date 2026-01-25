@@ -15,6 +15,8 @@ export class ClientMenu {
   private trigger: HTMLDivElement;
   private visible = false;
 
+  private hiddenClass = 'uw-hidden';
+
   private menuPositionClasses: string[] = [];
 
 
@@ -314,12 +316,13 @@ export class ClientMenu {
     this.onDocumentMouseMove = (e: MouseEvent) => {
       this.lastMouseMove = performance.now();
 
-      if (activationRadius != null) {
+      if (activationRadius) {
         if (! menuActivatorRect.width) {
           recalculateActivator();
         }
-
         const d = Math.hypot(e.clientX - cx, e.clientY - cy);
+
+        console.log('activator radius:', activationRadius, 'mouse distance:', d);
         this.isWithinActivation = d <= activationRadius;
 
       } else {
@@ -384,16 +387,26 @@ export class ClientMenu {
     }
 
     if (options?.forceShow !== undefined) {
+      if (!this.forceShow && options.forceShow) {
+        this.root.classList.add('uw-force-visible');
+      }
+      if (this.forceShow && !options.forceShow) {
+        this.root.classList.remove('uw-force-visible');
+      }
       this.forceShow = options.forceShow;
+
     }
   }
 
   hide(options?: {forceShow?: boolean}) {
     if (options?.forceShow !== undefined) {
-      this.forceShow = options.forceShow;
+      if (this.forceShow !== options.forceShow) {
+        this.root.classList.remove('uw-force-visible');
+        this.forceShow = options.forceShow;
+      }
     }
 
-    if (this.visible && !this.forceShow) {
+    if (this.visible) {
       this.visible = false;
       this.root.classList.remove('uw-visible');
       this.root.classList.add('uw-hidden');
