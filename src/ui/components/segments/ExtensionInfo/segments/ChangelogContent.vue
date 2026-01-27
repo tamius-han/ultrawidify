@@ -36,6 +36,19 @@
     <li>
       Settings, popup and in-page UI have been combined into a single HTML file in order to cut down on the file size.
     </li>
+    <li>
+      In-player UI has been made a bit lighter (previously, in-player UI utilized vue + iframe. Now, in-player UI uses vanilla HTML/javascript (unless you open settings window)).
+    </li>
+    <li>
+      Removed some UI activation options: UI can no longer be activated by defining a trigger zone.
+    </li>
+    <li>
+      Added new UI activation options: UI can be set to show on mouse movement (default), when mouse moves within user-defined distance to the menu activator, or while holding the CTRL key (you need to move your mouse while holding CTRL for the menu to show)
+    </li>
+    <li>
+      In-player menu position can be somewhat customized.
+    </li>
+
   </ul>
 
   <b class="text-white">Other updates and fixes:</b>
