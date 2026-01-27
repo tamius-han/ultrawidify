@@ -117,32 +117,41 @@ class UI {
     this.initMessaging();
   }
 
+  private messageListener?: (event?: MessageEvent) => void;
+
   private initMessaging() {
-    window.addEventListener('message', (event: MessageEvent) => {
-      const data = event.data;
+    if (this.messageListener) {
+      window.removeEventListener('message', this.messageListener);
+    } else {
+      this.messageListener = (event: MessageEvent) => {
+        const data = event.data;
 
-      if (data?.action !== 'uw-bus-tunnel') {
-        return;
-      }
-
-      const payload = data.payload;
-
-      console.log('forwarding from tunnel to event bus. payload', payload);
-
-      // Forward to all iframes except the source
-      (UwuiWindow as any).instances?.forEach(win => {
-        const iframe = win.content as HTMLIFrameElement;
-        if (iframe && event.source !== iframe.contentWindow) {
-          iframe.contentWindow?.postMessage(
-            {
-              action: 'uw-bus-tunnel',
-              payload,
-            },
-            '*'
-          );
+        if (data?.action !== 'uw-bus-tunnel') {
+          return;
         }
-      });
-    });
+
+
+        const payload = data.payload;
+
+        console.log('forwarding from tunnel to event bus. payload', payload);
+
+        // Forward to all iframes except the source
+        (UwuiWindow as any).instances?.forEach(win => {
+          const iframe = win.content as HTMLIFrameElement;
+          if (iframe && event.source !== iframe.contentWindow) {
+            iframe.contentWindow?.postMessage(
+              {
+                action: 'uw-bus-tunnel',
+                payload,
+              },
+              '*'
+            );
+          }
+        });
+      };
+    }
+
+    window.addEventListener('message', this.messageListener);
   }
 
   executeCommand(x: CommandInterface) {
@@ -464,6 +473,18 @@ class UI {
   createSettingsWindow(path?: string) {
     const iframe = document.createElement('iframe');
 
+    // we don't enforce minimum margin on small screens
+    const margin = (window.innerWidth < 1024 || window.innerHeight < 720) ? 0 : 64;
+
+    const params = {
+      width: Math.min(1600, window.innerWidth - margin),
+      height: Math.min(920, window.innerHeight - margin),
+      x: 0,
+      y: 0
+    };
+    params.x = Math.floor((window.innerWidth - params.width) / 2);
+    params.y = Math.floor((window.innerHeight - params.height) / 2);
+
     iframe.src = chrome.runtime.getURL(`ui/pages/settings/index.html#ui${path ? `/${path}` : ''}`);
     iframe.setAttribute('allowtransparency', 'true');
     Object.assign(iframe.style, {
@@ -475,10 +496,7 @@ class UI {
 
     new UwuiWindow({
       title: `Ultrawidify settings (${window.location.host})`,
-      width: 1200,
-      height: 800,
-      x: 0,
-      y: 0,
+      ...params,
       content: iframe,
       onClose: () => {
         this.eventBus.cancelIframeForwarding(iframe)

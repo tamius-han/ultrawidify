@@ -92,9 +92,11 @@ export default class EventBus {
 
   send(command: string, commandData: any, context: EventBusContext = {}) {
     if (context.visitedBusses?.includes(this.uuid)) {
+      console.warn('this bus was already visited before. Doing nothing.');
       return;
     }
     if (context.commandId && this.lastExecutedCommandIds.includes(context.commandId)) {
+      console.warn('this command was already sent');
       return;
     }
     context.visitedBusses = [...context.visitedBusses ?? [], this.uuid];
@@ -165,7 +167,6 @@ export default class EventBus {
       console.error('Visited busses is missing from context. This is illegal.');
       return;
     }
-    context.visitedBusses = [...context.visitedBusses ?? [], this.uuid];
 
     if (!this.disableTunnel && typeof window !== 'undefined') {
       window.parent.postMessage(

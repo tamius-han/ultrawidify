@@ -103,6 +103,7 @@ class PlayerData {
 
   private trackChangesTimeout: any;
   private markedElement: HTMLElement;
+  private markedElementIndex: number | undefined;
 
   private ui: UI;
 
@@ -114,7 +115,7 @@ class PlayerData {
   //#region event bus configuration
   private eventBusCommands = {
     'get-player-tree': [{
-      function: () => this.handlePlayerTreeRequest()
+      function: (data) => this.handlePlayerTreeRequest(data)
     }],
     'get-player-dimensions': [{
       function: () => {
@@ -530,6 +531,7 @@ class PlayerData {
 
   private getElementStack(): ElementStack {
     const elementStack: ElementStack = [{
+      index: 0,
       element: this.videoElement,
       type: 'video',
       tagName: 'video',
@@ -540,8 +542,10 @@ class PlayerData {
     let element = this.videoElement.parentNode as HTMLElement;
 
     // first pass to generate the element stack and translate it into array
+    let i = 1;
     while (element) {
       elementStack.push({
+        index: i,
         element,
         type: '',
         tagName: element.tagName,
@@ -552,6 +556,7 @@ class PlayerData {
         heuristics: {},
       });
       element = element.parentElement;
+      i++;
     }
 
     this.elementStack = elementStack;
@@ -610,6 +615,7 @@ class PlayerData {
 
     // on verbose, get both qs and index player
     if (options?.verbose) {
+      this.getPlayerAuto(elementStack, videoHeight, videoHeight, {listOnly: true});
       if (playerIndex) {
         playerCandidate = elementStack[playerIndex];
         playerCandidate.heuristics['manualElementByParentIndex'] = true;
@@ -622,6 +628,7 @@ class PlayerData {
     if (detectionMode === PlayerDetectionMode.AncestorIndex) {
       playerCandidate = elementStack[playerIndex];
       playerCandidate.heuristics['manualElementByParentIndex'] = true;
+      playerCandidate.heuristics['activePlayer'] = true;
     } else if (detectionMode === PlayerDetectionMode.QuerySelectors) {
       playerCandidate = this.getPlayerQs(playerQs, elementStack, videoWidth, videoHeight);
     }
@@ -677,7 +684,7 @@ class PlayerData {
    * @param videoHeight
    * @returns
    */
-  private getPlayerAuto(elementStack: ElementStack, videoWidth, videoHeight) {
+  private getPlayerAuto(elementStack: ElementStack, videoWidth, videoHeight, options?: {listOnly?: boolean}) {
     let penaltyMultiplier = 2;
     const sizePenaltyMultiplier = 0.1;
     const perLevelScorePenalty = 10;
@@ -791,7 +798,7 @@ class PlayerData {
     // Some sites (youtube) can re-parent elements, causing current player element to vanish from DOM
     // Which means we need to set up an observer that will re-acquire the player when that happens.
     // TODO: Ideally, observer should request a tick
-    if (bestCandidate) {
+    if (bestCandidate && !options?.listOnly) {
       const observer = new MutationObserver(
         (mutations) => {
           mutations.forEach((mutation) => {
@@ -868,30 +875,65 @@ class PlayerData {
       bestCandidate.heuristics['qsMatch'] = true;
     }
 
+    bestCandidate.heuristics['activePlayer'] = true;
     return bestCandidate;
   }
 
   /**
    * Lists elements between video and DOM root for display in player selector (UI)
    */
-  private handlePlayerTreeRequest() {
+  private handlePlayerTreeRequest(data: {requestId: string}) {
     // this populates this.elementStack fully
     // this.updatePlayer({verbose: true});
-    this.eventBus.send('uw-config-broadcast', {type: 'player-tree', config: JSON.parse(JSON.stringify(this.elementStack))});
+    this.eventBus.send(
+      'uw-config-broadcast',
+      {
+        type: 'player-tree',
+        requestId: data.requestId,
+        elementStack: JSON.parse(JSON.stringify(this.elementStack))
+      }
+    );
   }
 
   private markElement(data: {parentIndex: number, enable: boolean}) {
     if (data.enable === false) {
       this.markedElement.remove();
+      this.elementStack[this.markedElementIndex]?.element.classList.remove('uw-mark-element');
+      this.markedElementIndex = undefined;
       return;
     }
-
 
     if (this.markedElement) {
       this.markedElement.remove();
     }
 
-    const elementBB = this.elementStack[data.parentIndex].element.getBoundingClientRect();;
+    if (this.markedElementIndex !== undefined) {
+      this.elementStack[this.markedElementIndex]?.element.classList.remove('uw-mark-element');
+    } else {
+      this.eventBus.send(
+        'inject-css',
+        {
+          cssString: `
+            .uw-mark-element {
+              border: 5px solid #fa6 !important;
+              box-sizing: border-box !important;
+              filter:
+                sepia(1)
+                saturate(5)
+                hue-rotate(-20deg)
+                brightness(1.15);
+            }
+          `
+        }
+      );
+    }
+
+    this.markedElementIndex = data.parentIndex;
+    this.elementStack[this.markedElementIndex]?.element.classList.add('uw-mark-element');
+
+    console.log('———— setting element as active:', data.parentIndex, this.elementStack.length, this.elementStack, this.elementStack[data.parentIndex])
+
+    const elementBB = this.elementStack[data.parentIndex].element.getBoundingClientRect();
 
     // console.log('element bounding box:', elementBB);
 
@@ -909,6 +951,8 @@ class PlayerData {
 
     document.body.insertBefore(div, document.body.firstChild);
     this.markedElement = div;
+
+
 
     // this.elementStack[data.parentIndex].element.style.outline = data.enable ? '5px dashed #fa6' : null;
     // this.elementStack[data.parentIndex].element.style.filter = data.enable ? 'sepia(1) brightness(2) contrast(0.5)' : null;

@@ -167,12 +167,7 @@
             :eventBus="eventBus"
           >
           </PlayerElementSettings>
-
-          <PlayerElementWindow
-            v-if="selectedTab === 'window.player-element-settings'"
-            :settings="settings"
-            :eventBus="eventBus"
-          ></PlayerElementWindow> -->
+ -->
 
           <template v-if="selectedTab === 'window.player-element-advanced-settings'">
             <PlayerSelectorAdvancedForm
@@ -261,7 +256,6 @@ import { defineComponent } from 'vue';
 import VideoSettings from '@components/segments/VideoSettings/VideoSettings.vue';
 import OtherSiteSettings from '@components/segments/ExtensionSettings/Panels/OtherSiteSettings.vue';
 import PlayerElementSettings from '@components/segments/PlayerElementSelection/PlayerElementSettings.vue';
-import PlayerElementWindow from '@components/segments/PlayerElementSelection/PlayerElementWindow.vue';
 import AutodetectionSettings from '@components/segments/AutodetectionSettings/AutodetectionSettings.vue';
 import UISettings from '@components/segments/UISettings/UISettings.vue';
 import KeyboardShortcutSettings from '@components/segments/KeyboardShortcuts/KeyboardShortcutSettings.vue';
@@ -379,7 +373,6 @@ export default defineComponent({
     VideoSettings,
     OtherSiteSettings,
     PlayerElementSettings,
-    PlayerElementWindow,
     PlayerSelectorAdvancedForm,
     PlayerSelectorSimple,
     AutodetectionSettings,
