@@ -9,6 +9,7 @@ import LegacyExtensionMode from '@src/common/enums/LegacyExtensionMode.enum';
 import { PlayerDetectionMode } from '@src/common/enums/PlayerDetectionMode.enum';
 import { SiteSupportLevel } from '@src/common/enums/SiteSupportLevel.enum';
 import SettingsInterface from '@src/common/interfaces/SettingsInterface';
+import { _cp } from '@src/common/utils/_cp';
 import { update } from 'lodash';
 
 

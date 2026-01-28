@@ -298,33 +298,16 @@ class VideoData {
 
   initializeObservers() {
     try {
-      if (BrowserDetect.firefox) {
-        this.observer = new ResizeObserver(
-          _.debounce(
-            this.onVideoDimensionsChanged,
-            250,
-            {
-              leading: true,
-              trailing: true
-            }
-          )
-        );
-      } else {
-        // Chrome for some reason insists that this.onPlayerDimensionsChanged is not a function
-        // when it's not wrapped into an anonymous function
-        this.observer = new ResizeObserver(
-          _.debounce(
-            (m, o) => {
-              this.onVideoDimensionsChanged(m, o)
-            },
-            250,
-            {
-              leading: true,
-              trailing: true
-            }
-          )
-        );
-      }
+      this.observer = new ResizeObserver(
+        _.debounce(
+          () => this.onVideoDimensionsChanged,
+          250,
+          {
+            leading: true,
+            trailing: true
+          }
+        )
+      );
     } catch (e) {
       console.error('[VideoData] Observer setup failed:', e);
     }
@@ -332,34 +315,20 @@ class VideoData {
   }
 
   setupMutationObserver() {
+    if (this.mutationObserver) {
+      this.mutationObserver.disconnect();
+    }
     try {
-      if (BrowserDetect.firefox) {
-        this.mutationObserver = new MutationObserver(
-          _.debounce(
-            this.onVideoMutation,
-            250,
-            {
-              leading: true,
-              trailing: true
-            }
-          )
+      this.mutationObserver = new MutationObserver(
+        _.debounce(
+          () => this.onVideoMutation(),
+          250,
+          {
+            leading: true,
+            trailing: true
+          }
         )
-      } else {
-        // Chrome for some reason insists that this.onPlayerDimensionsChanged is not a function
-        // when it's not wrapped into an anonymous function
-        this.mutationObserver = new MutationObserver(
-          _.debounce(
-            (m, o) => {
-              this.onVideoMutation(m, o)
-            },
-            250,
-            {
-              leading: true,
-              trailing: true
-            }
-          )
-        )
-      }
+      )
     } catch (e) {
       console.error('[VideoData] Observer setup failed:', e);
     }
@@ -372,6 +341,17 @@ class VideoData {
   destroy() {
     this.logger.info('destroy', `<vdid:${this.vdid}> received destroy command`);
 
+    // Disconnect observer and set destroyed to 'true' _before_ removing classes from
+    // the video element
+
+    this.destroyed = true;
+    try {
+      this.observer.disconnect();
+    } catch (e) {}
+    try {
+      this.mutationObserver.disconnect();
+    } catch (e) {}
+
     if (this.video) {
       this.video.classList.remove(this.userCssClassName);
       this.video.classList.remove('uw-ultrawidify-base-wide-screen');
@@ -381,8 +361,6 @@ class VideoData {
       this.video.removeEventListener('ontimeupdate', this.onTimeUpdate);
     }
 
-    this.eventBus.send('set-run-level', RunLevel.Off);
-    this.destroyed = true;
     this.eventBus.unsubscribeAll(this);
 
     try {
@@ -396,9 +374,6 @@ class VideoData {
     this.resizer = undefined;
     try {
       this.player.destroy();
-    } catch (e) {}
-    try {
-      this.observer.disconnect();
     } catch (e) {}
     this.player = undefined;
     this.video = undefined;
@@ -463,7 +438,7 @@ class VideoData {
 
     this.runLevel = runLevel;
     if (!options?.fromPlayer) {
-      this.player.setRunLevel(runLevel);
+      this.player?.setRunLevel(runLevel);
     }
   }
 
@@ -532,6 +507,10 @@ class VideoData {
   }
 
   onVideoMutation(mutationList?: MutationRecord[], observer?) {
+    if (this.destroyed) {
+      return;
+    }
+
     // verify that mutation didn't remove our class. Some pages like to do that.
     let confirmAspectRatioRestore = false;
 

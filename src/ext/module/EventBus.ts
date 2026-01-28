@@ -143,64 +143,27 @@ export default class EventBus {
           ...context,
           borderCrossings: {
             ...context?.borderCrossings,
-            // iframe: true  // we actually no longer check this prop, we should instead rely on visitedBusses
           }
         }
       );
     }
-    this.sendToTunnel(command, commandData, context);
+
+    // send to parent iframe
+    if (!this.disableTunnel && typeof window !== 'undefined') {
+      window.parent.postMessage(
+        {
+          action: 'uw-bus-tunnel',
+          payload: {command, config: commandData, context} as EventBusMessage
+        },
+        '*'
+      );
+    }
 
     if (context?.stopPropagation) {
       return;
     }
   }
   //#endregion
-
-  /**
-   * Send, but intended for sending commands from iframe to content scripts
-   * @param command
-   * @param config
-   */
-  private sendToTunnel(command: string, config: any, context: EventBusContext = {}) {
-    if (!context.visitedBusses) {
-      // this should never trigger on production version of the extension.
-      console.error('Visited busses is missing from context. This is illegal.');
-      return;
-    }
-
-    if (!this.disableTunnel && typeof window !== 'undefined') {
-      window.parent.postMessage(
-        {
-          action: 'uw-bus-tunnel',
-          payload: {command, config, context} as EventBusMessage
-        },
-        '*'
-      );
-    } else {
-      // because iframe UI components get reused in the popup, we
-      // also need to set up a detour because the tunnel is closed
-      // in the popup
-      if (this.comms) {
-        try {
-          this.comms.sendMessage(
-            {
-              command,
-              config,
-              context: {
-                ...this.popupContext,
-                ...context
-              }
-            },
-            this.popupContext
-          );
-        } catch (e) {
-          if (command !== 'reload-required') {
-            this.send('reload-required', {}, context);
-          }
-        }
-      }
-    }
-  }
 
   //#region iframe tunnelling
   private setupIframeTunnelling() {

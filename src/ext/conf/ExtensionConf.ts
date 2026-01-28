@@ -983,6 +983,29 @@ const ExtensionConf: SettingsInterface = {
         }
       }
     },
+    "www.amazon.com": {
+      enable: ExtensionMode.Default,
+      enableAard: ExtensionMode.Default,
+      enableKeyboard: InputHandlingMode.Enabled,
+      enableUI: ExtensionMode.Default,
+      applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Default,
+      overrideWhenEmbedded: EmbeddedContentSettingsOverridePolicy.Default,
+      type: SiteSupportLevel.CommunitySupport,
+      defaultType: SiteSupportLevel.CommunitySupport,
+      persistCSA: CropModePersistence.Default,
+      activeDOMConfig: "@community",
+      DOMConfig: {
+        "@community": {
+          type: SiteSupportLevel.CommunitySupport,
+          elements: {
+            player: {
+              detectionMode: PlayerDetectionMode.Auto,
+              allowAutoFallback: true
+            }
+          }
+        },
+      },
+    },
     "www.twitch.tv": {
       enable: ExtensionMode.All,
       enableAard: ExtensionMode.All,

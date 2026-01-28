@@ -195,6 +195,10 @@ class PlayerData {
 
   //#region lifecycle
   constructor(videoData) {
+    if (!(window as any).uiCount) {
+      (window as any).uiCount = 1;
+    }
+
     try {
       // set all our helper objects
       this.logger = new ComponentLogger(videoData.logAggregator, 'PlayerData', {styles: {}});
@@ -875,7 +879,9 @@ class PlayerData {
       bestCandidate.heuristics['qsMatch'] = true;
     }
 
-    bestCandidate.heuristics['activePlayer'] = true;
+    if (bestCandidate) {
+      bestCandidate.heuristics['activePlayer'] = true;
+    }
     return bestCandidate;
   }
 

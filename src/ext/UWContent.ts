@@ -120,9 +120,12 @@ export default class UWContent {
 
       this.logger.debug('setup', "KeyboardHandler initiated.");
 
-      this.globalUi = new UI('ultrawidify-global-ui', {eventBus: this.eventBus, isGlobal: true});
-      this.globalUi.enable();
-      this.globalUi.setUiVisibility(false);
+      if (this.globalUi) {
+        this.globalUi.destroy();
+      }
+      // this.globalUi = new UI('ultrawidify-global-ui', {eventBus: this.eventBus, isGlobal: true});
+      // this.globalUi.enable();
+      // this.globalUi.setUiVisibility(false);
 
     } catch (e) {
       console.error('Ultrawidify: failed to start extension. Error:', e)

@@ -446,6 +446,8 @@ interface SettingsInterface {
 }
 
 export interface SiteSettingsInterface {
+  notes?: string;           // any special things related to this site.
+
   enable: ExtensionMode;
   enableAard: ExtensionMode;
   enableKeyboard: InputHandlingMode;

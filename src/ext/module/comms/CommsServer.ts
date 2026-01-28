@@ -176,7 +176,7 @@ class CommsServer {
       if (context?.comms.forwardTo === 'all') {
         return this.sendToAll(message);
       }
-      if (context?.comms.forwardTo === 'active') {
+      if (context?.comms.forwardTo === 'active' || !context?.comms.forwardTo) {
         return this.sendToActive(message);
       }
       if (context?.comms.forwardTo === 'contentScript') {

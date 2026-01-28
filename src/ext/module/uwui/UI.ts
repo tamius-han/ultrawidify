@@ -39,6 +39,9 @@ class UI {
   private extensionMenu: ClientMenu;
   private logger: ComponentLogger;
 
+  private forwardedCommandIds: string[] = new Array(64);
+  private lastForwardedCommandIndex = 0;
+
   private uiState = {
     lockXY: true,
     zoom: {     // log2 scale — 100% is 0
@@ -121,7 +124,7 @@ class UI {
 
   private initMessaging() {
     if (this.messageListener) {
-      window.removeEventListener('message', this.messageListener);
+      this.destroyMessaging();
     } else {
       this.messageListener = (event: MessageEvent) => {
         const data = event.data;
@@ -133,7 +136,26 @@ class UI {
 
         const payload = data.payload;
 
-        console.log('forwarding from tunnel to event bus. payload', payload);
+        /**
+         * it appears that forwarded commands can be multiplying to ridiculous degree,
+         * but i didn't find anything that would obviously cause the message forwarding storm
+         * this means we'll try to avoid that via brute force.
+         *
+         * How bad is it?
+         *  — can get as bad as 100k messages a minute (!)
+         */
+        if (!payload.context?.commandId) {
+          // user should never see this log
+          console.warn('Command context does not contain commandId. This is illegal. Message will not be forwarded.', {payload});
+          return;
+        }
+        if (this.forwardedCommandIds.includes(payload.context.commandId)) {
+          console.warn('this command was already forwarded, doing nothing:', {payload});
+          return;
+        }
+        const i = this.lastForwardedCommandIndex++ % this.forwardedCommandIds.length;
+        this.forwardedCommandIds[i] = payload.id;
+
 
         // Forward to all iframes except the source
         (UwuiWindow as any).instances?.forEach(win => {
@@ -152,6 +174,12 @@ class UI {
     }
 
     window.addEventListener('message', this.messageListener);
+  }
+
+  private destroyMessaging() {
+    if (this.messageListener) {
+      window.removeEventListener('message', this.messageListener);
+    }
   }
 
   executeCommand(x: CommandInterface) {
@@ -511,10 +539,6 @@ class UI {
     });
   }
 
-  setUiVisibility(visible) {
-    return;
-  }
-
   async enable() {
     // if root element is not present, we need to init the UI.
     // if (!this.rootDiv) {
@@ -535,6 +559,7 @@ class UI {
    * @param {*} newUiConfig
    */
   replace(newUiConfig) {
+    this.destroy();
     this.uiConfig = newUiConfig;
     this.init();
   }
@@ -543,6 +568,7 @@ class UI {
     if (this.extensionMenu) {
       this.extensionMenu.destroy();
     }
+    this.destroyMessaging();
   }
 
 
