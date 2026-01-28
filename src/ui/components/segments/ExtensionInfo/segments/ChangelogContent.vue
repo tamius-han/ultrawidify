@@ -48,7 +48,9 @@
     <li>
       In-player menu position can be somewhat customized.
     </li>
-
+    <li>
+      Default crop mode can now use zoom options as well (previously, it could only use crop options).
+    </li>
   </ul>
 
   <b class="text-white">Other updates and fixes:</b>
