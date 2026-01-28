@@ -479,6 +479,13 @@ const ExtensionConfPatch = Object.freeze([
         }
       }
     }
+  }, {
+    forVersion: '6.3.998',
+    updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
+      if (!userOptions.sites["www.amazon.com"]) {
+        userOptions.sites["www.amazon.com"] = _cp(defaultOptions.sites["www.amazon.com"] );
+      }
+    }
   }
 
 ]);
