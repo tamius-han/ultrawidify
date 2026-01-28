@@ -21,6 +21,7 @@ import { createApp } from 'vue';
 import SettingsWindowContent from '@components/SettingsWindowContent.vue';
 import { Ar } from '@src/common/interfaces/ArInterface';
 import { Stretch } from '@src/common/interfaces/StretchInterface';
+import { ScalingParamsBroadcast } from '@src/common/interfaces/ScalingParamsBroadcast.interface';
 // import jsonEditorCSS from 'vanilla-jsoneditor/themes/jse-theme-dark.css?inline'
 
 if (process.env.CHANNEL !== 'stable'){
@@ -43,6 +44,8 @@ class UI {
 
   private forwardedCommandIds: string[] = new Array(64);
   private lastForwardedCommandIndex = 0;
+
+  private currentScalingParams?: ScalingParamsBroadcast;
 
   private uiState = {
     lockXY: true,
@@ -97,9 +100,11 @@ class UI {
           }
         },
 
+
         'broadcast-scaling-params': {
-          function: (commandData: {effectiveZoom: {x: number, y: number}, lastAr: Ar, stretch: Stretch}, context) => {
-            console.warn('got scaling params:', commandData)
+          function: (commandData: ScalingParamsBroadcast, context) => {
+            this.currentScalingParams = commandData;
+            this.extensionMenu?.markActiveElements(commandData);
           }
         }
       });
@@ -293,28 +298,37 @@ class UI {
           },
           {
             label: 'Crop',
+            customId: 'uw-crop',
             subitems: this.settings.active.commands.crop.map((x: CommandInterface) => {
               return {
                 label: x.label,
+                command: x,
+                customId: `uw-${x.action}-${x.arguments.type}-${x.arguments.ratio ?? 'x'}`.replaceAll('.', '_'),
                 action: () => this.executeCommand(x)
               }
             })
           },
           {
             label: 'Stretch',
+            customId: 'uw-stretch',
             subitems: this.settings.active.commands.stretch.map((x: CommandInterface) => {
               return {
                 label: x.label,
+                command: x,
+                customId: `uw-${x.action}-${x.arguments.type}-${x.arguments.ratio ?? 'x'}`.replaceAll('.', '_'),
                 action: () => this.executeCommand(x)
               }
             })
           },
           {
             label: 'Zoom (presets)',
+            customId: 'uw-zoom',
             subitems: [
               ... this.settings.active.commands.zoom.map((x: CommandInterface) => {
                 return {
                   label: x.label,
+                  command: x,
+                  customId: `uw-${x.action}-${x.arguments.type}-${x.arguments.ratio ?? 'x'}`.replaceAll('.', '_'),
                   action: () => this.executeCommand(x)
                 }
               }),
@@ -412,6 +426,9 @@ class UI {
       };
       this.extensionMenu = new ClientMenu(menuConfig);
       this.extensionMenu.mount(this.uiConfig.parentElement);
+      if (this.currentScalingParams) {
+        this.extensionMenu.markActiveElements(this.currentScalingParams);
+      }
 
       /**
        *  SETUP MENU INTERACTIONS
@@ -432,6 +449,24 @@ class UI {
       const zoomHeightSlider: HTMLInputElement = menuElement.querySelector('#_input_zoom_slider_2');
       const zoomWidthLabel: HTMLDivElement = menuElement.querySelector('#zoomWidth');
       const zoomHeightLabel: HTMLDivElement = menuElement.querySelector('#zoomHeight');
+
+      for (const slider of [zoomWidthSlider, zoomHeightSlider]) {
+        slider.addEventListener('pointerdown', function() {
+          (this as any).isInteracting = true;
+        });
+
+        slider.addEventListener('pointerup', function() {
+          (this as any).isInteracting = false;
+        });
+
+        slider.addEventListener('pointercancel', function() {
+          (this as any).isInteracting = false;
+        });
+
+        slider.addEventListener('pointerleave', function() {
+          (this as any).isInteracting = false;
+        });
+      }
 
       const updateZoomDisplayValues = () => {
         zoomWidthLabel.textContent = `${Math.round((Math.exp(this.uiState.zoom.x) * 100))}%`;

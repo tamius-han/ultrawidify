@@ -1,13 +1,16 @@
-import { InPlayerUIOptions } from '@src/common/interfaces/SettingsInterface';
+import { CommandInterface, InPlayerUIOptions } from '@src/common/interfaces/SettingsInterface';
 
-export interface MenuItemConfig {
-  label: string;
+export interface MenuItemBaseConfig {
+  label?: string;
   subitems?: MenuItemConfig[];
+  command?: CommandInterface,
   action?: () => void;
   customHTML?: HTMLElement | string;
   customId?: string;
   customClassList?: string;
 }
+
+export type MenuItemConfig = MenuItemBaseConfig & ({label: string} | {customHTML: HTMLElement | string});
 
 export enum MenuPosition {
   TopLeft = 'top-left',

@@ -101,8 +101,8 @@
                 <optgroup label="corners">
                   <option :value="MenuPosition.TopLeft">Top left</option>
                   <option :value="MenuPosition.BottomLeft">Bottom left</option>
-                  <option :value="MenuPosition.TopRight">Top right"</option>
-                  <option :value="MenuPosition.BottomRight">Bottom right"</option>
+                  <option :value="MenuPosition.TopRight">Top right</option>
+                  <option :value="MenuPosition.BottomRight">Bottom right</option>
                 </optgroup>
               </select>
             </div>

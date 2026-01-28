@@ -86,6 +86,156 @@
   pointer-events: auto;
 }
 
+/* Menu + active markers for left/right menus */
+.uw-menu-left {
+  .uw-menu-item {
+    &.uw-active {
+      padding-right: 2rem;
+
+      &::after {
+        position: absolute;
+        display: block;
+        top: 50%;
+        right: 0.5rem;
+        content: '◈';
+        transform: translateY(calc(-50% + 0.25rem));
+      }
+    }
+  }
+
+  .uw-has-submenu {
+    padding-right: 2rem;
+    position: relative;
+
+    &.uw-active-within {
+      padding-right: 5rem;
+
+      &::after {
+        position: absolute;
+        display: block;
+        top: 50%;
+        right: 1.5rem;
+        content: '◈';
+        /* transform: translateY(-50%); */
+        transform: translateY(calc(-50% + 0.125rem));
+      }
+    }
+
+    &::before {
+      position: absolute;
+      display: block;
+      right: 0;
+      content: '▶';
+      transform: scale(0.5);
+    }
+
+  }
+
+}
+.uw-menu-right {
+  .uw-menu-item {
+    padding-left: 2rem;
+
+    &.uw-active {
+      padding-right: 2rem;
+
+      &::after {
+        position: absolute;
+        display: block;
+        top: 50%;
+        right: 0.5rem;
+        content: '◈';
+        transform: translateY(calc(-50% + 0.25rem));
+      }
+    }
+  }
+
+  .uw-has-submenu {
+    &.uw-active-within {
+      padding-right: 2rem;
+
+      &::after {
+        position: absolute;
+        display: block;
+        top: 50%;
+        right: 0.5rem;
+        content: '◈';
+        transform: translateY(calc(-50% + 0.125rem));
+      }
+    }
+    position: relative;
+
+    &::before {
+      position: absolute;
+      display: block;
+      left: 0;
+      content: '◀';
+      transform: scale(0.5);
+    }
+  }
+}
+/* Menus on top/center and bottom/center */
+.uw-menu-center {
+  .uw-menu-top {
+
+    .uw-has-submenu {
+      position: relative;
+
+      &::before {
+        position: absolute;
+        display: block;
+        bottom: 0;
+        left: 50%;
+        content: '▼';
+        transform: scale(0.5) translateX(-50%);
+      }
+
+      /* We don't add :after marker, as it's already used for other purposes */
+      /* &.uw-active-within {
+        &::before {
+          position: absolute;
+          display: block;
+          bottom: 0;
+          left: 50%;
+          content: '◈';
+          transform: translateX(-50%);
+        }
+      } */
+    }
+  }
+
+  .uw-menu-bottom {
+    .uw-menu-item {
+      padding-top: 1.5rem;
+    }
+
+    .uw-has-submenu {
+      position: relative;
+
+      &::before {
+        position: absolute;
+        display: block;
+        top: 0;
+        left: 50%;
+        content: '▲';
+        transform: scale(0.5) translateX(-50%);
+      }
+
+      /* We don't add :after marker, as it's already used for other purposes */
+      /* &.uw-active-within {
+        &::after {
+          position: absolute;
+          display: block;
+          top: 0;
+          left: 50%;
+          content: '◈';
+          transform: translateX(-50%);
+        }
+      } */
+    }
+  }
+}
+
 .uw-submenu {
   @apply absolute flex-col gap-0;
 
@@ -148,6 +298,7 @@
 }
 
 .uw-menu-item, .uw-menu-trigger {
+  @apply cursor-pointer select-none;
 
   &:hover > .uw-submenu {
     display: flex;
@@ -155,6 +306,12 @@
 
     opacity: 1 !important;
     pointer-events: auto;
+  }
+}
+
+.uw-menu-item {
+  &.uw-active-within, &.uw-active {
+    @apply text-primary-500;
   }
 }
 

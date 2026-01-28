@@ -2,6 +2,7 @@ import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
 import StretchType from '@src/common/enums/StretchType.enum';
 import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
 import { Ar, ArVariant } from '@src/common/interfaces/ArInterface';
+import { ScalingParamsBroadcast } from '@src/common/interfaces/ScalingParamsBroadcast.interface';
 import { Stretch } from '@src/common/interfaces/StretchInterface';
 import getElementStyles from '@src/common/utils/getElementStyles';
 import Debug from '@src/ext/conf/Debug';
@@ -149,6 +150,11 @@ class Resizer {
     }],
     'set-zoom': [{
       function: (config: any) => {
+        if (!config || config.zoom === 1 || (config.zoom.x === 1 && config.zoom.y === 1)) {
+          this.manualZoom = false;
+        } else {
+          this.manualZoom = true;
+        }
         this.setZoom(config?.zoom ?? {zoom: 1});
       }
     }],
@@ -334,7 +340,7 @@ class Resizer {
     return true;
   }
 
-  async setAr(ar: Ar, lastAr?: Ar) {
+  async setAr(ar: Ar, lastAr?: Ar, flags?: {manualZoom?: boolean}) {
     if (this.destroyed || ar == null) {
       return;
     }
@@ -375,8 +381,12 @@ class Resizer {
       return;
     }
 
-    if (ar.type !== AspectRatioType.AutomaticUpdate) {
-      this.manualZoom = false;
+    if (ar.type !== AspectRatioType.AutomaticUpdate && !flags?.manualZoom) {
+      if (flags?.manualZoom) {
+        this.manualZoom = true;
+      } else {
+        this.manualZoom = false;
+      }
     }
 
     if (!this.video.videoWidth || !this.video.videoHeight) {
@@ -424,7 +434,7 @@ class Resizer {
         this.logger.info('setAr', `<rid:${this.resizerId}> Something wrong with ar or the player. Doing nothing.`);
         return;
       }
-      this.lastAr = {type: ar.type, ratio: ar.ratio};
+      this.lastAr = {type: ar.type, ratio: ar.ratio, variant: ar.variant};
     }
 
     if (! this.video) {
@@ -499,21 +509,29 @@ class Resizer {
       this.eventBus.send('broadcast-scaling-params', {
         effectiveZoom: {x: stretchFactors.xFactor, y: stretchFactors.yFactor},
         lastAr: this.lastAr,
+        manualZoom: this.manualZoom,
         stretch: this.stretcher.stretch
-      });
+      } as ScalingParamsBroadcast);
     } catch (e) {
       this.logger.warn('applyScaling', 'error while applying CSS:', e);
       // don't apply CSS if there's an error
     }
   }
 
-  toFixedAr() {
+  toFixedAr(flags?: {manualZoom?: boolean}) {
     // converting to fixed AR means we also turn off autoAR
+    this.setAr(
+      {
+        ratio: this.lastAr.ratio ?? this.getFileAr(),
+        type: AspectRatioType.Fixed
+      },
+      undefined,
+      flags
+    );
 
-    this.setAr({
-      ratio: this.lastAr.ratio ?? this.getFileAr(),
-      type: AspectRatioType.Fixed
-    });
+    if (flags?.manualZoom) {
+      this.manualZoom = true;
+    }
   }
 
   resetLastAr() {

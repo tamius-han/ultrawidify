@@ -9,6 +9,7 @@ enum AspectRatioType {
   Fixed = 4,           // pre-determined aspect ratio
   Manual = 5,          // ratio achieved by zooming in/zooming out
   AutomaticUpdate = 6, // set by Aard
+  Cover = 7,           // replaces FitWidth and FitHeight
 }
 
 export default AspectRatioType;

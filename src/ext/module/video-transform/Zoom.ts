@@ -71,7 +71,7 @@ class Zoom {
     this.scale = Math.pow(2, this.logScale);
     this.scaleY = Math.pow(2, this.logScaleY);
 
-    this.processZoom();
+    this.processZoom({manualZoom: true});
   }
 
   /**
@@ -92,11 +92,11 @@ class Zoom {
     this.scale  = Math.min(Math.max(scaleIn.x, MIN_SCALE), MAX_SCALE);
     this.scaleY = Math.min(Math.max(scaleIn.y, MIN_SCALE), MAX_SCALE);
 
-    this.processZoom();
+    this.processZoom({manualZoom: true});
   }
 
-  processZoom() {
-    this.conf.resizer.toFixedAr();
+  processZoom(flags?: {manualZoom?: boolean}) {
+    this.conf.resizer.toFixedAr(flags);
     this.conf.resizer.applyScaling({xFactor: this.scale, yFactor: this.scaleY}, {noAnnounce: true});
   }
 }

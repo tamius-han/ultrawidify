@@ -1,4 +1,8 @@
+import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
+import StretchType from '@src/common/enums/StretchType.enum';
+import { ArVariant } from '@src/common/interfaces/ArInterface';
 import { MenuPosition, MenuConfig, MenuItemConfig } from '@src/common/interfaces/ClientUiMenu.interface';
+import { ScalingParamsBroadcast } from '@src/common/interfaces/ScalingParamsBroadcast.interface';
 import extensionCss from '@src/main.css?inline';
 
 export class ClientMenu {
@@ -14,8 +18,6 @@ export class ClientMenu {
   }
   private trigger: HTMLDivElement;
   private visible = false;
-
-  private hiddenClass = 'uw-hidden';
 
   private menuPositionClasses: string[] = [];
 
@@ -284,6 +286,7 @@ export class ClientMenu {
       }
 
       if (item.subitems) {
+        el.classList.add('uw-has-submenu');
         el.appendChild(this.buildSubmenu(item.subitems));
       }
 
@@ -418,6 +421,101 @@ export class ClientMenu {
       this.visible = false;
       this.root.classList.remove('uw-visible');
       this.root.classList.add('uw-hidden');
+    }
+  }
+
+  markActiveElements(scalingParams: ScalingParamsBroadcast) {
+    const currentlyActiveElements = this._root.querySelectorAll('.uw-active-within, .uw-active');
+
+    for (const element of currentlyActiveElements) {
+      element.classList.remove('uw-active-within');
+      element.classList.remove('uw-active');
+    }
+
+    // we only set active options when manual zoom is NOT set
+    if (!scalingParams.manualZoom) {
+      const cropMenuGroup = scalingParams.lastAr.variant === ArVariant.Zoom ? 'zoom' : 'crop';
+      const cropCommand = scalingParams.lastAr.variant === ArVariant.Zoom ? 'set-ar-zoom' : 'set-ar';
+
+      let typeCrop;
+      switch (scalingParams.lastAr.type) {
+        case AspectRatioType.Automatic:
+        case AspectRatioType.AutomaticUpdate:
+          typeCrop = `${AspectRatioType.Automatic}-x`;
+          break;
+        case AspectRatioType.Cover:
+        case AspectRatioType.FitWidth:
+        case AspectRatioType.FitHeight:
+          typeCrop = `${scalingParams.lastAr.type}-x`;
+          break;
+        case AspectRatioType.Cycle:
+        case AspectRatioType.Initial:
+          typeCrop = 'non-selectable';
+          break;
+        default:
+          typeCrop = `${scalingParams.lastAr.type}-${scalingParams.lastAr.ratio ?? 'x'}`;
+      }
+
+      const activeGroupId = `#uw-${cropMenuGroup}`.replaceAll('.', '_');
+      const activeCropCommandId = `#uw-${cropCommand}-${typeCrop}`.replaceAll('.', '_');
+
+      const groupEl = this._root.querySelector(activeGroupId);
+      const optionEl = groupEl?.querySelector(activeCropCommandId);
+
+      /**
+       * When manual zoom is in effect, optionEl (probably) won't match any of the options.
+       * Therefore, optionEl will be undefined. We can use this fact to sus out whether
+       * we're _really_ using a zoom preset, or did the user went for the sliders n stuff.
+       */
+      if (optionEl) {
+        groupEl.classList.add('uw-active-within');
+        optionEl.classList.add('uw-active');
+      }
+
+      let typeStretch;
+      switch (scalingParams.stretch.type) {
+        case StretchType.FixedSource:
+        case StretchType.Fixed:
+          typeStretch = `${scalingParams.stretch.type}-${scalingParams.stretch.ratio ?? 'x'}`.replaceAll('.', '_');
+          break;
+        case StretchType.Default:
+        case StretchType.NoStretch:
+          typeStretch = `non-selectable`;
+          break;
+        default:
+          typeStretch = `${scalingParams.stretch.type}-x`;
+      }
+
+
+      const stretchGroupEl = this._root.querySelector('#uw-stretch');
+      const stretchOptionEl = stretchGroupEl?.querySelector(`#uw-set-stretch-${typeStretch}`);
+
+      if (stretchOptionEl) {
+        stretchGroupEl.classList.add('uw-active-within');
+        stretchOptionEl.classList.add('uw-active');
+      }
+    }
+
+    const zoomWLabel  = this._root.querySelector('#zoomWidth');
+    const zoomWSlider = this._root.querySelector('#_input_zoom_slider') as undefined | null | (HTMLInputElement & {isInteracting?: boolean});
+    const zoomHLabel  = this._root.querySelector('#zoomHeight');
+    const zoomHSlider = this._root.querySelector('#_input_zoom_slider_2') as undefined | null | (HTMLInputElement & {isInteracting?: boolean});
+
+    if (zoomWSlider?.isInteracting || zoomHSlider?.isInteracting) {
+      // do nothing
+    } else {
+      if (zoomWLabel) {
+        zoomWLabel.textContent = `${(scalingParams.effectiveZoom.x * 100).toFixed()}%`;
+      }
+      if (zoomHLabel) {
+        zoomHLabel.textContent = `${(scalingParams.effectiveZoom.y * 100).toFixed()}%`;
+      }
+      if (zoomWSlider) {
+        zoomWSlider.value = Math.log2(scalingParams.effectiveZoom.x) as any;
+      }
+      if (zoomHSlider) {
+        zoomHSlider.value = Math.log2(scalingParams.effectiveZoom.y) as any;
+      }
     }
   }
 }
