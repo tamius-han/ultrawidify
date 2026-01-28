@@ -485,6 +485,51 @@ const ExtensionConfPatch = Object.freeze([
       if (!userOptions.sites["www.amazon.com"]) {
         userOptions.sites["www.amazon.com"] = _cp(defaultOptions.sites["www.amazon.com"] );
       }
+
+      if (userOptions.commands?.zoom) {
+        const firstFixed = userOptions.commands?.zoom.findIndex(x => x.arguments.type === AspectRatioType.Fixed);
+
+        if (firstFixed === -1) {
+          userOptions.commands.zoom.push({
+            action: 'set-ar-zoom',
+            label: 'Cover',
+            comment: 'Covers the entire screen, cropping as much as needed',
+            arguments: {
+              type: AspectRatioType.Cover
+            },
+            shortcut: {
+              key: 'w',
+              code: 'KeyW',
+              ctrlKey: false,
+              metaKey: false,
+              altKey: false,
+              shiftKey: true,
+              onKeyUp: true,
+              onKeyDown: false,
+            }
+          });
+        } else {
+          userOptions.commands.zoom.splice(firstFixed, 0, {
+            action: 'set-ar-zoom',
+            label: 'Cover',
+            comment: 'Covers the entire screen, cropping as much as needed',
+            arguments: {
+              type: AspectRatioType.Cover
+            },
+            shortcut: {
+              key: 'w',
+              code: 'KeyW',
+              ctrlKey: false,
+              metaKey: false,
+              altKey: false,
+              shiftKey: true,
+              onKeyUp: true,
+              onKeyDown: false,
+            }
+          });
+        }
+      }
+
     }
   }
 

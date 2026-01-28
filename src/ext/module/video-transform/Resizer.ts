@@ -299,17 +299,22 @@ class Resizer {
 
     let fileAr = this.getFileAr();
 
-    if (ar.type === AspectRatioType.FitWidth){
-      ar.ratio = ratioOut > fileAr ? ratioOut : fileAr;
-    }
-    else if(ar.type === AspectRatioType.FitHeight){
-      ar.ratio = ratioOut < fileAr ? ratioOut : fileAr;
-    }
-    else if(ar.type === AspectRatioType.Reset){
-      this.logger.info('modeToAr', "Using original aspect ratio -", fileAr);
-      ar.ratio = fileAr;
-    } else {
-      return null;
+    switch (ar.type) {
+      case AspectRatioType.FitWidth:
+        ar.ratio = ratioOut > fileAr ? ratioOut : fileAr;
+        break;
+      case AspectRatioType.FitHeight:
+        ar.ratio = ratioOut < fileAr ? ratioOut : fileAr;
+        break;
+      case AspectRatioType.Cover:
+        ar.ratio = Math.max(ratioOut, fileAr);
+        break;
+      case AspectRatioType.Reset:
+        this.logger.info('modeToAr', "Using original aspect ratio -", fileAr);
+        ar.ratio = fileAr;
+        break;
+      default:
+        return null;
     }
 
     return ar;

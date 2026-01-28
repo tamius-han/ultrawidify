@@ -209,7 +209,8 @@
       <!-- Default crop -->
       <div class="field">
         <div class="label">Default crop:</div>
-        <div class="select">
+        <div class="select grow shrink flex flex-row">
+
           <select
             :value="siteDefaultCrop"
             @change="setOption('defaults.crop', $event)"
@@ -218,15 +219,48 @@
               v-if="!isDefaultConfiguration"
               :value="JSON.stringify({useDefault: true})"
             >
-              Use default ({{getCommandValue(settings?.active.commands.crop, siteSettings.data.defaults.crop)}})
+              Use default ({{getDefaultCrop(siteSettings.defaultSettings.defaults.crop)}})
             </option>
             <option
-              v-for="(command, index) of settings?.active.commands.crop"
-              :key="index"
-              :value="JSON.stringify(command.arguments)"
+              :value="JSON.stringify({type: AspectRatioType.Reset})"
             >
-              {{command.label}}
+              Initial/reset
             </option>
+            <optgroup label="Crop">
+              <template
+                v-for="(command, index) of settings?.active.commands.crop"
+                :key="index"
+              >
+                <option
+                  v-if="
+                    command.arguments.type === AspectRatioType.Fixed
+                    || command.arguments.type === AspectRatioType.Automatic
+                    || command.arguments.type === AspectRatioType.FitWidth
+                    || command.arguments.type === AspectRatioType.FitHeight
+                  "
+                  :value="JSON.stringify(command.arguments)"
+                >
+                  {{command.label}} (crop)
+                </option>
+              </template>
+            </optgroup>
+            <optgroup label="Zoom">
+              <template
+                v-for="(command, index) of settings?.active.commands.zoom"
+                :key="index"
+              >
+                <option
+                  v-if="
+                    command.arguments.type === AspectRatioType.Fixed
+                    || command.arguments.type === AspectRatioType.Automatic
+                    || command.arguments.type === AspectRatioType.Cover
+                  "
+                  :value="JSON.stringify({...command.arguments, variant: ArVariant.Zoom})"
+                >
+                  {{command.label}} (zoom)
+                </option>
+              </template>
+            </optgroup>
           </select>
         </div>
       </div>
@@ -244,7 +278,7 @@
               v-if="!isDefaultConfiguration"
               :value="JSON.stringify({useDefault: true})"
             >
-              Use default ({{getCommandValue(settings?.active.commands.stretch, siteSettings.data.defaults.stretch)}})
+              Use default ({{getCommandValue(settings?.active.commands.stretch, siteSettings.defaultSettings.defaults.stretch)}})
             </option>
             <option
               v-for="(command, index) of settings?.active.commands.stretch"
@@ -269,7 +303,7 @@
               v-if="!isDefaultConfiguration"
               :value="JSON.stringify({useDefault: true})"
             >
-              Use default ({{getAlignmentLabel(siteSettings.data.defaults.alignment)}})
+              Use default ({{getAlignmentLabel(siteSettings.defaultSettings.defaults.alignment)}})
             </option>
             <option
               v-for="(command, index) of alignmentOptions"
@@ -337,9 +371,10 @@ import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
 import CropModePersistence from '@src/common/enums/CropModePersistence.enum';
 import EmbeddedContentSettingsOverridePolicy from '@src/common/enums/EmbeddedContentSettingsOverridePolicy.enum';
 import { InputHandlingMode } from '@src/common/enums/InputHandlingMode.enum';
+import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
+import { ArVariant } from '@src/common/interfaces/ArInterface';
 
 export default defineComponent({
-
   components: {
     Popup,
     PlayerSelectorAdvancedForm,
@@ -353,7 +388,9 @@ export default defineComponent({
   ],
   data() {
     return {
-      CropModePersistence: CropModePersistence,
+      CropModePersistence,
+      AspectRatioType,
+      ArVariant,
       ExtensionMode,
       EmbeddedContentSettingsOverridePolicy,
       InputHandlingMode,
@@ -370,7 +407,8 @@ export default defineComponent({
       ],
       playerDetectionOptionsDialog: {
         visible: false,
-      }
+      },
+      defaultCropCommand: 'set-ar',
     }
   },
   mixins: [
@@ -394,9 +432,6 @@ export default defineComponent({
     },
     siteDefaultAlignment() {
       return this.siteSettings.raw?.defaults?.alignment ? JSON.stringify(this.siteSettings.raw?.defaults?.alignment) : JSON.stringify({useDefault: true});
-    },
-    siteDefaultCropPersistence() {
-      return this.siteSettings.raw?.persistCSA ?? undefined;
     },
     defaultPersistenceLabel() {
       switch (this.siteSettings.defaultSettings.persistCSA) {
@@ -511,6 +546,22 @@ export default defineComponent({
       }
     },
 
+    getDefaultCrop(command) {
+      for (const cmd of this.settings?.active.commands.crop) {
+        if (JSON.stringify(cmd.arguments) === JSON.stringify(command)) {
+          return cmd.label;
+        }
+      }
+
+      for (const cmd of this.settings?.active.commands.zoom) {
+        if (JSON.stringify({...cmd.arguments, variant: ArVariant.Zoom}) === JSON.stringify(command)) {
+          return `${cmd.label} (zoom)`;
+        }
+      }
+
+      return 'Unknown';
+    },
+
     getCommandValue(availableCommands, command) {
       for (const cmd of availableCommands) {
         if (JSON.stringify(cmd.arguments) === JSON.stringify(command)) {
@@ -555,13 +606,14 @@ export default defineComponent({
     getOption(option) {
 
     },
-    async setOption(option, $event) {
-      const value = $event.target.value;
-      let commandArguments;
+    async setOption(option, $event, extras = {}) {
+      const value = $event?.target?.value ?? {};
 
+      let commandArguments;
       // if argument is json, parse json. Otherwise, pass the value as-is
       try {
-        commandArguments = value !== undefined ? JSON.parse(value) : undefined;
+        const intermediary = value !== undefined ? JSON.parse(value) : undefined;
+        commandArguments = {...intermediary, ...extras};
       } catch(e) {
         commandArguments = value;
       }

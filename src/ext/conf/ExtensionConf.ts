@@ -356,40 +356,6 @@ const ExtensionConf: SettingsInterface = {
       }
     }, {
       action: 'set-ar',
-      label: 'Fit width',
-      comment: 'Make the video fit the entire width of the player, crop top and bottom if necessary',
-      arguments: {
-        type: AspectRatioType.FitWidth
-      },
-      shortcut: {
-        key: 'w',
-        code: 'KeyW',
-        ctrlKey: false,
-        metaKey: false,
-        altKey: false,
-        shiftKey: false,
-        onKeyUp: true,
-        onKeyDown: false,
-      }
-    }, {
-      action: 'set-ar',
-      label: 'Fit height',
-      comment: 'Make the video fit the entire height of the player, crop left and right if necessary',
-      arguments: {
-        type: AspectRatioType.FitHeight
-      },
-      shortcut: {
-        key: 'e',
-        code: 'KeyE',
-        ctrlKey: false,
-        metaKey: false,
-        altKey: false,
-        shiftKey: false,
-        onKeyUp: true,
-        onKeyDown: false,
-      }
-    },{
-      action: 'set-ar',
       label: 'Cycle',
       comment: 'Cycle through crop options',
       arguments: {
@@ -570,6 +536,23 @@ const ExtensionConf: SettingsInterface = {
         metaKey: false,
         altKey: false,
         shiftKey: true,
+        onKeyUp: true,
+        onKeyDown: false,
+      }
+    }, {
+      action: 'set-ar-zoom',
+      label: 'Cover',
+      comment: 'Covers the entire screen, cropping as much as needed',
+      arguments: {
+        type: AspectRatioType.Cover
+      },
+      shortcut: {
+        key: 'w',
+        code: 'KeyW',
+        ctrlKey: false,
+        metaKey: false,
+        altKey: false,
+        shiftKey: false,
         onKeyUp: true,
         onKeyDown: false,
       }
