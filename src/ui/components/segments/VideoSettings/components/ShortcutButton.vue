@@ -16,7 +16,7 @@ export default defineComponent({
   props: {
     label: String,
     shortcut: String,
-    classList: String
+    classList: Object
   }
 });
 </script>

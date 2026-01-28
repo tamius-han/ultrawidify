@@ -448,8 +448,14 @@
       stroke: transparent;
     }
 
-    .selected {
-      @apply fill-primary-400 stroke-primary-400;
+    .uw-active {
+      @apply fill-primary-400 stroke-primary-400 text-primary-400 bg-primary-400;
+
+      path {
+        @apply fill-primary-300 stroke-primary-100;
+
+        filter: drop-shadow(0 0 0.5rem theme('colors.primary.400'));
+      }
     }
   }
 }

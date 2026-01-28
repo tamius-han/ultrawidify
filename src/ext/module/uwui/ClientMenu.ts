@@ -1,9 +1,11 @@
 import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
 import StretchType from '@src/common/enums/StretchType.enum';
+import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
 import { ArVariant } from '@src/common/interfaces/ArInterface';
 import { MenuPosition, MenuConfig, MenuItemConfig } from '@src/common/interfaces/ClientUiMenu.interface';
 import { ScalingParamsBroadcast } from '@src/common/interfaces/ScalingParamsBroadcast.interface';
 import extensionCss from '@src/main.css?inline';
+import { setVideoAlignmentIndicatorState } from '@src/ui/utils/video-alignment-indicator-handling';
 
 export class ClientMenu {
 
@@ -425,6 +427,9 @@ export class ClientMenu {
   }
 
   markActiveElements(scalingParams: ScalingParamsBroadcast) {
+    if (!this._root) {
+      return;
+    }
     const currentlyActiveElements = this._root.querySelectorAll('.uw-active-within, .uw-active');
 
     for (const element of currentlyActiveElements) {
@@ -517,5 +522,28 @@ export class ClientMenu {
         zoomHSlider.value = Math.log2(scalingParams.effectiveZoom.y) as any;
       }
     }
+
+    const lockXYButton = this._root.querySelector('#_button_toggle_aspect_lock');
+    const sliderLockBar = this._root.querySelector('#slider-lock');
+
+    if (scalingParams.effectiveZoom.x === scalingParams.effectiveZoom.y) {
+      lockXYButton?.classList.add('uw-linked');
+      lockXYButton?.classList.remove('uw-unlinked');
+      sliderLockBar?.classList.add('uw-linked');
+      sliderLockBar?.classList.remove('uw-unlinked');
+    } else {
+      lockXYButton?.classList.add('uw-unlinked');
+      lockXYButton?.classList.remove('uw-linked');
+      sliderLockBar?.classList.add('uw-unlinked');
+      sliderLockBar?.classList.remove('uw-linked');
+    }
+
+    // set alignment indicator
+    const videoAlignmentIndicator = this._root.querySelector('#_uw_ui_alignment_indicator') as SVGSVGElement;
+    if (videoAlignmentIndicator) {
+      setVideoAlignmentIndicatorState(videoAlignmentIndicator, scalingParams.videoAlignment.x, scalingParams.videoAlignment.y);
+    }
+
+
   }
 }

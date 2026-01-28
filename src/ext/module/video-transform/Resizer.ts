@@ -64,6 +64,16 @@ class Resizer {
   currentVideoSettings: any;
 
   private effectiveZoom: {x: number, y: number} = {x: 1, y: 1};
+  private currentScalingParams: ScalingParamsBroadcast = {
+    effectiveZoom: {x: 1, y: 1},
+    lastAr: {type: AspectRatioType.Initial},
+    stretch: {type: StretchType.Default},
+    videoAlignment: {
+      x: VideoAlignmentType.Center,
+      y: VideoAlignmentType.Center
+    },
+    manualZoom: false
+  };
 
   private pendingAr?: {ar: Ar, lastAr?: Ar};
 
@@ -99,6 +109,11 @@ class Resizer {
     'get-effective-zoom': [{
       function: () => {
         this.eventBus.send('announce-zoom', this.manualZoom ? {x: this.zoom.scale, y: this.zoom.scaleY} : this.zoom.effectiveZoom);
+      }
+    }],
+    'request-scaling-params': [{
+      function: () => {
+        this.eventBus.send('broadcast-scaling-params', this.currentScalingParams);
       }
     }],
     'set-ar': [{
@@ -506,12 +521,15 @@ class Resizer {
       const translate = this.computeOffsets(stretchFactors, options?.ar);
       this.applyCss(stretchFactors, translate);
 
-      this.eventBus.send('broadcast-scaling-params', {
+      this.currentScalingParams = {
         effectiveZoom: {x: stretchFactors.xFactor, y: stretchFactors.yFactor},
+        videoAlignment: this.videoAlignment,
         lastAr: this.lastAr,
         manualZoom: this.manualZoom,
         stretch: this.stretcher.stretch
-      } as ScalingParamsBroadcast);
+      }
+
+      this.eventBus.send('broadcast-scaling-params', this.currentScalingParams);
     } catch (e) {
       this.logger.warn('applyScaling', 'error while applying CSS:', e);
       // don't apply CSS if there's an error

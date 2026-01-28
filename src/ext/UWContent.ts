@@ -1,5 +1,5 @@
 import Debug from '@src/ext/conf/Debug';
-import CommsClient from '@src/ext/module/comms/CommsClient';
+import CommsClient, { CommsOrigin } from '@src/ext/module/comms/CommsClient';
 import EventBus from '@src/ext/module/EventBus';
 import KeyboardHandler from '@src/ext/module/kbm/KeyboardHandler';
 import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
@@ -82,7 +82,7 @@ export default class UWContent {
         this.siteSettings = this.settings.getSiteSettings({site: window.location.hostname, isIframe: this.isIframe, parentHostname: this.parentHostname});
       }
 
-      this.eventBus = new EventBus({name: 'content-script'});
+      this.eventBus = new EventBus({name: 'content-script', commsOrigin: CommsOrigin.ContentScript});
       this.eventBus.subscribe(
         'uw-restart',
         {

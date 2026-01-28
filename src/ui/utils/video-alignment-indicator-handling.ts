@@ -31,7 +31,7 @@ export function setVideoAlignmentIndicatorState(
   y: VideoAlignmentType
 ) {
   // reset all indicators
-  svg.querySelectorAll<SVGGElement>('g').forEach(g => g.classList.remove('selected'));
+  svg?.querySelectorAll<SVGGElement>('g').forEach(g => g.classList.remove('uw-active'));
 
   // select the appropriate square
   if (x === VideoAlignmentType.Default || y === VideoAlignmentType.Default) {
@@ -39,8 +39,10 @@ export function setVideoAlignmentIndicatorState(
   }
 
   const gId = `${positionMap[y]}-${positionMap[x]}`;
-  const selected = svg.getElementById(gId);
-  if (selected) selected.classList.add('selected');
+  const selected = svg?.getElementById(gId);
+  if (selected) {
+    selected.classList.add('uw-active');
+  }
 }
 
 /**
@@ -52,7 +54,7 @@ export function setupVideoAlignmentIndicatorInteraction(
   svg: SVGSVGElement,
   callback: (x: VideoAlignmentType, y: VideoAlignmentType) => void
 ) {
-  svg.querySelectorAll<SVGGElement>('g').forEach(g => {
+  svg?.querySelectorAll<SVGGElement>('g').forEach(g => {
     g.addEventListener('click', () => {
       const [y, x] = g.id.split('-');
 

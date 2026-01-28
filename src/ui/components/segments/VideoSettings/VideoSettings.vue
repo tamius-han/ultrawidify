@@ -7,6 +7,9 @@
       <ShortcutButton
         v-for="(command, index) of settings?.active.commands.crop"
         :key="index"
+        :classList="{
+          'border !border-primary-700 text-primary-500 active-option': currentCropCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
+        }"
         :label="command.label"
         :shortcut="getKeyboardShortcutLabel(command)"
         @click="execAction(command)"
@@ -18,6 +21,9 @@
       <ShortcutButton
         v-for="(command, index) of settings?.active.commands.zoom"
         :key="index"
+        :classList="{
+          'border !border-primary-700 text-primary-500 active-option': currentCropCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
+        }"
         :label="command.label"
         :shortcut="getKeyboardShortcutLabel(command)"
         @click="execAction(command)"
@@ -40,6 +46,10 @@
                 max="4"
                 :value="zoom.x"
                 @input="changeZoom($event.target.value, 'x')"
+                @pointerdown="zoomUpdatesDisabled = true"
+                @pointerup="zoomUpdatesDisabled = false"
+                @pointercancel="zoomUpdatesDisabled = false"
+                @pointerleave="zoomUpdatesDisabled = false"
             />
           </div>
         </div>
@@ -55,6 +65,10 @@
                 max="4"
                 :value="zoom.y"
                 @input="changeZoom($event.target.value, 'y')"
+                @pointerdown="zoomUpdatesDisabled = true"
+                @pointerup="zoomUpdatesDisabled = false"
+                @pointercancel="zoomUpdatesDisabled = false"
+                @pointerleave="zoomUpdatesDisabled = false"
             />
           </div>
         </div>
@@ -94,6 +108,9 @@
       <ShortcutButton
         v-for="(command, index) of settings?.active.commands.stretch"
         :key="index"
+        :classList="{
+          'border border-primary-700 text-primary-500 active-option': currentStretchCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
+        }"
         :label="command.label"
         :shortcut="getKeyboardShortcutLabel(command)"
         @click="execAction(command)"
@@ -102,6 +119,7 @@
 
     <h3>Align video</h3>
     <div
+      id="videoAlignmentController"
       ref="alignmentSvgContainer"
       class="w-full h-[12em] flex flex-row justify-center"
     ></div>
@@ -119,6 +137,10 @@ import KeyboardShortcutParserMixin from '@ui/utils/mixins/KeyboardShortcutParser
 import alignmentIndicatorSvg from '!!raw-loader!@ui/res/img/alignment-indicators.svg';
 import {setupVideoAlignmentIndicatorInteraction, setVideoAlignmentIndicatorState} from '@ui/utils/video-alignment-indicator-handling';
 import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
+import { ScalingParamsBroadcast } from '@src/common/interfaces/ScalingParamsBroadcast.interface';
+import { ArVariant } from '@src/common/interfaces/ArInterface';
+import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
+import StretchType from '@src/common/enums/StretchType.enum';
 
 export default defineComponent({
   components: {
@@ -139,21 +161,26 @@ export default defineComponent({
     return {
       zoom: {x: 0, y: 0}, // zoom is logarithmic, so "100%" is represented as 0 instead of 1.
       zoomOptions: {
-        lockAr: false,
+        lockAr: true,
       },
 
       alignmentSvgContainer: undefined as HTMLElement | undefined,
+      alignmentIndicatorSvg: undefined as SVGSVGElement | undefined,
+
+      currentCropCommand: '',
+      currentStretchCommand: '',
+      zoomUpdatesDisabled: false,
     }
   },
   created() {
-    console.log('created ....');
-    this.eventBus.subscribe(
-      'uw-config-broadcast',
-      {
-        source: this,
-        function: (config) => this.handleConfigBroadcast(config)
+    this.eventBus.subscribeMulti({
+      'broadcast-scaling-params': {
+        function: (commandData: ScalingParamsBroadcast, context) => {
+          this.markActiveElements(commandData);
+        }
       }
-    );
+    });
+
   },
   mounted() {
     this.alignmentSvgContainer = this.$refs.alignmentSvgContainer as HTMLElement;
@@ -161,10 +188,10 @@ export default defineComponent({
     if (this.alignmentSvgContainer) {
       this.alignmentSvgContainer.innerHTML = alignmentIndicatorSvg;
       const svgElement = this.alignmentSvgContainer.querySelector('svg') as SVGSVGElement;
-      console.log('svg element:', svgElement);
+      this.alignmentIndicatorSvg = svgElement;
+
       if (svgElement) {
         setupVideoAlignmentIndicatorInteraction(svgElement, (x: VideoAlignmentType, y: VideoAlignmentType) => {
-          console.log('clicked!');
           // Update selection visually
           setVideoAlignmentIndicatorState(svgElement, x, y);
 
@@ -174,6 +201,7 @@ export default defineComponent({
     }
 
     this.eventBus.send('get-ar');
+    this.eventBus.send('request-scaling-params');
   },
   destroyed() {
     this.eventBus.unsubscribeAll(this);
@@ -221,8 +249,70 @@ export default defineComponent({
     },
     align(alignmentX: VideoAlignmentType, alignmentY: VideoAlignmentType) {
       this.eventBus?.send('set-alignment', {x: alignmentX, y: alignmentY})
-    }
+    },
 
+    markActiveElements(scalingParams: ScalingParamsBroadcast) {
+      if (this.zoomUpdatesDisabled) {
+        return;
+      }
+      // we only set active options when manual zoom is NOT set
+      if (!scalingParams.manualZoom) {
+        const cropCommand = scalingParams.lastAr.variant === ArVariant.Zoom ? 'set-ar-zoom' : 'set-ar';
+
+        let typeCrop;
+        switch (scalingParams.lastAr.type) {
+          case AspectRatioType.Automatic:
+          case AspectRatioType.AutomaticUpdate:
+            typeCrop = `${AspectRatioType.Automatic}-x`;
+            break;
+          case AspectRatioType.Cover:
+          case AspectRatioType.FitWidth:
+          case AspectRatioType.FitHeight:
+            typeCrop = `${scalingParams.lastAr.type}-x`;
+            break;
+          case AspectRatioType.Cycle:
+          case AspectRatioType.Initial:
+            typeCrop = 'non-selectable';
+            break;
+          default:
+            typeCrop = `${scalingParams.lastAr.type}-${scalingParams.lastAr.ratio ?? 'x'}`;
+        }
+
+        this.currentCropCommand = `${cropCommand}-${typeCrop}`;
+
+        let typeStretch;
+        switch (scalingParams.stretch.type) {
+          case StretchType.FixedSource:
+          case StretchType.Fixed:
+            typeStretch = `${scalingParams.stretch.type}-${scalingParams.stretch.ratio ?? 'x'}`;
+            break;
+          case StretchType.Default:
+          case StretchType.NoStretch:
+            typeStretch = `non-selectable`;
+            break;
+          default:
+            typeStretch = `${scalingParams.stretch.type}-x`;
+        }
+
+        this.currentStretchCommand = `set-stretch-${typeStretch}`;
+      } else {
+        this.currentCropCommand = '';
+        this.currentStretchCommand = '';
+      }
+
+      if (!this.zoomUpdatesDisabled) {
+        this.zoom = {
+          x: Math.log2(scalingParams.effectiveZoom.x),
+          y: Math.log2(scalingParams.effectiveZoom.y)
+        };
+      }
+
+      this.zoomOptions.lockAr = scalingParams.effectiveZoom.x === scalingParams.effectiveZoom.y;
+
+      if (this.alignmentIndicatorSvg) {
+        setVideoAlignmentIndicatorState(this.alignmentIndicatorSvg, scalingParams.videoAlignment.x, scalingParams.videoAlignment.y);
+      }
+    }
   }
 });
 </script>

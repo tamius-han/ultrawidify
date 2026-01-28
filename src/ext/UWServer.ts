@@ -7,6 +7,7 @@ import CommsServer from '@src/ext/module/comms/CommsServer';
 import BrowserDetect from '@src/ext/conf/BrowserDetect';
 import { HostInfo } from '@src/common/interfaces/HostData.interface';
 import { ExtensionEnvironment } from '@src/common/interfaces/SettingsInterface';
+import { CommsOrigin } from '@src/ext/module/comms/CommsClient';
 
 
 const BASE_LOGGING_STYLES = {
@@ -81,7 +82,7 @@ export default class UWServer {
       this.settings = new Settings({logAggregator: this.logAggregator});
       await this.settings.init();
 
-      this.eventBus = new EventBus({isUWServer: true});
+      this.eventBus = new EventBus({isUWServer: true, commsOrigin: CommsOrigin.Server});
 
       this.eventBus.subscribeMulti(this.eventBusCommands, this);
 
@@ -105,6 +106,11 @@ export default class UWServer {
   //#region CSS management
 
   async injectCss(css, sender) {
+    if (!sender?.tab?.id) {
+      // console.warn('invalid injectCss received!');
+      return;
+    }
+
     this.logger.info('injectCss', 'Trying to inject CSS into tab', sender.tab.id, ', frameId:', sender.frameId, 'css:\n', css)
     if (!css) {
       return;
@@ -125,6 +131,11 @@ export default class UWServer {
     }
   }
   async removeCss(css, sender) {
+    if (!sender?.tab) {
+      // console.warn('invalid removeCss received!');
+      return;
+    }
+
     try {
       await chrome.scripting.removeCSS({
         target: {
@@ -141,6 +152,10 @@ export default class UWServer {
     }
   }
   async replaceCss(oldCss, newCss, sender) {
+    if (!sender?.tab) {
+      // console.warn('invalid replaceCss received!');
+      return;
+    }
     if (oldCss !== newCss) {
       this.removeCss(oldCss, sender);
       this.injectCss(newCss, sender);
@@ -197,6 +212,10 @@ export default class UWServer {
   }
 
   registerVideo(sender) {
+    if (!sender?.tab?.url) {
+      // console.warn('invalid registerVideo received!');
+      return;
+    }
     this.logger.info('registerVideo', 'Registering video.\nsender:', sender);
 
     const tabHostname = this.extractHostname(sender.tab.url);
@@ -235,6 +254,11 @@ export default class UWServer {
   }
 
   unregisterVideo(sender) {
+    if (!sender?.tab) {
+      // console.warn('invalid unregisterVideo received!');
+      return;
+    }
+
     this.logger.info('unregisterVideo', 'Unregistering video.\nsender:', sender);
     if (this.videoTabs[sender.tab.id]) {
       if ( Object.keys(this.videoTabs[sender.tab.id].frames).length <= 1) {
@@ -254,6 +278,10 @@ export default class UWServer {
   }
 
   async getCurrentSite(sender: Runtime.MessageSender) {
+    // if (!sender?.tab) {
+    //   console.warn('invalid unregisterVideo received!');
+    //   return;
+    // }
     const site = await this.getVideoTab();
 
     // Don't propagate 'INVALID SITE' to the popup.

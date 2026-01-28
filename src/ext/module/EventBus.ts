@@ -24,7 +24,7 @@ export default class EventBus {
 
   // private uiUri = window.location.href;
 
-  constructor(options?: {isUWServer?: boolean, name?: string, commsOrigin?: CommsOrigin}) {
+  constructor(options?: {isUWServer?: boolean, name?: string, commsOrigin: CommsOrigin}) {
     if (!options?.isUWServer) {
       this.setupIframeTunnelling();
     }
@@ -119,11 +119,16 @@ export default class EventBus {
       const i = this.lastExecutedCommandIndex++ % this.lastExecutedCommandIds.length;
       this.lastExecutedCommandIds[i] = context.commandId;
     }
+    if (!context.origin) {
+      context.origin = this.commsOrigin;
+    }
 
     if (
       this.comms
-      && context?.origin !== CommsOrigin.Server
-      && !context?.borderCrossings?.commsServer
+      && (  // ensure each message only enters commsServer once!
+        this.commsOrigin === context.origin         // if these two differ, we already sent that message through Comms once,
+        || this.commsOrigin === CommsOrigin.Server  // CommsServer needs to forward everything, otherwise messages stop on
+      )
     ) {
       try {
         this.comms.sendMessage({command, config: commandData, context}, context);

@@ -4,7 +4,8 @@ enum VideoAlignmentType {
   Right = 2,
   Top = 3,
   Bottom = 4,
-  Default = -1
+  Default = -1,
+  Custom = -2,
 };
 
 export default VideoAlignmentType;

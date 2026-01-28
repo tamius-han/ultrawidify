@@ -172,34 +172,46 @@ class CommsServer {
       context = message.context;
     }
 
-    if (context?.origin !== CommsOrigin.ContentScript) {
-      if (context?.comms.forwardTo === 'all') {
-        return this.sendToAll(message);
-      }
-      if (context?.comms.forwardTo === 'active' || !context?.comms.forwardTo) {
-        return this.sendToActive(message);
-      }
-      if (context?.comms.forwardTo === 'contentScript') {
-        return this.sendToFrame(message, context.tab, context.frame, context.port);
-      }
-    }
-    if (context?.origin !== CommsOrigin.Popup) {
-      if (context?.comms.forwardTo === 'popup') {
-        return this.sendToPopup(message);
+    /**
+     * Here's how message forwarding works:
+     *  * messages NOT originating from a content script get forwarded to content script
+     *  * messages NOT originating from extension popup get forwarded to extension popup
+     *
+     * This way, messages originating from background script get forwarded both to
+     * content script as well as popup for absolutely free.
+     */
+
+    forwardToContentScript:
+    {
+      if (context?.origin !== CommsOrigin.ContentScript) {
+        if (context?.comms.forwardTo === 'all') {
+          this.sendToAll(message);
+          break forwardToContentScript;
+        }
+        if (context?.comms.forwardTo === 'active') {
+          this.sendToActive(message);
+          break forwardToContentScript;
+        }
+        if (context?.comms.forwardTo === 'contentScript') {
+          this.sendToFrame(message, context.tab, context.frame, context.port);
+          break forwardToContentScript;
+        }
+
+        this.sendToActive(message);
+        break forwardToContentScript;
       }
     }
 
+    if (context?.origin !== CommsOrigin.Popup) {
+      this.sendToPopup(message);
+    }
+
     // okay I lied! Messages originating from content script can be forwarded to
-    // content scripts running in _other_ frames of the tab
-    let forwarded = false;
+    // content scripts running in _other_ frames of the tab.
     if (context?.origin === CommsOrigin.ContentScript) {
       if (context?.comms.forwardTo === 'all-frames') {
-        forwarded = true;
         this.sendToOtherFrames(message, context);
       }
-    }
-    if (!forwarded) {
-      this.logger.warn('sendMessage', `message ${message.command ?? ''} was not forwarded to any destination!`,  {message, context});
     }
   }
 

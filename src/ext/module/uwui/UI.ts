@@ -104,7 +104,7 @@ class UI {
         'broadcast-scaling-params': {
           function: (commandData: ScalingParamsBroadcast, context) => {
             this.currentScalingParams = commandData;
-            this.extensionMenu?.markActiveElements(commandData);
+            this.updateMenuStatus(commandData);
           }
         }
       });
@@ -427,7 +427,7 @@ class UI {
       this.extensionMenu = new ClientMenu(menuConfig);
       this.extensionMenu.mount(this.uiConfig.parentElement);
       if (this.currentScalingParams) {
-        this.extensionMenu.markActiveElements(this.currentScalingParams);
+        this.updateMenuStatus(this.currentScalingParams);
       }
 
       /**
@@ -539,6 +539,13 @@ class UI {
 
 
     }
+  }
+
+  updateMenuStatus(scalingParams: ScalingParamsBroadcast) {
+    this.extensionMenu?.markActiveElements(scalingParams);
+
+    // we also need to handle this here
+    this.uiState.lockXY = scalingParams.effectiveZoom.x === scalingParams.effectiveZoom.y;
   }
 
   createSettingsWindow(path?: string) {

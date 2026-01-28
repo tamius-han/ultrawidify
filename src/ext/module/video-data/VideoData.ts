@@ -7,6 +7,7 @@ import { RunLevel } from '@src/ext/enum/run-level.enum';
 import { Aard } from '@src/ext/module/aard/Aard';
 import { AardLegacy } from '@src/ext/module/aard/AardLegacy';
 import { hasDrm } from '@src/ext/module/ar-detect/DrmDetector';
+import { CommsOrigin } from '@src/ext/module/comms/CommsClient';
 import EventBus from '@src/ext/module/EventBus';
 import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
 import { LogAggregator } from '@src/ext/module/logging/LogAggregator';
@@ -147,7 +148,7 @@ class VideoData {
     };
 
     if (!pageInfo.eventBus) {
-      this.eventBus = new EventBus({name: 'video-data'});
+      this.eventBus = new EventBus({name: 'video-data', commsOrigin: CommsOrigin.ContentScript});
     } else {
       this.eventBus = pageInfo.eventBus;
     }

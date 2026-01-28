@@ -1,13 +1,6 @@
 <script lang="ts">
 export default {
   methods: {
-    handleConfigBroadcast(message) {
-      if (message.type === 'ar') {
-        this.resizerConfig.crop = message.config;
-      }
-
-      this.$nextTick( () => this.$forceUpdate() );
-    },
 
     /**
      * Sends commands to main content script in parent iframe
