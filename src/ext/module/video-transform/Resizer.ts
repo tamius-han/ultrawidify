@@ -495,8 +495,14 @@ class Resizer {
     try {
       const translate = this.computeOffsets(stretchFactors, options?.ar);
       this.applyCss(stretchFactors, translate);
+
+      this.eventBus.send('broadcast-scaling-params', {
+        effectiveZoom: {x: stretchFactors.xFactor, y: stretchFactors.yFactor},
+        lastAr: this.lastAr,
+        stretch: this.stretcher.stretch
+      });
     } catch (e) {
-      this.logger.warn('setAr', 'error while applying CSS:', e);
+      this.logger.warn('applyScaling', 'error while applying CSS:', e);
       // don't apply CSS if there's an error
     }
   }

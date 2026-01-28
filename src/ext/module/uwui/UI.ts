@@ -19,6 +19,8 @@ import { UwuiWindow } from './UwuiWindow';
 
 import { createApp } from 'vue';
 import SettingsWindowContent from '@components/SettingsWindowContent.vue';
+import { Ar } from '@src/common/interfaces/ArInterface';
+import { Stretch } from '@src/common/interfaces/StretchInterface';
 // import jsonEditorCSS from 'vanilla-jsoneditor/themes/jse-theme-dark.css?inline'
 
 if (process.env.CHANNEL !== 'stable'){
@@ -92,6 +94,12 @@ class UI {
         'uw-show-settings-window': {
           function: (commandData, context) => {
             this.createSettingsWindow(commandData?.initialState);
+          }
+        },
+
+        'broadcast-scaling-params': {
+          function: (commandData: {effectiveZoom: {x: number, y: number}, lastAr: Ar, stretch: Stretch}, context) => {
+            console.warn('got scaling params:', commandData)
           }
         }
       });

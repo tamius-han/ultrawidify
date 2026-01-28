@@ -107,10 +107,6 @@ export default class EventBus {
         eventBusCommand.function(commandData, context);
       }
     }
-    if (context.commandId) {
-      const i = this.lastExecutedCommandIndex++ % this.lastExecutedCommandIds.length;
-      this.lastExecutedCommandIds[i] = context.commandId;
-    }
 
     // preventing messages from flowing back to their original senders is
     // CommsServer's job. EventBus does not have enough data for this decision.
@@ -119,6 +115,11 @@ export default class EventBus {
     if (!context.commandId) {
       context.commandId = crypto.randomUUID();
     }
+    if (context.commandId) {
+      const i = this.lastExecutedCommandIndex++ % this.lastExecutedCommandIds.length;
+      this.lastExecutedCommandIds[i] = context.commandId;
+    }
+
     if (
       this.comms
       && context?.origin !== CommsOrigin.Server
