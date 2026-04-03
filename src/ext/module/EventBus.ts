@@ -99,7 +99,7 @@ export default class EventBus {
       commandId: context.commandId,
       comms: context.comms ? {
         forwardTo: context.comms.forwardTo,
-        sourceFrame: context.comms.sourceFrame ? { ...context.comms.sourceFrame } : undefined
+        sourceFrame: context.comms?.sourceFrame ? { ...context.comms?.sourceFrame } : undefined
       } : undefined,
       borderCrossings: context.borderCrossings ? { ...context.borderCrossings } : undefined
     };

@@ -266,11 +266,11 @@ class CommsServer {
    * @param frame
    */
   private async sendToOtherFrames(message, context) {
-    const sender = context.comms.sourceFrame;
+    const sender = context.comms?.sourceFrame;
 
     const enrichedMessage = {
       message,
-      _sourceFrame: context.comms.sourceFrame,
+      _sourceFrame: context.comms?.sourceFrame,
       _sourcePort: context.comms.port
     }
 

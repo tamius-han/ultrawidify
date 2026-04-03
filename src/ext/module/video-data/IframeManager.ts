@@ -99,14 +99,14 @@ export default class IframeManager {
     } else {
       this.iframeList.push({
         ...data,
-        ...context.comms.sourceFrame
+        ...context.comms?.sourceFrame
       });
     }
   }
 
   private handleFrameDestroyed(context) {
     // tab IDs should be the same for all items, making frameId sufficiently unique to filter stuff
-    this.iframeList = this.iframeList.filter(x => x.frameId !== context.comms.sourceFrame.frameId);
+    this.iframeList = this.iframeList.filter(x => x.frameId !== context.comms?.sourceFrame?.frameId);
   }
 
 }
