@@ -90,7 +90,24 @@ export default class EventBus {
     }
   }
 
+  private cloneContext(context: EventBusContext = {}): EventBusContext {
+    return {
+      stopPropagation: context.stopPropagation,
+      origin: context.origin,
+      frameUrl: context.frameUrl,
+      visitedBusses: context.visitedBusses ? [...context.visitedBusses] : undefined,
+      commandId: context.commandId,
+      comms: context.comms ? {
+        forwardTo: context.comms.forwardTo,
+        sourceFrame: context.comms.sourceFrame ? { ...context.comms.sourceFrame } : undefined
+      } : undefined,
+      borderCrossings: context.borderCrossings ? { ...context.borderCrossings } : undefined
+    };
+  }
+
   send(command: string, commandData: any, context: EventBusContext = {}) {
+    context = this.cloneContext(context);  // Firefox throws an error if we don't clone the context.
+
     if (context.visitedBusses?.includes(this.uuid)) {
       console.warn('this bus was already visited before. Doing nothing.');
       return;
