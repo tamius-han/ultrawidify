@@ -530,16 +530,26 @@ export class Aard {
           // console.warn('DETECTED NOT LETTERBOX! (resetting)')
           this.timer.arChanged();
           this.updateAspectRatio(this.defaultAr, {forceReset: true});
+          this.testResults.activeLetterbox.width = 0;
+          this.testResults.activeLetterbox.offset = 0;
+          this.testResults.activeLetterbox.orientation = LetterboxOrientation.NotLetterbox;
           break processUpdate;
         }
 
         if (this.testResults.subtitleDetected && arConf.subtitles.subtitleCropMode !== AardSubtitleCropMode.CropSubtitles) {
           if (arConf.subtitles.subtitleCropMode === AardSubtitleCropMode.ResetAR) {
             this.updateAspectRatio(this.defaultAr, {forceReset: true});
+            this.testResults.activeLetterbox.width = 0;
+            this.testResults.activeLetterbox.offset = 0;
+            this.testResults.activeLetterbox.orientation = LetterboxOrientation.NotLetterbox;
             this.timers.pauseUntil = Date.now() + arConf.subtitles.resumeAfter;
 
           } else if (arConf.subtitles.subtitleCropMode === AardSubtitleCropMode.ResetAndDisable) {
             this.updateAspectRatio(this.defaultAr, {forceReset: true});
+            this.testResults.activeLetterbox.width = 0;
+            this.testResults.activeLetterbox.offset = 0;
+            this.testResults.activeLetterbox.orientation = LetterboxOrientation.NotLetterbox;
+
             this.status.autoDisabled = true;
           }
 
@@ -568,10 +578,13 @@ export class Aard {
         this.testResults.guardLine.front = this.testResults.aspectRatioCheck.frontCandidate;
         this.testResults.guardLine.back = this.testResults.aspectRatioCheck.backCandidate;
 
-
+        // TODO: set flag if subtitles are far enough from edge to avoid getting cropped
         const finalAr = this.getAr();
         if (finalAr > 0) {
           this.updateAspectRatio(finalAr);
+          this.testResults.activeLetterbox.width = this.testResults.letterboxSize;
+          this.testResults.activeLetterbox.offset = this.testResults.letterboxOffset;
+          this.testResults.activeLetterbox.orientation = this.testResults.letterboxOrientation;
         } else {
           this.testResults.aspectRatioInvalid = true;
           this.testResults.aspectRatioInvalidReason = finalAr.toFixed(3);
@@ -843,6 +856,15 @@ export class Aard {
    * @returns
    */
   private updateLetterboxEdgeCandidates(crossDimension: number, topCandidate: number, bottomCandidate: number) {
+    // if new topCandidate or bottomCandidate aren't valid,
+    // use existing value.
+    if (topCandidate < 0) {
+      topCandidate = this.testResults.aspectRatioCheck.frontCandidate;
+    }
+    if (bottomCandidate < 0) {
+      bottomCandidate = this.testResults.aspectRatioCheck.backCandidate;
+    }
+
     const bottomDistance = (crossDimension - bottomCandidate);
     const maxOffset = ~~(crossDimension * this.settings.active.aard.edgeDetection.maxLetterboxOffset);
     const diff = Math.abs(topCandidate - bottomDistance);
@@ -858,6 +880,13 @@ export class Aard {
 
     this.testResults.letterboxSize = candidateAvg;
     this.testResults.letterboxOffset = diff;
+
+    if (this.testResults.letterboxOrientation === LetterboxOrientation.Letterbox && this.testResults.subtitleDetected) {
+      const top = this.testResults.subtitleScan.regions.top.firstSubtitle === -1 ? topCandidate : Math.min(topCandidate, this.testResults.subtitleScan.regions.top.firstSubtitle);
+      const bottom = Math.max(bottomCandidate, this.testResults.subtitleScan.regions.bottom.firstSubtitle);
+
+      this.testResults.letterboxSizeWithSubtitles = ~~((top + (crossDimension - bottomCandidate)) * 0.5);
+    }
   }
 
 
@@ -899,15 +928,35 @@ export class Aard {
     } else {
       this.testResults.aspectRatioUncertain = false;
     }
-    if (ssrRegions.top.firstSubtitle !== -1 || ssrRegions.bottom.firstSubtitle !== -1) {
-      this.testResults.subtitleDetected = true;
-    }
 
+    // 1. updateLetterboxEdgeCandidates runs regardless of whether we detected subtitles or not.
+    // 2. it's also not affected by whether subtitleDetected is set
+    // 3. we actually need to only reset letterbox if subtitle is actually outside of the crop area
     this.updateLetterboxEdgeCandidates(
       height,
       ssrRegions.top.firstImage,
       ssrRegions.bottom.firstImage
     );
+
+
+    // we can only do this in actual letterbox
+    if (this.testResults.activeLetterbox.orientation === LetterboxOrientation.Letterbox) {
+
+      // we only reset letterbox if letters are outside the video area, otherwise we risk
+      // getting whacked by credits, ppt youtubers, and other shit like that
+      const borderTop = this.testResults.activeLetterbox.width;
+      const borderBottom = this.settings.active.aard.canvasDimensions.sampleCanvas.height - this.testResults.activeLetterbox.width;
+
+      if (
+        (ssrRegions.top.firstSubtitle !== -1 && ssrRegions.top.firstSubtitle < borderTop)
+        || (ssrRegions.bottom.firstSubtitle !== -1 && ssrRegions.bottom.firstSubtitle > borderBottom)
+      ) {
+
+        this.testResults.subtitleDetected = true;
+      }
+
+    }
+
 
     this.timer.current.subtitleScan = performance.now() - this.timer.current.start;
   }
@@ -1370,9 +1419,17 @@ export class Aard {
     if (this.testResults.letterboxOrientation === LetterboxOrientation.Pillarbox) {
       const compensationFactor = compensatedWidth / this.canvasStore.main.width;
       const pillarboxCompensated = (this.testResults.letterboxSize * 2 * compensationFactor);
+
       return (compensatedWidth - pillarboxCompensated) / this.canvasStore.main.height;
     } else {
       const heightWithoutLetterbox = this.canvasStore.main.height - (this.testResults.letterboxSize * 2);
+
+      // TODO: set flag if subtitles are far enough from edge to avoid getting cropped
+      // if (this.testResults.subtitleDetected) {
+      //   const hwlWithSubtitles = this.canvasStore.main.height - (this.testResults.letterboxSizeWithSubtitles * 2)
+      //   const subtitleRatio = compensatedWidth / hwlWithSubtitles;
+
+      // }
       return compensatedWidth / heightWithoutLetterbox;
     }
   }

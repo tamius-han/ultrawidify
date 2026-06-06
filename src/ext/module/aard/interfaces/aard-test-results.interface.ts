@@ -33,6 +33,7 @@ export interface AardTestResults {
   activeAspectRatio: number,  // is cumulative
   letterboxSize: number,
   letterboxOffset: number,
+  letterboxSizeWithSubtitles: number,
   aspectRatioInvalid: boolean,
   subtitleScan: {
     top: number,
@@ -43,6 +44,11 @@ export interface AardTestResults {
       bottom: AardTestResult_SubtitleRegion
     }
   },
+  activeLetterbox: {
+    width: number,
+    offset: number,
+    orientation: LetterboxOrientation
+  }
   aspectRatioUncertainReason?: AardUncertainReason,
   aspectRatioInvalidReason?: string,
 }
@@ -90,10 +96,16 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
         }
       }
     },
+    activeLetterbox: {
+      width: 0,
+      offset: 0,
+      orientation: LetterboxOrientation.NotLetterbox
+    },
     aspectRatioUpdated: false,
     activeAspectRatio: 0,
     letterboxSize: 0,
     letterboxOffset: 0,
+    letterboxSizeWithSubtitles: 0,
     aspectRatioInvalid: false,
   }
 }
@@ -107,7 +119,7 @@ export function resetAardTestResults(results: AardTestResults): void {
   results.isFinished = false;
   results.lastStage = 0;
   results.aspectRatioUpdated = false;
-  results.aspectRatioUncertainReason = null;
+  results.aspectRatioUncertainReason = undefined;
   results.aspectRatioInvalid = false;
   results.letterboxOrientation = LetterboxOrientation.NotKnown;
 }
