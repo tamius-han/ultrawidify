@@ -106,7 +106,7 @@ export default class EventBus {
   }
 
   send(command: string, commandData: any, context: EventBusContext = {}) {
-    context = this.cloneContext(context);  // Firefox throws an error if we don't clone the context.
+    // context = this.cloneContext(context);  // Firefox throws an error if we don't clone the context.
 
     if (context.visitedBusses?.includes(this.uuid)) {
       console.warn('this bus was already visited before. Doing nothing.');
@@ -116,7 +116,10 @@ export default class EventBus {
       console.warn('this command was already sent');
       return;
     }
-    context.visitedBusses = [...context.visitedBusses ?? [], this.uuid];
+
+    // we want to avoid re-assigning context.visitedBusses if possible
+    // in order to reduce the amount of garbage that needs to be collected.
+    context.visitedBusses ? context.visitedBusses.push(this.uuid) : context.visitedBusses = [this.uuid];
 
     // execute commands we have subscriptions for
     if (this.commands?.[command]) {

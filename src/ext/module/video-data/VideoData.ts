@@ -47,6 +47,7 @@ class VideoData {
   videoLoaded: boolean = false;
   videoDimensionsLoaded: boolean = false;
   active: boolean = false;
+  private preventVideoOffsetValidation: boolean = false;
   //#endregion
 
   //#region misc stuff
@@ -511,6 +512,10 @@ class VideoData {
     if (this.destroyed) {
       return;
     }
+    if (!mutationList) {
+      this.logger.warn('onVideoMutation', 'mutation was triggered, but mutationList is missing. Something is fishy. Mutation will be ignored. Observer:', observer);
+      return;
+    }
 
     // verify that mutation didn't remove our class. Some pages like to do that.
     let confirmAspectRatioRestore = false;
@@ -530,7 +535,7 @@ class VideoData {
       return;
     }
 
-    for(const mutation of mutationList) {
+    for (const mutation of mutationList) {
       if (mutation.type === 'attributes') {
         if( mutation.attributeName === 'class'
             && mutation.oldValue.indexOf(this.baseCssName) !== -1
@@ -590,7 +595,9 @@ class VideoData {
 
     // sometimes something fucky wucky happens and mutations aren't detected correctly, so we
     // try to get around that
+    this.preventVideoOffsetValidation = true;
     setTimeout( () => {
+      this.preventVideoOffsetValidation = false;
       this.validateVideoOffsets();
     }, 100);
   }
@@ -611,6 +618,9 @@ class VideoData {
   }
 
   validateVideoOffsets() {
+    if (this.preventVideoOffsetValidation) {
+      return;
+    }
     // validate if current video still exists. If not, we destroy current object
     try {
       if (! document.body.contains(this.video)) {

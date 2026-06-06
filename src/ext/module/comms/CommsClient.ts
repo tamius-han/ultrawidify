@@ -149,7 +149,11 @@ class CommsClient {
 
     // send to server
     if (!context?.borderCrossings?.commsServer) {
-      return chrome?.runtime?.sendMessage(null, message, null);
+      try {
+        return chrome?.runtime?.sendMessage(null, message, null);
+      } catch (e) {
+        console.warn(`Failed to send message to background script. Error:`, e, 'data:', {message, context});
+      }
     }
   }
 
