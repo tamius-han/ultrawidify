@@ -29,7 +29,7 @@
     "@mdi/font": "^7.4.47",
     "@mdi/js": "^7.4.47",
     "@types/resize-observer-browser": "^0.1.11",
-    "concurrently": "^9.2.1",
+    "concurrently": "^9.2.4",
     "fs-extra": "^11.3.2",
     "gl-matrix": "^3.4.4",
     "json-cyclic": "1.0.2",
