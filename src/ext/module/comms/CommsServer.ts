@@ -188,11 +188,11 @@ class CommsServer {
           this.sendToAll(message);
           break forwardToContentScript;
         }
-        if (context?.comms.forwardTo === 'active') {
+        if (context?.comms?.forwardTo === 'active') {
           this.sendToActive(message);
           break forwardToContentScript;
         }
-        if (context?.comms.forwardTo === 'contentScript') {
+        if (context?.comms?.forwardTo === 'contentScript') {
           this.sendToFrame(message, context.tab, context.frame, context.port);
           break forwardToContentScript;
         }
@@ -209,7 +209,7 @@ class CommsServer {
     // okay I lied! Messages originating from content script can be forwarded to
     // content scripts running in _other_ frames of the tab.
     if (context?.origin === CommsOrigin.ContentScript) {
-      if (context?.comms.forwardTo === 'all-frames') {
+      if (context?.comms?.forwardTo === 'all-frames') {
         this.sendToOtherFrames(message, context);
       }
     }
@@ -349,7 +349,7 @@ class CommsServer {
     message,
     sender: chrome.runtime.MessageSender
   ){
-    this.logger.info('processMessage_nonpersistent', `                   ==> Received message from background script!`, message, sender);
+    this.logger.info('processMessage_nonpersistent', `                   ==> Received message in background script!`, message, sender);
 
     this.eventBus.send(
       message.command,

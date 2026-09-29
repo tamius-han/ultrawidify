@@ -261,12 +261,14 @@ export default class UWServer {
 
     this.logger.info('unregisterVideo', 'Unregistering video.\nsender:', sender);
     if (this.videoTabs[sender.tab.id]) {
-      if ( Object.keys(this.videoTabs[sender.tab.id].frames).length <= 1) {
-        delete this.videoTabs[sender.tab.id]
-      } else {
-        if(this.videoTabs[sender.tab.id].frames[sender.frameId]) {
-          delete this.videoTabs[sender.tab.id].frames[sender.frameId];
-        }
+      // Only forget the frame that reported "no video". The old logic wiped the entire tab whenever it had
+      // one registered frame left — no matter which frame sent noVideo. A top frame without a video would
+      // therefore keep erasing the registration of an embedded frame that does have one (which then re-registered
+      // on its next rescan), making embedded-content info flicker on and off in the popup.
+      delete this.videoTabs[sender.tab.id].frames[sender.frameId];
+
+      if (Object.keys(this.videoTabs[sender.tab.id].frames).length === 0) {
+        delete this.videoTabs[sender.tab.id];
       }
     }
     this.logger.info('unregisterVideo', 'Video has been unregistered. Current videoTabs:', this.videoTabs);

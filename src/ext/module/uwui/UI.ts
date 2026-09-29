@@ -120,9 +120,9 @@ class UI {
     this.eventBus.subscribeMulti({
       'uw-config-broadcast': {
         function: (message) => {
-          console.log('UI.ts: received uw-config-broadcast', message);
+          // console.log('UI.ts: received uw-config-broadcast', message);
           if (message.type === 'aard-error') {
-            console.log('received: warning element:', this.extensionMenu.root.querySelector('#uw-cors-warning'));
+            // console.log('received: warning element:', this.extensionMenu?.root?.querySelector('#uw-cors-warning'));
             this.updateMenuWarnings(message);
           } else if (message.type === 'drm-status') {
             this.updateMenuWarnings(message);
