@@ -218,6 +218,12 @@
           >
           </AfterUpdate>
 
+          <AfterInstall
+            v-if="selectedTab === 'installed'"
+            :settings="settings"
+          >
+          </AfterInstall>
+
           <WhatsNew
             v-if="selectedTab === 'changelog'"
             :settings="settings"
@@ -267,6 +273,7 @@ import PlayerSelectorAdvancedForm from '@components/segments/PlayerElementSelect
 import PlayerSelectorSimple from '@components/segments/PlayerElementSelection/Panels/PlayerSelectorSimple.vue';
 
 import AfterUpdate from '@components/segments/AfterUpdate/AfterUpdate.vue';
+import AfterInstall from '@components/segments/AfterInstall/AfterInstall.vue';
 
 import WhatsNew from '@components/segments/ExtensionInfo/WhatsNew.vue';
 import About from '@components/segments/ExtensionInfo/About.vue';
@@ -317,7 +324,7 @@ const AVAILABLE_TABS = {
   'keyboardShortcuts': {id: 'keyboardShortcuts', label: 'Keyboard shortcuts', icon: 'keyboard-outline' },
   'settings.player-element-settings': {id: 'settings.player-element-settings', label: 'Player detection', icon: 'television-play'},
 
-  'installed': { id: 'installed', label: 'Update completed', icon: 'monitor-arrow-down-variant'},
+  'installed': { id: 'installed', label: 'Install completed', icon: 'monitor-arrow-down-variant'},
   'updated': { id: 'updated', label: 'Update completed', icon: 'update'},
 
   'changelog': {id: 'changelog', label: 'What\'s new', icon: 'alert-decagram' },
@@ -354,6 +361,11 @@ const TAB_LOADOUT = {
     'changelog',
     'about',
   ],
+  'installed': [
+    'installed',
+    'changelog',
+    'about',
+  ],
   'popup': [
     'video-settings',
     'site-extension-settings',
@@ -365,6 +377,7 @@ const TAB_LOADOUT = {
 const DEFAULT_TABS = {
   settings: 'default-extension-settings',
   updated: 'updated',
+  installed: 'installed',
   popup: 'video-settings',
 }
 
@@ -384,6 +397,7 @@ export default defineComponent({
     Debugging,
 
     AfterUpdate,
+    AfterInstall,
 
     WhatsNew,
     About,

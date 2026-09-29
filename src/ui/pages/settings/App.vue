@@ -127,7 +127,7 @@ export default defineComponent({
         document.getElementsByTagName('html')[0].setAttribute('style', '');
       }
 
-      await this.settings.init();
+      await this.settings!.init();
       this.settingsInitialized = true;
     } catch (e) {
       console.error(`ultrawidify::failed to create vue app:`, e);
@@ -138,14 +138,14 @@ export default defineComponent({
       this.isDebugging = isDebugging;
     },
     updateConfig() {
-      this.settings.init();
+      this.settings!.init();
       this.$nextTick( () => this.$forceUpdate());
     },
 
     /**
      * Initializes page when it's being loaded from the settings
      */
-    async setupSettingsPage(segment) {
+    async setupSettingsPage(segment?: '#settings' | '#updated' | '#installed') {
       if (!segment) {
         this.role = 'settings';
       } else {

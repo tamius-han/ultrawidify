@@ -10,6 +10,7 @@ import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum'
 import { PlayerDetectionMode } from '@src/common/enums/PlayerDetectionMode.enum';
 import { InputHandlingMode } from '@src/common/enums/InputHandlingMode.enum';
 import { MenuPosition } from '@src/common/interfaces/ClientUiMenu.interface';
+import { Ar } from '@src/common/interfaces/ArInterface';
 
 export enum ExtensionEnvironment {
   Normal = ExtensionMode.All,
@@ -311,24 +312,26 @@ interface DevSettings {
 }
 
 export interface InPlayerUIOptions  {
-    activatorAlignment: MenuPosition,
-    minEnabledWidth: number,                 // don't show UI if player is narrower than % of screen width
-    minEnabledHeight: number,                // don't show UI if player is narrower than % of screen height
-    activation: 'player' | 'trigger-zone' | 'distance' | 'none',   // what needs to be hovered in order for UI to be visible
-    activateWithCtrl: boolean,
-    activationDistance: number,
-    activationDistanceUnits: '%' | 'px',
-    activatorPadding: {x: number, y: number}
-    activatorPaddingUnit: {x: '%' | 'px', y: '%' | 'px'},
-    triggerZoneDimensions: {                 // how large the trigger zone is (relative to player size)
-      width: number
-      height: number,
-      offsetX: number,                       // fed to translateX(offsetX + '%'). Valid range [-100,   0]
-      offsetY: number                        // fed to translateY(offsetY + '%'). Valid range [-100, 100]
-    },
-  };
+  activatorAlignment: MenuPosition,
+  minEnabledWidth: number,                 // don't show UI if player is narrower than % of screen width
+  minEnabledHeight: number,                // don't show UI if player is narrower than % of screen height
+  activation: 'player' | 'trigger-zone' | 'distance' | 'none',   // what needs to be hovered in order for UI to be visible
+  activateWithCtrl: boolean,
+  activationDistance: number,
+  activationDistanceUnits: '%' | 'px',
+  activatorPadding: {x: number, y: number}
+  activatorPaddingUnit: {x: '%' | 'px', y: '%' | 'px'},
+  triggerZoneDimensions: {                 // how large the trigger zone is (relative to player size)
+    width: number
+    height: number,
+    offsetX: number,                       // fed to translateX(offsetX + '%'). Valid range [-100,   0]
+    offsetY: number                        // fed to translateY(offsetY + '%'). Valid range [-100, 100]
+  },
+};
 
 interface SettingsInterface {
+  _installScreenShown?: boolean,
+
   _updateFlags?: {
     requireReload?: SettingsReloadFlags,
     forSite?: string
@@ -444,6 +447,7 @@ interface SettingsInterface {
   sites: {
     [x: string]: SiteSettingsInterface,
   }
+  lastEnableSitesPreset: 'all' | 'official' | 'community' | 'none' | 'custom';
 }
 
 export interface SiteSettingsInterface {
@@ -466,7 +470,7 @@ export interface SiteSettingsInterface {
   persistCSA?: CropModePersistence,  // CSA - crop, stretch, alignment
 
   defaults?: {       // must be defined in @global and @empty
-    crop?: {type: AspectRatioType, [x: string]: any},
+    crop?: Ar, //{type: AspectRatioType, [x: string]: any},
     stretch?: {type: StretchType, ratio?: number},
     alignment?: {x: VideoAlignmentType, y: VideoAlignmentType},
   }
