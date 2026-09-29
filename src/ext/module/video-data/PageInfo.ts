@@ -229,7 +229,14 @@ class PageInfo {
    * @returns
    */
   getVideos(): HTMLVideoElement[] {
-    return this.getAllVideos('lg');
+    return this.getAllVideos(this.getMinVideoSize());
+  }
+
+  /**
+   * Minimum video size for the extension to trigger. Videos inside iframes get a smaller limit.
+   */
+  private getMinVideoSize(): 'sm' | 'lg' {
+    return this.isIframe ? 'sm' : 'lg';
   }
 
   hasVideo() {
@@ -299,8 +306,10 @@ class PageInfo {
         videosDetected ||= vids?.length > 0;
       };
 
-      // for normal operations, use standard size limits
-      vids = this.filterVideos(vids, 'lg');
+      // for normal operations, use standard size limits. Embedded players are usually much smaller than
+      // 1280x720 (typical embeds are 560x315 or 640x360), and an iframe is generally dedicated to its player,
+      // so we use a smaller limit there. Otherwise the extension registers the frame, but never starts in it.
+      vids = this.filterVideos(vids, this.getMinVideoSize());
 
       if(!vids || vids.length == 0){
         this.hasVideos = false;
