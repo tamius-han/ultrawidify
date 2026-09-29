@@ -66,7 +66,17 @@ export class SiteSettings {
       sessionStorage.setItem('uw-session-defaults', JSON.stringify(this.sessionData));
     }
 
-    chrome.storage.onChanged.addListener((changes, area) => {this.storageChangeListener(changes, area)})
+    chrome.storage.onChanged.addListener(this.storageListener);
+  }
+
+  private storageListener = (changes, area) => this.storageChangeListener(changes, area);
+
+  /**
+   * Detaches this instance from chrome.storage. Call this on short-lived instances
+   * (e.g. ones created only to peek at effective settings of some other site).
+   */
+  destroy() {
+    chrome.storage.onChanged.removeListener(this.storageListener);
   }
 
   /**
