@@ -9,6 +9,7 @@ export class FallbackCanvas extends GlCanvas {
 
   constructor(options: GlCanvasOptions) {
     super(options);
+    this.initContext();
   }
 
   /**

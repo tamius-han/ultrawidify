@@ -75,8 +75,9 @@ export interface AardSubtitleScanOptions {
     subtitleSubpixelThresholdOn: number,
     subtitleSubpixelThresholdOff: number,
 
-    minDetections: number,
-    minImageLineDetections: number,
+    minDetections: number,          // detecting fewer than this number of detections means no subtitles.
+    minImageLineDetections: number, // currently unused (?), probably same as above but to be used when scanning in the image part of frame (below/above black bars)
+    stopAfterDetections: number,    // stop scanning line after this many detections
 
     maxPotentialSubtitleMisalignment: number,   // how many pixels off-center can "potential subtitle" be
 

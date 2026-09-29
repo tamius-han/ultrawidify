@@ -44,6 +44,7 @@ const ExtensionConf: SettingsInterface = {
       subtitleSubpixelThresholdOn: 192,
       minDetections: 8,
       minImageLineDetections: 8,
+      stopAfterDetections: 32,
 
       refiningScanSpacing: 8,
       refiningScanInitialIterations: 12,

@@ -42,7 +42,11 @@ export interface AardTestResults {
     regions: {
       top: AardTestResult_SubtitleRegion,
       bottom: AardTestResult_SubtitleRegion
-    }
+    },
+    letterStartIndices: number[],
+    letterLengths: number[],
+    confirmLetterStartIndices: number[],
+    confirmLetterLengths: number[],
   },
   activeLetterbox: {
     width: number,
@@ -94,7 +98,12 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
           lastImage: -1,
           uncertain: false,
         }
-      }
+      },
+
+      letterStartIndices: new Array<number>(settings.subtitles.stopAfterDetections).fill(-1),
+      letterLengths: new Array<number>(settings.subtitles.stopAfterDetections).fill(-1),
+      confirmLetterStartIndices: new Array<number>(settings.subtitles.stopAfterDetections).fill(-1),
+      confirmLetterLengths: new Array<number>(settings.subtitles.stopAfterDetections).fill(-1),
     },
     activeLetterbox: {
       width: 0,
@@ -141,5 +150,25 @@ export function resetSubtitleScanResults(results: AardTestResults): void {
   results.subtitleScan.regions.bottom.lastSubtitle = -1;
   results.subtitleScan.regions.bottom.firstImage = -1;
   results.subtitleScan.regions.bottom.lastImage = -1;
-}
 
+  // we don't have to iterate through the entire array,
+  // so we don't.
+  let i = 0;
+  let starts = results.subtitleScan.letterStartIndices;
+  let lengths = results.subtitleScan.letterLengths;
+
+  while (starts[i] >= 0) {
+    starts[i] = -1;
+    lengths[i] = -1;
+    i++;
+  }
+
+  i = 0;
+  starts = results.subtitleScan.confirmLetterStartIndices;
+  lengths = results.subtitleScan.confirmLetterLengths;
+  while (starts[i] >= 0) {
+    starts[i] = -1;
+    lengths[i] = -1;
+    i++;
+  }
+}
