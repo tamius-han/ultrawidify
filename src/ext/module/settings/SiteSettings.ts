@@ -146,7 +146,7 @@ export class SiteSettings {
         usesSettingsFor: undefined
       };
     } else {
-      const urlSegments = this.site.split('.').reverse();
+      const urlSegments = options.site.split('.').reverse();
 
       siteLoop:
       for (const cs in this.settings.active.sites) {
