@@ -155,6 +155,13 @@ export default class EventBus {
       // return;
     }
 
+    // Popup bus: make forwarding explicit. Commands sent from the popup (aspect ratio, zoom, alignment ...)
+    // must reach content scripts of ALL frames in the active tab — that includes embedded sites —
+    // not just the top frame. setupPopupTunnelWorkaround() stores the context we need for that.
+    if (this.disableTunnel && this.popupContext?.comms && !context.comms) {
+      context.comms = { ...this.popupContext.comms };
+    }
+
     // we want to avoid re-assigning context.visitedBusses if possible
     // in order to reduce the amount of garbage that needs to be collected.
     context.visitedBusses ? context.visitedBusses.push(this.uuid) : context.visitedBusses = [this.uuid];

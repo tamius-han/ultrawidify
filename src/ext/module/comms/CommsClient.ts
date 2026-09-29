@@ -130,30 +130,45 @@ class CommsClient {
   }
   //#endregion
 
-  async sendMessage(message, context?: EventBusContext, borderCrossings?){
-    this.logger.info('sendMessage', '         <<< Sending message to background script:', message);
+  async sendMessage(message: any, context?: EventBusContext, borderCrossings?){
+    if (! ['noVideo', 'has-video'].includes(message.command)) {
+      console.warn('Sending message to background script with command:', message.command);
+      this.logger.info('sendMessage', '         <<< Sending message to background script:', message);
+    }
 
     message = JSON.parse(JSON.stringify(message)); // vue quirk. We should really use vue store instead
 
     // content script client and popup client differ in this one thing
     if (this.origin === CommsOrigin.Popup) {
+      console.warn('sending message from popup to background server');
       try {
         return this.port.postMessage(message);
       } catch (e) {
         // console.log('chrome is shit, lets try to bruteforce ...', e);
-        const port = chrome.runtime.connect(null, {name: this.name});
-        port.onMessage.addListener(this._listener);
-        return port.postMessage(message);
+        console.warn('failed to send message from popup to background server. Will try again. Error:\n', e);
+        try {
+          const port = chrome.runtime.connect(undefined, {name: this.name});
+          port.onMessage.addListener(this._listener);
+          this.port = port;
+          const res = port.postMessage(message);
+          console.warn('Retry successful');
+          return res;
+        } catch (e) {
+          console.warn('failed to send message from popup to background server again. Giving up. Error:', e);
+        }
       }
     }
 
     // send to server
     if (!context?.borderCrossings?.commsServer) {
+      console.warn('sending message to background server');
       try {
         return chrome?.runtime?.sendMessage(null, message, null);
       } catch (e) {
         console.warn(`Failed to send message to background script. Error:`, e, 'data:', {message, context});
       }
+    } else {
+      console.warn('not sending message to background server because it already crossed the comms server');
     }
   }
 
