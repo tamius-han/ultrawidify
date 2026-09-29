@@ -105,6 +105,44 @@ export default class EventBus {
     };
   }
 
+
+  /**
+   * MESSAGE ROUTING MAP
+   * Here's how messages should be routed through different parts of extension.
+   *
+   * uwui              ::             content script                      ::        background script
+   *                   ::             (main page)          (dest. inside  ::
+   * (Command with     ::                                   main page)    ::
+   * origin in uwui)   ::  (command with origin in main      A         . .::.                                        ||
+   *     |             ::  page content script) ———>——+      |       .     ::. . . . .
+   *     V             ::                             +—> send()   .        ::         . . . . .
+   *   send() ———+     :::::. window eventListener >——+    | . . .          ::.                   . . . . .
+   *     |       |         ::::.  'message'           |    |.  CommsClient    ::    CommsServer             .
+   *     |  window.parent     ::     A    +————————<—]|[<——+—> sendMessage() —)(—> processReceivedMessage() ———> send()
+   *     |    .postMessage() —)(—————+    |           |     .                 ::.                           .      |
+   *     |                    ::          |           A     .                  :::::::::::.                 .      |
+   *     |             :::::::::          |           |     .                            ::                  .     |
+   *     V             ::                 V           +—————— processReceivedMessage() <—)(—+                  .   |
+   * eventBusCommand <—)(—— forwardToIframe()               .                           .:: |                    . |
+   *  .function()      ::                                  .::::::::::::::::::::::::::::::  |                      | . . .
+   *      |            ::                                .:::                               |                      V
+   *      V            ::                              .::                                  |              sendMessage()
+   * (dest. inside     ::::::::::::::::::::::::::::::::::                                   |                      |
+   * uwui)             ::                                                                   +—< sendToActive() <———+
+   * ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+   *            ||            content script
+   *            ||            (embedded pages)
+   *
+   *
+   * uwui
+   *
+   *
+   * @param command
+   * @param commandData
+   * @param context
+   * @returns
+   */
+
   send(command: string, commandData: any, context: EventBusContext = {}) {
     // context = this.cloneContext(context);  // Firefox throws an error if we don't clone the context.
 
@@ -113,8 +151,8 @@ export default class EventBus {
       return;
     }
     if (context.commandId && this.lastExecutedCommandIds.includes(context.commandId)) {
-      console.warn('this command was already sent');
-      return;
+      // console.warn('this command was already sent:', context, this.lastExecutedCommandIds);
+      // return;
     }
 
     // we want to avoid re-assigning context.visitedBusses if possible
@@ -160,7 +198,9 @@ export default class EventBus {
       }
     };
 
-    // call forwarding functions if they exist
+    console.log('forwarding to iframes. Iframe forwarding list:', this.iframeForwardingList);
+    // call forwarding functions if they exist.
+    // note that server->iframe forwarding is handled later
     for (const forwarding of this.iframeForwardingList) {
       forwarding.fn(
         command,
@@ -172,6 +212,11 @@ export default class EventBus {
           }
         }
       );
+    };
+
+    //
+    if (this.comms instanceof CommsServer) {
+      // this.comms
     }
 
     // send to parent iframe
