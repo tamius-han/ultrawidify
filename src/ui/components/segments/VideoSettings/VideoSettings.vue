@@ -1,6 +1,22 @@
 <template>
   <div class="flex flex-col w-full h-full">
 
+    <!-- Shown when the site itself is disabled, but embedded content (e.g. a video player in an iframe) is not. -->
+    <div
+      v-if="embeddedOnlyHosts.length"
+      class="flex flex-row items-start gap-2 p-2 mb-2 border border-primary-700 bg-stone-900 text-stone-300"
+    >
+      <mdicon name="information" :size="20" class="shrink-0" />
+      <div>
+        <div class="font-semibold">
+          Ultrawidify is disabled for this site, but active for embedded content.
+        </div>
+        <div class="text-[0.9em] opacity-80">
+          Changes you make here will only affect embedded videos from: {{embeddedOnlyHosts.join(', ')}}.
+        </div>
+      </div>
+    </div>
+
     <!-- 'Change UI' options is a tiny bit in upper right corner. -->
     <h3>Crop</h3>
     <div class="button-container">
@@ -141,6 +157,7 @@ import { ScalingParamsBroadcast } from '@src/common/interfaces/ScalingParamsBroa
 import { ArVariant } from '@src/common/interfaces/ArInterface';
 import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
 import StretchType from '@src/common/enums/StretchType.enum';
+import { getEmbeddedOnlyHosts } from '@src/common/utils/embeddedContent';
 
 export default defineComponent({
   components: {
@@ -171,6 +188,12 @@ export default defineComponent({
       currentStretchCommand: '',
       zoomUpdatesDisabled: false,
     }
+  },
+  computed: {
+    /** Embedded hosts that are active while the current site is disabled (drives the info banner). */
+    embeddedOnlyHosts(): string[] {
+      return getEmbeddedOnlyHosts(this.settings, this.siteSettings, this.site);
+    },
   },
   created() {
     this.eventBus.subscribeMulti({

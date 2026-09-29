@@ -74,6 +74,7 @@ import {ChromeShittinessMitigations as CSM} from '@src/common/js/ChromeShittines
 import PopupHead from '@components/PopupHead.vue';
 import ExtensionMode from '../../../common/enums/ExtensionMode.enum';
 import WarningsMixin from '../../utils/mixins/WarningsMixin.vue';
+import { getEmbeddedOnlyHosts, isExtensionEnabled } from '@src/common/utils/embeddedContent';
 
 export default defineComponent({
   components: {
@@ -192,7 +193,12 @@ export default defineComponent({
 
               console.log('set-site received:', this.site, this.siteSettings, 'current path:', this.initialPath);
               if (!this.initialPath || this.initialPath.length < 1) {
-                if (this.siteSettings.data.enable) {
+                // Open video settings if the extension is active for this site, or if it's disabled
+                // for the site but still active for embedded content (video settings tab explains that).
+                if (
+                  isExtensionEnabled(this.siteSettings.data.enable)
+                  || getEmbeddedOnlyHosts(this.settings, this.siteSettings, this.site).length > 0
+                ) {
                   this.initialPath = ['video-settings'];
                 } else {
                   this.initialPath = ['site-extension-settings'];

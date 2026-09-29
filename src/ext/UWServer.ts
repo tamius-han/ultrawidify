@@ -282,6 +282,8 @@ export default class UWServer {
     //   console.warn('invalid unregisterVideo received!');
     //   return;
     // }
+    console.warn('[server] received getCurrentSite.');
+    const tabHostname = await this.getCurrentTabHostname();
     const site = await this.getVideoTab();
 
     // Don't propagate 'INVALID SITE' to the popup.
@@ -290,7 +292,6 @@ export default class UWServer {
       return;
     }
 
-    const tabHostname = await this.getCurrentTabHostname();
     this.logger.info('getCurrentSite', 'Returning data:', {site, tabHostname});
     console.info('get-current-site : returning data:', {site, tabHostname});
 
@@ -342,6 +343,9 @@ export default class UWServer {
     return out;
   }
 
+  /**
+   * Returns currently controlled video tab.
+   */
   private _lastVideoTabData: any | undefined;
   async getVideoTab() {
     // friendly reminder: if current tab doesn't have a video,
@@ -359,13 +363,28 @@ export default class UWServer {
 
     const hostnames = await this.comms.listUniqueFrameHosts();
 
-    // this probably means we're inside a problematic page
+    // No video has been registered for this tab (e.g. reddit front page, or a browser-internal page).
+    // We still want the popup to work for regular pages, so we build the site info from the tab URL
+    // instead of leaving the popup waiting for a reply that never comes.
     if (!this.videoTabs[ctab.id]) {
-      return this._lastVideoTabData ??  {
-        host: 'INVALID SITE',
-        frames: [],
-        hostnames: [],
+      const host = ctab.url ? this.extractHostname(ctab.url) : undefined;
+
+      if (!host || !/^https?:|^file:/.test(ctab.url ?? '')) {
+        // problematic page (browser settings, new tab page, etc.)
+        return {
+          host: 'INVALID SITE',
+          frames: [],
+          hostnames: [],
+        }
       }
+
+      return {
+        host,
+        hostnames: hostnames.length ? hostnames : [host],
+        populatedHostnames: [],
+        frames: [],
+        selected: this.selectedSubitem,
+      };
     }
 
     // if video is older than PageInfo's video rescan period (+ 4000ms of grace),
