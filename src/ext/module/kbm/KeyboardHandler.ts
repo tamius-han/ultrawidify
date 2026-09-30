@@ -31,8 +31,8 @@ export class KeyboardHandler extends KbmBase {
 
   allowShortcuts: boolean = true;
 
-
-  inputs: string[] = ['input', 'select', 'button', 'textarea'];
+  // List of inputs used to also contain 'button', but that caused issues with embedded youtube
+  inputs: string[] = ['input', 'select', 'textarea'];
   keyboardLocalDisabled: boolean = false;
 
   mouseMoveActions: any[] = [];
@@ -138,6 +138,9 @@ export class KeyboardHandler extends KbmBase {
 
     if (this.keyboardLocalDisabled) {
       return true;
+    }
+    if (!activeElement) {
+      return !!event.target?.isContentEditable;
     }
     if (this.inputs.indexOf(activeElement.tagName.toLocaleLowerCase()) !== -1) {
       return true;
