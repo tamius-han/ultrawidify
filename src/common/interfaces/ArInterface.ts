@@ -1,7 +1,7 @@
 import AspectRatioType from '../enums/AspectRatioType.enum';
 
 export enum ArVariant {
-  Crop = undefined,
+  Crop = 0,
   Zoom = 1
 }
 
