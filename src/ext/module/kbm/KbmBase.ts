@@ -12,6 +12,8 @@ export class KbmBase {
   siteSettings: SiteSettings;
   eventBus: EventBus;
 
+  element: HTMLElement | Document | undefined;
+
   eventBusCommands: { [x: string]: EventBusCommand } = {
     'kbm-enable': {
       function: () => this.enable()
@@ -76,7 +78,7 @@ export class KbmBase {
   }
 
   // convenience methods
-  addListener() {
+  addListener(element: HTMLElement | Document = document) {
     // events should be handled in handleEvent function. We need to do things this
     // way, otherwise we can't remove event listener
     // https://stackoverflow.com/a/19507086
@@ -91,8 +93,9 @@ export class KbmBase {
       return;
     }
 
+    this.element = element;
     for (const ev of this.listenFor) {
-      document.addEventListener(
+      element.addEventListener(
         ev,
         this
       );
@@ -101,7 +104,7 @@ export class KbmBase {
 
   removeListener() {
     for (const ev of this.listenFor) {
-      document.removeEventListener(ev, this);
+      this.element?.removeEventListener(ev, this);
     }
   }
 

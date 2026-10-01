@@ -740,6 +740,14 @@ const ExtensionConf: SettingsInterface = {
       }
     }]
   },
+  mouseOptions: {
+    shiftPan: true,
+    ctrlPan: true,
+    shiftZoom: true,
+    invertPan: false,
+    invertZoom: false,
+    zoomSensitivity: 1,
+  },
   mitigations: {
     zoomLimit: {
       enabled: true,

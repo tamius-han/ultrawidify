@@ -531,6 +531,18 @@ const ExtensionConfPatch = Object.freeze([
       }
 
     }
+  }, {
+    forVersion: '6.3.999',
+    updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
+      userOptions.mouseOptions = {
+        shiftPan: true,
+        ctrlPan: true,
+        shiftZoom: true,
+        invertPan: false,
+        invertZoom: false,
+        zoomSensitivity: 1,
+      }
+    }
   }
 
 ]);

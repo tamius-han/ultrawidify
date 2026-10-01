@@ -132,7 +132,6 @@ class CommsClient {
 
   async sendMessage(message: any, context?: EventBusContext, borderCrossings?){
     if (! ['noVideo', 'has-video'].includes(message.command)) {
-      console.warn('Sending message to background script with command:', message.command);
       this.logger.info('sendMessage', '         <<< Sending message to background script:', message);
     }
 
@@ -140,7 +139,6 @@ class CommsClient {
 
     // content script client and popup client differ in this one thing
     if (this.origin === CommsOrigin.Popup) {
-      console.warn('sending message from popup to background server');
       try {
         return this.port.postMessage(message);
       } catch (e) {
@@ -161,7 +159,6 @@ class CommsClient {
 
     // send to server
     if (!context?.borderCrossings?.commsServer) {
-      console.warn('sending message to background server');
       try {
         return chrome?.runtime?.sendMessage(null, message, null);
       } catch (e) {

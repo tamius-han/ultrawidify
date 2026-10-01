@@ -4,6 +4,7 @@ import { ExtensionEnvironment } from '@src/common/interfaces/SettingsInterface';
 import { collectionHas, equalish } from '@src/common/utils/comparators';
 import { RunLevel } from '@src/ext/enum/run-level.enum';
 import EventBus from '@src/ext/module/EventBus';
+import { MouseHandler } from '@src/ext/module/kbm/PlayerMouseHandler';
 import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
 import { SiteSettings } from '@src/ext/module/settings/SiteSettings';
 import UI from '@src/ext/module/uwui/UI';
@@ -108,6 +109,7 @@ class PlayerData {
   private ui: UI;
 
   private _isTrackDimensionChangesActive: boolean = false;
+  private mouseHandler: MouseHandler;
 
   elementStack: ElementStack = [] as ElementStack;
   //#endregion
@@ -217,6 +219,10 @@ class PlayerData {
       this.dimensions = undefined;
 
       this.periodicallyRefreshPlayerElement = false;
+
+      // do mouse handler
+      this.mouseHandler = new MouseHandler(undefined, this.eventBus, this.siteSettings, this.videoData.settings, this.logAggregator);
+
       try {
         this.periodicallyRefreshPlayerElement = this.siteSettings.data.currentDOMConfig.periodicallyRefreshPlayerElement;
       } catch (e) {
@@ -579,6 +585,7 @@ class PlayerData {
     }
     if (this.element) {
       this.observer?.unobserve(this.element);
+
     }
 
     // clean up and re-initialize UI
@@ -588,6 +595,18 @@ class PlayerData {
     // Don't forget to also move observer to the new player
     // (if observer exists)
     this.element = newPlayer;
+    if (!this.mouseHandler) {
+      this.mouseHandler = new MouseHandler(
+        this.element,
+        this.eventBus,
+        this.siteSettings,
+        this.videoData.settings,
+        this.logAggregator
+      );
+    }
+    this.mouseHandler.updatePlayerElement(this.element);
+    // this.mouseHandler =
+
     this.observer?.observe(this.element);
 
     this.ui = new UI(

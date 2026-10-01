@@ -414,6 +414,14 @@ interface SettingsInterface {
     pan?: CommandInterface[],
     internal?: CommandInterface[],
   },
+  mouseOptions: {
+    shiftPan: boolean,
+    ctrlPan: boolean,
+    shiftZoom: boolean,
+    invertPan: boolean,
+    invertZoom: boolean,
+    zoomSensitivity: number
+  },
   whatsNewChecked: boolean,
   newFeatureTracker: any,
   // -----------------------------------------

@@ -2,7 +2,7 @@ import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
 import StretchType from '@src/common/enums/StretchType.enum';
 import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
 import { Ar, ArVariant } from '@src/common/interfaces/ArInterface';
-import { ScalingParamsBroadcast } from '@src/common/interfaces/ScalingParamsBroadcast.interface';
+import { ScalingParamsBroadcast, VideoAlignmentParams } from '@src/common/interfaces/ScalingParamsBroadcast.interface';
 import { Stretch } from '@src/common/interfaces/StretchInterface';
 import getElementStyles from '@src/common/utils/getElementStyles';
 import Debug from '@src/ext/conf/Debug';
@@ -94,7 +94,7 @@ class Resizer {
   }
 
   resizerId: any;
-  videoAlignment: {x: VideoAlignmentType, y: VideoAlignmentType};
+  videoAlignment: VideoAlignmentParams;
   userCss: string;
   userCssClassName: any;
   pan: any = null;
@@ -153,8 +153,8 @@ class Resizer {
       }
     }],
     'set-alignment': [{
-      function: (config: any) => {
-        this.setVideoAlignment(config.x, config.y);
+      function: (config: VideoAlignmentParams) => {
+        this.setVideoAlignment(config);
       }
     }],
     'set-stretch': [{
@@ -594,8 +594,9 @@ class Resizer {
   }
 
   resetPan() {
-    this.pan = {x: 0, y: 0};
+    // this.pan = {x: 0, y: 0};
     // this.videoAlignment = {x: this.settings.getDefaultVideoAlignment(window.location.hostname), y: VideoAlignmentType.Center};
+    this.videoAlignment = {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default};
   }
 
   setPan(relativeMousePosX, relativeMousePosY){
@@ -615,7 +616,7 @@ class Resizer {
     this.restore();
   }
 
-  setVideoAlignment(videoAlignmentX: VideoAlignmentType, videoAlignmentY?: VideoAlignmentType) {
+  setVideoAlignment(params: VideoAlignmentParams) {
     // if aspect ratio is unset or initial, CSS fixes are inactive by design.
     // because of that, we need to set a manual aspect ratio first.
 
@@ -637,10 +638,19 @@ class Resizer {
       }
     }
 
-    this.videoAlignment = {
-      x: videoAlignmentX ?? VideoAlignmentType.Default,
-      y: videoAlignmentY ?? VideoAlignmentType.Default
-    };
+    if (params.x === VideoAlignmentType.Custom) {
+      this.videoAlignment = {
+        x: params.x ?? VideoAlignmentType.Default,
+        y: params.y ?? VideoAlignmentType.Default,
+        xPos: this.settings.active.mouseOptions.invertPan ? (params.xPos! * 1.1) - 0.55 : -(params.xPos! * 1.1) + 0.55,
+        yPos: this.settings.active.mouseOptions.invertPan ? (params.yPos! * 1.1) - 0.55 : -(params.yPos! * 1.1) + 0.55,
+      };
+    } else {
+     this.videoAlignment = {
+        x: params.x ?? VideoAlignmentType.Default,
+        y: params.y ?? VideoAlignmentType.Default,
+      };
+    }
     this.restore();
   }
 
@@ -881,12 +891,14 @@ class Resizer {
     const alignXOffset = (realVideoWidth * stretchFactors.xFactor - this.videoData.player.dimensions.width) * 0.5;
     const alignYOffset = (realVideoHeight * stretchFactors.yFactor - this.videoData.player.dimensions.height) * 0.5;
 
-    if (this.pan?.relativeOffsetX || this.pan?.relativeOffsetY) {
-      // don't offset when video is smaller than player
-      if(alignXOffset >= 0 || alignYOffset >= 0) {
-        translate.x += alignXOffset * this.pan.relativeOffsetX * this.zoom.scale;
-        translate.y += alignYOffset * this.pan.relativeOffsetY * this.zoom.scale;
-      }
+    // if one is custom, the other should be custom, too
+    // and also don't offset when video is smaller than player
+
+
+
+    if (this.videoAlignment.x === VideoAlignmentType.Custom && (alignXOffset >= 0 || alignYOffset >= 0)) {
+      translate.x += alignXOffset * (this.videoAlignment.xPos ?? 0) * this.zoom.scale;
+      translate.y += alignYOffset * (this.videoAlignment.yPos ?? 0) * (this.zoom.scaleY ?? this.zoom.scale);
     } else {
       // correct horizontal alignment according to the settings
       if (!stretchFactors.preventAlignment?.x) {

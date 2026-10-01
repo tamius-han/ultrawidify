@@ -205,7 +205,6 @@ export default class EventBus {
       }
     };
 
-    console.log('forwarding to iframes. Iframe forwarding list:', this.iframeForwardingList);
     // call forwarding functions if they exist.
     // note that server->iframe forwarding is handled later
     for (const forwarding of this.iframeForwardingList) {

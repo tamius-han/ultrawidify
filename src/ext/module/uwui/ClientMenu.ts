@@ -184,7 +184,6 @@ export class ClientMenu {
    */
   private buildMenuPositionClassList() {
     let classList;
-    console.log('BUILDING MENU POS:', MenuPosition[this.config.ui.activatorAlignment]);
     switch (this.config.ui.activatorAlignment) {
       case MenuPosition.TopLeft:
         classList = ['uw-menu-left','uw-menu-top'];
