@@ -16,12 +16,29 @@ const BASE_LOGGING_STYLES = {
 };
 
 /**
+ * Maximum number of times per second that handleMouseMove / handleMouseZoom
+ * are allowed to call eventBus.send. Each handler is limited independently.
+ */
+const MAX_SENDS_PER_SECOND = 10;
+const MIN_SEND_INTERVAL_MS = 1000 / MAX_SENDS_PER_SECOND;
+
+/**
  * Handles keypress
  */
 export class MouseHandler extends KbmBase {
   listenFor: string[] = ['mousemove', 'wheel'];
 
   playerElement?: HTMLElement;
+
+  //#region rate limiting state
+  private lastMoveSendTime = 0;
+  private pendingMovePosition?: { x: VideoAlignmentType, y: VideoAlignmentType, xPos: number, yPos: number };
+  private moveTimeout?: ReturnType<typeof setTimeout>;
+
+  private lastZoomSendTime = 0;
+  private pendingZoom = 0;
+  private zoomTimeout?: ReturnType<typeof setTimeout>;
+  //#endregion
 
   eventBusCommands: { [x: string]: EventBusCommand } = {
     'kbm-enable': {
@@ -80,6 +97,23 @@ export class MouseHandler extends KbmBase {
   destroy() {
     this.removeListener();
   }
+
+  removeListener() {
+    super.removeListener();
+    this.clearPending();
+  }
+
+  /**
+   * Cancels scheduled sends and discards any queued mouse movement/zoom.
+   */
+  private clearPending() {
+    clearTimeout(this.moveTimeout);
+    clearTimeout(this.zoomTimeout);
+    this.moveTimeout = undefined;
+    this.zoomTimeout = undefined;
+    this.pendingMovePosition = undefined;
+    this.pendingZoom = 0;
+  }
   //#endregion
 
   //#region listener setup, teardown, handling
@@ -126,11 +160,42 @@ export class MouseHandler extends KbmBase {
         yPos: event.clientY / this.playerElement.scrollHeight,
       }
 
-      this.eventBus.send(
-        'set-alignment',
-        cursorPosition
-      );
+      this.sendMove(cursorPosition);
     }
+  }
+
+  /**
+   * Sends alignment at most MAX_SENDS_PER_SECOND times per second. Position is
+   * absolute, so if we have to drop events, the latest position is sent as
+   * soon as the rate limit allows.
+   */
+  private sendMove(position: { x: VideoAlignmentType, y: VideoAlignmentType, xPos: number, yPos: number }) {
+    this.pendingMovePosition = position;
+
+    if (this.moveTimeout !== undefined) {
+      // a send is already scheduled; it will pick up the latest position
+      return;
+    }
+
+    const wait = this.lastMoveSendTime + MIN_SEND_INTERVAL_MS - performance.now();
+    if (wait <= 0) {
+      this.flushMove();
+    } else {
+      this.moveTimeout = setTimeout(() => this.flushMove(), wait);
+    }
+  }
+
+  private flushMove() {
+    this.moveTimeout = undefined;
+    if (!this.pendingMovePosition) {
+      return;
+    }
+
+    const position = this.pendingMovePosition;
+    this.pendingMovePosition = undefined;
+    this.lastMoveSendTime = performance.now();
+
+    this.eventBus.send('set-alignment', position);
   }
 
   private handleMouseZoom(event: WheelEvent) {
@@ -142,9 +207,41 @@ export class MouseHandler extends KbmBase {
       * (this.settings.active.mouseOptions.invertZoom ? -1 : 1)
       * (isNaN(this.settings.active.mouseOptions.zoomSensitivity) ? 1 : this.settings.active.mouseOptions.zoomSensitivity ?? 1);
 
-    this.eventBus.send(
-      'change-zoom',
-      { zoom: zoomAmount }
-    );
+    this.sendZoom(zoomAmount);
+  }
+
+  /**
+   * Sends zoom at most MAX_SENDS_PER_SECOND times per second. Zoom is relative,
+   * so zoom from dropped events is accumulated and added onto the next event
+   * that gets sent. If no further event arrives, the accumulated zoom is sent
+   * once the rate limit allows, so it is never lost.
+   */
+  private sendZoom(zoomAmount: number) {
+    this.pendingZoom += zoomAmount;
+
+    if (this.zoomTimeout !== undefined) {
+      // a send is already scheduled; it will pick up the accumulated zoom
+      return;
+    }
+
+    const wait = this.lastZoomSendTime + MIN_SEND_INTERVAL_MS - performance.now();
+    if (wait <= 0) {
+      this.flushZoom();
+    } else {
+      this.zoomTimeout = setTimeout(() => this.flushZoom(), wait);
+    }
+  }
+
+  private flushZoom() {
+    this.zoomTimeout = undefined;
+    if (this.pendingZoom === 0) {
+      return;
+    }
+
+    const zoom = this.pendingZoom;
+    this.pendingZoom = 0;
+    this.lastZoomSendTime = performance.now();
+
+    this.eventBus.send('change-zoom', { zoom });
   }
 }

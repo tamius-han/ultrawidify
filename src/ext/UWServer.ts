@@ -43,10 +43,10 @@ export default class UWServer {
       function: (message, context) => this.unregisterVideo(context.comms.sender)
     },
     'inject-css': {
-      function: (message, context) => this.injectCss(message.cssString, context.comms.sender)
+      function: (message, context) => this.enqueueCssOperation(context.comms.sender, () => this.injectCss(message.cssString, context.comms.sender))
     },
     'eject-css': {
-      function: (message, context) => this.removeCss(message.cssString, context.comms.sender)
+      function: (message, context) => this.enqueueCssOperation(context.comms.sender, () => this.removeCss(message.cssString, context.comms.sender))
     },
     'replace-css': {
       function: (message, context) => this.replaceCss(message.oldCssString, message.newCssString, context.comms.sender)
@@ -157,9 +157,31 @@ export default class UWServer {
       return;
     }
     if (oldCss !== newCss) {
-      this.removeCss(oldCss, sender);
-      this.injectCss(newCss, sender);
+      // inject and remove CSS ops need to happen in order, so calling inject/remove CSS directly
+      // without this wrapper introduced flicker
+      await this.enqueueCssOperation(sender, async () => {
+        await this.injectCss(newCss, sender);
+        await this.removeCss(oldCss, sender);
+      });
     }
+  }
+
+  private cssQueues = new Map<string, Promise<void>>();
+
+  /**
+   * Runs css operations one at a time for each tab/frame, in the order they were requested.
+   */
+  private enqueueCssOperation(sender, operation: () => Promise<void>): Promise<void> {
+    const key = `${sender.tab?.id}:${sender.frameId}`;
+    const previous = this.cssQueues.get(key) ?? Promise.resolve();
+    const next = previous.then(operation).catch(() => {});
+    this.cssQueues.set(key, next);
+    next.then(() => {
+      if (this.cssQueues.get(key) === next) {
+        this.cssQueues.delete(key);
+      }
+    });
+    return next;
   }
   //#endregion
 

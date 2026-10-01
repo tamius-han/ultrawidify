@@ -511,6 +511,10 @@ class Resizer {
     }
 
     this.logger.info('setAr', 'Stretch factors are calculated:', stretchFactors);
+
+    if (flags?.manualZoom) {
+      return;
+    }
     this.applyScaling(stretchFactors as VideoDimensions);
   }
 
