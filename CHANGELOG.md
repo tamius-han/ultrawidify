@@ -1,14 +1,34 @@
 # Changelog
 
-## v6.0 (current major)
+## v7.x ("about to land soon™" major)
 
-### v6.4.0
-* In-player UI now appears in full-screen even for websites that use top layer
-* Embedded sites now inherit settings of the parent frame by default
-  * Setting inheritance/overriding is not thoroughly tested and may be full of edge cases.
-* Added validation to custom aspect ratio entry menu. Corrected parsing of aspect ratios given in the X:Y format, even though aspect ratios should be ideally given as a single number.
-* Autodetection can now scan for subtitles.
-* New experimental autodetection (which is secretly just slightly modified subtitle check)
+### v7.0.0
+
+* De-spaghettified the part of the settings that controls whether extension runs on a given site or not.
+* **Autodetection**
+  * Autodetection can be set to stop after first aspect ratio detection, or after a period of no changes.
+  * Autodetection algorithm is now hardware-accelerated, tries to detect subtitles, and tries not to fail when watching PPT youtubers.
+
+* **Mouse controls**
+ * Panning is back (shift+move mouse)
+ * Added zooming with scroll wheel (shift+scroll)
+
+* **UI**
+  * In-player UI now appears in full-screen even for websites that use top layer
+  * Keyboard shortcut settings have been split from UI settings, and are now presented in list form on the settings page.
+  * re-design of settings page
+  * Settings, popup and in-page UI have been combined into a single HTML file in order to cut down on the file size.
+  * In-player UI has been made a bit lighter (previously, in-player UI utilized vue + iframe. Now, in-player UI uses vanilla HTML/javascript (until you open settings window)).
+  * Removed some UI activation options: UI can no longer be activated by defining a trigger zone.
+  * Added new UI activation options: UI can be set to show on mouse movement, when mouse moves within user-defined distance to the menu activator, or on CTRL + mouse move (you need to move your mouse while holding CTRL for the menu to show; default for new installs)
+  * In-player menu position can be somewhat customized.
+  * Default crop mode can now use zoom options as well (previously, it could only use crop options).
+
+* **Other updates and fixes**
+  * Embedded sites now inherit settings of the parent frame by default (Setting inheritance/overriding is not thoroughly tested and may be full of edge cases.)   
+  * Added validation to custom aspect ratio entry menu. Corrected parsing of aspect ratios given in the X:Y format, even though aspect ratios should be ideally given as a single number.
+
+## v6.x (Current major)
 
 ### v6.3.0
 * Added zoom segment to in-player UI and popup. 

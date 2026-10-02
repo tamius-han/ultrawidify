@@ -1,7 +1,9 @@
 <template>
   <p class="mb-4">Full changelog for older versions <a href="https://github.com/tamius-han/ultrawidify/blob/master/CHANGELOG.md" target="_blank">is available here</a>.</p>
 
-  <p>Changes in version <b class="font-semibold text-primary-400">6.4.0</b>:</p>
+  <p>Changes in version <b class="font-semibold text-primary-400">7.0.0</b>:</p>
+
+  <p><small>Yes, I reckon this is enough to warrant upping the <a href="https://mastodon.online/@nikitonsky/113691789641950263" target="_blank">proud number</a>.</small></p>
 
   <b class="text-white">Potentially breaking:</b>
   <ul>
@@ -16,12 +18,29 @@
   <ul>
     <li>Autodetection can be set to stop after first aspect ratio detection, or after a period of no changes.</li>
     <li>
-      There is a new, experimental mode for autodetection. At this point, it can be manually enabled in the autodetection settings. It will become the default option in 2026.<br/>
-      If you enable experimental mode, please consider reporting problems <a href="https://github.com/tamius-han/ultrawidify/issues/291" target="_blank">in this thread</a> on Github.
+      There's new autodetection algorithm. Aims of this algorithm were:<br/>
+      <ol>
+        <li>use hardware-accelerated webgl canvas</li>
+        <li>channel logos should be ignored when computing aspect ratio</li>
+        <li>detect subtitles that are hard-coded in the video stream</li>
+        <li>
+          maybe try to suppress cropping on videos from powerpoint youtubers like Perun, Asianometry,
+          or other channels known for using computer graphics with dark backgrounds like 3b1b
+        </li>
+      </ol>
+      <br/>
+      If the new algorithm causes more problems than the old one, please consider reporting said issues
+      <a href="https://github.com/tamius-han/ultrawidify/issues/291" target="_blank">in this thread</a> on Github.
+      When you're reporting a problem, please provide a link to the video, the timestamp where the issue occurs,
+      and whether the false crop triggers consistently.<br/>
+      For the time being, you can also head over to settings and revert to the legacy autodetection algorithm if needed.
     </li>
-    <li>
-      Experimental autodetection can now detect hardcoded subtitles. You may change how extension handles subtitles in the settings.
-    </li>
+  </ul>
+
+  <b class="text-white">New mouse control options</b>
+  <ul>
+    <li>Manual panning is back. Hold shift and move mouse over the video to pan. In settings, this feature may be swapped to 'CTRL', 'CTRL + SHIFT', or turned off.</li>
+    <li>It is now possible to zoom the video with SHIFT + scroll.</li>
   </ul>
 
   <b class="text-white">UI</b>
@@ -37,13 +56,13 @@
       Settings, popup and in-page UI have been combined into a single HTML file in order to cut down on the file size.
     </li>
     <li>
-      In-player UI has been made a bit lighter (previously, in-player UI utilized vue + iframe. Now, in-player UI uses vanilla HTML/javascript (unless you open settings window)).
+      In-player UI has been made a bit lighter (previously, in-player UI utilized vue + iframe. Now, in-player UI uses vanilla HTML/javascript (until you open settings window)).
     </li>
     <li>
       Removed some UI activation options: UI can no longer be activated by defining a trigger zone.
     </li>
     <li>
-      Added new UI activation options: UI can be set to show on mouse movement (default), when mouse moves within user-defined distance to the menu activator, or while holding the CTRL key (you need to move your mouse while holding CTRL for the menu to show)
+      Added new UI activation options: UI can be set to show on mouse movement, when mouse moves within user-defined distance to the menu activator, or on CTRL + mouse move (you need to move your mouse while holding CTRL for the menu to show; default for new installs)
     </li>
     <li>
       In-player menu position can be somewhat customized.
