@@ -153,11 +153,18 @@ export class MouseHandler extends KbmBase {
         return;
       }
 
+      // clientX/clientY are relative to the viewport, not to the player, so we have to
+      // subtract player's position and use player's actual on-screen size.
+      const rect = this.playerElement.getBoundingClientRect();
+      if (!rect.width || !rect.height) {
+        return;
+      }
+
       const cursorPosition = {
         x: VideoAlignmentType.Custom,
         y: VideoAlignmentType.Custom,
-        xPos: event.clientX / this.playerElement.scrollWidth,
-        yPos: event.clientY / this.playerElement.scrollHeight,
+        xPos: Math.min(Math.max((event.clientX - rect.left) / rect.width, 0), 1),
+        yPos: Math.min(Math.max((event.clientY - rect.top) / rect.height, 0), 1),
       }
 
       this.sendMove(cursorPosition);

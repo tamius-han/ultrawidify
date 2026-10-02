@@ -17,6 +17,10 @@ import Stretcher from '@src/ext/module/video-transform/Stretcher';
 import Zoom from '@src/ext/module/video-transform/Zoom';
 import * as _ from 'lodash';
 
+// when panning manually, this is the size of the gap between the video edge and the player edge
+// when video is panned fully to the side. TODO: maybe move this to settings
+const PAN_EDGE_GAP = 0.1;
+
 if(Debug.debug) {
   console.log("Loading: Resizer.js");
 }
@@ -512,6 +516,9 @@ class Resizer {
 
     this.logger.info('setAr', 'Stretch factors are calculated:', stretchFactors);
 
+    // When zooming, Zoom.processZoom() applies scaling (including zoom) right after this call.
+    // Applying crop-only scaling here would briefly set CSS to a different zoom level and
+    // double the number of css injections per zoom step.
     if (flags?.manualZoom) {
       return;
     }
@@ -573,51 +580,21 @@ class Resizer {
     }
   }
 
-  panHandler(event, forcePan) {
-    if (this.canPan || forcePan) {
-      if(!this.videoData.player || !this.videoData.player.element) {
-        return;
-      }
-      // don't allow weird floats
-      this.videoAlignment.x = VideoAlignmentType.Center;
-
-      // because non-fixed aspect ratios reset panning:
-      if (this.lastAr.type !== AspectRatioType.Fixed) {
-        this.toFixedAr();
-      }
-
-      const player = this.videoData.player.element;
-
-      const relativeX = (event.pageX - player.offsetLeft) / player.offsetWidth;
-      const relativeY = (event.pageY - player.offsetTop) / player.offsetHeight;
-
-      this.logger.info({src: 'panHandler', origin: 'mousemove'}, "mousemove.pageX, pageY:", event.pageX, event.pageY, "\nrelativeX/Y:", relativeX, relativeY);
-
-      this.setPan(relativeX, relativeY);
-    }
-  }
-
   resetPan() {
     // this.pan = {x: 0, y: 0};
     // this.videoAlignment = {x: this.settings.getDefaultVideoAlignment(window.location.hostname), y: VideoAlignmentType.Center};
     this.videoAlignment = {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default};
   }
 
-  setPan(relativeMousePosX, relativeMousePosY){
-    // relativeMousePos[X|Y] - on scale from 0 to 1, how close is the mouse to player edges.
-    // use these values: top, left: 0, bottom, right: 1
-    if(! this.pan){
-      this.pan = {x: 0, y: 0};
-    }
-
-    if (this.settings.active.miscSettings.mousePanReverseMouse) {
-      this.pan.relativeOffsetX = (relativeMousePosX * 1.1) - 0.55;
-      this.pan.relativeOffsetY = (relativeMousePosY * 1.1) - 0.55;
-    } else {
-      this.pan.relativeOffsetX = -(relativeMousePosX * 1.1) + 0.55;
-      this.pan.relativeOffsetY = -(relativeMousePosY * 1.1) + 0.55;
-    }
-    this.restore();
+  /**
+   * @param relativeCursorPosition Relative cursor position within the player (0 = left/top edge, 1 = right/bottom edge)
+   * @param invert Whether to invert the pan factor
+   * @returns Pan factor on a scale from -1 to 1
+   */
+  private getPanFactor(relativeCursorPosition: number | undefined, invert: boolean): number {
+    const clamped = Math.min(Math.max(relativeCursorPosition ?? 0.5, 0), 1);
+    const factor = 1 - 2 * clamped;
+    return invert ? -factor : factor;
   }
 
   setVideoAlignment(params: VideoAlignmentParams) {
@@ -646,8 +623,9 @@ class Resizer {
       this.videoAlignment = {
         x: params.x ?? VideoAlignmentType.Default,
         y: params.y ?? VideoAlignmentType.Default,
-        xPos: this.settings.active.mouseOptions.invertPan ? (params.xPos! * 1.1) - 0.55 : -(params.xPos! * 1.1) + 0.55,
-        yPos: this.settings.active.mouseOptions.invertPan ? (params.yPos! * 1.1) - 0.55 : -(params.yPos! * 1.1) + 0.55,
+
+        xPos: this.getPanFactor(params.xPos, this.settings.active.mouseOptions.invertPan),
+        yPos: this.getPanFactor(params.yPos, this.settings.active.mouseOptions.invertPan),
       };
     } else {
      this.videoAlignment = {
@@ -900,9 +878,12 @@ class Resizer {
 
 
 
-    if (this.videoAlignment.x === VideoAlignmentType.Custom && (alignXOffset >= 0 || alignYOffset >= 0)) {
-      translate.x += alignXOffset * (this.videoAlignment.xPos ?? 0) * this.zoom.scale;
-      translate.y += alignYOffset * (this.videoAlignment.yPos ?? 0) * (this.zoom.scaleY ?? this.zoom.scale);
+    if (this.videoAlignment.x === VideoAlignmentType.Custom) {
+      const maxPanX = Math.max(alignXOffset + PAN_EDGE_GAP * this.videoData.player.dimensions.width, 0);
+      const maxPanY = Math.max(alignYOffset + PAN_EDGE_GAP * this.videoData.player.dimensions.height, 0);
+
+      translate.x += maxPanX * (this.videoAlignment.xPos ?? 0);
+      translate.y += maxPanY * (this.videoAlignment.yPos ?? 0);
     } else {
       // correct horizontal alignment according to the settings
       if (!stretchFactors.preventAlignment?.x) {
