@@ -1,6 +1,70 @@
 <template>
   <div class="flex flex-col relative w-full">
-    <h2 class="text-[1.75em]">Keyboard shortcuts</h2>
+    <h2 class="text-[1.75em]">Mouse controls</h2>
+    <div>
+      <div class="field">
+        <div class="label">
+          Pan video on mouse move, while holding:
+        </div>
+        <div class="flex flex-input select">
+          <select v-model="optionCache.mousePan" @change="updatePanOptions()">
+            <option value="">Disable</option>
+            <option value="shift">Hold Shift</option>
+            <option value="ctrl">Hold Ctrl</option>
+            <option value="ctrlshift">Hold Ctrl + Shift</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <div class="label">
+          <input type="checkbox"
+            v-model="settings.active.mouseOptions.invertPan"
+            @change="saveSettings()"
+          >
+        </div>
+        <div class="text-left">
+          Invert pan direction
+        </div>
+      </div>
+
+
+      <div class="field">
+        <div class="label">
+          <input type="checkbox"
+            v-model="settings.active.mouseOptions.shiftZoom"
+            @change="saveSettings()"
+          >
+        </div>
+        <div class="text-left">
+          Enable zooming on <code>Shift</code> + scroll
+        </div>
+      </div>
+      <div class="field">
+        <div class="label">
+          <input type="checkbox"
+            v-model="settings.active.mouseOptions.invertZoom"
+            @change="saveSettings()"
+          >
+        </div>
+        <div class="text-left">
+          Invert zoom direction
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="label">
+          <input type="checkbox"
+            v-model="settings.active.ui.inPlayer.activateWithCtrl"
+            @change="saveSettings()"
+          >
+        </div>
+        <div class="text-left">
+          Show in-player UI on <code>Ctrl</code> + mouse move
+        </div>
+      </div>
+    </div>
+
+    <h2 class="text-[1.75em] mt-8">Keyboard shortcuts</h2>
     <p class="text-stone-500 text-[0.8em]">You can edit keyboard shortcuts here. If the aspect ratio you're looking for doesn't appear on the list, you can add it.</p>
 
     <div class="flex flex-row gap-2 w-full justify-end mt-4">
@@ -171,6 +235,9 @@ export default defineComponent({
         zoom: true,
       },
       state: null,
+      optionCache: {
+        mousePan: '',
+      }
     }
   },
   mixins: [
@@ -183,6 +250,8 @@ export default defineComponent({
       minEnabledWidth: this.optionalToFixed(this.settings.active.ui.inPlayer.minEnabledWidth * 100, 0),
       minEnabledHeight: this.optionalToFixed(this.settings.active.ui.inPlayer.minEnabledHeight * 100, 0),
     }
+
+    this.optionCache.mousePan = `${this.settings.active.mouseOptions.ctrlPan ? 'ctrl' : ''}${this.settings.active.mouseOptions.shiftPan ? 'shift' : ''}`;
   },
   methods: {
     toggleGroupState(groupName: string) {
@@ -200,6 +269,11 @@ export default defineComponent({
         return v.toFixed(n);
       }
       return v;
+    },
+    updatePanOptions() {
+      this.settings.active.mouseOptions.ctrlPan = this.optionCache.mousePan.includes('ctrl');
+      this.settings.active.mouseOptions.shiftPan = this.optionCache.mousePan.includes('shift');
+      this.settings.saveWithoutReload();
     },
     addAction(segment: 'stretch' | 'crop' | 'zoom', newCommand) {
       const actionMap = {

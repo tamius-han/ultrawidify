@@ -321,7 +321,7 @@ const AVAILABLE_TABS = {
   },
   'autodetectionSettings': {id: 'autodetectionSettings', label: 'Autodetection options', icon: 'auto-fix'},
   'ui-settings': {id: 'ui-settings', label: 'UI settings', icon: 'movie-cog-outline' },
-  'keyboardShortcuts': {id: 'keyboardShortcuts', label: 'Keyboard shortcuts', icon: 'keyboard-outline' },
+  'keyboardShortcuts': {id: 'keyboardShortcuts', label: 'Keyboard & mouse', icon: 'keyboard-outline' },
   'settings.player-element-settings': {id: 'settings.player-element-settings', label: 'Player detection', icon: 'television-play'},
 
   'installed': { id: 'installed', label: 'Install completed', icon: 'monitor-arrow-down-variant'},
