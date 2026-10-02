@@ -91,6 +91,23 @@ export class MouseHandler extends KbmBase {
     if (!this.playerElement) {
       return;
     }
+
+    // process what events are necessary to listen for, because we REALLY
+    // don't want to listen for 'wheel' if we don't want to as that's a very
+    // good way to get into CRASH CHROME TAB ANY% (WR)
+    const events = [];
+    if (
+      this.settings.active.mouseOptions.shiftPan
+      || this.settings.active.mouseOptions.ctrlPan
+      || this.settings.active.ui.inPlayer.activateWithCtrl
+    ) {
+      events.push('mousemove');
+    }
+    if (this.settings.active.mouseOptions.shiftZoom) {
+      events.push('wheel');
+    }
+    this.listenFor = events;
+
     this.addListener(this.playerElement);
   }
 
@@ -206,7 +223,10 @@ export class MouseHandler extends KbmBase {
   }
 
   private handleMouseZoom(event: WheelEvent) {
-    if (!this.playerElement) {
+    if (!this.playerElement || !this.settings.active.mouseOptions.shiftZoom) {
+      return;
+    }
+    if (!event.shiftKey) {
       return;
     }
 

@@ -536,8 +536,8 @@ const ExtensionConfPatch = Object.freeze([
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
       userOptions.mouseOptions = {
         shiftPan: true,
-        ctrlPan: true,
-        shiftZoom: true,
+        ctrlPan: false,
+        shiftZoom: false,
         invertPan: false,
         invertZoom: false,
         zoomSensitivity: 1,

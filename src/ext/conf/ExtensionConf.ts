@@ -124,7 +124,7 @@ const ExtensionConf: SettingsInterface = {
       logoThreshold: 0.15,     // if edge candidate sits with count greater than this*all_samples, it can't be logo
                               // or watermark.
       edgeTolerancePx: 1,          // we check for black edge violation this far from detection point
-      edgeTolerancePercent: null,  // we check for black edge detection this % of height from detection point. unused
+      edgeTolerancePercent: undefined,  // we check for black edge detection this % of height from detection point. unused
       middleIgnoredArea: 0.2,      // we ignore this % of canvas height towards edges while detecting aspect ratios
       minColsForSearch: 0.5,       // if we hit the edge of blackbars for all but this many columns (%-wise), we don't
                                    // continue with search. It's pointless, because black edge is higher/lower than we
@@ -174,11 +174,12 @@ const ExtensionConf: SettingsInterface = {
       resumeAfter: 5000,
       scanSpacing: 5,
       scanMargin: 0.25,
-      maxValidLetter: 24,
+      maxValidLetter: 12,
       subtitleSubpixelThresholdOff: 8,
       subtitleSubpixelThresholdOn: 192,
       minDetections: 8,
       minImageLineDetections: 8,
+      stopAfterDetections: 12,
 
       refiningScanSpacing: 8,
       refiningScanInitialIterations: 12,
@@ -742,8 +743,8 @@ const ExtensionConf: SettingsInterface = {
   },
   mouseOptions: {
     shiftPan: true,
-    ctrlPan: true,
-    shiftZoom: true,
+    ctrlPan: false,
+    shiftZoom: false,
     invertPan: false,
     invertZoom: false,
     zoomSensitivity: 1,

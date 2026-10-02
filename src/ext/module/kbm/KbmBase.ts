@@ -120,7 +120,7 @@ export class KbmBase {
     this.addListener();
   }
 
-  handleEvent(event) {
+  handleEvent(event: Event) {
     console.error('[KbmBase::handleEvent] — IF YOU SEE THIS, THEN YOU KINDA FORGOT TO DEFINE A FUNCTION. Classes that extend KbmBase should also override this function.');
     throw "KBM_BASE::HANDLE_EVENT - OVERRIDE_ME_PLS";
   }
