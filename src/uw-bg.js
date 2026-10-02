@@ -15,9 +15,17 @@ const server = new UWServer();
 
 // add update listener
 chrome.runtime.onInstalled.addListener((details) => {
-  if (details.reason === "update") {
-    chrome.tabs.create({
-      url: chrome.runtime.getURL("ui/pages/settings/index.html#updated")
-    });
+  let hash;
+
+  if (details.reason === "install") {
+    hash = "installed";
+  } else if (details.reason === "update") {
+    hash = "updated";
+  } else {
+    return; // "chrome_update", "shared_module_update"
   }
+
+  chrome.tabs.create({
+    url: chrome.runtime.getURL(`ui/pages/settings/index.html#${hash}`)
+  });
 });
