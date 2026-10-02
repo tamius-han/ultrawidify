@@ -131,6 +131,10 @@ export function resetAardTestResults(results: AardTestResults): void {
   results.aspectRatioUncertainReason = undefined;
   results.aspectRatioInvalid = false;
   results.letterboxOrientation = LetterboxOrientation.NotKnown;
+
+  // subtitle scan only runs on letterbox frames. If this flag isn't cleared every frame, a stale
+  // detection from an earlier frame is acted upon in frames where the scan didn't run.
+  results.subtitleDetected = false;
 }
 
 export function resetSubtitleScanResults(results: AardTestResults): void {

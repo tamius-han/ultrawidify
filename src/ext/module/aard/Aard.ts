@@ -536,7 +536,13 @@ export class Aard {
           break processUpdate;
         }
 
-        if (this.testResults.subtitleDetected && arConf.subtitles.subtitleCropMode !== AardSubtitleCropMode.CropSubtitles) {
+        if (
+          this.testResults.subtitleDetected
+          && (
+            arConf.subtitles.subtitleCropMode === AardSubtitleCropMode.ResetAR
+            || arConf.subtitles.subtitleCropMode === AardSubtitleCropMode.ResetAndDisable
+          )
+        ) {
           if (arConf.subtitles.subtitleCropMode === AardSubtitleCropMode.ResetAR) {
             this.updateAspectRatio(this.defaultAr, {forceReset: true});
             this.testResults.activeLetterbox.width = 0;
@@ -952,7 +958,9 @@ export class Aard {
         || (ssrRegions.bottom.firstSubtitle !== -1 && ssrRegions.bottom.firstSubtitle > borderBottom)
       ) {
 
-        this.testResults.subtitleDetected = true;
+        // Even with DisableScan we still need the scan itself (it finds the letterbox edges),
+        // we just must not report subtitles.
+        this.testResults.subtitleDetected = scanConf.subtitleCropMode !== AardSubtitleCropMode.DisableScan;
       }
 
     }
@@ -983,9 +991,15 @@ export class Aard {
     const scanConf = this.settings.active.aard.subtitles;
     const arConf = this.settings.active.aard;
 
+    // If detecting subtitles only resets AR (or disables autodetection), we can stop scanning as soon as
+    // we find the first subtitle. In other modes (CropSubtitles, DisableScan) we must keep going, because
+    // the scan is also used to find where the image starts.
+    const stopOnFirstSubtitle = scanConf.subtitleCropMode === AardSubtitleCropMode.ResetAR
+      || scanConf.subtitleCropMode === AardSubtitleCropMode.ResetAndDisable;
+
     let letterCount, imageSegmentCount, potentialFadedLetterCount, potentialFadedLetterCountInvalidated, nonGradientPixelCount, letterSize, imageSize, imageSegmentSize, imageWeightedSize, segmentWeights, imageSegmentAlignment, imageSegmentAlignmentSamples,
       isOnLetter, isOnImage, isBlank,
-      gradientRowOffset_before, gradientRowOffset_after;
+      gradientRowDelta_before, gradientRowDelta_after;
     let rowStart, rowEnd, rowMid, rowGTA, rowGTB; // GT = gradient test
     let imageConfirmPass = false, subtitleConfirmPass = false;
 
@@ -1004,7 +1018,7 @@ export class Aard {
     ) {
       if (++outerIteration > height) {
         // console.warn('[ultrawidify|aard::subtitleScanRegionLinear] — scan got stuck in an infinite loop. This shouldn\'t happen.');
-        results.uncertain;
+        results.uncertain = true;
         break outerLoop;
       }
 
@@ -1030,12 +1044,16 @@ export class Aard {
       // Scan region is centered,
       rowStart = (searchRow * ROW_SIZE) + rowMargin;
 
+      // Gradient test compares current row with a row 'before' it (towards the frame edge) and a row
+      // 'after' it (towards the center of the frame). Which direction that is depends on whether we're
+      // scanning the top or the bottom letterbox.
+      // These are offsets RELATIVE to the current row (negative = rows above, positive = rows below).
       if (scanSpacing > 0) {
-        gradientRowOffset_before = (Math.max(searchRow - 2, 0)      * ROW_SIZE);
-        gradientRowOffset_after  = (Math.min(searchRow + 2, height) * ROW_SIZE);
+        gradientRowDelta_before = (Math.max(searchRow - 2, 0)          - searchRow) * ROW_SIZE;
+        gradientRowDelta_after  = (Math.min(searchRow + 2, height - 1) - searchRow) * ROW_SIZE;
       } else {
-        gradientRowOffset_before = (Math.max(searchRow - 2, 0)      * ROW_SIZE);
-        gradientRowOffset_after  = (Math.min(searchRow + 2, height) * ROW_SIZE);
+        gradientRowDelta_before = (Math.min(searchRow + 2, height - 1) - searchRow) * ROW_SIZE;
+        gradientRowDelta_after  = (Math.max(searchRow - 2, 0)          - searchRow) * ROW_SIZE;
       }
 
       // exact row doesn't matter ... unless scanMargin is 0
@@ -1093,7 +1111,7 @@ export class Aard {
                 results.firstSubtitle = searchRow;
 
                 // if detecting subtitles only resets AR, we can return immediately
-                if (scanConf.subtitleCropMode !== AardSubtitleCropMode.CropSubtitles) {
+                if (stopOnFirstSubtitle) {
                   break outerLoop;
                 }
               }
@@ -1143,8 +1161,8 @@ export class Aard {
             && imageData[rowStart + 1] < arConf.edgeDetection.gradientThreshold
             && imageData[rowStart + 2] < arConf.edgeDetection.gradientThreshold
           )) {
-            rowGTB = rowStart - gradientRowOffset_before;
-            rowGTA = rowStart + gradientRowOffset_after;
+            rowGTB = rowStart + gradientRowDelta_before;
+            rowGTA = rowStart + gradientRowDelta_after;
 
             // if true, then gradient.
             // The first row gives technically incorrect answers for pixels directly under subtitles, but since
@@ -1238,7 +1256,7 @@ export class Aard {
             results.firstSubtitle = searchRow;
 
             // if detecting subtitles only resets AR, we can return immediately
-            if (scanConf.subtitleCropMode !== AardSubtitleCropMode.CropSubtitles) {
+            if (stopOnFirstSubtitle) {
               break outerLoop;
             }
           }
