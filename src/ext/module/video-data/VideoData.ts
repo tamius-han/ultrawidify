@@ -366,8 +366,11 @@ class VideoData {
     this.eventBus.unsubscribeAll(this);
 
     try {
-      this.aard?.stop();
-      // this.arDetector.destroy();
+      if (this.aard instanceof Aard) {
+        this.aard.destroy();
+      } else {
+        this.aard?.stop();
+      }
     } catch (e) {}
     this.aard = undefined;
     try {

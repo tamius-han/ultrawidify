@@ -52,7 +52,7 @@ export class Aard {
   private siteSettings: SiteSettings;
   private eventBus: EventBus;
   private arid: string;
-  private arVariant: ArVariant;
+  private arVariant?: ArVariant;
 
   private eventBusCommands = {
     'uw-environment-change': {
@@ -97,6 +97,7 @@ export class Aard {
 
 
   private forceFullRecheck: boolean = true;
+  private destroyed: boolean = false;
 
   private debugConfig: any = {};
   private timer: AardTimer;
@@ -282,6 +283,9 @@ export class Aard {
    * Starts autodetection loop.
    */
   start() {
+    if (this.destroyed) {
+      return;
+    }
     this.clearAutoDisabled();
     this.forceFullRecheck = true;
     if (this.videoData.resizer.lastAr.type === AspectRatioType.AutomaticUpdate) {
@@ -311,6 +315,9 @@ export class Aard {
    * If autodetection loop is running, this will also stop autodetection loop.
    */
   step(options?: {noCache?: boolean}) {
+    if (this.destroyed) {
+      return;
+    }
     this.stop();
 
     if (options?.noCache) {
@@ -325,6 +332,10 @@ export class Aard {
    * Stops autodetection.
    */
   stop() {
+    if (this.destroyed) {
+      return;
+    }
+
     this.status.aardActive = false;
 
     if (this.animationFrame) {
@@ -332,6 +343,34 @@ export class Aard {
       this.animationFrame = undefined;
     }
   }
+
+  destroy() {
+    if (this.destroyed) {
+      return;
+    }
+    this.destroyed = true;
+
+    this.stop();
+
+    // VideoData.destroy() unsubscribes its own commands only. Ours were subscribed with
+    // Aard as the source, so we need to remove them ourselves.
+    this.eventBus.unsubscribeAll(this);
+
+    try {
+      this.hideDebugCanvas();
+    } catch (e) {
+      this.logger.warn('destroy', 'failed to remove debug UI:', e);
+    }
+
+    for (const canvas of [this.canvasStore?.main, this.canvasStore?.debug]) {
+      try {
+        canvas?.destroy();
+      } catch (e) {
+        this.logger.warn('destroy', 'failed to destroy canvas:', e);
+      }
+    }
+  }
+
 
   //#region animationFrame, scheduling, and other shit
   /**
@@ -435,10 +474,14 @@ export class Aard {
               this.timer.current.draw = performance.now() - this.timer.current.start;
               resolve(this.canvasStore.main.getImageData());
             } catch (e) {
-              if (e.name === 'SecurityError') {
+              this.logger.error('onAnimationFrame', 'Error while drawing video frame:', e);
+              const isCors = e.name === 'SecurityError';
+
+              if (isCors) {
                 this.eventBus.send('uw-config-broadcast', {type: 'aard-error', aardErrors: {cors: true}});
                 this.stop();
               }
+
               if (this.canvasStore.main instanceof FallbackCanvas) {
                 if (this.inFallback) {
                   this.eventBus.send('uw-config-broadcast', {type: 'aard-error', aardErrors: this.fallbackReason});
@@ -448,14 +491,17 @@ export class Aard {
                   this.stop();
                 }
               } else {
+                this.fallbackReason = isCors ? {cors: true} : {webglError: true};
                 if (arConf.aardType === 'auto') {
                   this.canvasStore.main.destroy();
                   this.canvasStore.main = this.createCanvas('main-gl', 'legacy');
                 }
                 this.inFallback = true;
-                this.fallbackReason = {cors: true};
 
                 if (arConf.aardType !== 'auto') {
+                  if (!isCors) {
+                    this.eventBus.send('uw-config-broadcast', {type: 'aard-error', aardErrors: this.fallbackReason});
+                  }
                   this.stop();
                 }
               }
@@ -541,7 +587,7 @@ export class Aard {
         if (this.testResults.letterboxOrientation === LetterboxOrientation.NotLetterbox) {
           // console.warn('DETECTED NOT LETTERBOX! (resetting)')
           this.timer.arChanged();
-          this.updateAspectRatio(this.defaultAr, {forceReset: true});
+          this.updateAspectRatio(this.defaultAr!, {forceReset: true});
           this.testResults.activeLetterbox.width = 0;
           this.testResults.activeLetterbox.offset = 0;
           this.testResults.activeLetterbox.orientation = LetterboxOrientation.NotLetterbox;
@@ -556,14 +602,14 @@ export class Aard {
           )
         ) {
           if (arConf.subtitles.subtitleCropMode === AardSubtitleCropMode.ResetAR) {
-            this.updateAspectRatio(this.defaultAr, {forceReset: true});
+            this.updateAspectRatio(this.defaultAr!, {forceReset: true});
             this.testResults.activeLetterbox.width = 0;
             this.testResults.activeLetterbox.offset = 0;
             this.testResults.activeLetterbox.orientation = LetterboxOrientation.NotLetterbox;
             this.timers.pauseUntil = Date.now() + arConf.subtitles.resumeAfter;
 
           } else if (arConf.subtitles.subtitleCropMode === AardSubtitleCropMode.ResetAndDisable) {
-            this.updateAspectRatio(this.defaultAr, {forceReset: true});
+            this.updateAspectRatio(this.defaultAr!, {forceReset: true});
             this.testResults.activeLetterbox.width = 0;
             this.testResults.activeLetterbox.offset = 0;
             this.testResults.activeLetterbox.orientation = LetterboxOrientation.NotLetterbox;

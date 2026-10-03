@@ -148,6 +148,10 @@ export class GlCanvas {
     this.gl.deleteBuffer(this.buffers.textureCoord);
     this.gl.deleteBuffer(this.buffers.indices);
     this.gl.deleteTexture(this.texture);
+
+    // Deleting individual resources doesn't free the context itself. Browsers only allow
+    // a limited number of live WebGL contexts per page and silently drop the oldest ones.
+    this.gl.getExtension('WEBGL_lose_context')?.loseContext();
   }
 
   protected initContext(options: GlCanvasOptions) {
