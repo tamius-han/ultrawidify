@@ -10,6 +10,19 @@ export interface AardTestResult_SubtitleRegion {
   firstImage: number,
   lastImage: number,
   uncertain: boolean,
+  subtitlesUnstable: boolean,
+
+  // NOTE: nothing in stability resets between runs, as there should
+  // be no meaningful difference between running on stale data and running
+  // on reset data ... probably
+  stability: {
+    scanSlot: number,
+    lineSlot: number,
+    buffer: number[],
+    lineSize: number,
+    scanSize: number,
+    intervalFrame: number,
+  }
 }
 
 export interface AardTestResults {
@@ -47,6 +60,9 @@ export interface AardTestResults {
     letterLengths: number[],
     confirmLetterStartIndices: number[],
     confirmLetterLengths: number[],
+
+    resultsBufferTop: number[],
+    resultsBufferBottom: number[],
   },
   activeLetterbox: {
     width: number,
@@ -58,6 +74,15 @@ export interface AardTestResults {
 }
 
 export function initAardTestResults(settings: AardSettings): AardTestResults {
+
+  // add one extra slot for on/off status change count at the end. We keep this
+  // info because the buffer doesn't reset between runs
+  const stabilityLineSize = (settings.subtitles.stopAfterDetections + 1);
+  const stabilityScanSize = stabilityLineSize * settings.subtitles.stability.scanLines;
+  const stabilityBufferSize = 2    // ← letter ON index + letter OFF index
+    * stabilityScanSize
+    * settings.subtitles.stability.confirmationScans;
+
   return {
     isFinished: true,
     lastStage: 0,
@@ -88,6 +113,16 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
           firstImage: -1,
           lastImage: -1,
           uncertain: false,
+          subtitlesUnstable: false,
+
+          stability: {
+            scanSlot: 0,
+            lineSlot: 0,
+            intervalFrame: 0,
+            lineSize: stabilityLineSize,
+            scanSize: stabilityScanSize,
+            buffer: new Array<number>(stabilityBufferSize).fill(0)
+          }
         },
         bottom: {
           firstBlank: -1,
@@ -97,6 +132,16 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
           firstImage: -1,
           lastImage: -1,
           uncertain: false,
+          subtitlesUnstable: false,
+
+          stability: {
+            scanSlot: 0,
+            lineSlot: 0,
+            intervalFrame: 1, // if confirmationScanInterval is more than 1, top and bottom scan fire on different passes
+            lineSize: stabilityLineSize,
+            scanSize: stabilityScanSize,
+            buffer: new Array<number>(stabilityBufferSize).fill(0)
+          }
         }
       },
 
@@ -175,4 +220,5 @@ export function resetSubtitleScanResults(results: AardTestResults): void {
     lengths[i] = -1;
     i++;
   }
+
 }

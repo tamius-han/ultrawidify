@@ -25,6 +25,7 @@ import { LetterboxOrientation } from './enums/letterbox-orientation.enum';
 import { Edge } from './enums/edge.enum';
 import { AardUncertainReason } from './enums/aard-letterbox-uncertain-reason.enum';
 import { result } from 'lodash';
+import { equalish } from '@src/common/utils/comparators';
 
 
 /**
@@ -972,6 +973,23 @@ export class Aard {
 
     resetSubtitleScanResults(this.testResults);
 
+    // it doesn't matter whether subtitle stability checks run on the first frame,
+    // which means we can increment interval frame before doing anything.
+    // note that unlike the rest of test results, stability.intervalFrame is not
+    // resettable.
+    ssrRegions.top.stability.intervalFrame++;
+    ssrRegions.bottom.stability.intervalFrame++;
+
+    // don't let the numbers go too high. Note that intervalFrame can be set differently
+    // for top and bottom regions, such that subtitle stability is being processed on
+    // odd checks for top and even for bottom (or vice versa)
+    if (! (ssrRegions.top.stability.intervalFrame % this.settings.active.aard.subtitles.stability.confirmationScanInterval)) {
+      ssrRegions.top.stability.intervalFrame = 0;
+    }
+    if (! (ssrRegions.bottom.stability.intervalFrame % this.settings.active.aard.subtitles.stability.confirmationScanInterval)) {
+      ssrRegions.bottom.stability.intervalFrame = 0;
+    }
+
     this.subtitleScanRegionIterative(
       imageData, height,
       2, halfHeight,
@@ -985,7 +1003,6 @@ export class Aard {
       -scanConf.refiningScanSpacing, scanConf.minDetections,
       ssrRegions.bottom,
     )
-
 
     if (ssrRegions.top.uncertain || ssrRegions.bottom.uncertain) {
       this.testResults.aspectRatioUncertain = true;
@@ -1045,6 +1062,7 @@ export class Aard {
     results: AardTestResult_SubtitleRegion,
   ) {
     results.uncertain = false;
+    results.subtitlesUnstable = false;
 
     const scanConf = this.settings.active.aard.subtitles;
     const arConf = this.settings.active.aard;
@@ -1066,6 +1084,11 @@ export class Aard {
     const rowMargin = Math.floor(scanConf.scanMargin * ROW_SIZE);
     const imageThreshold = Math.floor((ROW_SIZE - (rowMargin * 2)) * arConf.edgeDetection.minValidImage * PIXEL_SIZE_FRACTION);
 
+    // set up stuff for subtitle stability verification
+    let scanSlotOffset = results.stability.scanSlot * results.stability.scanSize;
+    let lineSlotOffset = 0;        // index of the current line within the current scan slot
+    let letterPhaseCountIndex = 0; // how many pixels we spent in letter on / letter off
+    let changeCountIndex = 0;      // index of the change counter for current line
 
     // search in top letterbox
     outerLoop:
@@ -1074,6 +1097,24 @@ export class Aard {
       (scanSpacing > 0 && searchRow < endRow) || (scanSpacing < 0 && searchRow > endRow);
       searchRow += scanSpacing
     ) {
+      // Code inside here runs ONCE PER ROW
+      if (results.stability.intervalFrame === 0) {
+        results.stability.lineSlot++;
+        if (results.stability.lineSlot % this.settings.active.aard.subtitles.stability.scanLines === 0) {
+          results.stability.lineSlot = 0;
+        }
+
+        lineSlotOffset = results.stability.lineSlot * results.stability.lineSize;
+
+        // feature count offset: how many consecutive on/off results did we have
+        letterPhaseCountIndex  = scanSlotOffset + lineSlotOffset;
+        changeCountIndex = scanSlotOffset + lineSlotOffset + results.stability.lineSize - 1;
+
+        // reset first counters for current line!
+        results.stability.buffer[letterPhaseCountIndex] = 0;
+        results.stability.buffer[changeCountIndex] = 0;
+      }
+
       if (++outerIteration > height) {
         // console.warn('[ultrawidify|aard::subtitleScanRegionLinear] — scan got stuck in an infinite loop. This shouldn\'t happen.');
         results.uncertain = true;
@@ -1156,22 +1197,27 @@ export class Aard {
                     && g < scanConf.subtitleSubpixelThresholdOff
                     && b < scanConf.subtitleSubpixelThresholdOff;
 
+        results.stability.buffer[letterPhaseCountIndex]++;
+
         if (off) {
           imageData[rowStart + 3] = GlDebugType.SubtitleThresholdOff;
-
 
           // if isOnLetter was set, that means we've just concluded a letter segment
           if (isOnLetter) {
             letterCount++;
 
+            // i dont trust myself with setting up the buffer correctly.
+            // we don't check for interval frame, because branching cost is prolly
+            // higher than the cost of doing the work
+            if (letterPhaseCountIndex < changeCountIndex) {
+              letterPhaseCountIndex++;
+              results.stability.buffer[letterPhaseCountIndex] = 0;
+              results.stability.buffer[changeCountIndex]++;
+            }
+
             if (letterCount > minDetections) {
               if (results.firstSubtitle === -1) {
                 results.firstSubtitle = searchRow;
-
-                // if detecting subtitles only resets AR, we can return immediately
-                if (stopOnFirstSubtitle) {
-                  break outerLoop;
-                }
               }
               results.lastSubtitle = searchRow;
               isBlank = false;
@@ -1245,6 +1291,16 @@ export class Aard {
           }
         }
         if (on) {   // used to detect subtitles specifically
+          // 'on' means we are potentially on letter.
+          // if isOnLetter is false, this means we have caught the start of a new phase
+          // if isOnLetter is true, this means we already counted letter phase change, so we do nothing
+          // & we don't trust ourselves with setting up the buffer
+          if (!isOnLetter && letterPhaseCountIndex < changeCountIndex) {
+            letterPhaseCountIndex++;
+            results.stability.buffer[letterPhaseCountIndex] = 0;
+            results.stability.buffer[changeCountIndex]++;
+          }
+
           imageData[rowStart + 3] = GlDebugType.SubtitleThresholdOn;
           isOnLetter = true;
           letterSize++;
@@ -1396,6 +1452,17 @@ export class Aard {
     minDetections: number,
     results: AardTestResult_SubtitleRegion,
   ): boolean {
+
+    if (results.stability.intervalFrame === 0) {
+      results.stability.scanSlot++;
+      if (results.stability.scanSlot % this.settings.active.aard.subtitles.stability.confirmationScanInterval === 0) {
+        results.stability.scanSlot = 0;
+      }
+    }
+    // line slot resets on each scan, which guarantees that the last _n_ lines that we
+    // checked for subtitles always happen in the same order.
+    results.stability.lineSlot = 0;
+
     while (true) {
       if (scanSpacing > -1 && scanSpacing < 1) {
         break;
@@ -1420,6 +1487,48 @@ export class Aard {
       }
 
       scanSpacing = scanSpacing / 2;
+    }
+
+    // stability test can set subtitle scan uncertainty to true, but not the other way around
+    if (!results.uncertain && this.settings.active.aard.subtitles.stability.confirmationScans > 1) {
+      let refOffset = 0;
+      let refLineOffset = 0;
+      let peerLineOffset = 0;
+      let refPhaseCounterIndex = 0;
+      let peerPhaseCounterIndex = 0;
+
+      outerLoop:
+      for (let si = 1; si < this.settings.active.aard.subtitles.stability.confirmationScans; si++) {
+        let scanSlotOffset = si * results.stability.scanSize;
+        refOffset = 0;
+
+        for (let li = 0; li < results.stability.buffer.length; li++) {
+          refLineOffset = li * results.stability.lineSize;
+          refPhaseCounterIndex = refLineOffset + results.stability.lineSize - 1;
+
+          peerLineOffset = refLineOffset + scanSlotOffset;
+          peerPhaseCounterIndex = refPhaseCounterIndex + scanSlotOffset;
+
+          // did both scans detect same number of letter phase changes?
+          // no —> it is uncertain whether we have subtitles, and we'll assume that we don't
+          if (results.stability.buffer[refPhaseCounterIndex] !== results.stability.buffer[peerPhaseCounterIndex]) {
+            results.subtitlesUnstable = true;
+            break outerLoop;
+          }
+          // now we check letter phase lengths
+          for (let pi = 0; pi < results.stability.buffer[refPhaseCounterIndex]; pi++) {
+            // We allow a small difference in phase lengths in order to avoid being too strict
+            if (!equalish(
+              results.stability.buffer[refLineOffset + pi],
+              results.stability.buffer[peerLineOffset + pi],
+              this.settings.active.aard.subtitles.stability.phaseLengthTolerance
+            )) {
+              results.subtitlesUnstable = true;
+              break outerLoop;
+            }
+          }
+        }
+      }
     }
 
     return true;

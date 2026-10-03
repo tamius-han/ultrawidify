@@ -34,22 +34,30 @@ const ExtensionConf: SettingsInterface = {
       pillarboxLimit: 8
     },
 
+    // not actually used in aardLegacy, but we need it cos typing
     subtitles: {
       subtitleCropMode: AardSubtitleCropMode.ResetAR,
       resumeAfter: 5000,
       scanSpacing: 5,
       scanMargin: 0.25,
-      maxValidLetter: 24,
+      maxValidLetter: 12,
       subtitleSubpixelThresholdOff: 8,
       subtitleSubpixelThresholdOn: 192,
       minDetections: 8,
       minImageLineDetections: 8,
-      stopAfterDetections: 32,
+      stopAfterDetections: 32,      // if we get this many letters, we stop checking cos we already have enough data
 
       refiningScanSpacing: 8,
       refiningScanInitialIterations: 12,
 
       maxPotentialSubtitleMisalignment: 32,
+
+      stability: {
+        confirmationScans: 3,
+        scanLines: 3,
+        confirmationScanInterval: 1,
+        phaseLengthTolerance: 2,
+      }
     },
 
     earlyStopOptions: {
@@ -185,6 +193,13 @@ const ExtensionConf: SettingsInterface = {
       refiningScanInitialIterations: 12,
 
       maxPotentialSubtitleMisalignment: 32,
+
+      stability: {
+        confirmationScans: 3,
+        scanLines: 3,
+        confirmationScanInterval: 1,
+        phaseLengthTolerance: 2,
+      }
     },
 
     earlyStopOptions: {

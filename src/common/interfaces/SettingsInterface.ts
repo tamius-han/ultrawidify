@@ -84,6 +84,13 @@ export interface AardSubtitleScanOptions {
 
     refiningScanSpacing: number,  // must be base-2
     refiningScanInitialIterations: number,
+
+    stability: {
+      confirmationScans: number,          // we require same subtitle detection data in this many consecutive scans
+      scanLines: number,                  // each scan buffer will keep this many lines
+      confirmationScanInterval: number,   // we perform stability checks once every this many frames
+      phaseLengthTolerance: number,       // phase lengths can vary this much between scans
+    }
 }
 
 export interface AardSettings {

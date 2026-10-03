@@ -532,7 +532,7 @@ const ExtensionConfPatch = Object.freeze([
 
     }
   }, {
-    forVersion: '6.3.999',
+    forVersion: '6.3.9990',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
       userOptions.mouseOptions = {
         shiftPan: true,
@@ -542,6 +542,14 @@ const ExtensionConfPatch = Object.freeze([
         invertZoom: false,
         zoomSensitivity: 1,
       }
+      userOptions.aard.subtitles.maxValidLetter = 12;
+      userOptions.aard.subtitles.stopAfterDetections = 32;
+      userOptions.aard.subtitles.stability = {
+        confirmationScans: 3,
+        scanLines: 3,
+        confirmationScanInterval: 1,
+        phaseLengthTolerance: 2,
+      };
     }
   }
 
