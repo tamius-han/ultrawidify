@@ -2,9 +2,18 @@ import { ExtensionEnvironment } from './../../../common/interfaces/SettingsInter
 import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
 import Settings from '@src/ext/module/settings/Settings';
 import EventBus from '@src/ext/module/EventBus';
-import { CommsOrigin } from './CommsClient';
 import UWServer from '@src/ext/UWServer';
 import { HostInfo } from '@src/common/interfaces/HostData.interface';
+import { CommsMessage } from '@src/ext/module/comms/comms-message.interface';
+import { CommsOrigin } from '@src/ext/module/comms/comms-origin.enum';
+import { EventBusContext } from '@src/common/interfaces/EventBusMessage.interface';
+
+type CommsServerContext = EventBusContext & {
+  tab?: string;
+  frame?: string;
+  port?: string;
+};
+type CommsSourceFrame = { tabId: number; frameId: number };
 
 const BASE_LOGGING_STYLES = {
   log: "background-color: #11D; color: #aad",
@@ -48,11 +57,11 @@ class CommsServer {
   ports: {
     [tab: string] : {           // tab of a browser
       [frame: string] : {       // iframe inside of the tab
-        [port: string]: any     // script inside the iframe.
+        [port: string]: chrome.runtime.Port     // script inside the iframe.
       }
     }
   } = {};
-  popupPort: any;
+  popupPort!: chrome.runtime.Port;
 
   private _lastActiveTab: chrome.tabs.Tab | undefined;
   //#region getters
@@ -72,6 +81,7 @@ class CommsServer {
         })
         .catch((err) => {
           this.logger.error('<getter-activeTab>', 'error while getting active tab — returned last valid active tab instead ...', err, this._lastActiveTab);
+          resolve(this._lastActiveTab);
         });
     });
   }
@@ -85,19 +95,24 @@ class CommsServer {
     this.eventBus = server.eventBus;
 
     chrome.runtime.onConnect.addListener(p => this.onConnect(p));
-    chrome.runtime.onMessage.addListener((m, sender: chrome.runtime.MessageSender) => this.processReceivedMessage_nonpersistent(m, sender));
+    chrome.runtime.onMessage.addListener((m: CommsMessage, sender: chrome.runtime.MessageSender) => this.processReceivedMessage_nonpersistent(m, sender));
   }
 
   private onConnect(port: chrome.runtime.Port){
     // special case
     if (port.name === 'popup-port') {
       this.popupPort = port;
-      this.popupPort.onMessage.addListener( (m,p) => this.processReceivedMessage(m,p));
+      this.popupPort.onMessage.addListener((m: CommsMessage, p: chrome.runtime.Port) => this.processReceivedMessage(m, p));
       return;
     }
 
-    var tabId = port.sender.tab.id;
-    var frameId = port.sender.frameId;
+    const tabId = port.sender?.tab?.id;
+    const frameId = port.sender?.frameId;
+    if (!tabId || !frameId) {
+      this.logger.warn('onConnect', 'port does not have a valid tabId or frameId', port.sender);
+      return;
+    }
+
     if (! this.ports[tabId]){
       this.ports[tabId] = {};
     }
@@ -105,17 +120,17 @@ class CommsServer {
       this.ports[tabId][frameId] = {};
     }
     this.ports[tabId][frameId][port.name] = port;
-    this.ports[tabId][frameId][port.name].onMessage.addListener( (m,p) => this.processReceivedMessage(m, p, {tabId, frameId}));
+    this.ports[tabId][frameId][port.name].onMessage.addListener((m: CommsMessage, p: chrome.runtime.Port) => this.processReceivedMessage(m, p, {tabId, frameId}));
 
-    this.ports[tabId][frameId][port.name].onDisconnect.addListener( (p) => {
+    this.ports[tabId][frameId][port.name].onDisconnect.addListener((p: chrome.runtime.Port) => {
       try {
-        delete this.ports[p.sender.tab.id][p.sender.frameId][port.name];
+        delete this.ports[tabId][frameId][port.name];
       } catch (e) {
         // no biggie if the thing above doesn't exist.
       }
-      if (Object.keys(this.ports[tabId][frameId].length === 0)) {
+      if (Object.keys(this.ports[tabId][frameId]).length === 0) {
         delete this.ports[tabId][frameId];
-        if(Object.keys(this.ports[p.sender.tab.id]).length === 0) {
+        if(Object.keys(this.ports[tabId]).length === 0) {
           delete this.ports[tabId];
         }
       }
@@ -162,7 +177,7 @@ class CommsServer {
 
   }
 
-  sendMessage(message, context?) {
+  sendMessage(message: CommsMessage, context?: CommsServerContext) {
     this.logger.debug('sendMessage', `preparing to send message ${message.command ?? ''} ...`, {message, context});
     // stop messages from returning where they came from, and prevent
     // cross-pollination between content scripts running in different
@@ -184,7 +199,7 @@ class CommsServer {
     forwardToContentScript:
     {
       if (context?.origin !== CommsOrigin.ContentScript) {
-        if (context?.comms.forwardTo === 'all') {
+        if (context?.comms?.forwardTo === 'all') {
           this.sendToAll(message);
           break forwardToContentScript;
         }
@@ -192,7 +207,7 @@ class CommsServer {
           this.sendToActive(message);
           break forwardToContentScript;
         }
-        if (context?.comms?.forwardTo === 'contentScript') {
+        if (context?.comms?.forwardTo === 'contentScript' && context.tab && context.frame) {
           this.sendToFrame(message, context.tab, context.frame, context.port);
           break forwardToContentScript;
         }
@@ -218,7 +233,7 @@ class CommsServer {
   /**
    * Sends a message to popup script
    */
-  sendToPopup(message) {
+  sendToPopup(message: CommsMessage) {
     this.popupPort.postMessage(message);
   }
 
@@ -226,7 +241,7 @@ class CommsServer {
    * sends a message to ALL **CONTENT SCRIPTS**
    * Does NOT send a message to popup.
    **/
-  private sendToAll(message){
+  private sendToAll(message: CommsMessage){
     this.logger.info('sendToAll', "sending message to all content scripts", message);
 
     for(const tid in this.ports){
@@ -247,7 +262,7 @@ class CommsServer {
    * @param frame the frame within that tab that we want to send the message to
    * @param port if defined, message will only be sent to that specific script, otherwise it gets sent to all scripts of a given frame
    */
-  private async sendToFrameContentScripts(message, tab, frame, port?) {
+  private async sendToFrameContentScripts(message: CommsMessage, tab: string, frame: string, port?: string) {
     if (port !== undefined) {
       this.ports[tab][frame][port].postMessage(message);
       this.logger.info('sendToOtherFrames', `      <——— attempting to send message ${message.command ?? ''} to tab ${tab}, frame ${frame}, port ${port}`, message);
@@ -265,23 +280,26 @@ class CommsServer {
    * @param tab
    * @param frame
    */
-  private async sendToOtherFrames(message, context) {
+  private async sendToOtherFrames(message: CommsMessage, context: CommsServerContext) {
     const sender = context.comms?.sourceFrame;
+    if (!sender) {
+      return;
+    }
 
-    const enrichedMessage = {
+    const enrichedMessage: CommsMessage = {
       message,
       _sourceFrame: context.comms?.sourceFrame,
-      _sourcePort: context.comms.port
+      _sourcePort: context.comms?.port
     }
 
     for (const frame in this.ports[sender.tabId]) {
-      if (frame !== sender.frameId) {
-        this.sendToFrameContentScripts(enrichedMessage, sender.tabId, sender.frameId);
+      if (+frame !== +sender.frameId) {
+        this.sendToFrameContentScripts(enrichedMessage, String(sender.tabId), String(sender.frameId));
       }
     }
   }
 
-  private async sendToFrame(message, tab, frame, port?) {
+  private async sendToFrame(message: CommsMessage, tab: string, frame: string, port?: string) {
     this.logger.info('sendToFrame', `      <——— attempting to send message ${message.command ?? ''} to tab ${tab}, frame ${frame}`, message);
 
     if (isNaN(tab)) {
@@ -306,10 +324,14 @@ class CommsServer {
     }
   }
 
-  private async sendToActive(message) {
+  private async sendToActive(message: CommsMessage) {
     this.logger.info('sendToActive', `      <——— trying to send a message ${message.command ?? ''} to active tab. Message:`, message);
 
     const tab = await this.activeTab;
+    if (!tab || !tab.id) {
+      // this.logger.warn('sendToActive', "No active tab found.");
+      return;
+    }
 
     this.logger.info('sendToActive', "currently active tab?", tab);
 
@@ -321,9 +343,9 @@ class CommsServer {
 
 
   private async processReceivedMessage(
-    message: any,
+    message: CommsMessage,
     port: chrome.runtime.Port,
-    sender?: chrome.runtime.MessageSender
+    sender?: CommsSourceFrame
   ){
     this.logger.info('processMessage', `                   ==> Received message ${message.command ?? ''} from content script or port`, "background-color: #11D; color: #aad", message, port, sender);
     // this triggers events
@@ -346,7 +368,7 @@ class CommsServer {
   }
 
   private processReceivedMessage_nonpersistent(
-    message,
+    message: CommsMessage,
     sender: chrome.runtime.MessageSender
   ){
     this.logger.info('processMessage_nonpersistent', `                   ==> Received message in background script!`, message, sender);

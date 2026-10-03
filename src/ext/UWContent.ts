@@ -1,5 +1,5 @@
 import Debug from '@src/ext/conf/Debug';
-import CommsClient, { CommsOrigin } from '@src/ext/module/comms/CommsClient';
+import CommsClient from '@src/ext/module/comms/CommsClient';
 import EventBus from '@src/ext/module/EventBus';
 import KeyboardHandler from '@src/ext/module/kbm/KeyboardHandler';
 import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
@@ -9,6 +9,7 @@ import { SiteSettings } from '@src/ext/module/settings/SiteSettings';
 import UI from '@src/ext/module/uwui/UI';
 import PageInfo from '@src/ext/module/video-data/PageInfo';
 import { getIframeParentHost, setupHostnameReporting } from '@src/common/utils/getHost';
+import { CommsOrigin } from '@src/ext/module/comms/comms-origin.enum';
 
 export default class UWContent {
   pageInfo: PageInfo;

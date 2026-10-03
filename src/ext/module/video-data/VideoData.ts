@@ -7,7 +7,7 @@ import { RunLevel } from '@src/ext/enum/run-level.enum';
 import { Aard } from '@src/ext/module/aard/Aard';
 import { AardLegacy } from '@src/ext/module/aard/AardLegacy';
 import { hasDrm } from '@src/ext/module/ar-detect/DrmDetector';
-import { CommsOrigin } from '@src/ext/module/comms/CommsClient';
+import { CommsOrigin } from '@src/ext/module/comms/comms-origin.enum';
 import EventBus from '@src/ext/module/EventBus';
 import { ComponentLogger } from '@src/ext/module/logging/ComponentLogger';
 import { LogAggregator } from '@src/ext/module/logging/LogAggregator';

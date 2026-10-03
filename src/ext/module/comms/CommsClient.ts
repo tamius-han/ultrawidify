@@ -1,8 +1,11 @@
-import { EventBusContext } from '@/common/interfaces/EventBusMessage.interface';
+import { EventBusContext, EventBusMessage } from '@/common/interfaces/EventBusMessage.interface';
 import EventBus from '../EventBus';
 import { ComponentLogger } from '../logging/ComponentLogger';
 import { LogAggregator } from '../logging/LogAggregator';
+import Settings from '../settings/Settings';
 import BrowserDetect from '@/ext/conf/BrowserDetect';
+import { CommsOrigin } from '@src/ext/module/comms/comms-origin.enum';
+import { CommsMessage } from '@src/ext/module/comms/comms-message.interface';
 
 if (process.env.CHANNEL !== 'stable'){
   console.info("Loading CommsClient");
@@ -62,24 +65,19 @@ if (process.env.CHANNEL !== 'stable'){
  * (accessible within player UI)
  */
 
-export enum CommsOrigin {
-  ContentScript = 1,
-  Popup = 2,
-  Server = 3,
-  Ui = 4,     // in-player UI
-}
+
 
 class CommsClient {
   commsId: string;
   name: string;
-  origin: CommsOrigin;
+  origin!: CommsOrigin;
 
-  logger: ComponentLogger;
-  settings: any;   // sus?
+  logger!: ComponentLogger;
+  settings?: Settings;
 
-  eventBus: EventBus;
+  eventBus!: EventBus;
 
-  _listener: (m: any) => void;
+  _listener: (m: CommsMessage) => void;
   port: chrome.runtime.Port;
 
   //#region lifecycle
@@ -130,7 +128,7 @@ class CommsClient {
   }
   //#endregion
 
-  async sendMessage(message: any, context?: EventBusContext, borderCrossings?){
+  async sendMessage(message: EventBusMessage, context?: EventBusContext, borderCrossings?: EventBusContext['borderCrossings']){
     if (! ['noVideo', 'has-video'].includes(message.command)) {
       this.logger.info('sendMessage', '         <<< Sending message to background script:', message);
     }
@@ -160,7 +158,7 @@ class CommsClient {
     // send to server
     if (!context?.borderCrossings?.commsServer) {
       try {
-        return chrome?.runtime?.sendMessage(null, message, null);
+        return chrome?.runtime?.sendMessage(null, message);
       } catch (e) {
         console.warn(`Failed to send message to background script. Error:`, e, 'data:', {message, context});
       }
@@ -173,7 +171,7 @@ class CommsClient {
    * Processes message we received from CommsServer, and forwards it to eventBus.
    * @param receivedMessage
    */
-  private processReceivedMessage(receivedMessage){
+  private processReceivedMessage(receivedMessage: CommsMessage){
     // console.log('message popped out of the comms', receivedMessage, 'event bus:', this.eventBus);
     // when sending between frames, message will be enriched with two new properties
     const {_sourceFrame, _sourcePort, ...message} = receivedMessage;
