@@ -1,7 +1,8 @@
-import { Aard } from './Aard';
-import { AardLegacy } from './AardLegacy';
-import { AardPerformanceData } from './AardTimers';
-import { FallbackCanvas } from './gl/FallbackCanvas';
+import { AardDebugResults } from '@src/ext/module/aard/debug/debug-results.component';
+import { Aard } from '../Aard';
+import { AardLegacy } from '../AardLegacy';
+import { AardPerformanceData } from '../AardTimers';
+import { FallbackCanvas } from '../gl/FallbackCanvas';
 
 export class AardDebugUi {
 
@@ -11,6 +12,7 @@ export class AardDebugUi {
   pauseOnArCheck: boolean = false;
 
   uiVisibility: any = {};
+  debugResults: AardDebugResults = new AardDebugResults();
 
   constructor(aard: any) {
     this.aard = aard;
@@ -34,10 +36,11 @@ export class AardDebugUi {
      <div style="
         position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; display: flex; flex-direction: column; pointer-events: none; z-index: 9999; font-size: 16px; font-family: 'Overpass Mono', monospace;
       ">
-        <div style="width: 100%; display: flex; flex-direction: row; justify-content: space-between; backdrop-filter: blur(0.5rem) brightness(0.5);">
+        <div id="uw-aard-debug-ui_topbar" style="width: 100%; display: flex; flex-direction: row; justify-content: space-between; backdrop-filter: blur(0.5rem) brightness(0.5);">
           <div style="padding: 1rem; color: #fff">
             <h1>Aard debug overlay</h1>
           </div>
+          <div id="uw-aard-debug-ui_taskbar" style="pointer-events: all; display: flex; flex-direction: column; margin-right: 1rem;"></div>
           <div style="pointer-events: all; display: flex; flex-direction: column; margin-right: 1rem;">
             <button id="uw-aard-debug_show-detection-details">Show det. details</button>
             <button id="uw-aard-debug_hide-detection-details">Hide det. details</button>
@@ -66,6 +69,29 @@ export class AardDebugUi {
               pointer-events: none;
               font-size: 12px;
             }
+
+            #${div.id} {
+              .off {
+                opacity: 0.5;
+              }
+
+              .on {
+                font-weight: bold;
+                color: #00f1c1;
+
+                &.problem {
+                  color: #f00;
+                }
+
+                &.marginal {
+                  color: #ff0;
+                }
+
+                &.uncertain {
+                  color: #4e4eff;
+                }
+              }
+            }
           </style>
 
           <div id="uw-aard-debug_performance-container" style="flex-grow: 1; position: relative; pointer-events: auto;">
@@ -79,12 +105,11 @@ export class AardDebugUi {
         </div>
 
 
-        <div id="uw-aard-debug-ui_body" style="display: flex; flex-direction: row; width: 100%; margin-top: 8rem;">
-          <div style="">
+        <div id="uw-aard-debug-ui_body">
+          <div class="uw-aard-debug-window" data-title="AARD IN" style="position: fixed; left: 0; top: 8rem; pointer-events: all; background: #000; border: 1px solid #fa6;">
+            <div class="uw-aard-debug-window_handle" style="cursor: move; background: #222; color: #fff; padding: 0.5rem 1rem; font-size: 16px; user-select: none;">AARD IN</div>
             <div id="uw-aard-debug_aard-sample-canvas" style="min-width: 640px"></div>
-            <div style="background: black; color: #fff"; font-size: 24px;">AARD IN</div>
-
-            <div style="pointer-events: all">
+            <div>
               <button id="uw-aard-debug-ui_enable-stop-on-change"  style="">Pause video on aspect ratio change</button>
               <button id="uw-aard-debug-ui_disable-stop-on-change" style="display: none">Stop pausing video on aspect ratio change</button>
               <button id="uw-aard-debug-ui_resume-video"           >Resume video</button>
@@ -93,18 +118,18 @@ export class AardDebugUi {
             </div>
           </div>
 
-          <div style="flex-grow: 1"></div>
-          <div>
-            <div style="background: black; color: #ccc;">
-              <div style="font-size: 24px; padding: 1rem;">
-                Debug results:
-              </div>
-              <pre id="uw-aard-results"></pre>
-            </div>
+          <div id="uw-aard-window_debug-stats" class="uw-aard-debug-window" data-title="Debug results" style="position: fixed; left: 700px; top: 8rem; pointer-events: all; background: #000; color: #ccc; border: 1px solid #fa6;">
+
           </div>
-          <div style="width: 1920px; border: 2px dotted #142; margin-right:2rem;">
-            <div id="uw-aard-debug_aard-output" style="zoom: 3; image-rendering: pixelated;"></div>
-            <div style="background: black; color: #fff; font-size: 24px;">AARD RESULT</div>
+
+          <div class="uw-aard-debug-window" data-title="AARD RESULT" style="position: fixed; left: 1200px; top: 8rem; pointer-events: all; background: #000; border: 2px dotted #142;">
+            <div class="uw-aard-debug-window_handle" style="cursor: move; background: #222; color: #fff; padding: 0.5rem 1rem; font-size: 16px; user-select: none; display: flex; align-items: center; gap: 0.5rem;">
+              <span style="flex-grow: 1">AARD RESULT</span>
+              <button id="uw-aard-debug-ui_zoom-1">x1</button>
+              <button id="uw-aard-debug-ui_zoom-2">x2</button>
+              <button id="uw-aard-debug-ui_zoom-3">x3</button>
+            </div>
+            <div id="uw-aard-debug_aard-output" style="zoom: 1; image-rendering: pixelated;"></div>
           </div>
         </div>
       </div>
@@ -112,6 +137,9 @@ export class AardDebugUi {
 
     document.body.appendChild(div);
     this.uiAnchorElement = div;
+
+    const statsWindow = div.querySelector<HTMLDivElement>('#uw-aard-window_debug-stats');
+    statsWindow?.appendChild(this.debugResults.element);
 
     document.getElementById('uw-aard-debug-ui_enable-stop-on-change').onclick = () => this.changePauseOnCheck(true);
     document.getElementById('uw-aard-debug-ui_disable-stop-on-change').onclick = () => this.changePauseOnCheck(false);
@@ -122,7 +150,112 @@ export class AardDebugUi {
     document.getElementById('uw-aard-debug_show-detection-details').onclick = () => {this.uiVisibility.detectionDetails = true; this.setOverlayVisibility();};
     document.getElementById('uw-aard-debug_hide-detection-details').onclick = () => {this.uiVisibility.detectionDetails = false; this.setOverlayVisibility();};
 
+    for (const zoom of [1, 2, 3]) {
+      document.getElementById(`uw-aard-debug-ui_zoom-${zoom}`).onclick = () => {
+        document.getElementById('uw-aard-debug_aard-output').style.zoom = `${zoom}`;
+      };
+    }
+
+    const taskbar = document.getElementById('uw-aard-debug-ui_taskbar');
+    div.querySelectorAll<HTMLElement>('.uw-aard-debug-window').forEach(win => {
+      this.makeDraggable(win);
+      win.addEventListener('pointerdown', () => this.bringToFront(win));
+      this.bringToFront(win);
+
+      const button = document.createElement('button');
+      button.textContent = win.dataset.title;
+      button.onclick = () => {
+        if (win.style.display === 'none') {
+          win.style.display = '';
+          this.bringToFront(win);
+        } else {
+          win.style.display = 'none';
+        }
+      };
+      taskbar.appendChild(button);
+    });
+
+    window.addEventListener('resize', this.clampWindows);
+    this.positionInitial();
+
     this.setOverlayVisibility();
+  }
+
+  private zCounter = 0;
+
+  private get topBarHeight(): number {
+    return document.getElementById('uw-aard-debug-ui_topbar')?.offsetHeight ?? 0;
+  }
+
+  private positionInitial() {
+    const body = document.getElementById('uw-aard-debug-ui_body');
+    const previousDisplay = body.style.display;
+    body.style.display = 'flex';
+
+    const [aardIn, results, aardResult] = Array.from(
+      this.uiAnchorElement.querySelectorAll<HTMLElement>('.uw-aard-debug-window')
+    );
+    const gap = 8;
+    const top = this.topBarHeight + gap;
+
+    aardIn.style.left = `${gap}px`;
+    aardIn.style.top = `${top}px`;
+    aardResult.style.left = `${gap}px`;
+    aardResult.style.top = `${top + aardIn.offsetHeight + gap}px`;
+    // anchored to the right edge so it stays on-screen when its content grows
+    results.style.left = 'auto';
+    results.style.right = `${gap}px`;
+    results.style.top = `${top}px`;
+
+    body.style.display = previousDisplay;
+  }
+
+  private bringToFront(win: HTMLElement) {
+    win.style.zIndex = `${++this.zCounter}`;
+  }
+
+  private clampWindow(win: HTMLElement) {
+    if (win.style.display === 'none') {
+      return;
+    }
+    const minTop = this.topBarHeight;
+    const maxLeft = Math.max(0, window.innerWidth - win.offsetWidth);
+    const maxTop = Math.max(minTop, window.innerHeight - win.offsetHeight);
+    win.style.left = `${Math.min(Math.max(win.offsetLeft, 0), maxLeft)}px`;
+    win.style.right = 'auto';
+    win.style.top = `${Math.min(Math.max(win.offsetTop, minTop), maxTop)}px`;
+  }
+
+  private clampWindows = () => {
+    this.uiAnchorElement?.querySelectorAll<HTMLElement>('.uw-aard-debug-window').forEach(win => this.clampWindow(win));
+  };
+
+  private makeDraggable(win: HTMLElement) {
+    const handle = win.querySelector<HTMLElement>('.uw-aard-debug-window_handle');
+    handle.onpointerdown = (down: PointerEvent) => {
+      if ((down.target as HTMLElement).tagName === 'BUTTON') {
+        return;
+      }
+      const offsetX = down.clientX - win.offsetLeft;
+      const offsetY = down.clientY - win.offsetTop;
+      win.style.left = `${win.offsetLeft}px`;
+      win.style.right = 'auto';
+      handle.setPointerCapture(down.pointerId);
+
+      handle.onpointermove = (move: PointerEvent) => {
+        // keep at least part of the title bar reachable
+        const minVisible = 50;
+        const left = Math.min(Math.max(move.clientX - offsetX, minVisible - win.offsetWidth), window.innerWidth - minVisible);
+        const top = Math.min(Math.max(move.clientY - offsetY, this.topBarHeight), window.innerHeight - handle.offsetHeight);
+        win.style.left = `${left}px`;
+        win.style.top = `${top}px`;
+      };
+      handle.onpointerup = (up: PointerEvent) => {
+        handle.releasePointerCapture(up.pointerId);
+        handle.onpointermove = null;
+        handle.onpointerup = null;
+      };
+    };
   }
 
   changePauseOnCheck(pauseOnChange: boolean) {
@@ -133,6 +266,7 @@ export class AardDebugUi {
   }
 
   destroyContainer() {
+    window.removeEventListener('resize', this.clampWindows);
     this.uiAnchorElement.remove();
   }
 
@@ -141,6 +275,7 @@ export class AardDebugUi {
     sampleCanvasParent.appendChild(sample);
     const debugCanvasParent = document.getElementById('uw-aard-debug_aard-output');
     debugCanvasParent.appendChild(debug);
+    this.positionInitial();
   }
 
   resumeVideo() {
@@ -375,10 +510,15 @@ export class AardDebugUi {
 
 
       image in black level probe (aka "not letterbox"): ${testResults.notLetterbox}
+
+      flags: ———————————————————————————————————————————
+      ${JSON.stringify(testResults.flags, null, 2)}
     `;
     this._lastAr = ar;
 
     resultsDiv.innerHTML = out;
+
+    this.debugResults.updateStatus(testResults.flags);
   }
 
   private setOverlayVisibility() {

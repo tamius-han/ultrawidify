@@ -25,6 +25,18 @@ export interface AardTestResult_SubtitleRegion {
   }
 }
 
+export interface AardTestResultFlags {
+  noLetterbox: boolean,
+  doubleLetterbox: boolean,
+  arStable: boolean,
+  arDeltaStable: boolean,
+  arUnstable: boolean,
+  cropInvalidated: boolean,
+  cropMaintaining: boolean,
+  subtitlesUncertain: boolean,
+  subtitlesConfirmed: boolean
+}
+
 export interface AardTestResults {
   isFinished: boolean,
   lastStage: number,
@@ -78,17 +90,7 @@ export interface AardTestResults {
   },
   aspectRatioUncertainReason?: AardUncertainReason,
   aspectRatioInvalidReason?: string,
-  flags: {
-    noLetterbox: boolean,
-    doubleLetterbox: boolean,
-    arStable: boolean,
-    arDeltaStable: boolean,
-    arUnstable: boolean,
-    cropInvalidated: boolean,
-    cropMaintaining: boolean,
-    subtitlesUncertain: boolean,
-    subtitlesConfirmed: boolean
-  }
+  flags: AardTestResultFlags,
 }
 
 export function initAardTestResults(settings: AardSettings): AardTestResults {
@@ -180,10 +182,13 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
     letterboxSizeWithSubtitles: 0,
     aspectRatioInvalid: false,
 
-    deltaIndex: 0,
-    ratioIndex: 0,
-    deltas: new Array<number>(settings.stability.deltaSampleCount).fill(0),
-    ratios: new Array<number>(settings.stability.arSampleCount).fill(0),
+    stability: {
+      deltaIndex: 0,
+      ratioIndex: 0,
+      deltas: new Array<number>(settings.stability.deltaSampleCount).fill(0),
+      ratios: new Array<number>(settings.stability.arSampleCount).fill(0),
+      timeDuration: undefined,
+    },
 
     flags: {
       noLetterbox: false,

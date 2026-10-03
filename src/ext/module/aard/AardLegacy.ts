@@ -5,7 +5,7 @@ import EventBus from '../EventBus';
 import Settings from '../settings/Settings';
 import { SiteSettings } from '../settings/SiteSettings';
 import VideoData from '../video-data/VideoData';
-import { AardDebugUi } from './AardDebugUi';
+import { AardDebugUi } from './debug/AardDebugUi';
 import { AardTimer } from './AardTimers';
 import { Corner } from './enums/corner.enum';
 import { VideoPlaybackState } from './enums/video-playback-state.enum';

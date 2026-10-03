@@ -37,6 +37,11 @@ const config = {
   module: {
     rules: [
       {
+        test: /\.html$/,
+        resourceQuery: /raw/,
+        type: 'asset/source',
+      },
+      {
         test: /\.(png|jpg|webp|gif|svg|ico)$/,
         type: 'asset/resource',
         generator: {
