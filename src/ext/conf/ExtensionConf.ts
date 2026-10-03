@@ -1,3 +1,4 @@
+import { ArConfirmationStrategy } from '@src/common/enums/ArConfirmationStrategy.enum';
 import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
 import CropModePersistence from '@src/common/enums/CropModePersistence.enum';
 import EmbeddedContentSettingsOverridePolicy from '@src/common/enums/EmbeddedContentSettingsOverridePolicy.enum';
@@ -175,6 +176,17 @@ const ExtensionConf: SettingsInterface = {
     letterboxOrientationScan: {
       letterboxLimit: 8,
       pillarboxLimit: 8
+    },
+
+    stability: {
+      confirmationStrategy: ArConfirmationStrategy.NoConfirming,
+      arSampleCount: 3, // we need to detect aspect ratio on this many consecutive scans before applying
+      arConfirmationTime: 1000,  // we need to hold detected aspect ratio for this many ms before applying
+      arTolerance: 0.025,        // allowed difference in aspect ratio (%)
+      applyOnStableDelta: true,  // allows StableDelta as a fallback on other confirmation strategies
+      deltaSampleInterval: 3,
+      deltaSampleCount: 3,  // number of consecutive deltas required for stability
+      deltaTolerance: 0.05, // tolerance (%)
     },
 
     subtitles: {

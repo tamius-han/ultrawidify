@@ -11,6 +11,7 @@ import { PlayerDetectionMode } from '@src/common/enums/PlayerDetectionMode.enum'
 import { InputHandlingMode } from '@src/common/enums/InputHandlingMode.enum';
 import { MenuPosition } from '@src/common/interfaces/ClientUiMenu.interface';
 import { Ar } from '@src/common/interfaces/ArInterface';
+import { ArConfirmationStrategy } from '@src/common/enums/ArConfirmationStrategy.enum';
 
 export enum ExtensionEnvironment {
   Normal = ExtensionMode.All,
@@ -103,10 +104,30 @@ export interface AardSettings {
     stopTimeout: number;
   },
 
+  stability: {
+    confirmationStrategy: ArConfirmationStrategy,
+    arSampleCount: number, // we need to detect aspect ratio on this many consecutive scans before applying
+    arConfirmationTime: number,  // we need to hold detected aspect ratio for this many ms before applying
+    arTolerance: number,        // allowed difference in aspect ratio (%)
+    applyOnStableDelta: boolean,
+    deltaSampleInterval: number,  // interval between consecutive delta samples (in frames)
+    deltaSampleCount: number,  // number of consecutive deltas required for stability
+    deltaTolerance: number,    // tolerance (%)
+  },
+
   polling: {
     runInBackgroundTabs: AardPollingOptions;
     runOnSmallVideos: AardPollingOptions;
   }
+
+  autoDisable: {            // settings for automatically disabling the extension
+    onFirstChange: boolean,
+    ifNotChanged: boolean,
+    ifNotChangedTimeout: number,
+    ifSubtitles: boolean;
+  },
+
+  subtitles: AardSubtitleScanOptions,
 
   disabledReason: string,     // if automatic aspect ratio has been disabled, show reason
   allowedMisaligned: number,  // top and bottom letterbox thickness can differ by this much.
@@ -121,14 +142,6 @@ export interface AardSettings {
     tickrate: number,          // 1 tick every this many milliseconds
   },
 
-  subtitles: AardSubtitleScanOptions,
-
-  autoDisable: {            // settings for automatically disabling the extension
-    onFirstChange: boolean,
-    ifNotChanged: boolean,
-    ifNotChangedTimeout: number,
-    ifSubtitles: boolean;
-  },
   canvasDimensions: {
     blackframeCanvas: {   // smaller than sample canvas, blackframe canvas is used to recon for black frames
                           // it's not used to detect aspect ratio by itself, so it can be tiny af

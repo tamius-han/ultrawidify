@@ -26,6 +26,7 @@ import { Edge } from './enums/edge.enum';
 import { AardUncertainReason } from './enums/aard-letterbox-uncertain-reason.enum';
 import { result } from 'lodash';
 import { equalish } from '@src/common/utils/comparators';
+import { ArConfirmationStrategy } from '@src/common/enums/ArConfirmationStrategy.enum';
 
 
 /**
@@ -525,6 +526,7 @@ export class Aard {
           );
 
           if (this.testResults.letterboxOrientation === LetterboxOrientation.NotLetterbox) {
+            this.testResults.flags.noLetterbox = true;
             break orientationCheck;
           }
 
@@ -546,6 +548,7 @@ export class Aard {
           this.testResults.letterboxOffset = 0;
           resetGuardLine(this.testResults);
 
+          this.testResults.flags.noLetterbox = true;
           break scanFrame;
         }
 
@@ -553,6 +556,7 @@ export class Aard {
         if (this.testResults.letterboxOrientation === LetterboxOrientation.Both) {
           this.testResults.lastStage = 1;
 
+          this.testResults.flags.doubleLetterbox = true;
           break scanFrame;
         }
 
@@ -592,6 +596,15 @@ export class Aard {
           this.testResults.activeLetterbox.width = 0;
           this.testResults.activeLetterbox.offset = 0;
           this.testResults.activeLetterbox.orientation = LetterboxOrientation.NotLetterbox;
+
+          this.testResults.flags.doubleLetterbox = true;
+          clearTimeout(this.testResults.stability.timeDuration);
+          break processUpdate;
+        }
+
+        // subtitle detection didn't run
+        if (this.testResults.letterboxOrientation === LetterboxOrientation.Both) {
+          clearTimeout(this.testResults.stability.timeDuration);
           break processUpdate;
         }
 
@@ -618,6 +631,7 @@ export class Aard {
             this.status.autoDisabled = true;
           }
 
+          clearTimeout(this.testResults.stability.timeDuration);
           break processUpdate;
         }
 
@@ -634,6 +648,7 @@ export class Aard {
           //   this.updateAspectRatio(this.defaultAr, {uncertainDetection: true, forceReset: true});
           // }
 
+          this.testResults.flags.cropMaintaining = true;
           break processUpdate;
         }
 
@@ -646,6 +661,96 @@ export class Aard {
         // TODO: set flag if subtitles are far enough from edge to avoid getting cropped
         const finalAr = this.getAr();
         if (finalAr > 0) {
+
+          if (arConf.stability.confirmationStrategy !== ArConfirmationStrategy.NoConfirming) {
+            const lastAr = this.testResults.stability.ratios[this.testResults.stability.ratioIndex];
+            this.testResults.stability.ratioIndex = (this.testResults.stability.ratioIndex + 1) % this.testResults.stability.ratios.length;
+            this.testResults.stability.ratios[this.testResults.stability.ratioIndex] = finalAr;
+
+            const ratioTolerance = finalAr * arConf.stability.arTolerance;
+
+            // time duration is a special case that doesn't work with stable delta.
+            // we also don't care about whether last AR exists or not for this strategy
+            if (arConf.stability.confirmationStrategy === ArConfirmationStrategy.TimeDuration) {
+
+              // only clear and set timeout if finalAr is different than currentAr
+              if (!equalish(finalAr, lastAr, ratioTolerance)) {
+                clearTimeout(this.testResults.stability.timeDuration);
+
+                this.testResults.stability.timeDuration = setTimeout(
+                  () => {
+                    this.testResults.flags.arStable = true;
+                    this.updateAspectRatio(finalAr, {uncertainDetection: false, forceReset: false});
+                    this.testResults.activeLetterbox.width = this.testResults.letterboxSize;
+                    this.testResults.activeLetterbox.offset = this.testResults.letterboxOffset;
+                    this.testResults.activeLetterbox.orientation = this.testResults.letterboxOrientation;
+
+                    if (this.canvasStore.debug) {
+                      // this.canvasStore.debug.drawBuffer(imageData);
+                      this.timer.getAverage();
+                      this.debugConfig?.debugUi?.updateTestResults(this.testResults, this.timers);
+                    }
+                  },
+                  arConf.stability.arConfirmationTime
+                );
+              }
+
+              break processUpdate;
+            }
+
+            // on first run, lastAr doesn't exist, so we can't do anything
+            if (!lastAr) {
+              break processUpdate;
+            }
+
+            // calculate and save delta
+            const delta = Math.abs(finalAr - lastAr);
+            this.testResults.stability.deltas[this.testResults.stability.deltaIndex] = delta;
+            this.testResults.stability.deltaIndex = (this.testResults.stability.deltaIndex + 1) % this.testResults.stability.deltas.length;
+
+            let stable = true;
+            if (arConf.stability.confirmationStrategy === ArConfirmationStrategy.ConsecutiveScans) {
+
+              for (let i = 1; i < this.testResults.stability.ratios.length; i++) {
+                if (
+                  !equalish(
+                    this.testResults.stability.ratios[i],
+                    this.testResults.stability.ratios[0],
+                    ratioTolerance
+                  )
+                ) {
+                  stable = false;
+                  if (!arConf.stability.applyOnStableDelta) {
+                    this.testResults.flags.cropMaintaining = true;
+                    break processUpdate;
+                  }
+                }
+              }
+
+              this.testResults.flags.arStable = stable;
+            }
+            if (
+              arConf.stability.confirmationStrategy === ArConfirmationStrategy.StableDelta
+              || (!stable && arConf.stability.applyOnStableDelta)
+            ) {
+              const deltaTolerance = delta * arConf.stability.deltaTolerance;
+              for (let i = 1; i < this.testResults.stability.deltas.length; i++) {
+                if (
+                  !equalish(
+                    this.testResults.stability.deltas[i],
+                    this.testResults.stability.deltas[0],
+                    deltaTolerance
+                  )
+                ) {
+                  this.testResults.flags.cropMaintaining = true;
+                  break processUpdate;
+                }
+              }
+
+              this.testResults.flags.arDeltaStable = true;
+            }
+          }
+
           this.updateAspectRatio(finalAr);
           this.testResults.activeLetterbox.width = this.testResults.letterboxSize;
           this.testResults.activeLetterbox.offset = this.testResults.letterboxOffset;

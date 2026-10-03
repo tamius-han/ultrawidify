@@ -1,5 +1,6 @@
 // How to use:
 // version: {ExtensionConf object, but only properties that get overwritten}
+import { ArConfirmationStrategy } from '@src/common/enums/ArConfirmationStrategy.enum';
 import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
 import CropModePersistence from '@src/common/enums/CropModePersistence.enum';
 import EmbeddedContentSettingsOverridePolicy from '@src/common/enums/EmbeddedContentSettingsOverridePolicy.enum';
@@ -532,7 +533,7 @@ const ExtensionConfPatch = Object.freeze([
 
     }
   }, {
-    forVersion: '6.3.9990',
+    forVersion: '6.3.9991',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
       userOptions.mouseOptions = {
         shiftPan: true,
@@ -549,6 +550,16 @@ const ExtensionConfPatch = Object.freeze([
         scanLines: 3,
         confirmationScanInterval: 1,
         phaseLengthTolerance: 2,
+      };
+      userOptions.aard.stability = {
+        confirmationStrategy: ArConfirmationStrategy.NoConfirming,
+        arSampleCount: 3, // we need to detect aspect ratio on this many consecutive scans before applying
+        arConfirmationTime: 1000,  // we need to hold detected aspect ratio for this many ms before applying
+        applyOnStableDelta: true,
+        deltaSampleInterval: 3,
+        deltaSampleCount: 3,  // number of consecutive deltas required for stability
+        arTolerance: 0.025,
+        deltaTolerance: 0.05,
       };
     }
   }

@@ -68,9 +68,27 @@ export interface AardTestResults {
     width: number,
     offset: number,
     orientation: LetterboxOrientation
-  }
+  },
+  stability: {
+    deltas: number[],
+    ratios: number[],
+    deltaIndex: number,
+    ratioIndex: number,
+    timeDuration: NodeJS.Timeout,
+  },
   aspectRatioUncertainReason?: AardUncertainReason,
   aspectRatioInvalidReason?: string,
+  flags: {
+    noLetterbox: boolean,
+    doubleLetterbox: boolean,
+    arStable: boolean,
+    arDeltaStable: boolean,
+    arUnstable: boolean,
+    cropInvalidated: boolean,
+    cropMaintaining: boolean,
+    subtitlesUncertain: boolean,
+    subtitlesConfirmed: boolean
+  }
 }
 
 export function initAardTestResults(settings: AardSettings): AardTestResults {
@@ -161,6 +179,23 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
     letterboxOffset: 0,
     letterboxSizeWithSubtitles: 0,
     aspectRatioInvalid: false,
+
+    deltaIndex: 0,
+    ratioIndex: 0,
+    deltas: new Array<number>(settings.stability.deltaSampleCount).fill(0),
+    ratios: new Array<number>(settings.stability.arSampleCount).fill(0),
+
+    flags: {
+      noLetterbox: false,
+      doubleLetterbox: false,
+      arStable: false,
+      arDeltaStable: false,
+      arUnstable: false,
+      cropInvalidated: false,
+      cropMaintaining: false,
+      subtitlesUncertain: false,
+      subtitlesConfirmed: false
+    }
   }
 }
 
@@ -180,6 +215,17 @@ export function resetAardTestResults(results: AardTestResults): void {
   // subtitle scan only runs on letterbox frames. If this flag isn't cleared every frame, a stale
   // detection from an earlier frame is acted upon in frames where the scan didn't run.
   results.subtitleDetected = false;
+
+  // reset flags for debug
+  results.flags.noLetterbox = false;
+  results.flags.doubleLetterbox = false;
+  results.flags.arStable = false;
+  results.flags.arDeltaStable = false;
+  results.flags.arUnstable = false;
+  results.flags.cropInvalidated = false;
+  results.flags.cropMaintaining = false;
+  results.flags.subtitlesUncertain = false;
+  results.flags.subtitlesConfirmed = false;
 }
 
 export function resetSubtitleScanResults(results: AardTestResults): void {

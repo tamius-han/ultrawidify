@@ -8,5 +8,5 @@ export function collectionHas(collection, element): boolean {
 }
 
 export function equalish(a: number,b: number, tolerance: number): boolean {
-  return a > b - tolerance && a < b + tolerance;
+  return a >= b - tolerance && a <= b + tolerance;
 }
