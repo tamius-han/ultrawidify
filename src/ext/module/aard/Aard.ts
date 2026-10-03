@@ -83,7 +83,7 @@ export class Aard {
 
   private video: HTMLVideoElement;
 
-  private animationFrame: number;
+  private animationFrame?: number;
 
   //#region internal state
   public status: AardStatus = initAardStatus();
@@ -325,8 +325,11 @@ export class Aard {
    * Stops autodetection.
    */
   stop() {
+    this.status.aardActive = false;
+
     if (this.animationFrame) {
       window.cancelAnimationFrame(this.animationFrame);
+      this.animationFrame = undefined;
     }
   }
 
@@ -387,15 +390,24 @@ export class Aard {
    * between two adjacent functions.
    */
   private onAnimationFrame(ts: DOMHighResTimeStamp) {
+    // this frame is now running, so its id is no longer cancellable/meaningful.
+    this.animationFrame = undefined;
+
+    if (!this.status.aardActive) {
+      return;
+    }
+
     if (this.canTriggerFrameCheck()) {
       resetAardTestResults(this.testResults);
       resetSamples(this.canvasSamples);
       resetSubtitleScanResults(this.testResults);
       this.main();
       this.forceFullRecheck = false;
-    } else {
     }
-    this.animationFrame = window.requestAnimationFrame( (ts: DOMHighResTimeStamp) => this.onAnimationFrame(ts));
+
+    if (this.status.aardActive && this.animationFrame === undefined) {
+      this.animationFrame = window.requestAnimationFrame( (ts: DOMHighResTimeStamp) => this.onAnimationFrame(ts));
+    }
   }
   //#endregion
 
