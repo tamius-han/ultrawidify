@@ -1,7 +1,8 @@
 import { EventBusCommand, EventBusContext, EventBusMessage } from '@src/common/interfaces/EventBusMessage.interface';
 import { IframeTunnelPayload } from '@src/common/interfaces/IframeTunnelPayload.interface';
 import Comms from '@src/ext/module/comms/Comms';
-import CommsClient, { CommsOrigin } from '@src/ext/module/comms/CommsClient';
+import CommsClient from '@src/ext/module/comms/CommsClient';
+import { CommsOrigin } from '@src/ext/module/comms/comms-origin.enum';
 import CommsServer from '@src/ext/module/comms/CommsServer';
 
 
@@ -24,12 +25,12 @@ export default class EventBus {
 
   // private uiUri = window.location.href;
 
-  constructor(options?: {isUWServer?: boolean, name?: string, commsOrigin: CommsOrigin}) {
+  constructor(options: {isUWServer?: boolean, name?: string, commsOrigin: CommsOrigin}) {
     if (!options?.isUWServer) {
       this.setupIframeTunnelling();
     }
     this.name = options?.name ?? '(unnamed EventBus)';
-    this.commsOrigin = options?.commsOrigin;
+    this.commsOrigin = options.commsOrigin;
   }
 
   setupPopupTunnelWorkaround(context: EventBusContext): void {

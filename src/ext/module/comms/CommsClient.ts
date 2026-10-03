@@ -3,7 +3,6 @@ import EventBus from '../EventBus';
 import { ComponentLogger } from '../logging/ComponentLogger';
 import { LogAggregator } from '../logging/LogAggregator';
 import Settings from '../settings/Settings';
-import BrowserDetect from '@/ext/conf/BrowserDetect';
 import { CommsOrigin } from '@src/ext/module/comms/comms-origin.enum';
 import { CommsMessage } from '@src/ext/module/comms/comms-message.interface';
 
@@ -68,7 +67,7 @@ if (process.env.CHANNEL !== 'stable'){
 
 
 class CommsClient {
-  commsId: string;
+  commsId!: string;
   name: string;
   origin!: CommsOrigin;
 
@@ -77,8 +76,11 @@ class CommsClient {
 
   eventBus!: EventBus;
 
-  _listener: (m: CommsMessage) => void;
-  port: chrome.runtime.Port;
+  _listener!: (m: CommsMessage) => void;
+  port!: chrome.runtime.Port;
+  private destroyed = false;
+  private reconnectTimer?: ReturnType<typeof setTimeout>;
+  private disconnectListener?: () => void;
 
   //#region lifecycle
   constructor(name: string, logAggregator: LogAggregator, eventBus: EventBus) {
@@ -93,38 +95,66 @@ class CommsClient {
         this.origin = CommsOrigin.ContentScript;
       }
 
-      // if (BrowserDetect.firefox) {
-      //   this.port = chrome.runtime.connect(null, {name: name});
-      // } else {
-      // this connects to the background page
-      this.port = chrome.runtime.connect(null, {name: name});
-      // }
-
-      // this.logger.onLogEnd(
-      //   (history) => {
-      //     this.logger.log('info', 'comms', 'Sending logging-stop-and-save to background script ...');
-      //     try {
-      //       this.port.postMessage({cmd: 'logging-stop-and-save', host: window.location.hostname, history})
-      //     } catch (e) {
-      //       this.logger.log('error', 'comms', 'Failed to send message to background script. Error:', e);
-      //     }
-      //   }
-      // );
-
       this._listener = m => this.processReceivedMessage(m);
-      this.port.onMessage.addListener(this._listener);
-
       this.commsId = (Math.random() * 20).toFixed(0);
+      this.connectPort();
 
     } catch (e) {
       console.error("CONSTRUCTOR FAILED:", e)
     }
   }
 
-  destroy() {
-    if (!BrowserDetect.edge) { // edge is a very special browser made by outright morons.
-      this.port.onMessage.removeListener(this._listener);
+  private connectPort() {
+    if (this.destroyed) {
+      return;
     }
+    if (this.reconnectTimer !== undefined) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = undefined;
+    }
+
+    try {
+      const port = chrome.runtime.connect(undefined, {name: this.name});
+      this.port = port;
+      const disconnectListener = () => {
+        port.onMessage.removeListener(this._listener);
+        port.onDisconnect.removeListener(disconnectListener);
+        if (this.port === port) {
+          this.disconnectListener = undefined;
+          if (!this.destroyed) {
+            this.scheduleReconnect();
+          }
+        }
+      };
+      this.disconnectListener = disconnectListener;
+      port.onMessage.addListener(this._listener);
+      port.onDisconnect.addListener(disconnectListener);
+    } catch (error) {
+      this.scheduleReconnect();
+    }
+  }
+
+  private scheduleReconnect() {
+    if (this.destroyed || this.reconnectTimer !== undefined) {
+      return;
+    }
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = undefined;
+      this.connectPort();
+    }, 1000);
+  }
+
+  destroy() {
+    this.destroyed = true;
+    if (this.reconnectTimer !== undefined) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = undefined;
+    }
+    this.port?.onMessage.removeListener(this._listener);
+    if (this.disconnectListener) {
+      this.port?.onDisconnect.removeListener(this.disconnectListener);
+    }
+    this.port?.disconnect();
   }
   //#endregion
 
@@ -143,10 +173,8 @@ class CommsClient {
         // console.log('chrome is shit, lets try to bruteforce ...', e);
         console.warn('failed to send message from popup to background server. Will try again. Error:\n', e);
         try {
-          const port = chrome.runtime.connect(undefined, {name: this.name});
-          port.onMessage.addListener(this._listener);
-          this.port = port;
-          const res = port.postMessage(message);
+          this.connectPort();
+          const res = this.port.postMessage(message);
           console.warn('Retry successful');
           return res;
         } catch (e) {
@@ -158,7 +186,7 @@ class CommsClient {
     // send to server
     if (!context?.borderCrossings?.commsServer) {
       try {
-        return chrome?.runtime?.sendMessage(null, message);
+        return await chrome.runtime.sendMessage(undefined, message);
       } catch (e) {
         console.warn(`Failed to send message to background script. Error:`, e, 'data:', {message, context});
       }

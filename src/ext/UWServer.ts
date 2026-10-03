@@ -7,7 +7,7 @@ import CommsServer from '@src/ext/module/comms/CommsServer';
 import BrowserDetect from '@src/ext/conf/BrowserDetect';
 import { HostInfo } from '@src/common/interfaces/HostData.interface';
 import { ExtensionEnvironment } from '@src/common/interfaces/SettingsInterface';
-import { CommsOrigin } from '@src/ext/module/comms/CommsClient';
+import { CommsOrigin } from '@src/ext/module/comms/comms-origin.enum';
 
 
 const BASE_LOGGING_STYLES = {
@@ -20,6 +20,7 @@ export default class UWServer {
   logAggregator: LogAggregator;
   comms: CommsServer;
   eventBus: EventBus;
+  ready: Promise<void>;
 
   ports: any[] = [];
   hasVideos: boolean;
@@ -67,7 +68,7 @@ export default class UWServer {
   //#endregion
 
   constructor() {
-    this.setup();
+    this.ready = this.setup();
   }
 
   async setup() {
@@ -77,19 +78,17 @@ export default class UWServer {
 
       this.logAggregator = new LogAggregator('🔶bg-script🔶');
       this.logger = new ComponentLogger(this.logAggregator, 'UwServer', {styles: BASE_LOGGING_STYLES});
-      await this.logAggregator.init(loggingOptions);
-
       this.settings = new Settings({logAggregator: this.logAggregator});
-      await this.settings.init();
-
       this.eventBus = new EventBus({isUWServer: true, commsOrigin: CommsOrigin.Server});
-
       this.eventBus.subscribeMulti(this.eventBusCommands, this);
-
       this.comms = new CommsServer(this);
       this.eventBus.setComms(this.comms);
+      chrome.tabs.onActivated.addListener((activeInfo) => {
+        void this.ready.then(() => this.onTabSwitched(activeInfo));
+      });
 
-      chrome.tabs.onActivated.addListener((m) => {this.onTabSwitched(m)});
+      await this.logAggregator.init(loggingOptions);
+      await this.settings.init();
     } catch (e) {
       console.error(`Ultrawidify [server]: failed to start. Reason:`, e);
     }

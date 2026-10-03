@@ -68,7 +68,8 @@ import { SiteSettings } from '@src/ext/module/settings/SiteSettings';
 import SettingsWindowContent from '@components/SettingsWindowContent.vue';
 
 import EventBus from '@src/ext/module/EventBus';
-import CommsClient, { CommsOrigin } from '@src/ext/module/comms/CommsClient';
+import CommsClient from '@src/ext/module/comms/CommsClient';
+import { CommsOrigin } from '@src/ext/module/comms/comms-origin.enum';
 import {ChromeShittinessMitigations as CSM} from '@src/common/js/ChromeShittinessMitigations';
 
 import PopupHead from '@components/PopupHead.vue';
@@ -175,7 +176,7 @@ export default defineComponent({
         await this.settings.init();
         this.settingsInitialized = true;
 
-        this.eventBus = new EventBus({name: 'popup'});
+        this.eventBus = new EventBus({name: 'popup', commsOrigin: CommsOrigin.Popup});
         this.eventBus.subscribe(
           'set-current-site',
           {
@@ -279,7 +280,7 @@ export default defineComponent({
 
         if (!this.eventBus) {
           // inter-frame communication should be set up by eventBus for free
-          this.eventBus = new EventBus({name: 'ui-window'});
+          this.eventBus = new EventBus({name: 'ui-window', commsOrigin: CommsOrigin.Ui});
         }
 
         /**

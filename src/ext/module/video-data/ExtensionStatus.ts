@@ -26,6 +26,7 @@ export class ExtensionStatus {
   constructor(siteSettings: SiteSettings, eventBus: EventBus, fsStatus: {fullscreen: boolean}){
     this.siteSettings = siteSettings;
     this.eventBus = eventBus;
+    this.fsStatus = fsStatus;
   }
 
   refreshExtensionStatus() {

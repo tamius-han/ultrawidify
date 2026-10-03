@@ -95,6 +95,10 @@ class PageInfo {
 
     if (eventBus){
       this.eventBus = eventBus;
+      this.eventBus.subscribe('restore-background-state', {
+        source: this,
+        function: () => this.restoreBackgroundState()
+      });
     }
 
     try {
@@ -133,6 +137,13 @@ class PageInfo {
     } catch (e) {
       // do nothing. It's ok if there's no special settings for the player element
     }
+    this.eventBus.unsubscribeAll(this);
+  }
+
+  private restoreBackgroundState() {
+    const playerStyleString = this.siteSettings.data.currentDOMConfig?.customCss?.replace('\\n', '');
+    this.eventBus.send('inject-css', {cssString: playerStyleString});
+    this.emitVideoStatus();
   }
 
   /**

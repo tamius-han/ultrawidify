@@ -1,4 +1,4 @@
-import { CommsOrigin } from '@/ext/module/comms/CommsClient';
+import { CommsOrigin } from '@/ext/module/comms/comms-origin.enum';
 import type { Runtime } from 'chrome';
 
 export interface EventBusCommand {

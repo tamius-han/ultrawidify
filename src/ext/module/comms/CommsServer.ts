@@ -9,8 +9,8 @@ import { CommsOrigin } from '@src/ext/module/comms/comms-origin.enum';
 import { EventBusContext } from '@src/common/interfaces/EventBusMessage.interface';
 
 type CommsServerContext = EventBusContext & {
-  tab?: string;
-  frame?: string;
+  tab?: number;
+  frame?: number | '__playing' | '__all';
   port?: string;
 };
 type CommsSourceFrame = { tabId: number; frameId: number };
@@ -54,14 +54,8 @@ class CommsServer {
    *
    * And, again, we always need to call the content script.
    */
-  ports: {
-    [tab: string] : {           // tab of a browser
-      [frame: string] : {       // iframe inside of the tab
-        [port: string]: chrome.runtime.Port     // script inside the iframe.
-      }
-    }
-  } = {};
-  popupPort!: chrome.runtime.Port;
+  ports: Map<number, Map<number, Map<string, chrome.runtime.Port>>> = new Map();
+  popupPort?: chrome.runtime.Port;
 
   private _lastActiveTab: chrome.tabs.Tab | undefined;
   //#region getters
@@ -103,35 +97,47 @@ class CommsServer {
     if (port.name === 'popup-port') {
       this.popupPort = port;
       this.popupPort.onMessage.addListener((m: CommsMessage, p: chrome.runtime.Port) => this.processReceivedMessage(m, p));
+      port.onDisconnect.addListener(() => {
+        if (this.popupPort === port) {
+          this.popupPort = undefined;
+        }
+      });
       return;
     }
 
     const tabId = port.sender?.tab?.id;
     const frameId = port.sender?.frameId;
-    if (!tabId || !frameId) {
+    if (tabId === undefined || frameId === undefined) {
       this.logger.warn('onConnect', 'port does not have a valid tabId or frameId', port.sender);
       return;
     }
 
-    if (! this.ports[tabId]){
-      this.ports[tabId] = {};
+    let tabPorts = this.ports.get(tabId);
+    if (!tabPorts) {
+      tabPorts = new Map();
+      this.ports.set(tabId, tabPorts);
     }
-    if (! this.ports[tabId][frameId]) {
-      this.ports[tabId][frameId] = {};
+    let framePorts = tabPorts.get(frameId);
+    if (!framePorts) {
+      framePorts = new Map();
+      tabPorts.set(frameId, framePorts);
     }
-    this.ports[tabId][frameId][port.name] = port;
-    this.ports[tabId][frameId][port.name].onMessage.addListener((m: CommsMessage, p: chrome.runtime.Port) => this.processReceivedMessage(m, p, {tabId, frameId}));
+    framePorts.set(port.name, port);
+    port.onMessage.addListener((m: CommsMessage, p: chrome.runtime.Port) => this.processReceivedMessage(m, p, {tabId, frameId}));
+    if (port.name === 'content-main-port') {
+      setTimeout(() => {
+        if (this.ports.get(tabId)?.get(frameId)?.get(port.name) === port) {
+          port.postMessage({command: 'restore-background-state'});
+        }
+      }, 0);
+    }
 
-    this.ports[tabId][frameId][port.name].onDisconnect.addListener((p: chrome.runtime.Port) => {
-      try {
-        delete this.ports[tabId][frameId][port.name];
-      } catch (e) {
-        // no biggie if the thing above doesn't exist.
-      }
-      if (Object.keys(this.ports[tabId][frameId]).length === 0) {
-        delete this.ports[tabId][frameId];
-        if(Object.keys(this.ports[tabId]).length === 0) {
-          delete this.ports[tabId];
+    port.onDisconnect.addListener(() => {
+      framePorts.delete(port.name);
+      if (framePorts.size === 0) {
+        tabPorts.delete(frameId);
+        if (tabPorts.size === 0) {
+          this.ports.delete(tabId);
         }
       }
     });
@@ -146,15 +152,19 @@ class CommsServer {
    */
   async listUniqueFrameHosts() {
     const aTab = await this.activeTab;
+    if (aTab?.id === undefined) {
+      return [];
+    }
 
-    const tabPort = this.ports[aTab.id];
-    const hosts = [];
+    const tabPorts = this.ports.get(aTab.id);
+    if (!tabPorts) {
+      return [];
+    }
+    const hosts: string[] = [];
 
-    for (const frame in tabPort) {
-      for (const portName in tabPort[frame]) {
-        const port = tabPort[frame][portName];
-
-        const host =  port.sender.origin.split('://')[1];
+    for (const framePorts of tabPorts.values()) {
+      for (const port of framePorts.values()) {
+        const host = port.sender?.origin?.split('://')[1];
 
         // if host is invalid or already exists in our list, skip adding it
         if (!host || hosts.includes(host)) {
@@ -171,7 +181,7 @@ class CommsServer {
   async getUniqueFrameHosts() {
     const aTab = await this.activeTab;
 
-    const tabPort = this.ports[aTab.id];
+    const tabPorts = aTab?.id === undefined ? undefined : this.ports.get(aTab.id);
     const hosts:  HostInfo[] = [];
 
 
@@ -207,7 +217,7 @@ class CommsServer {
           this.sendToActive(message);
           break forwardToContentScript;
         }
-        if (context?.comms?.forwardTo === 'contentScript' && context.tab && context.frame) {
+        if (context?.comms?.forwardTo === 'contentScript' && context.tab !== undefined && context.frame !== undefined) {
           this.sendToFrame(message, context.tab, context.frame, context.port);
           break forwardToContentScript;
         }
@@ -234,7 +244,7 @@ class CommsServer {
    * Sends a message to popup script
    */
   sendToPopup(message: CommsMessage) {
-    this.popupPort.postMessage(message);
+    this.popupPort?.postMessage(message);
   }
 
   /**
@@ -244,12 +254,11 @@ class CommsServer {
   private sendToAll(message: CommsMessage){
     this.logger.info('sendToAll', "sending message to all content scripts", message);
 
-    for(const tid in this.ports){
-      const tab = this.ports[tid];
-      for(const frame in tab){
-        for (const port in tab[frame]) {
-          this.logger.info('sendToAll', `      <——— attempting to send message ${message.command ?? ''} to tab ${tab}, frame ${frame}, port ${port}`, message);
-          tab[frame][port].postMessage(message);
+    for (const [tabId, tabPorts] of this.ports) {
+      for (const [frameId, framePorts] of tabPorts) {
+        for (const [portName, port] of framePorts) {
+          this.logger.info('sendToAll', `      <——— attempting to send message ${message.command ?? ''} to tab ${tabId}, frame ${frameId}, port ${portName}`, message);
+          port.postMessage(message);
         }
       }
     }
@@ -262,15 +271,20 @@ class CommsServer {
    * @param frame the frame within that tab that we want to send the message to
    * @param port if defined, message will only be sent to that specific script, otherwise it gets sent to all scripts of a given frame
    */
-  private async sendToFrameContentScripts(message: CommsMessage, tab: string, frame: string, port?: string) {
+  private async sendToFrameContentScripts(message: CommsMessage, tab: number, frame: number, port?: string) {
+    const framePorts = this.ports.get(tab)?.get(frame);
+    if (!framePorts) {
+      return;
+    }
+
     if (port !== undefined) {
-      this.ports[tab][frame][port].postMessage(message);
+      framePorts.get(port)?.postMessage(message);
       this.logger.info('sendToOtherFrames', `      <——— attempting to send message ${message.command ?? ''} to tab ${tab}, frame ${frame}, port ${port}`, message);
       return;
     }
-    for (const framePort in this.ports[tab][frame]) {
+    for (const framePort of framePorts.values()) {
       this.logger.info('sendToOtherFrames', `      <——— attempting to send message ${message.command ?? ''} to tab ${tab}, frame ${frame}`, message);
-      this.ports[tab][frame][framePort].postMessage(JSON.parse(JSON.stringify(message)));
+      framePort.postMessage(JSON.parse(JSON.stringify(message)));
     }
   }
 
@@ -287,31 +301,32 @@ class CommsServer {
     }
 
     const enrichedMessage: CommsMessage = {
-      message,
-      _sourceFrame: context.comms?.sourceFrame,
+      ...message,
+      _sourceFrame: sender,
       _sourcePort: context.comms?.port
     }
 
-    for (const frame in this.ports[sender.tabId]) {
-      if (+frame !== +sender.frameId) {
-        this.sendToFrameContentScripts(enrichedMessage, String(sender.tabId), String(sender.frameId));
+    const tabPorts = this.ports.get(sender.tabId);
+    if (!tabPorts) {
+      return;
+    }
+    for (const frameId of tabPorts.keys()) {
+      if (frameId !== sender.frameId) {
+        this.sendToFrameContentScripts(enrichedMessage, sender.tabId, frameId);
       }
     }
   }
 
-  private async sendToFrame(message: CommsMessage, tab: string, frame: string, port?: string) {
+  private async sendToFrame(message: CommsMessage, tab: number, frame: number | '__playing' | '__all', port?: string) {
     this.logger.info('sendToFrame', `      <——— attempting to send message ${message.command ?? ''} to tab ${tab}, frame ${frame}`, message);
 
-    if (isNaN(tab)) {
-      if (frame === '__playing') {
-        message['playing'] = true;
-        this.sendToAll(message);
-        return;
-      } else if (frame === '__all') {
-        this.sendToAll(message);
-        return;
-      }
-      [tab, frame] = frame.split('-');
+    if (frame === '__playing') {
+      (message as CommsMessage & { playing?: boolean }).playing = true;
+      this.sendToAll(message);
+      return;
+    } else if (frame === '__all') {
+      this.sendToAll(message);
+      return;
     }
 
     this.logger.info('sendToFrame', `      <——— attempting to send message ${message.command ?? ''} to tab ${tab}, frame ${frame}`, message);
@@ -328,16 +343,20 @@ class CommsServer {
     this.logger.info('sendToActive', `      <——— trying to send a message ${message.command ?? ''} to active tab. Message:`, message);
 
     const tab = await this.activeTab;
-    if (!tab || !tab.id) {
+    if (tab?.id === undefined) {
       // this.logger.warn('sendToActive', "No active tab found.");
       return;
     }
 
     this.logger.info('sendToActive', "currently active tab?", tab);
 
-    for (const frame in this.ports[tab.id]) {
-      this.logger.info('sendToActive', "sending message to frame:", frame, this.ports[tab.id][frame], '; message:', message);
-      this.sendToFrameContentScripts(message, tab.id, frame);
+    const tabPorts = this.ports.get(tab.id);
+    if (!tabPorts) {
+      return;
+    }
+    for (const [frameId, framePorts] of tabPorts) {
+      this.logger.info('sendToActive', "sending message to frame:", frameId, framePorts, '; message:', message);
+      this.sendToFrameContentScripts(message, tab.id, frameId);
     }
   }
 
@@ -347,6 +366,7 @@ class CommsServer {
     port: chrome.runtime.Port,
     sender?: CommsSourceFrame
   ){
+    await this.server.ready;
     this.logger.info('processMessage', `                   ==> Received message ${message.command ?? ''} from content script or port`, "background-color: #11D; color: #aad", message, port, sender);
     // this triggers events
     this.eventBus.send(
@@ -367,10 +387,11 @@ class CommsServer {
     );
   }
 
-  private processReceivedMessage_nonpersistent(
+  private async processReceivedMessage_nonpersistent(
     message: CommsMessage,
     sender: chrome.runtime.MessageSender
-  ){
+  ): Promise<void> {
+    await this.server.ready;
     this.logger.info('processMessage_nonpersistent', `                   ==> Received message in background script!`, message, sender);
 
     this.eventBus.send(
