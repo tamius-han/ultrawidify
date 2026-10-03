@@ -39,7 +39,7 @@ class VideoData {
 
   //#region flags
   arSetupComplete: boolean = false;
-  enabled: boolean;
+  enabled?: boolean;
   runLevel: RunLevel = RunLevel.Off;
   destroyed: boolean = false;
   invalid: boolean = false;
@@ -53,17 +53,17 @@ class VideoData {
   //#region misc stuff
   vdid: string;
   video: any;
-  observer: ResizeObserver;
-  mutationObserver: MutationObserver;
+  observer?: ResizeObserver;
+  mutationObserver?: MutationObserver;
   mutationObserverConf: MutationObserverInit = {
     attributes: true,
     attributeFilter: ['class', 'style'],
     attributeOldValue: true,
   };
   userCssClassName: string;
-  validationId: number;
+  validationId: number | null;
   dimensions: any;
-  hasDrm: boolean;
+  hasDrm?: boolean;
   //#endregion
 
   //#region helper objects
@@ -72,15 +72,15 @@ class VideoData {
   settings: Settings; // AARD needs it
   siteSettings: SiteSettings;
   pageInfo: PageInfo;
-  player: PlayerData;
-  resizer: Resizer;
+  player?: PlayerData;
+  resizer?: Resizer;
 
-  aard: Aard | AardLegacy;
+  aard?: Aard | AardLegacy;
 
   eventBus: EventBus;
   extensionStatus: ExtensionStatus;
 
-  private currentEnvironment: ExtensionEnvironment;
+  private currentEnvironment?: ExtensionEnvironment;
   //#endregion
 
 
@@ -122,7 +122,7 @@ class VideoData {
    * @param siteSettings
    * @param pageInfo
    */
-  constructor(video, settings: Settings, siteSettings: SiteSettings, pageInfo: PageInfo){
+  constructor(video: HTMLVideoElement, settings: Settings, siteSettings: SiteSettings, pageInfo: PageInfo){
     this.logAggregator = pageInfo.logAggregator;
     this.logger = new ComponentLogger(this.logAggregator, 'VideoData', {});
 
@@ -216,7 +216,7 @@ class VideoData {
     }
   }
   unsetBaseClass() {
-    this.mutationObserver.disconnect();
+    this.mutationObserver?.disconnect();
     this.mutationObserver = undefined;
     this.video.classList.remove('uw-ultrawidify-base-wide-screen');
   }
@@ -302,7 +302,7 @@ class VideoData {
     try {
       this.observer = new ResizeObserver(
         _.debounce(
-          () => this.onVideoDimensionsChanged,
+          (entries, observer) => this.onVideoDimensionsChanged(entries, observer),
           250,
           {
             leading: true,
@@ -310,10 +310,10 @@ class VideoData {
           }
         )
       );
+      this.observer.observe(this.video);
     } catch (e) {
       console.error('[VideoData] Observer setup failed:', e);
     }
-    this.observer.observe(this.video);
   }
 
   setupMutationObserver() {
@@ -323,7 +323,7 @@ class VideoData {
     try {
       this.mutationObserver = new MutationObserver(
         _.debounce(
-          () => this.onVideoMutation(),
+          (mutationList, observer) => this.onVideoMutation(mutationList, observer),
           250,
           {
             leading: true,
@@ -334,7 +334,7 @@ class VideoData {
     } catch (e) {
       console.error('[VideoData] Observer setup failed:', e);
     }
-    this.mutationObserver.observe(this.video, this.mutationObserverConf);
+    this.mutationObserver!.observe(this.video, this.mutationObserverConf);
   }
 
   /**
@@ -348,10 +348,10 @@ class VideoData {
 
     this.destroyed = true;
     try {
-      this.observer.disconnect();
+      this.observer?.disconnect();
     } catch (e) {}
     try {
-      this.mutationObserver.disconnect();
+      this.mutationObserver?.disconnect();
     } catch (e) {}
 
     if (this.video) {
@@ -366,16 +366,16 @@ class VideoData {
     this.eventBus.unsubscribeAll(this);
 
     try {
-      this.aard.stop();
+      this.aard?.stop();
       // this.arDetector.destroy();
     } catch (e) {}
     this.aard = undefined;
     try {
-      this.resizer.destroy();
+      this.resizer?.destroy();
     } catch (e) {}
     this.resizer = undefined;
     try {
-      this.player.destroy();
+      this.player?.destroy();
     } catch (e) {}
     this.player = undefined;
     this.video = undefined;
@@ -508,7 +508,7 @@ class VideoData {
     this.validateVideoOffsets();
   }
 
-  onVideoMutation(mutationList?: MutationRecord[], observer?) {
+  onVideoMutation(mutationList?: MutationRecord[], observer?: MutationObserver) {
     if (this.destroyed) {
       return;
     }
@@ -538,7 +538,7 @@ class VideoData {
     for (const mutation of mutationList) {
       if (mutation.type === 'attributes') {
         if( mutation.attributeName === 'class'
-            && mutation.oldValue.indexOf(this.baseCssName) !== -1
+            && mutation.oldValue?.includes(this.baseCssName)
             && !this.video.classList.contains(this.baseCssName)
         ) {
           // force the page to include our class in classlist, if the classlist has been removed
@@ -558,7 +558,7 @@ class VideoData {
 
     this.processDimensionsChanged();
   }
-  onVideoDimensionsChanged(mutationList, observer) {
+  onVideoDimensionsChanged(mutationList?: ResizeObserverEntry[], observer?: ResizeObserver) {
     if (!mutationList || this.video === undefined) {  // something's wrong
       if (observer && this.video) {
         this.logger.warn(
@@ -606,16 +606,13 @@ class VideoData {
    * Restores aspect ratio and validates video offsets after the restore. Execution uses
    * debounce to limit how often the function executes.
    */
-  private processDimensionsChanged() {
-    _.debounce(
-      this._processDimensionsChanged,
-      250,
-      {
-        // leading: true,
-        trailing: true
-      }
-    );
-  }
+  private processDimensionsChanged = _.debounce(
+    () => this._processDimensionsChanged(),
+    250,
+    {
+      trailing: true
+    }
+  );
 
   validateVideoOffsets() {
     if (this.preventVideoOffsetValidation) {
@@ -631,7 +628,7 @@ class VideoData {
     }
     // THIS BREAKS PANNING
     const videoComputedStyle = window.getComputedStyle(this.video);
-    const playerComputedStyle = window.getComputedStyle(this.player.element);
+    const playerComputedStyle = window.getComputedStyle(this.player!.element);
 
     try {
       const transformMatrix = videoComputedStyle.transform.split(')')[0].split(',');
@@ -656,7 +653,7 @@ class VideoData {
     }
   }
 
-  isWithin(a, b, diff) {
+  isWithin(a: number, b: number, diff: number) {
     return a < b + diff && a > b - diff
   }
 
@@ -669,7 +666,7 @@ class VideoData {
     // that contains one element. That element is an empty string.
     const styleArray = (this.video.getAttribute('style') || '').split(';');
 
-    const styleObject = {};
+    const styleObject: Record<string, string> = {};
 
     for (const style of styleArray) {
       // not a valid CSS, so we skip those
@@ -737,7 +734,7 @@ class VideoData {
       if (!this.aard) {
         this.initArDetection();
       }
-      this.aard.startCheck();
+      this.aard?.startCheck();
     } catch (e) {
       this.logger.warn('startArDetection', 'Could not start aard for some reason. Was the function was called too early?', e);
     }
@@ -761,7 +758,7 @@ class VideoData {
     if (this.invalid) {
       return;
     }
-    this.resizer.restore();
+    this.resizer?.restore();
   }
   //#endregion
 
