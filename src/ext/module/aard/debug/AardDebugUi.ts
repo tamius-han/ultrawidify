@@ -3,10 +3,12 @@ import { Aard } from '../Aard';
 import { AardLegacy } from '../AardLegacy';
 import { AardPerformanceData } from '../AardTimers';
 import { FallbackCanvas } from '../gl/FallbackCanvas';
+import { AardTestResults } from '@src/ext/module/aard/interfaces/aard-test-results.interface';
+import Settings from '@src/ext/module/settings/Settings';
 
 export class AardDebugUi {
 
-  aard: any;
+  aard: Aard;
 
   uiAnchorElement: HTMLDivElement;
   pauseOnArCheck: boolean = false;
@@ -14,7 +16,7 @@ export class AardDebugUi {
   uiVisibility: any = {};
   debugResults: AardDebugResults = new AardDebugResults();
 
-  constructor(aard: any) {
+  constructor(aard: Aard) {
     this.aard = aard;
 
     this.uiVisibility = {
@@ -30,6 +32,9 @@ export class AardDebugUi {
   }
 
   initContainer() {
+    // Overlays left behind by a previous Aard instance (e.g. YouTube loading a new video)
+    document.querySelectorAll('#uw-aard-debug-ui-container').forEach(el => el.remove());
+
     const div = document.createElement('div');
     div.id = 'uw-aard-debug-ui-container';
     div.innerHTML = `
@@ -71,25 +76,78 @@ export class AardDebugUi {
             }
 
             #${div.id} {
+              overflow: hidden;
+
+              .indicator {
+                position: relative;
+                height: 1.5rem;
+                padding-top: 0.25rem;
+                padding-bottom: 0.25rem;
+
+                width: 24rem;
+                text-align: right;
+              }
+
+              .off, .on {
+                --on-color: #00f1c1;
+                --off-color: #aaa;
+                &.problem { --on-color: #f00; }
+                &.marginal { --on-color: #ff0; }
+                &.uncertain { --on-color: #4e4eff; }
+              }
+
               .off {
                 opacity: 0.5;
+                color: var(--off-color);
+                transition: color 0.25s, opacity 0.25s;
               }
 
               .on {
                 font-weight: bold;
-                color: #00f1c1;
+                color: var(--on-color);
+                animation: uw-aard-flash 0.25s ease-out;
+              }
 
-                &.problem {
-                  color: #f00;
-                }
+              .buffer-table {
+                font-size: 12px;
 
-                &.marginal {
-                  color: #ff0;
-                }
+                .row {
+                  display: flex;
+                  flex-direction: row;
+                  gap: 1rem;
 
-                &.uncertain {
-                  color: #4e4eff;
+                  .slot {
+                    font-weight: bold;
+                    color: #fa6;
+                    border-right: 1px solid #aaa;
+                  }
+                  .cap {
+                    font-weight: bold;
+                    color: rgb(133, 131, 179);
+                    width: 2rem;
+                  }
+                  .d {
+                    color: #28cebb;
+                    width: 1.5rem;
+
+                    &:not(:last-child):after {
+                        content: '·';
+                        margin-left: 0.25rem;
+                      }
+                    }
+                  }
                 }
+              }
+            }
+
+            @keyframes uw-aard-flash {
+              from {
+                color: #fff;
+                background-color: var(--on-color);
+              }
+              to {
+                color: var(--on-color);
+                background-color: transparent;
               }
             }
           </style>
@@ -480,7 +538,7 @@ export class AardDebugUi {
   }
 
   _lastAr: undefined;
-  updateTestResults(testResults, timers) {
+  updateTestResults(testResults: AardTestResults, timers: { pauseUntil: number }) {
     this.updatePerformanceResults();
 
     if (testResults.aspectRatioUpdated && this.pauseOnArCheck) {
@@ -508,17 +566,19 @@ export class AardDebugUi {
         `- timers are missing -`
       }
 
-
       image in black level probe (aka "not letterbox"): ${testResults.notLetterbox}
-
-      flags: ———————————————————————————————————————————
-      ${JSON.stringify(testResults.flags, null, 2)}
     `;
     this._lastAr = ar;
 
     resultsDiv.innerHTML = out;
 
     this.debugResults.updateStatus(testResults.flags);
+    this.debugResults.buildSSRStabilityTable(
+      testResults.subtitleScan.regions,
+
+      // velik bralni kotiček:
+      ((this.aard as any).settings as Settings).active.aard.subtitles.stability
+    )
   }
 
   private setOverlayVisibility() {
