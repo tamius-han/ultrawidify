@@ -275,7 +275,6 @@ const ExtensionConfPatch = Object.freeze([
     forVersion: '6.3.98',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface) => {
       userOptions.aard = defaultOptions.aard;
-      userOptions.aardLegacy = defaultOptions.aardLegacy;
       delete (userOptions as any).arDetect;
     }
   },

@@ -5,7 +5,6 @@ import { sleep } from '@src/common/utils/sleep';
 import BrowserDetect from '@src/ext/conf/BrowserDetect';
 import { RunLevel } from '@src/ext/enum/run-level.enum';
 import { Aard } from '@src/ext/module/aard/Aard';
-import { AardLegacy } from '@src/ext/module/aard/AardLegacy';
 import { hasDrm } from '@src/ext/module/ar-detect/DrmDetector';
 import { CommsOrigin } from '@src/ext/module/comms/comms-origin.enum';
 import EventBus from '@src/ext/module/EventBus';
@@ -75,7 +74,7 @@ class VideoData {
   player?: PlayerData;
   resizer?: Resizer;
 
-  aard?: Aard | AardLegacy;
+  aard?: Aard;
 
   eventBus: EventBus;
   extensionStatus: ExtensionStatus;
@@ -267,7 +266,7 @@ class VideoData {
     this.resizer = new Resizer(this);
 
     try {
-      this.aard = this.settings.active.aard.useLegacy ? new AardLegacy(this) : new Aard(this);  // this starts Ar detection. needs optional parameter that prevents ArDetector from starting
+      this.aard = new Aard(this);  // this starts Ar detection. needs optional parameter that prevents ArDetector from starting
     } catch (e) {
       console.error('Failed to start Aard!', e);
     }
@@ -714,7 +713,7 @@ class VideoData {
       return;
     }
     if (! this.aard){
-      this.aard = this.settings.active.aard.useLegacy ? new AardLegacy(this): new Aard(this);
+      this.aard = new Aard(this);
     }
   }
 

@@ -1,6 +1,5 @@
 import { AardDebugResults } from '@src/ext/module/aard/debug/debug-results.component';
 import { Aard } from '../Aard';
-import { AardLegacy } from '../AardLegacy';
 import { AardPerformanceData } from '../AardTimers';
 import { FallbackCanvas } from '../gl/FallbackCanvas';
 import { AardTestResults } from '@src/ext/module/aard/interfaces/aard-test-results.interface';
@@ -365,9 +364,7 @@ export class AardDebugUi {
       <h2 style="color: #fa6; margin-bottom: 1rem">Detailed performance analysis:</h2>
       <div>
        <span style="color: #fff">About:</span><br/>
-        Aard version: <span style="color: #fa6">${this.aard instanceof AardLegacy ? 'legacy' : this.aard instanceof Aard ? 'experimental' : 'unknown'}</span> <small>(instanceof AardLegacy? ${this.aard instanceof AardLegacy}, Aard? ${this.aard instanceof Aard})</small><br/>
         canvas type: <span style="color: #fa6">${!this.aard.canvasStore.main ? '<canvas not initialized>' : this.aard.canvasStore.main instanceof FallbackCanvas ? '2dCanvas' : 'webgl'}</span> |
-        legacy default: <span style="color: #fa6">${this.aard.settings.active.aardLegacy.aardType}</span>,
         experimental default: <span style="color: #fa6">${this.aard.settings.active.aard.aardType}</span>
       </div>
 

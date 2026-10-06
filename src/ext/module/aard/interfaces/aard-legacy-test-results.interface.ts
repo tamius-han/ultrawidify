@@ -1,4 +1,4 @@
-import { AardLegacySettings, AardSettings } from '../../../../common/interfaces/SettingsInterface'
+import { AardSettings } from '../../../../common/interfaces/SettingsInterface'
 import { AardUncertainReason } from '../enums/aard-letterbox-uncertain-reason.enum'
 import { LetterboxOrientation } from '../enums/letterbox-orientation.enum'
 
