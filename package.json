@@ -38,7 +38,7 @@
     "mdi-vue": "^3.0.13",
     "typescript": "^5.9.3",
     "vanilla-jsoneditor": "^3.10.0",
-    "vue": "^3.5.25",
+    "vue": "^3.5.43",
     "vue-style-loader": "^4.1.3",
     "vuex": "^4.1.0",
     "vuex-webextensions": "^1.3.3",
