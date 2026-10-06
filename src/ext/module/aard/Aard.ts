@@ -16,7 +16,7 @@ import { GlDebugCanvas, GlDebugType } from './gl/GlDebugCanvas';
 import { AardCanvasStore } from './interfaces/aard-canvas-store.interface';
 import { AardDetectionSample, generateSampleArray, resetSamples } from './interfaces/aard-detection-sample.interface';
 import { AardStatus, initAardStatus } from './interfaces/aard-status.interface';
-import { AardTestResult_SubtitleRegion, AardTestResults, initAardTestResults, resetAardTestResults, resetGuardLine, resetSubtitleScanResults } from './interfaces/aard-test-results.interface';
+import { AardTestResult_SubtitleRegion, AardTestResults, initAardTestResults, resetAardTestResults, resetGuardLine, resetSubtitleScanRegionBuffers, resetSubtitleScanResults } from './interfaces/aard-test-results.interface';
 import { AardTimers, initAardTimers } from './interfaces/aard-timers.interface';
 import { ComponentLogger } from '../logging/ComponentLogger';
 import { AardPollingOptions } from './enums/aard-polling-options.enum';
@@ -27,6 +27,8 @@ import { AardUncertainReason } from './enums/aard-letterbox-uncertain-reason.enu
 import { result } from 'lodash';
 import { equalish } from '@src/common/utils/comparators';
 import { ArConfirmationStrategy } from '@src/common/enums/ArConfirmationStrategy.enum';
+import { AardMem, clearSubtitleScanPhaseBuffers, initAardMem } from '@src/ext/module/aard/interfaces/aard-mem.interface.ts';
+import { AardSubtitlePhase } from '@src/ext/module/aard/enums/aard-subtitle-phase.enum';
 
 
 /**
@@ -95,10 +97,10 @@ export class Aard {
   private canvasStore: AardCanvasStore;
   private testResults: AardTestResults;
   private verticalTestResults: AardTestResults;
+  private mem: AardMem;
   private canvasSamples: AardDetectionSample;
 
 
-  private forceFullRecheck: boolean = true;
   private destroyed: boolean = false;
 
   private debugConfig: any = {};
@@ -151,7 +153,6 @@ export class Aard {
     this.canvasStore = {
       main: this.createCanvas('main-gl')
     };
-
 
     this.canvasSamples = {
       top: generateSampleArray(
@@ -289,7 +290,6 @@ export class Aard {
       return;
     }
     this.clearAutoDisabled();
-    this.forceFullRecheck = true;
     if (this.videoData.resizer.lastAr.type === AspectRatioType.AutomaticUpdate) {
       // ensure first autodetection will run in any case
       this.videoData.resizer.lastAr = {type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr};
@@ -298,6 +298,7 @@ export class Aard {
     // do full reset of test samples
     this.testResults = initAardTestResults(this.settings.active.aard);
     this.verticalTestResults = initAardTestResults(this.settings.active.aard);
+    this.mem = initAardMem(this.settings.active.aard);
 
     if (this.animationFrame) {
       window.cancelAnimationFrame(this.animationFrame);
@@ -316,7 +317,7 @@ export class Aard {
    * Runs autodetection ONCE.
    * If autodetection loop is running, this will also stop autodetection loop.
    */
-  step(options?: {noCache?: boolean}) {
+  async step(options?: {noCache?: boolean}) {
     if (this.destroyed) {
       return;
     }
@@ -325,9 +326,18 @@ export class Aard {
     if (options?.noCache) {
       this.testResults = initAardTestResults(this.settings.active.aard);
       this.verticalTestResults = initAardTestResults(this.settings.active.aard);
+      this.mem = initAardMem(this.settings.active.aard);
     }
 
-    this.main();
+    await this.main();
+
+    // this only ever prints to console when when user is actively using debug
+    // functionalities of this addon
+    console.info(
+      '————————— aard step completed —————————\n\ntest results:\n',
+      this.testResults, '\n\ntimers:',
+      this.timers
+    );
   }
 
   /**
@@ -443,7 +453,6 @@ export class Aard {
       resetSamples(this.canvasSamples);
       resetSubtitleScanResults(this.testResults);
       this.main();
-      this.forceFullRecheck = false;
     }
 
     if (this.status.aardActive && this.animationFrame === undefined) {
@@ -515,8 +524,6 @@ export class Aard {
         // STEP 1:
         // Test if corners are black. If they're not, we can immediately quit the loop.
         // For performances of measurements, checking orientation of letterbox is part of fastBlackLevel
-        const lastValidLetterboxOrientation = this.testResults.lastValidLetterboxOrientation;
-
         orientationCheck:
         {
           this.getBlackLevelFast(
@@ -560,13 +567,10 @@ export class Aard {
           break scanFrame;
         }
 
-        // If lastValidLetterboxOrientation changed, we reset guard line (& gang), but continue processing
-        if (lastValidLetterboxOrientation !== this.testResults.lastValidLetterboxOrientation) {
-          this.forceFullRecheck = true;
-        }
-
+        console.log('letterbox orientation scan returned orientation:', this.testResults.letterboxOrientation, LetterboxOrientation[this.testResults.letterboxOrientation]);
         // We only do subtitle check when orientation is letterbox
         if (this.testResults.letterboxOrientation === LetterboxOrientation.Letterbox) {
+          console.log('performing subtitle scan');
           this.subtitleScan(
             imageData,
             arConf.canvasDimensions.sampleCanvas.width,
@@ -597,13 +601,14 @@ export class Aard {
           this.testResults.activeLetterbox.offset = 0;
           this.testResults.activeLetterbox.orientation = LetterboxOrientation.NotLetterbox;
 
-          this.testResults.flags.doubleLetterbox = true;
+          this.testResults.flags.noLetterbox = true;
           clearTimeout(this.testResults.stability.timeDuration);
           break processUpdate;
         }
 
         // subtitle detection didn't run
         if (this.testResults.letterboxOrientation === LetterboxOrientation.Both) {
+          this.testResults.flags.doubleLetterbox = true;
           clearTimeout(this.testResults.stability.timeDuration);
           break processUpdate;
         }
@@ -637,16 +642,6 @@ export class Aard {
 
         // if detection is uncertain, we don't do anything at all (unless if guardline was broken, in which case we reset)
         if (this.testResults.aspectRatioUncertain) {
-          // this.timer.arChanged();
-
-          // if (
-          //   this.testResults.aspectRatioCheck.frontCandidate < this.testResults.guardLine.front
-          //   || this.testResults.aspectRatioCheck.backCandidate > this.testResults.guardLine.back
-          //   || this.testResults.aspectRatioCheck.frontCandidate === -1
-          //   || this.testResults.aspectRatioCheck.backCandidate === -1
-          // ) {
-          //   this.updateAspectRatio(this.defaultAr, {uncertainDetection: true, forceReset: true});
-          // }
 
           this.testResults.flags.cropMaintaining = true;
           break processUpdate;
@@ -681,8 +676,8 @@ export class Aard {
                   () => {
                     this.testResults.flags.arStable = true;
                     this.updateAspectRatio(finalAr, {uncertainDetection: false, forceReset: false});
-                    this.testResults.activeLetterbox.width = this.testResults.letterboxSize;
-                    this.testResults.activeLetterbox.offset = this.testResults.letterboxOffset;
+                    // this.testResults.activeLetterbox.width = this.testResults.letterboxSize;
+                    // this.testResults.activeLetterbox.offset = this.testResults.letterboxOffset;
                     this.testResults.activeLetterbox.orientation = this.testResults.letterboxOrientation;
 
                     if (this.canvasStore.debug) {
@@ -751,12 +746,14 @@ export class Aard {
             }
           }
 
+          this.testResults.flags.arStable = true;
           this.updateAspectRatio(finalAr);
-          this.testResults.activeLetterbox.width = this.testResults.letterboxSize;
-          this.testResults.activeLetterbox.offset = this.testResults.letterboxOffset;
+          // this.testResults.activeLetterbox.width = this.testResults.letterboxSize;
+          // this.testResults.activeLetterbox.offset = this.testResults.letterboxOffset;
           this.testResults.activeLetterbox.orientation = this.testResults.letterboxOrientation;
         } else {
           this.testResults.aspectRatioInvalid = true;
+          this.testResults.flags.cropInvalidated = true;
           this.testResults.aspectRatioInvalidReason = finalAr.toFixed(3);
         }
         // }
@@ -1095,25 +1092,37 @@ export class Aard {
       ssrRegions.bottom.stability.intervalFrame = 0;
     }
 
-    this.subtitleScanRegionIterative(
-      imageData, height,
-      2, halfHeight,
-      scanConf.refiningScanSpacing, scanConf.minDetections,
-      ssrRegions.top,
-    )
+    this.subtitleScanRegionIterative({
+      imageData,
+      height,
+      startRow: 2,
+      endRow: halfHeight,
+      scanSpacing: scanConf.refiningScanSpacing,
+      minDetections: scanConf.minDetections,
+      results: ssrRegions.top,
+    });
 
-    this.subtitleScanRegionIterative(
-      imageData, height,
-      height - 3, halfHeight,
-      -scanConf.refiningScanSpacing, scanConf.minDetections,
-      ssrRegions.bottom,
-    )
+    this.subtitleScanRegionIterative({
+      imageData,
+      height,
+      startRow: height - 3,
+      endRow: halfHeight,
+      scanSpacing: -scanConf.refiningScanSpacing,
+      minDetections: scanConf.minDetections,
+      results: ssrRegions.bottom,
+    });
 
     if (ssrRegions.top.uncertain || ssrRegions.bottom.uncertain) {
       this.testResults.aspectRatioUncertain = true;
     } else {
       this.testResults.aspectRatioUncertain = false;
     }
+
+    // if (ssrRegions.top.subtitlesUnstable && ssrRegions.bottom.subtitlesUnstable) {
+    //   this.testResults.flags.subtitlesUncertain = true;
+    // } else {
+    //   this.testResults.flags.subtitlesUncertain = false;
+    // }
 
     // 1. updateLetterboxEdgeCandidates runs regardless of whether we detected subtitles or not.
     // 2. it's also not affected by whether subtitleDetected is set
@@ -1125,29 +1134,42 @@ export class Aard {
     );
 
 
-    // we can only do this in actual letterbox
-    if (this.testResults.activeLetterbox.orientation === LetterboxOrientation.Letterbox) {
+    if (this.testResults.letterboxOrientation === LetterboxOrientation.Letterbox) {
 
-      // we only reset letterbox if letters are outside the video area, otherwise we risk
-      // getting whacked by credits, ppt youtubers, and other shit like that
-      const borderTop = this.testResults.activeLetterbox.width;
-      const borderBottom = this.settings.active.aard.canvasDimensions.sampleCanvas.height - this.testResults.activeLetterbox.width;
+      const hasTopSubtitle = ssrRegions.top.firstSubtitle !== -1;
+      const hasBottomSubtitle = ssrRegions.bottom.firstSubtitle !== -1;
 
+      // subs statistics are processed always, regardless of whether we're resetting AR on subtitles or not
       if (
-        (ssrRegions.top.firstSubtitle !== -1 && ssrRegions.top.firstSubtitle < borderTop)
-        || (ssrRegions.bottom.firstSubtitle !== -1 && ssrRegions.bottom.firstSubtitle > borderBottom)
+        (hasTopSubtitle  && !ssrRegions.top.subtitlesUnstable)
+        || (hasBottomSubtitle && !ssrRegions.bottom.subtitlesUnstable)
       ) {
+        this.testResults.flags.subtitlesConfirmed = true;
+        this.testResults.flags.noSubtitles = false;
 
-        // Even with DisableScan we still need the scan itself (it finds the letterbox edges),
-        // we just must not report subtitles.
-        this.testResults.subtitleDetected = scanConf.subtitleCropMode !== AardSubtitleCropMode.DisableScan;
+        // we only reset letterbox if letters are outside the video area, otherwise we risk
+        // getting whacked by credits, ppt youtubers, and other shit like that
+        const borderTop = this.testResults.activeLetterbox.width;
+        const borderBottom = this.settings.active.aard.canvasDimensions.sampleCanvas.height - this.testResults.activeLetterbox.width;
+        const actionableSubsTop = hasTopSubtitle && ssrRegions.top.firstSubtitle < borderTop;
+        const actionableSubsBottom = hasBottomSubtitle && ssrRegions.bottom.firstSubtitle > borderBottom;
+
+        if (actionableSubsTop || actionableSubsBottom) {
+          this.testResults.subtitleDetected = true;
+        }
+      } else if (hasTopSubtitle || hasBottomSubtitle) {
+        this.testResults.flags.noSubtitles = false;
+        this.testResults.flags.subtitlesConfirmed = false;
+        this.testResults.flags.subtitlesUncertain = true;
+      } else {
+        this.testResults.flags.noSubtitles = true;
+        this.testResults.flags.subtitlesConfirmed = false;
       }
-
     }
-
 
     this.timer.current.subtitleScan = performance.now() - this.timer.current.start;
   }
+
 
   /**
    * Scans region of video frame for presence of subtitles
@@ -1167,7 +1189,8 @@ export class Aard {
     results: AardTestResult_SubtitleRegion,
   ) {
     results.uncertain = false;
-    results.subtitlesUnstable = false;
+
+    const mem = this.mem.subtitleScan;
 
     const scanConf = this.settings.active.aard.subtitles;
     const arConf = this.settings.active.aard;
@@ -1178,9 +1201,16 @@ export class Aard {
     const stopOnFirstSubtitle = scanConf.subtitleCropMode === AardSubtitleCropMode.ResetAR
       || scanConf.subtitleCropMode === AardSubtitleCropMode.ResetAndDisable;
 
-    let letterCount, imageSegmentCount, potentialFadedLetterCount, potentialFadedLetterCountInvalidated, nonGradientPixelCount, letterSize, imageSize, imageSegmentSize, imageWeightedSize, segmentWeights, imageSegmentAlignment, imageSegmentAlignmentSamples,
+    let letterCount, imageSegmentCount, potentialFadedLetterCount, potentialFadedLetterCountInvalidated,
+      nonGradientPixelCount, letterSize, imageSize, imageSegmentSize, imageWeightedSize,
+      segmentWeights, imageSegmentAlignment, imageSegmentAlignmentSamples,
       isOnLetter, isOnImage, isBlank,
       gradientRowDelta_before, gradientRowDelta_after;
+
+
+    let likelySubtitle, likelyImage;
+    let darkEdgeSamples, darkEdgeDelta, darkEdge_nextRow;
+
     let rowStart, rowEnd, rowMid, rowGTA, rowGTB; // GT = gradient test
     let imageConfirmPass = false, subtitleConfirmPass = false;
 
@@ -1190,11 +1220,14 @@ export class Aard {
     const imageThreshold = Math.floor((ROW_SIZE - (rowMargin * 2)) * arConf.edgeDetection.minValidImage * PIXEL_SIZE_FRACTION);
 
     // set up stuff for subtitle stability verification
-    let scanSlotOffset = results.stability.scanSlot * results.stability.scanSize;
+    let scanSlotOffset = results.stability.scanSlot * results.stability.slotSize;
     let lineSlotOffset = 0;        // index of the current line within the current scan slot
-    let letterPhaseCountIndex = 0; // how many pixels we spent in letter on / letter off
-    let changeCountIndex = 0;      // index of the change counter for current line
+    let letterPhaseLengthCountIndex = 0; // how many pixels we spent in letter on / letter off
 
+    const changeCountIndex = scanConf.maxPhasesPerType;
+    const combinedPhasesChangeCountIndex = scanConf.maxPhasesTotal;
+
+    const lastScannedLines = [-1, -1];
     // search in top letterbox
     outerLoop:
     for (
@@ -1202,23 +1235,18 @@ export class Aard {
       (scanSpacing > 0 && searchRow < endRow) || (scanSpacing < 0 && searchRow > endRow);
       searchRow += scanSpacing
     ) {
-      // Code inside here runs ONCE PER ROW
-      if (results.stability.intervalFrame === 0) {
-        results.stability.lineSlot++;
-        if (results.stability.lineSlot % this.settings.active.aard.subtitles.stability.scanLines === 0) {
-          results.stability.lineSlot = 0;
-        }
 
-        lineSlotOffset = results.stability.lineSlot * results.stability.lineSize;
-
-        // feature count offset: how many consecutive on/off results did we have
-        letterPhaseCountIndex  = scanSlotOffset + lineSlotOffset;
-        changeCountIndex = scanSlotOffset + lineSlotOffset + results.stability.lineSize - 1;
-
-        // reset first counters for current line!
-        results.stability.buffer[letterPhaseCountIndex] = 0;
-        results.stability.buffer[changeCountIndex] = 0;
+      lastScannedLines[1] = lastScannedLines[0];
+      lastScannedLines[0] = searchRow;
+      if (lastScannedLines[0] === lastScannedLines[1]) {
+        console.warn("we are scanning same row as before. This shouldn't happen.");
+        continue outerLoop;
       }
+      // Code inside here runs ONCE PER ROW
+
+      // Reset phase change counters
+      clearSubtitleScanPhaseBuffers(this.mem);
+      letterPhaseLengthCountIndex  = 0;
 
       if (++outerIteration > height) {
         // console.warn('[ultrawidify|aard::subtitleScanRegionLinear] — scan got stuck in an infinite loop. This shouldn\'t happen.');
@@ -1226,6 +1254,7 @@ export class Aard {
         break outerLoop;
       }
 
+      //#region prepare for inner loop
       letterCount = 0;
       potentialFadedLetterCount = 0;
       imageSegmentCount = 0;
@@ -1245,8 +1274,16 @@ export class Aard {
       imageSegmentAlignment = 0;
       imageSegmentAlignmentSamples = 0;
 
+      likelySubtitle = false;
+      likelyImage = false;
+
+      darkEdgeSamples = 0;
+      darkEdgeDelta = 0;
+
       // Scan region is centered,
       rowStart = (searchRow * ROW_SIZE) + rowMargin;
+
+      const scanSize = ROW_SIZE - (2 * rowMargin);
 
       // Gradient test compares current row with a row 'before' it (towards the frame edge) and a row
       // 'after' it (towards the center of the frame). Which direction that is depends on whether we're
@@ -1264,14 +1301,14 @@ export class Aard {
       rowEnd = ((searchRow + 1) * ROW_SIZE) - rowMargin;
       rowMid = (rowStart + rowEnd) * 0.5;
 
-      const resetSubtitlePass =() => {
+      const resetSubtitleConfirmPass =() => {
         if (subtitleConfirmPass) {
           subtitleConfirmPass = false;
-          searchRow -= (scanSpacing > 0 ? + 1 : -1);
+          // searchRow -= (scanSpacing > 0 ? + 1 : -1);
         }
       }
 
-      const updateImage = (candidate: number) => {
+      const updateImageCandidate = (candidate: number) => {
         if (scanSpacing > 0) {
           if (results.firstImage === -1 || candidate < results.firstImage) {
             results.firstImage = candidate;
@@ -1283,6 +1320,42 @@ export class Aard {
         }
       }
 
+      const updateSubtitleInfo = (searchRow: number) => {
+        // when we reach the minDetection threshold, we can set the firstSubtitle row
+        // we also want to keep firstSubtitle accurate, which means that we have to set
+        // firstSubtitle to the detection that happened closest to the edge (in current
+        // implementation, we need this to be accurate)
+        // if (letterCount === minDetections) {
+
+          results.hasSubtitle = true;
+
+          // we always set firstSubtitle if it hasn't been set yet
+          if (results.firstSubtitle === -1) {
+            results.firstSubtitle = searchRow;
+            results.lastSubtitle = searchRow;
+          } else {
+            if (scanSpacing > 0) { // smaller number = closer to the edge
+              if (searchRow < results.firstSubtitle) {
+                results.firstSubtitle = searchRow;
+              }
+              if (searchRow > results.lastSubtitle) {
+                results.lastSubtitle = searchRow;
+              }
+            } else {               // bigger number = closer to the edge
+              if (searchRow > results.firstSubtitle) {
+                results.firstSubtitle = searchRow;
+              }
+              if (searchRow < results.lastSubtitle) {
+                results.lastSubtitle = searchRow;
+              }
+            }
+          }
+          isBlank = false;
+          imageConfirmPass = false;
+        // }
+      }
+      //#endregion
+
       /**
        * This function can break or return early only in the following situations:
        *
@@ -1291,85 +1364,196 @@ export class Aard {
        *
        * Other instances require a bit more complex analysis.
        */
-
+      let phase: AardSubtitlePhase = AardSubtitlePhase.Uninitialized, lastPhase: AardSubtitlePhase = AardSubtitlePhase.Uninitialized;
+      lineScan:
       while (rowStart < rowEnd) {
+        lastPhase = phase;
+
         const r = imageData[rowStart], g = imageData[rowStart + 1], b = imageData[rowStart + 2];
 
-        const on = r > scanConf.subtitleSubpixelThresholdOn
-                    || g > scanConf.subtitleSubpixelThresholdOn
-                    || b > scanConf.subtitleSubpixelThresholdOn;
-        const off = r < scanConf.subtitleSubpixelThresholdOff
-                    && g < scanConf.subtitleSubpixelThresholdOff
-                    && b < scanConf.subtitleSubpixelThresholdOff;
 
-        results.stability.buffer[letterPhaseCountIndex]++;
 
-        if (off) {
-          imageData[rowStart + 3] = GlDebugType.SubtitleThresholdOff;
+        phase = 0;  // if pixel is dark, it will stay at 0
+        if (        // we detected image -> increase to 1
+          r > this.testResults.blackThreshold
+          || g > this.testResults.blackThreshold
+          || b > this.testResults.blackThreshold
+        ) {
+          ++phase;
+        }
+        if (        // increase to 2 once we go aboe "subtitle off" zone
+          r > scanConf.subtitleSubpixelThresholdOff
+          || g > scanConf.subtitleSubpixelThresholdOff
+          || b > scanConf.subtitleSubpixelThresholdOff
+        ) {
+          ++phase;
+        }
+        if (        // increase to 3 if subtitle threshold is passed
+          r > scanConf.subtitleSubpixelThresholdOn
+          || g > scanConf.subtitleSubpixelThresholdOn
+          || b > scanConf.subtitleSubpixelThresholdOn
+        ) {
+          ++phase;
+        }
 
-          // if isOnLetter was set, that means we've just concluded a letter segment
-          if (isOnLetter) {
-            letterCount++;
+        // some things only run when phase change occurs
+        if (phase !== lastPhase) {
+          letterPhaseLengthCountIndex++;
+          mem.linePhaseLengths[letterPhaseLengthCountIndex] = 0;
+          mem.linePhaseLengths[combinedPhasesChangeCountIndex]++;
 
-            // i dont trust myself with setting up the buffer correctly.
-            // we don't check for interval frame, because branching cost is prolly
-            // higher than the cost of doing the work
-            if (letterPhaseCountIndex < changeCountIndex) {
-              letterPhaseCountIndex++;
-              results.stability.buffer[letterPhaseCountIndex] = 0;
-              results.stability.buffer[changeCountIndex]++;
-            }
+          // increase phase counter as needed
+          switch (phase) {
+            case AardSubtitlePhase.Off:
+              mem.darkPhases[changeCountIndex]++;
+              break;
+            case AardSubtitlePhase.Image:
+              mem.nonDarkPhases[changeCountIndex]++;
+              mem.imagePhases[changeCountIndex]++;
+              break;
+            case AardSubtitlePhase.SubtitleHalf:
+              mem.nonDarkPhases[changeCountIndex]++;
+              mem.subtitleHalfPhases[changeCountIndex]++;
+              break;
+            case AardSubtitlePhase.SubtitleFull:
+              mem.nonDarkPhases[changeCountIndex]++;
+              mem.subtitleFullPhases[changeCountIndex]++;
+              break;
+          }
 
-            if (letterCount > minDetections) {
-              if (results.firstSubtitle === -1) {
-                results.firstSubtitle = searchRow;
+          // check that no phase overran its buffer. If we overran
+          // the buffer, we need to stop scanning this line
+          if (
+            mem.darkPhases[changeCountIndex] >= scanConf.maxPhasesPerType
+            || mem.nonDarkPhases[changeCountIndex] >= scanConf.maxPhasesPerType
+            || mem.imagePhases[changeCountIndex] >= scanConf.maxPhasesPerType
+            || mem.subtitleHalfPhases[changeCountIndex] >= scanConf.maxPhasesPerType
+            || mem.subtitleFullPhases[changeCountIndex] >= scanConf.maxPhasesPerType
+            || mem.linePhaseLengths[combinedPhasesChangeCountIndex] > scanConf.maxPhasesTotal
+          ) {
+            break lineScan;
+          }
+
+          // Clear the newly entered phase slot. The final array element is its index.
+          switch (phase) {
+            case AardSubtitlePhase.Off:
+              mem.darkPhases[mem.darkPhases[changeCountIndex]] = 0;
+              break;
+            case AardSubtitlePhase.Image:
+              mem.nonDarkPhases[mem.nonDarkPhases[changeCountIndex]] = 0;
+              mem.imagePhases[mem.imagePhases[changeCountIndex]] = 0;
+              break;
+            case AardSubtitlePhase.SubtitleHalf:
+              mem.nonDarkPhases[mem.nonDarkPhases[changeCountIndex]] = 0;
+              mem.subtitleHalfPhases[mem.subtitleHalfPhases[changeCountIndex]] = 0;
+              break;
+            case AardSubtitlePhase.SubtitleFull:
+              mem.nonDarkPhases[mem.nonDarkPhases[changeCountIndex]] = 0;
+              mem.subtitleFullPhases[mem.subtitleFullPhases[changeCountIndex]] = 0;
+              break;
+          }
+
+
+          if (phase === AardSubtitlePhase.Off) {   // PIXEL TURNED OFF/DARK
+            // if pixel was any sort of non-dark before
+            if (lastPhase !== 0) {
+              if (imageSegmentSize > arConf.edgeDetection.minEdgeSegmentSize) {
+                imageSegmentCount++;
+                imageWeightedSize += imageSegmentSize * imageSegmentSize; // longer segments should have bigger weight
+                segmentWeights += imageSegmentSize;
+                imageSegmentSize = 0;
               }
-              results.lastSubtitle = searchRow;
-              isBlank = false;
-
-              imageConfirmPass = false;
-              continue outerLoop;
-            }
-          }
-          if (isOnImage) {
-            if (imageSegmentSize < scanConf.maxValidLetter) {
-              potentialFadedLetterCount++;
-
-              // track potential letter alignment
-              imageSegmentAlignment += (rowStart - rowMid) * imageSegmentSize * PIXEL_SIZE_FRACTION;
-              imageSegmentAlignmentSamples += imageSegmentSize;
-            } else {
-              potentialFadedLetterCountInvalidated = true;
             }
 
-            if (imageSegmentSize > arConf.edgeDetection.minEdgeSegmentSize) {
-              imageSegmentCount++;
-              imageWeightedSize += imageSegmentSize * imageSegmentSize; // longer segments should have bigger weight
-              segmentWeights += imageSegmentSize;
-              imageSegmentSize = 0;
+            // if pixel went from "image but not subtitle" to "dark"
+            if (lastPhase === AardSubtitlePhase.SubtitleHalf) {
+              if (imageSegmentSize < scanConf.maxValidLetter) {
+                potentialFadedLetterCount++;
+              } else {
+                potentialFadedLetterCountInvalidated = true;
+              }
             }
+
+            letterSize = 0;
+            imageSegmentSize = 0;
+          } else {             // PIXEL TURNED FROM OFF IMAGE OR SUBTITLE
+
+
+
           }
 
-          isOnLetter = false;
-          isOnImage = false;
-          letterSize = 0;
-          imageSegmentSize = 0;
-        } else {
-          imageData[rowStart + 3] = GlDebugType.SubtitleThresholdNone;
-          isOnImage = true;
-          isBlank = false;
-          imageSegmentSize++;
-          imageSize++;
 
-          // let's see if we're accidentally detecting gradient.
-          // We only need to run these tests when pixels are dark.
+        }
+
+        // save stuff for debug canvas, increase counters as needed
+        switch (phase) {
+          case AardSubtitlePhase.Off:
+            imageData[rowStart + 3] = GlDebugType.SubtitleThresholdOff;
+            mem.darkPhases[mem.darkPhases[changeCountIndex]]++;
+            break;
+          case AardSubtitlePhase.Image:
+            imageData[rowStart + 3] = GlDebugType.SubtitleThresholdNone;
+            mem.nonDarkPhases[mem.nonDarkPhases[changeCountIndex]]++;
+            mem.imagePhases[mem.imagePhases[changeCountIndex]]++;
+            break;
+          case AardSubtitlePhase.SubtitleHalf:
+            imageData[rowStart + 3] = GlDebugType.SubtitleThresholdNone;
+            mem.nonDarkPhases[mem.nonDarkPhases[changeCountIndex]]++;
+            mem.subtitleHalfPhases[mem.subtitleHalfPhases[changeCountIndex]]++;
+            break;
+          case AardSubtitlePhase.SubtitleFull:
+            imageData[rowStart + 3] = GlDebugType.SubtitleThresholdOn;
+            mem.nonDarkPhases[mem.nonDarkPhases[changeCountIndex]]++;
+            mem.subtitleFullPhases[mem.subtitleFullPhases[changeCountIndex]]++;
+            break;
+        }
+
+        // SPECIAL TESTS FOR PHASE 1:
+        //    1. Dark edge detection test
+        //    2. Gradient test
+        if (phase === AardSubtitlePhase.Image) {
+
+          // Dark edge detection test:
+          if (
+            imageData[rowStart] < this.testResults.blackThreshold
+            && imageData[rowStart + 1] < this.testResults.blackThreshold
+            && imageData[rowStart + 2] < this.testResults.blackThreshold
+          ) {
+
+            darkEdge_nextRow = rowStart + scanSpacing * ROW_SIZE;
+
+            // we penalize negative values a lot, and we clamp positive values to
+            // something small so large values don't throw off the average. If the
+            // sample is consistent enough to be more than our threshold (which we
+            // check later), we found an edge
+            let diff, d = -Infinity;
+            for (let i = 0; i < 3; i++) {
+              diff = imageData[darkEdge_nextRow + i] - imageData[rowStart + i];
+              if (diff < 0) {
+                diff *= 8;
+              }
+              if (diff > d) {
+                d = diff;
+              }
+            }
+            if (d > 4) {
+              d = 4;
+            }
+            darkEdgeDelta += d;
+            darkEdgeSamples++;
+          }
+
+          // GRADIENT TEST — ALWAYS DO IN PHASE 1 (regardless of whether phase just changed or not)
+          // We only need to test darker but not dark pixels — for subtitle
+          // phase, this test will always be false, hence phase === 1 test.
           // We keep track of number of pixels that pass the test, or don't
           // need the test to begin with.
-          if (!on && (
-               imageData[rowStart    ] < arConf.edgeDetection.gradientThreshold
+          if (
+            imageData[rowStart    ] < arConf.edgeDetection.gradientThreshold
             && imageData[rowStart + 1] < arConf.edgeDetection.gradientThreshold
             && imageData[rowStart + 2] < arConf.edgeDetection.gradientThreshold
-          )) {
+          ) {
+
             rowGTB = rowStart + gradientRowDelta_before;
             rowGTA = rowStart + gradientRowDelta_after;
 
@@ -1395,34 +1579,25 @@ export class Aard {
             nonGradientPixelCount++;
           }
         }
-        if (on) {   // used to detect subtitles specifically
-          // 'on' means we are potentially on letter.
-          // if isOnLetter is false, this means we have caught the start of a new phase
-          // if isOnLetter is true, this means we already counted letter phase change, so we do nothing
-          // & we don't trust ourselves with setting up the buffer
-          if (!isOnLetter && letterPhaseCountIndex < changeCountIndex) {
-            letterPhaseCountIndex++;
-            results.stability.buffer[letterPhaseCountIndex] = 0;
-            results.stability.buffer[changeCountIndex]++;
-          }
 
-          imageData[rowStart + 3] = GlDebugType.SubtitleThresholdOn;
-          isOnLetter = true;
-          letterSize++;
-
-          // bail on invalid letter sizes — this means we're seeing image.
-          // in this case, we do not need image confirmation step
-          if (letterSize > scanConf.maxValidLetter) {
-            updateImage(searchRow);
+        // we always update counters at the end, regardless of whether phase changed or not
+        switch (phase) {
+          case AardSubtitlePhase.SubtitleFull:
+            isOnLetter = true;
+            letterSize++;
+            // fall through — case 1 stuff also happens in phase 2
+          case AardSubtitlePhase.SubtitleHalf:
+          case AardSubtitlePhase.Image:
+            imageSegmentSize++;
+            imageSize++;
+            isOnImage = true;
             isBlank = false;
-
-            return;
-          }
         }
-
+        mem.linePhaseLengths[letterPhaseLengthCountIndex]++;
         rowStart += PIXEL_SIZE;
-      }
 
+
+      }
 
       // we need to do this once more, otherwise imageSegmentCount can be 0 & bugs happen
       if (isOnImage) {
@@ -1444,8 +1619,16 @@ export class Aard {
         }
       }
 
-
-      if (!imageSegmentCount || isBlank) {
+      /**
+       *   LINE SCAN FINISHED, time to process the results
+       *
+       * If there is no segments with image (if all we see is black),
+       * we mark the row as blank.
+       *
+       * If we are in subtitle confirm pass, we didn't find the subtitles,
+       * so we reset subtitle confirmation pass data.
+       */
+      if (mem.linePhaseLengths[combinedPhasesChangeCountIndex] < 2 || !imageSegmentCount || isBlank) {
         isBlank = true;
         imageConfirmPass = false;
 
@@ -1454,85 +1637,150 @@ export class Aard {
         }
         results.lastBlank = searchRow;
 
-        resetSubtitlePass();
+        resetSubtitleConfirmPass();
         continue outerLoop;
       }
 
-      const averageImageSegmentSize = segmentWeights > 0 ? imageWeightedSize / segmentWeights : 0;
-      const gradientDetectionFrequency = 1 - (nonGradientPixelCount / imageSize);
+      // Reset phase length frequency array
+      const maxf = mem.phaseLengthFrequency.length - 1;
+      for (let i = 0; i < mem.phaseLengthFrequency.length; i++) {
+        mem.phaseLengthFrequency[i] = 0;
+      }
 
-      // That's probably a subtitle as well. If subs are fading in and out,
-      // then there's a good chance that they won't meet the "yes, this is a letter" threshold.
-      if (
-        !potentialFadedLetterCountInvalidated
-        && potentialFadedLetterCount > scanConf.minDetections
-        // FOR SOME REASON THIS CONDITION CAUSES EVERYTHING TO HANG:
-        // && (imageSegmentAlignmentSamples && imageSegmentAlignment && Math.abs(imageSegmentAlignment / imageSegmentAlignmentSamples) > scanConf.maxPotentialSubtitleMisalignment)
-        && averageImageSegmentSize < scanConf.maxValidLetter
-      ) {
-        if (subtitleConfirmPass) {
-          if (results.firstSubtitle === -1) {
-            results.firstSubtitle = searchRow;
+      /**
+       * Convert phase lengths into frequency array.
+       *
+       * Here's the stuff that goes in:
+       *   — ALL subtitle phase lengths
+       *   — ALL half-subtitle phase lengths
+       *   — short dark phase lengths
+       *
+       * we ignore dark phase lengths, because we want long
+       * phases of non-dark pixels to work against subtitle detection
+       */
+      phaseFrequencyProcessing:
+      {
+        const subtitlePhaseCount = mem.subtitleFullPhases[changeCountIndex] + 1;
+        const subtitleHalfPhaseCount = mem.subtitleHalfPhases[changeCountIndex] + 1;
+        const darkPhaseCount = mem.darkPhases[changeCountIndex] + 1;
 
-            // if detecting subtitles only resets AR, we can return immediately
-            if (stopOnFirstSubtitle) {
-              break outerLoop;
-            }
+        for (let i = 0; i < subtitlePhaseCount; i++) {
+          const phaseLength = mem.subtitleFullPhases[i];
+          if (phaseLength <= maxf) {
+            mem.phaseLengthFrequency[phaseLength]++;
+          } else {  // we penalize "not a letter" by inflating count of phase lengths longer than max letter width
+            mem.phaseLengthFrequency[maxf] += Math.ceil(phaseLength / maxf);
           }
-          results.lastSubtitle = searchRow;
-          isBlank = false;
-
-          resetSubtitlePass();
         }
-        subtitleConfirmPass = true;
-        searchRow -= scanSpacing + (scanSpacing > 0 ? - 1 : 1);
-        continue outerLoop;
+        for (let i = 0; i < subtitleHalfPhaseCount; i++) {
+          const phaseLength = mem.subtitleHalfPhases[i];
+          if (phaseLength <= maxf) {
+            mem.phaseLengthFrequency[phaseLength]++;
+          } else {  // we penalize "not a letter" by inflating count of phase lengths longer than max letter width
+            mem.phaseLengthFrequency[maxf] += Math.ceil(phaseLength / maxf);
+          }
+        }
+        for (let i = 0; i < darkPhaseCount; i++) {
+          const phaseLength = mem.darkPhases[i];
+          if (phaseLength <= maxf) {
+            mem.phaseLengthFrequency[phaseLength]++;
+          }
+        }
+
+        // compute average phase length
+        let sum = 0, count = 0;
+        for (let i = 0; i < mem.phaseLengthFrequency.length; i++) {
+          sum += mem.phaseLengthFrequency[i] * i;
+          count += mem.phaseLengthFrequency[i];
+        }
+
+        // determine whether we're looking at a subtitle based on the
+        // heuristics that we've calculated
+        const averagePhaseLength = sum / count;
+
+        if (averagePhaseLength < 4) {
+          /**
+           * time for critical thinking: just because average length is short, that doesn't mean
+           * we're looking at a subtitle, otherwise every compression artifact is gonna trigger
+           * subtitle detection ... which is less than ideal.
+           *
+           * If we have very few counts, it _better be dab smack in the middle_
+           */
+
+          const quarterScan = scanSize >> 4; // divide by 16, because scanSize is in RGBA subpixels, but phase lengths are in pixels
+          const lowCountCriteria = (
+            (subtitlePhaseCount > 2 || subtitlePhaseCount > 4)
+            && mem.darkPhases[0] > quarterScan
+            && mem.darkPhases[darkPhaseCount - 1] > quarterScan
+          );
+          const highCountCriteria = (subtitlePhaseCount > 4 || subtitlePhaseCount > 8);
+
+          if (lowCountCriteria || highCountCriteria) {
+            updateSubtitleInfo(searchRow);
+            likelySubtitle = true;
+            results.subtitleConfirmations++;
+          }
+        } else if (averagePhaseLength >= 8) {
+          console.log('we detected image maybe', averagePhaseLength, 'in line', searchRow);
+          likelyImage = true;
+        }
       }
 
-      // If we are here, subtitles weren't confirmed
-      resetSubtitlePass();
+      /**
+       * We see if we get to copy candidate line to our buffer. We can run this check
+       * AFTER checking for blank rows, as blank rows can never be valid candidates for
+       * subtitle stability test (& also default state is already blank row, so no need
+       * to copy the buffer unless we found something better)
+       *
+       * We also allow for sporadic updates of the stability buffer if we want to have
+       * "larger temporal spacing (tm)". In that case, verification runs on stale data,
+       * but that's no biggie (except for the part where could just cache the scan results as well)
+       */
+      if (results.stability.intervalFrame === 0) {
+        const slotOffset = results.stability.scanSlot * results.stability.slotSize;
+        const lineOffset = results.stability.lineSlot * results.stability.lineSize;
 
+        const candidate = mem.linePhaseLengths;
+        const buffer = results.stability.buffer;
+        const start = slotOffset + lineOffset;
+        const stabilityCountIndex = results.stability.lineSize - 1;
+        const phaseCount = Math.min(
+          candidate[combinedPhasesChangeCountIndex],
+          stabilityCountIndex
+        );
+
+        // item with most changes gets the slot.
+        if (phaseCount >= buffer[start + stabilityCountIndex]) {
+          for (let i = 0; i < phaseCount; i++) {
+            buffer[start + i] = candidate[i];
+          }
+          buffer[start + stabilityCountIndex] = phaseCount;
+
+          results.stability.lineSlot++;
+          if (results.stability.lineSlot % this.settings.active.aard.subtitles.stability.scanLines === 0) {
+            results.stability.lineSlot = 0;
+          }
+        }
+      }
+
+      if (likelyImage) {
+        updateImageCandidate(searchRow);
+        break outerLoop;
+      }
+
+
+      // const averageImageSegmentSize = segmentWeights > 0 ? imageWeightedSize / segmentWeights : 0;
+      const gradientDetectionFrequency = 1 - (nonGradientPixelCount / imageSize);
 
       // If we detect gradient, that's instant fail.
       // We still save uncertain detection to firstImage, because iterative scan uses that
       // in order to determine which region to scan further
       if (gradientDetectionFrequency > arConf.edgeDetection.gradientThreshold) {
         results.uncertain = true;
-        updateImage(searchRow);
+        updateImageCandidate(searchRow);
         break outerLoop;
       }
 
-      // Cases which require confirmation
-      if (
-        imageSegmentCount > arConf.edgeDetection.maxEdgeSegments // we need to confirm if there's too many segments
-        || averageImageSegmentSize < arConf.edgeDetection.averageEdgeThreshold // we also need to confirm if segments are too small
-      ) {
-        if (imageConfirmPass) {
-          results.uncertain = true;
-          updateImage(searchRow - 1);
-          break outerLoop;
-        }
-
-        imageConfirmPass = true;
-        // imageConfirmPass must happen on the next row, but it's possible that we aren't
-        // checking row-by-row. Hence, we need to modify our scan a bit
-        searchRow -= scanSpacing + (scanSpacing > 0 ? - 1 : 1);
-
-        continue outerLoop;
-      }
-
-      if (averageImageSegmentSize > arConf.edgeDetection.averageEdgeThreshold || imageSize > imageThreshold) {
-        updateImage(searchRow);
-        break outerLoop;
-      }
-
-      // we can only reach this far if we detected image
-      if (imageConfirmPass) {
-        updateImage(searchRow - 1);
-      } else {
-        updateImage(searchRow);
-      }
-      break outerLoop;
     } // end of outer loop
   }
 
@@ -1549,19 +1797,29 @@ export class Aard {
    * @returns
    */
   private subtitleScanRegionIterative(
-    imageData: Uint8Array,
-    height: number,
-    startRow: number,
-    endRow: number,
-    scanSpacing: number,
-    minDetections: number,
-    results: AardTestResult_SubtitleRegion,
-  ): boolean {
+    {imageData, height, startRow, endRow, scanSpacing, minDetections, results}: {
+      imageData: Uint8Array,
+      height: number,
+      startRow: number,
+      endRow: number,
+      scanSpacing: number,
+      minDetections: number,
+      results: AardTestResult_SubtitleRegion,
+    }): boolean {
 
     if (results.stability.intervalFrame === 0) {
       results.stability.scanSlot++;
-      if (results.stability.scanSlot % this.settings.active.aard.subtitles.stability.confirmationScanInterval === 0) {
+      if (results.stability.scanSlot % this.settings.active.aard.subtitles.stability.confirmationScans === 0) {
         results.stability.scanSlot = 0;
+      }
+
+      // we also NEED to reset current scan slot in the buffer,
+      // because otherwise we're guaranteed to get stale and faulty data.
+      // resetting the phase counter should generally be enough
+      const scanSlotOffset = results.stability.scanSlot * results.stability.slotSize;
+      const phaseCounterOffset = results.stability.lineSize - 1;
+      for (let i = 0; i < this.settings.active.aard.subtitles.stability.scanLines; i++) {
+        results.stability.buffer[scanSlotOffset + i * results.stability.lineSize + phaseCounterOffset] = 0;
       }
     }
     // line slot resets on each scan, which guarantees that the last _n_ lines that we
@@ -1596,45 +1854,45 @@ export class Aard {
 
     // stability test can set subtitle scan uncertainty to true, but not the other way around
     if (!results.uncertain && this.settings.active.aard.subtitles.stability.confirmationScans > 1) {
-      let refOffset = 0;
-      let refLineOffset = 0;
-      let peerLineOffset = 0;
-      let refPhaseCounterIndex = 0;
-      let peerPhaseCounterIndex = 0;
+      const counterIndexOffset = results.stability.lineSize - 1;
+      let lineOffset: number, segmentOffset: number;
+      let phaseChangeCount: number;
 
-      outerLoop:
-      for (let si = 1; si < this.settings.active.aard.subtitles.stability.confirmationScans; si++) {
-        let scanSlotOffset = si * results.stability.scanSize;
-        refOffset = 0;
+      // verify that phase change counts are the same between same lines across different scan slots
+      for (let li = 0; li < this.settings.active.aard.subtitles.stability.scanLines; li++) {
+        lineOffset = li * results.stability.lineSize + counterIndexOffset;
 
-        for (let li = 0; li < results.stability.buffer.length; li++) {
-          refLineOffset = li * results.stability.lineSize;
-          refPhaseCounterIndex = refLineOffset + results.stability.lineSize - 1;
+        for (let si = 1; si < this.settings.active.aard.subtitles.stability.confirmationScans; si++) {
+          segmentOffset = si * results.stability.slotSize;
 
-          peerLineOffset = refLineOffset + scanSlotOffset;
-          peerPhaseCounterIndex = refPhaseCounterIndex + scanSlotOffset;
-
-          // did both scans detect same number of letter phase changes?
-          // no —> it is uncertain whether we have subtitles, and we'll assume that we don't
-          if (results.stability.buffer[refPhaseCounterIndex] !== results.stability.buffer[peerPhaseCounterIndex]) {
+          if (results.stability.buffer[lineOffset] !== results.stability.buffer[segmentOffset + lineOffset]) {
             results.subtitlesUnstable = true;
-            break outerLoop;
+            return true;  // we know subtitles are unstable, so we can bail
           }
-          // now we check letter phase lengths
-          for (let pi = 0; pi < results.stability.buffer[refPhaseCounterIndex]; pi++) {
-            // We allow a small difference in phase lengths in order to avoid being too strict
+        }
+      }
+
+      for (let li = 0; li < this.settings.active.aard.subtitles.stability.scanLines; li++) {
+        lineOffset = li * results.stability.lineSize;
+        phaseChangeCount = results.stability.buffer[lineOffset + counterIndexOffset];
+
+        for (let si = 1; si < this.settings.active.aard.subtitles.stability.confirmationScans; si++) {
+          segmentOffset = si * results.stability.slotSize;
+
+          for (let pi = 0; pi < phaseChangeCount; pi++) {
             if (!equalish(
-              results.stability.buffer[refLineOffset + pi],
-              results.stability.buffer[peerLineOffset + pi],
+              results.stability.buffer[lineOffset + pi],
+              results.stability.buffer[segmentOffset + lineOffset + pi],
               this.settings.active.aard.subtitles.stability.phaseLengthTolerance
             )) {
               results.subtitlesUnstable = true;
-              break outerLoop;
+              return true;  // we know subtitles are unstable, so we can bail
             }
           }
         }
       }
     }
+    results.subtitlesUnstable = false;
 
     return true;
   }

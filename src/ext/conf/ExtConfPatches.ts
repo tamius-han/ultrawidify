@@ -533,7 +533,7 @@ const ExtensionConfPatch = Object.freeze([
 
     }
   }, {
-    forVersion: '6.3.9991',
+    forVersion: '6.3.9992',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
       userOptions.mouseOptions = {
         shiftPan: true,
@@ -551,6 +551,8 @@ const ExtensionConfPatch = Object.freeze([
         confirmationScanInterval: 1,
         phaseLengthTolerance: 2,
       };
+      userOptions.aard.subtitles.maxPhasesTotal = 32;
+      userOptions.aard.subtitles.maxPhasesPerType = 16;
       userOptions.aard.stability = {
         confirmationStrategy: ArConfirmationStrategy.NoConfirming,
         arSampleCount: 3, // we need to detect aspect ratio on this many consecutive scans before applying

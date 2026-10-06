@@ -9,7 +9,11 @@ export interface AardTestResult_SubtitleRegion {
   lastSubtitle: number,
   firstImage: number,
   lastImage: number,
+
+  subtitleConfirmations: number,
+
   uncertain: boolean,
+  hasSubtitle: boolean,
   subtitlesUnstable: boolean,
 
   // NOTE: nothing in stability resets between runs, as there should
@@ -20,7 +24,7 @@ export interface AardTestResult_SubtitleRegion {
     lineSlot: number,
     buffer: number[],
     lineSize: number,
-    scanSize: number,
+    slotSize: number,
     intervalFrame: number,
   }
 }
@@ -33,6 +37,7 @@ export interface AardTestResultFlags {
   arUnstable: boolean,
   cropInvalidated: boolean,
   cropMaintaining: boolean,
+  noSubtitles: boolean,
   subtitlesUncertain: boolean,
   subtitlesConfirmed: boolean
 }
@@ -68,13 +73,6 @@ export interface AardTestResults {
       top: AardTestResult_SubtitleRegion,
       bottom: AardTestResult_SubtitleRegion
     },
-    letterStartIndices: number[],
-    letterLengths: number[],
-    confirmLetterStartIndices: number[],
-    confirmLetterLengths: number[],
-
-    resultsBufferTop: number[],
-    resultsBufferBottom: number[],
   },
   activeLetterbox: {
     width: number,
@@ -98,7 +96,10 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
   // add one extra slot for on/off status change count at the end. We keep this
   // info because the buffer doesn't reset between runs
   const stabilityLineSize = (settings.subtitles.stopAfterDetections + 1);
-  const stabilityScanSize = stabilityLineSize * settings.subtitles.stability.scanLines;
+
+  // add one extra slot for current run cache, because we'll discard empty lines
+  // from our subtitle stability calculations
+  const stabilityScanSize = stabilityLineSize * settings.subtitles.stability.scanLines + 1;
   const stabilityBufferSize = 2    // ← letter ON index + letter OFF index
     * stabilityScanSize
     * settings.subtitles.stability.confirmationScans;
@@ -132,7 +133,11 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
           lastSubtitle: -1,
           firstImage: -1,
           lastImage: -1,
+
+          subtitleConfirmations: 0,
+
           uncertain: false,
+          hasSubtitle: false,
           subtitlesUnstable: false,
 
           stability: {
@@ -140,9 +145,9 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
             lineSlot: 0,
             intervalFrame: 0,
             lineSize: stabilityLineSize,
-            scanSize: stabilityScanSize,
-            buffer: new Array<number>(stabilityBufferSize).fill(0)
-          }
+            slotSize: stabilityScanSize,
+            buffer: new Array<number>(stabilityBufferSize).fill(0),
+          },
         },
         bottom: {
           firstBlank: -1,
@@ -151,24 +156,24 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
           lastSubtitle: -1,
           firstImage: -1,
           lastImage: -1,
+
+          subtitleConfirmations: 0,
+
           uncertain: false,
+          hasSubtitle: false,
           subtitlesUnstable: false,
 
           stability: {
             scanSlot: 0,
             lineSlot: 0,
-            intervalFrame: 1, // if confirmationScanInterval is more than 1, top and bottom scan fire on different passes
+            intervalFrame: 0, // must be same, otherwise debug results display is broken
             lineSize: stabilityLineSize,
-            scanSize: stabilityScanSize,
-            buffer: new Array<number>(stabilityBufferSize).fill(0)
-          }
+            slotSize: stabilityScanSize,
+            buffer: new Array<number>(stabilityBufferSize).fill(0),
+          },
         }
       },
 
-      letterStartIndices: new Array<number>(settings.subtitles.stopAfterDetections).fill(-1),
-      letterLengths: new Array<number>(settings.subtitles.stopAfterDetections).fill(-1),
-      confirmLetterStartIndices: new Array<number>(settings.subtitles.stopAfterDetections).fill(-1),
-      confirmLetterLengths: new Array<number>(settings.subtitles.stopAfterDetections).fill(-1),
     },
     activeLetterbox: {
       width: 0,
@@ -198,6 +203,7 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
       arUnstable: false,
       cropInvalidated: false,
       cropMaintaining: false,
+      noSubtitles: false,
       subtitlesUncertain: false,
       subtitlesConfirmed: false
     }
@@ -233,43 +239,26 @@ export function resetAardTestResults(results: AardTestResults): void {
   results.flags.subtitlesConfirmed = false;
 }
 
+
+
+export function resetSubtitleScanRegion(region: AardTestResult_SubtitleRegion) {
+  region.firstBlank = -1;
+  region.lastBlank = -1;
+  region.firstSubtitle = -1;
+  region.lastSubtitle = -1;
+  region.firstImage = -1;
+  region.lastImage = -1;
+  region.subtitleConfirmations = 0;
+
+  region.uncertain = false;
+  region.hasSubtitle = false;
+  region.subtitlesUnstable = false;
+}
+
 export function resetSubtitleScanResults(results: AardTestResults): void {
   results.subtitleScan.top = -1;
   results.subtitleScan.bottom = -1;
 
-  results.subtitleScan.regions.top.firstBlank = -1;
-  results.subtitleScan.regions.top.lastBlank = -1;
-  results.subtitleScan.regions.top.firstSubtitle = -1;
-  results.subtitleScan.regions.top.lastSubtitle = -1;
-  results.subtitleScan.regions.top.firstImage = -1;
-  results.subtitleScan.regions.top.lastImage = -1;
-
-  results.subtitleScan.regions.bottom.firstBlank = -1;
-  results.subtitleScan.regions.bottom.lastBlank = -1;
-  results.subtitleScan.regions.bottom.firstSubtitle = -1;
-  results.subtitleScan.regions.bottom.lastSubtitle = -1;
-  results.subtitleScan.regions.bottom.firstImage = -1;
-  results.subtitleScan.regions.bottom.lastImage = -1;
-
-  // we don't have to iterate through the entire array,
-  // so we don't.
-  let i = 0;
-  let starts = results.subtitleScan.letterStartIndices;
-  let lengths = results.subtitleScan.letterLengths;
-
-  while (starts[i] >= 0) {
-    starts[i] = -1;
-    lengths[i] = -1;
-    i++;
-  }
-
-  i = 0;
-  starts = results.subtitleScan.confirmLetterStartIndices;
-  lengths = results.subtitleScan.confirmLetterLengths;
-  while (starts[i] >= 0) {
-    starts[i] = -1;
-    lengths[i] = -1;
-    i++;
-  }
-
+  resetSubtitleScanRegion(results.subtitleScan.regions.top);
+  resetSubtitleScanRegion(results.subtitleScan.regions.bottom);
 }

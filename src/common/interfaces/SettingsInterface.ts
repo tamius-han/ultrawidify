@@ -73,6 +73,9 @@ export interface AardSubtitleScanOptions {
                                 // While technically anything between 0 and 0.5 is valid, the value
                                 // should be somewhere between 0.1-0.3 in order for subtitle scan to
                                 // work properly.
+    maxPhasesTotal: number,     // bail when total number of phase changes exceeds this number
+    maxPhasesPerType: number,   // bail when number of phase changes of a single type exceeds this number
+
     maxValidLetter: number,     // if letter is longer than this, something's off.
     subtitleSubpixelThresholdOn: number,
     subtitleSubpixelThresholdOff: number,

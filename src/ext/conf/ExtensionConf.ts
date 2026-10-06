@@ -42,6 +42,10 @@ const ExtensionConf: SettingsInterface = {
       scanSpacing: 5,
       scanMargin: 0.25,
       maxValidLetter: 12,
+
+      maxPhasesTotal: 32,
+      maxPhasesPerType: 16,
+
       subtitleSubpixelThresholdOff: 8,
       subtitleSubpixelThresholdOn: 192,
       minDetections: 8,
@@ -72,7 +76,7 @@ const ExtensionConf: SettingsInterface = {
                               // Any more and we don't adjust ar.
     allowedArVariance: 0.0125,// amount by which old ar can differ from the new (1 = 100%)
     timers: {                 // autodetection frequency
-      playing: 333,           // while playing
+      playing: 10,            // while playing
       playingReduced: 5000,   // while playing at small sizes
       paused: 3000,           // while paused
       error: 3000,            // after error
@@ -194,7 +198,11 @@ const ExtensionConf: SettingsInterface = {
       resumeAfter: 5000,
       scanSpacing: 5,
       scanMargin: 0.25,
+
+      maxPhasesTotal: 32,
+      maxPhasesPerType: 16,
       maxValidLetter: 12,
+
       subtitleSubpixelThresholdOff: 8,
       subtitleSubpixelThresholdOn: 192,
       minDetections: 8,
