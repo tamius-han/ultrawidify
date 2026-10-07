@@ -90,6 +90,7 @@ class PlayerData {
   enabled: boolean;
   invalid: boolean = false;
   private periodicallyRefreshPlayerElement: boolean = false;
+  private siteSettingsStorageListener = (siteConfUpdate: SiteSettings) => this.reloadPlayerDataConfig(siteConfUpdate);
   halted: boolean = true;
   isFullscreen: boolean = !!document.fullscreenElement;
   isTheaterMode: boolean = false;  // note: fullscreen mode will count as theaterMode if player was in theater mode before fs switch. This is desired, so far.
@@ -221,7 +222,9 @@ class PlayerData {
       this.periodicallyRefreshPlayerElement = false;
 
       // do mouse handler
-      this.mouseHandler = new MouseHandler(undefined, this.eventBus, this.siteSettings, this.videoData.settings, this.logAggregator);
+      if (!this.mouseHandler) {
+        this.mouseHandler = new MouseHandler(undefined, this.eventBus, this.siteSettings, this.videoData.settings, this.logAggregator);
+      }
 
       try {
         this.periodicallyRefreshPlayerElement = this.siteSettings.data.currentDOMConfig.periodicallyRefreshPlayerElement;
@@ -239,7 +242,7 @@ class PlayerData {
       document.addEventListener('fullscreenchange', this.dimensionChangeListener);
 
       // we want to reload on storage changes
-      this.siteSettings.subscribeToStorageChange('PlayerData', (siteConfUpdate) => this.reloadPlayerDataConfig(siteConfUpdate));
+      this.siteSettings.subscribeToStorageChange('PlayerData', this.siteSettingsStorageListener);
     } catch (e) {
       console.error('[Ultrawidify::PlayerData::ctor] There was an error setting up player data. You should be never seeing this message. Error:', e);
       this.invalid = true;
@@ -252,7 +255,7 @@ class PlayerData {
   private initEventBus() {
     for (const action in this.eventBusCommands) {
       for (const command of this.eventBusCommands[action]) {
-        this.eventBus.subscribe(action, command);
+        this.eventBus.subscribe(action, {...command, source: this});
       }
     }
   }
@@ -320,8 +323,11 @@ class PlayerData {
    * Completely stops everything the extension is doing
    */
   destroy() {
+    this.eventBus.unsubscribeAll(this);
+    this.siteSettings.unsubscribeToStorageChange('PlayerData', this.siteSettingsStorageListener);
     document.removeEventListener('fullscreenchange', this.dimensionChangeListener);
     this.stopChangeDetection();
+    this.mouseHandler?.destroy();
     this.ui?.destroy();
     this.notificationService?.destroy();
   }
