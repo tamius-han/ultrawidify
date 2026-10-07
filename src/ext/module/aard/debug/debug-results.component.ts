@@ -124,8 +124,8 @@ export class AardDebugResults {
   }
 
   updateAr(testResults: AardTestResults, paused: boolean = false) {
-    this.elements.arDisplay.appliedAR.textContent = testResults.appliedAr?.toFixed(3) ?? '';
-    this.elements.arDisplay.detectedAR.textContent = testResults.detectedAr?.toFixed(3) ?? '';
+    this.elements.arDisplay.appliedAR.textContent = testResults.appliedAr?.toFixed(3) ?? '×';
+    this.elements.arDisplay.detectedAR.textContent = testResults.detectedAr?.toFixed(3) ?? '×';
 
     this.drawArChartColumn(this.elements.arChartCanvas.applied, testResults.appliedAr);
     this.drawArChartColumn(this.elements.arChartCanvas.detected, testResults.detectedAr, paused);

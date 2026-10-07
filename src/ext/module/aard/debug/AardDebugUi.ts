@@ -535,7 +535,7 @@ export class AardDebugUi {
   }
 
   _lastAr: undefined;
-  updateTestResults(testResults: AardTestResults, timers: { pauseUntil: number }) {
+  updateTestResults(testResults: AardTestResults, timers: { pauseUntil: number }, forceChartUpdate = false) {
     this.updatePerformanceResults();
 
     if (testResults.aspectRatioUpdated && this.pauseOnArCheck) {
@@ -570,7 +570,7 @@ export class AardDebugUi {
     // resultsDiv.innerHTML = out;
 
     this.debugResults.updateStatus(testResults.flags, timers);
-    if (!(this.aard as any).video?.paused) {
+    if (forceChartUpdate || !(this.aard as any).video?.paused) {
       this.debugResults.updateChart();
       this.debugResults.updateAr(testResults, timers?.pauseUntil > Date.now());
     }
