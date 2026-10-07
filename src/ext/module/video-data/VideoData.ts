@@ -80,6 +80,9 @@ class VideoData {
   extensionStatus: ExtensionStatus;
 
   private currentEnvironment?: ExtensionEnvironment;
+  private readonly loadedDataListener = this.onLoadedData.bind(this);
+  private readonly loadedMetadataListener = this.onLoadedMetadata.bind(this);
+  private readonly timeUpdateListener = this.onTimeUpdate.bind(this);
   //#endregion
 
 
@@ -242,11 +245,11 @@ class VideoData {
     this.logger.info('setupEventListeners', '%c——————————— Starting event listener setup! ———————————', 'color: #0f9');
 
     // this is in case extension loads before the video
-    this.video.addEventListener('loadeddata', this.onLoadedData.bind(this));
-    this.video.addEventListener('loadedmetadata', this.onLoadedMetadata.bind(this));
+    this.video.addEventListener('loadeddata', this.loadedDataListener);
+    this.video.addEventListener('loadedmetadata', this.loadedMetadataListener);
 
     // this one is in case extension loads after the video is loaded
-    this.video.addEventListener('timeupdate', this.onTimeUpdate.bind(this));
+    this.video.addEventListener('timeupdate', this.timeUpdateListener);
 
     this.logger.info('setupEventListeners', '%c——————————— Event listeners setup complete! ———————————', 'color: #0f9');
   }
@@ -357,9 +360,9 @@ class VideoData {
       this.video.classList.remove(this.userCssClassName);
       this.video.classList.remove('uw-ultrawidify-base-wide-screen');
 
-      this.video.removeEventListener('onloadeddata', this.onLoadedData);
-      this.video.removeEventListener('onloadedmetadata', this.onLoadedMetadata);
-      this.video.removeEventListener('ontimeupdate', this.onTimeUpdate);
+      this.video.removeEventListener('loadeddata', this.loadedDataListener);
+      this.video.removeEventListener('loadedmetadata', this.loadedMetadataListener);
+      this.video.removeEventListener('timeupdate', this.timeUpdateListener);
     }
 
     this.eventBus.unsubscribeAll(this);
