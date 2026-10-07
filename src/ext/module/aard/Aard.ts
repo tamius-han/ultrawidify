@@ -1,14 +1,11 @@
 import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
-import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
 import { ArVariant } from '@src/common/interfaces/ArInterface';
-import { ExtensionEnvironment } from '@src/common/interfaces/SettingsInterface';
 import EventBus from '../EventBus';
 import Settings from '../settings/Settings';
 import { SiteSettings } from '../settings/SiteSettings';
 import VideoData from '../video-data/VideoData';
 import { AardDebugUi } from './debug/AardDebugUi';
 import { AardTimer } from './AardTimers';
-import { Corner } from './enums/corner.enum';
 import { VideoPlaybackState } from './enums/video-playback-state.enum';
 import { FallbackCanvas } from './gl/FallbackCanvas';
 import { GlCanvas } from './gl/GlCanvas';
@@ -22,9 +19,7 @@ import { ComponentLogger } from '../logging/ComponentLogger';
 import { AardPollingOptions } from './enums/aard-polling-options.enum';
 import { AardSubtitleCropMode } from './enums/aard-subtitle-crop-mode.enum';
 import { LetterboxOrientation } from './enums/letterbox-orientation.enum';
-import { Edge } from './enums/edge.enum';
 import { AardUncertainReason } from './enums/aard-letterbox-uncertain-reason.enum';
-import { result } from 'lodash';
 import { equalish } from '@src/common/utils/comparators';
 import { ArConfirmationStrategy } from '@src/common/enums/ArConfirmationStrategy.enum';
 import { AardMem, clearSubtitleScanPhaseBuffers, initAardMem } from '@src/ext/module/aard/interfaces/aard-mem.interface.ts';
@@ -45,7 +40,6 @@ import { AardSubtitlePhase } from '@src/ext/module/aard/enums/aard-subtitle-phas
  */
 
 const PIXEL_SIZE = 4;
-const PIXEL_SIZE_FRACTION = 0.25;
 let ROW_SIZE = -1;
 
 export class Aard {
@@ -105,7 +99,6 @@ export class Aard {
 
   private debugConfig: any = {};
   private timer: AardTimer;
-  private lastAnimationFrameTime: number = Infinity;
   //#endregion
 
   //#region getters
@@ -395,7 +388,6 @@ export class Aard {
     const videoState = this.getVideoPlaybackState();
     const polling = this.settings.active.aard.polling;
     const now = Date.now();
-    const debugUiOpen = !!this.debugConfig.debugUi;
 
     if (videoState !== VideoPlaybackState.Playing) {
       if (this.status.lastVideoStatus === videoState) {
@@ -1068,7 +1060,6 @@ export class Aard {
 
     if (this.testResults.letterboxOrientation === LetterboxOrientation.Letterbox && this.testResults.subtitleDetected) {
       const top = this.testResults.subtitleScan.regions.top.firstSubtitle === -1 ? topCandidate : Math.min(topCandidate, this.testResults.subtitleScan.regions.top.firstSubtitle);
-      const bottom = Math.max(bottomCandidate, this.testResults.subtitleScan.regions.bottom.firstSubtitle);
 
       this.testResults.letterboxSizeWithSubtitles = ~~((top + (crossDimension - bottomCandidate)) * 0.5);
     }
@@ -1116,7 +1107,6 @@ export class Aard {
       startRow: 2,
       endRow: halfHeight,
       scanSpacing: scanConf.refiningScanSpacing,
-      minDetections: scanConf.minDetections,
       results: ssrRegions.top,
     });
 
@@ -1126,7 +1116,6 @@ export class Aard {
       startRow: height - 3,
       endRow: halfHeight,
       scanSpacing: -scanConf.refiningScanSpacing,
-      minDetections: scanConf.minDetections,
       results: ssrRegions.bottom,
     });
 
@@ -1205,7 +1194,6 @@ export class Aard {
     startRow: number,
     endRow: number,
     scanSpacing: number,
-    minDetections: number,
     results: AardTestResult_SubtitleRegion,
   ) {
     results.uncertain = false;
@@ -1214,9 +1202,7 @@ export class Aard {
     const scanConf = this.settings.active.aard.subtitles;
     const arConf = this.settings.active.aard;
 
-    let letterSize, imageSize, imageSegmentSize, isBlank;
-    let likelySubtitle, likelyImage;
-    let darkEdgeSamples, darkEdgeDelta, darkEdge_nextRow;
+    let isBlank, likelySubtitle, likelyImage;
 
     let rowStart, rowEnd; // GT = gradient test
 
@@ -1242,7 +1228,7 @@ export class Aard {
       lastScannedLines[1] = lastScannedLines[0];
       lastScannedLines[0] = searchRow;
       if (lastScannedLines[0] === lastScannedLines[1]) {
-        console.warn("we are scanning same row as before. This shouldn't happen.");
+        // console.warn("we are scanning same row as before. This shouldn't happen.");
         continue outerLoop;
       }
       // Code inside here runs ONCE PER ROW
@@ -1259,15 +1245,9 @@ export class Aard {
 
       //#region prepare for inner loop
 
-      imageSize = 0;
-      letterSize = 0;
       isBlank = true;
-
       likelySubtitle = false;
       likelyImage = false;
-
-      darkEdgeSamples = 0;
-      darkEdgeDelta = 0;
 
       // Scan region is centered,
       rowStart = (searchRow * ROW_SIZE) + rowMargin;
@@ -1279,7 +1259,7 @@ export class Aard {
       const smallExcessThreshold = 16;
       const smallExcessCountThreshold = 8;
 
-      let hasSmallExcess = false,  hasSmallShort = false;
+      let hasSmallExcess = false, hasSmallShort = false;
 
       /**
        * This function can break or return early only in the following situations:
@@ -1501,53 +1481,12 @@ export class Aard {
         }
 
 
-        // SPECIAL TESTS FOR PHASE 1:
-        //    1. Dark edge detection test
-        //    2. Gradient test
-        if (phase === AardSubtitlePhase.Image) {
-
-          // Dark edge detection test:
-          if (
-            imageData[rowStart] < this.testResults.blackThreshold
-            && imageData[rowStart + 1] < this.testResults.blackThreshold
-            && imageData[rowStart + 2] < this.testResults.blackThreshold
-          ) {
-
-            darkEdge_nextRow = rowStart + scanSpacing * ROW_SIZE;
-
-            // we penalize negative values a lot, and we clamp positive values to
-            // something small so large values don't throw off the average. If the
-            // sample is consistent enough to be more than our threshold (which we
-            // check later), we found an edge
-            let diff, d = -Infinity;
-            for (let i = 0; i < 3; i++) {
-              diff = imageData[darkEdge_nextRow + i] - imageData[rowStart + i];
-              if (diff < 0) {
-                diff *= 8;
-              }
-              if (diff > d) {
-                d = diff;
-              }
-            }
-            if (d > 4) {
-              d = 4;
-            }
-            darkEdgeDelta += d;
-            darkEdgeSamples++;
-          }
-        }
-
         // we always update counters at the end, regardless of whether phase changed or not
         switch (phase) {
           case AardSubtitlePhase.SubtitleFull:
-            isOnLetter = true;
-            letterSize++;
             // fall through — case 1 stuff also happens in phase 2
           case AardSubtitlePhase.SubtitleHalf:
           case AardSubtitlePhase.Image:
-            imageSegmentSize++;
-            imageSize++;
-            isOnImage = true;
             isBlank = false;
         }
         mem.linePhaseLengths[letterPhaseLengthCountIndex]++;
@@ -1674,7 +1613,6 @@ export class Aard {
                 }
               }
             }
-            isBlank = false;
             likelySubtitle = true;
             results.subtitleConfirmations++;
           }
@@ -1735,7 +1673,6 @@ export class Aard {
         if (!likelySubtitle && !likelyImage) {
           let imageSegment = 0;
 
-          // NOTE: element at changeCountIndex does not contain number of phase
           // changes, it contains position of the last phase. Which is zero-based.
           // Which means that the number of phases is one larger than the value at changeCountIndex.
           for (let i = 0; i <= mem.nonDarkPhases[changeCountIndex]; i++) {
@@ -1783,15 +1720,14 @@ export class Aard {
    * @returns
    */
   private subtitleScanRegionIterative(
-    {imageData, height, startRow, endRow, scanSpacing, minDetections, results}: {
+    {imageData, height, startRow, endRow, scanSpacing, results}: {
       imageData: Uint8Array,
       height: number,
       startRow: number,
       endRow: number,
       scanSpacing: number,
-      minDetections: number,
       results: AardTestResult_SubtitleRegion,
-    }): boolean {
+    }) {
 
     if (results.stability.intervalFrame === 0) {
       results.stability.scanSlot++;
@@ -1819,11 +1755,11 @@ export class Aard {
       this.subtitleScanRegionLinear(
         imageData, height,
         startRow, endRow,
-        scanSpacing, minDetections, results
+        scanSpacing, results
       );
 
       if (results.firstImage === -1) {
-        return false;
+        return;
       }
 
       // We need to ensure small amount of overlap, in case we landed on a sus row
@@ -1853,7 +1789,7 @@ export class Aard {
 
           if (results.stability.buffer[lineOffset] !== results.stability.buffer[segmentOffset + lineOffset]) {
             results.subtitlesUnstable = true;
-            return true;  // we know subtitles are unstable, so we can bail
+            return;
           }
         }
       }
@@ -1872,7 +1808,7 @@ export class Aard {
               this.settings.active.aard.subtitles.stability.phaseLengthTolerance
             )) {
               results.subtitlesUnstable = true;
-              return true;  // we know subtitles are unstable, so we can bail
+              return;
             }
           }
         }
@@ -1880,7 +1816,6 @@ export class Aard {
     }
     results.subtitlesUnstable = false;
 
-    return true;
   }
 
 
