@@ -395,6 +395,7 @@ export class Aard {
     const videoState = this.getVideoPlaybackState();
     const polling = this.settings.active.aard.polling;
     const now = Date.now();
+    const debugUiOpen = !!this.debugConfig.debugUi;
 
     if (videoState !== VideoPlaybackState.Playing) {
       if (this.status.lastVideoStatus === videoState) {
