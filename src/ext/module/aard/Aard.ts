@@ -82,6 +82,7 @@ export class Aard {
   private video: HTMLVideoElement;
 
   private animationFrame?: number;
+  private videoFrameCallback?: number;
 
   //#region internal state
   public status: AardStatus = initAardStatus();
@@ -293,12 +294,22 @@ export class Aard {
     this.verticalTestResults = initAardTestResults(this.settings.active.aard);
     this.mem = initAardMem(this.settings.active.aard);
 
-    if (this.animationFrame) {
+    if (this.animationFrame !== undefined) {
       window.cancelAnimationFrame(this.animationFrame);
+      this.animationFrame = undefined;
+    }
+    if (this.videoFrameCallback !== undefined) {
+      this.video.cancelVideoFrameCallback?.(this.videoFrameCallback);
+      this.videoFrameCallback = undefined;
     }
 
     this.status.aardActive = true;
-    this.animationFrame = window.requestAnimationFrame( (ts: DOMHighResTimeStamp) => this.onAnimationFrame(ts));
+
+    // A paused video may not present another frame to trigger its first callback.
+    if (this.getVideoPlaybackState() !== VideoPlaybackState.Playing && this.canTriggerFrameCheck(true)) {
+      this.runFrameCheck();
+    }
+    this.scheduleNextFrameCheck();
 
     // set auto-disable timer if detection timeout is set
     if (this.settings.active.aard.autoDisable.ifNotChanged) {
@@ -322,7 +333,7 @@ export class Aard {
       this.mem = initAardMem(this.settings.active.aard);
     }
 
-    await this.main();
+    await this.main(true);
 
     // this only ever prints to console when when user is actively using debug
     // functionalities of this addon
@@ -337,15 +348,15 @@ export class Aard {
    * Stops autodetection.
    */
   stop() {
-    if (this.destroyed) {
-      return;
-    }
-
     this.status.aardActive = false;
 
-    if (this.animationFrame) {
+    if (this.animationFrame !== undefined) {
       window.cancelAnimationFrame(this.animationFrame);
       this.animationFrame = undefined;
+    }
+    if (this.videoFrameCallback !== undefined) {
+      this.video.cancelVideoFrameCallback?.(this.videoFrameCallback);
+      this.videoFrameCallback = undefined;
     }
   }
 
@@ -382,7 +393,7 @@ export class Aard {
    * Checks whether conditions for granting a frame check are fulfilled
    * @returns
    */
-  private canTriggerFrameCheck() {
+  private canTriggerFrameCheck(isNewVideoFrame = false) {
     // if video was paused & we know that we already checked that frame,
     // we will not check it again.
     const videoState = this.getVideoPlaybackState();
@@ -390,7 +401,7 @@ export class Aard {
     const now = Date.now();
 
     if (videoState !== VideoPlaybackState.Playing) {
-      if (this.status.lastVideoStatus === videoState) {
+      if (this.status.lastVideoStatus === videoState && !isNewVideoFrame) {
         return false;
       }
     }
@@ -439,22 +450,52 @@ export class Aard {
     }
 
     if (this.canTriggerFrameCheck()) {
-      resetAardTestResults(this.testResults);
-      resetSamples(this.canvasSamples);
-      resetSubtitleScanResults(this.testResults);
-      this.main();
+      this.runFrameCheck();
     }
 
     if (this.status.aardActive && this.animationFrame === undefined) {
-      this.animationFrame = window.requestAnimationFrame( (ts: DOMHighResTimeStamp) => this.onAnimationFrame(ts));
+      this.scheduleNextFrameCheck();
     }
+  }
+
+  private onVideoFrame() {
+    this.videoFrameCallback = undefined;
+
+    if (!this.status.aardActive) {
+      return;
+    }
+
+    if (this.canTriggerFrameCheck(true)) {
+      this.runFrameCheck();
+    }
+
+    this.scheduleNextFrameCheck();
+  }
+
+  private scheduleNextFrameCheck() {
+    if (!this.status.aardActive) {
+      return;
+    }
+
+    if (typeof this.video.requestVideoFrameCallback === 'function') {
+      this.videoFrameCallback = this.video.requestVideoFrameCallback(() => this.onVideoFrame());
+    } else {
+      this.animationFrame = window.requestAnimationFrame((ts: DOMHighResTimeStamp) => this.onAnimationFrame(ts));
+    }
+  }
+
+  private runFrameCheck() {
+    resetAardTestResults(this.testResults);
+    resetSamples(this.canvasSamples);
+    resetSubtitleScanResults(this.testResults);
+    this.main();
   }
   //#endregion
 
   /**
    * Main loop for scanning aspect ratio changes
    */
-  private async main() {
+  private async main(forceChartUpdate = false) {
     const arConf =  this.settings.active.aard;
 
     try {
@@ -758,7 +799,7 @@ export class Aard {
       if (this.canvasStore.debug) {
         // this.canvasStore.debug.drawBuffer(imageData);
         this.timer.getAverage();
-        this.debugConfig?.debugUi?.updateTestResults(this.testResults, this.timers);
+        this.debugConfig?.debugUi?.updateTestResults(this.testResults, this.timers, forceChartUpdate);
       }
     } catch (e) {
       console.warn('[Ultrawidify] Aspect ratio autodetection crashed for some reason.\n\nsome reason:', e);
@@ -1058,11 +1099,11 @@ export class Aard {
     this.testResults.letterboxSize = candidateAvg;
     this.testResults.letterboxOffset = diff;
 
-    if (this.testResults.letterboxOrientation === LetterboxOrientation.Letterbox && this.testResults.subtitleDetected) {
-      const top = this.testResults.subtitleScan.regions.top.firstSubtitle === -1 ? topCandidate : Math.min(topCandidate, this.testResults.subtitleScan.regions.top.firstSubtitle);
+    // if (this.testResults.letterboxOrientation === LetterboxOrientation.Letterbox && this.testResults.subtitleDetected) {
+    //   const top = this.testResults.subtitleScan.regions.top.firstSubtitle === -1 ? topCandidate : Math.min(topCandidate, this.testResults.subtitleScan.regions.top.firstSubtitle);
 
-      this.testResults.letterboxSizeWithSubtitles = ~~((top + (crossDimension - bottomCandidate)) * 0.5);
-    }
+    //   this.testResults.letterboxSizeWithSubtitles = ~~((top + (crossDimension - bottomCandidate)) * 0.5);
+    // }
   }
 
 
@@ -1141,10 +1182,13 @@ export class Aard {
     );
 
 
-    if (this.testResults.letterboxOrientation === LetterboxOrientation.Letterbox) {
+    // We only check for subtitles when in letterbox
+    // AND WHEN ASPECT RATIO IS NOT UNCERTAIN (uncertain AR -> bogus subtitle detections)
+    if (this.testResults.letterboxOrientation === LetterboxOrientation.Letterbox && !this.testResults.aspectRatioUncertain) {
 
-      const hasTopSubtitle = ssrRegions.top.firstSubtitle !== -1;
-      const hasBottomSubtitle = ssrRegions.bottom.firstSubtitle !== -1;
+      // -------------------------- firstSubtitle must be a thing     AND    first subtitle must be closer to the edge
+      const hasTopSubtitle    =    ssrRegions.top.firstSubtitle !== -1 && ssrRegions.top.firstSubtitle < ssrRegions.top.firstImage;
+      const hasBottomSubtitle = ssrRegions.bottom.firstSubtitle !== -1 && ssrRegions.bottom.firstSubtitle > ssrRegions.bottom.firstImage;
 
       // subs statistics are processed always, regardless of whether we're resetting AR on subtitles or not
       if (
