@@ -1,4 +1,4 @@
-import { AardTestResult_SubtitleRegion, AardTestResultFlags } from '@src/ext/module/aard/interfaces/aard-test-results.interface';
+import { AardTestResult_SubtitleRegion, AardTestResultFlags, AardTestResults } from '@src/ext/module/aard/interfaces/aard-test-results.interface';
 import { AardSubtitleScanOptions } from '@src/common/interfaces/SettingsInterface';
 import template from './debug-results.component.html?raw';
 
@@ -25,11 +25,16 @@ export class AardDebugResults {
         arStable: this.element.querySelector('#uw-aard-debug_aard-status_ar-stable') as HTMLElement,
         arDeltaStable: this.element.querySelector('#uw-aard-debug_aard-status_ar-delta-stable') as HTMLElement,
         arUnstable: this.element.querySelector('#uw-aard-debug_aard-status_ar-unstable') as HTMLElement,
+        aardPaused: this.element.querySelector('#uw-aard-debug_aard-status_aard-paused') as HTMLElement,
         cropInvalidated: this.element.querySelector('#uw-aard-debug_aard-status_crop-invalidated') as HTMLElement,
         cropMaintaining: this.element.querySelector('#uw-aard-debug_aard-status_crop-maintaining') as HTMLElement,
         subtitlesNone: this.element.querySelector('#uw-aard-debug_aard-status_subtitles_none') as HTMLElement,
         subtitlesUncertain: this.element.querySelector('#uw-aard-debug_aard-status_subtitles_uncertain') as HTMLElement,
         subtitlesConfirmed: this.element.querySelector('#uw-aard-debug_aard-status_subtitles_confirmed') as HTMLElement,
+      },
+      arChartCanvas: {
+        applied: this.element.querySelector('#uw-aard-debug_ar-chart_applied canvas') as HTMLCanvasElement,
+        detected: this.element.querySelector('#uw-aard-debug_ar-chart_detected canvas') as HTMLCanvasElement,
       },
       chartCanvas: this.element.querySelector('#uw-aard-debug_aard-status_chart canvas') as HTMLCanvasElement,
       subtitleVerification: {
@@ -37,6 +42,10 @@ export class AardDebugResults {
         bottomTable: this.element.querySelector('#uw-aard-subtitle-verification-bottom-table') as HTMLElement,
         topStatus: this.element.querySelector('#uw-aard-subtitle-verification-top-status') as HTMLElement,
         bottomStatus: this.element.querySelector('#uw-aard-subtitle-verification-bottom-status') as HTMLElement,
+      },
+      arDisplay: {
+        appliedAR: this.element.querySelector('#uw-aard-debug_ar_applied-ar') as HTMLElement,
+        detectedAR: this.element.querySelector('#uw-aard-debug_ar_detected-ar') as HTMLElement,
       }
     };
   }
@@ -44,7 +53,7 @@ export class AardDebugResults {
   private chartX = 0;
   private readonly CHART_RESET_COLUMNS = 5;
 
-  private updateChart() {
+  updateChart() {
     const canvas: HTMLCanvasElement = this.elements.chartCanvas;
     const column = this.elements.status.noLetterbox.parentElement as HTMLElement;
     const width = Math.floor(canvas.clientWidth);
@@ -89,7 +98,7 @@ export class AardDebugResults {
     this.chartX = (this.chartX + 1) % width;
   }
 
-  updateStatus(flags: AardTestResultFlags) {
+  updateStatus(flags: AardTestResultFlags, timers: any) {
     this.elements.status.noLetterbox.classList.toggle('on', flags.noLetterbox);
     this.elements.status.noLetterbox.classList.toggle('off', !flags.noLetterbox);
     this.elements.status.doubleLetterbox.classList.toggle('on', flags.doubleLetterbox);
@@ -110,8 +119,73 @@ export class AardDebugResults {
     this.elements.status.subtitlesUncertain.classList.toggle('off', !flags.subtitlesUncertain);
     this.elements.status.subtitlesConfirmed.classList.toggle('on', flags.subtitlesConfirmed);
     this.elements.status.subtitlesConfirmed.classList.toggle('off', !flags.subtitlesConfirmed);
+    this.elements.status.aardPaused.classList.toggle('on', timers.pauseUntil > Date.now());
+    this.elements.status.aardPaused.classList.toggle('off', !(timers.pauseUntil > Date.now()));
+  }
 
-    this.updateChart();
+  updateAr(testResults: AardTestResults, paused: boolean = false) {
+    this.elements.arDisplay.appliedAR.textContent = testResults.appliedAr?.toFixed(3) ?? '';
+    this.elements.arDisplay.detectedAR.textContent = testResults.detectedAr?.toFixed(3) ?? '';
+
+    this.drawArChartColumn(this.elements.arChartCanvas.applied, testResults.appliedAr);
+    this.drawArChartColumn(this.elements.arChartCanvas.detected, testResults.detectedAr, paused);
+  }
+
+  private arChartX = new Map<HTMLCanvasElement, number>();
+  private arChartLastY = new Map<HTMLCanvasElement, number>();
+  private readonly AR_MIN = 1;
+  private readonly AR_MAX = 3;
+
+  private drawArChartColumn(canvas: HTMLCanvasElement, ar: number, dotted: boolean = false) {
+    const width = Math.floor(canvas.clientWidth);
+    const height = Math.floor(canvas.clientHeight);
+    if (!width || !height) {
+      return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      return;
+    }
+
+    let x = this.arChartX.get(canvas) ?? 0;
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, width, height);
+      x = 0;
+    }
+
+    ctx.fillStyle = '#000';
+    for (let i = 0; i <= this.CHART_RESET_COLUMNS; i++) {
+      ctx.fillRect((x + i) % width, 0, 1, height);
+    }
+
+    if (ar > 0) {
+      const clipped = Math.min(this.AR_MAX, Math.max(this.AR_MIN, ar));
+      const t = (clipped - this.AR_MIN) / (this.AR_MAX - this.AR_MIN);
+      const y = Math.round((1 - t) * (height - 1));
+      const prevY = this.arChartLastY.get(canvas);
+      if (dotted) {
+        if (Math.floor(x / 3) % 2 === 0) {
+          ctx.fillStyle = '#fa6';
+          ctx.fillRect(x, y, 1, 1);
+        }
+        this.arChartLastY.set(canvas, y);
+        this.arChartX.set(canvas, (x + 1) % width);
+        return;
+      }
+      const top = prevY === undefined || x === 0 ? y : Math.min(y, prevY);
+      const bottom = prevY === undefined || x === 0 ? y : Math.max(y, prevY);
+      ctx.fillStyle = '#fa6';
+      ctx.fillRect(x, top, 1, bottom - top + 1);
+      this.arChartLastY.set(canvas, y);
+    } else {
+      this.arChartLastY.delete(canvas);
+    }
+
+    this.arChartX.set(canvas, (x + 1) % width);
   }
 
   buildSSRStabilityTable(

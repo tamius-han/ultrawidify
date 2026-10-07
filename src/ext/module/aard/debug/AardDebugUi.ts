@@ -543,33 +543,37 @@ export class AardDebugUi {
       this.aard.stop();
     }
 
-    const resultsDiv = document.getElementById('uw-aard-results');
+    // const resultsDiv = document.getElementById('uw-aard-results');
 
-    const ar = testResults.activeAspectRatio.toFixed(3);
+    // const ar = testResults.activeAspectRatio.toFixed(3);
 
-    let out = `
-      LAST STAGE: ${testResults.lastStage}         | black level: ${testResults.blackLevel}, threshold: ${testResults.blackThreshold}
+    // let out = `
+    //   LAST STAGE: ${testResults.lastStage}         | black level: ${testResults.blackLevel}, threshold: ${testResults.blackThreshold}
 
-      -- ASPECT RATIO
-      Active: ${ar}, changed since last check? ${testResults.aspectRatioUpdated}               letterbox width: ${testResults.letterboxWidth} offset ${testResults.letterboxOffset}<br/>
-      <sup>(last: ${this._lastAr})</sup>
+    //   -- ASPECT RATIO
+    //   Active: ${ar}, changed since last check? ${testResults.aspectRatioUpdated}               letterbox width: ${testResults.letterboxWidth} offset ${testResults.letterboxOffset}<br/>
+    //   <sup>(last: ${this._lastAr})</sup>
 
-      ${
-        timers ?
-        `
-          Paused until? ${Date.now() < timers?.pauseUntil ? ((timers?.pauseUntil - Date.now()) / 1000) + 's' : 'not paused'};
-          <sup>now: ${Date.now()}ms; until:${timers?.pauseUntil}ms; diff: ${(+timers?.pauseUntil - Date.now())} </sup>
-        ` :
-        `- timers are missing -`
-      }
+    //   ${
+    //     timers ?
+    //     `
+    //       Paused until? ${Date.now() < timers?.pauseUntil ? ((timers?.pauseUntil - Date.now()) / 1000) + 's' : 'not paused'};
+    //       <sup>now: ${Date.now()}ms; until:${timers?.pauseUntil}ms; diff: ${(+timers?.pauseUntil - Date.now())} </sup>
+    //     ` :
+    //     `- timers are missing -`
+    //   }
 
-      image in black level probe (aka "not letterbox"): ${testResults.notLetterbox}
-    `;
-    this._lastAr = ar;
+    //   image in black level probe (aka "not letterbox"): ${testResults.notLetterbox}
+    // `;
+    // this._lastAr = ar;
 
-    resultsDiv.innerHTML = out;
+    // resultsDiv.innerHTML = out;
 
-    this.debugResults.updateStatus(testResults.flags);
+    this.debugResults.updateStatus(testResults.flags, timers);
+    if (!(this.aard as any).video?.paused) {
+      this.debugResults.updateChart();
+      this.debugResults.updateAr(testResults, timers?.pauseUntil > Date.now());
+    }
     this.debugResults.buildSSRStabilityTable(
       testResults.subtitleScan.regions,
 
