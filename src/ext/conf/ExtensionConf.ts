@@ -88,10 +88,10 @@ const ExtensionConf: SettingsInterface = {
       maxPotentialSubtitleMisalignment: 32,
 
       stability: {
-        confirmationScans: 3,
+        confirmationScans: 5,
         scanLines: 3,
         confirmationScanInterval: 1,
-        phaseLengthTolerance: 2,
+        phaseLengthTolerance: 1,
       }
     },
 
