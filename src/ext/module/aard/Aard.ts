@@ -1368,38 +1368,120 @@ export class Aard {
        *
        * Other instances require a bit more complex analysis.
        */
-      let phase: AardSubtitlePhase = AardSubtitlePhase.Uninitialized, lastPhase: AardSubtitlePhase = AardSubtitlePhase.Uninitialized;
+      let phase: AardSubtitlePhase = AardSubtitlePhase.Uninitialized;
+      let lastPhase: AardSubtitlePhase = AardSubtitlePhase.Uninitialized;
+      let last2Phase: AardSubtitlePhase = AardSubtitlePhase.Uninitialized;
       lineScan:
       while (rowStart < rowEnd) {
+        last2Phase = lastPhase;
         lastPhase = phase;
 
-        const r = imageData[rowStart], g = imageData[rowStart + 1], b = imageData[rowStart + 2];
+        // all comparisons are done against the brightest subpixel,
+        // so let's get that first
+        let v = imageData[rowStart];
+        if (imageData[rowStart + 1] > v) {
+          v = imageData[rowStart + 1];
+        }
+        if (imageData[rowStart + 2] > v) {
+          v = imageData[rowStart + 2];
+        }
+
+
 
         phase = AardSubtitlePhase.Off;
-        if (        // above black, this may be image content
-          r > this.testResults.levels.image
-          || g > this.testResults.levels.image
-          || b > this.testResults.levels.image
-        ) {
+        if (v > this.testResults.levels.image) { // above black, this may be image content
           phase = AardSubtitlePhase.Image;
         }
-        if (        // above the subtitle off threshold, this may be a subtitle
-          r > this.testResults.levels.subtitleLow
-          || g > this.testResults.levels.subtitleLow
-          || b > this.testResults.levels.subtitleLow
-        ) {
+        if (v > this.testResults.levels.subtitleLow) {        // above the subtitle off threshold, this may be a subtitle
           phase = AardSubtitlePhase.SubtitleHalf;
         }
-        if (        // increase to 3 if subtitle threshold is passed
-          r > this.testResults.levels.subtitleHigh
-          || g > this.testResults.levels.subtitleHigh
-          || b > this.testResults.levels.subtitleHigh
-        ) {
+        if (v > this.testResults.levels.subtitleHigh) {        // increase to 3 if subtitle threshold is passed
           phase = AardSubtitlePhase.SubtitleFull;
         }
 
         // some things only run when phase change occurs
         if (phase !== lastPhase) {
+
+          // Check if there are small excesses or small shortages.
+          // If there's none or if there's both, then last phase was valid.
+          // If only one of the two exists with a small enough count, we
+          // invalidate last phase. Also, if phases differ by more than one,
+          // everything is fine.
+          if (
+            phase as AardSubtitlePhase === last2Phase && // last2phase can be Uninitialized, and we DO need to rule that out, tslint stop complaining
+            last2Phase - lastPhase === 1 || last2Phase - lastPhase === -1 &&
+            hasSmallExcess
+          ) {
+            // correct main phase counter
+            mem.linePhaseLengths[mem.linePhaseLengths[combinedPhasesChangeCountIndex - 1]] += mem.linePhaseLengths[mem.linePhaseLengths[combinedPhasesChangeCountIndex]];
+            --mem.linePhaseLengths[combinedPhasesChangeCountIndex];
+
+            // time to invalidate last phase
+            let wrongPhaseBufferA: 'darkPhases' | 'nonDarkPhases' | 'imagePhases' | 'subtitleHalfPhases' | 'subtitleFullPhases';
+            let wrongPhaseBufferB: 'darkPhases' | 'nonDarkPhases' | 'imagePhases' | 'subtitleHalfPhases' | 'subtitleFullPhases' | undefined;
+
+            let last2phaseBufferA: 'darkPhases' | 'nonDarkPhases' | 'imagePhases' | 'subtitleHalfPhases' | 'subtitleFullPhases';
+            let last2phaseBufferB: 'darkPhases' | 'nonDarkPhases' | 'imagePhases' | 'subtitleHalfPhases' | 'subtitleFullPhases' | undefined;
+
+            // buffer A always gets the phase-specific buffer.
+            // buffer B gets buffer that combines lengths of multiple different phase types
+            switch (lastPhase) {
+              case AardSubtitlePhase.Off:
+                wrongPhaseBufferA = 'darkPhases';
+                wrongPhaseBufferB = undefined;
+                break;
+              case AardSubtitlePhase.Image:
+                wrongPhaseBufferA = 'imagePhases';
+                wrongPhaseBufferB = 'nonDarkPhases';
+                break;
+              case AardSubtitlePhase.SubtitleHalf:
+                wrongPhaseBufferA = 'subtitleHalfPhases';
+                wrongPhaseBufferB = 'nonDarkPhases';
+                break;
+              case AardSubtitlePhase.SubtitleFull:
+                wrongPhaseBufferA = 'subtitleFullPhases';
+                wrongPhaseBufferB = 'nonDarkPhases';
+                break;
+            }
+            switch (last2Phase) {
+              case AardSubtitlePhase.Off:
+                last2phaseBufferA = 'darkPhases';
+                last2phaseBufferB = undefined;
+                break;
+              case AardSubtitlePhase.Image:
+                last2phaseBufferA = 'imagePhases';
+                last2phaseBufferB = 'nonDarkPhases';
+                break;
+              case AardSubtitlePhase.SubtitleHalf:
+                last2phaseBufferA = 'subtitleHalfPhases';
+                last2phaseBufferB = 'nonDarkPhases';
+                break;
+              case AardSubtitlePhase.SubtitleFull:
+                last2phaseBufferA = 'subtitleFullPhases';
+                last2phaseBufferB = 'nonDarkPhases';
+                break;
+            }
+
+            // increase phase lengths BEFORE decreasing the changeCount field.
+            // phase length increases ALWAYS come from buffer A, since buffer A is always used for phase-specific lengths.
+            mem[last2phaseBufferA!][mem[last2phaseBufferA!][changeCountIndex]] += mem[wrongPhaseBufferA!][mem[wrongPhaseBufferA!][changeCountIndex]];
+            if (last2phaseBufferB) {
+              mem[last2phaseBufferB!][mem[last2phaseBufferB!][changeCountIndex]] += mem[wrongPhaseBufferA!][mem[wrongPhaseBufferA!][changeCountIndex]];
+            }
+            --mem[wrongPhaseBufferA!][changeCountIndex];
+            if (wrongPhaseBufferB) {
+              --mem[wrongPhaseBufferB!][changeCountIndex];
+            }
+
+            // if we had to correct our phase, we assume this phase is always legit
+            hasSmallExcess = false;
+            hasSmallShort = false;
+          } else {
+            // if phase changed but we didn't need to correct anything, we set hasSmallExcess back to true.
+            hasSmallExcess = true;
+            hasSmallShort = true;
+          }
+
           letterPhaseLengthCountIndex++;
           mem.linePhaseLengths[letterPhaseLengthCountIndex] = 0;
           mem.linePhaseLengths[combinedPhasesChangeCountIndex]++;
@@ -1461,23 +1543,42 @@ export class Aard {
           case AardSubtitlePhase.Off:
             imageData[rowStart + 3] = GlDebugType.SubtitleThresholdOff;
             mem.darkPhases[mem.darkPhases[changeCountIndex]]++;
+            // ideally, we should also track underruns for 'off'. However, there's a good chance
+            // black threshold is too low for it to matter
+            // hasSmallExcess &&= mem.darkPhases[mem.darkPhases[changeCountIndex]] > smallExcessCountThreshold;
+            // hasSmallShort &&= mem.darkPhases[mem.darkPhases[changeCountIndex]] < smallExcessCountThreshold;
+            hasSmallExcess = false;
+            hasSmallShort = false;
             break;
           case AardSubtitlePhase.Image:
             imageData[rowStart + 3] = GlDebugType.ImageLineThresholdReached;
             mem.nonDarkPhases[mem.nonDarkPhases[changeCountIndex]]++;
             mem.imagePhases[mem.imagePhases[changeCountIndex]]++;
+
+            // these should set to true only if segment length is short enough, and if the excess/short is within the smallExcessThreshold
+            hasSmallExcess &&= mem.imagePhases[mem.imagePhases[changeCountIndex]] > smallExcessCountThreshold && (v - this.testResults.levels.image) < smallExcessThreshold;
+            hasSmallShort &&= mem.imagePhases[mem.imagePhases[changeCountIndex]] < smallExcessCountThreshold && (this.testResults.levels.subtitleLow - v) < smallExcessThreshold;
             break;
           case AardSubtitlePhase.SubtitleHalf:
             imageData[rowStart + 3] = GlDebugType.SubtitleThresholdNone;
             mem.nonDarkPhases[mem.nonDarkPhases[changeCountIndex]]++;
             mem.subtitleHalfPhases[mem.subtitleHalfPhases[changeCountIndex]]++;
+
+            // these should set to true only if segment length is short enough, and if the excess/short is within the smallExcessThreshold
+            hasSmallExcess &&= mem.subtitleHalfPhases[mem.subtitleHalfPhases[changeCountIndex]] > smallExcessCountThreshold && (v - this.testResults.levels.subtitleLow) < smallExcessThreshold;
+            hasSmallShort &&= mem.subtitleHalfPhases[mem.subtitleHalfPhases[changeCountIndex]] < smallExcessCountThreshold && (this.testResults.levels.subtitleHigh - v) < smallExcessThreshold;
             break;
           case AardSubtitlePhase.SubtitleFull:
             imageData[rowStart + 3] = GlDebugType.SubtitleThresholdOn;
             mem.nonDarkPhases[mem.nonDarkPhases[changeCountIndex]]++;
             mem.subtitleFullPhases[mem.subtitleFullPhases[changeCountIndex]]++;
+
+            // these should set to true only if segment length is short enough, and if the excess/short is within the smallExcessThreshold
+            hasSmallExcess &&= mem.subtitleFullPhases[mem.subtitleFullPhases[changeCountIndex]] > smallExcessCountThreshold && (v - this.testResults.levels.subtitleHigh) < smallExcessThreshold;
+            hasSmallShort = false;
             break;
         }
+
 
         // SPECIAL TESTS FOR PHASE 1:
         //    1. Dark edge detection test
