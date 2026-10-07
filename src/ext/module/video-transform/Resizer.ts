@@ -42,6 +42,7 @@ class Resizer {
   canPan: boolean = false;
   destroyed: boolean = false;
   manualZoom: boolean = false;
+  private delayedRestoreTimeout?: ReturnType<typeof setTimeout>;
   //#endregion
 
   //#region helper objects
@@ -197,15 +198,12 @@ class Resizer {
       function: () => this.restore()
     }],
     'delayed-restore-ar': [{
-      function: () => {
-        _.debounce(
-          this.restore,
-          500,
-          {
-            leading: true,
-            trailing: true
-          }
-        )
+      function: (config?: {delay?: number}) => {
+        clearTimeout(this.delayedRestoreTimeout);
+        this.delayedRestoreTimeout = setTimeout(() => {
+          this.delayedRestoreTimeout = undefined;
+          this.restore();
+        }, config?.delay ?? 500);
       }
     }]
   }
@@ -257,7 +255,7 @@ class Resizer {
   initEventBus() {
     for (const action in this.eventBusCommands) {
       for (const command of this.eventBusCommands[action]) {
-        this.eventBus.subscribe(action, command);
+        this.eventBus.subscribe(action, {...command, source: this});
       }
     }
   }
@@ -269,7 +267,10 @@ class Resizer {
 
   destroy(){
     this.logger.info('destroy', `<rid:${this.resizerId}> received destroy command.`);
+    this.eventBus.unsubscribeAll(this);
     this.destroyed = true;
+    clearTimeout(this.delayedRestoreTimeout);
+    this.delayedRestoreTimeout = undefined;
   }
 
   getFileAr(): number {
