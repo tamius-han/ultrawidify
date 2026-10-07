@@ -62,7 +62,12 @@ export interface AardTestResults {
   },
   aspectRatioUncertain: boolean,
   aspectRatioUpdated: boolean,
-  activeAspectRatio: number,  // is cumulative
+
+
+  activeAspectRatio: number,  // is cumulative, deprecate in favour of detectedAr and appliedAr
+  detectedAr: number,
+  appliedAr: number,
+
   letterboxSize: number,
   letterboxOffset: number,
   letterboxSizeWithSubtitles: number,

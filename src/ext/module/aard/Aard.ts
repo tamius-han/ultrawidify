@@ -587,8 +587,13 @@ export class Aard {
       // If debugging is enable,
       this.canvasStore.debug?.drawBuffer(imageData);
 
+      // detected is saved regardless of whether it is applied or not, as it is there mostly
+      // for debug purposes
+      this.testResults.detectedAr = this.getAr();
+
       processUpdate:
       {
+        // reset to default if no letterbox
         if (this.testResults.letterboxOrientation === LetterboxOrientation.NotLetterbox) {
           // console.warn('DETECTED NOT LETTERBOX! (resetting)')
           this.timer.arChanged();
@@ -636,8 +641,11 @@ export class Aard {
           break processUpdate;
         }
 
-        // if detection is uncertain, we don't do anything at all (unless if guardline was broken, in which case we reset)
-        if (this.testResults.aspectRatioUncertain) {
+        // if detection is uncertain, we don't do anything
+        if (
+          this.testResults.aspectRatioUncertain
+          || this.testResults.flags.subtitlesUncertain
+        ) {
 
           this.testResults.flags.cropMaintaining = true;
           break processUpdate;
@@ -650,7 +658,7 @@ export class Aard {
         this.testResults.guardLine.back = this.testResults.aspectRatioCheck.backCandidate;
 
         // TODO: set flag if subtitles are far enough from edge to avoid getting cropped
-        const finalAr = this.getAr();
+        const finalAr = this.testResults.detectedAr;
         if (finalAr > 0) {
 
           if (arConf.stability.confirmationStrategy !== ArConfirmationStrategy.NoConfirming) {
@@ -1902,6 +1910,7 @@ export class Aard {
         variant: this.arVariant
       });
       this.testResults.activeAspectRatio = ar;
+      this.testResults.appliedAr = ar;
 
       if (!options?.uncertainDetection) {
         if (this.settings.active.aard.autoDisable.onFirstChange) {
