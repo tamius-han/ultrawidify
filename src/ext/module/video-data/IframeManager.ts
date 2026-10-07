@@ -35,7 +35,7 @@ export default class IframeManager {
     this.isIframe = window.self !== window.top;
 
     if (this.isIframe) {
-      window.addEventListener('beforeunload', this.destroy);
+      window.addEventListener('beforeunload', () => this.destroy());
 
       this.eventBus.subscribe(
         'uw-frame-ping',
