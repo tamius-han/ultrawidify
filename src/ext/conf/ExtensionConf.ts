@@ -48,6 +48,24 @@ const ExtensionConf: SettingsInterface = {
       deltaTolerance: 0.05, // tolerance (%)
     },
 
+    levels: {
+      blackLevel: 48,
+      levelThreshold: 24,
+
+      fullScale: {
+        image: 8,
+        subtitleLow: 64,
+        subtitleHigh: 192,
+      },
+      limitedScale: {
+        image: 16,
+        subtitleLow: 64,
+        subtitleHigh: 160,
+      }
+
+
+    },
+
     subtitles: {
       subtitleCropMode: AardSubtitleCropMode.ResetAR,
       resumeAfter: 5000,
@@ -116,7 +134,7 @@ const ExtensionConf: SettingsInterface = {
 
     blackLevels: {
       defaultBlack: 16,
-      blackTolerance: 4,
+      blackTolerance: 16,
       imageDelta: 16,
     },
     sampling: {
@@ -157,6 +175,7 @@ const ExtensionConf: SettingsInterface = {
       minEnabledWidth: 0.75,
       minEnabledHeight: 0.75,
       activation: 'player',
+      activateWithCtrl: true,
       activationDistance: 100,
       activationDistanceUnits: '%',
       activatorAlignment: MenuPosition.Left,

@@ -11,6 +11,7 @@ import { PlayerDetectionMode } from '@src/common/enums/PlayerDetectionMode.enum'
 import { SiteSupportLevel } from '@src/common/enums/SiteSupportLevel.enum';
 import SettingsInterface from '@src/common/interfaces/SettingsInterface';
 import { _cp } from '@src/common/utils/_cp';
+import { AardPollingOptions } from '@src/ext/module/aard/enums/aard-polling-options.enum';
 import { update } from 'lodash';
 
 
@@ -542,26 +543,7 @@ const ExtensionConfPatch = Object.freeze([
         invertZoom: false,
         zoomSensitivity: 1,
       }
-      userOptions.aard.subtitles.maxValidLetter = 12;
-      userOptions.aard.subtitles.stopAfterDetections = 32;
-      userOptions.aard.subtitles.stability = {
-        confirmationScans: 3,
-        scanLines: 3,
-        confirmationScanInterval: 1,
-        phaseLengthTolerance: 2,
-      };
-      userOptions.aard.subtitles.maxPhasesTotal = 32;
-      userOptions.aard.subtitles.maxPhasesPerType = 16;
-      userOptions.aard.stability = {
-        confirmationStrategy: ArConfirmationStrategy.NoConfirming,
-        arSampleCount: 3, // we need to detect aspect ratio on this many consecutive scans before applying
-        arConfirmationTime: 1000,  // we need to hold detected aspect ratio for this many ms before applying
-        applyOnStableDelta: true,
-        deltaSampleInterval: 3,
-        deltaSampleCount: 3,  // number of consecutive deltas required for stability
-        arTolerance: 0.025,
-        deltaTolerance: 0.05,
-      };
+      userOptions.aard = defaultOptions.aard;
     }
   }
 

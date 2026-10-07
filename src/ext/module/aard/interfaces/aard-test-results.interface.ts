@@ -14,6 +14,7 @@ export interface AardTestResult_SubtitleRegion {
 
   uncertain: boolean,
   hasSubtitle: boolean,
+  subtitleUncertain: boolean,
   subtitlesUnstable: boolean,
 
   // NOTE: nothing in stability resets between runs, as there should
@@ -50,6 +51,7 @@ export interface AardTestResults {
   subtitleDetected: boolean,
   blackLevel: number,       // is cumulative
   blackThreshold: number,   // is cumulative
+
   guardLine: {
     front: number,
     back: number,
@@ -65,6 +67,12 @@ export interface AardTestResults {
   letterboxOffset: number,
   letterboxSizeWithSubtitles: number,
   aspectRatioInvalid: boolean,
+  levels: {
+    blackLevel: number,
+    image: number,
+    subtitleLow: number,
+    subtitleHigh: number,
+  },
   subtitleScan: {
     top: number,
     bottom: number,
@@ -138,6 +146,7 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
 
           uncertain: false,
           hasSubtitle: false,
+          subtitleUncertain: false,
           subtitlesUnstable: false,
 
           stability: {
@@ -161,6 +170,7 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
 
           uncertain: false,
           hasSubtitle: false,
+          subtitleUncertain: false,
           subtitlesUnstable: false,
 
           stability: {
@@ -186,6 +196,13 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
     letterboxOffset: 0,
     letterboxSizeWithSubtitles: 0,
     aspectRatioInvalid: false,
+
+    levels: {
+      blackLevel: 0,
+      image: 0,
+      subtitleLow: 0,
+      subtitleHigh: 0,
+    },
 
     stability: {
       deltaIndex: 0,
@@ -252,6 +269,7 @@ export function resetSubtitleScanRegion(region: AardTestResult_SubtitleRegion) {
 
   region.uncertain = false;
   region.hasSubtitle = false;
+  region.subtitleUncertain = true;   // gets set to 'true' when hasSubtitle is false, but not by default
   region.subtitlesUnstable = false;
 }
 

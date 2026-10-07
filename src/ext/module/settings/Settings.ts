@@ -33,7 +33,7 @@ const SETTINGS_LOGGER_STYLES = {
 class Settings {
   //#region flags
   useSync: boolean = false;
-  version: string;
+  version!: string;
   //#endregion
 
   //#region helper classes
@@ -161,7 +161,7 @@ class Settings {
     return Settings.getExtensionVersion();
   }
 
-  private compareExtensionVersions(a, b) {
+  private compareExtensionVersions(a: string, b: string) {
     let aa = a.split('.');
     let bb = b.split('.');
 

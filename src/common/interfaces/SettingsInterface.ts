@@ -97,9 +97,26 @@ export interface AardSubtitleScanOptions {
     }
 }
 
+
 export interface AardSettings {
   aardType: 'webgl' | 'legacy' | 'auto';
   useLegacy: boolean,
+
+  levels: {                       // brightness levels for image detection
+    blackLevel: number,           // black is allowed to be this bright
+    levelThreshold: number,       // if black is brighter than this, use limitedRange settings. Otherwise full.
+
+    fullScale: {
+      image: number,              // pixels this much brighter than black are considered an image
+      subtitleLow: number,        // "maybe subtitle" threshold is this much above black level
+      subtitleHigh: number,       // "deffo subtitle" threshold is this much above black level
+    },
+    limitedScale: {
+      image: number,
+      subtitleLow: number,
+      subtitleHigh: number,
+    }
+  }
 
   earlyStopOptions: {
     stopAfterFirstDetection: boolean;
@@ -254,7 +271,7 @@ interface SettingsInterface {
     conditionalDifferencePercent: number  // black bars less than this wide will trigger stretch
                                         // if mode is set to '1'. 1.0=100%
   },
-  kbm: {      // TODO: we dont use this anymore
+  kbm: {      // TODO: we don't use this anymore
     enabled: boolean,          // if keyboard/mouse handler service will run
     keyboardEnabled: boolean,  // if keyboard shortcuts are processed
     mouseEnabled: boolean,     // if mouse movement is processed

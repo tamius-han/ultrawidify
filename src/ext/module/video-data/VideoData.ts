@@ -579,7 +579,7 @@ class VideoData {
   }
 
   /**
-   * Forces Ultrawidify to resotre aspect ratio. You should never call this method directly,
+   * Forces Ultrawidify to restore aspect ratio. You should never call this method directly,
    * instead you should be calling processDimensionChanged() wrapper function.
    */
   private _processDimensionsChanged() {

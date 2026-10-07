@@ -146,7 +146,7 @@ export class GlDebugCanvas extends GlCanvas {
 
   constructor (options: GlCanvasOptions) {
     super(options);
-    this.canvas.id = options.id;
+    this.canvas.id = options.id!;
   }
 
   protected loadShaders() {
