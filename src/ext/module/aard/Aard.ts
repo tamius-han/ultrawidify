@@ -1205,37 +1205,19 @@ export class Aard {
     results.uncertain = false;
 
     const mem = this.mem.subtitleScan;
-
     const scanConf = this.settings.active.aard.subtitles;
     const arConf = this.settings.active.aard;
 
-    // If detecting subtitles only resets AR (or disables autodetection), we can stop scanning as soon as
-    // we find the first subtitle. In other modes (CropSubtitles, DisableScan) we must keep going, because
-    // the scan is also used to find where the image starts.
-    const stopOnFirstSubtitle = scanConf.subtitleCropMode === AardSubtitleCropMode.ResetAR
-      || scanConf.subtitleCropMode === AardSubtitleCropMode.ResetAndDisable;
-
-    let letterCount, imageSegmentCount, potentialFadedLetterCount, potentialFadedLetterCountInvalidated,
-      nonGradientPixelCount, letterSize, imageSize, imageSegmentSize, imageWeightedSize,
-      segmentWeights, imageSegmentAlignment, imageSegmentAlignmentSamples,
-      isOnLetter, isOnImage, isBlank,
-      gradientRowDelta_before, gradientRowDelta_after;
-
-
+    let letterSize, imageSize, imageSegmentSize, isBlank;
     let likelySubtitle, likelyImage;
     let darkEdgeSamples, darkEdgeDelta, darkEdge_nextRow;
 
-    let rowStart, rowEnd, rowMid, rowGTA, rowGTB; // GT = gradient test
-    let imageConfirmPass = false, subtitleConfirmPass = false;
+    let rowStart, rowEnd; // GT = gradient test
 
     let outerIteration = 0;
 
     const rowMargin = Math.floor(scanConf.scanMargin * ROW_SIZE);
-    const imageThreshold = Math.floor((ROW_SIZE - (rowMargin * 2)) * arConf.edgeDetection.minValidImage * PIXEL_SIZE_FRACTION);
 
-    // set up stuff for subtitle stability verification
-    let scanSlotOffset = results.stability.scanSlot * results.stability.slotSize;
-    let lineSlotOffset = 0;        // index of the current line within the current scan slot
     let letterPhaseLengthCountIndex = 0; // how many pixels we spent in letter on / letter off
 
     const changeCountIndex = scanConf.maxPhasesPerType;
@@ -1270,24 +1252,10 @@ export class Aard {
       }
 
       //#region prepare for inner loop
-      letterCount = 0;
-      potentialFadedLetterCount = 0;
-      imageSegmentCount = 0;
-      imageSegmentSize = 0;
-      nonGradientPixelCount = 0;
 
       imageSize = 0;
-      imageWeightedSize = 0;
-      segmentWeights = 0;
-
       letterSize = 0;
-      isOnLetter = false;
-      isOnImage = false;
       isBlank = true;
-      potentialFadedLetterCountInvalidated = false;
-
-      imageSegmentAlignment = 0;
-      imageSegmentAlignmentSamples = 0;
 
       likelySubtitle = false;
       likelyImage = false;
@@ -1297,68 +1265,15 @@ export class Aard {
 
       // Scan region is centered,
       rowStart = (searchRow * ROW_SIZE) + rowMargin;
+      rowEnd = ((searchRow + 1) * ROW_SIZE) - rowMargin;
 
       const scanSize = ROW_SIZE - (2 * rowMargin);
-
-      // Gradient test compares current row with a row 'before' it (towards the frame edge) and a row
-      // 'after' it (towards the center of the frame). Which direction that is depends on whether we're
-      // scanning the top or the bottom letterbox.
-      // These are offsets RELATIVE to the current row (negative = rows above, positive = rows below).
-      if (scanSpacing > 0) {
-        gradientRowDelta_before = (Math.max(searchRow - 2, 0)          - searchRow) * ROW_SIZE;
-        gradientRowDelta_after  = (Math.min(searchRow + 2, height - 1) - searchRow) * ROW_SIZE;
-      } else {
-        gradientRowDelta_before = (Math.min(searchRow + 2, height - 1) - searchRow) * ROW_SIZE;
-        gradientRowDelta_after  = (Math.max(searchRow - 2, 0)          - searchRow) * ROW_SIZE;
-      }
-
-      // exact row doesn't matter ... unless scanMargin is 0
-      rowEnd = ((searchRow + 1) * ROW_SIZE) - rowMargin;
-      rowMid = (rowStart + rowEnd) * 0.5;
-
-      const updateImageCandidate = (candidate: number) => {
-        if (scanSpacing > 0) {
-          if (results.firstImage === -1 || candidate < results.firstImage) {
-            results.firstImage = candidate;
-          }
-        } else {
-          if (results.firstImage === -1 || candidate > results.firstImage) {
-            results.firstImage = candidate;
-          }
-        }
-      }
-
-      const updateSubtitleInfo = (searchRow: number) => {
-        // when we reach the minDetection threshold, we can set the firstSubtitle row
-        // we also want to keep firstSubtitle accurate, which means that we have to set
-        // firstSubtitle to the detection that happened closest to the edge (in current
-        // implementation, we need this to be accurate)
-        results.hasSubtitle = true;
-
-        // we always set firstSubtitle if it hasn't been set yet
-        if (results.firstSubtitle === -1) {
-          results.firstSubtitle = searchRow;
-          results.lastSubtitle = searchRow;
-        } else {
-          if (scanSpacing > 0) { // smaller number = closer to the edge
-            if (searchRow < results.firstSubtitle) {
-              results.firstSubtitle = searchRow;
-            }
-            if (searchRow > results.lastSubtitle) {
-              results.lastSubtitle = searchRow;
-            }
-          } else {               // bigger number = closer to the edge
-            if (searchRow > results.firstSubtitle) {
-              results.firstSubtitle = searchRow;
-            }
-            if (searchRow < results.lastSubtitle) {
-              results.lastSubtitle = searchRow;
-            }
-          }
-        }
-        isBlank = false;
-      }
       //#endregion
+
+      const smallExcessThreshold = 16;
+      const smallExcessCountThreshold = 8;
+
+      let hasSmallExcess = false,  hasSmallShort = false;
 
       /**
        * This function can break or return early only in the following situations:
@@ -1614,42 +1529,6 @@ export class Aard {
             darkEdgeDelta += d;
             darkEdgeSamples++;
           }
-
-          // GRADIENT TEST — ALWAYS DO IN PHASE 1 (regardless of whether phase just changed or not)
-          // We only need to test darker but not dark pixels — for subtitle
-          // phase, this test will always be false, hence phase === 1 test.
-          // We keep track of number of pixels that pass the test, or don't
-          // need the test to begin with.
-          if (
-            imageData[rowStart    ] < arConf.edgeDetection.gradientThreshold
-            && imageData[rowStart + 1] < arConf.edgeDetection.gradientThreshold
-            && imageData[rowStart + 2] < arConf.edgeDetection.gradientThreshold
-          ) {
-
-            rowGTB = rowStart + gradientRowDelta_before;
-            rowGTA = rowStart + gradientRowDelta_after;
-
-            // if true, then gradient.
-            // The first row gives technically incorrect answers for pixels directly under subtitles, but since
-            // "nonGradientPixelCount" is a shorthand for "we're relatively confident in this detection", potentially
-            // mistaking non-black pixels under subtitles for gradient isn't too problematic
-            if ( (imageData[rowStart    ] - imageData[rowGTB    ]) < arConf.edgeDetection.gradientTestMinDelta
-              && (imageData[rowStart + 1] - imageData[rowGTB + 1]) < arConf.edgeDetection.gradientTestMinDelta
-              && (imageData[rowStart + 2] - imageData[rowGTB + 2]) < arConf.edgeDetection.gradientTestMinDelta
-              && imageData[rowGTA    ] - imageData[rowStart    ] > arConf.edgeDetection.gradientTestMinDeltaAfter
-              && imageData[rowGTA + 1] - imageData[rowStart + 1] > arConf.edgeDetection.gradientTestMinDeltaAfter
-              && imageData[rowGTA + 2] - imageData[rowStart + 2] > arConf.edgeDetection.gradientTestMinDeltaAfter
-              && imageData[rowGTA    ] - imageData[rowStart    ] < arConf.edgeDetection.gradientTestMaxDeltaAfter
-              && imageData[rowGTA + 1] - imageData[rowStart + 1] < arConf.edgeDetection.gradientTestMaxDeltaAfter
-              && imageData[rowGTA + 2] - imageData[rowStart + 2] < arConf.edgeDetection.gradientTestMaxDeltaAfter
-            ) {
-              // we do nothing (at this moment)
-            } else {
-              nonGradientPixelCount++;
-            }
-          } else {
-            nonGradientPixelCount++;
-          }
         }
 
         // we always update counters at the end, regardless of whether phase changed or not
@@ -1667,8 +1546,6 @@ export class Aard {
         }
         mem.linePhaseLengths[letterPhaseLengthCountIndex]++;
         rowStart += PIXEL_SIZE;
-
-
       }
 
       /**
@@ -1764,7 +1641,34 @@ export class Aard {
           const highCountCriteria = (subtitlePhaseCount > 4 || subtitlePhaseCount > 8);
 
           if (lowCountCriteria || highCountCriteria) {
-            updateSubtitleInfo(searchRow);
+            // when we reach the minDetection threshold, we can set the firstSubtitle row
+            // we also want to keep firstSubtitle accurate, which means that we have to set
+            // firstSubtitle to the detection that happened closest to the edge (in current
+            // implementation, we need this to be accurate)
+            results.hasSubtitle = true;
+
+            // we always set firstSubtitle if it hasn't been set yet
+            if (results.firstSubtitle === -1) {
+              results.firstSubtitle = searchRow;
+              results.lastSubtitle = searchRow;
+            } else {
+              if (scanSpacing > 0) { // smaller number = closer to the edge
+                if (searchRow < results.firstSubtitle) {
+                  results.firstSubtitle = searchRow;
+                }
+                if (searchRow > results.lastSubtitle) {
+                  results.lastSubtitle = searchRow;
+                }
+              } else {               // bigger number = closer to the edge
+                if (searchRow > results.firstSubtitle) {
+                  results.firstSubtitle = searchRow;
+                }
+                if (searchRow < results.lastSubtitle) {
+                  results.lastSubtitle = searchRow;
+                }
+              }
+            }
+            isBlank = false;
             likelySubtitle = true;
             results.subtitleConfirmations++;
           }
@@ -1845,18 +1749,15 @@ export class Aard {
       // If we do gradient detection on empty lines or subtitle lines, then it can
       // stop the search for "likely image" prematurely.
       if (likelyImage) {
-        // // // const gradientDetectionFrequency = 1 - (nonGradientPixelCount / imageSize);
-
-        // // // // If we detect gradient, that's instant fail.
-        // // // // We still save uncertain detection to firstImage, because iterative scan uses that
-        // // // // in order to determine which region to scan further
-        // // // if (gradientDetectionFrequency > arConf.edgeDetection.gradientThreshold) {
-        // // //   results.uncertain = true;
-        // // //   updateImageCandidate(searchRow);
-        // // //   break outerLoop;
-        // // // }
-
-        updateImageCandidate(searchRow);
+        if (scanSpacing > 0) {
+          if (results.firstImage === -1 || searchRow < results.firstImage) {
+            results.firstImage = searchRow;
+          }
+        } else {
+          if (results.firstImage === -1 || searchRow > results.firstImage) {
+            results.firstImage = searchRow;
+          }
+        }
         break outerLoop;
       }
 
