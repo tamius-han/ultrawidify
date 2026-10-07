@@ -68,10 +68,9 @@
         <div class="label">Subtitle handling strategy:</div>
         <div class="select">
           <select v-model="aardSettings.subtitles.subtitleCropMode" @change="settings.saveWithoutReload">
-            <!-- <option :value="AardSubtitleCropMode.DisableScan">Do not detect subtitles</option> -->
             <option :value="AardSubtitleCropMode.ResetAR">Do not crop while subtitles are on screen</option>
             <option :value="AardSubtitleCropMode.ResetAndDisable">Stop autodetection if subtitles are detected</option>
-            <option :value="AardSubtitleCropMode.CropSubtitles">Always crop subtitles</option>
+            <option :value="AardSubtitleCropMode.IgnoreSubtitles">Ignore subtitles</option>
           </select>
         </div>
       </div>

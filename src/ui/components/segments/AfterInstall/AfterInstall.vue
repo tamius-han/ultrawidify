@@ -78,8 +78,8 @@
           </p>
         </div>
         <div class="flex flex-row gap-4 card-row">
-          <div :class="{'active': placeholderSubtitleCrop === AardSubtitleCropMode.CropSubtitles}" @click="setSubtitleCropMode(AardSubtitleCropMode.CropSubtitles)">
-            <h3>Crop subtitles</h3>
+          <div :class="{'active': placeholderSubtitleCrop === AardSubtitleCropMode.IgnoreSubtitles}" @click="setSubtitleCropMode(AardSubtitleCropMode.IgnoreSubtitles)">
+            <h3>Ignore subtitles</h3>
             <div>Subtitles are ignored. Video will be cropped regardless of whether subtitles are detected or not.</div>
           </div>
           <div :class="{'active': placeholderSubtitleCrop === AardSubtitleCropMode.ResetAR}" @click="setSubtitleCropMode(AardSubtitleCropMode.ResetAR)">

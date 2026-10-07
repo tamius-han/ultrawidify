@@ -607,19 +607,17 @@ export class Aard {
           break processUpdate;
         }
 
-        // subtitle detection didn't run
+        // keep as-is if both letterbox & pillarbox are present
         if (this.testResults.letterboxOrientation === LetterboxOrientation.Both) {
           this.testResults.flags.doubleLetterbox = true;
           clearTimeout(this.testResults.stability.timeDuration);
           break processUpdate;
         }
 
+        // if we detected subtitles and settings call for AR reset when subtitles are
+        // active, process that.
         if (
-          this.testResults.subtitleDetected
-          && (
-            arConf.subtitles.subtitleCropMode === AardSubtitleCropMode.ResetAR
-            || arConf.subtitles.subtitleCropMode === AardSubtitleCropMode.ResetAndDisable
-          )
+          this.testResults.flags.subtitlesConfirmed && arConf.subtitles.subtitleCropMode !== AardSubtitleCropMode.IgnoreSubtitles
         ) {
           if (arConf.subtitles.subtitleCropMode === AardSubtitleCropMode.ResetAR) {
             this.updateAspectRatio(this.defaultAr!, {forceReset: true});

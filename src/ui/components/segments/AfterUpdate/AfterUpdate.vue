@@ -20,7 +20,7 @@
                 <select v-model="placeholderSubtitleCrop">
                   <option :value="AardSubtitleCropMode.ResetAR">Reset aspect ratio while subtitles are visible</option>
                   <option :value="AardSubtitleCropMode.ResetAndDisable">Reset aspect ratio and stop autodetection for the video</option>
-                  <option :value="AardSubtitleCropMode.CropSubtitles">Crop subtitles</option>
+                  <option :value="AardSubtitleCropMode.IgnoreSubtitles">Ignore subtitles</option>
                 </select>
               </div>
             </div>
