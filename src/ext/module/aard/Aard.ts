@@ -752,6 +752,7 @@ export class Aard {
                   stable = false;
                   if (!arConf.stability.applyOnStableDelta) {
                     this.testResults.flags.cropMaintaining = true;
+                    this.testResults.flags.arUnstable = true;
                     break processUpdate;
                   }
                 }
@@ -1160,6 +1161,7 @@ export class Aard {
       results: ssrRegions.bottom,
     });
 
+
     if (ssrRegions.top.uncertain || ssrRegions.bottom.uncertain) {
       this.testResults.aspectRatioUncertain = true;
     } else {
@@ -1253,6 +1255,7 @@ export class Aard {
     let outerIteration = 0;
 
     const rowMargin = Math.floor(scanConf.scanMargin * ROW_SIZE);
+    const scanSize = ROW_SIZE - (2 * rowMargin);
 
     let letterPhaseLengthCountIndex = 0; // how many pixels we spent in letter on / letter off
 
@@ -1261,6 +1264,20 @@ export class Aard {
 
     const lastScannedLines = [-1, -1];
     // search in top letterbox
+
+    const phaseCertaintyScore = [
+      0,
+      1,
+      3,
+      9
+    ];
+    const blackFrameScoreNormalization = (this.testResults.levels.weakImage - this.testResults.levels.image);
+
+
+    const certaintyThreshold = (scanSize / 4) * 0.42;
+
+    let imageCertaintyScore = 0;
+    let sampleTotalBrightness = 0;
 
     let searchRow;
     outerLoop:
@@ -1271,6 +1288,9 @@ export class Aard {
     ) {
       lastScannedLines[1] = lastScannedLines[0];
       lastScannedLines[0] = searchRow;
+      imageCertaintyScore = 0;
+      sampleTotalBrightness = 0;
+
       if (lastScannedLines[0] === lastScannedLines[1]) {
         // console.warn("we are scanning same row as before. This shouldn't happen.");
         continue outerLoop;
@@ -1293,11 +1313,12 @@ export class Aard {
       likelySubtitle = false;
       likelyImage = false;
 
-      // Scan region is centered,
-      rowStart = (searchRow * ROW_SIZE) + rowMargin;
-      rowEnd = ((searchRow + 1) * ROW_SIZE) - rowMargin;
+      // Scan region is centered.
+      // However, since rowStart happens at the start of the line scan loop,
+      // we actually set both rowStart and rowEnd to PIXEL_SIZE less than otherwise.
+      rowStart = (searchRow * ROW_SIZE) + rowMargin - PIXEL_SIZE;
+      rowEnd = ((searchRow + 1) * ROW_SIZE) - rowMargin - PIXEL_SIZE;
 
-      const scanSize = ROW_SIZE - (2 * rowMargin);
       //#endregion
 
       const smallExcessThreshold = 16;
@@ -1318,6 +1339,10 @@ export class Aard {
       let last2Phase: AardSubtitlePhase = AardSubtitlePhase.Uninitialized;
       lineScan:
       while (rowStart < rowEnd) {
+        // we increment at the start, so we don't have to worry about forgetting to increment
+        // when using continue; in order to continue the line scan
+        rowStart += PIXEL_SIZE;
+
         last2Phase = lastPhase;
         lastPhase = phase;
 
@@ -1331,22 +1356,46 @@ export class Aard {
           v = imageData[rowStart + 2];
         }
 
-
-
         phase = AardSubtitlePhase.Off;
+        imageData[rowStart + 3] = GlDebugType.SubtitleThresholdOff;
+
         if (v > this.testResults.levels.image) { // above black, this may be image content
           phase = AardSubtitlePhase.Image;
+          imageData[rowStart + 3] = GlDebugType.SubtitleThresholdNone;
         }
         if (v > this.testResults.levels.subtitleLow) {        // above the subtitle off threshold, this may be a subtitle
           phase = AardSubtitlePhase.SubtitleHalf;
+          imageData[rowStart + 3] = GlDebugType.ImageLineThresholdReached;
         }
-        if (v > this.testResults.levels.subtitleHigh) {        // increase to 3 if subtitle threshold is passed
+        if (v > this.testResults.levels.subtitleHigh) {       // increase to 3 if subtitle threshold is passed
           phase = AardSubtitlePhase.SubtitleFull;
+          imageData[rowStart + 3] = GlDebugType.SubtitleThresholdOn;
+        }
+
+        // image certainty score does not account for short phase corrections, as phase correction buffers
+        // are rather limited in size. This means image certainty will continue to get scored for the full
+        // line, regardless of whether phase counting stuff has already ran out of buffer.
+        if (phase === AardSubtitlePhase.Off && v > this.testResults.levels.weakImage) {
+          sampleTotalBrightness += v;
+          imageData[rowStart + 3] = GlDebugType.ImageLineFail;
+        } else {
+          imageCertaintyScore += phaseCertaintyScore[phase];
+          sampleTotalBrightness += this.testResults.levels.weakImage;
+        }
+
+        if (
+          mem.darkPhases[changeCountIndex] >= scanConf.maxPhasesPerType
+          || mem.nonDarkPhases[changeCountIndex] >= scanConf.maxPhasesPerType
+          || mem.imagePhases[changeCountIndex] >= scanConf.maxPhasesPerType
+          || mem.subtitleHalfPhases[changeCountIndex] >= scanConf.maxPhasesPerType
+          || mem.subtitleFullPhases[changeCountIndex] >= scanConf.maxPhasesPerType
+          || mem.linePhaseLengths[combinedPhasesChangeCountIndex] >= scanConf.maxPhasesTotal
+        ) {
+          continue lineScan;
         }
 
         // some things only run when phase change occurs
         if (phase !== lastPhase) {
-
           // Check if there are small excesses or small shortages.
           // If there's none or if there's both, then last phase was valid.
           // If only one of the two exists with a small enough count, we
@@ -1460,7 +1509,7 @@ export class Aard {
             || mem.subtitleFullPhases[changeCountIndex] >= scanConf.maxPhasesPerType
             || mem.linePhaseLengths[combinedPhasesChangeCountIndex] >= scanConf.maxPhasesTotal
           ) {
-            break lineScan;
+            continue lineScan;
           }
 
           // Clear the newly entered phase slot. The final array element is its index.
@@ -1486,7 +1535,6 @@ export class Aard {
         // save stuff for debug canvas, increase counters as needed
         switch (phase) {
           case AardSubtitlePhase.Off:
-            imageData[rowStart + 3] = GlDebugType.SubtitleThresholdOff;
             mem.darkPhases[mem.darkPhases[changeCountIndex]]++;
             // ideally, we should also track underruns for 'off'. However, there's a good chance
             // black threshold is too low for it to matter
@@ -1496,7 +1544,6 @@ export class Aard {
             hasSmallShort = false;
             break;
           case AardSubtitlePhase.Image:
-            imageData[rowStart + 3] = GlDebugType.ImageLineThresholdReached;
             mem.nonDarkPhases[mem.nonDarkPhases[changeCountIndex]]++;
             mem.imagePhases[mem.imagePhases[changeCountIndex]]++;
 
@@ -1505,7 +1552,6 @@ export class Aard {
             hasSmallShort &&= mem.imagePhases[mem.imagePhases[changeCountIndex]] < smallExcessCountThreshold && (this.testResults.levels.subtitleLow - v) < smallExcessThreshold;
             break;
           case AardSubtitlePhase.SubtitleHalf:
-            imageData[rowStart + 3] = GlDebugType.SubtitleThresholdNone;
             mem.nonDarkPhases[mem.nonDarkPhases[changeCountIndex]]++;
             mem.subtitleHalfPhases[mem.subtitleHalfPhases[changeCountIndex]]++;
 
@@ -1514,7 +1560,6 @@ export class Aard {
             hasSmallShort &&= mem.subtitleHalfPhases[mem.subtitleHalfPhases[changeCountIndex]] < smallExcessCountThreshold && (this.testResults.levels.subtitleHigh - v) < smallExcessThreshold;
             break;
           case AardSubtitlePhase.SubtitleFull:
-            imageData[rowStart + 3] = GlDebugType.SubtitleThresholdOn;
             mem.nonDarkPhases[mem.nonDarkPhases[changeCountIndex]]++;
             mem.subtitleFullPhases[mem.subtitleFullPhases[changeCountIndex]]++;
 
@@ -1534,7 +1579,6 @@ export class Aard {
             isBlank = false;
         }
         mem.linePhaseLengths[letterPhaseLengthCountIndex]++;
-        rowStart += PIXEL_SIZE;
       }
 
       /**
@@ -1660,8 +1704,6 @@ export class Aard {
             likelySubtitle = true;
             results.subtitleConfirmations++;
           }
-        } else if (averagePhaseLength >= 8) {
-          likelyImage = true;
         }
       }
 
@@ -1714,7 +1756,7 @@ export class Aard {
        */
       imagePresenceDetection:
       {
-        if (!likelySubtitle && !likelyImage) {
+        if (!likelySubtitle) {
           let imageSegment = 0;
 
           // changes, it contains position of the last phase. Which is zero-based.
@@ -1723,10 +1765,7 @@ export class Aard {
             imageSegment += mem.nonDarkPhases[i] * mem.nonDarkPhases[i];
           }
 
-          if (
-            imageSegment &&
-            (imageSegment / (mem.nonDarkPhases[changeCountIndex] + 1)) > arConf.edgeDetection.averageEdgeThreshold
-          ) {
+          if (imageCertaintyScore > certaintyThreshold) {
             likelyImage = true;
           }
         }
