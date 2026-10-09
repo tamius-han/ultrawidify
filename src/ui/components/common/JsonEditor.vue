@@ -28,6 +28,7 @@ export default {
     return {
       refContainer: null,
       editor: null,
+      lastEmitted: undefined,
       editorMode: Mode.tree,
     };
   },
@@ -35,7 +36,7 @@ export default {
     modelValue: {
       deep: true,
       handler(newValue) {
-        if (this.editor) {
+        if (this.editor && newValue !== this.lastEmitted) {
           this.editor.updateProps({ content: { json: newValue || {} } });
         }
       }
@@ -49,7 +50,17 @@ export default {
           mode: Mode.tree,
           content: { json: this.modelValue || {} },
           onChange: (updatedContent) => {
-            this.$emit("update:modelValue", updatedContent.json);
+            let json = updatedContent.json;
+            if (json === undefined) {
+              // text mode: content is a string, which may be temporarily invalid JSON
+              try {
+                json = JSON.parse(updatedContent.text);
+              } catch (e) {
+                return;
+              }
+            }
+            this.lastEmitted = json;
+            this.$emit("update:modelValue", json);
           },
           onRenderContextMenu: false,
           navigationBar: false,
