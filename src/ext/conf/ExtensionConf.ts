@@ -53,17 +53,17 @@ const ExtensionConf: SettingsInterface = {
       levelThreshold: 24,
 
       fullScale: {
+        weakImage: 4,
         image: 8,
         subtitleLow: 64,
         subtitleHigh: 192,
       },
       limitedScale: {
+        weakImage: 8,
         image: 16,
         subtitleLow: 64,
         subtitleHigh: 160,
       }
-
-
     },
 
     subtitles: {

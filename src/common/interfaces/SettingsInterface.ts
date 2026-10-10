@@ -102,16 +102,20 @@ export interface AardSettings {
   aardType: 'webgl' | 'legacy' | 'auto';
   useLegacy: boolean,
 
-  levels: {                       // brightness levels for image detection
-    blackLevel: number,           // black is allowed to be this bright
+  levels: {                       // brightness levels for image detection.
+    blackLevel: number,           // black is allowed to be this bright.
+
+    // all other values are relative to the actual, measured black level
     levelThreshold: number,       // if black is brighter than this, use limitedRange settings. Otherwise full.
 
     fullScale: {
+      weakImage: number,          // pixels generally count as 'off', but still contribute to image certainty score
       image: number,              // pixels this much brighter than black are considered an image
       subtitleLow: number,        // "maybe subtitle" threshold is this much above black level
       subtitleHigh: number,       // "deffo subtitle" threshold is this much above black level
     },
     limitedScale: {
+      weakImage: number,
       image: number,
       subtitleLow: number,
       subtitleHigh: number,

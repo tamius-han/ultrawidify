@@ -27,6 +27,11 @@ export interface AardTestResult_SubtitleRegion {
     lineSize: number,
     slotSize: number,
     intervalFrame: number,
+  },
+  certainty: {
+    lastCheckedRow: number,
+    scoreBuffer: number[],
+    compactedScoreBuffer: number[]
   }
 }
 
@@ -74,6 +79,7 @@ export interface AardTestResults {
   aspectRatioInvalid: boolean,
   levels: {
     blackLevel: number,
+    weakImage: number,
     image: number,
     subtitleLow: number,
     subtitleHigh: number,
@@ -162,6 +168,11 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
             slotSize: stabilityScanSize,
             buffer: new Array<number>(stabilityBufferSize).fill(0),
           },
+          certainty: {
+            scoreBuffer: new Array<number>(settings.canvasDimensions.sampleCanvas.height).fill(-1),
+            compactedScoreBuffer: new Array<number>(settings.canvasDimensions.sampleCanvas.height).fill(0),
+            lastCheckedRow: -1,
+          },
         },
         bottom: {
           firstBlank: -1,
@@ -186,6 +197,11 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
             slotSize: stabilityScanSize,
             buffer: new Array<number>(stabilityBufferSize).fill(0),
           },
+          certainty: {
+            scoreBuffer: new Array<number>(settings.canvasDimensions.sampleCanvas.height).fill(-1),
+            compactedScoreBuffer: new Array<number>(settings.canvasDimensions.sampleCanvas.height).fill(0),
+            lastCheckedRow: -1,
+          },
         }
       },
 
@@ -204,6 +220,7 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
 
     levels: {
       blackLevel: 0,
+      weakImage: 0,
       image: 0,
       subtitleLow: 0,
       subtitleHigh: 0,

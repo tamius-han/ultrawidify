@@ -960,6 +960,7 @@ export class Aard {
       const levels = min < this.settings.active.aard.levels.levelThreshold ? this.settings.active.aard.levels.fullScale : this.settings.active.aard.levels.limitedScale;
 
       this.testResults.levels.blackLevel = min;
+      this.testResults.levels.weakImage = min + levels.weakImage;
       this.testResults.levels.image = min + levels.image;
       this.testResults.levels.subtitleLow = min + levels.subtitleLow;
       this.testResults.levels.subtitleHigh = min + levels.subtitleHigh;
@@ -1108,6 +1109,52 @@ export class Aard {
 
 
   /**
+   * Checks whether edges are crispy enough.
+   * DO NOT USE IF SUBTITLES ARE DETECTED
+   * @param results
+   * @returns
+   */
+  private validateEdges(results: AardTestResult_SubtitleRegion, lineSize: number, initialScanSpacing: number): boolean {
+
+    // if letterbox was detected too close to the edge, we assume that scan results are valid
+    //  as we can't really reliably check them
+    if (
+      (initialScanSpacing > 0 && results.certainty.lastCheckedRow < (initialScanSpacing * 2.5))
+      || (initialScanSpacing < 0 && results.certainty.lastCheckedRow > (lineSize - (initialScanSpacing * 2.5)))
+    ) {
+      return true;
+    }
+
+    // compact the sparse score buffer
+    let scans = 0;
+    for (let i = 0; i < results.certainty.lastCheckedRow; i++) {
+      if (results.certainty.scoreBuffer[i] !== -1) {
+        results.certainty.compactedScoreBuffer[scans++] = results.certainty.scoreBuffer[i];
+        results.certainty.compactedScoreBuffer[scans++] = i;
+      }
+    }
+
+    // we try to find the first large outlier
+    let avg = 0, lastAvg = 0;
+    for (let i = 2; i < scans; i += 2) {
+      lastAvg = avg;
+      avg = (results.certainty.compactedScoreBuffer[i] + results.certainty.compactedScoreBuffer[i - 2]) * 0.5;
+
+      // faster to do this, than it is to figure out whether we should use fullScale or limitedScale thresholds.
+      //                                 ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+      if (Math.abs(avg - lastAvg) > (this.testResults.levels.weakImage - this.testResults.levels.blackLevel)) {
+        // scan is not valid when either condition is true. Condition is true if this outlier happened
+        return !(                     //                            closer to the edge than firstImage
+          (initialScanSpacing > 0 && results.certainty.compactedScoreBuffer[i + 1] + 2 < results.firstImage)
+          || (initialScanSpacing < 0 && results.certainty.compactedScoreBuffer[i + 1] - 2 > results.firstImage)
+        );
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * Scans for subtitles
    * @param imageData
    * @param width
@@ -1167,6 +1214,36 @@ export class Aard {
       this.testResults.aspectRatioUncertain = false;
     }
 
+    // follow things up with testing for unexpected edges in dark frames, but only in situations
+    // where subtitles are not detected
+
+    // -------------------------- firstSubtitle must be a thing     AND    first subtitle must be closer to the edge
+    const hasTopSubtitle    =    ssrRegions.top.firstSubtitle !== -1 && ssrRegions.top.firstSubtitle < ssrRegions.top.firstImage;
+    const hasBottomSubtitle = ssrRegions.bottom.firstSubtitle !== -1 && ssrRegions.bottom.firstSubtitle > ssrRegions.bottom.firstImage;
+
+    // if we detected subtitles on something that isn't letterbox, then it's very likely that we're
+    // looking at an unreliable result (note that this is merely a conjecture that hasn't been proven)
+    if (this.testResults.letterboxOrientation !== LetterboxOrientation.Letterbox && (hasTopSubtitle || hasBottomSubtitle)) {
+      this.testResults.aspectRatioUncertain = true;
+    }
+
+    if (!this.testResults.aspectRatioUncertain) {
+      const topValid = hasTopSubtitle || this.validateEdges(
+        ssrRegions.top,
+        this.testResults.letterboxOrientation === LetterboxOrientation.Letterbox ? height : width,
+        scanConf.refiningScanSpacing
+      );
+      const bottomValid = hasBottomSubtitle || this.validateEdges(
+        ssrRegions.bottom,
+        this.testResults.letterboxOrientation === LetterboxOrientation.Letterbox ? height : width,
+        scanConf.refiningScanSpacing
+      );
+
+      if (!topValid || !bottomValid) {
+        this.testResults.aspectRatioUncertain = true;
+      }
+    }
+
     // if (ssrRegions.top.subtitlesUnstable && ssrRegions.bottom.subtitlesUnstable) {
     //   this.testResults.flags.subtitlesUncertain = true;
     // } else {
@@ -1183,14 +1260,9 @@ export class Aard {
     );
 
 
-    // We only check for subtitles when in letterbox
-    // AND WHEN ASPECT RATIO IS NOT UNCERTAIN (uncertain AR -> bogus subtitle detections)
-    if (this.testResults.letterboxOrientation === LetterboxOrientation.Letterbox && !this.testResults.aspectRatioUncertain) {
-
-      // -------------------------- firstSubtitle must be a thing     AND    first subtitle must be closer to the edge
-      const hasTopSubtitle    =    ssrRegions.top.firstSubtitle !== -1 && ssrRegions.top.firstSubtitle < ssrRegions.top.firstImage;
-      const hasBottomSubtitle = ssrRegions.bottom.firstSubtitle !== -1 && ssrRegions.bottom.firstSubtitle > ssrRegions.bottom.firstImage;
-
+    // We only check for subtitles when in letterbox and when aspect ratio is not uncertain.
+    // if we detected subtitles in pillarbox, aspectRatioUncertain is already set
+    if (!this.testResults.aspectRatioUncertain) {
       // subs statistics are processed always, regardless of whether we're resetting AR on subtitles or not
       if (
         (hasTopSubtitle  && !ssrRegions.top.subtitlesUnstable)
@@ -1593,12 +1665,23 @@ export class Aard {
         }
         mem.linePhaseLengths[letterPhaseLengthCountIndex]++;
       }
-
       /**
        * LINE SCAN FINISHED, time to process the results
        *
-       * If we can mark a row as blank for free, we do that.
+       * We save "brightness score" for this scan, and normalize it to line length.
+       * NOTE:
+       *  * sampleTotalBrightness contains one value per pixel.
+       *  * scanSize assumes 4 values per pixel
+       * which is why sampleTotalBrightness is multiplied by PIXEL_SIZE before normalization.
        */
+      results.certainty.scoreBuffer[searchRow] = sampleTotalBrightness * PIXEL_SIZE / scanSize;
+      if (scanSpacing > 0 && results.certainty.lastCheckedRow < searchRow) {
+        results.certainty.lastCheckedRow = searchRow;
+      } else if (scanSpacing < 0 && results.certainty.lastCheckedRow < searchRow) {
+        results.certainty.lastCheckedRow = searchRow;
+      }
+
+      // we can mark blank lines almost for free
       blankCheck:
       {
         if (isBlank) {
@@ -1783,6 +1866,7 @@ export class Aard {
           }
         }
       }
+
 
       // NOTE: gradient detection is only relevant if we think this might be an image
       // If we do gradient detection on empty lines or subtitle lines, then it can
