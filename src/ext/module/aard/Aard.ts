@@ -1244,18 +1244,35 @@ export class Aard {
   ) {
     results.uncertain = false;
 
+    // setup shortcuts to global variables
     const mem = this.mem.subtitleScan;
     const scanConf = this.settings.active.aard.subtitles;
     const arConf = this.settings.active.aard;
 
-    let isBlank, likelySubtitle, likelyImage;
+    // set up rows and columns to allow for pillarbox detection
+    let lineIncrement, pixelIncrement, lineSize, lineLength;
 
+    if (this.testResults.letterboxOrientation === LetterboxOrientation.Letterbox) {
+      lineSize = ROW_SIZE;
+      lineLength = ROW_SIZE / PIXEL_SIZE; // in pixels
+      lineIncrement = scanSpacing;
+      pixelIncrement = PIXEL_SIZE;
+    } else {
+      lineSize = PIXEL_SIZE;
+      lineLength = height;
+      lineIncrement = scanSpacing;
+      pixelIncrement = ROW_SIZE;
+    }
+
+    const normalizedMargin = Math.floor(scanConf.scanMargin * lineLength); // in pixels
+    const lineMargin = Math.floor(scanConf.scanMargin * lineLength) * pixelIncrement; // in bytes
+    const scanSize = (lineLength - (2 * normalizedMargin)) * PIXEL_SIZE;
+
+
+    let isBlank, likelySubtitle, likelyImage;
     let rowStart, rowEnd; // GT = gradient test
 
     let outerIteration = 0;
-
-    const rowMargin = Math.floor(scanConf.scanMargin * ROW_SIZE);
-    const scanSize = ROW_SIZE - (2 * rowMargin);
 
     let letterPhaseLengthCountIndex = 0; // how many pixels we spent in letter on / letter off
 
@@ -1271,8 +1288,6 @@ export class Aard {
       3,
       9
     ];
-    const blackFrameScoreNormalization = (this.testResults.levels.weakImage - this.testResults.levels.image);
-
 
     const certaintyThreshold = (scanSize / 4) * 0.42;
 
@@ -1284,7 +1299,7 @@ export class Aard {
     for (
       searchRow = startRow;
       (scanSpacing > 0 && searchRow < endRow) || (scanSpacing < 0 && searchRow > endRow);
-      searchRow += scanSpacing
+      searchRow += lineIncrement
     ) {
       lastScannedLines[1] = lastScannedLines[0];
       lastScannedLines[0] = searchRow;
@@ -1301,6 +1316,10 @@ export class Aard {
       clearSubtitleScanPhaseBuffers(this.mem, scanConf);
       letterPhaseLengthCountIndex  = 0;
 
+      // This shouldn't happen in letterbox mode.
+      // However, this _CAN_ happen in pillarbox mode. However, on default settings, by the time
+      // we get this far into the scan, we are a) past the halfway point and b) even if we weren't,
+      // the chances of finding a valid aspect ratio this far in wouldn't be particularly high.
       if (++outerIteration > height) {
         // console.warn('[ultrawidify|aard::subtitleScanRegionLinear] — scan got stuck in an infinite loop. This shouldn\'t happen.');
         results.uncertain = true;
@@ -1316,8 +1335,8 @@ export class Aard {
       // Scan region is centered.
       // However, since rowStart happens at the start of the line scan loop,
       // we actually set both rowStart and rowEnd to PIXEL_SIZE less than otherwise.
-      rowStart = (searchRow * ROW_SIZE) + rowMargin - PIXEL_SIZE;
-      rowEnd = ((searchRow + 1) * ROW_SIZE) - rowMargin - PIXEL_SIZE;
+      rowStart = (searchRow * lineSize) + lineMargin - pixelIncrement;
+      rowEnd = (searchRow * lineSize) + (lineLength * pixelIncrement) - lineMargin - pixelIncrement;
 
       //#endregion
 
@@ -1341,7 +1360,7 @@ export class Aard {
       while (rowStart < rowEnd) {
         // we increment at the start, so we don't have to worry about forgetting to increment
         // when using continue; in order to continue the line scan
-        rowStart += PIXEL_SIZE;
+        rowStart += pixelIncrement;
 
         last2Phase = lastPhase;
         lastPhase = phase;
@@ -1375,13 +1394,8 @@ export class Aard {
         // image certainty score does not account for short phase corrections, as phase correction buffers
         // are rather limited in size. This means image certainty will continue to get scored for the full
         // line, regardless of whether phase counting stuff has already ran out of buffer.
-        if (phase === AardSubtitlePhase.Off && v > this.testResults.levels.weakImage) {
-          sampleTotalBrightness += v;
-          imageData[rowStart + 3] = GlDebugType.ImageLineFail;
-        } else {
-          imageCertaintyScore += phaseCertaintyScore[phase];
-          sampleTotalBrightness += this.testResults.levels.weakImage;
-        }
+        imageCertaintyScore += phaseCertaintyScore[phase];
+        sampleTotalBrightness += v - this.testResults.levels.blackLevel;
 
         if (
           mem.darkPhases[changeCountIndex] >= scanConf.maxPhasesPerType
@@ -1591,7 +1605,7 @@ export class Aard {
         if (isBlank) {
           continue outerLoop;
         }
-        if (mem.darkPhases[changeCountIndex] === 1 && mem.darkPhases[0] > arConf.canvasDimensions.sampleCanvas.width * 0.95) {
+        if (mem.darkPhases[changeCountIndex] === 1 && mem.darkPhases[0] > lineLength * 0.95) {
           continue outerLoop;
         }
       }
