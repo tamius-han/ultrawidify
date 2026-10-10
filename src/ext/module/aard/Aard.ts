@@ -945,8 +945,7 @@ export class Aard {
       this.testResults.aspectRatioUncertain = false;
     }
 
-    if (min < this.testResults.blackLevel) {
-      // deprecated
+    if (min < this.settings.active.aard.blackLevels.defaultBlack) {
       this.testResults.blackLevel = min;
       this.testResults.blackThreshold = min + this.settings.active.aard.blackLevels.blackTolerance;
 
