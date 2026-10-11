@@ -154,8 +154,6 @@ export interface AardSettings {
   subtitles: AardSubtitleScanOptions,
 
   disabledReason: string,     // if automatic aspect ratio has been disabled, show reason
-  allowedMisaligned: number,  // top and bottom letterbox thickness can differ by this much.
-                              // Any more and we don't adjust ar.
   allowedArVariance: number,  // amount by which old ar can differ from the new (1 = 100%)
   timers: {                   // autodetection frequency
     playing: number,            // while playing
@@ -191,36 +189,10 @@ export interface AardSettings {
     staticRows: number,      // forms grid with staticSampleCols. Determined in the same way. For black frame checks,
   },
 
-  // pls deprecate and move things used
-  edgeDetection: {
-    gradientThreshold: number,           // if more than this percentage (0-1) is detected as gradient, we mark edge as gradient
-    gradientTestMinDelta: number,        // if difference between test row and before row is MORE than this -> not gradient
-    gradientTestMinDeltaAfter: number,   // if difference between test row and after row is LESS than this -> not gradient
-    gradientTestMaxDeltaAfter: number,   // if difference between test row and after row is MORE than this -> not gradient
-    maxLetterboxOffset: number,          // Upper and lower letterbox can be different by this many (% of height)
-
-    minValidImage: number,               // if more than this % (0-1) of row is image, we confirm image regardless of other criteria except gradient
-    maxEdgeSegments: number,             // if edge has more than this many segments, we consider it unreliable
-    minEdgeSegmentSize: number,
-    averageEdgeThreshold: number,        // average edge must be this many px
-  },
-
   letterboxOrientationScan: {
-    letterboxLimit: number,  // how many non-black pixels we can detect before ruling out letterbox
-    pillarboxLimit: number,  // how many non-black pixels we can detect before ruling out pillarbox
-  }
-
-  pillarTest: {
-    ignoreThinPillarsPx: number, // ignore pillars that are less than this many pixels thick.
-    allowMisaligned: number   // left and right edge can vary this much (%)
-  },
-  textLineTest: {
-    nonTextPulse: number,     // if a single continuous pulse has this many non-black pixels, we aren't dealing
-                            // with text. This value is relative to canvas width (%)
-    pulsesToConfirm: number,    // this is a threshold to confirm we're seeing text.
-    pulsesToConfirmIfHalfBlack: number, // this is the threshold to confirm we're seeing text if longest black pulse
-                                   // is over 50% of the canvas width
-    testRowOffset: number     // we test this % of height from detected edge
+    maxLetterboxOffset: number,   // Upper and lower letterbox can be different by this many (% of height)
+    letterboxLimit: number,       // how many non-black pixels we can detect before ruling out letterbox
+    pillarboxLimit: number,       // how many non-black pixels we can detect before ruling out pillarbox
   }
 }
 

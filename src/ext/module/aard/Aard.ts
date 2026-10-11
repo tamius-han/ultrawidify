@@ -1098,7 +1098,7 @@ export class Aard {
     }
 
     const bottomDistance = (lineCount - bottomCandidate);
-    const maxOffset = ~~(lineCount * this.settings.active.aard.edgeDetection.maxLetterboxOffset);
+    const maxOffset = ~~(lineCount * this.settings.active.aard.letterboxOrientationScan.maxLetterboxOffset);
     const diff = Math.abs(topCandidate - bottomDistance);
     const candidateAvg = ~~((topCandidate + bottomDistance) * 0.5);
 

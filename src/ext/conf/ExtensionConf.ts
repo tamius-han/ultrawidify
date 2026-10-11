@@ -33,12 +33,13 @@ const ExtensionConf: SettingsInterface = {
     },
 
     letterboxOrientationScan: {
+      maxLetterboxOffset: 0.05,
       letterboxLimit: 8,
       pillarboxLimit: 8
     },
 
     stability: {
-      confirmationStrategy: ArConfirmationStrategy.NoConfirming,
+      confirmationStrategy: ArConfirmationStrategy.ConsecutiveScans,
       arSampleCount: 3, // we need to detect aspect ratio on this many consecutive scans before applying
       arConfirmationTime: 1000,  // we need to hold detected aspect ratio for this many ms before applying
       arTolerance: 0.025,        // allowed difference in aspect ratio (%)
@@ -102,8 +103,6 @@ const ExtensionConf: SettingsInterface = {
     },
 
     disabledReason: "",       // if automatic aspect ratio has been disabled, show reason
-    allowedMisaligned: 0.05,  // top and bottom letterbox thickness can differ by this much.
-                              // Any more and we don't adjust ar.
     allowedArVariance: 0.0125,// amount by which old ar can differ from the new (1 = 100%)
     timers: {                 // autodetection frequency
       playing: 0,             // while playing
@@ -142,7 +141,6 @@ const ExtensionConf: SettingsInterface = {
       staticRows: 9,      // forms grid with staticSampleCols. Determined in the same way. For black frame checks
     },
     edgeDetection: {
-      maxLetterboxOffset: 0.05,
 
       gradientThreshold: 0.5,           // if more than this percentage (0-1) is detected as gradient, we mark edge as gradient
       gradientTestMinDelta: 8,        // if difference between test row and before row is MORE than this -> not gradient
@@ -153,18 +151,6 @@ const ExtensionConf: SettingsInterface = {
       maxEdgeSegments: 8,                // if edge has more than this many segments, we consider it unreliable
       minEdgeSegmentSize: 2,
       averageEdgeThreshold: 16,           // average(ish) edge must be this many px
-    },
-    pillarTest: {
-      ignoreThinPillarsPx: 5, // ignore pillars that are less than this many pixels thick.
-      allowMisaligned: 0.05   // left and right edge can vary this much (%)
-    },
-    textLineTest: {
-      nonTextPulse: 0.10,     // if a single continuous pulse has this many non-black pixels, we aren't dealing
-                              // with text. This value is relative to canvas width (%)
-      pulsesToConfirm: 10,    // this is a threshold to confirm we're seeing text.
-      pulsesToConfirmIfHalfBlack: 5, // this is the threshold to confirm we're seeing text if longest black pulse
-                                     // is over 50% of the canvas width
-      testRowOffset: 0.02     // we test this % of height from detected edge
     }
   },
 

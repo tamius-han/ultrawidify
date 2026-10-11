@@ -180,7 +180,7 @@
       <div class="field">
         <div class="label">Maximum allowed vertical video misalignment:</div>
         <div class="input">
-          <input v-model="aardSettings.allowedMisaligned" />
+          <input v-model="aardSettings.letterboxOrientationScan.maxLetterboxOffset" />
         </div>
         <div class="hint">
           Ultrawidify detects letterbox only if video is vertically centered. Some people are bad at vertically
