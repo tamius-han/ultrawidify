@@ -543,6 +543,8 @@ const ExtensionConfPatch = Object.freeze([
         invertZoom: false,
         zoomSensitivity: 1,
       }
+
+      // aard was barely configurable in 6.x
       userOptions.aard = defaultOptions.aard;
     }
   }
