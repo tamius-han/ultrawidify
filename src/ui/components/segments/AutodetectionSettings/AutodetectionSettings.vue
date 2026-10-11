@@ -4,6 +4,132 @@
     <p class="text-stone-500">Ultrawidify can attempt to automatically detect aspect ratio of videos playing on the page.</p>
     <p class="text-stone-500">However, autodetection will not work on every website, as some websites make it impossible for autodetection to work.</p>
 
+    <!-- BASIC OPTIONS -->
+    <div class="settings-segment">
+      <h3 class="text-primary-300 text-[1.25em] mt-4 border-b-1 border-b-stone-700">Basic options</h3>
+
+      <div class="field">
+        <div class="label">Enable autodetection?</div>
+        <div class="select">
+          <select
+            :value="settings.active.sites['@global'].enableAard"
+            @change="settings.saveWithoutReload"
+          >
+            <option :value="ExtensionMode.Disabled">
+              Disabled by default
+            </option>
+            <option :value="ExtensionMode.FullScreen">
+              Fullscreen only
+            </option>
+            <option :value="ExtensionMode.Theater">
+              Fullscreen and theater mode
+            </option>
+            <option :value="ExtensionMode.All">
+              Always
+            </option>
+          </select>
+        </div>
+        <div class="hint">This setting can be overriden per site. 'Default crop' option can also override this setting.</div>
+      </div>
+
+      <div class="field">
+        <div class="label">Limit autodetection to:</div>
+        <div class="select">
+          <select :value="currentAardFrequency" @click="updateAutodetectionLimit($event)">
+            <option :value="-1">This option was changed in 'advanced' section</option>
+            <option :value="0">Unlimited (max. once per video frame)</option>
+            <option :value="10">60/s</option>
+            <option :value="25">30/s</option>
+            <option :value="50">15/s</option>
+            <option :value="500">2/s</option>
+            <option :value="1000">Once per second</option>
+            <option :value="5000">Once every 5 seconds</option>
+          </select>
+        </div>
+        <div class="hint">
+          Autodetection will never run more than once per video frame.
+          Frequent autodetection is necessary if you want want to keep speed/certainty sliders on any option other than the fastest option.
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="label">Aspect ratio detection speed/certainty</div>
+        <div class="flex flex-col gap-0">
+          <div class="flex flex-row gap-4">
+            <span>Fast</span>
+            <input type="range" min="1" max="10"
+              v-model="settings.active.aard.stability.arSampleCount"
+              @change="settings.saveWithoutReload"
+            />
+            <span>Certain</span>
+          </div>
+          <div class="text-[0.8rem] text-stone-500">
+            Require same aspect ratio on {{ settings.active.aard.stability.arSampleCount }} consecutive scans before taking action
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUBTITLE HANDLING -->
+    <div class="settings-segment">
+      <h3 class="text-primary-300 text-[1.25em] mt-4 border-b-1 border-b-stone-700">Subtitle handling</h3>
+      <div class="warning-area">
+        Subtitle detection is experimental to high heaven.
+      </div>
+
+      <div class="field">
+        <div class="label">Subtitle handling strategy:</div>
+        <div class="select">
+          <select v-model="aardSettings.subtitles.subtitleCropMode" @change="settings.saveWithoutReload">
+            <option :value="AardSubtitleCropMode.ResetAR">Do not crop while subtitles are on screen</option>
+            <option :value="AardSubtitleCropMode.ResetAndDisable">Stop autodetection if subtitles are detected</option>
+            <option :value="AardSubtitleCropMode.IgnoreSubtitles">Ignore subtitles</option>
+          </select>
+        </div>
+      </div>
+
+      <div v-if="aardSettings.subtitles.subtitleCropMode === AardSubtitleCropMode.ResetAR" class="field">
+        <div class="label">Wait before resuming detection:</div>
+        <div class="range-input">
+          <input
+            type="range"
+            :value="Math.log(aardSettings.subtitles.resumeAfter / 10)"
+            @change="setSubtitleTimeout($event.target.value, 10)"
+            min="2.3"
+            max="9.3"
+            step="0.01"
+          />
+          <input
+            :value="aardSettings.subtitles.resumeAfter / 1000"
+            @change="setSubtitleTimeout($event.target.value, 1000)"
+            class="input"
+            type="text"
+          >
+          <div class="unit">s</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="label">
+          Subtitle detection speed/certainty
+        </div>
+        <div class="flex flex-col gap-0">
+          <div class="flex flex-row gap-4">
+            <span>Fast</span>
+            <input type="range" min="2" max="8"
+              v-model="settings.active.aard.subtitles.stability.confirmationScans"
+              @change="settings.saveWithoutReload"
+            />
+            <span>Certain</span>
+          </div>
+          <div class="text-[0.8rem] text-stone-500">
+            Require subtitles to be detected for {{ settings.active.aard.subtitles.stability.confirmationScans }} consecutive scans before taking action
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EARLY STOP -->
     <div class="settings-segment">
       <h3 class="text-primary-300 text-[1.25em] mt-4 border-b-1 border-b-stone-700">Early stop</h3>
       <div class="field">
@@ -48,57 +174,9 @@
       </div>
     </div>
 
-    <div class="settings-segment">
-      <h3 class="text-primary-300 text-[1.25em] mt-4 border-b-1 border-b-stone-700">Subtitle handling</h3>
-      <div class="warning-area">
-        Subtitle detection is experimental to high heaven.
-      </div>
-
-      <div class="field">
-        <div class="label">Autodetection mode (requires page reload)</div>
-        <div class="select">
-          <select v-model="settings.active.aard.useLegacy" @change="aardLegacyModeChanged">
-            <option :value="true">Legacy</option>
-            <option :value="false">Experimental</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="field">
-        <div class="label">Subtitle handling strategy:</div>
-        <div class="select">
-          <select v-model="aardSettings.subtitles.subtitleCropMode" @change="settings.saveWithoutReload">
-            <option :value="AardSubtitleCropMode.ResetAR">Do not crop while subtitles are on screen</option>
-            <option :value="AardSubtitleCropMode.ResetAndDisable">Stop autodetection if subtitles are detected</option>
-            <option :value="AardSubtitleCropMode.IgnoreSubtitles">Ignore subtitles</option>
-          </select>
-        </div>
-      </div>
-
-      <div v-if="aardSettings.subtitles.subtitleCropMode === AardSubtitleCropMode.ResetAR" class="field">
-        <div class="label">Wait before resuming detection:</div>
-        <div class="range-input">
-          <input
-            type="range"
-            :value="Math.log(aardSettings.subtitles.resumeAfter / 10)"
-            @change="setSubtitleTimeout($event.target.value, 10)"
-            min="2.3"
-            max="9.3"
-            step="0.01"
-          />
-          <input
-            :value="aardSettings.subtitles.resumeAfter / 1000"
-            @change="setSubtitleTimeout($event.target.value, 1000)"
-            class="input"
-            type="text"
-          >
-          <div class="unit">s</div>
-        </div>
-      </div>
-    </div>
 
     <div class="settings-segment">
-      <h3 class="text-primary-300 text-[1.25em] mt-4 border-b-1 border-b-stone-700">Detection tolerances</h3>
+      <h3 class="text-primary-300 text-[1.25em] mt-4 border-b-1 border-b-stone-700">Advanced options</h3>
       <div class="field">
         <div class="label">Maximum allowed vertical video misalignment:</div>
         <div class="input">
@@ -236,6 +314,7 @@ import JsonEditor from '@components/common/JsonEditor.vue';
 import {AardPollingOptions} from '@src/ext/module/aard/enums/aard-polling-options.enum';
 import {AardSubtitleCropMode} from '@src/ext/module/aard/enums/aard-subtitle-crop-mode.enum';
 import { defineComponent } from 'vue';
+import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
 
 export default defineComponent({
   components: {
@@ -255,8 +334,10 @@ export default defineComponent({
       performanceData: {},
       graphRefreshInterval: undefined,
       settingsJson: {},
+      currentAardFrequency: 10 as number,
 
       // enums n stuff
+      ExtensionMode,
       AardPollingOptions,
       AardSubtitleCropMode
     }
@@ -279,6 +360,30 @@ export default defineComponent({
     this.eventBus?.send('get-aard-timing');
     // this.graphRefreshInterval = setInterval(() => this.eventBus.sendToTunnel('get-aard-timing'), 500);
     this.resetSettingsEditor();
+
+    switch (this.settings.active.aard.playing) {
+      case 10:
+        this.currentAardFrequency = 10;
+        break;
+      case 25:
+        this.currentAardFrequency = 25;
+        break;
+      case 50:
+        this.currentAardFrequency = 50;
+        break;
+      case 500:
+        this.currentAardFrequency = 500;
+        break;
+      case 1000:
+        this.currentAardFrequency = 1000;
+        break;
+      case 5000:
+        this.currentAardFrequency = 5000;
+        break;
+      default:
+        this.currentAardFrequency = -1;
+        break;
+    }
   },
   destroyed() {
     this.eventBus?.unsubscribeAll(this);
@@ -318,7 +423,16 @@ export default defineComponent({
     },
     aardLegacyModeChanged() {
       this.settings.save();
-    }
+    },
+    updateAutodetectionLimit(event: Event) {
+      const target = event.target as HTMLSelectElement;
+      const v = Number(target.value);
+      if (isNaN(v) || v < 0) {
+        return;
+      }
+      this.settings.active.aard.playing = v;
+      this.settings.saveWithoutReload();
+    },
   },
 
 });
