@@ -159,11 +159,9 @@ class UI {
          */
         if (!payload.context?.commandId) {
           // user should never see this log
-          console.warn('Command context does not contain commandId. This is illegal. Message will not be forwarded.', {payload});
           return;
         }
         if (this.forwardedCommandIds.includes(payload.context.commandId)) {
-          console.warn('this command was already forwarded, doing nothing:', {payload});
           return;
         }
         const i = this.lastForwardedCommandIndex++ % this.forwardedCommandIds.length;

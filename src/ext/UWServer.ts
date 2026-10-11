@@ -305,7 +305,6 @@ export default class UWServer {
     //   console.warn('invalid unregisterVideo received!');
     //   return;
     // }
-    console.warn('[server] received getCurrentSite.');
     const tabHostname = await this.getCurrentTabHostname();
     const site = await this.getVideoTab();
 

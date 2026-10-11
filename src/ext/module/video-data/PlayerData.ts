@@ -445,7 +445,6 @@ class PlayerData {
     {
       newPlayerCandidate = this.getPlayer();
       if (!newPlayerCandidate) {
-        console.warn('[uw->PlayerData::processTick()] — player not detected — dimensions will not be checked')
         return;
       }
       if (newPlayerCandidate !== this.element) {
@@ -666,9 +665,7 @@ class PlayerData {
     // not set to auto.
     if (detectionMode === PlayerDetectionMode.Auto || !playerCandidate) {
       const playerCandidate = this.getPlayerAuto(elementStack, videoWidth, videoHeight);
-      if (playerCandidate === null) {
-        console.warn('[uw::getPlayer] getPlayerAuto returned null — no player detected?');
-      } else {
+      if (playerCandidate !== null) {
         playerCandidate.heuristics['activePlayer'] = true;
         return playerCandidate.element;
       }
@@ -961,11 +958,7 @@ class PlayerData {
     this.markedElementIndex = data.parentIndex;
     this.elementStack[this.markedElementIndex]?.element.classList.add('uw-mark-element');
 
-    console.log('———— setting element as active:', data.parentIndex, this.elementStack.length, this.elementStack, this.elementStack[data.parentIndex])
-
     const elementBB = this.elementStack[data.parentIndex].element.getBoundingClientRect();
-
-    // console.log('element bounding box:', elementBB);
 
     const div = document.createElement('div');
     div.style.position = 'fixed';
@@ -981,7 +974,6 @@ class PlayerData {
 
     document.body.insertBefore(div, document.body.firstChild);
     this.markedElement = div;
-
 
 
     // this.elementStack[data.parentIndex].element.style.outline = data.enable ? '5px dashed #fa6' : null;

@@ -509,14 +509,12 @@ export default defineComponent({
       this.selectedTab = this.selectedTab ?? DEFAULT_TABS[this.role];
     },
     setInitialPath(path: string[] = this.initialPath) {
-      console.log('setting initial path:', this.initialPath)
       if (path && path.length) {
         this.selectedTab = path[0];
         this.$emit('debugStatusChanged', this.selectedTab === 'debugging');
       }
     },
     selectTab(tab) {
-      console.log("Selecting tab", tab);
       this.selectedTab = tab;
       this.$emit('debugStatusChanged', tab === 'debugging');
       window.location.hash = `#${this.role}/${this.selectedTab}`;

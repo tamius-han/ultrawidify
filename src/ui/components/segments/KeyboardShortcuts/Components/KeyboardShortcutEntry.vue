@@ -64,7 +64,6 @@ export default defineComponent({
       this.state = 'removing';
     },
     confirmRemoval(command) {
-      console.info('confirmong removal:', command)
       const commandsArray = this.settings.active.commands[this.type];
       let index = commandsArray.indexOf(command);
       let reload = false;
@@ -73,7 +72,6 @@ export default defineComponent({
         index = commandsArray.findIndex(x => JSON.stringify(x) === JSON.stringify(command))
         reload = true;
       }
-      console.log('command index:', index, this.settings.active.commands[this.type]);
       if (index !== -1) {
         commandsArray.splice(index, 1);
         if (reload) {

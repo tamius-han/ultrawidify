@@ -75,8 +75,6 @@ export default defineComponent({
       this.command.label = this.command.aspectRatio;
     },
     add() {
-      console.log('emitting add', this.command);
-
       this.$emit('add', this.command);
     },
     cancel() {

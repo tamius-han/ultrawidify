@@ -148,7 +148,6 @@ export default class EventBus {
     // context = this.cloneContext(context);  // Firefox throws an error if we don't clone the context.
 
     if (context.visitedBusses?.includes(this.uuid)) {
-      console.warn('this bus was already visited before. Doing nothing.');
       return;
     }
     if (context.commandId && this.lastExecutedCommandIds.includes(context.commandId)) {
@@ -265,7 +264,6 @@ export default class EventBus {
 
     if (!payload.context?.visitedBusses) {
       // this should never be visible to a real user
-      console.warn('Received iframe message without context. Doing nothing in order to avoid infinite loop. Event:', event);
       return;
     }
 

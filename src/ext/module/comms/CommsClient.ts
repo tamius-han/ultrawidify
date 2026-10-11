@@ -171,11 +171,9 @@ class CommsClient {
         return this.port.postMessage(message);
       } catch (e) {
         // console.log('chrome is shit, lets try to bruteforce ...', e);
-        console.warn('failed to send message from popup to background server. Will try again. Error:\n', e);
         try {
           this.connectPort();
           const res = this.port.postMessage(message);
-          console.warn('Retry successful');
           return res;
         } catch (e) {
           console.warn('failed to send message from popup to background server again. Giving up. Error:', e);

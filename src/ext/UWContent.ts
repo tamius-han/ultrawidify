@@ -47,7 +47,6 @@ export default class UWContent {
   async init(){
     if (this.isIframe) {
       this.parentHostname = await getIframeParentHost();
-      console.warn('[uw-content] got iframe parent:', this.parentHostname);
     }
 
     try {

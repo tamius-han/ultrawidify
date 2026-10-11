@@ -239,7 +239,6 @@ export default defineComponent({
     },
     async resetSettings() {
       if (!this.siteSettings.raw?.activeDOMConfig) {
-        console.warn('')
         return;
       }
 

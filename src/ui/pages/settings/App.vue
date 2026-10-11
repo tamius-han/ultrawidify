@@ -192,7 +192,6 @@ export default defineComponent({
               // this.selectedSite = this.selectedSite || config.site.host;
               this.siteSettings = this.settings.getSiteSettings({site: this.site.host});
 
-              console.log('set-site received:', this.site, this.siteSettings, 'current path:', this.initialPath);
               if (!this.initialPath || this.initialPath.length < 1) {
                 // Open video settings if the extension is active for this site, or if it's disabled
                 // for the site but still active for embedded content (video settings tab explains that).
@@ -205,8 +204,6 @@ export default defineComponent({
                   this.initialPath = ['site-extension-settings'];
                 }
               }
-              console.log('New path:', this.initialPath);
-
 
               this.eventBus.setupPopupTunnelWorkaround({
                 origin: CommsOrigin.Popup,
@@ -292,8 +289,6 @@ export default defineComponent({
           'set-current-site': {
             source: this,
             function: (config, context) => {
-              console.warn('———————————————— received setCurrentSite!', config, context);
-
               if (this.site) {
                 if (!this.site.host) {
                   // dunno why this fix is needed, but sometimes it is
@@ -303,7 +298,6 @@ export default defineComponent({
               this.site = {...config.site, from: 'set-current-site, via setup iframe'};
               this.siteSettings = this.settings.getSiteSettings({site: this.site.host});
 
-              console.log('set-site received:', this.site, this.siteSettings, 'current path:', this.initialPath);
               if (!this.initialPath || this.initialPath.length < 1) {
                 if (this.siteSettings.data.enable) {
                   this.initialPath = ['video-settings'];
@@ -311,8 +305,6 @@ export default defineComponent({
                   this.initialPath = ['site-extension-settings'];
                 }
               }
-              console.log('New path:', this.initialPath);
-
 
               // this.eventBus.setupPopupTunnelWorkaround({
               //   origin: CommsOrigin.Popup,
@@ -327,10 +319,6 @@ export default defineComponent({
           },
           'has-video': {
             function: (config, context) => {
-
-              console.log('has video received.', config, context);
-              console.log('———————— building site:', !config.isIFrame, this.site?.host, config.site, this.site?.host !== config.site);
-
               // update site data.
               // If we're here, then the settings page is being opened from the in-player popup.
               // This means that config.isIframe can generally be ignored.
@@ -353,7 +341,6 @@ export default defineComponent({
           },
         });
 
-        console.log('—————————————————————— polling from iframe window!!!!')
         this.startSitePolling();
         // this.eventBus.subscribe(
         //   'uw-show-settings-window',
@@ -373,7 +360,6 @@ export default defineComponent({
 
     async startSitePolling() {
       while (true) {
-        console.log('requesting site')
         this.requestSite();
         await this.sleep(5000);
       }

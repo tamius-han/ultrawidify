@@ -110,11 +110,11 @@ class VideoData {
         this.onEnvironmentChanged();
       }
     },
-    'get-current-site': {
-      function: () => {
-        console.warn('received get current site!');
-      }
-    }
+    // 'get-current-site': {
+    //   function: () => {
+    //     console.warn('received get current site!');
+    //   }
+    // }
   }
 
   /**
