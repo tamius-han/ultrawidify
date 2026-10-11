@@ -106,12 +106,10 @@ const ExtensionConf: SettingsInterface = {
                               // Any more and we don't adjust ar.
     allowedArVariance: 0.0125,// amount by which old ar can differ from the new (1 = 100%)
     timers: {                 // autodetection frequency
-      playing: 10,           // while playing
+      playing: 0,             // while playing
       playingReduced: 5000,   // while playing at small sizes
       paused: 3000,           // while paused
       error: 3000,            // after error
-      minimumTimeout: 5,
-      tickrate: 10,          // 1 tick every this many milliseconds
     },
     autoDisable: {            // settings for automatically disabling the extension
       onFirstChange: false,       // disable once we have a stable aspect ratio

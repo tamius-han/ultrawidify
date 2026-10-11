@@ -162,8 +162,6 @@ export interface AardSettings {
     playingReduced: number,     // while video/player element has insufficient size
     paused: number,             // while paused
     error: number,              // after error
-    minimumTimeout: number,
-    tickrate: number,          // 1 tick every this many milliseconds
   },
 
   canvasDimensions: {
@@ -185,7 +183,7 @@ export interface AardSettings {
     blackTolerance: number,  // If pixel is more than this much brighter than blackLevel, it's considered not black
                              // It is not considered a valid image detection if gradient detection is enabled
     imageDelta: number,      // When gradient detection is enabled, pixels this much brighter than black skip gradient detection
-  }
+  },
   sampling: {
     edgePosition: number;    // % of width (max 0.33). Pixels up to this far away from either edge may contain logo.
     staticCols: number,      // we take a column at [0-n]/n-th parts along the width and sample it

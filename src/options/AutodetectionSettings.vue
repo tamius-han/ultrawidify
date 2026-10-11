@@ -114,21 +114,6 @@
       </div>
     </div>
 
-    <div class="indent">
-      <div class="flex flex-row row-padding"  v-if="showAdvancedOptions">
-        <div class="flex label-secondary form-label">
-          Tick rate:
-        </div>
-        <div class="flex flex-input">
-          <input type="text"
-                v-model="settings.active.arDetect.timers.tickrate"
-                />
-        </div>
-      </div>
-    </div>
-
-
-
     <div class="label">Fallback mode</div>
     <div class="description">
       Some streaming sites implement stuff (DRM) that prevents us from detecting aspect ratio using our favourite way.

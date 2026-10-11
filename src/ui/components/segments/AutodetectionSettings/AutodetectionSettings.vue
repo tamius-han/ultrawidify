@@ -188,11 +188,6 @@
           refuse to crop it (% of total height).
         </div>
       </div>
-    </div>
-
-    <!-- AARD performance metrics -->
-    <div class="settings-segment">
-      <h3 class="text-primary-300 text-[1.25em] mt-4 border-b-1 border-b-stone-700">Performance options</h3>
 
       <div class="field">
         <div class="label">Autodetection frequency (time between samples)</div>
