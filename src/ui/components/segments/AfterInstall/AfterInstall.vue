@@ -263,7 +263,7 @@ export default {
       }
 
       if (this.settings.active.sites['@global'].defaults!.crop!.type === AspectRatioType.Automatic) {
-        if (this.settings.active.sites['@global'].defaults!.crop!.variant === ArVariant.Crop) {
+        if (this.settings.active.sites['@global'].defaults!.crop!.variant !== ArVariant.Zoom) {
           this.aardMode = 'crop';
         } else {
           this.aardMode = 'zoom';
@@ -359,6 +359,8 @@ export default {
       } else {
         this.settings.active.sites['@global'].defaults!.crop! = {type: AspectRatioType.Automatic, variant: mode === 'crop' ? ArVariant.Crop : ArVariant.Zoom };
       }
+
+      this.settings.save();
     },
 
     setSubtitleCropMode(crop: AardSubtitleCropMode) {
