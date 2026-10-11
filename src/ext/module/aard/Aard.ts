@@ -598,12 +598,21 @@ export class Aard {
           break scanFrame;
         }
 
-        // We only do subtitle check when orientation is letterbox
+        // "subtitle scan" runs
         if (this.testResults.letterboxOrientation === LetterboxOrientation.Letterbox) {
-          this.subtitleScan(
+          this.analyzeImage(
             imageData,
             arConf.canvasDimensions.sampleCanvas.width,
             arConf.canvasDimensions.sampleCanvas.height,
+            false,
+          );
+        }
+
+        if (this.testResults.letterboxOrientation === LetterboxOrientation.Pillarbox) {
+          this.analyzeImage(
+            imageData,
+            arConf.canvasDimensions.sampleCanvas.height,
+            arConf.canvasDimensions.sampleCanvas.width,
             false,
           );
         }
@@ -1069,12 +1078,12 @@ export class Aard {
 
   /**
    * Updates letterbox edge (updates imageLine and guardLine)
-   * @param crossDimension height of the sample frame (or width, if pillarbox)
+   * @param lineCount height of the sample frame (or width, if pillarbox)
    * @param topCandidate First line of image data on the top of  the frame
    * @param bottomCandidate First line with image data on the bottom of the frame
    * @returns
    */
-  private updateLetterboxEdgeCandidates(crossDimension: number, topCandidate: number, bottomCandidate: number) {
+  private updateLetterboxEdgeCandidates(lineCount: number, topCandidate: number, bottomCandidate: number) {
     // if new topCandidate or bottomCandidate aren't valid,
     // use existing value.
     if (topCandidate < 0) {
@@ -1084,8 +1093,8 @@ export class Aard {
       bottomCandidate = this.testResults.aspectRatioCheck.backCandidate;
     }
 
-    const bottomDistance = (crossDimension - bottomCandidate);
-    const maxOffset = ~~(crossDimension * this.settings.active.aard.edgeDetection.maxLetterboxOffset);
+    const bottomDistance = (lineCount - bottomCandidate);
+    const maxOffset = ~~(lineCount * this.settings.active.aard.edgeDetection.maxLetterboxOffset);
     const diff = Math.abs(topCandidate - bottomDistance);
     const candidateAvg = ~~((topCandidate + bottomDistance) * 0.5);
 
@@ -1127,10 +1136,19 @@ export class Aard {
 
     // compact the sparse score buffer
     let scans = 0;
-    for (let i = 0; i < results.certainty.lastCheckedRow; i++) {
-      if (results.certainty.scoreBuffer[i] !== -1) {
-        results.certainty.compactedScoreBuffer[scans++] = results.certainty.scoreBuffer[i];
-        results.certainty.compactedScoreBuffer[scans++] = i;
+    if (initialScanSpacing > 0) {
+      for (let i = 0; i < results.certainty.lastCheckedRow; i++) {
+        if (results.certainty.scoreBuffer[i] !== -1) {
+          results.certainty.compactedScoreBuffer[scans++] = results.certainty.scoreBuffer[i];
+          results.certainty.compactedScoreBuffer[scans++] = i;
+        }
+      }
+    } else {
+      for (let i = results.certainty.lastCheckedRow - 1; i >= 0; i--) {
+        if (results.certainty.scoreBuffer[i] !== -1) {
+          results.certainty.compactedScoreBuffer[scans++] = results.certainty.scoreBuffer[i];
+          results.certainty.compactedScoreBuffer[scans++] = i;
+        }
       }
     }
 
@@ -1143,11 +1161,14 @@ export class Aard {
       // faster to do this, than it is to figure out whether we should use fullScale or limitedScale thresholds.
       //                                 ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
       if (Math.abs(avg - lastAvg) > (this.testResults.levels.weakImage - this.testResults.levels.blackLevel)) {
-        // scan is not valid when either condition is true. Condition is true if this outlier happened
-        return !(                     //                            closer to the edge than firstImage
-          (initialScanSpacing > 0 && results.certainty.compactedScoreBuffer[i + 1] + 2 < results.firstImage)
-          || (initialScanSpacing < 0 && results.certainty.compactedScoreBuffer[i + 1] - 2 > results.firstImage)
-        );
+        if (
+          (initialScanSpacing > 0 && results.certainty.compactedScoreBuffer[i + 1] - 2 > results.firstImage)
+          || (initialScanSpacing < 0 && results.certainty.compactedScoreBuffer[i + 1] + 2 < results.firstImage)
+        ) {
+          return false;
+        } else {
+          return true;
+        }
       }
     }
 
@@ -1157,18 +1178,18 @@ export class Aard {
   /**
    * Scans for subtitles
    * @param imageData
-   * @param width
-   * @param height
+   * @param lineWidth  number of pixels in a line
+   * @param lineCount  number of lines in the image
    * @returns
    */
-   private subtitleScan(imageData: Uint8Array, width: number, height: number, skipAdvancedScan: boolean) {
+   private analyzeImage(imageData: Uint8Array, lineWidth: number, lineCount: number, skipAdvancedScan: boolean) {
     const scanConf = this.settings.active.aard.subtitles;
 
     this.testResults.subtitleDetected = false;
 
     // SubtitleScanResult Regions
     const ssrRegions = this.testResults.subtitleScan.regions;
-    const halfHeight = Math.floor(height / 2);
+    const halfHeight = Math.floor(lineCount / 2);
 
     resetSubtitleScanResults(this.testResults);
 
@@ -1189,19 +1210,21 @@ export class Aard {
       ssrRegions.bottom.stability.intervalFrame = 0;
     }
 
-    this.subtitleScanRegionIterative({
+    this.analyzeRegionIterative({
       imageData,
-      height,
+      lineWidth,
+      lineCount,
       startRow: 2,
       endRow: halfHeight,
       scanSpacing: scanConf.refiningScanSpacing,
       results: ssrRegions.top,
     });
 
-    this.subtitleScanRegionIterative({
+    this.analyzeRegionIterative({
       imageData,
-      height,
-      startRow: height - 3,
+      lineWidth,
+      lineCount,
+      startRow: lineCount - 3,
       endRow: halfHeight,
       scanSpacing: -scanConf.refiningScanSpacing,
       results: ssrRegions.bottom,
@@ -1230,18 +1253,20 @@ export class Aard {
     if (!this.testResults.aspectRatioUncertain) {
       const topValid = hasTopSubtitle || this.validateEdges(
         ssrRegions.top,
-        this.testResults.letterboxOrientation === LetterboxOrientation.Letterbox ? height : width,
+        lineWidth,
         scanConf.refiningScanSpacing
       );
       const bottomValid = hasBottomSubtitle || this.validateEdges(
         ssrRegions.bottom,
-        this.testResults.letterboxOrientation === LetterboxOrientation.Letterbox ? height : width,
+        lineWidth,
         scanConf.refiningScanSpacing
       );
 
       if (!topValid || !bottomValid) {
         this.testResults.aspectRatioUncertain = true;
       }
+
+      console.log('uncertainty — ssrRegions.x.uncertain:', ssrRegions.top.uncertain, ssrRegions.bottom.uncertain, '| validation:', topValid, bottomValid);
     }
 
     // if (ssrRegions.top.subtitlesUnstable && ssrRegions.bottom.subtitlesUnstable) {
@@ -1254,7 +1279,7 @@ export class Aard {
     // 2. it's also not affected by whether subtitleDetected is set
     // 3. we actually need to only reset letterbox if subtitle is actually outside of the crop area
     this.updateLetterboxEdgeCandidates(
-      height,
+      lineCount,
       ssrRegions.top.firstImage,
       ssrRegions.bottom.firstImage
     );
@@ -1275,7 +1300,7 @@ export class Aard {
         // we only reset letterbox if letters are outside the video area, otherwise we risk
         // getting whacked by credits, ppt youtubers, and other shit like that
         const borderTop = this.testResults.activeLetterbox.width;
-        const borderBottom = this.settings.active.aard.canvasDimensions.sampleCanvas.height - this.testResults.activeLetterbox.width;
+        const borderBottom = lineCount - this.testResults.activeLetterbox.width;
         const actionableSubsTop = hasTopSubtitle && ssrRegions.top.firstSubtitle < borderTop;
         const actionableSubsBottom = hasBottomSubtitle && ssrRegions.bottom.firstSubtitle > borderBottom;
 
@@ -1305,9 +1330,8 @@ export class Aard {
    * @param minDetections
    * @param results
    */
-  private subtitleScanRegionLinear(
+  private analyzeRegionLinear(
     imageData: Uint8Array,
-    height: number,
     startRow: number,
     endRow: number,
     scanSpacing: number,
@@ -1323,6 +1347,12 @@ export class Aard {
     // set up rows and columns to allow for pillarbox detection
     let lineIncrement, pixelIncrement, lineSize, lineLength;
 
+    // here, we need to have actual width and actual height, as the "just swap width and height"
+    // hack doesn't work for swapping scan direction. Instead, we need canvas width and canvas
+    // height, and adjust increments according to the orientation
+    const h = this.canvasStore.main.height;
+    const w = this.canvasStore.main.width;
+
     if (this.testResults.letterboxOrientation === LetterboxOrientation.Letterbox) {
       lineSize = ROW_SIZE;
       lineLength = ROW_SIZE / PIXEL_SIZE; // in pixels
@@ -1330,7 +1360,7 @@ export class Aard {
       pixelIncrement = PIXEL_SIZE;
     } else {
       lineSize = PIXEL_SIZE;
-      lineLength = height;
+      lineLength = h;
       lineIncrement = scanSpacing;
       pixelIncrement = ROW_SIZE;
     }
@@ -1391,7 +1421,7 @@ export class Aard {
       // However, this _CAN_ happen in pillarbox mode. However, on default settings, by the time
       // we get this far into the scan, we are a) past the halfway point and b) even if we weren't,
       // the chances of finding a valid aspect ratio this far in wouldn't be particularly high.
-      if (++outerIteration > height) {
+      if (++outerIteration > h) {
         // console.warn('[ultrawidify|aard::subtitleScanRegionLinear] — scan got stuck in an infinite loop. This shouldn\'t happen.');
         results.uncertain = true;
         break outerLoop;
@@ -1899,10 +1929,11 @@ export class Aard {
    * @param ssrRegionName
    * @returns
    */
-  private subtitleScanRegionIterative(
-    {imageData, height, startRow, endRow, scanSpacing, results}: {
+  private analyzeRegionIterative(
+    {imageData, lineWidth, lineCount, startRow, endRow, scanSpacing, results}: {
       imageData: Uint8Array,
-      height: number,
+      lineWidth: number,
+      lineCount: number,
       startRow: number,
       endRow: number,
       scanSpacing: number,
@@ -1932,8 +1963,8 @@ export class Aard {
       if (scanSpacing > -1 && scanSpacing < 1) {
         break;
       }
-      this.subtitleScanRegionLinear(
-        imageData, height,
+      this.analyzeRegionLinear(
+        imageData,
         startRow, endRow,
         scanSpacing, results
       );
@@ -1945,9 +1976,9 @@ export class Aard {
       // We need to ensure small amount of overlap, in case we landed on a sus row
       if (scanSpacing > 0) {
         startRow = Math.max(results.firstImage - Math.floor(scanSpacing * 2), 0);
-        endRow = Math.min(results.firstImage + Math.floor(scanSpacing * 2), height - 1);
+        endRow = Math.min(results.firstImage + Math.floor(scanSpacing * 2), lineCount - 1);
       } else {
-        startRow = Math.min(results.firstImage + Math.floor(-scanSpacing * 2), height - 1);
+        startRow = Math.min(results.firstImage + Math.floor(-scanSpacing * 2), lineCount - 1);
         endRow = Math.max(results.firstImage - Math.floor(-scanSpacing * 2), 0);
       }
 
@@ -1995,9 +2026,7 @@ export class Aard {
       }
     }
     results.subtitlesUnstable = false;
-
   }
-
 
 
   /**
