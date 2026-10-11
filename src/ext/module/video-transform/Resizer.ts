@@ -425,11 +425,14 @@ class Resizer {
 
     // reset zoom, but only on aspect ratio switch. We also know that aspect ratio gets converted to
     // AspectRatioType.Fixed when zooming, so let's keep that in mind
+    // Restoring (lastAr provided) and manual zoom must keep current zoom and pan.
     if (
-      (ar.type !== AspectRatioType.Fixed && ar.type !== AspectRatioType.Manual) // anything not these two _always_ changes AR
-      || ar.type !== this.lastAr.type                                   // this also means aspect ratio has changed
-      || ar.ratio !== this.lastAr.ratio                                 // this also means aspect ratio has changed
-      || ar.variant !== this.lastAr.variant
+      !lastAr && !flags?.manualZoom && (
+        (ar.type !== AspectRatioType.Fixed && ar.type !== AspectRatioType.Manual) // anything not these two _always_ changes AR
+        || ar.type !== this.lastAr.type                                   // this also means aspect ratio has changed
+        || ar.ratio !== this.lastAr.ratio                                 // this also means aspect ratio has changed
+        || ar.variant !== this.lastAr.variant
+      )
     ) {
       this.zoom.reset();
       this.resetPan();
@@ -599,6 +602,10 @@ class Resizer {
   }
 
   setVideoAlignment(params: VideoAlignmentParams) {
+    if (params.x === VideoAlignmentType.Custom && this.videoData.aard?.status?.aardActive) {
+      return;
+    }
+
     // if aspect ratio is unset or initial, CSS fixes are inactive by design.
     // because of that, we need to set a manual aspect ratio first.
 
