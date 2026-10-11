@@ -296,8 +296,6 @@ class Scaler {
    * @param {*} playerAr
    */
   calculateCropCore(videoDimensions: VideoDimensions, ar: number, streamAr: number, playerAr: number, variant?: ArVariant) {
-    console.log('calculating crop core with ar:', ar, ', streamAr:', streamAr, ', playerAr:', playerAr, ', variant:', variant);
-
     /**
      * We could "optimize" this by not repeating code between two functions, but trying to keep in mind what numbers mean
      * and how they relate to each-other is causing too many headaches. Present-day LLMs can't figure out what's going on,

@@ -254,7 +254,7 @@ export class Aard {
    * Checks whether autodetection can run
    */
   startCheck(arVariant?: ArVariant) {
-    this.arVariant = arVariant;
+    this.arVariant = arVariant ?? this.videoData.resizer?.lastAr?.variant;
 
     if (!this.videoData.player) {
       // console.warn('Player not detected!');
@@ -286,7 +286,11 @@ export class Aard {
     this.clearAutoDisabled();
     if (this.videoData.resizer.lastAr.type === AspectRatioType.AutomaticUpdate) {
       // ensure first autodetection will run in any case
-      this.videoData.resizer.lastAr = {type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr};
+      this.videoData.resizer.lastAr = {
+        type: AspectRatioType.AutomaticUpdate,
+        ratio: this.defaultAr,
+        variant: this.arVariant
+      };
     }
 
     // do full reset of test samples
