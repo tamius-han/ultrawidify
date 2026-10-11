@@ -732,7 +732,6 @@ class PlayerData {
 
       // when in full screen, we need to worry about top-layer shenanigans
       if (!!fullscreenElement) {
-        console.log('we are in full screen — checking for top layer shenanigans. Is this element visible from top layer?', fullscreenElement.contains(elementData.element))
         if (!fullscreenElement.contains(elementData.element)) {
           elementData.heuristics['notVisibleInTopLayer'] = true;
           continue;

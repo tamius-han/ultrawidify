@@ -1265,8 +1265,6 @@ export class Aard {
       if (!topValid || !bottomValid) {
         this.testResults.aspectRatioUncertain = true;
       }
-
-      console.log('uncertainty — ssrRegions.x.uncertain:', ssrRegions.top.uncertain, ssrRegions.bottom.uncertain, '| validation:', topValid, bottomValid);
     }
 
     // if (ssrRegions.top.subtitlesUnstable && ssrRegions.bottom.subtitlesUnstable) {

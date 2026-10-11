@@ -209,20 +209,18 @@ class Scaler {
     return videoDimensions;
   }
 
-  /**
-   * The act of calculating aspect ratio is separated due to resue elsewhere in the extension.
-   * We are doing that to avoid surprise recursions.
-   * @param {*} videoDimensions
-   * @param {*} ar
-   * @param {*} streamAr
-   * @param {*} playerAr
-   */
-  calculateCropCore(videoDimensions: VideoDimensions, ar: number, streamAr: number, playerAr: number, variant?: ArVariant) {
-    if (variant === ArVariant.Zoom) {
-      playerAr = ar;
-    }
 
-    if (streamAr < playerAr) {
+  /**
+   * Calculates crop factors, such that the video fits within the player element.
+   * This mode preserves black bars, if removing black bars would cause video to be cropped.
+   * @param videoDimensions
+   * @param ar
+   * @param streamAr
+   * @param playerAr
+   * @param variant
+   */
+  private calculateFitContain(videoDimensions: VideoDimensions, ar: number, streamAr: number, playerAr: number) {
+    if (streamAr < playerAr) {  // video file is narrower than the player — default scenario on ultrawide
       if (streamAr < ar){
         // in this situation we have to crop letterbox on top/bottom of the player
         // we cut it, but never more than the player
@@ -236,27 +234,85 @@ class Scaler {
         videoDimensions.yFactor = 1;
         videoDimensions.cropStrategy = CropStrategy.NoCropPillarbox;
       }
-    } else {
-      if (streamAr < ar || playerAr < ar){
+    } else { // Video file is wider than the player
+      // video is narrower than the aspect ratio, which implies letterbox ??
+      if (streamAr < ar){
         // in this situation, we need to add extra letterbox on top of our letterbox
         // this means we simply don't crop anything _at all_
         videoDimensions.xFactor = 1;
         videoDimensions.yFactor = 1;
         videoDimensions.cropStrategy = CropStrategy.NoCropLetterbox;
       } else {
-        // meant for handling pillarbox crop. not quite implemented.
+        videoDimensions.xFactor = streamAr / Math.max(ar, playerAr);
+        videoDimensions.yFactor = videoDimensions.xFactor;
+        videoDimensions.cropStrategy = CropStrategy.CropPillarbox;
+      }
+    }
+  }
+
+  /**
+   * Calculates crop factors, such that the video covers the player element completely.
+   * This mode ensures no black bars are visible, even if it means cropping parts of the video.
+   * @param videoDimensions
+   * @param ar
+   * @param streamAr
+   * @param playerAr
+   * @param variant
+   */
+  private calculateFitCover(videoDimensions: VideoDimensions, ar: number, streamAr: number, playerAr: number) {
+    if (streamAr < playerAr) { // Video file is narrower than the player — NATIVE PILLARBOX
+      if (streamAr < ar){
+        // in this situation we have to crop letterbox on top/bottom of the player
+        // we cut it, but never more than the player
+        videoDimensions.xFactor = Math.max(ar, playerAr) / streamAr;
+        videoDimensions.yFactor = videoDimensions.xFactor;
+        videoDimensions.cropStrategy = CropStrategy.CropLetterbox;
+      } else {
+        videoDimensions.xFactor = Math.max(streamAr, playerAr) / ar;
+        videoDimensions.yFactor = videoDimensions.xFactor;
+        videoDimensions.cropStrategy = CropStrategy.CropPillarbox;
+      }
+    } else { // Video file is wider than the player — NATIVE LETTERBOX
+      if (streamAr < ar){   // Video is narrower than AR — STREAM LETTERBOX
+        // in this situation, we need to add extra letterbox on top of our letterbox
+        // this means we simply don't crop anything _at all_
+        videoDimensions.xFactor = Math.max(ar, playerAr) / streamAr;
+        videoDimensions.yFactor = videoDimensions.xFactor;
+        videoDimensions.cropStrategy = CropStrategy.CropLetterbox;
+      } else {  // Video is wider than AR — STREAM PILLARBOX
         videoDimensions.xFactor = streamAr / Math.min(ar, playerAr);
         videoDimensions.yFactor = videoDimensions.xFactor;
         videoDimensions.cropStrategy = CropStrategy.CropPillarbox;
-        // videoDimensions.xFactor = Math.max(ar.ratio, playerAr) * fileAr;
-        // videoDimensions.yFactor = videoDimensions.xFactor;
       }
+    }
+  }
+
+  /**
+   * The act of calculating aspect ratio is separated due to reuse elsewhere in the extension.
+   * We are doing that to avoid surprise recursions.
+   * @param {*} videoDimensions
+   * @param {*} ar
+   * @param {*} streamAr
+   * @param {*} playerAr
+   */
+  calculateCropCore(videoDimensions: VideoDimensions, ar: number, streamAr: number, playerAr: number, variant?: ArVariant) {
+    console.log('calculating crop core with ar:', ar, ', streamAr:', streamAr, ', playerAr:', playerAr, ', variant:', variant);
+
+    /**
+     * We could "optimize" this by not repeating code between two functions, but trying to keep in mind what numbers mean
+     * and how they relate to each-other is causing too many headaches. Present-day LLMs can't figure out what's going on,
+     * either (yes, I did try using them for debugging why crop wasn't cropping in pillarbox or zoom mode)
+     */
+    if (variant === ArVariant.Zoom) {
+      this.calculateFitCover(videoDimensions, ar, streamAr, playerAr);
+    } else {
+      this.calculateFitContain(videoDimensions, ar, streamAr, playerAr);
     }
 
     // correct the scale factor
     if (videoDimensions.arCorrectionFactor) {
-      videoDimensions.xFactor *= videoDimensions.arCorrectionFactor;
-      videoDimensions.yFactor *= videoDimensions.arCorrectionFactor;
+      videoDimensions.xFactor! *= videoDimensions.arCorrectionFactor;
+      videoDimensions.yFactor! *= videoDimensions.arCorrectionFactor;
     }
 
     // Add crop limits — needed for vertical alignment in order to
