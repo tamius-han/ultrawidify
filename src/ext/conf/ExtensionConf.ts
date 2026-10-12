@@ -8,6 +8,7 @@ import { PlayerDetectionMode } from '@src/common/enums/PlayerDetectionMode.enum'
 import { SiteSupportLevel } from '@src/common/enums/SiteSupportLevel.enum';
 import StretchType from '@src/common/enums/StretchType.enum';
 import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
+import { ArVariant } from '@src/common/interfaces/ArInterface';
 import { MenuPosition } from '@src/common/interfaces/ClientUiMenu.interface';
 import SettingsInterface from '@src/common/interfaces/SettingsInterface';
 import Debug from '@src/ext/conf/Debug';
@@ -140,18 +141,6 @@ const ExtensionConf: SettingsInterface = {
       randomCols: 0,      // we add this many randomly selected columns to the static columns
       staticRows: 9,      // forms grid with staticSampleCols. Determined in the same way. For black frame checks
     },
-    edgeDetection: {
-
-      gradientThreshold: 0.5,           // if more than this percentage (0-1) is detected as gradient, we mark edge as gradient
-      gradientTestMinDelta: 8,        // if difference between test row and before row is MORE than this -> not gradient
-      gradientTestMinDeltaAfter: 2,   // if difference between test row and after row is LESS than this -> not gradient
-      gradientTestMaxDeltaAfter: 12,   // if difference between test row and after row is MORE than this -> not gradient
-
-      minValidImage: 0.7,                 // if more than this % (0-1) of row is image, we confirm image regardless of other criteria except gradient
-      maxEdgeSegments: 8,                // if edge has more than this many segments, we consider it unreliable
-      minEdgeSegmentSize: 2,
-      averageEdgeThreshold: 16,           // average(ish) edge must be this many px
-    }
   },
 
   ui: {
@@ -304,6 +293,14 @@ const ExtensionConf: SettingsInterface = {
       }
     }, {
       action: 'set-ar',
+      label: '1.85:1',
+      comment: 'Crop for 1.85:1 aspect ratio (1:1.85)',
+      arguments: {
+        type: AspectRatioType.Fixed,
+        ratio: 1.85
+      },
+    }, {
+      action: 'set-ar',
       label: '32:9',
       comment: 'Crop for 32:9 aspect ratio',
       arguments: {
@@ -422,7 +419,8 @@ const ExtensionConf: SettingsInterface = {
       label: 'Automatic',
       comment: 'Automatically detect aspect ratio',
       arguments: {
-        type: AspectRatioType.Automatic
+        type: AspectRatioType.Automatic,
+        variant: ArVariant.Zoom
       },
       shortcut: {
         key: 'a',
@@ -456,7 +454,8 @@ const ExtensionConf: SettingsInterface = {
       label: 'Cycle',
       comment: 'Cycle through crop options',
       arguments: {
-        type: AspectRatioType.Cycle
+        type: AspectRatioType.Cycle,
+        variant: ArVariant.Zoom
       },
       shortcut: {
         key: 'c',
@@ -474,7 +473,8 @@ const ExtensionConf: SettingsInterface = {
       comment: 'Crop for 21:9 aspect ratio (1:2.39)',
       arguments: {
         type: AspectRatioType.Fixed,
-        ratio: 2.39
+        ratio: 2.39,
+        variant: ArVariant.Zoom
       },
       shortcut: {
         key: 'd',
@@ -492,7 +492,8 @@ const ExtensionConf: SettingsInterface = {
       comment: 'Crop for 18:9 aspect ratio (1:2)',
       arguments: {
         type: AspectRatioType.Fixed,
-        ratio: 1.78
+        ratio: 1.78,
+        variant: ArVariant.Zoom
       },
       shortcut: {
         key: 's',
@@ -506,11 +507,21 @@ const ExtensionConf: SettingsInterface = {
       }
     }, {
       action: 'set-ar-zoom',
+      label: '1.85:1',
+      comment: 'Crop for 1.85:1 aspect ratio (1:1.85)',
+      arguments: {
+        type: AspectRatioType.Fixed,
+        ratio: 1.85,
+        variant: ArVariant.Zoom
+      },
+    },{
+      action: 'set-ar-zoom',
       label: '32:9',
       comment: 'Crop for 32:9 aspect ratio',
       arguments: {
         type: AspectRatioType.Fixed,
-        ratio: 3.56
+        ratio: 3.56,
+        variant: ArVariant.Zoom
       },
     }],
     pan: [{

@@ -9,6 +9,7 @@ import { InputHandlingMode } from '@src/common/enums/InputHandlingMode.enum';
 import LegacyExtensionMode from '@src/common/enums/LegacyExtensionMode.enum';
 import { PlayerDetectionMode } from '@src/common/enums/PlayerDetectionMode.enum';
 import { SiteSupportLevel } from '@src/common/enums/SiteSupportLevel.enum';
+import { ArVariant } from '@src/common/interfaces/ArInterface';
 import SettingsInterface from '@src/common/interfaces/SettingsInterface';
 import { _cp } from '@src/common/utils/_cp';
 import { AardPollingOptions } from '@src/ext/module/aard/enums/aard-polling-options.enum';
@@ -533,7 +534,7 @@ const ExtensionConfPatch = Object.freeze([
 
     }
   }, {
-    forVersion: '6.3.9992',
+    forVersion: '6.3.9993',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
       userOptions.mouseOptions = {
         shiftPan: true,
@@ -546,6 +547,27 @@ const ExtensionConfPatch = Object.freeze([
 
       // aard was barely configurable in 6.x
       userOptions.aard = defaultOptions.aard;
+
+      userOptions.commands?.crop?.push({
+        action: 'set-ar-zoom',
+        label: '1.85:1',
+        comment: 'Crop for 1.85:1 aspect ratio (1:1.85)',
+        arguments: {
+          type: AspectRatioType.Fixed,
+          ratio: 1.85,
+          variant: ArVariant.Crop
+        },
+      });
+      userOptions.commands?.zoom?.push({
+        action: 'set-ar-zoom',
+        label: '1.85:1',
+        comment: 'Crop for 1.85:1 aspect ratio (1:1.85)',
+        arguments: {
+          type: AspectRatioType.Fixed,
+          ratio: 1.85,
+          variant: ArVariant.Zoom
+        },
+      });
     }
   }
 
