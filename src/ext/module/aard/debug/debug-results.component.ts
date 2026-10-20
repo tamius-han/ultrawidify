@@ -1,5 +1,5 @@
 import { AardTestResult_SubtitleRegion, AardTestResultFlags, AardTestResults } from '@src/ext/module/aard/interfaces/aard-test-results.interface';
-import { AardSubtitleScanOptions } from '@src/common/interfaces/SettingsInterface';
+import { AardSettings, AardSubtitleScanOptions } from '@src/common/interfaces/SettingsInterface';
 import template from './debug-results.component.html?raw';
 
 export class AardDebugResults {
@@ -46,6 +46,11 @@ export class AardDebugResults {
       arDisplay: {
         appliedAR: this.element.querySelector('#uw-aard-debug_ar_applied-ar') as HTMLElement,
         detectedAR: this.element.querySelector('#uw-aard-debug_ar_detected-ar') as HTMLElement,
+      },
+      arStability: {
+        ratioHistory: this.element.querySelector('#uw-aard-ar-stability-ratio-history') as HTMLElement,
+        ratioHistoryLength: this.element.querySelector('#uw-aard-ar-stability-ratio-history-length') as HTMLElement,
+        ratioHistoryHistoryLengthSetting: this.element.querySelector('#uw-aard-ar-stability-ratio-history-history-length-setting') as HTMLElement,
       }
     };
   }
@@ -186,6 +191,14 @@ export class AardDebugResults {
     }
 
     this.arChartX.set(canvas, (x + 1) % width);
+  }
+
+  buildRatioStabilityTable(results: AardTestResults, settings: AardSettings) {
+    for (let i = 0; i < results.stability.ratios.length; i++) {
+      this.elements.arStability.ratioHistoryHistoryLengthSetting.innerHTML = settings.stability.arSampleCount;
+      this.elements.arStability.ratioHistoryLength.innerHTML = results.stability.ratios.length;
+      this.elements.arStability.ratioHistory.innerHTML = results.stability.ratios.map(r => r.toFixed(3)).join(' &middot; ');
+    }
   }
 
   buildSSRStabilityTable(

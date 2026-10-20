@@ -53,25 +53,29 @@
   </div>
 </div>
 <div style="display: flex; flex-direction: column; width: 100%; box-sizing: border-box;">
-    <div class="uw-aard-debug-chart-row">
-      <div class="uw-aard-debug-chart-label" style="display: flex; flex-direction: column; height: 4rem; justify-content: center; align-items: center;">
-        <div>Applied AR</div>
-        <div id="uw-aard-debug_ar_applied-ar" style="font-size: 2.5rem;">×</div>
-      </div>
-      <div id="uw-aard-debug_ar-chart_applied" class="uw-aard-debug-chart" style="height: 4rem;">
-        <canvas></canvas>
-      </div>
+  <div class="uw-aard-debug-chart-row">
+    <div class="uw-aard-debug-chart-label" style="display: flex; flex-direction: column; height: 4rem; justify-content: center; align-items: center;">
+      <div>Detected AR</div>
+      <div id="uw-aard-debug_ar_detected-ar" style="font-size: 2.5rem;">×</div>
     </div>
-    <div class="uw-aard-debug-chart-row">
-      <div class="uw-aard-debug-chart-label" style="display: flex; flex-direction: column; height: 4rem; justify-content: center; align-items: center;">
-        <div>Detected AR</div>
-        <div id="uw-aard-debug_ar_detected-ar" style="font-size: 2.5rem;">×</div>
-      </div>
-      <div id="uw-aard-debug_ar-chart_detected" class="uw-aard-debug-chart" style="height: 4rem;">
-        <canvas></canvas>
-      </div>
+    <div id="uw-aard-debug_ar-chart_detected" class="uw-aard-debug-chart" style="height: 4rem;">
+      <canvas></canvas>
     </div>
+  </div>
+  <div class="uw-aard-debug-chart-row">
+    <div class="uw-aard-debug-chart-label" style="display: flex; flex-direction: column; height: 4rem; justify-content: center; align-items: center;">
+      <div>Applied AR</div>
+      <div id="uw-aard-debug_ar_applied-ar" style="font-size: 2.5rem;">×</div>
+    </div>
+    <div id="uw-aard-debug_ar-chart_applied" class="uw-aard-debug-chart" style="height: 4rem;">
+      <canvas></canvas>
+    </div>
+  </div>
 </div>
+<div id="uw-aard-ar-stability">
+  <b>Ratio history</b> — last <span id="uw-aard-ar-stability-ratio-history-length"></span> scans: <span id="uw-aard-ar-stability-ratio-history"></span><small><br/>scans to keep according to settings: <span id="uw-aard-ar-stability-ratio-history-history-length-setting"></span></small>
+</div>
+
 <pre id="uw-aard-results" style="padding: 1rem; margin: 0;"></pre>
 <div id="uw-aard-subtitle-verification" style="display: flex; flex-direction: row; gap: 2rem; width: 100%">
   <div style="flex: 1 1 auto;">

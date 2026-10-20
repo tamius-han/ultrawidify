@@ -574,6 +574,9 @@ export class AardDebugUi {
       this.debugResults.updateChart();
       this.debugResults.updateAr(testResults, timers?.pauseUntil > Date.now());
     }
+
+    this.debugResults.buildRatioStabilityTable(testResults, ((this.aard as any).settings as Settings).active.aard);
+
     this.debugResults.buildSSRStabilityTable(
       testResults.subtitleScan.regions,
 
