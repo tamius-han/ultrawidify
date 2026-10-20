@@ -169,8 +169,8 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
             buffer: new Array<number>(stabilityBufferSize).fill(0),
           },
           certainty: {
-            scoreBuffer: new Array<number>(settings.canvasDimensions.sampleCanvas.height).fill(-1),
-            compactedScoreBuffer: new Array<number>(settings.canvasDimensions.sampleCanvas.height).fill(0),
+            scoreBuffer: new Array<number>(+settings.canvasDimensions.sampleCanvas.height).fill(-1),
+            compactedScoreBuffer: new Array<number>(+settings.canvasDimensions.sampleCanvas.height).fill(0),
             lastCheckedRow: -1,
           },
         },
@@ -198,8 +198,8 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
             buffer: new Array<number>(stabilityBufferSize).fill(0),
           },
           certainty: {
-            scoreBuffer: new Array<number>(settings.canvasDimensions.sampleCanvas.height).fill(-1),
-            compactedScoreBuffer: new Array<number>(settings.canvasDimensions.sampleCanvas.height).fill(0),
+            scoreBuffer: new Array<number>(+settings.canvasDimensions.sampleCanvas.height).fill(-1),
+            compactedScoreBuffer: new Array<number>(+settings.canvasDimensions.sampleCanvas.height).fill(0),
             lastCheckedRow: -1,
           },
         }
@@ -229,8 +229,8 @@ export function initAardTestResults(settings: AardSettings): AardTestResults {
     stability: {
       deltaIndex: 0,
       ratioIndex: 0,
-      deltas: new Array<number>(settings.stability.deltaSampleCount).fill(0),
-      ratios: new Array<number>(settings.stability.arSampleCount).fill(0),
+      deltas: new Array<number>(+settings.stability.deltaSampleCount).fill(0),
+      ratios: new Array<number>(+settings.stability.arSampleCount).fill(0),
       timeDuration: undefined,
     },
 
