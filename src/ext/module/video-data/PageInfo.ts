@@ -298,7 +298,7 @@ class PageInfo {
 
     // is there any video data objects that had their HTML elements removed but not yet
     // destroyed? We clean that up here.
-    const orphans = this.videos.filter(x => !document.body.contains(x.element));
+    const orphans = this.videos.filter(x => !x.element.isConnected);
 
     for (const orphan of orphans) {
       orphan.videoData.destroy();
@@ -336,9 +336,10 @@ class PageInfo {
 
       // add new videos
       this.hasVideos = false;
+      const trackedElements = new Set(this.videos.map(x => x.element));
       for (const videoElement of vids) {
         // do not re-add videos that we already track:
-        if (this.videos.find(x => x.element.isEqualNode(videoElement))) {
+        if (trackedElements.has(videoElement)) {
           continue;
         }
 
@@ -370,6 +371,7 @@ class PageInfo {
         try {
           const newVideo = new VideoData(videoElement, this.settings, this.siteSettings, this);
           this.videos.push({videoData: newVideo, element: videoElement});
+          trackedElements.add(videoElement);
         } catch (e) {
           this.logger.error('rescan', "rescan error: failed to initialize videoData. Skipping this video.",e);
         }

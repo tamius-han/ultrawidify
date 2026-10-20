@@ -113,6 +113,7 @@ class PlayerData {
   private mouseHandler: MouseHandler;
 
   elementStack: ElementStack = [] as ElementStack;
+  private lastStackSizes?: {videoWidth: number, videoHeight: number, playerWidth: number, playerHeight: number};
   //#endregion
 
   //#region event bus configuration
@@ -326,6 +327,7 @@ class PlayerData {
     this.eventBus.unsubscribeAll(this);
     this.siteSettings.unsubscribeToStorageChange('PlayerData', this.siteSettingsStorageListener);
     document.removeEventListener('fullscreenchange', this.dimensionChangeListener);
+    this.stopFallbackDimensionMonitor();
     this.stopChangeDetection();
     this.mouseHandler?.destroy();
     this.ui?.destroy();
@@ -443,7 +445,7 @@ class PlayerData {
 
     playerCheck:
     {
-      newPlayerCandidate = this.getPlayer();
+      newPlayerCandidate = this.isPlayerStackUnchanged() ? this.element : this.getPlayer();
       if (!newPlayerCandidate) {
         return;
       }
@@ -541,7 +543,34 @@ class PlayerData {
   }
 
   stopChangeDetection(){
-    this.observer.disconnect();
+    this.observer?.disconnect();
+  }
+
+  /**
+   * Cheap check (no stack rebuild) that lets periodic ticks skip player detection when
+   * the ancestor chain and the sizes of video and player are the same as last time.
+   */
+  private isPlayerStackUnchanged(): boolean {
+    const stack = this.elementStack;
+    const last = this.lastStackSizes;
+    if (!last || !this.element || stack.length < 2) {
+      return false;
+    }
+
+    let node: Element | null = this.videoElement.parentElement;
+    for (let i = 1; i < stack.length; i++, node = node?.parentElement) {
+      if (node !== stack[i].element) {
+        return false;
+      }
+    }
+    if (node) {
+      return false;
+    }
+
+    return this.videoElement.offsetWidth === last.videoWidth
+      && this.videoElement.offsetHeight === last.videoHeight
+      && this.element.offsetWidth === last.playerWidth
+      && this.element.offsetHeight === last.playerHeight;
   }
 
   private getElementStack(): ElementStack {
@@ -575,6 +604,12 @@ class PlayerData {
     }
 
     this.elementStack = elementStack;
+    this.lastStackSizes = {
+      videoWidth: this.videoElement.offsetWidth,
+      videoHeight: this.videoElement.offsetHeight,
+      playerWidth: this.element?.offsetWidth,
+      playerHeight: this.element?.offsetHeight,
+    };
 
     return this.elementStack;
   }
