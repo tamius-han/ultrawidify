@@ -84,15 +84,14 @@ class Resizer {
 
   _lastAr: Ar = {type: AspectRatioType.Initial};
   set lastAr(x: Ar) {
+    if (!x) {
+      x = {type: AspectRatioType.Initial};
+    }
     // emit updates for UI when setting lastAr, but only if AR really changed
     if (this._lastAr?.type !== x.type || this._lastAr?.ratio !== x.ratio) {
       this.eventBus.send('uw-config-broadcast', {type: 'ar', config: x});
     }
-    if (x) {
-      this._lastAr = x;
-    } else {
-      this._lastAr = {type: AspectRatioType.Initial};
-    }
+    this._lastAr = x;
   }
   get lastAr() {
     return this._lastAr;
