@@ -82,6 +82,7 @@ export class Aard {
   private video: HTMLVideoElement;
 
   private animationFrame?: number;
+  private mainRunning = false;
   private videoFrameCallback?: number;
 
   //#region internal state
@@ -498,6 +499,9 @@ export class Aard {
   }
 
   private runFrameCheck() {
+    if (this.mainRunning) {
+      return;
+    }
     resetAardTestResults(this.testResults);
     resetSamples(this.canvasSamples);
     resetSubtitleScanResults(this.testResults);
@@ -529,6 +533,10 @@ export class Aard {
    * Main loop for scanning aspect ratio changes
    */
   private async main(forceChartUpdate = false) {
+    if (this.mainRunning) {
+      return;
+    }
+    this.mainRunning = true;
     const arConf =  this.settings.active.aard;
 
     try {
@@ -870,6 +878,8 @@ export class Aard {
     } catch (e) {
       console.warn('[Ultrawidify] Aspect ratio autodetection crashed for some reason.\n\nsome reason:', e);
       this.videoData.resizer?.setAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr, variant: this.arVariant});
+    } finally {
+      this.mainRunning = false;
     }
   }
 
