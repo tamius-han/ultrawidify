@@ -496,6 +496,26 @@ export class Aard {
   }
   //#endregion
 
+
+  private updateStabilityData() {
+    if (this.testResults.letterboxOrientation === LetterboxOrientation.NotLetterbox) {
+      this.testResults.detectedAr = this.defaultAr!;
+    } else if (this.testResults.letterboxOrientation === LetterboxOrientation.Both) {
+      this.testResults.detectedAr = 0;
+    } else {
+      this.testResults.detectedAr = this.getAr();
+    }
+
+    const lastAr = this.testResults.stability.ratios[this.testResults.stability.ratioIndex];
+    this.testResults.stability.ratioIndex = (this.testResults.stability.ratioIndex + 1) % this.testResults.stability.ratios.length;
+    this.testResults.stability.ratios[this.testResults.stability.ratioIndex] = this.testResults.detectedAr;
+
+    const delta = Math.abs(this.testResults.detectedAr - lastAr);
+    this.testResults.stability.deltas[this.testResults.stability.deltaIndex] = delta;
+    this.testResults.stability.deltaIndex = (this.testResults.stability.deltaIndex + 1) % this.testResults.stability.deltas.length;
+
+  }
+
   /**
    * Main loop for scanning aspect ratio changes
    */
@@ -591,6 +611,8 @@ export class Aard {
           resetGuardLine(this.testResults);
 
           this.testResults.flags.noLetterbox = true;
+
+
           break scanFrame;
         }
 
@@ -634,8 +656,11 @@ export class Aard {
       this.canvasStore.debug?.drawBuffer(imageData);
 
       // detected is saved regardless of whether it is applied or not, as it is there mostly
-      // for debug purposes
-      this.testResults.detectedAr = this.getAr();
+      // for debug purposes. We also update stability buffers.
+      const lastAr = this.testResults.stability.ratios[this.testResults.stability.ratioIndex];
+      this.updateStabilityData(); // <—— detected AR is set here
+      const finalAr = this.testResults.detectedAr; // <—— and here we copy it into a convenient variable
+
 
       processUpdate:
       {
@@ -650,6 +675,12 @@ export class Aard {
 
           this.testResults.flags.noLetterbox = true;
           clearTimeout(this.testResults.stability.timeDuration);
+
+          // we also add the current aspect ratio to the stability ratios buffer to reduce chances of single-frame corrections that
+          // are caused by stale data in the stability buffer
+          this.testResults.stability.ratioIndex = (this.testResults.stability.ratioIndex + 1) % this.testResults.stability.ratios.length;
+          this.testResults.stability.ratios[this.testResults.stability.ratioIndex] = this.defaultAr!;
+
           break processUpdate;
         }
 
@@ -657,6 +688,10 @@ export class Aard {
         if (this.testResults.letterboxOrientation === LetterboxOrientation.Both) {
           this.testResults.flags.doubleLetterbox = true;
           clearTimeout(this.testResults.stability.timeDuration);
+
+          // contribute to the uncertainty of subsequent scans by setting invalid aspect ratio
+          this.testResults.stability.ratioIndex = (this.testResults.stability.ratioIndex + 1) % this.testResults.stability.ratios.length;
+          this.testResults.stability.ratios[this.testResults.stability.ratioIndex] = 0;
           break processUpdate;
         }
 
@@ -682,6 +717,12 @@ export class Aard {
           }
 
           clearTimeout(this.testResults.stability.timeDuration);
+
+          // we also add the current aspect ratio to the stability ratios buffer to reduce chances of single-frame corrections that
+          // are caused by stale data in the stability buffer
+          this.testResults.stability.ratioIndex = (this.testResults.stability.ratioIndex + 1) % this.testResults.stability.ratios.length;
+          this.testResults.stability.ratios[this.testResults.stability.ratioIndex] = this.defaultAr!;
+
           break processUpdate;
         }
 
@@ -692,6 +733,11 @@ export class Aard {
         ) {
 
           this.testResults.flags.cropMaintaining = true;
+
+          // we also add the current aspect ratio to the stability ratios buffer to reduce chances of single-frame corrections that
+          // are caused by stale data in the stability buffer
+          this.testResults.stability.ratioIndex = (this.testResults.stability.ratioIndex + 1) % this.testResults.stability.ratios.length;
+          this.testResults.stability.ratios[this.testResults.stability.ratioIndex] = this.defaultAr!;
           break processUpdate;
         }
 
@@ -702,14 +748,9 @@ export class Aard {
         this.testResults.guardLine.back = this.testResults.aspectRatioCheck.backCandidate;
 
         // TODO: set flag if subtitles are far enough from edge to avoid getting cropped
-        const finalAr = this.testResults.detectedAr;
         if (finalAr > 0) {
 
           if (arConf.stability.confirmationStrategy !== ArConfirmationStrategy.NoConfirming) {
-            const lastAr = this.testResults.stability.ratios[this.testResults.stability.ratioIndex];
-            this.testResults.stability.ratioIndex = (this.testResults.stability.ratioIndex + 1) % this.testResults.stability.ratios.length;
-            this.testResults.stability.ratios[this.testResults.stability.ratioIndex] = finalAr;
-
             const ratioTolerance = finalAr * arConf.stability.arTolerance;
 
             // time duration is a special case that doesn't work with stable delta.
@@ -741,19 +782,8 @@ export class Aard {
               break processUpdate;
             }
 
-            // on first run, lastAr doesn't exist, so we can't do anything
-            if (!lastAr) {
-              break processUpdate;
-            }
-
-            // calculate and save delta
-            const delta = Math.abs(finalAr - lastAr);
-            this.testResults.stability.deltas[this.testResults.stability.deltaIndex] = delta;
-            this.testResults.stability.deltaIndex = (this.testResults.stability.deltaIndex + 1) % this.testResults.stability.deltas.length;
-
             let stable = true;
             if (arConf.stability.confirmationStrategy === ArConfirmationStrategy.ConsecutiveScans) {
-
               for (let i = 1; i < this.testResults.stability.ratios.length; i++) {
                 if (
                   !equalish(
@@ -766,18 +796,21 @@ export class Aard {
                   if (!arConf.stability.applyOnStableDelta) {
                     this.testResults.flags.cropMaintaining = true;
                     this.testResults.flags.arUnstable = true;
+
+                    this.testResults.flags.arStable = false;
                     break processUpdate;
                   }
                 }
               }
 
               this.testResults.flags.arStable = stable;
+              this.testResults.flags.arUnstable = !stable;
             }
             if (
               arConf.stability.confirmationStrategy === ArConfirmationStrategy.StableDelta
               || (!stable && arConf.stability.applyOnStableDelta)
             ) {
-              const deltaTolerance = delta * arConf.stability.deltaTolerance;
+              const deltaTolerance = this.testResults.stability.deltas[this.testResults.stability.deltaIndex] * arConf.stability.deltaTolerance;
               for (let i = 1; i < this.testResults.stability.deltas.length; i++) {
                 if (
                   !equalish(
@@ -787,15 +820,19 @@ export class Aard {
                   )
                 ) {
                   this.testResults.flags.cropMaintaining = true;
+                  this.testResults.flags.arUnstable = true;
+                  this.testResults.flags.arDeltaStable = false;
                   break processUpdate;
                 }
               }
 
               this.testResults.flags.arDeltaStable = true;
+              this.testResults.flags.arUnstable = false;
             }
           }
 
           this.testResults.flags.arStable = true;
+          this.testResults.flags.arUnstable = false;
           this.updateAspectRatio(finalAr);
           // this.testResults.activeLetterbox.width = this.testResults.letterboxSize;
           // this.testResults.activeLetterbox.offset = this.testResults.letterboxOffset;
