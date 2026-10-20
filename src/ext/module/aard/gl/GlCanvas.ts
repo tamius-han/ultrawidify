@@ -107,6 +107,9 @@ export class GlCanvas {
    * @param video video to extract a frame from
    */
   drawVideoFrame(video: HTMLVideoElement | HTMLCanvasElement): void {
+    if (this.gl.isContextLost()) {
+      throw new Error('WebGL context lost');
+    }
     this.updateTexture(video);
     this.drawScene();
   }

@@ -284,6 +284,15 @@ export class Aard {
       return;
     }
     this.clearAutoDisabled();
+    if (!this.videoData) {
+      this.logger.warn('videoData is undefined.');
+      return;
+    }
+    if (!this.videoData.resizer) {
+      this.logger.warn('videoData.resizer is undefined. This is a problem.', this.videoData);
+      console.error('Cannot proceed without videoData.resizer.', this.videoData);
+      return;
+    }
     if (this.videoData.resizer.lastAr.type === AspectRatioType.AutomaticUpdate) {
       // ensure first autodetection will run in any case
       this.videoData.resizer.lastAr = {
@@ -525,7 +534,7 @@ export class Aard {
     try {
       this.timer.next();
 
-      let imageData: Uint8Array;
+      let imageData: Uint8Array | undefined;
       this.timer.current.start = performance.now();
 
       // We abuse a do-while loop to eat our cake (get early returns)
@@ -533,7 +542,7 @@ export class Aard {
       // at the end of this function)
       scanFrame:
       {
-        imageData = await new Promise<Uint8Array>(
+        imageData = await new Promise<Uint8Array | undefined>(
           resolve => {
             try {
               this.canvasStore.main.drawVideoFrame(this.video);
@@ -571,10 +580,16 @@ export class Aard {
                   this.stop();
                 }
               }
+              resolve(undefined);
             }
           }
         );
         this.timer.current.getImage = performance.now() - this.timer.current.start;
+
+        // exit early if error
+        if (!imageData) {
+          return;
+        }
 
         // STEP 1:
         // Test if corners are black. If they're not, we can immediately quit the loop.
@@ -854,7 +869,7 @@ export class Aard {
       }
     } catch (e) {
       console.warn('[Ultrawidify] Aspect ratio autodetection crashed for some reason.\n\nsome reason:', e);
-      this.videoData.resizer.setAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr, variant: this.arVariant});
+      this.videoData.resizer?.setAr({type: AspectRatioType.AutomaticUpdate, ratio: this.defaultAr, variant: this.arVariant});
     }
   }
 
@@ -2077,6 +2092,9 @@ export class Aard {
     // We need to detect updates even if subtitles are detected — we just don't trigger
     // the actual aspect ratio change if everything is paused.
     if (this.timers.pauseUntil > Date.now() && !options?.forceReset) {
+      return false;
+    }
+    if (!this.videoData.resizer) {
       return false;
     }
 
