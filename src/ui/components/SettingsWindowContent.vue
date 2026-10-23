@@ -379,6 +379,7 @@ const DEFAULT_TABS = {
   updated: 'updated',
   installed: 'installed',
   popup: 'video-settings',
+  ui: 'window.site-extension-settings',
 }
 
 export default defineComponent({

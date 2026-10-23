@@ -226,7 +226,40 @@ export class UwuiWindow {
     if (typeof content === 'string') {
       container.innerHTML = content;
     } else {
+      container.innerHTML = '';
       container.appendChild(content);
+
+      if (content instanceof HTMLIFrameElement) {
+        console.warn('iframe loading — adding loader element')
+        const loader = document.createElement('div');
+        loader.className = 'uw-iframe-loader';
+        loader.innerHTML = '<div class="uw-iframe-spinner"></div><span>Loading ...</span>';
+        container.appendChild(loader);
+
+        const style = document.createElement('style');
+        style.textContent = `
+          .uw-content { position: relative; }
+          .uw-iframe-loader {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+            color: #ccc; pointer-events: none;
+          }
+          .uw-iframe-spinner {
+            width: 32px; height: 32px; border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.2); border-top-color: #fa6;
+            animation: uw-iframe-spin 0.9s linear infinite;
+          }
+          @keyframes uw-iframe-spin { to { transform: rotate(360deg); } }
+        `;
+        container.appendChild(style);
+
+        content.style.visibility = 'hidden';
+        content.addEventListener('load', () => {
+          content.style.visibility = 'visible';
+          loader.remove();
+          style.remove();
+        }, { once: true });
+      }
     }
   }
   //#endregion
