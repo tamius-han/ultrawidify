@@ -37,7 +37,7 @@
               </div>
             </div>
             <div class="hint">
-              This setting can be overriden per site. 'Default crop' option can also override this setting.<br/>
+              This setting can be overridden per site. This settings overrides 'default crop' setting.<br/>
               Autodetection should run without major performance impact on most modern-ish devices. That being said,
               if you use potato-tier hardware (<= 4C4T CPU, <= GTX 1070 equivalent), you might want
               to turn this off.<br/>
@@ -134,6 +134,21 @@
 
           <div>
             <div class="field">
+              <div class="label">Enable in-player UI:</div>
+              <div class="select">
+                <select v-model="settings.active.sites['@global'].enableUI">
+                  <option :value="ExtensionMode.All">Always</option>
+                  <option :value="ExtensionMode.Theater">While in full screen or theater mode</option>
+                  <option :value="ExtensionMode.FullScreen">While in full screen</option>
+                  <option :value="ExtensionMode.Disabled">Never</option>
+                </select>
+              </div>
+            </div>
+            <div class="hint">
+              This is the default option and can be overridden per site.
+            </div>
+
+            <div class="field" :class="{ 'disabled': settings.active.sites['@global'].enableUI === ExtensionMode.Disabled }">
               <div class="label">Show UI when:</div>
               <div class="select">
                 <select v-model="settings.active.ui.inPlayer.activation">
@@ -144,7 +159,7 @@
                 </select>
               </div>
             </div>
-            <div v-show="settings.active.ui.inPlayer.activation === 'distance'" class="field">
+            <div v-show="settings.active.ui.inPlayer.activation === 'distance'" class="field" :class="{ 'disabled': settings.active.sites['@global'].enableUI === ExtensionMode.Disabled }">
               <div class="label">
                 Show menu when mouse is closer than:
               </div>
@@ -170,7 +185,7 @@
                 </select>
               </div>
             </div>
-            <div class="field">
+            <div class="field" :class="{ 'disabled': settings.active.sites['@global'].enableUI === ExtensionMode.Disabled }">
               <div class="label">Also show UI when holding ctrl & moving mouse:</div>
               <div class="select">
                 <select v-model="settings.active.ui.inPlayer.activateWithCtrl">
@@ -304,7 +319,10 @@ export default {
       && this.settings.active.sites['www.youtube.com'].enableAard !== ExtensionMode.Default
     ) {
       this.settings.active.sites['@global'].enableAard = this.settings.active.sites['www.youtube.com'].enableAard;
-      this.saveSettings();
+    }
+
+    if (!this.settings.active.ui.inPlayer.activateWithCtrl) {
+      this.settings.active.ui.inPlayer.activateWithCtrl = false;
     }
   },
   mounted() {

@@ -228,6 +228,7 @@
 </template>
 
 <script lang="ts">
+import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
 import { MenuPosition } from '@src/common/interfaces/ClientUiMenu.interface';
 import BrowserDetect from '@src/ext/conf/BrowserDetect';
 import { defineComponent } from 'vue';
@@ -290,6 +291,32 @@ export default defineComponent({
       }
     },
     async saveSettings(forceRefresh) {
+      // some settings should probably cross-pollinate:
+      //    * if settings are disabled here, this should probably be reflected in the 'site.enableUI' settings as well
+      //    * if UI was enabled here, we should probably enable it for the '@global' site as well (and also set other sites to default)
+      if (this.settings.active.ui.inPlayer.activation === 'none' && !this.settings.active.ui.inPlayer.activateWithCtrl) {
+        this.settings.active.sites['@global'].enableUI = ExtensionMode.Disabled;
+
+        for (const site in this.settings.active.sites) {
+          if (site.startsWith('@')) {
+            continue;
+          }
+          this.settings.active.sites[site].enableUI = ExtensionMode.Default;
+        }
+      } else if (   // we set UI activation to any level of "there's a condition that causes UI trigger to be shown"
+        this.settings.active.sites['@global'].enableUI === ExtensionMode.Disabled
+        && ( this.settings.active.ui.inPlayer.activation !== 'none' || this.settings.active.ui.inPlayer.activateWithCtrl )
+      ) {
+        this.settings.active.sites['@global'].enableUI = ExtensionMode.Theater;
+
+        for (const site in this.settings.active.sites) {
+          if (site.startsWith('@')) {
+            continue;
+          }
+          this.settings.active.sites[site].enableUI = ExtensionMode.Default;
+        }
+      }
+
       await this.settings.saveWithoutReload();
 
       this.eventBus.send('reload-menu');

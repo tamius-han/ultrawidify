@@ -381,8 +381,11 @@ export default {
       if (uwui === 'none') {
         this.settings.active.ui.inPlayer.activation = 'none';
         this.settings.active.ui.inPlayer.activateWithCtrl = false;
+        this.settings.active.sites['@global'].enableUI = ExtensionMode.Disabled;
       } else {
         this.settings.active.ui.inPlayer.activateWithCtrl = true;
+        this.settings.active.sites['@global'].enableUI = ExtensionMode.Theater;
+
         if (uwui === 'ctrl-mouse') {
           this.settings.active.ui.inPlayer.activation = 'none';
         } else {

@@ -131,4 +131,12 @@ html, body {
     @apply text-cyan-700;
   }
 }
+
+
+.disabled {
+  @apply pointer-events-none opacity-50;
+
+  filter: saturate(0%);
+}
+
 /* END site support levels */
