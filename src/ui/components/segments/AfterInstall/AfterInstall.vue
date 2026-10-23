@@ -17,32 +17,31 @@
           <h2 class="!text-[1.25rem] text-primary-300">Where should Ultrawidify run?</h2>
         </div>
         <div class="flex flex-row gap-4 card-row">
-
-          <div :class="{'active': enableOnSites === 'none'}" @click="setEnabledSites('none')">
-            <h3>Only where you allow</h3>
+          <div :class="{'active': enableOnSites === 'all'}" @click="setEnabledSites('all')">
+            <h3>All websites</h3>
             <div>
-              For legacy/technical reason, Ultrawidify still gets 'access all websites' extension.
+              ... ish. Some websites are disabled by default.
             </div>
-         </div>
+          </div>
 
-         <div :class="{'active': enableOnSites === 'official'}" @click="setEnabledSites('official')">
-           <h3>On officially supported sites</h3>
-           <div>
-             Ultrawidify will run only on sites that are officially supported, and the websites you manually enable.
-           </div>
-         </div>
-
-         <div :class="{'active': enableOnSites === 'community'}" @click="setEnabledSites('community')">
+          <div :class="{'active': enableOnSites === 'community'}" @click="setEnabledSites('community')">
             <h3>Where people say it's working</h3>
             <div>
               You can report working websites on <a href="https://github.com/tamius-han/ultrawidify" target="_blank" class="hover:underline" @click="$event.stopPropagation()">github</a>.
             </div>
          </div>
 
-          <div :class="{'active': enableOnSites === 'all'}" @click="setEnabledSites('all')">
-            <h3>All websites</h3>
+          <div :class="{'active': enableOnSites === 'official'}" @click="setEnabledSites('official')">
+            <h3>On officially supported sites</h3>
             <div>
-              ... ish. Some websites are disabled by default.
+              Ultrawidify will run only on sites that are officially supported, and the websites you manually enable.
+            </div>
+          </div>
+
+          <div :class="{'active': enableOnSites === 'none'}" @click="setEnabledSites('none')">
+            <h3>Only where you allow</h3>
+            <div>
+              For legacy/technical reason, Ultrawidify still gets 'access all websites' extension.
             </div>
           </div>
         </div>
