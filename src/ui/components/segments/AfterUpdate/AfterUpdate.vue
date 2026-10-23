@@ -44,7 +44,7 @@
               This field should default to your current setting.
             </div>
 
-            <div class="field">
+            <div class="field" :class="{disabled: settings.active.sites['@global'].enableAard === ExtensionMode.Disabled}">
               <div class="label">Subtitle handling</div>
               <div class="select">
                 <select v-model="settings.active.aard.subtitles.subtitleCropMode">
@@ -54,7 +54,11 @@
                 </select>
               </div>
             </div>
-            <div v-if="settings.active.aard.subtitles.subtitleCropMode === AardSubtitleCropMode.ResetAR" class="field">
+            <div
+              v-if="settings.active.aard.subtitles.subtitleCropMode === AardSubtitleCropMode.ResetAR"
+              class="field"
+              :class="{disabled: settings.active.sites['@global'].enableAard === ExtensionMode.Disabled}"
+            >
               <div class="label">After subtitles disappear, wait this long before resuming detection:</div>
               <div class="range-input">
                 <input
@@ -74,7 +78,7 @@
                 <div class="unit">s</div>
               </div>
             </div>
-            <div class="field">
+            <div class="field" :class="{disabled: settings.active.sites['@global'].enableAard === ExtensionMode.Disabled}">
               <div class="label">
                 Subtitle detection speed/certainty
               </div>
@@ -87,7 +91,7 @@
                 </div>
               </div>
             </div>
-            <div class="field">
+            <div class="field" :class="{disabled: settings.active.sites['@global'].enableAard === ExtensionMode.Disabled}">
               <div class="label">Limit autodetection to:</div>
               <div class="select">
                 <select :value="currentAardFrequency" @click="updateAutodetectionLimit($event)">
@@ -102,12 +106,12 @@
                 </select>
               </div>
             </div>
-            <div class="hint">
+            <div class="hint" :class="{disabled: settings.active.sites['@global'].enableAard === ExtensionMode.Disabled}">
               In addition to this option, performance-based limits apply. Autodetection will never run more than once per video frame, and if your hardware/browser cannot
               process autodetection scans fast enough, autodetection will skip scanning video frames until the last aspect ratio scan finishes.
             </div>
 
-            <div class="field">
+            <div class="field" :class="{disabled: settings.active.sites['@global'].enableAard === ExtensionMode.Disabled}">
               <div class="label">Aspect ratio detection speed/certainty</div>
               <div class="flex flex-col gap-0">
                 <div class="flex flex-row gap-4">
