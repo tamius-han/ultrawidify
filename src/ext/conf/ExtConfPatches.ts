@@ -574,21 +574,21 @@ const ExtensionConfPatch = Object.freeze([
       // if youtube is enabled, we make that the default
       // this is done because setting extension globally off would also set aard to globally off, even tho that maybe shouldn't have happened
       if (
-        this.settings.active.sites['@global'].enableAard === ExtensionMode.Disabled
-        && this.settings.active.sites['www.youtube.com'].enableAard !== ExtensionMode.Default
+        userOptions.sites['@global'].enableAard === ExtensionMode.Disabled
+        && userOptions.sites['www.youtube.com'].enableAard !== ExtensionMode.Default
       ) {
-        this.settings.active.sites['@global'].enableAard = this.settings.active.sites['www.youtube.com'].enableAard;
+        userOptions.sites['@global'].enableAard = userOptions.sites['www.youtube.com'].enableAard;
       }
 
       if (
-        this.settings.active.sites['@global'].enableUI === ExtensionMode.Disabled
-        && this.settings.active.sites['www.youtube.com'].enableUI !== ExtensionMode.Default
+        userOptions.sites['@global'].enableUI === ExtensionMode.Disabled
+        && userOptions.sites['www.youtube.com'].enableUI !== ExtensionMode.Default
       ) {
-        this.settings.active.sites['@global'].enableUI = this.settings.active.sites['www.youtube.com'].enableUI;
+        userOptions.sites['@global'].enableUI = userOptions.sites['www.youtube.com'].enableUI;
       }
 
-      if (!this.settings.active.ui.inPlayer.activateWithCtrl) {
-        this.settings.active.ui.inPlayer.activateWithCtrl = false;
+      if (!userOptions.ui.inPlayer.activateWithCtrl) {
+        userOptions.ui.inPlayer.activateWithCtrl = false;
       }
     }
   }
