@@ -311,19 +311,6 @@ export default {
 
     this.placeholderSubtitleCrop = this.settings.active.aard.subtitles?.subtitleCropMode ?? AardSubtitleCropMode.ResetAR;
     this.settingsInitialized = true;
-
-    // if youtube is enabled, we make that the default
-    // this is done because setting extension globally off would also set aard to globally off, even tho that maybe shouldn't have happened
-    if (
-      this.settings.active.sites['@global'].enableAard === ExtensionMode.Disabled
-      && this.settings.active.sites['www.youtube.com'].enableAard !== ExtensionMode.Default
-    ) {
-      this.settings.active.sites['@global'].enableAard = this.settings.active.sites['www.youtube.com'].enableAard;
-    }
-
-    if (!this.settings.active.ui.inPlayer.activateWithCtrl) {
-      this.settings.active.ui.inPlayer.activateWithCtrl = false;
-    }
   },
   mounted() {
     this.optionCache.mousePan = `${this.settings.active.mouseOptions.ctrlPan ? 'ctrl' : ''}${this.settings.active.mouseOptions.shiftPan ? 'shift' : ''}`;

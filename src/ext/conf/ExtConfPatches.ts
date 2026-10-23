@@ -489,49 +489,46 @@ const ExtensionConfPatch = Object.freeze([
       }
 
       if (userOptions.commands?.zoom) {
-        const firstFixed = userOptions.commands?.zoom.findIndex(x => x.arguments.type === AspectRatioType.Fixed);
+        // this _shouldn't_ happen unless user does something very wrong
+        // however, some users are very good at doing things that are very wrong so let's guard against it
+        if (! userOptions.commands.zoom.find(x => x.arguments.type === AspectRatioType.Cover)) {
+          const firstFixed = userOptions.commands?.zoom.findIndex(x => x.arguments.type === AspectRatioType.Fixed);
+          const fitWidthCommand = (userOptions.commands?.crop ?? userOptions.commands?.zoom)?.find(x => x.arguments.type === AspectRatioType.FitWidth);
 
-        if (firstFixed === -1) {
-          userOptions.commands.zoom.push({
+          const coverCmd = {
             action: 'set-ar-zoom',
             label: 'Cover',
             comment: 'Covers the entire screen, cropping as much as needed',
             arguments: {
               type: AspectRatioType.Cover
             },
-            shortcut: {
+            shortcut: fitWidthCommand?.shortcut ?? {
               key: 'w',
               code: 'KeyW',
               ctrlKey: false,
               metaKey: false,
               altKey: false,
-              shiftKey: true,
+              shiftKey: false,
               onKeyUp: true,
               onKeyDown: false,
             }
-          });
-        } else {
-          userOptions.commands.zoom.splice(firstFixed, 0, {
-            action: 'set-ar-zoom',
-            label: 'Cover',
-            comment: 'Covers the entire screen, cropping as much as needed',
-            arguments: {
-              type: AspectRatioType.Cover
-            },
-            shortcut: {
-              key: 'w',
-              code: 'KeyW',
-              ctrlKey: false,
-              metaKey: false,
-              altKey: false,
-              shiftKey: true,
-              onKeyUp: true,
-              onKeyDown: false,
-            }
-          });
+          }
+
+          if (firstFixed === -1) {
+            userOptions.commands.zoom.push(coverCmd);
+          } else {
+            userOptions.commands.zoom.splice(firstFixed, 0, coverCmd);
+          }
         }
       }
 
+      // remove fit width and fit height, because they're obsolete
+      if (userOptions.commands?.crop) {
+        userOptions.commands.crop = userOptions.commands.crop.filter(x => x.arguments.type !== AspectRatioType.FitWidth && x.arguments.type !== AspectRatioType.FitHeight);
+      }
+      if (userOptions.commands?.zoom) {
+        userOptions.commands.zoom = userOptions.commands.zoom.filter(x => x.arguments.type !== AspectRatioType.FitWidth && x.arguments.type !== AspectRatioType.FitHeight);
+      }
     }
   }, {
     forVersion: '6.3.9993',
@@ -568,6 +565,31 @@ const ExtensionConfPatch = Object.freeze([
           variant: ArVariant.Zoom
         },
       });
+
+      userOptions.ui.inPlayer = {
+        ...defaultOptions.ui.inPlayer,
+        ...userOptions.ui.inPlayer,
+      };
+
+      // if youtube is enabled, we make that the default
+      // this is done because setting extension globally off would also set aard to globally off, even tho that maybe shouldn't have happened
+      if (
+        this.settings.active.sites['@global'].enableAard === ExtensionMode.Disabled
+        && this.settings.active.sites['www.youtube.com'].enableAard !== ExtensionMode.Default
+      ) {
+        this.settings.active.sites['@global'].enableAard = this.settings.active.sites['www.youtube.com'].enableAard;
+      }
+
+      if (
+        this.settings.active.sites['@global'].enableUI === ExtensionMode.Disabled
+        && this.settings.active.sites['www.youtube.com'].enableUI !== ExtensionMode.Default
+      ) {
+        this.settings.active.sites['@global'].enableUI = this.settings.active.sites['www.youtube.com'].enableUI;
+      }
+
+      if (!this.settings.active.ui.inPlayer.activateWithCtrl) {
+        this.settings.active.ui.inPlayer.activateWithCtrl = false;
+      }
     }
   }
 

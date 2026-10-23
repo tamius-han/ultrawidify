@@ -222,7 +222,7 @@ export class ClientMenu {
     this.root.className = 'uw-menu-root uw-hidden';
     this.root.setAttribute(
       'style',
-      `padding: ${this.config.ui.activatorPadding.y ?? 16}${this.config.ui.activatorPaddingUnit.y ?? 'px'} ${this.config.ui.activatorPadding.x ?? 16}${this.config.ui.activatorPaddingUnit.x ?? 'px'}`
+      `padding: ${this.config.ui.activatorPadding?.y ?? 16}${this.config.ui.activatorPaddingUnit?.y ?? 'px'} ${this.config.ui.activatorPadding?.x ?? 16}${this.config.ui.activatorPaddingUnit?.x ?? 'px'}`
     );
 
 
