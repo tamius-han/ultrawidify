@@ -328,7 +328,7 @@ export default {
   mounted() {
     this.optionCache.mousePan = `${this.settings.active.mouseOptions.ctrlPan ? 'ctrl' : ''}${this.settings.active.mouseOptions.shiftPan ? 'shift' : ''}`;
 
-    switch (this.settings.active.aard.playing) {
+    switch (+this.settings.active.aard.timers.playing) {
       case 0:
         this.currentAardFrequency = 0;
         break;
@@ -364,7 +364,7 @@ export default {
       if (isNaN(v)) {
         return;
       }
-      this.settings.active.aard.playing = v;
+      this.settings.active.aard.timers.playing = v;
     },
     async redirectToFullSettings() {
       await this.saveSettings();

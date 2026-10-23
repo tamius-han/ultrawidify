@@ -361,7 +361,7 @@ export default defineComponent({
     // this.graphRefreshInterval = setInterval(() => this.eventBus.sendToTunnel('get-aard-timing'), 500);
     this.resetSettingsEditor();
 
-    switch (this.settings.active.aard.playing) {
+    switch (this.settings.active.aard.timers.playing) {
       case 0:
         this.currentAardFrequency = 0;
         break;
@@ -433,7 +433,7 @@ export default defineComponent({
       if (isNaN(v) || v < 0) {
         return;
       }
-      this.settings.active.aard.playing = v;
+      this.settings.active.aard.timers.playing = v;
       this.settings.saveWithoutReload();
     },
   },
