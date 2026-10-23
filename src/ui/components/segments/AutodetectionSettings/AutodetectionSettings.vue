@@ -201,7 +201,7 @@
             type="range"
             :value="Math.log(aardSettings.timers.playing)"
             @change="setArCheckFrequency($event.target.value)"
-            min="2.3"
+            min="1"
             max="9.3"
             step="0.01"
           />
@@ -222,7 +222,7 @@
             type="range"
             :value="Math.log(aardSettings.timers.playingReduced)"
             @change="setArCheckFrequency($event.target.value, 'playingReduced')"
-            min="2.3"
+            min="1"
             max="9.3"
             step="0.01"
           />
@@ -362,6 +362,9 @@ export default defineComponent({
     this.resetSettingsEditor();
 
     switch (this.settings.active.aard.playing) {
+      case 0:
+        this.currentAardFrequency = 0;
+        break;
       case 10:
         this.currentAardFrequency = 10;
         break;

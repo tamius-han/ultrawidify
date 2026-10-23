@@ -90,7 +90,8 @@
             <div class="field">
               <div class="label">Limit autodetection to:</div>
               <div class="select">
-                <select value="10" @click="updateAutodetectionLimit($event)">
+                <select :value="currentAardFrequency" @click="updateAutodetectionLimit($event)">
+                  <option :value="-1">Other value</option>
                   <option :value="0">Unlimited (max. once per video frame)</option>
                   <option :value="10">60/s</option>
                   <option :value="25">30/s</option>
@@ -282,6 +283,7 @@ export default {
       placeholderSubtitleCrop: AardSubtitleCropMode.ResetAR,
       settingsInitialized: false,
       settingsSaved: false,
+      currentAardFrequency: -1,
 
       optionCache: {
         mousePan: '',
@@ -294,9 +296,46 @@ export default {
 
     this.placeholderSubtitleCrop = this.settings.active.aard.subtitles?.subtitleCropMode ?? AardSubtitleCropMode.ResetAR;
     this.settingsInitialized = true;
+
+    // if youtube is enabled, we make that the default
+    // this is done because setting extension globally off would also set aard to globally off, even tho that maybe shouldn't have happened
+    if (
+      this.settings.active.sites['@global'].enableAard === ExtensionMode.Disabled
+      && this.settings.active.sites['www.youtube.com'].enableAard !== ExtensionMode.Default
+    ) {
+      this.settings.active.sites['@global'].enableAard = this.settings.active.sites['www.youtube.com'].enableAard;
+      this.saveSettings();
+    }
   },
   mounted() {
     this.optionCache.mousePan = `${this.settings.active.mouseOptions.ctrlPan ? 'ctrl' : ''}${this.settings.active.mouseOptions.shiftPan ? 'shift' : ''}`;
+
+    switch (this.settings.active.aard.playing) {
+      case 0:
+        this.currentAardFrequency = 0;
+        break;
+      case 10:
+        this.currentAardFrequency = 10;
+        break;
+      case 25:
+        this.currentAardFrequency = 25;
+        break;
+      case 50:
+        this.currentAardFrequency = 50;
+        break;
+      case 500:
+        this.currentAardFrequency = 500;
+        break;
+      case 1000:
+        this.currentAardFrequency = 1000;
+        break;
+      case 5000:
+        this.currentAardFrequency = 5000;
+        break;
+      default:
+        this.currentAardFrequency = -1;
+        break;
+    }
   },
   components: {
   },
