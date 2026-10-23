@@ -36,7 +36,13 @@
                 </select>
               </div>
             </div>
-            <div class="hint">This setting can be overriden per site. 'Default crop' option can also override this setting.</div>
+            <div class="hint">
+              This setting can be overriden per site. 'Default crop' option can also override this setting.<br/>
+              Autodetection should run without major performance impact on most modern-ish devices. That being said,
+              if you use potato-tier hardware (<= 4C4T CPU, <= GTX 1070 equivalent), you might want
+              to turn this off.<br/>
+              This field should default to your current setting.
+            </div>
 
             <div class="field">
               <div class="label">Subtitle handling</div>
@@ -85,6 +91,7 @@
               <div class="label">Limit autodetection to:</div>
               <div class="select">
                 <select value="10" @click="updateAutodetectionLimit($event)">
+                  <option :value="0">Unlimited (max. once per video frame)</option>
                   <option :value="10">60/s</option>
                   <option :value="25">30/s</option>
                   <option :value="50">15/s</option>
@@ -94,6 +101,11 @@
                 </select>
               </div>
             </div>
+            <div class="hint">
+              In addition to this option, performance-based limits apply. Autodetection will never run more than once per video frame, and if your hardware/browser cannot
+              process autodetection scans fast enough, autodetection will skip scanning video frames until the last aspect ratio scan finishes.
+            </div>
+
             <div class="field">
               <div class="label">Aspect ratio detection speed/certainty</div>
               <div class="flex flex-col gap-0">
@@ -229,6 +241,19 @@
 
         <p>You can always change your settings later.</p>
 
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+
+        <br/>
+        <h3>Dev blogs associated with this release</h3>
+        <ul>
+          <li><a href="https://stuff.tamius.net/sacred-texts/2026/10/08/so-what-are-subtitles-actually/" target="_blank">So what are subtitles actually?</a> — writeup about subtitle detection</li>
+          <li><a href="https://stuff.tamius.net/sacred-texts/2026/10/23/ultrawidify-improving-automatic-aspect-ratio-detection/" target="_blank">Ultrawidify: Improving automatic aspect ratio detection</a> — a bit about improvements to aspect ratio auto-detection in general.</li>
+        </ul>
+        <p>Quality of writing is not guaranteed.</p>
+        <p>There's also a changelog to your left.</p>
       </div>
 
 

@@ -49,6 +49,14 @@
         <div>
           <h2 class="mt-4 !text-[1.25rem] text-primary-300">Try to automatically detect aspect ratio?</h2>
           <p>Note that automatic aspect ratio detection doesn't work on sites that use DRM or on sites that do CORS shenanigans.</p>
+          <p>
+            Autodetection should not have any major performance impact on modern hardware. However, if you are using potato-tier
+            hardware (i.e. anything noticeably worse than i7 4720HQ + GTX 965M), you might want to consider disabling this feature.<small><br/>
+            This feature defaults to 'on', because it is assumed that — given that ultrawide monitors are still kinda sorta a boguie thing — most users
+            of this addons will have hardware that was considered mid-range at least some time in the last decade.<br/>
+            </small>
+          </p>
+
         </div>
         <div class="flex flex-row gap-4 card-row">
           <div :class="{'active': aardMode === 'crop'}" @click="setAardMode('crop')">

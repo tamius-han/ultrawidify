@@ -29,7 +29,12 @@
             </option>
           </select>
         </div>
-        <div class="hint">This setting can be overriden per site. 'Default crop' option can also override this setting.</div>
+        <div class="hint">
+          This setting can be overriden per site. 'Default crop' option can also override this setting.<br/>
+          Autodetection should run without major performance impact on most modern-ish devices. That being said,
+          if you use potato-tier hardware (<= 4C4T CPU, <= GTX 1070 equivalent), you might want
+          to turn this off.
+        </div>
       </div>
 
       <div class="field">

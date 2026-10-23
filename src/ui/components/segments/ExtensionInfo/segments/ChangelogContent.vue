@@ -32,8 +32,7 @@
       If the new algorithm causes more problems than the old one, please consider reporting said issues
       <a href="https://github.com/tamius-han/ultrawidify/issues/291" target="_blank">in this thread</a> on Github.
       When you're reporting a problem, please provide a link to the video, the timestamp where the issue occurs,
-      and whether the false crop triggers consistently.<br/>
-      For the time being, you can also head over to settings and revert to the legacy autodetection algorithm if needed.
+      and whether the false crop triggers consistently.
     </li>
   </ul>
 
