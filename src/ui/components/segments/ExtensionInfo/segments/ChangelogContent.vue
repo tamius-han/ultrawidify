@@ -14,6 +14,19 @@
     </li>
   </ul>
 
+  <b class="text-white">Default aspect ratios</b>
+  <ul>
+    <li>
+      "Fit Width" and "Fit Height" options have been combined into a single "Cover" option,
+      mostly because 'Fit Height' caused confusion for users unfamiliar with technical concepts behind issues this addon attempts to solve.<br>
+      "Cover" option inherits the shortcut of the former "Fit Width" option, as it does the same thing for most users.
+    </li>
+    <li>
+      Added 1.85:1 as one of default options.
+    </li>
+  </ul>
+  <p>Additional aspect ratios can be added in the settings (see 'Keyboard & Mouse ').</p>
+
   <b class="text-white">Autodetection:</b>
   <ul>
     <li>Autodetection can be set to stop after first aspect ratio detection, or after a period of no changes.</li>

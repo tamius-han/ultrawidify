@@ -5,6 +5,11 @@
 ### v7.0.0
 
 * De-spaghettified the part of the settings that controls whether extension runs on a given site or not.
+
+* **Aspect ratios**
+ * FitWidth and FitHeight options were combined into 'Cover' due to user confusion, epsecially re: FitHeight. Cover option inherits shortcut of 'Fit Width'.
+ * added 1.85 as available-out-of-the-box aspect ratio
+
 * **Autodetection**
   * Autodetection can be set to stop after first aspect ratio detection, or after a period of no changes.
   * Autodetection algorithm is now hardware-accelerated, tries to detect subtitles, and tries not to fail when watching PPT youtubers.
