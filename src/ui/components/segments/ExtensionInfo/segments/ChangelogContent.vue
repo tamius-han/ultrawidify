@@ -52,7 +52,7 @@
   <b class="text-white">New mouse control options</b>
   <ul>
     <li>Manual panning is back. Hold shift and move mouse over the video to pan. In settings, this feature may be swapped to 'CTRL', 'CTRL + SHIFT', or turned off.</li>
-    <li>It is now possible to zoom the video with SHIFT + scroll.</li>
+    <li>It is now possible to zoom the video with SHIFT + scroll (this feature is off by default)</li>
   </ul>
 
   <b class="text-white">UI</b>
