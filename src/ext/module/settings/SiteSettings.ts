@@ -209,20 +209,22 @@ export class SiteSettings {
       this.data.defaults = _cp(this.defaultSettings.defaults);
     } else {
       // 'undefined' default here means use default
-      this.data.defaults.crop = this.data.defaults.crop ?? _cp(this.defaultSettings.defaults.crop);
+      this.data.defaults.crop = this.data.defaults.crop ?? _cp(this.defaultSettings.defaults?.crop);
+
+      this.data.defaults.cropFit = this.data.defaults.cropFit ?? _cp(this.defaultSettings.defaults?.cropFit);
 
       // these can contain default options, but can also be undefined
       if ([undefined, StretchType.Default].includes(this.data.defaults?.stretch?.type)) {
-        this.data.defaults.stretch = _cp(this.defaultSettings.defaults.stretch ?? StretchType.NoStretch);
+        this.data.defaults.stretch = _cp(this.defaultSettings.defaults?.stretch ?? StretchType.NoStretch);
       }
       if (this.data.defaults?.alignment === undefined) {  // distinguish between undefined and 0!
-        this.data.defaults.alignment = _cp(this.defaultSettings.defaults.alignment ?? {x: VideoAlignmentType.Center, y: VideoAlignmentType.Center});
+        this.data.defaults.alignment = _cp(this.defaultSettings.defaults?.alignment ?? {x: VideoAlignmentType.Center, y: VideoAlignmentType.Center});
       } else {
         if (this.data.defaults?.alignment.x === VideoAlignmentType.Default) {
-          this.data.defaults.alignment.x = _cp(this.defaultSettings.defaults.alignment.x ?? VideoAlignmentType.Center);
+          this.data.defaults.alignment.x = _cp(this.defaultSettings.defaults?.alignment?.x ?? VideoAlignmentType.Center);
         }
         if (this.data.defaults.alignment.y === VideoAlignmentType.Default) {
-          this.data.defaults.alignment.y = _cp(this.defaultSettings.defaults.alignment.y ?? VideoAlignmentType.Center);
+          this.data.defaults.alignment.y = _cp(this.defaultSettings.defaults?.alignment?.y ?? VideoAlignmentType.Center);
         }
       }
     }

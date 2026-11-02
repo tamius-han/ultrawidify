@@ -161,6 +161,9 @@ const ExtensionConf: SettingsInterface = {
         offsetY: 0
       }
     },
+    popup: {
+      aspectRatioInterface: 'compact'
+    },
     dev: {
       aardDebugOverlay: {
         showOnStartup: false,
@@ -204,447 +207,7 @@ const ExtensionConf: SettingsInterface = {
       rescan: 1500
     }
   },
-  commands: {
-    crop: [{
-      action: 'set-ar',
-      label: 'Automatic',
-      comment: 'Automatically detect aspect ratio',
-      arguments: {
-        type: AspectRatioType.Automatic
-      },
-      shortcut: {
-        key: 'a',
-        code: 'KeyA',
-        ctrlKey: false,
-        metaKey: false,
-        altKey: false,
-        shiftKey: false,
-        onKeyUp: true,
-        onKeyDown: false,
-      }
-    }, {
-      action: 'set-ar',
-      label: 'Reset',
-      arguments: {
-        type: AspectRatioType.Reset
-      },
-      shortcut: {
-        key: 'r',
-        code: 'KeyR',
-        ctrlKey: false,
-        metaKey: false,
-        altKey: false,
-        shiftKey: false,
-        onKeyUp: true,
-        onKeyDown: false,
-      }
-    }, {
-      action: 'set-ar',
-      label: 'Cycle',
-      comment: 'Cycle through crop options',
-      arguments: {
-        type: AspectRatioType.Cycle
-      },
-      shortcut: {
-        key: 'c',
-        code: 'KeyC',
-        ctrlKey: false,
-        metaKey: false,
-        altKey: false,
-        shiftKey: false,
-        onKeyUp: true,
-        onKeyDown: false,
-      }
-    }, {
-      action: 'set-ar',
-      label: '21:9',
-      comment: 'Crop for 21:9 aspect ratio (1:2.39)',
-      arguments: {
-        type: AspectRatioType.Fixed,
-        ratio: 2.39
-      },
-      shortcut: {
-        key: 'd',
-        code: 'KeyD',
-        ctrlKey: false,
-        metaKey: false,
-        altKey: false,
-        shiftKey: false,
-        onKeyUp: false,
-        onKeyDown: true,
-      }
-    }, {
-      action: 'set-ar',
-      label: '18:9',
-      comment: 'Crop for 18:9 aspect ratio (1:2)',
-      arguments: {
-        type: AspectRatioType.Fixed,
-        ratio: 1.78
-      },
-      shortcut: {
-        key: 's',
-        code: 'KeyS',
-        ctrlKey: false,
-        metaKey: false,
-        altKey: false,
-        shiftKey: false,
-        onKeyUp: false,
-        onKeyDown: true,
-      }
-    }, {
-      action: 'set-ar',
-      label: '1.85:1',
-      comment: 'Crop for 1.85:1 aspect ratio (1:1.85)',
-      arguments: {
-        type: AspectRatioType.Fixed,
-        ratio: 1.85
-      },
-    }, {
-      action: 'set-ar',
-      label: '32:9',
-      comment: 'Crop for 32:9 aspect ratio',
-      arguments: {
-        type: AspectRatioType.Fixed,
-        ratio: 3.56
-      },
-    }],
-    stretch: [{
-      action: 'set-stretch',
-      label: 'Don\'t stretch',
-      arguments: {
-        type: StretchType.NoStretch
-      }
-    }, {
-      action: 'set-stretch',
-      label: 'Basic stretch',
-      comment: 'There\'s literally no legitimate reason to use this option',
-      arguments: {
-        type: StretchType.Basic
-      }
-    }, {
-      action: 'set-stretch',
-      label: 'Hybrid stretch',
-      comment: 'Applies crop first, then stretches to fill the remainder of the screen',
-      arguments: {
-        type: StretchType.Hybrid
-      }
-    }, {
-      action: 'set-stretch',
-      label: 'On thin borders',
-      comment: 'Applies crop first. If only narrow black borders exist, the video will be stretched to cover the remainder of the screen. However, if stretching would be substantial, the video will NOT be stretched.',
-      arguments: {
-        type: StretchType.Conditional,
-        limit: 0.1,
-      },
-    }, {
-      action: 'set-stretch',
-      label: 'Stretch to 16:9',
-      comment: 'Applies crop first, then stretches video to 16:9.',
-      arguments: {
-        type: StretchType.FixedSource,
-        ratio: 1.77,
-      }
-    }, {
-      action: 'set-stretch',
-      label: 'Stretch to 4:3',
-      comment: 'Applies crop first, then stretches video to 4:3',
-      arguments: {
-        type: StretchType.FixedSource,
-        ratio: 1.33
-      }
-    }, {
-      action: 'set-stretch',
-      label: 'Default',
-      comment: 'Uses the default stretch mode',
-      arguments: {
-        type: StretchType.Default
-      }
-    }],
-    zoom: [{
-      action: 'change-zoom',
-      label: 'Zoom +5%',
-      arguments: {
-        zoom: 0.05
-      },
-      shortcut: {
-        key: 'z',
-        code: 'KeyY',
-        ctrlKey: false,
-        metaKey: false,
-        altKey: false,
-        shiftKey: false,
-        onKeyUp: true,
-        onKeyDown: false,
-      },
-      internalOnly: true,
-      actionId: 'change-zoom-10in'
-    }, {
-      action: 'change-zoom',
-      label: 'Zoom -5%',
-      arguments: {
-        zoom: -0.05
-      },
-      shortcut: {
-        key: 'u',
-        code: 'KeyU',
-        ctrlKey: false,
-        metaKey: false,
-        altKey: false,
-        shiftKey: false,
-        onKeyUp: true,
-        onKeyDown: false,
-      },
-      internalOnly: true,
-      actionId: 'change-zoom-10out'
-    }, {
-      action: 'set-zoom',
-      label: 'Reset zoom',
-      shortcut: {
-        key: 'r',
-        code: 'KeyR',
-        ctrlKey: false,
-        metaKey: false,
-        altKey: false,
-        shiftKey: true,
-        onKeyUp: true,
-        onKeyDown: false,
-      },
-      arguments: {
-        zoom: 1,
-      },
-      internalOnly: true,
-      actionId: 'set-zoom-reset'
-    }, {
-      action: 'set-ar-zoom',
-      label: 'Automatic',
-      comment: 'Automatically detect aspect ratio',
-      arguments: {
-        type: AspectRatioType.Automatic,
-        variant: ArVariant.Zoom
-      },
-      shortcut: {
-        key: 'a',
-        code: 'KeyA',
-        ctrlKey: false,
-        metaKey: false,
-        altKey: false,
-        shiftKey: true,
-        onKeyUp: true,
-        onKeyDown: false,
-      }
-    }, {
-      action: 'set-ar-zoom',
-      label: 'Cover',
-      comment: 'Covers the entire screen, cropping as much as needed',
-      arguments: {
-        type: AspectRatioType.Cover
-      },
-      shortcut: {
-        key: 'w',
-        code: 'KeyW',
-        ctrlKey: false,
-        metaKey: false,
-        altKey: false,
-        shiftKey: false,
-        onKeyUp: true,
-        onKeyDown: false,
-      }
-    }, {
-      action: 'set-ar-zoom',
-      label: 'Cycle',
-      comment: 'Cycle through crop options',
-      arguments: {
-        type: AspectRatioType.Cycle,
-        variant: ArVariant.Zoom
-      },
-      shortcut: {
-        key: 'c',
-        code: 'KeyC',
-        ctrlKey: false,
-        metaKey: false,
-        altKey: false,
-        shiftKey: true,
-        onKeyUp: true,
-        onKeyDown: false,
-      }
-    }, {
-      action: 'set-ar-zoom',
-      label: '21:9',
-      comment: 'Crop for 21:9 aspect ratio (1:2.39)',
-      arguments: {
-        type: AspectRatioType.Fixed,
-        ratio: 2.39,
-        variant: ArVariant.Zoom
-      },
-      shortcut: {
-        key: 'd',
-        code: 'KeyD',
-        ctrlKey: false,
-        metaKey: false,
-        altKey: false,
-        shiftKey: true,
-        onKeyUp: false,
-        onKeyDown: true,
-      }
-    }, {
-      action: 'set-ar-zoom',
-      label: '18:9',
-      comment: 'Crop for 18:9 aspect ratio (1:2)',
-      arguments: {
-        type: AspectRatioType.Fixed,
-        ratio: 1.78,
-        variant: ArVariant.Zoom
-      },
-      shortcut: {
-        key: 's',
-        code: 'KeyS',
-        ctrlKey: false,
-        metaKey: false,
-        altKey: false,
-        shiftKey: true,
-        onKeyUp: false,
-        onKeyDown: true,
-      }
-    }, {
-      action: 'set-ar-zoom',
-      label: '1.85:1',
-      comment: 'Crop for 1.85:1 aspect ratio (1:1.85)',
-      arguments: {
-        type: AspectRatioType.Fixed,
-        ratio: 1.85,
-        variant: ArVariant.Zoom
-      },
-    },{
-      action: 'set-ar-zoom',
-      label: '32:9',
-      comment: 'Crop for 32:9 aspect ratio',
-      arguments: {
-        type: AspectRatioType.Fixed,
-        ratio: 3.56,
-        variant: ArVariant.Zoom
-      },
-    }],
-    pan: [{
-      action: 'set-alignment',
-      label: 'Set alignment: top left',
-      arguments: {
-        x: VideoAlignmentType.Left,
-        y: VideoAlignmentType.Top
-      },
-      internalOnly: true,
-      actionId: 'set-alignment-top-left'
-    }, {
-      action: 'set-alignment',
-      label: 'Set alignment: top center',
-      arguments: {
-        x: VideoAlignmentType.Center,
-        y: VideoAlignmentType.Top
-      },
-      internalOnly: true,
-      actionId: 'set-alignment-top-center',
-    }, {
-      action: 'set-alignment',
-      label: 'Set alignment: top right',
-      arguments: {
-        x: VideoAlignmentType.Right,
-        y: VideoAlignmentType.Top
-      },
-      internalOnly: true,
-      actionId: 'set-alignment-top-right'
-    }, {
-      action: 'set-alignment',
-      label: 'Set alignment: center left',
-      arguments: {
-        x: VideoAlignmentType.Left,
-        y: VideoAlignmentType.Center
-      },
-      internalOnly: true,
-      actionId: 'set-alignment-center-left'
-    }, {
-      action: 'set-alignment',
-      label: 'Set alignment: center',
-      arguments: {
-        x: VideoAlignmentType.Center,
-        y: VideoAlignmentType.Center
-      },
-      internalOnly: true,
-      actionId: 'set-alignment-center'
-    }, {
-      action: 'set-alignment',
-      label: 'Set alignment: center right',
-      arguments: {
-        x: VideoAlignmentType.Right,
-        y: VideoAlignmentType.Center
-      },
-      internalOnly: true,
-      actionId: 'set-alignment-center-right'
-    }, {
-      action: 'set-alignment',
-      label: 'Set alignment: bottom left',
-      arguments: {
-        x: VideoAlignmentType.Left,
-        y: VideoAlignmentType.Bottom
-      },
-      internalOnly: true,
-      actionId: 'set-alignment-bottom-left'
-    }, {
-      action: 'set-alignment',
-      label: 'Set alignment: bottom center',
-      arguments: {
-        x: VideoAlignmentType.Center,
-        y: VideoAlignmentType.Bottom
-      },
-      internalOnly: true,
-      actionId: 'set-alignment-bottom-center'
-    }, {
-      action: 'set-alignment',
-      label: 'Set alignment: bottom right',
-      arguments: {
-        x: VideoAlignmentType.Right,
-        y: VideoAlignmentType.Bottom
-      },
-      internalOnly: true,
-      actionId: 'set-alignment-bottom-right'
-    }, {
-      action: 'set-alignment',
-      label: 'Set alignment: default',
-      arguments: {
-        x: VideoAlignmentType.Default,
-        y: VideoAlignmentType.Default
-      }
-    }],
-    internal: [{
-      action: 'set-ar-persistence',
-      label: 'AR resets for every video',
-      arguments: {
-        arPersistence: CropModePersistence.Disabled
-      }
-    }, {
-      action: 'set-ar-persistence',
-      label: 'AR changes persist until changed or until next page reload',
-      arguments: {
-        arPersistence: CropModePersistence.UntilPageReload
-      }
-    }, {
-      action: 'set-ar-persistence',
-      label: 'AR changes persist until changed or until next browser restart',
-      arguments: {
-        arPersistence: CropModePersistence.CurrentSession
-      }
-    }, {
-      action: 'set-ar-persistence',
-      label: 'AR changes persist until changed',
-      arguments: {
-        arPersistence: CropModePersistence.Forever
-      }
-    }, {
-      action: 'set-ar-persistence',
-      label: 'Use default options',
-      arguments: {
-        arPersistence: CropModePersistence.Default
-      }
-    }]
-  },
+  commands: generateCommands(),
   mouseOptions: {
     shiftPan: true,
     ctrlPan: false,
@@ -713,6 +276,7 @@ const ExtensionConf: SettingsInterface = {
 
       defaults: {
         crop: {type: AspectRatioType.Automatic},
+        cropFit: ArVariant.Crop,
         stretch: {type: StretchType.NoStretch},
         alignment: {x: VideoAlignmentType.Center, y: VideoAlignmentType.Center},
       },
@@ -1010,6 +574,383 @@ const ExtensionConf: SettingsInterface = {
       defaultType: SiteSupportLevel.CommunitySupport,
     },
   }
+}
+
+export function generateCommands() {
+  const sourceCropCmd = [{
+    action: 'set-ar',
+    label: 'Automatic',
+    comment: 'Automatically detect aspect ratio',
+    arguments: {
+      type: AspectRatioType.Automatic
+    },
+    shortcut: {
+      key: 'a',
+      code: 'KeyA',
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false,
+      shiftKey: false,
+      onKeyUp: true,
+      onKeyDown: false,
+    }
+  }, {
+    action: 'set-ar',
+    label: 'Reset',
+    arguments: {
+      type: AspectRatioType.Reset
+    },
+    shortcut: {
+      key: 'r',
+      code: 'KeyR',
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false,
+      shiftKey: false,
+      onKeyUp: true,
+      onKeyDown: false,
+    }
+  }, {
+    action: 'set-ar',
+    label: 'Cycle',
+    comment: 'Cycle through crop options',
+    arguments: {
+      type: AspectRatioType.Cycle
+    },
+    shortcut: {
+      key: 'c',
+      code: 'KeyC',
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false,
+      shiftKey: false,
+      onKeyUp: true,
+      onKeyDown: false,
+    }
+  }, {
+    action: 'set-ar',
+    label: '21:9',
+    comment: 'Crop for 21:9 aspect ratio (1:2.39)',
+    arguments: {
+      type: AspectRatioType.Fixed,
+      ratio: 2.39
+    },
+    shortcut: {
+      key: 'd',
+      code: 'KeyD',
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false,
+      shiftKey: false,
+      onKeyUp: false,
+      onKeyDown: true,
+    }
+  }, {
+    action: 'set-ar',
+    label: '18:9',
+    comment: 'Crop for 18:9 aspect ratio (1:2)',
+    arguments: {
+      type: AspectRatioType.Fixed,
+      ratio: 1.78
+    },
+    shortcut: {
+      key: 's',
+      code: 'KeyS',
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false,
+      shiftKey: false,
+      onKeyUp: false,
+      onKeyDown: true,
+    }
+  }, {
+    action: 'set-ar',
+    label: '1.85:1',
+    comment: 'Crop for 1.85:1 aspect ratio (1:1.85)',
+    arguments: {
+      type: AspectRatioType.Fixed,
+      ratio: 1.85
+    },
+  }, {
+    action: 'set-ar',
+    label: '32:9',
+    comment: 'Crop for 32:9 aspect ratio',
+    arguments: {
+      type: AspectRatioType.Fixed,
+      ratio: 3.56
+    },
+  }, {
+    action: 'set-ar',
+    label: '4:3',
+    comment: '4:3',
+    arguments: {
+      type: AspectRatioType.Fixed,
+      ratio: 1.33
+    }
+  }, {
+    action: 'set-ar',
+    label: '16:9',
+    comment: '16:9',
+    arguments: {
+      type: AspectRatioType.Fixed,
+      ratio: 1.77
+    }
+  }, {
+    action: 'set-ar',
+    label: '1.9:1',
+    comment: '1.9:1',
+    arguments: {
+      type: AspectRatioType.Fixed,
+      ratio: 1.9
+    }
+  }];
+  const generatedCropCmd = [];
+
+  for (const cropOption of sourceCropCmd) {
+    const rawCmd = { ...cropOption };
+    delete rawCmd.shortcut;
+
+    generatedCropCmd.push(cropOption);
+
+    if (cropOption.arguments.type !== AspectRatioType.Reset) {
+      generatedCropCmd.push({...rawCmd, arguments: {...rawCmd.arguments, variant: ArVariant.Crop}});
+      generatedCropCmd.push({...rawCmd, arguments: {...rawCmd.arguments, variant: ArVariant.None}});
+      generatedCropCmd.push({...rawCmd, arguments: {...rawCmd.arguments, variant: ArVariant.Zoom}});
+    }
+  }
+
+  const commands = {
+    crop: generatedCropCmd,
+    stretch: [{
+      action: 'set-stretch',
+      label: 'Don\'t stretch',
+      arguments: {
+        type: StretchType.NoStretch
+      }
+    }, {
+      action: 'set-stretch',
+      label: 'Basic stretch',
+      comment: 'There\'s literally no legitimate reason to use this option',
+      arguments: {
+        type: StretchType.Basic
+      }
+    }, {
+      action: 'set-stretch',
+      label: 'Hybrid stretch',
+      comment: 'Applies crop first, then stretches to fill the remainder of the screen',
+      arguments: {
+        type: StretchType.Hybrid
+      }
+    }, {
+      action: 'set-stretch',
+      label: 'On thin borders',
+      comment: 'Applies crop first. If only narrow black borders exist, the video will be stretched to cover the remainder of the screen. However, if stretching would be substantial, the video will NOT be stretched.',
+      arguments: {
+        type: StretchType.Conditional,
+        limit: 0.1,
+      },
+    }, {
+      action: 'set-stretch',
+      label: 'Stretch to 16:9',
+      comment: 'Applies crop first, then stretches video to 16:9.',
+      arguments: {
+        type: StretchType.FixedSource,
+        ratio: 1.77,
+      }
+    }, {
+      action: 'set-stretch',
+      label: 'Stretch to 4:3',
+      comment: 'Applies crop first, then stretches video to 4:3',
+      arguments: {
+        type: StretchType.FixedSource,
+        ratio: 1.33
+      }
+    }, {
+      action: 'set-stretch',
+      label: 'Default',
+      comment: 'Uses the default stretch mode',
+      arguments: {
+        type: StretchType.Default
+      }
+    }],
+    zoom: [{
+      action: 'change-zoom',
+      label: 'Zoom +5%',
+      arguments: {
+        zoom: 0.05
+      },
+      shortcut: {
+        key: 'z',
+        code: 'KeyY',
+        ctrlKey: false,
+        metaKey: false,
+        altKey: false,
+        shiftKey: false,
+        onKeyUp: true,
+        onKeyDown: false,
+      },
+      internalOnly: true,
+      actionId: 'change-zoom-10in'
+    }, {
+      action: 'change-zoom',
+      label: 'Zoom -5%',
+      arguments: {
+        zoom: -0.05
+      },
+      shortcut: {
+        key: 'u',
+        code: 'KeyU',
+        ctrlKey: false,
+        metaKey: false,
+        altKey: false,
+        shiftKey: false,
+        onKeyUp: true,
+        onKeyDown: false,
+      },
+      internalOnly: true,
+      actionId: 'change-zoom-10out'
+    }, {
+      action: 'set-zoom',
+      label: 'Reset zoom',
+      shortcut: {
+        key: 'r',
+        code: 'KeyR',
+        ctrlKey: false,
+        metaKey: false,
+        altKey: false,
+        shiftKey: true,
+        onKeyUp: true,
+        onKeyDown: false,
+      },
+      arguments: {
+        zoom: 1,
+      },
+      internalOnly: true,
+      actionId: 'set-zoom-reset'
+    }],
+    pan: [{
+      action: 'set-alignment',
+      label: 'Set alignment: top left',
+      arguments: {
+        x: VideoAlignmentType.Left,
+        y: VideoAlignmentType.Top
+      },
+      internalOnly: true,
+      actionId: 'set-alignment-top-left'
+    }, {
+      action: 'set-alignment',
+      label: 'Set alignment: top center',
+      arguments: {
+        x: VideoAlignmentType.Center,
+        y: VideoAlignmentType.Top
+      },
+      internalOnly: true,
+      actionId: 'set-alignment-top-center',
+    }, {
+      action: 'set-alignment',
+      label: 'Set alignment: top right',
+      arguments: {
+        x: VideoAlignmentType.Right,
+        y: VideoAlignmentType.Top
+      },
+      internalOnly: true,
+      actionId: 'set-alignment-top-right'
+    }, {
+      action: 'set-alignment',
+      label: 'Set alignment: center left',
+      arguments: {
+        x: VideoAlignmentType.Left,
+        y: VideoAlignmentType.Center
+      },
+      internalOnly: true,
+      actionId: 'set-alignment-center-left'
+    }, {
+      action: 'set-alignment',
+      label: 'Set alignment: center',
+      arguments: {
+        x: VideoAlignmentType.Center,
+        y: VideoAlignmentType.Center
+      },
+      internalOnly: true,
+      actionId: 'set-alignment-center'
+    }, {
+      action: 'set-alignment',
+      label: 'Set alignment: center right',
+      arguments: {
+        x: VideoAlignmentType.Right,
+        y: VideoAlignmentType.Center
+      },
+      internalOnly: true,
+      actionId: 'set-alignment-center-right'
+    }, {
+      action: 'set-alignment',
+      label: 'Set alignment: bottom left',
+      arguments: {
+        x: VideoAlignmentType.Left,
+        y: VideoAlignmentType.Bottom
+      },
+      internalOnly: true,
+      actionId: 'set-alignment-bottom-left'
+    }, {
+      action: 'set-alignment',
+      label: 'Set alignment: bottom center',
+      arguments: {
+        x: VideoAlignmentType.Center,
+        y: VideoAlignmentType.Bottom
+      },
+      internalOnly: true,
+      actionId: 'set-alignment-bottom-center'
+    }, {
+      action: 'set-alignment',
+      label: 'Set alignment: bottom right',
+      arguments: {
+        x: VideoAlignmentType.Right,
+        y: VideoAlignmentType.Bottom
+      },
+      internalOnly: true,
+      actionId: 'set-alignment-bottom-right'
+    }, {
+      action: 'set-alignment',
+      label: 'Set alignment: default',
+      arguments: {
+        x: VideoAlignmentType.Default,
+        y: VideoAlignmentType.Default
+      }
+    }],
+    internal: [{
+      action: 'set-ar-persistence',
+      label: 'AR resets for every video',
+      arguments: {
+        arPersistence: CropModePersistence.Disabled
+      }
+    }, {
+      action: 'set-ar-persistence',
+      label: 'AR changes persist until changed or until next page reload',
+      arguments: {
+        arPersistence: CropModePersistence.UntilPageReload
+      }
+    }, {
+      action: 'set-ar-persistence',
+      label: 'AR changes persist until changed or until next browser restart',
+      arguments: {
+        arPersistence: CropModePersistence.CurrentSession
+      }
+    }, {
+      action: 'set-ar-persistence',
+      label: 'AR changes persist until changed',
+      arguments: {
+        arPersistence: CropModePersistence.Forever
+      }
+    }, {
+      action: 'set-ar-persistence',
+      label: 'Use default options',
+      arguments: {
+        arPersistence: CropModePersistence.Default
+      }
+    }]
+  };
+
+  return commands;
 }
 
 export default ExtensionConf;
