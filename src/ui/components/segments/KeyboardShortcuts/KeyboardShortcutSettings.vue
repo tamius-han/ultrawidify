@@ -275,7 +275,7 @@ export default defineComponent({
       this.settings.active.mouseOptions.shiftPan = this.optionCache.mousePan.includes('shift');
       this.settings.saveWithoutReload();
     },
-    addAction(segment: 'stretch' | 'crop' | 'zoom', newCommand) {
+    addAction(segment: 'stretch' | 'crop' | 'zoom', newCommand: {aspectRatio: string, label: string, shortcut?: any}) {
       const actionMap = {
         stretch: 'set-stretch',
         crop: 'set-ar',
@@ -287,12 +287,24 @@ export default defineComponent({
         zoom:   AspectRatioType.Fixed,
       };
 
+      if (!newCommand.aspectRatio) {
+        return;
+      }
+      const [a, b] = newCommand.aspectRatio.replaceAll(',', '.').split(':');
+      let ratioOut;
+
+      if (!b) {
+        ratioOut = parseFloat(a);
+      } else {
+        ratioOut = parseFloat(a) / parseFloat(b);
+      }
+
       const command = {
         action: actionMap[segment],
         label: newCommand.label,
         arguments: {
           type: typeMap[segment],
-          ratio: newCommand.ratio
+          ratio: ratioOut
         },
         shortcut: newCommand.shortcut,
       };
