@@ -218,6 +218,10 @@ export interface InPlayerUIOptions  {
   },
 };
 
+export interface PopupUIOptions {
+  aspectRatioInterface: 'compact' | 'legacy'
+}
+
 interface SettingsInterface {
   _installScreenShown?: boolean,
 
@@ -231,6 +235,7 @@ interface SettingsInterface {
 
   ui: {
     inPlayer: InPlayerUIOptions,
+    popup: PopupUIOptions,
     devMode?: boolean,
     dev: DevUiConfig,
   }

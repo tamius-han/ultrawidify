@@ -1,5 +1,36 @@
 <template>
   <div class="flex flex-col relative w-full">
+    <h2 class="text-[1.75em]">Popup UI options</h2>
+    <div v-if="settings" class="flex flex-col w-full">
+      <div class="flex flex-col gap-2">
+        <div class="flex flex-col field-group compact-form gap-2 mt-8">
+          <!-- <div class="field"> -->
+            <div class="label">Aspect ratio interface:</div>
+          <!-- </div> -->
+          <div class="flex flex-row gap-8">
+            <div
+              class="ari-item"
+              :class="{'active': settings.active.ui.popup?.aspectRatioInterface === 'compact'}"
+              @click="setPopupUIType('compact')"
+            >
+              —— IMAGE HERE——
+
+              Compact
+            </div>
+            <div
+              class="ari-item"
+              :class="{'active': !settings.active.ui.popup?.aspectRatioInterface || settings.active.ui.popup?.aspectRatioInterface === 'legacy'}"
+              @click="setPopupUIType('legacy')"
+            >
+              —— IMAGE HERE——
+
+              Legacy
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <h2 class="text-[1.75em]">Player UI options</h2>
 
     <!-- The rest of the tab is under 'edit ratios and shortcuts' row -->
@@ -229,8 +260,10 @@
 
 <script lang="ts">
 import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
+import { ArVariant } from '@src/common/interfaces/ArInterface';
 import { MenuPosition } from '@src/common/interfaces/ClientUiMenu.interface';
 import BrowserDetect from '@src/ext/conf/BrowserDetect';
+import { generateCommands } from '@src/ext/conf/ExtensionConf';
 import { defineComponent } from 'vue';
 
 export default defineComponent({
@@ -239,7 +272,7 @@ export default defineComponent({
   data() {
     return {
       MenuPosition,
-      ghettoComputed: { }
+      ghettoComputed: { } as any
     }
   },
   mixins: [
@@ -274,7 +307,7 @@ export default defineComponent({
       }
       return v;
     },
-    setPlayerRestrictions(key, value, isTextInput) {
+    setPlayerRestrictions(key: string, value: number | string, isTextInput: boolean) {
       if (isTextInput) {
         value = (+this.forcePositiveNumber(value) / 100);
       }
@@ -332,10 +365,117 @@ export default defineComponent({
       BrowserDetect.runtime.openOptionsPage();
     },
 
+
+    /**
+     * Copies shortcuts of set-ar / set-ar-zoom commands between legacy and compact command layouts.
+     * Commands are matched by arguments (type, ratio, offset) and variant.
+     * Legacy: set-ar = crop, set-ar-zoom = zoom. Compact: set-ar only; no variant = crop.
+     */
+    migrateArShortcuts(source: any, target: any, toCompact: boolean) {
+      if (!source || !target) {
+        return;
+      }
+
+      type Variant = 'crop' | 'zoom';
+      const describe = (cmd: any, compact: boolean): {variant: Variant, key: string} | undefined => {
+        if (!cmd?.arguments) {
+          return undefined;
+        }
+        const {variant, ...args} = cmd.arguments;
+        let v: Variant;
+        if (compact) {
+          if (cmd.action !== 'set-ar') {
+            return undefined;
+          }
+          if (variant === undefined || variant === ArVariant.Crop) {
+            v = 'crop';
+          } else if (variant === ArVariant.Zoom) {
+            v = 'zoom';
+          } else {
+            return undefined;   // ArVariant.None has no legacy equivalent
+          }
+        } else if (cmd.action === 'set-ar') {
+          v = 'crop';
+        } else if (cmd.action === 'set-ar-zoom') {
+          v = 'zoom';
+        } else {
+          return undefined;
+        }
+        return {variant: v, key: JSON.stringify([args.type, args.ratio ?? null, args.offset ?? null])};
+      };
+
+      const flatten = (cmds: any): any[] => Object.values(cmds).flatMap((x: any) => Array.isArray(x) ? x : []);
+      const targetCmds = flatten(target);
+      const used = new Set<any>();
+
+      for (const srcCmd of flatten(source)) {
+        const desc = describe(srcCmd, !toCompact);
+        if (!desc || !srcCmd.shortcut) {
+          continue;
+        }
+
+        // in compact layout, crop commands without variant carry the shortcuts
+        const match = targetCmds.find(c => {
+          const d = describe(c, toCompact);
+          return d && d.variant === desc.variant && d.key === desc.key
+            && !used.has(c)
+            && (!toCompact || desc.variant !== 'crop' || c.arguments.variant === undefined);
+        });
+
+        if (match) {
+          match.shortcut = {...srcCmd.shortcut};
+          used.add(match);
+          continue;
+        }
+
+        // no equivalent in target (e.g. user-defined ratio) — carry the command over
+        const {variant, ...args} = srcCmd.arguments;
+        const newCmd: any = {...srcCmd, shortcut: {...srcCmd.shortcut}};
+        if (toCompact) {
+          newCmd.action = 'set-ar';
+          newCmd.arguments = desc.variant === 'zoom' ? {...args, variant: ArVariant.Zoom} : args;
+          target.crop?.push(newCmd);
+        } else {
+          newCmd.action = desc.variant === 'zoom' ? 'set-ar-zoom' : 'set-ar';
+          newCmd.arguments = args;
+          target[desc.variant]?.push(newCmd);
+        }
+        used.add(newCmd);
+      }
+    },
+
+    setPopupUIType(type: 'legacy' | 'compact') {
+      if (!this.settings.active.ui.popup) {
+        this.settings.active.ui.popup = {};
+      }
+
+      const prevCmd = this.settings.active.commands;
+
+      if (type === 'compact') {
+        this.settings.active.commandsLegacy = this.settings.active.commands;
+        this.settings.active.commands = generateCommands();
+      } else {
+        this.settings.active.commands = this.settings.active.commandsLegacy;
+      }
+
+      this.migrateArShortcuts(prevCmd, this.settings.active.commands, type === 'compact');
+
+      this.settings.active.ui.popup.aspectRatioInterface = type;
+      this.settings.save();
+    },
   }
 });
 </script>
 <style lang="postcss" scoped>
+@reference "tailwindcss";
+
+.ari-item {
+  @apply p-4 h-64 w-72 flex flex-col justify-center items-center bg-black border-1 border-stone-700;
+
+  &.active {
+    @apply border-1 border-amber-300 bg-amber-300/10;
+  }
+}
 
 .trigger-zone-editor {
   background-color: rgba(0,0,0,0.25);
