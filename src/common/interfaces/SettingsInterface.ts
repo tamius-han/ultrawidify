@@ -10,7 +10,7 @@ import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum'
 import { PlayerDetectionMode } from '@src/common/enums/PlayerDetectionMode.enum';
 import { InputHandlingMode } from '@src/common/enums/InputHandlingMode.enum';
 import { MenuPosition } from '@src/common/interfaces/ClientUiMenu.interface';
-import { Ar } from '@src/common/interfaces/ArInterface';
+import { Ar, ArVariant } from '@src/common/interfaces/ArInterface';
 import { ArConfirmationStrategy } from '@src/common/enums/ArConfirmationStrategy.enum';
 
 export enum ExtensionEnvironment {
@@ -372,6 +372,7 @@ export interface SiteSettingsInterface {
 
   defaults?: {       // must be defined in @global and @empty
     crop?: Ar, //{type: AspectRatioType, [x: string]: any},
+    cropFit?: ArVariant,
     stretch?: {type: StretchType, ratio?: number},
     alignment?: {x: VideoAlignmentType, y: VideoAlignmentType},
   }
