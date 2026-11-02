@@ -17,34 +17,97 @@
       </div>
     </div>
 
-    <!-- 'Change UI' options is a tiny bit in upper right corner. -->
-    <h3>Crop</h3>
-    <div class="button-container">
-      <ShortcutButton
-        v-for="(command, index) of settings?.active.commands.crop"
-        :key="index"
-        :classList="{
-          'border !border-primary-700 text-primary-500 active-option': currentCropCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
-        }"
-        :label="command.label"
-        :shortcut="getKeyboardShortcutLabel(command)"
-        @click="execAction(command)"
-      ></ShortcutButton>
-    </div>
+    <!-- Compact mode -->
+    <template v-if="settings.active.ui.popup?.aspectRatioInterface === 'compact'">
+      <h3>Crop & zoom</h3>
 
-    <h3>Zoom</h3>
-    <div class="button-container">
-      <ShortcutButton
-        v-for="(command, index) of settings?.active.commands.zoom"
-        :key="index"
-        :classList="{
-          'border !border-primary-700 text-primary-500 active-option': currentCropCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
-        }"
-        :label="command.label"
-        :shortcut="getKeyboardShortcutLabel(command)"
-        @click="execAction(command)"
-      ></ShortcutButton>
-    </div>
+      <div class="button-container">
+        <ShortcutButton
+          v-for="(command, index) of settings?.active.commands.crop.filter(x => x.arguments?.type !== AspectRatioType.Fixed && x.arguments?.variant === undefined)"
+          :key="index"
+          :classList="{
+            'border !border-primary-700 text-primary-500 active-option': currentCropCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
+          }"
+          :label="command.label"
+          :shortcut="getKeyboardShortcutLabel(command)"
+          @click="execAction(command)"
+        ></ShortcutButton>
+
+        <ShortcutButton
+          v-for="(command, index) of settings?.active.commands.zoom.filter(x => x.arguments?.type !== AspectRatioType.Fixed && x.arguments?.variant === undefined)"
+          :key="index"
+          :classList="{
+            'border !border-primary-700 text-primary-500 active-option': currentCropCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
+          }"
+          :label="command.label"
+          :shortcut="getKeyboardShortcutLabel(command)"
+          @click="execAction(command)"
+        ></ShortcutButton>
+      </div>
+
+      <div class="w-full">
+        <div class="text-white font-mono text-semibold mt-4 mb-1">Specific aspect ratio:</div>
+
+        <div class="w-full flex flex-row gap-2 flex-wrap">
+          <template v-for="(command, index) of settings?.active.commands.crop.sort((a, b) => (a.arguments.ratio ?? 0) - (b.arguments.ratio ?? 0))" :key="index">
+            <template v-if="command.arguments?.type === AspectRatioType.Fixed && command.arguments?.variant === undefined">
+              <ShortcutButton
+                :classList="{
+                  'w-24': true,
+                  'border !border-transparent-700 text-primary-500 !bg-transparent active-option': currentCropCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
+                }"
+                :label="command.label"
+                :shortcut="getKeyboardShortcutLabel(command)"
+                @click="execAction(command)"
+              ></ShortcutButton>
+            </template>
+          </template>
+        </div>
+
+        <div class="field mt-2">
+          <div class="pr-6">Video fit:</div>
+          <div class="select">
+            <select v-model="activeArVariant">
+              <option :value="ArVariant.Crop">Contain</option>
+              <option :value="ArVariant.Zoom">Cover</option>
+              <option :value="ArVariant.None">None</option>
+            </select>
+          </div>
+          <div class="opacity-50">Default crop/zoom and fit can be changed in site settings.</div>
+        </div>
+      </div>
+    </template>
+    <!-- legacy mode -->
+    <template v-else>
+      <!-- 'Change UI' options is a tiny bit in upper right corner. -->
+      <h3>Crop</h3>
+      <div class="button-container">
+        <ShortcutButton
+          v-for="(command, index) of settings?.active.commands.crop"
+          :key="index"
+          :classList="{
+            'border !border-primary-700 text-primary-500 active-option': currentCropCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
+          }"
+          :label="command.label"
+          :shortcut="getKeyboardShortcutLabel(command)"
+          @click="execAction(command)"
+        ></ShortcutButton>
+      </div>
+
+      <h3>Zoom</h3>
+      <div class="button-container">
+        <ShortcutButton
+          v-for="(command, index) of settings?.active.commands.zoom"
+          :key="index"
+          :classList="{
+            'border !border-primary-700 text-primary-500 active-option': currentCropCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
+          }"
+          :label="command.label"
+          :shortcut="getKeyboardShortcutLabel(command)"
+          @click="execAction(command)"
+        ></ShortcutButton>
+      </div>
+    </template>
     <div class="text-white font-mono text-semibold mt-4 mb-1">Free-form zoom</div>
     <div class="flex flex-row">
 
@@ -187,6 +250,11 @@ export default defineComponent({
       currentCropCommand: '',
       currentStretchCommand: '',
       zoomUpdatesDisabled: false,
+
+      AspectRatioType,
+      ArVariant,
+
+      activeArVariant: ArVariant.Crop,
     }
   },
   computed: {
@@ -213,6 +281,7 @@ export default defineComponent({
       const svgElement = this.alignmentSvgContainer.querySelector('svg') as SVGSVGElement;
       this.alignmentIndicatorSvg = svgElement;
 
+
       if (svgElement) {
         setupVideoAlignmentIndicatorInteraction(svgElement, (x: VideoAlignmentType, y: VideoAlignmentType) => {
           // Update selection visually
@@ -221,6 +290,12 @@ export default defineComponent({
           this.align(x,y);
         });
       }
+    }
+
+    if (!this.siteSettings?.cropFit || this.siteSettings.cropFit === ArVariant.Default) {
+      this.activeArVariant = this.settings.active['@global'].cropFit;
+    } else {
+      this.activeArVariant = this.siteSettings.cropFit;
     }
 
     this.eventBus.send('get-ar');
