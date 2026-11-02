@@ -591,6 +591,20 @@ const ExtensionConfPatch = Object.freeze([
         userOptions.ui.inPlayer.activateWithCtrl = false;
       }
     }
+  },
+  {
+    forVersion: '7.0.9000',
+    updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
+
+      // crop options previously did not have ArVariant specified. This is changing.
+      for (const c of userOptions.commands?.crop ?? []) {
+        if (c.arguments && !c.arguments?.variant) {
+          c.arguments.variant = ArVariant.Crop;
+        }
+      }
+
+      // TODO: consolidate all options in commands.crop
+    }
   }
 
 ]);
