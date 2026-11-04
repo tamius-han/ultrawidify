@@ -433,6 +433,9 @@ export default defineComponent({
     siteDefaultAlignment() {
       return this.siteSettings.raw?.defaults?.alignment ? JSON.stringify(this.siteSettings.raw?.defaults?.alignment) : JSON.stringify({useDefault: true});
     },
+    siteDefaultCropFit() {
+      return this.siteSettings.raw?.defaults?.cropFit ? JSON.stringify(this.siteSettings.raw?.defaults?.cropFit) : JSON.stringify({useDefault: true});
+    },
     defaultPersistenceLabel() {
       switch (this.siteSettings.defaultSettings.persistCSA) {
         case CropModePersistence.CurrentSession:

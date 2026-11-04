@@ -125,7 +125,7 @@ class Resizer {
         this.manualZoom = false; // this only gets called from UI or keyboard shortcuts, making this action safe.
 
         if (config.type !== AspectRatioType.Cycle) {
-          this.setAr({...config, variant: ArVariant.Crop});
+          this.setAr({...config, variant: config.variant ?? ArVariant.Crop});
         } else {
           // if we manually switched to a different aspect ratio, cycle from that ratio forward
           const lastArIndex = this.cycleableAspectRatios.findIndex(x => x.type === this.lastAr.type && x.ratio === this.lastAr.ratio);

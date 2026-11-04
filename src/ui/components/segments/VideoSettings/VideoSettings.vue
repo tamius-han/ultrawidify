@@ -32,17 +32,6 @@
           :shortcut="getKeyboardShortcutLabel(command)"
           @click="execAction(command)"
         ></ShortcutButton>
-
-        <ShortcutButton
-          v-for="(command, index) of settings?.active.commands.zoom.filter(x => x.arguments?.type !== AspectRatioType.Fixed && x.arguments?.variant === undefined)"
-          :key="index"
-          :classList="{
-            'border !border-primary-700 text-primary-500 active-option': currentCropCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
-          }"
-          :label="command.label"
-          :shortcut="getKeyboardShortcutLabel(command)"
-          @click="execAction(command)"
-        ></ShortcutButton>
       </div>
 
       <div class="w-full">
@@ -68,12 +57,19 @@
           <div class="pr-6">Video fit:</div>
           <div class="select">
             <select v-model="activeArVariant">
-              <option :value="ArVariant.Crop">Contain</option>
-              <option :value="ArVariant.Zoom">Cover</option>
+              <option :value="ArVariant.Default">
+                Default (<template v-if="siteSettings">
+                  <template v-if="siteSettings.data.defaults.cropFit === ArVariant.Crop">Fit video</template>
+                  <template v-else-if="siteSettings.data.defaults.cropFit === ArVariant.Zoom">Fill frame</template>
+                  <template v-else-if="siteSettings.data.defaults.cropFit === ArVariant.None">None</template>
+                </template>)
+              </option>
+              <option :value="ArVariant.Crop">Fit video</option>
+              <option :value="ArVariant.Zoom">Fill frame</option>
               <option :value="ArVariant.None">None</option>
             </select>
           </div>
-          <div class="opacity-50">Default crop/zoom and fit can be changed in site settings.</div>
+          <div class="opacity-50 ml-4 text-sm">Default crop/zoom and fit can be changed in site settings.</div>
         </div>
       </div>
     </template>
@@ -108,7 +104,29 @@
         ></ShortcutButton>
       </div>
     </template>
-    <div class="text-white font-mono text-semibold mt-4 mb-1">Free-form zoom</div>
+    <div class="flex flex-row gap-8 mt-4 mb-1 items-center">
+      <div class="text-white font-mono text-semibold">Free-form zoom</div>
+      <template v-if="settings.active.ui.popup?.aspectRatioInterface === 'compact'">
+        <div class="flex flex-row gap-2">
+          <div
+            v-for="(command, index) of settings?.active.commands.zoom.filter(x => x.action === 'change-zoom').sort((a, b) => a.arguments.zoom - b.arguments.zoom)"
+            :key="index"
+            class="bg-black border border-stone-700 px-4 py-1"
+          >
+            {{ command.label }}<span v-if="getKeyboardShortcutLabel(command)" class="opacity-50"> ({{ getKeyboardShortcutLabel(command) }})</span>
+          </div>
+        </div>
+        <div class="flex flex-row gap-2">
+          <div
+            v-for="(command, index) of settings?.active.commands.zoom.filter(x => x.action === 'set-zoom').sort((a, b) => a.arguments.zoom - b.arguments.zoom)"
+            :key="index"
+            class="bg-black border border-stone-700 px-4 py-1"
+          >
+            {{ command.label }}<span v-if="getKeyboardShortcutLabel(command)" class="opacity-50"> ({{ getKeyboardShortcutLabel(command) }})</span>
+          </div>
+        </div>
+      </template>
+    </div>
     <div class="flex flex-row">
 
       <!-- SLIDERS BEFORE X/Y LOCK -->
@@ -183,24 +201,42 @@
     </div>
 
     <h3>Stretch</h3>
-    <div class="button-container">
-      <ShortcutButton
-        v-for="(command, index) of settings?.active.commands.stretch"
-        :key="index"
-        :classList="{
-          'border border-primary-700 text-primary-500 active-option': currentStretchCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
-        }"
-        :label="command.label"
-        :shortcut="getKeyboardShortcutLabel(command)"
-        @click="execAction(command)"
-      ></ShortcutButton>
-    </div>
+    <template v-if="settings.active.ui.popup?.aspectRatioInterface === 'compact'">
+      <div class="w-full flex flex-row gap-2 flex-wrap">
+        <ShortcutButton
+          v-for="(command, index) of settings?.active.commands.stretch"
+          :key="index"
+          :classList="{
+            'w-24': command.arguments.type !== StretchType.Conditional,
+            'w-28': command.arguments.type === StretchType.Conditional,
+            'border border-primary-700 text-primary-500 active-option': currentStretchCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
+          }"
+          :label="command.label"
+          :shortcut="getKeyboardShortcutLabel(command)"
+          @click="execAction(command)"
+        ></ShortcutButton>
+      </div>
+    </template>
+    <template v-else>
+      <div class="button-container">
+        <ShortcutButton
+          v-for="(command, index) of settings?.active.commands.stretch"
+          :key="index"
+          :classList="{
+            'border border-primary-700 text-primary-500 active-option': currentStretchCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
+          }"
+          :label="command.label"
+          :shortcut="getKeyboardShortcutLabel(command)"
+          @click="execAction(command)"
+        ></ShortcutButton>
+      </div>
+    </template>
 
     <h3>Align video</h3>
     <div
       id="videoAlignmentController"
       ref="alignmentSvgContainer"
-      class="w-full h-[12em] flex flex-row justify-center"
+      class="w-full h-24 flex flex-row justify-center"
     ></div>
   </div>
 </template>
@@ -253,6 +289,7 @@ export default defineComponent({
 
       AspectRatioType,
       ArVariant,
+      StretchType,
 
       activeArVariant: ArVariant.Crop,
     }
@@ -292,10 +329,10 @@ export default defineComponent({
       }
     }
 
-    if (!this.siteSettings?.cropFit || this.siteSettings.cropFit === ArVariant.Default) {
-      this.activeArVariant = this.settings.active['@global'].cropFit;
+    if (!this.siteSettings?.raw?.defaults.cropFit || this.siteSettings.raw?.defaults.cropFit === ArVariant.Default) {
+      this.activeArVariant = this.settings.active.sites['@global'].defaults.cropFit ?? ArVariant.Crop;
     } else {
-      this.activeArVariant = this.siteSettings.cropFit;
+      this.activeArVariant = this.siteSettings.data.defaults.cropFit;
     }
 
     this.eventBus.send('get-ar');

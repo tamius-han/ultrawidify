@@ -5,6 +5,7 @@ import { PlayerDetectionMode } from '@src/common/enums/PlayerDetectionMode.enum'
 import { SiteSupportLevel } from '@src/common/enums/SiteSupportLevel.enum';
 import StretchType from '@src/common/enums/StretchType.enum';
 import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
+import { ArVariant } from '@src/common/interfaces/ArInterface';
 import { ExtensionEnvironment, SettingsReloadComponent, SettingsReloadFlags, SiteSettingsInterface } from '@src/common/interfaces/SettingsInterface';
 import { _cp } from '@src/common/utils/_cp';
 import Settings from '@src/ext/module/settings/Settings';
@@ -209,13 +210,13 @@ export class SiteSettings {
       this.data.defaults = _cp(this.defaultSettings.defaults);
     } else {
       // 'undefined' default here means use default
-      this.data.defaults.crop = this.data.defaults.crop ?? _cp(this.defaultSettings.defaults?.crop);
+      this.data.defaults.crop = this.data.defaults.crop ?? _cp(this.defaultSettings.defaults.crop);
 
-      this.data.defaults.cropFit = this.data.defaults.cropFit ?? _cp(this.defaultSettings.defaults?.cropFit);
+      this.data.defaults.cropFit = this.data.defaults.cropFit ?? _cp(this.defaultSettings.defaults.cropFit) ?? ArVariant.Crop;
 
       // these can contain default options, but can also be undefined
-      if ([undefined, StretchType.Default].includes(this.data.defaults?.stretch?.type)) {
-        this.data.defaults.stretch = _cp(this.defaultSettings.defaults?.stretch ?? StretchType.NoStretch);
+      if ([undefined, StretchType.Default].includes(this.data.defaults.stretch?.type)) {
+        this.data.defaults.stretch = _cp(this.defaultSettings.defaults.stretch ?? StretchType.NoStretch);
       }
       if (this.data.defaults?.alignment === undefined) {  // distinguish between undefined and 0!
         this.data.defaults.alignment = _cp(this.defaultSettings.defaults?.alignment ?? {x: VideoAlignmentType.Center, y: VideoAlignmentType.Center});

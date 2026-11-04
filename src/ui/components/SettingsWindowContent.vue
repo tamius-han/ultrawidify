@@ -59,7 +59,7 @@
           </div>
         </div>
       </div>
-      <div class="grow content flex flex-col overflow-auto pr-4 pb-12">
+      <div class="grow content flex flex-col overflow-auto pr-4 pb-8">
 
         <!-- autodetection warning -->
         <div class="warning-area">
