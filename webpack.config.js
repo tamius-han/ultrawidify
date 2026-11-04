@@ -42,7 +42,7 @@ const config = {
         type: 'asset/source',
       },
       {
-        test: /\.(png|jpg|webp|gif|svg|ico)$/,
+        test: /\.(png|jpg|webp|avif|gif|svg|ico)$/,
         type: 'asset/resource',
         generator: {
           filename: '[path][name][ext]' // Webpack 5 uses generator.filename
