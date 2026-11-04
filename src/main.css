@@ -19,6 +19,15 @@ html, body {
   font-size: 16px;
 }
 
+:host, :host *, html, body, body * {
+  scrollbar-width: thin;
+}
+
+:host *::-webkit-scrollbar, html::-webkit-scrollbar, body::-webkit-scrollbar, body *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
 @media (max-width: 999px) {
   :host {
     font-size: 12px;
