@@ -110,8 +110,7 @@ export default({
     }
   },
   mounted() {
-    this.settings.active.whatsNewChecked = true;
-    this.settings.saveWithoutReload();
+    this.settings.saveWhatsNewChecked();
   }
 });
 </script>

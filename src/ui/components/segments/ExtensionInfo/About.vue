@@ -28,8 +28,7 @@ export default defineComponent({
     }
   },
   mounted() {
-    this.settings.active.whatsNewChecked = true;
-    this.settings.saveWithoutReload();
+    this.settings.saveWhatsNewChecked();
   }
 });
 </script>

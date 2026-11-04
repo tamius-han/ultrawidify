@@ -1,30 +1,40 @@
 <template>
   <div class="flex flex-col relative w-full">
-    <h2 class="text-[1.75em]">Popup UI options</h2>
-    <div v-if="settings" class="flex flex-col w-full">
-      <div class="flex flex-col gap-2">
-        <div class="flex flex-col field-group compact-form gap-2 mt-8">
-          <!-- <div class="field"> -->
-            <div class="label">Aspect ratio interface:</div>
-          <!-- </div> -->
-          <div class="flex flex-row gap-8">
-            <div
-              class="ari-item"
-              :class="{'active': settings.active.ui.popup?.aspectRatioInterface === 'compact'}"
-              @click="setPopupUIType('compact')"
-            >
-              —— IMAGE HERE——
 
-              Compact
-            </div>
-            <div
-              class="ari-item"
-              :class="{'active': !settings.active.ui.popup?.aspectRatioInterface || settings.active.ui.popup?.aspectRatioInterface === 'legacy'}"
-              @click="setPopupUIType('legacy')"
-            >
-              —— IMAGE HERE——
+    <div v-if="settings.active?.ui?.popup?.aspectRatioInterface === 'legacy' || settings.active?.commandsLegacy" class="mb-8">
+      <h2 class="text-[1.75em]">Popup UI options</h2>
+      <div v-if="settings" class="flex flex-col w-full">
+        <div class="flex flex-col gap-2">
+          <div class="flex flex-col field-group compact-form gap-2 mt-8">
+            <!-- <div class="field"> -->
+              <div class="label">Aspect ratio interface:</div>
+            <!-- </div> -->
+            <div class="flex flex-row gap-8">
+              <div
+                class="ari-item"
+                :class="{'active': settings.active.ui.popup?.aspectRatioInterface === 'compact'}"
+                @click="setPopupUIType('compact')"
+              >
+                <img src="/res/img/settings/compact_crop_ui.avif" alt="Compact UI">
+                <div>
+                  Compact<small><br/>
+                  This is default UI for new installs.
+                  </small>
+                </div>
+              </div>
+              <div
+                class="ari-item"
+                :class="{'active': !settings.active.ui.popup?.aspectRatioInterface || settings.active.ui.popup?.aspectRatioInterface === 'legacy'}"
+                @click="setPopupUIType('legacy')"
+              >
+                <img src="/res/img/settings/legacy_crop_ui.avif" alt="Legacy UI">
 
-              Legacy
+                <div>
+                  Legacy<small><br/>
+                  Only available for old installs, as support for this UI will be removed some time in the future.
+                  </small>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -367,8 +377,7 @@ export default defineComponent({
 
 
     /**
-     * Copies shortcuts of set-ar / set-ar-zoom commands between legacy and compact command layouts.
-     * Commands are matched by arguments (type, ratio, offset) and variant.
+     * Carries set-ar / set-ar-zoom commands (and their shortcuts) between legacy and compact layouts.
      * Legacy: set-ar = crop, set-ar-zoom = zoom. Compact: set-ar only; no variant = crop.
      */
     migrateArShortcuts(source: any, target: any, toCompact: boolean) {
@@ -376,71 +385,59 @@ export default defineComponent({
         return;
       }
 
-      type Variant = 'crop' | 'zoom';
-      const describe = (cmd: any, compact: boolean): {variant: Variant, key: string} | undefined => {
-        if (!cmd?.arguments) {
-          return undefined;
-        }
-        const {variant, ...args} = cmd.arguments;
-        let v: Variant;
-        if (compact) {
-          if (cmd.action !== 'set-ar') {
-            return undefined;
-          }
-          if (variant === undefined || variant === ArVariant.Crop) {
-            v = 'crop';
-          } else if (variant === ArVariant.Zoom) {
-            v = 'zoom';
-          } else {
-            return undefined;   // ArVariant.None has no legacy equivalent
-          }
-        } else if (cmd.action === 'set-ar') {
-          v = 'crop';
-        } else if (cmd.action === 'set-ar-zoom') {
-          v = 'zoom';
-        } else {
-          return undefined;
-        }
-        return {variant: v, key: JSON.stringify([args.type, args.ratio ?? null, args.offset ?? null])};
-      };
-
+      const argKey = (args: any) => JSON.stringify([args?.type, args?.ratio ?? null, args?.offset ?? null]);
       const flatten = (cmds: any): any[] => Object.values(cmds).flatMap((x: any) => Array.isArray(x) ? x : []);
       const targetCmds = flatten(target);
-      const used = new Set<any>();
 
+      if (toCompact) {
+        const editions: (ArVariant | undefined)[] = [undefined, ArVariant.Crop, ArVariant.None, ArVariant.Zoom];
+
+        for (const srcCmd of flatten(source)) {
+          if (srcCmd.action !== 'set-ar' && srcCmd.action !== 'set-ar-zoom') {
+            continue;
+          }
+          const {variant, ...args} = srcCmd.arguments ?? {};
+          const key = argKey(args);
+          const shortcutEdition = srcCmd.action === 'set-ar-zoom' ? ArVariant.Zoom : undefined;
+
+          for (const edition of editions) {
+            let cmd = targetCmds.find(c => c.action === 'set-ar' && argKey(c.arguments) === key && c.arguments?.variant === edition);
+            if (!cmd) {
+              const {shortcut, ...rest} = srcCmd;
+              cmd = {...rest, action: 'set-ar', arguments: edition === undefined ? {...args} : {...args, variant: edition}};
+              target.crop?.push(cmd);
+              targetCmds.push(cmd);
+            }
+            if (edition === shortcutEdition && srcCmd.shortcut) {
+              cmd.shortcut = {...srcCmd.shortcut};
+            }
+          }
+        }
+        return;
+      }
+
+      // only commands without variant and with ArVariant.Zoom are carried back
       for (const srcCmd of flatten(source)) {
-        const desc = describe(srcCmd, !toCompact);
-        if (!desc || !srcCmd.shortcut) {
+        if (srcCmd.action !== 'set-ar') {
           continue;
         }
-
-        // in compact layout, crop commands without variant carry the shortcuts
-        const match = targetCmds.find(c => {
-          const d = describe(c, toCompact);
-          return d && d.variant === desc.variant && d.key === desc.key
-            && !used.has(c)
-            && (!toCompact || desc.variant !== 'crop' || c.arguments.variant === undefined);
-        });
-
-        if (match) {
-          match.shortcut = {...srcCmd.shortcut};
-          used.add(match);
+        const {variant, ...args} = srcCmd.arguments ?? {};
+        if (variant !== undefined && variant !== ArVariant.Zoom) {
           continue;
         }
+        const action = variant === ArVariant.Zoom ? 'set-ar-zoom' : 'set-ar';
+        const key = argKey(args);
 
-        // no equivalent in target (e.g. user-defined ratio) — carry the command over
-        const {variant, ...args} = srcCmd.arguments;
-        const newCmd: any = {...srcCmd, shortcut: {...srcCmd.shortcut}};
-        if (toCompact) {
-          newCmd.action = 'set-ar';
-          newCmd.arguments = desc.variant === 'zoom' ? {...args, variant: ArVariant.Zoom} : args;
-          target.crop?.push(newCmd);
-        } else {
-          newCmd.action = desc.variant === 'zoom' ? 'set-ar-zoom' : 'set-ar';
-          newCmd.arguments = args;
-          target[desc.variant]?.push(newCmd);
+        let cmd = targetCmds.find(c => c.action === action && argKey(c.arguments) === key);
+        if (!cmd) {
+          const {shortcut, ...rest} = srcCmd;
+          cmd = {...rest, action, arguments: {...args}};
+          target[variant === ArVariant.Zoom ? 'zoom' : 'crop']?.push(cmd);
+          targetCmds.push(cmd);
         }
-        used.add(newCmd);
+        if (srcCmd.shortcut) {
+          cmd.shortcut = {...srcCmd.shortcut};
+        }
       }
     },
 
@@ -454,6 +451,23 @@ export default defineComponent({
       if (type === 'compact') {
         this.settings.active.commandsLegacy = this.settings.active.commands;
         this.settings.active.commands = generateCommands();
+
+        // shorten labels for 'zoom' commands:
+        for (const cmd of this.settings.active.commands.zoom ?? []) {
+          if (cmd.label) {
+            cmd.label = cmd.label.replace('Zoom ', '');
+            cmd.label = cmd.label.replace('Reset zoom', 'Reset');
+          }
+        }
+
+        // shorten labels for 'stretch' commands:
+        for (const cmd of this.settings.active.commands.stretch ?? []) {
+          if (cmd.label) {
+            cmd.label = cmd.label.replaceAll(' stretch ', '');
+            cmd.label = cmd.label.replaceAll('Don\'t', 'None');
+            cmd.label = cmd.label.replaceAll('Stretch t', 'T');
+          }
+        }
       } else {
         this.settings.active.commands = this.settings.active.commandsLegacy;
       }
@@ -470,10 +484,17 @@ export default defineComponent({
 @reference "tailwindcss";
 
 .ari-item {
-  @apply p-4 h-64 w-72 flex flex-col justify-center items-center bg-black border-1 border-stone-700;
+  @apply p-4 h-96 w-96 flex flex-col justify-center items-center bg-black border-1 border-stone-700;
 
   &.active {
     @apply border-1 border-amber-300 bg-amber-300/10;
+  }
+
+  img {
+    @apply grow shrink object-contain;
+  }
+  div {
+    @apply mt-2 text-center h-24;
   }
 }
 
