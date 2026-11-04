@@ -370,11 +370,11 @@ export interface SiteSettingsInterface {
   // must be defined in @global and @empty
   persistCSA?: CropModePersistence,  // CSA - crop, stretch, alignment
 
-  defaults?: {       // must be defined in @global and @empty
-    crop?: Ar, //{type: AspectRatioType, [x: string]: any},
-    cropFit?: ArVariant,
-    stretch?: {type: StretchType, ratio?: number},
-    alignment?: {x: VideoAlignmentType, y: VideoAlignmentType},
+  defaults: {       // must be defined in @global and @empty
+    crop: Ar, //{type: AspectRatioType, [x: string]: any},
+    cropFit: ArVariant,
+    stretch: {type: StretchType, ratio?: number},
+    alignment: {x: VideoAlignmentType, y: VideoAlignmentType},
   }
 
   cropModePersistence?: CropModePersistence;

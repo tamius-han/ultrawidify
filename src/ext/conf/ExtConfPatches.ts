@@ -9,6 +9,8 @@ import { InputHandlingMode } from '@src/common/enums/InputHandlingMode.enum';
 import LegacyExtensionMode from '@src/common/enums/LegacyExtensionMode.enum';
 import { PlayerDetectionMode } from '@src/common/enums/PlayerDetectionMode.enum';
 import { SiteSupportLevel } from '@src/common/enums/SiteSupportLevel.enum';
+import StretchType from '@src/common/enums/StretchType.enum';
+import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
 import { ArVariant } from '@src/common/interfaces/ArInterface';
 import SettingsInterface from '@src/common/interfaces/SettingsInterface';
 import { _cp } from '@src/common/utils/_cp';
@@ -593,7 +595,7 @@ const ExtensionConfPatch = Object.freeze([
     }
   },
   {
-    forVersion: '7.0.9000',
+    forVersion: '7.0.9001',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
 
       // crop options previously did not have ArVariant specified. This is changing.
@@ -603,7 +605,30 @@ const ExtensionConfPatch = Object.freeze([
         }
       }
 
-      // TODO: consolidate all options in commands.crop
+      const defaultDefaults = {
+        crop: {type: AspectRatioType.Default},
+        cropFit: ArVariant.Default,
+        stretch: {type: StretchType.Default},
+        alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default}
+      };
+
+      // Site defaults are no longer optional, so ensure site defaults are always defined.
+      // We know that '@global' always contains all the optional options, because it has to.
+      for (const site in userOptions.sites) {
+        if (site === '@global') {
+          userOptions.sites['@global'].defaults!.cropFit = ArVariant.Crop;
+          continue;
+        }
+
+        if (!userOptions.sites[site].defaults) {
+          userOptions.sites[site].defaults = {...defaultDefaults};
+        } else {
+          userOptions.sites[site].defaults = {
+            ...defaultDefaults,
+            ...userOptions.sites[site].defaults
+          };
+        }
+      }
     }
   }
 

@@ -297,7 +297,7 @@ class UI {
           {
             label: 'Crop',
             customId: 'uw-crop',
-            subitems: this.settings.active.commands.crop.map((x: CommandInterface) => {
+            subitems: this.settings.active.commands?.crop?.map((x: CommandInterface) => {
               return {
                 label: x.label,
                 command: x,
@@ -309,7 +309,7 @@ class UI {
           {
             label: 'Stretch',
             customId: 'uw-stretch',
-            subitems: this.settings.active.commands.stretch.map((x: CommandInterface) => {
+            subitems: this.settings.active.commands?.stretch?.map((x: CommandInterface) => {
               return {
                 label: x.label,
                 command: x,
@@ -322,7 +322,7 @@ class UI {
             label: 'Zoom (presets)',
             customId: 'uw-zoom',
             subitems: [
-              ... this.settings.active.commands.zoom.map((x: CommandInterface) => {
+              ... this.settings.active.commands.zoom?.map((x: CommandInterface) => {
                 return {
                   label: x.label,
                   command: x,

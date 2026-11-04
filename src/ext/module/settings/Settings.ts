@@ -104,7 +104,7 @@ class Settings {
     const diff = getDiff(this.active, parsedSettings, {isLodashLike: true});
 
     const validChangeFn = (x: any) =>
-      x[0] !== 'lastModified';
+      x[0] !== 'lastModified' && x[0] !== 'whatsNewChecked';
 
     const validAdditions = diff.added.filter(validChangeFn);
     const validEdits = diff.edited.filter(validChangeFn);
@@ -212,7 +212,7 @@ class Settings {
     }
   }
 
-  private getPrereleaseVersionHierarchy(version) {
+  private getPrereleaseVersionHierarchy(version: string) {
     if (version.startsWith('dev')) {
       return 0;
     }
@@ -237,7 +237,7 @@ class Settings {
 
     if (index === -1) {
       this.logger?.info('applySettingsPatches','There are no pending conf patches.');
-      return;
+      return currentSettings;
     }
 
     // save current settings object
@@ -291,7 +291,12 @@ class Settings {
         settings = snapshot.settings;
       }
     } else {
-       settings = await this.get();
+      settings = await this.get();
+    }
+
+    // the flag is persisted by saveWithoutReload(); it must not carry over between sessions
+    if (settings) {
+      settings.preventReload = undefined;
     }
 
     const currentVersion = this.getExtensionVersion();
@@ -368,23 +373,29 @@ class Settings {
       await this.save();
     }
     return settings;
+
   }
 
+  /**
+   * Gets settings from chrome.storage.local
+   * @returns The parsed settings object if it exists, otherwise undefined.
+   */
   async get(): Promise<SettingsInterface | undefined> {
-    let ret;
-
-    ret = await chrome.storage.local.get('uwSettings');
-
+    const ret = await chrome.storage.local.get('uwSettings') as {uwSettings?: string};
     this.logger?.info('get', 'Got settings:', ret && ret.uwSettings && JSON.parse(ret.uwSettings));
 
+    if (!ret?.uwSettings) {
+      return undefined;
+    }
+
     try {
-      return JSON.parse(ret.uwSettings) as SettingsInterface;
+      return JSON.parse(ret?.uwSettings) as SettingsInterface;
     } catch(e) {
       return undefined;
     }
   }
 
-  async set(extensionConf, options?: SetSettingsOptions) {
+  async set(extensionConf: SettingsInterface, options?: SetSettingsOptions) {
     if (!options || !options.forcePreserveVersion) {
       extensionConf.version = this.version;
     }
@@ -393,7 +404,7 @@ class Settings {
     return chrome.storage.local.set( {'uwSettings': JSON.stringify(extensionConf)});
   }
 
-  async setActive(activeSettings) {
+  async setActive(activeSettings: SettingsInterface) {
     this.active = activeSettings;
   }
 
@@ -404,7 +415,7 @@ class Settings {
    * are objects.
    * @param value
    */
-  async setProp(propPath: string | string[], value: any, options?: {forceReload?: boolean}, currentPath?: any) {
+  async setProp(propPath: string | string[], value: any, options?: {forceReload?: boolean}, currentPath?: any): Promise<void> {
     if (!Array.isArray(propPath)) {
       propPath = propPath.split('.');
     }
@@ -414,6 +425,10 @@ class Settings {
     }
 
     const currentProp = propPath.shift();
+
+    if (!currentProp) {
+      return;
+    }
 
     if (propPath.length) {
       if (!currentPath[currentProp]) {
@@ -441,6 +456,13 @@ class Settings {
   }
 
 
+  // Saves without touching preventReload; storage listener ignores whatsNewChecked, so no banner.
+  async saveWhatsNewChecked(options?: SetSettingsOptions) {
+    this.active.whatsNewChecked = true;
+    this.active.lastModified = new Date();
+    await this.set(this.active, options);
+  }
+
   async saveWithoutReload(options?: SetSettingsOptions) {
     this.active.preventReload = true;
     this.active.lastModified = new Date();
@@ -448,10 +470,15 @@ class Settings {
   }
 
   async rollback() {
-    this.active = await this.get();
+    const saved = await this.get();
+    if (saved) {
+      this.active = saved;
+    } else {
+      throw 'No saved settings exist, cannot rollback';
+    }
   }
 
-  getDefaultSettings() {
+  getDefaultSettings(): SettingsInterface {
     return JSON.parse(JSON.stringify(this.default));
   }
 

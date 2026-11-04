@@ -308,6 +308,7 @@ const ExtensionConf: SettingsInterface = {
 
       defaults: {
         crop: {type: AspectRatioType.Default},
+        cropFit: ArVariant.Default,
         stretch: {type: StretchType.Default},
         alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default}
       },
@@ -723,27 +724,27 @@ export function generateCommands() {
     crop: generatedCropCmd,
     stretch: [{
       action: 'set-stretch',
-      label: 'Don\'t stretch',
+      label: 'None',
       arguments: {
         type: StretchType.NoStretch
       }
     }, {
       action: 'set-stretch',
-      label: 'Basic stretch',
+      label: 'Basic',
       comment: 'There\'s literally no legitimate reason to use this option',
       arguments: {
         type: StretchType.Basic
       }
     }, {
       action: 'set-stretch',
-      label: 'Hybrid stretch',
+      label: 'Hybrid',
       comment: 'Applies crop first, then stretches to fill the remainder of the screen',
       arguments: {
         type: StretchType.Hybrid
       }
     }, {
       action: 'set-stretch',
-      label: 'On thin borders',
+      label: 'Thin edge',
       comment: 'Applies crop first. If only narrow black borders exist, the video will be stretched to cover the remainder of the screen. However, if stretching would be substantial, the video will NOT be stretched.',
       arguments: {
         type: StretchType.Conditional,
@@ -751,7 +752,7 @@ export function generateCommands() {
       },
     }, {
       action: 'set-stretch',
-      label: 'Stretch to 16:9',
+      label: 'To 16:9',
       comment: 'Applies crop first, then stretches video to 16:9.',
       arguments: {
         type: StretchType.FixedSource,
@@ -759,7 +760,7 @@ export function generateCommands() {
       }
     }, {
       action: 'set-stretch',
-      label: 'Stretch to 4:3',
+      label: 'To 4:3',
       comment: 'Applies crop first, then stretches video to 4:3',
       arguments: {
         type: StretchType.FixedSource,
