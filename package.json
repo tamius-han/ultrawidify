@@ -57,7 +57,7 @@
     "@vue/cli": "^5.0.9",
     "@vue/cli-plugin-typescript": "^5.0.9",
     "@vue/compiler-sfc": "^3.5.25",
-    "archiver": "^7.0.1",
+    "archiver": "^8.0.0",
     "babel-loader": "^10.0.0",
     "babel-preset-es2020": "^1.0.2",
     "copy-webpack-plugin": "^13.0.1",
