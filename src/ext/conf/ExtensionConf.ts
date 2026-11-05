@@ -173,7 +173,7 @@ const ExtensionConf: SettingsInterface = {
   },
 
   crop: {
-    currentVariant: ArVariant,
+    currentVariant: ArVariant.Default,
   },
   zoom: {
     minLogZoom: -1,

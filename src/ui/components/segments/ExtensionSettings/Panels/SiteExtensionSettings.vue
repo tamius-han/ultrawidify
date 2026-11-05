@@ -210,61 +210,99 @@
       <div class="field">
         <div class="label">Default crop:</div>
         <div class="select grow shrink flex flex-row">
-
           <select
             :value="siteDefaultCrop"
             @change="setOption('defaults.crop', $event)"
           >
             <option
               v-if="!isDefaultConfiguration"
-              :value="JSON.stringify({useDefault: true})"
+              :value="JSON.stringify({type: AspectRatioType.Default})"
             >
               Use default ({{getDefaultCrop(siteSettings.defaultSettings.defaults.crop)}})
+            </option>
+            <option
+              :value="JSON.stringify({type: AspectRatioType.Automatic})"
+            >
+              Automatic
             </option>
             <option
               :value="JSON.stringify({type: AspectRatioType.Reset})"
             >
               Initial/reset
             </option>
-            <optgroup label="Crop">
-              <template
-                v-for="(command, index) of settings?.active.commands.crop"
-                :key="index"
+            <template
+              v-for="(command, index) of settings?.active.commands?.crop?.filter(
+                x => x.arguments.variant === undefined
+                  && (
+                    x.arguments.type === AspectRatioType.Cover
+                    || x.arguments.type == AspectRatioType.FitWidth
+                    || x.arguments.type == AspectRatioType.FitHeight
+                  )
+              )"
+              :key="index"
+            >
+              <option
+                :value="JSON.stringify(command.arguments)"
               >
-                <option
-                  v-if="
-                    command.arguments.type === AspectRatioType.Fixed
-                    || command.arguments.type === AspectRatioType.Automatic
-                    || command.arguments.type === AspectRatioType.FitWidth
-                    || command.arguments.type === AspectRatioType.FitHeight
-                  "
-                  :value="JSON.stringify(command.arguments)"
-                >
-                  {{command.label}} (crop)
-                </option>
-              </template>
-            </optgroup>
-            <optgroup label="Zoom">
-              <template
-                v-for="(command, index) of settings?.active.commands.zoom"
-                :key="index"
+                {{command.label}}
+              </option>
+            </template>
+            <template
+              v-for="(command, index) of settings?.active.commands?.crop?.filter(x => x.arguments.type == AspectRatioType.Fixed && x.arguments.variant === undefined).sort((a, b) => b.arguments.ratio - a.arguments.ratio)"
+              :key="index"
+            >
+              <option
+                :value="JSON.stringify(command.arguments)"
               >
-                <option
-                  v-if="
-                    command.arguments.type === AspectRatioType.Fixed
-                    || command.arguments.type === AspectRatioType.Automatic
-                    || command.arguments.type === AspectRatioType.Cover
-                  "
-                  :value="JSON.stringify({...command.arguments, variant: ArVariant.Zoom})"
-                >
-                  {{command.label}} (zoom)
-                </option>
-              </template>
-            </optgroup>
+                {{command.label}}
+              </option>
+            </template>
           </select>
         </div>
       </div>
-      <div class="hint">This is how extension will crop video if/when autodetection is disabled. Pick 'Reset' option to keep aspect ratio as-is by default.</div>
+      <div class="hint">If set to automatic, automatic aspect ratio detection will only take effect according to 'enable automatic aspect ratio detection' option.</div>
+
+      <div class="field" :class="{ 'disabled': siteSettings.data.defaults.crop.type !== AspectRatioType.Automatic }">
+        <div class="label">Crop fit (automatic):</div>
+        <div class="select">
+          <select
+            :value="siteDefaultCropFitAard"
+            @change="setOption('defaults.cropFitAard', $event)"
+          >
+              <option :value="ArVariant.Default" v-if="siteSettings.site !== '@global'">
+                Default (<template v-if="siteSettings">
+                  <template v-if="siteSettings.defaultSettings.defaults.cropFitAard === ArVariant.Crop">Fit video</template>
+                  <template v-else-if="siteSettings.defaultSettings.defaults.cropFitAard === ArVariant.Zoom">Fill frame</template>
+                  <template v-else-if="siteSettings.defaultSettings.defaults.cropFitAard === ArVariant.None">Unconstrained</template>
+                </template>)
+              </option>
+              <option :value="ArVariant.Crop">Fit video</option>
+              <option :value="ArVariant.Zoom">Fill frame</option>
+              <option :value="ArVariant.None">Unconstrained</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="label">Crop fit:</div>
+        <div class="select">
+           <select
+            :value="siteDefaultCropFit"
+            @change="setOption('defaults.cropFit', $event)"
+          >
+            <option :value="ArVariant.Default" v-if="siteSettings.site !== '@global'">
+              Default (<template v-if="siteSettings">
+                <template v-if="siteSettings.defaultSettings.defaults.cropFit === ArVariant.Crop">Fit video</template>
+                <template v-else-if="siteSettings.defaultSettings.defaults.cropFit === ArVariant.Zoom">Fill frame</template>
+                <template v-else-if="siteSettings.defaultSettings.defaults.cropFit === ArVariant.None">Unconstrained</template>
+              </template>)
+            </option>
+            <option :value="ArVariant.Crop">Fit video</option>
+            <option :value="ArVariant.Zoom">Fill frame</option>
+            <option :value="ArVariant.None">Unconstrained</option>
+          </select>
+        </div>
+      </div>
 
       <!-- Default stretch -->
       <div class="field">
@@ -276,7 +314,7 @@
           >
             <option
               v-if="!isDefaultConfiguration"
-              :value="JSON.stringify({useDefault: true})"
+              :value="JSON.stringify(StretchType.Default)"
             >
               Use default ({{getCommandValue(settings?.active.commands.stretch, siteSettings.defaultSettings.defaults.stretch)}})
             </option>
@@ -301,7 +339,7 @@
           >
             <option
               v-if="!isDefaultConfiguration"
-              :value="JSON.stringify({useDefault: true})"
+              :value="JSON.stringify({x: VideoAlignmentType.Default, y: VideoAlignmentType.Default})"
             >
               Use default ({{getAlignmentLabel(siteSettings.defaultSettings.defaults.alignment)}})
             </option>
@@ -321,8 +359,8 @@
         <div class="label">Persist crop, stretch, and alignment between videos</div>
         <div class="select">
           <select
-            v-model="siteDefaultCropPersistence"
-            @click="setOption('persistCSA', $event)"
+            :value="siteDefaultCropPersistence"
+            @change="setOption('persistCSA', $event)"
           >
             <option
               v-if="!isDefaultConfiguration"
@@ -373,6 +411,7 @@ import EmbeddedContentSettingsOverridePolicy from '@src/common/enums/EmbeddedCon
 import { InputHandlingMode } from '@src/common/enums/InputHandlingMode.enum';
 import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
 import { ArVariant } from '@src/common/interfaces/ArInterface';
+import StretchType from '@src/common/enums/StretchType.enum';
 
 export default defineComponent({
   components: {
@@ -391,6 +430,8 @@ export default defineComponent({
       CropModePersistence,
       AspectRatioType,
       ArVariant,
+      StretchType,
+      VideoAlignmentType,
       ExtensionMode,
       EmbeddedContentSettingsOverridePolicy,
       InputHandlingMode,
@@ -425,16 +466,25 @@ export default defineComponent({
       return this.computeDefaultOptionLabels();
     },
     siteDefaultCrop() {
-      return this.siteSettings.raw?.defaults?.crop ? JSON.stringify(this.siteSettings.raw?.defaults?.crop) : JSON.stringify({useDefault: true});
+      const crop = this.siteSettings.raw?.defaults?.crop ?? {type: AspectRatioType.Automatic};
+      delete crop.variant;
+      console.log('————————————————————————————— crop:', crop)
+      return JSON.stringify(crop);
     },
     siteDefaultStretch() {
-      return this.siteSettings.raw?.defaults?.stretch ? JSON.stringify(this.siteSettings.raw?.defaults?.stretch) : JSON.stringify({useDefault: true});
+      return this.siteSettings.raw?.defaults?.stretch ? JSON.stringify(this.siteSettings.raw?.defaults?.stretch) : JSON.stringify(StretchType.Default);
     },
     siteDefaultAlignment() {
-      return this.siteSettings.raw?.defaults?.alignment ? JSON.stringify(this.siteSettings.raw?.defaults?.alignment) : JSON.stringify({useDefault: true});
+      return this.siteSettings.raw?.defaults?.alignment ? JSON.stringify(this.siteSettings.raw?.defaults?.alignment) : JSON.stringify({x: VideoAlignmentType.Default, y: VideoAlignmentType.Default});
+    },
+    siteDefaultCropFitAard() {
+      return this.siteSettings.raw?.defaults?.cropFitAard ?? (this.isDefaultConfiguration ? ArVariant.Crop : ArVariant.Default);
     },
     siteDefaultCropFit() {
-      return this.siteSettings.raw?.defaults?.cropFit ? JSON.stringify(this.siteSettings.raw?.defaults?.cropFit) : JSON.stringify({useDefault: true});
+      return this.siteSettings.raw?.defaults?.cropFit ?? (this.isDefaultConfiguration ? ArVariant.Crop : ArVariant.Default);
+    },
+    siteDefaultCropPersistence() {
+      return this.siteSettings.raw?.persistCSA ?? CropModePersistence.Default;
     },
     defaultPersistenceLabel() {
       switch (this.siteSettings.defaultSettings.persistCSA) {
@@ -551,14 +601,10 @@ export default defineComponent({
 
     getDefaultCrop(command) {
       for (const cmd of this.settings?.active.commands.crop) {
-        if (JSON.stringify(cmd.arguments) === JSON.stringify(command)) {
+        const args = cmd.arguments;
+        delete args.variant;
+        if (JSON.stringify(args) === JSON.stringify(command)) {
           return cmd.label;
-        }
-      }
-
-      for (const cmd of this.settings?.active.commands.zoom) {
-        if (JSON.stringify({...cmd.arguments, variant: ArVariant.Zoom}) === JSON.stringify(command)) {
-          return `${cmd.label} (zoom)`;
         }
       }
 
@@ -616,13 +662,36 @@ export default defineComponent({
       // if argument is json, parse json. Otherwise, pass the value as-is
       try {
         const intermediary = value !== undefined ? JSON.parse(value) : undefined;
-        commandArguments = {...intermediary, ...extras};
+        // spreading a number (e.g. cropFit) would turn it into {}
+        commandArguments = (intermediary !== null && typeof intermediary === 'object')
+          ? {...intermediary, ...extras}
+          : intermediary;
       } catch(e) {
         commandArguments = value;
       }
 
       if (commandArguments.useDefault) {
-        commandArguments = undefined;
+        switch (option) {
+          case 'defaults.crop':
+            commandArguments = {type: AspectRatioType.Default}
+            break;
+          case 'defaults.cropFit':
+          case 'defaults.cropFitAard':
+          case 'defaults.stretch':
+          case 'persistCSA':
+            commandArguments = StretchType.Default; // -1 for all of the above
+            break;
+          case 'defaults.alignment':
+            commandArguments = {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default};
+            break;
+        }
+      }
+
+      // set correct variant, if setting crop
+      if (option === 'defaults.crop') {
+        // when saving, we remove 'variant' property. If variant is missing from crop command argument,
+        // defaults.cropFit and defaults.cropFitAard will be used (as needed)
+        delete commandArguments.variant;
       }
 
       await this.siteSettings.set(option, commandArguments, {reload: false});

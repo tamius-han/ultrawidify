@@ -17,115 +17,80 @@
       </div>
     </div>
 
-    <!-- Compact mode -->
-    <template v-if="settings.active.ui.popup?.aspectRatioInterface === 'compact'">
-      <h3>Crop & zoom</h3>
+    <h3>Crop & zoom</h3>
 
-      <div class="button-container">
-        <ShortcutButton
-          v-for="(command, index) of settings?.active.commands.crop.filter(x => x.arguments?.type !== AspectRatioType.Fixed && x.arguments?.variant === undefined)"
-          :key="index"
-          :classList="{
-            'border !border-primary-700 text-primary-500 active-option': currentCropCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
-          }"
-          :label="command.label"
-          :shortcut="getKeyboardShortcutLabel(command)"
-          @click="execAction(command)"
-        ></ShortcutButton>
-      </div>
+    <div class="button-container">
+      <ShortcutButton
+        v-for="(command, index) of settings?.active.commands.crop.filter(x => x.arguments?.type !== AspectRatioType.Fixed && x.arguments?.variant === undefined)"
+        :key="index"
+        :classList="{
+          'border !border-primary-700 text-primary-500 active-option': currentCropCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
+        }"
+        :label="command.label"
+        :shortcut="getKeyboardShortcutLabel(command)"
+        @click="execAction(command)"
+      ></ShortcutButton>
+    </div>
 
-      <div class="w-full">
-        <div class="text-white font-mono text-semibold mt-4 mb-1">Specific aspect ratio:</div>
+    <div class="w-full">
+      <div class="text-white font-mono text-semibold mt-4 mb-1">Specific aspect ratio:</div>
 
-        <div class="w-full flex flex-row gap-2 flex-wrap">
-          <template v-for="(command, index) of settings?.active.commands.crop.sort((a, b) => (a.arguments.ratio ?? 0) - (b.arguments.ratio ?? 0))" :key="index">
-            <template v-if="command.arguments?.type === AspectRatioType.Fixed && command.arguments?.variant === undefined">
-              <ShortcutButton
-                :classList="{
-                  'w-24': true,
-                  'border !border-transparent-700 text-primary-500 !bg-transparent active-option': currentCropCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
-                }"
-                :label="command.label"
-                :shortcut="getKeyboardShortcutLabel(command)"
-                @click="execAction(command)"
-              ></ShortcutButton>
-            </template>
+      <div class="w-full flex flex-row gap-2 flex-wrap">
+        <template v-for="(command, index) of settings?.active.commands.crop.sort((a, b) => (a.arguments.ratio ?? 0) - (b.arguments.ratio ?? 0))" :key="index">
+          <template v-if="command.arguments?.type === AspectRatioType.Fixed && command.arguments?.variant === undefined">
+            <ShortcutButton
+              :classList="{
+                'w-24': true,
+                'border !border-transparent-700 text-primary-500 !bg-transparent active-option': currentCropCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
+              }"
+              :label="command.label"
+              :shortcut="getKeyboardShortcutLabel(command)"
+              @click="execAction(command)"
+            ></ShortcutButton>
           </template>
-        </div>
-
-        <div class="field mt-2">
-          <div class="pr-6">Video fit:</div>
-          <div class="select">
-            <select v-model="activeArVariant">
-              <option :value="ArVariant.Default">
-                Default (<template v-if="siteSettings">
-                  <template v-if="siteSettings.data.defaults.cropFit === ArVariant.Crop">Fit video</template>
-                  <template v-else-if="siteSettings.data.defaults.cropFit === ArVariant.Zoom">Fill frame</template>
-                  <template v-else-if="siteSettings.data.defaults.cropFit === ArVariant.None">None</template>
-                </template>)
-              </option>
-              <option :value="ArVariant.Crop">Fit video</option>
-              <option :value="ArVariant.Zoom">Fill frame</option>
-              <option :value="ArVariant.None">None</option>
-            </select>
-          </div>
-          <div class="opacity-50 ml-4 text-sm">Default crop/zoom and fit can be changed in site settings.</div>
-        </div>
-      </div>
-    </template>
-    <!-- legacy mode -->
-    <template v-else>
-      <!-- 'Change UI' options is a tiny bit in upper right corner. -->
-      <h3>Crop</h3>
-      <div class="button-container">
-        <ShortcutButton
-          v-for="(command, index) of settings?.active.commands.crop"
-          :key="index"
-          :classList="{
-            'border !border-primary-700 text-primary-500 active-option': currentCropCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
-          }"
-          :label="command.label"
-          :shortcut="getKeyboardShortcutLabel(command)"
-          @click="execAction(command)"
-        ></ShortcutButton>
+        </template>
       </div>
 
-      <h3>Zoom</h3>
-      <div class="button-container">
-        <ShortcutButton
-          v-for="(command, index) of settings?.active.commands.zoom"
-          :key="index"
-          :classList="{
-            'border !border-primary-700 text-primary-500 active-option': currentCropCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
-          }"
-          :label="command.label"
-          :shortcut="getKeyboardShortcutLabel(command)"
-          @click="execAction(command)"
-        ></ShortcutButton>
+      <div class="field mt-2">
+        <div class="pr-6 !shrink-0">Video fit:</div>
+        <div class="select !shrink-0">
+          <select v-model="settings.active.crop.currentVariant" @click="updateCurrentArVariant($event.target.value)">
+            <option :value="ArVariant.Default">
+              Default (<template v-if="siteSettings">
+                <template v-if="siteSettings.data.defaults.cropFit === ArVariant.Crop">Fit video</template>
+                <template v-else-if="siteSettings.data.defaults.cropFit === ArVariant.Zoom">Fill frame</template>
+                <template v-else-if="siteSettings.data.defaults.cropFit === ArVariant.None">Unconstrained</template>
+              </template>)
+            </option>
+            <option :value="ArVariant.Crop">Fit video</option>
+            <option :value="ArVariant.Zoom">Fill frame</option>
+            <option :value="ArVariant.None">Unconstrained</option>
+          </select>
+        </div>
+        <div class="opacity-50 ml-4 text-sm shrink">Changes to this setting will apply the next time you set manual aspect ratio. Defaults can be changed in site settings.</div>
       </div>
-    </template>
+    </div>
+
     <div class="flex flex-row gap-8 mt-4 mb-1 items-center">
       <div class="text-white font-mono text-semibold">Free-form zoom</div>
-      <template v-if="settings.active.ui.popup?.aspectRatioInterface === 'compact'">
-        <div class="flex flex-row gap-2">
-          <div
-            v-for="(command, index) of settings?.active.commands.zoom.filter(x => x.action === 'change-zoom').sort((a, b) => a.arguments.zoom - b.arguments.zoom)"
-            :key="index"
-            class="bg-black border border-stone-700 px-4 py-1"
-          >
-            {{ command.label }}<span v-if="getKeyboardShortcutLabel(command)" class="opacity-50"> ({{ getKeyboardShortcutLabel(command) }})</span>
-          </div>
+      <div class="flex flex-row gap-2">
+        <div
+          v-for="(command, index) of settings?.active.commands.zoom.filter(x => x.action === 'change-zoom').sort((a, b) => a.arguments.zoom - b.arguments.zoom)"
+          :key="index"
+          class="bg-black border border-stone-700 px-4 py-1"
+        >
+          {{ command.label }}<span v-if="getKeyboardShortcutLabel(command)" class="opacity-50"> ({{ getKeyboardShortcutLabel(command) }})</span>
         </div>
-        <div class="flex flex-row gap-2">
-          <div
-            v-for="(command, index) of settings?.active.commands.zoom.filter(x => x.action === 'set-zoom').sort((a, b) => a.arguments.zoom - b.arguments.zoom)"
-            :key="index"
-            class="bg-black border border-stone-700 px-4 py-1"
-          >
-            {{ command.label }}<span v-if="getKeyboardShortcutLabel(command)" class="opacity-50"> ({{ getKeyboardShortcutLabel(command) }})</span>
-          </div>
+      </div>
+      <div class="flex flex-row gap-2">
+        <div
+          v-for="(command, index) of settings?.active.commands.zoom.filter(x => x.action === 'set-zoom').sort((a, b) => a.arguments.zoom - b.arguments.zoom)"
+          :key="index"
+          class="bg-black border border-stone-700 px-4 py-1"
+        >
+          {{ command.label }}<span v-if="getKeyboardShortcutLabel(command)" class="opacity-50"> ({{ getKeyboardShortcutLabel(command) }})</span>
         </div>
-      </template>
+      </div>
     </div>
     <div class="flex flex-row">
 
@@ -201,36 +166,20 @@
     </div>
 
     <h3>Stretch</h3>
-    <template v-if="settings.active.ui.popup?.aspectRatioInterface === 'compact'">
-      <div class="w-full flex flex-row gap-2 flex-wrap">
-        <ShortcutButton
-          v-for="(command, index) of settings?.active.commands.stretch"
-          :key="index"
-          :classList="{
-            'w-24': command.arguments.type !== StretchType.Conditional,
-            'w-28': command.arguments.type === StretchType.Conditional,
-            'border border-primary-700 text-primary-500 active-option': currentStretchCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
-          }"
-          :label="command.label"
-          :shortcut="getKeyboardShortcutLabel(command)"
-          @click="execAction(command)"
-        ></ShortcutButton>
-      </div>
-    </template>
-    <template v-else>
-      <div class="button-container">
-        <ShortcutButton
-          v-for="(command, index) of settings?.active.commands.stretch"
-          :key="index"
-          :classList="{
-            'border border-primary-700 text-primary-500 active-option': currentStretchCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
-          }"
-          :label="command.label"
-          :shortcut="getKeyboardShortcutLabel(command)"
-          @click="execAction(command)"
-        ></ShortcutButton>
-      </div>
-    </template>
+    <div class="w-full flex flex-row gap-2 flex-wrap">
+      <ShortcutButton
+        v-for="(command, index) of settings?.active.commands.stretch"
+        :key="index"
+        :classList="{
+          'w-24': command.arguments.type !== StretchType.Conditional,
+          'w-28': command.arguments.type === StretchType.Conditional,
+          'border border-primary-700 text-primary-500 active-option': currentStretchCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
+        }"
+        :label="command.label"
+        :shortcut="getKeyboardShortcutLabel(command)"
+        @click="execAction(command)"
+      ></ShortcutButton>
+    </div>
 
     <h3>Align video</h3>
     <div
@@ -327,12 +276,6 @@ export default defineComponent({
           this.align(x,y);
         });
       }
-    }
-
-    if (!this.siteSettings?.raw?.defaults.cropFit || this.siteSettings.raw?.defaults.cropFit === ArVariant.Default) {
-      this.activeArVariant = this.settings.active.sites['@global'].defaults.cropFit ?? ArVariant.Crop;
-    } else {
-      this.activeArVariant = this.siteSettings.data.defaults.cropFit;
     }
 
     this.eventBus.send('get-ar');
@@ -447,6 +390,12 @@ export default defineComponent({
       if (this.alignmentIndicatorSvg) {
         setVideoAlignmentIndicatorState(this.alignmentIndicatorSvg, scalingParams.videoAlignment.x, scalingParams.videoAlignment.y);
       }
+    },
+
+    updateCurrentArVariant(value: ArVariant) {
+      this.settings.active.crop.currentVariant = +value;
+      // this.eventBus.send('set-ar-variant', {variant: value});
+      this.settings.saveWithoutReload({suppressBanner: true});
     }
   }
 });

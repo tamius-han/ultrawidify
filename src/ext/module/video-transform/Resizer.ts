@@ -120,6 +120,13 @@ class Resizer {
         this.eventBus.send('broadcast-scaling-params', this.currentScalingParams);
       }
     }],
+    'set-ar-variant': [{
+      function: (config: any) => {
+        if (config.variant) {
+          this.setAr({...this.lastAr, variant: config.variant});
+        }
+      }
+    }],
     'set-ar': [{
       function: (config: any) => {
         this.manualZoom = false; // this only gets called from UI or keyboard shortcuts, making this action safe.
@@ -133,7 +140,7 @@ class Resizer {
             this.nextCycleOptionIndex = (lastArIndex + 1) % this.cycleableAspectRatios.length;
           }
 
-          this.setAr({...this.cycleableAspectRatios[this.nextCycleOptionIndex], variant: ArVariant.Crop});
+          this.setAr({...this.cycleableAspectRatios[this.nextCycleOptionIndex], variant: config.variant ?? ArVariant.Crop});
           this.nextCycleOptionIndex = (this.nextCycleOptionIndex + 1) % this.cycleableAspectRatios.length;
         }
       }
@@ -329,6 +336,7 @@ class Resizer {
       return;
     }
 
+
     // Some options require a bit more testing re: whether they make sense
     // if they don't, we refuse to update aspect ratio until they do
     if (ar.type === AspectRatioType.AutomaticUpdate || ar.type === AspectRatioType.Fixed) {
@@ -338,7 +346,7 @@ class Resizer {
     }
 
     // Only update aspect ratio if there's a difference between the old and the new state
-    if (!this.lastAr || ar.type !== this.lastAr.type || ar.ratio !== this.lastAr.ratio) {
+    if (!this.lastAr || ar.type !== this.lastAr.type || ar.ratio !== this.lastAr.ratio || ar.variant !== this.lastAr.variant) {
       this.setAr(ar);
     }
   }
@@ -353,7 +361,7 @@ class Resizer {
    */
   private handleAard(ar: Ar): boolean {
     if (ar.type === AspectRatioType.Automatic) {
-      this.videoData.aard?.startCheck(ar.variant);
+      this.videoData.aard?.startCheck(ar.variant, true);
       return false;
     } else if (ar.type !== AspectRatioType.AutomaticUpdate) {
       this.videoData.aard?.stop();
@@ -367,6 +375,14 @@ class Resizer {
   async setAr(ar: Ar, lastAr?: Ar, flags?: {manualZoom?: boolean}) {
     if (this.destroyed || ar == null) {
       return;
+    }
+
+    if (!ar.variant) {
+      if (ar.type === AspectRatioType.Automatic || ar.type === AspectRatioType.AutomaticUpdate) {
+        ar.variant = this.siteSettings.data.defaults.cropFitAard;
+      } else {
+        ar.variant = this.siteSettings.data.defaults.cropFit;
+      }
     }
 
     this.logger.info('setAr', '%cCalling setAr with arguments:', 'color: #fa6;', {...ar, type: AspectRatioType[ar.type] }, 'last ar:', lastAr);
