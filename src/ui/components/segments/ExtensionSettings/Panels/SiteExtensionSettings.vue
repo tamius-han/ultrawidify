@@ -468,7 +468,6 @@ export default defineComponent({
     siteDefaultCrop() {
       const crop = this.siteSettings.raw?.defaults?.crop ?? {type: AspectRatioType.Automatic};
       delete crop.variant;
-      console.log('————————————————————————————— crop:', crop)
       return JSON.stringify(crop);
     },
     siteDefaultStretch() {
