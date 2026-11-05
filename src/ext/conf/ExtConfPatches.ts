@@ -595,7 +595,7 @@ const ExtensionConfPatch = Object.freeze([
     }
   },
   {
-    forVersion: '7.0.9001',
+    forVersion: '7.0.9002',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
 
       // crop options previously did not have ArVariant specified. This is changing.
@@ -608,6 +608,7 @@ const ExtensionConfPatch = Object.freeze([
       const defaultDefaults = {
         crop: {type: AspectRatioType.Default},
         cropFit: ArVariant.Default,
+        cropFitAard: ArVariant.Default,
         stretch: {type: StretchType.Default},
         alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default}
       };
@@ -617,6 +618,7 @@ const ExtensionConfPatch = Object.freeze([
       for (const site in userOptions.sites) {
         if (site === '@global') {
           userOptions.sites['@global'].defaults!.cropFit = ArVariant.Crop;
+          userOptions.sites['@global'].defaults!.cropFitAard = ArVariant.Crop;
           continue;
         }
 

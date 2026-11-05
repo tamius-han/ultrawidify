@@ -173,9 +173,7 @@ const ExtensionConf: SettingsInterface = {
   },
 
   crop: {
-    default: {
-      type: AspectRatioType.Automatic,
-    }
+    currentVariant: ArVariant,
   },
   zoom: {
     minLogZoom: -1,
@@ -277,6 +275,7 @@ const ExtensionConf: SettingsInterface = {
       defaults: {
         crop: {type: AspectRatioType.Automatic},
         cropFit: ArVariant.Crop,
+        cropFitAard: ArVariant.Crop,
         stretch: {type: StretchType.NoStretch},
         alignment: {x: VideoAlignmentType.Center, y: VideoAlignmentType.Center},
       },
@@ -309,6 +308,7 @@ const ExtensionConf: SettingsInterface = {
       defaults: {
         crop: {type: AspectRatioType.Default},
         cropFit: ArVariant.Default,
+        cropFitAard: ArVariant.Default,
         stretch: {type: StretchType.Default},
         alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default}
       },

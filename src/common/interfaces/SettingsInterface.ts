@@ -243,7 +243,7 @@ interface SettingsInterface {
   restrictions?: RestrictionsSettings;
 
   crop: {
-    default: any;
+    currentVariant: ArVariant;
   },
   stretch: {
     default: any;
@@ -373,6 +373,7 @@ export interface SiteSettingsInterface {
   defaults: {       // must be defined in @global and @empty
     crop: Ar, //{type: AspectRatioType, [x: string]: any},
     cropFit: ArVariant,
+    cropFitAard: ArVariant,
     stretch: {type: StretchType, ratio?: number},
     alignment: {x: VideoAlignmentType, y: VideoAlignmentType},
   }
