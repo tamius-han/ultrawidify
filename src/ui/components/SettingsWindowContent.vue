@@ -77,7 +77,7 @@
           </div>
 
           <div
-            v-if="settings.active.preventReload"
+            v-if="settings.active.preventReload && !settings.suppressBanner"
             class="info-box"
           >
             <div class="icon-container">

@@ -127,7 +127,8 @@ export default({
     }
   },
   mounted() {
-    this.settings.saveWhatsNewChecked();
+    this.settings.active.whatsNewChecked = true;
+    this.settings.saveWithoutReload({suppressBanner: true});
   }
 });
 </script>

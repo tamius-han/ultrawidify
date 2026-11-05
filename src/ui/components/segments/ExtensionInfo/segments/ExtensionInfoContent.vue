@@ -76,7 +76,8 @@ export default({
   mounted() {
     this.addonSource = BrowserDetect.processEnvBrowser;
     this.addonChannel = BrowserDetect.processEnvChannel;
-    this.settings.saveWhatsNewChecked();
+    this.settings.active.whatsNewChecked = true;
+    this.settings.saveWithoutReload({suppressBanner: true});
   }
 });
 </script>

@@ -1,3 +1,4 @@
+import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
 import CropModePersistence from '@src/common/enums/CropModePersistence.enum';
 import EmbeddedContentSettingsOverridePolicy from '@src/common/enums/EmbeddedContentSettingsOverridePolicy.enum';
 import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
@@ -210,9 +211,16 @@ export class SiteSettings {
       this.data.defaults = _cp(this.defaultSettings.defaults);
     } else {
       // 'undefined' default here means use default
-      this.data.defaults.crop = this.data.defaults.crop ?? _cp(this.defaultSettings.defaults.crop);
+      if ([undefined, AspectRatioType.Default].includes(this.data.defaults.crop?.type)) {
+        this.data.defaults.crop = _cp(this.defaultSettings.defaults.crop);
+      }
 
-      this.data.defaults.cropFit = this.data.defaults.cropFit ?? _cp(this.defaultSettings.defaults.cropFit) ?? ArVariant.Crop;
+      if (typeof this.data.defaults.cropFit !== 'number' || this.data.defaults.cropFit === ArVariant.Default) {
+        this.data.defaults.cropFit = _cp(this.defaultSettings.defaults.cropFit) ?? ArVariant.Crop;
+      }
+      if (typeof this.data.defaults.cropFitAard !== 'number' || this.data.defaults.cropFitAard === ArVariant.Default) {
+        this.data.defaults.cropFitAard = _cp(this.defaultSettings.defaults.cropFitAard) ?? ArVariant.Crop;
+      }
 
       // these can contain default options, but can also be undefined
       if ([undefined, StretchType.Default].includes(this.data.defaults.stretch?.type)) {

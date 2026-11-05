@@ -23,6 +23,7 @@ interface SettingsOptions {
 
 interface SetSettingsOptions {
   forcePreserveVersion?: boolean,
+  suppressBanner?: boolean;
 }
 
 
@@ -33,6 +34,7 @@ const SETTINGS_LOGGER_STYLES = {
 class Settings {
   //#region flags
   useSync: boolean = false;
+  suppressBanner: boolean = false;
   version!: string;
   //#endregion
 
@@ -447,6 +449,7 @@ class Settings {
   }
 
   async save(options?: SetSettingsOptions) {
+    this.suppressBanner = !!options?.suppressBanner;
     if (Debug.debug && Debug.storage) {
       console.log("[Settings::save] Saving active settings — save options", options, "; settings:", this.active);
     }
@@ -456,14 +459,8 @@ class Settings {
   }
 
 
-  // Saves without touching preventReload; storage listener ignores whatsNewChecked, so no banner.
-  async saveWhatsNewChecked(options?: SetSettingsOptions) {
-    this.active.whatsNewChecked = true;
-    this.active.lastModified = new Date();
-    await this.set(this.active, options);
-  }
-
   async saveWithoutReload(options?: SetSettingsOptions) {
+    this.suppressBanner = !!options?.suppressBanner;
     this.active.preventReload = true;
     this.active.lastModified = new Date();
     await this.set(this.active, options);
@@ -480,22 +477,6 @@ class Settings {
 
   getDefaultSettings(): SettingsInterface {
     return JSON.parse(JSON.stringify(this.default));
-  }
-
-  /**
-   * Gets default site configuration. Only returns essential settings.
-   * @returns
-   */
-  getDefaultSiteConfiguration() {
-    return {
-      type: 'user-added',
-      defaultCrop: {
-        type: AspectRatioType.Automatic,    // AARD is enabled by default
-      },
-      defaultStretch: {
-        type: StretchType.NoStretch,        // because we aren't uncultured savages
-      },
-    }
   }
 
   getSiteSettings(options: GetSiteSettingsOptions = {site: window.location.hostname}): SiteSettings {
