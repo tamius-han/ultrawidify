@@ -19,9 +19,10 @@ import { UwuiWindow } from './UwuiWindow';
 
 import { createApp } from 'vue';
 import SettingsWindowContent from '@components/SettingsWindowContent.vue';
-import { Ar } from '@src/common/interfaces/ArInterface';
+import { Ar, ArVariant } from '@src/common/interfaces/ArInterface';
 import { Stretch } from '@src/common/interfaces/StretchInterface';
 import { ScalingParamsBroadcast } from '@src/common/interfaces/ScalingParamsBroadcast.interface';
+import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
 // import jsonEditorCSS from 'vanilla-jsoneditor/themes/jse-theme-dark.css?inline'
 
 if (process.env.CHANNEL !== 'stable'){
@@ -253,6 +254,55 @@ class UI {
 
     const supportLevelInfo = this.getSiteSupportLevelForDisplay();
 
+
+    const getCommands = (variant: ArVariant) => {
+      return [
+        // Non-fixed aspect ratio options.
+        ...(
+          this.settings.active.commands?.crop?.filter(
+            x => x.arguments?.variant === variant
+            && (
+              x.arguments?.type !== AspectRatioType.Fixed
+              && x.arguments?.type !== AspectRatioType.Cycle
+            )
+          )?.map(
+            (x: CommandInterface) => {
+              return {
+                label: x.label,
+                command: x,
+                customId: `uw-${x.action}-${x.arguments.type}-${x.arguments.variant}-${x.arguments.ratio ?? 'x'}`.replaceAll('.', '_'),
+                action: () => this.executeCommand(x)
+              }
+            }
+          ) ?? []
+        ),
+
+        // Fixed aspect ratio options.
+        ... (
+          this.settings.active.commands?.crop?.filter(
+            x => x.arguments?.variant === variant && (
+              x.arguments?.type === AspectRatioType.Fixed
+            )
+          )?.sort(    // wider aspect ratios should be closer to the top
+            (b, a) => (a.arguments?.ratio ?? 0) - (b.arguments?.ratio ?? 0)
+          )?.map(
+            (x: CommandInterface) => {
+              return {
+                label: x.label,
+                command: x,
+                customId: `uw-${x.action}-${x.arguments.type}-${x.arguments.variant}-${x.arguments.ratio ?? 'x'}`.replaceAll('.', '_'),
+                action: () => this.executeCommand(x)
+              }
+            }
+          ) ?? []
+        )
+      ];
+    };
+
+
+
+
+
     if (this.uiConfig.parentElement) {
       const menuConfig = {
         isGlobal: this.isGlobal,
@@ -295,16 +345,19 @@ class UI {
             `
           },
           {
-            label: 'Crop',
+            label: 'Crop (fit video)',
             customId: 'uw-crop',
-            subitems: this.settings.active.commands?.crop?.map((x: CommandInterface) => {
-              return {
-                label: x.label,
-                command: x,
-                customId: `uw-${x.action}-${x.arguments.type}-${x.arguments.ratio ?? 'x'}`.replaceAll('.', '_'),
-                action: () => this.executeCommand(x)
-              }
-            })
+            subitems: getCommands(ArVariant.Crop)
+          },
+          {
+            label: 'Zoom (fill frame)',
+            customId: 'uw-zoom-fill',
+            subitems: getCommands(ArVariant.Zoom)
+          },
+          {
+            label: 'Zoom (unconstrained)',
+            customId: 'uw-zoom-unconstrained',
+            subitems: getCommands(ArVariant.None)
           },
           {
             label: 'Stretch',
@@ -319,22 +372,18 @@ class UI {
             })
           },
           {
-            label: 'Zoom (presets)',
-            customId: 'uw-zoom',
-            subitems: [
-              ... this.settings.active.commands.zoom?.map((x: CommandInterface) => {
-                return {
-                  label: x.label,
-                  command: x,
-                  customId: `uw-${x.action}-${x.arguments.type}-${x.arguments.ratio ?? 'x'}`.replaceAll('.', '_'),
-                  action: () => this.executeCommand(x)
-                }
-              }),
-            ]
-          },
-          {
             label: 'Zoom (free-form)',
             subitems: [
+              ...(
+                this.settings.active.commands?.zoom?.map((x: CommandInterface) => {
+                  return {
+                    label: x.label,
+                    command: x,
+                    customId: `uw-${x.action}-${x.arguments.type}-${x.arguments.ratio ?? 'x'}`.replaceAll('.', '_'),
+                    action: () => this.executeCommand(x)
+                  }
+                }) ?? []
+              ),
               {
                 customHTML: `
                   <div class="uw-freeform-zoom-container">

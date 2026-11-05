@@ -7,6 +7,13 @@ import { ScalingParamsBroadcast } from '@src/common/interfaces/ScalingParamsBroa
 import extensionCss from '@src/main.css?inline';
 import { setVideoAlignmentIndicatorState } from '@src/ui/utils/video-alignment-indicator-handling';
 
+
+const variant2GroupMap: any = {
+  [ArVariant.Crop]: 'crop',
+  [ArVariant.Zoom]: 'zoom-fill',
+  [ArVariant.None]: 'zoom-unconstrained'
+}
+
 export class ClientMenu {
 
   private host!: HTMLDivElement;
@@ -438,26 +445,26 @@ export class ClientMenu {
 
     // we only set active options when manual zoom is NOT set
     if (!scalingParams.manualZoom) {
-      const cropMenuGroup = scalingParams.lastAr.variant === ArVariant.Zoom ? 'zoom' : 'crop';
-      const cropCommand = scalingParams.lastAr.variant === ArVariant.Zoom ? 'set-ar-zoom' : 'set-ar';
+      const cropMenuGroup =  scalingParams.lastAr.variant !== undefined ? variant2GroupMap[scalingParams.lastAr.variant] : 'invalid';
+      const cropCommand = 'set-ar';
 
       let typeCrop;
       switch (scalingParams.lastAr.type) {
         case AspectRatioType.Automatic:
         case AspectRatioType.AutomaticUpdate:
-          typeCrop = `${AspectRatioType.Automatic}-x`;
+          typeCrop = `${AspectRatioType.Automatic}-${scalingParams.lastAr.variant}-x`;
           break;
         case AspectRatioType.Cover:
         case AspectRatioType.FitWidth:
         case AspectRatioType.FitHeight:
-          typeCrop = `${scalingParams.lastAr.type}-x`;
+          typeCrop = `${scalingParams.lastAr.type}-${scalingParams.lastAr.variant}-x`;
           break;
         case AspectRatioType.Cycle:
         case AspectRatioType.Initial:
           typeCrop = 'non-selectable';
           break;
         default:
-          typeCrop = `${scalingParams.lastAr.type}-${scalingParams.lastAr.ratio ?? 'x'}`;
+          typeCrop = `${scalingParams.lastAr.type}-${scalingParams.lastAr.variant}-${scalingParams.lastAr.ratio ?? 'x'}`;
       }
 
       const activeGroupId = `#uw-${cropMenuGroup}`.replaceAll('.', '_');
@@ -542,7 +549,6 @@ export class ClientMenu {
     if (videoAlignmentIndicator) {
       setVideoAlignmentIndicatorState(videoAlignmentIndicator, scalingParams.videoAlignment.x, scalingParams.videoAlignment.y);
     }
-
 
   }
 }
