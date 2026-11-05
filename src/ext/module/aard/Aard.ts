@@ -254,8 +254,19 @@ export class Aard {
   /**
    * Checks whether autodetection can run
    */
-  startCheck(arVariant?: ArVariant) {
+  startCheck(arVariant?: ArVariant, force: boolean = false) {
     this.arVariant = arVariant ?? this.videoData.resizer?.lastAr?.variant;
+
+    // unless explicitly requested, only run when current crop is automatic
+    const currentCropType = this.videoData.resizer?.lastAr?.type;
+    if (
+      !force
+      && currentCropType !== AspectRatioType.Automatic
+      && currentCropType !== AspectRatioType.AutomaticUpdate
+    ) {
+      this.stop();
+      return;
+    }
 
     if (!this.videoData.player) {
       // console.warn('Player not detected!');
