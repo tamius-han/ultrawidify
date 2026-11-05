@@ -219,7 +219,6 @@ export interface InPlayerUIOptions  {
 };
 
 export interface PopupUIOptions {
-  aspectRatioInterface: 'compact' | 'legacy'
 }
 
 interface SettingsInterface {

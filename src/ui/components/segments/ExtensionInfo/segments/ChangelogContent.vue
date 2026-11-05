@@ -1,6 +1,23 @@
 <template>
   <p class="mb-4">Full changelog for older versions <a href="https://github.com/tamius-han/ultrawidify/blob/master/CHANGELOG.md" target="_blank">is available here</a>.</p>
 
+  <p>Changes in version <b class="font-semibold text-primary-400">7.1.0</b>:</p>
+  <ul>
+    <li>Popup UI was made more compact</li>
+    <li>UI now fits more aspect ratio with less clutter</li>
+    <li>
+      Combined crop and zoom sections into a single control. Switching between cropping and zooming has been delegated to a dropdown menu, as
+      it is assumed that people generally stick to only one of these modes at a time.
+    </li>
+    <li>
+      There's three crop/zoom modes now. Previously, extension did crop (which ensures no part of the video is cut off) and zoom (which ensures no letterboxing).
+      This version introduces unconstrained zoom, which zooms into video without trying to ensure a specific fit.
+    </li>
+    <li>
+      Aspect ratios are sorted.
+    </li>
+  </ul>
+
   <p>Changes in version <b class="font-semibold text-primary-400">7.0.0</b>:</p>
 
   <p><small>Yes, I reckon this is enough to warrant upping the <a href="https://mastodon.online/@nikitonsky/113691789641950263" target="_blank">proud number</a>.</small></p>

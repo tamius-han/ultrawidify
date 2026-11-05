@@ -14,6 +14,7 @@ import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
 import { ArVariant } from '@src/common/interfaces/ArInterface';
 import SettingsInterface from '@src/common/interfaces/SettingsInterface';
 import { _cp } from '@src/common/utils/_cp';
+import { generateCommands } from '@src/ext/conf/ExtensionConf';
 import { AardPollingOptions } from '@src/ext/module/aard/enums/aard-polling-options.enum';
 import { update } from 'lodash';
 
@@ -57,7 +58,7 @@ const ExtensionConfPatch = Object.freeze([
 
       userOptions.commands.zoom = [{
         action: 'change-zoom',
-        label: 'Zoom +5%',
+        label: '+5%',
         arguments: {
           zoom: 0.05
         },
@@ -75,7 +76,7 @@ const ExtensionConfPatch = Object.freeze([
         actionId: 'change-zoom-10in'
       }, {
         action: 'change-zoom',
-        label: 'Zoom -5%',
+        label: '-5%',
         arguments: {
           zoom: -0.05
         },
@@ -631,6 +632,91 @@ const ExtensionConfPatch = Object.freeze([
           };
         }
       }
+
+      userOptions.crop = {currentVariant: ArVariant.Crop};
+
+      const previousCommands = userOptions.commands;
+      userOptions.commands = generateCommands();
+
+      // shorten labels for 'zoom' commands:
+      for (const cmd of userOptions.commands.zoom ?? []) {
+        if (cmd.label) {
+          cmd.label = cmd.label.replace('Zoom ', '');
+          cmd.label = cmd.label.replace('Reset zoom', 'Reset');
+        }
+      }
+
+      // shorten labels for 'stretch' commands:
+      for (const cmd of userOptions.commands.stretch ?? []) {
+        if (cmd.label) {
+          cmd.label = cmd.label.replaceAll(' stretch ', '');
+          cmd.label = cmd.label.replaceAll('Don\'t', 'None');
+          cmd.label = cmd.label.replaceAll('Stretch t', 'T');
+        }
+      }
+
+      const migrateArShortcuts = (source: any, target: any, toCompact: boolean) => {
+        if (!source || !target) {
+          return;
+        }
+
+        const argKey = (args: any) => JSON.stringify([args?.type, args?.ratio ?? null, args?.offset ?? null]);
+        const flatten = (cmds: any): any[] => Object.values(cmds).flatMap((x: any) => Array.isArray(x) ? x : []);
+        const targetCmds = flatten(target);
+
+        if (toCompact) {
+          const editions: (ArVariant | undefined)[] = [undefined, ArVariant.Crop, ArVariant.None, ArVariant.Zoom];
+
+          for (const srcCmd of flatten(source)) {
+            if (srcCmd.action !== 'set-ar' && srcCmd.action !== 'set-ar-zoom') {
+              continue;
+            }
+            const {variant, ...args} = srcCmd.arguments ?? {};
+            const key = argKey(args);
+            const shortcutEdition = srcCmd.action === 'set-ar-zoom' ? ArVariant.Zoom : undefined;
+
+            for (const edition of editions) {
+              let cmd = targetCmds.find(c => c.action === 'set-ar' && argKey(c.arguments) === key && c.arguments?.variant === edition);
+              if (!cmd) {
+                const {shortcut, ...rest} = srcCmd;
+                cmd = {...rest, action: 'set-ar', arguments: edition === undefined ? {...args} : {...args, variant: edition}};
+                target.crop?.push(cmd);
+                targetCmds.push(cmd);
+              }
+              if (edition === shortcutEdition && srcCmd.shortcut) {
+                cmd.shortcut = {...srcCmd.shortcut};
+              }
+            }
+          }
+          return;
+        }
+
+        // only commands without variant and with ArVariant.Zoom are carried back
+        for (const srcCmd of flatten(source)) {
+          if (srcCmd.action !== 'set-ar') {
+            continue;
+          }
+          const {variant, ...args} = srcCmd.arguments ?? {};
+          if (variant !== undefined && variant !== ArVariant.Zoom) {
+            continue;
+          }
+          const action = variant === ArVariant.Zoom ? 'set-ar-zoom' : 'set-ar';
+          const key = argKey(args);
+
+          let cmd = targetCmds.find(c => c.action === action && argKey(c.arguments) === key);
+          if (!cmd) {
+            const {shortcut, ...rest} = srcCmd;
+            cmd = {...rest, action, arguments: {...args}};
+            target[variant === ArVariant.Zoom ? 'zoom' : 'crop']?.push(cmd);
+            targetCmds.push(cmd);
+          }
+          if (srcCmd.shortcut) {
+            cmd.shortcut = {...srcCmd.shortcut};
+          }
+        }
+      };
+
+      migrateArShortcuts(previousCommands, userOptions.commands, true);
     }
   }
 

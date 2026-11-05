@@ -1,6 +1,10 @@
 # Changelog
 
-## v7.x ("about to land soon™" major)
+## v7.x
+
+### v7.1.0
+
+* Added compact UI mode. This allows UI to fit more aspect ratio options in less space. Additionally, there are now three zoom modes: crop/fit video (ensures video never gets cropped — default for this addon), fill frame (ensures no black bars), unconstrained (zooms to the target aspect ratio as-is)
 
 ### v7.0.0
 

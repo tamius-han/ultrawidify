@@ -162,7 +162,6 @@ const ExtensionConf: SettingsInterface = {
       }
     },
     popup: {
-      aspectRatioInterface: 'compact'
     },
     dev: {
       aardDebugOverlay: {
@@ -349,6 +348,14 @@ const ExtensionConf: SettingsInterface = {
       defaultType: SiteSupportLevel.OfficialSupport,          // if user mucks around with settings, type changes to 'user-defined'.
                                         // We still want to know what the original type was, hence defaultType
 
+      defaults: {
+        crop: {type: AspectRatioType.Default},
+        cropFit: ArVariant.Default,
+        cropFitAard: ArVariant.Default,
+        stretch: {type: StretchType.Default},
+        alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default}
+      },
+
       activeDOMConfig: '@official',
       DOMConfig: {
         '@official': {
@@ -377,6 +384,14 @@ const ExtensionConf: SettingsInterface = {
       defaultType: SiteSupportLevel.OfficialSupport,          // if user mucks around with settings, type changes to 'user-defined'.
                                         // We still want to know what the original type was, hence defaultType
 
+      defaults: {
+        crop: {type: AspectRatioType.Default},
+        cropFit: ArVariant.Default,
+        cropFitAard: ArVariant.Default,
+        stretch: {type: StretchType.Default},
+        alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default}
+      },
+
       activeDOMConfig: '@official',
       DOMConfig: {
         '@official': {
@@ -401,6 +416,14 @@ const ExtensionConf: SettingsInterface = {
       type: SiteSupportLevel.CommunitySupport,
       defaultType: SiteSupportLevel.CommunitySupport,
 
+      defaults: {
+        crop: {type: AspectRatioType.Default},
+        cropFit: ArVariant.Default,
+        cropFitAard: ArVariant.Default,
+        stretch: {type: StretchType.Default},
+        alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default}
+      },
+
       DOMConfig: {
         '@community': {
           type: SiteSupportLevel.CommunitySupport,
@@ -421,6 +444,14 @@ const ExtensionConf: SettingsInterface = {
       enableAard: ExtensionMode.Theater,
       enableKeyboard: InputHandlingMode.Default,
       enableUI: ExtensionMode.FullScreen,
+
+      defaults: {
+        crop: {type: AspectRatioType.Default},
+        cropFit: ArVariant.Default,
+        cropFitAard: ArVariant.Default,
+        stretch: {type: StretchType.Default},
+        alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default}
+      },
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
       type: SiteSupportLevel.CommunitySupport,
@@ -450,6 +481,15 @@ const ExtensionConf: SettingsInterface = {
       enableAard: ExtensionMode.Default,
       enableKeyboard: InputHandlingMode.Enabled,
       enableUI: ExtensionMode.Default,
+
+      defaults: {
+        crop: {type: AspectRatioType.Default},
+        cropFit: ArVariant.Default,
+        cropFitAard: ArVariant.Default,
+        stretch: {type: StretchType.Default},
+        alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default}
+      },
+
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Default,
       overrideWhenEmbedded: EmbeddedContentSettingsOverridePolicy.Default,
       type: SiteSupportLevel.CommunitySupport,
@@ -478,6 +518,14 @@ const ExtensionConf: SettingsInterface = {
       type: SiteSupportLevel.OfficialSupport,
       defaultType: SiteSupportLevel.OfficialSupport,
 
+      defaults: {
+        crop: {type: AspectRatioType.Default},
+        cropFit: ArVariant.Default,
+        cropFitAard: ArVariant.Default,
+        stretch: {type: StretchType.Default},
+        alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default}
+      },
+
       activeDOMConfig: '@official',
       DOMConfig: {
         '@official': {
@@ -498,6 +546,14 @@ const ExtensionConf: SettingsInterface = {
       enableKeyboard: InputHandlingMode.Disabled,
       enableUI: ExtensionMode.Disabled,
 
+      defaults: {
+        crop: {type: AspectRatioType.Default},
+        cropFit: ArVariant.Default,
+        cropFitAard: ArVariant.Default,
+        stretch: {type: StretchType.Default},
+        alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default}
+      },
+
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Never,
       type: SiteSupportLevel.OfficialBlacklist,
       defaultType: SiteSupportLevel.OfficialBlacklist,
@@ -507,6 +563,14 @@ const ExtensionConf: SettingsInterface = {
       enableAard: ExtensionMode.Disabled,
       enableKeyboard: InputHandlingMode.Disabled,
       enableUI: ExtensionMode.Disabled,
+
+      defaults: {
+        crop: {type: AspectRatioType.Default},
+        cropFit: ArVariant.Default,
+        cropFitAard: ArVariant.Default,
+        stretch: {type: StretchType.Default},
+        alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default}
+      },
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Never,
       type: SiteSupportLevel.OfficialBlacklist,
@@ -518,6 +582,14 @@ const ExtensionConf: SettingsInterface = {
       enableKeyboard: InputHandlingMode.Disabled,
       enableUI: ExtensionMode.Disabled,
 
+      defaults: {
+        crop: {type: AspectRatioType.Default},
+        cropFit: ArVariant.Default,
+        cropFitAard: ArVariant.Default,
+        stretch: {type: StretchType.Default},
+        alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default}
+      },
+
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.Never,
       type: SiteSupportLevel.OfficialBlacklist,
       defaultType: SiteSupportLevel.OfficialBlacklist,
@@ -527,6 +599,14 @@ const ExtensionConf: SettingsInterface = {
       enableAard: ExtensionMode.All,
       enableKeyboard: InputHandlingMode.Default,
       enableUI: ExtensionMode.FullScreen,
+
+      defaults: {
+        crop: {type: AspectRatioType.Default},
+        cropFit: ArVariant.Default,
+        cropFitAard: ArVariant.Default,
+        stretch: {type: StretchType.Default},
+        alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default}
+      },
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
       type: SiteSupportLevel.CommunitySupport,
@@ -551,6 +631,14 @@ const ExtensionConf: SettingsInterface = {
       enableKeyboard: InputHandlingMode.Default,
       enableUI: ExtensionMode.FullScreen,
 
+      defaults: {
+        crop: {type: AspectRatioType.Default},
+        cropFit: ArVariant.Default,
+        cropFitAard: ArVariant.Default,
+        stretch: {type: StretchType.Default},
+        alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default}
+      },
+
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
       type: SiteSupportLevel.CommunitySupport,
       defaultType: SiteSupportLevel.CommunitySupport,
@@ -561,6 +649,13 @@ const ExtensionConf: SettingsInterface = {
       enableKeyboard: InputHandlingMode.Default,
       enableUI: ExtensionMode.FullScreen,
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
+      defaults: {
+        crop: {type: AspectRatioType.Default},
+        cropFit: ArVariant.Default,
+        cropFitAard: ArVariant.Default,
+        stretch: {type: StretchType.Default},
+        alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default}
+      },
       type: SiteSupportLevel.CommunitySupport,
       defaultType: SiteSupportLevel.CommunitySupport,
     },
@@ -569,6 +664,14 @@ const ExtensionConf: SettingsInterface = {
       enableAard: ExtensionMode.Theater,
       enableKeyboard: InputHandlingMode.Default,
       enableUI: ExtensionMode.FullScreen,
+
+      defaults: {
+        crop: {type: AspectRatioType.Default},
+        cropFit: ArVariant.Default,
+        cropFitAard: ArVariant.Default,
+        stretch: {type: StretchType.Default},
+        alignment: {x: VideoAlignmentType.Default, y: VideoAlignmentType.Default}
+      },
 
       applyToEmbeddedContent: EmbeddedContentSettingsOverridePolicy.UseAsDefault,
       type: SiteSupportLevel.CommunitySupport,
@@ -621,6 +724,23 @@ export function generateCommands() {
     shortcut: {
       key: 'c',
       code: 'KeyC',
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false,
+      shiftKey: false,
+      onKeyUp: true,
+      onKeyDown: false,
+    }
+  },{
+    action: 'set-ar',
+    label: 'Cover',
+    comment: 'Ensures video covers the player element',
+    arguments: {
+      type: AspectRatioType.Cover
+    },
+    shortcut: {
+      key: 'w',
+      code: 'KeyW',
       ctrlKey: false,
       metaKey: false,
       altKey: false,
@@ -776,7 +896,7 @@ export function generateCommands() {
     }],
     zoom: [{
       action: 'change-zoom',
-      label: 'Zoom +5%',
+      label: '+5%',
       arguments: {
         zoom: 0.05
       },
@@ -794,7 +914,7 @@ export function generateCommands() {
       actionId: 'change-zoom-10in'
     }, {
       action: 'change-zoom',
-      label: 'Zoom -5%',
+      label: '-5%',
       arguments: {
         zoom: -0.05
       },
@@ -812,7 +932,7 @@ export function generateCommands() {
       actionId: 'change-zoom-10out'
     }, {
       action: 'set-zoom',
-      label: 'Reset zoom',
+      label: 'Reset',
       shortcut: {
         key: 'r',
         code: 'KeyR',
