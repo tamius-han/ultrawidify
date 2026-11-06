@@ -17,7 +17,8 @@ export enum CropStrategy {
   CropLetterbox = 1,
   NoCropPillarbox = 2,
   NoCropLetterbox = 3,
-  CropPillarbox = 4
+  CropPillarbox = 4,
+  Unconstrained = 5,
 }
 
 export type VideoDimensions = {
@@ -250,6 +251,16 @@ class Scaler {
     }
   }
 
+  private calculateFitUnconstrained(videoDimensions: VideoDimensions, ar: number, streamAr: number) {
+    if (streamAr > ar) {
+      videoDimensions.xFactor = streamAr / ar;
+    } else {
+      videoDimensions.xFactor = ar / streamAr;
+    }
+    videoDimensions.yFactor = videoDimensions.xFactor;
+    videoDimensions.cropStrategy = CropStrategy.Unconstrained;
+  }
+
   /**
    * Calculates crop factors, such that the video covers the player element completely.
    * This mode ensures no black bars are visible, even if it means cropping parts of the video.
@@ -301,10 +312,17 @@ class Scaler {
      * and how they relate to each-other is causing too many headaches. Present-day LLMs can't figure out what's going on,
      * either (yes, I did try using them for debugging why crop wasn't cropping in pillarbox or zoom mode)
      */
-    if (variant === ArVariant.Zoom) {
-      this.calculateFitCover(videoDimensions, ar, streamAr, playerAr);
-    } else {
-      this.calculateFitContain(videoDimensions, ar, streamAr, playerAr);
+    switch (variant) {
+      case ArVariant.Zoom:
+        this.calculateFitCover(videoDimensions, ar, streamAr, playerAr);
+        break;
+      case ArVariant.None:
+        this.calculateFitCover(videoDimensions, ar, streamAr, streamAr);
+        break;
+
+      default:
+        this.calculateFitContain(videoDimensions, ar, streamAr, playerAr);
+        break;
     }
 
     // correct the scale factor

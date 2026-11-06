@@ -28,7 +28,8 @@
         }"
         :label="command.label"
         :shortcut="getKeyboardShortcutLabel(command)"
-        @click="execAction(command)"
+        :secondaryShortcut="getSecondaryKeyboardShortcutLabel(command)"
+        @click="execCrop(command)"
       ></ShortcutButton>
     </div>
 
@@ -45,7 +46,8 @@
               }"
               :label="command.label"
               :shortcut="getKeyboardShortcutLabel(command)"
-              @click="execAction(command)"
+              :secondaryShortcut="getSecondaryKeyboardShortcutLabel(command)"
+              @click="execCrop(command)"
             ></ShortcutButton>
           </template>
         </template>
@@ -206,6 +208,7 @@ import { ArVariant } from '@src/common/interfaces/ArInterface';
 import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
 import StretchType from '@src/common/enums/StretchType.enum';
 import { getEmbeddedOnlyHosts } from '@src/common/utils/embeddedContent';
+import { CommandInterface } from '@src/common/interfaces/SettingsInterface';
 
 export default defineComponent({
   components: {
@@ -327,6 +330,48 @@ export default defineComponent({
     },
     align(alignmentX: VideoAlignmentType, alignmentY: VideoAlignmentType) {
       this.eventBus?.send('set-alignment', {x: alignmentX, y: alignmentY})
+    },
+
+    /**
+     * Gets keyboard shortcut label for the version of command that uses current cropVariant
+     * @param command
+     */
+    getSecondaryKeyboardShortcutLabel(command: CommandInterface) {
+      const activeVariant = this.settings.active.crop.currentVariant === ArVariant.Default ?
+        this.siteSettings?.data.defaults.cropFit :
+        this.settings.active.crop.currentVariant;
+
+      if (activeVariant === undefined) {
+        return;
+      }
+
+      const altCmd = this.settings?.active.commands.crop.find(
+        (x: CommandInterface) => (
+          x.arguments.type === command.arguments.type
+          && x.arguments.ratio === command.arguments.ratio
+          && x.arguments.variant === activeVariant
+        )
+      );
+
+      if (altCmd) {
+        return this.getKeyboardShortcutLabel(altCmd);
+      }
+    },
+
+    execCrop(command: CommandInterface) {
+      let args = command.arguments;
+      if ([AspectRatioType.Fixed, AspectRatioType.Automatic, AspectRatioType.Cycle].includes(command.arguments.type)) {
+        if (this.settings.active.crop.currentVariant !== ArVariant.Default) {
+          // we explicitly don't want to work on existing reference, as this fucks up the settings
+          // by changing variant of the original command. We don't want to do that, we only want
+          // to override variant for this invocation.
+          args = {...args, variant: this.settings.active.crop.currentVariant};
+        } else {
+          args = {...args, variant: this.siteSettings.data.defaults.cropFit};
+        }
+      }
+
+      this.execAction({...command, arguments: args});
     },
 
     markActiveElements(scalingParams: ScalingParamsBroadcast) {
