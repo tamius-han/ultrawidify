@@ -32,6 +32,8 @@
 import { defineComponent } from 'vue';
 import KeyboardShortcutParserMixin from '@ui/utils/mixins/KeyboardShortcutParserMixin.vue';
 import EditShortcutButton from './EditShortcutButton.vue';
+import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
+import { CommandInterface } from '@src/common/interfaces/SettingsInterface.js';
 
 export default defineComponent({
   components: {
@@ -63,25 +65,34 @@ export default defineComponent({
       }
       this.state = 'removing';
     },
-    confirmRemoval(command) {
-      const commandsArray = this.settings.active.commands[this.type];
-      let index = commandsArray.indexOf(command);
-      let reload = false;
-      // let's try fallback
-      if (index === -1) {
-        index = commandsArray.findIndex(x => JSON.stringify(x) === JSON.stringify(command))
-        reload = true;
-      }
-      if (index !== -1) {
-        commandsArray.splice(index, 1);
-        if (reload) {
-          this.settings.save();
-        } else {
-          this.settings.saveWithoutReload();
-        }
-      }
+    confirmRemoval(command: CommandInterface) {
+      if (command.arguments.type === AspectRatioType.Fixed) {
+        this.settings.active.commands[this.type] = this.settings.active.commands[this.type].filter(
+          (x: CommandInterface) => x.arguments?.type !== AspectRatioType.Fixed || x.arguments.ratio !== command.arguments.ratio
+        );
+        this.settings.saveWithoutReload();
 
-      this.state = null;
+      } else {  // normally, non-fixed aspect ratios can't be removed, and they also can't be manually added.
+        const commandsArray = this.settings.active.commands[this.type];
+
+        let index = commandsArray.indexOf(command);
+        let reload = false;
+        // let's try fallback
+        if (index === -1) {
+          index = commandsArray.findIndex(x => JSON.stringify(x) === JSON.stringify(command))
+          reload = true;
+        }
+        if (index !== -1) {
+          commandsArray.splice(index, 1);
+          if (reload) {
+            this.settings.save();
+          } else {
+            this.settings.saveWithoutReload();
+          }
+        }
+
+        this.state = null;
+      }
     },
     cancelRemoval() {
       this.state = null;

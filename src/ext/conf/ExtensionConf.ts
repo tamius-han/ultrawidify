@@ -833,7 +833,7 @@ export function generateCommands() {
 
     generatedCropCmd.push(cropOption);
 
-    if (cropOption.arguments.type !== AspectRatioType.Reset) {
+    if (cropOption.arguments.type !== AspectRatioType.Reset && cropOption.arguments.type !== AspectRatioType.Cover) {
       generatedCropCmd.push({...rawCmd, arguments: {...rawCmd.arguments, variant: ArVariant.Crop}});
       generatedCropCmd.push({...rawCmd, arguments: {...rawCmd.arguments, variant: ArVariant.None}});
       generatedCropCmd.push({...rawCmd, arguments: {...rawCmd.arguments, variant: ArVariant.Zoom}});

@@ -96,8 +96,8 @@
             name="chevron-down"
             :size="16"
           />
-          <div>Crop<br/>
-            <p class="text-[0.8em] text-stone-500">Safe crop options. Prefers to leave empty space instead of cutting off video edges.</p>
+          <div>Aspect ratio adjustments<br/>
+            <!-- <p class="text-[0.8em] text-stone-500">Safe crop options. Prefers to leave empty space instead of cutting off video edges.</p> -->
           </div>
         </div>
       </div>
@@ -105,7 +105,7 @@
         <!-- Here just to break even/odd -->
       </div>
       <template v-if="groupVisible.crop">
-        <KeyboardShortcutEntry
+        <CropZoomKeyboardShortcutEntry
           v-for="command in settings.active.commands.crop"
           :key="command"
           type="crop"
@@ -113,7 +113,7 @@
           :command="command"
           :settings="settings"
           :removable="command?.arguments?.type === AspectRatioType.Fixed"
-        ></KeyboardShortcutEntry>
+        ></CropZoomKeyboardShortcutEntry>
         <div
           v-if="state !== 'add-crop'"
           class="ml-12 w-[16em] flex flex-row text-[0.8rem] gap-2 my-2 font-bold items-center hover:text-white cursor-pointer"
@@ -215,13 +215,16 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import KeyboardShortcutEntry from './Components/KeyboardShortcutEntry.vue';
+import CropZoomKeyboardShortcutEntry from './Components/CropZoomKeyboardShortcutEntry.vue';
 import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
 import StretchType from '@src/common/enums/StretchType.enum';
 import NewAspectRatioForm from './Components/NewAspectRatioForm.vue';
+import { ArVariant } from '@src/common/interfaces/ArInterface';
 
 export default defineComponent({
   components: {
     KeyboardShortcutEntry,
+    CropZoomKeyboardShortcutEntry,
     NewAspectRatioForm,
 
   },
@@ -311,6 +314,18 @@ export default defineComponent({
 
       this.settings.active.commands[segment].push(command);
       this.settings.saveWithoutReload();
+
+      for (const variant of [ArVariant.Crop, ArVariant.None, ArVariant.Zoom]) {
+        const commandVariant = {
+          ...command,
+          arguments: {
+            ...command.arguments,
+            variant: variant
+          }
+        }
+        this.settings.active.commands[segment].push(commandVariant);
+      }
+
       this.state = null;
     },
     clearShortcuts() {
