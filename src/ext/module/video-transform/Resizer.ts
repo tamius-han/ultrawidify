@@ -132,7 +132,7 @@ class Resizer {
         this.manualZoom = false; // this only gets called from UI or keyboard shortcuts, making this action safe.
 
         if (config.type !== AspectRatioType.Cycle) {
-          this.setAr({...config, variant: config.variant ?? ArVariant.Crop});
+          this.setAr({...config, variant: config.variant ?? ArVariant.FitVideo});
         } else {
           // if we manually switched to a different aspect ratio, cycle from that ratio forward
           const lastArIndex = this.cycleableAspectRatios.findIndex(x => x.type === this.lastAr.type && x.ratio === this.lastAr.ratio);
@@ -140,7 +140,7 @@ class Resizer {
             this.nextCycleOptionIndex = (lastArIndex + 1) % this.cycleableAspectRatios.length;
           }
 
-          this.setAr({...this.cycleableAspectRatios[this.nextCycleOptionIndex], variant: config.variant ?? ArVariant.Crop});
+          this.setAr({...this.cycleableAspectRatios[this.nextCycleOptionIndex], variant: config.variant ?? ArVariant.FitVideo});
           this.nextCycleOptionIndex = (this.nextCycleOptionIndex + 1) % this.cycleableAspectRatios.length;
         }
       }
@@ -150,7 +150,7 @@ class Resizer {
         this.manualZoom = false; // this only gets called from UI or keyboard shortcuts, making this action safe.
 
         if (config.type !== AspectRatioType.Cycle) {
-          this.setAr({...config, variant: ArVariant.Zoom});
+          this.setAr({...config, variant: ArVariant.FillFrame});
         } else {
           // if we manually switched to a different aspect ratio, cycle from that ratio forward
           const lastArIndex = this.cycleableZoomAspectRatios.findIndex(x => x.type === this.lastAr.type && x.ratio === this.lastAr.ratio);
@@ -158,7 +158,7 @@ class Resizer {
             this.nextCycleOptionIndex = (lastArIndex + 1) % this.cycleableZoomAspectRatios.length;
           }
 
-          this.setAr({...this.cycleableZoomAspectRatios[this.nextCycleOptionIndex], variant: ArVariant.Zoom});
+          this.setAr({...this.cycleableZoomAspectRatios[this.nextCycleOptionIndex], variant: ArVariant.FillFrame});
           this.nextCycleOptionIndex = (this.nextCycleOptionIndex + 1) % this.cycleableZoomAspectRatios.length;
         }
       }
@@ -960,7 +960,7 @@ class Resizer {
       (
         (this.videoData.video.offsetWidth > this.videoData.player.dimensions.width && this.videoData.video.offsetHeight > this.videoData.player.dimensions.height) ||
         (this.videoData.video.offsetWidth < this.videoData.player.dimensions.width && this.videoData.video.offsetHeight < this.videoData.player.dimensions.height)
-      ) && ar?.variant !== ArVariant.Zoom
+      ) && ar?.variant !== ArVariant.FillFrame
     ) {
       this.logger.warn('computeOffsets', `<rid:${this.resizerId}> We are getting some incredibly funny results here.\n\n`,
         `Video seems to be both wider and taller (or shorter and narrower) than player element at the same time. This is super duper not supposed to happen.\n\n`,

@@ -216,10 +216,10 @@ export class SiteSettings {
       }
 
       if (typeof this.data.defaults.cropFit !== 'number' || this.data.defaults.cropFit === ArVariant.Default) {
-        this.data.defaults.cropFit = _cp(this.defaultSettings.defaults.cropFit) ?? ArVariant.Crop;
+        this.data.defaults.cropFit = _cp(this.defaultSettings.defaults.cropFit) ?? ArVariant.FitVideo;
       }
       if (typeof this.data.defaults.cropFitAard !== 'number' || this.data.defaults.cropFitAard === ArVariant.Default) {
-        this.data.defaults.cropFitAard = _cp(this.defaultSettings.defaults.cropFitAard) ?? ArVariant.Crop;
+        this.data.defaults.cropFitAard = _cp(this.defaultSettings.defaults.cropFitAard) ?? ArVariant.FitVideo;
       }
 
       // these can contain default options, but can also be undefined

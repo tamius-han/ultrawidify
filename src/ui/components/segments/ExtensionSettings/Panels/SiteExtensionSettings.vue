@@ -271,13 +271,13 @@
           >
               <option :value="ArVariant.Default" v-if="siteSettings.site !== '@global'">
                 Default (<template v-if="siteSettings">
-                  <template v-if="siteSettings.defaultSettings.defaults.cropFitAard === ArVariant.Crop">Fit video</template>
-                  <template v-else-if="siteSettings.defaultSettings.defaults.cropFitAard === ArVariant.Zoom">Fill frame</template>
+                  <template v-if="siteSettings.defaultSettings.defaults.cropFitAard === ArVariant.FitVideo">Fit video</template>
+                  <template v-else-if="siteSettings.defaultSettings.defaults.cropFitAard === ArVariant.FillFrame">Fill frame</template>
                   <template v-else-if="siteSettings.defaultSettings.defaults.cropFitAard === ArVariant.None">Unconstrained</template>
                 </template>)
               </option>
-              <option :value="ArVariant.Crop">Fit video</option>
-              <option :value="ArVariant.Zoom">Fill frame</option>
+              <option :value="ArVariant.FitVideo">Fit video</option>
+              <option :value="ArVariant.FillFrame">Fill frame</option>
               <option :value="ArVariant.None">Unconstrained</option>
           </select>
         </div>
@@ -292,13 +292,13 @@
           >
             <option :value="ArVariant.Default" v-if="siteSettings.site !== '@global'">
               Default (<template v-if="siteSettings">
-                <template v-if="siteSettings.defaultSettings.defaults.cropFit === ArVariant.Crop">Fit video</template>
-                <template v-else-if="siteSettings.defaultSettings.defaults.cropFit === ArVariant.Zoom">Fill frame</template>
+                <template v-if="siteSettings.defaultSettings.defaults.cropFit === ArVariant.FitVideo">Fit video</template>
+                <template v-else-if="siteSettings.defaultSettings.defaults.cropFit === ArVariant.FillFrame">Fill frame</template>
                 <template v-else-if="siteSettings.defaultSettings.defaults.cropFit === ArVariant.None">Unconstrained</template>
               </template>)
             </option>
-            <option :value="ArVariant.Crop">Fit video</option>
-            <option :value="ArVariant.Zoom">Fill frame</option>
+            <option :value="ArVariant.FitVideo">Fit video</option>
+            <option :value="ArVariant.FillFrame">Fill frame</option>
             <option :value="ArVariant.None">Unconstrained</option>
           </select>
         </div>
@@ -477,10 +477,10 @@ export default defineComponent({
       return this.siteSettings.raw?.defaults?.alignment ? JSON.stringify(this.siteSettings.raw?.defaults?.alignment) : JSON.stringify({x: VideoAlignmentType.Default, y: VideoAlignmentType.Default});
     },
     siteDefaultCropFitAard() {
-      return this.siteSettings.raw?.defaults?.cropFitAard ?? (this.isDefaultConfiguration ? ArVariant.Crop : ArVariant.Default);
+      return this.siteSettings.raw?.defaults?.cropFitAard ?? (this.isDefaultConfiguration ? ArVariant.FitVideo : ArVariant.Default);
     },
     siteDefaultCropFit() {
-      return this.siteSettings.raw?.defaults?.cropFit ?? (this.isDefaultConfiguration ? ArVariant.Crop : ArVariant.Default);
+      return this.siteSettings.raw?.defaults?.cropFit ?? (this.isDefaultConfiguration ? ArVariant.FitVideo : ArVariant.Default);
     },
     siteDefaultCropPersistence() {
       return this.siteSettings.raw?.persistCSA ?? CropModePersistence.Default;

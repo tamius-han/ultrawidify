@@ -313,7 +313,7 @@ class Scaler {
      * either (yes, I did try using them for debugging why crop wasn't cropping in pillarbox or zoom mode)
      */
     switch (variant) {
-      case ArVariant.Zoom:
+      case ArVariant.FillFrame:
         this.calculateFitCover(videoDimensions, ar, streamAr, playerAr);
         break;
       case ArVariant.None:

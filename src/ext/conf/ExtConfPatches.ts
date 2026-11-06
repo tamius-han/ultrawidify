@@ -555,7 +555,7 @@ const ExtensionConfPatch = Object.freeze([
         arguments: {
           type: AspectRatioType.Fixed,
           ratio: 1.85,
-          variant: ArVariant.Crop
+          variant: ArVariant.FitVideo
         },
       });
       userOptions.commands?.zoom?.push({
@@ -565,7 +565,7 @@ const ExtensionConfPatch = Object.freeze([
         arguments: {
           type: AspectRatioType.Fixed,
           ratio: 1.85,
-          variant: ArVariant.Zoom
+          variant: ArVariant.FillFrame
         },
       });
 
@@ -602,7 +602,7 @@ const ExtensionConfPatch = Object.freeze([
       // crop options previously did not have ArVariant specified. This is changing.
       for (const c of userOptions.commands?.crop ?? []) {
         if (c.arguments && !c.arguments?.variant) {
-          c.arguments.variant = ArVariant.Crop;
+          c.arguments.variant = ArVariant.FitVideo;
         }
       }
 
@@ -618,8 +618,8 @@ const ExtensionConfPatch = Object.freeze([
       // We know that '@global' always contains all the optional options, because it has to.
       for (const site in userOptions.sites) {
         if (site === '@global') {
-          userOptions.sites['@global'].defaults!.cropFit = ArVariant.Crop;
-          userOptions.sites['@global'].defaults!.cropFitAard = ArVariant.Crop;
+          userOptions.sites['@global'].defaults!.cropFit = ArVariant.FitVideo;
+          userOptions.sites['@global'].defaults!.cropFitAard = ArVariant.FitVideo;
           continue;
         }
 
@@ -633,7 +633,7 @@ const ExtensionConfPatch = Object.freeze([
         }
       }
 
-      userOptions.crop = {currentVariant: ArVariant.Crop};
+      userOptions.crop = {currentVariant: ArVariant.FitVideo};
 
       const previousCommands = userOptions.commands;
       userOptions.commands = generateCommands();
@@ -665,7 +665,7 @@ const ExtensionConfPatch = Object.freeze([
         const targetCmds = flatten(target);
 
         if (toCompact) {
-          const editions: (ArVariant | undefined)[] = [undefined, ArVariant.Crop, ArVariant.None, ArVariant.Zoom];
+          const editions: (ArVariant | undefined)[] = [undefined, ArVariant.FitVideo, ArVariant.None, ArVariant.FillFrame];
 
           for (const srcCmd of flatten(source)) {
             if (srcCmd.action !== 'set-ar' && srcCmd.action !== 'set-ar-zoom') {
@@ -673,7 +673,7 @@ const ExtensionConfPatch = Object.freeze([
             }
             const {variant, ...args} = srcCmd.arguments ?? {};
             const key = argKey(args);
-            const shortcutEdition = srcCmd.action === 'set-ar-zoom' ? ArVariant.Zoom : undefined;
+            const shortcutEdition = srcCmd.action === 'set-ar-zoom' ? ArVariant.FillFrame : undefined;
 
             for (const edition of editions) {
               let cmd = targetCmds.find(c => c.action === 'set-ar' && argKey(c.arguments) === key && c.arguments?.variant === edition);
@@ -697,17 +697,17 @@ const ExtensionConfPatch = Object.freeze([
             continue;
           }
           const {variant, ...args} = srcCmd.arguments ?? {};
-          if (variant !== undefined && variant !== ArVariant.Zoom) {
+          if (variant !== undefined && variant !== ArVariant.FillFrame) {
             continue;
           }
-          const action = variant === ArVariant.Zoom ? 'set-ar-zoom' : 'set-ar';
+          const action = variant === ArVariant.FillFrame ? 'set-ar-zoom' : 'set-ar';
           const key = argKey(args);
 
           let cmd = targetCmds.find(c => c.action === action && argKey(c.arguments) === key);
           if (!cmd) {
             const {shortcut, ...rest} = srcCmd;
             cmd = {...rest, action, arguments: {...args}};
-            target[variant === ArVariant.Zoom ? 'zoom' : 'crop']?.push(cmd);
+            target[variant === ArVariant.FillFrame ? 'zoom' : 'crop']?.push(cmd);
             targetCmds.push(cmd);
           }
           if (srcCmd.shortcut) {

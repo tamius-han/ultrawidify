@@ -347,12 +347,12 @@ class UI {
           {
             label: 'Crop (fit video)',
             customId: 'uw-crop',
-            subitems: getCommands(ArVariant.Crop)
+            subitems: getCommands(ArVariant.FitVideo)
           },
           {
             label: 'Zoom (fill frame)',
             customId: 'uw-zoom-fill',
-            subitems: getCommands(ArVariant.Zoom)
+            subitems: getCommands(ArVariant.FillFrame)
           },
           {
             label: 'Zoom (unconstrained)',

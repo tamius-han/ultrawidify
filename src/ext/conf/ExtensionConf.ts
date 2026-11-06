@@ -253,11 +253,11 @@ const ExtensionConf: SettingsInterface = {
   //    * disabled    — never allow
   //
   sites: {
-    "@global": {                            // global defaults. Possible options will state site-only options in order
+    '@global': {                            // global defaults. Possible options will state site-only options in order
                                             // to avoid writing this multiple times. Tags:
                                             //      #g — only available in @global
                                             //      #s   — only available for specific site
-      enable: ExtensionMode.Disabled,
+      enable: ExtensionMode.All,
       enableAard: ExtensionMode.Theater,
       enableKeyboard: InputHandlingMode.Enabled,
       enableUI: ExtensionMode.FullScreen,
@@ -273,8 +273,8 @@ const ExtensionConf: SettingsInterface = {
 
       defaults: {
         crop: {type: AspectRatioType.Automatic},
-        cropFit: ArVariant.Crop,
-        cropFitAard: ArVariant.Crop,
+        cropFit: ArVariant.FitVideo,
+        cropFitAard: ArVariant.FitVideo,
         stretch: {type: StretchType.NoStretch},
         alignment: {x: VideoAlignmentType.Center, y: VideoAlignmentType.Center},
       },
@@ -834,9 +834,9 @@ export function generateCommands() {
     generatedCropCmd.push(cropOption);
 
     if (cropOption.arguments.type !== AspectRatioType.Reset && cropOption.arguments.type !== AspectRatioType.Cover) {
-      generatedCropCmd.push({...rawCmd, arguments: {...rawCmd.arguments, variant: ArVariant.Crop}});
+      generatedCropCmd.push({...rawCmd, arguments: {...rawCmd.arguments, variant: ArVariant.FitVideo}});
       generatedCropCmd.push({...rawCmd, arguments: {...rawCmd.arguments, variant: ArVariant.None}});
-      generatedCropCmd.push({...rawCmd, arguments: {...rawCmd.arguments, variant: ArVariant.Zoom}});
+      generatedCropCmd.push({...rawCmd, arguments: {...rawCmd.arguments, variant: ArVariant.FillFrame}});
     }
   }
 

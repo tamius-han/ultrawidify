@@ -59,13 +59,13 @@
           <select v-model="settings.active.crop.currentVariant" @click="updateCurrentArVariant($event.target.value)">
             <option :value="ArVariant.Default">
               Default (<template v-if="siteSettings">
-                <template v-if="siteSettings.data.defaults.cropFit === ArVariant.Crop">Fit video</template>
-                <template v-else-if="siteSettings.data.defaults.cropFit === ArVariant.Zoom">Fill frame</template>
+                <template v-if="siteSettings.data.defaults.cropFit === ArVariant.FitVideo">Fit video</template>
+                <template v-else-if="siteSettings.data.defaults.cropFit === ArVariant.FillFrame">Fill frame</template>
                 <template v-else-if="siteSettings.data.defaults.cropFit === ArVariant.None">Unconstrained</template>
               </template>)
             </option>
-            <option :value="ArVariant.Crop">Fit video</option>
-            <option :value="ArVariant.Zoom">Fill frame</option>
+            <option :value="ArVariant.FitVideo">Fit video</option>
+            <option :value="ArVariant.FillFrame">Fill frame</option>
             <option :value="ArVariant.None">Unconstrained</option>
           </select>
         </div>
@@ -243,7 +243,7 @@ export default defineComponent({
       ArVariant,
       StretchType,
 
-      activeArVariant: ArVariant.Crop,
+      activeArVariant: ArVariant.FitVideo,
     }
   },
   computed: {
@@ -380,7 +380,7 @@ export default defineComponent({
       }
       // we only set active options when manual zoom is NOT set
       if (!scalingParams.manualZoom) {
-        const cropCommand = scalingParams.lastAr.variant === ArVariant.Zoom ? 'set-ar-zoom' : 'set-ar';
+        const cropCommand = scalingParams.lastAr.variant === ArVariant.FillFrame ? 'set-ar-zoom' : 'set-ar';
 
         let typeCrop;
         switch (scalingParams.lastAr.type) {

@@ -9,8 +9,8 @@ import { setVideoAlignmentIndicatorState } from '@src/ui/utils/video-alignment-i
 
 
 const variant2GroupMap: any = {
-  [ArVariant.Crop]: 'crop',
-  [ArVariant.Zoom]: 'zoom-fill',
+  [ArVariant.FitVideo]: 'crop',
+  [ArVariant.FillFrame]: 'zoom-fill',
   [ArVariant.None]: 'zoom-unconstrained'
 }
 

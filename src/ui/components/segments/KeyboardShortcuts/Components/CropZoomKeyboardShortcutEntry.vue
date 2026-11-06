@@ -3,8 +3,8 @@
     <div class="w-[18em] text-stone-300">
       <span v-if="indent" :style="{width: indent + 'rem'}" class="inline-block"></span>{{command.label}}
       <template v-if="command.arguments?.variant === undefined">(current fit)</template>
-      <template v-if="command.arguments?.variant == ArVariant.Crop">(Fit video)</template>
-      <template v-if="command.arguments?.variant == ArVariant.Zoom">(Fill frame)</template>
+      <template v-if="command.arguments?.variant == ArVariant.FitVideo">(Fit video)</template>
+      <template v-if="command.arguments?.variant == ArVariant.FillFrame">(Fill frame)</template>
       <template v-if="command.arguments?.variant == ArVariant.None">(Unconstrained)</template>
     </div>
     <div class="w-[18em] flex flex-row items-center">

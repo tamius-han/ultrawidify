@@ -270,7 +270,7 @@ export default {
       }
 
       if (this.settings.active.sites['@global'].defaults!.crop!.type === AspectRatioType.Automatic) {
-        if (this.settings.active.sites['@global'].defaults!.crop!.variant !== ArVariant.Zoom) {
+        if (this.settings.active.sites['@global'].defaults!.crop!.variant !== ArVariant.FillFrame) {
           this.aardMode = 'crop';
         } else {
           this.aardMode = 'zoom';
@@ -364,7 +364,7 @@ export default {
       if (mode === 'disabled') {
         this.settings.active.sites['@global'].defaults!.crop! = {type: AspectRatioType.Initial};
       } else {
-        this.settings.active.sites['@global'].defaults!.crop! = {type: AspectRatioType.Automatic, variant: mode === 'crop' ? ArVariant.Crop : ArVariant.Zoom };
+        this.settings.active.sites['@global'].defaults!.crop! = {type: AspectRatioType.Automatic, variant: mode === 'crop' ? ArVariant.FitVideo : ArVariant.FillFrame };
       }
 
       this.settings.save();

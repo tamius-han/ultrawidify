@@ -315,7 +315,7 @@ export default defineComponent({
       this.settings.active.commands[segment].push(command);
       this.settings.saveWithoutReload();
 
-      for (const variant of [ArVariant.Crop, ArVariant.None, ArVariant.Zoom]) {
+      for (const variant of [ArVariant.FitVideo, ArVariant.None, ArVariant.FillFrame]) {
         const commandVariant = {
           ...command,
           arguments: {
