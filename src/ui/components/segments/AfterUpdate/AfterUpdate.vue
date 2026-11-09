@@ -5,10 +5,15 @@
       <!-- {{settings.active}} -->
       <div class="body flex-grow text-stone-300">
         <h1 class="text-[1.75rem] text-primary-300">Ultrawidify has been updated</h1>
-        <br/>
-        <p>Congrats, you're part of the lucky 10% who got volunteered for early access. Please consider reporting issues via <a href="https://github.com/tamius-han/ultrawidify/issues" target="_blank">github</a> or e-mail</p> (and please follow the template).
-        <p>Normally I don't bother people with stuff like this, but there's been some new features and notable updates.</p>
 
+        <div v-if="settingsWereReset" class="warn">
+          Due to extensive changes in extension structure since the last update, your settings could not be migrated.
+          You will need to re-add any custom website settings and custom keyboard shortcuts and aspect ratios.
+        </div>
+
+        <br/>
+        <p v-if="BrowserDetect.processEnvChannel === 'chrome'">Congrats, you're part of the lucky 10% who got volunteered for early access. Please consider reporting issues via <a href="https://github.com/tamius-han/ultrawidify/issues" target="_blank">github</a> or e-mail</p> (and please follow the template).
+        <p>Normally I don't bother people with stuff like this, but there's been some new features and notable updates.</p>
 
         <div class="flex flex-col gap-4 mt-8 max-w-[720px]">
           <h3>Autodetection</h3>
@@ -22,7 +27,7 @@
                   :value="settings.active.sites['@global'].enableAard"
                 >
                   <option :value="ExtensionMode.Disabled">
-                    Disabled by default
+                    Disabled by defaul
                   </option>
                   <option :value="ExtensionMode.FullScreen">
                     Fullscreen only
@@ -302,6 +307,7 @@ export default {
       placeholderSubtitleCrop: AardSubtitleCropMode.ResetAR,
       settingsInitialized: false,
       settingsSaved: false,
+      settingsWereReset: false,
       currentAardFrequency: -1,
 
       optionCache: {
@@ -345,6 +351,10 @@ export default {
         this.currentAardFrequency = -1;
         break;
     }
+
+    this.settingsWereReset = this.settings.active.settingsReset;
+    delete this.settings.active.settingsReset;
+    this.settings.save({suppressBanner: true});
   },
   components: {
   },

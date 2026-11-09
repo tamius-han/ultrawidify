@@ -18,7 +18,6 @@ import { generateCommands } from '@src/ext/conf/ExtensionConf';
 import { AardPollingOptions } from '@src/ext/module/aard/enums/aard-polling-options.enum';
 import { update } from 'lodash';
 
-
 function resetSettings(userOptions: any, defaultOptions: any) {
   const reset = _cp(defaultOptions);
   for (const key of Object.keys(userOptions)) {
@@ -33,126 +32,126 @@ const ExtensionConfPatch = Object.freeze([
   {
     forVersion: '6.0.0',
     updateFn: (userOptions: any, defaultOptions, logger?) => {
-      if (userOptions._skipV6Migration) { return; }
-      const migrated = _cp(defaultOptions);
-      migrated._skipV6Migration = true;
+      // if (userOptions._skipV6Migration) { return; }
+      // const migrated = _cp(defaultOptions);
+      // migrated._skipV6Migration = true;
 
-      for (const [hostname, legacySite] of Object.entries(userOptions.sites ?? {}) as [string, any][]) {
-        if (legacySite.type !== 'user-added' && legacySite.type !== 'user-defined') {
-          continue;
-        }
+      // for (const [hostname, legacySite] of Object.entries(userOptions.sites ?? {}) as [string, any][]) {
+      //   if (legacySite.type !== 'user-added' && legacySite.type !== 'user-defined') {
+      //     continue;
+      //   }
 
-        const site = _cp(defaultOptions.sites['@empty']);
-        site.type = SiteSupportLevel.UserDefined;
-        site.defaultType = SiteSupportLevel.UserDefined;
-        const convertMode = (mode: number) => mode === LegacyExtensionMode.Disabled ? ExtensionMode.Disabled
-          : mode === LegacyExtensionMode.Enabled || mode === LegacyExtensionMode.Basic ? ExtensionMode.All
-            : ExtensionMode.Default;
-        site.enable = convertMode(legacySite.mode);
-        site.enableAard = convertMode(legacySite.autoar);
-        site.enableKeyboard = legacySite.keyboardShortcutsEnabled === LegacyExtensionMode.Disabled ? InputHandlingMode.Disabled
-          : legacySite.keyboardShortcutsEnabled === LegacyExtensionMode.Enabled ? InputHandlingMode.Enabled : InputHandlingMode.Default;
-        if (typeof legacySite.stretch === 'number') {
-          site.defaults.stretch.type = legacySite.stretch;
-        }
-        if (typeof legacySite.videoAlignment === 'number') {
-          site.defaults.alignment.x = legacySite.videoAlignment;
-        }
-        const domConfig = site.DOMConfig['@empty'];
-        domConfig.customCss = legacySite.css;
+      //   const site = _cp(defaultOptions.sites['@empty']);
+      //   site.type = SiteSupportLevel.UserDefined;
+      //   site.defaultType = SiteSupportLevel.UserDefined;
+      //   const convertMode = (mode: number) => mode === LegacyExtensionMode.Disabled ? ExtensionMode.Disabled
+      //     : mode === LegacyExtensionMode.Enabled || mode === LegacyExtensionMode.Basic ? ExtensionMode.All
+      //       : ExtensionMode.Default;
+      //   site.enable = convertMode(legacySite.mode);
+      //   site.enableAard = convertMode(legacySite.autoar);
+      //   site.enableKeyboard = legacySite.keyboardShortcutsEnabled === LegacyExtensionMode.Disabled ? InputHandlingMode.Disabled
+      //     : legacySite.keyboardShortcutsEnabled === LegacyExtensionMode.Enabled ? InputHandlingMode.Enabled : InputHandlingMode.Default;
+      //   if (typeof legacySite.stretch === 'number') {
+      //     site.defaults.stretch.type = legacySite.stretch;
+      //   }
+      //   if (typeof legacySite.videoAlignment === 'number') {
+      //     site.defaults.alignment.x = legacySite.videoAlignment;
+      //   }
+      //   const domConfig = site.DOMConfig['@empty'];
+      //   domConfig.customCss = legacySite.css;
 
-        for (const element of ['player', 'video']) {
-          const legacyElement = legacySite.DOM?.[element];
-          if (!legacyElement) {
-            continue;
-          }
-          const querySelectors = legacyElement.querySelectors?.trim();
-          const ancestorIndex = Number(legacyElement.videoAncestor);
-          domConfig.elements[element] = {
-            detectionMode: !legacyElement.manual ? PlayerDetectionMode.Auto
-              : querySelectors ? PlayerDetectionMode.QuerySelectors
-                : element === 'player' && legacyElement.videoAncestor != null && Number.isFinite(ancestorIndex)
-                  ? PlayerDetectionMode.AncestorIndex : PlayerDetectionMode.Auto,
-            allowAutoFallback: true,
-            ...(querySelectors ? {querySelectors} : {}),
-            ...(element === 'player' && legacyElement.videoAncestor != null && Number.isFinite(ancestorIndex) ? {ancestorIndex} : {}),
-          };
-        }
-        migrated.sites[hostname] = site;
-      }
+      //   for (const element of ['player', 'video']) {
+      //     const legacyElement = legacySite.DOM?.[element];
+      //     if (!legacyElement) {
+      //       continue;
+      //     }
+      //     const querySelectors = legacyElement.querySelectors?.trim();
+      //     const ancestorIndex = Number(legacyElement.videoAncestor);
+      //     domConfig.elements[element] = {
+      //       detectionMode: !legacyElement.manual ? PlayerDetectionMode.Auto
+      //         : querySelectors ? PlayerDetectionMode.QuerySelectors
+      //           : element === 'player' && legacyElement.videoAncestor != null && Number.isFinite(ancestorIndex)
+      //             ? PlayerDetectionMode.AncestorIndex : PlayerDetectionMode.Auto,
+      //       allowAutoFallback: true,
+      //       ...(querySelectors ? {querySelectors} : {}),
+      //       ...(element === 'player' && legacyElement.videoAncestor != null && Number.isFinite(ancestorIndex) ? {ancestorIndex} : {}),
+      //     };
+      //   }
+      //   migrated.sites[hostname] = site;
+      // }
 
-      const commands: any[] = Object.values(migrated.commands).flat() as any[];
-      const assignShortcut = (target: any, shortcut: any) => {
-        for (const command of commands) {
-          const existing = command.shortcut;
-          if (command !== target && existing && existing.key === shortcut.key
-            && !!existing.ctrlKey === !!shortcut.ctrlKey && !!existing.metaKey === !!shortcut.metaKey
-            && !!existing.altKey === !!shortcut.altKey && !!existing.shiftKey === !!shortcut.shiftKey) {
-            delete command.shortcut;
-          }
-        }
-        target.shortcut = _cp(shortcut);
-      };
-      for (const legacyAction of userOptions.actions ?? []) {
-        const shortcut = legacyAction.scopes?.page?.shortcut?.[0];
-        for (const legacyCommand of legacyAction.cmd ?? []) {
-          const {action, arg, customArg} = legacyCommand;
-          if (action === 'set-ar') {
-            if (arg === AspectRatioType.FitHeight) {
-              continue;
-            }
-            const type = arg === AspectRatioType.FitWidth ? AspectRatioType.Cover : arg;
-            if (type === AspectRatioType.Fixed && legacyAction.userAdded && typeof customArg === 'number') {
-              for (const variant of [undefined, ArVariant.FitVideo, ArVariant.None, ArVariant.FillFrame]) {
-                if (!migrated.commands.crop.some((command: any) => command.action === 'set-ar' && command.arguments?.type === type && command.arguments?.ratio === customArg && command.arguments?.variant === variant)) {
-                  const command = {
-                    action: 'set-ar',
-                    label: legacyAction.label ?? legacyAction.name,
-                    arguments: {type, ratio: customArg, ...(variant === undefined ? {} : {variant})},
-                  };
-                  migrated.commands.crop.push(command);
-                  commands.push(command);
-                }
-              }
-            }
-            const target = commands.find(command => command.action === 'set-ar' && command.arguments?.type === type && command.arguments?.variant === undefined && (type !== AspectRatioType.Fixed || command.arguments?.ratio === customArg));
-            if (target && shortcut) {
-              assignShortcut(target, shortcut);
-            }
-          } else if (shortcut) {
-            const target = commands.find(command => {
-              if (command.action !== action) {
-                return false;
-              }
-              if (action === 'change-zoom') {
-                return Math.sign(command.arguments?.zoom) === Math.sign(arg);
-              }
-              if (action === 'set-stretch') {
-                return command.arguments?.type === arg && (arg !== StretchType.FixedSource || command.arguments?.ratio === customArg);
-              }
-              if (action === 'set-alignment') {
-                return command.arguments?.x === arg && command.arguments?.y === VideoAlignmentType.Center;
-              }
-              if (action === 'set-ar-persistence') {
-                return command.arguments?.arPersistence === arg;
-              }
-              return false;
-            });
-            if (target) {
-              assignShortcut(target, shortcut);
-            }
-          }
-        }
-      }
+      // const commands: any[] = Object.values(migrated.commands).flat() as any[];
+      // const assignShortcut = (target: any, shortcut: any) => {
+      //   for (const command of commands) {
+      //     const existing = command.shortcut;
+      //     if (command !== target && existing && existing.key === shortcut.key
+      //       && !!existing.ctrlKey === !!shortcut.ctrlKey && !!existing.metaKey === !!shortcut.metaKey
+      //       && !!existing.altKey === !!shortcut.altKey && !!existing.shiftKey === !!shortcut.shiftKey) {
+      //       delete command.shortcut;
+      //     }
+      //   }
+      //   target.shortcut = _cp(shortcut);
+      // };
+      // for (const legacyAction of userOptions.actions ?? []) {
+      //   const shortcut = legacyAction.scopes?.page?.shortcut?.[0];
+      //   for (const legacyCommand of legacyAction.cmd ?? []) {
+      //     const {action, arg, customArg} = legacyCommand;
+      //     if (action === 'set-ar') {
+      //       if (arg === AspectRatioType.FitHeight) {
+      //         continue;
+      //       }
+      //       const type = arg === AspectRatioType.FitWidth ? AspectRatioType.Cover : arg;
+      //       if (type === AspectRatioType.Fixed && legacyAction.userAdded && typeof customArg === 'number') {
+      //         for (const variant of [undefined, ArVariant.FitVideo, ArVariant.None, ArVariant.FillFrame]) {
+      //           if (!migrated.commands.crop.some((command: any) => command.action === 'set-ar' && command.arguments?.type === type && command.arguments?.ratio === customArg && command.arguments?.variant === variant)) {
+      //             const command = {
+      //               action: 'set-ar',
+      //               label: legacyAction.label ?? legacyAction.name,
+      //               arguments: {type, ratio: customArg, ...(variant === undefined ? {} : {variant})},
+      //             };
+      //             migrated.commands.crop.push(command);
+      //             commands.push(command);
+      //           }
+      //         }
+      //       }
+      //       const target = commands.find(command => command.action === 'set-ar' && command.arguments?.type === type && command.arguments?.variant === undefined && (type !== AspectRatioType.Fixed || command.arguments?.ratio === customArg));
+      //       if (target && shortcut) {
+      //         assignShortcut(target, shortcut);
+      //       }
+      //     } else if (shortcut) {
+      //       const target = commands.find(command => {
+      //         if (command.action !== action) {
+      //           return false;
+      //         }
+      //         if (action === 'change-zoom') {
+      //           return Math.sign(command.arguments?.zoom) === Math.sign(arg);
+      //         }
+      //         if (action === 'set-stretch') {
+      //           return command.arguments?.type === arg && (arg !== StretchType.FixedSource || command.arguments?.ratio === customArg);
+      //         }
+      //         if (action === 'set-alignment') {
+      //           return command.arguments?.x === arg && command.arguments?.y === VideoAlignmentType.Center;
+      //         }
+      //         if (action === 'set-ar-persistence') {
+      //           return command.arguments?.arPersistence === arg;
+      //         }
+      //         return false;
+      //       });
+      //       if (target) {
+      //         assignShortcut(target, shortcut);
+      //       }
+      //     }
+      //   }
+      // }
 
-      resetSettings(userOptions, defaultOptions);
-      for (const key of Object.keys(userOptions)) {
-        if (!defaultOptions[key as keyof typeof defaultOptions]) {
-          delete userOptions[key];
-        }
-      }
+      // resetSettings(userOptions, defaultOptions);
+      // for (const key of Object.keys(userOptions)) {
+      //   if (!defaultOptions[key as keyof typeof defaultOptions]) {
+      //     delete userOptions[key];
+      //   }
+      // }
 
-      return userOptions;
+      return {resetSettings: true};
     }
   },
   {

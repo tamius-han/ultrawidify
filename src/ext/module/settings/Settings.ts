@@ -258,6 +258,13 @@ class Settings {
     this.logger?.info('applySettingsPatches', `There are ${pendingPatchesCount} settings patches to apply`);
     const defaultSettings = this.getDefaultSettings();
     while (index < ExtensionConfPatch.length) {
+
+      if (ExtensionConfPatch[index].resetSettings) {
+        console.warn('Settings are too old to migrate. Resetting to default ...');
+        currentSettings = JSON.parse(JSON.stringify(defaultSettings));
+        currentSettings.settingsReset = true;
+        return currentSettings;
+      }
       const updateFn =  ExtensionConfPatch[index].updateFn;
 
       this.logger.info('applySettingsPatches', `Processing patch ${index} / ${ExtensionConfPatch.length}. Patch ${!!updateFn ? 'has' : 'does NOT have'} an update function.`);
@@ -265,7 +272,7 @@ class Settings {
       if (updateFn) {
         try {
           this.logger.log('applySettingsPatches', `Starting to update patch for version ${ExtensionConfPatch[index].forVersion} (${pendingPatchesCount - (ExtensionConfPatch.length - index)} / ${pendingPatchesCount}) | index: ${index}, patches length: ${ExtensionConfPatch.length}`);
-          updateFn(currentSettings, defaultSettings, this.logger);
+          const res = updateFn(currentSettings, defaultSettings, this.logger);
           this.logger.log('applySettingsPatches', `Patch for version ${ExtensionConfPatch[index].forVersion} applied. (${pendingPatchesCount - (ExtensionConfPatch.length - index)} / ${pendingPatchesCount})`);
         } catch (e) {
           this.logger?.error('applySettingsPatches', 'Failed to execute update function. Keeping settings object as-is. Error:', e);
