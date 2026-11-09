@@ -19,6 +19,16 @@ import { AardPollingOptions } from '@src/ext/module/aard/enums/aard-polling-opti
 import { update } from 'lodash';
 
 
+function resetSettings(userOptions: any, defaultOptions: any) {
+  const reset = _cp(defaultOptions);
+  for (const key of Object.keys(userOptions)) {
+    if (key in reset) {
+      userOptions[key] = reset[key];
+    }
+  }
+  return userOptions;
+}
+
 const ExtensionConfPatch = Object.freeze([
   {
     forVersion: '6.0.0',
@@ -135,10 +145,14 @@ const ExtensionConfPatch = Object.freeze([
         }
       }
 
+      resetSettings(userOptions, defaultOptions);
       for (const key of Object.keys(userOptions)) {
-        delete userOptions[key];
+        if (!defaultOptions[key as keyof typeof defaultOptions]) {
+          delete userOptions[key];
+        }
       }
-      Object.assign(userOptions, migrated);
+
+      return userOptions;
     }
   },
   {
