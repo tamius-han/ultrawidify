@@ -21,8 +21,130 @@ import { update } from 'lodash';
 
 const ExtensionConfPatch = Object.freeze([
   {
+    forVersion: '6.0.0',
+    updateFn: (userOptions: any, defaultOptions, logger?) => {
+      if (userOptions._skipV6Migration) { return; }
+      const migrated = _cp(defaultOptions);
+      migrated._skipV6Migration = true;
+
+      for (const [hostname, legacySite] of Object.entries(userOptions.sites ?? {}) as [string, any][]) {
+        if (legacySite.type !== 'user-added' && legacySite.type !== 'user-defined') {
+          continue;
+        }
+
+        const site = _cp(defaultOptions.sites['@empty']);
+        site.type = SiteSupportLevel.UserDefined;
+        site.defaultType = SiteSupportLevel.UserDefined;
+        const convertMode = (mode: number) => mode === LegacyExtensionMode.Disabled ? ExtensionMode.Disabled
+          : mode === LegacyExtensionMode.Enabled || mode === LegacyExtensionMode.Basic ? ExtensionMode.All
+            : ExtensionMode.Default;
+        site.enable = convertMode(legacySite.mode);
+        site.enableAard = convertMode(legacySite.autoar);
+        site.enableKeyboard = legacySite.keyboardShortcutsEnabled === LegacyExtensionMode.Disabled ? InputHandlingMode.Disabled
+          : legacySite.keyboardShortcutsEnabled === LegacyExtensionMode.Enabled ? InputHandlingMode.Enabled : InputHandlingMode.Default;
+        if (typeof legacySite.stretch === 'number') {
+          site.defaults.stretch.type = legacySite.stretch;
+        }
+        if (typeof legacySite.videoAlignment === 'number') {
+          site.defaults.alignment.x = legacySite.videoAlignment;
+        }
+        const domConfig = site.DOMConfig['@empty'];
+        domConfig.customCss = legacySite.css;
+
+        for (const element of ['player', 'video']) {
+          const legacyElement = legacySite.DOM?.[element];
+          if (!legacyElement) {
+            continue;
+          }
+          const querySelectors = legacyElement.querySelectors?.trim();
+          const ancestorIndex = Number(legacyElement.videoAncestor);
+          domConfig.elements[element] = {
+            detectionMode: !legacyElement.manual ? PlayerDetectionMode.Auto
+              : querySelectors ? PlayerDetectionMode.QuerySelectors
+                : element === 'player' && legacyElement.videoAncestor != null && Number.isFinite(ancestorIndex)
+                  ? PlayerDetectionMode.AncestorIndex : PlayerDetectionMode.Auto,
+            allowAutoFallback: true,
+            ...(querySelectors ? {querySelectors} : {}),
+            ...(element === 'player' && legacyElement.videoAncestor != null && Number.isFinite(ancestorIndex) ? {ancestorIndex} : {}),
+          };
+        }
+        migrated.sites[hostname] = site;
+      }
+
+      const commands: any[] = Object.values(migrated.commands).flat() as any[];
+      const assignShortcut = (target: any, shortcut: any) => {
+        for (const command of commands) {
+          const existing = command.shortcut;
+          if (command !== target && existing && existing.key === shortcut.key
+            && !!existing.ctrlKey === !!shortcut.ctrlKey && !!existing.metaKey === !!shortcut.metaKey
+            && !!existing.altKey === !!shortcut.altKey && !!existing.shiftKey === !!shortcut.shiftKey) {
+            delete command.shortcut;
+          }
+        }
+        target.shortcut = _cp(shortcut);
+      };
+      for (const legacyAction of userOptions.actions ?? []) {
+        const shortcut = legacyAction.scopes?.page?.shortcut?.[0];
+        for (const legacyCommand of legacyAction.cmd ?? []) {
+          const {action, arg, customArg} = legacyCommand;
+          if (action === 'set-ar') {
+            if (arg === AspectRatioType.FitHeight) {
+              continue;
+            }
+            const type = arg === AspectRatioType.FitWidth ? AspectRatioType.Cover : arg;
+            if (type === AspectRatioType.Fixed && legacyAction.userAdded && typeof customArg === 'number') {
+              for (const variant of [undefined, ArVariant.FitVideo, ArVariant.None, ArVariant.FillFrame]) {
+                if (!migrated.commands.crop.some((command: any) => command.action === 'set-ar' && command.arguments?.type === type && command.arguments?.ratio === customArg && command.arguments?.variant === variant)) {
+                  const command = {
+                    action: 'set-ar',
+                    label: legacyAction.label ?? legacyAction.name,
+                    arguments: {type, ratio: customArg, ...(variant === undefined ? {} : {variant})},
+                  };
+                  migrated.commands.crop.push(command);
+                  commands.push(command);
+                }
+              }
+            }
+            const target = commands.find(command => command.action === 'set-ar' && command.arguments?.type === type && command.arguments?.variant === undefined && (type !== AspectRatioType.Fixed || command.arguments?.ratio === customArg));
+            if (target && shortcut) {
+              assignShortcut(target, shortcut);
+            }
+          } else if (shortcut) {
+            const target = commands.find(command => {
+              if (command.action !== action) {
+                return false;
+              }
+              if (action === 'change-zoom') {
+                return Math.sign(command.arguments?.zoom) === Math.sign(arg);
+              }
+              if (action === 'set-stretch') {
+                return command.arguments?.type === arg && (arg !== StretchType.FixedSource || command.arguments?.ratio === customArg);
+              }
+              if (action === 'set-alignment') {
+                return command.arguments?.x === arg && command.arguments?.y === VideoAlignmentType.Center;
+              }
+              if (action === 'set-ar-persistence') {
+                return command.arguments?.arPersistence === arg;
+              }
+              return false;
+            });
+            if (target) {
+              assignShortcut(target, shortcut);
+            }
+          }
+        }
+      }
+
+      for (const key of Object.keys(userOptions)) {
+        delete userOptions[key];
+      }
+      Object.assign(userOptions, migrated);
+    }
+  },
+  {
     forVersion: '6.2.4',
     updateFn: (userOptions: any, defaultOptions, logger?) => {
+      if (userOptions._skipV6Migration) { return; }
       for (const site in userOptions.sites) {
         (userOptions as any).sites[site].enableUI = {
           fullscreen: LegacyExtensionMode.Default,
@@ -44,6 +166,7 @@ const ExtensionConfPatch = Object.freeze([
   }, {
     forVersion: '6.2.6',
     updateFn: (userOptions: any, defaultOptions, logger?) => {
+      if (userOptions._skipV6Migration) { return; }
       console.log('[ultrawidify] Migrating settings — applying patches for version 6.2.6');
 
       if (!userOptions.commands) {
@@ -250,6 +373,7 @@ const ExtensionConfPatch = Object.freeze([
   }, {
     forVersion: '6.3.92',
     updateFn: (userOptions: any) => {
+      if (userOptions._skipV6Migration) { return; }
       // applyToEmbeddedContent is now an enum, and also no longer optional
       for (const site in userOptions.sites) {
         if (userOptions.sites[site].applyToEmbeddedContent === undefined) {
@@ -263,6 +387,7 @@ const ExtensionConfPatch = Object.freeze([
   {
     forVersion: '6.3.93',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface) => {
+      if ((userOptions as any)._skipV6Migration) { return; }
       (userOptions as any).arDetect.polling = defaultOptions.aard.polling;
       (userOptions as any).arDetect.subtitles = defaultOptions.aard.subtitles;
       (userOptions as any).arDetect.autoDisable = defaultOptions.aard.autoDisable;
@@ -271,6 +396,7 @@ const ExtensionConfPatch = Object.freeze([
   {
     forVersion: '6.3.98',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface) => {
+      if ((userOptions as any)._skipV6Migration) { return; }
       (userOptions as any).arDetect.letterboxOrientationScan = defaultOptions.aard.letterboxOrientationScan;
       // (userOptions as any).arDetect.edgeDetection = defaultOptions.aard.edgeDetection;
       (userOptions as any).arDetect.subtitles = defaultOptions.aard.subtitles;
@@ -279,6 +405,7 @@ const ExtensionConfPatch = Object.freeze([
   {
     forVersion: '6.3.98',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface) => {
+      if ((userOptions as any)._skipV6Migration) { return; }
       userOptions.aard = defaultOptions.aard;
       delete (userOptions as any).arDetect;
     }
@@ -286,6 +413,7 @@ const ExtensionConfPatch = Object.freeze([
   {
     forVersion: '6.3.994',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
+      if ((userOptions as any)._skipV6Migration) { return; }
       const convertLegacyExtensionMode = (option: {normal: LegacyExtensionMode, theater: LegacyExtensionMode, fullscreen: LegacyExtensionMode}) => {
         if (typeof option === 'number') {
           logger.warn('updateFn', 'This option is not an object, which suggests it has already been converted. Skipping conversion. Raw value of option:', option);
@@ -332,6 +460,7 @@ const ExtensionConfPatch = Object.freeze([
   {
     forVersion: '6.3.995',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
+      if ((userOptions as any)._skipV6Migration) { return; }
       if (!userOptions.ui) {
         userOptions.ui = defaultOptions.ui
       };
@@ -339,6 +468,7 @@ const ExtensionConfPatch = Object.freeze([
   }, {
     forVersion: '6.3.996',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
+      if ((userOptions as any)._skipV6Migration) { return; }
       for (const site in userOptions.sites) {
         const siteData = userOptions.sites[site];
         logger.log('updateFn', 'migrating settings for', site, '  — persistCSA?', siteData.persistCSA, 'typeof persistCSA?', typeof siteData.persistCSA, 'does domconfig exist?', siteData.DOMConfig);
@@ -471,6 +601,7 @@ const ExtensionConfPatch = Object.freeze([
   }, {
     forVersion: '6.3.997',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
+      if ((userOptions as any)._skipV6Migration) { return; }
 
       // default zoom key combinations that involved the 'shift' key should have
       // shortcut.key in uppercase, but they didn't.
@@ -487,6 +618,7 @@ const ExtensionConfPatch = Object.freeze([
   }, {
     forVersion: '6.3.998',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
+      if ((userOptions as any)._skipV6Migration) { return; }
       if (!userOptions.sites["www.amazon.com"]) {
         userOptions.sites["www.amazon.com"] = _cp(defaultOptions.sites["www.amazon.com"] );
       }
@@ -536,6 +668,7 @@ const ExtensionConfPatch = Object.freeze([
   }, {
     forVersion: '6.3.9993',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
+      if ((userOptions as any)._skipV6Migration) { return; }
       userOptions.mouseOptions = {
         shiftPan: true,
         ctrlPan: false,
@@ -598,6 +731,7 @@ const ExtensionConfPatch = Object.freeze([
   {
     forVersion: '7.0.9002',
     updateFn: (userOptions: SettingsInterface, defaultOptions: SettingsInterface, logger?) => {
+      if ((userOptions as any)._skipV6Migration) { delete (userOptions as any)._skipV6Migration; return; }
 
       // crop options previously did not have ArVariant specified. This is changing.
       for (const c of userOptions.commands?.crop ?? []) {
