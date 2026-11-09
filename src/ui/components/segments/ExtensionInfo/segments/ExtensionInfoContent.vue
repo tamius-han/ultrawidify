@@ -1,9 +1,11 @@
 <template>
 
-  <div class="flex flex-col ml-12 p-4">
+  <div class="flex flex-col p-4">
     <div class="text-[1.75em] font-thin text-primary-400">Ultrawidify</div>
     <div class="-mb-1 text-stone-500 text-[0.9em]">Version {{addonVersion}}/{{addonSource}} ({{addonChannel}})</div>
     <div class="text-stone-500 text-[0.9em]">Source code can be viewed on <a target="_blank" src="https://github.com/tamius-han/ultrawidify">github</a>.</div>
+    <div class="text-stone-500 text-[0.67em] uppercase">Buy me a coffee: <a href="https://www.paypal.com/paypalme/tamius" target="_blank">paypal</a>.</div>
+
   </div>
 
   <p>

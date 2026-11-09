@@ -14,8 +14,9 @@
       This version introduces unconstrained zoom, which zooms into video without trying to ensure a specific fit.
     </li>
     <li>
-      Aspect ratios are sorted.
+      Aspect ratios are sorted in all interfaces
     </li>
+    <li><b>Keyboard shortcuts have been updated to accommodate the new cropping strategy</b></li>
   </ul>
 
   <p>Changes in version <b class="font-semibold text-primary-400">7.0.0</b>:</p>
@@ -42,7 +43,7 @@
       Added 1.85:1 as one of default options.
     </li>
   </ul>
-  <p>Additional aspect ratios can be added in the settings (see 'Keyboard & Mouse ').</p>
+  <p>Additional aspect ratios can be added in the settings (see 'Keyboard & Mouse').</p>
 
   <b class="text-white">Autodetection:</b>
   <ul>

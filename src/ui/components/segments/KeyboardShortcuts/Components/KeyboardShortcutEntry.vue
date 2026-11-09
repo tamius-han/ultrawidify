@@ -66,7 +66,7 @@ export default defineComponent({
       this.state = 'removing';
     },
     confirmRemoval(command: CommandInterface) {
-      if (command.arguments.type === AspectRatioType.Fixed) {
+      if (command.action === 'set-ar' && command.arguments.type === AspectRatioType.Fixed) {
         this.settings.active.commands[this.type] = this.settings.active.commands[this.type].filter(
           (x: CommandInterface) => x.arguments?.type !== AspectRatioType.Fixed || x.arguments.ratio !== command.arguments.ratio
         );
@@ -93,6 +93,8 @@ export default defineComponent({
 
         this.state = null;
       }
+      this.$emit('actionRemoved');
+
     },
     cancelRemoval() {
       this.state = null;

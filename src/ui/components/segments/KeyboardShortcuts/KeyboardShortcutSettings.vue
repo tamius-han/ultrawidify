@@ -78,7 +78,121 @@
         <div class="w-[12em] text-center">Keystroke</div>
       </div>
 
-      <!-- CROP -->
+      <!-- Non-fixed crop -->
+      <div
+        class="keyboard-shortcut-row"
+      >
+        <div
+          class="w-[32em] flex flex-row gap-2 items-center"
+          @click="toggleGroupState('crop-novariant')"
+        >
+          <mdicon
+            v-if="!groupVisible['crop-novariant']"
+            name="chevron-right"
+            :size="16"
+          />
+          <mdicon
+            v-if="groupVisible['crop-novariant']"
+            name="chevron-down"
+            :size="16"
+          />
+          <div>Special crop options<br/>
+            <p class="text-[0.8em] text-stone-500">These options have same effect, regardless of video fit setting.</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <!-- Here just to break even/odd -->
+      </div>
+      <template v-if="groupVisible['crop-novariant']">
+        <KeyboardShortcutEntry
+          v-for="command in settings.active.commands.crop
+            .filter(x => (x?.arguments?.type !== AspectRatioType.Fixed && x?.arguments?.type !== AspectRatioType.Automatic && x?.arguments?.type !== AspectRatioType.Cycle))
+          "
+          :key="command"
+          type="crop"
+          :indent="2"
+          :command="command"
+          :settings="settings"
+          :removable="command?.arguments?.type === AspectRatioType.Fixed"
+          @actionRemoved="reload()"
+        ></KeyboardShortcutEntry>
+        <div
+          v-if="state !== 'add-crop-novariant'"
+          class="ml-12 w-[16em] flex flex-row text-[0.8rem] gap-2 my-2 font-bold items-center hover:text-white cursor-pointer"
+          @click="startAdding('crop-novariant')"
+        >
+          <mdicon name="plus" :size="16"></mdicon><div>Add new ratio</div>
+        </div>
+        <template v-else>
+          <NewAspectRatioForm
+            type="crop"
+            :settings="settings"
+            @cancel="state = null"
+            @add="addAction('crop', $event, { variant: undefined })"
+          ></NewAspectRatioForm>
+        </template>
+      </template>
+
+      <!-- CROP without variant -->
+      <div
+        class="keyboard-shortcut-row"
+      >
+        <div
+          class="w-[32em] flex flex-row gap-2 items-center"
+          @click="toggleGroupState('crop-novariant')"
+        >
+          <mdicon
+            v-if="!groupVisible['crop-novariant']"
+            name="chevron-right"
+            :size="16"
+          />
+          <mdicon
+            v-if="groupVisible['crop-novariant']"
+            name="chevron-down"
+            :size="16"
+          />
+          <div>Crop/zoom with currently selected fit mode<br/>
+            <p class="text-[0.8em] text-stone-500">Crops or zooms according to the 'fit video' setting.</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <!-- Here just to break even/odd -->
+      </div>
+      <template v-if="groupVisible['crop-novariant']">
+        <KeyboardShortcutEntry
+          v-for="command in settings.active.commands.crop
+            .filter(x => (x?.arguments?.type === AspectRatioType.Fixed || x?.arguments?.type === AspectRatioType.Automatic || x?.arguments?.type === AspectRatioType.Cycle) && x?.arguments?.variant === undefined)
+            .sort((b, a) => (a.arguments.ratio ?? Number.POSITIVE_INFINITY) - (b.arguments.ratio ?? Number.POSITIVE_INFINITY))
+          "
+          :key="command"
+          type="crop"
+          :indent="2"
+          :command="command"
+          :settings="settings"
+          :removable="command?.arguments?.type === AspectRatioType.Fixed"
+          @actionRemoved="reload()"
+        ></KeyboardShortcutEntry>
+        <div
+          v-if="state !== 'add-crop-novariant'"
+          class="ml-12 w-[16em] flex flex-row text-[0.8rem] gap-2 my-2 font-bold items-center hover:text-white cursor-pointer"
+          @click="startAdding('crop-novariant')"
+        >
+          <mdicon name="plus" :size="16"></mdicon><div>Add new ratio</div>
+        </div>
+        <template v-else>
+          <NewAspectRatioForm
+            type="crop"
+            :settings="settings"
+            @cancel="state = null"
+            @add="addAction('crop', $event, { variant: undefined })"
+          ></NewAspectRatioForm>
+        </template>
+      </template>
+
+
+      <!-- CROP (zoom @ fit video -->
       <div
         class="keyboard-shortcut-row"
       >
@@ -96,8 +210,8 @@
             name="chevron-down"
             :size="16"
           />
-          <div>Aspect ratio adjustments<br/>
-            <!-- <p class="text-[0.8em] text-stone-500">Safe crop options. Prefers to leave empty space instead of cutting off video edges.</p> -->
+          <div>Crop<br/>
+            <p class="text-[0.8em] text-stone-500">Fits video to the player and only removes double letterboxing. If selected aspect ratio does not fit the player, remaining letterbox will not be removed.</p>
           </div>
         </div>
       </div>
@@ -105,15 +219,19 @@
         <!-- Here just to break even/odd -->
       </div>
       <template v-if="groupVisible.crop">
-        <CropZoomKeyboardShortcutEntry
-          v-for="command in settings.active.commands.crop"
+        <KeyboardShortcutEntry
+          v-for="command in settings.active.commands.crop
+            .filter(x => (x?.arguments?.type === AspectRatioType.Fixed || x?.arguments?.type === AspectRatioType.Automatic || x?.arguments?.type === AspectRatioType.Cycle)  && x?.arguments?.variant === ArVariant.FitVideo)
+            .sort((b,a) => (a.arguments.ratio ?? Number.POSITIVE_INFINITY) - (b.arguments.ratio ?? Number.POSITIVE_INFINITY))
+          "
           :key="command"
           type="crop"
           :indent="2"
           :command="command"
           :settings="settings"
           :removable="command?.arguments?.type === AspectRatioType.Fixed"
-        ></CropZoomKeyboardShortcutEntry>
+          @actionRemoved="reload()"
+        ></KeyboardShortcutEntry>
         <div
           v-if="state !== 'add-crop'"
           class="ml-12 w-[16em] flex flex-row text-[0.8rem] gap-2 my-2 font-bold items-center hover:text-white cursor-pointer"
@@ -126,7 +244,121 @@
             type="crop"
             :settings="settings"
             @cancel="state = null"
-            @add="addAction('crop', $event)"
+            @add="addAction('crop', $event, { variant: ArVariant.FitVideo })"
+          ></NewAspectRatioForm>
+        </template>
+      </template>
+
+      <!-- ZOOM (@ fill frame) -->
+      <div
+        class="keyboard-shortcut-row"
+      >
+        <div
+          class="w-[32em] flex flex-row gap-2 items-center"
+          @click="toggleGroupState('fill-frame')"
+        >
+          <mdicon
+            v-if="!groupVisible['fill-frame']"
+            name="chevron-right"
+            :size="16"
+          />
+          <mdicon
+            v-if="groupVisible['fill-frame']"
+            name="chevron-down"
+            :size="16"
+          />
+          <div>Zoom (fill frame)<br/>
+            <p class="text-[0.8em] text-stone-500">Ensures video player is always filled. If selected aspect ratio does not fit the player, video will be cropped until no black bars remain.</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <!-- Here just to break even/odd -->
+      </div>
+      <template v-if="groupVisible['fill-frame']">
+        <KeyboardShortcutEntry
+          v-for="command in settings.active.commands.crop
+            .filter(x => (x?.arguments?.type === AspectRatioType.Fixed || x?.arguments?.type === AspectRatioType.Automatic || x?.arguments?.type === AspectRatioType.Cycle)  && x?.arguments?.variant === ArVariant.FillFrame)
+            .sort((b, a) => (a.arguments.ratio ?? Number.POSITIVE_INFINITY) - (b.arguments.ratio ?? Number.POSITIVE_INFINITY))
+          "
+          :key="command"
+          type="crop"
+          :indent="2"
+          :command="command"
+          :settings="settings"
+          :removable="command?.arguments?.type === AspectRatioType.Fixed"
+          @actionRemoved="reload()"
+        ></KeyboardShortcutEntry>
+        <div
+          v-if="state !== 'add-zoom-fill-frame'"
+          class="ml-12 w-[16em] flex flex-row text-[0.8rem] gap-2 my-2 font-bold items-center hover:text-white cursor-pointer"
+          @click="startAdding('zoom-fill-frame')"
+        >
+          <mdicon name="plus" :size="16"></mdicon><div>Add new ratio</div>
+        </div>
+        <template v-else>
+          <NewAspectRatioForm
+            type="crop"
+            :settings="settings"
+            @cancel="state = null"
+            @add="addAction('crop', $event, { variant: ArVariant.FillFrame })"
+          ></NewAspectRatioForm>
+        </template>
+      </template>
+
+      <!-- ZOOM (unconstrained) -->
+      <div
+        class="keyboard-shortcut-row"
+      >
+        <div
+          class="w-[32em] flex flex-row gap-2 items-center"
+          @click="toggleGroupState('unconstrained')"
+        >
+          <mdicon
+            v-if="!groupVisible.unconstrained"
+            name="chevron-right"
+            :size="16"
+          />
+          <mdicon
+            v-if="groupVisible.unconstrained"
+            name="chevron-down"
+            :size="16"
+          />
+          <div>Zoom (unconstrained)<br/>
+            <p class="text-[0.8em] text-stone-500">Applies zoom without constraints.</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <!-- Here just to break even/odd -->
+      </div>
+      <template v-if="groupVisible.unconstrained">
+        <KeyboardShortcutEntry
+          v-for="command in settings.active.commands.crop
+            .filter(x => (x?.arguments?.type === AspectRatioType.Fixed || x?.arguments?.type === AspectRatioType.Automatic || x?.arguments?.type === AspectRatioType.Cycle) && x?.arguments?.variant === ArVariant.None)
+            .sort((b, a) => (a.arguments.ratio ?? Number.POSITIVE_INFINITY) - (b.arguments.ratio ?? Number.POSITIVE_INFINITY))
+          "
+          :key="command"
+          type="crop"
+          :indent="2"
+          :command="command"
+          :settings="settings"
+          :removable="command?.arguments?.type === AspectRatioType.Fixed"
+          @actionRemoved="reload()"
+        ></KeyboardShortcutEntry>
+        <div
+          v-if="state !== 'add-zoom-unconstrained'"
+          class="ml-12 w-[16em] flex flex-row text-[0.8rem] gap-2 my-2 font-bold items-center hover:text-white cursor-pointer"
+          @click="startAdding('zoom-unconstrained')"
+        >
+          <mdicon name="plus" :size="16"></mdicon><div>Add new ratio</div>
+        </div>
+        <template v-else>
+          <NewAspectRatioForm
+            type="crop"
+            :settings="settings"
+            @cancel="state = null"
+            @add="addAction('crop', $event, { variant: ArVariant.None })"
           ></NewAspectRatioForm>
         </template>
       </template>
@@ -149,7 +381,7 @@
             name="chevron-down"
             :size="16"
           />
-          <div>Zoom<br/>
+          <div>Zoom (free-form)<br/>
             <p class="text-[0.8em] text-stone-500">Controls zoom. Will cut off parts of video in order to achieve desired zoom.</p>
           </div>
         </div>
@@ -163,6 +395,7 @@
           :command="command"
           :settings="settings"
           :removable="command?.arguments?.type === AspectRatioType.Fixed"
+          @actionRemoved="reload()"
         ></KeyboardShortcutEntry>
         <div class="ml-12 w-[16em] flex flex-row text-[0.8rem] gap-2 my-2 font-bold items-center hover:text-white cursor-pointer">
           <mdicon name="plus" :size="16"></mdicon><div>Add new</div>
@@ -232,10 +465,15 @@ export default defineComponent({
     return {
       AspectRatioType: AspectRatioType,
       StretchType: StretchType,
+      ArVariant,
+
       groupVisible: {
+        'crop-novariant': true,
         crop: true,
         stretch: true,
         zoom: true,
+        'fill-frame': false,
+        unconstrained: false,
       },
       state: null,
       optionCache: {
@@ -257,6 +495,9 @@ export default defineComponent({
     this.optionCache.mousePan = `${this.settings.active.mouseOptions.ctrlPan ? 'ctrl' : ''}${this.settings.active.mouseOptions.shiftPan ? 'shift' : ''}`;
   },
   methods: {
+    reload() {
+      this.$nextTick( () => {this.$forceUpdate()});
+    },
     toggleGroupState(groupName: string) {
       this.groupVisible[groupName] = !this.groupVisible[groupName];
     },
@@ -278,7 +519,7 @@ export default defineComponent({
       this.settings.active.mouseOptions.shiftPan = this.optionCache.mousePan.includes('shift');
       this.settings.saveWithoutReload();
     },
-    addAction(segment: 'stretch' | 'crop' | 'zoom', newCommand: {aspectRatio: string, label: string, shortcut?: any}) {
+    addAction(segment: 'stretch' | 'crop' | 'zoom', newCommand: {aspectRatio: string, label: string, shortcut?: any}, otherOptions?: any) {
       const actionMap = {
         stretch: 'set-stretch',
         crop: 'set-ar',
@@ -307,7 +548,8 @@ export default defineComponent({
         label: newCommand.label,
         arguments: {
           type: typeMap[segment],
-          ratio: ratioOut
+          ratio: ratioOut,
+          ...otherOptions
         },
         shortcut: newCommand.shortcut,
       };
@@ -315,16 +557,24 @@ export default defineComponent({
       this.settings.active.commands[segment].push(command);
       this.settings.saveWithoutReload();
 
-      for (const variant of [ArVariant.FitVideo, ArVariant.None, ArVariant.FillFrame]) {
-        const commandVariant = {
-          ...command,
-          arguments: {
-            ...command.arguments,
-            variant: variant
+      // Adding crop aspect ratio should automatically add other variants as well
+      if (segment === 'crop') {
+        for (const variant of [undefined, ArVariant.FitVideo, ArVariant.None, ArVariant.FillFrame]) {
+          if (variant === otherOptions?.variant) {
+            continue;
           }
+          const commandVariant = {
+            ...command,
+            arguments: {
+              ...command.arguments,
+              variant: variant
+            },
+            shortcut: undefined,
+          }
+          this.settings.active.commands[segment].push(commandVariant);
         }
-        this.settings.active.commands[segment].push(commandVariant);
       }
+      this.settings.saveWithoutReload();
 
       this.state = null;
     },
