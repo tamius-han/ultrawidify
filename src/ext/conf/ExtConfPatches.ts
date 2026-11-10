@@ -12,7 +12,7 @@ import { SiteSupportLevel } from '@src/common/enums/SiteSupportLevel.enum';
 import StretchType from '@src/common/enums/StretchType.enum';
 import VideoAlignmentType from '@src/common/enums/VideoAlignmentType.enum';
 import { ArVariant } from '@src/common/interfaces/ArInterface';
-import SettingsInterface from '@src/common/interfaces/SettingsInterface';
+import SettingsInterface, { CommandInterface } from '@src/common/interfaces/SettingsInterface';
 import { _cp } from '@src/common/utils/_cp';
 import { generateCommands } from '@src/ext/conf/ExtensionConf';
 import { AardPollingOptions } from '@src/ext/module/aard/enums/aard-polling-options.enum';
@@ -669,44 +669,153 @@ const ExtensionConfPatch = Object.freeze([
         }
       }
 
-      const migrateArShortcuts = (source: any, target: any, toCompact: boolean) => {
-        if (!source || !target) {
-          return;
+      const compareShortcuts = (a: any, b: any) => {
+        if (!a || !b) {
+          return false;
         }
 
-        const argKey = (args: any) => JSON.stringify([args?.type, args?.ratio ?? null, args?.offset ?? null]);
-        const flatten = (cmds: any): any[] => Object.values(cmds).flatMap((x: any) => Array.isArray(x) ? x : []);
-        const targetCmds = flatten(target);
+        return a.key === b.key && b.code === b.code && a.ctrlKey == b.ctrlKey && a.shiftKey == b.shiftKey && a.metaKey == a.metaKey && a.altKey == b.altKey;
+      }
 
-        if (toCompact) {
-          const editions: (ArVariant | undefined)[] = [undefined, ArVariant.FitVideo, ArVariant.None, ArVariant.FillFrame];
+      // move shortcuts for former 'crop' commands
+      for (const cmd of previousCommands?.crop ?? []) {
+        if (cmd.label) {
+          cmd.label = cmd.label.replace('Crop ', '');
+          cmd.label = cmd.label.replace('Reset crop', 'Reset');
+        }
 
-          for (const srcCmd of flatten(source)) {
-            if (srcCmd.action !== 'set-ar' && srcCmd.action !== 'set-ar-zoom') {
-              continue;
-            }
-            const {variant, ...args} = srcCmd.arguments ?? {};
-            const key = argKey(args);
-            const shortcutEdition = srcCmd.action === 'set-ar-zoom' ? ArVariant.FillFrame : undefined;
+        const matchingNewCommands = userOptions.commands.crop!.filter(
+          (c: CommandInterface) =>
+            c.arguments?.type === cmd.arguments?.type &&
+            c.arguments?.ratio === cmd.arguments?.ratio
+        );
 
-            for (const edition of editions) {
-              let cmd = targetCmds.find(c => c.action === 'set-ar' && argKey(c.arguments) === key && c.arguments?.variant === edition);
-              if (!cmd) {
-                const {shortcut, ...rest} = srcCmd;
-                cmd = {...rest, action: 'set-ar', arguments: edition === undefined ? {...args} : {...args, variant: edition}};
-                target.crop?.push(cmd);
-                targetCmds.push(cmd);
+        // if matchingNewCommands is empty, we're looking at user added command.
+        if (matchingNewCommands.length === 0) {
+          userOptions.commands.crop?.push({...cmd});
+          if (cmd.arguments?.type === AspectRatioType.Fixed) {
+            const cmdBase = JSON.parse(JSON.stringify(cmd));
+            delete cmdBase.shortcut;
+
+            userOptions.commands.crop?.push({...cmdBase, arguments: {...cmdBase.arguments, variant: ArVariant.FitVideo}});
+            userOptions.commands.crop?.push({...cmdBase, arguments: {...cmdBase.arguments, variant: ArVariant.FillFrame}});
+            userOptions.commands.crop?.push({...cmdBase, arguments: {...cmdBase.arguments, variant: ArVariant.None}});
+          }
+        } else if (cmd.shortcut) {
+          // check for conflicts. On conflict, current shortcuts take precedence
+          for (const ct in userOptions.commands) {
+            const matchingNewCommand = userOptions.commands[ct].find(x => compareShortcuts(x.shortcut, cmd.shortcut));
+            if (matchingNewCommand) {
+              delete matchingNewCommand.shortcut;
+
+              const correctShortcutCmd = userOptions.commands.crop!.find(
+                (x: CommandInterface) =>
+                  x.arguments?.type === cmd.arguments?.type &&
+                  x.arguments?.ratio === cmd.arguments?.ratio &&
+                  x.arguments.variant === undefined
+              );
+
+              if (correctShortcutCmd) {
+                correctShortcutCmd!.shortcut = cmd.shortcut;
               }
-              if (edition === shortcutEdition && srcCmd.shortcut) {
-                cmd.shortcut = {...srcCmd.shortcut};
+
+              break;
+            }
+          }
+        }
+      }
+
+      // move shortcuts for former 'zoom' commands
+      for (const cmd of previousCommands?.zoom ?? []) {
+        if (cmd.label) {
+          cmd.label = cmd.label.replace('Crop ', '');
+          cmd.label = cmd.label.replace('Reset crop', 'Reset');
+          cmd.label = cmd.label.replace('Zoom ', '');
+          cmd.label = cmd.label.replace('Reset zoom', 'Reset');
+        }
+
+        const matchingNewCommands = cmd.action === 'set-ar-zoom' ?userOptions.commands.crop!.filter(
+          (c: CommandInterface) =>
+            c.arguments?.type === cmd.arguments?.type &&
+            c.arguments?.ratio === cmd.arguments?.ratio
+        ) : [];
+
+        // if matchingNewCommands is empty, we're looking at user added command.
+        if (matchingNewCommands.length === 0 && cmd.action === 'set-ar-zoom') {
+
+          const shortcut = cmd.shortcut;
+          const cmdBase = JSON.parse(JSON.stringify(cmd));
+          delete cmdBase.shortcut;
+          userOptions.commands.crop?.push({...cmd});
+
+          if (cmdBase.arguments?.type === AspectRatioType.Fixed) {
+            userOptions.commands.crop?.push({...cmdBase, arguments: {...cmdBase.arguments, variant: ArVariant.FitVideo}});
+            userOptions.commands.crop?.push({...cmdBase, arguments: {...cmdBase.arguments, variant: ArVariant.FillFrame}, shortcut: shortcut});
+            userOptions.commands.crop?.push({...cmdBase, arguments: {...cmdBase.arguments, variant: ArVariant.None}});
+          }
+        } else if (cmd.shortcut) {
+          // check for conflicts. On conflict, current shortcuts take precedence
+          for (const ct in userOptions.commands) {
+            const matchingNewCommand = userOptions.commands[ct].find(x => compareShortcuts(x.shortcut, cmd.shortcut));
+            if (matchingNewCommand) {
+              delete matchingNewCommand.shortcut;
+
+              const correctShortcutCmd = cmd.action === 'set-ar-zoom' ? userOptions.commands.crop!.find(
+                (x: CommandInterface) =>
+                  x.arguments?.type === cmd.arguments?.type &&
+                  x.arguments?.ratio === cmd.arguments?.ratio &&
+                  x.arguments.variant === ArVariant.FillFrame
+              ) : userOptions.commands.zoom?.find(
+                (x: CommandInterface) =>
+                  JSON.stringify({...cmd, shortcut: undefined, label: undefined}) === JSON.stringify({...x, shortcut: undefined, label: undefined})
+              );
+
+              if (correctShortcutCmd) {
+                correctShortcutCmd!.shortcut = cmd.shortcut;
+              }
+
+              break;
+            }
+          }
+        }
+
+        if (cmd.shortcut) {
+          const matchingNewCommand = userOptions.commands.crop?.find(x => compareShortcuts(x.shortcut, cmd.shortcut));
+          if (matchingNewCommand) {
+            delete matchingNewCommand.shortcut;
+          }
+        }
+      }
+
+      // move shortcuts for everything else
+      for (const ct in previousCommands) {
+        if (ct === 'crop' || ct === 'zoom') {
+          continue; // those were already handled
+        }
+        for (const cmd of previousCommands[ct]) {
+          if (cmd.shortcut) {
+
+            startMap:
+            for (const cti in userOptions.commands) {
+              const matchingNewCommand = userOptions.commands[cti].find(x => compareShortcuts(x.shortcut, cmd.shortcut));
+              if (matchingNewCommand) {
+                delete matchingNewCommand.shortcut;
+
+                for (const ctt in userOptions.commands) {
+                  const correctShortcutCmd = userOptions.commands[ctt].find(
+                    (x: CommandInterface) =>
+                      JSON.stringify({...cmd, shortcut: undefined, label: undefined}) === JSON.stringify({...x, shortcut: undefined, label: undefined})
+                  );
+                  if (correctShortcutCmd) {
+                    correctShortcutCmd!.shortcut = cmd.shortcut;
+                    break startMap;
+                  }
+                }
               }
             }
           }
-          return;
         }
-      };
-
-      migrateArShortcuts(previousCommands, userOptions.commands, true);
+      }
     }
   }
 
