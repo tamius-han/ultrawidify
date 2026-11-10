@@ -704,30 +704,6 @@ const ExtensionConfPatch = Object.freeze([
           }
           return;
         }
-
-        // only commands without variant and with ArVariant.Zoom are carried back
-        for (const srcCmd of flatten(source)) {
-          if (srcCmd.action !== 'set-ar') {
-            continue;
-          }
-          const {variant, ...args} = srcCmd.arguments ?? {};
-          if (variant !== undefined && variant !== ArVariant.FillFrame) {
-            continue;
-          }
-          const action = variant === ArVariant.FillFrame ? 'set-ar-zoom' : 'set-ar';
-          const key = argKey(args);
-
-          let cmd = targetCmds.find(c => c.action === action && argKey(c.arguments) === key);
-          if (!cmd) {
-            const {shortcut, ...rest} = srcCmd;
-            cmd = {...rest, action, arguments: {...args}};
-            target[variant === ArVariant.FillFrame ? 'zoom' : 'crop']?.push(cmd);
-            targetCmds.push(cmd);
-          }
-          if (srcCmd.shortcut) {
-            cmd.shortcut = {...srcCmd.shortcut};
-          }
-        }
       };
 
       migrateArShortcuts(previousCommands, userOptions.commands, true);
