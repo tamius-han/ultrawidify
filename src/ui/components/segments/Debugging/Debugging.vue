@@ -115,7 +115,8 @@
             <div class="flex flex-row w-full justify-end mt-2">
               <button class="flex flex-col" @click="() => testMigration(index)">Test migration</button>
               <button class="flex flex-col" @click="() => loadFromSnapshot(index)">Load snapshot and migrate<br/><small>normal migration</small></button>
-              <button class="flex flex-col" @click="() => loadFromSnapshot(index, true)">Load &amp; migrate<br/><small>without creating snapshot</small></button>
+              <button class="flex flex-col" @click="() => loadFromSnapshot(index, {skipSnapshot: true})">Load &amp; migrate<br/><small>without creating snapshot</small></button>
+              <button class="flex flex-col" @click="() => loadFromSnapshot(index, {skipSnapshot: true, skipMigration: true})">Load<br/><small>without immediate migration</small></button>
               <button class="flex flex-col" v-if="settings.isAutomatic" @click="() => toggleSnapshotProtection(index)">Toggle protection</button>
               <button class="flex flex-col" @click="() => deleteSnapshot(index)">Delete snapshot</button>
             </div>
@@ -361,8 +362,14 @@ export default defineComponent({
       await this.loadSettingsSnapshots();
     },
 
-    async loadFromSnapshot(snapshotIndex, skipSnapshot?: boolean) {
-      this.settings.init({snapshot: _cp(this.settingsSnapshots[snapshotIndex]), skipSnapshot});
+    async loadFromSnapshot(snapshotIndex: number, options?: {skipSnapshot?: boolean, skipMigration?: boolean}) {
+      this.settings.init(
+        {
+          snapshot: _cp(this.settingsSnapshots[snapshotIndex]),
+          skipSnapshot: options?.skipSnapshot,
+          skipMigration: options?.skipMigration
+        }
+      );
     },
 
     async testMigration(snapshotIndex) {
@@ -391,7 +398,6 @@ export default defineComponent({
      *              - if SettingsSnapshot object: editing a new snapshot, which will be added to snapshot list
      */
     editSnapshot(snapshotOrIndex: SettingsSnapshot | number) {
-      console.log('editing snapshot', snapshotOrIndex)
       let snapshot: SettingsSnapshot;
       let index;
 
