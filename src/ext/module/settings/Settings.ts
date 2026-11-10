@@ -163,78 +163,108 @@ class Settings {
     return Settings.getExtensionVersion();
   }
 
-  private compareExtensionVersions(a: string, b: string) {
-    let aa = a.split('.');
-    let bb = b.split('.');
+  /**
+   * Compares semver versions. It does not support non-numeric postfixes, but neither does Chrome
+   * @param a first semver string
+   * @param b second semver string
+   * @returns true if a is greater than b, false otherwise
+   */
+  private isSemverGreater(a: string, b: string): boolean {
+    const aa = a.split('.');
+    const bb = b.split('.');
 
-    if (+aa[0] !== +bb[0]) {
-      // difference on first digit
-      return +aa[0] - +bb[0];
-    } if (+aa[1] !== +bb[1]) {
-      // first digit same, difference on second digit
-      return  +aa[1] - +bb[1];
-    } if (+aa[2] !== +bb[2]) {
-      return  +aa[2] - +bb[2];
-      // first two digits the same, let's check the third digit
-    } else {
-      // fourth digit is optional. When not specified, 0 is implied
-      // btw, ++(aa[3] || 0) - ++(bb[3] || 0) doesn't work
-
-      // Since some things are easier if we actually have a value for
-      // the fourth digit, we turn a possible undefined into a zero
-      aa[3] = aa[3] === undefined ? 0 : aa[3];
-      bb[3] = bb[3] === undefined ? 0 : bb[3];
-
-      // also, the fourth digit can start with a letter.
-      // versions that start with a letter are ranked lower than
-      // versions x.x.x.0
-      if (
-        (isNaN(+aa[3]) && !isNaN(+bb[3]))
-        || (!isNaN(+aa[3]) && isNaN(+bb[3]))
-      ) {
-        return isNaN(+aa[3]) ? -1 : 1;
+    // fill till fourth digit
+    for (let i = 0; i < 4; i++) {
+      if (aa[i] === undefined) {
+        aa.push('0');
       }
-
-      // at this point, either both version numbers are a NaN or
-      // both versions are a number.
-      if (!isNaN(+aa[3])) {
-        return +aa[3] - +bb[3];
-      }
-
-      // letters have their own hierarchy:
-      // dev < a < b < rc
-      let av = this.getPrereleaseVersionHierarchy(aa[3]);
-      let bv = this.getPrereleaseVersionHierarchy(bb[3]);
-
-      if (av !== bv) {
-        return av - bv;
-      } else {
-        return +(aa[3].replace(/\D/g,'')) - +(bb[3].replace(/\D/g, ''));
+      if (bb[i] === undefined) {
+        bb.push('0');
       }
     }
+
+    for (let i = 0; i < 3; i++) {
+      if (+aa[i] !== +bb[i]) {
+        return +aa[i] > +bb[i];
+      }
+    }
+
+    return false;
   }
 
-  private getPrereleaseVersionHierarchy(version: string) {
-    if (version.startsWith('dev')) {
-      return 0;
-    }
-    if (version.startsWith('a')) {
-      return 1;
-    }
-    if (version.startsWith('b')) {
-      return 2;
-    }
-    return 3;
+  // private compareExtensionVersions(a: string, b: string) {
+  //   let aa = a.split('.');
+  //   let bb = b.split('.');
+
+  //   if (+aa[0] !== +bb[0]) {
+  //     // difference on first digit
+  //     return +aa[0] - +bb[0];
+  //   } if (+aa[1] !== +bb[1]) {
+  //     // first digit same, difference on second digit
+  //     return  +aa[1] - +bb[1];
+  //   } if (+aa[2] !== +bb[2]) {
+  //     return  +aa[2] - +bb[2];
+  //     // first two digits the same, let's check the third digit
+  //   } else {
+  //     // fourth digit is optional. When not specified, 0 is implied
+  //     // btw, ++(aa[3] || 0) - ++(bb[3] || 0) doesn't work
+
+  //     // Since some things are easier if we actually have a value for
+  //     // the fourth digit, we turn a possible undefined into a zero
+  //     aa[3] = aa[3] === undefined ? 0 : aa[3];
+  //     bb[3] = bb[3] === undefined ? 0 : bb[3];
+
+  //     // also, the fourth digit can start with a letter.
+  //     // versions that start with a letter are ranked lower than
+  //     // versions x.x.x.0
+  //     if (
+  //       (isNaN(+aa[3]) && !isNaN(+bb[3]))
+  //       || (!isNaN(+aa[3]) && isNaN(+bb[3]))
+  //     ) {
+  //       return isNaN(+aa[3]) ? -1 : 1;
+  //     }
+
+  //     // at this point, either both version numbers are a NaN or
+  //     // both versions are a number.
+  //     if (!isNaN(+aa[3])) {
+  //       return +aa[3] - +bb[3];
+  //     }
+
+  //     // letters have their own hierarchy:
+  //     // dev < a < b < rc
+  //     let av = this.getPrereleaseVersionHierarchy(aa[3]);
+  //     let bv = this.getPrereleaseVersionHierarchy(bb[3]);
+
+  //     if (av !== bv) {
+  //       return av - bv;
+  //     } else {
+  //       return +(aa[3].replace(/\D/g,'')) - +(bb[3].replace(/\D/g, ''));
+  //     }
+  //   }
+  // }
+
+  // private getPrereleaseVersionHierarchy(version: string) {
+  //   if (version.startsWith('dev')) {
+  //     return 0;
+  //   }
+  //   if (version.startsWith('a')) {
+  //     return 1;
+  //   }
+  //   if (version.startsWith('b')) {
+  //     return 2;
+  //   }
+  //   return 3;
+  // }
+
+  // private sortConfPatches(patchesIn: any[]) {
+  //   return patchesIn.sort( (a: any, b: any) => this.isSemverGreater(a.forVersion, b.forVersion) ? 1 : -1);
+  // }
+
+  private findFirstNecessaryPatch(version: string) {
+    return ExtensionConfPatch.findIndex(x => this.isSemverGreater(x.forVersion, version));
   }
 
-  private sortConfPatches(patchesIn) {
-    return patchesIn.sort( (a, b) => this.compareExtensionVersions(a.forVersion, b.forVersion));
-  }
-
-  private findFirstNecessaryPatch(version) {
-    return ExtensionConfPatch.findIndex(x => this.compareExtensionVersions(x.forVersion, version) > 0);
-  }
-  private applySettingsPatches(currentSettings, oldVersion, options?: {skipSnapshot?: boolean}) {
+  private applySettingsPatches(currentSettings: SettingsInterface, oldVersion: string, options?: {skipSnapshot?: boolean}) {
     let index = this.findFirstNecessaryPatch(oldVersion);
 
     if (index === -1) {
@@ -285,10 +315,18 @@ class Settings {
     return currentSettings;
   }
 
-  async init(options?: {dryRun?: boolean, snapshot?: SettingsSnapshot, skipSnapshot?: boolean}) {
+  async init(options?: {dryRun?: boolean, snapshot?: SettingsSnapshot, skipSnapshot?: boolean, skipMigration?: boolean}) {
     await this.snapshotManager.init();
 
     let settings;
+
+    if (options?.snapshot && options?.skipMigration) {
+      this.logger?.info('init', 'Loading snapshot without immediate migration ...');
+      this.active = options.snapshot.settings;
+      this.version = options.snapshot.settings.version ?? this.getExtensionVersion();
+      await this.saveWithoutReload();
+      return;
+    }
 
     if (options?.snapshot) {
       this.logger?.info('init', 'Snapshot was provided — will load settings from snapshot.', options.snapshot);
