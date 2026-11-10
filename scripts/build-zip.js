@@ -19,17 +19,49 @@ const makeDirIfNotExists = (dir) => {
   }
 }
 
+const collectArchiveEntries = (directory, archivePath = '') => {
+  const entries = [];
+  const children = fs.readdirSync(directory, { withFileTypes: true })
+    .sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+
+  for (const child of children) {
+    const sourcePath = path.join(directory, child.name);
+    const name = archivePath ? `${archivePath}/${child.name}` : child.name;
+
+    if (child.isDirectory()) {
+      entries.push({ sourcePath, name: `${name}/`, mode: 0o40755 });
+      entries.push(...collectArchiveEntries(sourcePath, name));
+    } else if (child.isFile()) {
+      entries.push({ sourcePath, name, mode: 0o100644 });
+    }
+  }
+
+  return entries;
+};
+
 const buildZip = (src, dist, zipFilename) => {
   console.info(`Building ${zipFilename}...`);
 
-  const archive = archiver('zip', { zlib: { level: 9 }});
+  const archive = archiver('zip', { forceUTC: true, zlib: { level: 9 }});
   const stream = fs.createWriteStream(path.join(dist, zipFilename));
+  const archiveDate = new Date('1980-01-01T00:00:00.000Z');
 
   return new Promise((resolve, reject) => {
-    archive
-      .directory(src, false)
-      .on('error', err => reject(err))
-      .pipe(stream);
+    archive.on('error', err => reject(err)).pipe(stream);
+
+    for (const entry of collectArchiveEntries(src)) {
+      const entryData = {
+        name: entry.name,
+        date: archiveDate,
+        mode: entry.mode,
+      };
+
+      if (entry.name.endsWith('/')) {
+        archive.append(Buffer.alloc(0), entryData);
+      } else {
+        archive.append(fs.createReadStream(entry.sourcePath), entryData);
+      }
+    }
 
     stream.on('close', () => resolve());
     archive.finalize();
@@ -73,4 +105,8 @@ const main = () => {
     .catch(console.err);
 };
 
-main();
+if (require.main === module) {
+  main();
+}
+
+module.exports = { buildZip };

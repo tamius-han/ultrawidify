@@ -193,10 +193,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineAsyncComponent, defineComponent } from 'vue';
 
 import Popup from '@components/common/Popup.vue';
-import JsonEditor from '@components/common/JsonEditor.vue';
 import UploadJsonFileButton from '@components/common/UploadJsonFileButton.vue';
 
 import { LogAggregator, BLANK_LOGGER_CONFIG } from '@src/ext/module/logging/LogAggregator';
@@ -207,7 +206,7 @@ import { _cp } from '@src/common/utils/_cp';
 export default defineComponent({
   components: {
     UploadJsonFileButton,
-    JsonEditor,
+    JsonEditor: defineAsyncComponent(() => import('@components/common/JsonEditor.vue')),
     Popup,
   },
   data() {

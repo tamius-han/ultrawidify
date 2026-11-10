@@ -310,15 +310,14 @@
 
 <script lang="ts">
 import BrowserDetect from '@src/ext/conf/BrowserDetect';
-import JsonEditor from '@components/common/JsonEditor.vue';
 import {AardPollingOptions} from '@src/ext/module/aard/enums/aard-polling-options.enum';
 import {AardSubtitleCropMode} from '@src/ext/module/aard/enums/aard-subtitle-crop-mode.enum';
-import { defineComponent } from 'vue';
+import { defineAsyncComponent, defineComponent } from 'vue';
 import ExtensionMode from '@src/common/enums/ExtensionMode.enum';
 
 export default defineComponent({
   components: {
-    JsonEditor
+    JsonEditor: defineAsyncComponent(() => import('@components/common/JsonEditor.vue'))
   },
   mixins: [
   ],

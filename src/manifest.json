@@ -61,5 +61,17 @@
     "*://*/*"
   ],
   "optional_permissions": [
-  ]
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+        "id": "{cf02b1a7-a01a-4e37-a609-516a283f1ed3}",
+        "data_collection_permissions": {
+          "required": [
+            "none"
+          ],
+          "optional": [
+          ]
+         }
+      }
+  }
 }

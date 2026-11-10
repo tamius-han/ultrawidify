@@ -12,7 +12,7 @@ const config = {
     ignored: /node_modules/
   },
   mode: process.env.NODE_ENV,
-  devtool: `${process.env.CHANNEL === 'stable' ? undefined : "inline-source-map"}`,
+  devtool: process.env.CHANNEL === 'stable' ? false : 'source-map',
   context: __dirname + '/src',
   entry: {
     'ext/uw': './ext/uw.js',
@@ -23,8 +23,6 @@ const config = {
     path: __dirname + `/dist-${process.env.BROWSER == 'firefox' ? 'ff' : process.env.BROWSER}`,
     filename: '[name].js',
   },
-
-  devtool: "source-map",
 
   resolve: {
     alias: aliases, // SEE: paths.conf.js

@@ -258,25 +258,7 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent } from 'vue';
-import VideoSettings from '@components/segments/VideoSettings/VideoSettings.vue';
-import OtherSiteSettings from '@components/segments/ExtensionSettings/Panels/OtherSiteSettings.vue';
-import PlayerElementSettings from '@components/segments/PlayerElementSelection/PlayerElementSettings.vue';
-import AutodetectionSettings from '@components/segments/AutodetectionSettings/AutodetectionSettings.vue';
-import UISettings from '@components/segments/UISettings/UISettings.vue';
-import KeyboardShortcutSettings from '@components/segments/KeyboardShortcuts/KeyboardShortcutSettings.vue';
-import SiteExtensionSettings from '@components/segments/ExtensionSettings/Panels/SiteExtensionSettings.vue';
-import FrameSiteSettings from '@components/segments/ExtensionSettings/Panels/FrameSiteSettings.vue';
-import Debugging from '@components/segments/Debugging/Debugging.vue';
-import ImportExportSettings from '@components/segments/ImportExportSettings/ImportExportSettings.vue';
-import PlayerSelectorAdvancedForm from '@components/segments/PlayerElementSelection/Panels/PlayerSelectorAdvancedForm.vue';
-import PlayerSelectorSimple from '@components/segments/PlayerElementSelection/Panels/PlayerSelectorSimple.vue';
-
-import AfterUpdate from '@components/segments/AfterUpdate/AfterUpdate.vue';
-import AfterInstall from '@components/segments/AfterInstall/AfterInstall.vue';
-
-import WhatsNew from '@components/segments/ExtensionInfo/WhatsNew.vue';
-import About from '@components/segments/ExtensionInfo/About.vue';
+import { defineAsyncComponent, defineComponent } from 'vue';
 
 // not component:
 import BrowserDetect from '@src/ext/conf/BrowserDetect'
@@ -384,24 +366,24 @@ const DEFAULT_TABS = {
 
 export default defineComponent({
   components: {
-    VideoSettings,
-    OtherSiteSettings,
-    PlayerElementSettings,
-    PlayerSelectorAdvancedForm,
-    PlayerSelectorSimple,
-    AutodetectionSettings,
-    KeyboardShortcutSettings,
-    UISettings,
-    SiteExtensionSettings,
-    FrameSiteSettings,
-    ImportExportSettings,
-    Debugging,
+    VideoSettings: defineAsyncComponent(() => import('@components/segments/VideoSettings/VideoSettings.vue')),
+    OtherSiteSettings: defineAsyncComponent(() => import('@components/segments/ExtensionSettings/Panels/OtherSiteSettings.vue')),
+    PlayerElementSettings: defineAsyncComponent(() => import('@components/segments/PlayerElementSelection/PlayerElementSettings.vue')),
+    PlayerSelectorAdvancedForm: defineAsyncComponent(() => import('@components/segments/PlayerElementSelection/Panels/PlayerSelectorAdvancedForm.vue')),
+    PlayerSelectorSimple: defineAsyncComponent(() => import('@components/segments/PlayerElementSelection/Panels/PlayerSelectorSimple.vue')),
+    AutodetectionSettings: defineAsyncComponent(() => import('@components/segments/AutodetectionSettings/AutodetectionSettings.vue')),
+    KeyboardShortcutSettings: defineAsyncComponent(() => import('@components/segments/KeyboardShortcuts/KeyboardShortcutSettings.vue')),
+    UISettings: defineAsyncComponent(() => import('@components/segments/UISettings/UISettings.vue')),
+    SiteExtensionSettings: defineAsyncComponent(() => import('@components/segments/ExtensionSettings/Panels/SiteExtensionSettings.vue')),
+    FrameSiteSettings: defineAsyncComponent(() => import('@components/segments/ExtensionSettings/Panels/FrameSiteSettings.vue')),
+    ImportExportSettings: defineAsyncComponent(() => import('@components/segments/ImportExportSettings/ImportExportSettings.vue')),
+    Debugging: defineAsyncComponent(() => import('@components/segments/Debugging/Debugging.vue')),
 
-    AfterUpdate,
-    AfterInstall,
+    AfterUpdate: defineAsyncComponent(() => import('@components/segments/AfterUpdate/AfterUpdate.vue')),
+    AfterInstall: defineAsyncComponent(() => import('@components/segments/AfterInstall/AfterInstall.vue')),
 
-    WhatsNew,
-    About,
+    WhatsNew: defineAsyncComponent(() => import('@components/segments/ExtensionInfo/WhatsNew.vue')),
+    About: defineAsyncComponent(() => import('@components/segments/ExtensionInfo/About.vue')),
   },
   mixins: [
     WarningsMixin
