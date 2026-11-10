@@ -236,7 +236,10 @@ export default {
         visible: true,
         confirm: () => {
           this.settings.active = newSettings;
-          this.settings.saveWithoutReload();
+          chrome.storage.local.set({'uw-last-updated-version': this.settings.active.version});
+
+          // when importing settings, preserve the version in order to guarantee that necessary migrations happen
+          this.settings.saveWithoutReload({forcePreserveVersion: true});
           this.importSettingDialogConfig = {visible: false};
           this.resetSettingsEditor();
         },

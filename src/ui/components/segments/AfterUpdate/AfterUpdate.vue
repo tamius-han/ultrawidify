@@ -6,13 +6,12 @@
       <div class="body flex-grow text-stone-300">
         <h1 class="text-[1.75rem] text-primary-300">Ultrawidify has been updated</h1>
 
-        <div v-if="settingsWereReset" class="warn">
+        <div v-if="settingsWereReset" class="warning-box my-4 w-full max-w-[960px]">
           Due to extensive changes in extension structure since the last update, your settings could not be migrated.
           You will need to re-add any custom website settings and custom keyboard shortcuts and aspect ratios.
         </div>
-
         <br/>
-        <p v-if="BrowserDetect.processEnvChannel === 'chrome'">Congrats, you're part of the lucky 10% who got volunteered for early access. Please consider reporting issues via <a href="https://github.com/tamius-han/ultrawidify/issues" target="_blank">github</a> or e-mail</p> (and please follow the template).
+        <p v-if="BrowserDetect.processEnvBrowser === 'chrome'" class="leading-0 tracking-0">Congrats, you're part of the lucky 10% who got volunteered for early access. Please consider reporting issues via <a href="https://github.com/tamius-han/ultrawidify/issues" target="_blank">github</a> or e-mail</p> (and please follow the template).
         <p>Normally I don't bother people with stuff like this, but there's been some new features and notable updates.</p>
 
         <div class="flex flex-col gap-4 mt-8 max-w-[720px]">
@@ -302,6 +301,7 @@ export default {
   ],
   data () {
     return {
+      BrowserDetect,
       AardSubtitleCropMode,
       ExtensionMode,
       placeholderSubtitleCrop: AardSubtitleCropMode.ResetAR,
