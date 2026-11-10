@@ -122,7 +122,7 @@ class Resizer {
     }],
     'set-ar-variant': [{
       function: (config: any) => {
-        if (config.variant) {
+        if (config.variant !== undefined) {
           this.setAr({...this.lastAr, variant: config.variant});
         }
       }
@@ -377,7 +377,7 @@ class Resizer {
       return;
     }
 
-    if (!ar.variant) {
+    if (ar.variant === undefined) {
       if (ar.type === AspectRatioType.Automatic || ar.type === AspectRatioType.AutomaticUpdate) {
         ar.variant = this.siteSettings.data.defaults.cropFitAard;
       } else {
