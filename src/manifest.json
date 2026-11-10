@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Ultrawidify",
-  "description": "Removes black bars on ultrawide videos and offers advanced options to fix aspect ratio.",
+  "description": "Removes double letterboxing (black bars) on ultrawide videos and offers advanced options to fix aspect ratio.",
   "version": "7.1.0",
   "icons": {
     "32":"res/icons/uw-32.png",
@@ -44,11 +44,9 @@
         "ext/*",
         "res/fonts/*",
         "res/css/*",
-        "res/img/settings/about-bg.png",
         "res/icons/*",
         "res/img/*",
-        "ui/*",
-        "main.css"
+        "ui/*"
       ],
       "matches": [
         "*://*/*"
