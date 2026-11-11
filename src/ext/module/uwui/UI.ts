@@ -595,7 +595,16 @@ class UI {
     this.uiState.lockXY = scalingParams.effectiveZoom.x === scalingParams.effectiveZoom.y;
   }
 
+  // Several UI instances can live in one frame and all receive the same open request.
+  private static lastSettingsWindowTs = 0;
+
   createSettingsWindow(path?: string) {
+    const now = Date.now();
+    if (now - UI.lastSettingsWindowTs < 500) {
+      return;
+    }
+    UI.lastSettingsWindowTs = now;
+
     const iframe = document.createElement('iframe');
 
     // we don't enforce minimum margin on small screens

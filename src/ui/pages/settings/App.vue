@@ -127,6 +127,8 @@ export default defineComponent({
       if (segment !== '#popup') {
         // undo that workaround that makes popup work correctly if we aren't in a popup
         document.getElementsByTagName('html')[0].setAttribute('style', '');
+        document.body.style.removeProperty('width');
+        document.body.style.removeProperty('max-width');
       }
 
       await this.settings!.init();
@@ -262,6 +264,9 @@ export default defineComponent({
     async setupIframe() {
       try {
         this.role='ui-window';
+        if (!this.initialPath?.length) {
+          this.initialPath = ['window.site-extension-settings'];
+        }
 
         this.logAggregator = new LogAggregator('settings-page');
         this.logger = new ComponentLogger(this.logAggregator, 'SettingsPage');
@@ -297,14 +302,6 @@ export default defineComponent({
               }
               this.site = {...config.site, from: 'set-current-site, via setup iframe'};
               this.siteSettings = this.settings.getSiteSettings({site: this.site.host});
-
-              if (!this.initialPath || this.initialPath.length < 1) {
-                if (this.siteSettings.data.enable) {
-                  this.initialPath = ['video-settings'];
-                } else {
-                  this.initialPath = ['site-extension-settings'];
-                }
-              }
 
               // this.eventBus.setupPopupTunnelWorkaround({
               //   origin: CommsOrigin.Popup,

@@ -91,7 +91,7 @@ export default defineComponent({
   @apply flex flex-col gap-1;
 
   .field {
-    @apply flex flex-row items-center gap-2 mx-0 my-0 px-0 py-0;
+    @apply flex flex-row flex-wrap items-center gap-2 mx-0 my-0 px-0 py-0;
 
     .label {
       @apply w-24 text-right;
