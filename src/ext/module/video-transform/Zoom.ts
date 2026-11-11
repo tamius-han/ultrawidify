@@ -7,6 +7,14 @@ const MAX_SCALE = 8;
 const LOG_MAX_SCALE = Math.log2(MAX_SCALE);
 const LOG_MIN_SCALE = Math.log2(MIN_SCALE);
 
+function finiteZoom(value: unknown): number | undefined {
+  if (typeof value !== 'number' && (typeof value !== 'string' || !value.trim())) {
+    return undefined;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
 
 class Zoom {
   //#region flags
@@ -50,23 +58,20 @@ class Zoom {
    * @param amount
    * @param axis — leave undefined to apply zoom to both axes
    */
-  zoomStep(amount: number, axis?: 'x' | 'y') {
-    const effectiveLog = {
-      x: Math.log2(this.effectiveZoom.x),
-      y: Math.log2(this.effectiveZoom.y)
-    };
-
-    let newLog = axis === 'y' ? effectiveLog.y : effectiveLog.x;
-    newLog += amount;
-    newLog = Math.min(Math.max(newLog, LOG_MIN_SCALE), LOG_MAX_SCALE);
-
-    // if axis is undefined, both of this statements should trigger)
-    if (axis !== 'y') {
-      this.logScale = newLog;
+  zoomStep(zoom: number | {x?: number, y?: number}, axis?: 'x' | 'y') {
+    const zoomX = finiteZoom(typeof zoom === 'object' && zoom !== null ? zoom.x : zoom);
+    const zoomY = finiteZoom(typeof zoom === 'object' && zoom !== null ? zoom.y : zoom);
+    if ((axis === 'x' || zoomY === undefined) && (axis === 'y' || zoomX === undefined)) {
+      return;
     }
-    if (axis !== 'x') {
-      this.logScaleY = newLog;
-    }
+
+    const effectiveX = finiteZoom(this.effectiveZoom?.x) ?? 1;
+    const effectiveY = finiteZoom(this.effectiveZoom?.y) ?? 1;
+    const logX = Math.log2(effectiveX > 0 ? effectiveX : 1);
+    const logY = Math.log2(effectiveY > 0 ? effectiveY : 1);
+
+    this.logScale = Math.min(Math.max(logX + (axis === 'y' ? 0 : zoomX ?? 0), LOG_MIN_SCALE), LOG_MAX_SCALE);
+    this.logScaleY = Math.min(Math.max(logY + (axis === 'x' ? 0 : zoomY ?? 0), LOG_MIN_SCALE), LOG_MAX_SCALE);
 
     this.scale = Math.pow(2, this.logScale);
     this.scaleY = Math.pow(2, this.logScaleY);
@@ -78,26 +83,24 @@ class Zoom {
    * Sets zoom to specific value
    * @param scale
    */
-  setZoom(scale: number | {x: number, y: number}){
-    // NOTE: SCALE IS NOT LOGARITHMIC
-    const scaleIn = (typeof scale === 'number') ?
-      {
-        x: scale,
-        y: scale
-      } : {
-        x: scale.x ?? this.scale,
-        y: scale.y ?? this.scaleY
-      };
+  setZoom(scale: number | {x?: number, y?: number}){
+    const scaleX = finiteZoom(typeof scale === 'object' && scale !== null ? scale.x : scale);
+    const scaleY = finiteZoom(typeof scale === 'object' && scale !== null ? scale.y : scale);
+    if (scaleX === undefined && scaleY === undefined) {
+      return;
+    }
 
-    this.scale  = Math.min(Math.max(scaleIn.x, MIN_SCALE), MAX_SCALE);
-    this.scaleY = Math.min(Math.max(scaleIn.y, MIN_SCALE), MAX_SCALE);
+    const effectiveX = finiteZoom(this.effectiveZoom?.x) ?? 1;
+    const effectiveY = finiteZoom(this.effectiveZoom?.y) ?? 1;
+    this.scale = Math.min(Math.max(scaleX ?? effectiveX, MIN_SCALE), MAX_SCALE);
+    this.scaleY = Math.min(Math.max(scaleY ?? effectiveY, MIN_SCALE), MAX_SCALE);
 
     this.processZoom({manualZoom: true});
   }
 
   processZoom(flags?: {manualZoom?: boolean}) {
-    this.conf.resizer.toFixedAr(flags);
-    this.conf.resizer.applyScaling({xFactor: this.scale, yFactor: this.scaleY}, {noAnnounce: true});
+    this.conf.resizer?.toFixedAr(flags);
+    this.conf.resizer?.applyScaling({xFactor: this.scale, yFactor: this.scaleY}, {noAnnounce: true});
   }
 }
 

@@ -189,16 +189,19 @@ class Resizer {
     }],
     'set-zoom': [{
       function: (config: any) => {
-        if (!config || config.zoom === 1 || (config.zoom.x === 1 && config.zoom.y === 1)) {
+        if (config?.zoom == null || config.zoom === 1 || (config.zoom.x === 1 && config.zoom.y === 1)) {
           this.manualZoom = false;
         } else {
           this.manualZoom = true;
         }
-        this.setZoom(config?.zoom ?? {zoom: 1});
+        this.setZoom(config?.zoom ?? 1);
       }
     }],
     'change-zoom': [{
-      function: (config: any) => this.zoomStep(config.zoom)
+      function: (config: any) => {
+        console.log('change-zoom called', config);
+        this.zoomStep(config?.zoom);
+      }
     }],
     'get-ar': [{
       function: () => this.eventBus.send('uw-config-broadcast', {type: 'ar', config: this.lastAr})
@@ -737,7 +740,7 @@ class Resizer {
    * @param noAnnounce
    * @returns
    */
-  setZoom(zoomLevel: number | {x: number, y: number}, noAnnounce?) {
+  setZoom(zoomLevel: number | {x?: number, y?: number}, noAnnounce?) {
     if (this._setZoomTimeout) {
       this._latestSetZoomArgs = {zoomLevel, noAnnounce};
       return;
