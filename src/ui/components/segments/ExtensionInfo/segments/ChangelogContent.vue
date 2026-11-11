@@ -1,6 +1,13 @@
 <template>
   <p class="mb-4">Full changelog for older versions <a href="https://github.com/tamius-han/ultrawidify/blob/master/CHANGELOG.md" target="_blank">is available here</a>.</p>
 
+  <p>Changes in version <b class="font-semibold text-primary-400">7.1.1</b>:</p>
+  <ul>
+    <li>Alignment options were missing from keyboard shortcut settings</li>
+    <li>Added content fit options to keyboard shortcut settings</li>
+    <li>Optimized extension size</li>
+  </ul>
+
   <p>Changes in version <b class="font-semibold text-primary-400">7.1.0</b>:</p>
   <ul>
     <li>Popup UI was made more compact</li>

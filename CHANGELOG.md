@@ -2,8 +2,15 @@
 
 ## v7.x
 
+### v7.1.1
+
+* Optimized extension size
+* Alignment options were missing from keyboard shortcut settings
+* Added content fit options to keyboard shortcut settings
+
 ### v7.1.0
 
+* First post-5.x release for edge and firefox
 * Added compact UI mode. This allows UI to fit more aspect ratio options in less space. Additionally, there are now three zoom modes: crop/fit video (ensures video never gets cropped — default for this addon), fill frame (ensures no black bars), unconstrained (zooms to the target aspect ratio as-is) 
 * New changes were ported to Firefox and Edge versions.
 
