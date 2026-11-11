@@ -190,7 +190,11 @@ class VideoData {
       this.videoLoaded = true;
       this.videoDimensionsLoaded = true;
       try {
-        await this.setupStageTwo();
+        if (this.resizer) {
+          this.restoreCrop();
+        } else {
+          await this.setupStageTwo();
+        }
         this.logger.info('onVideoLoaded', '%c——————————— videoData setup stage two complete ———————————', 'color: #0f9');
       } catch (e) {
         this.logger.error('onVideoLoaded', '%c ——————————— Setup stage two failed. ———————————\n', 'color: #f00', e);
