@@ -216,6 +216,7 @@ class CommsClient {
       {
         comms,
         origin: CommsOrigin.Server,
+        commandId: message.context?.commandId,
         borderCrossings: {
           commsServer: true
         }

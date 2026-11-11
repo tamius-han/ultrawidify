@@ -151,8 +151,7 @@ export default class EventBus {
       return;
     }
     if (context.commandId && this.lastExecutedCommandIds.includes(context.commandId)) {
-      // console.warn('this command was already sent:', context, this.lastExecutedCommandIds);
-      // return;
+      return;
     }
 
     // Popup bus: make forwarding explicit. Commands sent from the popup (aspect ratio, zoom, alignment ...)
