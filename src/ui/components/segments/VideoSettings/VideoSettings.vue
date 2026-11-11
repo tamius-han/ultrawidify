@@ -82,7 +82,8 @@
         <div
           v-for="(command, index) of settings?.active.commands.zoom.filter(x => x.action === 'change-zoom').sort((a, b) => a.arguments.zoom - b.arguments.zoom)"
           :key="index"
-          class="bg-black border border-stone-700 px-4 py-1"
+          class="bg-black border border-stone-700 px-4 py-1 cursor-pointer select-none"
+          @click="execAction(command)"
         >
           {{ command.label }}<span v-if="getKeyboardShortcutLabel(command)" class="opacity-50"> ({{ getKeyboardShortcutLabel(command) }})</span>
         </div>
@@ -91,7 +92,8 @@
         <div
           v-for="(command, index) of settings?.active.commands.zoom.filter(x => x.action === 'set-zoom').sort((a, b) => a.arguments.zoom - b.arguments.zoom)"
           :key="index"
-          class="bg-black border border-stone-700 px-4 py-1"
+          class="bg-black border border-stone-700 px-4 py-1 cursor-pointer select-none"
+          @click="execAction(command)"
         >
           {{ command.label }}<span v-if="getKeyboardShortcutLabel(command)" class="opacity-50"> ({{ getKeyboardShortcutLabel(command) }})</span>
         </div>
