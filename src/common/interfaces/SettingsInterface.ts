@@ -60,6 +60,7 @@ export interface CommandInterface {
   shortcut?: KeyboardShortcutInterface,
   internalOnly?: boolean,
   actionId?: string,
+  userAdded?: boolean,
 }
 
 export type SettingsReloadComponent = 'PlayerData' | 'VideoData';

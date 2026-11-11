@@ -379,12 +379,25 @@
           :indent="2"
           :command="command"
           :settings="settings"
-          :removable="command?.arguments?.type === AspectRatioType.Fixed"
+          :removable="command?.arguments?.type === AspectRatioType.Fixed || command.userAdded"
           @actionRemoved="reload()"
         ></KeyboardShortcutEntry>
-        <div class="ml-12 w-[16em] flex flex-row text-[0.8rem] gap-2 my-2 font-bold items-center hover:text-white cursor-pointer">
-          <mdicon name="plus" :size="16"></mdicon><div>Add new</div>
+
+        <div
+          v-if="state !== 'add-zoom'"
+          class="ml-12 w-[16em] flex flex-row text-[0.8rem] gap-2 my-2 font-bold items-center hover:text-white cursor-pointer"
+          @click="startAdding('zoom')"
+        >
+          <mdicon name="plus" :size="16"></mdicon><div>Add new ratio</div>
         </div>
+        <template v-else>
+          <NewZoomForm
+            type="zoom"
+            :settings="settings"
+            @cancel="state = null"
+            @add="addZoom($event)"
+          ></NewZoomForm>
+        </template>
       </template>
 
       <!-- STRETCH -->
@@ -420,9 +433,21 @@
           :settings="settings"
           :removable="command?.arguments?.type === StretchType.FixedSource"
         ></KeyboardShortcutEntry>
-        <div class="ml-12 w-[16em] flex flex-row text-[0.8rem] gap-2 my-2 font-bold items-center hover:text-white cursor-pointer">
-          <mdicon name="plus" :size="16"></mdicon><div>Add new</div>
+        <div
+          v-if="state !== 'add-stretch'"
+          class="ml-12 w-[16em] flex flex-row text-[0.8rem] gap-2 my-2 font-bold items-center hover:text-white cursor-pointer"
+          @click="startAdding('stretch')"
+        >
+          <mdicon name="plus" :size="16"></mdicon><div>Add new ratio</div>
         </div>
+        <template v-else>
+          <NewAspectRatioForm
+            type="stretch"
+            :settings="settings"
+            @cancel="state = null"
+            @add="addAction('stretch', $event)"
+          ></NewAspectRatioForm>
+        </template>
       </template>
 
       <!-- ALIGNMENT -->
@@ -505,12 +530,15 @@ import KeyboardShortcutEntry from './Components/KeyboardShortcutEntry.vue';
 import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
 import StretchType from '@src/common/enums/StretchType.enum';
 import NewAspectRatioForm from './Components/NewAspectRatioForm.vue';
+import NewZoomForm from './Components/NewZoomForm.vue';
 import { ArVariant } from '@src/common/interfaces/ArInterface';
+import { CommandInterface } from '@src/common/interfaces/SettingsInterface';
 
 export default defineComponent({
   components: {
     KeyboardShortcutEntry,
     NewAspectRatioForm,
+    NewZoomForm,
   },
   data() {
     return {
@@ -630,6 +658,26 @@ export default defineComponent({
       }
       this.settings.saveWithoutReload();
 
+      this.state = null;
+    },
+    addZoom(newCommand: {type: 'relative' | 'fixed', amountX: number, amountY: number, label: string, shortcut?: any}, otherOptions?: any) {
+      const cmdInterface: CommandInterface = {
+        action: newCommand.type === 'relative' ? 'change-zoom' : 'set-zoom',
+        label: newCommand.label,
+        arguments: {
+          zoom: {
+            x: newCommand.amountX,
+            y: newCommand.amountY
+          },
+        },
+        shortcut: newCommand.shortcut,
+        userAdded: true,
+      };
+
+      const command = cmdInterface;
+
+      this.settings.active.commands['zoom'].push(command);
+      this.settings.saveWithoutReload();
       this.state = null;
     },
     clearShortcuts() {
