@@ -300,11 +300,12 @@ interface SettingsInterface {
   // This object fulfills the same purpose as 'actions', but is written in less retarded and overly
   // complicated way. Hopefully it'll be easier to maintain it that way.
   commands?: {
-    crop?: CommandInterface[],
-    stretch?: CommandInterface[],
-    zoom?: CommandInterface[],
-    pan?: CommandInterface[],
-    internal?: CommandInterface[],
+    crop: CommandInterface[],
+    stretch: CommandInterface[],
+    zoom: CommandInterface[],
+    pan: CommandInterface[],
+    videoFit: CommandInterface[],
+    internal: CommandInterface[],
   },
   mouseOptions: {
     shiftPan: boolean,

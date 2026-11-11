@@ -24,7 +24,7 @@
         v-for="(command, index) of settings?.active.commands.crop.filter(x => x.arguments?.type !== AspectRatioType.Fixed && x.arguments?.variant === undefined)"
         :key="index"
         :classList="{
-          'border !border-primary-700 text-primary-500 active-option': currentCropCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
+          'border !border-primary-700 text-primary-500 active-option': currentCropCommand === `${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
         }"
         :label="command.label"
         :shortcut="getKeyboardShortcutLabel(command)"
@@ -34,7 +34,7 @@
     </div>
 
     <div class="w-full">
-      <div class="text-white font-mono text-semibold mt-4 mb-1">Specific aspect ratio:</div>
+      <div class="text-white font-mono text-semibold mt-4 mb-1">Specific content aspect ratio:</div>
 
       <div class="w-full flex flex-row gap-2 flex-wrap">
         <template v-for="(command, index) of settings?.active.commands.crop.sort((a, b) => (a.arguments.ratio ?? 0) - (b.arguments.ratio ?? 0))" :key="index">
@@ -42,7 +42,7 @@
             <ShortcutButton
               :classList="{
                 'w-24': true,
-                'border !border-transparent-700 text-primary-500 !bg-transparent active-option': currentCropCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
+                'border !border-transparent-700 text-primary-500 !bg-transparent active-option': currentCropCommand === `${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
               }"
               :label="command.label"
               :shortcut="getKeyboardShortcutLabel(command)"
@@ -52,24 +52,27 @@
           </template>
         </template>
       </div>
+    </div>
 
-      <div class="field mt-2">
-        <div class="pr-6 !shrink-0">Video fit:</div>
-        <div class="select !shrink-0">
-          <select v-model="settings.active.crop.currentVariant" @click="updateCurrentArVariant($event.target.value)">
-            <option :value="ArVariant.Default">
-              Default (<template v-if="siteSettings">
-                <template v-if="siteSettings.data.defaults.cropFit === ArVariant.FitVideo">Fit video</template>
-                <template v-else-if="siteSettings.data.defaults.cropFit === ArVariant.FillFrame">Fill frame</template>
-                <template v-else-if="siteSettings.data.defaults.cropFit === ArVariant.None">Unconstrained</template>
-              </template>)
-            </option>
-            <option :value="ArVariant.FitVideo">Fit video</option>
-            <option :value="ArVariant.FillFrame">Fill frame</option>
-            <option :value="ArVariant.None">Unconstrained</option>
-          </select>
-        </div>
-        <div class="opacity-50 ml-4 text-sm shrink">Changes to this setting will apply the next time you set manual aspect ratio. Defaults can be changed in site settings.</div>
+    <div class="w-full">
+      <div class="text-white font-mono text-semibold mt-4 mb-1">Content fit:</div>
+      <div class="w-full flex flex-row gap-2 flex-wrap">
+        <template v-for="(command, index) of settings?.active.commands.videoFit ?? []">
+          <template v-if="command.action === 'set-ar-variant'">
+            <ShortcutButton
+              :key="index"
+              class="min-w-28"
+              :classList="{
+                'border !border-primary-700 text-primary-500 active-option px-2': settings.active.crop.currentVariant === command.arguments?.variant
+              }"
+              :label="command.arguments?.variant === ArVariant.Default ? `Default (${defaultFitLabel})` : command.label"
+              :shortcut="getKeyboardShortcutLabel(command)"
+              :secondaryShortcut="getSecondaryKeyboardShortcutLabel(command)"
+              @click="updateCurrentArVariant(command)"
+            ></ShortcutButton>
+          </template>
+        </template>
+
       </div>
     </div>
 
@@ -168,14 +171,14 @@
     </div>
 
     <h3>Stretch</h3>
-    <div class="w-full flex flex-row gap-2 flex-wrap">
+    <div class="w-full flex flex-row gap-2 flex-wrap pt-2">
       <ShortcutButton
         v-for="(command, index) of settings?.active.commands.stretch"
         :key="index"
         :classList="{
           'w-24': command.arguments.type !== StretchType.Conditional,
           'w-28': command.arguments.type === StretchType.Conditional,
-          'border border-primary-700 text-primary-500 active-option': currentStretchCommand === `${command.action}-${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
+          'border border-primary-700 text-primary-500 active-option': currentStretchCommand === `${command.arguments.type}-${command.arguments.ratio ?? 'x'}`
         }"
         :label="command.label"
         :shortcut="getKeyboardShortcutLabel(command)"
@@ -250,6 +253,24 @@ export default defineComponent({
     /** Embedded hosts that are active while the current site is disabled (drives the info banner). */
     embeddedOnlyHosts(): string[] {
       return getEmbeddedOnlyHosts(this.settings, this.siteSettings, this.site);
+    },
+    videoFitOptions(): { value: ArVariant, label: string }[] {
+      return this.settings.active.videoFit.filter((command: CommandInterface) => command.action === 'set-ar-variant');
+        // { value: ArVariant.Default, label: 'Default' },
+        // { value: ArVariant.FitVideo, label: 'Fit video' },
+        // { value: ArVariant.FillFrame, label: 'Fill frame' },
+        // { value: ArVariant.None, label: 'Unconstrained' },
+      // ];
+    },
+    defaultFitLabel(): string {
+      switch (this.siteSettings?.data.defaults.cropFit) {
+        case ArVariant.FillFrame:
+          return 'Fill frame';
+        case ArVariant.None:
+          return 'Unconstrained';
+        default:
+          return 'Fit video';
+      }
     },
   },
   created() {
@@ -379,8 +400,8 @@ export default defineComponent({
         return;
       }
       // we only set active options when manual zoom is NOT set
+      // currentCropCommand also ignores arVariant (at least for the time being)
       if (!scalingParams.manualZoom) {
-        const cropCommand = scalingParams.lastAr.variant === ArVariant.FillFrame ? 'set-ar-zoom' : 'set-ar';
 
         let typeCrop;
         switch (scalingParams.lastAr.type) {
@@ -400,8 +421,7 @@ export default defineComponent({
           default:
             typeCrop = `${scalingParams.lastAr.type}-${scalingParams.lastAr.ratio ?? 'x'}`;
         }
-
-        this.currentCropCommand = `${cropCommand}-${typeCrop}`;
+        this.currentCropCommand = typeCrop;
 
         let typeStretch;
         switch (scalingParams.stretch.type) {
@@ -417,7 +437,7 @@ export default defineComponent({
             typeStretch = `${scalingParams.stretch.type}-x`;
         }
 
-        this.currentStretchCommand = `set-stretch-${typeStretch}`;
+        this.currentStretchCommand = typeStretch;
       } else {
         this.currentCropCommand = '';
         this.currentStretchCommand = '';
@@ -437,9 +457,9 @@ export default defineComponent({
       }
     },
 
-    updateCurrentArVariant(value: ArVariant) {
-      this.settings.active.crop.currentVariant = +value;
-      // this.eventBus.send('set-ar-variant', {variant: value});
+    updateCurrentArVariant(command: CommandInterface) {
+      this.settings.active.crop.currentVariant = +command.arguments?.variant;
+      this.eventBus.send('set-ar-variant', {variant: command.arguments?.variant});
       this.settings.saveWithoutReload({suppressBanner: true});
     }
   }

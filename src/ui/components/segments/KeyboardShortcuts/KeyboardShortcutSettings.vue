@@ -84,15 +84,15 @@
       >
         <div
           class="w-[32em] flex flex-row gap-2 items-center"
-          @click="toggleGroupState('crop-novariant')"
+          @click="toggleGroupState('crop-common')"
         >
           <mdicon
-            v-if="!groupVisible['crop-novariant']"
+            v-if="!groupVisible['crop-common']"
             name="chevron-right"
             :size="16"
           />
           <mdicon
-            v-if="groupVisible['crop-novariant']"
+            v-if="groupVisible['crop-common']"
             name="chevron-down"
             :size="16"
           />
@@ -104,7 +104,7 @@
       <div>
         <!-- Here just to break even/odd -->
       </div>
-      <template v-if="groupVisible['crop-novariant']">
+      <template v-if="groupVisible['crop-common']">
         <KeyboardShortcutEntry
           v-for="command in settings.active.commands.crop
             .filter(x => (x?.arguments?.type !== AspectRatioType.Fixed && x?.arguments?.type !== AspectRatioType.Automatic && x?.arguments?.type !== AspectRatioType.Cycle))
@@ -117,21 +117,6 @@
           :removable="command?.arguments?.type === AspectRatioType.Fixed"
           @actionRemoved="reload()"
         ></KeyboardShortcutEntry>
-        <div
-          v-if="state !== 'add-crop-novariant'"
-          class="ml-12 w-[16em] flex flex-row text-[0.8rem] gap-2 my-2 font-bold items-center hover:text-white cursor-pointer"
-          @click="startAdding('crop-novariant')"
-        >
-          <mdicon name="plus" :size="16"></mdicon><div>Add new ratio</div>
-        </div>
-        <template v-else>
-          <NewAspectRatioForm
-            type="crop"
-            :settings="settings"
-            @cancel="state = null"
-            @add="addAction('crop', $event, { variant: undefined })"
-          ></NewAspectRatioForm>
-        </template>
       </template>
 
       <!-- CROP without variant -->
@@ -440,6 +425,75 @@
         </div>
       </template>
 
+      <!-- ALIGNMENT -->
+      <div
+        class="keyboard-shortcut-row"
+      >
+        <div
+          class="w-[32em] flex flex-row gap-2 items-center"
+          @click="toggleGroupState('alignment')"
+        >
+          <mdicon
+            v-if="!groupVisible.alignment"
+            name="chevron-right"
+            :size="16"
+          />
+          <mdicon
+            v-if="groupVisible.alignment"
+            name="chevron-down"
+            :size="16"
+          />
+          <div>Align video<br/>
+            <p class="text-[0.8em] text-stone-500">Controls video alignment.</p>
+          </div>
+        </div>
+      </div>
+      <template v-if="groupVisible.alignment">
+        <KeyboardShortcutEntry
+          v-for="command in settings.active.commands.pan"
+          :key="command"
+          type="pan"
+          :indent="2"
+          :command="command"
+          :settings="settings"
+          :removable="false"
+        ></KeyboardShortcutEntry>
+      </template>
+
+      <!-- Video fit -->
+      <div
+        class="keyboard-shortcut-row"
+      >
+        <div
+          class="w-[32em] flex flex-row gap-2 items-center"
+          @click="toggleGroupState('video-fit')"
+        >
+          <mdicon
+            v-if="!groupVisible['video-fit']"
+            name="chevron-right"
+            :size="16"
+          />
+          <mdicon
+            v-if="groupVisible['video-fit']"
+            name="chevron-down"
+            :size="16"
+          />
+          <div>Video Fit<br/>
+            <p class="text-[0.8em] text-stone-500">Controls video fit.</p>
+          </div>
+        </div>
+      </div>
+      <template v-if="groupVisible['video-fit']">
+        <KeyboardShortcutEntry
+          v-for="command in settings.active.commands.videoFit"
+          :key="command"
+          type="videoFit"
+          :indent="2"
+          :command="command"
+          :settings="settings"
+          :removable="false"
+        ></KeyboardShortcutEntry>
+      </template>
     </div>
 
   </div>
@@ -448,7 +502,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import KeyboardShortcutEntry from './Components/KeyboardShortcutEntry.vue';
-import CropZoomKeyboardShortcutEntry from './Components/CropZoomKeyboardShortcutEntry.vue';
 import AspectRatioType from '@src/common/enums/AspectRatioType.enum';
 import StretchType from '@src/common/enums/StretchType.enum';
 import NewAspectRatioForm from './Components/NewAspectRatioForm.vue';
@@ -457,9 +510,7 @@ import { ArVariant } from '@src/common/interfaces/ArInterface';
 export default defineComponent({
   components: {
     KeyboardShortcutEntry,
-    CropZoomKeyboardShortcutEntry,
     NewAspectRatioForm,
-
   },
   data() {
     return {
@@ -468,12 +519,15 @@ export default defineComponent({
       ArVariant,
 
       groupVisible: {
+        'crop-common': true,
         'crop-novariant': true,
         crop: true,
         stretch: true,
         zoom: true,
         'fill-frame': false,
         unconstrained: false,
+        alignment: true,
+        'video-fit': true,
       },
       state: null,
       optionCache: {

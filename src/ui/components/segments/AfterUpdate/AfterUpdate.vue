@@ -11,7 +11,7 @@
           You will need to re-add any custom website settings and custom keyboard shortcuts and aspect ratios.
         </div>
         <br/>
-        <p v-if="BrowserDetect.processEnvBrowser === 'chrome'" class="leading-0 tracking-0">Congrats, you're part of the lucky 10% who got volunteered for early access. Please consider reporting issues via <a href="https://github.com/tamius-han/ultrawidify/issues" target="_blank">github</a> or e-mail</p> (and please follow the template).
+        <p v-if="BrowserDetect.processEnvBrowser === 'chrome'" class="leading-0 tracking-0">Congrats, you're part of the lucky 10% who got volunteered for early access. Please consider reporting issues via <a href="https://github.com/tamius-han/ultrawidify/issues" target="_blank">github</a> or e-mail (and please follow the template).</p>
         <p>Normally I don't bother people with stuff like this, but there's been some new features and notable updates.</p>
 
         <div class="flex flex-col gap-4 mt-8 max-w-[720px]">

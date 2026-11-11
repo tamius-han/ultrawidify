@@ -774,16 +774,6 @@ export function generateCommands() {
       type: AspectRatioType.Fixed,
       ratio: 1.78
     },
-    shortcut: {
-      key: 's',
-      code: 'KeyS',
-      ctrlKey: false,
-      metaKey: false,
-      altKey: false,
-      shiftKey: false,
-      onKeyUp: false,
-      onKeyDown: true,
-    }
   }, {
     action: 'set-ar',
     label: '1.85:1',
@@ -800,6 +790,16 @@ export function generateCommands() {
       type: AspectRatioType.Fixed,
       ratio: 3.56
     },
+    shortcut: {
+      key: 's',
+      code: 'KeyS',
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false,
+      shiftKey: false,
+      onKeyUp: false,
+      onKeyDown: true,
+    }
   }, {
     action: 'set-ar',
     label: '4:3',
@@ -939,7 +939,7 @@ export function generateCommands() {
         ctrlKey: false,
         metaKey: false,
         altKey: false,
-        shiftKey: true,
+        shiftKey: false,
         onKeyUp: true,
         onKeyDown: false,
       },
@@ -951,7 +951,7 @@ export function generateCommands() {
     }],
     pan: [{
       action: 'set-alignment',
-      label: 'Set alignment: top left',
+      label: 'Top left',
       arguments: {
         x: VideoAlignmentType.Left,
         y: VideoAlignmentType.Top
@@ -960,7 +960,7 @@ export function generateCommands() {
       actionId: 'set-alignment-top-left'
     }, {
       action: 'set-alignment',
-      label: 'Set alignment: top center',
+      label: 'Top center',
       arguments: {
         x: VideoAlignmentType.Center,
         y: VideoAlignmentType.Top
@@ -969,7 +969,7 @@ export function generateCommands() {
       actionId: 'set-alignment-top-center',
     }, {
       action: 'set-alignment',
-      label: 'Set alignment: top right',
+      label: 'Top right',
       arguments: {
         x: VideoAlignmentType.Right,
         y: VideoAlignmentType.Top
@@ -978,7 +978,7 @@ export function generateCommands() {
       actionId: 'set-alignment-top-right'
     }, {
       action: 'set-alignment',
-      label: 'Set alignment: center left',
+      label: 'Center left',
       arguments: {
         x: VideoAlignmentType.Left,
         y: VideoAlignmentType.Center
@@ -987,7 +987,7 @@ export function generateCommands() {
       actionId: 'set-alignment-center-left'
     }, {
       action: 'set-alignment',
-      label: 'Set alignment: center',
+      label: 'Center',
       arguments: {
         x: VideoAlignmentType.Center,
         y: VideoAlignmentType.Center
@@ -996,7 +996,7 @@ export function generateCommands() {
       actionId: 'set-alignment-center'
     }, {
       action: 'set-alignment',
-      label: 'Set alignment: center right',
+      label: 'Center right',
       arguments: {
         x: VideoAlignmentType.Right,
         y: VideoAlignmentType.Center
@@ -1005,7 +1005,7 @@ export function generateCommands() {
       actionId: 'set-alignment-center-right'
     }, {
       action: 'set-alignment',
-      label: 'Set alignment: bottom left',
+      label: 'Bottom left',
       arguments: {
         x: VideoAlignmentType.Left,
         y: VideoAlignmentType.Bottom
@@ -1014,7 +1014,7 @@ export function generateCommands() {
       actionId: 'set-alignment-bottom-left'
     }, {
       action: 'set-alignment',
-      label: 'Set alignment: bottom center',
+      label: 'Bottom center',
       arguments: {
         x: VideoAlignmentType.Center,
         y: VideoAlignmentType.Bottom
@@ -1023,7 +1023,7 @@ export function generateCommands() {
       actionId: 'set-alignment-bottom-center'
     }, {
       action: 'set-alignment',
-      label: 'Set alignment: bottom right',
+      label: 'Bottom right',
       arguments: {
         x: VideoAlignmentType.Right,
         y: VideoAlignmentType.Bottom
@@ -1032,11 +1032,55 @@ export function generateCommands() {
       actionId: 'set-alignment-bottom-right'
     }, {
       action: 'set-alignment',
-      label: 'Set alignment: default',
+      label: 'Default',
       arguments: {
         x: VideoAlignmentType.Default,
         y: VideoAlignmentType.Default
       }
+    }],
+    videoFit: [{
+      action: 'set-ar-variant',
+      label: 'Default',
+      internalOnly: true,
+      arguments: {
+        variant: ArVariant.Default
+      },
+    }, {
+      action: 'set-ar-variant',
+      label: 'Fit video',
+      internalOnly: true,
+      arguments: {
+        variant: ArVariant.FitVideo
+      },
+    }, {
+      action: 'set-ar-variant',
+      label: 'Fill frame',
+      internalOnly: true,
+      arguments: {
+        variant: ArVariant.FillFrame
+      }
+    }, {
+      action: 'set-ar-variant',
+      label: 'Unconstrained',
+      internalOnly: true,
+      arguments: {
+        variant: ArVariant.None
+      }
+    }, {
+      action: 'cycle-ar-variant',
+      label: 'Cycle video fit',
+      internalOnly: true,
+      arguments: {},
+       shortcut: {
+        key: 'c',
+        code: 'KeyC',
+        ctrlKey: false,
+        metaKey: false,
+        altKey: false,
+        shiftKey: true,
+        onKeyUp: true,
+        onKeyDown: false,
+      },
     }],
     internal: [{
       action: 'set-ar-persistence',

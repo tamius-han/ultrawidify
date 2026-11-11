@@ -127,12 +127,25 @@ class Resizer {
         }
       }
     }],
+    'cycle-ar-variant': [{
+      function: () => {
+        const arVariantOptions = [ArVariant.Default, ArVariant.FitVideo, ArVariant.FillFrame, ArVariant.None];
+
+        const currentVariantIndex = arVariantOptions.findIndex(x => x === this.lastAr?.variant);
+        let nextVariant = ArVariant.FitVideo;
+
+        if (currentVariantIndex !== -1) {
+          nextVariant = arVariantOptions[(currentVariantIndex + 1) % arVariantOptions.length];
+        }
+        this.setAr({...this.lastAr, variant: nextVariant});
+      }
+    }],
     'set-ar': [{
       function: (config: any) => {
         this.manualZoom = false; // this only gets called from UI or keyboard shortcuts, making this action safe.
 
         if (config.type !== AspectRatioType.Cycle) {
-          this.setAr({...config, variant: config.variant ?? ArVariant.FitVideo});
+          this.setAr({...config, variant: config.variant});
         } else {
           // if we manually switched to a different aspect ratio, cycle from that ratio forward
           const lastArIndex = this.cycleableAspectRatios.findIndex(x => x.type === this.lastAr.type && x.ratio === this.lastAr.ratio);
@@ -140,7 +153,7 @@ class Resizer {
             this.nextCycleOptionIndex = (lastArIndex + 1) % this.cycleableAspectRatios.length;
           }
 
-          this.setAr({...this.cycleableAspectRatios[this.nextCycleOptionIndex], variant: config.variant ?? ArVariant.FitVideo});
+          this.setAr({...this.cycleableAspectRatios[this.nextCycleOptionIndex], variant: config.variant });
           this.nextCycleOptionIndex = (this.nextCycleOptionIndex + 1) % this.cycleableAspectRatios.length;
         }
       }
@@ -377,7 +390,14 @@ class Resizer {
       return;
     }
 
-    if (ar.variant === undefined) {
+    console.log('setAr received:', ar);
+    // if command lacks ar.variant, get lastAr.variant (if lastAr exists)
+    if (ar.variant === undefined && this.lastAr?.variant !== undefined) {
+      ar.variant = this.lastAr.variant;
+    }
+
+    // if ar.variant is (still) not defined or default, set it based on site settings
+    if (ar.variant === undefined || ar.variant === ArVariant.Default) {
       if (ar.type === AspectRatioType.Automatic || ar.type === AspectRatioType.AutomaticUpdate) {
         ar.variant = this.siteSettings.data.defaults.cropFitAard;
       } else {

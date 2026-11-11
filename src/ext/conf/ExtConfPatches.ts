@@ -18,16 +18,6 @@ import { generateCommands } from '@src/ext/conf/ExtensionConf';
 import { AardPollingOptions } from '@src/ext/module/aard/enums/aard-polling-options.enum';
 import { update } from 'lodash';
 
-function resetSettings(userOptions: any, defaultOptions: any) {
-  const reset = _cp(defaultOptions);
-  for (const key of Object.keys(userOptions)) {
-    if (key in reset) {
-      userOptions[key] = reset[key];
-    }
-  }
-  return userOptions;
-}
-
 const ExtensionConfPatch = Object.freeze([
   {
     forVersion: '6.0.0',
@@ -844,6 +834,47 @@ const ExtensionConfPatch = Object.freeze([
           }
         }
       }
+    }
+  }, {
+    forVersion: '7.1.1',
+    updateFn: (userOptions: any, defaultOptions, logger?) => {
+
+      // rename alignment commands (drop 'set alignment: ' prefix + capitalize first letter)
+      for (const cmd of userOptions.commands.pan) {
+        if (cmd.label.trim().startsWith('Set alignment:')) {
+          cmd.label = cmd.label.replace('Set alignment:', '').trim();
+          cmd.label = cmd.label[0].toUpperCase() + cmd.label.slice(1);
+        }
+      }
+
+      // add video fit commands
+      const compareShortcuts = (a: any, b: any) => {
+        if (!a || !b) {
+          return false;
+        }
+
+        return a.key === b.key
+          && a.code === b.code
+          && a.ctrlKey == b.ctrlKey
+          && a.shiftKey == b.shiftKey
+          && a.metaKey == b.metaKey
+          && a.altKey == b.altKey;
+      }
+
+      let hasShiftCConflict = false;
+      for (const ct of userOptions.commands) {
+        for (const cmd of userOptions.commands[ct]) {
+          if (cmd.shortcut && compareShortcuts(cmd.shortcut, {key: 'c', code: 'KeyC', ctrlKey: false, metaKey: false, altKey: false, shiftKey: true})) {
+            hasShiftCConflict = true;
+          }
+        }
+      }
+      const clonedVideoFit = JSON.parse(JSON.stringify(userOptions.commands.videoFit));
+      if (hasShiftCConflict) {
+        clonedVideoFit.find(x => x.action === 'cycle-ar-variant').shortcut = undefined;
+      }
+
+      userOptions.commands.videoFit = clonedVideoFit;
     }
   }
 
