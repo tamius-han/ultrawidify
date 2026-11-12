@@ -5,6 +5,7 @@
   <ul>
     <li>Alignment options were missing from keyboard shortcut settings</li>
     <li>Added content fit options to keyboard shortcut settings</li>
+    <li>Fixed issue with zoom not applying correctly when video player size changed (e.g. when switching between normal, theater, and full screen mode)</li>
     <li>Optimized extension size</li>
   </ul>
 

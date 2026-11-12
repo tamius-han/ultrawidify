@@ -707,7 +707,9 @@ class Resizer {
         this.setAr(this.lastAr, this.lastAr)
       }
     } else {
-      this.applyScaling({xFactor: this.zoom.scale, yFactor: this.zoom.scaleY});
+      this.setAr(this.lastAr, this.lastAr, {manualZoom: true});
+      // console.warn('manual zoom active, applying scaling with current zoom factors');
+      // this.applyScaling({xFactor: this.zoom.scale, yFactor: this.zoom.scaleY});
     }
 
   }
