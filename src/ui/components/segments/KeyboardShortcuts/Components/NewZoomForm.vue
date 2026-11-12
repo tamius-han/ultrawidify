@@ -76,7 +76,7 @@
     <div class="flex flex-row gap-1 justify-end -mt-2 text-[0.9em] text-stone-400 font-bold hover:font-bold">
       <div
         class="flex flex-row items-center px-2 py-1 hover:text-white cursor-pointer"
-        :class="{'opacity-50 pointer-events-none': !command.amountX || !command.amountY || isNaN(command.amountX) || isNaN(command.amountY) || !command.label}"
+        :class="{'opacity-50 pointer-events-none': command.amountX === undefined || command.amountY === undefined || isNaN(command.amountX) || isNaN(command.amountY) || !command.label}"
         @click="add()"
       >
         <mdicon name="content-save" :size="16"></mdicon>
