@@ -707,7 +707,6 @@ class Resizer {
       // needed for mouse panning to work
       this.applyScaling({xFactor: this.zoom.scale, yFactor: this.zoom.scaleY});
     }
-
   }
 
   reset(){
@@ -912,15 +911,12 @@ class Resizer {
     }
 
     // NOTE: manual panning is probably broken now.
-    // TODO: FIXME:
     // (argument could be made that manual panning was also broken before)
     const alignXOffset = (realVideoWidth * stretchFactors.xFactor - this.videoData.player.dimensions.width) * 0.5;
     const alignYOffset = (realVideoHeight * stretchFactors.yFactor - this.videoData.player.dimensions.height) * 0.5;
 
     // if one is custom, the other should be custom, too
     // and also don't offset when video is smaller than player
-
-
 
     if (this.videoAlignment.x === VideoAlignmentType.Custom) {
       const maxPanX = Math.max(alignXOffset + PAN_EDGE_GAP * this.videoData.player.dimensions.width, 0);
