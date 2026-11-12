@@ -860,7 +860,10 @@ const ExtensionConfPatch = Object.freeze([
           && a.metaKey == b.metaKey
           && a.altKey == b.altKey;
       }
-
+    },
+  }, {
+    forVersion: '7.1.2',
+    updateFn: (userOptions: any, defaultOptions, logger?) => {
       let hasShiftCConflict = false;
       for (const ct of userOptions.commands) {
         for (const cmd of userOptions.commands[ct]) {
@@ -869,12 +872,22 @@ const ExtensionConfPatch = Object.freeze([
           }
         }
       }
-      const clonedVideoFit = JSON.parse(JSON.stringify(userOptions.commands.videoFit));
-      if (hasShiftCConflict) {
-        clonedVideoFit.find(x => x.action === 'cycle-ar-variant').shortcut = undefined;
+      if (!userOptions.commands.videoFit?.length) {
+        const clonedVideoFit = JSON.parse(JSON.stringify(defaultOptions.commands.videoFit));
+        if (hasShiftCConflict) {
+          clonedVideoFit.find(x => x.action === 'cycle-ar-variant').shortcut = undefined;
+        }
+
+        userOptions.commands.videoFit = clonedVideoFit;
       }
 
-      userOptions.commands.videoFit = clonedVideoFit;
+      for (const ct of userOptions.commands) {
+        for (const cmd of userOptions.commands[ct]) {
+          if (cmd.label === 'Reset') {
+            cmd.label = 'Initial'
+          }
+        }
+      }
     }
   }
 

@@ -315,7 +315,7 @@ export class ClientMenu {
 
     const playerRect = anchorEl.getBoundingClientRect();
 
-    let menuActivatorRect, cx, cy;
+    let menuActivatorRect: DOMRect, cx: number, cy: number;
     let activationRadius = this.getActivationRadius(anchorEl);
 
     const recalculateActivator = () => {

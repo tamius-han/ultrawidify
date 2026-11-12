@@ -276,6 +276,24 @@ class UI {
             }
           ) ?? []
         ),
+        // We need 'reset' and 'cover — these two only appear in variant === 'undefined'
+        ...(
+          this.settings.active.commands?.crop?.filter(
+            x => x.arguments?.variant === undefined && (
+              x.arguments?.type === AspectRatioType.Reset
+              || x.arguments?.type === AspectRatioType.Cover
+            )
+          )?.map(
+            (x: CommandInterface) => {
+              return {
+                label: x.label,
+                command: x,
+                customId: `uw-${x.action}-${x.arguments.type}-${x.arguments.variant}-${x.arguments.ratio ?? 'x'}`.replaceAll('.', '_'),
+                action: () => this.executeCommand(x)
+              }
+            }
+          ) ?? []
+        ),
 
         // Fixed aspect ratio options.
         ... (
