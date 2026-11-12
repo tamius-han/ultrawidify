@@ -638,10 +638,6 @@ class Resizer {
   }
 
   setVideoAlignment(params: VideoAlignmentParams) {
-    if (params.x === VideoAlignmentType.Custom && this.videoData.aard?.status?.aardActive) {
-      return;
-    }
-
     // if aspect ratio is unset or initial, CSS fixes are inactive by design.
     // because of that, we need to set a manual aspect ratio first.
 
@@ -705,7 +701,11 @@ class Resizer {
         this.setAr(this.lastAr, this.lastAr)
       }
     } else {
+      // needed for zoom restoration on player size change
       this.setAr(this.lastAr, this.lastAr, {manualZoom: true});
+
+      // needed for mouse panning to work
+      this.applyScaling({xFactor: this.zoom.scale, yFactor: this.zoom.scaleY});
     }
 
   }
