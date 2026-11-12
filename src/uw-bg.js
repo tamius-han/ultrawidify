@@ -15,7 +15,6 @@ const server = new UWServer();
 
 // is semver a < b
 const isSemverLess = (a, b) => {
-  console.log('comparing semver:', a, b)
   const aParts = a.split('.').map(Number);
   const bParts = b.split('.').map(Number);
   for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {

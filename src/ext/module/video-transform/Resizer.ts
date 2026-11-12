@@ -199,7 +199,6 @@ class Resizer {
     }],
     'change-zoom': [{
       function: (config: any) => {
-        console.log('change-zoom called', config);
         this.zoomStep(config?.zoom);
       }
     }],
@@ -393,7 +392,6 @@ class Resizer {
       return;
     }
 
-    console.log('setAr received:', ar);
     // if command lacks ar.variant, get lastAr.variant (if lastAr exists)
     if (ar.variant === undefined && this.lastAr?.variant !== undefined) {
       ar.variant = this.lastAr.variant;
@@ -708,8 +706,6 @@ class Resizer {
       }
     } else {
       this.setAr(this.lastAr, this.lastAr, {manualZoom: true});
-      // console.warn('manual zoom active, applying scaling with current zoom factors');
-      // this.applyScaling({xFactor: this.zoom.scale, yFactor: this.zoom.scaleY});
     }
 
   }
