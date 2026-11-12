@@ -15,7 +15,10 @@ const config = {
   devtool: process.env.CHANNEL === 'stable' ? false : 'source-map',
   context: __dirname + '/src',
   entry: {
-    'ext/uw': './ext/uw.js',
+    'ext/uw': {
+      import: ['./ext/public-path.js', './ext/uw.js'],
+      publicPath: '',
+    },
     'uw-bg': './uw-bg.js',
     'ui/pages/settings/settings': './ui/pages/settings/settings.js',
   },
