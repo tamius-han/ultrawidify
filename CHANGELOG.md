@@ -2,6 +2,10 @@
 
 ## v7.x
 
+### v7.1.2
+
+* Some new options did not get migrated during previous update
+
 ### v7.1.1
 
 * Optimized extension size

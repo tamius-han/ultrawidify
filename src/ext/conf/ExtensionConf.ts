@@ -700,7 +700,7 @@ export function generateCommands() {
     }
   }, {
     action: 'set-ar',
-    label: 'Reset',
+    label: 'Initial',
     arguments: {
       type: AspectRatioType.Reset
     },
