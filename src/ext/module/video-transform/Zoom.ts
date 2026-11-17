@@ -86,6 +86,7 @@ class Zoom {
   setZoom(scale: number | {x?: number, y?: number}){
     const scaleX = finiteZoom(typeof scale === 'object' && scale !== null ? scale.x : scale);
     const scaleY = finiteZoom(typeof scale === 'object' && scale !== null ? scale.y : scale);
+
     if (scaleX === undefined && scaleY === undefined) {
       return;
     }

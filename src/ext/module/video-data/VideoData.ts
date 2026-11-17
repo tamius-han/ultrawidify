@@ -191,7 +191,8 @@ class VideoData {
       this.videoDimensionsLoaded = true;
       try {
         if (this.resizer) {
-          this.restoreCrop();
+          this.logger.info('onVideoLoaded', 'Video has loaded and resizer has already been initialized. Restoring crop.');
+          this.setSiteDefaultCrop();
         } else {
           await this.setupStageTwo();
         }
@@ -202,7 +203,7 @@ class VideoData {
     } else if (!this.videoDimensionsLoaded) {
       this.logger.debug('onVideoLoaded', "%cRecovering from illegal video dimensions. Resetting aspect ratio.", "background: #afd, color: #132");
 
-      this.restoreCrop();
+      this.setSiteDefaultCrop();
       this.videoDimensionsLoaded = true;
     }
   }
@@ -396,10 +397,17 @@ class VideoData {
       return;
     }
     if (this.currentEnvironment !== this.player.environment) {
-      this.logger.warn('onEnvironmentChanged', 'environment changed from:', this.currentEnvironment, 'to:', this.player.environment);
+      const canRun = this.siteSettings.canRunExtension(this.player.environment);
+      this.logger.warn(
+        'onEnvironmentChanged',
+        'environment changed from:',
+        this.currentEnvironment ? ExtensionEnvironment[this.currentEnvironment] : '<this is first run>',
+        'to:', ExtensionEnvironment[this.player.environment],
+        '. Can extension run?', canRun
+      );
 
       this.currentEnvironment = this.player.environment;
-      if (this.siteSettings.canRunExtension(this.player.environment)) {
+      if (!canRun) {
         this.setRunLevel(RunLevel.Off);
       } else {
         this.restoreAr();
@@ -426,7 +434,7 @@ class VideoData {
         this.logger.log(
           `setRunLevel`,
           '%cEXTENSION CANNOT RUN IN CURRENT CONDITION — REMOVING CSS CLASSES FROM VIDEO!', 'color: #ffa, background-color: #d00',
-          `%c  run level: ${runLevel}`, ''
+          `%c  run level: ${RunLevel[runLevel]} (${runLevel}), `, ''
         );
 
         this.video.classList.remove(this.baseCssName);
@@ -477,27 +485,16 @@ class VideoData {
   }
   //#endregion
 
-  restoreCrop() {
+  setSiteDefaultCrop() {
     if (!this.resizer) {
-      this.logger.warn('restoreCrop', 'Resizer has not been initialized yet. Crop will not be restored.');
+      this.logger.warn('setSiteDefaultCrop', 'Resizer has not been initialized yet. Crop will not be restored.');
       return;
     }
-    this.logger.info('restoreCrop', 'Attempting to reset aspect ratio.');
-    // if we have default crop set for this page, apply this.
-    // otherwise, reset crop
+    const defaultCrop = this.siteSettings.getDefaultOption('crop') as Ar;
+    const defaultStretch = this.siteSettings.getDefaultOption('stretch') as Stretch;
 
-    if (this.pageInfo.defaultCrop) {
-      this.resizer.setAr(this.pageInfo.defaultCrop);
-    } else {
-      this.resizer.reset();
-
-      try {
-        this.stopArDetection();
-        this.startArDetection();
-      } catch (e) {
-        this.logger.warn('restoreCrop', 'Autodetection not resumed. Reason:', e);
-      }
-    }
+    this.resizer.setStretchMode(defaultStretch);
+    this.resizer.setAr(defaultCrop);
   }
 
   /**

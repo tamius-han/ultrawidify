@@ -336,11 +336,9 @@ class Resizer {
         ar.ratio = Math.max(ratioOut, fileAr);
         break;
       case AspectRatioType.Reset:
+      default:
         this.logger.info('modeToAr', "Using original aspect ratio -", fileAr);
         ar.ratio = fileAr;
-        break;
-      default:
-        return null;
     }
 
     return ar;
@@ -455,7 +453,7 @@ class Resizer {
       this.videoData.videoUnloaded();
     }
 
-    this.logger.info('setAr', `<rid:${this.resizerId}> trying to set ar. New ar:`, ar, 'last ar override was', lastAr ? '' : 'NOT', 'provided:', lastAr);
+    this.logger.info('setAr', `<rid:${this.resizerId}> trying to set ar. New ar:`, {...ar, type: AspectRatioType[ar.type], variant: ArVariant[ar.variant]}, ar, 'last ar override was', lastAr ? '' : 'NOT', 'provided:', lastAr);
 
     let stretchFactors: VideoDimensions | any;
 
@@ -711,7 +709,7 @@ class Resizer {
 
   reset(){
     this.setStretchMode(this.siteSettings.getDefaultOption('stretch') as Stretch);
-    this.zoom.setZoom(1);
+    this.zoom.reset();
     this.resetPan();
     this.setAr({type: AspectRatioType.Reset});
     this.unsetStyleString();
