@@ -313,7 +313,7 @@ export class ClientMenu {
     // const forceRecheckAfter = 5000;
     // let lastRecalculation = performance.now();
 
-    const playerRect = anchorEl.getBoundingClientRect();
+    let playerRect = anchorEl.getBoundingClientRect();
 
     let menuActivatorRect: DOMRect, cx: number, cy: number;
     let activationRadius = this.getActivationRadius(anchorEl);
@@ -322,6 +322,10 @@ export class ClientMenu {
       menuActivatorRect = this.trigger.getBoundingClientRect();
       cx = menuActivatorRect.left + menuActivatorRect.width / 2;
       cy = menuActivatorRect.top + menuActivatorRect.height / 2;
+    }
+
+    const recalculatePlayerRect = () => {
+      playerRect = anchorEl.getBoundingClientRect();
     }
 
     recalculateActivator();
@@ -345,6 +349,9 @@ export class ClientMenu {
           this.isWithinActivation = d <= activationRadius;
 
         } else {
+          if (! playerRect.width || !playerRect.height) {
+            recalculatePlayerRect();
+          }
           this.isWithinActivation =
             e.clientX >= playerRect.left &&
             e.clientX <= playerRect.right &&
