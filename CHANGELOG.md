@@ -5,6 +5,7 @@
 ### v7.1.2
 
 * Some new options did not get migrated during previous update
+* Fixed the issue where automatic aspect ratio detection didn't start on subsequent videos during autoplay
 
 ### v7.1.1
 
