@@ -42,6 +42,7 @@ export class ClientMenu {
   private onDocumentMouseMove?: (e: MouseEvent) => void;
   private onDocumentMouseLeave?: () => void;
   private idleIntervalId?: number;
+  private resizeObserver?: ResizeObserver;
 
   constructor(private config: MenuConfig) {
     if (config.options?.forceShow !== undefined) {
@@ -55,13 +56,16 @@ export class ClientMenu {
     this.createShadow();
     this.createMenu();
     this.position(anchorElement);
-    this.bindGlobalMouse(anchorElement);
 
     // document.documentElement.appendChild(this.host);
     anchorElement.appendChild(this.host);
+    this.bindGlobalMouse(anchorElement);
   }
 
   public destroy() {
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = undefined;
+
     // 1. Stop timers
     if (this.idleIntervalId != null) {
       clearInterval(this.idleIntervalId);
@@ -95,7 +99,7 @@ export class ClientMenu {
     this.isWithinActivation = false;
   }
 
-  private getActivationRadius(anchorEl: HTMLElement): number | null {
+  private getActivationRadius(rect: DOMRect): number | null {
     if (this.config.ui.activation !== 'distance') {
       return undefined;
     }
@@ -105,7 +109,6 @@ export class ClientMenu {
     }
 
     // percentage string
-    const rect = anchorEl.getBoundingClientRect();
     const percent = +this.config.ui.activationDistance;
 
     return Math.max(rect.width, rect.height) * (percent / 100);
@@ -310,25 +313,37 @@ export class ClientMenu {
   }
 
   private bindGlobalMouse(anchorEl: HTMLElement) {
-    // const forceRecheckAfter = 5000;
-    // let lastRecalculation = performance.now();
+    let playerRect: DOMRect;
+    let cx: number, cy: number;
+    let activationRadius: number | null;
 
-    let playerRect = anchorEl.getBoundingClientRect();
-
-    let menuActivatorRect: DOMRect, cx: number, cy: number;
-    let activationRadius = this.getActivationRadius(anchorEl);
-
-    const recalculateActivator = () => {
-      menuActivatorRect = this.trigger.getBoundingClientRect();
-      cx = menuActivatorRect.left + menuActivatorRect.width / 2;
-      cy = menuActivatorRect.top + menuActivatorRect.height / 2;
-    }
-
-    const recalculatePlayerRect = () => {
+    const recalculateGeometry = () => {
       playerRect = anchorEl.getBoundingClientRect();
-    }
+      activationRadius = this.getActivationRadius(playerRect);
 
-    recalculateActivator();
+      if (activationRadius) {
+        // The hidden menu has display: none, so temporarily expose it for measurement.
+        const hidden = this.root.classList.contains('uw-hidden');
+        if (hidden) {
+          this.root.classList.remove('uw-hidden');
+        }
+        try {
+          const rect = this.trigger.getBoundingClientRect();
+          cx = rect.left + rect.width / 2;
+          cy = rect.top + rect.height / 2;
+        } finally {
+          if (hidden) {
+            this.root.classList.add('uw-hidden');
+          }
+        }
+      }
+    };
+
+    recalculateGeometry();
+    this.resizeObserver = new ResizeObserver(recalculateGeometry);
+    this.resizeObserver.observe(this.host);
+    this.resizeObserver.observe(this.root);
+    this.resizeObserver.observe(anchorEl);
 
     this.onDocumentMouseMove = (e: MouseEvent) => {
       const now = performance.now();
@@ -336,22 +351,16 @@ export class ClientMenu {
 
       // activateWithCtrl is independent from other options.
       // Depending on user settings, UI can be triggered even if we aren't holding CTRL
-      if (this.config.ui.activateWithCtrl) {
-        this.isWithinActivation = e.ctrlKey;
-      }
+      this.isWithinActivation = this.config.ui.activateWithCtrl && e.ctrlKey;
 
       if (!this.isWithinActivation && this.config.ui.activation !== 'none') {
+        // Layout shifts and scrolling can move the player without changing its size.
+        recalculateGeometry();
         if (activationRadius) {
-          if (! menuActivatorRect.width || !menuActivatorRect.height) {
-            recalculateActivator();
-          }
           const d = Math.hypot(e.clientX - cx, e.clientY - cy);
           this.isWithinActivation = d <= activationRadius;
 
         } else {
-          if (! playerRect.width || !playerRect.height) {
-            recalculatePlayerRect();
-          }
           this.isWithinActivation =
             e.clientX >= playerRect.left &&
             e.clientX <= playerRect.right &&
