@@ -846,6 +846,11 @@ const ExtensionConfPatch = Object.freeze([
           cmd.label = cmd.label[0].toUpperCase() + cmd.label.slice(1);
         }
       }
+    },
+  }, {
+    forVersion: '7.1.2',
+    updateFn: (userOptions: any, defaultOptions, logger?) => {
+      let hasShiftCConflict = false;
 
       // add video fit commands
       const compareShortcuts = (a: any, b: any) => {
@@ -860,11 +865,7 @@ const ExtensionConfPatch = Object.freeze([
           && a.metaKey == b.metaKey
           && a.altKey == b.altKey;
       }
-    },
-  }, {
-    forVersion: '7.1.2',
-    updateFn: (userOptions: any, defaultOptions, logger?) => {
-      let hasShiftCConflict = false;
+
       for (const ct of userOptions.commands) {
         for (const cmd of userOptions.commands[ct]) {
           if (cmd.shortcut && compareShortcuts(cmd.shortcut, {key: 'c', code: 'KeyC', ctrlKey: false, metaKey: false, altKey: false, shiftKey: true})) {
