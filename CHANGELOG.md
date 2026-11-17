@@ -6,6 +6,7 @@
 
 * Some new options did not get migrated during previous update
 * Fixed the issue where automatic aspect ratio detection didn't start on subsequent videos during autoplay
+* Fixed the issue where show-UI-on-hover wouldn't work correctly after player element was resized
 
 ### v7.1.1
 

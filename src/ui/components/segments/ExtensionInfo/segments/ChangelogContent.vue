@@ -5,6 +5,7 @@
   <ul>
     <li>In the previous version, content fit was changed from dropdown to buttons, but due to incorrect migration the option was missing for existing users.</li>
     <li>Fixed issue where, when playing youtube playlist, autodetection wouldn't start automatically on subsequent videos.</li>
+    <li>Fixed the issue where show-UI-on-hover wouldn't work correctly after player element was resized</li>
   </ul>
 
   <p>Changes in version <b class="font-semibold text-primary-400">7.1.1</b>:</p>
