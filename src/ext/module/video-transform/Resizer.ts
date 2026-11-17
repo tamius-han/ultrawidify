@@ -325,6 +325,11 @@ class Resizer {
 
     let fileAr = this.getFileAr();
 
+    if (isNaN(fileAr)) {
+      this.logger.warn('calculateRatioForLegacyOptions', "File aspect ratio is NaN — video not loaded yet?");
+      return null;
+    }
+
     switch (ar.type) {
       case AspectRatioType.FitWidth:
         ar.ratio = ratioOut > fileAr ? ratioOut : fileAr;
@@ -408,12 +413,12 @@ class Resizer {
 
     // If we are missing some data that's necessary for crop calculations,
     // set pendingAr and quit
-    if (!this.videoData.player.dimensions?.width || !this.videoData.player.dimensions?.height) {
+    if (!this.videoData.player?.dimensions?.width || !this.videoData.player?.dimensions?.height) {
       this.pendingAr = {ar, lastAr};
-      this.videoData.player.requestTick();
+      this.videoData.player?.requestTick();
       return;
     }
-    this.pendingAr = null;
+    this.pendingAr = undefined;
 
     // If no aspect ratio is applied AND if no stretch mode is active,
     // we disable our CSS in order to prevent breaking websites by default,
@@ -486,12 +491,16 @@ class Resizer {
     // }
 
     if (lastAr) {
-      this.lastAr = this.calculateRatioForLegacyOptions(lastAr);
-      ar = this.calculateRatioForLegacyOptions(ar);
+      ar = this.calculateRatioForLegacyOptions(ar)!;
+      if (! ar) {
+        this.logger.info('setAr', `<rid:${this.resizerId}> Something wrong with ar or the player. Doing nothing.`);
+        return;
+      }
+      this.lastAr = this.calculateRatioForLegacyOptions(lastAr)!;
     } else {
       // NOTE: "fitw" "fith" and "reset" should ignore ar.ratio bit, but
       // I'm not sure whether they do. Check that.
-      ar = this.calculateRatioForLegacyOptions(ar);
+      ar = this.calculateRatioForLegacyOptions(ar)!;
       if (! ar) {
         this.logger.info('setAr', `<rid:${this.resizerId}> Something wrong with ar or the player. Doing nothing.`);
         return;
