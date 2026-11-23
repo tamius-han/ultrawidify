@@ -848,7 +848,7 @@ const ExtensionConfPatch = Object.freeze([
       }
     },
   }, {
-    forVersion: '7.1.2',
+    forVersion: '7.1.3',
     updateFn: (userOptions: any, defaultOptions, logger?) => {
       let hasShiftCConflict = false;
 
@@ -866,13 +866,14 @@ const ExtensionConfPatch = Object.freeze([
           && a.altKey == b.altKey;
       }
 
-      for (const ct of userOptions.commands) {
+      for (const ct in userOptions.commands) {
         for (const cmd of userOptions.commands[ct]) {
           if (cmd.shortcut && compareShortcuts(cmd.shortcut, {key: 'c', code: 'KeyC', ctrlKey: false, metaKey: false, altKey: false, shiftKey: true})) {
             hasShiftCConflict = true;
           }
         }
       }
+
       if (!userOptions.commands.videoFit?.length) {
         const clonedVideoFit = JSON.parse(JSON.stringify(defaultOptions.commands.videoFit));
         if (hasShiftCConflict) {
