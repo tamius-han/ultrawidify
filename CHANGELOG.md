@@ -2,6 +2,11 @@
 
 ## v7.x
 
+### v7.2.3
+
+* Preserve video alignment and manual pan when changing aspect ratio.
+* Fix the issue where video alignment options would sometimes move video off-screen
+
 ### v7.1.2
 
 * Some new options did not get migrated during previous update

@@ -425,7 +425,9 @@ class Resizer {
     // without any human interaction
     if (
       [AspectRatioType.Reset, AspectRatioType.Initial].includes(ar.type) &&
-      [StretchType.NoStretch, StretchType.Default].includes(this.stretcher.stretch.type)
+      [StretchType.NoStretch, StretchType.Default].includes(this.stretcher.stretch.type) &&
+      [VideoAlignmentType.Center, VideoAlignmentType.Default].includes(this.videoAlignment.x) &&
+      [VideoAlignmentType.Center, VideoAlignmentType.Default].includes(this.videoAlignment.y)
     ) {
       if (this.videoData.player.runLevel !== RunLevel.UIOnly) {
         this.eventBus.send('set-run-level', RunLevel.UIOnly);
@@ -464,7 +466,7 @@ class Resizer {
 
     // reset zoom, but only on aspect ratio switch. We also know that aspect ratio gets converted to
     // AspectRatioType.Fixed when zooming, so let's keep that in mind
-    // Restoring (lastAr provided) and manual zoom must keep current zoom and pan.
+    // Restoring (lastAr provided) and manual zoom must keep current zoom.
     if (
       !lastAr && !flags?.manualZoom && (
         (ar.type !== AspectRatioType.Fixed && ar.type !== AspectRatioType.Manual) // anything not these two _always_ changes AR
@@ -474,7 +476,7 @@ class Resizer {
       )
     ) {
       this.zoom.reset();
-      this.resetPan();
+      // this.resetPan();
     }
 
     // most everything that could go wrong went wrong by this stage, and returns can happen afterwards
@@ -923,7 +925,6 @@ class Resizer {
     const alignYOffset = (realVideoHeight * stretchFactors.yFactor - this.videoData.player.dimensions.height) * 0.5;
 
     // if one is custom, the other should be custom, too
-    // and also don't offset when video is smaller than player
 
     if (this.videoAlignment.x === VideoAlignmentType.Custom) {
       const maxPanX = Math.max(alignXOffset + PAN_EDGE_GAP * this.videoData.player.dimensions.width, 0);
@@ -934,10 +935,19 @@ class Resizer {
     } else {
       // correct horizontal alignment according to the settings
       if (!stretchFactors.preventAlignment?.x) {
+        const horizontalCropOffset = stretchFactors.relativeCropLimits?.left
+          ? this.videoData.player.dimensions.width * stretchFactors.relativeCropLimits.left
+          : alignXOffset;
+        // Crop limits can grow without bound as the target ratio approaches the player ratio.
+        const horizontalOffset = alignXOffset < 0
+          ? alignXOffset
+          : (Number.isFinite(horizontalCropOffset)
+            ? Math.max(0, Math.min(horizontalCropOffset, alignXOffset))
+            : alignXOffset);
         if (this.videoAlignment.x == VideoAlignmentType.Left) {
-          translate.x += stretchFactors?.relativeCropLimits?.left ? (this.videoData.player.dimensions.width * stretchFactors.relativeCropLimits.left): alignXOffset;
+          translate.x += horizontalOffset;
         } else if (this.videoAlignment.x == VideoAlignmentType.Right) {
-          translate.x -= stretchFactors?.relativeCropLimits?.left ? (this.videoData.player.dimensions.width * stretchFactors.relativeCropLimits.left): alignXOffset
+          translate.x -= horizontalOffset;
         }
       }
 

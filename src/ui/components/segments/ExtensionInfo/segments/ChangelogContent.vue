@@ -1,6 +1,12 @@
 <template>
   <p class="mb-4">Full changelog for older versions <a href="https://github.com/tamius-han/ultrawidify/blob/master/CHANGELOG.md" target="_blank">is available here</a>.</p>
 
+  <p>Changes in version <b class="font-semibold text-primary-400">7.1.3</b>:</p>
+  <ul>
+    <li>Fixed the issue where default alignment options wouldn't be respected, and where alignment options would get reset with every aspect ratio change.</li>
+    <li>Fixed the issue where sometimes, using alignment options would move video off-screen.</li>
+  </ul>
+
   <p>Changes in version <b class="font-semibold text-primary-400">7.1.2</b>:</p>
   <ul>
     <li>In the previous version, content fit was changed from dropdown to buttons, but due to incorrect migration the option was missing for existing users.</li>
